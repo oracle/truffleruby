@@ -85,12 +85,12 @@ public class RubyCallNode extends RubyNode {
 
         final Object[] argumentsObjects = executeArguments(frame);
 
-        return executeWithArgumentsEvaluated(frame, receiverObject, argumentsObjects);
-    }
-
-    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, Object[] argumentsObjects) {
         final DynamicObject blockObject = executeBlock(frame);
 
+        return executeWithArgumentsEvaluated(frame, receiverObject, blockObject, argumentsObjects);
+    }
+
+    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, DynamicObject blockObject, Object[] argumentsObjects) {
         if (dispatchHead == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             if (ignoreVisibility) {
