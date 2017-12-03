@@ -63,6 +63,11 @@ public abstract class InitializeClassNode extends RubyNode {
         return initializeGeneralWithBlock(frame, rubyClass, superclass, block, true);
     }
 
+    @Specialization(guards = {"!isRubyClass(superclass)", "wasProvided(superclass)"})
+    public DynamicObject initializeNotClass(VirtualFrame frame, DynamicObject rubyClass, Object superclass, Object maybeBlock) {
+        throw new RaiseException(coreExceptions().typeErrorSuperclassMustBeClass(this));
+    }
+
     private DynamicObject initializeGeneralWithoutBlock(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, boolean superClassProvided) {
         assert RubyGuards.isRubyClass(rubyClass);
         assert RubyGuards.isRubyClass(superclass);
