@@ -1,0 +1,7 @@
+exclude :test_self_prefix, "needs investigation"
+exclude :test_self_find_files, "needs investigation"
+exclude :test_self_vendor_dir, "needs investigation"
+exclude :test_self_find_latest_files, "needs investigation"
+exclude :test_self_path_default, "needs investigation"
+exclude :test_self_path_APPLE_GEM_HOME, "needs investigation"
+exclude :test_register_default_spec, "needs investigation"

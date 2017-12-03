@@ -1,0 +1,6 @@
+exclude :test_quick_marshal_a_1_mswin32_gemspec_rz, "needs investigation"
+exclude :test_quick_marshal_a_b_3_a_gemspec_rz, "needs investigation"
+exclude :test_quick_missing, "needs investigation"
+exclude :test_quick_gemdirs, "needs investigation"
+exclude :test_quick_marshal_a_3_a_gemspec_rz, "needs investigation"
+exclude :test_quick_marshal_a_1_gemspec_rz, "needs investigation"
