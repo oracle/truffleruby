@@ -1,7 +1,7 @@
 require 'openssl-stubs' if Truffle::Boot.patching_openssl_enabled?
 
 Truffle::Patching.require_original __FILE__
-Truffle::Patching.install_gem_activation_hook if Truffle::Boot.get_option 'patching'
+Truffle::Patching.install_gem_activation_hook
 
 # Because did_you_mean was required directly without RubyGems
 if Truffle::Boot.get_option 'did_you_mean'
