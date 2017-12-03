@@ -635,13 +635,25 @@ module Rubinius
     # Misc
 
     def self.rb_inspect(val)
-      str = Rubinius::Type.coerce_to(val.inspect, String, :to_s)
+      str = Rubinius::Type.rb_obj_as_string(val.inspect)
       result_encoding = Encoding.default_internal || Encoding.default_external
       if str.ascii_only? || (result_encoding.ascii_compatible? && str.encoding == result_encoding)
         str
       else
         Truffle.invoke_primitive :string_escape, str
       end
+    end
+
+    def self.rb_obj_as_string(obj)
+      return obj if object_kind_of?(obj, String)
+      str = obj.to_s
+      return Rubinius::Type.rb_any_to_s(obj) unless object_kind_of?(str, String)
+      Rubinius::Type.infect(str, obj)
+      str
+    end
+
+    def self.rb_any_to_s(obj)
+      Truffle.invoke_primitive :object_to_s, obj
     end
 
     def self.object_respond_to__dump?(obj)
