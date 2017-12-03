@@ -783,7 +783,9 @@ public class BodyTranslator extends Translator {
 
         boolean isSplatted = false;
 
-        if (argsNode instanceof ListParseNode) {
+        if (argsNode == null) {
+            // No arguments
+        } else if (argsNode instanceof ListParseNode) {
             arguments.addAll(argsNode.childNodes());
         } else if (argsNode instanceof BlockPassParseNode) {
             final BlockPassParseNode blockPass = (BlockPassParseNode) argsNode;
@@ -805,9 +807,11 @@ public class BodyTranslator extends Translator {
         } else if (argsNode instanceof ArgsCatParseNode) {
             isSplatted = true;
             arguments.add(argsNode);
-        } else if (argsNode != null) {
+        } else if (argsNode instanceof ArgsPushParseNode) {
             isSplatted = true;
             arguments.add(argsNode);
+        } else {
+            throw new UnsupportedOperationException("Unknown argument node type: " + argsNode.getClass());
         }
 
         final RubyNode[] argumentsTranslated = new RubyNode[arguments.size()];
