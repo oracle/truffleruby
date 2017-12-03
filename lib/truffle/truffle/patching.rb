@@ -5,13 +5,14 @@ module Truffle::Patching
 
   DIR = "#{Truffle::Boot.ruby_home}/lib/patches"
 
-  PATCHES = {}
-  Dir.foreach(DIR) do |file|
-    unless file[0] == '.'
-      path = "#{DIR}/#{file}"
-      PATCHES[file] = path if File.directory?(path)
-    end
-  end
+  PATCHES = {
+    'stdlib' => "#{DIR}/stdlib",
+    'bundler' => "#{DIR}/bundler",
+    'rake-compiler' => "#{DIR}/rake-compiler",
+    'rspec-core' => "#{DIR}/rspec-core",
+    'rspec-support' => "#{DIR}/rspec-support",
+    'unf' => "#{DIR}/unf",
+  }
 
   def log(name, path)
     Truffle::System.log :PATCH,
