@@ -606,7 +606,46 @@ public abstract class FormatFloatNode extends FormatNode {
                 writeExp(buf, exponent, expChar);
 
                 if (width > 0) buf.append(' ', width);
-
+                break;
+            case 'A':
+            case 'a':
+                String floatingPointLiteral;
+                final boolean isUpper = fchar == 'A';
+                final String p = isUpper ? "P" : "p";
+                final String pMinus = p + "-";
+                final String pPlus = p + "+";
+                final String precisionFormat = hasPrecisionFlag ? "." + precision : "";
+                final String formatString = "%" + precisionFormat + (isUpper ? "A" : "a");
+                floatingPointLiteral = String.format(formatString, dval);
+                if (floatingPointLiteral.indexOf(pMinus) < 0) {
+                    floatingPointLiteral = floatingPointLiteral.replace(p, pPlus);
+                }
+                if (hasPrecisionFlag && precision == 0) {
+                    throw new UnsupportedOperationException("format flags a/A do not support precision 0");
+                }
+                width -= floatingPointLiteral.length();
+                if (width > 0 && !hasZeroFlag && !hasMinusFlag) {
+                    buf.append(' ', width);
+                    width = 0;
+                }
+                if (signChar != 0 && signChar != '-') {
+                    buf.append(signChar);
+                }
+                final String hexPrefix = isUpper ? "0X" : "0x";
+                if (width > 0 && !hasMinusFlag) {
+                    StringBuilder padded = new StringBuilder();
+                    padded.append(hexPrefix);
+                    while (width > 0) {
+                        padded.append('0');
+                        width--;
+                    }
+                    floatingPointLiteral = floatingPointLiteral.replace(hexPrefix, padded.toString());
+                    width = 0;
+                }
+                buf.append(floatingPointLiteral.getBytes());
+                if (width > 0 && !hasMinusFlag) {
+                    buf.append(' ', width);
+                }
         }
         return buf.getBytes();
     }
