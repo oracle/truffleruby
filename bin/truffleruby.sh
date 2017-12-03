@@ -83,7 +83,7 @@ java_args=()
 CP=""
 
 # Increase the Metaspace size to avoid a Full GC during startup,
-# triggerred by the default MetaspaceSize (~20MB).
+# triggered by the default MetaspaceSize (~20MB).
 java_args+=("-XX:MetaspaceSize=25M")
 
 # Truffle
