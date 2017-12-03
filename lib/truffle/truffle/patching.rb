@@ -1,19 +1,15 @@
 module Truffle::Patching
   extend self
 
-  DIR = "#{Truffle::Boot.ruby_home}/lib/patches"
   ORIGINALS = {}
 
-  def patches
-    @patches ||= begin
-      patches = {}
-      Dir.foreach(DIR) do |file|
-        unless file[0] == '.'
-          path = "#{DIR}/#{file}"
-          patches[file] = path if File.directory?(path)
-        end
-      end
-      patches
+  DIR = "#{Truffle::Boot.ruby_home}/lib/patches"
+
+  PATCHES = {}
+  Dir.foreach(DIR) do |file|
+    unless file[0] == '.'
+      path = "#{DIR}/#{file}"
+      PATCHES[file] = path if File.directory?(path)
     end
   end
 
@@ -23,7 +19,7 @@ module Truffle::Patching
   end
 
   def insert_patching_dir(name, *paths)
-    path = Truffle::Patching.patches[name]
+    path = PATCHES[name]
     if path
       insertion_point = paths.
           map { |gem_require_path| $LOAD_PATH.index gem_require_path }.
