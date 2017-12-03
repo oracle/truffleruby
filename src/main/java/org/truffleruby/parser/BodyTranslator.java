@@ -779,7 +779,6 @@ public class BodyTranslator extends Translator {
         assert !(argsNode instanceof IterParseNode);
 
         final List<ParseNode> arguments = new ArrayList<>();
-        ParseNode blockPassNode = null;
 
         boolean isSplatted = false;
 
@@ -787,20 +786,6 @@ public class BodyTranslator extends Translator {
             // No arguments
         } else if (argsNode instanceof ListParseNode) {
             arguments.addAll(argsNode.childNodes());
-        } else if (argsNode instanceof BlockPassParseNode) {
-            final BlockPassParseNode blockPass = (BlockPassParseNode) argsNode;
-
-            final ParseNode blockPassArgs = blockPass.getArgsNode();
-
-            if (blockPassArgs instanceof ListParseNode) {
-                arguments.addAll(blockPassArgs.childNodes());
-            } else if (blockPassArgs instanceof ArgsCatParseNode) {
-                arguments.add(blockPassArgs);
-            } else if (blockPassArgs != null) {
-                throw new UnsupportedOperationException("Don't know how to block pass " + blockPassArgs);
-            }
-
-            blockPassNode = blockPass.getBodyNode();
         } else if (argsNode instanceof SplatParseNode) {
             isSplatted = true;
             arguments.add(argsNode);
@@ -827,6 +812,7 @@ public class BodyTranslator extends Translator {
             }
         }
 
+        ParseNode blockPassNode = null;
         if (iterNode instanceof BlockPassParseNode) {
             blockPassNode = ((BlockPassParseNode) iterNode).getBodyNode();
         }
