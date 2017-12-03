@@ -82,6 +82,10 @@ fi
 java_args=()
 CP=""
 
+# Increase the Metaspace size to avoid a Full GC during startup,
+# triggerred by the default MetaspaceSize (~20MB).
+java_args+=("-XX:MetaspaceSize=25M")
+
 # Truffle
 binary_truffle="$root/mx.imports/binary/truffle/mxbuild"
 source_truffle="$root_parent/graal/truffle/mxbuild"
