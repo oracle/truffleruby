@@ -130,6 +130,8 @@ public class PrintfSimpleTreeBuilder {
                         break;
                     case FLOAT:
                         switch (config.getFormat()){
+                            case 'a':
+                            case 'A':
                             case 'f':
                             case 'e':
                             case 'E':
