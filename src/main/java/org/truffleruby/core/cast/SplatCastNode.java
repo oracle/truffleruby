@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -39,6 +40,7 @@ public abstract class SplatCastNode extends RubyNode {
 
     private final NilBehavior nilBehavior;
     private final DynamicObject conversionMethod;
+    @CompilationFinal private boolean copy = true;
 
     @Child private ArrayDupNode dup = ArrayDupNodeGen.create(null);
     @Child private CallDispatchHeadNode toA = CallDispatchHeadNode.createReturnMissing();
@@ -48,6 +50,10 @@ public abstract class SplatCastNode extends RubyNode {
         // Calling private #to_a is allowed for the *splat operator.
         String name = useToAry ? "to_ary" : "to_a";
         conversionMethod = getContext().getSymbolTable().getSymbol(name);
+    }
+
+    public void doNotCopy() {
+        copy = false;
     }
 
     public abstract RubyNode getChild();
@@ -77,7 +83,11 @@ public abstract class SplatCastNode extends RubyNode {
     public DynamicObject splat(VirtualFrame frame, DynamicObject array) {
         // TODO(cs): is it necessary to dup here in all cases?
         // It is needed at least for [*ary] (parsed as just a SplatParseNode) and b = *ary.
-        return dup.executeDup(frame, array);
+        if (copy) {
+            return dup.executeDup(frame, array);
+        } else {
+            return array;
+        }
     }
 
     @Specialization(guards = {"!isNil(object)", "!isRubyArray(object)"})

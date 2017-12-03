@@ -819,6 +819,14 @@ public class BodyTranslator extends Translator {
             argumentsTranslated[i] = arguments.get(i).accept(this);
         }
 
+        // If the last argument is a splat, do not copy the array, to support m(*args, &args.pop)
+        if (isSplatted && argumentsTranslated.length > 0) {
+            final RubyNode last = argumentsTranslated[argumentsTranslated.length - 1];
+            if (last instanceof SplatCastNode) {
+                ((SplatCastNode) last).doNotCopy();
+            }
+        }
+
         if (iterNode instanceof BlockPassParseNode) {
             blockPassNode = ((BlockPassParseNode) iterNode).getBodyNode();
         }

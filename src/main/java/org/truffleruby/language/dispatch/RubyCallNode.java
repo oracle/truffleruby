@@ -83,9 +83,17 @@ public class RubyCallNode extends RubyNode {
             }
         }
 
-        final Object[] argumentsObjects = executeArguments(frame);
+        final Object[] executedArguments = executeArguments(frame);
 
         final DynamicObject blockObject = executeBlock(frame);
+
+        // The expansion of the splat is done after executing the block, for m(*args, &args.pop)
+        final Object[] argumentsObjects;
+        if (isSplatted) {
+            argumentsObjects = splat(executedArguments);
+        } else {
+            argumentsObjects = executedArguments;
+        }
 
         return executeWithArgumentsEvaluated(frame, receiverObject, blockObject, argumentsObjects);
     }
@@ -124,12 +132,7 @@ public class RubyCallNode extends RubyNode {
             argumentsObjects[i] = arguments[i].execute(frame);
         }
 
-        if (isSplatted) {
-            assert argumentsObjects.length == 1;
-            return splat(argumentsObjects);
-        } else {
-            return argumentsObjects;
-        }
+        return argumentsObjects;
     }
 
     private Object[] splat(Object[] arguments) {
