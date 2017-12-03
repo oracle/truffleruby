@@ -59,7 +59,7 @@ public abstract class InlinedOperationNode extends RubyNode {
     }
 
     protected Object rewriteAndCall(VirtualFrame frame, Object receiver, Object... arguments) {
-        return rewriteToCallNode().executeWithArgumentsEvaluated(frame, receiver, arguments);
+        return rewriteToCallNode().executeWithArgumentsEvaluated(frame, receiver, null, arguments);
     }
 
     protected CoreMethods coreMethods() {
