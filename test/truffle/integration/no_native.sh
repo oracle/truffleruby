@@ -3,7 +3,7 @@
 source test/truffle/common.sh.inc
 
 jt ruby -Xplatform.native=false -Xpolyglot.stdio=true -Xsync.stdio=true \
-        -Xpatching=false --disable-gems -e 'p 3*4' > temp.txt
+        --disable-gems -e 'p 3*4' > temp.txt
 
 
 if ! cmp --silent temp.txt test/truffle/integration/no_native/expected.txt
