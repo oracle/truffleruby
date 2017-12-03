@@ -1768,6 +1768,10 @@ public abstract class KernelNodes {
     @CoreMethod(names = {"to_s", "inspect"}) // Basic inspect, refined later in core
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
+        public static ToSNode create() {
+            return KernelNodesFactory.ToSNodeFactory.create(null);
+        }
+
         @Child private LogicalClassNode classNode = LogicalClassNodeGen.create(null);
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private ObjectIDNode objectIDNode = ObjectIDNodeFactory.create(null);
@@ -1785,6 +1789,17 @@ public abstract class KernelNodes {
             final DynamicObject string = makeStringNode.executeMake("#<" + className + ":0x" + hexID + ">", UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
             taintResultNode.maybeTaint(self, string);
             return string;
+        }
+
+    }
+
+    @Primitive(name = "object_to_s")
+    public abstract static class ObjectToSNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject toS(Object obj,
+                                 @Cached("create()") ToSNode kernelToSNode) {
+            return kernelToSNode.executeToS(obj);
         }
 
     }
