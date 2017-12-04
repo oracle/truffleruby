@@ -106,7 +106,6 @@ if ruby_home
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-strscan/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-stringio/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-socket/lib"
-  $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-securerandom/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-timeout/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-webrick/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/mri"
