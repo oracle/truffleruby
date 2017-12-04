@@ -102,9 +102,9 @@ if ruby_home
   $LOAD_PATH.push "#{ruby_home}/lib/ruby/site_ruby/2.3.0"
 
   $LOAD_PATH.push "#{ruby_home}/lib/truffle"
+  $LOAD_PATH.push "#{ruby_home}/lib/rubysl"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-strscan/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-stringio/lib"
-  $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-complex/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-date/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-pathname/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-socket/lib"
