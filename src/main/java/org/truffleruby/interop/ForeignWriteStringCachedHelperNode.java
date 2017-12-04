@@ -66,7 +66,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
             boolean isIVar,
             Object value,
             @Cached("createWriteMethodName(stringName)") String writeMethodName) {
-        return getCallNode().call(frame, receiver, writeMethodName, value);
+        return call(frame, receiver, writeMethodName, value);
     }
 
     protected WriteObjectFieldNode createWriteObjectFieldNode(Object name) {
@@ -86,7 +86,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
             boolean isIVar,
             Object value,
             @Cached("createWriteMethodName(stringName)") String writeMethodName) {
-        return getCallNode().call(frame, receiver, writeMethodName, value);
+        return call(frame, receiver, writeMethodName, value);
     }
 
     protected String createWriteMethodName(Object name) {
@@ -106,7 +106,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
             boolean isIVar,
             Object value,
             @Cached("createWriteMethodName(stringName)") String writeMethodName) {
-        return getCallNode().call(frame, receiver, "[]=", name, value);
+        return call(frame, receiver, "[]=", name, value);
     }
 
     @Specialization(guards = {
@@ -159,13 +159,13 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
         }
     }
 
-    protected CallDispatchHeadNode getCallNode() {
+    protected Object call(VirtualFrame frame, DynamicObject receiver, String methodName, Object... arguments) {
         if (callNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callNode = insert(CallDispatchHeadNode.createOnSelf());
         }
 
-        return callNode;
+        return callNode.call(frame, receiver, methodName, arguments);
     }
 
 }
