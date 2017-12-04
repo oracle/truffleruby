@@ -506,6 +506,11 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
+    public DynamicObject nameErrorInstanceNameNotAllowable(String name, Object originalName, Object receiver, Node currentNode) {
+        return nameError(StringUtils.format("`%s' is not allowable as an instance variable name", name), receiver, originalName, currentNode);
+    }
+
+    @TruffleBoundary
     public DynamicObject nameErrorInstanceNameNotAllowable(String name, Object receiver, Node currentNode) {
         return nameError(StringUtils.format("`%s' is not allowable as an instance variable name", name), receiver, name, currentNode);
     }
@@ -573,6 +578,11 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject nameError(String message, Object receiver, String name, Node currentNode) {
+        return nameError(message, receiver, context.getSymbolTable().getSymbol(name), currentNode);
+    }
+
+    @TruffleBoundary
+    public DynamicObject nameError(String message, Object receiver, Object name, Node currentNode) {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         DynamicObject exceptionClass = context.getCoreLibrary().getNameErrorClass();
         final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, exceptionClass);
@@ -582,7 +592,7 @@ public class CoreExceptions {
                 messageString,
                 backtrace,
                 receiver,
-                context.getSymbolTable().getSymbol(name));
+                name);
     }
 
     // NoMethodError

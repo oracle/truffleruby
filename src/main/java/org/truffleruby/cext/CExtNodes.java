@@ -1074,9 +1074,9 @@ public class CExtNodes {
     public abstract static class HiddenVariableGetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(name)")
-        public Object hiddenVariableGet(DynamicObject object, DynamicObject name,
+        public Object hiddenVariableGet(VirtualFrame frame, DynamicObject object, DynamicObject name,
                 @Cached("createObjectIVarGetNode()") ObjectIVarGetNode iVarGetNode) {
-            return iVarGetNode.executeIVarGet(object, name);
+            return iVarGetNode.executeIVarGet(frame, object, name);
         }
 
         protected ObjectIVarGetNode createObjectIVarGetNode() {
