@@ -19,6 +19,7 @@ cp -r ../ruby/ext/psych/lib/*.rb lib/mri
 cp -r ../ruby/ext/pty/lib/*.rb lib/mri
 cp -r ../ruby/ext/syslog/lib/syslog lib/mri/syslog
 
+rm lib/mri/securerandom.rb
 rm -rf test/mri/tests
 cp -r ../ruby/test test/mri/tests
 rm -rf test/mri/tests/excludes
