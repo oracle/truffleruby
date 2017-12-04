@@ -26,20 +26,22 @@
 
 require 'cmath'
 
-def Complex.generic? (other)
-  other.kind_of?(Integer) ||
-  other.kind_of?(Float)   ||
-  other.kind_of?(Rational)
-end
-
 class Complex
+  
+  def self.generic?(other)
+    other.kind_of?(Integer) ||
+      other.kind_of?(Float) ||
+      other.kind_of?(Rational)
+  end
 
-  alias image imag
+  alias_method :image, :imag
 
 end
 
 class Numeric
 
-  def im() Complex(0, self) end
+  def im
+    Complex(0, self)
+  end
 
 end
