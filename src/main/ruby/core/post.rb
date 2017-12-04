@@ -103,7 +103,6 @@ if ruby_home
 
   $LOAD_PATH.push "#{ruby_home}/lib/truffle"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl"
-  $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-strscan/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-timeout/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-webrick/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/mri"
