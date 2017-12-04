@@ -1152,18 +1152,12 @@ module Truffle::CExt
   end
 
   def rb_funcall(recv, meth, n, *args)
-    old_c_block = Thread.current[:__C_BLOCK__]
-    begin
-      block = Thread.current[:__C_BLOCK__]
-      Thread.current[:__C_BLOCK__] = nil
-      if block
-        recv.__send__(meth, *args, &block)
-      else
-        recv.__send__(meth, *args)
-      end
-    ensure
-      Thread.current[:__C_BLOCK__] = old_c_block
-    end
+    # see #call_with_thread_locally_stored_block
+    thread_local_block           = Thread.current[:__C_BLOCK__]
+    Thread.current[:__C_BLOCK__] = nil
+    recv.__send__(meth, *args, &thread_local_block)
+  ensure
+    Thread.current[:__C_BLOCK__] = thread_local_block
   end
 
   def rb_apply(recv, meth, args)
@@ -1256,10 +1250,6 @@ module Truffle::CExt
     prc.call(*args)
   end
 
-  def foreign_call_with_block(function, *args, &block)
-    Truffle::Interop.execute_without_conversion(function, *args)
-  end
-
   # The idea of rb_protect and rb_jump_tag is to avoid unwinding the
   # native stack in an uncontrolled manner. To do this we need to be
   # able to run a piece of code and capture both its result (if it
@@ -1311,13 +1301,11 @@ module Truffle::CExt
   end
 
   def rb_yield(value)
-    block = get_block
-    execute_with_mutex(block, value)
+    execute_with_mutex(rb_block_proc, value)
   end
 
   def rb_yield_splat(values)
-    block = get_block
-    execute_with_mutex(block, *values)
+    execute_with_mutex(rb_block_proc, *values)
   end
 
   def rb_ivar_lookup(object, name, default_value)
@@ -1411,25 +1399,6 @@ module Truffle::CExt
     else
       mod.const_set name, Module.new
     end
-  end
-
-  def rb_define_method(mod, name, function, argc)
-    method_body = Truffle::Graal.copy_captured_locals -> *args, &block do
-      if argc == -1
-        args = [args.size, args, self]
-      else
-        args = [self, *args]
-      end
-
-      # Using raw execute instead of #call here to avoid argument conversion
-      if block
-        Truffle::CExt.execute_with_mutex(function, *args, &block)
-      else
-        Truffle::CExt.execute_with_mutex(function, *args)
-      end
-    end
-
-    mod.send(:define_method, name, method_body)
   end
 
   def rb_define_method_undefined(mod, name)
@@ -1801,20 +1770,14 @@ module Truffle::CExt
     Thread.current.unblock unblocker, runner
   end
 
-  def rb_iterate_call_block( iter_block, block_arg, arg2, &block)
-    execute_with_mutex iter_block, block_arg, arg2, &block
-  end
-
-  def rb_iterate(function, arg1, iter_block, arg2, block)
-    if block
-      call_c_with_block function, arg1 do |block_arg|
-        rb_iterate_call_block(iter_block, block_arg, arg2) do |*args|
-          block.call(*args)
-        end
+  def rb_iterate(iteration, iterated_object, callback, callback_arg)
+    if (block = rb_block_proc)
+      call_with_thread_locally_stored_block iteration, iterated_object do |block_arg|
+        rb_iterate_call_block(callback, block_arg, callback_arg, &block)
       end
     else
-      call_c_with_block function, arg1 do |block_arg|
-        execute_with_mutex iter_block, block_arg, arg2
+      call_with_thread_locally_stored_block iteration, iterated_object do |block_arg|
+        execute_with_mutex callback, block_arg, callback_arg
       end
     end
   end
@@ -1857,16 +1820,6 @@ module Truffle::CExt
       result |= RB_WAITFD_OUT unless w.empty?
       result |= RB_WAITFD_PRI unless e.empty?
       result
-    end
-  end
-
-  def call_c_with_block(function, arg, &block)
-    old_c_block = Thread.current[:__C_BLOCK__]
-    begin
-      Thread.current[:__C_BLOCK__] = block
-      execute_with_mutex function, arg, &block
-    ensure
-      Thread.current[:__C_BLOCK__] = old_c_block
     end
   end
 

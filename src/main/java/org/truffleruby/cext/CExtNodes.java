@@ -469,6 +469,7 @@ public class CExtNodes {
     @CoreMethod(names = "rb_block_proc", onSingleton = true)
     public abstract static class BlockProcNode extends CoreMethodArrayArgumentsNode {
 
+        // TODO (pitr-ch 04-Dec-2017): needs optimising
         @TruffleBoundary
         @Specialization
         public DynamicObject blockProc() {
@@ -477,15 +478,15 @@ public class CExtNodes {
 
                 if (callNode != null) {
                     final RootNode rootNode = callNode.getRootNode();
+                    // Skip Ruby frames in cext.rb file since they are implementing methods which are implemented
+                    // with C in MRI, and therefore also implicitly skipped when looking up proc passed
+                    // to a Ruby method.
+                    if (rootNode instanceof RubyRootNode &&
+                            rootNode.getSourceSection().isAvailable() &&
+                            !rootNode.getSourceSection().getSource().getName().endsWith("truffle/cext.rb")) {
 
-                    if (rootNode instanceof RubyRootNode && rootNode.getSourceSection().isAvailable()) {
                         final DynamicObject block = RubyArguments.getBlock(frameInstance.getFrame(FrameAccess.READ_ONLY));
-
-                        if (block == null) {
-                            return nil();
-                        } else {
-                            return block;
-                        }
+                        return block == null ? nil() : block;
                     }
                 }
 
@@ -504,20 +505,6 @@ public class CExtNodes {
         public boolean rb_check_frozen(Object object) {
             isFrozenNode.raiseIfFrozen(object);
             return true;
-        }
-
-    }
-
-    @CoreMethod(names = "get_block", onSingleton = true)
-    public abstract static class GetBlockNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public DynamicObject getBlock() {
-            return Truffle.getRuntime().iterateFrames(frameInstance -> {
-                Frame frame = frameInstance.getFrame(FrameAccess.READ_ONLY);
-                return RubyArguments.tryGetBlock(frame);
-            });
         }
 
     }
