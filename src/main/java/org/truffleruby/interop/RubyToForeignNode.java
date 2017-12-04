@@ -13,7 +13,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.language.RubyNode;
@@ -26,20 +25,15 @@ public abstract class RubyToForeignNode extends RubyNode {
         return RubyToForeignNodeGen.create(null);
     }
 
-    public abstract Object executeConvert(VirtualFrame frame, Object value);
+    public abstract Object executeConvert(Object value);
 
     @Specialization(guards = "isRubySymbol(value) || isRubyString(value)")
-    public String convertString(
-            VirtualFrame frame,
-            DynamicObject value,
+    public String convertString(DynamicObject value,
             @Cached("create()") ToJavaStringNode toJavaStringNode) {
-        return toJavaStringNode.executeToJavaString(frame, value);
+        return toJavaStringNode.executeToJavaString(value);
     }
 
-    @Specialization(guards = {
-            "!isRubyString(value)",
-            "!isRubySymbol(value)"
-    })
+    @Specialization(guards = { "!isRubyString(value)", "!isRubySymbol(value)" })
     public Object noConversion(Object value) {
         return value;
     }

@@ -12,7 +12,6 @@ package org.truffleruby.interop;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyNode;
 
@@ -23,12 +22,12 @@ public abstract class ForeignToRubyNode extends RubyNode {
         return ForeignToRubyNodeGen.create(null);
     }
 
-    public abstract Object executeConvert(VirtualFrame frame, Object value);
+    protected abstract Object executeConvert(Object value);
 
     @Specialization
-    public DynamicObject convertStringCached(VirtualFrame frame, String value,
+    public DynamicObject convertStringCached(String value,
                                              @Cached("create()") FromJavaStringNode fromJavaStringNode) {
-        return fromJavaStringNode.executeFromJavaString(frame, value);
+        return fromJavaStringNode.executeFromJavaString(value);
     }
 
     @Specialization(guards = "!isString(value)")

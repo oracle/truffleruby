@@ -69,7 +69,7 @@ public class UncachedDispatchNode extends DispatchNode {
 
         final DispatchAction dispatchAction = getDispatchAction();
 
-        final String methodName = nameToJavaStringNode.executeToJavaString(frame, name);
+        final String methodName = nameToJavaStringNode.executeToJavaString(name);
         final InternalMethod method = lookupMethodNode.executeLookupMethod(frame, receiver, methodName);
 
         if (method != null) {

@@ -73,7 +73,7 @@ public abstract class ReadlineHistoryNodes {
         @Specialization
         public DynamicObject push(VirtualFrame frame, DynamicObject history, Object... lines) {
             for (Object line : lines) {
-                final String asString = toJavaStringNode.executeToJavaString(frame, line);
+                final String asString = toJavaStringNode.executeToJavaString(line);
                 addToHistory(asString);
             }
 

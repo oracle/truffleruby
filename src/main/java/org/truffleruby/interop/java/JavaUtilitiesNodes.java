@@ -16,7 +16,6 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.builtins.CoreClass;
@@ -94,11 +93,10 @@ public class JavaUtilitiesNodes {
     public static abstract class JavaGetMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object getJavaMethod(VirtualFrame frame, Object target, Object name,
-                boolean staticMethod, Object returnType, Object[] rest,
+        public Object getJavaMethod(Object target, Object name, boolean staticMethod, Object returnType, Object[] rest,
                 @Cached("create()") ToJavaStringNode toJavaStringNode) {
             if (!TruffleOptions.AOT) {
-                String methodName = toJavaStringNode.executeToJavaString(frame, name);
+                String methodName = toJavaStringNode.executeToJavaString(name);
                 Class<?> klass = (Class<?>) target;
                 Class<?> returnClass = (Class<?>) returnType;
                 @SuppressWarnings("rawtypes")
