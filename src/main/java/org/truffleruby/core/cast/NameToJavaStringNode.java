@@ -53,13 +53,13 @@ public abstract class NameToJavaStringNode extends RubyNode {
     }
 
     @Specialization(guards = { "!isString(object)", "!isRubySymbol(object)", "!isRubyString(object)" })
-    public String nameToJavaString(VirtualFrame frame, Object object,
-                                    @Cached("create()") BranchProfile errorProfile,
-                                    @Cached("create()") CallDispatchHeadNode toStr) {
+    public String nameToJavaString(Object object,
+            @Cached("create()") BranchProfile errorProfile,
+            @Cached("createOnSelf()") CallDispatchHeadNode toStr) {
         final Object coerced;
 
         try {
-            coerced = toStr.call(frame, object, "to_str");
+            coerced = toStr.call(null, object, "to_str");
         } catch (RaiseException e) {
             errorProfile.enter();
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {
