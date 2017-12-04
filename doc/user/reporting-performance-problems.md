@@ -24,9 +24,9 @@ show them so it may be a new problem to some people in the Ruby community.
 
 If you are examining the performance of TruffleRuby, we would recommend that you
 always run with the `-J-Dgraal.TraceTruffleCompilation=true` flag. If you see
-compilation failures or repeated compilation or the same methods, this is an
+compilation failures or repeated compilation of the same methods, this is an
 indicator that something is not working as intended and you may need to examine
-way, or ask us to help you do so. If you don't run with this flag Truffle will
+why, or ask us to help you do so. If you don't run with this flag Truffle will
 try to work around errors and you will not see that there is a problem.
 
 ## How to write a performance benchmark
