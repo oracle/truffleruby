@@ -12,8 +12,13 @@
 raise 'you need to run this with TruffleRuby' unless RUBY_ENGINE == 'truffleruby'
 
 require 'rbconfig'
+require 'rbconfig-for-mkmf'
 
-file = ARGV.shift
+root          = File.expand_path(__dir__ + '/..')
+file          = ARGV.shift
+file_basename = File.basename file, '.*'
+file_dir      = File.dirname file
+
 args = ARGV
 
 def run(command)
@@ -23,14 +28,21 @@ end
 
 args_joined = args.join(' ')
 
-run "ruby lib/cext/preprocess.rb #{file} > explore-pre.c"
+# use dot prefix so the files are not picked up and packed into .su file
+preprocessed_path = "#{file_dir}/.#{file_basename}.pre.c"
+expanded_path     = "#{file_dir}/.#{file_basename}.cpp.c"
+frontend_path     = "#{file_dir}/.#{file_basename}.frontend.bc"
+opt_path          = "#{file_dir}/.#{file_basename}.opt.bc"
+
+run "ruby #{root}/lib/cext/preprocess.rb #{file} > #{preprocessed_path}"
+
 run "#{RbConfig::CONFIG['CC']} -Wno-macro-redefined -E -I#{RbConfig::CONFIG['rubyhdrdir']} " +
-        "#{args_joined} explore-pre.c -o explore-cpp.c"
+        "#{args_joined} #{preprocessed_path} -o #{expanded_path}"
 run "#{RbConfig::CONFIG['CC']} -Werror=implicit-function-declaration -Wno-int-conversion -Wno-int-to-pointer-cast " +
         "-Wno-macro-redefined -Wno-unused-value -c -emit-llvm -I#{RbConfig::CONFIG['rubyhdrdir']} " +
-        "#{args_joined} explore-pre.c -o explore-frontend.bc"
-run 'llvm-dis-3.8 explore-frontend.bc'
+        "#{args_joined} #{expanded_path} -o #{frontend_path}"
+run "llvm-dis #{frontend_path}"
 
 opt_passes = %w[-always-inline -mem2reg -constprop]
-run "opt #{opt_passes.join(' ')} explore-frontend.bc -o explore-opt.bc"
-run 'llvm-dis explore-opt.bc'
+run "opt #{opt_passes.join(' ')} #{frontend_path} -o #{opt_path}"
+run "llvm-dis #{opt_path}"
