@@ -56,4 +56,21 @@ describe "NoMethodError#message" do
       e.message.match(/private method/).should_not == nil
     end
   end
+
+  it "calls receiver.inspect only when calling Exception#message" do
+    test_class = Class.new do
+      def inspect
+        raise NoMethodErrorSpecs::InstanceException
+      end
+    end
+    instance = test_class.new
+    begin
+      instance.bar
+    rescue Exception => e
+      e.name.should == :bar
+      -> {
+        e.message
+      }.should raise_error(NoMethodErrorSpecs::InstanceException)
+    end
+  end
 end
