@@ -79,16 +79,19 @@ class MSpecScript
     # Hangs in CI
     "^spec/ruby/library/net",
 
-    # openssl is tested separately as it needs Sulong
+    # openssl and zlib are tested separately as it needs Sulong
     "^spec/ruby/library/openssl",
+    "^spec/ruby/library/zlib"
   ]
 
   set :capi, [
     "spec/ruby/optional/capi"
   ]
 
+  # TODO (pitr-ch 11-Jan-2018): rename to library_cext
   set :openssl, [
-    "spec/ruby/library/openssl"
+    "spec/ruby/library/openssl",
+    "spec/ruby/library/zlib"
   ]
 
   set :truffle, [
