@@ -20,6 +20,15 @@ that is unique to us - it applies to many sophisticated virtual machines - but
 most Ruby implementations are not yet doing optimisations powerful enough to
 show them so it may be a new problem to some people in the Ruby community.
 
+## How to check for basic performance problems
+
+If you are examining the performance of TruffleRuby, we would recommend that you
+always run with the `-J-Dgraal.TraceTruffleCompilation=true` flag. If you see
+compilation failures or repeated compilation or the same methods, this is an
+indicator that something is not working as intended and you may need to examine
+way, or ask us to help you do so. If you don't run with this flag Truffle will
+try to work around errors and you will not see that there is a problem.
+
 ## How to write a performance benchmark
 
 We recommend that you use
