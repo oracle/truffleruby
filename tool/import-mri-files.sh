@@ -6,6 +6,7 @@ set -e
 rm -r lib/mri
 cp -r ../ruby/lib lib/mri
 rm lib/mri/racc/rdoc/grammar.en.rdoc
+rm lib/mri/securerandom.rb
 rm lib/mri/timeout.rb
 rm lib/mri/weakref.rb
 rm -r lib/mri/webrick*
@@ -19,7 +20,6 @@ cp -r ../ruby/ext/psych/lib/*.rb lib/mri
 cp -r ../ruby/ext/pty/lib/*.rb lib/mri
 cp -r ../ruby/ext/syslog/lib/syslog lib/mri/syslog
 
-rm lib/mri/securerandom.rb
 rm -rf test/mri/tests
 cp -r ../ruby/test test/mri/tests
 rm -rf test/mri/tests/excludes
