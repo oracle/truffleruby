@@ -349,17 +349,17 @@ public abstract class ModuleNodes {
     public abstract static class GenerateAccessorNode extends RubyNode {
 
         final boolean isGetter;
-        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
 
         public GenerateAccessorNode(boolean isGetter) {
             this.isGetter = isGetter;
         }
 
-        public abstract DynamicObject executeGenerateAccessor(VirtualFrame frame, DynamicObject module, Object name);
+        public abstract DynamicObject executeGenerateAccessor(DynamicObject module, Object name);
 
         @Specialization
-        public DynamicObject generateAccessor(VirtualFrame frame, DynamicObject module, Object nameObject) {
-            final String name = nameToJavaStringNode.executeToJavaString(frame, nameObject);
+        public DynamicObject generateAccessor(DynamicObject module, Object nameObject,
+                @Cached("create()") NameToJavaStringNode nameToJavaStringNode) {
+            final String name = nameToJavaStringNode.executeToJavaString(nameObject);
             createAccessor(module, name);
             return nil();
         }
@@ -411,7 +411,7 @@ public abstract class ModuleNodes {
         @Child private GenerateAccessorNode generateSetterNode = ModuleNodesFactory.GenerateAccessorNodeGen.create(false, null, null);
 
         @Specialization
-        public DynamicObject attr(VirtualFrame frame, DynamicObject module, Object[] names) {
+        public DynamicObject attr(DynamicObject module, Object[] names) {
             final boolean setter;
             if (names.length == 2 && names[1] instanceof Boolean) {
                 setter = (boolean) names[1];
@@ -421,9 +421,9 @@ public abstract class ModuleNodes {
             }
 
             for (Object name : names) {
-                generateGetterNode.executeGenerateAccessor(frame, module, name);
+                generateGetterNode.executeGenerateAccessor(module, name);
                 if (setter) {
-                    generateSetterNode.executeGenerateAccessor(frame, module, name);
+                    generateSetterNode.executeGenerateAccessor(module, name);
                 }
             }
             return nil();
@@ -438,10 +438,10 @@ public abstract class ModuleNodes {
         @Child private GenerateAccessorNode generateSetterNode = ModuleNodesFactory.GenerateAccessorNodeGen.create(false, null, null);
 
         @Specialization
-        public DynamicObject attrAccessor(VirtualFrame frame, DynamicObject module, Object[] names) {
+        public DynamicObject attrAccessor(DynamicObject module, Object[] names) {
             for (Object name : names) {
-                generateGetterNode.executeGenerateAccessor(frame, module, name);
-                generateSetterNode.executeGenerateAccessor(frame, module, name);
+                generateGetterNode.executeGenerateAccessor(module, name);
+                generateSetterNode.executeGenerateAccessor(module, name);
             }
             return nil();
         }
@@ -454,9 +454,9 @@ public abstract class ModuleNodes {
         @Child private GenerateAccessorNode generateGetterNode = ModuleNodesFactory.GenerateAccessorNodeGen.create(true, null, null);
 
         @Specialization
-        public DynamicObject attrReader(VirtualFrame frame, DynamicObject module, Object[] names) {
+        public DynamicObject attrReader(DynamicObject module, Object[] names) {
             for (Object name : names) {
-                generateGetterNode.executeGenerateAccessor(frame, module, name);
+                generateGetterNode.executeGenerateAccessor(module, name);
             }
             return nil();
         }
@@ -469,9 +469,9 @@ public abstract class ModuleNodes {
         @Child private GenerateAccessorNode generateSetterNode = ModuleNodesFactory.GenerateAccessorNodeGen.create(false, null, null);
 
         @Specialization
-        public DynamicObject attrWriter(VirtualFrame frame, DynamicObject module, Object[] names) {
+        public DynamicObject attrWriter(DynamicObject module, Object[] names) {
             for (Object name : names) {
-                generateSetterNode.executeGenerateAccessor(frame, module, name);
+                generateSetterNode.executeGenerateAccessor(module, name);
             }
             return nil();
         }
@@ -1585,9 +1585,9 @@ public abstract class ModuleNodes {
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
 
         @Specialization
-        public DynamicObject privateConstant(VirtualFrame frame, DynamicObject module, Object[] args) {
+        public DynamicObject privateConstant(DynamicObject module, Object[] args) {
             for (Object arg : args) {
-                String name = nameToJavaStringNode.executeToJavaString(frame, arg);
+                String name = nameToJavaStringNode.executeToJavaString(arg);
                 Layouts.MODULE.getFields(module).changeConstantVisibility(getContext(), this, name, true);
             }
             return module;
@@ -1600,9 +1600,9 @@ public abstract class ModuleNodes {
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
 
         @Specialization
-        public DynamicObject deprecateConstant(VirtualFrame frame, DynamicObject module, Object[] args) {
+        public DynamicObject deprecateConstant(DynamicObject module, Object[] args) {
             for (Object arg : args) {
-                String name = nameToJavaStringNode.executeToJavaString(frame, arg);
+                String name = nameToJavaStringNode.executeToJavaString(arg);
                 Layouts.MODULE.getFields(module).deprecateConstant(getContext(), this, name);
             }
             return module;
@@ -1615,9 +1615,9 @@ public abstract class ModuleNodes {
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
 
         @Specialization
-        public DynamicObject publicConstant(VirtualFrame frame, DynamicObject module, Object[] args) {
+        public DynamicObject publicConstant(DynamicObject module, Object[] args) {
             for (Object arg : args) {
-                String name = nameToJavaStringNode.executeToJavaString(frame, arg);
+                String name = nameToJavaStringNode.executeToJavaString(arg);
                 Layouts.MODULE.getFields(module).changeConstantVisibility(getContext(), this, name, false);
             }
             return module;
@@ -1698,7 +1698,7 @@ public abstract class ModuleNodes {
         @Specialization
         public DynamicObject removeMethods(VirtualFrame frame, DynamicObject module, Object[] names) {
             for (Object name : names) {
-                removeMethod(frame, module, nameToJavaStringNode.executeToJavaString(frame, name));
+                removeMethod(frame, module, nameToJavaStringNode.executeToJavaString(name));
             }
             return module;
         }
@@ -1768,7 +1768,7 @@ public abstract class ModuleNodes {
         @Specialization
         public DynamicObject undefMethods(VirtualFrame frame, DynamicObject module, Object[] names) {
             for (Object name : names) {
-                undefMethod(frame, module, nameToJavaStringNode.executeToJavaString(frame, name));
+                undefMethod(frame, module, nameToJavaStringNode.executeToJavaString(name));
             }
             return module;
         }
@@ -1831,9 +1831,9 @@ public abstract class ModuleNodes {
         public abstract DynamicObject executeSetMethodVisibility(VirtualFrame frame, DynamicObject module, Object name);
 
         @Specialization
-        public DynamicObject setMethodVisibility(VirtualFrame frame, DynamicObject module, Object name,
+        public DynamicObject setMethodVisibility(DynamicObject module, Object name,
                 @Cached("create()") BranchProfile errorProfile) {
-            final String methodName = nameToJavaStringNode.executeToJavaString(frame, name);
+            final String methodName = nameToJavaStringNode.executeToJavaString(name);
 
             final InternalMethod method = Layouts.MODULE.getFields(module).deepMethodSearch(getContext(), methodName);
 

@@ -11,7 +11,6 @@ package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 
@@ -28,16 +27,16 @@ public abstract class ToJavaStringWithDefaultNode extends RubyNode {
         this.defaultValue = defaultValue;
     }
 
-    public abstract String executeString(VirtualFrame frame, Object value);
+    public abstract String executeString(Object value);
 
     @Specialization
-    public String doDefault(VirtualFrame frame, NotProvided value) {
-        return toJavaStringNode.executeToJavaString(frame, defaultValue);
+    public String doDefault(NotProvided value) {
+        return toJavaStringNode.executeToJavaString(defaultValue);
     }
 
     @Specialization(guards = "wasProvided(value)")
-    public String doProvided(VirtualFrame frame, Object value) {
-        return toJavaStringNode.executeToJavaString(frame, value);
+    public String doProvided(Object value) {
+        return toJavaStringNode.executeToJavaString(value);
     }
 
 }

@@ -12,7 +12,6 @@ package org.truffleruby.interop;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.rope.CodeRange;
@@ -28,11 +27,10 @@ public abstract class FromJavaStringNode extends RubyNode {
         return FromJavaStringNodeGen.create(null);
     }
 
-    public abstract DynamicObject executeFromJavaString(VirtualFrame frame, Object value);
+    public abstract DynamicObject executeFromJavaString(Object value);
 
     @Specialization(guards = "stringsEquals(cachedValue, value)", limit = "getLimit()")
-    public DynamicObject fromJavaString(
-            String value,
+    public DynamicObject fromJavaString(String value,
             @Cached("value") String cachedValue,
             @Cached("getRope(value)") Rope cachedRope,
             @Cached("create()") StringNodes.MakeStringNode makeStringNode) {

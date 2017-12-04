@@ -12,7 +12,6 @@ package org.truffleruby.interop;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import org.truffleruby.language.RubyNode;
 
@@ -23,31 +22,31 @@ public abstract class ForeignToRubyArgumentsNode extends RubyNode {
         return ForeignToRubyArgumentsNodeGen.create(null);
     }
 
-    public abstract Object[] executeConvert(VirtualFrame frame, Object[] args);
+    public abstract Object[] executeConvert(Object[] args);
 
     @Specialization(
             guards = "args.length == cachedArgsLength",
             limit = "getLimit()")
     @ExplodeLoop
-    public Object[] convertCached(VirtualFrame frame, Object[] args,
+    public Object[] convertCached(Object[] args,
                                   @Cached("args.length") int cachedArgsLength,
                                   @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
         final Object[] convertedArgs = new Object[cachedArgsLength];
 
         for (int n = 0; n < cachedArgsLength; n++) {
-            convertedArgs[n] = foreignToRubyNode.executeConvert(frame, args[n]);
+            convertedArgs[n] = foreignToRubyNode.executeConvert(args[n]);
         }
 
         return convertedArgs;
     }
 
     @Specialization(replaces = "convertCached")
-    public Object[] convertUncached(VirtualFrame frame, Object[] args,
+    public Object[] convertUncached(Object[] args,
                                     @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
         final Object[] convertedArgs = new Object[args.length];
 
         for (int n = 0; n < args.length; n++) {
-            convertedArgs[n] = foreignToRubyNode.executeConvert(frame, args[n]);
+            convertedArgs[n] = foreignToRubyNode.executeConvert(args[n]);
         }
 
         return convertedArgs;

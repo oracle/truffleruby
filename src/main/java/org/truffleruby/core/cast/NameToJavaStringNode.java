@@ -13,7 +13,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
@@ -33,18 +32,18 @@ public abstract class NameToJavaStringNode extends RubyNode {
         return NameToJavaStringNodeGen.create(null);
     }
 
-    public abstract String executeToJavaString(VirtualFrame frame, Object name);
+    public abstract String executeToJavaString(Object name);
 
     @Specialization(guards = "isRubyString(value)")
-    public String stringNameToJavaString(VirtualFrame frame, DynamicObject value,
+    public String stringNameToJavaString(DynamicObject value,
                                          @Cached("create()") ToJavaStringNode toJavaStringNode) {
-        return toJavaStringNode.executeToJavaString(frame, value);
+        return toJavaStringNode.executeToJavaString(value);
     }
 
     @Specialization(guards = "isRubySymbol(value)")
-    public String symbolNameToJavaString(VirtualFrame frame, DynamicObject value,
+    public String symbolNameToJavaString(DynamicObject value,
                                          @Cached("create()") ToJavaStringNode toJavaStringNode) {
-        return toJavaStringNode.executeToJavaString(frame, value);
+        return toJavaStringNode.executeToJavaString(value);
     }
 
     @Specialization

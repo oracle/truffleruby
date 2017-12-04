@@ -1043,7 +1043,7 @@ public abstract class KernelNodes {
         public DynamicObject method(VirtualFrame frame, Object self, DynamicObject name,
                 @Cached("createBinaryProfile()") ConditionProfile notFoundProfile,
                 @Cached("createBinaryProfile()") ConditionProfile respondToMissingProfile) {
-            final String normalizedName = nameToJavaStringNode.executeToJavaString(frame, name);
+            final String normalizedName = nameToJavaStringNode.executeToJavaString(name);
             InternalMethod method = lookupMethodNode.executeLookupMethod(frame, self, normalizedName);
 
             if (notFoundProfile.profile(method == null)) {

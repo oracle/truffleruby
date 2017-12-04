@@ -174,7 +174,7 @@ public abstract class VMPrimitiveNodes {
         @Specialization
         public DynamicObject vmMethodLookup(VirtualFrame frame, Object self, Object name) {
             // TODO BJF Sep 14, 2016 Handle private
-            final String normalizedName = nameToJavaStringNode.executeToJavaString(frame, name);
+            final String normalizedName = nameToJavaStringNode.executeToJavaString(name);
             InternalMethod method = lookupMethodNode.executeLookupMethod(frame, self, normalizedName);
             if (method == null) {
                 return nil();

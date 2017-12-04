@@ -128,7 +128,7 @@ public class RubyMessageResolution {
                     toJavaStringNode = insert(ToJavaStringNode.create());
                 }
 
-                return toJavaStringNode.executeToJavaString(frame, object);
+                return toJavaStringNode.executeToJavaString(object);
             } else if (pointerProfile.profile(Layouts.POINTER.isPointer(object))) {
                 return Layouts.POINTER.getPointer(object).getAddress();
             } else if (doesRespond.doesRespondTo(frame, "unbox", object)) {
@@ -223,7 +223,7 @@ public class RubyMessageResolution {
                     frame,
                     object,
                     name,
-                    foreignToRubyNode.executeConvert(frame, value));
+                    foreignToRubyNode.executeConvert(value));
         }
 
     }
@@ -268,7 +268,7 @@ public class RubyMessageResolution {
         protected Object access(VirtualFrame frame, DynamicObject object, Object[] arguments) {
             return executeMethodNode.executeCall(
                     object,
-                    foreignToRubyArgumentsNode.executeConvert(frame, arguments));
+                    foreignToRubyArgumentsNode.executeConvert(arguments));
         }
 
     }
@@ -285,7 +285,7 @@ public class RubyMessageResolution {
                     receiver,
                     name,
                     null,
-                    foreignToRubyArgumentsNode.executeConvert(frame, arguments));
+                    foreignToRubyArgumentsNode.executeConvert(arguments));
         }
 
     }
@@ -302,7 +302,7 @@ public class RubyMessageResolution {
                     receiver,
                     "new",
                     null,
-                    foreignToRubyArgumentsNode.executeConvert(frame, arguments));
+                    foreignToRubyArgumentsNode.executeConvert(arguments));
         }
 
     }

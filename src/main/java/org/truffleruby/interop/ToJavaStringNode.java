@@ -13,7 +13,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.Rope;
@@ -30,7 +29,7 @@ public abstract class ToJavaStringNode extends RubyNode {
         return ToJavaStringNodeGen.create(null);
     }
 
-    public abstract String executeToJavaString(VirtualFrame frame, Object name);
+    public abstract String executeToJavaString(Object name);
 
     @Specialization(guards = { "isRubyString(value)", "equalsNode.execute(rope(value), cachedRope)" }, limit = "getLimit()")
     String stringCached(DynamicObject value,
