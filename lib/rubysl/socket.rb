@@ -26,36 +26,36 @@
 
 require 'fcntl'
 
-require 'rubysl/socket'
-require 'rubysl/socket/version'
-require 'rubysl/socket/socket_options'
+require 'socket/rubysl'
+require 'socket/rubysl/version'
+require 'socket/rubysl/socket_options'
 
 require 'socket/socket_error'
 require 'socket/basic_socket'
 require 'socket/constants'
 
-require 'rubysl/socket/foreign/addrinfo'
-require 'rubysl/socket/foreign/linger'
-require 'rubysl/socket/foreign/ifaddrs'
-require 'rubysl/socket/foreign/sockaddr'
-require 'rubysl/socket/foreign/sockaddr_in'
-require 'rubysl/socket/foreign/sockaddr_in6'
+require 'socket/rubysl/foreign/addrinfo'
+require 'socket/rubysl/foreign/linger'
+require 'socket/rubysl/foreign/ifaddrs'
+require 'socket/rubysl/foreign/sockaddr'
+require 'socket/rubysl/foreign/sockaddr_in'
+require 'socket/rubysl/foreign/sockaddr_in6'
 
 if RubySL::Socket.unix_socket_support?
-  require 'rubysl/socket/foreign/sockaddr_un'
+  require 'socket/rubysl/foreign/sockaddr_un'
 end
 
-require 'rubysl/socket/foreign/iovec'
-require 'rubysl/socket/foreign/msghdr'
-require 'rubysl/socket/foreign/hostent'
-require 'rubysl/socket/foreign/servent'
+require 'socket/rubysl/foreign/iovec'
+require 'socket/rubysl/foreign/msghdr'
+require 'socket/rubysl/foreign/hostent'
+require 'socket/rubysl/foreign/servent'
 
-require 'rubysl/socket/ipv6'
-require 'rubysl/socket/ancillary_data'
-require 'rubysl/socket/foreign'
-require 'rubysl/socket/error'
-require 'rubysl/socket/bsd' if RubySL::Socket.bsd_support?
-require 'rubysl/socket/linux' if RubySL::Socket.linux_support?
+require 'socket/rubysl/ipv6'
+require 'socket/rubysl/ancillary_data'
+require 'socket/rubysl/foreign'
+require 'socket/rubysl/error'
+require 'socket/rubysl/bsd' if RubySL::Socket.bsd_support?
+require 'socket/rubysl/linux' if RubySL::Socket.linux_support?
 
 require 'socket/socket'
 require 'socket/option'
