@@ -59,6 +59,11 @@ module Rubinius
     def initialize(argv = ARGV, *others)
       @argv = argv.equal?(ARGV) ? ARGV : [argv, *others]
       @lineno = 0
+      # Setting $. sets ARGF.last_lineno, but does not set
+      # ARGF.lineno, Almost every operation that sets lineno also sets
+      # last_lineno to match. This behaviour is intended to match
+      # `io.c` in the MRI implementation.
+      @last_lineno = 0
       @advance = true
       @init = false
       @use_stdin_only = false
@@ -87,9 +92,10 @@ module Rubinius
     #
     def close
       advance!
-      @stream.close
+      @stream.close unless @stream.to_io == STDIN
       @advance = true unless @use_stdin_only
       @lineno = 0
+      @last_lineno = 0
       @binmode = false
       self
     end
@@ -285,8 +291,7 @@ module Rubinius
         end
 
         Truffle.invoke_primitive(:io_set_last_line, line) if line
-        @lineno += 1
-        $. = @lineno
+        @last_lineno = @lineno += 1
         return line
       end
     end
@@ -310,7 +315,8 @@ module Rubinius
     # @todo Should this be public? --rue
     #
     def lineno=(val)
-      $. = @lineno = val
+      @lineno = val
+      @last_lineno = val
     end
 
     #
@@ -405,6 +411,53 @@ module Rubinius
       output
     end
 
+    def getpartial(bytes, output, is_blocking, exception: true)
+      # The user might try to pass in nil, so we have to check here
+      if output.nil?
+        output = default_value
+      else
+        output = StringValue(output)
+        output.clear
+      end
+
+      raise EOFError unless advance!
+
+      res = begin
+              if is_blocking
+                @stream.readpartial(bytes)
+              else
+                @stream.read_nonblock(bytes, exception: exception)
+              end
+            rescue EOFError
+              if @argv.empty?
+                raise
+              else
+                nil
+              end
+            end
+
+      if res
+        return res if !exception && res == :wait_readable
+        output << res
+      else
+        unless @use_stdin_only
+          @stream.close unless @stream.closed?
+          @advance = true
+        end
+      end
+
+      output
+    end
+    private :getpartial
+
+    def readpartial(bytes, output=nil)
+      getpartial(bytes, output, true)
+    end
+
+    def read_nonblock(bytes, output=nil, exception: true)
+      getpartial(bytes, output, false, exception: exception)
+    end
+
     #
     # Read next line of text.
     #
@@ -483,7 +536,7 @@ module Rubinius
     # stream gets closed. Returns self.
     #
     def skip
-      return self if @use_stdin_only
+      return self if @use_stdin_only || @stream.nil?
       @stream.close unless @stream.closed?
       @advance = true
       self
@@ -576,3 +629,11 @@ end
 #
 ARGF = Rubinius::ARGFClass.new(ARGV)
 $< = ARGF
+Truffle::KernelOperations.define_hooked_variable(
+  :$FILENAME,
+  -> { ARGF.filename },
+  -> _ { raise Error, 'Attempt to set $FILENAME' } )
+Truffle::KernelOperations.define_hooked_variable(
+  :$.,
+  -> { ARGF.instance_variable_get(:@last_lineno) },
+  -> value { ARGF.instance_variable_set(:@last_lineno, value) } )
