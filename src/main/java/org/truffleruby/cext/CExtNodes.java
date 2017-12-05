@@ -926,18 +926,6 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_define_hooked_variable_inner", onSingleton = true, required = 3)
-    public abstract static class DefineHookedVariableInnerNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = {"isRubySymbol(name)", "isRubyProc(getter)", "isRubyProc(setter)"})
-        public DynamicObject defineHookedVariableInnerNode(DynamicObject name, DynamicObject getter, DynamicObject setter) {
-            getContext().getCoreLibrary().getGlobalVariables().put(Layouts.SYMBOL.getString(name), getter, setter);
-            return nil();
-        }
-
-    }
-
     @CoreMethod(names = "rb_hash", onSingleton = true, required = 1)
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
         @Child private org.truffleruby.core.hash.HashNode hash;

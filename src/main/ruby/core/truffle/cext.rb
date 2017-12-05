@@ -2015,7 +2015,7 @@ module Truffle::CExt
       execute_with_mutex setter, value, id, gvar, nil
     }
 
-    rb_define_hooked_variable_inner id, getter_proc, setter_proc
+    Truffle::KernelOperations.define_hooked_variable id, getter_proc, setter_proc
   end
 
   LOG_WARNING = Truffle::Boot.get_option 'cexts.log.warnings'
