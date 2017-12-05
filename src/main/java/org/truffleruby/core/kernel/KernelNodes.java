@@ -813,15 +813,10 @@ public abstract class KernelNodes {
     })
     public abstract static class InstanceVariableGetNode extends CoreMethodNode {
 
-        @CreateCast("name")
-        public RubyNode coerceName(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
-        }
-
         @Specialization
-        public Object instanceVariableGetSymbol(DynamicObject object, String name,
+        public Object instanceVariableGetSymbol(VirtualFrame frame, DynamicObject object, Object name,
                 @Cached("createObjectIVarGetNode()") ObjectIVarGetNode iVarGetNode) {
-            return iVarGetNode.executeIVarGet(object, name);
+            return iVarGetNode.executeIVarGet(frame, object, name);
         }
 
         protected ObjectIVarGetNode createObjectIVarGetNode() {

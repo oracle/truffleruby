@@ -165,9 +165,9 @@ public abstract class TypeNodes {
     public abstract static class ObjectIVarGetPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object ivarGet(DynamicObject object, DynamicObject name,
+        public Object ivarGet(VirtualFrame frame, DynamicObject object, DynamicObject name,
                 @Cached("createObjectIVarGetNode()") ObjectIVarGetNode iVarGetNode) {
-            return iVarGetNode.executeIVarGet(object, Layouts.SYMBOL.getString(name));
+            return iVarGetNode.executeIVarGet(frame, object, Layouts.SYMBOL.getString(name));
         }
 
         protected ObjectIVarGetNode createObjectIVarGetNode() {
