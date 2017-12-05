@@ -17,8 +17,9 @@ glob('lib/mri/net/*.rb').map { |file| File.basename(file, '.*') }.each { |file|
   stdlibs << "net/#{file}"
 }
 
-glob('lib/rubysl/rubysl-*') { |dir|
-  stdlibs << File.basename(dir).sub(/^rubysl-/, '')
+glob('lib/rubysl/*.rb') { |file|
+  lib = File.basename(file, '.*')
+  stdlibs << lib
 }
 
 stdlibs += %w[json]
