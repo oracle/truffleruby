@@ -76,4 +76,3 @@ module Truffle
 end
 
 RUBY_ENGINE_FAKE_JRUBY='jruby'
-RUBY_ENGINE_FAKE_RUBINIUS='rbx'

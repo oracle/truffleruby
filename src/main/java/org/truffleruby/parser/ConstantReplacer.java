@@ -20,13 +20,6 @@ import com.oracle.truffle.api.source.Source;
 public class ConstantReplacer {
 
     public static String replacementName(Source source, String name) {
-        // We want to use the pure-ruby version, synchronized with monitor, as the RUBY_ENGINE == 'rbx' case.
-        if (source.getName().endsWith("/lib/thread_safe.rb")) {
-            if (name.equals("RUBY_ENGINE")) {
-                return name + "_FAKE_RUBINIUS";
-            }
-        }
-
         // The tzinfo gem checks if RUBY_ENGINE is defined and the value is either 'jruby' or 'rbx' to determine
         // whether $SAFE is supported. Since our RUBY_ENGINE value doesn't match either of those values, it is assumed
         // that we support $SAFE, which we do not. In order to properly pass the tests, we pretend that we're JRuby here.
