@@ -844,8 +844,8 @@ PATCHED_FILES = {
         replacement: 'rb_tr_handle_for_managed_leaking(comparator),'
       },
       { # enc_cb
-        match: 'rb_iv_set(self, "@encoding", rb_enc_from_encoding(e));',
-        replacement: 'rb_iv_set(rb_tr_managed_from_handle(_self), "@encoding", rb_enc_from_encoding(e));'
+        match: 'VALUE self = (VALUE)_self;',
+        replacement: 'VALUE self = rb_tr_managed_from_handle(_self);'
       },
       { # db_encoding
         match: 'sqlite3_exec(ctx->db, "PRAGMA encoding", enc_cb, (void *)self, NULL);',
