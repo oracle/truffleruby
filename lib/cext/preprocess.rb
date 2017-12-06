@@ -803,7 +803,7 @@ PATCHED_FILES = {
         match: 'ctx->db, NIL_P(block) ? NULL : rb_sqlite3_busy_handler, (void *)self);',
         replacement: 'ctx->db, NIL_P(block) ? NULL : rb_sqlite3_busy_handler, rb_tr_handle_for_managed_leaking(self));'
       },
-      { # rb_sqlite3_func
+      { # rb_sqlite3_func, rb_sqlite3_step, rb_sqlite3_final
         match: 'VALUE callable = (VALUE)sqlite3_user_data(ctx);',
         replacement: 'VALUE callable = rb_tr_managed_from_handle(sqlite3_user_data(ctx));'
       },
@@ -816,20 +816,12 @@ PATCHED_FILES = {
         replacement: 'rb_tr_handle_for_managed_leaking(block),'
       },
       { # rb_sqlite3_step
-        match: 'VALUE callable = (VALUE)sqlite3_user_data(ctx);',
-        replacement: 'VALUE callable = rb_tr_managed_from_handle(sqlite3_user_data(ctx));'
-      },
-      { # rb_sqlite3_step
         match: 'params = xcalloc((size_t)argc, sizeof(VALUE *));',
         replacement: 'params = truffle_managed_malloc((size_t)argc * sizeof(VALUE *));'
       },
       { # rb_sqlite3_step
         match: 'xfree(params);',
         replacement: ''
-      },
-      { # rb_sqlite3_final
-        match: 'VALUE callable = (VALUE)sqlite3_user_data(ctx);',
-        replacement: 'VALUE callable = rb_tr_managed_from_handle(sqlite3_user_data(ctx));'
       },
       { # define_aggregator
         match: '(void *)aggregator,',
