@@ -236,6 +236,9 @@ class NotImplementedError < ScriptError
 end
 
 class Interrupt < SignalException
+  def initialize(message = nil)
+    super(Signal.list['INT'], message)
+  end
 end
 
 class IOError < StandardError
@@ -390,37 +393,44 @@ end
 
 class SignalException < Exception
 
+  alias :signm :message
   attr_reader :signo
-  attr_reader :signm
 
-  def initialize(signo = nil, signm = nil)
-    # MRI overrides this behavior just for SignalException itself
-    # but not for anything that inherits from it, therefore we
-    # need this ugly check to make sure it works as intended.
-    return super(signo) unless self.class == SignalException
-    if signo.is_a? Integer
-      unless @signm = Signal::Numbers[signo]
-        raise ArgumentError, "invalid signal number #{signo}"
-      end
-      @signo = signo
-      @signm = signm || "SIG#{@signm}"
-    elsif signo
-      if signm
-        raise ArgumentError, 'wrong number of arguments (2 for 1)'
-      end
-      signm = signo
-      if signo.kind_of?(Symbol)
-        signm = signm.to_s
+  def initialize(sig, message = undefined)
+    signo = Rubinius::Type.rb_check_to_integer(sig, :to_int)
+    if signo.nil?
+      raise ArgumentError, 'wrong number of arguments (given 2, expected 1)' unless undefined.equal?(message)
+      if sig.is_a?(Symbol)
+        sig = sig.to_s
       else
-        signm = StringValue(signm)
+        sig = StringValue(sig)
       end
-      signm = signm[3..-1] if signm.start_with? 'SIG'
-      unless @signo = Signal::Names[signm]
-        raise ArgumentError, "invalid signal name #{signm}"
+      signal_name = sig
+      if signal_name.start_with?('SIG')
+        signal_name = signal_name[3..-1]
       end
-      @signm = "SIG#{signm}"
+      signo = Signal::Names[signal_name]
+      if signo.nil?
+        raise ArgumentError, "invalid signal name SIG#{sig}"
+      end
+      name_with_prefix = 'SIG%s' % signal_name
+    else
+      if signo < 0 || signo > Signal::NSIG
+        raise ArgumentError, "invalid signal number (#{signo})"
+      end
+      name_with_prefix = if undefined.equal?(message)
+                           name = Signal::Numbers[signo]
+                           if name.nil?
+                             'SIG%d' % signo
+                           else
+                             'SIG%s' % name
+                           end
+                         else
+                           message
+                         end
     end
-    super(@signm)
+    @signo = signo
+    super(name_with_prefix)
   end
 end
 
