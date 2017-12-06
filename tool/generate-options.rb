@@ -20,7 +20,7 @@ end
 options_data = YAML.load_file('tool/options.yml')
 
 options = options_data.map do |constant, values|
-  raise "More than 4 arguments in #{values} for #{constant}" unless values.size == 4
+  raise "More or less than 4 arguments in #{values} for #{constant}" unless values.size == 4
   (name, *mri_names), type, default, description = values
 
   case type
