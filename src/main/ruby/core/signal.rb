@@ -46,6 +46,8 @@ module Signal
     Names['CLD'] = Names['CHLD']
   end
 
+  NSIG = Numbers.keys.max + 1
+
   # We want Numbers[SIGCHLD_VALUE] to refer to 'CHLD' not 'CLD',
   # as CLD is not recognized by `new sun.misc.Signal("CLD")`
   Numbers[Names['CHLD']] = 'CHLD'
