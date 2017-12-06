@@ -16,7 +16,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.kernel.KernelNodes;
-import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -30,7 +29,7 @@ public abstract class ToSNode extends RubyNode {
     protected DynamicObject kernelToS(Object object) {
         if (kernelToSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            kernelToSNode = insert(KernelNodesFactory.ToSNodeFactory.create(null));
+            kernelToSNode = insert(KernelNodes.ToSNode.create());
         }
         return kernelToSNode.executeToS(object);
     }

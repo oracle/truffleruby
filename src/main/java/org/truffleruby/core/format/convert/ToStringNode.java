@@ -23,7 +23,6 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.kernel.KernelNodes;
-import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -142,7 +141,7 @@ public abstract class ToStringNode extends FormatNode {
         if (inspectOnConversionFailure) {
             if (inspectNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                inspectNode = insert(KernelNodesFactory.ToSNodeFactory.create(null));
+                inspectNode = insert(KernelNodes.ToSNode.create());
             }
 
             return bytesNode.execute(Layouts.STRING.getRope(inspectNode.toS(object)));
