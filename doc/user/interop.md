@@ -415,3 +415,6 @@ TruffleRuby is by default a multi-threaded language. This may be incompatible
 with other Truffle languages, so you can disable the creation of multiple
 threads with the option `-Xsingle_threaded`, or
 `-Dtruffleruby.single_threaded=true` from another launcher.
+
+The `timeout` module knows about this option and will warn that the timeout is
+being ignored, rather than failing.
