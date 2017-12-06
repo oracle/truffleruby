@@ -808,10 +808,6 @@ PATCHED_FILES = {
         replacement: 'VALUE callable = rb_tr_managed_from_handle(sqlite3_user_data(ctx));'
       },
       { # define_function_with_flags
-        match: 'NUM2INT(flags),',
-        replacement: 'flags,'
-      },
-      { # define_function_with_flags
         match: '(void *)block,',
         replacement: 'rb_tr_handle_for_managed_leaking(block),'
       },
