@@ -40,17 +40,20 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.yield.YieldNode;
 
 
 @CoreClass("Range")
 public abstract class RangeNodes {
 
-    @CoreMethod(names = { "map", "collect" }, needsBlock = true)
-    public abstract static class MapNode extends YieldingCoreMethodNode {
+    @Primitive(name = "range_integer_map", needsSelf = false)
+    public abstract static class IntegerMapNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private YieldNode yieldNode;
 
         @Specialization(guards = "isIntRange(range)")
         public DynamicObject map(DynamicObject range, DynamicObject block,
-                @Cached("create()") ArrayBuilderNode arrayBuilder) {
+                                 @Cached("create()") ArrayBuilderNode arrayBuilder) {
             final int begin = Layouts.INT_RANGE.getBegin(range);
             final int end = Layouts.INT_RANGE.getEnd(range);
             final boolean excludedEnd = Layouts.INT_RANGE.getExcludedEnd(range);
@@ -66,7 +69,7 @@ public abstract class RangeNodes {
                         count++;
                     }
 
-                    store = arrayBuilder.appendValue(store, n, yield(block, begin + direction * n));
+                    store = arrayBuilder.appendValue(store, n, dispatch(block, begin + direction * n));
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -77,13 +80,19 @@ public abstract class RangeNodes {
             return createArray(arrayBuilder.finish(store, length), length);
         }
 
-        @Specialization(guards = "isObjectRange(range)")
-        public Object mapObject(VirtualFrame frame, DynamicObject range, DynamicObject block,
-                                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "ret = []; range.each { |x| ret << block.call(x) }; ret",
-                    "range", range, "block", block);
+        @Fallback
+        public Object mapFallback(Object range, Object block) {
+            return FAILURE;
         }
 
+        private Object dispatch(DynamicObject block, Object... argumentsObjects) {
+            if (yieldNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                yieldNode = insert(new YieldNode());
+            }
+
+            return yieldNode.dispatch(block, argumentsObjects);
+        }
     }
 
     @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")
