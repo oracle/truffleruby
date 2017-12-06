@@ -1,12 +1,11 @@
 # Threads
 
-Each Ruby fiber is implemented as a Java thread.
-In Ruby, a thread has one or more fibers.
-A Ruby thread has a root fiber which is created even if you aren't explicitly
-using fibers, so you are always running in a fiber.
+Each Ruby fiber is implemented as a Java thread. In Ruby, a thread has one or
+more fibers. A Ruby thread has a root fiber which is created even if you aren't
+explicitly using fibers, so you are always running in a fiber.
 
-Fibers work by message passing.
-A fiber which has yielded waits for messages from other fibers to continue.
+Fibers work by message passing. A fiber which has yielded waits for messages
+from other fibers to continue.
 
 The safepoint manager maintains a list of Java threads which implement fibers.
 
