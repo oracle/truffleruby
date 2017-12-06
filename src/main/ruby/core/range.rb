@@ -326,6 +326,14 @@ class Range
     end
   end
 
+  def collect
+    Truffle.primitive :range_integer_map
+
+    super
+  end
+
+  alias_method :map, :collect
+
   def to_a_internal # MODIFIED called from java to_a
     return to_a_from_enumerable unless self.begin.kind_of? Fixnum and self.end.kind_of? Fixnum
 
