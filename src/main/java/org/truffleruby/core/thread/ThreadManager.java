@@ -98,6 +98,10 @@ public class ThreadManager {
     }
 
     public Thread createJavaThread(Runnable runnable) {
+        if (context.getLanguage().SINGLE_THREADED) {
+            throw new RaiseException(context.getCoreExceptions().internalError("threads not allowed in single-threaded mode", null));
+        }
+
         final Thread thread = context.getEnv().createThread(runnable);
         rubyManagedThreads.add(thread);
         return thread;
