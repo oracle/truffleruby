@@ -135,26 +135,37 @@ module Timeout
     return r
   end
 
-  ##
-  # Executes the method's block. If the block execution terminates before +sec+
-  # seconds has passed, it returns true. If not, it terminates the execution
-  # and raises +exception+ (which defaults to Timeout::Error).
-  #
-  # Note that this is both a method of module Timeout, so you can 'include
-  # Timeout' into your classes so they have a #timeout method, as well as a
-  # module method, so you can call it directly as Timeout.timeout().
 
-  def timeout(sec, exception=Error)
-    return yield if sec == nil or sec.zero?
-    raise ThreadError, "timeout within critical session" if Thread.respond_to?(:critical) && Thread.critical
-
-    req = Timeout.add_timeout sec, exception
-
-    begin
-      yield sec
-    ensure
-      req.abort
+  if Truffle::Boot.single_threaded?
+  
+    def timeout(sec, exception=Error)
+      Truffle::Debug.log_warning "threads are disabled, so timeout is being ignored"
     end
+  
+  else
+    
+    ##
+    # Executes the method's block. If the block execution terminates before +sec+
+    # seconds has passed, it returns true. If not, it terminates the execution
+    # and raises +exception+ (which defaults to Timeout::Error).
+    #
+    # Note that this is both a method of module Timeout, so you can 'include
+    # Timeout' into your classes so they have a #timeout method, as well as a
+    # module method, so you can call it directly as Timeout.timeout().
+
+    def timeout(sec, exception=Error)
+      return yield if sec == nil or sec.zero?
+      raise ThreadError, "timeout within critical session" if Thread.respond_to?(:critical) && Thread.critical
+
+      req = Timeout.add_timeout sec, exception
+
+      begin
+        yield sec
+      ensure
+        req.abort
+      end
+    end
+    
   end
 
   module_function :timeout
