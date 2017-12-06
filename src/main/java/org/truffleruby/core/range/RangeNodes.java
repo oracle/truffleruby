@@ -35,6 +35,7 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -74,6 +75,13 @@ public abstract class RangeNodes {
             }
 
             return createArray(arrayBuilder.finish(store, length), length);
+        }
+
+        @Specialization(guards = "isObjectRange(range)")
+        public Object mapObject(VirtualFrame frame, DynamicObject range, DynamicObject block,
+                                @Cached("new()") SnippetNode snippetNode) {
+            return snippetNode.execute(frame, "ret = []; range.each { |x| ret << block.call(x) }; ret",
+                    "range", range, "block", block);
         }
 
     }
