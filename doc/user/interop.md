@@ -16,6 +16,7 @@ Interop ignores visibility entirely.
 * [Interop eval](#interop-eval)
 * [Additional methods](#additional-methods)
 * [Notes on method resolution](#notes-on-method-resolution)
+* [Threading and interop](#threading-and-interop)
 
 ## How Ruby responds to messages
 
@@ -407,3 +408,10 @@ call-site logic. They are not being provided by `BasicObject` or `Kernel` as you
 may expect. This means that for example `#method` isn't available, and you can't
 use it to get the method for `#to_a` on a foreign object, as it is a
 special-form, not a method.
+
+## Threading and interop
+
+TruffleRuby is by default a multi-threaded language. This may be incompatible
+with other Truffle languages, so you can disable the creation of multiple
+threads with the option `-Xsingle_threaded`, or
+`-Dtruffleruby.single_threaded=true` from another launcher.

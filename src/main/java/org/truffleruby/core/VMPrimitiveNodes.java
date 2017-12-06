@@ -48,7 +48,9 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -276,6 +278,11 @@ public abstract class VMPrimitiveNodes {
             final RubyContext context = getContext();
 
             return handle(signalName, signal -> {
+                if (context.getLanguage().SINGLE_THREADED) {
+                    Log.LOGGER.severe("signal " + signalName + " caught but can't create a thread to handle it so ignoring");
+                    return;
+                }
+
                 final DynamicObject rootThread = context.getThreadManager().getRootThread();
                 final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rootThread);
 

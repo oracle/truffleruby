@@ -64,16 +64,19 @@ switches specific to TruffleRuby.
 TruffleRuby switches:
   -Xlog=severe,warning,performance,info,config,fine,finer,finest
                   set the TruffleRuby logging level
+  -Xsingle_threaded
+                  run in single-threaded configuration
   -Xoptions       print available TruffleRuby options
   -Xname=value    set a TruffleRuby option (omit value to set to true)
 ```
 
-As well as being set at the command line, options can be set using
-`--ruby.option=` in any GraalVM launcher. For example `--ruby.inline_js=true`.
-They can also be set as JVM system properties, where they have a prefix
-`polyglot.ruby.`. For example `-J-Dpolyglot.ruby.inline_js=true`, or via any
-other way of setting JVM system properties. Finally, options can be set as
-`PolyglotEngine` or SDK configuration options.
+As well as being set at the command line, options, except for `log` and
+`single_threaded`, can be set using `--ruby.option=` in any GraalVM launcher.
+For example `--ruby.inline_js=true`. They can also be set as JVM system
+properties, where they have a prefix `polyglot.ruby.`. For example
+`-J-Dpolyglot.ruby.inline_js=true`, or via any other way of setting JVM system
+properties. Finally, options can be set as `PolyglotEngine` or SDK configuration
+options.
 
 The priority for options is the command line first, then the `PolyglotEngine`
 configuration, then the SDK configuration, then system properties last.
@@ -88,6 +91,9 @@ bet set in the `TRUFFLERUBYOPT` environment variable.
 
 `--` or the first non-option argument both stop processing of Truffle-specific
 arguments in the same way it stops processing of Ruby arguments.
+
+The `-Xsingle_threaded` option can also be set as a system property
+`-J-Dtruffleruby.single_threaded=true`.
 
 ## JVM- and SVM-specific switches
 
