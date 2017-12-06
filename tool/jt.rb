@@ -26,7 +26,7 @@ M2_REPO         = File.expand_path('~/.m2/repository')
 MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = 4
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = 5
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -1076,6 +1076,7 @@ module Commands
 
       # Tests using gem install to compile the cexts
       sh "test/truffle/cexts/puma/puma.sh"
+      sh "test/truffle/cexts/sqlite3/sqlite3.sh"
       sh "test/truffle/cexts/unf_ext/unf_ext.sh"
     end
   end
