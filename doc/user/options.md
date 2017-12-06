@@ -68,11 +68,12 @@ TruffleRuby switches:
   -Xname=value    set a TruffleRuby option (omit value to set to true)
 ```
 
-As well as being set at the command line, options can be set as JVM system
-properties, where they have a prefix `polyglot.ruby.`. For example
-`-J-Dpolyglot.ruby.inline_js=true`, or via any other way of setting JVM system
-properties. Finally, options can be set as `PolyglotEngine` or SDK configuration
-options.
+As well as being set at the command line, options can be set using
+`--ruby.option=` in any GraalVM launcher. For example `--ruby.inline_js=true`.
+They can also be set as JVM system properties, where they have a prefix
+`polyglot.ruby.`. For example `-J-Dpolyglot.ruby.inline_js=true`, or via any
+other way of setting JVM system properties. Finally, options can be set as
+`PolyglotEngine` or SDK configuration options.
 
 The priority for options is the command line first, then the `PolyglotEngine`
 configuration, then the SDK configuration, then system properties last.
