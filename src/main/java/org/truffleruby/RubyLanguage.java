@@ -216,8 +216,6 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         return OptionDescriptors.create(options);
     }
 
-
-
     @Override
     protected boolean isThreadAccessAllowed(Thread thread, boolean singleThreaded) {
         if (SINGLE_THREADED) {
