@@ -834,7 +834,7 @@ def patch(file, contents, directory)
                 directory.end_with?(File.join(patched_file[:gem], 'ext', patched_file[:ext_dir]))
               else
                 regexp = /^#{Regexp.escape(patched_file[:gem])}\b/
-                directory.split('/').last(2).any? { |part| part =~ regexp }
+                directory.split('/').last(2).any? { |part| part =~ regexp } || file.split('/').last(2).any? { |part| part =~ regexp }
               end
     if matched
       patched_file[:patches].each do |patch|
