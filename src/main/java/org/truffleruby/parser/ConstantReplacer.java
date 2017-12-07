@@ -20,16 +20,6 @@ import com.oracle.truffle.api.source.Source;
 public class ConstantReplacer {
 
     public static String replacementName(Source source, String name) {
-        // The tzinfo gem checks if RUBY_ENGINE is defined and the value is either 'jruby' or 'rbx' to determine
-        // whether $SAFE is supported. Since our RUBY_ENGINE value doesn't match either of those values, it is assumed
-        // that we support $SAFE, which we do not. In order to properly pass the tests, we pretend that we're JRuby here.
-        // We could pretend that we're Rubinius, but the tzinfo tests have other workarounds specific to Rubinius.
-        if (source.getName().endsWith("tzinfo/test/test_utils.rb")) {
-            if (name.equals("RUBY_ENGINE")) {
-                return name + "_FAKE_JRUBY";
-            }
-        }
-
         // The highline gem has special handling for readline, which isn't fully supported in TruffleRuby. Our readline
         // support matches very closely to JRuby's, since we both use jline as the core of the implementation. Highline
         // detects when running on JRuby and alters its readline tests to avoid some problematic areas. Since we offer
