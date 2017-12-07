@@ -34,8 +34,7 @@ public class GlobalVariables {
 
     public static final Set<String> THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES = new HashSet<>(Arrays.asList("$~", "$_"));
 
-    public static final Set<String> BACKREF_GLOBAL_VARIABLES = new HashSet<>(
-            Arrays.asList("$+", "$&", "$`", "$'", "$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9"));
+    public static final Set<String> BACKREF_GLOBAL_VARIABLES = new HashSet<>(Arrays.asList("$+", "$&", "$`", "$'"));
 
     static {
         READ_ONLY_GLOBAL_VARIABLES.addAll(BACKREF_GLOBAL_VARIABLES);

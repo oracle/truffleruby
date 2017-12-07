@@ -1743,6 +1743,23 @@ public class BodyTranslator extends Translator {
         return new LazyRubyNode(() -> readGlobal(node, variableName));
     }
 
+    private boolean isLastMatchVariable(String name) {
+        // $0 is always the program name and never refers to a variable match.
+        if (name.equals("$0")) {
+            return false;
+        }
+
+        // Check that each character after the leading '$' is numeric.
+        for (int i = 1; i < name.length(); i++) {
+            final char c = name.charAt(i);
+            if (c < '0' || c > '9') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private RubyNode readGlobal(ParseNode node, String variableName) {
         final SourceIndexLength sourceSection = node.getPosition();
         String name = variableName;
@@ -1753,7 +1770,7 @@ public class BodyTranslator extends Translator {
 
 
         final RubyNode ret;
-        if (GlobalVariables.BACKREF_GLOBAL_VARIABLES.contains(name)) {
+        if (GlobalVariables.BACKREF_GLOBAL_VARIABLES.contains(name) || isLastMatchVariable(name)) {
             final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, sourceSection);
             final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
             final char type = name.charAt(1);
@@ -1771,8 +1788,7 @@ public class BodyTranslator extends Translator {
                     ret = new ReadMatchReferenceNodes.ReadHighestMatchNode(readMatchNode);
                     break;
                 default:
-                    assert '1' <= type && type <= '9' : "unknown backref global: " + name;
-                    ret = new ReadMatchReferenceNodes.ReadNthMatchNode(readMatchNode, type - '0');
+                    ret = new ReadMatchReferenceNodes.ReadNthMatchNode(readMatchNode, Integer.parseInt(name.substring(1)));
             }
         } else if (GlobalVariables.THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
             // Assignment is implicit for these, so we need to declare when we use
