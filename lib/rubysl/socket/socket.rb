@@ -330,7 +330,7 @@ class Socket < BasicSocket
     0
   end
 
-  def connect_nonblock(sockaddr)
+  def connect_nonblock(sockaddr, exception: true)
     fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
 
     if sockaddr.is_a?(Addrinfo)
@@ -339,9 +339,15 @@ class Socket < BasicSocket
 
     status = RubySL::Socket::Foreign.connect(descriptor, sockaddr)
 
-    RubySL::Socket::Error.write_nonblock('connect(2)') if status < 0
-
-    0
+    if status < 0
+      if exception
+        RubySL::Socket::Error.write_nonblock('connect(2)')
+      else
+        :wait_writable
+      end
+    else
+      0
+    end
   end
 
   def local_address
