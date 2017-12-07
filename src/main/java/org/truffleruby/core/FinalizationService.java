@@ -103,18 +103,38 @@ public class FinalizationService {
 
         finalizerReference.addFinalizer(owner, action, roots);
 
-        /*
-         * We can't create a new thread while the context is initializing or finalizing, as the
-         * polyglot API locks on creating new threads, and some core loading does things such as
-         * stat files which could allocate memory that is marked to be automatically freed and so
-         * would want to start the finalization thread. So don't start the finalization thread if we
-         * are initializing. We will rely on some other finalizer to be created to ever free this
-         * memory allocated during startup, but that's a reasonable assumption and a low risk of
-         * leaking a tiny number of bytes if it doesn't hold.
-         */
+        if (context.getLanguage().SINGLE_THREADED) {
 
-        if (finalizerThread == null && context.isInitialized() && !context.isFinalizing()) {
-            createFinalizationThread();
+            drainFinalizationQueue();
+
+        } else {
+
+            /*
+             * We can't create a new thread while the context is initializing or finalizing, as the
+             * polyglot API locks on creating new threads, and some core loading does things such as
+             * stat files which could allocate memory that is marked to be automatically freed and so
+             * would want to start the finalization thread. So don't start the finalization thread if we
+             * are initializing. We will rely on some other finalizer to be created to ever free this
+             * memory allocated during startup, but that's a reasonable assumption and a low risk of
+             * leaking a tiny number of bytes if it doesn't hold.
+             */
+
+            if (finalizerThread == null && context.isInitialized() && !context.isFinalizing()) {
+                createFinalizationThread();
+            }
+
+        }
+    }
+
+    private final void drainFinalizationQueue() {
+        while (true) {
+            final FinalizerReference finalizerReference = (FinalizerReference) finalizerQueue.poll();
+
+            if (finalizerReference == null) {
+                break;
+            }
+
+            runFinalizer(finalizerReference);
         }
     }
 
@@ -127,20 +147,25 @@ public class FinalizationService {
             while (true) {
                 final FinalizerReference finalizerReference = (FinalizerReference) threadManager.runUntilResult(null,
                         () -> finalizerQueue.remove());
-                try {
-                    finalizerReference.getFinalizerActions().forEach(action -> action.run());
-                } catch (TerminationException e) {
-                    throw e;
-                } catch (RaiseException e) {
-                    context.getCoreExceptions().showExceptionIfDebug(e.getException());
-                } catch (Exception e) {
-                    // Do nothing, the finalizer thread must continue to process objects.
-                    if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
-                        e.printStackTrace();
-                    }
-                }
+
+                runFinalizer(finalizerReference);
             }
         });
+    }
+
+    private void runFinalizer(FinalizerReference finalizerReference) {
+        try {
+            finalizerReference.getFinalizerActions().forEach(action -> action.run());
+        } catch (TerminationException e) {
+            throw e;
+        } catch (RaiseException e) {
+            context.getCoreExceptions().showExceptionIfDebug(e.getException());
+        } catch (Exception e) {
+            // Do nothing, the finalizer thread must continue to process objects.
+            if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public synchronized void removeFinalizers(Object object, Class<?> owner) {
