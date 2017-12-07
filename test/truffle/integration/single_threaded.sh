@@ -12,3 +12,8 @@ if jt ruby -Xsingle_threaded -e 'Thread.new { }' 2>/dev/null; then
 fi
 
 jt ruby -Xsingle_threaded -e 'require "timeout"; Timeout.timeout(1) { sleep 2 }'
+
+if jt ruby -Xsingle_threaded -e 'Rubinius::FFI::MemoryPointer.new(1024)' 2>/dev/null; then
+  echo 'thread creation should have been disallowed' >&2
+  exit 1
+fi
