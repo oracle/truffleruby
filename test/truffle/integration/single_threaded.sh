@@ -17,6 +17,10 @@ fi
 
 jt ruby -Xsingle_threaded -e 'require "timeout"; Timeout.timeout(1) { sleep 2 }'
 
+# But it should still yield
+
+jt ruby -Xsingle_threaded -e 'require "timeout"; Timeout.timeout(1) { exit! 0 }; exit! 1'
+
 # Creating objects that use finalization should work
 
 jt ruby -Xsingle_threaded -e 'Rubinius::FFI::MemoryPointer.new(1024)'

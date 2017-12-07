@@ -140,6 +140,7 @@ module Timeout
   
     def timeout(sec, exception=Error)
       Truffle::Debug.log_warning "threads are disabled, so timeout is being ignored"
+      yield sec
     end
   
   else
