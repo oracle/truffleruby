@@ -38,6 +38,7 @@
 package org.truffleruby.core;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -278,21 +279,19 @@ public abstract class VMPrimitiveNodes {
                 final DynamicObject rootThread = context.getThreadManager().getRootThread();
                 final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rootThread);
 
-                // Workaround: we need to use a "Truffle-created thread" so that NFI can get its context (GR-7014)
-                final Thread thread = context.getEnv().createThread(() -> {
+                // Workaround: we need to register with Truffle (which means going multithreaded),
+                // so that NFI can get its context to call pthread_kill() (GR-7405).
+                final TruffleContext truffleContext = context.getEnv().getContext();
+                final Object prev = truffleContext.enter();
+                try {
                     context.getSafepointManager().pauseAllThreadsAndExecuteFromNonRubyThread(true, (rubyThread, currentNode) -> {
                         if (rubyThread == rootThread &&
                                 fiberManager.getRubyFiberFromCurrentJavaThread() == fiberManager.getCurrentFiber()) {
                             ProcOperations.rootCall(proc);
                         }
                     });
-                });
-
-                thread.start();
-                try {
-                    thread.join();
-                } catch (InterruptedException e) {
-                    throw new UnsupportedOperationException("InterruptedException in sun.misc.Signal's Thread: " + Thread.currentThread());
+                } finally {
+                    truffleContext.leave(prev);
                 }
             });
         }
