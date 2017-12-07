@@ -120,13 +120,18 @@ module Timeout
     end
   end
 
-  # Spin up the thread up front to avoid a thread collision problem spinning
-  # it up lazily.
-  @controller = Thread.new { watch_channel }
+  def self.ensure_timeout_thread_running
+    Rubinius.synchronize(self) do
+      unless @controller
+        @controller = Thread.new { watch_channel }
+      end
+    end
+  end
 
   def self.add_timeout(time, exc)
     r = TimeoutRequest.new(time, Thread.current, exc)
     @chan << r
+    ensure_timeout_thread_running
     return r
   end
 
