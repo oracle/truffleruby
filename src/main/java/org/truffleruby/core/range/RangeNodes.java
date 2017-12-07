@@ -48,11 +48,10 @@ public abstract class RangeNodes {
     @Primitive(name = "range_integer_map", needsSelf = false)
     public abstract static class IntegerMapNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private YieldNode yieldNode;
-
         @Specialization(guards = "isIntRange(range)")
         public DynamicObject map(DynamicObject range, DynamicObject block,
-                                 @Cached("create()") ArrayBuilderNode arrayBuilder) {
+                                 @Cached("create()") ArrayBuilderNode arrayBuilder,
+                                 @Cached("new()") YieldNode yieldNode) {
             final int begin = Layouts.INT_RANGE.getBegin(range);
             final int end = Layouts.INT_RANGE.getEnd(range);
             final boolean excludedEnd = Layouts.INT_RANGE.getExcludedEnd(range);
@@ -68,7 +67,7 @@ public abstract class RangeNodes {
                         count++;
                     }
 
-                    store = arrayBuilder.appendValue(store, n, dispatch(block, begin + direction * n));
+                    store = arrayBuilder.appendValue(store, n, yieldNode.dispatch(block, begin + direction * n));
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -84,14 +83,6 @@ public abstract class RangeNodes {
             return FAILURE;
         }
 
-        private Object dispatch(DynamicObject block, Object... argumentsObjects) {
-            if (yieldNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                yieldNode = insert(new YieldNode());
-            }
-
-            return yieldNode.dispatch(block, argumentsObjects);
-        }
     }
 
     @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")

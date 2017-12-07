@@ -331,7 +331,6 @@ class Range
 
     super
   end
-
   alias_method :map, :collect
 
   def to_a_internal # MODIFIED called from java to_a
