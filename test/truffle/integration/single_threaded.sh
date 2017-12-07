@@ -27,4 +27,4 @@ jt ruby -Xsingle_threaded -e 'Rubinius::FFI::MemoryPointer.new(1024)'
 
 # Finalizations should actually be run
 
-jt ruby -Xsingle_threaded -e 'x = Object.new; ObjectSpace.define_finalizer x, -> { exit! 0 }; x = nil; GC.start; sleep 1; y = Object.new; ObjectSpace.define_finalizer y, -> { exit! 1 }; exit! 1'
+jt ruby -Xsingle_threaded test/truffle/integration/single_threaded/finalization.rb
