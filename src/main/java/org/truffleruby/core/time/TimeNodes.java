@@ -466,12 +466,16 @@ public abstract class TimeNodes {
         @TruffleBoundary
         private DynamicObject buildTime(DynamicObject timeClass, int sec, int min, int hour, int mday, int month, int year,
                 int nsec, int isdst, boolean isutc, Object utcoffset) {
-            if (sec < 0 || sec > 60 ||
+            if (sec < 0 || sec > 59 ||
                     min < 0 || min > 59 ||
                     hour < 0 || hour > 23 ||
                     mday < 1 || mday > 31 ||
                     month < 1 || month > 12) {
-                throw new RaiseException(coreExceptions().argumentErrorOutOfRange(this));
+                if (sec == 60) {
+                    throw new RaiseException(coreExceptions().runtimeError("TruffleRuby bug #824: Leap seconds not supported.", this));
+                } else {
+                    throw new RaiseException(coreExceptions().argumentErrorOutOfRange(this));
+                }
             }
 
             final ZoneId zone;
