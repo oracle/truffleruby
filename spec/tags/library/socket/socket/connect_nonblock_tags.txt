@@ -1,1 +1,0 @@
-fails:Socket#connect_nonblock returns :wait_writable in exceptionless mode when the connect would block
