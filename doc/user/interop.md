@@ -416,8 +416,7 @@ with other Truffle languages, so you can disable the creation of multiple
 threads with the option `-Xsingle_threaded`, or
 `-Dtruffleruby.single_threaded=true` from another launcher.
 
-The `timeout` module knows about this option and will warn that the timeout is
-being ignored, rather than failing.
-
-Signal handlers are ignored with a warning at the point of the signal being
-caught.
+When this option is enabled, the `timeout` module will warn that the timeouts
+are being ignored, and signal handlers will warn that a signal has been caught
+but will not run the handler, as both of these features would require starting
+new threads.
