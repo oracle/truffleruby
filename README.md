@@ -32,8 +32,9 @@ Collaborations with:
 And others.
 
 The best way to get in touch with us is to join us in
-https://gitter.im/graalvm/truffleruby, but you can also Tweet to @chrisgseaton,
-or email chris.seaton@oracle.com.
+https://gitter.im/graalvm/truffleruby, but you can also Tweet to
+[@TruffleRuby](https://twitter.com/truffleruby), or email
+chris.seaton@oracle.com.
 
 ## Mailing list
 
@@ -50,7 +51,7 @@ TruffleRuby is actively tested on these systems:
 
 You need to [install LLVM](doc/user/installing-llvm.md) to build and run C
 extensions and [`libssl`](doc/user/installing-libssl.md) to use `openssl`. You
-may also need to set up a [UTF-8 locale](doc/user/utf8-locale.md)
+may also need to set up a [UTF-8 locale](doc/user/utf8-locale.md).
 
 Oracle Linux is not currently supported due to not having a good way to install
 a recent LLVM.
