@@ -276,6 +276,10 @@ module Truffle::POSIX
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
     bytes_read = read(fd, buffer, length)
     if bytes_read < 0
+      errno = Errno.errno
+      if errno == Errno::EAGAIN::Errno || errno == Errno::EWOULDBLOCK::Errno
+        raise IO::EAGAINWaitWritable
+      end
       Errno.handle
     elsif bytes_read == 0 # EOF
       nil
@@ -292,11 +296,9 @@ module Truffle::POSIX
     while written < length
       ret = write(fd, buffer + written, length - written)
       if ret < 0
-        if nonblock
-          errno = Errno.errno
-          if errno == Errno::EAGAIN::Errno || errno == Errno::EWOULDBLOCK::Errno
-            raise IO::EAGAINWaitWritable
-          end
+        errno = Errno.errno
+        if errno == Errno::EAGAIN::Errno || errno == Errno::EWOULDBLOCK::Errno
+          raise IO::EAGAINWaitWritable
         end
         Errno.handle
       end

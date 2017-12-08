@@ -158,7 +158,7 @@ class IO
 
       begin
         buffer = Truffle::POSIX.read_string(io.descriptor, count)
-      rescue Errno::EAGAIN
+      rescue Errno::EAGAIN, IO::WaitReadable
         IO.select([io]) # Wait if io is in non-blocking mode
         retry
       end
@@ -209,7 +209,12 @@ class IO
       @write_synced = true
 
       data = String.from_bytearray(@storage, @start, size)
-      Truffle::POSIX.write_string io.descriptor, data
+      begin
+        Truffle::POSIX.write_string io.descriptor, data
+      rescue Errno::EAGAIN, IO::WaitWritable
+        IO.select([], [io]) # Wait if io is in non-blocking mode
+        retry
+      end
       reset!
 
       size
@@ -2085,7 +2090,7 @@ class IO
       str = Truffle::POSIX.read_string(@descriptor, size)
     rescue Errno::EAGAIN
       if exception
-        raise EAGAINWaitReadable
+        raise WaitReadable
       else
         return :wait_readable
       end
@@ -2219,7 +2224,12 @@ class IO
         return @ibuffer.shift(size)
       end
 
-      sysread(size)
+      begin
+        return sysread(size)
+      rescue Errno::EAGAIN, IO::WaitReadable
+        IO::select([self])
+        retry
+      end
     end
   end
 
@@ -2631,7 +2641,13 @@ class IO
     end
 
     if @sync
-      Truffle::POSIX.write_string @descriptor, data
+      begin
+        Truffle::POSIX.write_string @descriptor, data
+      rescue Errno::EAGAIN, IO::WaitWritable
+        IO.select([], [self]) # Wait if io is in non-blocking mode
+        retry
+      end
+
     else
       reset_buffering
       bytes_to_write = data.bytesize
