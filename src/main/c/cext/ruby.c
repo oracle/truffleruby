@@ -2801,8 +2801,8 @@ NORETURN(void rb_eof_error(void)) {
 
 VALUE rb_io_addstr(VALUE io, VALUE str) {
   // use write instead of just #<<, it's closer to what MRI does
-  // and avoids stack-overflow in zlib where >> is defined with this method
-  truffle_invoke(io, "write", str);
+  // and avoids stack-overflow in zlib where #<< is defined with this method
+  rb_io_write(io, str);
   return io;
 }
 
