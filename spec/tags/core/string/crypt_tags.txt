@@ -1,4 +1,0 @@
-aot:String#crypt returns a cryptographic hash of self by applying the UNIX crypt algorithm with the specified salt
-aot:String#crypt calls #to_str to converts the salt arg to a String
-aot:String#crypt taints the result if either salt or self is tainted
-aot:String#crypt doesn't return subclass instances
