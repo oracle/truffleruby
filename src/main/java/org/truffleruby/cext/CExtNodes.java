@@ -1014,64 +1014,49 @@ public class CExtNodes {
 
         @Child CallDispatchHeadNode toSCall;
 
+        @TruffleBoundary
         @Specialization
-        public Object debug(VirtualFrame frame, Object... objects) {
+        public Object debug(Object... objects) {
             if (objects.length > 1) {
-                printf("Printing %d values%n", objects.length);
+                System.err.printf("Printing %d values%n", objects.length);
             }
+
             for (Object object : objects) {
                 final String representation;
+
                 if (RubyGuards.isRubyString(object)) {
-                    representation = getRubyStringRepresentation((DynamicObject) object);
+                    final Rope rope = StringOperations.rope((DynamicObject) object);
+                    final byte[] bytes = rope.getBytes();
+                    final StringBuilder builder = new StringBuilder();
+
+                    for (int i = 0; i < bytes.length; i++) {
+                        if (i % 4 == 0 && i != 0 && i != bytes.length - 1) {
+                            builder.append(" ");
+                        }
+                        builder.append(String.format("%02x", bytes[i]));
+                    }
+
+                    representation = RopeOperations.decodeRope(rope) + " (" + builder.toString() + ")";
                 } else if (RubyGuards.isRubyBasicObject(object)) {
-                    representation = getString(object) + " (" +
-                            StringOperations.getString(callToS(frame, object)) + ")";
+                    representation = object.toString() + " (" + StringOperations.getString(callToS(object)) + ")";
                 } else {
-                    representation = getString(object);
+                    representation = object.toString();
                 }
-                printf("%s @ %s: %s%n", object.getClass(), identityHashCode(object), representation);
+
+                System.err.printf("%s @ %s: %s%n", object.getClass(), System.identityHashCode(object), representation);
             }
             return nil();
         }
 
-        private DynamicObject callToS(VirtualFrame frame, Object object) {
+        private DynamicObject callToS(Object object) {
             if (toSCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toSCall = CallDispatchHeadNode.create();
+                toSCall = CallDispatchHeadNode.createOnSelf();
             }
 
-            return (DynamicObject) toSCall.call(frame, object, "to_s");
+            return (DynamicObject) toSCall.call(null, object, "to_s");
         }
 
-        @TruffleBoundary
-        private int identityHashCode(Object object) {
-            return System.identityHashCode(object);
-        }
-
-        @TruffleBoundary
-        private void printf(String format, Object... objects) {
-            System.err.printf(format, objects);
-        }
-
-        @TruffleBoundary
-        private String getString(Object object) {
-            return object.toString();
-        }
-
-        @TruffleBoundary
-        private String getRubyStringRepresentation(DynamicObject object) {
-            final Rope rope = StringOperations.rope(object);
-            final String str = RopeOperations.decodeRope(rope);
-            final byte[] bytes = rope.getBytes();
-            final StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < bytes.length; i++) {
-                if (i % 4 == 0 && i != 0 && i != bytes.length - 1) {
-                    builder.append(" ");
-                }
-                builder.append(String.format("%02x", bytes[i]));
-            }
-            return str + " (" + getString(builder) + ")";
-        }
     }
 
     // Those primitives store a Symbol as key, so they effectively have
