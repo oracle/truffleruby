@@ -418,3 +418,6 @@ threads with the option `-Xsingle_threaded`, or
 
 The `timeout` module knows about this option and will warn that the timeout is
 being ignored, rather than failing.
+
+Signal handlers are ignored with a warning at the point of the signal being
+caught.
