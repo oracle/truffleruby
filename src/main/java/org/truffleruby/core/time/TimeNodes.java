@@ -466,16 +466,12 @@ public abstract class TimeNodes {
         @TruffleBoundary
         private DynamicObject buildTime(DynamicObject timeClass, int sec, int min, int hour, int mday, int month, int year,
                 int nsec, int isdst, boolean isutc, Object utcoffset) {
-            if (sec < 0 || sec > 59 ||
+            if (sec < 0 || sec > 60 || // MRI accepts sec=60, whether it is a leap second or not
                     min < 0 || min > 59 ||
                     hour < 0 || hour > 23 ||
                     mday < 1 || mday > 31 ||
                     month < 1 || month > 12) {
-                if (sec == 60) {
-                    throw new RaiseException(coreExceptions().runtimeError("TruffleRuby bug #824: Leap seconds not supported.", this));
-                } else {
-                    throw new RaiseException(coreExceptions().argumentErrorOutOfRange(this));
-                }
+                throw new RaiseException(coreExceptions().argumentErrorOutOfRange(this));
             }
 
             final ZoneId zone;
@@ -505,12 +501,32 @@ public abstract class TimeNodes {
                 throw new UnsupportedOperationException(StringUtils.format("%s %s %s %s", isdst, isutc, utcoffset, utcoffset.getClass()));
             }
 
+            // java.time does not allow a sec value > 59. However, MRI allows a sec value of 60
+            // to support leap seconds. In the case that leap seconds either aren't supported by
+            // the underlying timezone or system (they seem to not be POSIX-compliant), MRI still
+            // admits a sec value of 60 and just carries values forward to minutes, hours, day, etc.
+            // To match MRI's behavior in that case, we build the java.time object with a sec value
+            // of 0 and after it's constructed add 60 seconds to the time object, allowing the object
+            // to carry values forward as necessary. This approach does not work in the cases where
+            // MRI would properly handle a leap second, as java.time does not honor leap seconds.
+            // Notably, this occurs when using non-standard timezone like TZ=right/UTC and specifying
+            // a real leap second instant (a sec value of 60 is only valid on certain dates in certain
+            // years at certain times). In these cases, MRI returns a time with HH:MM:60.
+            final boolean sixtySeconds = sec == 60;
+            if (sixtySeconds) {
+                sec = 0;
+            }
+
             ZonedDateTime dt;
             try {
                 dt = ZonedDateTime.of(year, month, mday, hour, min, sec, nsec, zone);
             } catch (DateTimeException e) {
                 // Time.new(1999, 2, 31) is legal and should return 1999-03-03
                 dt = ZonedDateTime.of(year, 1, 1, hour, min, sec, nsec, zone).plusMonths(month - 1).plusDays(mday - 1);
+            }
+
+            if (sixtySeconds) {
+                dt = dt.plusSeconds(60);
             }
 
             if (isdst == 0) {
