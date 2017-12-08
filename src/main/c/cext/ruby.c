@@ -1201,7 +1201,7 @@ VALUE rb_str_buf_cat(VALUE string, const char *to_concat, long length) {
   return rb_str_cat(string, to_concat, length);
 }
 
-// returns Truffle::CExts::RbEncoding, takes Encoding or String
+// returns Truffle::CExt::RbEncoding, takes Encoding or String
 rb_encoding *rb_to_encoding(VALUE encoding) {
   return truffle_invoke(RUBY_CEXT, "rb_to_encoding", encoding);
 }
