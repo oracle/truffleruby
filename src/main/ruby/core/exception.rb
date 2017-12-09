@@ -166,6 +166,18 @@ class ArgumentError < StandardError
 end
 
 class UncaughtThrowError < ArgumentError
+  attr_reader :tag
+  attr_reader :value
+
+  def initialize(tag, value, *rest)
+    @tag = tag
+    @value = value
+    super(*rest)
+  end
+
+  def to_s
+    sprintf(Truffle.invoke_primitive(:exception_message, self), @tag)
+  end
 end
 
 class IndexError < StandardError
