@@ -546,6 +546,12 @@ constants 'errno' do |cg|
   ]
 end
 
+constants 'limits' do |cg|
+  cg.include 'signal.h'
+  cg.include 'sys/signal.h'
+  cg.consts %w[NSIG]
+end
+
 constants 'langinfo' do |cg|
   cg.include 'langinfo.h'
   cg.consts %w[CODESET]
