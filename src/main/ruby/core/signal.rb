@@ -33,6 +33,8 @@ module Signal
     0 => 'EXIT'
   }
 
+  NSIG = Rubinius::Config['rbx.platform.limits.NSIG']
+
   # Fill the Names and Numbers Hash.
   prefix = 'rbx.platform.signal.'
   Rubinius::Config.section(prefix) do |name, number|
@@ -45,8 +47,6 @@ module Signal
   unless Names.key? 'CLD'
     Names['CLD'] = Names['CHLD']
   end
-
-  NSIG = Numbers.keys.max + 1
 
   # We want Numbers[SIGCHLD_VALUE] to refer to 'CHLD' not 'CLD',
   # as CLD is not recognized by `new sun.misc.Signal("CLD")`

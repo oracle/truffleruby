@@ -286,6 +286,7 @@ public class SolarisSparcV9RubiniusConfiguration extends DefaultRubiniusConfigur
         configuration.config("rbx.platform.errno.ENOSTR", 60);
         configuration.config("rbx.platform.errno.EPROTO", 71);
         configuration.config("rbx.platform.errno.ETIME", 62);
+        configuration.config("rbx.platform.limits.NSIG", 73);
         configuration.config("rbx.platform.langinfo.CODESET", 49);
         configuration.config("rbx.platform.file.FNM_CASEFOLD", 8);
         configuration.config("rbx.platform.file.FNM_NOESCAPE", 2);
