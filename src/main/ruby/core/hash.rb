@@ -360,9 +360,9 @@ class Hash
     out = []
     return '{...}' if Thread.detect_recursion self do
       each_pair do |key,value|
-        str =  key.inspect
+        str =  Rubinius::Type.rb_inspect(key)
         str << '=>'
-        str << value.inspect
+        str << Rubinius::Type.rb_inspect(value)
         out << str
       end
     end
