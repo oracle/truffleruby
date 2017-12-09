@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.dispatch;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
@@ -97,7 +96,7 @@ public class UncachedDispatchNode extends DispatchNode {
                 return false;
             } else {
                 methodMissingNotFoundProfile.enter();
-                throw new RaiseException(methodMissingNotFound(receiver));
+                throw new RaiseException(coreExceptions().noMethodErrorOnReceiver(methodName, receiver, arguments, this));
             }
         }
 
@@ -117,11 +116,6 @@ public class UncachedDispatchNode extends DispatchNode {
         return indirectCallNode.call(
                 method.getCallTarget(),
                 RubyArguments.pack(null, null, method, DeclarationContext.METHOD, null, receiverObject, blockObject, argumentsObjects));
-    }
-
-    @TruffleBoundary
-    private DynamicObject methodMissingNotFound(Object receiver) {
-        return coreExceptions().runtimeError(receiver + " didn't have a #method_missing", this);
     }
 
 }
