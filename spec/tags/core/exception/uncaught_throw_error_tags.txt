@@ -1,1 +1,0 @@
-fails:UncaughtThrowError#tag returns the object thrown

@@ -47,7 +47,7 @@ module Kernel
       end
     end
 
-    raise UncaughtThrowError, "uncaught throw #{tag.inspect}"
+    raise UncaughtThrowError.new(tag, value, 'uncaught throw %p')
   end
   module_function :throw
 end
