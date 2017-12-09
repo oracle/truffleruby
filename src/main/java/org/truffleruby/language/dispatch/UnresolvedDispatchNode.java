@@ -98,7 +98,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                 } else if (RubyGuards.isRubyBasicObject(receiverObject)) {
                     newDispatchNode = doDynamicObject(frame, first, receiverObject, methodName, argumentsObjects);
                 } else {
-                    newDispatchNode = doUnboxedObject(frame, first, receiverObject, methodName);
+                    newDispatchNode = doUnboxedObject(frame, first, receiverObject, methodName, argumentsObjects);
                 }
             }
 
@@ -120,13 +120,14 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             VirtualFrame frame,
             DispatchNode first,
             Object receiverObject,
-            Object methodName) {
+            Object methodName,
+            Object[] argumentsObjects) {
 
         final String methodNameString = toString(methodName);
         final MethodLookupResult method = lookup(frame, receiverObject, methodNameString, ignoreVisibility, onlyCallPublic);
 
         if (!method.isDefined()) {
-            return createMethodMissingNode(first, methodName, receiverObject, method);
+            return createMethodMissingNode(first, methodName, receiverObject, method, argumentsObjects);
         }
 
         if (receiverObject instanceof Boolean) {
@@ -156,7 +157,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
         final MethodLookupResult method = lookup(frame, receiverObject, methodNameString, ignoreVisibility, onlyCallPublic);
 
         if (!method.isDefined()) {
-            return createMethodMissingNode(first, methodName, receiverObject, method);
+            return createMethodMissingNode(first, methodName, receiverObject, method, argumentsObjects);
         }
 
         if (RubyGuards.isRubySymbol(receiverObject)) {
@@ -186,7 +187,8 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             DispatchNode first,
             Object methodName,
             Object receiverObject,
-            MethodLookupResult methodLookup) {
+            MethodLookupResult methodLookup,
+            Object[] argumentsObjects) {
         switch (missingBehavior) {
             case RETURN_MISSING: {
                 return new CachedReturnMissingDispatchNode(getContext(), methodName, first, methodLookup, coreLibrary().getMetaClass(receiverObject),
@@ -197,8 +199,8 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                 final MethodLookupResult methodMissing = lookup(null, receiverObject, "method_missing", true, false);
 
                 if (!methodMissing.isDefined()) {
-                    throw new RaiseException(coreExceptions().runtimeError(
-                            receiverObject.toString() + " didn't have a #method_missing", this));
+                    final String methodNameString = toString(methodName);
+                    throw new RaiseException(coreExceptions().noMethodErrorOnReceiver(methodNameString, receiverObject, argumentsObjects, this));
                 }
 
                 return new CachedMethodMissingDispatchNode(getContext(), methodName, first, coreLibrary().getMetaClass(receiverObject),

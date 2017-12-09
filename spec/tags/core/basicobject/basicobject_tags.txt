@@ -1,1 +1,1 @@
-fails:BasicObject raises NoMethodError for nonexistent methods after #method_missing is removed
+slow:BasicObject raises NoMethodError for nonexistent methods after #method_missing is removed
