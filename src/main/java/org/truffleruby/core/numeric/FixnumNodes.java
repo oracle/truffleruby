@@ -865,6 +865,7 @@ public abstract class FixnumNodes {
     @CoreMethod(names = "<<", required = 1, lowerFixnum = 1)
     public abstract static class LeftShiftNode extends BignumNodes.BignumCoreMethodNode {
 
+        @Child private AbsNode absNode;
         @Child private RightShiftNode rightShiftNode;
         @Child private CallDispatchHeadNode fallbackCallNode;
 
@@ -900,7 +901,16 @@ public abstract class FixnumNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 rightShiftNode = insert(FixnumNodesFactory.RightShiftNodeFactory.create(null));
             }
-            return rightShiftNode.executeRightShift(a, -b);
+            return rightShiftNode.executeRightShift(a, absoluteValue(b));
+        }
+
+        @Specialization(guards = "b < 0")
+        public Object leftShiftNeg(int a, long b) {
+            if (rightShiftNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                rightShiftNode = insert(FixnumNodesFactory.RightShiftNodeFactory.create(null));
+            }
+            return rightShiftNode.executeRightShift(a, absoluteValue(b));
         }
 
         @Specialization(guards = { "!isInteger(b)", "!isLong(b)" })
@@ -910,6 +920,14 @@ public abstract class FixnumNodes {
                 fallbackCallNode = insert(CallDispatchHeadNode.createOnSelf());
             }
             return fallbackCallNode.call(null, a, "left_shift_fallback", b);
+        }
+
+        private Object absoluteValue(Object value) {
+            if (absNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                absNode = insert(FixnumNodesFactory.AbsNodeFactory.create(null));
+            }
+            return absNode.executeAbs(value);
         }
 
         static boolean canShiftIntoInt(int a, int b) {
@@ -1000,6 +1018,8 @@ public abstract class FixnumNodes {
 
     @CoreMethod(names = { "abs", "magnitude" })
     public abstract static class AbsNode extends CoreMethodArrayArgumentsNode {
+
+        public abstract Object executeAbs(Object a);
 
         @Specialization(rewriteOn = ArithmeticException.class)
         public int absIntInBounds(int n) {
