@@ -19,8 +19,11 @@ You should checkout a tag corresponding to a GraalVM release:
 $ git checkout vm-enterprise-0.xx
 ```
 
+Then you should update the Truffle revision in `mx.truffleruby/suite.py` to
+match the revision of `truffle` in the GraalVM `release` file.
+
 When including Sulong, you need to specify a revision.
-Find this revision from the corresponding release tag in Sulong.
+Find this revision in the GraalVM `release` file.
 
 ```bash
 export SULONG_REVISION='<FULL SULONG SHA1>'
