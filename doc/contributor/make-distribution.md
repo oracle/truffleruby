@@ -1,6 +1,6 @@
 # Creating a TruffleRuby distribution
 
-See the [Distributions page](../user/using-distribution.md).
+See the [Distributions page](../user/distribution.md).
 
 The tool to build these distributions is `tool/make-distribution.sh`.
 
