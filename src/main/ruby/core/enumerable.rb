@@ -716,8 +716,16 @@ module Enumerable
   end
   private :max_n
 
-  def max_by
+  private def max_by_n(n, &block)
+    n = Rubinius::Type.rb_num2long(n)
+    raise ArgumentError, "negative size #{n}" if n < 0
+    return [] if n == 0
+    self.sort_by(&block).last(n).reverse
+  end
+
+  def max_by(n = nil, &block)
     return to_enum(:max_by) { enumerator_size } unless block_given?
+    return max_by_n(n, &block) unless n.nil?
 
     max_object = nil
     max_result = undefined
@@ -736,8 +744,16 @@ module Enumerable
     max_object
   end
 
-  def min_by
+  private def min_by_n(n, &block)
+    n = Rubinius::Type.rb_num2long(n)
+    raise ArgumentError, "negative size #{n}" if n < 0
+    return [] if n == 0
+    self.sort_by(&block).first(n)
+  end
+
+  def min_by(n = nil, &block)
     return to_enum(:min_by) { enumerator_size } unless block_given?
+    return min_by_n(n, &block) unless n.nil?
 
     min_object = nil
     min_result = undefined
