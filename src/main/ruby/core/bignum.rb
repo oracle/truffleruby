@@ -56,6 +56,8 @@ class Bignum < Integer
       return nil unless coerced
       coerced[0] <=> coerced[1]
     rescue
+      warn 'Numerical comparison operators will no more rescue exceptions of #coerce'
+      warn 'in the next release. Return nil in #coerce if the coercion is impossible.'
       return nil
     end
   end
