@@ -32,7 +32,7 @@ import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.platform.RubiniusConfiguration;
+import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
@@ -175,7 +175,7 @@ public class ThreadManager {
     }
 
     private void setupSignalHandler(RubyContext context) {
-        final RubiniusConfiguration config = context.getRubiniusConfiguration();
+        final NativeConfiguration config = context.getNativeConfiguration();
         SIGVTALRM = (int) config.get("rbx.platform.signal.SIGVTALRM");
 
         final TruffleNFIPlatform nfi = context.getTruffleNFI();
@@ -202,7 +202,7 @@ public class ThreadManager {
 
     private void setupNativeThreadSupport() {
         final TruffleNFIPlatform nfi = context.getTruffleNFI();
-        final String pthread_t = nfi.resolveType(context.getRubiniusConfiguration(), "pthread_t");
+        final String pthread_t = nfi.resolveType(context.getNativeConfiguration(), "pthread_t");
 
         pthread_self = nfi.getFunction("pthread_self", 0, "():" + pthread_t);
         pthread_kill = nfi.getFunction("pthread_kill", 2, "(" + pthread_t + ",sint32):sint32");

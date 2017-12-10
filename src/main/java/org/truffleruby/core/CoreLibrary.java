@@ -57,7 +57,7 @@ import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.launcher.Launcher;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.platform.Platform;
-import org.truffleruby.platform.RubiniusConfiguration;
+import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.RubiniusTypes;
 import org.truffleruby.stdlib.psych.YAMLEncoding;
 
@@ -78,7 +78,7 @@ public class CoreLibrary {
 
     private static final String CLI_RECORD_SEPARATOR = "\n";
 
-    private static final String ERRNO_CONFIG_PREFIX = RubiniusConfiguration.PREFIX + "errno.";
+    private static final String ERRNO_CONFIG_PREFIX = NativeConfiguration.PREFIX + "errno.";
 
     private static final Property ALWAYS_FROZEN_PROPERTY = Property.create(Layouts.FROZEN_IDENTIFIER, Layout.createLayout().createAllocator().constantLocation(true), 0);
 
@@ -742,7 +742,7 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(psychParserClass).setConstant(context, node, "UTF16BE", YAMLEncoding.YAML_UTF16BE_ENCODING.ordinal());
 
         // Errno classes and constants
-        for (Entry<String, Object> entry : context.getRubiniusConfiguration().getSection(ERRNO_CONFIG_PREFIX)) {
+        for (Entry<String, Object> entry : context.getNativeConfiguration().getSection(ERRNO_CONFIG_PREFIX)) {
             final String name = entry.getKey().substring(ERRNO_CONFIG_PREFIX.length());
             if (name.equals("EWOULDBLOCK") && getErrnoValue("EWOULDBLOCK") == getErrnoValue("EAGAIN")) {
                 continue; // Don't define it as a class, define it as constant later.
@@ -889,7 +889,7 @@ public class CoreLibrary {
 
         initializeEncodings();
         initializeEncodingAliases();
-        encodingManager.initializeLocaleEncoding(getContext().getTruffleNFI(), getContext().getRubiniusConfiguration());
+        encodingManager.initializeLocaleEncoding(getContext().getTruffleNFI(), getContext().getNativeConfiguration());
 
         // External should always have a value, but Encoding.external_encoding{,=} will lazily setup
         final String externalEncodingName = getContext().getOptions().EXTERNAL_ENCODING;
@@ -1226,7 +1226,7 @@ public class CoreLibrary {
 
     @TruffleBoundary
     public int getErrnoValue(String errnoName) {
-        return (int) context.getRubiniusConfiguration().get(ERRNO_CONFIG_PREFIX + errnoName);
+        return (int) context.getNativeConfiguration().get(ERRNO_CONFIG_PREFIX + errnoName);
     }
 
     @TruffleBoundary

@@ -332,7 +332,7 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyString(key)")
         public Object get(DynamicObject key) {
-            final Object value = getContext().getRubiniusConfiguration().get(StringOperations.getString(key));
+            final Object value = getContext().getNativeConfiguration().get(StringOperations.getString(key));
 
             if (value == null) {
                 return nil();
@@ -352,7 +352,7 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(section)", "isRubyProc(block)" })
         public DynamicObject getSection(DynamicObject section, DynamicObject block) {
-            for (Entry<String, Object> entry : getContext().getRubiniusConfiguration().getSection(StringOperations.getString(section))) {
+            for (Entry<String, Object> entry : getContext().getNativeConfiguration().getSection(StringOperations.getString(section))) {
                 final DynamicObject key = makeStringNode.executeMake(entry.getKey(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
                 yieldNode.dispatch(block, key, entry.getValue());
             }

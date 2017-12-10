@@ -29,7 +29,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.ISO_8859_16;
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.platform.RubiniusConfiguration;
+import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
@@ -68,10 +68,10 @@ public class EncodingManager {
     }
 
     // This must be run after the locale is set for AOT, see the setLocale() call above
-    public void initializeLocaleEncoding(TruffleNFIPlatform nfi, RubiniusConfiguration rubiniusConfiguration) {
+    public void initializeLocaleEncoding(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
         final String localeEncodingName;
         if (context.getOptions().NATIVE_PLATFORM) {
-            final int codeset = (int) rubiniusConfiguration.get("rbx.platform.langinfo.CODESET");
+            final int codeset = (int) nativeConfiguration.get("rbx.platform.langinfo.CODESET");
 
             // char *nl_langinfo(nl_item item);
             // nl_item is int on at least Linux, macOS & Solaris
