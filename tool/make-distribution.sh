@@ -7,6 +7,7 @@ set -e
 
 PREFIX="$1"
 KIND="$2"
+PLATFORM=linux-amd64
 
 if [ -z "$KIND" ]; then
   echo "usage: $0 PREFIX KIND"
@@ -87,7 +88,7 @@ tool/jt.rb build
 # Truffle
 copy mx.imports/binary/truffle/mxbuild/dists/truffle-api.jar
 copy mx.imports/binary/truffle/mxbuild/dists/truffle-nfi.jar
-copy mx.imports/binary/truffle/mxbuild/truffle-nfi-native/bin/libtrufflenfi.so
+copy mx.imports/binary/truffle/mxbuild/$PLATFORM/truffle-nfi-native/bin/libtrufflenfi.so
 copy mx.imports/binary/truffle/mx.imports/binary/sdk/mxbuild/dists/graal-sdk.jar
 
 # Sulong
@@ -115,10 +116,10 @@ fi
 copy mxbuild/dists/truffleruby.jar
 copy mxbuild/dists/truffleruby-launcher.jar
 
-copy mxbuild/linux-amd64/dists/truffleruby-zip.tar
+copy mxbuild/$PLATFORM/dists/truffleruby-zip.tar
 cd "$DEST"
-tar xf mxbuild/linux-amd64/dists/truffleruby-zip.tar
-rm mxbuild/linux-amd64/dists/truffleruby-zip.tar
+tar xf mxbuild/$PLATFORM/dists/truffleruby-zip.tar
+rm mxbuild/$PLATFORM/dists/truffleruby-zip.tar
 
 # Environment sourced by the launcher, so adding to $PATH is enough
 cat > truffleruby_env <<EOS
