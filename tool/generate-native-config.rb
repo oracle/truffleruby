@@ -43,12 +43,12 @@ EXTRA_CFLAGS = ''
 
 case RUBY_PLATFORM
 when /x86_64-linux/
-  PLATFORM_FILE = 'org/truffleruby/platform/linux/LinuxRubiniusConfiguration.java'
+  PLATFORM_FILE = 'org/truffleruby/platform/linux/LinuxNativeConfiguration.java'
   EXTRA_CFLAGS << ' -D_GNU_SOURCE'
 when /x86_64-darwin/
-  PLATFORM_FILE = 'org/truffleruby/platform/darwin/DarwinRubiniusConfiguration.java'
+  PLATFORM_FILE = 'org/truffleruby/platform/darwin/DarwinNativeConfiguration.java'
 when /sparcv9-solaris/
-  PLATFORM_FILE = 'org/truffleruby/platform/solaris/SolarisSparcV9RubiniusConfiguration.java'
+  PLATFORM_FILE = 'org/truffleruby/platform/solaris/SolarisSparcV9NativeConfiguration.java'
   ENV['CC'] ||= 'gcc'
   # "-m64" forces a 64-bit binary
   # "-D_XOPEN_SOURCE=600" tells Solaris to use the SUSv3 feature set
@@ -72,7 +72,7 @@ class ConfigFileHandler
 end
 
 class JavaHandler
-  METHOD_START = "public static void load(RubiniusConfiguration configuration, RubyContext context) {\n"
+  METHOD_START = "public static void load(NativeConfiguration configuration, RubyContext context) {\n"
   METHOD_END = "    }\n\n}"
   INDENT = ' '*8
 

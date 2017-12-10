@@ -77,8 +77,8 @@ public class TruffleNFIPlatform {
         }
     }
 
-    public String resolveType(RubiniusConfiguration rubiniusConfiguration, String type) {
-        final Object typedef = rubiniusConfiguration.get("rbx.platform.typedef." + type);
+    public String resolveType(NativeConfiguration nativeConfiguration, String type) {
+        final Object typedef = nativeConfiguration.get("rbx.platform.typedef." + type);
         if (typedef == null) {
             throw new UnsupportedOperationException("Type " + type + " is not defined in the native configuration");
         }

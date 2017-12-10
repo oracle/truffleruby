@@ -51,11 +51,11 @@ import org.truffleruby.launcher.Launcher;
 import org.truffleruby.launcher.options.Options;
 import org.truffleruby.launcher.options.OptionsBuilder;
 import org.truffleruby.platform.Platform;
-import org.truffleruby.platform.RubiniusConfiguration;
+import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
-import org.truffleruby.platform.darwin.DarwinRubiniusConfiguration;
-import org.truffleruby.platform.linux.LinuxRubiniusConfiguration;
-import org.truffleruby.platform.solaris.SolarisSparcV9RubiniusConfiguration;
+import org.truffleruby.platform.darwin.DarwinNativeConfiguration;
+import org.truffleruby.platform.linux.LinuxNativeConfiguration;
+import org.truffleruby.platform.solaris.SolarisSparcV9NativeConfiguration;
 import org.truffleruby.stdlib.CoverageManager;
 import org.truffleruby.stdlib.readline.ConsoleHolder;
 
@@ -96,7 +96,7 @@ public class RubyContext {
     private final FrozenStrings frozenStrings = new FrozenStrings(this);
     private final CoreExceptions coreExceptions = new CoreExceptions(this);
     private final EncodingManager encodingManager = new EncodingManager(this);
-    private final RubiniusConfiguration rubiniusConfiguration;
+    private final NativeConfiguration nativeConfiguration;
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
 
@@ -174,7 +174,7 @@ public class RubyContext {
 
         Launcher.printTruffleTimeMetric("before-create-core-library");
         coreLibrary = new CoreLibrary(this);
-        rubiniusConfiguration = loadRubiniusConfiguration();
+        nativeConfiguration = loadNativeConfiguration();
         coreLibrary.initialize();
         Launcher.printTruffleTimeMetric("after-create-core-library");
 
@@ -185,7 +185,7 @@ public class RubyContext {
 
         Launcher.printTruffleTimeMetric("before-create-native-platform");
         truffleNFIPlatform = options.NATIVE_PLATFORM ? new TruffleNFIPlatform(this) : null;
-        featureLoader.initialize(rubiniusConfiguration, truffleNFIPlatform);
+        featureLoader.initialize(nativeConfiguration, truffleNFIPlatform);
         Launcher.printTruffleTimeMetric("after-create-native-platform");
 
         // The encoding manager relies on POSIX having been initialized, so we can't process it during
@@ -239,25 +239,25 @@ public class RubyContext {
         initialized = true;
     }
 
-    private RubiniusConfiguration loadRubiniusConfiguration() {
-        final RubiniusConfiguration rubiniusConfiguration = new RubiniusConfiguration();
+    private NativeConfiguration loadNativeConfiguration() {
+        final NativeConfiguration nativeConfiguration = new NativeConfiguration();
 
         switch (Platform.OS) {
             case LINUX:
-                LinuxRubiniusConfiguration.load(rubiniusConfiguration, this);
+                LinuxNativeConfiguration.load(nativeConfiguration, this);
                 break;
             case DARWIN:
-                DarwinRubiniusConfiguration.load(rubiniusConfiguration, this);
+                DarwinNativeConfiguration.load(nativeConfiguration, this);
                 break;
             case SOLARIS:
-                SolarisSparcV9RubiniusConfiguration.load(rubiniusConfiguration, this);
+                SolarisSparcV9NativeConfiguration.load(nativeConfiguration, this);
                 break;
             default:
                 Log.LOGGER.severe("no Rubinius configuration for this platform");
                 break;
         }
 
-        return rubiniusConfiguration;
+        return nativeConfiguration;
     }
 
     public Object send(Object object, String methodName, DynamicObject block, Object... arguments) {
@@ -517,7 +517,7 @@ public class RubyContext {
         return truffleNFIPlatform;
     }
 
-    public RubiniusConfiguration getRubiniusConfiguration() {
-        return rubiniusConfiguration;
+    public NativeConfiguration getNativeConfiguration() {
+        return nativeConfiguration;
     }
 }

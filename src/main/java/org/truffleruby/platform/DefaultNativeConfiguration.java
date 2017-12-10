@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  *
- * This file contains configuration values translated from Rubinius.
+ * This file contains configuration.configuration values translated from Rubinius.
  *
  * Copyright (c) 2007-2014, Evan Phoenix and contributors
  * All rights reserved.
@@ -37,53 +37,23 @@
  */
 package org.truffleruby.platform;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.numeric.BignumOperations;
+import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
 
-public class RubiniusConfiguration {
+import java.math.BigInteger;
 
-    public static final String PREFIX = "rbx.platform.";
+public abstract class DefaultNativeConfiguration {
 
-    private final Map<String, Object> configuration = new HashMap<>(); // Only written to by create() once per RubyContext.
-
-    public void config(String key, Object value) {
-        configuration.put(key, value);
+    protected static DynamicObject newBignum(RubyContext context, String value) {
+        return BignumOperations.createBignum(context, new BigInteger(value));
     }
 
-    @TruffleBoundary
-    public Object get(String key) {
-        return configuration.get(key);
-    }
-
-    @TruffleBoundary
-    public Collection<Entry<String, Object>> getSection(String section) {
-        final Collection<Entry<String, Object>> entries = new ArrayList<>();
-
-        for (Entry<String, Object> entry : configuration.entrySet()) {
-            if (entry.getKey().startsWith(section)) {
-                entries.add(entry);
-            }
-        }
-
-        return entries;
-    }
-
-    @TruffleBoundary
-    public Collection<DynamicObject> dynamicObjectValues() {
-        final Collection<Object> values = configuration.values();
-        final ArrayList<DynamicObject> objects = new ArrayList<>(values.size());
-        for (Object value : values) {
-            if (value instanceof DynamicObject) {
-                objects.add((DynamicObject) value);
-            }
-        }
-        return objects;
+    protected static DynamicObject string(RubyContext context, String value) {
+        return StringOperations.createString(context, RopeOperations.encodeAscii(value, UTF8Encoding.INSTANCE));
     }
 
 }
