@@ -712,7 +712,7 @@ module Enumerable
     raise ArgumentError, "negative size #{n}" if n < 0
     return [] if n == 0
 
-    self.sort(&block).reverse.first(n)
+    self.sort(&block).last(n).reverse
   end
   private :max_n
 
