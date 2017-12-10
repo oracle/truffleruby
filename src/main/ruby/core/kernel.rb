@@ -600,6 +600,7 @@ module Kernel
     unless skip
       exc.set_context ctx if ctx
       exc.capture_backtrace!(2) unless exc.backtrace?
+      exc.instance_variable_set(:@cause, $!)
     end
 
     if $DEBUG
