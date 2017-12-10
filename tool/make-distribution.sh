@@ -136,6 +136,7 @@ fi
 export PATH="$DEST/bin:$PATH"
 
 # Install bundler as we require a specific version and it's convenient
+echo Installing Bundler
 gem install -E bundler -v 1.14.6
 
 cd "$PREFIX"
