@@ -64,6 +64,14 @@ module Utilities
     $1
   end
 
+  def self.jvmci_version
+    ci = File.read("#{TRUFFLERUBY_DIR}/ci.jsonnet")
+    unless /JAVA_HOME: \{\n\s*name: "labsjdk",\n\s*version: "8u\d+-(jvmci-0.\d+)",/ =~ ci
+      raise "JVMCI version not found in ci.jsonnet: #{ci[0, 1000]}"
+    end
+    $1
+  end
+
   def self.find_graal_javacmd_and_options
     graalvm = ENV['GRAALVM_BIN']
     jvmci = ENV['JVMCI_BIN']
@@ -1693,7 +1701,7 @@ module Commands
     dir = File.expand_path("..", TRUFFLERUBY_DIR)
     java_home = chdir(dir) do
       if LINUX
-        jvmci_version = ENV.fetch("JVMCI_VERSION", "jvmci-0.38")
+        jvmci_version = ENV["JVMCI_VERSION"] || Utilities.jvmci_version
         jvmci_grep = "#{dir}/openjdk1.8.0*#{jvmci_version}"
         if Dir[jvmci_grep].empty?
           puts "Downloading JDK8 with JVMCI"
