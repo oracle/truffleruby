@@ -127,22 +127,7 @@ public class CExtNodes {
         }
 
     }
-
-    @CoreMethod(names = "NUM2LONG", onSingleton = true, required = 1)
-    public abstract static class NUM2LONGNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public long num2long(int num) {
-            return num;
-        }
-
-
-        @Specialization
-        public long num2long(long num) {
-            return num;
-        }
-    }
-
+    
     @CoreMethod(names = "FIX2INT", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class FIX2INTNode extends CoreMethodArrayArgumentsNode {
 

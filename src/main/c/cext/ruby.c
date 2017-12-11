@@ -456,11 +456,11 @@ int NUM2INT(VALUE value) {
 }
 
 unsigned int NUM2UINT(VALUE value) {
-  return (unsigned int) truffle_invoke_l(RUBY_CEXT, "NUM2LONG", value);
+  return (unsigned int) NUM2LONG(value);
 }
 
 long NUM2LONG(VALUE value) {
-  return truffle_invoke_l(RUBY_CEXT, "NUM2LONG", value);
+  return truffle_invoke_l(RUBY_CEXT, "rb_num2long", value);
 }
 
 unsigned long rb_num2ulong(VALUE val) {
