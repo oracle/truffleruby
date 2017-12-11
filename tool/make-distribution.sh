@@ -125,12 +125,12 @@ rm mxbuild/$PLATFORM/dists/truffleruby-zip.tar
 cat > truffleruby_env <<EOS
 export TRUFFLERUBY_RESILIENT_GEM_HOME=true
 export TRUFFLERUBY_CEXT_ENABLED=$TRUFFLERUBY_CEXT_ENABLED
-export TRUFFLERUBYOPT="$TRUFFLERUBYOPT"
+export TRUFFLERUBYOPT="$TRUFFLERUBYOPT \$TRUFFLERUBYOPT"
 EOS
 if [ "$graal" = true ]; then
   cat >> truffleruby_env <<EOS
 export JAVACMD="\$root/$jvmci_basename/bin/java"
-export JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -Djvmci.class.path.append=\$root/$graal_dist"
+export JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -Djvmci.class.path.append=\$root/$graal_dist \$JAVA_OPTS"
 EOS
 fi
 
