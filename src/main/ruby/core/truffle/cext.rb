@@ -88,10 +88,19 @@ module Truffle::CExt
 
       # Mapping a library name is a best effort approach towards standardizing a library name. It works in many cases,
       # but in others the simple mapping is not sufficient. On Linux, for example, that name may correspond to an `ld`
-      # script, rather than the actual library we want to load. So, we try loading the library here, which will properly
-      # resolve the full library path if necessary (and possible).
-      dynamic_lib = ffi_lib(normalized_lib_name).first
-      dynamic_lib.name
+      # script, rather than the actual library we want to load. So, we try loading the library here, which will attempt
+      # to resolve the full library path if necessary (and possible).
+      begin
+        dynamic_lib = ffi_lib(normalized_lib_name).first
+        dynamic_lib.name
+      rescue LoadError
+        # A LoadError indicates `ffi_lib` couldn't find a library that would successfully load with `dlopen`. The search
+        # path used for the `dlopen` calls may be incomplete and it's possible that Sulong, which runs downstream, may
+        # have a more comprehensive search path. Additionally, it's possible Sulong never even needs to load the library.
+        # Consequently, on search failure, we just return the normalized library name and allow Sulong an attempt at
+        # validation.
+        normalized_lib_name
+      end
     end
   end
 
