@@ -609,7 +609,7 @@ VALUE rb_int2inum(SIGNED_VALUE n) {
 }
 
 VALUE rb_uint2inum(VALUE n) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_ulong2num", 
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_ulong2num",
           // Cast otherwise it's considered as truffle object address
           (unsigned long) n);
 }
@@ -1069,7 +1069,7 @@ VALUE rb_str_new(const char *string, long length) {
     // hard to accomodate all the different things this pointer could really be
     // - unmanaged pointer, foreign object, foreign object plus offset, etc.
     // TODO CS 24-Oct-17 work with Sulong to make this copying not needed
-    
+
     const char* copy = malloc(length);
     memcpy(copy, string, length);
     VALUE ruby_string = (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_new_cstr", copy, length);
@@ -2803,7 +2803,7 @@ VALUE rb_io_addstr(VALUE io, VALUE str) {
   // use write instead of just #<<, it's closer to what MRI does
   // and avoids stack-overflow in zlib where >> is defined with this method
   truffle_invoke(io, "write", str);
-  return io; 
+  return io;
 }
 
 VALUE rb_io_check_io(VALUE io) {
