@@ -1,0 +1,1 @@
+slow:File::Stat#ftype returns fifo when the file is a fifo
