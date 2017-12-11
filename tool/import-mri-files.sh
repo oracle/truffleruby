@@ -9,7 +9,6 @@ rm lib/mri/racc/rdoc/grammar.en.rdoc
 rm lib/mri/securerandom.rb
 rm lib/mri/timeout.rb
 rm lib/mri/weakref.rb
-rm -r lib/mri/webrick*
 rm src/main/c/openssl/*.{c,h}
 cp ../ruby/ext/openssl/*.{c,h} src/main/c/openssl
 cp ../ruby/ext/syslog/*.{c,rb} src/main/c/syslog
