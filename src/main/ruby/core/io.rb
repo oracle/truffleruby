@@ -156,12 +156,7 @@ class IO
       left = unused
       count = left < max ? left : max
 
-      begin
-        buffer = Truffle::POSIX.read_string(io.descriptor, count)
-      rescue Errno::EAGAIN, IO::WaitReadable
-        IO.select([io]) # Wait if io is in non-blocking mode
-        retry
-      end
+      buffer = Truffle::POSIX.read_string_with_retry(io, count)
       bytes_read = buffer ? buffer.bytesize : 0
       if bytes_read > 0
         # Detect if another thread has updated the buffer
@@ -209,12 +204,7 @@ class IO
       @write_synced = true
 
       data = String.from_bytearray(@storage, @start, size)
-      begin
-        Truffle::POSIX.write_string io.descriptor, data
-      rescue Errno::EAGAIN, IO::WaitWritable
-        IO.select([], [io]) # Wait if io is in non-blocking mode
-        retry
-      end
+      Truffle::POSIX.write_string_with_retry io, data
       reset!
 
       size
@@ -2087,10 +2077,10 @@ class IO
     end
 
     begin
-      str = Truffle::POSIX.read_string(@descriptor, size)
+      str = Truffle::POSIX.read_string_nonblock(self, size)
     rescue Errno::EAGAIN
       if exception
-        raise WaitReadable
+        raise EAGAINWaitReadable
       else
         return :wait_readable
       end
@@ -2533,7 +2523,7 @@ class IO
     flush
     raise IOError unless @ibuffer.empty?
 
-    str = Truffle::POSIX.read_string(@descriptor, number_of_bytes)
+    str = Truffle::POSIX.read_string_no_retry(self, number_of_bytes)
     raise EOFError if str.nil?
 
     unless undefined.equal? buffer
@@ -2585,7 +2575,7 @@ class IO
     ensure_open_and_writable
     @ibuffer.unseek!(self) unless @sync
 
-    Truffle::POSIX.write_string @descriptor, data
+    Truffle::POSIX.write_string_no_retry self, data
   end
 
   def ungetbyte(obj)
@@ -2641,13 +2631,7 @@ class IO
     end
 
     if @sync
-      begin
-        Truffle::POSIX.write_string @descriptor, data
-      rescue Errno::EAGAIN, IO::WaitWritable
-        IO.select([], [self]) # Wait if io is in non-blocking mode
-        retry
-      end
-
+      Truffle::POSIX.write_string_with_retry self, data
     else
       reset_buffering
       bytes_to_write = data.bytesize
@@ -2670,7 +2654,7 @@ class IO
     @ibuffer.unseek!(self) unless @sync
 
     self.nonblock = true
-    Truffle::POSIX.write_string(@descriptor, data, true)
+    Truffle::POSIX.write_string_nonblock(self, data)
   end
 
   def close
