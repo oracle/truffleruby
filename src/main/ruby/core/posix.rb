@@ -272,35 +272,89 @@ module Truffle::POSIX
     end
   end
 
+  def self.read_string_with_retry(io, count)
+    fd = io.descriptor
+    errno = 1
+    until errno == 0
+      (res, errno) = read_string(fd, count)
+      return res if errno == 0
+      if [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno, Errno::EINTR::Errno].include? errno
+        IO.select([io])
+      else
+        Errno.handle
+      end
+    end
+  end
+
+  def self.read_string_no_retry(io, count)
+    fd = io.descriptor
+    (res, errno) = read_string(fd, count)
+    Errno.handle unless errno == 0
+    res
+  end
+
+  def self.read_string_nonblock(io, count)
+    fd = io.descriptor
+    (written, errno) = read_string(fd, count)
+    if [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno].include? errno
+      raise IO::EAGAINWaitReadable
+    end
+    Errno.handle unless errno == 0
+    written
+  end
+
   def self.read_string(fd, length)
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
     bytes_read = read(fd, buffer, length)
     if bytes_read < 0
-      errno = Errno.errno
-      if errno == Errno::EAGAIN::Errno || errno == Errno::EWOULDBLOCK::Errno
-        raise IO::EAGAINWaitWritable
-      end
-      Errno.handle
+      return [nil, Errno.errno]
     elsif bytes_read == 0 # EOF
-      nil
+      [nil, 0]
     else
-      buffer.read_string(bytes_read)
+      [buffer.read_string(bytes_read), 0]
     end
   end
 
-  def self.write_string(fd, string, nonblock=false)
+  def self.write_string_with_retry(io, string)
+    fd = io.descriptor
+    written = 0
+    errno = 1
+    until errno == 0
+      (written, errno) = write_string(fd, string, written)
+      return written if errno == 0
+      if [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno, Errno::EINTR::Errno].include? errno
+        IO.select([], [io])
+      else
+        Errno.handle
+      end
+    end
+  end
+
+  def self.write_string_no_retry(io, string)
+    fd = io.descriptor
+    (written, errno) = write_string(fd, string)
+    Errno.handle unless errno == 0
+    written
+  end
+
+  def self.write_string_nonblock(io, string)
+    fd = io.descriptor
+    (written, errno) = write_string(fd, string, 0, true)
+    if [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno].include? errno
+      raise IO::EAGAINWaitWritable
+    end
+    Errno.handle unless errno == 0
+    written
+  end
+
+  def self.write_string(fd, string, written=0, nonblock=false)
     length = string.bytesize
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
     buffer.write_string string
-    written = 0
     while written < length
       ret = write(fd, buffer + written, length - written)
       if ret < 0
-        errno = Errno.errno
-        if errno == Errno::EAGAIN::Errno || errno == Errno::EWOULDBLOCK::Errno
-          raise IO::EAGAINWaitWritable
-        end
-        Errno.handle
+        return [written, Errno.errno]
       end
       written += ret
 
@@ -308,7 +362,7 @@ module Truffle::POSIX
       # and the caller cannot know how much was written.
       break if nonblock
     end
-    written
+    [written, 0]
   end
 
   if Truffle::Boot.get_option('polyglot.stdio')
