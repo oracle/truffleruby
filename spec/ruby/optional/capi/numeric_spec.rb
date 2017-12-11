@@ -247,6 +247,20 @@ describe "CApiNumericSpecs" do
     end
   end
 
+  describe "rb_uint2inum" do
+    it "creates a new Fixnum from a long" do
+      i = @s.rb_uint2inum_14()
+      i.should be_kind_of(Fixnum)
+      i.should eql(14)
+    end
+
+    it "creates a new Bignum from a negative long" do
+      i = @s.rb_uint2inum_n14()
+      i.should be_kind_of(Bignum)
+      i.should eql(2 ** (PlatformGuard.wordsize?(64) ? 64 : 32) - 14)
+    end
+  end
+
   describe "rb_num2dbl" do
     it "raises a TypeError if passed nil" do
       lambda { @s.rb_num2dbl(nil) }.should raise_error(TypeError)

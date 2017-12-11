@@ -17,6 +17,15 @@ static VALUE numeric_spec_rb_int2inum_14(VALUE self) {
 }
 #endif
 
+#ifdef HAVE_RB_UINT2INUM
+static VALUE numeric_spec_rb_uint2inum_14(VALUE self) {
+  return rb_uint2inum(14);
+}
+static VALUE numeric_spec_rb_uint2inum_n14(VALUE self) {
+  return rb_uint2inum(-14);
+}
+#endif
+
 #ifdef HAVE_RB_INTEGER
 static VALUE numeric_spec_rb_Integer(VALUE self, VALUE str) {
   return rb_Integer(str);
@@ -112,6 +121,11 @@ void Init_numeric_spec(void) {
 
 #ifdef HAVE_RB_INT2INUM
   rb_define_method(cls, "rb_int2inum_14", numeric_spec_rb_int2inum_14, 0);
+#endif
+
+#ifdef HAVE_RB_UINT2INUM
+  rb_define_method(cls, "rb_uint2inum_14", numeric_spec_rb_uint2inum_14, 0);
+  rb_define_method(cls, "rb_uint2inum_n14", numeric_spec_rb_uint2inum_n14, 0);
 #endif
 
 #ifdef HAVE_RB_INTEGER
