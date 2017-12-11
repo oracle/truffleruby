@@ -99,6 +99,7 @@ module Truffle::CExt
         # have a more comprehensive search path. Additionally, it's possible Sulong never even needs to load the library.
         # Consequently, on search failure, we just return the normalized library name and allow Sulong an attempt at
         # validation.
+        warn "Could not find a search path for #{lib_name} -- passing #{normalized_lib_name} on to Sulong"
         normalized_lib_name
       end
     end
