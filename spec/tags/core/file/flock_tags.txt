@@ -1,1 +1,2 @@
 slow:File#flock returns false if trying to lock an exclusively locked file
+slow:File#flock blocks if trying to lock an exclusively locked file
