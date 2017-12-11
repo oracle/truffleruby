@@ -19,8 +19,11 @@ You should checkout a tag corresponding to a GraalVM release:
 $ git checkout vm-enterprise-0.xx
 ```
 
-Update the version of JVMCI in `install_jvmci` in `tool/jt.rb` to match the one
-of the GraalVM release.
+Set `JVMCI_VERSION` to the JVMCI version used in the GraalVM release:
+
+```bash
+export JVMCI_VERSION=jvmci-0.38
+```
 
 Then you should update the Truffle revision in `mx.truffleruby/suite.py` to
 match the revision of `truffle` in the GraalVM `release` file.
