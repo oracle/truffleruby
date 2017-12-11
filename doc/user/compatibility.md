@@ -245,8 +245,10 @@ three numbers listed below for each part of the specs are the number of
 expectations that the version of MRI we are compatible with passes, then the
 number TruffleRuby passes, and then the TruffleRuby number as a percentage of
 the MRI number. This is run on macOS. The numbers probably vary a little based
-on platform and configuration.
+on platform and configuration. The library and C extension specs are quite
+limited so may be misleading.
 
 * Language: 3913, 3903, 99%
 * Core: 176111, 169117, 96%
-* Library (`:library` and `:openssl` on TruffleRuby): 20820, 16934, 81.3%
+* Library (`:library` and `:openssl` on TruffleRuby): 20820, 16934, 81%
+* C extensions: 1679, 1627, 97%
