@@ -1276,11 +1276,19 @@ public abstract class FixnumNodes {
     @Primitive(name = "fixnum_ulong_from_bignum")
     public static abstract class FixnumULongFromBigNumPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyBignum(b)")
-        public long uLongFromBignum(DynamicObject b) {
-            return Layouts.BIGNUM.getValue(b).longValue();
-        }
+        private static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);
 
+        @Specialization(guards = "isRubyBignum(b)")
+        public long uLongFromBignum(DynamicObject b,
+                @Cached("createBinaryProfile()") ConditionProfile doesNotNeedsConversion) {
+            final BigInteger value = Layouts.BIGNUM.getValue(b);
+            assert value.signum() >= 0;
+            if (doesNotNeedsConversion.profile(value.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) < 1)) {
+                return value.longValue();
+            } else {
+                return value.subtract(TWO_POW_64).longValue();
+            }
+        }
     }
 
     @Primitive(name = "fixnum_pow", lowerFixnum = { 0, 1 })
