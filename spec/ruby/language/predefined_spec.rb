@@ -30,11 +30,11 @@ $`               String          The string preceding the match in a successful 
                                  is local to the current scope. [r/o, thread]
 $'               String          The string following the match in a successful pattern match. This variable
                                  is local to the current scope. [r/o, thread]
-$1 to $9         String          The contents of successive groups matched in a successful pattern match. In
+$1 to $<N>       String          The contents of successive groups matched in a successful pattern match. In
                                  "cat" =~/(c|a)(t|z)/, $1 will be set to “a” and $2 to “t”. This variable
                                  is local to the current scope. [r/o, thread]
 $~               MatchData       An object that encapsulates the results of a successful pattern match. The
-                                 variables $&, $`, $', and $1 to $9 are all derived from $~. Assigning to $~
+                                 variables $&, $`, $', and $1 to $<N> are all derived from $~. Assigning to $~
                                  changes the values of these derived variables. This variable is local to the
                                  current scope. [thread]
 =end
