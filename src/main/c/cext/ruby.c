@@ -520,8 +520,7 @@ LONG_LONG rb_num2ll(VALUE val) {
 }
 
 unsigned long NUM2ULONG(VALUE value) {
-  // TODO CS 24-Jul-16 _invoke_l but what about the unsigned part?
-  return truffle_invoke_l(RUBY_CEXT, "NUM2ULONG", value);
+  return truffle_invoke_l(RUBY_CEXT, "rb_num2ulong", value);
 }
 
 int FIX2INT(VALUE value) {

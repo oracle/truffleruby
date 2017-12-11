@@ -143,28 +143,6 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "NUM2ULONG", onSingleton = true, required = 1, lowerFixnum = 1)
-    public abstract static class NUM2ULONGNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public long num2ulong(int num) {
-            // TODO CS 2-May-16 what to do about the fact it's unsigned?
-            return num;
-        }
-
-        @Specialization
-        public long num2ulong(long num) {
-            // TODO CS 2-May-16 what to do about the fact it's unsigned?
-            return num;
-        }
-
-        @Specialization(guards = "isRubyBignum(num)")
-        public Object num2num(DynamicObject num) {
-            throw new RaiseException(getContext().getCoreExceptions().rangeError("bignum out of range of unsigned long",this));
-        }
-
-    }
-
     @CoreMethod(names = "FIX2INT", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class FIX2INTNode extends CoreMethodArrayArgumentsNode {
 
