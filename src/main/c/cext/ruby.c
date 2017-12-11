@@ -610,7 +610,9 @@ VALUE rb_int2inum(SIGNED_VALUE n) {
 }
 
 VALUE rb_uint2inum(VALUE n) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "ULONG2NUM", n);
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_ulong2num", 
+          // Cast otherwise it's considered as truffle object address
+          (unsigned long) n);
 }
 
 VALUE rb_ll2inum(LONG_LONG n) {
