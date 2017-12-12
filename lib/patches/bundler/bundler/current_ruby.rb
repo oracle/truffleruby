@@ -7,8 +7,9 @@ module Bundler
       defined?(RUBY_ENGINE) && RUBY_ENGINE == "truffleruby"
     end
 
+    alias_method :original_ruby?, :ruby?
     def ruby?
-      truffleruby?
+      truffleruby? || original_ruby?
     end
   end
 end
