@@ -10,7 +10,7 @@ class Gem::Package
     # TruffleRuby: start
     extr_to = File.dirname(@gem.path) + '/' + File.basename(@gem.path, File.extname(@gem.path))
     Dir.mkdir(extr_to)
-    `tar -C #{extr_to} -xf #{@gem.path}`
+    `tar --warning=no-timestamp -C #{extr_to} -xf #{@gem.path}`
     # TruffleRuby: end
 
     @gem.with_read_io do |io|
@@ -20,7 +20,7 @@ class Gem::Package
         next unless entry.full_name == 'data.tar.gz'
 
         # TruffleRuby: start
-        `tar -C #{destination_dir} -xzf #{extr_to + '/' + entry.full_name}`
+        `tar --warning=no-timestamp -C #{destination_dir} -xzf #{extr_to + '/' + entry.full_name}`
         #extract_tar_gz entry, destination_dir, pattern
         FileUtils.remove_dir(extr_to)
         # TruffleRuby: end
