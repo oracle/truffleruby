@@ -38,7 +38,6 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
-import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleNodes;
@@ -53,11 +52,13 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeNodesFactory;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.SubstringRope;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodesFactory;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
+import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
@@ -126,39 +127,7 @@ public class CExtNodes {
         }
 
     }
-
-    @CoreMethod(names = "NUM2LONG", onSingleton = true, required = 1)
-    public abstract static class NUM2LONGNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public long num2long(int num) {
-            return num;
-        }
-
-
-        @Specialization
-        public long num2long(long num) {
-            return num;
-        }
-    }
-
-    @CoreMethod(names = "NUM2ULONG", onSingleton = true, required = 1, lowerFixnum = 1)
-    public abstract static class NUM2ULONGNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public long num2ulong(int num) {
-            // TODO CS 2-May-16 what to do about the fact it's unsigned?
-            return num;
-        }
-
-        @Specialization
-        public long num2ulong(long num) {
-            // TODO CS 2-May-16 what to do about the fact it's unsigned?
-            return num;
-        }
-
-    }
-
+    
     @CoreMethod(names = "FIX2INT", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class FIX2INTNode extends CoreMethodArrayArgumentsNode {
 
@@ -1043,17 +1012,51 @@ public class CExtNodes {
     @CoreMethod(names = "rb_tr_debug", onSingleton = true, rest = true)
     public abstract static class DebugNode extends CoreMethodArrayArgumentsNode {
 
+        @Child CallDispatchHeadNode toSCall;
+
         @TruffleBoundary
         @Specialization
         public Object debug(Object... objects) {
             if (objects.length > 1) {
                 System.err.printf("Printing %d values%n", objects.length);
             }
+
             for (Object object : objects) {
-                System.err.printf("%s @ %s: %s%n", object.getClass(), System.identityHashCode(object), object);
+                final String representation;
+
+                if (RubyGuards.isRubyString(object)) {
+                    final Rope rope = StringOperations.rope((DynamicObject) object);
+                    final byte[] bytes = rope.getBytes();
+                    final StringBuilder builder = new StringBuilder();
+
+                    for (int i = 0; i < bytes.length; i++) {
+                        if (i % 4 == 0 && i != 0 && i != bytes.length - 1) {
+                            builder.append(" ");
+                        }
+                        builder.append(String.format("%02x", bytes[i]));
+                    }
+
+                    representation = RopeOperations.decodeRope(rope) + " (" + builder.toString() + ")";
+                } else if (RubyGuards.isRubyBasicObject(object)) {
+                    representation = object.toString() + " (" + StringOperations.getString(callToS(object)) + ")";
+                } else {
+                    representation = object.toString();
+                }
+
+                System.err.printf("%s @ %s: %s%n", object.getClass(), System.identityHashCode(object), representation);
             }
             return nil();
         }
+
+        private DynamicObject callToS(Object object) {
+            if (toSCall == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                toSCall = CallDispatchHeadNode.createOnSelf();
+            }
+
+            return (DynamicObject) toSCall.call(null, object, "to_s");
+        }
+
     }
 
     // Those primitives store a Symbol as key, so they effectively have
@@ -1210,7 +1213,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_enc_mbclen", onSingleton = true, required = 3, lowerFixnum = { 3, 4 })
+    @CoreMethod(names = "rb_enc_mbclen", onSingleton = true, required = 4, lowerFixnum = { 3, 4 })
     public abstract static class RbEncMbLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
@@ -1224,7 +1227,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_enc_left_char_head", onSingleton = true, required = 3, lowerFixnum = { 3, 4, 5 })
+    @CoreMethod(names = "rb_enc_left_char_head", onSingleton = true, required = 5, lowerFixnum = { 3, 4, 5 })
     public abstract static class RbEncLeftCharHeadNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
@@ -1235,7 +1238,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_enc_precise_mbclen", onSingleton = true, required = 3, lowerFixnum = { 3, 4 })
+    @CoreMethod(names = "rb_enc_precise_mbclen", onSingleton = true, required = 4, lowerFixnum = { 3, 4 })
     public abstract static class RbEncPreciseMbclenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })

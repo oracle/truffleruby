@@ -456,11 +456,11 @@ int NUM2INT(VALUE value) {
 }
 
 unsigned int NUM2UINT(VALUE value) {
-  return (unsigned int) truffle_invoke_l(RUBY_CEXT, "NUM2LONG", value);
+  return (unsigned int) NUM2LONG(value);
 }
 
 long NUM2LONG(VALUE value) {
-  return truffle_invoke_l(RUBY_CEXT, "NUM2LONG", value);
+  return truffle_invoke_l(RUBY_CEXT, "rb_num2long", value);
 }
 
 unsigned long rb_num2ulong(VALUE val) {
@@ -520,8 +520,7 @@ LONG_LONG rb_num2ll(VALUE val) {
 }
 
 unsigned long NUM2ULONG(VALUE value) {
-  // TODO CS 24-Jul-16 _invoke_l but what about the unsigned part?
-  return truffle_invoke_l(RUBY_CEXT, "NUM2ULONG", value);
+  return truffle_invoke_l(RUBY_CEXT, "rb_num2ulong", value);
 }
 
 int FIX2INT(VALUE value) {
@@ -610,7 +609,9 @@ VALUE rb_int2inum(SIGNED_VALUE n) {
 }
 
 VALUE rb_uint2inum(VALUE n) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "ULONG2NUM", n);
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_ulong2num",
+          // Cast otherwise it's considered as truffle object address
+          (unsigned long) n);
 }
 
 VALUE rb_ll2inum(LONG_LONG n) {
@@ -1068,7 +1069,7 @@ VALUE rb_str_new(const char *string, long length) {
     // hard to accomodate all the different things this pointer could really be
     // - unmanaged pointer, foreign object, foreign object plus offset, etc.
     // TODO CS 24-Oct-17 work with Sulong to make this copying not needed
-    
+
     const char* copy = malloc(length);
     memcpy(copy, string, length);
     VALUE ruby_string = (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_new_cstr", copy, length);
@@ -1200,6 +1201,7 @@ VALUE rb_str_buf_cat(VALUE string, const char *to_concat, long length) {
   return rb_str_cat(string, to_concat, length);
 }
 
+// returns Truffle::CExt::RbEncoding, takes Encoding or String
 rb_encoding *rb_to_encoding(VALUE encoding) {
   return truffle_invoke(RUBY_CEXT, "rb_to_encoding", encoding);
 }
@@ -1449,6 +1451,7 @@ rb_encoding *rb_enc_find(const char *name) {
   return rb_enc_from_index(idx);
 }
 
+// returns Encoding, takes rb_encoding struct or RbEncoding
 VALUE rb_enc_from_encoding(rb_encoding *encoding) {
   return truffle_invoke(RUBY_CEXT, "rb_enc_from_encoding", encoding);
 }
@@ -1594,7 +1597,7 @@ void rb_econv_check_error(rb_econv_t *ec) {
 }
 
 int rb_econv_prepare_opts(VALUE opthash, VALUE *opts) {
-  rb_tr_error("rb_ary_each not implemented");
+  rb_tr_error("rb_econv_prepare_opts not implemented");
 }
 
 
@@ -1976,7 +1979,7 @@ VALUE rb_proc_new(VALUE (*function)(ANYARGS), VALUE value) {
 }
 
 VALUE rb_proc_call(VALUE self, VALUE args) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_proc_call", self, args);  
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_proc_call", self, args);
 }
 
 int rb_proc_arity(VALUE self) {
@@ -2053,7 +2056,7 @@ VALUE rb_call_super(int args_count, const VALUE *args) {
 }
 
 int rb_block_given_p() {
-  return rb_block_proc() != Qnil;
+  return !NIL_P(rb_block_proc());
 }
 
 VALUE rb_block_proc(void) {
@@ -2797,7 +2800,10 @@ NORETURN(void rb_eof_error(void)) {
 }
 
 VALUE rb_io_addstr(VALUE io, VALUE str) {
-  return (VALUE) truffle_invoke(io, "<<", str);
+  // use write instead of just #<<, it's closer to what MRI does
+  // and avoids stack-overflow in zlib where #<< is defined with this method
+  rb_io_write(io, str);
+  return io;
 }
 
 VALUE rb_io_check_io(VALUE io) {

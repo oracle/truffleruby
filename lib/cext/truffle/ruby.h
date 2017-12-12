@@ -57,7 +57,7 @@ int rb_tr_writable(int mode);
 
 typedef void *(*gvl_call)(void *);
 
-#define RETURN_ENUMERATOR_NAME(obj, meth, argc, argv) do {      \
+#define RETURN_ENUMERATOR_NAME(obj, meth, argc, argv) do {  \
 if (!rb_block_given_p())                                    \
     return rb_enumeratorize((obj), (meth), (argc), (argv)); \
 } while (0)
@@ -296,7 +296,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
     } else if (kwargs && !taken_kwargs) {
        if (argn < argc) {
         arg = argv[argn];
-        truffle_invoke(RUBY_CEXT, "test_kwargs", argv[argn], Qtrue);
+        truffle_invoke(RUBY_CEXT, "test_kwargs", arg, Qtrue);
         argn++;
         found_kwargs = true;
       } else {
