@@ -21,6 +21,7 @@ static VALUE numeric_spec_rb_int2inum_14(VALUE self) {
 static VALUE numeric_spec_rb_uint2inum_14(VALUE self) {
   return rb_uint2inum(14);
 }
+
 static VALUE numeric_spec_rb_uint2inum_n14(VALUE self) {
   return rb_uint2inum(-14);
 }
