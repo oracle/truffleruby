@@ -1820,6 +1820,7 @@ module Commands
     check_filename_length
     rubocop
     sh "tool/lint.sh"
+    mx 'checkstyle'
     check_parser
   end
 
