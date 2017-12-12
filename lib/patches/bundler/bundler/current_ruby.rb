@@ -6,5 +6,9 @@ module Bundler
     def truffleruby?
       defined?(RUBY_ENGINE) && RUBY_ENGINE == "truffleruby"
     end
+
+    def ruby?
+      truffleruby?
+    end
   end
 end
