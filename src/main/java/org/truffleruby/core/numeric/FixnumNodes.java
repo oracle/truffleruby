@@ -1277,13 +1277,14 @@ public abstract class FixnumNodes {
     public static abstract class FixnumULongFromBigNumPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         private static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);
+        private static final BigInteger LONG_MAX = BigInteger.valueOf(Long.MAX_VALUE);
 
         @Specialization(guards = "isRubyBignum(b)")
         public long uLongFromBignum(DynamicObject b,
                 @Cached("createBinaryProfile()") ConditionProfile doesNotNeedsConversion) {
             final BigInteger value = Layouts.BIGNUM.getValue(b);
             assert value.signum() >= 0;
-            if (doesNotNeedsConversion.profile(value.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) < 1)) {
+            if (doesNotNeedsConversion.profile(value.compareTo(LONG_MAX) < 1)) {
                 return value.longValue();
             } else {
                 return value.subtract(TWO_POW_64).longValue();
