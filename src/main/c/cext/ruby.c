@@ -451,10 +451,6 @@ VALUE rb_tr_get_default_rs(void) {
 
 // Conversions
 
-int NUM2INT(VALUE value) {
-  return truffle_invoke_i(RUBY_CEXT, "NUM2INT", value);
-}
-
 unsigned int NUM2UINT(VALUE value) {
   return (unsigned int) NUM2LONG(value);
 }
