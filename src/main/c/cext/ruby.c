@@ -515,10 +515,6 @@ unsigned long NUM2ULONG(VALUE value) {
   return truffle_invoke_l(RUBY_CEXT, "rb_num2ulong", value);
 }
 
-unsigned long FIX2ULONG(VALUE value) {
-  return truffle_invoke_l(RUBY_CEXT, "FIX2ULONG", value);
-}
-
 short rb_num2short(VALUE value) {
   rb_tr_error("rb_num2ushort not implemented");
 }

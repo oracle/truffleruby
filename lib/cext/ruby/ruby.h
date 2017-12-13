@@ -361,7 +361,7 @@ int RB_FIXNUM_P(VALUE value);
 #define RB_NEGFIXABLE(f) ((f) >= RUBY_FIXNUM_MIN)
 #define RB_FIXABLE(f) (RB_POSFIXABLE(f) && RB_NEGFIXABLE(f))
 #define FIX2LONG(x) RB_FIX2LONG(x)
-unsigned long FIX2ULONG(VALUE value);
+#define FIX2ULONG(x) RB_FIX2ULONG(x)
 #define FIXNUM_P(f) RB_FIXNUM_P(f)
 #define POSFIXABLE(f) RB_POSFIXABLE(f)
 #define NEGFIXABLE(f) RB_NEGFIXABLE(f)
