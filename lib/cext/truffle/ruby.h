@@ -103,7 +103,6 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 #define rb_funcall(object, ...) truffle_invoke(RUBY_CEXT, "rb_funcall", (void *) object, __VA_ARGS__)
 
 // Additional non-standard
-unsigned int FIX2UINT(VALUE value);
 int RB_NIL_P(VALUE value);
 VALUE rb_java_class_of(VALUE val);
 VALUE rb_java_to_string(VALUE val);
