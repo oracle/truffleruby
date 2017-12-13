@@ -130,21 +130,6 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "FIX2LONG", onSingleton = true, required = 1, lowerFixnum = 1)
-    public abstract static class FIX2LONGNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public long fix2long(int num) {
-            return num;
-        }
-
-        @Specialization
-        public long fix2long(long num) {
-            return num;
-        }
-
-    }
-
     @CoreMethod(names = "INT2NUM", onSingleton = true, required = 1)
     public abstract static class INT2NUMNode extends CoreMethodArrayArgumentsNode {
 
