@@ -666,6 +666,7 @@ unsigned long rb_fix2uint(VALUE);
 int NUM2INT(VALUE value);
 unsigned int NUM2UINT(VALUE value);
 #define FIX2INT(x)  RB_FIX2INT(x)
+#define FIX2UINT(x) RB_FIX2UINT(x)
 
 
 short rb_num2short(VALUE);
