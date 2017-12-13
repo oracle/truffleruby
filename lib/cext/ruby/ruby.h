@@ -664,7 +664,7 @@ unsigned long rb_fix2uint(VALUE);
 #define RB_FIX2UINT(x) ((unsigned int)RB_FIX2ULONG(x))
 #endif /* SIZEOF_INT < SIZEOF_LONG */
 #define NUM2INT(x)  RB_NUM2INT(x)
-unsigned int NUM2UINT(VALUE value);
+#define NUM2UINT(x) RB_NUM2UINT(x)
 #define FIX2INT(x)  RB_FIX2INT(x)
 #define FIX2UINT(x) RB_FIX2UINT(x)
 
