@@ -127,30 +127,6 @@ public class CExtNodes {
         }
 
     }
-    
-    @CoreMethod(names = "FIX2INT", onSingleton = true, required = 1, lowerFixnum = 1)
-    public abstract static class FIX2INTNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int fix2int(int num) {
-            return num;
-        }
-
-        @Specialization(guards = "fitsIntoInteger(num)")
-        public int fix2intInRange(long num) {
-            return (int) num;
-        }
-
-        @Specialization(guards = "!fitsIntoInteger(num)")
-        public int fix2intOutOfRange(long num) {
-            throw new RaiseException(coreExceptions().rangeErrorConvertToInt(num, this));
-        }
-
-        protected boolean fitsIntoInteger(long num) {
-            return CoreLibrary.fitsIntoInteger(num);
-        }
-
-    }
 
     @CoreMethod(names = "FIX2UINT", onSingleton = true, required = 1)
     public abstract static class FIX2UINTNode extends CoreMethodArrayArgumentsNode {
