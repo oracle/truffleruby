@@ -102,21 +102,6 @@ public class CExtNodes {
 
     // TODO CS 19-Mar-17 many of these builtins could just be identify functions with a cast in C
 
-    @CoreMethod(names = "NUM2INT", onSingleton = true, required = 1)
-    public abstract static class NUM2INTNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int num2int(int num) {
-            return num;
-        }
-
-        @Specialization
-        public int num2int(long num) {
-            return (int) num;
-        }
-
-    }
-
     @CoreMethod(names = "NUM2UINT", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class NUM2UINTNode extends CoreMethodArrayArgumentsNode {
 
