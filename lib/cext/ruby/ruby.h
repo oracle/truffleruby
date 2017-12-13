@@ -344,7 +344,7 @@ int rb_long2int(long value);
 #define MODET2NUM(v) INT2NUM(v)
 #endif
 
-#define RB_FIX2LONG(x) ((long)RSHIFT((SIGNED_VALUE)(x),1))
+#define RB_FIX2LONG(x) ((long)(x))
 static inline long
 rb_fix2long(VALUE x)
 {
@@ -665,7 +665,7 @@ unsigned long rb_fix2uint(VALUE);
 #endif /* SIZEOF_INT < SIZEOF_LONG */
 int NUM2INT(VALUE value);
 unsigned int NUM2UINT(VALUE value);
-int FIX2INT(VALUE value);
+#define FIX2INT(x)  RB_FIX2INT(x)
 
 
 short rb_num2short(VALUE);
