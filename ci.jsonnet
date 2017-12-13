@@ -414,6 +414,12 @@
 
   # Tests
 
+  test_mri: $.sulong {
+    # OpenSSL is required to run RubyGems tests
+    setup: common.setup + $.sulong.setup,
+    run: jt(["test", "mri"])
+  },
+
   test_gems: {
     setup: common.setup + gem_test_pack,
     run: jt(["test", "gems"])
@@ -530,7 +536,7 @@
 
     {name: "ruby-lint"} + linux_gate + $.lint,
     {name: "ruby-test-tck"} + linux_gate + {run: [["mx", "rubytck"]]},
-    {name: "ruby-test-mri"} + linux_gate + {run: jt(["test", "mri"])},
+    {name: "ruby-test-mri"} + linux_gate + $.test_mri,
     {name: "ruby-test-integration"} + linux_gate + $.test_integration,
     {name: "ruby-test-cexts"} + linux_gate + $.test_cexts,
     {name: "ruby-test-gems"} + linux_gate + $.test_gems,
