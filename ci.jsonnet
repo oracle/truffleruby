@@ -2,7 +2,7 @@
   # Used to run just a few jobs and not all (see tests_jobs)
   local debug = false,
 
-  local overlay = "00590f090c94b77f0c0438e050dec81035d5c994",
+  local overlay = "574f86c9f1c18d9199c5882c798581d8cd16b33c",
   local no_overlay = "6f4eafb4da3b14be3593b07ed562d12caad9b64b",
 
   overlay: if debug then no_overlay else overlay,
