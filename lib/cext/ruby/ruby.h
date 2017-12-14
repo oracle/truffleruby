@@ -1518,7 +1518,7 @@ rb_num2char_inline(VALUE x)
     else
 	return (char)(NUM2INT(x) & 0xff);
 }
-char RB_NUM2CHR(VALUE x);
+#define RB_NUM2CHR(x) rb_num2char_inline(x)
 
 #define RB_CHR2FIX(x) INT2FIX((long)((x)&0xff))
 
