@@ -3404,11 +3404,10 @@ static VALUE
 rb_gzfile_total_out(VALUE obj)
 {
     struct gzfile *gz = get_gzfile(obj);
-    // fix from https://bugs.ruby-lang.org/issues/13616
-    unsigned long total_out = gz->z.stream.total_out;
+    uLong total_out = gz->z.stream.total_out;
     long buf_filled = gz->z.buf_filled;
- 
-    if (total_out >= (unsigned long)buf_filled) {
+
+    if (total_out >= (uLong)buf_filled) {
         return rb_uint2inum(total_out - buf_filled);
     } else {
         return LONG2FIX(-(buf_filled - (long)total_out));
