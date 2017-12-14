@@ -627,7 +627,7 @@ rb_num2long_inline(VALUE x)
 	return rb_num2long(x);
 }
 #define RB_NUM2LONG(x) rb_num2long_inline(x)
-long NUM2LONG(VALUE value);
+#define NUM2LONG(x) RB_NUM2LONG(x)
 static inline unsigned long
 rb_num2ulong_inline(VALUE x)
 {
@@ -637,7 +637,7 @@ rb_num2ulong_inline(VALUE x)
 	return rb_num2ulong(x);
 }
 #define RB_NUM2ULONG(x) rb_num2ulong_inline(x)
-unsigned long NUM2ULONG(VALUE value);
+#define NUM2ULONG(x) RB_NUM2ULONG(x)
 #if SIZEOF_INT < SIZEOF_LONG
 long rb_num2int(VALUE);
 long rb_fix2int(VALUE);

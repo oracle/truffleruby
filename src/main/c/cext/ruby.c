@@ -451,10 +451,6 @@ VALUE rb_tr_get_default_rs(void) {
 
 // Conversions
 
-long NUM2LONG(VALUE value) {
-  return truffle_invoke_l(RUBY_CEXT, "rb_num2long", value);
-}
-
 unsigned long rb_num2ulong(VALUE val) {
   return (unsigned long)truffle_invoke_l(RUBY_CEXT, "rb_num2ulong", val);
 }
@@ -509,10 +505,6 @@ LONG_LONG rb_num2ll(VALUE val) {
 
     val = rb_to_int(val);
     return NUM2LL(val);
-}
-
-unsigned long NUM2ULONG(VALUE value) {
-  return truffle_invoke_l(RUBY_CEXT, "rb_num2ulong", value);
 }
 
 short rb_num2short(VALUE value) {
