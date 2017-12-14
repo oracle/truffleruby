@@ -100,36 +100,7 @@ import static org.truffleruby.core.string.StringOperations.rope;
 @CoreClass("Truffle::CExt")
 public class CExtNodes {
 
-    // TODO CS 19-Mar-17 many of these builtins could just be identify functions with a cast in C
-
-    @CoreMethod(names = "NUM2UINT", onSingleton = true, required = 1, lowerFixnum = 1)
-    public abstract static class NUM2UINTNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int num2uint(int num) {
-            // TODO CS 2-May-16 what to do about the fact it's unsigned?
-            return num;
-        }
-
-    }
-
-    @CoreMethod(names = "FIX2UINT", onSingleton = true, required = 1)
-    public abstract static class FIX2UINTNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int fix2uint(int num) {
-            // TODO CS 2-May-16 what to do about the fact it's unsigned?
-            return num;
-        }
-
-        @Specialization
-        public long fix2uint(long num) {
-            // TODO CS 2-May-16 what to do about the fact it's unsigned?
-            return num;
-        }
-
-    }
-
+    // TODO (pitr-ch 14-Dec-2017): remove from java
     @CoreMethod(names = "INT2FIX", onSingleton = true, required = 1)
     public abstract static class INT2FIXNode extends CoreMethodArrayArgumentsNode {
 
