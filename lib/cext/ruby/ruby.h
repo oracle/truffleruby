@@ -1487,8 +1487,8 @@ rb_uint2num_inline(unsigned int v)
 }
 #define RB_UINT2NUM(x) rb_uint2num_inline(x)
 #endif
-VALUE INT2NUM(long value);
-VALUE UINT2NUM(unsigned int value);
+#define INT2NUM(x) RB_INT2NUM(x)
+#define UINT2NUM(x) RB_UINT2NUM(x)
 
 static inline VALUE
 rb_long2num_inline(long v)

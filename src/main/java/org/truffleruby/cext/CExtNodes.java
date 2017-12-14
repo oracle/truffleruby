@@ -130,21 +130,6 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "INT2NUM", onSingleton = true, required = 1)
-    public abstract static class INT2NUMNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int int2num(int num) {
-            return num;
-        }
-
-        @Specialization
-        public long int2num(long num) {
-            return num;
-        }
-
-    }
-
     @CoreMethod(names = "INT2FIX", onSingleton = true, required = 1)
     public abstract static class INT2FIXNode extends CoreMethodArrayArgumentsNode {
 
@@ -156,21 +141,6 @@ public class CExtNodes {
         @Specialization
         public long int2fix(long num) {
             return num;
-        }
-
-    }
-
-    @CoreMethod(names = "UINT2NUM", onSingleton = true, required = 1, lowerFixnum = 1)
-    public abstract static class UINT2NUMNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public Object uint2num(int num,
-                @Cached("createBinaryProfile()") ConditionProfile positiveProfile) {
-            if (positiveProfile.profile(num >= 0)) {
-                return num;
-            } else {
-                return Integer.toUnsignedLong(num);
-            }
         }
 
     }
