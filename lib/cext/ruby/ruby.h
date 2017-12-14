@@ -702,7 +702,7 @@ rb_num2ll_inline(VALUE x)
 }
 # define RB_NUM2LL(x) rb_num2ll_inline(x)
 # define RB_NUM2ULL(x) rb_num2ull(x)
-#define NUM2LL(x) rb_num2ll(x)
+# define NUM2LL(x) RB_NUM2LL(x)
 # define NUM2ULL(x) RB_NUM2ULL(x)
 #endif
 
