@@ -519,16 +519,8 @@ short rb_fix2short(VALUE value) {
   rb_tr_error("rb_num2ushort not implemented");
 }
 
-VALUE INT2NUM(long value) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "INT2NUM", value);
-}
-
 VALUE INT2FIX(long value) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "INT2FIX", value);
-}
-
-VALUE UINT2NUM(unsigned int value) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "UINT2NUM", value);
 }
 
 VALUE LONG2NUM(long value) {
