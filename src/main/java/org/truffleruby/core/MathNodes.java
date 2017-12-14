@@ -357,7 +357,7 @@ public abstract class MathNodes {
 
     }
 
-    @CoreMethod(names = "hypot", isModuleFunction = true, required = 2)
+    @Primitive(name = "math_hypot")
     public abstract static class HypotNode extends SimpleDyadicMathNode {
 
         @Override
