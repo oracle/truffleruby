@@ -1522,7 +1522,7 @@ rb_num2char_inline(VALUE x)
 
 #define RB_CHR2FIX(x) INT2FIX((long)((x)&0xff))
 
-VALUE LONG2NUM(long value);
+#define LONG2NUM(x) RB_LONG2NUM(x)
 #define ULONG2NUM(x) RB_ULONG2NUM(x)
 #define NUM2CHR(x) RB_NUM2CHR(x)
 #define CHR2FIX(x) RB_CHR2FIX(x)

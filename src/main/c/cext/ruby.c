@@ -523,10 +523,6 @@ VALUE INT2FIX(long value) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "INT2FIX", value);
 }
 
-VALUE LONG2NUM(long value) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "LONG2NUM", value);
-}
-
 VALUE LONG2FIX(long value) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "LONG2FIX", value);
 }
@@ -556,7 +552,7 @@ int rb_cmpint(VALUE val, VALUE a, VALUE b) {
 }
 
 VALUE rb_int2inum(SIGNED_VALUE n) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "LONG2NUM", n);
+  return (VALUE)LONG2NUM(n);
 }
 
 VALUE rb_uint2inum(VALUE n) {
@@ -567,7 +563,7 @@ VALUE rb_uint2inum(VALUE n) {
 
 VALUE rb_ll2inum(LONG_LONG n) {
   /* Long and long long are both 64-bits with clang x86-64. */
-  return (VALUE) truffle_invoke(RUBY_CEXT, "LONG2NUM", n);
+  return (VALUE)LONG2NUM(n);
 }
 
 VALUE rb_ull2inum(unsigned LONG_LONG val) {
@@ -4640,7 +4636,8 @@ VALUE rb_uint2big(VALUE n) {
 }
 
 VALUE rb_int2big(SIGNED_VALUE n) {
-  rb_tr_error("rb_int2big not implemented");
+  // it cannot overflow Fixnum
+  return LONG2FIX(n);
 }
 
 VALUE rb_newobj(void) {

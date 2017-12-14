@@ -145,26 +145,6 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "LONG2NUM", onSingleton = true, required = 1)
-    public abstract static class LONG2NUMNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public long long2num(long num) {
-            return num;
-        }
-
-    }
-
-    @CoreMethod(names = "LL2NUM", onSingleton = true, required = 1)
-    public abstract static class LL2NUMNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public long longlong2num(long num) {
-            return num;
-        }
-
-    }
-
     @CoreMethod(names = "rb_ulong2num", onSingleton = true, required = 1)
     public abstract static class ULong2NumNode extends CoreMethodArrayArgumentsNode {
 
