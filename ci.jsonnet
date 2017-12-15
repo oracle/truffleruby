@@ -246,6 +246,10 @@
     capabilities: ["solaris", "sparcv9"]
   },
 
+  fast_cpu_caps: $.gate_caps + {
+    capabilities: ["x62"] + ["linux", "amd64"],
+  },
+
   local deploy_caps = {
     targets: ["deploy", "gate", "post-push"],
   },
@@ -536,7 +540,7 @@
 
     {name: "ruby-lint"} + linux_gate + $.lint,
     {name: "ruby-test-tck"} + linux_gate + {run: [["mx", "rubytck"]]},
-    {name: "ruby-test-mri"} + linux_gate + $.test_mri,
+    {name: "ruby-test-mri"} + linux_gate + $.test_mri + $.fast_cpu_caps,
     {name: "ruby-test-integration"} + linux_gate + $.test_integration,
     {name: "ruby-test-cexts"} + linux_gate + $.test_cexts,
     {name: "ruby-test-gems"} + linux_gate + $.test_gems,
