@@ -984,7 +984,8 @@ public abstract class ModuleNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 warnAlreadyInitializedNode = insert(new WarnAlreadyInitializedNode());
             }
-            warnAlreadyInitializedNode.warnAlreadyInitialized(module, name, getSourceSection(), previousSourceSection);
+            final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
+            warnAlreadyInitializedNode.warnAlreadyInitialized(module, name, sourceSection, previousSourceSection);
         }
 
     }
