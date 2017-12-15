@@ -342,7 +342,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     @TruffleBoundary
     public RubyConstant removeConstant(RubyContext context, Node currentNode, String name) {
         checkFrozen(context, currentNode);
-        RubyConstant oldConstant = constants.remove(name);
+        final RubyConstant oldConstant = constants.remove(name);
         newConstantsVersion();
         return oldConstant;
     }
