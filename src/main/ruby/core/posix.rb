@@ -278,7 +278,7 @@ module Truffle::POSIX
     until errno == 0
       (res, errno) = read_string(fd, count)
       return res if errno == 0
-      if [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno, Errno::EINTR::Errno].include? errno
+      if [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno].include? errno
         IO.select([io])
       else
         Errno.handle
@@ -322,7 +322,7 @@ module Truffle::POSIX
     until errno == 0
       (written, errno) = write_string(fd, string, written)
       return written if errno == 0
-      if [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno, Errno::EINTR::Errno].include? errno
+      if [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno].include? errno
         IO.select([], [io])
       else
         Errno.handle
@@ -373,18 +373,20 @@ module Truffle::POSIX
 
     def self.read_string(fd, length)
       if fd == 0
-        Truffle.invoke_primitive :io_read_polyglot, fd, length
+        read = Truffle.invoke_primitive :io_read_polyglot, fd, length
+        [read, 0]
       else
         read_string_native(fd, length)
       end
     end
 
-    def self.write_string(fd, string, nonblock=false)
+    def self.write_string(fd, string, written=0, nonblock=false)
       if fd == 1 || fd == 2
         # Ignore non-blocking for polyglot writes
-        Truffle.invoke_primitive :io_write_polyglot, fd, string
+        written = Truffle.invoke_primitive :io_write_polyglot, fd, string
+        [written, 0]
       else
-        write_string_native(fd, string, nonblock)
+        write_string_native(fd, string, written, nonblock)
       end
     end
   end
