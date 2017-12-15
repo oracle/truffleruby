@@ -1682,10 +1682,9 @@ public abstract class ModuleNodes {
             return NameToJavaStringNodeGen.create(name);
         }
 
-        @TruffleBoundary
         @Specialization
         Object removeConstant(DynamicObject module, String name) {
-            RubyConstant oldConstant = Layouts.MODULE.getFields(module).removeConstant(getContext(), this, name);
+            final RubyConstant oldConstant = Layouts.MODULE.getFields(module).removeConstant(getContext(), this, name);
             if (oldConstant == null) {
                 throw new RaiseException(coreExceptions().nameErrorConstantNotDefined(module, name, this));
             } else {
