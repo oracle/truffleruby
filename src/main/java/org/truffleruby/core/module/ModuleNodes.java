@@ -70,7 +70,7 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.WarnNode;
+import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
@@ -410,7 +410,7 @@ public abstract class ModuleNodes {
 
         @Child private GenerateAccessorNode generateGetterNode = ModuleNodesFactory.GenerateAccessorNodeGen.create(true, null, null);
         @Child private GenerateAccessorNode generateSetterNode = ModuleNodesFactory.GenerateAccessorNodeGen.create(false, null, null);
-        @Child private WarnNode warnNode;
+        @Child private WarningNode warnNode;
 
         @Specialization
         public DynamicObject attr(DynamicObject module, Object[] names) {
@@ -435,7 +435,7 @@ public abstract class ModuleNodes {
         private void warnObsoletedBooleanArgument() {
             if (warnNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                warnNode = insert(new WarnNode());
+                warnNode = insert(new WarningNode());
             }
             warnNode.warningMessage(getSourceSection(), "optional boolean argument is obsoleted");
         }
