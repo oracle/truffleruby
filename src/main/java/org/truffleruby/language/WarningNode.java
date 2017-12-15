@@ -18,16 +18,16 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
-/** Warns if $VERBOSE is true or false, but not nil. */
-public class WarnNode extends RubyBaseNode {
+/** Warns only if $VERBOSE is true. */
+public class WarningNode extends RubyBaseNode {
 
-    @Child private CallDispatchHeadNode warnMethod = CallDispatchHeadNode.createOnSelf();
+    @Child private CallDispatchHeadNode warningMethod = CallDispatchHeadNode.createOnSelf();
     @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
     public Object warn(String... arguments) {
         final String warningMessage = concatArgumentsToString(arguments);
         final DynamicObject warningString = makeStringNode.executeMake(warningMessage.getBytes(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        return warnMethod.call(null, getContext().getCoreLibrary().getKernelModule(), "warn", warningString);
+        return warningMethod.call(null, getContext().getCoreLibrary().getKernelModule(), "warning", warningString);
     }
 
     public Object warningMessage(SourceSection sourceSection, String message) {
