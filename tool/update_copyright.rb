@@ -64,6 +64,10 @@ excludes = %w[
 # Until those all have copyright headers
 excludes << "src/main/java/org/truffleruby/parser"
 
+excluded_files = %w[
+  extconf.rb
+]
+
 truffle_paths.each do |path|
   puts "WARNING: incorrect path #{path}" unless File.exist? path
 end
@@ -96,7 +100,8 @@ paths = diff.each_delta.to_a.map { |delta|
 }.select { |path|
   EXTENSIONS.include?(File.extname(path)) &&
     truffle_paths.any? { |prefix| path.start_with? prefix } &&
-    excludes.none? { |prefix| path.start_with? prefix }
+    excludes.none? { |prefix| path.start_with? prefix } &&
+    !excluded_files.include?(File.basename(path))
 }
 
 paths.each do |file|
