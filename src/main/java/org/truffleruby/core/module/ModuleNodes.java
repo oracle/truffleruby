@@ -437,7 +437,8 @@ public abstract class ModuleNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 warnNode = insert(new WarningNode());
             }
-            warnNode.warningMessage(getSourceSection(), "optional boolean argument is obsoleted");
+            final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
+            warnNode.warningMessage(sourceSection, "optional boolean argument is obsoleted");
         }
 
     }
