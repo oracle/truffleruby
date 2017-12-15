@@ -1,4 +1,4 @@
-# Copyright (c) 2014, 2016 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2014, 2017 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -51,12 +51,13 @@ OTHER_COPYRIGHTS = [
 truffle_paths = %w[
   src
   test/truffle
-  spec/
+  spec/truffle
 ] + [__FILE__]
 
 excludes = %w[
   test/truffle/pack-real-usage.rb
   test/truffle/cexts
+  test/truffle/ecosystem
   src/main/c/openssl
 ]
 
