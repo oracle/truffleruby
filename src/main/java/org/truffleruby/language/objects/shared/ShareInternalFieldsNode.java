@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.objects.shared;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -22,8 +21,6 @@ import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.queue.UnsizedQueue;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
-
-import java.util.Collection;
 
 /**
  * Share the internal fields of an object, accessible by its Layout
@@ -71,15 +68,10 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
             @Cached("createWriteBarrierNode()") WriteBarrierNode writeBarrierNode) {
         final UnsizedQueue queue = Layouts.QUEUE.getQueue(object);
         if (!profileEmpty.profile(queue.isEmpty())) {
-            for (Object e : BoundaryIterable.wrap(getQueueContents(queue))) {
+            for (Object e : BoundaryIterable.wrap(queue.getContents())) {
                 writeBarrierNode.executeWriteBarrier(e);
             }
         }
-    }
-
-    @TruffleBoundary
-    private Collection<Object> getQueueContents(UnsizedQueue queue) {
-        return queue.getContents();
     }
 
     @Specialization(

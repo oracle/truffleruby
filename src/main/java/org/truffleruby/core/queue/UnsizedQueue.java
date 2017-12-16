@@ -26,6 +26,7 @@ public class UnsizedQueue {
     private Item takeEnd;
     private int size;
 
+    @TruffleBoundary
     public void add(Object item) {
         lock.lock();
 
@@ -45,6 +46,7 @@ public class UnsizedQueue {
         }
     }
 
+    @TruffleBoundary
     public Object poll() {
         lock.lock();
 
@@ -59,6 +61,7 @@ public class UnsizedQueue {
         }
     }
 
+    @TruffleBoundary
     public Object take() throws InterruptedException {
         lock.lock();
 
@@ -73,6 +76,7 @@ public class UnsizedQueue {
         }
     }
 
+    @TruffleBoundary
     public Object poll(long timeoutMilliseconds) throws InterruptedException {
         lock.lock();
 
@@ -117,6 +121,7 @@ public class UnsizedQueue {
         return size() == 0;
     }
 
+    @TruffleBoundary
     public void clear() {
         lock.lock();
 
@@ -134,6 +139,7 @@ public class UnsizedQueue {
         }
     }
 
+    @TruffleBoundary
     public int getNumberWaitingToTake() {
         lock.lock();
 
@@ -144,6 +150,7 @@ public class UnsizedQueue {
         }
     }
 
+    @TruffleBoundary
     public Collection<Object> getContents() {
         final Collection<Object> objects = new ArrayList<>();
 
