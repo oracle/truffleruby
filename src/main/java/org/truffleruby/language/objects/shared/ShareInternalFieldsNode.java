@@ -69,8 +69,8 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
             @Cached("object.getShape()") Shape cachedShape,
             @Cached("createBinaryProfile()") ConditionProfile profileEmpty,
             @Cached("createWriteBarrierNode()") WriteBarrierNode writeBarrierNode) {
-        UnsizedQueue queue = Layouts.QUEUE.getQueue(object);
-        if (!profileEmpty.profile(queue.size() == 0)) {
+        final UnsizedQueue queue = Layouts.QUEUE.getQueue(object);
+        if (!profileEmpty.profile(queue.isEmpty())) {
             for (Object e : BoundaryIterable.wrap(getQueueContents(queue))) {
                 writeBarrierNode.executeWriteBarrier(e);
             }

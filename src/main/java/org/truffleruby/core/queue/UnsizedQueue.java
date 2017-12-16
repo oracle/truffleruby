@@ -15,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+
 public class UnsizedQueue {
 
     private final ReentrantLock lock = new ReentrantLock();
@@ -100,6 +102,7 @@ public class UnsizedQueue {
         return item;
     }
 
+    @TruffleBoundary
     public int size() {
         lock.lock();
 
