@@ -14,6 +14,8 @@ import java.util.Collection;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+
 public class SizedQueue {
 
     private final ReentrantLock lock = new ReentrantLock();
@@ -35,6 +37,7 @@ public class SizedQueue {
         return capacity;
     }
 
+    @TruffleBoundary
     public void changeCapacity(int capacity) {
         lock.lock();
 
@@ -65,6 +68,7 @@ public class SizedQueue {
         }
     }
 
+    @TruffleBoundary
     public boolean offer(Object item) {
         lock.lock();
 
@@ -80,6 +84,7 @@ public class SizedQueue {
         }
     }
 
+    @TruffleBoundary
     public void put(Object item) throws InterruptedException {
         lock.lock();
 
@@ -107,6 +112,7 @@ public class SizedQueue {
         }
     }
 
+    @TruffleBoundary
     public Object poll() {
         lock.lock();
 
@@ -121,6 +127,7 @@ public class SizedQueue {
         }
     }
 
+    @TruffleBoundary
     public Object take() throws InterruptedException {
         lock.lock();
 
@@ -149,6 +156,7 @@ public class SizedQueue {
         return item;
     }
 
+    @TruffleBoundary
     public void clear() {
         lock.lock();
 
@@ -164,6 +172,7 @@ public class SizedQueue {
         }
     }
 
+    @TruffleBoundary
     public int size() {
         lock.lock();
 
@@ -178,6 +187,7 @@ public class SizedQueue {
         return size() == 0;
     }
 
+    @TruffleBoundary
     public int getNumberWaiting() {
         lock.lock();
 
@@ -188,6 +198,7 @@ public class SizedQueue {
         }
     }
 
+    @TruffleBoundary
     public Collection<Object> getContents() {
         final Collection<Object> objects = new ArrayList<>();
 
