@@ -23,12 +23,13 @@ public class CatchBreakNode extends RubyNode {
     @Child private RubyNode body;
 
     private final ConditionProfile matchingBreakProfile = ConditionProfile.createCountingProfile();
-    private final ConditionProfile anyBlockProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile anyBlockProfile;
 
     public CatchBreakNode(BreakID breakID, RubyNode body, boolean isWhile) {
         this.isWhile = isWhile;
         this.breakID = breakID;
         this.body = body;
+        this.anyBlockProfile = isWhile ? null : ConditionProfile.createBinaryProfile();
     }
 
     @Override
