@@ -53,10 +53,11 @@ public abstract class SizedQueueNodes {
     @CoreMethod(names = "initialize", visibility = Visibility.PRIVATE, required = 1, lowerFixnum = 1)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization
-        public DynamicObject initialize(DynamicObject self, int capacity) {
+        public DynamicObject initialize(DynamicObject self, int capacity,
+                @Cached("create()") BranchProfile errorProfile) {
             if (capacity <= 0) {
+                errorProfile.enter();
                 throw new RaiseException(coreExceptions().argumentError("queue size must be positive", this));
             }
 
@@ -70,10 +71,11 @@ public abstract class SizedQueueNodes {
     @CoreMethod(names = "max=", required = 1, lowerFixnum = 1)
     public abstract static class SetMaxNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization
-        public int setMax(DynamicObject self, int newCapacity) {
+        public int setMax(DynamicObject self, int newCapacity,
+                @Cached("create()") BranchProfile errorProfile) {
             if (newCapacity <= 0) {
+                errorProfile.enter();
                 throw new RaiseException(coreExceptions().argumentError("queue size must be positive", this));
             }
 
@@ -87,7 +89,6 @@ public abstract class SizedQueueNodes {
     @CoreMethod(names = "max")
     public abstract static class MaxNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization
         public int max(DynamicObject self) {
             final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
@@ -138,18 +139,13 @@ public abstract class SizedQueueNodes {
             final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
 
             propagateSharingNode.propagate(self, value);
-            final boolean pushed = doOffer(value, queue);
+            final boolean pushed = queue.offer(value);
             if (!pushed) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().threadError("queue full", this));
             }
 
             return self;
-        }
-
-        @TruffleBoundary
-        private boolean doOffer(final Object value, final SizedQueue queue) {
-            return queue.offer(value);
         }
 
     }
@@ -183,7 +179,7 @@ public abstract class SizedQueueNodes {
                 @Cached("create()") BranchProfile errorProfile) {
             final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
 
-            final Object value = doPoll(queue);
+            final Object value = queue.poll();
             if (value == null) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().threadError("queue empty", this));
@@ -192,17 +188,11 @@ public abstract class SizedQueueNodes {
             return value;
         }
 
-        @TruffleBoundary
-        private Object doPoll(final SizedQueue queue) {
-            return queue.poll();
-        }
-
     }
 
     @CoreMethod(names = "empty?")
     public abstract static class EmptyNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization
         public boolean empty(DynamicObject self) {
             final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
@@ -225,7 +215,6 @@ public abstract class SizedQueueNodes {
     @CoreMethod(names = "clear")
     public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization
         public DynamicObject clear(DynamicObject self) {
             final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
