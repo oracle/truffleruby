@@ -16,19 +16,14 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.LoopConditionProfile;
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.IntegerMulNodeGen;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
-
-import java.math.BigInteger;
 
 @CoreClass("Integer")
 public abstract class IntegerNodes {
@@ -99,72 +94,6 @@ public abstract class IntegerNodes {
             }
 
             return downtoInternalCall.callWithBlock(frame, from, "downto_internal", block, to);
-        }
-
-    }
-
-    @CoreMethod(names = "times", needsBlock = true, lowerFixnum = 0)
-    public abstract static class TimesNode extends YieldingCoreMethodNode {
-
-        // TODO CS 2-May-15 we badly need OSR in this node
-
-        @Specialization
-        public DynamicObject times(int n, NotProvided block) {
-            // TODO (eregon, 16 June 2015): this should return an enumerator
-            final int[] array = new int[n];
-
-            for (int i = 0; i < n; i++) {
-                array[i] = i;
-            }
-
-            return createArray(array, n);
-        }
-
-        @Specialization
-        public int times(int n, DynamicObject block,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
-            int i = 0;
-            loopProfile.profileCounted(n);
-            try {
-                for (; loopProfile.inject(i < n); i++) {
-                    yield(block, i);
-                }
-            } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, i);
-                }
-            }
-
-            return n;
-        }
-
-        @Specialization
-        public long times(long n, DynamicObject block,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
-            long i = 0;
-            loopProfile.profileCounted(n);
-            try {
-                for (; loopProfile.inject(i < n); i++) {
-                    yield(block, i);
-                }
-            } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, i < Integer.MAX_VALUE ? (int) i : Integer.MAX_VALUE);
-                }
-            }
-
-            return n;
-        }
-
-        @Specialization(guards = "isRubyBignum(n)")
-        public Object times(DynamicObject n, DynamicObject block,
-                            @Cached("create(getSourceIndexLength())") FixnumOrBignumNode fixnumOrBignumNode) {
-
-            for (BigInteger i = BigInteger.ZERO; i.compareTo(Layouts.BIGNUM.getValue(n)) < 0; i = i.add(BigInteger.ONE)) {
-                yield(block, fixnumOrBignumNode.fixnumOrBignum(i));
-            }
-
-            return n;
         }
 
     }

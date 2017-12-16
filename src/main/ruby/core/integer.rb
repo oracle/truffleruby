@@ -29,6 +29,17 @@ class Integer < Numeric
   alias_method :ceil, :to_i
   alias_method :floor, :to_i
 
+  def times
+    return to_enum(:times) { self } unless block_given?
+
+    i = 0
+    while i < self
+      yield i
+      i += 1
+    end
+    self
+  end
+
   def chr(enc=undefined)
     if self < 0 || (self & 0xffff_ffff) != self
       raise RangeError, "#{self} is outside of the valid character range"
