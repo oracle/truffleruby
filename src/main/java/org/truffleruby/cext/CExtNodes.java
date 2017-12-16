@@ -588,7 +588,7 @@ public class CExtNodes {
 
         @Specialization
         public Object iterBreakValue(Object value) {
-            throw new BreakException(BreakID.ANY, value);
+            throw new BreakException(BreakID.ANY_BLOCK, value);
         }
 
     }

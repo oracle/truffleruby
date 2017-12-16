@@ -17,13 +17,16 @@ import org.truffleruby.language.control.BreakID;
 
 public class CatchBreakNode extends RubyNode {
 
+    private final boolean isWhile;
     private final BreakID breakID;
 
     @Child private RubyNode body;
 
     private final ConditionProfile matchingBreakProfile = ConditionProfile.createCountingProfile();
+    private final ConditionProfile anyBlockProfile = ConditionProfile.createBinaryProfile();
 
-    public CatchBreakNode(BreakID breakID, RubyNode body) {
+    public CatchBreakNode(BreakID breakID, RubyNode body, boolean isWhile) {
+        this.isWhile = isWhile;
         this.breakID = breakID;
         this.body = body;
     }
@@ -33,7 +36,9 @@ public class CatchBreakNode extends RubyNode {
         try {
             return body.execute(frame);
         } catch (BreakException e) {
-            if (matchingBreakProfile.profile(e.getBreakID() == breakID || e.getBreakID() == BreakID.ANY)) {
+            if (matchingBreakProfile.profile(e.getBreakID() == breakID)) {
+                return e.getResult();
+            } else if (!isWhile && anyBlockProfile.profile(e.getBreakID() == BreakID.ANY_BLOCK)) {
                 return e.getResult();
             } else {
                 throw e;

@@ -733,7 +733,7 @@ public class BodyTranslator extends Translator {
         if (argumentsAndBlock.getBlock() instanceof BlockDefinitionNode) { // if we have a literal block, break breaks out of this call site
             callNode = new FrameOnStackNode(callNode, argumentsAndBlock.getFrameOnStackMarkerSlot());
             final BlockDefinitionNode blockDef = (BlockDefinitionNode) argumentsAndBlock.getBlock();
-            return new CatchBreakNode(blockDef.getBreakID(), callNode);
+            return new CatchBreakNode(blockDef.getBreakID(), callNode, false);
         } else {
             return callNode;
         }
@@ -3164,7 +3164,7 @@ public class BodyTranslator extends Translator {
             loop = new WhileNode(new WhileNode.DoWhileRepeatingNode(context, condition, body));
         }
 
-        final RubyNode ret = new CatchBreakNode(whileBreakID, loop);
+        final RubyNode ret = new CatchBreakNode(whileBreakID, loop, true);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
