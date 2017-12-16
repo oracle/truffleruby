@@ -55,14 +55,9 @@ public abstract class QueueNodes {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
             propagateSharingNode.propagate(self, value);
-            doPush(value, queue);
+            queue.add(value);
 
             return self;
-        }
-
-        @TruffleBoundary
-        private void doPush(final Object value, final UnsizedQueue queue) {
-            queue.add(value);
         }
 
     }
@@ -96,18 +91,13 @@ public abstract class QueueNodes {
                 @Cached("create()") BranchProfile errorProfile) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
-            final Object value = doPoll(queue);
+            final Object value = queue.poll();
             if (value == null) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().threadError("queue empty", this));
             }
 
             return value;
-        }
-
-        @TruffleBoundary
-        private Object doPoll(final UnsizedQueue queue) {
-            return queue.poll();
         }
 
     }
@@ -125,6 +115,7 @@ public abstract class QueueNodes {
             return receiveTimeout(self, (double) duration);
         }
 
+        @TruffleBoundary
         @Specialization
         public Object receiveTimeout(DynamicObject self, double duration) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
@@ -159,7 +150,6 @@ public abstract class QueueNodes {
     @CoreMethod(names = "empty?")
     public abstract static class EmptyNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization
         public boolean empty(DynamicObject self) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
@@ -171,7 +161,6 @@ public abstract class QueueNodes {
     @CoreMethod(names = { "size", "length" })
     public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization
         public int size(DynamicObject self) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
@@ -183,7 +172,6 @@ public abstract class QueueNodes {
     @CoreMethod(names = "clear")
     public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization
         public DynamicObject clear(DynamicObject self) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
