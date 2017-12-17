@@ -595,6 +595,7 @@ class Array
     self[idx, 0] = items   # Cheat
     self
   end
+  Truffle::Graal.always_split instance_method(:insert)
 
   def inspect
     return '[]'.force_encoding(Encoding::US_ASCII) if size == 0
