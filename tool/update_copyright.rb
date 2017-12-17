@@ -61,9 +61,6 @@ excludes = %w[
   src/main/c/openssl
 ]
 
-# Until those all have copyright headers
-excludes << "src/main/java/org/truffleruby/parser"
-
 excluded_files = %w[
   extconf.rb
 ]
