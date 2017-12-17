@@ -332,58 +332,82 @@ public abstract class ArrayNodes {
         })
         public Object setOtherArray(DynamicObject array, int rawStart, int length, DynamicObject replacement,
                 @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
-                @Cached("createBinaryProfile()") ConditionProfile needCopy,
-                @Cached("createBinaryProfile()") ConditionProfile recursive,
-                @Cached("createBinaryProfile()") ConditionProfile emptyReplacement,
-                @Cached("createBinaryProfile()") ConditionProfile grow) {
+                @Cached("createBinaryProfile()") ConditionProfile recursiveProfile,
+                @Cached("createBinaryProfile()") ConditionProfile tailProfile,
+                @Cached("createBinaryProfile()") ConditionProfile moveElementsProfile,
+                @Cached("createBinaryProfile()") ConditionProfile moveLeftProfile,
+                @Cached("createBinaryProfile()") ConditionProfile emptyReplacementProfile,
+                @Cached("createBinaryProfile()") ConditionProfile growProfile,
+                @Cached("createBinaryProfile()") ConditionProfile shrinkProfile) {
             checkLengthPositive(length);
             final int start = ArrayOperations.normalizeIndex(getSize(array), rawStart, negativeIndexProfile);
             checkIndex(array, rawStart, start);
 
-            final int end = start + length;
             final int arraySize = getSize(array);
             final int replacementSize = getSize(replacement);
-            final int endOfReplacementInArray = start + replacementSize;
 
-            if (recursive.profile(array == replacement)) {
+            if (recursiveProfile.profile(array == replacement)) {
                 final DynamicObject copy = readSlice(array, 0, arraySize);
                 return executeSet(array, start, length, copy);
             }
 
-            // Make a copy of what's after "end", as it might be erased or at least needs to be moved
-            final int tailSize = arraySize - end;
-            DynamicObject tailCopy = null;
-            final boolean needsTail = needCopy.profile(tailSize > 0);
-            if (needsTail) {
-                tailCopy = readSlice(array, end, tailSize);
-            }
+            final int newSize;
+            if (moveElementsProfile.profile(start + length <= arraySize)) {
+                // ary[start, length] = replacement such that start+length < array.size.
+                // Replace some elements in the array with some others.
+                newSize = arraySize - length + replacementSize;
 
-            // Append the replacement array
-            for (int i = 0; i < replacementSize; i++) {
-                write(array, start + i, read(replacement, i));
-            }
-
-            // Append the saved tail
-            if (needsTail) {
-                for (int i = 0; i < tailSize; i++) {
-                    write(array, endOfReplacementInArray + i, read(tailCopy, i));
-                }
-            } else if (emptyReplacement.profile(replacementSize == 0)) {
-                // If no tail and the replacement is empty, the array will grow.
-                // We need to append nil from index arraySize to index (start - 1).
-                // E.g. a = [1,2,3]; a[5,1] = []; a == [1,2,3,nil,nil]
-                if (grow.profile(arraySize < start)) {
-                    for (int i = arraySize; i < start; i++) {
-                        write(array, i, nil());
+                // Move tail
+                final int tailSize = arraySize - (start + length);
+                if (tailProfile.profile(tailSize > 0)) {
+                    if (moveLeftProfile.profile(replacementSize < length)) {
+                        // Moving elements left
+                        for (int i = 0; i < tailSize; i++) {
+                            write(array, start + replacementSize + i, read(array, start + length + i));
+                        }
+                    } else {
+                        // Moving elements right
+                        for (int i = tailSize - 1; i >= 0; i--) {
+                            write(array, start + replacementSize + i, read(array, start + length + i));
+                        }
                     }
                 }
-            }
 
-            // Set size
-            if (needsTail) {
-                setSize(array, endOfReplacementInArray + tailSize);
+                // Write replacement
+                for (int i = 0; i < replacementSize; i++) {
+                    write(array, start + i, read(replacement, i));
+                }
+
+                if (shrinkProfile.profile(newSize < arraySize)) {
+                    setSize(array, newSize);
+                }
             } else {
-                setSize(array, endOfReplacementInArray);
+                assert start + length > arraySize;
+                // ary[start, length] = replacement such that start+length >= array.size.
+                // Grow the array to be start+repl.size long.
+                // We can just overwrite elements from start.
+                newSize = start + replacementSize;
+
+                // Write replacement
+                if (emptyReplacementProfile.profile(replacementSize == 0)) {
+                    // If no tail and the replacement is empty, the array will grow.
+                    // We need to append nil from index arraySize to index (start - 1).
+                    // a = [1,2,3]; a [5,1] = [] # => a == [1,2,3,nil,nil]
+                    if (growProfile.profile(start > arraySize)) {
+                        write(array, newSize - 1, nil());
+                    }
+                } else {
+                    // Write last element first to grow only once
+                    write(array, newSize - 1, read(replacement, replacementSize - 1));
+
+                    for (int i = 0; i < replacementSize - 1; i++) {
+                        write(array, start + i, read(replacement, i));
+                    }
+                }
+
+                if (shrinkProfile.profile(newSize < arraySize)) {
+                    setSize(array, newSize);
+                }
             }
 
             return replacement;
