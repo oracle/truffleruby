@@ -71,19 +71,21 @@ public abstract class ObjectGraph {
 
     @TruffleBoundary
     public static Set<DynamicObject> stopAndGetRootObjects(Node currentNode, final RubyContext context) {
-        final Set<DynamicObject> objects = new HashSet<>();
+        final Set<DynamicObject> visited = new HashSet<>();
 
         final Thread initiatingJavaThread = Thread.currentThread();
 
         context.getSafepointManager().pauseAllThreadsAndExecute(currentNode, false, (thread, currentNode1) -> {
-            objects.add(thread);
+            synchronized (visited) {
+                visited.add(thread);
 
-            if (Thread.currentThread() == initiatingJavaThread) {
-                visitContextRoots(context, objects);
+                if (Thread.currentThread() == initiatingJavaThread) {
+                    visitContextRoots(context, visited);
+                }
             }
         });
 
-        return objects;
+        return visited;
     }
 
     public static void visitContextRoots(RubyContext context, Collection<DynamicObject> stack) {
