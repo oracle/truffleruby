@@ -313,7 +313,7 @@ public abstract class ArrayNodes {
                 "isRubyArray(replacement)",
                 "length == getArraySize(replacement)"
         })
-        public Object setOtherIntArraySameLength(DynamicObject array, int start, int length, DynamicObject replacement,
+        public Object setOtherArraySameLength(DynamicObject array, int start, int length, DynamicObject replacement,
                 @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile) {
             final int normalizedIndex = ArrayOperations.normalizeIndex(getSize(array), start, negativeIndexProfile);
             checkIndex(array, start, normalizedIndex);
