@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fileset-config file-format-version="1.2.0" simple-config="false">
-  <local-check-config description="" location="/main/.checkstyle_checks.xml" name="Checks" type="project">
+  <local-check-config description="" location="/truffleruby/.checkstyle_checks.xml" name="Checks" type="project">
     <additional-data name="protect-config-file" value="false"/>
   </local-check-config>
   <fileset check-config-name="Checks" enabled="true" local="true" name="all">
