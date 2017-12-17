@@ -328,11 +328,15 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = {
                 "isRubyArray(replacement)",
-                "length != getArraySize(replacement)"
-        })
+                "length != getArraySize(replacement)",
+                "strategy.matches(array)"
+        }, limit = "ARRAY_STRATEGIES")
         public Object setOtherArray(DynamicObject array, int rawStart, int length, DynamicObject replacement,
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("create()") ArrayEnsureCapacityNode ensureCapacityNode,
                 @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
                 @Cached("createBinaryProfile()") ConditionProfile recursiveProfile,
+                @Cached("createBinaryProfile()") ConditionProfile emptyProfile,
                 @Cached("createBinaryProfile()") ConditionProfile tailProfile,
                 @Cached("createBinaryProfile()") ConditionProfile moveElementsProfile,
                 @Cached("createBinaryProfile()") ConditionProfile moveLeftProfile,
@@ -343,7 +347,7 @@ public abstract class ArrayNodes {
             final int start = ArrayOperations.normalizeIndex(getSize(array), rawStart, negativeIndexProfile);
             checkIndex(array, rawStart, start);
 
-            final int arraySize = getSize(array);
+            final int arraySize = strategy.getSize(array);
             final int replacementSize = getSize(replacement);
 
             if (recursiveProfile.profile(array == replacement)) {
@@ -351,24 +355,31 @@ public abstract class ArrayNodes {
                 return executeSet(array, start, length, copy);
             }
 
-            final int newSize;
             if (moveElementsProfile.profile(start + length <= arraySize)) {
                 // ary[start, length] = replacement such that start+length < array.size.
                 // Replace some elements in the array with some others.
-                newSize = arraySize - length + replacementSize;
+                // We handle start+length == arraySize here too since we want simpler code for Array#insert
 
-                // Move tail
-                final int tailSize = arraySize - (start + length);
-                if (tailProfile.profile(tailSize > 0)) {
-                    if (moveLeftProfile.profile(replacementSize < length)) {
-                        // Moving elements left
-                        for (int i = 0; i < tailSize; i++) {
-                            write(array, start + replacementSize + i, read(array, start + length + i));
-                        }
-                    } else {
-                        // Moving elements right
-                        for (int i = tailSize - 1; i >= 0; i--) {
-                            write(array, start + replacementSize + i, read(array, start + length + i));
+                if (!emptyProfile.profile(arraySize == 0)) {
+                    final int newSize = arraySize - length + replacementSize;
+                    ensureCapacityNode.executeEnsureCapacity(array, newSize); // needs a non-empty strategy
+                    setSize(array, newSize);
+
+                    // Move tail
+                    final int tailSize = arraySize - (start + length);
+                    if (tailProfile.profile(tailSize > 0)) {
+                        final ArrayMirror mirror = strategy.newMirror(array);
+
+                        if (moveLeftProfile.profile(replacementSize < length)) {
+                            // Moving elements left
+                            for (int i = 0; i < tailSize; i++) {
+                                mirror.set(start + replacementSize + i, mirror.get(start + length + i));
+                            }
+                        } else {
+                            // Moving elements right
+                            for (int i = tailSize - 1; i >= 0; i--) {
+                                mirror.set(start + replacementSize + i, mirror.get(start + length + i));
+                            }
                         }
                     }
                 }
@@ -377,16 +388,12 @@ public abstract class ArrayNodes {
                 for (int i = 0; i < replacementSize; i++) {
                     write(array, start + i, read(replacement, i));
                 }
-
-                if (shrinkProfile.profile(newSize < arraySize)) {
-                    setSize(array, newSize);
-                }
             } else {
                 assert start + length > arraySize;
                 // ary[start, length] = replacement such that start+length >= array.size.
                 // Grow the array to be start+repl.size long.
                 // We can just overwrite elements from start.
-                newSize = start + replacementSize;
+                final int newSize = start + replacementSize;
 
                 // Write replacement
                 if (emptyReplacementProfile.profile(replacementSize == 0)) {
