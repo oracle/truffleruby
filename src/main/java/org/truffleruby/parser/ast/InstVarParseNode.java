@@ -76,7 +76,7 @@ public class InstVarParseNode extends ParseNode implements INameNode, SideEffect
         return EMPTY_LIST;
     }
     
-    public void setName(String name){
+    public void setName(String name) {
         this.name = name;
     }
 }

@@ -1938,7 +1938,7 @@ public class BodyTranslator extends Translator {
                 Helpers.argsNodeToArgumentDescriptors(argsNode),
                 false);
 
-        final String namedMethodName = isLambda ? sharedMethodInfo.getName(): environment.getNamedMethodName();
+        final String namedMethodName = isLambda ? sharedMethodInfo.getName() : environment.getNamedMethodName();
 
         final ParseEnvironment parseEnvironment = environment.getParseEnvironment();
         final ReturnID returnID = isLambda ? parseEnvironment.allocateReturnID() : environment.getReturnID();

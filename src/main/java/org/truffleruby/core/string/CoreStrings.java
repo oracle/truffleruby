@@ -82,7 +82,7 @@ public class CoreStrings {
         CIRCUMFLEX = new CoreString(context, "^");
         CLASS = new CoreString(context, "class");
         CLASS_VARIABLE = new CoreString(context, "class variable");
-        CONSTANT= new CoreString(context, "constant");
+        CONSTANT = new CoreString(context, "constant");
         DIVIDE = new CoreString(context, "/");
         DIVMOD = new CoreString(context, "divmod");
         EMPTY_STRING = new CoreString(context, "");

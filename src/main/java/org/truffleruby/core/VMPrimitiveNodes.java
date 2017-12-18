@@ -264,7 +264,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = { "isRubyString(signalName)", "isNil(nil)" })
         public boolean watchSignal(DynamicObject signalName, Object nil) {
-            return handle(signalName, (signal) -> {});
+            return handle(signalName, (signal) -> { });
         }
 
         @Specialization(guards = { "isRubyString(signalName)", "isRubyProc(proc)" })

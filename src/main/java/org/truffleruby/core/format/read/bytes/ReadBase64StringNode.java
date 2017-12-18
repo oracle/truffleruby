@@ -86,14 +86,14 @@ public abstract class ReadBase64StringNode extends FormatNode {
     private byte[] read(ByteBuffer encode) {
         int occurrences = encode.remaining();
 
-        int length = encode.remaining()*3/4;
+        int length = encode.remaining() * 3 / 4;
         byte[] lElem = new byte[length];
         int a = -1, b = -1, c = 0, d;
         int index = 0;
         int s = -1;
 
-        if (occurrences == 0){
-            if (encode.remaining()%4 != 0) {
+        if (occurrences == 0) {
+            if (encode.remaining() % 4 != 0) {
                 throw new InvalidFormatException("invalid base64");
             }
             while (encode.hasRemaining()) {

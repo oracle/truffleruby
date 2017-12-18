@@ -21,9 +21,9 @@ import static org.truffleruby.core.array.ArrayHelpers.getSize;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
 @NodeChildren({
-        @NodeChild(value="array", type=RubyNode.class),
-        @NodeChild(value="index", type=RubyNode.class),
-        @NodeChild(value="value", type=RubyNode.class)
+        @NodeChild(value = "array", type = RubyNode.class),
+        @NodeChild(value = "index", type = RubyNode.class),
+        @NodeChild(value = "value", type = RubyNode.class)
 })
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayWriteNormalizedNode extends RubyNode {

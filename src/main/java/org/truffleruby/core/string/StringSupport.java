@@ -81,7 +81,7 @@ public final class StringSupport {
 
     // MBCLEN_NEEDMORE_LEN, ONIGENC_MBCLEN_NEEDMORE_LEN
     public static int MBCLEN_NEEDMORE_LEN(int r) {
-        return -1-r;
+        return -1 - r;
     }
 
     // MBCLEN_NEEDMORE, ONIGENC_MBCLEN_NEEDMORE
@@ -316,8 +316,11 @@ public final class StringSupport {
 
     public static int caseCmp(byte[]bytes1, int p1, byte[]bytes2, int p2, int len) {
         int i = -1;
-        for (; ++i < len && bytes1[p1 + i] == bytes2[p2 + i];) {}
-        if (i < len) return (bytes1[p1 + i] & 0xff) > (bytes2[p2 + i] & 0xff) ? 1 : -1;
+        for (; ++i < len && bytes1[p1 + i] == bytes2[p2 + i];) {
+        }
+        if (i < len) {
+            return (bytes1[p1 + i] & 0xff) > (bytes2[p2 + i] & 0xff) ? 1 : -1;
+        }
         return 0;
     }
 
@@ -713,13 +716,13 @@ public final class StringSupport {
             if (MBCLEN_INVALID_P(l) && i < len - 1) {
                 int len2;
                 int l2;
-                for (len2 = len-1; 0 < len2; len2--) {
+                for (len2 = len - 1; 0 < len2; len2--) {
                     l2 = preciseLength(enc, bytes, p, p + len2);
                     if (!MBCLEN_INVALID_P(l2))
                         break;
                 }
-                int start = p+len2+1;
-                int end = start + len-(len2+1);
+                int start = p + len2 + 1;
+                int end = start + len - (len2 + 1);
                 Arrays.fill(bytes, start, end, (byte) 0xff);
             }
         }
@@ -815,10 +818,10 @@ public final class StringSupport {
                     Arrays.fill(bytes, start, end, (byte) 0x0);
                 }
             }
-            if (!MBCLEN_CHARFOUND_P(l) && i < len-1) {
+            if (!MBCLEN_CHARFOUND_P(l) && i < len - 1) {
                 int len2;
                 int l2;
-                for (len2 = len-1; 0 < len2; len2--) {
+                for (len2 = len - 1; 0 < len2; len2--) {
                     l2 = preciseLength(enc, bytes, p, p + len2);
                     if (!MBCLEN_INVALID_P(l2))
                         break;
@@ -898,7 +901,7 @@ public final class StringSupport {
 
         if (srcStr.byteLength() > 1 &&
                 EncodingUtils.encAscget(trSrc.buf, trSrc.p, trSrc.pend, l, enc) == '^' &&
-                trSrc.p + 1 < trSrc.pend){
+                trSrc.p + 1 < trSrc.pend) {
             cflag = true;
             trSrc.p++;
         }
@@ -911,7 +914,7 @@ public final class StringSupport {
         boolean singlebyte = self.isSingleByteOptimizable();
 
         if (cflag) {
-            for (int i = 0; i< StringSupport.TRANS_SIZE; i++) {
+            for (int i = 0; i < StringSupport.TRANS_SIZE; i++) {
                 trans[i] = 1;
             }
 
@@ -923,15 +926,17 @@ public final class StringSupport {
                     hash.put(c, 1); // QTRUE
                 }
             }
-            while ((c = StringSupport.trNext(trRepl, enc)) != -1) {}  /* retrieve last replacer */
+            while ((c = StringSupport.trNext(trRepl, enc)) != -1) {
+                /* retrieve last replacer */
+            }
             last = trRepl.now;
-            for (int i = 0; i< StringSupport.TRANS_SIZE; i++) {
+            for (int i = 0; i < StringSupport.TRANS_SIZE; i++) {
                 if (trans[i] != -1) {
                     trans[i] = last;
                 }
             }
         } else {
-            for (int i = 0; i< StringSupport.TRANS_SIZE; i++) {
+            for (int i = 0; i < StringSupport.TRANS_SIZE; i++) {
                 trans[i] = -1;
             }
 

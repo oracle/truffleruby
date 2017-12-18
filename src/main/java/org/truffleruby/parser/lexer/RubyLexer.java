@@ -247,7 +247,7 @@ public class RubyLexer {
         // FIXME: Get token from newtok index to lex_p?
         String value = createTokenString();
 
-        if (isLexState(last_state, EXPR_DOT|EXPR_FNAME) && parserSupport.getCurrentScope().isDefined(value) >= 0) {
+        if (isLexState(last_state, EXPR_DOT | EXPR_FNAME) && parserSupport.getCurrentScope().isDefined(value) >= 0) {
             setState(EXPR_END);
         }
 
@@ -618,12 +618,12 @@ public class RubyLexer {
         switch (c) {
         case 'Q':
             lex_strterm = new StringTerm(str_dquote, begin, end);
-            yaccValue = "%"+ (shortHand ? (""+end) : ("" + c + begin));
+            yaccValue = "%" + (shortHand ? ("" + end) : ("" + c + begin));
             return Tokens.tSTRING_BEG;
 
         case 'q':
             lex_strterm = new StringTerm(str_squote, begin, end);
-            yaccValue = "%"+c+begin;
+            yaccValue = "%" + c + begin; 
             return Tokens.tSTRING_BEG;
 
         case 'W':
@@ -632,7 +632,7 @@ public class RubyLexer {
                 c = nextc();
             } while (Character.isWhitespace(c));
             pushback(c);
-            yaccValue = "%"+c+begin;
+            yaccValue = "%" + c + begin;
             return Tokens.tWORDS_BEG;
 
         case 'w':
@@ -641,23 +641,23 @@ public class RubyLexer {
                 c = nextc();
             } while (Character.isWhitespace(c));
             pushback(c);
-            yaccValue = "%"+c+begin;
+            yaccValue = "%" + c + begin;
             return Tokens.tQWORDS_BEG;
 
         case 'x':
             lex_strterm = new StringTerm(str_xquote, begin, end);
-            yaccValue = "%"+c+begin;
+            yaccValue = "%" + c + begin;
             return Tokens.tXSTRING_BEG;
 
         case 'r':
             lex_strterm = new StringTerm(str_regexp, begin, end);
-            yaccValue = "%"+c+begin;
+            yaccValue = "%" + c + begin;
             return Tokens.tREGEXP_BEG;
 
         case 's':
             lex_strterm = new StringTerm(str_ssym, begin, end);
             setState(EXPR_FNAME);
-            yaccValue = "%"+c+begin;
+            yaccValue = "%" + c + begin;
             return Tokens.tSYMBEG;
 
         case 'I':
@@ -777,11 +777,11 @@ public class RubyLexer {
             int tok = lex_strterm.parseString(this);
 
             if (tok == Tokens.tSTRING_END && (lex_strterm.getFlags() & STR_FUNC_LABEL) != 0) {
-                if ((isLexState(lex_state, EXPR_BEG|EXPR_ENDFN) && !conditionState.isInState() ||
+                if ((isLexState(lex_state, EXPR_BEG | EXPR_ENDFN) && !conditionState.isInState() ||
                         isARG()) && isLabelSuffix()) {
                     nextc();
                     tok = Tokens.tLABEL_END;
-                    setState(EXPR_BEG|EXPR_LABEL);
+                    setState(EXPR_BEG | EXPR_LABEL);
                     lex_strterm = null;
                 }
             }
@@ -1013,7 +1013,7 @@ public class RubyLexer {
     }
 
     private int identifierToken(int result, String value) {
-        if (result == Tokens.tIDENTIFIER && !isLexState(last_state, EXPR_DOT|EXPR_FNAME) &&
+        if (result == Tokens.tIDENTIFIER && !isLexState(last_state, EXPR_DOT | EXPR_FNAME) &&
                 parserSupport.getCurrentScope().isDefined(value) >= 0) {
             setState(EXPR_END);
         }
@@ -1252,7 +1252,7 @@ public class RubyLexer {
     }
 
     private int comma(int c) {
-        setState(EXPR_BEG|EXPR_LABEL);
+        setState(EXPR_BEG | EXPR_LABEL);
         yaccValue = ",";
 
         return c;
@@ -1271,7 +1271,7 @@ public class RubyLexer {
         if (cmdArgumentState.isInState() && !isLexState(state, EXPR_CMDARG)) {
             return Tokens.kDO_BLOCK;
         }
-        if (isLexState(state,  EXPR_BEG|EXPR_ENDARG)) {
+        if (isLexState(state, EXPR_BEG | EXPR_ENDARG)) {
             return Tokens.kDO_BLOCK;
         }
         return Tokens.kDO;
@@ -1412,7 +1412,7 @@ public class RubyLexer {
 
     private int doubleQuote(boolean commandState) {
         int label = isLabelPossible(commandState) ? str_label : 0;
-        lex_strterm = new StringTerm(str_dquote|label, '\0', '"');
+        lex_strterm = new StringTerm(str_dquote | label, '\0', '"');
         yaccValue = "\"";
 
         return Tokens.tSTRING_BEG;
@@ -1505,7 +1505,7 @@ public class RubyLexer {
 
         if (isLabelPossible(commandState)) {
             if (isLabelSuffix()) {
-                setState(EXPR_ARG|EXPR_LABELED);
+                setState(EXPR_ARG | EXPR_LABELED);
                 nextc();
                 yaccValue = tempVal.intern();
                 return Tokens.tLABEL;
@@ -1530,16 +1530,17 @@ public class RubyLexer {
 
                 if (keyword.id0 == Tokens.kDO) return doKeyword(state);
 
-                if (isLexState(state, EXPR_BEG|EXPR_LABELED)) {
+                if (isLexState(state, EXPR_BEG | EXPR_LABELED)) {
                     return keyword.id0;
                 } else {
-                    if (keyword.id0 != keyword.id1) setState(EXPR_BEG|EXPR_LABEL);
+                    if (keyword.id0 != keyword.id1)
+                        setState(EXPR_BEG | EXPR_LABEL);
                     return keyword.id1;
                 }
             }
         }
 
-        if (isLexState(lex_state, EXPR_BEG_ANY|EXPR_ARG_ANY|EXPR_DOT)) {
+        if (isLexState(lex_state, EXPR_BEG_ANY | EXPR_ARG_ANY | EXPR_DOT)) {
             setState(commandState ? EXPR_CMDARG : EXPR_ARG);
         } else if (lex_state == EXPR_FNAME) {
             setState(EXPR_ENDFN);
@@ -1646,7 +1647,7 @@ public class RubyLexer {
             c = Tokens.tLBRACK;
         }
 
-        setState(EXPR_BEG|EXPR_LABEL);
+        setState(EXPR_BEG | EXPR_LABEL);
         conditionState.stop();
         cmdArgumentState.stop();
         yaccValue = "[";
@@ -1669,7 +1670,7 @@ public class RubyLexer {
         char c;
         if (isLexState(lex_state, EXPR_LABELED)) {
             c = Tokens.tLBRACE;
-        } else if (isLexState(lex_state, EXPR_ARG_ANY|EXPR_END|EXPR_ENDFN)) { // block (primary)
+        } else if (isLexState(lex_state, EXPR_ARG_ANY | EXPR_END | EXPR_ENDFN)) { // block (primary)
             c = Tokens.tLCURLY;
         } else if (isLexState(lex_state, EXPR_ENDARG)) { // block (expr)
             c = Tokens.tLBRACE_ARG;
@@ -1701,7 +1702,7 @@ public class RubyLexer {
         parenNest++;
         conditionState.stop();
         cmdArgumentState.stop();
-        setState(EXPR_BEG|EXPR_LABEL);
+        setState(EXPR_BEG | EXPR_LABEL);
 
         yaccValue = getPosition();
         return result;
@@ -1710,7 +1711,7 @@ public class RubyLexer {
     private int lessThan(boolean spaceSeen) {
         last_state = lex_state;
         int c = nextc();
-        if (c == '<' && !isLexState(lex_state, EXPR_DOT|EXPR_CLASS) &&
+        if (c == '<' && !isLexState(lex_state, EXPR_DOT | EXPR_CLASS) &&
                 !isEND() && (!isARG() || isLexState(lex_state, EXPR_LABELED) || spaceSeen)) {
             int tok = hereDocumentIdentifier();
 
@@ -1829,7 +1830,7 @@ public class RubyLexer {
             yaccValue = "|";
             return Tokens.tOP_ASGN;
         default:
-            setState(isAfterOperator() ? EXPR_ARG : EXPR_BEG|EXPR_LABEL);
+            setState(isAfterOperator() ? EXPR_ARG : EXPR_BEG | EXPR_LABEL);
 
             pushback(c);
             yaccValue = "|";
@@ -1886,7 +1887,7 @@ public class RubyLexer {
         c = nextc();
         if (c == EOF) compile_error(SyntaxException.PID.INCOMPLETE_CHAR_SYNTAX, "incomplete character syntax");
 
-        if (Character.isWhitespace(c)){
+        if (Character.isWhitespace(c)) {
             if (!isARG()) {
                 int c2 = 0;
                 switch (c) {
@@ -1989,7 +1990,7 @@ public class RubyLexer {
 
     private int singleQuote(boolean commandState) {
         int label = isLabelPossible(commandState) ? str_label : 0;
-        lex_strterm = new StringTerm(str_squote|label, '\0', '\'');
+        lex_strterm = new StringTerm(str_squote | label, '\0', '\'');
         yaccValue = "'";
 
         return Tokens.tSTRING_BEG;
@@ -2490,17 +2491,17 @@ public class RubyLexer {
     }
 
     public static final int EXPR_BEG     = 1;
-    public static final int EXPR_END     = 1<<1;
-    public static final int EXPR_ENDARG  = 1<<2;
-    public static final int EXPR_ENDFN   = 1<<3;
-    public static final int EXPR_ARG     = 1<<4;
-    public static final int EXPR_CMDARG  = 1<<5;
-    public static final int EXPR_MID     = 1<<6;
-    public static final int EXPR_FNAME   = 1<<7;
-    public static final int EXPR_DOT     = 1<<8;
-    public static final int EXPR_CLASS   = 1<<9;
-    public static final int EXPR_LABEL   = 1<<10;
-    public static final int EXPR_LABELED = 1<<11;
+    public static final int EXPR_END = 1 << 1;
+    public static final int EXPR_ENDARG = 1 << 2;
+    public static final int EXPR_ENDFN = 1 << 3;
+    public static final int EXPR_ARG = 1 << 4;
+    public static final int EXPR_CMDARG = 1 << 5;
+    public static final int EXPR_MID = 1 << 6;
+    public static final int EXPR_FNAME = 1 << 7;
+    public static final int EXPR_DOT = 1 << 8;
+    public static final int EXPR_CLASS = 1 << 9;
+    public static final int EXPR_LABEL = 1 << 10;
+    public static final int EXPR_LABELED = 1 << 11;
     public static final int EXPR_VALUE = EXPR_BEG;
     public static final int EXPR_BEG_ANY = EXPR_BEG | EXPR_MID | EXPR_CLASS;
     public static final int EXPR_ARG_ANY = EXPR_ARG | EXPR_CMDARG;
@@ -2780,7 +2781,7 @@ public class RubyLexer {
     }
 
     protected boolean peek(int c, int n) {
-        return lex_p+n < lex_pend && p(lex_p+n) == c;
+        return lex_p + n < lex_pend && p(lex_p + n) == c;
     }
 
     public int precise_mbclen() {
@@ -2818,7 +2819,7 @@ public class RubyLexer {
 
         lex_p--;
 
-        if (lex_p > lex_pbeg && p(lex_p) == '\n' && p(lex_p-1) == '\r') {
+        if (lex_p > lex_pbeg && p(lex_p) == '\n' && p(lex_p - 1) == '\r') {
             lex_p--;
         }
     }
@@ -2886,7 +2887,7 @@ public class RubyLexer {
         for (;;) {
             if (send - str <= 6) return;
 
-            switch(p(str+6)) {
+            switch (p(str + 6)) {
                 case 'C': case 'c': str += 6; continue;
                 case 'O': case 'o': str += 5; continue;
                 case 'D': case 'd': str += 4; continue;
@@ -2918,7 +2919,8 @@ public class RubyLexer {
         }
 
         int beg = str;
-        while ((p(str) == '-' || p(str) == '_' || Character.isLetterOrDigit(p(str))) && ++str < send) {}
+        while ((p(str) == '-' || p(str) == '_' || Character.isLetterOrDigit(p(str))) && ++str < send) {
+        }
         setEncoding(parserRopeOperations.makeShared(lexb, beg, str - beg));
     }
 
@@ -3097,7 +3099,8 @@ public class RubyLexer {
     }
 
     protected void warn_balanced(int c, boolean spaceSeen, String op, String syn) {
-        if (!isLexState(last_state, EXPR_CLASS|EXPR_DOT|EXPR_FNAME|EXPR_ENDFN|EXPR_ENDARG) && spaceSeen && !Character.isWhitespace(c)) {
+        if (!isLexState(last_state, EXPR_CLASS | EXPR_DOT | EXPR_FNAME | EXPR_ENDFN | EXPR_ENDARG) && spaceSeen &&
+                !Character.isWhitespace(c)) {
             ambiguousOperator(op, syn);
         }
     }
@@ -3112,7 +3115,7 @@ public class RubyLexer {
 
         if (indent) {
             for (int i = 0; i < lex_pend; i++) {
-                if (!Character.isWhitespace(p(i+p))) {
+                if (!Character.isWhitespace(p(i + p))) {
                     p += i;
                     break;
                 }
@@ -3120,9 +3123,13 @@ public class RubyLexer {
         }
         int n = lex_pend - (p + len);
         if (n < 0) return false;
-        if (n > 0 && p(p+len) != '\n') {
-            if (p(p+len) != '\r') return false;
-            if (n == 1 || p(p+len+1) != '\n') return false;
+        if (n > 0 && p(p + len) != '\n') {
+            if (p(p + len) != '\r') {
+                return false;
+            }
+            if (n == 1 || p(p + len + 1) != '\n') {
+                return false;
+            }
         }
 
         return strncmp(eos, parserRopeOperations.makeShared(lexb, p, len), len);
@@ -3131,14 +3138,14 @@ public class RubyLexer {
     public static final int TAB_WIDTH = 8;
 
     // ruby constants for strings (should this be moved somewhere else?)
-    public static final int STR_FUNC_ESCAPE=0x01;
-    public static final int STR_FUNC_EXPAND=0x02;
-    public static final int STR_FUNC_REGEXP=0x04;
-    public static final int STR_FUNC_QWORDS=0x08;
-    public static final int STR_FUNC_SYMBOL=0x10;
+    public static final int STR_FUNC_ESCAPE = 0x01;
+    public static final int STR_FUNC_EXPAND = 0x02;
+    public static final int STR_FUNC_REGEXP = 0x04;
+    public static final int STR_FUNC_QWORDS = 0x08;
+    public static final int STR_FUNC_SYMBOL = 0x10;
     // When the heredoc identifier specifies <<-EOF that indents before ident. are ok (the '-').
-    public static final int STR_FUNC_INDENT=0x20;
-    public static final int STR_FUNC_LABEL=0x40;
+    public static final int STR_FUNC_INDENT = 0x20;
+    public static final int STR_FUNC_LABEL  = 0x40;
 
     public static final int str_label = STR_FUNC_LABEL;
     public static final int str_squote = 0;
@@ -3159,8 +3166,8 @@ public class RubyLexer {
     public static final Encoding USASCII_ENCODING = USASCIIEncoding.INSTANCE;
     public static final Encoding ASCII8BIT_ENCODING = ASCIIEncoding.INSTANCE;
 
-    public static final int SUFFIX_R = 1<<0;
-    public static final int SUFFIX_I = 1<<1;
+    public static final int SUFFIX_R = 1 << 0;
+    public static final int SUFFIX_I = 1 << 1;
     public static final int SUFFIX_ALL = 3;
 
     /**
@@ -3184,7 +3191,7 @@ public class RubyLexer {
     }
 
     protected boolean isBEG() {
-        return isLexState(lex_state, EXPR_BEG_ANY) || isLexStateAll(lex_state, EXPR_ARG|EXPR_LABELED);
+        return isLexState(lex_state, EXPR_BEG_ANY) || isLexStateAll(lex_state, EXPR_ARG | EXPR_LABELED);
     }
 
     protected boolean isEND() {
@@ -3192,7 +3199,7 @@ public class RubyLexer {
     }
 
     protected boolean isLabelPossible(boolean commandState) {
-        return (isLexState(lex_state, EXPR_LABEL|EXPR_ENDFN) && !commandState) || isARG();
+        return (isLexState(lex_state, EXPR_LABEL | EXPR_ENDFN) && !commandState) || isARG();
     }
 
     protected boolean isLabelSuffix() {
@@ -3200,7 +3207,7 @@ public class RubyLexer {
     }
 
     protected boolean isAfterOperator() {
-        return isLexState(lex_state, EXPR_FNAME|EXPR_DOT);
+        return isLexState(lex_state, EXPR_FNAME | EXPR_DOT);
     }
 
     protected boolean isNext_identchar() {

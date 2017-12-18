@@ -16,7 +16,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
 
-@NodeChild(value="child", type=RubyNode.class)
+@NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToSymbolNode extends RubyNode {
 
     public abstract DynamicObject executeRubySymbol(VirtualFrame frame, Object object);

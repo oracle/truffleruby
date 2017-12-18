@@ -88,7 +88,7 @@ public abstract class WriteBitStringNode extends FormatNode {
 
         if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
             for (int i = 0; i < occurrences;) {
-                if ((bytes[i++] & 1) != 0) {//if the low bit is set
+                if ((bytes[i++] & 1) != 0) { // if the low bit is set
                     currentByte |= 128; //set the high bit of the result
                 }
 

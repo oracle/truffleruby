@@ -338,7 +338,7 @@ public abstract class FormatIntegerNode extends FormatNode {
         return ConvertBytes.longToCharBytes(((Long.MAX_VALUE + 1L) << 1) + arg);
     }
 
-    private char getFormatCharacter(){
+    private char getFormatCharacter() {
         char fchar = this.format;
 
         // 'd' and 'i' are the same
@@ -350,9 +350,6 @@ public abstract class FormatIntegerNode extends FormatNode {
         }
         return fchar;
     }
-
-
-
 
     private byte[] getUnsignedNegativeBytes(BigInteger bigval) {
         // calculation for negatives when %u specified

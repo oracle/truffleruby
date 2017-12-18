@@ -153,7 +153,9 @@ public abstract class RubyDateFormatter {
         /** %Q */
         FORMAT_MICROSEC_EPOCH;
 
-        Format() {}
+        Format() {
+        }
+
         Format(char conversion) {
             CONVERSION2TOKEN[conversion] = new Token(this);
         }
@@ -219,7 +221,7 @@ public abstract class RubyDateFormatter {
 
         @Override
         public String toString() {
-            return "<Token "+format+ " "+data+">";
+            return "<Token " + format + " " + data + ">";
         }
     }
 
@@ -361,7 +363,7 @@ public abstract class RubyDateFormatter {
                     break;
                 case FORMAT_WEEK_LONG:
                     // This is GROSS, but Java API's aren't ISO 8601 compliant at all
-                    int v = (dt.getDayOfWeek().getValue()+1)%8;
+                    int v = (dt.getDayOfWeek().getValue() + 1) % 8;
                     if (v == 0) {
                         v++;
                     }
@@ -369,17 +371,17 @@ public abstract class RubyDateFormatter {
                     break;
                 case FORMAT_WEEK_SHORT:
                     // This is GROSS, but Java API's aren't ISO 8601 compliant at all
-                    v = (dt.getDayOfWeek().getValue()+1)%8;
+                    v = (dt.getDayOfWeek().getValue() + 1) % 8;
                     if (v == 0) {
                         v++;
                     }
                     output = FORMAT_SYMBOLS.getShortWeekdays()[v];
                     break;
                 case FORMAT_MONTH_LONG:
-                    output = FORMAT_SYMBOLS.getMonths()[dt.getMonthValue()-1];
+                    output = FORMAT_SYMBOLS.getMonths()[dt.getMonthValue() - 1];
                     break;
                 case FORMAT_MONTH_SHORT:
-                    output = FORMAT_SYMBOLS.getShortMonths()[dt.getMonthValue()-1];
+                    output = FORMAT_SYMBOLS.getShortMonths()[dt.getMonthValue() - 1];
                     break;
                 case FORMAT_DAY:
                     type = NUMERIC2;

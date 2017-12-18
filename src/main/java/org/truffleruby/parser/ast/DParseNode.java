@@ -46,7 +46,7 @@ public abstract class DParseNode extends ListParseNode {
     public DParseNode(SourceIndexLength position, Encoding encoding) {
         super(position);
 
-        assert encoding != null: getClass().getName() + " passed in a null encoding";
+        assert encoding != null : getClass().getName() + " passed in a null encoding";
 
         this.encoding = encoding;
     }

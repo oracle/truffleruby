@@ -19,9 +19,9 @@ import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyNode;
 
 @NodeChildren({
-        @NodeChild(value="array", type=RubyNode.class),
-        @NodeChild(value="index", type=RubyNode.class),
-        @NodeChild(value="length", type=RubyNode.class)
+        @NodeChild(value = "array", type = RubyNode.class),
+        @NodeChild(value = "index", type = RubyNode.class),
+        @NodeChild(value = "length", type = RubyNode.class)
 })
 public abstract class ArrayReadSliceDenormalizedNode extends RubyNode {
 

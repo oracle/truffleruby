@@ -36,6 +36,6 @@ public class Colon2ConstParseNode extends Colon2ParseNode {
     public Colon2ConstParseNode(SourceIndexLength position, ParseNode leftNode, String name) {
         super(position, leftNode, name);
 
-        assert leftNode != null: "Colon2ConstParseNode cannot have null leftNode";
+        assert leftNode != null : "Colon2ConstParseNode cannot have null leftNode";
     }
 }

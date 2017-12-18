@@ -108,13 +108,13 @@ public class DynamicScope {
     // Helper function to give a good view of current dynamic scope with captured scopes
     public String toString(StringBuffer buf, String indent) {
         buf.append(indent).append("Static Type[" + hashCode() + "]: " +
-                (staticScope.isBlockScope() ? "block" : "local")+" [");
+                (staticScope.isBlockScope() ? "block" : "local") + " [");
         int size = staticScope.getNumberOfVariables();
         Object[] variableValues = getValues();
 
         if (size != 0) {
             String names[] = staticScope.getVariables();
-            for (int i = 0; i < size-1; i++) {
+            for (int i = 0; i < size - 1; i++) {
                 buf.append(names[i]).append("=");
 
                 if (variableValues[i] == null) {
@@ -125,15 +125,15 @@ public class DynamicScope {
 
                 buf.append(",");
             }
-            buf.append(names[size-1]).append("=");
+            buf.append(names[size - 1]).append("=");
 
             assert variableValues.length == names.length : "V: " + variableValues.length +
                     " != N: " + names.length + " for " + buf;
 
-            if (variableValues[size-1] == null) {
+            if (variableValues[size - 1] == null) {
                 buf.append("null");
             } else {
-                buf.append(variableValues[size-1]);
+                buf.append(variableValues[size - 1]);
             }
 
         }
@@ -220,7 +220,7 @@ public class DynamicScope {
      *
      */
     public void growIfNeeded() {
-        int dynamicSize = variableValues == null ? 0: variableValues.length;
+        int dynamicSize = variableValues == null ? 0 : variableValues.length;
         
         if (staticScope.getNumberOfVariables() > dynamicSize) {
             Object values[] = new Object[staticScope.getNumberOfVariables()];

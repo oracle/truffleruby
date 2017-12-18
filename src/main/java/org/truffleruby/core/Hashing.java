@@ -51,7 +51,7 @@ public class Hashing {
         long v = 0;
         hash += value;
         v = murmur1(v + hash);
-        v = murmur1(v + (hash >>> 4*8));
+        v = murmur1(v + (hash >>> 4 * 8));
         return v;
     }
 

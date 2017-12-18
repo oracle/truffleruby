@@ -133,7 +133,8 @@ public class HeredocTerm extends StrTerm {
                 }
 
                 if (lexer.getHeredocIndent() > 0) {
-                    for (long i = 0; p + i < pend && lexer.update_heredoc_indent(lexer.p(p)); i++) {}
+                    for (long i = 0; p + i < pend && lexer.update_heredoc_indent(lexer.p(p)); i++) {
+                    }
                     lexer.setHeredocLineIndent(0);
                 }
 

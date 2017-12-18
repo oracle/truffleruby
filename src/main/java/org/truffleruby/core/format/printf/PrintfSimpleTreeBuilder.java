@@ -70,7 +70,7 @@ public class PrintfSimpleTreeBuilder {
                 final FormatNode widthNode;
                 if (config.isWidthStar()) {
                     widthNode = ReadIntegerNodeGen.create(new SourceNode());
-                } else if (config.isArgWidth()){
+                } else if (config.isArgWidth()) {
                     widthNode = ReadArgumentIndexValueNodeGen.create(config.getWidth(), new SourceNode());
                 } else {
                     widthNode = new LiteralFormatNode(config.getWidth() == null ? -1 : config.getWidth());
