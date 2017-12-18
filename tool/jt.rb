@@ -497,7 +497,14 @@ module Commands
     super(*args)
   end
 
-  BUILD_OPTIONS = %w[parser options cexts sulong]
+  BUILD_OPTIONS = %w[parser options cexts sulong aot svm]
+
+  def build_truffleruby
+    mx 'sforceimports'
+    mx 'build', '--force-javac', '--warning-as-error',
+       # show more than default 100 errors not to hide actual errors under pile of missing symbols
+       '-A-Xmaxerrs', '-A1000'
+  end
 
   def build(*options)
     project = options.first
@@ -522,11 +529,11 @@ module Commands
       require 'etc'
       cores = Etc.respond_to?(:nprocessors) ? Etc.nprocessors : 4
       raw_sh "make", "-j#{cores}", chdir: "#{TRUFFLERUBY_DIR}/src/main/c"
+    when 'aot', 'svm'
+      build_truffleruby
+      build_aot_image
     when nil
-      mx 'sforceimports'
-      mx 'build', '--force-javac', '--warning-as-error',
-         # show more than default 100 errors not to hide actual errors under pile of missing symbols
-         '-A-Xmaxerrs', '-A1000'
+      build_truffleruby
     else
       raise ArgumentError, project
     end
@@ -1763,6 +1770,22 @@ module Commands
     puts
     puts "To run TruffleRuby with Graal, use:"
     puts "$ #{TRUFFLERUBY_DIR}/tool/jt.rb ruby --graal ..."
+  end
+
+  def build_aot_image
+    build
+    java_home = install_jvmci
+
+    puts 'Building TruffleRuby Substrate VM binary'
+    graal = Utilities.find_or_clone_repo('https://github.com/graalvm/graal.git')
+    chdir("#{graal}/substratevm") do
+      raw_sh 'git', 'fetch'
+      raw_sh 'git', 'checkout', Utilities.truffle_version
+      File.write('mx.substratevm/env', "JAVA_HOME=#{java_home}\n")
+      mx 'build'
+      mx 'image', '-ruby', '-H:Name=native-ruby'
+      FileUtils.mv('svmbuild/native-ruby', '../../truffleruby/bin/')
+    end
   end
 
   def next(*args)
