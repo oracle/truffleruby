@@ -20,7 +20,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyNode;
 
 @ImportStatic(ShapeCachingGuards.class)
-@NodeChild(value="object", type=RubyNode.class)
+@NodeChild(value = "object", type = RubyNode.class)
 public abstract class LogicalClassNode extends RubyNode {
 
     public abstract DynamicObject executeLogicalClass(Object value);

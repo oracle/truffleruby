@@ -248,11 +248,11 @@ public abstract class MathNodes {
             } else if (y < 1.49012e-08) {
                 return 1 - 2 * a / 1.77245385090551602729816748334;
             } else {
-                double ysq = y*y;
+                double ysq = y * y;
                 if (y < 1) {
                     return 1 - a * (1 + chebylevSerie(2 * ysq - 1, ERFC_COEF));
                 } else if (y <= 4.0) {
-                    double result = Math.exp(-ysq)/y*(0.5+chebylevSerie((8.0 / ysq - 5.0) / 3.0, ERFC2_COEF));
+                    double result = Math.exp(-ysq) / y * (0.5 + chebylevSerie((8.0 / ysq - 5.0) / 3.0, ERFC2_COEF));
                     if (a < 0) result = 2.0 - result;
                     if (a < 0) result = 2.0 - result;
                     if (a < 0) result = 2.0 - result;
@@ -294,10 +294,12 @@ public abstract class MathNodes {
                 }
 
                 // Increase value to hit lower range.
-                for (; mantissa < 0.5; mantissa *= 2.0, exponent -=1) { }
+                for (; mantissa < 0.5; mantissa *= 2.0, exponent -= 1) {
+                }
 
                 // Decrease value to hit upper range.
-                for (; mantissa >= 1.0; mantissa *= 0.5, exponent +=1) { }
+                for (; mantissa >= 1.0; mantissa *= 0.5, exponent += 1) {
+                }
             }
 
             return createArray(new Object[] { sign * mantissa, exponent }, 2);
@@ -846,12 +848,12 @@ public abstract class MathNodes {
         b0 = 0.0;
         b2 = 0.0;
         twox = 2.0 * x;
-        for (i = coef.length-1; i >= 0; i--) {
+        for (i = coef.length - 1; i >= 0; i--) {
             b2 = b1;
             b1 = b0;
             b0 = twox * b1 - b2 + coef[i];
         }
-        return 0.5*(b0 - b2);
+        return 0.5 * (b0 - b2);
     }
 
     public static double sign(double x, double y) {

@@ -112,7 +112,7 @@ public class ConvertBytes {
         if (base <= 0) {
             if (str < end && data[str] == '0') {
                 if (str + 1 < end) {
-                    switch(data[str+1]) {
+                    switch (data[str + 1]) {
                         case 'x':
                         case 'X':
                             base = 16;
@@ -152,7 +152,7 @@ public class ConvertBytes {
             case 2:
                 len = 1;
                 if (second == 'b' || second == 'B') {
-                    str+=2;
+                    str += 2;
                 }
                 break;
             case 3:
@@ -160,14 +160,14 @@ public class ConvertBytes {
                 break;
             case 8:
                 if (second == 'o' || second == 'O') {
-                    str+=2;
+                    str += 2;
                 }
             case 4: case 5: case 6: case 7:
                 len = 3;
                 break;
             case 10:
                 if (second == 'd' || second == 'D') {
-                    str+=2;
+                    str += 2;
                 }
             case 9: case 11: case 12:
             case 13: case 14: case 15:
@@ -176,7 +176,7 @@ public class ConvertBytes {
             case 16:
                 len = 4;
                 if (second == 'x' || second == 'X') {
-                    str+=2;
+                    str += 2;
                 }
                 break;
             default:
@@ -280,7 +280,7 @@ public class ConvertBytes {
 
         if (endptr != null) {
             if (save - nptr >= 2 && (data[save - 1] == 'x' || data[save - 1] == 'X') && data[save - 2] == '0') {
-                endptr[0] = save-1;
+                endptr[0] = save - 1;
             } else {
                 endptr[0] = nptr;
             }
@@ -331,7 +331,7 @@ public class ConvertBytes {
         if (base <= 10) {
             len *= (trailingLength());
         } else {
-            len *= (end-str);
+            len *= (end - str);
         }
 
         if (len < Long.SIZE - 1) {
@@ -374,7 +374,7 @@ public class ConvertBytes {
 
     private int trailingLength() {
         int newLen = 0;
-        for (int i=str; i < end; i++) {
+        for (int i = str; i < end; i++) {
             if (Character.isDigit(data[i])) newLen++;
             else return newLen;
         }
@@ -386,7 +386,7 @@ public class ConvertBytes {
             invalidString("Integer");
         }
 
-        char[] result = new char[end-str];
+        char[] result = new char[end - str];
         int resultIndex = 0;
 
         byte nondigit = -1;
@@ -422,8 +422,12 @@ public class ConvertBytes {
             int tmpStr = str;
             if (badcheck) {
                 // no str-- here because we don't null-terminate strings
-                if (1 < tmpStr && data[tmpStr-1] == '_') invalidString("Integer");
-                while (tmpStr < end && Character.isWhitespace(data[tmpStr])) tmpStr++;
+                if (1 < tmpStr && data[tmpStr - 1] == '_') {
+                    invalidString("Integer");
+                }
+                while (tmpStr < end && Character.isWhitespace(data[tmpStr])) {
+                    tmpStr++;
+                }
                 if (tmpStr < end) {
                     invalidString("Integer");
                 }

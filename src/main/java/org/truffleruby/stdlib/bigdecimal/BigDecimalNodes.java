@@ -819,17 +819,17 @@ public abstract class BigDecimalNodes {
             // Estimate the square root with the foremost 62 bits of squarD
             BigInteger bi = squarD.unscaledValue();     // bi and scale are a tandem
             int biLen = bi.bitLength();
-            int shift = Math.max(0, biLen - BITS + (biLen%2 == 0 ? 0 : 1));   // even shift..
+            int shift = Math.max(0, biLen - BITS + (biLen % 2 == 0 ? 0 : 1)); // even shift..
             bi = bi.shiftRight(shift);                  // ..floors to 62 or 63 bit BigInteger
 
             double root = Math.sqrt(SafeDoubleParser.doubleValue(bi));
-            BigDecimal halfBack = new BigDecimal(BigInteger.ONE.shiftLeft(shift/2));
+            BigDecimal halfBack = new BigDecimal(BigInteger.ONE.shiftLeft(shift / 2));
 
             int scale = squarD.scale();
             assert scale >= 0 : "unexpected negative scale";
             if (scale % 2 != 0) root *= SQRT_10; // 5 -> 2, -5 -> -3 need half a scale more..
 
-            scale = (int) Math.ceil(scale/2.);         // ..where 100 -> 10 shifts the scale
+            scale = (int) Math.ceil(scale / 2.); // ..where 100 -> 10 shifts the scale
 
             // Initial x - use double root - multiply by halfBack to unshift - set new scale
             BigDecimal x = new BigDecimal(root, nMC);
@@ -849,7 +849,7 @@ public abstract class BigDecimalNodes {
             assert nInit > 3 : "Never ending loop!";                // assume nInit = 16 <= prec
 
             // Let m be the exact digits precision in an earlier! loop
-            for (int m = prec + 1; m > nInit; m = m/2 + (m > 100 ? 1 : 2)) {
+            for (int m = prec + 1; m > nInit; m = m / 2 + (m > 100 ? 1 : 2)) {
                 nPrecs.add(m);
             }
 

@@ -4083,7 +4083,7 @@ public abstract class StringNodes {
             int p;
             int s = 0;
             int end = s + length;
-            byte[]bytes = rope.getBytes();
+            byte[] bytes = rope.getBytes();
             int substringByteLength = characterLen;
 
             if (beg < 0) {
@@ -4091,12 +4091,16 @@ public abstract class StringNodes {
                 if (-beg * enc.maxLength() < length >>> 3) {
                     beg = -beg;
                     int e = end;
-                    while (beg-- > characterLen && (e = enc.prevCharHead(bytes, s, e, e)) != -1) {} // nothing
+                    while (beg-- > characterLen && (e = enc.prevCharHead(bytes, s, e, e)) != -1) {
+                        // nothing
+                    }
                     p = e;
                     if (p == -1) {
                         return nil();
                     }
-                    while (characterLen-- > 0 && (p = enc.prevCharHead(bytes, s, p, e)) != -1) {} // nothing
+                    while (characterLen-- > 0 && (p = enc.prevCharHead(bytes, s, p, e)) != -1) {
+                        // nothing
+                    }
                     if (p == -1) {
                         return nil();
                     }
