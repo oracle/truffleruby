@@ -1607,8 +1607,12 @@ module Commands
         if region.start_with? 'before-'
           depth += 1
           key = (indent * depth + region['before-'.size..-1])
-          raise key if times.key? key
-          times[key] = time
+          if prev = times[key]
+            # Already a time with the same key, add them together
+            times[key] = time - prev
+          else
+            times[key] = time
+          end
           run_depth = depth if region == 'before-run'
         elsif region.start_with? 'after-'
           key = (indent * depth + region['after-'.size..-1])
