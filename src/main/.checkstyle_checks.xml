@@ -75,7 +75,7 @@
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     <!--<module name="ArrayTypeStyle"/>-->
-    <!--<module name="UpperEll"/>-->
+    <module name="UpperEll"/>
     <!--<module name="FallThrough"/>-->
     <module name="FinalLocalVariable">
       <property name="severity" value="ignore"/>

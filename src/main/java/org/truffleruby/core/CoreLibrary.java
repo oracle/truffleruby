@@ -988,7 +988,7 @@ public class CoreLibrary {
     }
 
     public static boolean fitsIntoUnsignedInteger(long value) {
-        return value == (value & 0xffffffffl) || value < 0 && value >= Integer.MIN_VALUE;
+        return value == (value & 0xffffffffL) || value < 0 && value >= Integer.MIN_VALUE;
     }
 
     public static int long2int(long value) {
