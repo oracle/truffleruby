@@ -389,7 +389,7 @@ public class BCrypt {
         int c1, c2;
 
         if (len <= 0 || len > d.length)
-            throw new IllegalArgumentException ("Invalid len");
+            throw new IllegalArgumentException("Invalid len");
 
         while (off < len) {
             c1 = d[off++] & 0xff;
@@ -444,7 +444,7 @@ public class BCrypt {
         byte c1, c2, c3, c4, o;
 
         if (maxolen <= 0)
-            throw new IllegalArgumentException ("Invalid maxolen");
+            throw new IllegalArgumentException("Invalid maxolen");
 
         while (off < slen - 1 && olen < maxolen) {
             c1 = char64(s.charAt(off++));
@@ -610,10 +610,10 @@ public class BCrypt {
         byte ret[];
 
         if (log_rounds < 4 || log_rounds > 31)
-            throw new IllegalArgumentException ("Bad number of rounds");
+            throw new IllegalArgumentException("Bad number of rounds");
         rounds = 1 << log_rounds;
         if (salt.length != BCRYPT_SALT_LEN)
-            throw new IllegalArgumentException ("Bad salt length");
+            throw new IllegalArgumentException("Bad salt length");
 
         init_key();
         ekskey(salt, password);
@@ -653,19 +653,19 @@ public class BCrypt {
         StringBuilder rs = new StringBuilder();
 
         if (salt.charAt(0) != '$' || salt.charAt(1) != '2')
-            throw new IllegalArgumentException ("Invalid salt version");
+            throw new IllegalArgumentException("Invalid salt version");
         if (salt.charAt(2) == '$')
             off = 3;
         else {
             minor = salt.charAt(2);
             if (minor != 'a' || salt.charAt(3) != '$')
-                throw new IllegalArgumentException ("Invalid salt revision");
+                throw new IllegalArgumentException("Invalid salt revision");
             off = 4;
         }
 
         // Extract number of rounds
         if (salt.charAt(off + 2) > '$')
-            throw new IllegalArgumentException ("Missing salt rounds");
+            throw new IllegalArgumentException("Missing salt rounds");
         rounds = Integer.parseInt(salt.substring(off, off + 2));
 
         real_salt = salt.substring(off + 3, off + 25);

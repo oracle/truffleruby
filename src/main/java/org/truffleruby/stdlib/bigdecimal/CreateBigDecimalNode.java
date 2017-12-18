@@ -146,8 +146,8 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
 
-        final int exceptionConstant = getIntegerConstantNode.executeGetIntegerConstant
-                (frame, getBigDecimalClass(), "EXCEPTION_NaN");
+        final int exceptionConstant = getIntegerConstantNode.executeGetIntegerConstant(frame,
+                getBigDecimalClass(), "EXCEPTION_NaN");
 
         final boolean raise = booleanCastNode.executeToBoolean(
                 modeCallNode.call(frame, getBigDecimalClass(), "boolean_mode", exceptionConstant));
