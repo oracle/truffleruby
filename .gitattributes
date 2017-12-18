@@ -27,7 +27,6 @@ lib/ruby/gems/2.3.0/gems/net-telnet-0.1.1/bin/setup linguist-vendored
 # Ignore generated code
 
 src/main/java/org/truffleruby/parser/parser/RubyParser.java linguist-generated
-src/main/java/org/truffleruby/core/time/StrftimeLexer.java linguist-generated
 
 # Ignore templates
 
