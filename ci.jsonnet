@@ -330,7 +330,7 @@
   svm_metrics: {
     local run_benchs = benchmark([
       "instructions",
-      ["time", "--", "--aot"],
+      ["time", "--", "--native"],
       "maxrss"]),
 
     run: [
@@ -401,7 +401,7 @@
     run: benchmark([["server", "--", "--no-core-load-path"]])
   },
   svm_server_benchmarks: $.server_benchmarks {
-    run: benchmark([["server", "--", "--aot"]])
+    run: benchmark([["server", "--", "--native"]])
   },
 
   cext_benchmarks: $.sulong + $.graal_core + {
