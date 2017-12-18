@@ -25,9 +25,21 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class Struct
-  Struct.new 'Tms', :utime, :stime, :cutime, :cstime
+  # Manually do the setup of
+  # Struct.new 'Tms', :utime, :stime, :cutime, :cstime
+  # to avoid executing too much code at startup
+  class Tms < Struct
+    STRUCT_ATTRS = [:utime, :stime, :cutime, :cstime]
+    attr_accessor :utime, :stime, :cutime, :cstime
 
-  class Tms
+    def self.new(*args, &block)
+      subclass_new(*args, &block)
+    end
+
+    def self.[](*args)
+      new(*args)
+    end
+
     def initialize(utime=nil, stime=nil, cutime=nil, cstime=nil)
       @utime = utime
       @stime = stime
