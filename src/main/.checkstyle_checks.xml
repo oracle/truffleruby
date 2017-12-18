@@ -38,12 +38,12 @@
       <!--<property name="max" value="250"/>-->
     <!--</module>-->
     <module name="MethodParamPad"/>
-    <!--<module name="NoWhitespaceAfter">-->
-      <!--<property name="tokens" value="ARRAY_INIT,BNOT,DEC,DOT,INC,LNOT,UNARY_MINUS,UNARY_PLUS"/>-->
-    <!--</module>-->
-    <!--<module name="NoWhitespaceBefore">-->
-      <!--<property name="tokens" value="SEMI,DOT,POST_DEC,POST_INC"/>-->
-    <!--</module>-->
+    <module name="NoWhitespaceAfter">
+      <property name="tokens" value="BNOT,DEC,DOT,INC,LNOT,UNARY_MINUS,UNARY_PLUS"/>
+    </module>
+    <module name="NoWhitespaceBefore">
+      <property name="tokens" value="SEMI,POST_DEC,POST_INC"/>
+    </module>
     <module name="ParenPad"/>
     <module name="TypecastParenPad">
       <property name="tokens" value="RPAREN,TYPECAST"/>

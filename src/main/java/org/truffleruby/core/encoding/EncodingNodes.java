@@ -190,7 +190,7 @@ public abstract class EncodingNodes {
                 return null;
             }
 
-            if (! firstEncoding.isAsciiCompatible() || ! secondEncoding.isAsciiCompatible()) {
+            if (!firstEncoding.isAsciiCompatible() || !secondEncoding.isAsciiCompatible()) {
                 return null;
             }
 

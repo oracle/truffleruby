@@ -34,7 +34,7 @@ public class ArgumentDescriptorUtils {
     public static DynamicObject toArray(RubyContext context,
                                         ArgumentDescriptor argDesc,
                                         boolean isLambda) {
-        if ((argDesc.type == ArgumentType.req) && ! isLambda) {
+        if ((argDesc.type == ArgumentType.req) && !isLambda) {
             return toArray(context, ArgumentType.opt, argDesc.name);
         }
 

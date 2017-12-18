@@ -1928,13 +1928,13 @@ public abstract class StringNodes {
             }
 
             if (singleByteOptimizableProfile.profile(rope.isSingleByteOptimizable())) {
-                if (! StringSupport.singleByteSqueeze(buffer, squeeze)) {
+                if (!StringSupport.singleByteSqueeze(buffer, squeeze)) {
                     return nil();
                 } else {
                     StringOperations.setRope(string, RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             } else {
-                if (! squeezeCommonMultiByte(buffer, squeeze, null, encoding(string), false)) {
+                if (!squeezeCommonMultiByte(buffer, squeeze, null, encoding(string), false)) {
                     return nil();
                 } else {
                     StringOperations.setRope(string, RopeOperations.ropeFromRopeBuilder(buffer));
@@ -1992,13 +1992,13 @@ public abstract class StringNodes {
             }
 
             if (singleByteOptimizableProfile.profile(singlebyte)) {
-                if (! StringSupport.singleByteSqueeze(buffer, squeeze)) {
+                if (!StringSupport.singleByteSqueeze(buffer, squeeze)) {
                     return nil();
                 } else {
                     StringOperations.setRope(string, RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             } else {
-                if (! StringSupport.multiByteSqueeze(buffer, squeeze, tables, enc, true)) {
+                if (!StringSupport.multiByteSqueeze(buffer, squeeze, tables, enc, true)) {
                     return nil();
                 } else {
                     StringOperations.setRope(string, RopeOperations.ropeFromRopeBuilder(buffer));
@@ -2027,7 +2027,7 @@ public abstract class StringNodes {
         public DynamicObject succBang(DynamicObject string) {
             final Rope rope = rope(string);
 
-            if (! rope.isEmpty()) {
+            if (!rope.isEmpty()) {
                 final RopeBuilder succBuilder = StringSupport.succCommon(rope);
 
                 final Rope newRope = makeLeafRopeNode.executeMake(succBuilder.getBytes(), rope.getEncoding(), CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
@@ -2953,7 +2953,7 @@ public abstract class StringNodes {
             final int end = rope.byteLength();
             final int c = StringSupport.preciseLength(rope.getEncoding(), bytesNode.execute(rope), byteIndex, end);
 
-            if (! StringSupport.MBCLEN_CHARFOUND_P(c)) {
+            if (!StringSupport.MBCLEN_CHARFOUND_P(c)) {
                 return nil();
             }
 
@@ -3884,7 +3884,7 @@ public abstract class StringNodes {
             final byte[] bytes = new byte[size];
 
             // TODO (nirvdrum 21-Jan-16): Investigate whether using a ConcatRope (potentially combined with a RepeatingRope) would be better here.
-            if (! rope.isEmpty()) {
+            if (!rope.isEmpty()) {
                 for (int n = 0; n < size; n += rope.byteLength()) {
                     System.arraycopy(rope.getBytes(), 0, bytes, n, Math.min(rope.byteLength(), size - n));
                 }
