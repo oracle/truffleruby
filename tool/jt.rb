@@ -157,11 +157,19 @@ module Utilities
     raise "couldn't find truffle-sl.jar - build Truffle and find it in there"
   end
 
-  def self.find_launcher
-    if ENV['RUBY_BIN']
-      ENV['RUBY_BIN']
+  def self.find_launcher(use_svm)
+    if use_svm
+      if ENV['AOT_BIN']
+        ENV['AOT_BIN']
+      else
+        "#{TRUFFLERUBY_DIR}/bin/native-ruby"
+      end
     else
-      "#{TRUFFLERUBY_DIR}/bin/truffleruby"
+      if ENV['RUBY_BIN']
+        ENV['RUBY_BIN']
+      else
+        "#{TRUFFLERUBY_DIR}/bin/truffleruby"
+      end
     end
   end
 
@@ -686,12 +694,7 @@ module Commands
       options[:use_exec] = true
     end
 
-    ruby_bin = if args.delete('--aot')
-                 verify_aot_bin!
-                 ENV['AOT_BIN']
-               else
-                 Utilities.find_launcher
-               end
+    ruby_bin = Utilities.find_launcher(args.delete('--aot'))
 
     raw_sh env_vars, ruby_bin, *vm_args, *args, options
   end
@@ -1267,7 +1270,7 @@ module Commands
       verify_aot_bin!
 
       options += %w[--excl-tag graalvm --excl-tag aot]
-      options << '-t' << ENV['AOT_BIN']
+      options << '-t' << Utilities.find_launcher(true)
       options << '-T-XX:YoungGenerationSize=2G'
       options << '-T-XX:OldGenerationSize=4G'
       options << "-T-Xhome=#{TRUFFLERUBY_DIR}"
@@ -1367,11 +1370,7 @@ module Commands
   end
 
   def build_stats_aot_binary_size(*args)
-    if File.exist?(ENV['AOT_BIN'].to_s)
-      File.size(ENV['AOT_BIN']) / 1024.0 / 1024.0
-    else
-      -1
-    end
+    File.size(Utilities.find_launcher(true)) / 1024.0 / 1024.0
   end
 
   def build_stats_aot_build_time(*args)
@@ -1505,11 +1504,11 @@ module Commands
       Utilities.log '.', "sampling\n"
 
       max_rss_in_mb = if LINUX
-                        out, err = raw_sh('/usr/bin/time', '-v', '--', ENV['AOT_BIN'], *args, capture: true, no_print_cmd: true)
+                        out, err = raw_sh('/usr/bin/time', '-v', '--', Utilities.find_launcher(true), *args, capture: true, no_print_cmd: true)
                         err =~ /Maximum resident set size \(kbytes\): (?<max_rss_in_kb>\d+)/m
                         Integer($~[:max_rss_in_kb]) / 1024.0
                       elsif MAC
-                        out, err = raw_sh('/usr/bin/time', '-l', '--', ENV['AOT_BIN'], *args, capture: true, no_print_cmd: true)
+                        out, err = raw_sh('/usr/bin/time', '-l', '--', Utilities.find_launcher(true), *args, capture: true, no_print_cmd: true)
                         err =~ /(?<max_rss_in_bytes>\d+)\s+maximum resident set size/m
                         Integer($~[:max_rss_in_bytes]) / 1024.0 / 1024.0
                       else
@@ -1547,7 +1546,7 @@ module Commands
 
     use_json = args.delete '--json'
 
-    out, err = raw_sh('perf', 'stat', '-e', 'instructions', '--', ENV['AOT_BIN'], *args, capture: true, no_print_cmd: true)
+    out, err = raw_sh('perf', 'stat', '-e', 'instructions', '--', Utilities.find_launcher(true), *args, capture: true, no_print_cmd: true)
 
     err =~ /(?<instruction_count>[\d,]+)\s+instructions/m
     instruction_count = $~[:instruction_count].gsub(',', '')
@@ -1658,17 +1657,17 @@ module Commands
 
     run_args = []
 
-    if args.delete('--aot') || (ENV.has_key?('JT_BENCHMARK_RUBY') && (ENV['JT_BENCHMARK_RUBY'] == ENV['AOT_BIN']))
+    if args.delete('--aot') || (ENV.has_key?('JT_BENCHMARK_RUBY') && (ENV['JT_BENCHMARK_RUBY'] == Utilities.find_launcher(true)))
       run_args.push '-XX:YoungGenerationSize=1G'
       run_args.push '-XX:OldGenerationSize=2G'
       run_args.push "-Xhome=#{TRUFFLERUBY_DIR}"
 
       # We already have a mechanism for setting the Ruby to benchmark, but elsewhere we use AOT_BIN with the "--aot" flag.
       # Favor JT_BENCHMARK_RUBY to AOT_BIN, but try both.
-      benchmark_ruby ||= ENV['AOT_BIN']
+      benchmark_ruby ||= Utilities.find_launcher(true)
 
       unless File.exist?(benchmark_ruby.to_s)
-        raise "JT_BENCHMARK_RUBY or AOT_BIN must point at an AOT build of TruffleRuby"
+        raise "Could not find benchmark ruby -- '#{benchmark_ruby}' does not exist"
       end
     end
 
@@ -1852,8 +1851,8 @@ module Commands
   end
 
   def verify_aot_bin!
-    unless File.exist?(ENV['AOT_BIN'].to_s)
-      raise "AOT_BIN must point at an AOT build of TruffleRuby"
+    unless File.exist?(Utilities.find_launcher(true))
+      raise "Could not find AOT image -- either build with 'jt build --aot' or set AOT_BIN to an image location"
     end
   end
 
