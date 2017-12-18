@@ -417,7 +417,7 @@ public abstract class FormatIntegerNode extends FormatNode {
         int len = s.length();
         byte[] bytes = new byte[len];
         if (upper) {
-            for (int i = len; --i >= 0; ) {
+            for (int i = len; --i >= 0;) {
                 int b = (byte) (s.charAt(i) & 0xff);
                 if (b >= 'a' && b <= 'z') {
                     bytes[i] = (byte) (b & ~0x20);
@@ -426,7 +426,7 @@ public abstract class FormatIntegerNode extends FormatNode {
                 }
             }
         } else {
-            for (int i = len; --i >= 0; ) {
+            for (int i = len; --i >= 0;) {
                 bytes[i] = (byte) (s.charAt(i) & 0xff);
             }
         }

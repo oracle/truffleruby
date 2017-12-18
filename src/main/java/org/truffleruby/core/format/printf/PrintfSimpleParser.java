@@ -35,7 +35,7 @@ public class PrintfSimpleParser {
         final int end = source.length;
         int argCount = 0;
 
-        for (int i = 0; i < end; ) {
+        for (int i = 0; i < end;) {
 
             // Add literal bytes up to the first %
             int literalEnd = i;
@@ -122,7 +122,7 @@ public class PrintfSimpleParser {
                         char term = (p == '<') ? '>' : '}';
 
                         int j = i;
-                        for (; j < end && this.source[j] != term; ) {
+                        while (j < end && this.source[j] != term) {
                             j++;
                         }
                         if (j >= end) {
