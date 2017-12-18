@@ -180,7 +180,9 @@ public class StringTerm extends StrTerm {
 
         c = lexer.nextc();
         if ((flags & STR_FUNC_QWORDS) != 0 && Character.isWhitespace(c)) {
-            do { c = lexer.nextc(); } while (Character.isWhitespace(c));
+            do {
+                c = lexer.nextc();
+            } while (Character.isWhitespace(c));
             spaceSeen = true;
         }
 

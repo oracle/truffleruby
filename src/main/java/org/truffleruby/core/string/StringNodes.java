@@ -2869,7 +2869,9 @@ public abstract class StringNodes {
             return StringNodesFactory.StringByteSubstringPrimitiveNodeFactory.create(null, null, null);
         }
 
-        public Object executeStringByteSubstring(DynamicObject string, Object index, Object length) { return nil(); }
+        public Object executeStringByteSubstring(DynamicObject string, Object index, Object length) {
+            return nil();
+        }
 
         @Specialization
         public Object stringByteSubstring(DynamicObject string, int index, NotProvided length,
@@ -3120,10 +3122,8 @@ public abstract class StringNodes {
                     result.append('\\');
                     result.append((byte) cc);
                     prev = p;
-                }
-                else if (asciicompat && Encoding.isAscii(c) && (c < 0x7F && c > 31 /*ISPRINT(c)*/)) {
-                }
-                else {
+                } else if (asciicompat && Encoding.isAscii(c) && (c < 0x7F && c > 31 /* ISPRINT(c) */)) {
+                } else {
                     if (p - n > prev) {
                         result.append(pBytes, prev, p - n - prev);
                     }

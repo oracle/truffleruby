@@ -463,7 +463,9 @@ public class ConvertBytes {
         str = str.replaceAll("_", "");
         int size = str.length();
         int nDigits = 512;
-        if (size < nDigits) { nDigits = size; }
+        if (size < nDigits) {
+            nDigits = size;
+        }
 
         int j = size - 1;
         int i = j - nDigits + 1;

@@ -285,7 +285,9 @@ public abstract class IONodes {
             if (pathname) {
                 while (true) {
                     if (isDoubleStarAndSlash(bytes, pat_pos)) {
-                        do { pat_pos += 3; } while (isDoubleStarAndSlash(bytes, pat_pos));
+                        do {
+                            pat_pos += 3;
+                        } while (isDoubleStarAndSlash(bytes, pat_pos));
                         ptmp = pat_pos;
                         stmp = str_pos;
                     }

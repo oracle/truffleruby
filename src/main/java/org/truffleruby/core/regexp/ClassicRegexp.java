@@ -223,8 +223,7 @@ public class ClassicRegexp implements ReOptions {
                                 if (to != null) {
                                     to.append(bytes, pbeg, p - pbeg);
                                 }
-                            }
-                            else {
+                            } else {
                                 p = unescapeEscapedNonAscii(context, to, bytes, p, end, enc, encp, str, mode);
                             }
                             break;

@@ -158,8 +158,7 @@ public abstract class ReadBase64StringNode extends FormatNode {
                     lElem[index++] = (byte) ((b << 4 | c >> 2) & 255);
                 }
             }
-        }
-        else {
+        } else {
 
             while (encode.hasRemaining()) {
                 b = c = -1;

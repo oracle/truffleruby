@@ -900,8 +900,7 @@ public abstract class MathNodes {
             sign = signum(x, int_part);
             if ((x - int_part) == 0.0 && 0 < int_part && int_part <= FACTORIAL.length) {
                 value = Math.log(FACTORIAL[(int) int_part - 1]);
-            }
-            else if (x < 10) {
+            } else if (x < 10) {
                 double rising_factorial = 1;
                 for (int i = 0; i < (int) Math.abs(x) - int_part + 10; i++) {
                     rising_factorial *= (x + i);
