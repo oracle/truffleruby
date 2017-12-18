@@ -68,8 +68,10 @@ public class RubyParserResult {
     }
     
     public void addBeginNode(PreExeParseNode node) {
-        if (beginNodes == null) beginNodes = new ArrayList<>();
-    	beginNodes.add(node);
+        if (beginNodes == null) {
+            beginNodes = new ArrayList<>();
+        }
+        beginNodes.add(node);
     }
     
     public List<ParseNode> getBeginNodes() {

@@ -805,7 +805,7 @@ public class RubyLexer {
             case '\000': /* NUL */
             case '\004': /* ^D */
             case '\032': /* ^Z */
-            case EOF:	 /* end of script. */
+            case EOF:    /* end of script. */ 
                 return EOF;
 
                 /* white spaces */
@@ -814,7 +814,7 @@ public class RubyLexer {
                 getPosition();
                 spaceSeen = true;
                 continue;
-            case '#': {	/* it's a comment */
+            case '#': { /* it's a comment */
                 this.tokenSeen = tokenSeen;
 
                 // There are no magic comments that can affect any runtime options after a token has been seen, so there's
@@ -859,7 +859,7 @@ public class RubyLexer {
                         }
                     }
                     default:
-                    case -1:		// EOF (ENEBO: After default?
+                    case -1:    // EOF (ENEBO: After default?
                         done = true;
                     }
                 }
@@ -980,7 +980,7 @@ public class RubyLexer {
             case '[':
                 return leftBracket(spaceSeen);
             case '{':
-            	return leftCurly();
+                return leftCurly();
             case '\\':
                 c = nextc();
                 if (c == '\n') {
@@ -2102,10 +2102,10 @@ public class RubyLexer {
         numberBuffer.clear();
 
         if (c == '-') {
-        	numberBuffer.append((char) c);
+            numberBuffer.append((char) c);
             c = nextc();
         } else if (c == '+') {
-        	// We don't append '+' since Java number parser gets confused
+            // We don't append '+' since Java number parser gets confused
             c = nextc();
         }
         
@@ -2146,7 +2146,7 @@ public class RubyLexer {
                         for (;; c = nextc()) {
                             if (c == '_') {
                                 if (nondigit != '\0') break;
-								nondigit = c;
+                                nondigit = c;
                             } else if (c == '0' || c == '1') {
                                 nondigit = '\0';
                                 numberBuffer.append((char) c);
@@ -2170,7 +2170,7 @@ public class RubyLexer {
                         for (;; c = nextc()) {
                             if (c == '_') {
                                 if (nondigit != '\0') break;
-								nondigit = c;
+                                nondigit = c;
                             } else if (Character.isDigit(c)) {
                                 nondigit = '\0';
                                 numberBuffer.append((char) c);
@@ -2196,7 +2196,7 @@ public class RubyLexer {
                         if (c == '_') {
                             if (nondigit != '\0') break;
 
-							nondigit = c;
+                            nondigit = c;
                         } else if (c >= '0' && c <= '7') {
                             nondigit = '\0';
                             numberBuffer.append((char) c);
@@ -2217,7 +2217,7 @@ public class RubyLexer {
                 case '.' :
                 case 'e' :
                 case 'E' :
-                	numberBuffer.append('0');
+                    numberBuffer.append('0');
                     break;
                 default :
                     pushback(c);
@@ -2252,13 +2252,13 @@ public class RubyLexer {
                         pushback(c);
                         return getNumberToken(numberBuffer.toString(), seen_e, seen_point, nondigit);
                     } else {
-                    	int c2;
+                        int c2;
                         if (!Character.isDigit(c2 = nextc())) {
                             pushback(c2);
-                        	pushback('.');
+                            pushback('.');
                             if (c == '_') { 
-                            		// Enebo:  c can never be antrhign but '.'
-                            		// Why did I put this here?
+                                // Enebo: c can never be antrhign but '.'
+                                // Why did I put this here?
                             } else {
                                 return getIntegerToken(numberBuffer.toString(), 10, numberLiteralSuffix(SUFFIX_ALL));
                             }

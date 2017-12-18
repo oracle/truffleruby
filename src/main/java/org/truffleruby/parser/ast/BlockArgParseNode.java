@@ -38,7 +38,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import java.util.List;
 
 /**
- *	An explicit block argument (&amp;my_block) in parameter list.
+ * An explicit block argument (&amp;my_block) in parameter list.
  */
 public class BlockArgParseNode extends ParseNode implements INameNode {
     private final int count;

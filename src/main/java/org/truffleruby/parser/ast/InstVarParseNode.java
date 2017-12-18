@@ -62,7 +62,7 @@ public class InstVarParseNode extends ParseNode implements INameNode, SideEffect
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitInstVarNode(this);
     }
-	
+
     /**
      * Gets the name.
      * @return Returns a String

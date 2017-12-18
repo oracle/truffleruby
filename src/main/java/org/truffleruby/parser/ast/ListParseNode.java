@@ -149,7 +149,7 @@ public class ListParseNode extends ParseNode {
     }
 
     public ParseNode getLast() {
-    	return size == 0 ? null : list[size - 1];
+        return size == 0 ? null : list[size - 1];
     }
 
     public boolean isEmpty() {

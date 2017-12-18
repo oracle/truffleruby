@@ -675,7 +675,7 @@ public final class StringSupport {
     public static NeighborChar succChar(Encoding enc, byte[] bytes, int p, int len) {
         int l;
         if (enc.minLength() > 1) {
-	        /* wchar, trivial case */
+            /* wchar, trivial case */
             int r = preciseLength(enc, bytes, p, p + len), c;
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
@@ -780,7 +780,7 @@ public final class StringSupport {
     private static NeighborChar predChar(Encoding enc, byte[]bytes, int p, int len) {
         int l;
         if (enc.minLength() > 1) {
-	        /* wchar, trivial case */
+            /* wchar, trivial case */
             int r = preciseLength(enc, bytes, p, p + len), c;
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;

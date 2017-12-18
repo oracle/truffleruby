@@ -39,7 +39,7 @@ public class IntHashMap<V> {
     private Entry<V>[] table;
     private int count;
 
-	transient volatile Collection<V> values = null;
+    transient volatile Collection<V> values = null;
 
     private int threshold;
 
@@ -80,7 +80,9 @@ public class IntHashMap<V> {
         if (loadFactor <= 0) {
             throw new IllegalArgumentException("Illegal Load: " + loadFactor);
         }
-        if (initialCapacity == 0) initialCapacity = 1;
+        if (initialCapacity == 0) {
+            initialCapacity = 1;
+        }
 
         this.loadFactor = loadFactor;
         this.threshold = (int) (initialCapacity * loadFactor);
@@ -150,7 +152,7 @@ public class IntHashMap<V> {
         }
     }
 
-	Entry<V> getEntry(int key)	{
+    Entry<V> getEntry(int key) {
         Entry<V>[] tab = table;
         int hash = key;
         int index = (hash & 0x7FFFFFFF) % tab.length;
@@ -160,7 +162,7 @@ public class IntHashMap<V> {
             }
         }
         return null;
-	}
+    }
 
     public V put(int key, V value) {
         // Makes sure the key is not already in the hashtable.
@@ -219,156 +221,159 @@ public class IntHashMap<V> {
     }
 
     private abstract class HashIterator<T> implements Iterator<T> {
-		Entry<V> next; // next entry to return
-		int index; // current slot
+        Entry<V> next; // next entry to return
+        int index; // current slot
 
-		HashIterator() {
-			Entry<V>[] t = table;
-			int i = t.length;
-			Entry<V> n = null;
+        HashIterator() {
+            Entry<V>[] t = table;
+            int i = t.length;
+            Entry<V> n = null;
             if (count != 0) { // advance to first entry
                 while (i > 0 && (n = t[--i]) == null) {
-				}
-			}
-			next = n;
-			index = i;
-		}
+                }
+            }
+            next = n;
+            index = i;
+        }
 
         @Override
         public boolean hasNext() {
-			return next != null;
-		}
+            return next != null;
+        }
 
-		Entry<V> nextEntry() {
-			Entry<V> e = next;
+        Entry<V> nextEntry() {
+            Entry<V> e = next;
             if (e == null) {
-				throw new NoSuchElementException();
-			}
-			Entry<V> n = e.next;
-			Entry<V>[] t = table;
-			int i = index;
+                throw new NoSuchElementException();
+            }
+            Entry<V> n = e.next;
+            Entry<V>[] t = table;
+            int i = index;
             while (n == null && i > 0) {
-				n = t[--i];
-			}
-			index = i;
-			next = n;
-			return e;
-		}
+                n = t[--i];
+            }
+            index = i;
+            next = n;
+            return e;
+        }
 
         @Override
         public void remove() {
             throw new UnsupportedOperationException();
-		}
+        }
 
-	}
+    }
 
-	private class ValueIterator extends HashIterator<V> {
+    private class ValueIterator extends HashIterator<V> {
         @Override
         public V next() {
-			return nextEntry().value;
-		}
-	}
+            return nextEntry().value;
+        }
+    }
 
-	private class EntryIterator extends HashIterator<Entry<V>> {
+    private class EntryIterator extends HashIterator<Entry<V>> {
         @Override
         public Entry<V> next() {
-			return nextEntry();
-		}
-	}
+            return nextEntry();
+        }
+    }
 
-	Iterator<V> newValueIterator() {
-		return new ValueIterator();
-	}
+    Iterator<V> newValueIterator() {
+        return new ValueIterator();
+    }
 
-	Iterator<Entry<V>> newEntryIterator() {
-		return new EntryIterator();
-	}
+    Iterator<Entry<V>> newEntryIterator() {
+        return new EntryIterator();
+    }
 
-	private transient Set<Entry<V>> entrySet = null;
+    private transient Set<Entry<V>> entrySet = null;
 
-	public Collection<V> values() {
-		Collection<V> vs = values;
-		return (vs != null ? vs : (values = new Values()));
-	}
+    public Collection<V> values() {
+        Collection<V> vs = values;
+        return (vs != null ? vs : (values = new Values()));
+    }
 
-	private class Values extends AbstractCollection<V> {
+    private class Values extends AbstractCollection<V> {
 
         @Override
         public Iterator<V> iterator() {
-			return newValueIterator();
-		}
+            return newValueIterator();
+        }
 
         @Override
         public int size() {
-			return IntHashMap.this.count;
-		}
+            return IntHashMap.this.count;
+        }
 
         @Override
-		public boolean contains(Object o) {
-			return containsValue(o);
-		}
+        public boolean contains(Object o) {
+            return containsValue(o);
+        }
 
         @Override
-		public void clear()	{
-			IntHashMap.this.clear();
-		}
-	}
+        public void clear() {
+            IntHashMap.this.clear();
+        }
+    }
 
-	public Set<Entry<V>> entrySet() {
-		Set<Entry<V>> es = entrySet;
-		return (es != null ? es : (entrySet = new EntrySet()));
-	}
+    public Set<Entry<V>> entrySet() {
+        Set<Entry<V>> es = entrySet;
+        return (es != null ? es : (entrySet = new EntrySet()));
+    }
 
-	private class EntrySet extends AbstractSet<Entry<V>> {
+    private class EntrySet extends AbstractSet<Entry<V>> {
 
         @Override
         public Iterator<Entry<V>> iterator() {
-			return newEntryIterator();
-		}
+            return newEntryIterator();
+        }
 
         @Override
-		public boolean contains(Object o) {
-			if (!(o instanceof Entry)) {
-				return false;
-			}
-			@SuppressWarnings("unchecked")
+        public boolean contains(Object o) {
+            if (!(o instanceof Entry)) {
+                return false;
+            }
+            @SuppressWarnings("unchecked")
             Entry<V> e = (Entry<V>) o;
-			Entry<V> candidate = getEntry(e.key);
-			return candidate != null && candidate.equals(e);
-		}
+            Entry<V> candidate = getEntry(e.key);
+            return candidate != null && candidate.equals(e);
+        }
 
         @Override
-		public boolean remove(Object o)	{
+        public boolean remove(Object o) {
             throw new UnsupportedOperationException();
-		}
+        }
 
         @Override
         public int size() {
-			return IntHashMap.this.count;
-		}
+            return IntHashMap.this.count;
+        }
 
         @Override
-		public void clear() {
-			IntHashMap.this.clear();
-		}
-	}
+        public void clear() {
+            IntHashMap.this.clear();
+        }
+    }
 
-	@Override
+    @Override
     public String toString() {
-	    Iterator<Entry<V>> i = entrySet().iterator();
-	    if (! i.hasNext()) return "{}";
+        Iterator<Entry<V>> i = entrySet().iterator();
+        if (!i.hasNext())
+            return "{}";
 
-	    StringBuilder sb = new StringBuilder();
-	    sb.append('{');
-	    for (;;) {
-	        Entry<V> e = i.next();
-	        V value = e.getValue();
-	        sb.append(e.getKey());
-	        sb.append('=');
-	        sb.append(value == this ? "(this IntHashMap)" : value);
-	        if (! i.hasNext()) return sb.append('}').toString();
-	        sb.append(", ");
-	    }
+        StringBuilder sb = new StringBuilder();
+        sb.append('{');
+        for (;;) {
+            Entry<V> e = i.next();
+            V value = e.getValue();
+            sb.append(e.getKey());
+            sb.append('=');
+            sb.append(value == this ? "(this IntHashMap)" : value);
+            if (!i.hasNext()) {
+                return sb.append('}').toString();
+            }
+            sb.append(", ");
+        }
     }
 
     @Override

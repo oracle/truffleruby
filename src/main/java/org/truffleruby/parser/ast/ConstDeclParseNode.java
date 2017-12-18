@@ -68,11 +68,10 @@ public class ConstDeclParseNode extends AssignableParseNode implements INameNode
 
     /**
      * Gets the name (this is the rightmost element of lhs (in Foo::BAR it is BAR).
-	 * name is the constant Name, it normally starts with a Capital
-     * @return name
+     * @return name the constant Name, it normally starts with a Capital
      */
     public String getName() {
-    	return (name == null ? constNode.getName() : name);
+        return (name == null ? constNode.getName() : name);
     }
 
     /**

@@ -33,15 +33,13 @@ package org.truffleruby.parser.ast;
  * Convenience interface for operations which only have two nodes
  */
 public interface BinaryOperatorParseNode {
-	/**
-	 * Gets the firstNode.
-	 * @return Returns a ParseNode
-	 */
-	public abstract ParseNode getFirstNode();
+    /**
+     * Gets the firstNode.
+     */
+    public abstract ParseNode getFirstNode();
 
-	/**
-	 * Gets the secondNode.
-	 * @return Returns a ParseNode
-	 */
-	public abstract ParseNode getSecondNode();
+    /**
+     * Gets the secondNode.
+     */
+    public abstract ParseNode getSecondNode();
 }
