@@ -2202,7 +2202,8 @@ class IO
       if @ibuffer.size > 0
         data = @ibuffer.shift(size)
       else
-        data = sysread(size)
+        data = Truffle::POSIX.read_string_with_retry(self, size)
+        raise EOFError if data.nil?
       end
 
       buffer.replace(data)
@@ -2214,12 +2215,9 @@ class IO
         return @ibuffer.shift(size)
       end
 
-      begin
-        return sysread(size)
-      rescue Errno::EAGAIN, IO::WaitReadable
-        IO::select([self])
-        retry
-      end
+      data = Truffle::POSIX.read_string_with_retry(self, size)
+      raise EOFError if data.nil?
+      data
     end
   end
 
