@@ -182,8 +182,12 @@ public class DoubleConverter {
     public double parse(Rope rope, boolean strict, boolean is19) {
         init(rope, strict);
 
-        if (skipWhitespace()) return completeCalculation();
-        if (parseOptionalSign()) return completeCalculation();
+        if (skipWhitespace()) {
+            return completeCalculation();
+        }
+        if (parseOptionalSign()) {
+            return completeCalculation();
+        }
 
         parseDigits();
 
@@ -206,7 +210,9 @@ public class DoubleConverter {
         while (!isEOS()) {
             byte value = next();
 
-            if (isWhitespace(value)) continue;
+            if (isWhitespace(value)) {
+                continue;
+            }
             return previous();
         }
 
@@ -278,14 +284,18 @@ public class DoubleConverter {
     }
 
     private boolean parseDecimalDigits() {
-        if (isEOS()) return strictError();
+        if (isEOS()) {
+            return strictError();
+        }
 
         byte value = next();
 
         // Wonky, but 12._2e2 is 1200.0 and 12.__e2 is 12.0
         if (value == '_') {
             strictError();
-            if (isEOS()) return strictError();
+            if (isEOS()) {
+                return strictError();
+            }
             value = next();
         }
 
@@ -331,7 +341,9 @@ public class DoubleConverter {
     }
 
     private boolean parseExponent() {
-        if (eatUnderscores()) return isEOS();
+        if (eatUnderscores()) {
+            return isEOS();
+        }
 
         byte value = next();
 

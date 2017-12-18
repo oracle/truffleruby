@@ -310,7 +310,9 @@ public abstract class ReadlineNodes {
             int index = 0;
             for (String c : delimiters) {
                 index = buffer.lastIndexOf(c);
-                if (index != -1) return index;
+                if (index != -1) {
+                    return index;
+                }
             }
             return index;
         }

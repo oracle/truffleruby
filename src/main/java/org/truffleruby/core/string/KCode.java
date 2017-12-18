@@ -50,8 +50,12 @@ public enum KCode {
     }
 
     public static KCode create(String lang) {
-        if (lang == null) return NIL;
-        if (lang.length() == 0) return NONE;
+        if (lang == null) {
+            return NIL;
+        }
+        if (lang.length() == 0) {
+            return NONE;
+        }
 
         switch (lang.charAt(0)) {
         case 'E':
@@ -81,9 +85,15 @@ public enum KCode {
     }
 
     public static KCode fromBits(int bits) {
-        if ((bits & 64) != 0) return UTF8;
-        if ((bits & 48) == 48) return SJIS;
-        if ((bits & 32) != 0) return EUC;
+        if ((bits & 64) != 0) {
+            return UTF8;
+        }
+        if ((bits & 48) == 48) {
+            return SJIS;
+        }
+        if ((bits & 32) != 0) {
+            return EUC;
+        }
 
         return NONE;
     }

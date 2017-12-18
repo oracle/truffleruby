@@ -100,27 +100,39 @@ public abstract class ReadBase64StringNode extends FormatNode {
                 // obtain a
                 s = safeGet(encode);
                 a = EncodeUM.b64_xtable[s];
-                if (a == -1) throw new InvalidFormatException("invalid base64");
+                if (a == -1) {
+                    throw new InvalidFormatException("invalid base64");
+                }
 
                 // obtain b
                 s = safeGet(encode);
                 b = EncodeUM.b64_xtable[s];
-                if (b == -1) throw new InvalidFormatException("invalid base64");
+                if (b == -1) {
+                    throw new InvalidFormatException("invalid base64");
+                }
 
                 // obtain c
                 s = safeGet(encode);
                 c = EncodeUM.b64_xtable[s];
                 if (s == '=') {
-                    if (safeGet(encode) != '=') throw new InvalidFormatException("invalid base64");
+                    if (safeGet(encode) != '=') {
+                        throw new InvalidFormatException("invalid base64");
+                    }
                     break;
                 }
-                if (c == -1) throw new InvalidFormatException("invalid base64");
+                if (c == -1) {
+                    throw new InvalidFormatException("invalid base64");
+                }
 
                 // obtain d
                 s = safeGet(encode);
                 d = EncodeUM.b64_xtable[s];
-                if (s == '=') break;
-                if (d == -1) throw new InvalidFormatException("invalid base64");
+                if (s == '=') {
+                    break;
+                }
+                if (d == -1) {
+                    throw new InvalidFormatException("invalid base64");
+                }
 
                 // calculate based on a, b, c and d
                 lElem[index++] = (byte) ((a << 2 | b >> 4) & 255);
@@ -128,14 +140,20 @@ public abstract class ReadBase64StringNode extends FormatNode {
                 lElem[index++] = (byte) ((c << 6 | d) & 255);
             }
 
-            if (encode.hasRemaining()) throw new InvalidFormatException("invalid base64");
+            if (encode.hasRemaining()) {
+                throw new InvalidFormatException("invalid base64");
+            }
 
             if (a != -1) {
                 if (c == -1) {
-                    if ((b & 15) != 0) throw new InvalidFormatException("invalid base64");
+                    if ((b & 15) != 0) {
+                        throw new InvalidFormatException("invalid base64");
+                    }
                     lElem[index++] = (byte) ((a << 2 | b >> 4) & 255);
                 } else if (s == '=') {
-                    if ((c & 3) != 0) throw new InvalidFormatException("invalid base64");
+                    if ((c & 3) != 0) {
+                        throw new InvalidFormatException("invalid base64");
+                    }
                     lElem[index++] = (byte) ((a << 2 | b >> 4) & 255);
                     lElem[index++] = (byte) ((b << 4 | c >> 2) & 255);
                 }
@@ -151,19 +169,25 @@ public abstract class ReadBase64StringNode extends FormatNode {
                 while (((a = EncodeUM.b64_xtable[s]) == -1) && encode.hasRemaining()) {
                     s = safeGet(encode);
                 }
-                if (a == -1) break;
+                if (a == -1) {
+                    break;
+                }
 
                 // obtain b
                 s = safeGet(encode);
                 while (((b = EncodeUM.b64_xtable[s]) == -1) && encode.hasRemaining()) {
                     s = safeGet(encode);
                 }
-                if (b == -1) break;
+                if (b == -1) {
+                    break;
+                }
 
                 // obtain c
                 s = safeGet(encode);
                 while (((c = EncodeUM.b64_xtable[s]) == -1) && encode.hasRemaining()) {
-                    if (s == '=') break;
+                    if (s == '=') {
+                        break;
+                    }
                     s = safeGet(encode);
                 }
                 if ((s == '=') || c == -1) {
@@ -176,7 +200,9 @@ public abstract class ReadBase64StringNode extends FormatNode {
                 // obtain d
                 s = safeGet(encode);
                 while (((d = EncodeUM.b64_xtable[s]) == -1) && encode.hasRemaining()) {
-                    if (s == '=') break;
+                    if (s == '=') {
+                        break;
+                    }
                     s = safeGet(encode);
                 }
                 if ((s == '=') || d == -1) {

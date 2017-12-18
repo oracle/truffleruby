@@ -375,8 +375,11 @@ public class ConvertBytes {
     private int trailingLength() {
         int newLen = 0;
         for (int i = str; i < end; i++) {
-            if (Character.isDigit(data[i])) newLen++;
-            else return newLen;
+            if (Character.isDigit(data[i])) {
+                newLen++;
+            } else {
+                return newLen;
+            }
         }
         return newLen;
     }
@@ -569,9 +572,13 @@ public class ConvertBytes {
     }
 
     public static final RopeBuilder longToByteList(long i, int radix, byte[] digitmap) {
-        if (i == 0) return RopeBuilder.createRopeBuilder(ZERO_BYTES);
+        if (i == 0) {
+            return RopeBuilder.createRopeBuilder(ZERO_BYTES);
+        }
 
-        if (i == Long.MIN_VALUE) return RopeBuilder.createRopeBuilder(MIN_VALUE_BYTES[radix]);
+        if (i == Long.MIN_VALUE) {
+            return RopeBuilder.createRopeBuilder(MIN_VALUE_BYTES[radix]);
+        }
 
         boolean neg = false;
         if (i < 0) {

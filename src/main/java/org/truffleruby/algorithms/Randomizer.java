@@ -94,8 +94,9 @@ public class Randomizer {
         int y;
 
         synchronized (this) {
-            if (--left <= 0)
+            if (--left <= 0) {
                 nextState();
+            }
 
             y = state[N - left];
         }

@@ -116,14 +116,18 @@ public abstract class FormatFloatNode extends FormatNode {
                 buf.append(' ', width);
                 width = 0;
             }
-            if (signChar != 0) buf.append(signChar);
+            if (signChar != 0) {
+                buf.append(signChar);
+            }
 
             if (width > 0 && !hasMinusFlag) {
                 buf.append('0', width);
                 width = 0;
             }
             buf.append(digits);
-            if (width > 0) buf.append(' ', width);
+            if (width > 0) {
+                buf.append(' ', width);
+            }
 
 //            offset++;
 //            incomplete = false;
@@ -149,7 +153,9 @@ public abstract class FormatFloatNode extends FormatNode {
         for (; i < strlen; ) {
             switch (ival = (byte) str.charAt(i++)) {
                 case '0':
-                    if (nDigits > 0) nTrailingZeroes++;
+                    if (nDigits > 0) {
+                        nTrailingZeroes++;
+                    }
 
                     break; // switch
                 case '1':
@@ -285,7 +291,9 @@ public abstract class FormatFloatNode extends FormatNode {
 
                     if (precision < decDigits) {
                         int n = round(digits, nDigits, precision, precision != 0);
-                        if (n > nDigits) nDigits = n;
+                        if (n > nDigits) {
+                            nDigits = n;
+                        }
                         decDigits = Math.min(nDigits - 1, precision);
                     }
                     exponent += nDigits - 1;
@@ -449,8 +457,12 @@ public abstract class FormatFloatNode extends FormatNode {
                             buf.append('0', precision);
                         }
                     }
-                    if (hasFSharpFlag && precision > 0) buf.append('0', precision);
-                    if (width > 0) buf.append(' ', width);
+                    if (hasFSharpFlag && precision > 0) {
+                        buf.append('0', precision);
+                    }
+                    if (width > 0) {
+                        buf.append(' ', width);
+                    }
                 }
                 break;
 
@@ -597,7 +609,9 @@ public abstract class FormatFloatNode extends FormatNode {
                         buf.append(digits, 1, decDigits);
                         precision -= decDigits;
                     }
-                    if (precision > 0) buf.append('0', precision);
+                    if (precision > 0) {
+                        buf.append('0', precision);
+                    }
 
                 } else if (hasFSharpFlag) {
                     buf.append(decimalSeparator);
@@ -605,7 +619,9 @@ public abstract class FormatFloatNode extends FormatNode {
 
                 writeExp(buf, exponent, expChar);
 
-                if (width > 0) buf.append(' ', width);
+                if (width > 0) {
+                    buf.append(' ', width);
+                }
                 break;
             case 'A':
             case 'a':

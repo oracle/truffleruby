@@ -89,10 +89,18 @@ public class ArgsParseNode extends ParseNode {
         postIndex = (short) (optSize != 0 ? optIndex + optSize : optIndex);
         keywordsIndex = (short) (postSize != 0 ? postIndex + postSize : postIndex);
 
-        if (preSize > 0) System.arraycopy(pre.children(), 0,  args, 0, preSize);
-        if (optSize > 0) System.arraycopy(optionalArguments.children(), 0, args, optIndex, optSize);
-        if (postSize > 0) System.arraycopy(post.children(), 0, args, postIndex, postSize);
-        if (keywordsSize > 0) System.arraycopy(keywords.children(), 0, args, keywordsIndex, keywordsSize);
+        if (preSize > 0) {
+            System.arraycopy(pre.children(), 0, args, 0, preSize);
+        }
+        if (optSize > 0) {
+            System.arraycopy(optionalArguments.children(), 0, args, optIndex, optSize);
+        }
+        if (postSize > 0) {
+            System.arraycopy(post.children(), 0, args, postIndex, postSize);
+        }
+        if (keywordsSize > 0) {
+            System.arraycopy(keywords.children(), 0, args, keywordsIndex, keywordsSize);
+        }
 
         this.restArgNode = rest;
         this.blockArgNode = blockArgNode;
@@ -226,7 +234,9 @@ public class ArgsParseNode extends ParseNode {
 
         if (post != null) {
             if (keywords != null) {
-                if (keyRest != null) return ParseNode.createList(pre, optArgs, restArgNode, post, keywords, keyRest, blockArgNode);
+                if (keyRest != null) {
+                    return ParseNode.createList(pre, optArgs, restArgNode, post, keywords, keyRest, blockArgNode);
+                }
 
                 return ParseNode.createList(pre, optArgs, restArgNode, post, keywords, blockArgNode);
             }
@@ -235,7 +245,9 @@ public class ArgsParseNode extends ParseNode {
         }
 
         if (keywords != null) {
-            if (keyRest != null) return ParseNode.createList(pre, optArgs, restArgNode, keywords, keyRest, blockArgNode);
+            if (keyRest != null) {
+                return ParseNode.createList(pre, optArgs, restArgNode, keywords, keyRest, blockArgNode);
+            }
 
             return ParseNode.createList(pre, optArgs, restArgNode, keywords, blockArgNode);
         }
@@ -251,12 +263,16 @@ public class ArgsParseNode extends ParseNode {
      * How many of the keywords listed happen to be required keyword args.  Note: total kwargs - req kwarg = opt kwargs.
      */
     public int getRequiredKeywordCount() {
-        if (getKeywordCount() < 1) return 0;
+        if (getKeywordCount() < 1) {
+            return 0;
+        }
 
         int count = 0;
         for (int i = 0; i < getKeywordCount(); i++) {
             for (ParseNode asgnNode : args[keywordsIndex + i].childNodes()) {
-                if (Helpers.isRequiredKeywordArgumentValueNode(asgnNode)) count++;
+                if (Helpers.isRequiredKeywordArgumentValueNode(asgnNode)) {
+                    count++;
+                }
             }
         }
         return count;

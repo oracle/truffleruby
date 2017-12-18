@@ -172,9 +172,15 @@ public abstract class ByteArrayNodes {
             byte[] target = find.getBytes();
             int targetCount = find.byteLength();
             int fromIndex = start;
-            if (fromIndex >= length) return (targetCount == 0 ? length : -1);
-            if (fromIndex < 0) fromIndex = 0;
-            if (targetCount == 0) return fromIndex;
+            if (fromIndex >= length) {
+                return (targetCount == 0 ? length : -1);
+            }
+            if (fromIndex < 0) {
+                fromIndex = 0;
+            }
+            if (targetCount == 0) {
+                return fromIndex;
+            }
 
             byte first  = target[0];
             int max = length - targetCount;
@@ -191,7 +197,9 @@ public abstract class ByteArrayNodes {
                     for (int k = 1; j < end && in.get(j) == target[k]; j++, k++) {
                     }
 
-                    if (j == end) return i;
+                    if (j == end) {
+                        return i;
+                    }
                 }
             }
             return -1;

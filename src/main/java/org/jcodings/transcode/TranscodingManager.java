@@ -168,7 +168,9 @@ public class TranscodingManager {
         }
 
         EConv ec = open0(sourceEncodingName, destinationEncodingName, ecflags & ERROR_HANDLER_MASK);
-        if (ec == null) return null;
+        if (ec == null) {
+            return null;
+        }
 
         for (int i = 0; i < numDecorators; i++) {
             if (!decorateAtLast(ec, decorators[i])) {
@@ -338,17 +340,23 @@ public class TranscodingManager {
             if (ret.isInvalidByteSequence() || ret.isIncompleteInput()) {
                 switch (ec.flags & EConvFlags.INVALID_MASK) {
                     case EConvFlags.INVALID_REPLACE:
-                        if (outputReplacementCharacter(ec) == 0) continue resume;
+                        if (outputReplacementCharacter(ec) == 0) {
+                            continue resume;
+                        }
                 }
             }
 
             if (ret.isUndefinedConversion()) {
                 switch (ec.flags & EConvFlags.UNDEF_MASK) {
                     case EConvFlags.UNDEF_REPLACE:
-                        if (outputReplacementCharacter(ec) == 0) continue resume;
+                        if (outputReplacementCharacter(ec) == 0) {
+                            continue resume;
+                        }
                         break;
                     case EConvFlags.UNDEF_HEX_CHARREF:
-                        if (outputHexCharref(ec) == 0) continue resume;
+                        if (outputHexCharref(ec) == 0) {
+                            continue resume;
+                        }
                         break;
                 }
             }
@@ -361,8 +369,12 @@ public class TranscodingManager {
     private static int outputReplacementCharacter(EConv ec) {
         // Taken from org.jcodings.transcode.EConv#outputReplacementCharacter.
 
-        if (ec.makeReplacement() == -1) return -1;
-        if (insertOutput(ec, ec.replacementString, 0, ec.replacementLength, ec.replacementEncoding) == -1) return -1;
+        if (ec.makeReplacement() == -1) {
+            return -1;
+        }
+        if (insertOutput(ec, ec.replacementString, 0, ec.replacementLength, ec.replacementEncoding) == -1) {
+            return -1;
+        }
         return 0;
     }
 
@@ -386,12 +398,16 @@ public class TranscodingManager {
             byte[] utfBuf = new byte[ec.lastError.errorBytesLength * UTF32BEEncoding.INSTANCE.maxLength()];
             utfBytes = allocateConvertedString(ec.lastError.source, "UTF-32BE".getBytes(), ec.lastError.errorBytes, ec.lastError.errorBytesP, ec.lastError.errorBytesLength, utfBuf, utfLenA);
 
-            if (utfBytes == null) return -1;
+            if (utfBytes == null) {
+                return -1;
+            }
             utfP = 0;
             utfLen = utfLenA.p;
         }
 
-        if (utfLen % 4 != 0) return -1;
+        if (utfLen % 4 != 0) {
+            return -1;
+        }
 
         int p = utfP;
         while (4 <= utfLen) {
@@ -402,7 +418,9 @@ public class TranscodingManager {
             u += (utfBytes[p + 3] & 0xff);
             byte[] charrefbuf = String.format("&#x%X;", u).getBytes(); // FIXME: use faster sprintf ??
 
-            if (insertOutput(ec, charrefbuf, 0, charrefbuf.length, "US-ASCII".getBytes()) == -1) return -1;
+            if (insertOutput(ec, charrefbuf, 0, charrefbuf.length, "US-ASCII".getBytes()) == -1) {
+                return -1;
+            }
 
             p += 4;
             utfLen -= 4;
@@ -427,7 +445,9 @@ public class TranscodingManager {
         }
 
         EConv ec = create(source, destination, 0);
-        if (ec == null) return null;
+        if (ec == null) {
+            return null;
+        }
 
         byte[] dstStr;
         if (callerDstBuf != null) {
@@ -453,7 +473,9 @@ public class TranscodingManager {
             dstLen = dp.p;
         }
 
-        if (!res.isFinished()) return null;
+        if (!res.isFinished()) {
+            return null;
+        }
 
         ec.close();
         dstLenPtr.p = dstLen;
@@ -471,7 +493,9 @@ public class TranscodingManager {
 
         ec.started = true;
 
-        if (strLen == 0) return 0;
+        if (strLen == 0) {
+            return 0;
+        }
 
         final byte[] insertStr;
         final int insertP;
@@ -486,7 +510,9 @@ public class TranscodingManager {
             insertStr = allocateConvertedString(strEncoding, insertEncoding, str, strP, strLen, insertBuf, insertLenP);
             insertLen = insertLenP.p;
             insertP = insertStr == str ? strP : 0;
-            if (insertStr == null) return -1;
+            if (insertStr == null) {
+                return -1;
+            }
         }
 
         int need = insertLen;
@@ -502,7 +528,9 @@ public class TranscodingManager {
         } else if (ec.elements[lastTranscodingIndex].transcoding.transcoder.compatibility.isEncoder()) {
             transcoding = ec.elements[lastTranscodingIndex].transcoding;
             need += transcoding.readAgainLength;
-            if (need < insertLen) return -1;
+            if (need < insertLen) {
+                return -1;
+            }
 
             if (lastTranscodingIndex == 0) {
                 buf = ec.inBuf;
@@ -528,7 +556,9 @@ public class TranscodingManager {
             if ((buf.bufEnd - buf.dataEnd) < need) {
                 // still not enough room; use a separate buffer
                 int s = (buf.dataEnd - buf.bufStart) + need;
-                if (s < need) return -1;
+                if (s < need) {
+                    return -1;
+                }
                 Buffer buf2 = buf = new Buffer();
                 buf2.allocate(s);
                 System.arraycopy(buf.bytes, buf.bufStart, buf2.bytes, 0, s); // ??
@@ -566,7 +596,9 @@ public class TranscodingManager {
         } else {
             Ptr len2p = new Ptr();
             str2 = allocateConvertedString(encname, encname2, str, p, len, null, len2p);
-            if (str2 == null) return -1;
+            if (str2 == null) {
+                return -1;
+            }
             len2 = len2p.p;
         }
 
@@ -582,7 +614,9 @@ public class TranscodingManager {
         // Taken from org.jcodings.transcode.EConv#encodingToInsertOutput.
 
         Transcoding transcoding = ec.lastTranscoding;
-        if (transcoding == null) return NULL_STRING;
+        if (transcoding == null) {
+            return NULL_STRING;
+        }
         Transcoder transcoder = transcoding.transcoder;
         return transcoder.compatibility.isEncoder() ? transcoder.source : transcoder.destination;
     }

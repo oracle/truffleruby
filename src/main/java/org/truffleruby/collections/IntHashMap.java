@@ -358,8 +358,9 @@ public class IntHashMap<V> {
     @Override
     public String toString() {
         Iterator<Entry<V>> i = entrySet().iterator();
-        if (!i.hasNext())
+        if (!i.hasNext()) {
             return "{}";
+        }
 
         StringBuilder sb = new StringBuilder();
         sb.append('{');

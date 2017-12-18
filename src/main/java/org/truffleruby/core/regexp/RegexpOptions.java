@@ -80,7 +80,9 @@ public class RegexpOptions implements Cloneable {
     }
     
     private KCode getExplicitKCode() {
-        if (kcodeDefault == true) return null;
+        if (kcodeDefault == true) {
+            return null;
+        }
         
         return kcode;
     }
@@ -171,11 +173,21 @@ public class RegexpOptions implements Cloneable {
     public int toEmbeddedOptions() {
         int options = toJoniOptions();
 
-        if (once) options |= ReOptions.RE_OPTION_ONCE;
-        if (literal) options |= ReOptions.RE_LITERAL;
-        if (kcodeDefault) options |= ReOptions.RE_DEFAULT;
-        if (fixed) options |= ReOptions.RE_FIXED;
-        if (encodingNone) options |= ReOptions.ARG_ENCODING_NONE;
+        if (once) {
+            options |= ReOptions.RE_OPTION_ONCE;
+        }
+        if (literal) {
+            options |= ReOptions.RE_LITERAL;
+        }
+        if (kcodeDefault) {
+            options |= ReOptions.RE_DEFAULT;
+        }
+        if (fixed) {
+            options |= ReOptions.RE_FIXED;
+        }
+        if (encodingNone) {
+            options |= ReOptions.ARG_ENCODING_NONE;
+        }
 
         return options;
     }
@@ -188,9 +200,15 @@ public class RegexpOptions implements Cloneable {
     public int toJoniOptions() {
         int options = 0;
         // Note: once is not an option that is pertinent to Joni so we exclude it.
-        if (multiline) options |= ReOptions.RE_OPTION_MULTILINE;
-        if (ignorecase) options |= ReOptions.RE_OPTION_IGNORECASE;
-        if (extended) options |= ReOptions.RE_OPTION_EXTENDED;
+        if (multiline) {
+            options |= ReOptions.RE_OPTION_MULTILINE;
+        }
+        if (ignorecase) {
+            options |= ReOptions.RE_OPTION_IGNORECASE;
+        }
+        if (extended) {
+            options |= ReOptions.RE_OPTION_EXTENDED;
+        }
         return options;
     }
     
@@ -199,11 +217,21 @@ public class RegexpOptions implements Cloneable {
      */
     public int toOptions() {
         int options = 0;
-        if (multiline) options |= ReOptions.RE_OPTION_MULTILINE;
-        if (ignorecase) options |= ReOptions.RE_OPTION_IGNORECASE;
-        if (extended) options |= ReOptions.RE_OPTION_EXTENDED;
-        if (fixed) options |= ReOptions.RE_FIXED;
-        if (encodingNone) options |= ReOptions.RE_NONE;
+        if (multiline) {
+            options |= ReOptions.RE_OPTION_MULTILINE;
+        }
+        if (ignorecase) {
+            options |= ReOptions.RE_OPTION_IGNORECASE;
+        }
+        if (extended) {
+            options |= ReOptions.RE_OPTION_EXTENDED;
+        }
+        if (fixed) {
+            options |= ReOptions.RE_FIXED;
+        }
+        if (encodingNone) {
+            options |= ReOptions.RE_NONE;
+        }
         return options;
     }
 
@@ -263,7 +291,9 @@ public class RegexpOptions implements Cloneable {
 
     @Override
     public boolean equals(Object other) {
-        if (!(other instanceof RegexpOptions)) return false;
+        if (!(other instanceof RegexpOptions)) {
+            return false;
+        }
 
         // Note: literal and once can be different in this object but for the
         // sake of equality we ignore those two fields since those flags do

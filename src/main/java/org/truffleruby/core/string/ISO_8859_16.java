@@ -66,8 +66,12 @@ public class ISO_8859_16 extends Charset {
         @Override
         protected CoderResult decodeLoop(ByteBuffer in, CharBuffer out) {
             for (;;) {
-                if (!in.hasRemaining()) return CoderResult.UNDERFLOW;
-                if (!out.hasRemaining()) return CoderResult.OVERFLOW;
+                if (!in.hasRemaining()) {
+                    return CoderResult.UNDERFLOW;
+                }
+                if (!out.hasRemaining()) {
+                    return CoderResult.OVERFLOW;
+                }
                 int b = in.get() & 0xFF;
                 char c = TABLE[b];
                 out.put(c);
@@ -129,8 +133,12 @@ public class ISO_8859_16 extends Charset {
         @Override
         protected CoderResult encodeLoop(CharBuffer in, ByteBuffer out) {
             for (;;) {
-                if (!in.hasRemaining()) return CoderResult.UNDERFLOW;
-                if (!out.hasRemaining()) return CoderResult.OVERFLOW;
+                if (!in.hasRemaining()) {
+                    return CoderResult.UNDERFLOW;
+                }
+                if (!out.hasRemaining()) {
+                    return CoderResult.OVERFLOW;
+                }
                 char c = in.get();
                 byte b = 0;
                 byte[] replace = null;
@@ -174,8 +182,11 @@ public class ISO_8859_16 extends Charset {
                     case '\u0107': b = (byte) 0xE5; break;
 
                     default:
-                        if (c < 256) b = (byte) c;
-                        else replace = replacement();
+                        if (c < 256) {
+                            b = (byte) c;
+                        } else {
+                            replace = replacement();
+                        }
                 }
 
                 if (replace != null) {

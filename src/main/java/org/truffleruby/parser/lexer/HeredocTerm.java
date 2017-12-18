@@ -104,7 +104,9 @@ public class HeredocTerm extends StrTerm {
         boolean indent = (flags & STR_FUNC_INDENT) != 0;
         int c = lexer.nextc();
 
-        if (c == EOF) return error(lexer, eos);
+        if (c == EOF) {
+            return error(lexer, eos);
+        }
 
         // Found end marker for this heredoc
         if (lexer.was_bol() && lexer.whole_match_p(nd_lit, indent)) {
@@ -146,7 +148,9 @@ public class HeredocTerm extends StrTerm {
                     str = builder;
                 }
 
-                if (pend < lexer.lex_pend) str.append('\n');
+                if (pend < lexer.lex_pend) {
+                    str.append('\n');
+                }
                 lexer.lex_goto_eol();
 
                 if (lexer.getHeredocIndent() > 0) {
@@ -154,7 +158,9 @@ public class HeredocTerm extends StrTerm {
                     return Tokens.tSTRING_CONTENT;
                 }
                 // MRI null checks str in this case but it is unconditionally non-null?
-                if (lexer.nextc() == -1) return error(lexer, eos);
+                if (lexer.nextc() == -1) {
+                    return error(lexer, eos);
+                }
             } while (!lexer.whole_match_p(eos, indent));
         } else {
             RopeBuilder tok = new RopeBuilder();
@@ -180,7 +186,9 @@ public class HeredocTerm extends StrTerm {
                 enc[0] = lexer.getEncoding();
 
                 if ((c = new StringTerm(flags, '\0', '\n').parseStringIntoBuffer(lexer, tok, enc)) == EOF) {
-                    if (lexer.eofp) return error(lexer, eos);
+                    if (lexer.eofp) {
+                        return error(lexer, eos);
+                    }
                     return restore(lexer);
                 }
                 if (c != '\n') {
@@ -195,7 +203,9 @@ public class HeredocTerm extends StrTerm {
                     return Tokens.tSTRING_CONTENT;
                 }
 
-                if ((c = lexer.nextc()) == EOF) return error(lexer, eos);
+                if ((c = lexer.nextc()) == EOF) {
+                    return error(lexer, eos);
+                }
             } while (!lexer.whole_match_p(eos, indent));
             str = tok;
         }

@@ -97,7 +97,9 @@ public class Helpers {
         ArgumentParseNode restArg = argsNode.getRestArgNode();
         if (restArg != null) {
             if (restArg instanceof UnnamedRestArgParseNode) {
-                if (((UnnamedRestArgParseNode) restArg).isStar()) descs.add(new ArgumentDescriptor(ArgumentType.anonrest));
+                if (((UnnamedRestArgParseNode) restArg).isStar()) {
+                    descs.add(new ArgumentDescriptor(ArgumentType.anonrest));
+                }
             } else {
                 descs.add(new ArgumentDescriptor(ArgumentType.rest, restArg.getName()));
             }
@@ -139,7 +141,9 @@ public class Helpers {
                 descs.add(new ArgumentDescriptor(ArgumentType.keyrest, argsNode.getKeyRest().getName()));
             }
         }
-        if (argsNode.getBlock() != null) descs.add(new ArgumentDescriptor(ArgumentType.block, argsNode.getBlock().getName()));
+        if (argsNode.getBlock() != null) {
+            descs.add(new ArgumentDescriptor(ArgumentType.block, argsNode.getBlock().getName()));
+        }
 
         return descs.toArray(new ArgumentDescriptor[descs.size()]);
     }

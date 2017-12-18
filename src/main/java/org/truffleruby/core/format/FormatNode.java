@@ -200,7 +200,9 @@ public abstract class FormatNode extends RubyBaseNode {
         while (encode.hasRemaining()) {
             int got = encode.get() & 0xff;
 
-            if (got != 0) return got;
+            if (got != 0) {
+                return got;
+            }
         }
 
         return 0;

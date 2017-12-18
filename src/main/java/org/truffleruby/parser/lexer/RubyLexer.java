@@ -291,7 +291,9 @@ public class RubyLexer {
             lex_nextline = null;
 
             if (v == null) {
-                if (eofp) return EOF;
+                if (eofp) {
+                    return EOF;
+                }
 
                 if (src == null || (v = src.gets()) == null) {
                     eofp = true;
@@ -334,7 +336,9 @@ public class RubyLexer {
     public void heredoc_dedent(ParseNode root) {
         int indent = heredoc_indent;
 
-        if (indent <= 0 || root == null) return;
+        if (indent <= 0 || root == null) {
+            return;
+        }
 
         if (root instanceof StrParseNode) {
             StrParseNode str = (StrParseNode) root;
@@ -345,7 +349,9 @@ public class RubyLexer {
             int currentLine = -1;
             for (int i = 0; i < length; i++) {
                 ParseNode child = list.get(i);
-                if (currentLine == child.getPosition().toSourceSection(src.getSource()).getStartLine() - 1) continue;  // Only process first element on a line?
+                if (currentLine == child.getPosition().toSourceSection(src.getSource()).getStartLine() - 1) {
+                    continue;  // Only process first element on a line?
+                }
 
                 currentLine = child.getPosition().toSourceSection(src.getSource()).getStartLine() - 1;                 // New line
 
@@ -427,7 +433,9 @@ public class RubyLexer {
         }
 
         int b = asTruth(name, value);
-        if (b < 0) return;
+        if (b < 0) {
+            return;
+        }
 
         // Enebo: This is a hash in MRI for multiple potential compile options but we currently only support one.
         // I am just going to set it and when a second is done we will reevaluate how they are populated.
@@ -439,10 +447,14 @@ public class RubyLexer {
 
     protected int asTruth(String name, Rope value) {
         int result = RopeOperations.caseInsensitiveCmp(value, TRUE);
-        if (result == 0) return 1;
+        if (result == 0) {
+            return 1;
+        }
 
         result = RopeOperations.caseInsensitiveCmp(value, FALSE);
-        if (result == 0) return 0;
+        if (result == 0) {
+            return 0;
+        }
 
         warnings.warn("invalid value for " + name + ": " + value);
         return -1;
@@ -562,7 +574,9 @@ public class RubyLexer {
 
         StrParseNode newStr = new StrParseNode(getPosition(), buffer, codeRange);
 
-        if (parserSupport.getConfiguration().isFrozenStringLiteral()) newStr.setFrozen(true);
+        if (parserSupport.getConfiguration().isFrozenStringLiteral()) {
+            newStr.setFrozen(true);
+        }
 
         return newStr;
     }
@@ -570,7 +584,9 @@ public class RubyLexer {
     public static CodeRange associateEncoding(Rope buffer, Encoding newEncoding, CodeRange codeRange) {
         Encoding bufferEncoding = buffer.getEncoding();
 
-        if (newEncoding == bufferEncoding) return codeRange;
+        if (newEncoding == bufferEncoding) {
+            return codeRange;
+        }
 
         // TODO: Special const error
 
@@ -600,9 +616,13 @@ public class RubyLexer {
         } else {
             shortHand = false;
             begin = nextc();
-            if (Character.isLetterOrDigit(begin) /* no mb || ismbchar(term)*/) compile_error(SyntaxException.PID.STRING_UNKNOWN_TYPE, "unknown type of %string");
+            if (Character.isLetterOrDigit(begin) /* no mb || ismbchar(term) */) {
+                compile_error(SyntaxException.PID.STRING_UNKNOWN_TYPE, "unknown type of %string");
+            }
         }
-        if (c == EOF || begin == EOF) compile_error(SyntaxException.PID.STRING_HITS_EOF, "unterminated quoted string meets end of file");
+        if (c == EOF || begin == EOF) {
+            compile_error(SyntaxException.PID.STRING_HITS_EOF, "unterminated quoted string meets end of file");
+        }
 
         // Figure end-char.  '\0' is special to indicate begin=end and that no nesting?
         switch(begin) {
@@ -711,10 +731,14 @@ public class RubyLexer {
 
             term = c;
             while ((c = nextc()) != EOF && c != term) {
-                if (!tokadd_mbchar(c)) return EOF;
+                if (!tokadd_mbchar(c)) {
+                    return EOF;
+                }
             }
 
-            if (c == EOF) compile_error("unterminated here document identifier");
+            if (c == EOF) {
+                compile_error("unterminated here document identifier");
+            }
 
             // c == term.  This differs from MRI in that we unwind term symbol so we can make
             // our marker with just tokp and lex_p info (e.g. we don't make second numberBuffer).
@@ -733,7 +757,9 @@ public class RubyLexer {
             term = '"';
             func |= str_dquote;
             do {
-                if (!tokadd_mbchar(c)) return EOF;
+                if (!tokadd_mbchar(c)) {
+                    return EOF;
+                }
             } while ((c = nextc()) != EOF && isIdentifierChar(c));
             pushback(c);
             markerValue = createTokenByteArrayView();
@@ -822,7 +848,9 @@ public class RubyLexer {
                 // so we can report that it will be ignored.
                 if (!tokenSeen || (!TruffleOptions.AOT && parserSupport.getContext().getCoreLibrary().warningsEnabled())) {
                     if (!parseMagicComment(lexb, lex_p, lex_pend - lex_p)) {
-                        if (comment_at_top()) set_file_encoding(lex_p, lex_pend);
+                            if (comment_at_top()) {
+                                set_file_encoding(lex_p, lex_pend);
+                            }
                     }
                 }
 
@@ -864,7 +892,9 @@ public class RubyLexer {
                     }
                 }
 
-                if (c == -1) return EOF;
+                    if (c == -1) {
+                        return EOF;
+                    }
 
                 pushback(c);
                 getPosition();
@@ -892,7 +922,9 @@ public class RubyLexer {
                                 return EOF;
                             }
 
-                            if (c != '=') continue;
+                            if (c != '=') {
+                                continue;
+                            }
 
                             if (strncmp(parserRopeOperations.makeShared(lexb, lex_p, lex_pend - lex_p), END_DOC_MARKER, END_DOC_MARKER.byteLength()) &&
                                     (lex_p + 3 == lex_pend || Character.isWhitespace(p(lex_p + 3)))) {
@@ -1052,8 +1084,9 @@ public class RubyLexer {
         //a wrong position if the "inclusive" flag is not set.
         SourceIndexLength tmpPosition = getPosition();
         if (isSpaceArg(c, spaceSeen)) {
-            if (warnings.isVerbose())
+            if (warnings.isVerbose()) {
                 warnings.warning(getFile(), tmpPosition.toSourceSection(src.getSource()).getStartLine(), "`&' interpreted as argument prefix");
+            }
             c = Tokens.tAMPER;
         } else if (isBEG()) {
             c = Tokens.tAMPER;
@@ -1072,11 +1105,15 @@ public class RubyLexer {
     public boolean parseMagicComment(Rope magicLine, int magicLineOffset, int magicLineLength) {
         int length = magicLineLength;
 
-        if (length <= 7) return false;
+        if (length <= 7) {
+            return false;
+        }
         int beg = magicCommentMarker(magicLine, magicLineOffset);
         if (beg >= 0) {
             int end = magicCommentMarker(magicLine, beg);
-            if (end < 0) return false;
+            if (end < 0) {
+                return false;
+            }
             length = end - beg - 3; // -3 is to backup over end just found
         } else {
             beg = magicLineOffset;
@@ -1096,7 +1133,9 @@ public class RubyLexer {
                     () -> matcher.searchInterruptible(begin, end, Option.NONE));
         }
 
-        if (result < 0) return false;
+        if (result < 0) {
+            return false;
+        }
 
         // Regexp is guaranteed to have three matches
         int begs[] = matcher.getRegion().beg;
@@ -1142,7 +1181,9 @@ public class RubyLexer {
             compile_error(SyntaxException.PID.CVAR_BAD_NAME, "`@@" + ((char) c) + "' is not allowed as a class variable name");
         }
 
-        if (!tokadd_ident(c)) return EOF;
+        if (!tokadd_ident(c)) {
+            return EOF;
+        }
 
         last_state = lex_state;
         setState(EXPR_END);
@@ -1266,7 +1307,9 @@ public class RubyLexer {
             return Tokens.kDO_LAMBDA;
         }
 
-        if (conditionState.isInState()) return Tokens.kDO_COND;
+        if (conditionState.isInState()) {
+            return Tokens.kDO_COND;
+        }
 
         if (cmdArgumentState.isInState() && !isLexState(state, EXPR_CMDARG)) {
             return Tokens.kDO_BLOCK;
@@ -1287,7 +1330,9 @@ public class RubyLexer {
         case '_':       /* $_: last read line string */
             c = nextc();
             if (isIdentifierChar(c)) {
-                if (!tokadd_ident(c)) return EOF;
+                if (!tokadd_ident(c)) {
+                    return EOF;
+                }
 
                 last_state = lex_state;
                 setState(EXPR_END);
@@ -1319,7 +1364,9 @@ public class RubyLexer {
         case '-':
             c = nextc();
             if (isIdentifierChar(c)) {
-                if (!tokadd_mbchar(c)) return EOF;
+                if (!tokadd_mbchar(c)) {
+                    return EOF;
+                }
             } else {
                 pushback(c);
                 pushback('-');
@@ -1403,7 +1450,9 @@ public class RubyLexer {
         }
 
         pushback(c);
-        if (Character.isDigit(c)) compile_error(SyntaxException.PID.FLOAT_MISSING_ZERO, "no .<digit> floating literal anymore; put 0 before dot");
+        if (Character.isDigit(c)) {
+            compile_error(SyntaxException.PID.FLOAT_MISSING_ZERO, "no .<digit> floating literal anymore; put 0 before dot");
+        }
 
         setState(EXPR_DOT);
         yaccValue = ".";
@@ -1453,7 +1502,9 @@ public class RubyLexer {
 
         newtok(true);
         do {
-            if (!tokadd_mbchar(c)) return EOF;
+            if (!tokadd_mbchar(c)) {
+                return EOF;
+            }
             c = nextc();
         } while (isIdentifierChar(c));
 
@@ -1526,15 +1577,20 @@ public class RubyLexer {
                     yaccValue = getPosition();
                 }
 
-                if (isLexState(lex_state, EXPR_BEG)) commandStart = true;
+                if (isLexState(lex_state, EXPR_BEG)) {
+                    commandStart = true;
+                }
 
-                if (keyword.id0 == Tokens.kDO) return doKeyword(state);
+                if (keyword.id0 == Tokens.kDO) {
+                    return doKeyword(state);
+                }
 
                 if (isLexState(state, EXPR_BEG | EXPR_LABELED)) {
                     return keyword.id0;
                 } else {
-                    if (keyword.id0 != keyword.id1)
+                    if (keyword.id0 != keyword.id1) {
                         setState(EXPR_BEG | EXPR_LABEL);
+                    }
                     return keyword.id1;
                 }
             }
@@ -1681,8 +1737,12 @@ public class RubyLexer {
         conditionState.stop();
         cmdArgumentState.stop();
         setState(EXPR_BEG);
-        if (c != Tokens.tLBRACE_ARG) setState(getState() | EXPR_LABEL);
-        if (c != Tokens.tLBRACE) commandStart = true;
+        if (c != Tokens.tLBRACE_ARG) {
+            setState(getState() | EXPR_LABEL);
+        }
+        if (c != Tokens.tLBRACE) {
+            commandStart = true;
+        }
         yaccValue = getPosition();
 
         return c;
@@ -1715,13 +1775,17 @@ public class RubyLexer {
                 !isEND() && (!isARG() || isLexState(lex_state, EXPR_LABELED) || spaceSeen)) {
             int tok = hereDocumentIdentifier();
 
-            if (tok != 0) return tok;
+            if (tok != 0) {
+                return tok;
+            }
         }
 
         if (isAfterOperator()) {
             setState(EXPR_ARG);
         } else {
-            if (isLexState(lex_state, EXPR_CLASS)) commandStart = true;
+            if (isLexState(lex_state, EXPR_CLASS)) {
+                commandStart = true;
+            }
             setState(EXPR_BEG);
         }
 
@@ -1791,7 +1855,9 @@ public class RubyLexer {
     }
 
     private int percent(boolean spaceSeen) {
-        if (isBEG()) return parseQuote(nextc());
+        if (isBEG()) {
+            return parseQuote(nextc());
+        }
 
         int c = nextc();
 
@@ -1801,7 +1867,9 @@ public class RubyLexer {
             return Tokens.tOP_ASGN;
         }
 
-        if (isSpaceArg(c, spaceSeen)) return parseQuote(c);
+        if (isSpaceArg(c, spaceSeen)) {
+            return parseQuote(c);
+        }
 
         setState(isAfterOperator() ? EXPR_ARG : EXPR_BEG);
 
@@ -1885,7 +1953,9 @@ public class RubyLexer {
         }
 
         c = nextc();
-        if (c == EOF) compile_error(SyntaxException.PID.INCOMPLETE_CHAR_SYNTAX, "incomplete character syntax");
+        if (c == EOF) {
+            compile_error(SyntaxException.PID.INCOMPLETE_CHAR_SYNTAX, "incomplete character syntax");
+        }
 
         if (Character.isWhitespace(c)) {
             if (!isARG()) {
@@ -1923,7 +1993,9 @@ public class RubyLexer {
         }
 
         if (!isASCII(c)) {
-            if (!tokadd_mbchar(c)) return EOF;
+            if (!tokadd_mbchar(c)) {
+                return EOF;
+            }
         } else if (isIdentifierChar(c) && !peek('\n') && isNext_identchar()) {
             newtok(true);
             pushback(c);
@@ -2040,8 +2112,9 @@ public class RubyLexer {
             yaccValue = "**";
 
             if (isSpaceArg(c, spaceSeen)) {
-                if (warnings.isVerbose())
+                if (warnings.isVerbose()) {
                     warnings.warning(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`**' interpreted as argument prefix");
+                }
                 c = Tokens.tDSTAR;
             } else if (isBEG()) {
                 c = Tokens.tDSTAR;
@@ -2078,7 +2151,9 @@ public class RubyLexer {
         int c;
         
         if (isAfterOperator()) {
-            if ((c = nextc()) != '@') pushback(c);
+            if ((c = nextc()) != '@') {
+                pushback(c);
+            }
             setState(EXPR_ARG);
         } else {
             setState(EXPR_BEG);
@@ -2122,7 +2197,9 @@ public class RubyLexer {
                     if (isHexChar(c)) {
                         for (;; c = nextc()) {
                             if (c == '_') {
-                                if (nondigit != '\0') break;
+                                if (nondigit != '\0') {
+                                    break;
+                                }
                                 nondigit = c;
                             } else if (isHexChar(c)) {
                                 nondigit = '\0';
@@ -2146,7 +2223,9 @@ public class RubyLexer {
                     if (c == '0' || c == '1') {
                         for (;; c = nextc()) {
                             if (c == '_') {
-                                if (nondigit != '\0') break;
+                                if (nondigit != '\0') {
+                                    break;
+                                }
                                 nondigit = c;
                             } else if (c == '0' || c == '1') {
                                 nondigit = '\0';
@@ -2170,7 +2249,9 @@ public class RubyLexer {
                     if (Character.isDigit(c)) {
                         for (;; c = nextc()) {
                             if (c == '_') {
-                                if (nondigit != '\0') break;
+                                if (nondigit != '\0') {
+                                    break;
+                                }
                                 nondigit = c;
                             } else if (Character.isDigit(c)) {
                                 nondigit = '\0';
@@ -2195,7 +2276,9 @@ public class RubyLexer {
                 case '5': case '6': case '7': case '_': 
                     for (;; c = nextc()) {
                         if (c == '_') {
-                            if (nondigit != '\0') break;
+                            if (nondigit != '\0') {
+                                break;
+                            }
 
                             nondigit = c;
                         } else if (c >= '0' && c <= '7') {
@@ -2208,7 +2291,9 @@ public class RubyLexer {
                     if (numberBuffer.getLength() > startLen) {
                         pushback(c);
 
-                        if (nondigit != '\0') compile_error(SyntaxException.PID.TRAILING_UNDERSCORE_IN_NUMBER, "Trailing '_' in number.");
+                        if (nondigit != '\0') {
+                            compile_error(SyntaxException.PID.TRAILING_UNDERSCORE_IN_NUMBER, "Trailing '_' in number.");
+                        }
 
                         return getIntegerToken(numberBuffer.toString(), 8, numberLiteralSuffix(SUFFIX_ALL));
                     }
@@ -2292,7 +2377,9 @@ public class RubyLexer {
                     }
                     break;
                 case '_' : //  '_' in number just ignored
-                    if (nondigit != '\0') compile_error(SyntaxException.PID.TRAILING_UNDERSCORE_IN_NUMBER, "Trailing '_' in number.");
+                    if (nondigit != '\0') {
+                        compile_error(SyntaxException.PID.TRAILING_UNDERSCORE_IN_NUMBER, "Trailing '_' in number.");
+                    }
                     nondigit = c;
                     break;
                 default :
@@ -2328,7 +2415,9 @@ public class RubyLexer {
             } while (peek(' ') || peek('\t'));
 
             int c = nextc();
-            if (c != '}') compile_error(SyntaxException.PID.INVALID_ESCAPE_SYNTAX,  "unterminated Unicode escape");
+            if (c != '}') {
+                compile_error(SyntaxException.PID.INVALID_ESCAPE_SYNTAX, "unterminated Unicode escape");
+            }
 
             buffer.append((char) c);
         } else { // handle \\uxxxx
@@ -2348,7 +2437,9 @@ public class RubyLexer {
                 if (codepoint > 0x10ffff) {
                     compile_error(SyntaxException.PID.INVALID_ESCAPE_SYNTAX,  "invalid Unicode codepoint (too large)");
                 }
-                if (buffer != null) readUTF8EscapeIntoBuffer(codepoint, buffer, stringLiteral);
+                if (buffer != null) {
+                    readUTF8EscapeIntoBuffer(codepoint, buffer, stringLiteral);
+                }
             } while (peek(' ') || peek('\t'));
 
             c = nextc();
@@ -2357,7 +2448,9 @@ public class RubyLexer {
             }
         } else { // handle \\uxxxx
             codepoint = scanHex(4, true, "Invalid Unicode escape");
-            if (buffer != null) readUTF8EscapeIntoBuffer(codepoint, buffer, stringLiteral);
+            if (buffer != null) {
+                readUTF8EscapeIntoBuffer(codepoint, buffer, stringLiteral);
+            }
         }
 
         return codepoint;
@@ -2366,7 +2459,9 @@ public class RubyLexer {
     private void readUTF8EscapeIntoBuffer(int codepoint, RopeBuilder buffer, boolean stringLiteral) {
         if (codepoint >= 0x80) {
             buffer.setEncoding(UTF8_ENCODING);
-            if (stringLiteral) tokaddmbc(codepoint, buffer);
+            if (stringLiteral) {
+                tokaddmbc(codepoint, buffer);
+            }
         } else if (stringLiteral) {
             buffer.append((char) codepoint);
         }
@@ -2485,7 +2580,9 @@ public class RubyLexer {
         }
 
         // No hex value after the 'x'.
-        if (i == 0 || (strict && count != i)) compile_error(SyntaxException.PID.INVALID_ESCAPE_SYNTAX, errorMessage);
+        if (i == 0 || (strict && count != i)) {
+            compile_error(SyntaxException.PID.INVALID_ESCAPE_SYNTAX, errorMessage);
+        }
 
         return hexValue;
     }
@@ -2548,9 +2645,13 @@ public class RubyLexer {
     protected boolean comment_at_top() {
         int p = lex_pbeg;
         int pend = lex_p - 1;
-        if (line_count != (has_shebang ? 2 : 1)) return false;
+        if (line_count != (has_shebang ? 2 : 1)) {
+            return false;
+        }
         while (p < pend) {
-            if (!Character.isSpaceChar(p(p))) return false;
+            if (!Character.isSpaceChar(p(p))) {
+                return false;
+            }
             p++;
         }
         return true;
@@ -2577,7 +2678,9 @@ public class RubyLexer {
                 col++;
             } else if (string.get(i) == '\t') {
                 int n = TAB_WIDTH * (col / TAB_WIDTH + 1);
-                if (n > width) break;
+                if (n > width) {
+                    break;
+                }
                 col = n;
             } else {
                 break;
@@ -2698,7 +2801,9 @@ public class RubyLexer {
     }
 
     protected void magicCommentEncoding(Rope encoding) {
-        if (!comment_at_top()) return;
+        if (!comment_at_top()) {
+            return;
+        }
 
         setEncoding(encoding);
     }
@@ -2720,11 +2825,15 @@ public class RubyLexer {
     protected int numberLiteralSuffix(int mask) {
         int c = nextc();
 
-        if (c == 'i') return (mask & SUFFIX_I) != 0 ?  mask & SUFFIX_I : 0;
+        if (c == 'i') {
+            return (mask & SUFFIX_I) != 0 ? mask & SUFFIX_I : 0;
+        }
 
         if (c == 'r') {
             int result = 0;
-            if ((mask & SUFFIX_R) != 0) result |= (mask & SUFFIX_R);
+            if ((mask & SUFFIX_R) != 0) {
+                result |= (mask & SUFFIX_R);
+            }
 
             if (peek('i') && (mask & SUFFIX_I) != 0) {
                 c = nextc();
@@ -2754,7 +2863,9 @@ public class RubyLexer {
 
         switch(c) {
             case '#':
-                if (peek('!')) has_shebang = true;
+                if (peek('!')) {
+                    has_shebang = true;
+                }
                 break;
             case 0xef:
                 if (lex_pend - lex_p >= 2 && p(lex_p) == 0xbb && p(lex_p + 1) == 0xbf) {
@@ -2815,7 +2926,9 @@ public class RubyLexer {
     }
 
     public void pushback(int c) {
-        if (c == -1) return;
+        if (c == -1) {
+            return;
+        }
 
         lex_p--;
 
@@ -2885,7 +2998,9 @@ public class RubyLexer {
     protected void set_file_encoding(int str, int send) {
         boolean sep = false;
         for (;;) {
-            if (send - str <= 6) return;
+            if (send - str <= 6) {
+                return;
+            }
 
             switch (p(str + 6)) {
                 case 'C': case 'c': str += 6; continue;
@@ -2900,20 +3015,30 @@ public class RubyLexer {
                     break;
                 default:
                     str += 6;
-                    if (Character.isSpaceChar(p(str))) break;
+                    if (Character.isSpaceChar(p(str))) {
+                        break;
+                    }
                     continue;
             }
-            if (RopeOperations.caseInsensitiveCmp(parserRopeOperations.makeShared(lexb, str - 6, 6), CODING) == 0) break;
+            if (RopeOperations.caseInsensitiveCmp(parserRopeOperations.makeShared(lexb, str - 6, 6), CODING) == 0) {
+                break;
+            }
         }
 
         for (;;) {
             do {
                 str++;
-                if (str >= send) return;
+                if (str >= send) {
+                    return;
+                }
             } while (Character.isSpaceChar(p(str)));
-            if (sep) break;
+            if (sep) {
+                break;
+            }
 
-            if (p(str) != '=' && p(str) != ':') return;
+            if (p(str) != '=' && p(str) != ':') {
+                return;
+            }
             sep = true;
             str++;
         }
@@ -2958,7 +3083,9 @@ public class RubyLexer {
     }
 
     protected boolean strncmp(Rope one, Rope two, int length) {
-        if (one.byteLength() < length || two.byteLength() < length) return false;
+        if (one.byteLength() < length || two.byteLength() < length) {
+            return false;
+        }
 
         return parserRopeOperations.makeShared(one, 0, length).equals(parserRopeOperations.makeShared(two, 0, length));
     }
@@ -2973,7 +3100,9 @@ public class RubyLexer {
 
     public boolean tokadd_ident(int c) {
         do {
-            if (!tokadd_mbchar(c)) return false;
+            if (!tokadd_mbchar(c)) {
+                return false;
+            }
             c = nextc();
         } while (isIdentifierChar(c));
         pushback(c);
@@ -3010,11 +3139,15 @@ public class RubyLexer {
     public boolean tokadd_mbchar(int firstByte, RopeBuilder buffer) {
         int length = precise_mbclen();
 
-        if (length <= 0) compile_error("invalid multibyte char (" + getEncoding() + ")");
+        if (length <= 0) {
+            compile_error("invalid multibyte char (" + getEncoding() + ")");
+        }
 
         tokAdd(firstByte, buffer);                  // add first byte since we have it.
         lex_p += length - 1;                         // we already read first byte so advance pointer for remainder
-        if (length > 1) tokCopy(length - 1, buffer); // copy next n bytes over.
+        if (length > 1) {
+            tokCopy(length - 1, buffer); // copy next n bytes over.
+        }
 
         return true;
     }
@@ -3044,7 +3177,9 @@ public class RubyLexer {
 
     public boolean update_heredoc_indent(int c) {
         if (heredoc_line_indent == -1) {
-            if (c == '\n') heredoc_line_indent = 0;
+            if (c == '\n') {
+                heredoc_line_indent = 0;
+            }
         } else if (c == ' ') {
             heredoc_line_indent++;
             return true;
@@ -3053,7 +3188,9 @@ public class RubyLexer {
             heredoc_line_indent = w * TAB_WIDTH;
             return true;
         } else if (c != '\n') {
-            if (heredoc_indent > heredoc_line_indent) heredoc_indent = heredoc_line_indent;
+            if (heredoc_indent > heredoc_line_indent) {
+                heredoc_indent = heredoc_line_indent;
+            }
             heredoc_line_indent = -1;
         }
 
@@ -3122,7 +3259,9 @@ public class RubyLexer {
             }
         }
         int n = lex_pend - (p + len);
-        if (n < 0) return false;
+        if (n < 0) {
+            return false;
+        }
         if (n > 0 && p(p + len) != '\n') {
             if (p(p + len) != '\r') {
                 return false;

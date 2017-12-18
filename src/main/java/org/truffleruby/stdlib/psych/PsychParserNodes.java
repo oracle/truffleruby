@@ -441,9 +441,15 @@ public abstract class PsychParserNodes {
 
         private static Rope strConvEncOpts(RubyContext context, Rope str, Encoding fromEncoding,
                                                 Encoding toEncoding, int ecflags, Object ecopts) {
-            if (toEncoding == null) return str;
-            if (fromEncoding == null) fromEncoding = str.getEncoding();
-            if (fromEncoding == toEncoding) return str;
+            if (toEncoding == null) {
+                return str;
+            }
+            if (fromEncoding == null) {
+                fromEncoding = str.getEncoding();
+            }
+            if (fromEncoding == toEncoding) {
+                return str;
+            }
             if ((toEncoding.isAsciiCompatible() && isAsciiOnly(str)) ||
                     toEncoding == ASCIIEncoding.INSTANCE) {
                 if (str.getEncoding() != toEncoding) {
@@ -457,7 +463,9 @@ public abstract class PsychParserNodes {
             int olen = len;
 
             EConv ec = econvOpenOpts(context, fromEncoding, toEncoding, ecflags, ecopts);
-            if (ec == null) return str;
+            if (ec == null) {
+                return str;
+            }
 
             byte[] sbytes = str.getBytes();
             Ptr sp = new Ptr(0);

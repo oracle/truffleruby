@@ -193,8 +193,9 @@ public class MethodTranslator extends BodyTranslator {
     }
 
     private boolean shouldConsiderDestructuringArrayArg(Arity arity) {
-        if (arity.hasKeywordsRest())
+        if (arity.hasKeywordsRest()) {
             return true;
+        }
         // If we do not accept any arguments or only one required, there's never any need to destructure
         if (!arity.hasRest() && arity.getOptional() == 0 && arity.getRequired() <= 1) {
             return false;
