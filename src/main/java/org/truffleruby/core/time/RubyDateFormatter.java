@@ -48,14 +48,11 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.text.DateFormatSymbols;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -239,7 +236,6 @@ public abstract class RubyDateFormatter {
 
     @TruffleBoundary
     public static List<Token> compilePattern(Rope pattern, boolean dateLibrary, RubyContext context, Node currentNode) {
-        StrftimeLexer lexer = new StrftimeLexer((Reader) null);
         List<Token> compiledPattern = new LinkedList<>();
 
         Encoding enc = pattern.getEncoding();
@@ -250,18 +246,15 @@ public abstract class RubyDateFormatter {
             compiledPattern.add(new Token(Format.FORMAT_ENCODING, enc));
         }
 
-        ByteArrayInputStream in = new ByteArrayInputStream(pattern.getBytes(), 0, pattern.byteLength());
-        Reader reader = new InputStreamReader(in, EncodingManager.charsetForEncoding(pattern.getEncoding()));
-        lexer.yyreset(reader);
+        StrftimeLexer lexer = new StrftimeLexer(RopeOperations.decodeRope(pattern));
 
         Token token;
-        try {
-            while ((token = lexer.yylex()) != null) {
-                if (token.format != Format.FORMAT_SPECIAL) {
-                    compiledPattern.add(token);
-                } else {
-                    char c = (Character) token.data;
-                    switch (c) {
+        while ((token = lexer.yylex()) != null) {
+            if (token.format != Format.FORMAT_SPECIAL) {
+                compiledPattern.add(token);
+            } else {
+                char c = (char) token.data;
+                switch (c) {
                     case 'c':
                         addToPattern(compiledPattern, "a b e H:M:S Y");
                         break;
@@ -320,12 +313,9 @@ public abstract class RubyDateFormatter {
                         addToPattern(compiledPattern, " Y");
                         break;
                     default:
-                        throw new Error("Unknown special char: "+c);
-                    }
+                        throw new Error("Unknown special char: " + c);
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
         return compiledPattern;
