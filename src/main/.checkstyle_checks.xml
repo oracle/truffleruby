@@ -98,7 +98,7 @@
       <!--<property name="format" value="^[A-Za-z][a-zA-Z0-9]*$"/>-->
     <!--</module>-->
     <module name="EmptyForInitializerPad"/>
-    <!--<module name="EmptyForIteratorPad"/>-->
+    <module name="EmptyForIteratorPad"/>
     <!--<module name="ModifierOrder"/>-->
     <!--<module name="DefaultComesLast"/>-->
     <module name="InnerAssignment">

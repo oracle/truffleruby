@@ -150,7 +150,7 @@ public abstract class FormatFloatNode extends FormatNode {
         int decPos = 0;
         byte ival;
         int_loop:
-        for (; i < strlen; ) {
+        while (i < strlen) {
             switch (ival = (byte) str.charAt(i++)) {
                 case '0':
                     if (nDigits > 0) {
@@ -178,7 +178,7 @@ public abstract class FormatFloatNode extends FormatNode {
         }
         decPos = nDigits + nTrailingZeroes;
         dec_loop:
-        for (; i < strlen; ) {
+        while (i < strlen) {
             switch (ival = (byte) str.charAt(i++)) {
                 case '0':
                     if (nDigits > 0) {
@@ -214,7 +214,7 @@ public abstract class FormatFloatNode extends FormatNode {
             } else {
                 expSign = 1;
             }
-            for (; i < strlen; ) {
+            while (i < strlen) {
                 expVal = expVal * 10 + (str.charAt(i++) - '0');
             }
             exponent += expVal * expSign;
