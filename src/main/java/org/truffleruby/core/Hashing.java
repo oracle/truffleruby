@@ -23,8 +23,8 @@ public class Hashing {
 
     static {
         if (CONSISTENT_HASHING_ENABLED) {
-            SEED_K0 = -561135208506705104l;
-            SEED_K1 = 7114160726623585955l;
+            SEED_K0 = -561135208506705104L;
+            SEED_K1 = 7114160726623585955L;
         } else {
             final Random random = new Random();
             SEED_K0 = random.nextLong();
