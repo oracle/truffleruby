@@ -1,7 +1,7 @@
 // created by jay 1.0.2 (c) 2002-2004 ats@cs.rit.edu
 // skeleton Java 1.0 (c) 2002 ats@cs.rit.edu
 
-					// line 2 "RubyParser.y"
+// line 2 "RubyParser.y"
 /***** BEGIN LICENSE BLOCK *****
  * Version: EPL 1.0/GPL 2.0/LGPL 2.1
  *
@@ -160,7 +160,7 @@ public class RubyParser {
         support.setWarnings(warnings);
         lexer.setWarnings(warnings);
     }
-					// line 164 "-"
+// line 164 "-"
   // %token constants
   public static final int kCLASS = 257;
   public static final int kMODULE = 258;
@@ -4666,7 +4666,7 @@ states[644] = new ParserState() {
   }
 };
 }
-					// line 2578 "RubyParser.y"
+// line 2578 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -4682,4 +4682,4 @@ states[644] = new ParserState() {
     }
 }
 // CheckStyle: stop generated
-					// line 10088 "-"
+// line 10088 "-"

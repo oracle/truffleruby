@@ -1,3 +1,8 @@
+def transform_line(line)
+  # Remove tabs before comments
+  line.sub(/^\t+\/\//, '//')
+end
+
 def get_numbers_until_end_block(table)
   while line = gets
     break if /\};/ =~ line
@@ -20,7 +25,7 @@ end
 
 while gets
   break if /protected static final short\[\] yyTable = \{/ =~ $_
-  print $_
+  print transform_line($_)
 end
 
 # A little hacky...gets before ARGV to shift off and open file
@@ -32,7 +37,7 @@ puts "    protected static final short[] yyTable = #{yytable_prefix}YyTables.yyT
 
 while gets
   break if /protected static final short\[\] yyCheck = \{/ =~ $_
-  print $_
+  print transform_line($_)
 end
 
 check4 = get_numbers_until_end_block([])
@@ -40,7 +45,7 @@ check4 = get_numbers_until_end_block([])
 puts "    protected static final short[] yyCheck = #{yytable_prefix}YyTables.yyCheck();"
 
 while gets
-  print $_
+  print transform_line($_)
 end
 
 table2 = table4.slice!(0, table4.size / 2)
