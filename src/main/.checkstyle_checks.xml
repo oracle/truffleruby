@@ -145,9 +145,9 @@
   <module name="FileTabCharacter">
     <property name="severity" value="error"/>
   </module>
-  <!--<module name="NewlineAtEndOfFile">-->
-    <!--<property name="lineSeparator" value="lf"/>-->
-  <!--</module>-->
+  <module name="NewlineAtEndOfFile">
+    <property name="lineSeparator" value="lf"/>
+  </module>
   <module name="Translation"/>
   <module name="SuppressionCommentFilter">
     <property name="offCommentFormat" value="Checkstyle: stop constant name check"/>
