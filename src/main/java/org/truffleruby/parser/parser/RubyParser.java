@@ -3639,7 +3639,7 @@ states[458] = new ParserState() {
 states[459] = new ParserState() {
   @Override public Object execute(ParserSupport support, RubyLexer lexer, Object yyVal, Object[] yyVals, int yyTop) {
                     lexer.heredoc_dedent(((ParseNode)yyVals[-1+yyTop]));
-		    lexer.setHeredocIndent(0);
+                    lexer.setHeredocIndent(0);
                     yyVal = ((ParseNode)yyVals[-1+yyTop]);
     return yyVal;
   }
@@ -3649,7 +3649,7 @@ states[460] = new ParserState() {
                     SourceIndexLength position = support.getPosition(((ParseNode)yyVals[-1+yyTop]));
 
                     lexer.heredoc_dedent(((ParseNode)yyVals[-1+yyTop]));
-		    lexer.setHeredocIndent(0);
+                    lexer.setHeredocIndent(0);
 
                     if (((ParseNode)yyVals[-1+yyTop]) == null) {
                         yyVal = new XStrParseNode(position, null, CodeRange.CR_7BIT);
