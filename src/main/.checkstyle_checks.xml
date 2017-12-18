@@ -37,7 +37,7 @@
     <!--<module name="LineLength">-->
       <!--<property name="max" value="250"/>-->
     <!--</module>-->
-    <!--<module name="MethodParamPad"/>-->
+    <module name="MethodParamPad"/>
     <!--<module name="NoWhitespaceAfter">-->
       <!--<property name="tokens" value="ARRAY_INIT,BNOT,DEC,DOT,INC,LNOT,UNARY_MINUS,UNARY_PLUS"/>-->
     <!--</module>-->
