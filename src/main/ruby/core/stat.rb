@@ -27,22 +27,6 @@
 class File
   class Stat
     include Comparable
-    
-    class Buffer < Rubinius::FFI::Struct
-      layout  :atime,   :uint64,
-              :mtime,   :uint64,
-              :ctime,   :uint64,
-              :nlink,   :uint64,
-              :rdev,    :uint64,
-              :blksize, :uint64,
-              :blocks,  :uint64,
-              :dev,     :uint64,
-              :ino,     :uint64,
-              :size,    :uint64,
-              :mode,    :uint64,
-              :gid,     :uint64,
-              :uid,     :uint64
-    end
 
     S_IRUSR  = Rubinius::Config['rbx.platform.file.S_IRUSR']
     S_IWUSR  = Rubinius::Config['rbx.platform.file.S_IWUSR']
@@ -73,26 +57,25 @@ class File
     attr_reader :path
 
     def initialize(path_or_buffer)
-      if path_or_buffer.is_a?(Buffer)
-        @buffer = path_or_buffer.to_h
+      if path_or_buffer.is_a?(Rubinius::FFI::MemoryPointer)
+        @buffer = path_or_buffer.read_array_of_uint64(BUFFER_ELEMENTS)
       else
         path = Rubinius::Type.coerce_to_path(path_or_buffer)
-        Buffer.new do |buffer|
-          result = Truffle::POSIX.truffleposix_stat(path, buffer)
+        Rubinius::FFI::MemoryPointer.new(:uint64, BUFFER_ELEMENTS) do |ptr|
+          result = Truffle::POSIX.truffleposix_stat(path, ptr)
           Errno.handle path unless result == 0
-          @buffer = buffer.to_h
+          @buffer = ptr.read_array_of_uint64(BUFFER_ELEMENTS)
         end
       end
     end
 
     def self.stat(path)
       path = Rubinius::Type.coerce_to_path(path)
-      Buffer.new do |buffer|
-        result = Truffle::POSIX.truffleposix_stat(path, buffer)
-        if result == 0
-          return Stat.new buffer
+      Rubinius::FFI::MemoryPointer.new(:uint64, BUFFER_ELEMENTS) do |ptr|
+        if Truffle::POSIX.truffleposix_stat(path, ptr) == 0
+          Stat.new ptr
         else
-          return nil
+          nil
         end
       end
     end
@@ -105,22 +88,21 @@ class File
 
     def self.lstat?(path)
       path = Rubinius::Type.coerce_to_path(path)
-      Buffer.new do |buffer|
-        result = Truffle::POSIX.truffleposix_lstat(path, buffer)
-        if result == 0
-          return Stat.new buffer
+      Rubinius::FFI::MemoryPointer.new(:uint64, BUFFER_ELEMENTS) do |ptr|
+        if Truffle::POSIX.truffleposix_lstat(path, ptr) == 0
+          Stat.new ptr
         else
-          return nil
+          nil
         end
       end
     end
 
     def self.fstat(fd)
       fd = Rubinius::Type.coerce_to fd, Integer, :to_int
-      Buffer.new do |buffer|
-        result = Truffle::POSIX.truffleposix_fstat(fd, buffer)
+      Rubinius::FFI::MemoryPointer.new(:uint64, BUFFER_ELEMENTS) do |ptr|
+        result = Truffle::POSIX.truffleposix_fstat(fd, ptr)
         Errno.handle "file descriptor #{descriptor}" unless result == 0
-        return Stat.new buffer
+        Stat.new ptr
       end
     end
 
@@ -300,56 +282,60 @@ class File
       Process.groups.include?(gid)
     end
 
+    # These indices are from truffleposix.c
+
+    BUFFER_ELEMENTS = 13
+
     def atime
-      Time.at @buffer[:atime]
+      Time.at @buffer[0]
     end
 
     def mtime
-      Time.at @buffer[:mtime]
+      Time.at @buffer[1]
     end
 
     def ctime
-      Time.at @buffer[:ctime]
+      Time.at @buffer[2]
     end
     
     def nlink
-      @buffer[:nlink]
+      @buffer[3]
     end
     
     def rdev
-      @buffer[:rdev]
+      @buffer[4]
     end
     
     def blksize
-      @buffer[:blksize]
+      @buffer[5]
     end
     
     def blocks
-      @buffer[:blocks]
+      @buffer[6]
     end
     
     def dev
-      @buffer[:dev]
+      @buffer[7]
     end
     
     def ino
-      @buffer[:ino]
+      @buffer[8]
     end
     
     def size
-      @buffer[:size]
+      @buffer[9]
     end
     
     def mode
-      @buffer[:mode]
+      @buffer[10]
     end
     
     def gid
-      @buffer[:gid]
+      @buffer[11]
     end
     
     def uid
-      @buffer[:uid]
+      @buffer[12]
     end
 
     def inspect
