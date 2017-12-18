@@ -109,7 +109,7 @@ public abstract class HashOperations {
 
         if (HashGuards.isNullHash(hash)) {
             return Collections.emptyIterator();
-        } if (HashGuards.isPackedHash(hash)) {
+        } else if (HashGuards.isPackedHash(hash)) {
             return PackedArrayStrategy.iterateKeyValues((Object[]) Layouts.HASH.getStore(hash), Layouts.HASH.getSize(hash));
         } else if (HashGuards.isBucketHash(hash)) {
             return BucketsStrategy.iterateKeyValues(Layouts.HASH.getFirstInSequence(hash));

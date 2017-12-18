@@ -496,8 +496,7 @@ public final class StringSupport {
         if (str.byteLength() > 1 && EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, l, enc) == '^') {
             cflag = true;
             tr.p += l[0];
-        }
-        else {
+        } else {
             cflag = false;
         }
 
@@ -506,8 +505,7 @@ public final class StringSupport {
                 stable[i] = true;
             }
             stable[TRANS_SIZE] = cflag;
-        }
-        else if (stable[TRANS_SIZE] && !cflag) {
+        } else if (stable[TRANS_SIZE] && !cflag) {
             stable[TRANS_SIZE] = false;
         }
 
@@ -529,15 +527,13 @@ public final class StringSupport {
                 }
                 // update the buff at [c] :
                 buf[c & 0xff] = (byte) (cflag ? 0 : 1);
-            }
-            else {
+            } else {
                 if (table == null && (first || tables.del != null || stable[TRANS_SIZE])) {
                     if (cflag) {
                         ptable = tables.noDel;
                         table = ptable != null ? ptable : new IntHashMap<>(8);
                         tables.noDel = table;
-                    }
-                    else {
+                    } else {
                         table = new IntHashMap<>(8);
                         ptable = tables.del;
                         tables.del = table;
@@ -563,8 +559,7 @@ public final class StringSupport {
             for (i = 0; i < TRANS_SIZE; i++) {
                 stable[i] = stable[i] && buf[i] != 0;
             }
-        }
-        else {
+        } else {
             for (i = 0; i < TRANS_SIZE; i++) {
                 stable[i] = stable[i] && cflag;
             }
@@ -589,8 +584,7 @@ public final class StringSupport {
                 (noDel == null || noDel.get(c) == null)) {
                 return true;
             }
-        }
-        else if (noDel != null && noDel.get(c) != null) {
+        } else if (noDel != null && noDel.get(c) != null) {
             return false;
         }
 
@@ -1152,8 +1146,7 @@ public final class StringSupport {
                     } else {
                         c = tmp;
                     }
-                }
-                else {
+                } else {
                     c = cflag ? last : -1;
                 }
                 if (c != -1) {
