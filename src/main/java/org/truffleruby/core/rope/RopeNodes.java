@@ -363,7 +363,7 @@ public abstract class RopeNodes {
             final int flattenThreshold = depthThreshold / 2;
 
             Rope root = null;
-            while (! currentRopeQueue.isEmpty()) {
+            while (!currentRopeQueue.isEmpty()) {
                 Rope left = currentRopeQueue.pop();
 
                 if (left.depth() >= flattenThreshold) {

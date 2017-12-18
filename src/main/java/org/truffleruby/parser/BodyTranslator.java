@@ -2889,7 +2889,7 @@ public class BodyTranslator extends Translator {
                     final Deque<ParseNode> exceptionNodes = new ArrayDeque<>();
                     exceptionNodes.push(rescueBody.getExceptionNodes());
 
-                    while (! exceptionNodes.isEmpty()) {
+                    while (!exceptionNodes.isEmpty()) {
                         final ParseNode exceptionNode = exceptionNodes.pop();
 
                         if (exceptionNode instanceof ArrayParseNode) {

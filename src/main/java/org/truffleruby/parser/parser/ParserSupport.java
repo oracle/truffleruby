@@ -1584,7 +1584,7 @@ public class ParserSupport {
         String errorMessage = lexer.getFile() + ":" + (position.toSourceSection(lexer.getSource()).getStartLine()) + ": ";
 
         if (line != null && line.length() > 5) {
-            boolean addNewline = message != null && ! message.endsWith("\n");
+            boolean addNewline = message != null && !message.endsWith("\n");
 
             message += (addNewline ? "\n" : "") + line;
         }
@@ -1604,7 +1604,7 @@ public class ParserSupport {
     // MRI: reg_fragment_setenc_gen
     public Rope setRegexpEncoding(RegexpParseNode end, Rope value) {
         RegexpOptions options = end.getOptions();
-        Encoding optionsEncoding = options.setup() ;
+        Encoding optionsEncoding = options.setup();
 
         // Change encoding to one specified by regexp options as long as the string is compatible.
         if (optionsEncoding != null) {

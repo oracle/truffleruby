@@ -222,7 +222,7 @@ public class TranscodingManager {
         } else {
             final List<String> path = bfs(sourceEncodingName, destinationEncodingName);
 
-            if (! path.isEmpty()) {
+            if (!path.isEmpty()) {
                 String sourceName = path.remove(0);
 
                 for (String destinationName : path) {
@@ -299,7 +299,7 @@ public class TranscodingManager {
             return false;
         }
 
-        if (! allTranscoders.containsKey("")) {
+        if (!allTranscoders.containsKey("")) {
             return false;
         }
 
