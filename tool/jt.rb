@@ -157,8 +157,8 @@ module Utilities
     raise "couldn't find truffle-sl.jar - build Truffle and find it in there"
   end
 
-  def self.find_launcher(use_svm)
-    if use_svm
+  def self.find_launcher(use_native)
+    if use_native
       if ENV['AOT_BIN']
         ENV['AOT_BIN']
       else
@@ -445,7 +445,7 @@ module Commands
           --cext          runs MRI C extension tests
           --syslog        runs syslog tests
           --openssl       runs openssl tests
-          --aot           use AOT TruffleRuby image (set AOT_BIN)
+          --native        use native TruffleRuby image (set AOT_BIN)
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME, or have graal built as a sibling)
       jt test specs                                  run all specs
       jt test specs fast                             run all specs except sub-processes, GC, sleep, ...
@@ -505,7 +505,7 @@ module Commands
     super(*args)
   end
 
-  BUILD_OPTIONS = %w[parser options cexts sulong aot svm]
+  BUILD_OPTIONS = %w[parser options cexts sulong native]
 
   def build_truffleruby
     mx 'sforceimports'
@@ -537,9 +537,9 @@ module Commands
       require 'etc'
       cores = Etc.respond_to?(:nprocessors) ? Etc.nprocessors : 4
       raw_sh "make", "-j#{cores}", chdir: "#{TRUFFLERUBY_DIR}/src/main/c"
-    when 'aot', 'svm'
+    when 'native'
       build_truffleruby
-      build_aot_image
+      build_native_image
     when nil
       build_truffleruby
     else
@@ -694,7 +694,7 @@ module Commands
       options[:use_exec] = true
     end
 
-    ruby_bin = Utilities.find_launcher(args.delete('--aot'))
+    ruby_bin = Utilities.find_launcher(args.delete('--native'))
 
     raw_sh env_vars, ruby_bin, *vm_args, *args, options
   end
@@ -930,7 +930,7 @@ module Commands
   private :test_mri
 
   def run_mri_tests(extra_args, test_files, run_options = {})
-    truffle_args =  if extra_args.include?('--aot')
+    truffle_args =  if extra_args.include?('--native')
                       %W[-XX:YoungGenerationSize=2G -XX:OldGenerationSize=4G -Xhome=#{TRUFFLERUBY_DIR}]
                     else
                       %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
@@ -1266,8 +1266,8 @@ module Commands
       options += %w[--excl-tag slow]
     end
 
-    if args.delete('--aot')
-      verify_aot_bin!
+    if args.delete('--native')
+      verify_native_bin!
 
       options += %w[--excl-tag graalvm --excl-tag aot]
       options << '-t' << Utilities.find_launcher(true)
@@ -1353,11 +1353,11 @@ module Commands
 
     value = case attribute
       when 'binary-size'
-        build_stats_aot_binary_size(*args)
+        build_stats_native_binary_size(*args)
       when 'build-time'
-        build_stats_aot_build_time(*args)
+        build_stats_native_build_time(*args)
       when 'runtime-compilable-methods'
-        build_stats_aot_runtime_compilable_methods(*args)
+        build_stats_native_runtime_compilable_methods(*args)
       else
         raise ArgumentError, attribute
       end
@@ -1369,11 +1369,11 @@ module Commands
     end
   end
 
-  def build_stats_aot_binary_size(*args)
+  def build_stats_native_binary_size(*args)
     File.size(Utilities.find_launcher(true)) / 1024.0 / 1024.0
   end
 
-  def build_stats_aot_build_time(*args)
+  def build_stats_native_build_time(*args)
     if File.exist?('aot-build.log')
       log = File.read('aot-build.log')
       log =~ /\[total\]: (?<build_time>.+) ms/m
@@ -1383,7 +1383,7 @@ module Commands
     end
   end
 
-  def build_stats_aot_runtime_compilable_methods(*args)
+  def build_stats_native_runtime_compilable_methods(*args)
     if File.exist?('aot-build.log')
       log = File.read('aot-build.log')
       log =~ /(?<method_count>\d+) method\(s\) included for runtime compilation/m
@@ -1404,7 +1404,7 @@ module Commands
     when 'maxrss'
       metrics_maxrss *args
     when 'instructions'
-      metrics_aot_instructions *args
+      metrics_native_instructions *args
     when 'time'
       metrics_time *args
     else
@@ -1495,7 +1495,7 @@ module Commands
   end
 
   def metrics_maxrss(*args)
-    verify_aot_bin!
+    verify_native_bin!
 
     use_json = args.delete '--json'
     samples = []
@@ -1541,8 +1541,8 @@ module Commands
     end
   end
 
-  def metrics_aot_instructions(*args)
-    verify_aot_bin!
+  def metrics_native_instructions(*args)
+    verify_native_bin!
 
     use_json = args.delete '--json'
 
@@ -1566,8 +1566,8 @@ module Commands
   def metrics_time(*args)
     use_json = args.delete '--json'
     samples = []
-    aot = args.include? '--aot'
-    metrics_time_option = "#{'-J' unless aot}-Dtruffleruby.metrics.time=true"
+    native = args.include? '--native'
+    metrics_time_option = "#{'-J' unless native}-Dtruffleruby.metrics.time=true"
     METRICS_REPS.times do
       Utilities.log '.', "sampling\n"
       start = Time.now
@@ -1653,12 +1653,12 @@ module Commands
 
     run_args = []
 
-    if args.delete('--aot') || (ENV.has_key?('JT_BENCHMARK_RUBY') && (ENV['JT_BENCHMARK_RUBY'] == Utilities.find_launcher(true)))
+    if args.delete('--native') || (ENV.has_key?('JT_BENCHMARK_RUBY') && (ENV['JT_BENCHMARK_RUBY'] == Utilities.find_launcher(true)))
       run_args.push '-XX:YoungGenerationSize=1G'
       run_args.push '-XX:OldGenerationSize=2G'
       run_args.push "-Xhome=#{TRUFFLERUBY_DIR}"
 
-      # We already have a mechanism for setting the Ruby to benchmark, but elsewhere we use AOT_BIN with the "--aot" flag.
+      # We already have a mechanism for setting the Ruby to benchmark, but elsewhere we use AOT_BIN with the "--native" flag.
       # Favor JT_BENCHMARK_RUBY to AOT_BIN, but try both.
       benchmark_ruby ||= Utilities.find_launcher(true)
 
@@ -1767,11 +1767,11 @@ module Commands
     puts "$ #{TRUFFLERUBY_DIR}/tool/jt.rb ruby --graal ..."
   end
 
-  def build_aot_image
+  def build_native_image
     build
     java_home = install_jvmci
 
-    puts 'Building TruffleRuby Substrate VM binary'
+    puts 'Building TruffleRuby native binary'
     graal = Utilities.find_or_clone_repo('https://github.com/graalvm/graal.git')
     chdir("#{graal}/substratevm") do
       raw_sh 'git', 'fetch'
@@ -1846,9 +1846,9 @@ module Commands
     check_parser
   end
 
-  def verify_aot_bin!
+  def verify_native_bin!
     unless File.exist?(Utilities.find_launcher(true))
-      raise "Could not find AOT image -- either build with 'jt build --aot' or set AOT_BIN to an image location"
+      raise "Could not find native image -- either build with 'jt build --native' or set AOT_BIN to an image location"
     end
   end
 
