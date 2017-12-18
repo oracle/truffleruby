@@ -517,8 +517,8 @@ public abstract class StringNodes {
                 @Cached("new()") SnippetNode snippetNode1,
                 @Cached("new()") SnippetNode snippetNode2) {
             // TODO (nirvdrum 31-Mar-15) The begin and end values may return Fixnums beyond int boundaries and we should handle that -- Bignums are always errors.
-            final int coercedBegin = (int)snippetNode1.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", Layouts.OBJECT_RANGE.getBegin(range));
-            final int coercedEnd = (int)snippetNode2.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", Layouts.OBJECT_RANGE.getEnd(range));
+            final int coercedBegin = (int) snippetNode1.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", Layouts.OBJECT_RANGE.getBegin(range));
+            final int coercedEnd = (int) snippetNode2.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", Layouts.OBJECT_RANGE.getEnd(range));
 
             return sliceRange(frame, string, coercedBegin, coercedEnd, Layouts.OBJECT_RANGE.getExcludedEnd(range));
         }
@@ -1689,7 +1689,7 @@ public abstract class StringNodes {
                 int c = bytes[p++] & 0xff;
                 if (c == '"' || c == '\\') {
                     out[q++] = '\\';
-                    out[q++] = (byte)c;
+                    out[q++] = (byte) c;
                 } else if (c == '#') {
                     if (isEVStr(bytes, p, end)) out[q++] = '\\';
                     out[q++] = '#';
@@ -1718,7 +1718,7 @@ public abstract class StringNodes {
                     out[q++] = '\\';
                     out[q++] = 'e';
                 } else if (ASCIIEncoding.INSTANCE.isPrint(c)) {
-                    out[q++] = (byte)c;
+                    out[q++] = (byte) c;
                 } else {
                     out[q++] = '\\';
                     if (enc.isUTF8()) {
@@ -3573,7 +3573,7 @@ public abstract class StringNodes {
             int index = 0;
             int c = 0;
 
-            while(p < e && index < offset) {
+            while (p < e && index < offset) {
                 c = StringSupport.preciseLength(enc, stringBytes, p, e);
 
                 if (StringSupport.MBCLEN_CHARFOUND_P(c)) {
@@ -3644,7 +3644,7 @@ public abstract class StringNodes {
 
                 // TODO (nirvdrum 22-Dec-16): Consider having a specialized version for CR_BROKEN strings to avoid these checks.
                 // If it's an invalid byte, just treat it as a single byte
-                if(invalidByteProfile.profile(! StringSupport.MBCLEN_CHARFOUND_P(c))) {
+                if (invalidByteProfile.profile(!StringSupport.MBCLEN_CHARFOUND_P(c))) {
                     ++p;
                 } else {
                     p += StringSupport.MBCLEN_CHARFOUND_LEN(c);

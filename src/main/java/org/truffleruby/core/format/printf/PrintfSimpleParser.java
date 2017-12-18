@@ -275,7 +275,7 @@ public class PrintfSimpleParser {
     }
 
     private static void checkHash(Object[] arguments) {
-        if(arguments.length != 1  ||
+        if (arguments.length != 1 ||
             !RubyGuards.isRubyHash(arguments[0])) {
             throw new InvalidFormatException("one hash required");
         }

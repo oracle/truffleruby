@@ -660,7 +660,7 @@ public class CoreExceptions {
         DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         DynamicObject exceptionClass = context.getCoreLibrary().getLoadErrorClass();
         DynamicObject loadError = ExceptionOperations.createRubyException(context, exceptionClass, messageString, currentNode, null);
-        if("openssl.so".equals(path)){
+        if ("openssl.so".equals(path)) {
             // This is a workaround for the rubygems/security.rb file expecting the error path to be openssl
             path = "openssl";
         }

@@ -77,9 +77,9 @@ public class PrintfSimpleTreeBuilder {
                 }
 
                 final FormatNode precisionNode;
-                if(config.isPrecisionStar()){
+                if (config.isPrecisionStar()) {
                     precisionNode = ReadIntegerNodeGen.create(new SourceNode());
-                }  else if(config.isPrecisionArg()){
+                } else if (config.isPrecisionArg()) {
                     precisionNode = ReadArgumentIndexValueNodeGen.create(config.getPrecision(), new SourceNode());
                 } else {
                     precisionNode = new LiteralFormatNode(config.getPrecision() == null ? -1 : config.getPrecision());
@@ -110,7 +110,7 @@ public class PrintfSimpleTreeBuilder {
                                 throw new UnsupportedOperationException();
                         }
 
-                        if(config.getFormat() == 'b' || config.getFormat() == 'B'){
+                        if (config.getFormat() == 'b' || config.getFormat() == 'B') {
                             node = WriteBytesNodeGen.create(
                                 FormatIntegerBinaryNodeGen.create(format,
                                     config.isPlus(), config.isFsharp(),
@@ -161,7 +161,7 @@ public class PrintfSimpleTreeBuilder {
                                 final String conversionMethodName = config.getFormat() == 's' ? "to_s" : "inspect";
                                 final FormatNode conversionNode;
 
-                                if(config.getAbsoluteArgumentIndex() == null && config.getNamesBytes() == null) {
+                                if (config.getAbsoluteArgumentIndex() == null && config.getNamesBytes() == null) {
                                     conversionNode = ReadStringNodeGen.create(true, conversionMethodName, false, EMPTY_BYTES, new SourceNode());
                                 } else {
                                     conversionNode = ToStringNodeGen.create(true, conversionMethodName, false, EMPTY_BYTES, valueNode);

@@ -80,7 +80,7 @@ public abstract class ReadMIMEStringNode extends FormatNode {
             int c = safeGet(encode);
 
             if (c != '=') {
-                lElem[index++] = (byte)c;
+                lElem[index++] = (byte) c;
             } else {
                 if (!encode.hasRemaining()) {
                     break;

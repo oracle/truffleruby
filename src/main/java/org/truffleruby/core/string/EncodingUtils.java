@@ -87,7 +87,7 @@ public class EncodingUtils {
         boolean hasLower = false;
         if (enc.isUpper(code)) {
             hasUpper = true;
-            while (++s < end && (enc.isAlnum(name[s] & 0xff) || name[s] == (byte)'_')) {
+            while (++s < end && (enc.isAlnum(name[s] & 0xff) || name[s] == (byte) '_')) {
                 if (enc.isLower(name[s] & 0xff)) hasLower = true;
             }
         }
@@ -115,7 +115,9 @@ public class EncodingUtils {
             if (!isValid) {
                 if (enc.isLower(code)) constName[s] = AsciiTables.ToUpperCaseTable[code];
                 for (; s < constName.length; ++s) {
-                    if (!enc.isAlnum(constName[s] & 0xff)) constName[s] = (byte)'_';
+                    if (!enc.isAlnum(constName[s] & 0xff)) {
+                        constName[s] = (byte) '_';
+                    }
                 }
                 if (hasUpper) {
                     names.add(new String(constName, 0, constName.length));
@@ -233,7 +235,7 @@ public class EncodingUtils {
 
         if (encAsciicompat(enc)) {
             c = pBytes[p] & 0xFF;
-            if (!Encoding.isAscii((byte)c)) {
+            if (!Encoding.isAscii((byte) c)) {
                 return -1;
             }
             if (len != null) len[0] = 1;

@@ -60,7 +60,7 @@ public class JavaUtilitiesNodes {
                     if (nil().equals(classLoader)) {
                         classLoader = null;
                     }
-                    Class<?> klass =  Class.forName(name, true, (ClassLoader)classLoader);
+                    Class<?> klass = Class.forName(name, true, (ClassLoader) classLoader);
                     return klass;
                 } catch (Exception e) {
                     errorProfile.enter();
@@ -168,11 +168,11 @@ public class JavaUtilitiesNodes {
 
             Class<?>[] interfaces = new Class<?>[rest.length];
             for (int i = 0; i < rest.length; i++) {
-                interfaces[i] = (Class<?>)rest[i];
+                interfaces[i] = (Class<?>) rest[i];
             }
             ClassLoader cl;
             if (loader instanceof ClassLoader) {
-                cl = (ClassLoader)loader;
+                cl = (ClassLoader) loader;
             } else if (loader == nil()) {
                 cl = null;
             } else {

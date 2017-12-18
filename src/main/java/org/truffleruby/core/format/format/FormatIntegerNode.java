@@ -46,7 +46,7 @@ public abstract class FormatIntegerNode extends FormatNode {
 
     private static final BigInteger BIG_32 = BigInteger.valueOf((Integer.MAX_VALUE + 1L) << 1);
     private static final BigInteger BIG_64 = BIG_32.shiftLeft(32);
-    private static final BigInteger BIG_MINUS_32 = BigInteger.valueOf((long)Integer.MIN_VALUE << 1);
+    private static final BigInteger BIG_MINUS_32 = BigInteger.valueOf((long) Integer.MIN_VALUE << 1);
     private static final BigInteger BIG_MINUS_64 = BIG_MINUS_32.shiftLeft(32);
 
     private final char format;

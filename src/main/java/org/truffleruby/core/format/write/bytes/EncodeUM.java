@@ -76,11 +76,12 @@ public class EncodeUM {
         for (int i = 0; i < lCurElemString.length; i += occurrences) {
             encodes(runtime, result, charsToEncode,
                     i, lCurElemString.length - i,
-                    occurrences, (byte)type, true);
+                    occurrences, (byte) type, true);
         }
     }
 
-    private static ByteArrayBuilder encodes(Object runtime, ByteArrayBuilder io2Append,byte[]charsToEncode, int startIndex, int length, int charCount, byte encodingType, boolean tailLf) {
+    private static ByteArrayBuilder encodes(Object runtime, ByteArrayBuilder io2Append, byte[] charsToEncode,
+            int startIndex, int length, int charCount, byte encodingType, boolean tailLf) {
         charCount = charCount < length ? charCount : length;
 
         io2Append.unsafeEnsureSpace(charCount * 4 / 3 + 6);

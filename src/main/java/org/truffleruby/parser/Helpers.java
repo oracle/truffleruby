@@ -82,11 +82,11 @@ public class Helpers {
                 ParseNode optNode = args[optIndex + i];
                 String name = null;
                 if (optNode instanceof OptArgParseNode) {
-                    name = ((OptArgParseNode)optNode).getName();
+                    name = ((OptArgParseNode) optNode).getName();
                 } else if (optNode instanceof LocalAsgnParseNode) {
-                    name = ((LocalAsgnParseNode)optNode).getName();
+                    name = ((LocalAsgnParseNode) optNode).getName();
                 } else if (optNode instanceof DAsgnParseNode) {
-                    name = ((DAsgnParseNode)optNode).getName();
+                    name = ((DAsgnParseNode) optNode).getName();
                 } else {
                     type = ArgumentType.anonopt;
                 }
@@ -111,7 +111,7 @@ public class Helpers {
                 if (postNode instanceof MultipleAsgnParseNode) {
                     descs.add(new ArgumentDescriptor(ArgumentType.anonreq));
                 } else {
-                    descs.add(new ArgumentDescriptor(ArgumentType.req, ((ArgumentParseNode)postNode).getName()));
+                    descs.add(new ArgumentDescriptor(ArgumentType.req, ((ArgumentParseNode) postNode).getName()));
                 }
             }
         }

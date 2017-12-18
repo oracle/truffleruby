@@ -79,7 +79,7 @@ public class ISO_8859_16 extends Charset {
         static {
             TABLE = new char[256];
             for (int i = 0; i < 256; i++) {
-                TABLE[i] = (char)i;
+                TABLE[i] = (char) i;
             }
             TABLE[0xA1] = '\u0104';
             TABLE[0xA2] = '\u0105';
@@ -123,7 +123,7 @@ public class ISO_8859_16 extends Charset {
 
     private static class Encoder extends CharsetEncoder {
         Encoder(Charset charset) {
-            super(charset, 1.0f, 1.0f, new byte[]{(byte)'?'});
+            super(charset, 1.0f, 1.0f, new byte[]{ (byte) '?' });
         }
 
         @Override
@@ -135,46 +135,46 @@ public class ISO_8859_16 extends Charset {
                 byte b = 0;
                 byte[] replace = null;
                 switch (c) {
-                    case '\u0104': b = (byte)0xA1; break;
-                    case '\u0105': b = (byte)0xA2; break;
-                    case '\u0141': b = (byte)0xA3; break;
-                    case '\u20AC': b = (byte)0xA4; break;
-                    case '\u201E': b = (byte)0xA5; break;
-                    case '\u0160': b = (byte)0xA6; break;
-                    case '\u0161': b = (byte)0xA8; break;
-                    case '\u0218': b = (byte)0xAA; break;
-                    case '\u0179': b = (byte)0xAC; break;
-                    case '\u017A': b = (byte)0xAE; break;
-                    case '\u017B': b = (byte)0xAF; break;
+                    case '\u0104': b = (byte) 0xA1; break;
+                    case '\u0105': b = (byte) 0xA2; break;
+                    case '\u0141': b = (byte) 0xA3; break;
+                    case '\u20AC': b = (byte) 0xA4; break;
+                    case '\u201E': b = (byte) 0xA5; break;
+                    case '\u0160': b = (byte) 0xA6; break;
+                    case '\u0161': b = (byte) 0xA8; break;
+                    case '\u0218': b = (byte) 0xAA; break;
+                    case '\u0179': b = (byte) 0xAC; break;
+                    case '\u017A': b = (byte) 0xAE; break;
+                    case '\u017B': b = (byte) 0xAF; break;
 
-                    case '\u010C': b = (byte)0xB2; break;
-                    case '\u0142': b = (byte)0xB3; break;
-                    case '\u017D': b = (byte)0xB4; break;
-                    case '\u201D': b = (byte)0xB5; break;
-                    case '\u017E': b = (byte)0xB8; break;
-                    case '\u010D': b = (byte)0xB9; break;
-                    case '\u0219': b = (byte)0xBA; break;
-                    case '\u0152': b = (byte)0xBC; break;
-                    case '\u0153': b = (byte)0xBD; break;
-                    case '\u0178': b = (byte)0xBE; break;
-                    case '\u017C': b = (byte)0xBF; break;
+                    case '\u010C': b = (byte) 0xB2; break;
+                    case '\u0142': b = (byte) 0xB3; break;
+                    case '\u017D': b = (byte) 0xB4; break;
+                    case '\u201D': b = (byte) 0xB5; break;
+                    case '\u017E': b = (byte) 0xB8; break;
+                    case '\u010D': b = (byte) 0xB9; break;
+                    case '\u0219': b = (byte) 0xBA; break;
+                    case '\u0152': b = (byte) 0xBC; break;
+                    case '\u0153': b = (byte) 0xBD; break;
+                    case '\u0178': b = (byte) 0xBE; break;
+                    case '\u017C': b = (byte) 0xBF; break;
 
-                    case '\u0102': b = (byte)0xC3; break;
-                    case '\u0106': b = (byte)0xC5; break;
+                    case '\u0102': b = (byte) 0xC3; break;
+                    case '\u0106': b = (byte) 0xC5; break;
 
-                    case '\u0110': b = (byte)0xD1; break;
-                    case '\u0143': b = (byte)0xD2; break;
-                    case '\u0150': b = (byte)0xD5; break;
-                    case '\u015A': b = (byte)0xD7; break;
-                    case '\u0170': b = (byte)0xD8; break;
-                    case '\u0118': b = (byte)0xDD; break;
-                    case '\u021A': b = (byte)0xDE; break;
+                    case '\u0110': b = (byte) 0xD1; break;
+                    case '\u0143': b = (byte) 0xD2; break;
+                    case '\u0150': b = (byte) 0xD5; break;
+                    case '\u015A': b = (byte) 0xD7; break;
+                    case '\u0170': b = (byte) 0xD8; break;
+                    case '\u0118': b = (byte) 0xDD; break;
+                    case '\u021A': b = (byte) 0xDE; break;
 
-                    case '\u0103': b = (byte)0xE3; break;
-                    case '\u0107': b = (byte)0xE5; break;
+                    case '\u0103': b = (byte) 0xE3; break;
+                    case '\u0107': b = (byte) 0xE5; break;
 
                     default:
-                        if (c < 256) b = (byte)c;
+                        if (c < 256) b = (byte) c;
                         else replace = replacement();
                 }
 

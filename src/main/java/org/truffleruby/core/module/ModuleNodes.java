@@ -671,7 +671,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         public boolean isClassVariableDefinedString(DynamicObject module, String name) {
-            SymbolTable.checkClassVariableName(getContext(), name,module, this);
+            SymbolTable.checkClassVariableName(getContext(), name, module, this);
 
             final Object value = ModuleOperations.lookupClassVariable(module, name);
 
@@ -695,7 +695,7 @@ public abstract class ModuleNodes {
         @Specialization
         @TruffleBoundary(transferToInterpreterOnException = false)
         public Object getClassVariable(DynamicObject module, String name) {
-            SymbolTable.checkClassVariableName(getContext(), name,module, this);
+            SymbolTable.checkClassVariableName(getContext(), name, module, this);
 
             final Object value = ModuleOperations.lookupClassVariable(module, name);
 
@@ -724,7 +724,7 @@ public abstract class ModuleNodes {
         @Specialization
         @TruffleBoundary(transferToInterpreterOnException = false)
         public Object setClassVariable(DynamicObject module, String name, Object value) {
-            SymbolTable.checkClassVariableName(getContext(), name,module, this);
+            SymbolTable.checkClassVariableName(getContext(), name, module, this);
 
             ModuleOperations.setClassVariable(getContext(), module, name, value, this);
 
@@ -1664,7 +1664,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         public Object removeClassVariableString(DynamicObject module, String name) {
-            SymbolTable.checkClassVariableName(getContext(), name,module, this);
+            SymbolTable.checkClassVariableName(getContext(), name, module, this);
             return ModuleOperations.removeClassVariable(Layouts.MODULE.getFields(module), getContext(), this, name);
         }
 

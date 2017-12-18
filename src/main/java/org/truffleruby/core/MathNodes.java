@@ -85,7 +85,7 @@ public abstract class MathNodes {
                 throw new RaiseException(coreExceptions().mathDomainErrorAcosh(this));
             } else if (a < 94906265.62) {
                 return Math.log(a + Math.sqrt(a * a - 1.0));
-            } else{
+            } else {
                 return 0.69314718055994530941723212145818 + Math.log(a);
             }
         }

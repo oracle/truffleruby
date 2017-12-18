@@ -154,7 +154,7 @@ public class IntHashMap<V> {
         Entry<V>[] tab = table;
         int hash = key;
         int index = (hash & 0x7FFFFFFF) % tab.length;
-        for(Entry<V> e = tab[index]; e != null; e = e.next) {
+        for (Entry<V> e = tab[index]; e != null; e = e.next) {
             if (e.hash == hash) {
                 return e;
             }
@@ -226,8 +226,8 @@ public class IntHashMap<V> {
 			Entry<V>[] t = table;
 			int i = t.length;
 			Entry<V> n = null;
-			if(count != 0) { // advance to first entry
-				while (i > 0 && (n = t[--i]) == null) {
+            if (count != 0) { // advance to first entry
+                while (i > 0 && (n = t[--i]) == null) {
 				}
 			}
 			next = n;
@@ -241,13 +241,13 @@ public class IntHashMap<V> {
 
 		Entry<V> nextEntry() {
 			Entry<V> e = next;
-			if(e == null) {
+            if (e == null) {
 				throw new NoSuchElementException();
 			}
 			Entry<V> n = e.next;
 			Entry<V>[] t = table;
 			int i = index;
-			while(n == null && i > 0) {
+            while (n == null && i > 0) {
 				n = t[--i];
 			}
 			index = i;

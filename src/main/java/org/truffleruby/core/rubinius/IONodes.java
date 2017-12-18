@@ -160,11 +160,11 @@ public abstract class IONodes {
         }
 
         private static boolean isdirsep(byte c) {
-            return isdirsep((char)(c & 0xFF));
+            return isdirsep((char) (c & 0xFF));
         }
 
         private static int rb_path_next(byte[] _s, int s, int send) {
-            while(s < send && !isdirsep(_s[s])) {
+            while (s < send && !isdirsep(_s[s])) {
                 s++;
             }
             return s;
@@ -180,55 +180,56 @@ public abstract class IONodes {
             boolean period = (flags & FNM_DOTMATCH) == 0;
             boolean nocase = (flags & FNM_CASEFOLD) != 0;
 
-            while(pat<pend) {
-                char c = (char)(bytes[pat++] & 0xFF);
+            while (pat < pend) {
+                char c = (char) (bytes[pat++] & 0xFF);
                 switch(c) {
                     case '?':
-                        if(s >= send || (pathname && isdirsep(string[s])) ||
+                        if (s >= send || (pathname && isdirsep(string[s])) ||
                                 (period && string[s] == '.' && (s == 0 || (pathname && isdirsep(string[s-1]))))) {
                             return FNM_NOMATCH;
                         }
                         s++;
                         break;
                     case '*':
-                        while(pat < pend && (c = (char)(bytes[pat++] & 0xFF)) == '*') {}
-                        if(s < send && (period && string[s] == '.' && (s == 0 || (pathname && isdirsep(string[s-1]))))) {
+                        while (pat < pend && (c = (char) (bytes[pat++] & 0xFF)) == '*') {
+                        }
+                        if (s < send && (period && string[s] == '.' && (s == 0 || (pathname && isdirsep(string[s - 1]))))) {
                             return FNM_NOMATCH;
                         }
-                        if(pat > pend || (pat == pend && c == '*')) {
-                            if(pathname && rb_path_next(string, s, send) < send) {
+                        if (pat > pend || (pat == pend && c == '*')) {
+                            if (pathname && rb_path_next(string, s, send) < send) {
                                 return FNM_NOMATCH;
                             } else {
                                 return 0;
                             }
-                        } else if((pathname && isdirsep(c))) {
+                        } else if ((pathname && isdirsep(c))) {
                             s = rb_path_next(string, s, send);
-                            if(s < send) {
+                            if (s < send) {
                                 s++;
                                 break;
                             }
                             return FNM_NOMATCH;
                         }
-                        test = (char)(escape && c == '\\' && pat < pend ? (bytes[pat] & 0xFF) : c);
+                        test = (char) (escape && c == '\\' && pat < pend ? (bytes[pat] & 0xFF) : c);
                         test = Character.toLowerCase(test);
                         pat--;
-                        while(s < send) {
-                            if((c == '?' || c == '[' || Character.toLowerCase((char) string[s]) == test) &&
+                        while (s < send) {
+                            if ((c == '?' || c == '[' || Character.toLowerCase((char) string[s]) == test) &&
                                     fnmatch(bytes, pat, pend, string, s, send, flags | FNM_DOTMATCH) == 0) {
                                 return 0;
-                            } else if((pathname && isdirsep(string[s]))) {
+                            } else if ((pathname && isdirsep(string[s]))) {
                                 break;
                             }
                             s++;
                         }
                         return FNM_NOMATCH;
                     case '[':
-                        if(s >= send || (pathname && isdirsep(string[s]) ||
+                        if (s >= send || (pathname && isdirsep(string[s]) ||
                                 (period && string[s] == '.' && (s == 0 || (pathname && isdirsep(string[s-1])))))) {
                             return FNM_NOMATCH;
                         }
-                        pat = range(bytes, pat, pend, (char)(string[s]&0xFF), flags);
-                        if(pat == -1) {
+                        pat = range(bytes, pat, pend, (char) (string[s] & 0xFF), flags);
+                        if (pat == -1) {
                             return FNM_NOMATCH;
                         }
                         s++;
@@ -238,22 +239,22 @@ public abstract class IONodes {
                             if (pat >= pend) {
                                 c = '\\';
                             } else {
-                                c = (char)(bytes[pat++] & 0xFF);
+                                c = (char) (bytes[pat++] & 0xFF);
                             }
                         }
                     default:
-                        if(s >= send) {
+                        if (s >= send) {
                             return FNM_NOMATCH;
                         }
-                        if(DOSISH && (pathname && isdirsep(c) && isdirsep(string[s]))) {
+                        if (DOSISH && (pathname && isdirsep(c) && isdirsep(string[s]))) {
                         } else {
                             if (nocase) {
-                                if(Character.toLowerCase(c) != Character.toLowerCase((char)string[s])) {
+                                if (Character.toLowerCase(c) != Character.toLowerCase((char) string[s])) {
                                     return FNM_NOMATCH;
                                 }
 
                             } else {
-                                if(c != (char)(string[s] & 0xFF)) {
+                                if (c != (char) (string[s] & 0xFF)) {
                                     return FNM_NOMATCH;
                                 }
                             }
@@ -348,7 +349,7 @@ public abstract class IONodes {
             boolean escape = (flags & FNM_NOESCAPE) == 0;
 
             not = _pat[pat] == '!' || _pat[pat] == '^';
-            if(not) {
+            if (not) {
                 pat++;
             }
 
@@ -356,25 +357,25 @@ public abstract class IONodes {
                 test = Character.toLowerCase(test);
             }
 
-            while(_pat[pat] != ']') {
+            while (_pat[pat] != ']') {
                 char cstart, cend;
-                if(escape && _pat[pat] == '\\') {
+                if (escape && _pat[pat] == '\\') {
                     pat++;
                 }
-                if(pat >= pend) {
+                if (pat >= pend) {
                     return -1;
                 }
-                cstart = cend = (char)(_pat[pat++]&0xFF);
-                if(_pat[pat] == '-' && _pat[pat+1] != ']') {
+                cstart = cend = (char) (_pat[pat++] & 0xFF);
+                if (_pat[pat] == '-' && _pat[pat + 1] != ']') {
                     pat++;
-                    if(escape && _pat[pat] == '\\') {
+                    if (escape && _pat[pat] == '\\') {
                         pat++;
                     }
-                    if(pat >= pend) {
+                    if (pat >= pend) {
                         return -1;
                     }
 
-                    cend = (char)(_pat[pat++] & 0xFF);
+                    cend = (char) (_pat[pat++] & 0xFF);
                 }
 
                 if (nocase) {

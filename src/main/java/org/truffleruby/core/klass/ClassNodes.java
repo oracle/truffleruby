@@ -42,7 +42,7 @@ public abstract class ClassNodes {
      */
     @TruffleBoundary
     public static DynamicObject createClassClass(RubyContext context, SourceSection sourceSection) {
-        final ModuleFields model = new ModuleFields(context, sourceSection,null, "Class");
+        final ModuleFields model = new ModuleFields(context, sourceSection, null, "Class");
         model.setFullName(model.givenBaseName);
 
         final DynamicObjectFactory tempFactory = Layouts.CLASS.createClassShape(null, null);

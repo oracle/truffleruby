@@ -156,7 +156,7 @@ public class DynamicScope {
     }
 
     private void allocate() {
-        if(variableValues == null) {
+        if (variableValues == null) {
             int size = staticScope.getNumberOfVariables();
             variableValues = new Object[size];
         }

@@ -277,7 +277,7 @@ public class TranscodingManager {
         // Taken from org.jcodings.transcode.EConv#decorateAtLast.
 
         if (ec.numTranscoders == 0) {
-            return decorateAt(ec,decorator, 0);
+            return decorateAt(ec, decorator, 0);
         }
 
         final Transcoder transcoder = ec.elements[ec.numTranscoders - 1].transcoding.transcoder;

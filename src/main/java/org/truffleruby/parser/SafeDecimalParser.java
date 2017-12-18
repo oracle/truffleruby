@@ -93,7 +93,7 @@ class SafeDecimalParser {
         double result = 0;
         if (number != null) {
             if (number instanceof BigDecimal) {
-                result = decimalValue((BigDecimal)number);
+                result = decimalValue((BigDecimal) number);
             } else {
                 result = number.doubleValue();
             }
