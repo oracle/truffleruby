@@ -276,7 +276,7 @@ module Truffle::POSIX
     fd = io.descriptor
     errno = 1
     until errno == 0
-      (res, errno) = read_string(fd, count)
+      res, errno = read_string(fd, count)
       return res if errno == 0
       if [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno].include? errno
         IO.select([io])
@@ -288,14 +288,14 @@ module Truffle::POSIX
 
   def self.read_string_no_retry(io, count)
     fd = io.descriptor
-    (res, errno) = read_string(fd, count)
+    res, errno = read_string(fd, count)
     Errno.handle unless errno == 0
     res
   end
 
   def self.read_string_nonblock(io, count)
     fd = io.descriptor
-    (written, errno) = read_string(fd, count)
+    written, errno = read_string(fd, count)
     if [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno].include? errno
       raise IO::EAGAINWaitReadable
     end
@@ -320,7 +320,7 @@ module Truffle::POSIX
     written = 0
     errno = 1
     until errno == 0
-      (written, errno) = write_string(fd, string, written)
+      written, errno = write_string(fd, string, written)
       return written if errno == 0
       if [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno].include? errno
         IO.select([], [io])
@@ -332,14 +332,14 @@ module Truffle::POSIX
 
   def self.write_string_no_retry(io, string)
     fd = io.descriptor
-    (written, errno) = write_string(fd, string)
+    written, errno = write_string(fd, string)
     Errno.handle unless errno == 0
     written
   end
 
   def self.write_string_nonblock(io, string)
     fd = io.descriptor
-    (written, errno) = write_string(fd, string, 0, true)
+    written, errno = write_string(fd, string, 0, true)
     if [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno].include? errno
       raise IO::EAGAINWaitWritable
     end
