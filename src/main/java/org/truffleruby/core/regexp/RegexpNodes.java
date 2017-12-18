@@ -491,7 +491,7 @@ public abstract class RegexpNodes {
 
         public abstract DynamicObject executeSetLastMatch(VirtualFrame frame, Object matchData);
 
-        @Specialization(guards = "isSuitableMatchDataType(getContext(), matchData)" )
+        @Specialization(guards = "isSuitableMatchDataType(getContext(), matchData)")
         public DynamicObject setLastMatchData(VirtualFrame frame, DynamicObject matchData) {
             if (threadLocalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();

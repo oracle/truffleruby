@@ -44,7 +44,7 @@
     <!--<module name="NoWhitespaceBefore">-->
       <!--<property name="tokens" value="SEMI,DOT,POST_DEC,POST_INC"/>-->
     <!--</module>-->
-    <!--<module name="ParenPad"/>-->
+    <module name="ParenPad"/>
     <module name="TypecastParenPad">
       <property name="tokens" value="RPAREN,TYPECAST"/>
     </module>
