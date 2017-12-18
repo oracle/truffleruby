@@ -229,7 +229,7 @@ public abstract class FormatIntegerNode extends FormatNode {
                 buf.append(leadChar, precision - len - 1);
             }
         } else if (leadChar != 0) {
-            if ( "xXbBo".indexOf(fchar) != -1) {
+            if ("xXbBo".indexOf(fchar) != -1) {
                 buf.append(PREFIX_NEGATIVE);
             }
             if (leadChar != '.') buf.append(leadChar);

@@ -675,7 +675,7 @@ public abstract class FormatFloatNode extends FormatNode {
             LOCALE_NUMBER_FORMATS.set(numberFormats);
         }
         NumberFormat format = numberFormats.get(locale);
-        if ( format == null ) {
+        if (format == null) {
             format = NumberFormat.getNumberInstance(locale);
             numberFormats.put(locale, format);
         }

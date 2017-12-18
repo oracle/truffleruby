@@ -641,7 +641,7 @@ public class ConvertBytes {
             throw new IllegalArgumentException("shift value must be 1-4");
         }
         int ilen = in.length;
-        int olen = (ilen * 8 + shift - 1 ) / shift;
+        int olen = (ilen * 8 + shift - 1) / shift;
         byte[] out = new byte[olen];
         int mask = (1 << shift) - 1;
         byte[] digits = upper ? UPPER_DIGITS : LOWER_DIGITS;

@@ -908,7 +908,7 @@ public abstract class MathNodes {
         }
 
         private static int signum(final double x, final double int_part) {
-            return ( (int_part % 2 == 0 && (x - int_part) != 0.0 && (x < 0)) || negZero(x) ) ? -1 : 1;
+            return ((int_part % 2 == 0 && (x - int_part) != 0.0 && (x < 0)) || negZero(x)) ? -1 : 1;
         }
 
         private static boolean negZero(final double x) {

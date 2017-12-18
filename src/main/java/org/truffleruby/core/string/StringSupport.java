@@ -463,7 +463,9 @@ public final class StringSupport {
         }
 
         if (first) {
-            for ( i = 0; i < TRANS_SIZE; i++) stable[i] = true;
+            for (i = 0; i < TRANS_SIZE; i++) {
+                stable[i] = true;
+            }
             stable[TRANS_SIZE] = cflag;
         }
         else if (stable[TRANS_SIZE] && !cflag) {
@@ -478,9 +480,9 @@ public final class StringSupport {
         int c;
         while ((c = trNext(tr, enc)) != -1) {
             if (c < TRANS_SIZE) {
-                if ( buf == null ) { // initialize buf
+                if (buf == null) { // initialize buf
                     buf = new byte[TRANS_SIZE];
-                    for ( i = 0; i < TRANS_SIZE; i++ ) {
+                    for (i = 0; i < TRANS_SIZE; i++) {
                         buf[i] = (byte) (cflag ? 1 : 0);
                     }
                 }
@@ -488,8 +490,8 @@ public final class StringSupport {
                 buf[c & 0xff] = (byte) (cflag ? 0 : 1);
             }
             else {
-                if ( table == null && (first || tables.del != null || stable[TRANS_SIZE]) ) {
-                    if ( cflag ) {
+                if (table == null && (first || tables.del != null || stable[TRANS_SIZE])) {
+                    if (cflag) {
                         ptable = tables.noDel;
                         table = ptable != null ? ptable : new IntHashMap<>(8);
                         tables.noDel = table;
@@ -501,12 +503,14 @@ public final class StringSupport {
                     }
                 }
 
-                if ( table != null ) {
+                if (table != null) {
                     final int key = c;
-                    if ( ptable == null ) table.put(key, DUMMY_VALUE);
-                    else {
-                        if ( cflag ) table.put(key, DUMMY_VALUE);
-                        else {
+                    if (ptable == null) {
+                        table.put(key, DUMMY_VALUE);
+                    } else {
+                        if (cflag) {
+                            table.put(key, DUMMY_VALUE);
+                        } else {
                             final boolean val = ptable.get(key) != null;
                             table.put(key, val ? DUMMY_VALUE : null);
                         }
@@ -514,18 +518,20 @@ public final class StringSupport {
                 }
             }
         }
-        if ( buf != null ) {
-            for ( i = 0; i < TRANS_SIZE; i++ ) {
+        if (buf != null) {
+            for (i = 0; i < TRANS_SIZE; i++) {
                 stable[i] = stable[i] && buf[i] != 0;
             }
         }
         else {
-            for ( i = 0; i < TRANS_SIZE; i++ ) {
+            for (i = 0; i < TRANS_SIZE; i++) {
                 stable[i] = stable[i] && cflag;
             }
         }
 
-        if ( table == null && ! cflag ) tables.del = null;
+        if (table == null && !cflag) {
+            tables.del = null;
+        }
 
         return tables;
     }
@@ -550,11 +556,11 @@ public final class StringSupport {
 
     public static int trNext(final TR tr, Encoding enc) {
         for (;;) {
-            if ( ! tr.gen ) {
+            if (!tr.gen) {
                 return trNext_nextpart(tr, enc);
             }
 
-            while (enc.codeToMbcLength( ++tr.now ) <= 0) {
+            while (enc.codeToMbcLength(++tr.now) <= 0) {
                 if (tr.now == tr.max) {
                     tr.gen = false;
                     return trNext_nextpart(tr, enc);

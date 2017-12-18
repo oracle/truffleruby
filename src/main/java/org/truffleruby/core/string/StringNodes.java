@@ -3586,7 +3586,9 @@ public abstract class StringNodes {
 
             for (; p < l; p += c, ++index) {
                 c = StringSupport.preciseLength(enc, stringBytes, p, e);
-                if ( !StringSupport.MBCLEN_CHARFOUND_P(c)) return nil();
+                if (!StringSupport.MBCLEN_CHARFOUND_P(c)) {
+                    return nil();
+                }
                 if (ArrayUtils.memcmp(stringBytes, p, patternBytes, 0, pe) == 0) {
                     return index;
                 }

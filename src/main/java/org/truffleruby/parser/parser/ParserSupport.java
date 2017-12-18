@@ -624,7 +624,7 @@ public class ParserSupport {
             for (int i = 0; i < blockNode.size(); i++) {
                 ParseNode currentNode = blockNode.get(i);
 
-                if (lastNode != currentNode ) {
+                if (lastNode != currentNode) {
                     checkUselessStatement(currentNode);
                 }
             }
