@@ -121,7 +121,9 @@ public class ParserConfiguration {
      * @return correct top scope for source to be parsed
      */
     public DynamicScope getScope(String file) {
-        if (asBlock) return existingScope;
+        if (asBlock) {
+            return existingScope;
+        }
 
         // FIXME: We should really not be creating the dynamic scope for the root
         // of the AST before parsing.  This makes us end up needing to readjust

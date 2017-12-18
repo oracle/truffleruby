@@ -184,7 +184,9 @@ public class StringTerm extends StrTerm {
             spaceSeen = true;
         }
 
-        if (c == end && nest == 0) return endFound(lexer);
+        if (c == end && nest == 0) {
+            return endFound(lexer);
+        }
 
         if (spaceSeen) {
             lexer.pushback(c);
@@ -197,7 +199,9 @@ public class StringTerm extends StrTerm {
         if ((flags & STR_FUNC_EXPAND) != 0 && c == '#') {
             int token = parsePeekVariableName(lexer);
 
-            if (token != 0) return token;
+            if (token != 0) {
+                return token;
+            }
         }
         lexer.pushback(c);
 
@@ -301,13 +305,19 @@ public class StringTerm extends StrTerm {
                 c = lexer.nextc();
                 switch (c) {
                 case '\n':
-                    if (qwords) break;
-                    if (expand) continue;
+                    if (qwords) {
+                        break;
+                    }
+                    if (expand) {
+                        continue;
+                    }
                     buffer.append('\\');
                     break;
 
                 case '\\':
-                    if (escape) buffer.append(c);
+                    if (escape) {
+                        buffer.append(c);
+                    }
                     break;
 
                 case 'u':
@@ -328,10 +338,14 @@ public class StringTerm extends StrTerm {
 
                     continue;
                 default:
-                    if (c == EOF) return EOF;
+                    if (c == EOF) {
+                        return EOF;
+                    }
 
                     if (!lexer.isASCII(c)) {
-                        if (!expand) buffer.append('\\');
+                        if (!expand) {
+                            buffer.append('\\');
+                        }
 
                         // goto non_ascii
                         hasNonAscii = true;
@@ -365,7 +379,9 @@ public class StringTerm extends StrTerm {
                         continue;
                     } else if (expand) {
                         lexer.pushback(c);
-                        if (escape) buffer.append('\\');
+                        if (escape) {
+                            buffer.append('\\');
+                        }
                         c = lexer.readEscape();
                     } else if (qwords && Character.isWhitespace(c)) {
                         /* ignore backslashed spaces in %w */
@@ -499,7 +515,9 @@ public class StringTerm extends StrTerm {
         case EOF:
             lexer.compile_error("Invalid escape character syntax");
         default:
-            if (c != '\\' || c != end) buffer.append('\\');
+            if (c != '\\' || c != end) {
+                buffer.append('\\');
+            }
 
             buffer.append(c);
         }

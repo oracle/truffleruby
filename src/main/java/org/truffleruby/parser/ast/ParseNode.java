@@ -113,7 +113,9 @@ public abstract class ParseNode {
         ArrayList<ParseNode> list = new ArrayList<>(nodes.length);
         
         for (ParseNode node: nodes) {
-            if (node != null) list.add(node);
+            if (node != null) {
+                list.add(node);
+            }
         }
         
         return list;
@@ -125,27 +127,41 @@ public abstract class ParseNode {
     }
 
     public String toString(boolean indent, int indentation) {
-        if (this instanceof InvisibleNode) return "";
+        if (this instanceof InvisibleNode) {
+            return "";
+        }
 
         StringBuilder builder = new StringBuilder(60);
 
-        if (indent) indent(indentation, builder);
+        if (indent) {
+            indent(indentation, builder);
+        }
 
         builder.append("(").append(getNodeName());
 
         String moreState = toStringInternal();
 
-        if (moreState != null) builder.append("[").append(moreState).append("]");
+        if (moreState != null) {
+            builder.append("[").append(moreState).append("]");
+        }
 
-        if (this instanceof INameNode) builder.append(":").append(((INameNode) this).getName());
+        if (this instanceof INameNode) {
+            builder.append(":").append(((INameNode) this).getName());
+        }
 
-        if (!childNodes().isEmpty() && indent) builder.append("\n");
+        if (!childNodes().isEmpty() && indent) {
+            builder.append("\n");
+        }
 
         for (ParseNode child : childNodes()) {
-            if (!indent) builder.append(", ");
+            if (!indent) {
+                builder.append(", ");
+            }
 
             if (child == null) {
-                if (indent) indent(indentation + 1, builder);
+                if (indent) {
+                    indent(indentation + 1, builder);
+                }
 
                 builder.append("null");
             } else {
@@ -158,10 +174,14 @@ public abstract class ParseNode {
                 }
             }
 
-            if (indent) builder.append("\n");
+            if (indent) {
+                builder.append("\n");
+            }
         }
 
-        if (!childNodes().isEmpty() && indent) indent(indentation, builder);
+        if (!childNodes().isEmpty() && indent) {
+            indent(indentation, builder);
+        }
 
         builder.append(")");
 

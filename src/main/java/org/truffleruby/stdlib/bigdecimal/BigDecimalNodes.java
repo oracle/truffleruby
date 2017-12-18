@@ -805,11 +805,17 @@ public abstract class BigDecimalNodes {
         private static BigDecimal bigSqrt(BigDecimal squarD, MathContext rootMC) {
             // General number and precision checking
             int sign = squarD.signum();
-            if (sign == -1) throw new ArithmeticException("Square root of a negative number: " + squarD);
-            if (sign == 0) return squarD.round(rootMC);
+            if (sign == -1) {
+                throw new ArithmeticException("Square root of a negative number: " + squarD);
+            }
+            if (sign == 0) {
+                return squarD.round(rootMC);
+            }
 
             int prec = rootMC.getPrecision();           // the requested precision
-            if (prec == 0) throw new IllegalArgumentException("Most roots won't have infinite precision = 0");
+            if (prec == 0) {
+                throw new IllegalArgumentException("Most roots won't have infinite precision = 0");
+            }
 
             // Initial precision is that of double numbers 2^63/2 ~ 4E18
             int BITS = 62;                              // 63-1 an even number of number bits
@@ -827,14 +833,18 @@ public abstract class BigDecimalNodes {
 
             int scale = squarD.scale();
             assert scale >= 0 : "unexpected negative scale";
-            if (scale % 2 != 0) root *= SQRT_10; // 5 -> 2, -5 -> -3 need half a scale more..
+            if (scale % 2 != 0) {
+                root *= SQRT_10; // 5 -> 2, -5 -> -3 need half a scale more..
+            }
 
             scale = (int) Math.ceil(scale / 2.); // ..where 100 -> 10 shifts the scale
 
             // Initial x - use double root - multiply by halfBack to unshift - set new scale
             BigDecimal x = new BigDecimal(root, nMC);
             x = x.multiply(halfBack, nMC);              // x0 ~ sqrt()
-            if (scale != 0) x = x.movePointLeft(scale);
+            if (scale != 0) {
+                x = x.movePointLeft(scale);
+            }
 
             if (prec < nInit) {                // for prec 15 root x0 must surely be OK
                 return x.round(rootMC);        // return small prec roots without iterations

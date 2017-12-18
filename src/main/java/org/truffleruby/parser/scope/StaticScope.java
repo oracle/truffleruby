@@ -126,7 +126,9 @@ public class StaticScope {
         for (String name : names) {
             // Note that this object equality check is intentional, to ensure
             // the string and its interned version are the same object.
-            if (name != name.intern()) return false;
+            if (name != name.intern()) {
+                return false;
+            }
         }
         return true;
     }
@@ -148,7 +150,9 @@ public class StaticScope {
 
         int slot = exists(name);
 
-        if (slot >= 0) return slot;
+        if (slot >= 0) {
+            return slot;
+        }
 
         // This is perhaps inefficient timewise?  Optimal spacewise
         growVariableNames(name);
@@ -181,7 +185,9 @@ public class StaticScope {
     public int addVariable(String name) {
         int slot = isDefined(name);
 
-        if (slot >= 0) return slot;
+        if (slot >= 0) {
+            return slot;
+        }
 
         // This is perhaps inefficient timewise?  Optimal spacewise
         growVariableNames(name);
@@ -231,7 +237,9 @@ public class StaticScope {
 
     private int findVariableName(String name) {
         for (int i = 0; i < variableNames.length; i++) {
-            if (name == variableNames[i]) return i;
+            if (name == variableNames[i]) {
+                return i;
+            }
         }
         return -1;
     }
@@ -261,7 +269,9 @@ public class StaticScope {
     public int isDefined(String name, int depth) {
         if (isBlockOrEval) {
             int slot = exists(name);
-            if (slot >= 0) return (depth << 16) | slot;
+            if (slot >= 0) {
+                return (depth << 16) | slot;
+            }
 
             return enclosingScope.isDefined(name, depth + 1);
         } else {

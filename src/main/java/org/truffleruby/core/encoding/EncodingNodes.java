@@ -263,19 +263,31 @@ public abstract class EncodingNodes {
             final Encoding firstEncoding = firstRope.getEncoding();
             final Encoding secondEncoding = secondRope.getEncoding();
 
-            if (secondRope.isEmpty()) return firstEncoding;
+            if (secondRope.isEmpty()) {
+                return firstEncoding;
+            }
             if (firstRope.isEmpty()) {
                 return firstEncoding.isAsciiCompatible() && (secondRope.getCodeRange() == CodeRange.CR_7BIT) ? firstEncoding : secondEncoding;
             }
 
-            if (!firstEncoding.isAsciiCompatible() || !secondEncoding.isAsciiCompatible()) return null;
+            if (!firstEncoding.isAsciiCompatible() || !secondEncoding.isAsciiCompatible()) {
+                return null;
+            }
 
             if (firstRope.getCodeRange() != secondRope.getCodeRange()) {
-                if (firstRope.getCodeRange() == CodeRange.CR_7BIT) return secondEncoding;
-                if (secondRope.getCodeRange() == CodeRange.CR_7BIT) return firstEncoding;
+                if (firstRope.getCodeRange() == CodeRange.CR_7BIT) {
+                    return secondEncoding;
+                }
+                if (secondRope.getCodeRange() == CodeRange.CR_7BIT) {
+                    return firstEncoding;
+                }
             }
-            if (secondRope.getCodeRange() == CodeRange.CR_7BIT) return firstEncoding;
-            if (firstRope.getCodeRange() == CodeRange.CR_7BIT) return secondEncoding;
+            if (secondRope.getCodeRange() == CodeRange.CR_7BIT) {
+                return firstEncoding;
+            }
+            if (firstRope.getCodeRange() == CodeRange.CR_7BIT) {
+                return secondEncoding;
+            }
 
             return null;
         }
@@ -284,12 +296,20 @@ public abstract class EncodingNodes {
         protected static Encoding areCompatible(Encoding enc1, Encoding enc2) {
             assert enc1 != enc2;
 
-            if (enc1 == null || enc2 == null) return null;
+            if (enc1 == null || enc2 == null) {
+                return null;
+            }
 
-            if (!enc1.isAsciiCompatible() || !enc2.isAsciiCompatible()) return null;
+            if (!enc1.isAsciiCompatible() || !enc2.isAsciiCompatible()) {
+                return null;
+            }
 
-            if (enc2 instanceof USASCIIEncoding) return enc1;
-            if (enc1 instanceof USASCIIEncoding) return enc2;
+            if (enc2 instanceof USASCIIEncoding) {
+                return enc1;
+            }
+            if (enc1 instanceof USASCIIEncoding) {
+                return enc2;
+            }
 
             return null;
         }

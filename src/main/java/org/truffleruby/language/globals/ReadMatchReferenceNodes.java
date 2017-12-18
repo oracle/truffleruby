@@ -140,10 +140,11 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
 
             final Object[] values = getValues.execute(matchData);
 
-            for (int n = values.length - 1; n >= 0; n--)
+            for (int n = values.length - 1; n >= 0; n--) {
                 if (values[n] != nil()) {
                     return values[n];
                 }
+            }
 
             return nil();
         }

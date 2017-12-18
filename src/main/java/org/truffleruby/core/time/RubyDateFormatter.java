@@ -292,8 +292,9 @@ public abstract class RubyDateFormatter {
                         break;
                     case 'v':
                         addToPattern(compiledPattern, "e-");
-                        if (!dateLibrary)
+                        if (!dateLibrary) {
                             compiledPattern.add(Token.formatter(new RubyTimeOutputFormatter("^", 0)));
+                        }
                         addToPattern(compiledPattern, "b-Y");
                         break;
                     case 'Z':
@@ -575,8 +576,12 @@ public abstract class RubyDateFormatter {
                 break;
             case 3: // %:::z -> +hh[:mm[:ss]]
                 StringBuilder sb = new StringBuilder();
-                if (minutes != 0 || seconds != 0) sb.append(":").append(mm);
-                if (seconds != 0) sb.append(":").append(ss);
+                if (minutes != 0 || seconds != 0) {
+                    sb.append(":").append(mm);
+                }
+                if (seconds != 0) {
+                    sb.append(":").append(ss);
+                }
                 after = sb.toString();
                 defaultWidth = after.length() + 3;
                 break;
@@ -592,8 +597,9 @@ public abstract class RubyDateFormatter {
         width -= after.length();
         String before = RubyTimeOutputFormatter.formatSignedNumber(hours, width, padder);
 
-        if (value < 0 && hours == 0) // the formatter could not handle this case
+        if (value < 0 && hours == 0) { // the formatter could not handle this case
             before = before.replace('+', '-');
+        }
         return before + after;
     }
 

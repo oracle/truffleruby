@@ -81,14 +81,18 @@ public class EncodingUtils {
         int s = p;
 
         int code = name[s] & 0xff;
-        if (enc.isDigit(code)) return names;
+        if (enc.isDigit(code)) {
+            return names;
+        }
 
         boolean hasUpper = false;
         boolean hasLower = false;
         if (enc.isUpper(code)) {
             hasUpper = true;
             while (++s < end && (enc.isAlnum(name[s] & 0xff) || name[s] == (byte) '_')) {
-                if (enc.isLower(name[s] & 0xff)) hasLower = true;
+                if (enc.isLower(name[s] & 0xff)) {
+                    hasLower = true;
+                }
             }
         }
 
@@ -102,8 +106,12 @@ public class EncodingUtils {
             if (!hasLower || !hasUpper) {
                 do {
                     code = name[s] & 0xff;
-                    if (enc.isLower(code)) hasLower = true;
-                    if (enc.isUpper(code)) hasUpper = true;
+                    if (enc.isLower(code)) {
+                        hasLower = true;
+                    }
+                    if (enc.isUpper(code)) {
+                        hasUpper = true;
+                    }
                 } while (++s < end && (!hasLower || !hasUpper));
             }
 
@@ -113,7 +121,9 @@ public class EncodingUtils {
             code = constName[s] & 0xff;
 
             if (!isValid) {
-                if (enc.isLower(code)) constName[s] = AsciiTables.ToUpperCaseTable[code];
+                if (enc.isLower(code)) {
+                    constName[s] = AsciiTables.ToUpperCaseTable[code];
+                }
                 for (; s < constName.length; ++s) {
                     if (!enc.isAlnum(constName[s] & 0xff)) {
                         constName[s] = (byte) '_';
@@ -126,7 +136,9 @@ public class EncodingUtils {
             if (hasLower) {
                 for (s = 0; s < constName.length; ++s) {
                     code = constName[s] & 0xff;
-                    if (enc.isLower(code)) constName[s] = AsciiTables.ToUpperCaseTable[code];
+                    if (enc.isLower(code)) {
+                        constName[s] = AsciiTables.ToUpperCaseTable[code];
+                    }
                 }
                 names.add(new String(constName, 0, constName.length));
             }
@@ -172,7 +184,9 @@ public class EncodingUtils {
         // missing: if ptr string is inside str, off = ptr start minus str start
 
 //        str.modify();
-        if (len == 0) return;
+        if (len == 0) {
+            return;
+        }
 
         // much logic is missing here, since we don't manually manage the rope builder buffer
 
@@ -238,7 +252,9 @@ public class EncodingUtils {
             if (!Encoding.isAscii((byte) c)) {
                 return -1;
             }
-            if (len != null) len[0] = 1;
+            if (len != null) {
+                len[0] = 1;
+            }
             return c;
         }
         l = StringSupport.preciseLength(enc, pBytes, p, e);
@@ -249,20 +265,25 @@ public class EncodingUtils {
         if (!Encoding.isAscii(c)) {
             return -1;
         }
-        if (len != null) len[0] = l;
+        if (len != null) {
+            len[0] = l;
+        }
         return c;
     }
 
     // rb_enc_codepoint_len
     public static int encCodepointLength(byte[] pBytes, int p, int e, int[] len_p, Encoding enc) {
         int r;
-        if (e <= p)
+        if (e <= p) {
             throw new IllegalArgumentException("empty string");
+        }
         r = StringSupport.preciseLength(enc, pBytes, p, e);
         if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
             throw new IllegalArgumentException("invalid byte sequence in " + enc);
         }
-        if (len_p != null) len_p[0] = StringSupport.MBCLEN_CHARFOUND_LEN(r);
+        if (len_p != null) {
+            len_p[0] = StringSupport.MBCLEN_CHARFOUND_LEN(r);
+        }
         return StringSupport.codePoint(enc, pBytes, p, e);
     }
 

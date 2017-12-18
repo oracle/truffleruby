@@ -1016,11 +1016,15 @@ public abstract class StringNodes {
         // modifications to the string visible to the rest of the iteration.
         private Object substr(Rope rope, DynamicObject string, int beg, int len) {
             int length = rope.byteLength();
-            if (len < 0 || beg > length) return nil();
+            if (len < 0 || beg > length) {
+                return nil();
+            }
 
             if (beg < 0) {
                 beg += length;
-                if (beg < 0) return nil();
+                if (beg < 0) {
+                    return nil();
+                }
             }
 
             int end = Math.min(length, beg + len);
@@ -1256,7 +1260,9 @@ public abstract class StringNodes {
             int p = s;
             while (p < end) {
                 int c = getCodePointNode.executeGetCodePoint(rope, p);
-                if (!ASCIIEncoding.INSTANCE.isSpace(c)) break;
+                if (!ASCIIEncoding.INSTANCE.isSpace(c)) {
+                    break;
+                }
                 p += StringSupport.codeLength(enc, c);
             }
 
@@ -1376,7 +1382,9 @@ public abstract class StringNodes {
             int prev;
             while ((prev = prevCharHead(enc, bytes, start, endp, end)) != -1) {
                 int point = getCodePointNode.executeGetCodePoint(rope, prev);
-                if (point != 0 && !ASCIIEncoding.INSTANCE.isSpace(point)) break;
+                if (point != 0 && !ASCIIEncoding.INSTANCE.isSpace(point)) {
+                    break;
+                }
                 endp = prev;
             }
 
@@ -1658,7 +1666,9 @@ public abstract class StringNodes {
                             if (enc.isUTF8()) {
                                 int n = preciseLength(enc, bytes, p - 1, end) - 1;
                                 if (n > 0) {
-                                    if (buf == null) buf = new RopeBuilder();
+                                    if (buf == null) {
+                                        buf = new RopeBuilder();
+                                    }
                                     int cc = codePointX(enc, bytes, p - 1, end);
                                     buf.append(String.format("%x", cc).getBytes(StandardCharsets.US_ASCII));
                                     len += buf.getLength() + 4;
@@ -1691,7 +1701,9 @@ public abstract class StringNodes {
                     out[q++] = '\\';
                     out[q++] = (byte) c;
                 } else if (c == '#') {
-                    if (isEVStr(bytes, p, end)) out[q++] = '\\';
+                    if (isEVStr(bytes, p, end)) {
+                        out[q++] = '\\';
+                    }
                     out[q++] = '#';
                 } else if (c == '\n') {
                     out[q++] = '\\';
@@ -1754,9 +1766,13 @@ public abstract class StringNodes {
 
         // rb_enc_precise_mbclen
         private static int preciseLength(Encoding enc, byte[]bytes, int p, int end) {
-            if (p >= end) return -1 - (1);
+            if (p >= end) {
+                return -1 - (1);
+            }
             int n = enc.length(bytes, p, end);
-            if (n > end - p) return MBCLEN_NEEDMORE(n - (end - p));
+            if (n > end - p) {
+                return MBCLEN_NEEDMORE(n - (end - p));
+            }
             return n;
         }
 
@@ -1765,9 +1781,13 @@ public abstract class StringNodes {
         }
 
         private static int codePoint(Encoding enc, byte[] bytes, int p, int end) {
-            if (p >= end) throw new IllegalArgumentException("empty string");
+            if (p >= end) {
+                throw new IllegalArgumentException("empty string");
+            }
             int cl = preciseLength(enc, bytes, p, end);
-            if (cl <= 0) throw new IllegalArgumentException("invalid byte sequence in " + enc);
+            if (cl <= 0) {
+                throw new IllegalArgumentException("invalid byte sequence in " + enc);
+            }
             return enc.mbcToCode(bytes, p, end);
         }
 
@@ -1903,7 +1923,9 @@ public abstract class StringNodes {
             final RopeBuilder buffer = RopeOperations.toRopeBuilderCopy(rope);
 
             final boolean squeeze[] = new boolean[StringSupport.TRANS_SIZE];
-            for (int i = 0; i < StringSupport.TRANS_SIZE; i++) squeeze[i] = true;
+            for (int i = 0; i < StringSupport.TRANS_SIZE; i++) {
+                squeeze[i] = true;
+            }
 
             if (singleByteOptimizableProfile.profile(rope.isSingleByteOptimizable())) {
                 if (! StringSupport.singleByteSqueeze(buffer, squeeze)) {
@@ -2790,21 +2812,27 @@ public abstract class StringNodes {
                     } else {
                         e = p - ptr;
                         skip = false;
-                        if (limit && lim <= i) break;
+                        if (limit && lim <= i) {
+                            break;
+                        }
                     }
                 } else {
                     if (enc.isSpace(c)) {
                         ret.add(makeString(string, b, e - b));
                         skip = true;
                         b = p - ptr;
-                        if (limit) i++;
+                        if (limit) {
+                            i++;
+                        }
                     } else {
                         e = p - ptr;
                     }
                 }
             }
 
-            if (len > 0 && (limit || len > b || lim < 0)) ret.add(makeString(string, b, len - b));
+            if (len > 0 && (limit || len > b || lim < 0)) {
+                ret.add(makeString(string, b, len - b));
+            }
 
             Object[] objects = ret.toArray();
             return createArray(objects, objects.length);
@@ -3058,10 +3086,13 @@ public abstract class StringNodes {
                 int c, cc;
                 int n = enc.length(pBytes, p, pend);
                 if (!MBCLEN_CHARFOUND_P(n)) {
-                    if (p > prev) result.append(pBytes, prev, p - prev);
+                    if (p > prev) {
+                        result.append(pBytes, prev, p - prev);
+                    }
                     n = enc.minLength();
-                    if (pend < p + n)
+                    if (pend < p + n) {
                         n = (pend - p);
+                    }
                     while ((n--) > 0) {
                         result.append(String.format("\\x%02X", (long) (pBytes[p] & 0377)).getBytes(StandardCharsets.US_ASCII));
                         prev = ++p;
@@ -3083,7 +3114,9 @@ public abstract class StringNodes {
                     default: cc = 0; break;
                 }
                 if (cc != 0) {
-                    if (p - n > prev) result.append(pBytes, prev, p - n - prev);
+                    if (p - n > prev) {
+                        result.append(pBytes, prev, p - n - prev);
+                    }
                     result.append('\\');
                     result.append((byte) cc);
                     prev = p;
@@ -3091,7 +3124,9 @@ public abstract class StringNodes {
                 else if (asciicompat && Encoding.isAscii(c) && (c < 0x7F && c > 31 /*ISPRINT(c)*/)) {
                 }
                 else {
-                    if (p - n > prev) result.append(pBytes, prev, p - n - prev);
+                    if (p - n > prev) {
+                        result.append(pBytes, prev, p - n - prev);
+                    }
 
                     if (unicode_p && (c & 0xFFFFFFFFL) < 0x7F && Encoding.isAscii(c) && ASCIIEncoding.INSTANCE.isPrint(c)) {
                         result.append(String.format("%c", (char) (c & 0xFFFFFFFFL)).getBytes(StandardCharsets.US_ASCII));
@@ -3102,7 +3137,9 @@ public abstract class StringNodes {
                     prev = p;
                 }
             }
-            if (p > prev) result.append(pBytes, prev, p - prev);
+            if (p > prev) {
+                result.append(pBytes, prev, p - prev);
+            }
 
             result.setEncoding(USASCIIEncoding.INSTANCE);
             return result.toRope(CodeRange.CR_7BIT);
@@ -3392,7 +3429,9 @@ public abstract class StringNodes {
                 return -1;
             }
 
-            if (sourceLen - offset < otherLen) return -1;
+            if (sourceLen - offset < otherLen) {
+                return -1;
+            }
             byte[]bytes = source.getBytes();
             int p = 0;
             int end = p + source.byteLength();
@@ -3400,15 +3439,23 @@ public abstract class StringNodes {
                 offset = source.isSingleByteOptimizable() ? offset : StringSupport.offset(enc, bytes, p, end, offset);
                 p += offset;
             }
-            if (otherLen == 0) return offset;
+            if (otherLen == 0) {
+                return offset;
+            }
 
             while (true) {
                 int pos = indexOf(source, other, p);
-                if (pos < 0) return pos;
+                if (pos < 0) {
+                    return pos;
+                }
                 pos -= p;
                 int t = enc.rightAdjustCharHead(bytes, p, p + pos, end);
-                if (t == p + pos) return pos + offset;
-                if ((sourceLen -= t - p) <= 0) return -1;
+                if (t == p + pos) {
+                    return pos + offset;
+                }
+                if ((sourceLen -= t - p) <= 0) {
+                    return -1;
+                }
                 offset += t - p;
                 p = t;
             }
@@ -3425,9 +3472,15 @@ public abstract class StringNodes {
             final int targetOffset = 0;
             final int targetCount = otherRope.byteLength();
 
-            if (fromIndex >= sourceCount) return (targetCount == 0 ? sourceCount : -1);
-            if (fromIndex < 0) fromIndex = 0;
-            if (targetCount == 0) return fromIndex;
+            if (fromIndex >= sourceCount) {
+                return (targetCount == 0 ? sourceCount : -1);
+            }
+            if (fromIndex < 0) {
+                fromIndex = 0;
+            }
+            if (targetCount == 0) {
+                return fromIndex;
+            }
 
             byte first  = target[targetOffset];
             int max = sourceOffset + (sourceCount - targetCount);
@@ -3444,7 +3497,9 @@ public abstract class StringNodes {
                     for (int k = targetOffset + 1; j < end && source[j] == target[k]; j++, k++) {
                     }
 
-                    if (j == end) return i - sourceOffset;
+                    if (j == end) {
+                        return i - sourceOffset;
+                    }
                 }
             }
             return -1;
@@ -4087,7 +4142,9 @@ public abstract class StringNodes {
             int substringByteLength = characterLen;
 
             if (beg < 0) {
-                if (characterLen > -beg) characterLen = -beg;
+                if (characterLen > -beg) {
+                    characterLen = -beg;
+                }
                 if (-beg * enc.maxLength() < length >>> 3) {
                     beg = -beg;
                     int e = end;

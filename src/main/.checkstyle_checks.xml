@@ -61,7 +61,7 @@
       <!--<property name="tokens" value="LITERAL_DO,LITERAL_ELSE,LITERAL_FINALLY,LITERAL_IF,LITERAL_TRY,LITERAL_WHILE,STATIC_INIT"/>-->
     <!--</module>-->
     <!--<module name="LeftCurly"/>-->
-    <!--<module name="NeedBraces"/>-->
+    <module name="NeedBraces"/>
     <!--<module name="RightCurly"/>-->
     <module name="EmptyStatement"/>
     <module name="HiddenField">

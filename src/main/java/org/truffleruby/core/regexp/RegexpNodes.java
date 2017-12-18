@@ -230,7 +230,9 @@ public abstract class RegexpNodes {
                 enc = USASCIIEncoding.INSTANCE;
             }
 
-            if (fixedEnc[0] != null) options.setFixed(true);
+            if (fixedEnc[0] != null) {
+                options.setFixed(true);
+            }
             //if (regexpOptions.isEncodingNone()) setEncodingNone();
 
             Regex regexp = new Regex(unescaped.getUnsafeBytes(), 0, unescaped.getLength(), options.toJoniOptions(), enc, Syntax.RUBY);

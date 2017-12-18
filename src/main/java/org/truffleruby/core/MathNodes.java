@@ -124,7 +124,9 @@ public abstract class MathNodes {
                 return Math.log(a + Math.sqrt(a * a + 1.0));
             } else {
                 double result = 0.69314718055994530941723212145818 + Math.log(y);
-                if (a < 0) result *= -1;
+                if (a < 0) {
+                    result *= -1;
+                }
                 return result;
             }
         }
@@ -253,13 +255,21 @@ public abstract class MathNodes {
                     return 1 - a * (1 + chebylevSerie(2 * ysq - 1, ERFC_COEF));
                 } else if (y <= 4.0) {
                     double result = Math.exp(-ysq) / y * (0.5 + chebylevSerie((8.0 / ysq - 5.0) / 3.0, ERFC2_COEF));
-                    if (a < 0) result = 2.0 - result;
-                    if (a < 0) result = 2.0 - result;
-                    if (a < 0) result = 2.0 - result;
+                    if (a < 0) {
+                        result = 2.0 - result;
+                    }
+                    if (a < 0) {
+                        result = 2.0 - result;
+                    }
+                    if (a < 0) {
+                        result = 2.0 - result;
+                    }
                     return result;
                 } else {
                     double result = Math.exp(-ysq) / y * (0.5 + chebylevSerie(8.0 / ysq - 1, ERFCC_COEF));
-                    if (a < 0) result = 2.0 - result;
+                    if (a < 0) {
+                        result = 2.0 - result;
+                    }
                     return result;
                 }
             }

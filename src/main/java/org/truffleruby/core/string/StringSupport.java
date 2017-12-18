@@ -60,7 +60,9 @@ public final class StringSupport {
     @TruffleBoundary
     public static int length(Encoding enc, byte[]bytes, int p, int end) {
         int n = enc.length(bytes, p, end);
-        if (MBCLEN_CHARFOUND_P(n) && MBCLEN_CHARFOUND_LEN(n) <= end - p) return MBCLEN_CHARFOUND_LEN(n);
+        if (MBCLEN_CHARFOUND_P(n) && MBCLEN_CHARFOUND_LEN(n) <= end - p) {
+            return MBCLEN_CHARFOUND_LEN(n);
+        }
         int min = enc.minLength();
         return min <= end - p ? min : end - p;
     }
@@ -68,9 +70,13 @@ public final class StringSupport {
     // rb_enc_precise_mbclen
     @TruffleBoundary
     public static int preciseLength(Encoding enc, byte[]bytes, int p, int end) {
-        if (p >= end) return -1 - (1);
+        if (p >= end) {
+            return -1 - (1);
+        }
         int n = enc.length(bytes, p, end);
-        if (n > end - p) return MBCLEN_NEEDMORE(n - (end - p));
+        if (n > end - p) {
+            return MBCLEN_NEEDMORE(n - (end - p));
+        }
         return n;
     }
 
@@ -107,7 +113,9 @@ public final class StringSupport {
     // MRI: search_nonascii
     public static int searchNonAscii(byte[]bytes, int p, int end) {
         while (p < end) {
-            if (!Encoding.isAscii(bytes[p])) return p;
+            if (!Encoding.isAscii(bytes[p])) {
+                return p;
+            }
             p++;
         }
         return -1;
@@ -129,7 +137,9 @@ public final class StringSupport {
                 while (p < e) {
                     if (Encoding.isAscii(bytes[p])) {
                         int q = searchNonAscii(bytes, p, e);
-                        if (q == -1) return c + (e - p);
+                        if (q == -1) {
+                            return c + (e - p);
+                        }
                         c += q - p;
                         p = q;
                     }
@@ -140,7 +150,9 @@ public final class StringSupport {
                 while (p < e) {
                     if (Encoding.isAscii(bytes[p])) {
                         int q = searchNonAscii(bytes, p, e);
-                        if (q == -1) return c + (e - p);
+                        if (q == -1) {
+                            return c + (e - p);
+                        }
                         c += q - p;
                         p = q;
                     }
@@ -163,7 +175,9 @@ public final class StringSupport {
         while (p < end) {
             if (Encoding.isAscii(bytes[p])) {
                 int q = searchNonAscii(bytes, p, end);
-                if (q == -1) return pack(c + (end - p), cr == CR_UNKNOWN ? CR_7BIT.toInt() : cr.toInt());
+                if (q == -1) {
+                    return pack(c + (end - p), cr == CR_UNKNOWN ? CR_7BIT.toInt() : cr.toInt());
+                }
                 c += q - p;
                 p = q;
             }
@@ -214,9 +228,13 @@ public final class StringSupport {
     }
 
     public static int codePoint(Encoding enc, byte[] bytes, int p, int end) {
-        if (p >= end) throw new IllegalArgumentException("empty string");
+        if (p >= end) {
+            throw new IllegalArgumentException("empty string");
+        }
         int cl = preciseLength(enc, bytes, p, end);
-        if (cl <= 0) throw new IllegalArgumentException("invalid byte sequence in " + enc);
+        if (cl <= 0) {
+            throw new IllegalArgumentException("invalid byte sequence in " + enc);
+        }
         return enc.mbcToCode(bytes, p, end);
     }
 
@@ -226,7 +244,9 @@ public final class StringSupport {
 
     public static int preciseCodePoint(Encoding enc, byte[]bytes, int p, int end) {
         int l = preciseLength(enc, bytes, p, end);
-        if (l > 0) return enc.mbcToCode(bytes, p, end);
+        if (l > 0) {
+            return enc.mbcToCode(bytes, p, end);
+        }
         return -1;
     }
 
@@ -234,7 +254,9 @@ public final class StringSupport {
         // FIXME: Missing our UNSAFE impl because it was doing the wrong thing: See GH #1986
         while (p < e) {
             if ((bytes[p] & 0xc0 /*utf8 lead byte*/) != 0x80) {
-                if (nth == 0) break;
+                if (nth == 0) {
+                    break;
+                }
                 nth--;
             }
             p++;
@@ -268,17 +290,23 @@ public final class StringSupport {
         } else {
             p = nthNonAsciiCompatible(enc, bytes, p, end, n);
         }
-        if (p < 0) return -1;
+        if (p < 0) {
+            return -1;
+        }
         return p > end ? end : p;
     }
 
     private static int nthAsciiCompatible(Encoding enc, byte[]bytes, int p, int end, int n) {
         while (p < end && n > 0) {
             int end2 = p + n;
-            if (end < end2) return end;
+            if (end < end2) {
+                return end;
+            }
             if (Encoding.isAscii(bytes[p])) {
                 int p2 = searchNonAscii(bytes, p, end2);
-                if (p2 == -1) return end2;
+                if (p2 == -1) {
+                    return end2;
+                }
                 n -= p2 - p;
                 p = p2;
             }
@@ -343,7 +371,9 @@ public final class StringSupport {
 
     public static int hexLength(byte[]bytes, int p, int len, Encoding enc) {
         int hlen = 0;
-        while (len-- > 0 && enc.isXDigit(bytes[p++] & 0xff)) hlen++;
+        while (len-- > 0 && enc.isXDigit(bytes[p++] & 0xff)) {
+            hlen++;
+        }
         return hlen;
     }
 
@@ -367,7 +397,9 @@ public final class StringSupport {
     public static int octLength(byte[]bytes, int p, int len, Encoding enc) {
         int olen = 0;
         int c;
-        while (len-- > 0 && enc.isDigit(c = bytes[p++] & 0xff) && c < '8') olen++;
+        while (len-- > 0 && enc.isDigit(c = bytes[p++] & 0xff) && c < '8') {
+            olen++;
+        }
         return olen;
     }
 
@@ -411,12 +443,16 @@ public final class StringSupport {
         while (p < end) {
             int c;
             if (asciiCompat && (c = bytes[p] & 0xff) < 0x80) {
-                if (table[c]) count++;
+                if (table[c]) {
+                    count++;
+                }
                 p++;
             } else {
                 c = codePoint(enc, bytes, p, end);
                 int cl = codeLength(enc, c);
-                if (trFind(c, table, tables)) count++;
+                if (trFind(c, table, tables)) {
+                    count++;
+                }
                 p += cl;
             }
         }
@@ -475,7 +511,9 @@ public final class StringSupport {
             stable[TRANS_SIZE] = false;
         }
 
-        if (tables == null) tables = new TrTables();
+        if (tables == null) {
+            tables = new TrTables();
+        }
 
         byte[] buf = null; // lazy initialized
         IntHashMap<Object> table = null, ptable = null;
@@ -540,7 +578,9 @@ public final class StringSupport {
     }
 
     public static boolean trFind(final int c, final boolean[] table, final TrTables tables) {
-        if (c < TRANS_SIZE) return table[c];
+        if (c < TRANS_SIZE) {
+            return table[c];
+        }
 
         final IntHashMap<Object> del = tables.del, noDel = tables.noDel;
 
@@ -581,7 +621,9 @@ public final class StringSupport {
     private static int trNext_nextpart(final TR tr, Encoding enc) {
         final int[] n = {0};
 
-        if (tr.p == tr.pend) return -1;
+        if (tr.p == tr.pend) {
+            return -1;
+        }
         if (EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, n, enc) == '\\' && tr.p + n[0] < tr.pend) {
             tr.p += n[0];
         }
@@ -640,7 +682,9 @@ public final class StringSupport {
             }
 
             int cl = preciseLength(enc, bytes, s, end);
-            if (cl <= 0) continue;
+            if (cl <= 0) {
+                continue;
+            }
             switch (neighbor = succAlnumChar(enc, bytes, s, cl, carry, 0)) {
                 case NOT_CHAR: continue;
                 case FOUND:    return valueCopy;
@@ -655,10 +699,16 @@ public final class StringSupport {
             s = end;
             while ((s = enc.prevCharHead(bytes, p, s, end)) != -1) {
                 int cl = preciseLength(enc, bytes, s, end);
-                if (cl <= 0) continue;
+                if (cl <= 0) {
+                    continue;
+                }
                 neighbor = succChar(enc, bytes, s, cl);
-                if (neighbor == NeighborChar.FOUND) return valueCopy;
-                if (preciseLength(enc, bytes, s, s + 1) != cl) succChar(enc, bytes, s, cl); /* wrapped to \0...\0.  search next valid char. */
+                if (neighbor == NeighborChar.FOUND) {
+                    return valueCopy;
+                }
+                if (preciseLength(enc, bytes, s, s + 1) != cl) {
+                    succChar(enc, bytes, s, cl); /* wrapped to \0...\0. search next valid char. */
+                }
                 if (!enc.isAsciiCompatible()) {
                     System.arraycopy(bytes, s, carry, 0, cl);
                     carryLen = cl;
@@ -685,8 +735,12 @@ public final class StringSupport {
             }
             c = codePoint(enc, bytes, p, p + len) + 1;
             l = codeLength(enc, c);
-            if (l == 0) return NeighborChar.NOT_CHAR;
-            if (l != len) return NeighborChar.WRAPPED;
+            if (l == 0) {
+                return NeighborChar.NOT_CHAR;
+            }
+            if (l != len) {
+                return NeighborChar.WRAPPED;
+            }
             EncodingUtils.encMbcput(c, bytes, p, enc);
             r = preciseLength(enc, bytes, p, p + len);
             if (!MBCLEN_CHARFOUND_P(r)) {
@@ -700,7 +754,9 @@ public final class StringSupport {
             for (; i >= 0 && bytes[p + i] == (byte) 0xff; i--) {
                 bytes[p + i] = 0;
             }
-            if (i < 0) return NeighborChar.WRAPPED;
+            if (i < 0) {
+                return NeighborChar.WRAPPED;
+            }
             bytes[p + i] = (byte) ((bytes[p + i] & 0xff) + 1);
             l = preciseLength(enc, bytes, p, p + len);
             if (MBCLEN_CHARFOUND_P(l)) {
@@ -718,8 +774,9 @@ public final class StringSupport {
                 int l2;
                 for (len2 = len - 1; 0 < len2; len2--) {
                     l2 = preciseLength(enc, bytes, p, p + len2);
-                    if (!MBCLEN_INVALID_P(l2))
+                    if (!MBCLEN_INVALID_P(l2)) {
                         break;
+                    }
                 }
                 int start = p + len2 + 1;
                 int end = start + len - (len2 + 1);
@@ -746,7 +803,9 @@ public final class StringSupport {
         NeighborChar ret = succChar(enc, bytes, p, len);
         if (ret == NeighborChar.FOUND) {
             c = enc.mbcToCode(bytes, p, p + len);
-            if (enc.isCodeCType(c, cType)) return NeighborChar.FOUND;
+            if (enc.isCodeCType(c, cType)) {
+                return NeighborChar.FOUND;
+            }
         }
 
         System.arraycopy(save, 0, bytes, p, len);
@@ -768,7 +827,9 @@ public final class StringSupport {
             range++;
         }
 
-        if (range == 1) return NeighborChar.NOT_CHAR;
+        if (range == 1) {
+            return NeighborChar.NOT_CHAR;
+        }
 
         if (cType != CharacterType.DIGIT) {
             System.arraycopy(bytes, p, carry, carryP, len);
@@ -789,11 +850,17 @@ public final class StringSupport {
                 return NeighborChar.NOT_CHAR;
             }
             c = codePoint(enc, bytes, p, p + len);
-            if (c == 0) return NeighborChar.NOT_CHAR;
+            if (c == 0) {
+                return NeighborChar.NOT_CHAR;
+            }
             --c;
             l = codeLength(enc, c);
-            if (l == 0) return NeighborChar.NOT_CHAR;
-            if (l != len) return NeighborChar.WRAPPED;
+            if (l == 0) {
+                return NeighborChar.NOT_CHAR;
+            }
+            if (l != len) {
+                return NeighborChar.WRAPPED;
+            }
             EncodingUtils.encMbcput(c, bytes, p, enc);
             r = preciseLength(enc, bytes, p, p + len);
             if (!MBCLEN_CHARFOUND_P(r)) {
@@ -803,9 +870,12 @@ public final class StringSupport {
         }
         while (true) {
             int i = len - 1;
-            for (; i >= 0 && bytes[p + i] == 0; i--)
+            for (; i >= 0 && bytes[p + i] == 0; i--) {
                 bytes[p + i] = (byte) 0xff;
-            if (i < 0) return NeighborChar.WRAPPED;
+            }
+            if (i < 0) {
+                return NeighborChar.WRAPPED;
+            }
             bytes[p + i] = (byte) ((bytes[p + i] & 0xff) - 1);
             l = preciseLength(enc, bytes, p, p + len);
             if (MBCLEN_CHARFOUND_P(l)) {
@@ -823,8 +893,9 @@ public final class StringSupport {
                 int l2;
                 for (len2 = len - 1; 0 < len2; len2--) {
                     l2 = preciseLength(enc, bytes, p, p + len2);
-                    if (!MBCLEN_INVALID_P(l2))
+                    if (!MBCLEN_INVALID_P(l2)) {
                         break;
+                    }
                 }
                 int start = p + len2 + 1;
                 int end = start + (len - (len2 + 1));
@@ -866,9 +937,13 @@ public final class StringSupport {
                 if (trFind(c, squeeze, tables)) {
                     modify = true;
                 } else {
-                    if (t != s) enc.codeToMbc(c, bytes, t);
+                    if (t != s) {
+                        enc.codeToMbc(c, bytes, t);
+                    }
                     t += cl;
-                    if (cr == CR_7BIT) cr = CR_VALID;
+                    if (cr == CR_7BIT) {
+                        cr = CR_VALID;
+                    }
                 }
                 s += cl;
             }
@@ -922,7 +997,9 @@ public final class StringSupport {
                 if (c < StringSupport.TRANS_SIZE) {
                     trans[c] = -1;
                 } else {
-                    if (hash == null) hash = new IntHash<>();
+                    if (hash == null) {
+                        hash = new IntHash<>();
+                    }
                     hash.put(c, 1); // QTRUE
                 }
             }
@@ -942,12 +1019,18 @@ public final class StringSupport {
 
             while ((c = StringSupport.trNext(trSrc, enc)) != -1) {
                 int r = StringSupport.trNext(trRepl, enc);
-                if (r == -1) r = trRepl.now;
+                if (r == -1) {
+                    r = trRepl.now;
+                }
                 if (c < StringSupport.TRANS_SIZE) {
                     trans[c] = r;
-                    if (codeLength(enc, r) != 1) singlebyte = false;
+                    if (codeLength(enc, r) != 1) {
+                        singlebyte = false;
+                    }
                 } else {
-                    if (hash == null) hash = new IntHash<>();
+                    if (hash == null) {
+                        hash = new IntHash<>();
+                    }
                     hash.put(c, r);
                 }
             }
@@ -1005,7 +1088,9 @@ public final class StringSupport {
                 } else {
                     save = -1;
                     c = c0;
-                    if (enc != e1) mayModify = true;
+                    if (enc != e1) {
+                        mayModify = true;
+                    }
                 }
 
                 while (t + tlen >= max) {
@@ -1014,7 +1099,9 @@ public final class StringSupport {
                 }
                 enc.codeToMbc(c, buf, t);
                 // MRI does not check s < send again because their null terminator can still be compared
-                if (mayModify && (s >= send || ArrayUtils.memcmp(sbytes, s, buf, t, tlen) != 0)) modify = true;
+                if (mayModify && (s >= send || ArrayUtils.memcmp(sbytes, s, buf, t, tlen) != 0)) {
+                    modify = true;
+                }
                 cr = CHECK_IF_ASCII(c, cr);
                 t += tlen;
             }
@@ -1074,7 +1161,9 @@ public final class StringSupport {
                     modify = true;
                 } else {
                     c = c0;
-                    if (enc != e1) mayModify = true;
+                    if (enc != e1) {
+                        mayModify = true;
+                    }
                 }
                 while (t + tlen >= max) {
                     max <<= 1;
@@ -1151,14 +1240,20 @@ public final class StringSupport {
                 ocl = length(enc, obytes, op, oend);
                 // TODO: opt for 2 and 3 ?
                 int ret = caseCmp(bytes, p, obytes, op, cl < ocl ? cl : ocl);
-                if (ret != 0) return ret < 0 ? -1 : 1;
-                if (cl != ocl) return cl < ocl ? -1 : 1;
+                if (ret != 0) {
+                    return ret < 0 ? -1 : 1;
+                }
+                if (cl != ocl) {
+                    return cl < ocl ? -1 : 1;
+                }
             }
 
             p += cl;
             op += ocl;
         }
-        if (end - p == oend - op) return 0;
+        if (end - p == oend - op) {
+            return 0;
+        }
         return end - p > oend - op ? 1 : -1;
     }
 
@@ -1202,7 +1297,9 @@ public final class StringSupport {
                 c = codePoint(enc, bytes, s, send);
                 int cl = codeLength(enc, c);
                 if (c != save || (isArg && !trFind(c, squeeze, tables))) {
-                    if (t != s) enc.codeToMbc(c, bytes, t);
+                    if (t != s) {
+                        enc.codeToMbc(c, bytes, t);
+                    }
                     save = c;
                     t += cl;
                 }

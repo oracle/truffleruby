@@ -70,7 +70,9 @@ public class EncodeUM {
         }
 
         occurrences = occurrences <= 2 ? 45 : occurrences / 3 * 3;
-        if (lCurElemString.length == 0) return;
+        if (lCurElemString.length == 0) {
+            return;
+        }
 
         byte[] charsToEncode = lCurElemString;
         for (int i = 0; i < lCurElemString.length; i += occurrences) {

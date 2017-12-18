@@ -126,7 +126,9 @@ public class RubyTimeOutputFormatter {
             return sequence;
         }
 
-        if (width > SMALLBUF) throw new IndexOutOfBoundsException("padding width " + width + " too large");
+        if (width > SMALLBUF) {
+            throw new IndexOutOfBoundsException("padding width " + width + " too large");
+        }
 
         StringBuilder buf = new StringBuilder(width + sequence.length());
         for (int i = sequence.length(); i < width; i++) {

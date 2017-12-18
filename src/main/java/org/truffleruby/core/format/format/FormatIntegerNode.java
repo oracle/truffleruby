@@ -151,7 +151,9 @@ public abstract class FormatIntegerNode extends FormatNode {
                         break;
                 }
             }
-            if (prefix != null) width -= prefix.length;
+            if (prefix != null) {
+                width -= prefix.length;
+            }
         }
         int len = 0;
         if (sign) {
@@ -172,7 +174,9 @@ public abstract class FormatIntegerNode extends FormatNode {
                 leadChar = '.';
                 len += 2;
             } else {
-                if (!hasZeroFlag && precision == PrintfSimpleTreeBuilder.DEFAULT) len += 2; // ..
+                if (!hasZeroFlag && precision == PrintfSimpleTreeBuilder.DEFAULT) {
+                    len += 2; // ..
+                }
 
                 first = skipSignBits(bytes, base);
                 switch (fchar) {
@@ -190,7 +194,9 @@ public abstract class FormatIntegerNode extends FormatNode {
                         leadChar = 'F';
                         break;
                 }
-                if (leadChar != 0) len++;
+                if (leadChar != 0) {
+                    len++;
+                }
             }
         }
         int numlen = bytes.length - first;
@@ -203,7 +209,9 @@ public abstract class FormatIntegerNode extends FormatNode {
             precision = width;
             width = 0;
         } else {
-            if (precision < len) precision = len;
+            if (precision < len) {
+                precision = len;
+            }
 
             width -= precision;
         }
@@ -211,8 +219,12 @@ public abstract class FormatIntegerNode extends FormatNode {
             buf.append(' ', width);
             width = 0;
         }
-        if (signChar != 0) buf.append(signChar);
-        if (prefix != null) buf.append(prefix);
+        if (signChar != 0) {
+            buf.append(signChar);
+        }
+        if (prefix != null) {
+            buf.append(prefix);
+        }
 
         if (len < precision) {
             if (leadChar == 0) {
@@ -232,11 +244,15 @@ public abstract class FormatIntegerNode extends FormatNode {
             if ("xXbBo".indexOf(fchar) != -1) {
                 buf.append(PREFIX_NEGATIVE);
             }
-            if (leadChar != '.') buf.append(leadChar);
+            if (leadChar != '.') {
+                buf.append(leadChar);
+            }
         }
         buf.append(bytes, first, numlen);
 
-        if (width > 0) buf.append(' ', width);
+        if (width > 0) {
+            buf.append(' ', width);
+        }
         if (len < precision && fchar == 'd' && negative  && hasMinusFlag) {
             buf.append(' ', precision - len);
         }
@@ -320,12 +336,16 @@ public abstract class FormatIntegerNode extends FormatNode {
                 }
                 break;
             case 8:
-                if (length > 0 && bytes[0] == '3') skip++;
+                if (length > 0 && bytes[0] == '3') {
+                    skip++;
+                }
                 for (; skip < length && bytes[skip] == '7'; skip++) {
                 }
                 break;
             case 10:
-                if (length > 0 && bytes[0] == '-') skip++;
+                if (length > 0 && bytes[0] == '-') {
+                    skip++;
+                }
                 break;
             case 16:
                 for (; skip < length && ((b = bytes[skip]) == 'f' || b == 'F'); skip++) {
@@ -342,7 +362,9 @@ public abstract class FormatIntegerNode extends FormatNode {
         char fchar = this.format;
 
         // 'd' and 'i' are the same
-        if (fchar == 'i') fchar = 'd';
+        if (fchar == 'i') {
+            fchar = 'd';
+        }
 
         // 'u' with space or plus flags is same as 'd'
         if (fchar == 'u' && (hasSpaceFlag || hasPlusFlag)) {

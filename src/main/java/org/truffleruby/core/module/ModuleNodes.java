@@ -1315,8 +1315,9 @@ public abstract class ModuleNodes {
 
             while (lexicalScope != null) {
                 final DynamicObject enclosing = lexicalScope.getLiveModule();
-                if (enclosing == object)
+                if (enclosing == object) {
                     break;
+                }
                 modules.add(enclosing);
                 lexicalScope = lexicalScope.getParent();
             }

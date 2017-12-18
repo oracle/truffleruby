@@ -51,7 +51,9 @@ public class WeakValuedMap<Key, Value> {
     public final Value get(Key key) {
         cleanReferences();
         KeyedReference<Key, Value> reference = map.get(key);
-        if (reference == null) return null;
+        if (reference == null) {
+            return null;
+        }
         return reference.get();
     }
 

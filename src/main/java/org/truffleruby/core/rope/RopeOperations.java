@@ -546,7 +546,9 @@ public class RopeOperations {
         // Taken from org.jruby.util.StringSupport.areComparable.
 
         if (rope.getEncoding() == other.getEncoding() ||
-                rope.isEmpty() || other.isEmpty()) return true;
+                rope.isEmpty() || other.isEmpty()) {
+            return true;
+        }
         return areComparableViaCodeRange(rope, other);
     }
 
@@ -556,8 +558,12 @@ public class RopeOperations {
         CodeRange cr1 = string.getCodeRange();
         CodeRange cr2 = other.getCodeRange();
 
-        if (cr1 == CR_7BIT && (cr2 == CR_7BIT || other.getEncoding().isAsciiCompatible())) return true;
-        if (cr2 == CR_7BIT && string.getEncoding().isAsciiCompatible()) return true;
+        if (cr1 == CR_7BIT && (cr2 == CR_7BIT || other.getEncoding().isAsciiCompatible())) {
+            return true;
+        }
+        if (cr2 == CR_7BIT && string.getEncoding().isAsciiCompatible()) {
+            return true;
+        }
         return false;
     }
 
@@ -639,7 +645,9 @@ public class RopeOperations {
     public static int caseInsensitiveCmp(Rope value, Rope other) {
         // Taken from org.jruby.util.ByteList#caseInsensitiveCmp.
 
-        if (other == value) return 0;
+        if (other == value) {
+            return 0;
+        }
 
         final int size = value.byteLength();
         final int len =  Math.min(size, other.byteLength());

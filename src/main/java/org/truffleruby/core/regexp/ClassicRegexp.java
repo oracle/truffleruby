@@ -105,7 +105,9 @@ public class ClassicRegexp implements ReOptions {
     static Regex getRegexpFromCache(RubyContext runtime, RopeBuilder bytes, Encoding enc, RegexpOptions options) {
         Rope key = RopeOperations.ropeFromRopeBuilder(bytes);
         Regex regex = patternCache.get(key);
-        if (regex != null && regex.getEncoding() == enc && regex.getOptions() == options.toJoniOptions()) return regex;
+        if (regex != null && regex.getEncoding() == enc && regex.getOptions() == options.toJoniOptions()) {
+            return regex;
+        }
         regex = makeRegexp(runtime, bytes, options, enc);
         regex.setUserObject(bytes);
         patternCache.put(key, regex);
@@ -157,7 +159,9 @@ public class ClassicRegexp implements ReOptions {
         }
 
         boolean hasProperty = unescapeNonAscii(context, null, str.getBytes(), 0, str.byteLength(), enc, fixedEnc, str, mode);
-        if (hasProperty && fixedEnc[0] == null) fixedEnc[0] = enc;
+        if (hasProperty && fixedEnc[0] == null) {
+            fixedEnc[0] = enc;
+        }
     }
 
     @SuppressWarnings("fallthrough")
@@ -167,9 +171,13 @@ public class ClassicRegexp implements ReOptions {
 
         while (p < end) {
             int cl = StringSupport.preciseLength(enc, bytes, p, end);
-            if (cl <= 0) raisePreprocessError(context, str, "invalid multibyte character", mode);
+            if (cl <= 0) {
+                raisePreprocessError(context, str, "invalid multibyte character", mode);
+            }
             if (cl > 1 || (bytes[p] & 0x80) != 0) {
-                if (to != null) to.append(bytes, p, cl);
+                if (to != null) {
+                    to.append(bytes, p, cl);
+                }
                 p += cl;
                 if (encp[0] == null) {
                     encp[0] = enc;
@@ -181,7 +189,9 @@ public class ClassicRegexp implements ReOptions {
             int c;
             switch (c = bytes[p++] & 0xff) {
                 case '\\':
-                    if (p == end) raisePreprocessError(context, str, "too short escape sequence", mode);
+                    if (p == end) {
+                        raisePreprocessError(context, str, "too short escape sequence", mode);
+                    }
 
                     switch (c = bytes[p++] & 0xff) {
                         case '1': case '2': case '3':
@@ -201,12 +211,15 @@ public class ClassicRegexp implements ReOptions {
                         case 'M': /* \M-X, \M-\C-X, \M-\cX */
                             p -= 2;
                             if (enc == USASCIIEncoding.INSTANCE) {
-                                if (buf == null) buf = new byte[1];
+                                if (buf == null) {
+                                    buf = new byte[1];
+                                }
                                 int pbeg = p;
                                 p = readEscapedByte(context, buf, 0, bytes, p, end, str, mode);
                                 c = buf[0];
-                                if (c == -1)
+                                if (c == -1) {
                                     return false;
+                                }
                                 if (to != null) {
                                     to.append(bytes, pbeg, p - pbeg);
                                 }
@@ -231,7 +244,9 @@ public class ClassicRegexp implements ReOptions {
                             }
                             break;
                         case 'p': /* \p{Hiragana} */
-                            if (encp[0] == null) hasProperty = true;
+                            if (encp[0] == null) {
+                                hasProperty = true;
+                            }
                             if (to != null) {
                                 to.append('\\');
                                 to.append(c);
@@ -248,37 +263,55 @@ public class ClassicRegexp implements ReOptions {
                     break;
 
                 default:
-                    if (to != null) to.append(c);
+                    if (to != null) {
+                        to.append(c);
+                    }
             } // switch
         } // while
         return hasProperty;
     }
 
     private static int unescapeUnicodeBmp(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end, Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
-        if (p + 4 > end) raisePreprocessError(context, str, "invalid Unicode escape", mode);
+        if (p + 4 > end) {
+            raisePreprocessError(context, str, "invalid Unicode escape", mode);
+        }
         int code = StringSupport.scanHex(bytes, p, 4);
         int len = StringSupport.hexLength(bytes, p, 4);
-        if (len != 4) raisePreprocessError(context, str, "invalid Unicode escape", mode);
+        if (len != 4) {
+            raisePreprocessError(context, str, "invalid Unicode escape", mode);
+        }
         appendUtf8(context, to, code, encp, str, mode);
         return p + 4;
     }
 
     private static int unescapeUnicodeList(RubyContext context, RopeBuilder to, byte[]bytes, int p, int end, Encoding[]encp, Rope str, RegexpSupport.ErrorMode mode) {
-        while (p < end && ASCIIEncoding.INSTANCE.isSpace(bytes[p] & 0xff)) p++;
+        while (p < end && ASCIIEncoding.INSTANCE.isSpace(bytes[p] & 0xff)) {
+            p++;
+        }
 
         boolean hasUnicode = false;
         while (true) {
             int code = StringSupport.scanHex(bytes, p, end - p);
             int len = StringSupport.hexLength(bytes, p, end - p);
-            if (len == 0) break;
-            if (len > 6) raisePreprocessError(context, str, "invalid Unicode range", mode);
+            if (len == 0) {
+                break;
+            }
+            if (len > 6) {
+                raisePreprocessError(context, str, "invalid Unicode range", mode);
+            }
             p += len;
-            if (to != null) appendUtf8(context, to, code, encp, str, mode);
+            if (to != null) {
+                appendUtf8(context, to, code, encp, str, mode);
+            }
             hasUnicode = true;
-            while (p < end && ASCIIEncoding.INSTANCE.isSpace(bytes[p] & 0xff)) p++;
+            while (p < end && ASCIIEncoding.INSTANCE.isSpace(bytes[p] & 0xff)) {
+                p++;
+            }
         }
 
-        if (!hasUnicode) raisePreprocessError(context, str, "invalid Unicode list", mode);
+        if (!hasUnicode) {
+            raisePreprocessError(context, str, "invalid Unicode list", mode);
+        }
         return p;
     }
 
@@ -286,7 +319,9 @@ public class ClassicRegexp implements ReOptions {
         checkUnicodeRange(context, code, str, mode);
 
         if (code < 0x80) {
-            if (to != null) to.append(String.format("\\x%02X", code).getBytes(StandardCharsets.US_ASCII));
+            if (to != null) {
+                to.append(String.format("\\x%02X", code).getBytes(StandardCharsets.US_ASCII));
+            }
         } else {
             if (to != null) {
                 to.unsafeEnsureSpace(to.getLength() + 6);
@@ -365,7 +400,9 @@ public class ClassicRegexp implements ReOptions {
         }
 
         if (chLen > 1 || (chBuf[0] & 0x80) != 0) {
-            if (to != null) to.append(chBuf, 0, chLen);
+            if (to != null) {
+                to.append(chBuf, 0, chLen);
+            }
 
             if (encp[0] == null) {
                 encp[0] = enc;
@@ -373,7 +410,9 @@ public class ClassicRegexp implements ReOptions {
                 raisePreprocessError(context, str, "escaped non ASCII character in UTF-8 regexp", mode);
             }
         } else {
-            if (to != null) to.append(String.format("\\x%02X", chBuf[0] & 0xff).getBytes(StandardCharsets.US_ASCII));
+            if (to != null) {
+                to.append(String.format("\\x%02X", chBuf[0] & 0xff).getBytes(StandardCharsets.US_ASCII));
+            }
         }
         return p;
     }
@@ -392,13 +431,16 @@ public class ClassicRegexp implements ReOptions {
 
     @SuppressWarnings("fallthrough")
     public static int readEscapedByte(RubyContext context, byte[] to, int toP, byte[] bytes, int p, int end, Rope str, RegexpSupport.ErrorMode mode) {
-        if (p == end || bytes[p++] != (byte) '\\')
+        if (p == end || bytes[p++] != (byte) '\\') {
             raisePreprocessError(context, str, "too short escaped multibyte character", mode);
+        }
 
         boolean metaPrefix = false, ctrlPrefix = false;
         int code = 0;
         while (true) {
-            if (p == end) raisePreprocessError(context, str, "too short escape sequence", mode);
+            if (p == end) {
+                raisePreprocessError(context, str, "too short escape sequence", mode);
+            }
 
             switch (bytes[p++]) {
                 case '\\': code = '\\'; break;
@@ -423,12 +465,16 @@ public class ClassicRegexp implements ReOptions {
                     int hlen = end < p + 2 ? end - p : 2;
                     code = StringSupport.scanHex(bytes, p, hlen);
                     int len = StringSupport.hexLength(bytes, p, hlen);
-                    if (len < 1) raisePreprocessError(context, str, "invalid hex escape", mode);
+                    if (len < 1) {
+                        raisePreprocessError(context, str, "invalid hex escape", mode);
+                    }
                     p += len;
                     break;
 
                 case 'M': /* \M-X, \M-\C-X, \M-\cX */
-                    if (metaPrefix) raisePreprocessError(context, str, "duplicate meta escape", mode);
+                    if (metaPrefix) {
+                        raisePreprocessError(context, str, "duplicate meta escape", mode);
+                    }
                     metaPrefix = true;
                     if (p + 1 < end && bytes[p++] == (byte) '-' && (bytes[p] & 0x80) == 0) {
                         if (bytes[p] == (byte) '\\') {
@@ -447,7 +493,9 @@ public class ClassicRegexp implements ReOptions {
                     }
 
                 case 'c': /* \cX, \c\M-X */
-                    if (ctrlPrefix) raisePreprocessError(context, str, "duplicate control escape", mode);
+                    if (ctrlPrefix) {
+                        raisePreprocessError(context, str, "duplicate control escape", mode);
+                    }
                     ctrlPrefix = true;
                     if (p < end && (bytes[p] & 0x80) == 0) {
                         if (bytes[p] == (byte) '\\') {
@@ -463,10 +511,16 @@ public class ClassicRegexp implements ReOptions {
                     raisePreprocessError(context, str, "unexpected escape sequence", mode);
             } // switch
 
-            if (code < 0 || code > 0xff) raisePreprocessError(context, str, "invalid escape code", mode);
+            if (code < 0 || code > 0xff) {
+                raisePreprocessError(context, str, "invalid escape code", mode);
+            }
 
-            if (ctrlPrefix) code &= 0x1f;
-            if (metaPrefix) code |= 0x80;
+            if (ctrlPrefix) {
+                code &= 0x1f;
+            }
+            if (metaPrefix) {
+                code |= 0x80;
+            }
 
             to[toP] = (byte) code;
             return p;
@@ -488,8 +542,12 @@ public class ClassicRegexp implements ReOptions {
         }
 
         boolean hasProperty = unescapeNonAscii(runtime, to, str.getBytes(), 0, str.byteLength(), enc, fixedEnc, str, mode);
-        if (hasProperty && fixedEnc[0] == null) fixedEnc[0] = enc;
-        if (fixedEnc[0] != null) to.setEncoding(fixedEnc[0]);
+        if (hasProperty && fixedEnc[0] == null) {
+            fixedEnc[0] = enc;
+        }
+        if (fixedEnc[0] != null) {
+            to.setEncoding(fixedEnc[0]);
+        }
         return to;
     }
 
@@ -508,7 +566,9 @@ public class ClassicRegexp implements ReOptions {
             }
         }
 
-        if (regexpEnc != null) string.setEncoding(regexpEnc);
+        if (regexpEnc != null) {
+            string.setEncoding(regexpEnc);
+        }
 
         return string;
     }
@@ -600,7 +660,9 @@ public class ClassicRegexp implements ReOptions {
 
             if (!Encoding.isAscii(c)) {
                 int n = StringSupport.length(enc, bytes, p, end);
-                while (n-- > 0) obytes[op++] = bytes[p++];
+                while (n-- > 0) {
+                    obytes[op++] = bytes[p++];
+                }
                 continue;
             }
             p += cl;
@@ -651,8 +713,12 @@ public class ClassicRegexp implements ReOptions {
         //checkFrozen();
         // FIXME: Something unsets this bit, but we aren't...be more permissive until we figure this out
         //if (isLiteral()) throw runtime.newSecurityError("can't modify literal regexp");
-        if (pattern != null) throw new org.truffleruby.language.control.RaiseException(context.getCoreExceptions().typeError("already initialized regexp", null));
-        if (enc.isDummy()) throw new UnsupportedOperationException(); // RegexpSupport.raiseRegexpError19(runtime, bytes, enc, options, "can't make regexp with dummy encoding");
+        if (pattern != null) {
+            throw new org.truffleruby.language.control.RaiseException(context.getCoreExceptions().typeError("already initialized regexp", null));
+        }
+        if (enc.isDummy()) {
+            throw new UnsupportedOperationException(); // RegexpSupport.raiseRegexpError19(runtime, bytes, enc, options, "can't make regexp with dummy encoding");
+        }
 
         Encoding[]fixedEnc = new Encoding[]{null};
         RopeBuilder unescaped = preprocess(context, bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
@@ -670,8 +736,12 @@ public class ClassicRegexp implements ReOptions {
             enc = USASCIIEncoding.INSTANCE;
         }
 
-        if (fixedEnc[0] != null) options.setFixed(true);
-        if (options.isEncodingNone()) setEncodingNone();
+        if (fixedEnc[0] != null) {
+            options.setFixed(true);
+        }
+        if (options.isEncodingNone()) {
+            setEncodingNone();
+        }
 
         pattern = getRegexpFromCache(context, unescaped, enc, options);
         bytes.getClass();
@@ -680,12 +750,15 @@ public class ClassicRegexp implements ReOptions {
     }
 
     public static void appendOptions(RopeBuilder to, RegexpOptions options) {
-        if (options.isMultiline())
+        if (options.isMultiline()) {
             to.append((byte) 'm');
-        if (options.isIgnorecase())
+        }
+        if (options.isIgnorecase()) {
             to.append((byte) 'i');
-        if (options.isExtended())
+        }
+        if (options.isExtended()) {
             to.append((byte) 'x');
+        }
     }
 
     @SuppressWarnings("unused")
@@ -760,12 +833,15 @@ public class ClassicRegexp implements ReOptions {
 
             if (!newOptions.isEmbeddable()) {
                 result.append((byte) '-');
-                if (!newOptions.isMultiline())
+                if (!newOptions.isMultiline()) {
                     result.append((byte) 'm');
-                if (!newOptions.isIgnorecase())
+                }
+                if (!newOptions.isIgnorecase()) {
                     result.append((byte) 'i');
-                if (!newOptions.isExtended())
+                }
+                if (!newOptions.isExtended()) {
                     result.append((byte) 'x');
+                }
             }
             result.append((byte) ':');
             appendRegexpString19(result, bytes, p, len, str.getEncoding(), null);
@@ -853,7 +929,9 @@ public class ClassicRegexp implements ReOptions {
 
     public String[] getNames() {
         int nameLength = pattern.numberOfNames();
-        if (nameLength == 0) return EMPTY_STRING_ARRAY;
+        if (nameLength == 0) {
+            return EMPTY_STRING_ARRAY;
+        }
 
         String[] names = new String[nameLength];
         int j = 0;

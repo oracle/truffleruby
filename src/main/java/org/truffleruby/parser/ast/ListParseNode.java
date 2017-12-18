@@ -75,7 +75,9 @@ public class ListParseNode extends ParseNode {
         int newSize = list.length * 2;
         // Fairly arbitrary to scale 1.5 here but this means we are adding a lot so I think
         // we can taper the multiplier
-        if (size + mustBeDelta >= newSize) newSize = (int) ((size + mustBeDelta) * 1.5);
+        if (size + mustBeDelta >= newSize) {
+            newSize = (int) ((size + mustBeDelta) * 1.5);
+        }
 
         ParseNode[] newList = new ParseNode[newSize];
         System.arraycopy(list, 0, newList, 0, size);
@@ -83,13 +85,17 @@ public class ListParseNode extends ParseNode {
     }
 
     protected void addInternal(ParseNode node) {
-        if (size >= list.length) growList(1);
+        if (size >= list.length) {
+            growList(1);
+        }
 
         list[size++] = node;
     }
 
     protected void addAllInternal(ListParseNode other) {
-        if (size + other.size() >= list.length) growList(other.size);
+        if (size + other.size() >= list.length) {
+            growList(other.size);
+        }
 
         System.arraycopy(other.list, 0, list, size, other.size);
         size += other.size;
@@ -105,7 +111,9 @@ public class ListParseNode extends ParseNode {
 
         addInternal(node);
 
-        if (getPosition() == null) setPosition(node.getPosition());
+        if (getPosition() == null) {
+            setPosition(node.getPosition());
+        }
 
         return this;
     }
@@ -125,7 +133,9 @@ public class ListParseNode extends ParseNode {
         if (other != null && other.size() > 0) {
             addAllInternal(other);
 
-            if (getPosition() == null) setPosition(other.getPosition());
+            if (getPosition() == null) {
+                setPosition(other.getPosition());
+            }
         }
         return this;
     }
