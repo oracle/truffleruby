@@ -1156,6 +1156,7 @@ class IO
     io.descriptor = fd
     io.mode       = mode || cur_mode
     io.sync       = !!sync
+    io.autoclose  = true
     io.instance_variable_set :@ibuffer, IO::InternalBuffer.new
     io.instance_variable_set :@lineno, 0
 
@@ -1180,12 +1181,14 @@ class IO
 
     @eof = false
 
-    mode, binary, external, internal, @autoclose = IO.normalize_options(mode, options)
+    mode, binary, external, internal, autoclose_tmp = IO.normalize_options(mode, options)
 
     IO.setup self, Truffle::Type.coerce_to(fd, Integer, :to_int), mode
 
     binmode if binary
     set_encoding external, internal
+
+    @autoclose = autoclose_tmp
 
     if @external && !external
       @external = nil
@@ -1238,6 +1241,12 @@ class IO
     raise 'IO#advise not implemented'
   end
 
+  # Autoclose really represents whether this IO object owns the
+  # underlying file descriptor or not. If we are the owner of the fd
+  # then we should have a finalizer that will close the fd if that
+  # hasn't been done already, but conversely closing an IO object
+  # which is not really the owner of the fd should not actually close
+  # the fd.
   def autoclose?
     @autoclose
   end
@@ -2674,7 +2683,7 @@ class IO
       if fd >= 0
         # Need to set even if the instance is frozen
         Truffle.invoke_primitive :object_ivar_set, self, :@descriptor, -1
-        if fd >= 3
+        if fd >= 3 && autoclose?
           ret = Truffle::POSIX.close(fd)
           Errno.handle if ret < 0
         end
