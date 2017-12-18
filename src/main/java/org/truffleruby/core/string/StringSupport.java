@@ -202,15 +202,15 @@ public final class StringSupport {
 
     // arg cannot be negative
     public static long pack(int result, int arg) {
-        return ((long)arg << 31) | result;
+        return ((long) arg << 31) | result;
     }
 
     public static int unpackResult(long len) {
-        return (int)len & 0x7fffffff;
+        return (int) len & 0x7fffffff;
     }
 
     public static int unpackArg(long cr) {
-        return (int)(cr >>> 31);
+        return (int) (cr >>> 31);
     }
 
     public static int codePoint(Encoding enc, byte[] bytes, int p, int end) {
@@ -694,9 +694,11 @@ public final class StringSupport {
 
         while (true) {
             int i = len - 1;
-            for (; i >= 0 && bytes[p + i] == (byte)0xff; i--) bytes[p + i] = 0;
+            for (; i >= 0 && bytes[p + i] == (byte) 0xff; i--) {
+                bytes[p + i] = 0;
+            }
             if (i < 0) return NeighborChar.WRAPPED;
-            bytes[p + i] = (byte)((bytes[p + i] & 0xff) + 1);
+            bytes[p + i] = (byte) ((bytes[p + i] & 0xff) + 1);
             l = preciseLength(enc, bytes, p, p + len);
             if (MBCLEN_CHARFOUND_P(l)) {
                 l = MBCLEN_CHARFOUND_LEN(l);
@@ -718,7 +720,7 @@ public final class StringSupport {
                 }
                 int start = p+len2+1;
                 int end = start + len-(len2+1);
-                Arrays.fill(bytes, start, end, (byte)0xff);
+                Arrays.fill(bytes, start, end, (byte) 0xff);
             }
         }
     }
@@ -798,9 +800,10 @@ public final class StringSupport {
         }
         while (true) {
             int i = len - 1;
-            for (; i >= 0 && bytes[p + i] == 0; i--) bytes[p + i] = (byte)0xff;
+            for (; i >= 0 && bytes[p + i] == 0; i--)
+                bytes[p + i] = (byte) 0xff;
             if (i < 0) return NeighborChar.WRAPPED;
-            bytes[p + i] = (byte)((bytes[p + i] & 0xff) - 1);
+            bytes[p + i] = (byte) ((bytes[p + i] & 0xff) - 1);
             l = preciseLength(enc, bytes, p, p + len);
             if (MBCLEN_CHARFOUND_P(l)) {
                 l = MBCLEN_CHARFOUND_LEN(l);
@@ -848,7 +851,9 @@ public final class StringSupport {
                 if (squeeze[c]) {
                     modify = true;
                 } else {
-                    if (t != s) bytes[t] = (byte)c;
+                    if (t != s) {
+                        bytes[t] = (byte) c;
+                    }
                     t++;
                 }
                 s++;
@@ -1017,9 +1022,9 @@ public final class StringSupport {
                 if (trans[c] != -1) {
                     if (!cflag) {
                         c = trans[c];
-                        sbytes[s] = (byte)c;
+                        sbytes[s] = (byte) c;
                     } else {
-                        sbytes[s] = (byte)last;
+                        sbytes[s] = (byte) last;
                     }
                     modify = true;
                 }
@@ -1030,7 +1035,7 @@ public final class StringSupport {
             ret = RopeOperations.create(sbytes, enc, cr);
         } else {
             byte sbytes[] = self.getBytes();
-            int clen, tlen, max = (int)(self.byteLength() * 1.2);
+            int clen, tlen, max = (int) (self.byteLength() * 1.2);
             byte[] buf = new byte[max];
             int t = 0;
 
@@ -1161,7 +1166,9 @@ public final class StringSupport {
 
         while (s < send) {
             int c = bytes[s++] & 0xff;
-            if (c != save || !squeeze[c]) bytes[t++] = (byte)(save = c);
+            if (c != save || !squeeze[c]) {
+                bytes[t++] = (byte) (save = c);
+            }
         }
 
         if (t != value.getLength()) { // modified
@@ -1182,7 +1189,9 @@ public final class StringSupport {
 
         while (s < send) {
             if (enc.isAsciiCompatible() && (c = bytes[s] & 0xff) < 0x80) {
-                if (c != save || (isArg && !squeeze[c])) bytes[t++] = (byte)(save = c);
+                if (c != save || (isArg && !squeeze[c])) {
+                    bytes[t++] = (byte) (save = c);
+                }
                 s++;
             } else {
                 c = codePoint(enc, bytes, s, send);

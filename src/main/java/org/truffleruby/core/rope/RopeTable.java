@@ -137,7 +137,7 @@ public class RopeTable {
             // reference equality optimizations. So, do another search but with a marker encoding. The only guarantee
             // we can make about the resulting rope is that it would have the same logical byte[], but that's good enough
             // for our purposes.
-            final Rope ropeWithSameBytesButDifferentEncoding = getRope(bytes, null ,codeRange);
+            final Rope ropeWithSameBytesButDifferentEncoding = getRope(bytes, null, codeRange);
 
             final Rope rope;
             if (ropeWithSameBytesButDifferentEncoding != null) {

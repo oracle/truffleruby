@@ -445,8 +445,8 @@ public class ParserSupport {
         if (node != null) {
             if (node instanceof BlockPassParseNode) {
                 lexer.compile_error(PID.BLOCK_ARG_UNEXPECTED, "block argument should not be given");
-            } else if (node instanceof ArrayParseNode && ((ArrayParseNode)node).size() == 1) {
-                node = ((ArrayParseNode)node).get(0);
+            } else if (node instanceof ArrayParseNode && ((ArrayParseNode) node).size() == 1) {
+                node = ((ArrayParseNode) node).get(0);
             } else if (node instanceof SplatParseNode) {
                 node = newSValueNode(position, node);
             }
@@ -1127,7 +1127,7 @@ public class ParserSupport {
         if (head instanceof StrParseNode) {
 
             //Do not add an empty string node
-            if(((StrParseNode) head).getValue().byteLength() == 0) {
+            if (((StrParseNode) head).getValue().byteLength() == 0) {
                 head = createDStrNode(head.getPosition());
             } else {
                 head = createDStrNode(head.getPosition()).add(head);
@@ -1542,7 +1542,7 @@ public class ParserSupport {
 
         try {
             // This is only for syntax checking but this will as a side-effect create an entry in the regexp cache.
-            ClassicRegexp.newRegexpParser(getConfiguration().getContext(), value, (RegexpOptions)options.clone());
+            ClassicRegexp.newRegexpParser(getConfiguration().getContext(), value, (RegexpOptions) options.clone());
         } catch (RaiseException re) {
             compile_error(re.getMessage());
         }

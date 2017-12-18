@@ -451,29 +451,29 @@ public class BCrypt {
             c2 = char64(s.charAt(off++));
             if (c1 == -1 || c2 == -1)
                 break;
-            o = (byte)(c1 << 2);
+            o = (byte) (c1 << 2);
             o |= (c2 & 0x30) >> 4;
-            rs.append((char)o);
+            rs.append((char) o);
             if (++olen >= maxolen || off >= slen)
                 break;
             c3 = char64(s.charAt(off++));
             if (c3 == -1)
                 break;
-            o = (byte)((c2 & 0x0f) << 4);
+            o = (byte) ((c2 & 0x0f) << 4);
             o |= (c3 & 0x3c) >> 2;
-            rs.append((char)o);
+            rs.append((char) o);
             if (++olen >= maxolen || off >= slen)
                 break;
             c4 = char64(s.charAt(off++));
-            o = (byte)((c3 & 0x03) << 6);
+            o = (byte) ((c3 & 0x03) << 6);
             o |= c4;
-            rs.append((char)o);
+            rs.append((char) o);
             ++olen;
         }
 
         ret = new byte[olen];
         for (off = 0; off < olen; off++)
-            ret[off] = (byte)rs.charAt(off);
+            ret[off] = (byte) rs.charAt(off);
         return ret;
     }
 
@@ -629,10 +629,10 @@ public class BCrypt {
 
         ret = new byte[clen * 4];
         for (i = 0, j = 0; i < clen; i++) {
-            ret[j++] = (byte)((cdata[i] >> 24) & 0xff);
-            ret[j++] = (byte)((cdata[i] >> 16) & 0xff);
-            ret[j++] = (byte)((cdata[i] >> 8) & 0xff);
-            ret[j++] = (byte)(cdata[i] & 0xff);
+            ret[j++] = (byte) ((cdata[i] >> 24) & 0xff);
+            ret[j++] = (byte) ((cdata[i] >> 16) & 0xff);
+            ret[j++] = (byte) ((cdata[i] >> 8) & 0xff);
+            ret[j++] = (byte) (cdata[i] & 0xff);
         }
         return ret;
     }
@@ -648,7 +648,7 @@ public class BCrypt {
         BCrypt B;
         String real_salt;
         byte passwordb[], saltb[], hashed[];
-        char minor = (char)0;
+        char minor = (char) 0;
         int rounds, off = 0;
         StringBuilder rs = new StringBuilder();
 

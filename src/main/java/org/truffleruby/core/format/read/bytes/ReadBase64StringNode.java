@@ -123,9 +123,9 @@ public abstract class ReadBase64StringNode extends FormatNode {
                 if (d == -1) throw new InvalidFormatException("invalid base64");
 
                 // calculate based on a, b, c and d
-                lElem[index++] = (byte)((a << 2 | b >> 4) & 255);
-                lElem[index++] = (byte)((b << 4 | c >> 2) & 255);
-                lElem[index++] = (byte)((c << 6 | d) & 255);
+                lElem[index++] = (byte) ((a << 2 | b >> 4) & 255);
+                lElem[index++] = (byte) ((b << 4 | c >> 2) & 255);
+                lElem[index++] = (byte) ((c << 6 | d) & 255);
             }
 
             if (encode.hasRemaining()) throw new InvalidFormatException("invalid base64");
@@ -133,11 +133,11 @@ public abstract class ReadBase64StringNode extends FormatNode {
             if (a != -1) {
                 if (c == -1) {
                     if ((b & 15) != 0) throw new InvalidFormatException("invalid base64");
-                    lElem[index++] = (byte)((a << 2 | b >> 4) & 255);
-                } else if(s == '=') {
+                    lElem[index++] = (byte) ((a << 2 | b >> 4) & 255);
+                } else if (s == '=') {
                     if ((c & 3) != 0) throw new InvalidFormatException("invalid base64");
-                    lElem[index++] = (byte)((a << 2 | b >> 4) & 255);
-                    lElem[index++] = (byte)((b << 4 | c >> 2) & 255);
+                    lElem[index++] = (byte) ((a << 2 | b >> 4) & 255);
+                    lElem[index++] = (byte) ((b << 4 | c >> 2) & 255);
                 }
             }
         }
@@ -187,17 +187,17 @@ public abstract class ReadBase64StringNode extends FormatNode {
                 }
 
                 // calculate based on a, b, c and d
-                lElem[index++] = (byte)((a << 2 | b >> 4) & 255);
-                lElem[index++] = (byte)((b << 4 | c >> 2) & 255);
-                lElem[index++] = (byte)((c << 6 | d) & 255);
+                lElem[index++] = (byte) ((a << 2 | b >> 4) & 255);
+                lElem[index++] = (byte) ((b << 4 | c >> 2) & 255);
+                lElem[index++] = (byte) ((c << 6 | d) & 255);
             }
 
             if (a != -1 && b != -1) {
                 if (c == -1 && s == '=') {
-                    lElem[index++] = (byte)((a << 2 | b >> 4) & 255);
-                } else if(c != -1 && s == '=') {
-                    lElem[index++] = (byte)((a << 2 | b >> 4) & 255);
-                    lElem[index++] = (byte)((b << 4 | c >> 2) & 255);
+                    lElem[index++] = (byte) ((a << 2 | b >> 4) & 255);
+                } else if (c != -1 && s == '=') {
+                    lElem[index++] = (byte) ((a << 2 | b >> 4) & 255);
+                    lElem[index++] = (byte) ((b << 4 | c >> 2) & 255);
                 }
             }
         }

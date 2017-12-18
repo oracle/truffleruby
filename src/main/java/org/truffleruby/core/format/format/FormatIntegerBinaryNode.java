@@ -71,14 +71,14 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
         final boolean negativeAndPadded = isNegative && (this.hasSpaceFlag || this.hasPlusFlag);
 
         final String formatted;
-        if(negativeAndPadded) {
+        if (negativeAndPadded) {
             formatted = bigInteger.abs().toString(2);
         } else if (!isNegative) {
             formatted = bigInteger.toString(2);
         } else {
             StringBuilder builder = new StringBuilder();
             final byte[] bytes = bigInteger.toByteArray();
-            for(byte b: bytes){
+            for (byte b : bytes) {
                 builder.append(Integer.toBinaryString(b & 0xFF));
             }
             formatted = builder.toString();
@@ -92,7 +92,7 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
                                              boolean isSpacePadded, boolean hasPlusFlag, boolean hasZeroFlag,
                                              boolean useAlternativeFormat, boolean hasMinusFlag,
                                              char format) {
-        if(width < 0 && width != PrintfSimpleTreeBuilder.DEFAULT){
+        if (width < 0 && width != PrintfSimpleTreeBuilder.DEFAULT) {
             width = -width;
             hasMinusFlag = true;
         }
@@ -111,8 +111,8 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
                 formatted = "..1";
             }
         } else {
-            if(hasZeroFlag || precision != PrintfSimpleTreeBuilder.DEFAULT) {
-                if(!hasMinusFlag){
+            if (hasZeroFlag || precision != PrintfSimpleTreeBuilder.DEFAULT) {
+                if (!hasMinusFlag) {
                     final int padZeros = precision != PrintfSimpleTreeBuilder.DEFAULT ? precision : width;
                     while (formatted.length() < padZeros) {
                         formatted = "0" + formatted;
@@ -122,7 +122,7 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
         }
 
         while (formatted.length() < width) {
-            if(!hasMinusFlag){
+            if (!hasMinusFlag) {
                 formatted = " " + formatted;
             } else {
                 formatted = formatted + " ";
@@ -133,7 +133,7 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
 
 
         if (useAlternativeFormat) {
-            if(format == 'B'){
+            if (format == 'B') {
                 formatted = "0B" + formatted;
             } else {
                 formatted = "0b" + formatted;

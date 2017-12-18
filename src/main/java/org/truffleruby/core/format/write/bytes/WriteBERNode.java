@@ -110,9 +110,9 @@ public abstract class WriteBERNode extends FormatNode {
         if (FormatGuards.isRubyBignum(from)) {
             from = Layouts.BIGNUM.getValue((DynamicObject) from);
             while (true) {
-                BigInteger bignum = (BigInteger)from;
+                BigInteger bignum = (BigInteger) from;
                 BigInteger[] ary = bignum.divideAndRemainder(BIG_128);
-                buf.append((byte)(ary[1].longValue() | 0x80) & 0xff);
+                buf.append((byte) (ary[1].longValue() | 0x80) & 0xff);
 
                 if (ary[0].compareTo(BigInteger.valueOf(Long.MAX_VALUE)) <= 0) {
                     l = ary[0].longValue();
@@ -128,8 +128,8 @@ public abstract class WriteBERNode extends FormatNode {
             throw new UnsupportedOperationException();
         }
 
-        while(l != 0) {
-            buf.append((byte)(((l & 0x7f) | 0x80) & 0xff));
+        while (l != 0) {
+            buf.append((byte) (((l & 0x7f) | 0x80) & 0xff));
             l >>= 7;
         }
 

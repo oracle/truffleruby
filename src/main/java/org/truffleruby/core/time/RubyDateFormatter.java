@@ -362,7 +362,7 @@ public abstract class RubyDateFormatter {
                 case FORMAT_WEEK_LONG:
                     // This is GROSS, but Java API's aren't ISO 8601 compliant at all
                     int v = (dt.getDayOfWeek().getValue()+1)%8;
-                    if(v == 0) {
+                    if (v == 0) {
                         v++;
                     }
                     output = FORMAT_SYMBOLS.getWeekdays()[v];
@@ -370,7 +370,7 @@ public abstract class RubyDateFormatter {
                 case FORMAT_WEEK_SHORT:
                     // This is GROSS, but Java API's aren't ISO 8601 compliant at all
                     v = (dt.getDayOfWeek().getValue()+1)%8;
-                    if(v == 0) {
+                    if (v == 0) {
                         v++;
                     }
                     output = FORMAT_SYMBOLS.getShortWeekdays()[v];
@@ -486,8 +486,9 @@ public abstract class RubyDateFormatter {
                         output = output.substring(0, width);
                     } else {
                         // Not enough precision, fill with 0
-                        while(output.length() < width)
+                        while (output.length() < width) {
                             output += "0";
+                        }
                     }
                     formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER; // no more formatting
                     break;

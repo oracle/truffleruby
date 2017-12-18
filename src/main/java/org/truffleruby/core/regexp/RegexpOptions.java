@@ -231,7 +231,7 @@ public class RegexpOptions implements Cloneable {
     }
 
     public RegexpOptions withoutOnce() {
-        RegexpOptions options = (RegexpOptions)clone();
+        RegexpOptions options = (RegexpOptions) clone();
         options.setOnce(false);
         return options;
     }
@@ -256,7 +256,9 @@ public class RegexpOptions implements Cloneable {
     public Object clone() {
         try {
             return super.clone();
-        } catch (CloneNotSupportedException cnse) {throw new RuntimeException(cnse);}
+        } catch (CloneNotSupportedException cnse) {
+            throw new RuntimeException(cnse);
+        }
     }
 
     @Override
@@ -266,13 +268,13 @@ public class RegexpOptions implements Cloneable {
         // Note: literal and once can be different in this object but for the
         // sake of equality we ignore those two fields since those flags do
         // not affect Ruby equality.
-        RegexpOptions o = (RegexpOptions)other;
+        RegexpOptions o = (RegexpOptions) other;
         boolean equality = o.extended == extended &&
                            o.fixed == fixed &&
                            o.ignorecase == ignorecase &&
                            o.java == java &&
                            o.multiline == multiline;
-        if(encodingNone || o.encodingNone) {
+        if (encodingNone || o.encodingNone) {
             return equality && o.kcode == kcode;
         } else {
             return equality &&

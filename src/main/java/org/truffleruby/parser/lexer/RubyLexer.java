@@ -617,7 +617,7 @@ public class RubyLexer {
 
         switch (c) {
         case 'Q':
-            lex_strterm = new StringTerm(str_dquote, begin ,end);
+            lex_strterm = new StringTerm(str_dquote, begin, end);
             yaccValue = "%"+ (shortHand ? (""+end) : ("" + c + begin));
             return Tokens.tSTRING_BEG;
 
@@ -628,14 +628,18 @@ public class RubyLexer {
 
         case 'W':
             lex_strterm = new StringTerm(str_dquote | STR_FUNC_QWORDS, begin, end);
-            do {c = nextc();} while (Character.isWhitespace(c));
+            do {
+                c = nextc();
+            } while (Character.isWhitespace(c));
             pushback(c);
             yaccValue = "%"+c+begin;
             return Tokens.tWORDS_BEG;
 
         case 'w':
             lex_strterm = new StringTerm(/* str_squote | */ STR_FUNC_QWORDS, begin, end);
-            do {c = nextc();} while (Character.isWhitespace(c));
+            do {
+                c = nextc();
+            } while (Character.isWhitespace(c));
             pushback(c);
             yaccValue = "%"+c+begin;
             return Tokens.tQWORDS_BEG;
@@ -658,13 +662,17 @@ public class RubyLexer {
 
         case 'I':
             lex_strterm = new StringTerm(str_dquote | STR_FUNC_QWORDS, begin, end);
-            do {c = nextc();} while (Character.isWhitespace(c));
+            do {
+                c = nextc();
+            } while (Character.isWhitespace(c));
             pushback(c);
             yaccValue = "%" + c + begin;
             return Tokens.tSYMBOLS_BEG;
         case 'i':
             lex_strterm = new StringTerm(/* str_squote | */STR_FUNC_QWORDS, begin, end);
-            do {c = nextc();} while (Character.isWhitespace(c));
+            do {
+                c = nextc();
+            } while (Character.isWhitespace(c));
             pushback(c);
             yaccValue = "%" + c + begin;
             return Tokens.tQSYMBOLS_BEG;
@@ -790,7 +798,7 @@ public class RubyLexer {
         commandStart = false;
         this.tokenSeen = true;
 
-        loop: for(;;) {
+        loop: for (;;) {
             last_state = lex_state;
             c = nextc();
             switch(c) {
@@ -2897,11 +2905,11 @@ public class RubyLexer {
             if (RopeOperations.caseInsensitiveCmp(parserRopeOperations.makeShared(lexb, str - 6, 6), CODING) == 0) break;
         }
 
-        for(;;) {
+        for (;;) {
             do {
                 str++;
                 if (str >= send) return;
-            } while(Character.isSpaceChar(p(str)));
+            } while (Character.isSpaceChar(p(str)));
             if (sep) break;
 
             if (p(str) != '=' && p(str) != ':') return;

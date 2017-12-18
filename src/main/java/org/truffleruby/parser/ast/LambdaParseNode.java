@@ -47,7 +47,7 @@ public class LambdaParseNode extends IterParseNode {
     }
 
     public ArgsParseNode getArgs() {
-        return (ArgsParseNode)getVarNode();
+        return (ArgsParseNode) getVarNode();
     }
 
     public ParseNode getBody() {
