@@ -159,17 +159,9 @@ module Utilities
 
   def self.find_launcher(use_native)
     if use_native
-      if ENV['AOT_BIN']
-        ENV['AOT_BIN']
-      else
-        "#{TRUFFLERUBY_DIR}/bin/native-ruby"
-      end
+      ENV['AOT_BIN'] || "#{TRUFFLERUBY_DIR}/bin/native-ruby"
     else
-      if ENV['RUBY_BIN']
-        ENV['RUBY_BIN']
-      else
-        "#{TRUFFLERUBY_DIR}/bin/truffleruby"
-      end
+      ENV['RUBY_BIN'] || "#{TRUFFLERUBY_DIR}/bin/truffleruby"
     end
   end
 
@@ -507,13 +499,6 @@ module Commands
 
   BUILD_OPTIONS = %w[parser options cexts sulong native]
 
-  def build_truffleruby
-    mx 'sforceimports'
-    mx 'build', '--force-javac', '--warning-as-error',
-       # show more than default 100 errors not to hide actual errors under pile of missing symbols
-       '-A-Xmaxerrs', '-A1000'
-  end
-
   def build(*options)
     project = options.first
     case project
@@ -538,10 +523,12 @@ module Commands
       cores = Etc.respond_to?(:nprocessors) ? Etc.nprocessors : 4
       raw_sh "make", "-j#{cores}", chdir: "#{TRUFFLERUBY_DIR}/src/main/c"
     when 'native'
-      build_truffleruby
       build_native_image
     when nil
-      build_truffleruby
+      mx 'sforceimports'
+      mx 'build', '--force-javac', '--warning-as-error',
+         # show more than default 100 errors not to hide actual errors under pile of missing symbols
+         '-A-Xmaxerrs', '-A1000'
     else
       raise ArgumentError, project
     end
