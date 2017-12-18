@@ -63,6 +63,16 @@ $ echo MX_BINARY_SUITES=truffle,sdk > mx.truffleruby/env
 $ jt build
 ```
 
+By default the `jt build` command only builds the JVM-based launcher for TruffleRuby.
+If you'd like to build the native image using the Substrate VM, you can do so by
+providing an extra argument to the build command.
+
+```bash
+$ jt build native
+```
+
+This will create a new file name `native-ruby` in your `bin/` directory.
+
 ## Sulong
 
 TruffleRuby runs C extension using Sulong. You should build Sulong from source.
@@ -99,6 +109,15 @@ $ jt test integration
 Other tests can be hard to set up and can require other repositories, so we
 don't normally run them locally unless we're working on that functionality.
 
+If you'd like to run tests with the native TruffleRuby binary you can do so
+by providing the `--native` argument to the test command. Please note that
+you must follow the steps to build the native image before it can be used 
+for tests.
+
+```bash
+$ jt test --native fast
+```
+
 ## Running
 
 `jt ruby` runs TruffleRuby. You can use it exactly as you'd run the MRI `ruby`
@@ -107,8 +126,18 @@ developing, such as loading the core library from disk rather than the JAR.
 `jt ruby` prints the real command it's running as it starts.
 
 ```bash
-$ ruby ...
+$ bin/ruby ...
 $ jt ruby ...
+```
+
+If you'd like to run tests with the native TruffleRuby binary you can do so
+by providing the `--native` argument to the `ruby` command. Please note that
+you must follow the steps to build the native image before it can be used 
+for tests.
+
+```bash
+$ bin/native-ruby ...
+$ jt ruby --native ...
 ```
 
 ## Options
@@ -132,7 +161,9 @@ set in `RUBYOPT`.
 ## Running with Graal
 
 To run with a GraalVM binary tarball, set the `GRAALVM_BIN` environment variable
-and run with the `--graal` option.
+and run with the `--graal` option. Note that if you're running a native TruffleRuby
+binary, Graal is always built into the binary and enabled; you can safely ignore
+the rest of this section.
 
 ```bash
 $ export GRAALVM_BIN=.../graalvm-0.nn/bin/java
