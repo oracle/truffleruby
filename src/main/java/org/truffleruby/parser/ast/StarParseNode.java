@@ -58,7 +58,7 @@ public class StarParseNode extends ParseNode {
      */
     @Override
     public <T> T accept(NodeVisitor<T> visitor) {
-    	return visitor.visitStarNode(this);
+        return visitor.visitStarNode(this);
     }
     
     @Override

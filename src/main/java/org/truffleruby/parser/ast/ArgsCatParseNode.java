@@ -37,7 +37,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import java.util.List;
 
 public class ArgsCatParseNode extends ParseNode {
-	private final ParseNode firstNode;
+    private final ParseNode firstNode;
     private final ParseNode secondNode;
 
     public ArgsCatParseNode(SourceIndexLength position, ParseNode firstNode, ParseNode secondNode) {

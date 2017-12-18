@@ -37,7 +37,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import java.util.List;
 
 /**
- *	An 'ensure' statement.
+ * An 'ensure' statement.
  */
 public class EnsureParseNode extends ParseNode {
     private final ParseNode bodyNode;

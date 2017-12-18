@@ -38,7 +38,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import java.util.List;
 
 /**
- *	access to a global variable.
+ * access to a global variable.
  */
 public class GlobalVarParseNode extends ParseNode implements INameNode, SideEffectFree {
     private String name;

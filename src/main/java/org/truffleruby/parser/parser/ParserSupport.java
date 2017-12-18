@@ -421,9 +421,9 @@ public class ParserSupport {
         return new ArgsPushParseNode(position, node1, node2);
     }
 
-	/**
-	 * @fixme position
-	 **/
+    /**
+     * @fixme position
+     **/
     public ParseNode node_assign(ParseNode lhs, ParseNode rhs) {
         if (lhs == null) return null;
 
@@ -431,7 +431,7 @@ public class ParserSupport {
 
         checkExpression(rhs);
         if (lhs instanceof AssignableParseNode) {
-    	    ((AssignableParseNode) lhs).setValueNode(rhs);
+            ((AssignableParseNode) lhs).setValueNode(rhs);
         } else if (lhs instanceof IArgumentNode) {
             IArgumentNode invokableNode = (IArgumentNode) lhs;
 
@@ -631,9 +631,9 @@ public class ParserSupport {
         }
     }
 
-	/**
+    /**
      * assign_in_cond
-	 **/
+     **/
     private boolean checkAssignmentInCondition(ParseNode node) {
         if (node instanceof MultipleAsgnParseNode) {
             lexer.compile_error(PID.MULTIPLE_ASSIGNMENT_IN_CONDITIONAL, "multiple assignment in conditional");

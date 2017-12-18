@@ -93,8 +93,10 @@ public class RescueBodyParseNode extends ParseNode {
 
     @Override
     public List<ParseNode> childNodes() {
-    	if (optRescueNode != null) return ParseNode.createList(exceptionNodes, bodyNode, optRescueNode);
+        if (optRescueNode != null) {
+            return ParseNode.createList(exceptionNodes, bodyNode, optRescueNode);
+        }
 
-    	return ParseNode.createList(exceptionNodes, bodyNode);
+        return ParseNode.createList(exceptionNodes, bodyNode);
     }
 }

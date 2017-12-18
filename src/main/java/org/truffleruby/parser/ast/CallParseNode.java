@@ -111,8 +111,7 @@ public class CallParseNode extends ParseNode implements INameNode, IArgumentNode
 
     /**
      * Gets the name.
-	 * name is the name of the method called
-     * @return name
+     * @return name the name of the method called
      */
     public String getName() {
         return name;
@@ -120,8 +119,7 @@ public class CallParseNode extends ParseNode implements INameNode, IArgumentNode
 
     /**
      * Gets the receiverNode.
-	 * receiverNode is the object on which the method is being called
-     * @return receiverNode
+     * @return receiverNode the object on which the method is being called
      */
     public ParseNode getReceiverNode() {
         return receiverNode;

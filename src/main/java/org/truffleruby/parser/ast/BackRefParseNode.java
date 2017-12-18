@@ -37,7 +37,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import java.util.List;
 
 /**
- *	Regexp back reference:
+ *  Regexp back reference: 
  *    - $&amp; last successful match
  *    - $+ highest numbered group matched in last successful match.
  *    - $` what precedes the last successful match

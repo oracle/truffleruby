@@ -41,13 +41,13 @@ import java.util.List;
  * when statements.
  */
 public class CaseParseNode extends ParseNode {
-	/**
-	 * the case expression.
-	 **/
+    /**
+     * the case expression.
+     **/
     private final ParseNode caseNode;
-	/**
-	 * A list of all choices including else
-	 */
+    /**
+     * A list of all choices including else
+     */
     private final ListParseNode cases;
     private ParseNode elseNode = null;
 
@@ -72,7 +72,7 @@ public class CaseParseNode extends ParseNode {
         return NodeType.CASENODE;
     }
 
- 	/**
+    /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
@@ -83,8 +83,7 @@ public class CaseParseNode extends ParseNode {
 
     /**
      * Gets the caseNode.
-	 * caseNode is the case expression
-     * @return caseNode
+     * @return caseNode the case expression
      */
     public ParseNode getCaseNode() {
         return caseNode;
