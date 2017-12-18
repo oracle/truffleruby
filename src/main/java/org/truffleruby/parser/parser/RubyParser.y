@@ -186,7 +186,7 @@ public class RubyParser {
 %token <String> tDOT2 tDOT3    /* .. and ... */
 %token <String> tAREF tASET    /* [] and []= */
 %token <String> tLSHFT tRSHFT  /* << and >> */
-%token <String> tANDDOT	       /* &. */
+%token <String> tANDDOT        /* &. */
 %token <String> tCOLON2        /* :: */
 %token <String> tCOLON3        /* :: at EXPR_BEG */
 %token <String> tOP_ASGN       /* +=, -=  etc. */
@@ -1298,10 +1298,10 @@ args            : arg_value { // ArrayParseNode
                     }
                 }
 
-mrhs_arg	: mrhs {
+mrhs_arg        : mrhs {
                     $$ = $1;
                 }
-		| arg_value {
+                | arg_value {
                     $$ = $1;
                 }
 
@@ -1914,7 +1914,7 @@ string          : tCHAR {
 
 string1         : tSTRING_BEG string_contents tSTRING_END {
                     lexer.heredoc_dedent($2);
-		    lexer.setHeredocIndent(0);
+                    lexer.setHeredocIndent(0);
                     $$ = $2;
                 }
 
@@ -1922,7 +1922,7 @@ xstring         : tXSTRING_BEG xstring_contents tSTRING_END {
                     SourceIndexLength position = support.getPosition($2);
 
                     lexer.heredoc_dedent($2);
-		    lexer.setHeredocIndent(0);
+                    lexer.setHeredocIndent(0);
 
                     if ($2 == null) {
                         $$ = new XStrParseNode(position, null, CodeRange.CR_7BIT);
@@ -2366,7 +2366,7 @@ f_arg           : f_arg_item {
                     $$ = $1;
                 }
 
-f_label 	: tLABEL {
+f_label         : tLABEL {
                     support.arg_var(support.formal_argument($1));
                     lexer.setCurrentArg($1);
                     $$ = $1;
@@ -2538,7 +2538,7 @@ operation2      : tIDENTIFIER | tCONSTANT | tFID | op
 operation3      : tIDENTIFIER | tFID | op
 dot_or_colon    : tDOT | tCOLON2
 
-call_op 	: tDOT {
+call_op         : tDOT {
                     $$ = $1;
                 }
                 | tANDDOT {
