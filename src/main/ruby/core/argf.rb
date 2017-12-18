@@ -92,7 +92,7 @@ module Rubinius
     #
     def close
       advance!
-      @stream.close unless @stream.to_io == STDIN
+      @stream.close unless @stream.to_io == $stdin
       @advance = true unless @use_stdin_only
       @lineno = 0
       @last_lineno = 0
@@ -543,7 +543,7 @@ module Rubinius
     end
 
     def stream(file)
-      stream = file == '-' ? STDIN : File.open(file, 'r', :external_encoding => external_encoding)
+      stream = file == '-' ? $stdin : File.open(file, 'r', :external_encoding => external_encoding)
 
       if @encoding_args
         stream.set_encoding(*@encoding_args)
@@ -591,7 +591,7 @@ module Rubinius
 
         if @argv.empty?
           @advance = false
-          @stream = STDIN
+          @stream = $stdin
           @filename = '-'
           @use_stdin_only = true
           return true
@@ -609,7 +609,7 @@ module Rubinius
       @stream = stream(file)
       @filename = file
 
-      if $-i && @stream != STDIN
+      if $-i && @stream != $stdin
         backup_extension = $-i == '' ? '.bak' : $-i
         @backup_filename = "#{@filename}#{backup_extension}"
         File.rename(@filename, @backup_filename)
