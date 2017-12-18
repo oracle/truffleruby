@@ -139,6 +139,7 @@ import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDFN;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_FNAME;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_LABEL;
 
+// CheckStyle: start generated
 @SuppressFBWarnings("IP")
 @SuppressWarnings({"unchecked", "fallthrough", "cast"})
 public class RubyParser {
@@ -2588,3 +2589,4 @@ none_block_pass : /* none */ {
         return support.getResult();
     }
 }
+// CheckStyle: stop generated
