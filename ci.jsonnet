@@ -546,7 +546,6 @@
     {name: "ruby-test-integration"} + linux_gate + $.test_integration,
     {name: "ruby-test-cexts"} + linux_gate + $.test_cexts,
     {name: "ruby-test-gems"} + linux_gate + $.test_gems,
-    {name: "ruby-test-bundle-no-sulong"} + linux_gate + {run: jt(["test", "bundle", "--no-sulong"])},
     {name: "ruby-test-ecosystem"} + linux_gate + $.test_ecosystem,
 
     {name: "ruby-test-compiler-graal-core"} + linux_gate + $.graal_core + {run: jt(["test", "compiler"])},
