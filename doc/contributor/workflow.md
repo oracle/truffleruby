@@ -71,7 +71,7 @@ providing an extra argument to the build command.
 $ jt build native
 ```
 
-This will create a new file name `native-ruby` in your `bin/` directory.
+This will create a new executable named `native-ruby` in the `bin/` directory.
 
 ## Sulong
 
@@ -109,7 +109,7 @@ $ jt test integration
 Other tests can be hard to set up and can require other repositories, so we
 don't normally run them locally unless we're working on that functionality.
 
-If you'd like to run tests with the native TruffleRuby binary you can do so
+If you'd like to run tests with the native TruffleRuby binary, you can do so
 by providing the `--native` argument to the test command. Please note that
 you must follow the steps to build the native image before it can be used 
 for tests.
@@ -130,10 +130,9 @@ $ bin/ruby ...
 $ jt ruby ...
 ```
 
-If you'd like to run tests with the native TruffleRuby binary you can do so
+If you'd like to run the native TruffleRuby binary, you can do so
 by providing the `--native` argument to the `ruby` command. Please note that
-you must follow the steps to build the native image before it can be used 
-for tests.
+you must follow the steps to build the native image before it can be used.
 
 ```bash
 $ bin/native-ruby ...
