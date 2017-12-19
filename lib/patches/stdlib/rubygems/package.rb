@@ -1,36 +1,5 @@
 Truffle::Patching.require_original __FILE__
 
-# TruffleRuby: shell to tar for untarring
-class Gem::Package
-  def extract_files destination_dir, pattern = "*"
-    verify unless @spec
-
-    FileUtils.mkdir_p destination_dir
-
-    # TruffleRuby: start
-    extr_to = File.dirname(@gem.path) + '/' + File.basename(@gem.path, File.extname(@gem.path))
-    Dir.mkdir(extr_to)
-    `tar --warning=no-timestamp -C #{extr_to} -xf #{@gem.path}`
-    # TruffleRuby: end
-
-    @gem.with_read_io do |io|
-      reader = Gem::Package::TarReader.new io
-
-      reader.each do |entry|
-        next unless entry.full_name == 'data.tar.gz'
-
-        # TruffleRuby: start
-        `tar --warning=no-timestamp -C #{destination_dir} -xzf #{extr_to + '/' + entry.full_name}`
-        #extract_tar_gz entry, destination_dir, pattern
-        FileUtils.remove_dir(extr_to)
-        # TruffleRuby: end
-
-        return # ignore further entries
-      end
-    end
-  end
-end
-
 if Truffle::Boot.patching_openssl_enabled?
   # TruffleRuby: skip some checksum/digest verification
 
@@ -62,36 +31,5 @@ if Truffle::Boot.patching_openssl_enabled?
     rescue Gem::Package::TarInvalidError => e
       raise Gem::Package::FormatError.new e.message, @gem
     end
-  end
-end
-
-class Gem::Package
-  def verify_entry entry
-    file_name = entry.full_name
-    @files << file_name
-
-    case file_name
-    when /\.sig$/ then
-      @signatures[$`] = entry.read if @security_policy
-      return
-    else
-      if Truffle::Boot.patching_openssl_enabled?
-        # TruffleRuby: disable
-      else
-        digest entry
-      end
-    end
-
-    case file_name
-    when /^metadata(.gz)?$/ then
-      load_spec entry
-    when 'data.tar.gz' then
-      # TruffleRuby: disable, because it is way too slow with pr-zlib
-      # verify_gz entry
-    end
-  rescue => e
-    message = "package is corrupt, exception while verifying: " +
-        "#{e.message} (#{e.class})"
-    raise Gem::Package::FormatError.new message, @gem
   end
 end

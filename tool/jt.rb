@@ -1174,11 +1174,6 @@ module Commands
   private :test_ecosystem
 
   def test_bundle(*args)
-    if RbConfig::CONFIG['host_os'] =~ /sunos|solaris/i
-      # TODO (pitr-ch 08-May-2017): fix workaround using tar, it's broken on Solaris "tar: C: unknown function modifier"
-      puts 'skipping on Solaris'
-      return
-    end
 
     require 'tmpdir'
 
