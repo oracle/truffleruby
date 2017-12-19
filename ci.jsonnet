@@ -286,8 +286,8 @@
   # Metrics and benchmarks
 
   local post_process = [
-    ["tool/post-process-results-json.rb", "bench-results.json", "bench-results-processed.json"],
     # ["cat", "bench-results-processed.json"],
+    ["tool/post-process-results-json.rb", "bench-results.json", "bench-results-processed.json"],
   ],
   local upload_results = [
     ["bench-uploader.py", "bench-results-processed.json"],
@@ -512,8 +512,8 @@
     ]
   },
 
+  # Copy the job(s) you want to debug into the empty array
   tests_jobs: if debug then [
-    # Copy the job(s) you want to debug here
   ] else [
     {name: "ruby-deploy-and-specs-linux"}   + $.common_linux   + $.gate_caps         + deploy_caps + $.deploy_and_specs_linux,
     {name: "ruby-deploy-and-specs-darwin"}  + $.common_darwin  + $.gate_caps_darwin  + deploy_caps + $.deploy_and_specs_darwin,
@@ -547,8 +547,8 @@
     # { name: "no-graal",               caps: $.weekly_bench_caps, setup: $.no_graal,               kind: "graal"  },
     { name: "graal-core",             caps: $.bench_caps,        setup: $.graal_core,             kind: "graal" },
     { name: "graal-enterprise",       caps: $.daily_bench_caps,  setup: $.graal_enterprise,       kind: "graal" },
-    { name: "graal-enterprise-no-om", caps: $.daily_bench_caps,  setup: $.graal_enterprise_no_om, kind: "graal" },
     # { name: "graal-vm-snapshot",      caps: $.bench_caps,        setup: $.graal_vm_snapshot,      kind: "graal" },
+    { name: "graal-enterprise-no-om", caps: $.daily_bench_caps,  setup: $.graal_enterprise_no_om, kind: "graal" },
   ],
   local bench_configs_no_svm = other_rubies + graal_configs,
 
@@ -598,13 +598,16 @@
         (if config.kind == "other" then $.other_ruby_server_benchmarks else $.server_benchmarks),
       for config in bench_configs_no_svm
     ] + [
-      # SVM currently fails these due to threading issue
-      # {name: "ruby-benchmarks-server-" + config.name} + $.common_linux + config.caps + config.setup + $.svm_server_benchmarks,
-      # for config in svm_configs
-    ] + [
-      {name: "ruby-benchmarks-cext"} + $.common_linux + $.sulong + $.graal_core + $.daily_bench_caps + $.cext_benchmarks + truffleruby_cexts,
       # {name: "ruby-benchmarks-cext-mri"} + $.common_linux + $.weekly_bench_caps + $.cext_benchmarks + $.mri_benchmark,
+      {name: "ruby-benchmarks-cext"} + $.common_linux + $.daily_bench_caps + $.cext_benchmarks + truffleruby_cexts,
     ];
+
+    # + [ 
+    # SVM currently fails these due to threading issue
+    # {name: "ruby-benchmarks-server-" + config.name} + $.common_linux + config.caps + config.setup + $.svm_server_benchmarks,
+    # for config in svm_configs
+    # ]
+
     if debug then [] else metrics_jobs + benchmarks_jobs,
 
   # To allow this file to resolve standalone
