@@ -2521,7 +2521,9 @@ class IO
     flush
     raise IOError unless @ibuffer.empty?
 
-    str = Truffle::POSIX.read_string_no_retry(self, number_of_bytes)
+    str, errno = Truffle::POSIX.read_string(descriptor, number_of_bytes)
+    Errno.handle unless errno == 0
+
     raise EOFError if str.nil?
 
     unless undefined.equal? buffer
@@ -2573,7 +2575,7 @@ class IO
     ensure_open_and_writable
     @ibuffer.unseek!(self) unless @sync
 
-    Truffle::POSIX.write_string_no_retry self, data
+    Truffle::POSIX.write_string_no_retry(self, data)
   end
 
   def ungetbyte(obj)
