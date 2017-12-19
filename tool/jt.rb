@@ -1737,15 +1737,24 @@ module Commands
     java_home
   end
 
+  def checkout_or_update_graal_repo
+    graal = Utilities.find_or_clone_repo('https://github.com/graalvm/graal.git')
+
+    chdir(graal) do
+      raw_sh "git", "fetch"
+      raw_sh "git", "checkout", Utilities.truffle_version
+    end
+
+    graal
+  end
+
   def install_graal
     build
     java_home = install_jvmci
+    graal = checkout_or_update_graal_repo
 
     puts "Building graal"
-    graal = Utilities.find_or_clone_repo('https://github.com/graalvm/graal.git')
     chdir("#{graal}/compiler") do
-      raw_sh "git", "fetch"
-      raw_sh "git", "checkout", Utilities.truffle_version
       File.write("mx.compiler/env", "JAVA_HOME=#{java_home}\n")
       mx "build"
     end
@@ -1761,12 +1770,10 @@ module Commands
   def build_native_image
     build
     java_home = install_jvmci
+    graal = checkout_or_update_graal_repo
 
     puts 'Building TruffleRuby native binary'
-    graal = Utilities.find_or_clone_repo('https://github.com/graalvm/graal.git')
     chdir("#{graal}/substratevm") do
-      raw_sh 'git', 'fetch'
-      raw_sh 'git', 'checkout', Utilities.truffle_version
       File.write('mx.substratevm/env', "JAVA_HOME=#{java_home}\n")
       mx 'build'
       mx 'image', '-ruby', '-H:Name=native-ruby'
