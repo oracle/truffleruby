@@ -274,10 +274,9 @@ module Truffle::POSIX
 
   TRY_AGAIN_ERRNOS = [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno]
 
-  def self.read_string_with_retry(io, count)
-    fd = io.descriptor
+  def self.read_string_blocking(io, count)
     while true # rubocop:disable Lint/LiteralInCondition
-      string, errno = read_string(fd, count)
+      string, errno = read_string(io, count)
       return string if errno == 0
       if TRY_AGAIN_ERRNOS.include? errno
         IO.select([io])
@@ -288,8 +287,7 @@ module Truffle::POSIX
   end
 
   def self.read_string_nonblock(io, count)
-    fd = io.descriptor
-    string, errno = read_string(fd, count)
+    string, errno = read_string(io, count)
     if errno == 0
       string
     elsif TRY_AGAIN_ERRNOS.include? errno
@@ -299,7 +297,8 @@ module Truffle::POSIX
     end
   end
 
-  def self.read_string(fd, length)
+  def self.read_string(io, length)
+    fd = io.descriptor
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
     bytes_read = read(fd, buffer, length)
     if bytes_read < 0
@@ -311,83 +310,84 @@ module Truffle::POSIX
     end
   end
 
-  def self.write_string_with_retry(io, string)
+  def self.write_string(io, string, continue_on_eagain)
     fd = io.descriptor
-    written = 0
-    while true # rubocop:disable Lint/LiteralInCondition
-      written, errno = write_string(fd, string, written)
-      if errno == 0
-        return written
-      elsif TRY_AGAIN_ERRNOS.include? errno
-        IO.select([], [io])
-      else
-        Errno.handle
-      end
-    end
-  end
+    length = string.bytesize
+    buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
+    buffer.write_string string
 
-  def self.write_string_no_retry(io, string)
-    fd = io.descriptor
-    written, errno = write_string(fd, string)
-    if errno == 0
-      written
-    elsif TRY_AGAIN_ERRNOS.include? errno
-      written
-    else
-      Errno.handle
+    written = 0
+    while written < length
+      ret = write(fd, buffer + written, length - written)
+      if ret < 0
+        errno = Errno.errno
+        if TRY_AGAIN_ERRNOS.include? errno
+          if continue_on_eagain
+            IO.select([], [io])
+          else
+            return written
+          end
+        else
+          Errno.handle
+        end
+      end
+      written += ret
     end
+    written
   end
 
   def self.write_string_nonblock(io, string)
     fd = io.descriptor
-    written, errno = write_string(fd, string, 0, true)
-    if TRY_AGAIN_ERRNOS.include? errno
-      raise IO::EAGAINWaitWritable
-    end
-    Errno.handle unless errno == 0
-    written
-  end
-
-  def self.write_string(fd, string, written=0, nonblock=false)
     length = string.bytesize
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
     buffer.write_string string
-    while written < length
-      ret = write(fd, buffer + written, length - written)
-      if ret < 0
-        return [written, Errno.errno]
-      end
-      written += ret
+    written = write(fd, buffer, length)
 
-      # Return immediately if nonblock, as otherwise we could get EAGAIN
-      # and the caller cannot know how much was written.
-      break if nonblock
+    if written < 0
+      errno = Errno.errno
+      if TRY_AGAIN_ERRNOS.include? errno
+        raise IO::EAGAINWaitWritable
+      else
+        Errno.handle
+      end
     end
-    [written, 0]
+    written
   end
 
   if Truffle::Boot.get_option('polyglot.stdio')
     class << self
       alias_method :read_string_native, :read_string
       alias_method :write_string_native, :write_string
+      alias_method :write_string_nonblock_native, :write_string_nonblock
     end
 
-    def self.read_string(fd, length)
+    def self.read_string(io, length)
+      fd = io.descriptor
       if fd == 0
         read = Truffle.invoke_primitive :io_read_polyglot, fd, length
         [read, 0]
       else
-        read_string_native(fd, length)
+        read_string_native(io, length)
       end
     end
 
-    def self.write_string(fd, string, written=0, nonblock=false)
+    def self.write_string(io, string, continue_on_eagain)
+      fd = io.descriptor
+      if fd == 1 || fd == 2
+        # Ignore continue_on_eagain for polyglot writes
+        Truffle.invoke_primitive :io_write_polyglot, fd, string
+      else
+        write_string_native(io, string, continue_on_eagain)
+      end
+    end
+
+    def self.write_string_nonblock(io, string)
+      fd = io.descriptor
       if fd == 1 || fd == 2
         # Ignore non-blocking for polyglot writes
-        written = Truffle.invoke_primitive :io_write_polyglot, fd, string
-        [written, 0]
+        Truffle.invoke_primitive :io_write_polyglot, fd, string
       else
-        write_string_native(fd, string, written, nonblock)
+        write_string_nonblock_native(io, string)
       end
     end
   end
