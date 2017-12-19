@@ -272,13 +272,14 @@ module Truffle::POSIX
     end
   end
 
+  TRY_AGAIN_ERRNOS = [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno]
+
   def self.read_string_with_retry(io, count)
     fd = io.descriptor
-    errno = 1
-    until errno == 0
-      res, errno = read_string(fd, count)
-      return res if errno == 0
-      if [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno].include? errno
+    while true # rubocop:disable Lint/LiteralInCondition
+      string, errno = read_string(fd, count)
+      return string if errno == 0
+      if TRY_AGAIN_ERRNOS.include? errno
         IO.select([io])
       else
         Errno.handle
@@ -286,28 +287,23 @@ module Truffle::POSIX
     end
   end
 
-  def self.read_string_no_retry(io, count)
-    fd = io.descriptor
-    res, errno = read_string(fd, count)
-    Errno.handle unless errno == 0
-    res
-  end
-
   def self.read_string_nonblock(io, count)
     fd = io.descriptor
-    written, errno = read_string(fd, count)
-    if [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno].include? errno
+    string, errno = read_string(fd, count)
+    if errno == 0
+      string
+    elsif TRY_AGAIN_ERRNOS.include? errno
       raise IO::EAGAINWaitReadable
+    else
+      Errno.handle
     end
-    Errno.handle unless errno == 0
-    written
   end
 
   def self.read_string(fd, length)
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
     bytes_read = read(fd, buffer, length)
     if bytes_read < 0
-      return [nil, Errno.errno]
+      [nil, Errno.errno]
     elsif bytes_read == 0 # EOF
       [nil, 0]
     else
@@ -318,11 +314,11 @@ module Truffle::POSIX
   def self.write_string_with_retry(io, string)
     fd = io.descriptor
     written = 0
-    errno = 1
-    until errno == 0
+    while true # rubocop:disable Lint/LiteralInCondition
       written, errno = write_string(fd, string, written)
-      return written if errno == 0
-      if [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno].include? errno
+      if errno == 0
+        return written
+      elsif TRY_AGAIN_ERRNOS.include? errno
         IO.select([], [io])
       else
         Errno.handle
@@ -333,14 +329,17 @@ module Truffle::POSIX
   def self.write_string_no_retry(io, string)
     fd = io.descriptor
     written, errno = write_string(fd, string)
-    Errno.handle unless errno == 0
-    written
+    if errno == 0
+      written
+    else
+      Errno.handle
+    end
   end
 
   def self.write_string_nonblock(io, string)
     fd = io.descriptor
     written, errno = write_string(fd, string, 0, true)
-    if [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno].include? errno
+    if TRY_AGAIN_ERRNOS.include? errno
       raise IO::EAGAINWaitWritable
     end
     Errno.handle unless errno == 0
