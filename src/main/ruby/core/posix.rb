@@ -331,6 +331,8 @@ module Truffle::POSIX
     written, errno = write_string(fd, string)
     if errno == 0
       written
+    elsif TRY_AGAIN_ERRNOS.include? errno
+      written
     else
       Errno.handle
     end
