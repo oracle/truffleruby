@@ -41,7 +41,7 @@ import java.util.List;
  * In particular, f_arg production rule uses this to capture arg information for
  * the editor projects who want position info saved.
  */
-public class ListParseNode extends ParseNode {
+public abstract class ListParseNode extends ParseNode {
     private static final ParseNode[] EMPTY = new ParseNode[0];
     private static final int INITIAL_SIZE = 4;
     private ParseNode[] list;
@@ -53,14 +53,14 @@ public class ListParseNode extends ParseNode {
      * @param position where list is
      * @param firstNode first element of the list
      */
-    public ListParseNode(SourceIndexLength position, ParseNode firstNode) {
+    protected ListParseNode(SourceIndexLength position, ParseNode firstNode) {
         super(position);
 
         list = new ParseNode[INITIAL_SIZE];
         addInternal(firstNode);
     }
 
-    public ListParseNode(SourceIndexLength position) {
+    protected ListParseNode(SourceIndexLength position) {
         super(position);
 
         list = EMPTY;
