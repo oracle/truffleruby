@@ -41,11 +41,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Helper methods which are called by the compiler.  Note: These will show no consumers, but
- * generated code does call these so don't remove them thinking they are dead code.
- *
- */
 public class Helpers {
 
     public static final Map<String, String> map(String... keyValues) {
