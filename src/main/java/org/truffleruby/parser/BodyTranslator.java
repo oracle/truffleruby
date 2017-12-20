@@ -880,13 +880,9 @@ public class BodyTranslator extends Translator {
 
                 // Make a condition from the one or more expressions combined in an or expression
 
-                final List<ParseNode> expressions;
-
-                if (when.getExpressionNodes() instanceof ListParseNode && !(when.getExpressionNodes() instanceof ArrayParseNode)) {
-                    expressions = when.getExpressionNodes().childNodes();
-                } else {
-                    expressions = Collections.singletonList(when.getExpressionNodes());
-                }
+                // JRuby AST always gives WhenParseNode with only one expression.
+                // "when 1,2; body" gets translated to 2 WhenParseNode.
+                final List<ParseNode> expressions = Collections.singletonList(when.getExpressionNodes());
 
                 final List<RubyNode> comparisons = new ArrayList<>();
 
