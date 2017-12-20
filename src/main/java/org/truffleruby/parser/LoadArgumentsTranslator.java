@@ -61,7 +61,6 @@ import org.truffleruby.parser.ast.types.INameNode;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 
@@ -463,14 +462,6 @@ public class LoadArgumentsTranslator extends Translator {
 
         pushArraySlot(arraySlot);
 
-        final List<ParseNode> childNodes;
-
-        if (node.childNodes().get(0) == null) {
-            childNodes = Collections.emptyList();
-        } else {
-            childNodes = node.childNodes().get(0).childNodes();
-        }
-
         // The load to use when the array is not nil and the length is smaller than the number of required arguments
 
         final List<RubyNode> notNilSmallerSequence = new ArrayList<>();
@@ -571,10 +562,10 @@ public class LoadArgumentsTranslator extends Translator {
             nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(parameterToClear, source, sourceSection).makeWriteNode(nilNode(sourceSection)));
         }
 
-        if (!childNodes.isEmpty()) {
+        if (node.getPre() != null) {
             // We haven't pushed a new array slot, so this will read the value which we couldn't convert to an array into the first destructured argument
             index = arrayIndex;
-            nilSequence.add(childNodes.get(0).accept(this));
+            nilSequence.add(node.getPre().get(0).accept(this));
         }
 
         final RubyNode nil = sequence(sourceSection, nilSequence);
