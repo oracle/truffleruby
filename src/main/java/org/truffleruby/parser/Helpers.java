@@ -30,6 +30,7 @@ import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.AssignableParseNode;
 import org.truffleruby.parser.ast.DAsgnParseNode;
+import org.truffleruby.parser.ast.KeywordArgParseNode;
 import org.truffleruby.parser.ast.LocalAsgnParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
 import org.truffleruby.parser.ast.OptArgParseNode;
@@ -118,13 +119,12 @@ public class Helpers {
         if (keywordsCount > 0) {
             int keywordsIndex = argsNode.getKeywordsIndex();
             for (int i = 0; i < keywordsCount; i++) {
-                ParseNode keyWordNode = args[keywordsIndex + i];
-                for (ParseNode asgnNode : keyWordNode.childNodes()) {
-                    if (isRequiredKeywordArgumentValueNode(asgnNode)) {
-                        descs.add(new ArgumentDescriptor(ArgumentType.keyreq, ((INameNode) asgnNode).getName()));
-                    } else {
-                        descs.add(new ArgumentDescriptor(ArgumentType.key, ((INameNode) asgnNode).getName()));
-                    }
+                KeywordArgParseNode keyWordNode = (KeywordArgParseNode) args[keywordsIndex + i];
+                ParseNode asgnNode = keyWordNode.getAssignable();
+                if (isRequiredKeywordArgumentValueNode(asgnNode)) {
+                    descs.add(new ArgumentDescriptor(ArgumentType.keyreq, ((INameNode) asgnNode).getName()));
+                } else {
+                    descs.add(new ArgumentDescriptor(ArgumentType.key, ((INameNode) asgnNode).getName()));
                 }
             }
         }
