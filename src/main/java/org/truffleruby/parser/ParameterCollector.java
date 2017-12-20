@@ -128,4 +128,12 @@ public class ParameterCollector extends AbstractNodeVisitor<Object> {
         return null;
     }
 
+    private void visitChildren(ParseNode node) {
+        for (ParseNode child : node.childNodes()) {
+            if (child != null) {
+                child.accept(this);
+            }
+        }
+    }
+
 }

@@ -144,14 +144,6 @@ public abstract class AbstractNodeVisitor<T> implements NodeVisitor<T> {
 
     abstract protected T defaultVisit(ParseNode node);
 
-    protected void visitChildren(ParseNode node) {
-        for (ParseNode child: node.childNodes()) {
-            if (child != null) {
-                child.accept(this);
-            }
-        }
-    }
-
     @Override
     public T visitAliasNode(AliasParseNode node) {
         return defaultVisit(node);
