@@ -779,25 +779,25 @@ public class BodyTranslator extends Translator {
     protected ArgumentsAndBlockTranslation translateArgumentsAndBlock(SourceIndexLength sourceSection, ParseNode iterNode, ParseNode argsNode, String nameToSetWhenTranslatingBlock) {
         assert !(argsNode instanceof IterParseNode);
 
-        final List<ParseNode> arguments = new ArrayList<>();
-
+        final ParseNode[] arguments;
         boolean isSplatted = false;
 
         if (argsNode == null) {
             // No arguments
+            arguments = new ParseNode[0];
         } else if (argsNode instanceof ArrayParseNode) {
             // Multiple arguments
-            arguments.addAll(argsNode.childNodes());
+            arguments = ((ArrayParseNode) argsNode).children();
         } else if (argsNode instanceof SplatParseNode || argsNode instanceof ArgsCatParseNode || argsNode instanceof ArgsPushParseNode) {
             isSplatted = true;
-            arguments.add(argsNode);
+            arguments = new ParseNode[]{ argsNode };
         } else {
             throw new UnsupportedOperationException("Unknown argument node type: " + argsNode.getClass());
         }
 
-        final RubyNode[] argumentsTranslated = new RubyNode[arguments.size()];
-        for (int i = 0; i < arguments.size(); i++) {
-            argumentsTranslated[i] = arguments.get(i).accept(this);
+        final RubyNode[] argumentsTranslated = new RubyNode[arguments.length];
+        for (int i = 0; i < arguments.length; i++) {
+            argumentsTranslated[i] = arguments[i].accept(this);
         }
 
         // If the last argument is a splat, do not copy the array, to support m(*args, &args.pop)
