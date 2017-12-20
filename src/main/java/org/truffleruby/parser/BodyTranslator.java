@@ -260,6 +260,7 @@ import org.truffleruby.parser.ast.UndefParseNode;
 import org.truffleruby.parser.ast.UntilParseNode;
 import org.truffleruby.parser.ast.VAliasParseNode;
 import org.truffleruby.parser.ast.VCallParseNode;
+import org.truffleruby.parser.ast.WhenOneArgParseNode;
 import org.truffleruby.parser.ast.WhenParseNode;
 import org.truffleruby.parser.ast.WhileParseNode;
 import org.truffleruby.parser.ast.XStrParseNode;
@@ -886,17 +887,17 @@ public class BodyTranslator extends Translator {
                 final RubyNode rubyExpression = expressionNode.accept(this);
 
                 final RubyNode receiver;
-                final RubyNode[] arguments;
                 final String method;
-                if (expressionNode instanceof SplatParseNode || expressionNode instanceof ArgsCatParseNode || expressionNode instanceof ArgsPushParseNode) {
+                final RubyNode[] arguments;
+                if (when instanceof WhenOneArgParseNode) {
+                    receiver = rubyExpression;
+                    method = "===";
+                    arguments = new RubyNode[]{ NodeUtil.cloneNode(readTemp) };
+                } else {
                     receiver = new ObjectLiteralNode(context.getCoreLibrary().getTruffleModule());
                     receiver.unsafeSetSourceSection(sourceSection);
                     method = "when_splat";
                     arguments = new RubyNode[]{ rubyExpression, NodeUtil.cloneNode(readTemp) };
-                } else {
-                    receiver = rubyExpression;
-                    method = "===";
-                    arguments = new RubyNode[]{ NodeUtil.cloneNode(readTemp) };
                 }
                 final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(receiver, method, null, arguments, false, true);
                 final RubyNode conditionNode = Translator.withSourceSection(sourceSection, new RubyCallNode(callParameters));
