@@ -269,10 +269,10 @@ public class ArgsParseNode extends ParseNode {
 
         int count = 0;
         for (int i = 0; i < getKeywordCount(); i++) {
-            for (ParseNode asgnNode : args[keywordsIndex + i].childNodes()) {
-                if (Helpers.isRequiredKeywordArgumentValueNode(asgnNode)) {
-                    count++;
-                }
+            KeywordArgParseNode keyWordNode = (KeywordArgParseNode) args[keywordsIndex + i];
+            ParseNode asgnNode = keyWordNode.getAssignable();
+            if (Helpers.isRequiredKeywordArgumentValueNode(asgnNode)) {
+                count++;
             }
         }
         return count;
