@@ -2601,13 +2601,7 @@ public class BodyTranslator extends Translator {
          * visitOpAsgnNode.
          */
 
-        ParseNode index;
-
-        if (node.getArgsNode() == null) {
-            index = null;
-        } else {
-            index = node.getArgsNode().childNodes().get(0);
-        }
+        final ParseNode index = node.getArgsNode().childNodes().get(0);
 
         final ParseNode operand = node.getValueNode();
 
