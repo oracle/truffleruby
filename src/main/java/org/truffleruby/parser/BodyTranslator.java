@@ -3130,29 +3130,27 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitYieldNode(YieldParseNode node) {
-        final List<ParseNode> arguments = new ArrayList<>();
-
         final ParseNode argsNode = node.getArgsNode();
         final boolean unsplat = argsNode instanceof SplatParseNode || argsNode instanceof ArgsCatParseNode;
 
+        final ParseNode[] arguments;
         if (argsNode == null) {
             // No arguments
+            arguments = new ParseNode[0];
         } else if (argsNode instanceof ArrayParseNode) {
             // Multiple arguments
-            arguments.addAll(argsNode.childNodes());
+            arguments = ((ArrayParseNode) argsNode).children();
         } else {
-            arguments.add(node.getArgsNode());
+            arguments = new ParseNode[]{ node.getArgsNode() };
         }
 
-        final List<RubyNode> argumentsTranslated = new ArrayList<>();
+        final RubyNode[] argumentsTranslated = new RubyNode[arguments.length];
 
-        for (ParseNode argument : arguments) {
-            argumentsTranslated.add(argument.accept(this));
+        for (int i = 0; i < arguments.length; i++) {
+            argumentsTranslated[i] = arguments[i].accept(this);
         }
 
-        final RubyNode[] argumentsTranslatedArray = argumentsTranslated.toArray(new RubyNode[argumentsTranslated.size()]);
-
-        final RubyNode ret = new YieldExpressionNode(unsplat, argumentsTranslatedArray);
+        final RubyNode ret = new YieldExpressionNode(unsplat, argumentsTranslated);
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
     }
