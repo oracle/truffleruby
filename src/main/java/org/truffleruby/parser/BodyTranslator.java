@@ -1545,7 +1545,7 @@ public class BodyTranslator extends Translator {
         bodyWithTempAssign.add(node.getBodyNode());
 
         final ArgumentParseNode blockVar = new ArgumentParseNode(node.getPosition(), temp);
-        final ListParseNode blockArgsPre = new ListParseNode(node.getPosition(), blockVar);
+        final ArrayParseNode blockArgsPre = new ArrayParseNode(node.getPosition(), blockVar);
         final ArgsParseNode blockArgs = new ArgsParseNode(node.getPosition(), blockArgsPre, null, null, null, null, null, null);
         final IterParseNode block = new IterParseNode(node.getPosition(), blockArgs, node.getScope(), bodyWithTempAssign);
 
@@ -2689,7 +2689,7 @@ public class BodyTranslator extends Translator {
                 new CallParseNode(position,
                         new TruffleFragmentParseNode(position, new ObjectLiteralNode(context.getCoreLibrary().getTruffleKernelOperationsModule())),
                         "at_exit",
-                        new ListParseNode(position, new TrueParseNode(position)),
+                        new ArrayParseNode(position, new TrueParseNode(position)),
                         new IterParseNode(position, node.getArgsNode(), scope, node.getBodyNode())),
                 false, false, false);
     }
