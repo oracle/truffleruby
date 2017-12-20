@@ -866,9 +866,7 @@ public class BodyTranslator extends Translator {
             // Evaluate the case expression and store it in a local
 
             final String tempName = environment.allocateLocalTemp("case");
-
             final ReadLocalNode readTemp = environment.findLocalVarNode(tempName, source, sourceSection);
-
             final RubyNode assignTemp = readTemp.makeWriteNode(node.getCaseNode().accept(this));
 
             /*
@@ -878,8 +876,6 @@ public class BodyTranslator extends Translator {
 
             for (int n = node.getCases().size() - 1; n >= 0; n--) {
                 final WhenParseNode when = (WhenParseNode) node.getCases().get(n);
-
-                // Make a condition from the one or more expressions combined in an or expression
 
                 // JRuby AST always gives WhenParseNode with only one expression.
                 // "when 1,2; body" gets translated to 2 WhenParseNode.
@@ -903,58 +899,31 @@ public class BodyTranslator extends Translator {
                 final RubyNode conditionNode = Translator.withSourceSection(sourceSection, new RubyCallNode(callParameters));
 
                 // Create the if node
-
                 final RubyNode thenNode = translateNodeOrNil(sourceSection, when.getBodyNode());
-
                 final IfElseNode ifNode = new IfElseNode(conditionNode, thenNode, elseNode);
 
                 // This if becomes the else for the next if
-
                 elseNode = ifNode;
             }
 
             final RubyNode ifNode = elseNode;
 
             // A top-level block assigns the temp then runs the if
-
             ret = sequence(sourceSection, Arrays.asList(assignTemp, ifNode));
         } else {
             for (int n = node.getCases().size() - 1; n >= 0; n--) {
                 final WhenParseNode when = (WhenParseNode) node.getCases().get(n);
 
-                // Make a condition from the one or more expressions combined in an or expression
-
-                final List<ParseNode> expressions;
-
-                if (when.getExpressionNodes() instanceof ListParseNode) {
-                    expressions = when.getExpressionNodes().childNodes();
-                } else {
-                    expressions = Collections.singletonList(when.getExpressionNodes());
-                }
-
-                final List<RubyNode> tests = new ArrayList<>();
-
-                for (ParseNode expressionNode : expressions) {
-                    final RubyNode rubyExpression = expressionNode.accept(this);
-                    tests.add(rubyExpression);
-                }
-
-                RubyNode conditionNode = tests.get(tests.size() - 1);
-
-                // As with the if nodes, we work backwards to make it left associative
-
-                for (int i = tests.size() - 2; i >= 0; i--) {
-                    conditionNode = new OrNode(tests.get(i), conditionNode);
-                }
+                // JRuby AST always gives WhenParseNode with only one expression.
+                // "when 1,2; body" gets translated to 2 WhenParseNode.
+                final ParseNode expressionNode = when.getExpressionNodes();
+                final RubyNode conditionNode = expressionNode.accept(this);
 
                 // Create the if node
-
                 final RubyNode thenNode = when.getBodyNode().accept(this);
-
                 final IfElseNode ifNode = new IfElseNode(conditionNode, thenNode, elseNode);
 
                 // This if becomes the else for the next if
-
                 elseNode = ifNode;
             }
 
