@@ -331,7 +331,7 @@ public class ParserSupport {
         }
 
         // Assumption: tail is never a list node
-        ((ListParseNode) head).addAll(tail);
+        ((ListParseNode) head).add(tail);
         return head;
     }
 
@@ -1169,14 +1169,14 @@ public class ParserSupport {
             if (head instanceof StrParseNode) { // Str + oDStr -> Dstr(Str, oDStr.contents)
                 DStrParseNode newDStr = new DStrParseNode(head.getPosition(), ((DStrParseNode) tail).getEncoding());
                 newDStr.add(head);
-                newDStr.addAll(tail);
+                newDStr.add(tail);
                 if (getConfiguration().isFrozenStringLiteral()) {
                     newDStr.setFrozen(true);
                 }
                 return newDStr;
             }
 
-            return ((ListParseNode) head).addAll(tail);
+            return ((ListParseNode) head).add(tail);
         }
 
         // tail must be EvStrParseNode at this point
@@ -1477,7 +1477,7 @@ public class ParserSupport {
             if (second instanceof ListParseNode) {
                 return ((ListParseNode) first).addAll((ListParseNode) second);
             } else {
-                return ((ListParseNode) first).addAll(second);
+                return ((ListParseNode) first).add(second);
             }
         }
 

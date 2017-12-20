@@ -101,6 +101,12 @@ public abstract class ListParseNode extends ParseNode {
         size += other.size;
     }
 
+    /**
+     * Add a node to this list
+     *
+     * @param node the node to add
+     * @return this instance for method chaining
+     */
     public ListParseNode add(ParseNode node) {
         // Ruby Grammar productions return plenty of nulls.
         if (node == null || node == NilImplicitParseNode.NIL) {
@@ -146,16 +152,6 @@ public abstract class ListParseNode extends ParseNode {
         }
 
         return this;
-    }
-
-    /**
-     * Add other element to this list
-     *
-     * @param other list which has elements
-     * @return this instance for method chaining
-     */
-    public ListParseNode addAll(ParseNode other) {
-        return add(other);
     }
 
     public ParseNode getLast() {
