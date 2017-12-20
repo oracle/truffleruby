@@ -162,7 +162,7 @@ public class ArgsParseNode extends ParseNode {
      * Gets the required arguments at the beginning of the argument definition
      */
     public ListParseNode getPre() {
-        return new ListParseNode(getPosition()).addAll(args, 0, getPreCount());
+        return new ArrayParseNode(getPosition()).addAll(args, 0, getPreCount());
     }
 
     public int getOptionalArgsCount() {
@@ -170,7 +170,7 @@ public class ArgsParseNode extends ParseNode {
     }
 
     public ListParseNode getPost() {
-        return new ListParseNode(getPosition()).addAll(args, postIndex, getPostCount());
+        return new ArrayParseNode(getPosition()).addAll(args, postIndex, getPostCount());
     }
 
     /**
@@ -178,7 +178,7 @@ public class ArgsParseNode extends ParseNode {
      * @return Returns a ListParseNode
      */
     public ListParseNode getOptArgs() {
-        return new ListParseNode(getPosition()).addAll(args, optIndex, getOptionalArgsCount());
+        return new ArrayParseNode(getPosition()).addAll(args, optIndex, getOptionalArgsCount());
     }
 
     /**
@@ -211,7 +211,7 @@ public class ArgsParseNode extends ParseNode {
     }
 
     public ListParseNode getKeywords() {
-        return new ListParseNode(getPosition()).addAll(args, keywordsIndex, getKeywordCount());
+        return new ArrayParseNode(getPosition()).addAll(args, keywordsIndex, getKeywordCount());
     }
 
     public KeywordRestArgParseNode getKeyRest() {
