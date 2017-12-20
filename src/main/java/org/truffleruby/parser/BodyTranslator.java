@@ -3141,8 +3141,8 @@ public class BodyTranslator extends Translator {
         }
 
         if (argsNode != null) {
-            if (argsNode instanceof ListParseNode) {
-                arguments.addAll((node.getArgsNode()).childNodes());
+            if (argsNode instanceof ArrayParseNode) {
+                arguments.addAll(node.getArgsNode().childNodes());
             } else {
                 arguments.add(node.getArgsNode());
             }
