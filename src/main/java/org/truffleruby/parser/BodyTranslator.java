@@ -1076,7 +1076,7 @@ public class BodyTranslator extends Translator {
             ret = getLexicalScopeModuleNode("dynamic constant lookup", sourceSection);
             ret.unsafeSetSourceSection(sourceSection);
         } else if (node instanceof Colon2ConstParseNode) { // A::B
-            ret = node.childNodes().get(0).accept(this);
+            ret = ((Colon2ConstParseNode) node).getLeftNode().accept(this);
         } else { // Colon3ParseNode: on top-level (Object)
             ret = new ObjectLiteralNode(context.getCoreLibrary().getObjectClass());
             ret.unsafeSetSourceSection(sourceSection);
