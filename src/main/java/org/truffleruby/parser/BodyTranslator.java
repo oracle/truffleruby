@@ -785,7 +785,8 @@ public class BodyTranslator extends Translator {
 
         if (argsNode == null) {
             // No arguments
-        } else if (argsNode instanceof ListParseNode) {
+        } else if (argsNode instanceof ArrayParseNode) {
+            // Multiple arguments
             arguments.addAll(argsNode.childNodes());
         } else if (argsNode instanceof SplatParseNode) {
             isSplatted = true;
