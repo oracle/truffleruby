@@ -2683,12 +2683,14 @@ public class BodyTranslator extends Translator {
         // https://github.com/jruby/jruby/issues/4257
         final StaticScope scope = new StaticScope(StaticScope.Type.BLOCK, null);
 
+        final SourceIndexLength position = node.getPosition();
+
         return translateCallNode(
-                new CallParseNode(node.getPosition(),
-                        new TruffleFragmentParseNode(node.getPosition(), new ObjectLiteralNode(context.getCoreLibrary().getTruffleKernelOperationsModule())),
+                new CallParseNode(position,
+                        new TruffleFragmentParseNode(position, new ObjectLiteralNode(context.getCoreLibrary().getTruffleKernelOperationsModule())),
                         "at_exit",
-                        new ListParseNode(node.getPosition(), new TrueParseNode(node.getPosition())),
-                        new IterParseNode(node.getPosition(), node.getArgsNode(), scope, node.getBodyNode())),
+                        new ListParseNode(position, new TrueParseNode(position)),
+                        new IterParseNode(position, node.getArgsNode(), scope, node.getBodyNode())),
                 false, false, false);
     }
 
