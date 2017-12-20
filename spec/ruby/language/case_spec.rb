@@ -91,6 +91,44 @@ describe "The 'case'-construct" do
     end.should == true
   end
 
+  it "tests with matching regexps and sets $~ and captures" do
+    case "foo42"
+    when /oo(\d+)/
+      $~.should be_kind_of(MatchData)
+      $1.should == "42"
+    else
+      flunk
+    end
+    $~.should be_kind_of(MatchData)
+    $1.should == "42"
+  end
+
+  it "tests with a regexp interpolated within another regexp" do
+    digits = '\d+'
+    case "foo44"
+    when /oo(#{digits})/
+      $~.should be_kind_of(MatchData)
+      $1.should == "44"
+    else
+      flunk
+    end
+    $~.should be_kind_of(MatchData)
+    $1.should == "44"
+  end
+
+  it "tests with a string interpolated in a regexp" do
+    digits_regexp = /\d+/
+    case "foo43"
+    when /oo(#{digits_regexp})/
+      $~.should be_kind_of(MatchData)
+      $1.should == "43"
+    else
+      flunk
+    end
+    $~.should be_kind_of(MatchData)
+    $1.should == "43"
+  end
+
   it "does not test with equality when given classes" do
     case :symbol.class
       when Symbol
