@@ -2601,15 +2601,14 @@ public class BodyTranslator extends Translator {
          * visitOpAsgnNode.
          */
 
-        final ParseNode index = ((ArrayParseNode) node.getArgsNode()).get(0);
-
+        final ParseNode readArgs = node.getArgsNode();
         final ParseNode operand = node.getValueNode();
 
         final String temp = environment.allocateLocalTemp("opelementassign");
         final ParseNode writeArrayToTemp = new LocalAsgnParseNode(node.getPosition(), temp, 0, node.getReceiverNode());
         final ParseNode readArrayFromTemp = new LocalVarParseNode(node.getPosition(), 0, temp);
 
-        final ParseNode arrayRead = new CallParseNode(node.getPosition(), readArrayFromTemp, "[]", buildArrayNode(node.getPosition(), index), null);
+        final ParseNode arrayRead = new CallParseNode(node.getPosition(), readArrayFromTemp, "[]", readArgs, null);
 
         final String op = node.getOperatorName();
 
@@ -2629,7 +2628,17 @@ public class BodyTranslator extends Translator {
 
         copyNewline(node, operation);
 
-        final ParseNode arrayWrite = new CallParseNode(node.getPosition(), readArrayFromTemp, "[]=", buildArrayNode(node.getPosition(), index, operation), null);
+        final ParseNode writeArgs;
+        // Like ParserSupport#arg_add, but copy the first node
+        if (readArgs instanceof ArrayParseNode) {
+            final ArrayParseNode readArgsCopy = new ArrayParseNode(node.getPosition());
+            readArgsCopy.addAll((ArrayParseNode) readArgs).add(operation);
+            writeArgs = readArgsCopy;
+        } else {
+            writeArgs = new ArgsPushParseNode(node.getPosition(), readArgs, operation);
+        }
+
+        final ParseNode arrayWrite = new CallParseNode(node.getPosition(), readArrayFromTemp, "[]=", writeArgs, null);
 
         final BlockParseNode block = new BlockParseNode(node.getPosition());
         block.add(writeArrayToTemp);
