@@ -84,6 +84,8 @@ public abstract class ParseNode {
     }
     
     public abstract <T> T accept(NodeVisitor<T> visitor);
+
+    /** Only for debugging, cast and use getters on specific classes instead. */
     public abstract List<ParseNode> childNodes();
 
     protected static List<ParseNode> createList(ParseNode node) {
