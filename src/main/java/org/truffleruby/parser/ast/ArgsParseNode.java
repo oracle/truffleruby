@@ -35,7 +35,6 @@
 package org.truffleruby.parser.ast;
 
 import org.truffleruby.language.SourceIndexLength;
-import org.truffleruby.parser.Helpers;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 import java.util.List;
@@ -257,25 +256,6 @@ public class ArgsParseNode extends ParseNode {
 
     public int getKeywordCount() {
         return args.length - keywordsIndex;
-    }
-
-    /**
-     * How many of the keywords listed happen to be required keyword args.  Note: total kwargs - req kwarg = opt kwargs.
-     */
-    public int getRequiredKeywordCount() {
-        if (getKeywordCount() < 1) {
-            return 0;
-        }
-
-        int count = 0;
-        for (int i = 0; i < getKeywordCount(); i++) {
-            KeywordArgParseNode keyWordNode = (KeywordArgParseNode) args[keywordsIndex + i];
-            ParseNode asgnNode = keyWordNode.getAssignable();
-            if (Helpers.isRequiredKeywordArgumentValueNode(asgnNode)) {
-                count++;
-            }
-        }
-        return count;
     }
 
 }
