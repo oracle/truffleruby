@@ -3132,20 +3132,16 @@ public class BodyTranslator extends Translator {
     public RubyNode visitYieldNode(YieldParseNode node) {
         final List<ParseNode> arguments = new ArrayList<>();
 
-        ParseNode argsNode = node.getArgsNode();
-
+        final ParseNode argsNode = node.getArgsNode();
         final boolean unsplat = argsNode instanceof SplatParseNode || argsNode instanceof ArgsCatParseNode;
 
-        if (argsNode instanceof SplatParseNode) {
-            argsNode = ((SplatParseNode) argsNode).getValue();
-        }
-
-        if (argsNode != null) {
-            if (argsNode instanceof ArrayParseNode) {
-                arguments.addAll(node.getArgsNode().childNodes());
-            } else {
-                arguments.add(node.getArgsNode());
-            }
+        if (argsNode == null) {
+            // No arguments
+        } else if (argsNode instanceof ArrayParseNode) {
+            // Multiple arguments
+            arguments.addAll(argsNode.childNodes());
+        } else {
+            arguments.add(node.getArgsNode());
         }
 
         final List<RubyNode> argumentsTranslated = new ArrayList<>();
