@@ -882,39 +882,24 @@ public class BodyTranslator extends Translator {
 
                 // JRuby AST always gives WhenParseNode with only one expression.
                 // "when 1,2; body" gets translated to 2 WhenParseNode.
-                final List<ParseNode> expressions = Collections.singletonList(when.getExpressionNodes());
+                final ParseNode expressionNode = when.getExpressionNodes();
+                final RubyNode rubyExpression = expressionNode.accept(this);
 
-                final List<RubyNode> comparisons = new ArrayList<>();
-
-                for (ParseNode expressionNode : expressions) {
-                    final RubyNode rubyExpression = expressionNode.accept(this);
-
-                    final RubyNode receiver;
-                    final RubyNode[] arguments;
-                    final String method;
-                    if (expressionNode instanceof SplatParseNode
-                            || expressionNode instanceof ArgsCatParseNode
-                            || expressionNode instanceof ArgsPushParseNode) {
-                        receiver = new ObjectLiteralNode(context.getCoreLibrary().getTruffleModule());
-                        receiver.unsafeSetSourceSection(sourceSection);
-                        method = "when_splat";
-                        arguments = new RubyNode[] { rubyExpression, NodeUtil.cloneNode(readTemp) };
-                    } else {
-                        receiver = rubyExpression;
-                        method = "===";
-                        arguments = new RubyNode[] { NodeUtil.cloneNode(readTemp) };
-                    }
-                    RubyCallNodeParameters callParameters = new RubyCallNodeParameters(receiver, method, null, arguments, false, true);
-                    comparisons.add(Translator.withSourceSection(sourceSection, new RubyCallNode(callParameters)));
+                final RubyNode receiver;
+                final RubyNode[] arguments;
+                final String method;
+                if (expressionNode instanceof SplatParseNode || expressionNode instanceof ArgsCatParseNode || expressionNode instanceof ArgsPushParseNode) {
+                    receiver = new ObjectLiteralNode(context.getCoreLibrary().getTruffleModule());
+                    receiver.unsafeSetSourceSection(sourceSection);
+                    method = "when_splat";
+                    arguments = new RubyNode[]{ rubyExpression, NodeUtil.cloneNode(readTemp) };
+                } else {
+                    receiver = rubyExpression;
+                    method = "===";
+                    arguments = new RubyNode[]{ NodeUtil.cloneNode(readTemp) };
                 }
-
-                RubyNode conditionNode = comparisons.get(comparisons.size() - 1);
-
-                // As with the if nodes, we work backwards to make it left associative
-
-                for (int i = comparisons.size() - 2; i >= 0; i--) {
-                    conditionNode = new OrNode(comparisons.get(i), conditionNode);
-                }
+                final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(receiver, method, null, arguments, false, true);
+                final RubyNode conditionNode = Translator.withSourceSection(sourceSection, new RubyCallNode(callParameters));
 
                 // Create the if node
 
