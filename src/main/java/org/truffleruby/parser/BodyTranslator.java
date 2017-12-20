@@ -788,13 +788,7 @@ public class BodyTranslator extends Translator {
         } else if (argsNode instanceof ArrayParseNode) {
             // Multiple arguments
             arguments.addAll(argsNode.childNodes());
-        } else if (argsNode instanceof SplatParseNode) {
-            isSplatted = true;
-            arguments.add(argsNode);
-        } else if (argsNode instanceof ArgsCatParseNode) {
-            isSplatted = true;
-            arguments.add(argsNode);
-        } else if (argsNode instanceof ArgsPushParseNode) {
+        } else if (argsNode instanceof SplatParseNode || argsNode instanceof ArgsCatParseNode || argsNode instanceof ArgsPushParseNode) {
             isSplatted = true;
             arguments.add(argsNode);
         } else {
