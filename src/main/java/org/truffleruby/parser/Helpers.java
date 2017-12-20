@@ -28,6 +28,7 @@ package org.truffleruby.parser;
 
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
+import org.truffleruby.parser.ast.AssignableParseNode;
 import org.truffleruby.parser.ast.DAsgnParseNode;
 import org.truffleruby.parser.ast.LocalAsgnParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
@@ -144,7 +145,8 @@ public class Helpers {
     }
 
     public static boolean isRequiredKeywordArgumentValueNode(ParseNode asgnNode) {
-        return asgnNode.childNodes().get(0) instanceof RequiredKeywordArgumentValueParseNode;
+        return asgnNode instanceof AssignableParseNode &&
+                ((AssignableParseNode) asgnNode).getValueNode() instanceof RequiredKeywordArgumentValueParseNode;
     }
 
 }
