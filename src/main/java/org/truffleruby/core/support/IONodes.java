@@ -79,8 +79,6 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.regexp.RegexpNodes.RegexpSetLastMatchPrimitiveNode;
-import org.truffleruby.core.regexp.RegexpNodesFactory.RegexpSetLastMatchPrimitiveNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
@@ -511,12 +509,6 @@ public abstract class IONodes {
         @Child ReadCallerFrameNode readCallerFrame = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode;
 
-        public static RegexpSetLastMatchPrimitiveNode create() {
-            return RegexpSetLastMatchPrimitiveNodeFactory.create(null);
-        }
-
-        public abstract DynamicObject executeSetLastMatch(VirtualFrame frame, Object matchData);
-
         @Specialization
         public DynamicObject setLastLine(VirtualFrame frame, DynamicObject matchData) {
             if (threadLocalNode == null) {
@@ -524,8 +516,8 @@ public abstract class IONodes {
                 threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create(LAST_LINE_VARIABLE));
             }
             Frame callerFrame = readCallerFrame.execute(frame);
-            ThreadAndFrameLocalStorage lastMatch = threadLocalNode.execute(callerFrame.materialize());
-            lastMatch.set(matchData);
+            ThreadAndFrameLocalStorage lastLine = threadLocalNode.execute(callerFrame.materialize());
+            lastLine.set(matchData);
             return matchData;
         }
     }
