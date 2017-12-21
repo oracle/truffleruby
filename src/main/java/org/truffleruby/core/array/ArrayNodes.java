@@ -1947,11 +1947,16 @@ public abstract class ArrayNodes {
             return createArray(copy, size);
         }
 
-        @Specialization(guards = "!isEmptyArray(array)")
-        public Object sortGenericWithoutBlock(VirtualFrame frame, DynamicObject array, NotProvided block,
-                                              @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame,
-                    "sorted = dup; Truffle.privately { sorted.mergesort! }; ret = []; Truffle::Array.steal_storage(ret, sorted)");
+        @Specialization(guards = { "!isEmptyArray(array)", "!isObjectArray(array)" })
+        public Object sortPrimitiveArrayFallback(VirtualFrame frame, DynamicObject array, NotProvided block,
+                                                 @Cached("new()") SnippetNode snippetNode) {
+            return sortArrayInRuby(frame, snippetNode);
+        }
+
+        @Specialization(guards = { "!isEmptyArray(array)", "isObjectArray(array)" })
+        public Object sortObjectArrayWithoutBlock(VirtualFrame frame, DynamicObject array, NotProvided block,
+                                                  @Cached("new()") SnippetNode snippetNode) {
+            return sortArrayInRuby(frame, snippetNode);
         }
 
         @Specialization(guards = "!isEmptyArray(array)")
@@ -1991,6 +1996,11 @@ public abstract class ArrayNodes {
 
         protected boolean isSmall(DynamicObject array) {
             return getSize(array) <= getContext().getOptions().ARRAY_SMALL;
+        }
+
+        private Object sortArrayInRuby(VirtualFrame frame, SnippetNode snippetNode) {
+            return snippetNode.execute(frame,
+                    "sorted = dup; Truffle.privately { sorted.mergesort! }; ret = []; Truffle::Array.steal_storage(ret, sorted)");
         }
 
     }
