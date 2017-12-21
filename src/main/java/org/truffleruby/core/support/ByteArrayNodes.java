@@ -157,9 +157,10 @@ public abstract class ByteArrayNodes {
     public abstract static class LocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(pattern)")
-        public Object getByte(DynamicObject bytes, DynamicObject pattern, int start, int length) {
+        public Object getByte(DynamicObject bytes, DynamicObject pattern, int start, int length,
+                              @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope patternRope = StringOperations.rope(pattern);
-            final int index = indexOf(Layouts.BYTE_ARRAY.getBytes(bytes), start, length, patternRope);
+            final int index = indexOf(Layouts.BYTE_ARRAY.getBytes(bytes), start, length, bytesNode.execute(patternRope));
 
             if (index == -1) {
                 return nil();
@@ -168,9 +169,8 @@ public abstract class ByteArrayNodes {
             }
         }
 
-        public int indexOf(ByteArrayBuilder in, int start, int length, Rope find) {
-            byte[] target = find.getBytes();
-            int targetCount = find.byteLength();
+        public int indexOf(ByteArrayBuilder in, int start, int length, byte[] target) {
+            int targetCount = target.length;
             int fromIndex = start;
             if (fromIndex >= length) {
                 return (targetCount == 0 ? length : -1);
