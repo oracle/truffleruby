@@ -1874,11 +1874,6 @@ public abstract class ArrayNodes {
     @CoreMethod(names = "sort", needsBlock = true)
     public abstract static class SortNode extends ArrayCoreMethodNode {
 
-        @Child private CallDispatchHeadNode compareDispatchNode = CallDispatchHeadNode.create();
-        @Child private FixnumLowerNode fixnumLowerNode = FixnumLowerNode.create();
-
-        private final BranchProfile errorProfile = BranchProfile.create();
-
         @Specialization(guards = "isEmptyArray(array)")
         public DynamicObject sortEmpty(DynamicObject array, Object unusedBlock) {
             return createArray(null, 0);
@@ -1887,7 +1882,10 @@ public abstract class ArrayNodes {
         @ExplodeLoop
         @Specialization(guards = { "!isEmptyArray(array)", "isSmall(array)", "strategy.matches(array)" }, limit = "ARRAY_STRATEGIES")
         public DynamicObject sortVeryShort(VirtualFrame frame, DynamicObject array, NotProvided block,
-                @Cached("of(array)") ArrayStrategy strategy) {
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("create()") CallDispatchHeadNode compareDispatchNode,
+                @Cached("create()") FixnumLowerNode fixnumLowerNode,
+                @Cached("create()") BranchProfile errorProfile) {
             final ArrayMirror originalStore = strategy.newMirror(array);
             final ArrayMirror store = strategy.newArray(getContext().getOptions().ARRAY_SMALL);
             final int size = strategy.getSize(array);
@@ -1908,7 +1906,8 @@ public abstract class ArrayNodes {
                         if (j < size) {
                             final Object a = store.get(i);
                             final Object b = store.get(j);
-                            if (castSortValue(compareDispatchNode.call(frame, b, "<=>", a)) < 0) {
+                            final Object comparisonResult = compareDispatchNode.call(frame, b, "<=>", a);
+                            if (castSortValue(comparisonResult, errorProfile, fixnumLowerNode) < 0) {
                                 store.set(j, a);
                                 store.set(i, b);
                             }
@@ -1982,7 +1981,7 @@ public abstract class ArrayNodes {
             Arrays.sort(array, 0, size);
         }
 
-        private int castSortValue(Object value) {
+        private int castSortValue(Object value, BranchProfile errorProfile, FixnumLowerNode fixnumLowerNode) {
             value = fixnumLowerNode.executeLower(value);
 
             if (value instanceof Integer) {
