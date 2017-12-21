@@ -734,8 +734,14 @@ public abstract class StringNodes {
     @CoreMethod(names = "bytesize")
     public abstract static class ByteSizeNode extends CoreMethodArrayArgumentsNode {
 
+        public static ByteSizeNode create() {
+            return StringNodesFactory.ByteSizeNodeFactory.create(null);
+        }
+
+        public abstract int executeByteSize(DynamicObject string);
+
         @Specialization
-        public int byteSize(DynamicObject string) {
+        protected int byteSize(DynamicObject string) {
             final Rope rope = rope(string);
 
             return rope.byteLength();
