@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -1880,9 +1879,6 @@ public abstract class ArrayNodes {
 
         private final BranchProfile errorProfile = BranchProfile.create();
 
-        protected final Assumption fixnumCmpAssumption = getContext().getCoreMethods().fixnumCmpAssumption;
-        protected final Assumption floatCmpAssumption = getContext().getCoreMethods().floatCmpAssumption;
-
         @Specialization(guards = "isEmptyArray(array)")
         public DynamicObject sortEmpty(DynamicObject array, Object unusedBlock) {
             return createArray(null, 0);
@@ -1925,7 +1921,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "isIntArray(array)" },
-                        assumptions = "fixnumCmpAssumption")
+                        assumptions = "getContext().getCoreMethods().fixnumCmpAssumption")
         public Object sortIntArray(DynamicObject array, NotProvided block) {
             final int size = getSize(array);
             int[] copy = ((int[]) getStore(array)).clone();
@@ -1934,7 +1930,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "isLongArray(array)" },
-                        assumptions = "fixnumCmpAssumption")
+                        assumptions = "getContext().getCoreMethods().fixnumCmpAssumption")
         public Object sortLongArray(DynamicObject array, NotProvided block) {
             final int size = getSize(array);
             long[] copy = ((long[]) getStore(array)).clone();
@@ -1943,7 +1939,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "isDoubleArray(array)" },
-                        assumptions = "floatCmpAssumption")
+                        assumptions = "getContext().getCoreMethods().floatCmpAssumption")
         public Object sortDoubleArray(DynamicObject array, NotProvided block) {
             final int size = getSize(array);
             double[] copy = ((double[]) getStore(array)).clone();
