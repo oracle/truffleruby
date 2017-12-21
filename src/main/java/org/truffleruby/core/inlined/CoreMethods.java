@@ -64,6 +64,8 @@ public class CoreMethods {
 
     final Assumption nilClassIsNilAssumption;
 
+    final Assumption stringBytesizeAssumpton;
+
     public final InternalMethod BLOCK_GIVEN;
     public final InternalMethod NOT;
     public final InternalMethod KERNEL_IS_NIL;
@@ -75,6 +77,7 @@ public class CoreMethods {
         final DynamicObject fixnumClass = context.getCoreLibrary().getFixnumClass();
         final DynamicObject floatClass = context.getCoreLibrary().getFloatClass();
         final DynamicObject nilClass = context.getCoreLibrary().getNilClass();
+        final DynamicObject stringClass = context.getCoreLibrary().getStringClass();
 
         fixnumAddAssumption = registerAssumption(fixnumClass, "+");
         floatAddAssumption = registerAssumption(floatClass, "+");
@@ -106,6 +109,8 @@ public class CoreMethods {
         fixnumGreaterOrEqualAssumption = registerAssumption(fixnumClass, ">=");
 
         nilClassIsNilAssumption = registerAssumption(nilClass, "nil?");
+
+        stringBytesizeAssumpton = registerAssumption(stringClass, "bytesize");
 
         BLOCK_GIVEN = getMethod(kernelModule, "block_given?");
         NOT = getMethod(basicObjectClass, "!");
@@ -145,6 +150,8 @@ public class CoreMethods {
                     break;
                 case "nil?":
                     return InlinedIsNilNodeGen.create(context, callParameters, self);
+                case "bytesize":
+                    return InlinedByteSizeNodeGen.create(context, callParameters, self);
                 default:
             }
         } else if (n == 2) {
