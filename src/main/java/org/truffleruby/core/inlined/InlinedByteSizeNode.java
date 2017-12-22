@@ -16,16 +16,22 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
+import org.truffleruby.language.methods.LookupMethodNode;
 
 public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
 
+    protected static final String METHOD = "bytesize";
+
     public InlinedByteSizeNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(callNodeParameters, context.getCoreMethods().stringBytesizeAssumpton);
+        super(callNodeParameters);
     }
 
-    @Specialization(guards = "isRubyString(self)", assumptions = "assumptions")
-    int byteSize(DynamicObject self,
-                 @Cached("create()") StringNodes.ByteSizeNode byteSizeNode) {
+    @Specialization(guards = {
+            "lookupNode.lookup(frame, self, METHOD) == coreMethods().STRING_BYTESIZE",
+    }, assumptions = "assumptions", limit = "1")
+    int byteSize(VirtualFrame frame, DynamicObject self,
+            @Cached("create()") LookupMethodNode lookupNode,
+            @Cached("create()") StringNodes.ByteSizeNode byteSizeNode) {
         return byteSizeNode.executeByteSize(self);
     }
 
