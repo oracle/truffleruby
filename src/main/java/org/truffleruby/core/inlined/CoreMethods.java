@@ -34,11 +34,10 @@ import org.truffleruby.language.methods.InternalMethod;
  * inlined operation NOT appear in the backtrace.
  * <p>
  * Two strategies are used to check method re-definition.
- * <li>If the class is a leaf class (there cannot be instances of a subclass of that class), or we
- * know the operation will likely be called on instances of a given class, then we only need to
- * check the receiver is an instance of that class and register an Assumption for the given method
- * name (see {@link ModuleFields#registerAssumption(String)}). In such cases the method must be
- * public as we do not check visibility.</li>
+ * <li>If the class is a leaf class (there cannot be instances of a subclass of that class), then we
+ * only need to check the receiver is an instance of that class and register an Assumption for the
+ * given method name (see {@link ModuleFields#registerAssumption(String)}). In such cases the method
+ * must be public as we do not check visibility.</li>
  * <li>Otherwise, we need to do a method lookup and verify the method that would be called is the
  * standard definition we expect.</li>
  */
