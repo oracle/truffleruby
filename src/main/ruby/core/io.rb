@@ -562,13 +562,14 @@ class IO
       io = File.open(name, options)
     end
 
+    each_reader = Truffle.privately { io.create_each_reader(separator, limit) }
+
     begin
-      while line = io.gets(separator, limit)
-        yield line
-      end
+      each_reader&.each { |line| yield line }
     ensure
       io.close
     end
+
     nil
   end
 
@@ -1542,9 +1543,7 @@ class IO
     end
   end
 
-  def each(sep_or_limit=$/, limit=nil, &block)
-    return to_enum(:each, sep_or_limit, limit) unless block_given?
-
+  private def create_each_reader(sep_or_limit=$/, limit=nil)
     ensure_open_and_readable
 
     if limit
@@ -1564,11 +1563,21 @@ class IO
       end
     end
 
-    raise ArgumentError, "invalid limit: #{limit} for each_line" if limit == 0
+    raise ArgumentError, "invalid limit: #{limit} for each" if limit == 0
 
     return if @ibuffer.exhausted?
 
-    EachReader.new(self, @ibuffer, sep, limit).each(&block)
+    EachReader.new(self, @ibuffer, sep, limit)
+  end
+
+  def each(sep_or_limit=$/, limit=nil, &block)
+    return to_enum(:each, sep_or_limit, limit) unless block_given?
+
+    each_reader = create_each_reader(sep_or_limit, limit)
+
+    return if each_reader.nil?
+
+    each_reader.each(&block)
 
     self
   end
@@ -2129,15 +2138,13 @@ class IO
   #
   #  f = File.new("testfile")
   #  f.readlines[0]   #=> "This is line one\n"
-  def readlines(sep=$/)
-    sep = StringValue sep if sep
+  def readlines(sep_or_limit=$/, limit=nil)
+    ret = []
 
-    ary = Array.new
-    while line = gets(sep)
-      ary << line
-    end
+    each_reader = create_each_reader(sep_or_limit, limit)
+    each_reader&.each { |line| ret << line }
 
-    ary
+    ret
   end
 
   ##
