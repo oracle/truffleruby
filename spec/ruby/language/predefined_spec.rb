@@ -645,6 +645,33 @@ describe "Predefined global $," do
   end
 end
 
+describe "Predefined global $." do
+  it "can be assigned an Integer" do
+    $. = 123
+    $..should == 123
+  end
+
+  it "can be assigned a Float" do
+    $. = 123.5
+    $..should == 123
+  end
+
+  it "should call #to_int to convert the object to an Integer" do
+    obj = mock("good-value")
+    obj.should_receive(:to_int).and_return(321)
+
+    $. = obj
+    $..should == 321
+  end
+
+  it "raises TypeError if object can't be converted to an Integer" do
+    obj = mock("bad-value")
+    obj.should_receive(:to_int).and_return('abc')
+
+    lambda { $. = obj }.should raise_error(TypeError)
+  end
+end
+
 describe "Predefined global $_" do
   it "is set to the last line read by e.g. StringIO#gets" do
     stdin = StringIO.new("foo\nbar\n", "r")
