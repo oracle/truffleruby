@@ -1,12 +1,24 @@
 = Asciidoctor
 Dan Allen <https://github.com/mojavelinux[@mojavelinux]>; Sarah White <https://github.com/graphitefriction[@graphitefriction]>; Ryan Waldron <https://github.com/erebor[@erebor]>
+v1.5.6.1, 2017-07-23
 // settings:
 :page-layout: base
 :idprefix:
 :idseparator: -
 :source-language: ruby
 :language: {source-language}
-ifdef::env-github[:status:]
+ifndef::env-github[:icons: font]
+ifdef::env-github[]
+:status:
+:outfilesuffix: .adoc
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+// Variables:
+:release-version: 1.5.6.1
 // URIs:
 :uri-org: https://github.com/asciidoctor
 :uri-repo: {uri-org}/asciidoctor
@@ -54,7 +66,8 @@ gemはいくつかのLinuxディストリビューション, Fedora, Debian, Ubu
 Asciidoctorはオープンソース {uri-repo}[hosted on Github] で {uri-license}[the MIT licence]のもとに配布されます.
 
 ifndef::env-site[]
-.Translations of the document are available in the following languages:
+Translations of this document are available in the following languages:
+
 * {uri-rel-file-base}README-zh_CN.adoc[汉语]
 * {uri-rel-file-base}README.adoc[English]
 * {uri-rel-file-base}README-fr.adoc[Français]
@@ -90,7 +103,7 @@ endif::[]
 == The Big Picture
 
 Asciidoctorは下図の左側のパネルに示されるように, 平文で書かれた内容を読み, 右のパネルに描かれるようにHTML5に変換します.
-Asciidoctorは枠にとらわれない快適なエクスペリエンスのためにデフォルトスタイルシートをHTML5時メントに適用します.
+Asciidoctorは枠にとらわれない快適なエクスペリエンスのためにデフォルトスタイルシートをHTML5ドキュメントに適用します.
 
 image::{image-uri-screenshot}[Preview of AsciiDoc source and corresponding rendered HTML]
 
@@ -147,11 +160,11 @@ TIP: Linuxパッケージマネージャを用いてインストールするこ�
 .アップグレード
 [TIP]
 ====
-もしAsciidoctorの以前のバージョンあインストール済みであれば, 以下によってアップデートできます:
- 
+もしAsciidoctorの以前のバージョンがインストール済みであれば, 以下によってアップデートできます:
+
  $ gem update asciidoctor
 
-もし gem update の代わりに `gem install` を使ってgemを新バージョンにした場合, 複数バージョンばインストールされるでしょう.
+もし gem update の代わりに `gem install` を使ってgemを新バージョンにした場合, 複数バージョンがインストールされるでしょう.
 そのときは, 以下のgemコマンドで古いバージョンを削除しましょう:
 
  $ gem cleanup asciidoctor
@@ -162,12 +175,12 @@ TIP: Linuxパッケージマネージャを用いてインストールするこ�
 . プロジェクトフォルダーのルート(かカレントディレクトリ)にGemfileを作成
 . `asciidoctor` gemをGemfileに以下のように追加:
 +
-[source]
+[source,subs=attributes+]
 ----
 source 'https://rubygems.org'
 gem 'asciidoctor'
 # or specify the version explicitly
-# gem 'asciidoctor', '1.5.4'
+# gem 'asciidoctor', '{release-version}'
 ----
 
 . Gemfileを保存
@@ -199,7 +212,7 @@ Debian, UbuntuまたはMintにインストールするには, ターミナルを
  $ sudo apt-get install -y asciidoctor
 
 gemをアップグレードするには:
- 
+
  $ sudo apt-get upgrade -y asciidoctor
 
 TIP: お使いのシステムは自動的にdebパッケージをアップデートするよう設定されているかも知れません.その場合, gemのアップデートのためにあなたがすべきことはありません.
@@ -250,10 +263,10 @@ Asciidoctorのインストールに成功すれば,  `asciidoctor` コマンド�
 
 AsciidoctorのバージョンとRuby環境についての情報がターミナルに出力されたのを見ることができるはずです.
 
-[.output]
+[.output,subs=attributes+]
 ....
-Asciidoctor 1.5.4 [http://asciidoctor.org]
-Runtime Environment (ruby 2.2.2p95 [x86_64-linux]) (lc:UTF-8 fs:UTF-8 in:- ex:UTF-8)
+Asciidoctor {release-version} [http://asciidoctor.org]
+Runtime Environment (ruby 2.4.1p111 [x86_64-linux]) (lc:UTF-8 fs:UTF-8 in:- ex:UTF-8)
 ....
 
 AsciidoctorはAPIを提供します.
@@ -336,7 +349,7 @@ APIの使い方や出力のカスタマイズ方法についてのより詳し�
 
 == Contributing
 
-{uri-freesoftware}[free software] の精神においては,  _everyone_ がこのプロジェクトを改良するのをたすけることが勧められている.
+{uri-freesoftware}[free software] の精神においては,  _everyone_ がこのプロジェクトを改良するのをたすけることが勧められています.
 もしエラーや手抜かりをソースコード, ドキュメント, あるいはウェブサイトに見つけたのなら, 恥じることなく修正と共にpull requestの開設やissueの送信をしてください.
 New contributors are always welcome!
 
@@ -356,7 +369,7 @@ New contributors are always welcome!
 *  {uri-issues}[issues] の修正
 * パッチの批評
 
-{uri-contribute}[Contributing] ガイドはどうやってスタイルをつくるか, issueを送るか, 機能リクエスト, コーディング, ドキュメンテーションをAsciidoctor Projectにするかの情報を提供しています.
+{uri-contribute}[Contributing] ガイドはどうやってスタイルをつくるか, issueを送るか, 機能リクエスト, コーディング, ドキュメンテーションをAsciidoctor Projectにするかについての情報を提供しています.
 
 == Getting Help
 
@@ -382,7 +395,7 @@ Asciidoctor organization on GitHub:: {uri-org}
 
 == Copyright and Licensing
 
-Copyright (C) 2012-2016 Dan Allen, Ryan Waldron and the Asciidoctor Project.
+Copyright (C) 2012-2017 Dan Allen, Ryan Waldron and the Asciidoctor Project.
 Free use of this software is granted under the terms of the MIT License.
 
 See the {uri-license}[LICENSE] file for details.

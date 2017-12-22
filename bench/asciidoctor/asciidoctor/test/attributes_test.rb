@@ -46,6 +46,16 @@ linus.torvalds@example.com
       assert_equal %(Linus Torvalds +\nLinux Hacker +\nlinus.torvalds@example.com), doc.attributes['signature']
     end
 
+    test 'should allow pass macro to surround a multi-line value that contains line breaks' do
+      str = <<-EOS
+:signature: pass:a[{author} + \\
+{title} + \\
+{email}]
+      EOS
+      doc = document_from_string str, :attributes => { 'author' => 'Linus Torvalds', 'title' => 'Linux Hacker', 'email' => 'linus.torvalds@example.com' }
+      assert_equal %(Linus Torvalds +\nLinux Hacker +\nlinus.torvalds@example.com), (doc.attr 'signature')
+    end
+
     test 'should delete an attribute that ends with !' do
       doc = document_from_string(":frog: Tanglefoot\n:frog!:")
       assert_equal nil, doc.attributes['frog']
@@ -86,14 +96,25 @@ linus.torvalds@example.com
       assert_equal 'Asciidoctor 1.0', doc.attributes['release']
     end
 
-    test "assigns attribute to empty string if substitution fails to resolve attribute" do
-      doc = document_from_string ":release: Asciidoctor {version}", :attributes => { 'attribute-missing' => 'drop-line' }
+    test 'assigns attribute to empty string if substitution fails to resolve attribute' do
+      input = ':release: Asciidoctor {version}'
+      doc, warnings = redirect_streams do |_, err|
+        [(document_from_string input, :attributes => { 'attribute-missing' => 'drop-line' }), err.string]
+      end
       assert_equal '', doc.attributes['release']
+      assert_includes warnings, 'dropping line containing reference to missing attribute'
     end
 
-    test "assigns multi-line attribute to empty string if substitution fails to resolve attribute" do
-      doc = document_from_string ":release: Asciidoctor +\n          {version}", :attributes => { 'attribute-missing' => 'drop-line' }
+    test 'assigns multi-line attribute to empty string if substitution fails to resolve attribute' do
+      input = <<-EOS
+:release: Asciidoctor +
+          {version}
+      EOS
+      doc, warnings = redirect_streams do |_, err|
+        [(document_from_string input, :attributes => { 'attribute-missing' => 'drop-line' }), err.string]
+      end
       assert_equal '', doc.attributes['release']
+      assert_includes warnings, 'dropping line containing reference to missing attribute'
     end
 
     test 'resolves attributes inside attribute value within header' do
@@ -122,6 +143,58 @@ content
 
       result = render_embedded_string input
       assert result.include? '<em>big</em>foot'
+    end
+
+    test 'should limit maximum size of attribute value if safe mode is SECURE' do
+      expected = 'a' * 4096
+      input = <<-EOS
+:name: #{'a' * 5000}
+
+{name}
+      EOS
+
+      result = render_embedded_string input, :doctype => :inline
+      assert_equal expected, result
+      assert_equal 4096, result.bytesize
+    end
+
+    test 'should handle multibyte characters when limiting attribute value size' do
+      expected = '日本'
+      input = <<-EOS
+:name: 日本語
+
+{name}
+      EOS
+
+      result = render_embedded_string input, :doctype => :inline, :attributes => { 'max-attribute-value-size' => 6 }
+      assert_equal expected, result
+      assert_equal 6, result.bytesize
+    end
+
+    test 'should not mangle multibyte characters when limiting attribute value size' do
+      expected = '日本'
+      input = <<-EOS
+:name: 日本語
+
+{name}
+      EOS
+
+      result = render_embedded_string input, :doctype => :inline, :attributes => { 'max-attribute-value-size' => 8 }
+      assert_equal expected, result
+      assert_equal 6, result.bytesize
+    end
+
+    test 'should allow maximize size of attribute value to be disabled' do
+      expected = 'a' * 5000
+      input = <<-EOS
+:name: #{'a' * 5000}
+
+{name}
+      EOS
+
+      result = render_embedded_string input, :doctype => :inline, :attributes => { 'max-attribute-value-size' => nil }
+      assert_equal expected, result
+      assert_equal 5000, result.bytesize
     end
 
     test 'resolves user-home attribute if safe mode is less than SERVER' do
@@ -159,6 +232,13 @@ EOS
       assert_equal '<>&', doc.attributes['xml-busters']
       doc = document_from_string(":xml-busters: pass:specialcharacters[<>&]")
       assert_equal '&lt;&gt;&amp;', doc.attributes['xml-busters']
+    end
+
+    test 'should not recognize pass macro with invalid substitution list in attribute value' do
+      [',', '42', 'a,'].each do |subs|
+        doc = document_from_string %(:pass-fail: pass:#{subs}[whale])
+        assert_equal %(pass:#{subs}[whale]), doc.attributes['pass-fail']
+      end
     end
 
     test "attribute is treated as defined until it's not" do
@@ -282,12 +362,12 @@ content
         assert_equal val, doc.attributes[key]
       end
 
-      assert !doc.attributes.key?('backend-html5')
-      assert !doc.attributes.key?('backend-html5-doctype-article')
-      assert !doc.attributes.key?('basebackend-html')
-      assert !doc.attributes.key?('basebackend-html-doctype-article')
-      assert !doc.attributes.key?('doctype-article')
-      assert !doc.attributes.key?('filetype-html')
+      refute doc.attributes.key?('backend-html5')
+      refute doc.attributes.key?('backend-html5-doctype-article')
+      refute doc.attributes.key?('basebackend-html')
+      refute doc.attributes.key?('basebackend-html-doctype-article')
+      refute doc.attributes.key?('doctype-article')
+      refute doc.attributes.key?('filetype-html')
     end
 
     test 'backend attributes defined in document options overrides backend attribute in document' do
@@ -296,6 +376,19 @@ content
       assert doc.attributes.has_key? 'backend-html5'
       assert_equal 'html', doc.attributes['basebackend']
       assert doc.attributes.has_key? 'basebackend-html'
+    end
+
+    test 'set_attr should set value to empty string if no value is specified' do
+      node = Asciidoctor::Block.new nil, :paragraph, :attributes => {}
+      node.set_attr 'foo'
+      assert_equal '', (node.attr 'foo')
+    end
+
+    test 'remove_attr should remove attribute and return previous value' do
+      doc = empty_document
+      node = Asciidoctor::Block.new doc, :paragraph, :attributes => { 'foo' => 'bar' }
+      assert_equal 'bar', (node.remove_attr 'foo')
+      assert_nil node.attr('foo')
     end
 
     test 'set_attr should not overwrite existing key if overwrite is false' do
@@ -325,6 +418,31 @@ content
       assert_xpath '//a[@href="https://google.com"]', output, 1
     end
 
+    test 'set_attribute should set attribute if key is not locked' do
+      doc = empty_document
+      refute doc.attr? 'foo'
+      res = doc.set_attribute 'foo', 'baz'
+      assert res
+      assert_equal 'baz', (doc.attr 'foo')
+    end
+
+    test 'set_attribute should not set key if key is locked' do
+      doc = empty_document :attributes => { 'foo' => 'bar' }
+      assert_equal 'bar', (doc.attr 'foo')
+      res = doc.set_attribute 'foo', 'baz'
+      refute res
+      assert_equal 'bar', (doc.attr 'foo')
+    end
+
+    test 'set_attribute should update backend attributes' do
+      doc = empty_document :attributes => { 'backend' => 'html5@' }
+      assert_equal '', (doc.attr 'backend-html5')
+      res = doc.set_attribute 'backend', 'docbook5'
+      assert res
+      refute doc.attr? 'backend-html5'
+      assert_equal '', (doc.attr 'backend-docbook5')
+    end
+
     test 'verify toc attribute matrix' do
       expected_data = <<-EOS
 #attributes                               |toc|toc-position|toc-placement|toc-class
@@ -347,12 +465,12 @@ toc toc-placement!                        |   |content     |macro        |nil
 
       expected.each do |expect|
         raw_attrs, toc, toc_position, toc_placement, toc_class = expect
-        attrs = Hash[*(raw_attrs.split ' ').map {|e| e.include?('=') ? e.split('=') : [e, ''] }.flatten]
+        attrs = Hash[*raw_attrs.split.map {|e| e.include?('=') ? e.split('=', 2) : [e, ''] }.flatten]
         doc = document_from_string '', :attributes => attrs
-        toc ? (assert doc.attr?('toc', toc)) : (assert !doc.attr?('toc'))
-        toc_position ? (assert doc.attr?('toc-position', toc_position)) : (assert !doc.attr?('toc-position'))
-        toc_placement ? (assert doc.attr?('toc-placement', toc_placement)) : (assert !doc.attr?('toc-placement'))
-        toc_class ? (assert doc.attr?('toc-class', toc_class)) : (assert !doc.attr?('toc-class'))
+        toc ? (assert doc.attr?('toc', toc)) : (refute doc.attr?('toc'))
+        toc_position ? (assert doc.attr?('toc-position', toc_position)) : (refute doc.attr?('toc-position'))
+        toc_placement ? (assert doc.attr?('toc-placement', toc_placement)) : (refute doc.attr?('toc-placement'))
+        toc_class ? (assert doc.attr?('toc-class', toc_class)) : (refute doc.attr?('toc-class'))
       end
     end
   end
@@ -396,7 +514,7 @@ Yo, {myfrog}!
       assert_xpath '(//p)[1][text()="Yo, Tanglefoot!"]', output, 1
     end
 
-    test "ignores lines with bad attributes if attribute-missing is drop-line" do
+    test 'ignores lines with bad attributes if attribute-missing is drop-line' do
       input = <<-EOS
 :attribute-missing: drop-line
 
@@ -404,9 +522,10 @@ This is
 blah blah {foobarbaz}
 all there is.
       EOS
-      html = render_embedded_string input
-      result = Nokogiri::HTML(html)
-      refute_match(/blah blah/m, result.css("p").first.content.strip)
+      output, warnings = redirect_streams {|_, err| [(render_embedded_string input), err.string] }
+      para = xmlnodes_at_css 'p', output, 1
+      refute_includes 'blah blah', para.content
+      assert_includes warnings, 'dropping line containing reference to missing attribute'
     end
 
     test "attribute value gets interpretted when rendering" do
@@ -424,9 +543,10 @@ Line 1: This line should appear in the output.
 Line 2: Oh no, a {bogus-attribute}! This line should not appear in the output.
       EOS
 
-      output = render_embedded_string input
+      output, warnings = redirect_streams {|_, err| [(render_embedded_string input), err.string] }
       assert_match(/Line 1/, output)
       refute_match(/Line 2/, output)
+      assert_includes warnings, 'dropping line containing reference to missing attribute'
     end
 
     test 'should not drop line with reference to missing attribute by default' do
@@ -460,7 +580,7 @@ Line 2: {set:a!}This line should not appear in the output.
 :a:
 
 Line 1: This line should appear in the output.
-Line 2: {set:a!}This line should not appear in the output.
+Line 2: {set:a!}This line should appear in the output.
       EOS
 
       output = render_embedded_string input
@@ -696,7 +816,7 @@ of the attribute named foo in your document.
 {set:foo!}
 {foo}yes
       EOS
-      output = render_embedded_string input
+      output = redirect_streams { render_embedded_string input }
       assert_xpath '//p', output, 1
       assert_xpath '//p/child::text()', output, 0
     end
@@ -826,6 +946,34 @@ after: {counter:mycounter}
       assert_xpath '//p[text()="before: 1 2 3"]', output, 1
       assert_xpath '//p[text()="after: 1"]', output, 1
     end
+
+    test 'nested document should use counter from parent document' do
+      input = <<-EOS
+.Title for Foo
+image::foo.jpg[]
+
+[cols="2*a"]
+|===
+|
+.Title for Bar
+image::bar.jpg[]
+
+|
+.Title for Baz
+image::baz.jpg[]
+|===
+
+.Title for Qux
+image::qux.jpg[]
+      EOS
+
+      output = render_embedded_string input
+      assert_xpath '//div[@class="title"]', output, 4
+      assert_xpath '//div[@class="title"][text() = "Figure 1. Title for Foo"]', output, 1
+      assert_xpath '//div[@class="title"][text() = "Figure 2. Title for Bar"]', output, 1
+      assert_xpath '//div[@class="title"][text() = "Figure 3. Title for Baz"]', output, 1
+      assert_xpath '//div[@class="title"][text() = "Figure 4. Title for Qux"]', output, 1
+    end
   end
 
   context 'Block attributes' do
@@ -900,7 +1048,7 @@ content
       assert_xpath '//*[@class="title"]/strong[text()="title"]', output, 1
     end
 
-    test 'attribute list may begin with space' do
+    test 'attribute list may not begin with space' do
       input = <<-EOS
 [ quote]
 ____
@@ -909,8 +1057,8 @@ ____
       EOS
 
       doc = document_from_string input
-      qb = doc.blocks.first
-      assert_equal 'quote', qb.style
+      b1 = doc.blocks.first
+      assert_equal ['[ quote]'], b1.lines
     end
 
     test 'attribute list may begin with comma' do
@@ -968,7 +1116,7 @@ paragraph
 
       doc = document_from_string input
       para = doc.blocks.first
-      assert !para.attributes.has_key?('id')
+      refute para.attributes.has_key?('id')
     end
 
     test 'role? returns true if role is assigned' do
@@ -992,7 +1140,7 @@ A paragraph
       p = doc.blocks.first
       assert p.role?('lead')
       p2 = doc.blocks.last
-      assert !p2.role?('final')
+      refute p2.role?('final')
     end
 
     test 'has_role? can check for precense of role name' do
@@ -1003,7 +1151,7 @@ A paragraph
 
       doc = document_from_string input
       p = doc.blocks.first
-      assert !p.role?('lead')
+      refute p.role?('lead')
       assert p.has_role?('lead')
     end
 
@@ -1073,7 +1221,8 @@ A normal paragraph
         EOS
       doc = document_from_string(input)
       para = doc.blocks.first
-      para.add_role 'role1'
+      res = para.add_role 'role1'
+      assert res
       assert_equal 'role1', para.attributes['role']
       assert para.has_role? 'role1'
     end
@@ -1085,7 +1234,8 @@ A normal paragraph
         EOS
       doc = document_from_string(input)
       para = doc.blocks.first
-      para.add_role 'role2'
+      res = para.add_role 'role2'
+      assert res
       assert_equal 'role1 role2', para.attributes['role']
       assert para.has_role? 'role1'
       assert para.has_role? 'role2'
@@ -1098,7 +1248,8 @@ A normal paragraph
         EOS
       doc = document_from_string(input)
       para = doc.blocks.first
-      para.add_role 'role1'
+      res = para.add_role 'role1'
+      refute res
       assert_equal 'role1', para.attributes['role']
       assert para.has_role? 'role1'
     end
@@ -1110,10 +1261,25 @@ A normal paragraph
         EOS
       doc = document_from_string(input)
       para = doc.blocks.first
-      para.remove_role 'role1'
+      res = para.remove_role 'role1'
+      assert res
       assert_equal 'role2', para.attributes['role']
       assert para.has_role? 'role2'
-      assert !para.has_role?('role1')
+      refute para.has_role?('role1')
+    end
+
+    test 'roles are removed when last role is removed using remove_role' do
+        input = <<-EOS
+[.role1]
+A normal paragraph
+        EOS
+      doc = document_from_string(input)
+      para = doc.blocks.first
+      res = para.remove_role 'role1'
+      assert res
+      refute para.role?
+      assert_equal nil, para.attributes['role']
+      refute para.has_role? 'role1'
     end
 
     test 'roles are not changed when a non-existent role is removed using remove_role' do
@@ -1123,10 +1289,11 @@ A normal paragraph
         EOS
       doc = document_from_string(input)
       para = doc.blocks.first
-      para.remove_role 'role2'
+      res = para.remove_role 'role2'
+      refute res
       assert_equal 'role1', para.attributes['role']
       assert para.has_role? 'role1'
-      assert !para.has_role?('role2')
+      refute para.has_role?('role2')
     end
 
     test 'roles are not changed when using remove_role if the node has no roles' do
@@ -1135,9 +1302,10 @@ A normal paragraph
         EOS
       doc = document_from_string(input)
       para = doc.blocks.first
-      para.remove_role 'role1'
+      res = para.remove_role 'role1'
+      refute res
       assert_equal nil, para.attributes['role']
-      assert !para.has_role?('role1')
+      refute para.has_role?('role1')
     end
 
     test 'option can be specified in first position of block style using shorthand syntax' do
@@ -1176,7 +1344,7 @@ content
       section = doc.blocks[0]
       refute_nil section
       assert_equal :section, section.context
-      assert !section.special
+      refute section.special
       output = doc.convert
       assert_css 'section', output, 1
       assert_css 'section#idname', output, 1
@@ -1213,7 +1381,7 @@ paragraph
       assert_equal 'coolio', subsec.id
     end
 
-    test "trailing block attributes tranfer to the following section" do
+    test "trailing block attributes transfer to the following section" do
       input = <<-EOS
 [[one]]
 

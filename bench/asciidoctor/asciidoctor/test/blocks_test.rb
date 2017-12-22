@@ -5,22 +5,39 @@ unless defined? ASCIIDOCTOR_PROJECT_DIR
 end
 
 context "Blocks" do
-  context 'Line Breaks' do
-    test "ruler" do
-      output = render_string("'''")
-      assert_xpath '//*[@id="content"]/hr', output, 1
-      assert_xpath '//*[@id="content"]/*', output, 1
+  context 'Layout Breaks' do
+    test 'horizontal rule' do
+      %w(''' '''' '''''').each do |line|
+        output = render_embedded_string line
+        assert_includes output, '<hr>'
+      end
     end
 
-    test "ruler between blocks" do
-      output = render_string("Block above\n\n'''\n\nBlock below")
-      assert_xpath '//*[@id="content"]/hr', output, 1
-      assert_xpath '//*[@id="content"]/hr/preceding-sibling::*', output, 1
-      assert_xpath '//*[@id="content"]/hr/following-sibling::*', output, 1
+    test '< 3 chars does not make horizontal rule' do
+      %w(' '').each do |line|
+        output = render_embedded_string line
+        refute_includes output, '<hr>'
+        assert_includes output, %(<p>#{line}</p>)
+      end
     end
 
-    test "page break" do
-      output = render_embedded_string("page 1\n\n<<<\n\npage 2")
+    test 'mixed chars does not make horizontal rule' do
+      [%q(''<), %q('''<), %q(' ' ')].each do |line|
+        output = render_embedded_string line
+        refute_includes output, '<hr>'
+        assert_includes output, %(<p>#{line.sub '<', '&lt;'}</p>)
+      end
+    end
+
+    test 'horizontal rule between blocks' do
+      output = render_embedded_string %(Block above\n\n'''\n\nBlock below)
+      assert_xpath '/hr', output, 1
+      assert_xpath '/hr/preceding-sibling::*', output, 1
+      assert_xpath '/hr/following-sibling::*', output, 1
+    end
+
+    test 'page break' do
+      output = render_embedded_string %(page 1\n\n<<<\n\npage 2)
       assert_xpath '/*[translate(@style, ";", "")="page-break-after: always"]', output, 1
       assert_xpath '/*[translate(@style, ";", "")="page-break-after: always"]/preceding-sibling::div/p[text()="page 1"]', output, 1
       assert_xpath '/*[translate(@style, ";", "")="page-break-after: always"]/following-sibling::div/p[text()="page 2"]', output, 1
@@ -62,6 +79,23 @@ block comment
 ////
 
 second paragraph
+      EOS
+      output = render_embedded_string input
+      refute_match(/block comment/, output)
+      assert_xpath '//p', output, 2
+    end
+
+    test 'comment block between paragraphs offset by blank lines inside delimited block' do
+      input = <<-EOS
+====
+first paragraph
+
+////
+block comment
+////
+
+second paragraph
+====
       EOS
       output = render_embedded_string input
       refute_match(/block comment/, output)
@@ -116,7 +150,7 @@ block comment
       EOS
 
       output = render_embedded_string input
-      assert !output.strip.empty?, "Line should be emitted => #{input.rstrip}"
+      refute_empty output.strip, "Line should be emitted => #{input.rstrip}"
     end
 
     test 'preprocessor directives should not be processed within comment block within block metadata' do
@@ -164,9 +198,9 @@ line should not be rendered
       assert_xpath '//p', output, 0
     end
 
-    # WARNING if first line of content is a directive, it will get interpretted before we know it's a comment block
-    # it happens because we always look a line ahead...not sure what we can do about it
-    test 'preprocessor directives should not be processed within comment paragraph' do
+    # WARNING this assertion fails if the directive is the first line of the paragraph instead of the second
+    # it happens because we always look a line ahead; not sure what we can do about it
+    test 'preprocessor directives should not be processed on subsequent lines of a comment paragraph' do
       input = <<-EOS
 [comment]
 first line of content
@@ -220,6 +254,24 @@ not this text
       assert_xpath '/*[@class="exampleblock"]', result, 1
       assert_xpath '/*[@class="exampleblock"]//*[normalize-space(text())="not this text"]', result, 1
     end
+
+    # NOTE this test verifies the nil return value of Parser#next_block
+    test 'should not drop content that follows skipped content inside a delimited block' do
+      input = <<-EOS
+====
+paragraph
+
+[comment#idname]
+skip
+
+paragraph
+====
+      EOS
+      result = render_embedded_string input
+      assert_xpath '/*[@class="exampleblock"]', result, 1
+      assert_xpath '/*[@class="exampleblock"]//*[@class="paragraph"]', result, 2
+      assert_xpath '//*[@class="paragraph"][@id="idname"]', result, 0
+    end
   end
 
   context 'Quote and Verse Blocks' do
@@ -254,7 +306,7 @@ ____
       assert_xpath '//*[@class = "quoteblock"]/*[@class = "attribution"]/cite[text() = "Famous Book (1999)"]', output, 1
       attribution = xmlnodes_at_xpath '//*[@class = "quoteblock"]/*[@class = "attribution"]', output, 1
       author = attribution.children.first
-      assert_equal "#{expand_entity 8212} Famous Person", author.text.strip
+      assert_equal "#{decode_char 8212} Famous Person", author.text.strip
     end
 
     test 'quote block with attribute and id and role shorthand' do
@@ -374,7 +426,7 @@ Some more inspiring words.
       assert_xpath '//*[@class = "quoteblock"]/*[@class = "attribution"]/cite[text() = "Famous Source, Volume 1 (1999)"]', output, 1
       attribution = xmlnodes_at_xpath '//*[@class = "quoteblock"]/*[@class = "attribution"]', output, 1
       author = attribution.children.first
-      assert_equal "#{expand_entity 8212} Famous Person", author.text.strip
+      assert_equal "#{decode_char 8212} Famous Person", author.text.strip
     end
 
     test 'quoted paragraph-style quote block with attribution' do
@@ -393,7 +445,7 @@ Some more inspiring words."
       assert_xpath '//*[@class = "quoteblock"]/*[@class = "attribution"]/cite[text() = "Famous Source, Volume 1 (1999)"]', output, 1
       attribution = xmlnodes_at_xpath '//*[@class = "quoteblock"]/*[@class = "attribution"]', output, 1
       author = attribution.children.first
-      assert_equal "#{expand_entity 8212} Famous Person", author.text.strip
+      assert_equal "#{decode_char 8212} Famous Person", author.text.strip
     end
 
     test 'single-line verse block without attribution' do
@@ -428,7 +480,7 @@ ____
       assert_xpath '//*[@class = "verseblock"]/*[@class = "attribution"]/cite[text() = "Famous Poem"]', output, 1
       attribution = xmlnodes_at_xpath '//*[@class = "verseblock"]/*[@class = "attribution"]', output, 1
       author = attribution.children.first
-      assert_equal "#{expand_entity 8212} Famous Poet", author.text.strip
+      assert_equal "#{decode_char 8212} Famous Poet", author.text.strip
     end
 
     test 'multi-stanza verse block' do
@@ -475,7 +527,7 @@ ____
       EOS
 
       verse = block_from_string input
-      assert_equal Asciidoctor::Substitutors::SUBS[:normal], verse.subs
+      assert_equal Asciidoctor::Substitutors::NORMAL_SUBS, verse.subs
     end
 
     test 'should not recognize callouts in a verse' do
@@ -487,8 +539,9 @@ ____
 <1> Not pointing to a callout
       EOS
 
-      output = render_embedded_string input
+      output, warnings = redirect_streams {|_, err| [(render_embedded_string input), err.string] }
       assert_xpath '//pre[text()="La la la <1>"]', output, 1
+      assert_includes warnings, 'line 5: no callouts refer to list item 1'
     end
 
     test 'should perform normal subs on a verse block' do
@@ -536,6 +589,8 @@ You futz with XML.
       EOS
 
       doc = document_from_string input
+      assert_equal 1, doc.blocks[0].number
+      assert_equal 2, doc.blocks[1].number
       output = doc.render
       assert_xpath '(//*[@class="exampleblock"])[1]/*[@class="title"][text()="Example 1. Writing Docs with AsciiDoc"]', output, 1
       assert_xpath '(//*[@class="exampleblock"])[2]/*[@class="title"][text()="Example 2. Writing Docs with DocBook"]', output, 1
@@ -562,6 +617,8 @@ You futz with XML.
       EOS
 
       doc = document_from_string input
+      assert_equal 'A', doc.blocks[0].number
+      assert_equal 'B', doc.blocks[1].number
       output = doc.render
       assert_xpath '(//*[@class="exampleblock"])[1]/*[@class="title"][text()="Example A. Writing Docs with AsciiDoc"]', output, 1
       assert_xpath '(//*[@class="exampleblock"])[2]/*[@class="title"][text()="Example B. Writing Docs with DocBook"]', output, 1
@@ -580,23 +637,10 @@ You just write.
       EOS
 
       doc = document_from_string input
+      assert_nil doc.blocks[0].number
       output = doc.render
       assert_xpath '(//*[@class="exampleblock"])[1]/*[@class="title"][text()="Look! Writing Docs with AsciiDoc"]', output, 1
-      assert !doc.attributes.has_key?('example-number')
-    end
-
-    test 'explicit caption is set on block even if block has no title' do
-      input = <<-EOS
-[caption="Look!"]
-====
-Just write.
-====
-      EOS
-
-      doc = document_from_string input
-      assert_equal 'Look!', doc.blocks.first.caption
-      output = doc.render
-      refute_match(/Look/, output)
+      refute doc.attributes.has_key?('example-number')
     end
 
     test 'automatic caption can be turned off and on and modified' do
@@ -802,7 +846,7 @@ source line 2\r
 ----
     def names
 
-      @names.split ' '
+      @names.split
 
     end
 ----
@@ -811,7 +855,7 @@ source line 2\r
       expected = <<-EOS
 def names
 
-  @names.split ' '
+  @names.split
 
 end
       EOS
@@ -829,7 +873,7 @@ end
 ----
     def names
 
-      @names.split ' '
+      @names.split
 
     end
 ----
@@ -838,7 +882,7 @@ end
       expected = <<-EOS
     def names
 
-      @names.split ' '
+      @names.split
 
     end
       EOS
@@ -856,7 +900,7 @@ end
 ----
     def names
 
-      @names.split ' '
+      @names.split
 
     end
 ----
@@ -865,7 +909,7 @@ end
       expected = <<-EOS
  def names
 
-   @names.split ' '
+   @names.split
 
  end
       EOS
@@ -885,7 +929,7 @@ end
 ----
     def names
 
-      @names.split ' '
+      @names.split
 
     end
 ----
@@ -894,7 +938,7 @@ end
       expected = <<-EOS
  def names
 
-   @names.split ' '
+   @names.split
 
  end
       EOS
@@ -914,7 +958,7 @@ end
 ----
 	def names
 
-		@names.split ' '
+		@names.split
 
 	end
 ----
@@ -923,7 +967,7 @@ end
       expected = <<-EOS
 def names
 
-    @names.split ' '
+    @names.split
 
 end
       EOS
@@ -1118,7 +1162,7 @@ This is a passthrough block.
       EOS
 
       block = block_from_string input
-      assert !block.nil?
+      refute_nil block
       assert_equal 1, block.lines.size
       assert_equal 'This is a passthrough block.', block.source
     end
@@ -1212,7 +1256,7 @@ line below
 
       output = render_embedded_string input
       assert_css '.stemblock', output, 1
-      nodes = xmlnodes_at_xpath '//*[@class="content"]/child::text()', output, 1
+      nodes = xmlnodes_at_xpath '//*[@class="content"]/child::text()', output
       assert_equal '\[\sqrt{3x-1}+(1+x)^2 &lt; y\]', nodes.first.to_s.strip
     end
 
@@ -1226,7 +1270,7 @@ line below
 
       output = render_embedded_string input
       assert_css '.stemblock', output, 1
-      nodes = xmlnodes_at_xpath '//*[@class="content"]/child::text()', output, 1
+      nodes = xmlnodes_at_xpath '//*[@class="content"]/child::text()', output
       assert_equal '\[\sqrt{3x-1}+(1+x)^2 &lt; y\]', nodes.first.to_s.strip
     end
 
@@ -1259,7 +1303,7 @@ sqrt(3x-1)+(1+x)^2 < y
 
       output = render_embedded_string input
       assert_css '.stemblock', output, 1
-      nodes = xmlnodes_at_xpath '//*[@class="content"]/child::text()', output, 1
+      nodes = xmlnodes_at_xpath '//*[@class="content"]/child::text()', output
       assert_equal '\$sqrt(3x-1)+(1+x)^2 &lt; y\$', nodes.first.to_s.strip
     end
 
@@ -1273,7 +1317,7 @@ sqrt(3x-1)+(1+x)^2 < y
 
       output = render_embedded_string input
       assert_css '.stemblock', output, 1
-      nodes = xmlnodes_at_xpath '//*[@class="content"]/child::text()', output, 1
+      nodes = xmlnodes_at_xpath '//*[@class="content"]/child::text()', output
       assert_equal '\$sqrt(3x-1)+(1+x)^2 &lt; y\$', nodes.first.to_s.strip
     end
 
@@ -1342,7 +1386,7 @@ sqrt(3x-1)+(1+x)^2 < y
       ].each do |attributes|
         output = render_embedded_string input, :attributes => attributes
         assert_css '.stemblock', output, 1
-        nodes = xmlnodes_at_xpath '//*[@class="content"]/child::text()', output, 1
+        nodes = xmlnodes_at_xpath '//*[@class="content"]/child::text()', output
         assert_equal '\$sqrt(3x-1)+(1+x)^2 &lt; y\$', nodes.first.to_s.strip
       end
     end
@@ -1357,7 +1401,7 @@ sqrt(3x-1)+(1+x)^2 < y
 
       output = render_embedded_string input, :attributes => {'stem' => 'latexmath'}
       assert_css '.stemblock', output, 1
-      nodes = xmlnodes_at_xpath '//*[@class="content"]/child::text()', output, 1
+      nodes = xmlnodes_at_xpath '//*[@class="content"]/child::text()', output
       assert_equal '\[\sqrt{3x-1}+(1+x)^2 &lt; y\]', nodes.first.to_s.strip
     end
   end
@@ -1393,12 +1437,13 @@ section paragraph
       assert_xpath '//*[@id="content"]/h1[text()="Section Title"]', output, 1
       assert_xpath '//*[@class="paragraph"]', output, 1
       assert_xpath '//*[@class="paragraph"]/*[@class="title"][text()="Block title"]', output, 1
-      assert !errors.empty?
+      refute_empty errors
       assert_match(/only book doctypes can contain level 0 sections/, errors)
     end
 
     test 'block title above document title gets carried over to first block in first section if no preamble' do
       input = <<-EOS
+:doctype: book
 .Block title
 = Document Title
 
@@ -1406,7 +1451,10 @@ section paragraph
 
 paragraph
       EOS
-      output = render_string input
+      doc = document_from_string input
+      # NOTE block title demotes document title to level-0 section
+      refute doc.header?
+      output = doc.convert
       assert_xpath '//*[@class="sect1"]//*[@class="paragraph"]/*[@class="title"][text() = "Block title"]', output, 1
     end
 
@@ -1420,7 +1468,7 @@ Block content
 
       output = render_embedded_string input
       assert output.include?('Block content')
-      assert !output.include?('[]')
+      refute output.include?('[]')
     end
 
     test 'empty block anchor should not appear in output' do
@@ -1433,7 +1481,7 @@ Block content
 
       output = render_embedded_string input
       assert output.include?('Block content')
-      assert !output.include?('[[]]')
+      refute output.include?('[[]]')
     end
   end
 
@@ -1548,18 +1596,39 @@ image::circle.svg[Tiger,100]
 image::no-such-image.svg[Alt Text]
       EOS
 
-      output = render_embedded_string input, :safe => Asciidoctor::SafeMode::SERVER
+      output, warnings = redirect_streams {|_, err| [(render_embedded_string input, :safe => Asciidoctor::SafeMode::SERVER), err.string] }
       assert_xpath '//span[@class="alt"][text()="Alt Text"]', output, 1
+      assert_includes warnings, 'SVG does not exist or cannot be read'
     end
 
-    test 'can render block image with alt text defined in macro containing escaped square bracket' do
+    test 'can render block image with alt text defined in macro containing square bracket' do
       input = <<-EOS
-image::images/tiger.png[A [Bengal\\] Tiger]
+image::images/tiger.png[A [Bengal] Tiger]
       EOS
 
       output = render_string input
       img = xmlnodes_at_xpath '//img', output, 1
-      assert_equal 'A [Bengal] Tiger', img.attr('alt').value
+      assert_equal 'A [Bengal] Tiger', img.attr('alt')
+    end
+
+    test 'can render block image with target containing spaces' do
+      input = <<-EOS
+image::images/big tiger.png[A Big Tiger]
+      EOS
+
+      output = render_string input
+      img = xmlnodes_at_xpath '//img', output, 1
+      assert_equal 'images/big%20tiger.png', img.attr('src')
+      assert_equal 'A Big Tiger', img.attr('alt')
+    end
+
+    test 'should not recognize block image if target has leading or trailing spaces' do
+      [' tiger.png', 'tiger.png '].each do |target|
+        input = %(image::#{target}[Tiger])
+
+        output = render_embedded_string input
+        assert_xpath '//img', output, 0
+      end
     end
 
     test 'can render block image with alt text defined in block attribute above macro' do
@@ -1582,31 +1651,52 @@ image::images/tiger.png[Tiger]
       assert_xpath '/*[@class="imageblock"]//img[@src="images/tiger.png"][@alt="Tiger"]', output, 1
     end
 
-    test 'alt text is escaped in HTML backend' do
+    test 'should substitute attribute references in alt text defined in image block macro' do
       input = <<-EOS
-image::images/open.png[File > Open]
-      EOS
+:alt-text: Tiger
 
+image::images/tiger.png[{alt-text}]
+      EOS
       output = render_embedded_string input
-      assert_match(/File &gt; Open/, output)
+      assert_xpath '/*[@class="imageblock"]//img[@src="images/tiger.png"][@alt="Tiger"]', output, 1
     end
 
-    test 'alt text is escaped in DocBook backend' do
+    test 'style attribute is dropped from image macro' do
       input = <<-EOS
-image::images/open.png[File > Open]
+[style=value]
+image::images/tiger.png[Tiger]
       EOS
 
-      output = render_embedded_string input, :backend => :docbook
-      assert_match(/File &gt; Open/, output)
+      doc = document_from_string input
+      img = doc.blocks[0]
+      refute(img.attributes.key? 'style')
+      assert_nil img.style
     end
 
-    test "can render block image with auto-generated alt text" do
+    test 'should apply specialcharacters and replacement substitutions to alt text' do
+      input = 'A tiger\'s "roar" is < a bear\'s "growl"'
+      expected = 'A tiger&#8217;s &quot;roar&quot; is &lt; a bear&#8217;s &quot;growl&quot;'
+      result = render_embedded_string %(image::images/tiger-roar.png[#{input}])
+      assert_includes result, %(alt="#{expected}")
+    end
+
+    test 'should not encode double quotes in alt text when converting to DocBook' do
+      input = 'Select "File > Open"'
+      expected = 'Select "File &gt; Open"'
+      result = render_embedded_string %(image::images/open.png[#{input}]), :backend => :docbook
+      assert_includes result, %(<phrase>#{expected}</phrase>)
+    end
+
+    test 'should auto-generate alt text for block image if alt text is not specified' do
       input = <<-EOS
-image::images/tiger.png[]
+image::images/lions-and-tigers.png[]
       EOS
 
-      output = render_embedded_string input
-      assert_xpath '/*[@class="imageblock"]//img[@src="images/tiger.png"][@alt="tiger"]', output, 1
+      image = block_from_string input
+      assert_equal 'lions and tigers', (image.attr 'alt')
+      assert_equal 'lions and tigers', (image.attr 'default-alt')
+      output = image.convert
+      assert_xpath '/*[@class="imageblock"]//img[@src="images/lions-and-tigers.png"][@alt="lions and tigers"]', output, 1
     end
 
     test "can render block image with alt text and height and width" do
@@ -1627,13 +1717,32 @@ image::images/tiger.png[Tiger, link='http://en.wikipedia.org/wiki/Tiger']
       assert_xpath '/*[@class="imageblock"]//a[@class="image"][@href="http://en.wikipedia.org/wiki/Tiger"]/img[@src="images/tiger.png"][@alt="Tiger"]', output, 1
     end
 
-    test "can render block image with caption" do
+    test 'adds rel=noopener attribute to block image with link that targets _blank window' do
+      input = <<-EOS
+image::images/tiger.png[Tiger,link=http://en.wikipedia.org/wiki/Tiger,window=_blank]
+      EOS
+
+      output = render_embedded_string input
+      assert_xpath '/*[@class="imageblock"]//a[@class="image"][@href="http://en.wikipedia.org/wiki/Tiger"][@target="_blank"][@rel="noopener"]/img[@src="images/tiger.png"][@alt="Tiger"]', output, 1
+    end
+
+    test 'adds rel=noopener attribute to block image with link that targets name window when the noopener option is set' do
+      input = <<-EOS
+image::images/tiger.png[Tiger,link=http://en.wikipedia.org/wiki/Tiger,window=name,opts=noopener]
+      EOS
+
+      output = render_embedded_string input
+      assert_xpath '/*[@class="imageblock"]//a[@class="image"][@href="http://en.wikipedia.org/wiki/Tiger"][@target="name"][@rel="noopener"]/img[@src="images/tiger.png"][@alt="Tiger"]', output, 1
+    end
+
+    test 'can render block image with caption' do
       input = <<-EOS
 .The AsciiDoc Tiger
 image::images/tiger.png[Tiger]
       EOS
 
       doc = document_from_string input
+      assert_equal 1, doc.blocks[0].number
       output = doc.render
       assert_xpath '//*[@class="imageblock"]//img[@src="images/tiger.png"][@alt="Tiger"]', output, 1
       assert_xpath '//*[@class="imageblock"]/*[@class="title"][text() = "Figure 1. The AsciiDoc Tiger"]', output, 1
@@ -1648,15 +1757,16 @@ image::images/tiger.png[Tiger]
       EOS
 
       doc = document_from_string input
+      assert_nil doc.blocks[0].number
       output = doc.render
       assert_xpath '//*[@class="imageblock"]//img[@src="images/tiger.png"][@alt="Tiger"]', output, 1
       assert_xpath '//*[@class="imageblock"]/*[@class="title"][text() = "Voila! The AsciiDoc Tiger"]', output, 1
-      assert !doc.attributes.has_key?('figure-number')
+      refute doc.attributes.has_key?('figure-number')
     end
 
     test 'can align image in DocBook backend' do
       input = <<-EOS
-image::images/sunset.jpg[Sunset, align="right"]
+image::images/sunset.jpg[Sunset,align=right]
       EOS
 
       output = render_embedded_string input, :backend => :docbook
@@ -1664,36 +1774,54 @@ image::images/sunset.jpg[Sunset, align="right"]
       assert_xpath '//imagedata[@align="right"]', output, 1
     end
 
+    test 'should set content width and depth in DocBook backend if no scaling' do
+      input = <<-EOS
+image::images/sunset.jpg[Sunset,500,332]
+      EOS
+
+      output = render_embedded_string input, :backend => :docbook
+      assert_xpath '//imagedata', output, 1
+      assert_xpath '//imagedata[@contentwidth="500"]', output, 1
+      assert_xpath '//imagedata[@contentdepth="332"]', output, 1
+      assert_xpath '//imagedata[@width]', output, 0
+      assert_xpath '//imagedata[@depth]', output, 0
+    end
+
     test 'can scale image in DocBook backend' do
       input = <<-EOS
-image::images/sunset.jpg[Sunset, scale="200"]
+image::images/sunset.jpg[Sunset,500,332,scale=200]
       EOS
 
       output = render_embedded_string input, :backend => :docbook
       assert_xpath '//imagedata', output, 1
       assert_xpath '//imagedata[@scale="200"]', output, 1
+      assert_xpath '//imagedata[@width]', output, 0
+      assert_xpath '//imagedata[@depth]', output, 0
+      assert_xpath '//imagedata[@contentwidth]', output, 0
+      assert_xpath '//imagedata[@contentdepth]', output, 0
     end
 
-    test 'can scale image width in DocBook backend' do
+    test 'scale image width in DocBook backend' do
       input = <<-EOS
-image::images/sunset.jpg[Sunset, scaledwidth="25%"]
+image::images/sunset.jpg[Sunset,500,332,scaledwidth=25%]
       EOS
 
       output = render_embedded_string input, :backend => :docbook
       assert_xpath '//imagedata', output, 1
       assert_xpath '//imagedata[@width="25%"]', output, 1
-      assert_xpath '//imagedata[@scalefit="1"]', output, 1
+      assert_xpath '//imagedata[@depth]', output, 0
+      assert_xpath '//imagedata[@contentwidth]', output, 0
+      assert_xpath '//imagedata[@contentdepth]', output, 0
     end
 
     test 'adds % to scaled width if no units given in DocBook backend ' do
       input = <<-EOS
-image::images/sunset.jpg[Sunset, scaledwidth="25"]
+image::images/sunset.jpg[Sunset,scaledwidth=25]
       EOS
 
       output = render_embedded_string input, :backend => :docbook
       assert_xpath '//imagedata', output, 1
       assert_xpath '//imagedata[@width="25%"]', output, 1
-      assert_xpath '//imagedata[@scalefit="1"]', output, 1
     end
 
     test 'keeps line unprocessed if image target is missing attribute reference and attribute-missing is skip' do
@@ -1703,8 +1831,9 @@ image::images/sunset.jpg[Sunset, scaledwidth="25"]
 image::{bogus}[]
       EOS
 
-      output = render_embedded_string input
+      output, warnings = redirect_streams {|_, err| [(render_embedded_string input), err.string] }
       assert output.include?('image::{bogus}[]')
+      assert_includes warnings, 'dropping line containing reference to missing attribute'
     end
 
     test 'drops line if image target is missing attribute reference and attribute-missing is drop' do
@@ -1714,8 +1843,9 @@ image::{bogus}[]
 image::{bogus}[]
       EOS
 
-      output = render_embedded_string input
-      assert output.strip.empty?
+      output, warnings = redirect_streams {|_, err| [(render_embedded_string input), err.string] }
+      assert_empty output.strip
+      assert_includes warnings, 'dropping line containing reference to missing attribute'
     end
 
     test 'drops line if image target is missing attribute reference and attribute-missing is drop-line' do
@@ -1725,8 +1855,9 @@ image::{bogus}[]
 image::{bogus}[]
       EOS
 
-      output = render_embedded_string input
-      assert output.strip.empty?
+      output, warnings = redirect_streams {|_, err| [(render_embedded_string input), err.string] }
+      assert_empty output.strip
+      assert_includes warnings, 'dropping line containing reference to missing attribute'
     end
 
     test 'dropped image does not break processing of following section and attribute-missing is drop-line' do
@@ -1738,10 +1869,11 @@ image::{bogus}[]
 == Section Title
       EOS
 
-      output = render_embedded_string input
+      output, warnings = redirect_streams {|_, err| [(render_embedded_string input), err.string] }
       assert_css 'img', output, 0
       assert_css 'h2', output, 1
-      assert !output.include?('== Section Title')
+      refute output.include?('== Section Title')
+      assert_includes warnings, 'dropping line containing reference to missing attribute'
     end
 
     test 'should pass through image that references uri' do
@@ -1753,6 +1885,15 @@ image::http://asciidoc.org/images/tiger.png[Tiger]
 
       output = render_embedded_string input
       assert_xpath '/*[@class="imageblock"]//img[@src="http://asciidoc.org/images/tiger.png"][@alt="Tiger"]', output, 1
+    end
+
+    test 'should encode spaces in image target if value is a URI' do
+      input = <<-EOS
+image::http://example.org/svg?digraph=digraph G { a -> b; }[diagram]
+      EOS
+
+      output = render_embedded_string input
+      assert_xpath %(/*[@class="imageblock"]//img[@src="http://example.org/svg?digraph=digraph%20G%20{%20a%20-#{decode_char 62}%20b;%20}"]), output, 1
     end
 
     test 'can resolve image relative to imagesdir' do
@@ -1778,6 +1919,21 @@ image::dot.gif[Dot]
       assert_equal 'fixtures', doc.attributes['imagesdir']
       output = doc.render
       assert_xpath '//img[@src="data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs="][@alt="Dot"]', output, 1
+    end
+
+    test 'embeds empty base64-encoded data uri for unreadable image when data-uri attribute is set' do
+      input = <<-EOS
+:data-uri:
+:imagesdir: fixtures
+
+image::unreadable.gif[Dot]
+      EOS
+
+      doc = document_from_string input, :safe => Asciidoctor::SafeMode::SAFE, :attributes => {'docdir' => File.dirname(__FILE__)}
+      assert_equal 'fixtures', doc.attributes['imagesdir']
+      output, warnings = redirect_streams {|_, err| [doc.render, err.string] }
+      assert_xpath '//img[@src="data:image/gif;base64,"]', output, 1
+      assert_includes warnings, 'image to embed not found or not readable'
     end
 
     test 'embeds base64-encoded data uri for remote image when data-uri attribute is set' do
@@ -1817,11 +1973,16 @@ image::dot.gif[Dot]
 image::#{image_uri}[Missing image]
       EOS
 
-      output = using_test_webserver do
-        render_embedded_string input, :safe => :safe, :attributes => {'allow-uri-read' => ''}
+      output = warnings = nil
+      redirect_streams do |_, err|
+        output = using_test_webserver do
+          render_embedded_string input, :safe => :safe, :attributes => {'allow-uri-read' => ''}
+        end
+        warnings = err.string
       end
 
       assert_xpath %(/*[@class="imageblock"]//img[@src="#{image_uri}"][@alt="Missing image"]), output, 1
+      assert_includes warnings, 'could not retrieve image data from URI'
     end
 
     test 'uses remote image uri when data-uri attribute is set and allow-uri-read is not set' do
@@ -1859,7 +2020,6 @@ image::data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=[Do
       assert_xpath '//img[@src="data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs="][@alt="Dot"]', output, 1
     end
 
-    # this test will cause a warning to be printed to the console (until we have a message facility)
     test 'cleans reference to ancestor directories in imagesdir before reading image if safe mode level is at least SAFE' do
       input = <<-EOS
 :data-uri:
@@ -1870,10 +2030,11 @@ image::dot.gif[Dot]
 
       doc = document_from_string input, :safe => Asciidoctor::SafeMode::SAFE, :attributes => {'docdir' => File.dirname(__FILE__)}
       assert_equal '../..//fixtures/./../../fixtures', doc.attributes['imagesdir']
-      output = doc.render
+      output, warnings = redirect_streams {|_, err| [doc.render, err.string] }
       # image target resolves to fixtures/dot.gif relative to docdir (which is explicitly set to the directory of this file)
       # the reference cannot fall outside of the document directory in safe mode
       assert_xpath '//img[@src="data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs="][@alt="Dot"]', output, 1
+      assert_includes warnings, 'image has illegal reference to ancestor of jail'
     end
 
     test 'cleans reference to ancestor directories in target before reading image if safe mode level is at least SAFE' do
@@ -1886,10 +2047,11 @@ image::../..//fixtures/./../../fixtures/dot.gif[Dot]
 
       doc = document_from_string input, :safe => Asciidoctor::SafeMode::SAFE, :attributes => {'docdir' => File.dirname(__FILE__)}
       assert_equal './', doc.attributes['imagesdir']
-      output = doc.render
+      output, warnings = redirect_streams {|_, err| [doc.render, err.string] }
       # image target resolves to fixtures/dot.gif relative to docdir (which is explicitly set to the directory of this file)
       # the reference cannot fall outside of the document directory in safe mode
       assert_xpath '//img[@src="data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs="][@alt="Dot"]', output, 1
+      assert_includes warnings, 'image has illegal reference to ancestor of jail'
     end
   end
 
@@ -1919,7 +2081,7 @@ video::cats-vs-dogs.avi[cats-and-dogs.png, 200, 300]
 
     test 'video macro should honor all options' do
       input = <<-EOS
-video::cats-vs-dogs.avi[options="autoplay,nocontrols,loop"]
+video::cats-vs-dogs.avi[options="autoplay,nocontrols,loop",preload="metadata"]
       EOS
 
       output = render_embedded_string input
@@ -1927,6 +2089,7 @@ video::cats-vs-dogs.avi[options="autoplay,nocontrols,loop"]
       assert_css 'video[autoplay]', output, 1
       assert_css 'video:not([controls])', output, 1
       assert_css 'video[loop]', output, 1
+      assert_css 'video[preload=metadata]', output, 1
     end
 
     test 'video macro should add time range anchor with start time if start attribute is set' do
@@ -2067,6 +2230,17 @@ audio::podcast.mp3[options="autoplay,nocontrols,loop"]
       assert_css 'audio:not([controls])', output, 1
       assert_css 'audio[loop]', output, 1
     end
+
+    test 'audio macro should support start and end time' do
+      input = <<-EOS
+audio::podcast.mp3[start=1,end=2]
+      EOS
+
+      output = render_embedded_string input
+      assert_css 'audio', output, 1
+      assert_css 'audio[controls]', output, 1
+      assert_css 'audio[src="podcast.mp3#t=1,2"]', output, 1
+    end
   end
 
   context 'Admonition icons' do
@@ -2149,8 +2323,11 @@ You can use icons for admonitions by setting the 'icons' attribute.
 You can use icons for admonitions by setting the 'icons' attribute.
       EOS
 
-      output = render_string input, :safe => Asciidoctor::SafeMode::SAFE, :attributes => {'docdir' => File.dirname(__FILE__)}
+      output, warnings = redirect_streams do |_, err|
+        [(render_string input, :safe => Asciidoctor::SafeMode::SAFE, :attributes => {'docdir' => File.dirname(__FILE__)}), err.string]
+      end
       assert_xpath '//*[@class="admonitionblock tip"]//*[@class="icon"]/img[@src="data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs="][@alt="Tip"]', output, 1
+      assert_includes warnings, 'image has illegal reference to ancestor of jail'
     end
 
     test 'should import Font Awesome and use font-based icons when value of icons attribute is font' do
@@ -2194,7 +2371,7 @@ puts "AsciiDoc, FTW!"
 
       output = render_string input, :safe => Asciidoctor::SafeMode::SAFE
       assert_css 'html > head > link[rel="stylesheet"][href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css"]', output, 1
-      assert_css 'html > body > script[src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/highlight.min.js"]', output, 1
+      assert_css 'html > body > script[src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"]', output, 1
     end
 
     test 'should use no uri scheme for assets when asset-uri-scheme is blank' do
@@ -2211,7 +2388,7 @@ puts "AsciiDoc, FTW!"
 
       output = render_string input, :safe => Asciidoctor::SafeMode::SAFE
       assert_css 'html > head > link[rel="stylesheet"][href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css"]', output, 1
-      assert_css 'html > body > script[src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/highlight.min.js"]', output, 1
+      assert_css 'html > body > script[src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"]', output, 1
     end
   end
 
@@ -2227,8 +2404,8 @@ image::asciidoctor.png[Asciidoctor]
       assert doc.safe >= Asciidoctor::SafeMode::SAFE
 
       assert_equal File.join(basedir, 'images'), block.normalize_asset_path('images')
-      assert_equal File.join(basedir, 'etc/images'), block.normalize_asset_path("#{disk_root}etc/images")
-      assert_equal File.join(basedir, 'images'), block.normalize_asset_path('../../images')
+      assert_equal File.join(basedir, 'etc/images'), redirect_streams { block.normalize_asset_path("#{disk_root}etc/images") }
+      assert_equal File.join(basedir, 'images'), redirect_streams { block.normalize_asset_path('../../images') }
     end
 
     test 'does not restrict access to ancestor directories when safe mode is disabled' do
@@ -2327,6 +2504,46 @@ html = CodeRay.scan("puts 'Hello, world!'", :ruby).div(:line_numbers => :table)
       assert_match(/\.CodeRay *\{/, output)
     end
 
+    test 'should number lines if third positional attribute is set' do
+      input = <<-EOS
+:source-highlighter: coderay
+
+[source,ruby,linenums]
+----
+puts 'Hello, World!'
+----
+      EOS
+      output = render_embedded_string input, :safe => Asciidoctor::SafeMode::SAFE
+      assert_xpath '//td[@class="line-numbers"]', output, 1
+    end
+
+    test 'should number lines if linenums option is set on source block' do
+      input = <<-EOS
+:source-highlighter: coderay
+
+[source%linenums,ruby]
+----
+puts 'Hello, World!'
+----
+      EOS
+      output = render_embedded_string input, :safe => Asciidoctor::SafeMode::SAFE
+      assert_xpath '//td[@class="line-numbers"]', output, 1
+    end
+
+    test 'should number lines of source block if source-linenums-option document attribute is set' do
+      input = <<-EOS
+:source-highlighter: coderay
+:source-linenums-option:
+
+[source,ruby]
+----
+puts 'Hello, World!'
+----
+      EOS
+      output = render_embedded_string input, :safe => Asciidoctor::SafeMode::SAFE
+      assert_xpath '//td[@class="line-numbers"]', output, 1
+    end
+
     test 'should read source language from source-language document attribute if not specified on source block' do
       input = <<-EOS
 :source-highlighter: coderay
@@ -2414,6 +2631,43 @@ exit 0 # <5><6>
       assert_match(/exit.* <b class="conum">\(5\)<\/b> <b class="conum">\(6\)<\/b><\/pre>/, output)
     end
 
+    test 'should preserve space before callout on final line' do
+      inputs = []
+
+      inputs << <<-EOS
+[source,yaml]
+----
+a: 'a'
+key: 'value' #<1>
+----
+<1> key-value pair
+      EOS
+
+      inputs << <<-EOS
+[source,ruby]
+----
+puts 'hi'
+puts 'value' #<1>
+----
+<1> print to stdout
+      EOS
+
+      inputs << <<-EOS
+[source,python]
+----
+print 'hi'
+print 'value' #<1>
+----
+<1> print to stdout
+      EOS
+
+      inputs.each do |input|
+        output = render_embedded_string input, :safe => Asciidoctor::SafeMode::SAFE, :attributes => { 'source-highlighter' => 'coderay' }
+        output = output.gsub(/<\/?span.*?>/, '')
+        assert_includes output, '\'value\' <b class="conum">(1)</b>'
+      end
+    end
+
     test 'should preserve passthrough placeholders when highlighting source using coderay' do
       input = <<-EOS
 :source-highlighter: coderay
@@ -2432,7 +2686,7 @@ public class Printer {
       assert_match(/\.<em>out<\/em>\./, output, 1)
       assert_match(/\*asterisks\*/, output, 1)
       assert_match(/<strong>bold<\/strong>/, output, 1)
-      assert !output.include?(Asciidoctor::Substitutors::PASS_START)
+      refute output.include?(Asciidoctor::Substitutors::PASS_START)
     end
 
     test 'should link to CodeRay stylesheet if source-highlighter is coderay and linkcss is set' do
@@ -2524,7 +2778,7 @@ puts HTML::Pipeline.new(filters, {}).call(input)[:output]
 :source-highlighter: coderay
       EOS
       doc = document_from_string input, :safe => Asciidoctor::SafeMode::SERVER
-      assert doc.attributes['source-highlighter'].nil?
+      assert_nil doc.attributes['source-highlighter']
     end
   end
 
@@ -2741,8 +2995,9 @@ content
 part intro paragraph
       EOS
 
-      output = render_string input
+      output, warnings = redirect_streams {|_, err| [(render_string input), err.string] }
       assert_css '.partintro', output, 0
+      assert_includes warnings, 'partintro block can only be used when doctype is book and it\'s a child of a book part'
     end
 
     test 'should not allow partintro unless doctype is book' do
@@ -2751,8 +3006,9 @@ part intro paragraph
 part intro paragraph
       EOS
 
-      output = render_string input
+      output, warnings = redirect_streams {|_, err| [(render_string input), err.string] }
       assert_css '.partintro', output, 0
+      assert_includes warnings, 'partintro block can only be used when doctype is book and it\'s a child of a book part'
     end
 
     test 'should accept partintro on open block without title rendered to DocBook' do
@@ -2814,8 +3070,9 @@ content
 part intro paragraph
       EOS
 
-      output = render_string input, :backend => 'docbook'
+      output, warnings = redirect_streams {|_, err| [(render_string input, :backend => 'docbook'), err.string] }
       assert_css 'partintro', output, 0
+      assert_includes warnings, 'partintro block can only be used when doctype is book and it\'s a child of a part section'
     end
 
     test 'should not allow partintro unless doctype is book rendered to DocBook' do
@@ -2824,12 +3081,26 @@ part intro paragraph
 part intro paragraph
       EOS
 
-      output = render_string input, :backend => 'docbook'
+      output, warnings = redirect_streams {|_, err| [(render_string input, :backend => 'docbook'), err.string] }
       assert_css 'partintro', output, 0
+      assert_includes warnings, 'partintro block can only be used when doctype is book and it\'s a child of a part section'
     end
   end
 
   context 'Substitutions' do
+    test 'processor should not crash if subs are empty' do
+      input = <<-EOS
+[subs=","]
+....
+content
+....
+      EOS
+
+      doc = document_from_string input
+      block = doc.blocks.first
+      assert_equal [], block.subs
+    end
+
     test 'should be able to append subs to default block substitution list' do
       input = <<-EOS
 :application: Asciidoctor
@@ -2915,7 +3186,32 @@ content
       block = doc.blocks.first
       assert_nil block.id
       assert_nil(block.attr 'reftext')
-      assert !doc.references[:ids].has_key?('illegal$id')
+      refute doc.catalog[:ids].has_key?('illegal$id')
+    end
+
+    test 'should not recognize block anchor that starts with digit' do
+      input = <<-EOS
+[[3-blind-mice]]
+--
+see how they run
+--
+      EOS
+
+      output = render_embedded_string input
+      assert_includes output, '[[3-blind-mice]]'
+      assert_xpath '/*[@id = ":3-blind-mice"]', output, 0
+    end
+
+    test 'should recognize block anchor that starts with colon' do
+      input = <<-EOS
+[[:idname]]
+--
+content
+--
+      EOS
+
+      output = render_embedded_string input
+      assert_xpath '/*[@id = ":idname"]', output, 1
     end
 
     test 'should use specified id and reftext when registering block reference' do
@@ -2928,7 +3224,7 @@ $ apt-get install asciidoctor
       EOS
 
       doc = document_from_string input
-      reftext = doc.references[:ids]['debian']
+      reftext = doc.catalog[:ids]['debian']
       refute_nil reftext
       assert_equal 'Debian Install', reftext
     end
@@ -2943,7 +3239,7 @@ $ apt-get install asciidoctor
       EOS
 
       doc = document_from_string input
-      reftext = doc.references[:ids]['debian']
+      reftext = doc.catalog[:ids]['debian']
       refute_nil reftext
       assert_equal '[Debian] Install', reftext
     end
@@ -2958,9 +3254,28 @@ $ apt-get install asciidoctor
       EOS
 
       doc = document_from_string input
-      reftext = doc.references[:ids]['debian']
+      reftext = doc.catalog[:ids]['debian']
       refute_nil reftext
       assert_equal 'Debian, Ubuntu', reftext
+    end
+
+    test 'should substitute attribute references in reftext when registering block reference' do
+      input = <<-EOS
+:label-tiger: Tiger
+
+[[tiger-evolution,Evolution of the {label-tiger}]]
+****
+Information about the evolution of the tiger.
+****
+      EOS
+
+      doc = document_from_string input
+      reftext = doc.catalog[:ids]['tiger-evolution']
+      refute_nil reftext
+      assert_equal 'Evolution of the Tiger', reftext
+      ref = doc.catalog[:refs]['tiger-evolution']
+      refute_nil ref
+      assert_equal 'Evolution of the Tiger', ref.attributes['reftext']
     end
 
     test 'should use specified reftext when registering block reference' do
@@ -2974,7 +3289,7 @@ $ apt-get install asciidoctor
       EOS
 
       doc = document_from_string input
-      reftext = doc.references[:ids]['debian']
+      reftext = doc.catalog[:ids]['debian']
       refute_nil reftext
       assert_equal 'Debian Install', reftext
     end

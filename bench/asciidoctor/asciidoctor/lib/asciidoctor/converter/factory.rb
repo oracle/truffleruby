@@ -88,7 +88,6 @@ module Asciidoctor
         # If the custom converter is not found, an attempt will be made to find
         # and instantiate a built-in converter.
         #
-        #
         # backend - The String backend name
         # opts - A Hash of options to pass to the converter
         #
@@ -184,11 +183,7 @@ module Asciidoctor
       # Returns the [Converter] object
       def create backend, opts = {}
         if (converter = resolve backend)
-          if converter.is_a? ::Class
-            return converter.new backend, opts
-          else
-            return converter
-          end
+          return ::Class === converter ? (converter.new backend, opts) : converter
         end
 
         base_converter = case backend

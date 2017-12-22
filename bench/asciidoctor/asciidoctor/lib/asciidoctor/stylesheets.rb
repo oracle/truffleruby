@@ -32,8 +32,8 @@ class Stylesheets
 </style>)
   end
 
-  def write_primary_stylesheet target_dir
-    ::File.open(::File.join(target_dir, primary_stylesheet_name), 'w') {|f| f.write primary_stylesheet_data }
+  def write_primary_stylesheet target_dir = '.'
+    ::IO.write(::File.join(target_dir, primary_stylesheet_name), primary_stylesheet_data)
   end
 
   def coderay_stylesheet_name
@@ -57,8 +57,8 @@ class Stylesheets
 </style>)
   end
 
-  def write_coderay_stylesheet target_dir
-    ::File.open(::File.join(target_dir, coderay_stylesheet_name), 'w') {|f| f.write coderay_stylesheet_data }
+  def write_coderay_stylesheet target_dir = '.'
+    ::IO.write(::File.join(target_dir, coderay_stylesheet_name), coderay_stylesheet_data)
   end
 
   def pygments_stylesheet_name style = nil
@@ -84,8 +84,8 @@ class Stylesheets
 </style>)
   end
 
-  def write_pygments_stylesheet target_dir, style = nil
-    ::File.open(::File.join(target_dir, pygments_stylesheet_name(style)), 'w') {|f| f.write pygments_stylesheet_data(style) }
+  def write_pygments_stylesheet target_dir = '.', style = nil
+    ::IO.write(::File.join(target_dir, pygments_stylesheet_name(style)), pygments_stylesheet_data(style))
   end
 
   #def load_coderay

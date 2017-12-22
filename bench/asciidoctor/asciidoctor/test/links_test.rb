@@ -10,6 +10,10 @@ context 'Links' do
     assert_xpath "//a[@href='http://asciidoc.org'][@class='bare'][text() = 'http://asciidoc.org']", render_string("The AsciiDoc project is located at http://asciidoc.org.")
   end
 
+  test 'qualified url with role inline with text' do
+    assert_xpath "//a[@href='http://asciidoc.org'][@class='bare project'][text() = 'http://asciidoc.org']", render_string("The AsciiDoc project is located at http://asciidoc.org[,role=project].", :attributes => {'linkattrs' => ''})
+  end
+
   test 'qualified http url inline with hide-uri-scheme set' do
     assert_xpath "//a[@href='http://asciidoc.org'][@class='bare'][text() = 'asciidoc.org']", render_string("The AsciiDoc project is located at http://asciidoc.org.", :attributes => {'hide-uri-scheme' => ''})
   end
@@ -30,8 +34,16 @@ context 'Links' do
     assert_xpath "//a[@href='http://asciidoc.org'][text() = '[Ascii]Doc']", render_string("We're parsing http://asciidoc.org[[Ascii\\]Doc] markup")
   end
 
+  test 'qualified url with backslash label' do
+    assert_xpath "//a[@href='https://google.com'][text() = 'Google for \\']", render_string("I advise you to https://google.com[Google for +\\+]")
+  end
+
   test 'qualified url with label using link macro' do
     assert_xpath "//a[@href='http://asciidoc.org'][text() = 'AsciiDoc']", render_string("We're parsing link:http://asciidoc.org[AsciiDoc] markup")
+  end
+
+  test 'qualified url with role using link macro' do
+    assert_xpath "//a[@href='http://asciidoc.org'][@class='bare project'][text() = 'http://asciidoc.org']", render_string("We're parsing link:http://asciidoc.org[,role=project] markup", :attributes => {'linkattrs' => ''})
   end
 
   test 'qualified url using macro syntax with multi-line label inline with text' do
@@ -46,6 +58,19 @@ context 'Links' do
     assert_match '<link xl:href="http://example.com">[bracket1]</link>', doc.convert, 1
     doc = document_from_string str, :header_footer => false, :backend => 'docbook45', :doctype => 'inline'
     assert_match '<ulink url="http://example.com">[bracket1]</ulink>', doc.convert, 1
+  end
+
+  test 'link macro with empty target' do
+    input = 'Link to link:[this page].'
+    output = render_embedded_string input
+    assert_xpath '//a', output, 1
+    assert_xpath '//a[@href=""]', output, 1
+  end
+
+  test 'should not recognize link macro with double colons' do
+    input = 'The link::http://example.org[example domain] is reserved for tests and documentation.'
+    output = render_embedded_string input
+    assert_includes output, 'link::http://example.org[example domain]'
   end
 
   test 'qualified url surrounded by angled brackets' do
@@ -72,6 +97,24 @@ context 'Links' do
     assert_xpath '//a[@href="http://asciidoctor.org"][text()="http://asciidoctor.org"]', render_string('(http://asciidoctor.org): where text gets parsed'), 1
   end
 
+  test 'qualified url with trailing round bracket followed by colon' do
+    result = render_embedded_string '(from http://asciidoctor.org): where text gets parsed'
+    assert_xpath '//a[@href="http://asciidoctor.org"][text()="http://asciidoctor.org"]', result, 1
+    assert_xpath '//a[@href="http://asciidoctor.org"][text()="http://asciidoctor.org"]/preceding-sibling::text()[.="(from "]', result, 1
+    assert_xpath '//a[@href="http://asciidoctor.org"][text()="http://asciidoctor.org"]/following-sibling::text()[.="): where text gets parsed"]', result, 1
+  end
+
+  test 'qualified url in round brackets with trailing semi-colon' do
+    assert_xpath '//a[@href="http://asciidoctor.org"][text()="http://asciidoctor.org"]', render_string('(http://asciidoctor.org); where text gets parsed'), 1
+  end
+
+  test 'qualified url with trailing round bracket followed by semi-colon' do
+    result = render_embedded_string '(from http://asciidoctor.org); where text gets parsed'
+    assert_xpath '//a[@href="http://asciidoctor.org"][text()="http://asciidoctor.org"]', result, 1
+    assert_xpath '//a[@href="http://asciidoctor.org"][text()="http://asciidoctor.org"]/preceding-sibling::text()[.="(from "]', result, 1
+    assert_xpath '//a[@href="http://asciidoctor.org"][text()="http://asciidoctor.org"]/following-sibling::text()[.="); where text gets parsed"]', result, 1
+  end
+
   test 'qualified url containing round brackets' do
     assert_xpath '//a[@href="http://jruby.org/apidocs/org/jruby/Ruby.html#addModule(org.jruby.RubyModule)"][text()="addModule() adds a Ruby module"]', render_string('http://jruby.org/apidocs/org/jruby/Ruby.html#addModule(org.jruby.RubyModule)[addModule() adds a Ruby module]'), 1
   end
@@ -83,6 +126,10 @@ context 'Links' do
   test 'qualified url adjacent to text in round brackets' do
     assert_xpath '//a[@href="http://asciidoc.org"][text()="AsciiDoc"]', render_string(')http://asciidoc.org[AsciiDoc] project page.'), 1
   end
+
+  test 'qualified url following no-break space' do
+    assert_xpath '//a[@href="http://asciidoc.org"][text()="AsciiDoc"]', render_string(%(#{[0xa0].pack 'U1'}http://asciidoc.org[AsciiDoc] project page.)), 1
+  end if ::RUBY_MIN_VERSION_1_9
 
   test 'qualified url following smart apostrophe' do
     output = render_embedded_string("l&#8217;http://www.irit.fr[IRIT]")
@@ -110,11 +157,11 @@ context 'Links' do
   end
 
   test 'inline qualified url followed by an endline should not include endline in link' do
-    assert_xpath '//a[@href="http://github.com/asciidoctor"]', render_string("The source code for Asciidoctor can be found at http://github.com/asciidoctor\nwhich is a GitHub organization."), 1
+    assert_xpath '//a[@href="https://github.com/asciidoctor"]', render_string("The source code for Asciidoctor can be found at https://github.com/asciidoctor\nwhich is a GitHub organization."), 1
   end
 
   test 'qualified url divided by endline using macro syntax should not create link' do
-    assert_xpath '//a', render_string("The source code for Asciidoctor can be found at link:http://github.com/asciidoctor\n[]which is a GitHub organization."), 0
+    assert_xpath '//a', render_string("The source code for Asciidoctor can be found at link:https://github.com/asciidoctor\n[]which is a GitHub organization."), 0
   end
 
   test 'qualified url containing whitespace using macro syntax should not create link' do
@@ -126,7 +173,7 @@ context 'Links' do
   end
 
   test 'inline quoted qualified url should not consume surrounding angled brackets' do
-    assert_xpath '//a[@href="http://github.com/asciidoctor"]', render_string('Asciidoctor GitHub organization: <**http://github.com/asciidoctor**>'), 1
+    assert_xpath '//a[@href="https://github.com/asciidoctor"]', render_string('Asciidoctor GitHub organization: <**https://github.com/asciidoctor**>'), 1
   end
 
   test 'link with quoted text should not be separated into attributes when linkattrs is set' do
@@ -141,8 +188,32 @@ context 'Links' do
     assert_xpath '//a[@href="http://google.com"][@class="external"][@target="_blank"]', render_embedded_string('http://google.com[Google, role="external", window="_blank"]', :attributes => {'linkattrs' => ''}), 1
   end
 
+  test 'link macro with attributes but no text should use URL as text when linkattrs is set' do
+    url = 'https://fonts.googleapis.com/css?family=Roboto:400,400italic,'
+    assert_xpath %(//a[@href="#{url}"][text()="#{url}"]), render_embedded_string(%(link:#{url}[family=Roboto,weight=400]), :attributes => {'linkattrs' => ''}), 1
+  end
+
+  test 'link macro with comma but no explicit attributes in text should not parse text when linkattrs is set' do
+    url = 'https://fonts.googleapis.com/css?family=Roboto:400,400italic,'
+    assert_xpath %(//a[@href="#{url}"][text()="Roboto,400"]), render_embedded_string(%(link:#{url}[Roboto,400]), :attributes => {'linkattrs' => ''}), 1
+  end
+
   test 'link text that ends in ^ should set link window to _blank' do
     assert_xpath '//a[@href="http://google.com"][@target="_blank"]', render_embedded_string('http://google.com[Google^]'), 1
+  end
+
+  test 'rel=noopener should be added to a link that targets the _blank window' do
+    assert_xpath '//a[@href="http://google.com"][@target="_blank"][@rel="noopener"]', render_embedded_string('http://google.com[Google^]'), 1
+  end
+
+  test 'rel=noopener should be added to a link that targets a named window when the noopener option is set' do
+    assert_xpath '//a[@href="http://google.com"][@target="name"][@rel="noopener"]', render_embedded_string('http://google.com[Google,window=name,opts=noopener]', :attributes => {'linkattrs' => ''}), 1
+  end
+
+  test 'rel=noopener should not be added to a link if it does not target a window' do
+    result = render_embedded_string 'http://google.com[Google,opts=noopener]', :attributes => {'linkattrs' => ''}
+    assert_xpath '//a[@href="http://google.com"]', result, 1
+    assert_xpath '//a[@href="http://google.com"][@rel="noopener"]', result, 0
   end
 
   test 'id attribute on link are processed when linkattrs is set' do
@@ -166,18 +237,9 @@ context 'Links' do
     variations.each do |anchor|
       doc = document_from_string %(Here you can read about tigers.#{anchor})
       output = doc.render
-      assert_equal '[tigers]', doc.references[:ids]['tigers']
-      assert_xpath '//a[@id = "tigers"]', output, 1
-      assert_xpath '//a[@id = "tigers"]/child::text()', output, 0
-    end
-  end
-
-  test 'inline ref with reftext' do
-    variations = %w([[tigers,Tigers]] anchor:tigers[Tigers])
-    variations.each do |anchor|
-      doc = document_from_string %(Here you can read about tigers.#{anchor})
-      output = doc.render
-      assert_equal 'Tigers', doc.references[:ids]['tigers']
+      assert_equal '[tigers]', doc.catalog[:ids]['tigers']
+      assert doc.catalog[:refs]['tigers'].is_a? Asciidoctor::Inline
+      assert_nil doc.catalog[:refs]['tigers'].text
       assert_xpath '//a[@id = "tigers"]', output, 1
       assert_xpath '//a[@id = "tigers"]/child::text()', output, 0
     end
@@ -188,28 +250,147 @@ context 'Links' do
     variations.each do |anchor|
       doc = document_from_string %(Here you can read about tigers.\\#{anchor})
       output = doc.render
-      assert !doc.references[:ids].has_key?('tigers')
+      refute doc.catalog[:ids].key?('tigers')
+      refute doc.catalog[:refs].key?('tigers')
       assert_xpath '//a[@id = "tigers"]', output, 0
     end
   end
 
+  test 'inline ref can start with colon' do
+    input = '[[:idname]] text'
+    output = render_embedded_string input
+    assert_xpath '//a[@id = ":idname"]', output, 1
+  end
+
+  test 'inline ref cannot start with digit' do
+    input = '[[1-install]] text'
+    output = render_embedded_string input
+    assert_includes output, '[[1-install]]'
+    assert_xpath '//a[@id = "1-install"]', output, 0
+  end
+
+  test 'inline ref with reftext' do
+    %w([[tigers,Tigers]] anchor:tigers[Tigers]).each do |anchor|
+      doc = document_from_string %(Here you can read about tigers.#{anchor})
+      output = doc.render
+      assert_equal 'Tigers', doc.catalog[:ids]['tigers']
+      assert doc.catalog[:refs]['tigers'].is_a? Asciidoctor::Inline
+      assert_equal 'Tigers', doc.catalog[:refs]['tigers'].text
+      assert_xpath '//a[@id = "tigers"]', output, 1
+      assert_xpath '//a[@id = "tigers"]/child::text()', output, 0
+    end
+  end
+
+  test 'should encode double quotes in reftext of anchor macro in DocBook output' do
+    input = 'anchor:uncola[the "un"-cola]'
+    result = render_inline_string input, :backend => :docbook
+    assert_equal '<anchor xml:id="uncola" xreflabel="the &quot;un&quot;-cola"/>', result
+  end
+
+  test 'should substitute attribute references in reftext when registering inline ref' do
+    %w([[tigers,{label-tigers}]] anchor:tigers[{label-tigers}]).each do |anchor|
+      doc = document_from_string %(Here you can read about tigers.#{anchor}), :attributes => { 'label-tigers' => 'Tigers' }
+      doc.render
+      assert doc.catalog[:refs]['tigers'].is_a? Asciidoctor::Inline
+      assert_equal 'Tigers', doc.catalog[:refs]['tigers'].text
+      assert_equal 'Tigers', doc.catalog[:ids]['tigers']
+    end
+  end
+
+  test 'inline ref with reftext converted to DocBook' do
+    %w([[tigers,<Tigers>]] anchor:tigers[<Tigers>]).each do |anchor|
+      doc = document_from_string %(Here you can read about tigers.#{anchor}), :backend => :docbook45
+      output = doc.convert :header_footer => false
+      assert doc.catalog[:refs]['tigers'].is_a? Asciidoctor::Inline
+      assert_equal '<Tigers>', doc.catalog[:refs]['tigers'].text
+      assert_equal '<Tigers>', doc.references[:ids]['tigers']
+      assert_includes output, '<anchor id="tigers" xreflabel="&lt;Tigers&gt;"/>'
+    end
+  end
+
+  test 'does not match bibliography anchor in prose when scanning for inline anchor' do
+    doc = document_from_string 'Use [[[label]]] to assign a label to a bibliography entry.'
+    refute doc.catalog[:ids].key?('label')
+    refute doc.catalog[:refs].key?('label')
+  end
+
+  test 'repeating inline anchor macro with empty reftext' do
+    input = 'anchor:one[] anchor:two[] anchor:three[]'
+    result = render_inline_string input
+    assert_equal '<a id="one"></a> <a id="two"></a> <a id="three"></a>', result
+  end
+
+  test 'mixed inline anchor macro and anchor shorthand with empty reftext' do
+    input = 'anchor:one[][[two]]anchor:three[][[four]]anchor:five[]'
+    result = render_inline_string input
+    assert_equal '<a id="one"></a><a id="two"></a><a id="three"></a><a id="four"></a><a id="five"></a>', result
+  end
+
+  test 'assigns xreflabel value for anchor macro without reftext in DocBook output' do
+    input = 'anchor:foo[]'
+    result = render_inline_string input, :backend => :docbook
+    assert_equal '<anchor xml:id="foo" xreflabel="[foo]"/>', result
+  end
+
+  test 'unescapes square bracket in reftext of anchor macro' do
+    input = 'see <<foo>>
+
+anchor:foo[b[a\]r]text'
+    result = render_embedded_string input
+    assert_includes result, 'see <a href="#foo">b[a]r</a>'
+  end
+
+  test 'unescapes square bracket in reftext of anchor macro in DocBook output' do
+    input = 'anchor:foo[b[a\]r]'
+    result = render_inline_string input, :backend => :docbook
+    assert_equal '<anchor xml:id="foo" xreflabel="b[a]r"/>', result
+  end
+
   test 'xref using angled bracket syntax' do
     doc = document_from_string '<<tigers>>'
-    doc.references[:ids]['tigers'] = '[tigers]'
+    doc.register :refs, ['tigers', (Asciidoctor::Inline.new doc, :anchor, '[tigers]', :type => :ref, :target => 'tigers'), '[tigers]']
     assert_xpath '//a[@href="#tigers"][text() = "[tigers]"]', doc.render, 1
   end
 
+  test 'xref using angled bracket syntax with explicit hash' do
+    doc = document_from_string '<<#tigers>>'
+    doc.register :refs, ['tigers', (Asciidoctor::Inline.new doc, :anchor, 'Tigers', :type => :ref, :target => 'tigers'), 'Tigers']
+    assert_xpath '//a[@href="#tigers"][text() = "Tigers"]', doc.render, 1
+  end
+
   test 'xref using angled bracket syntax with label' do
-    assert_xpath '//a[@href="#tigers"][text() = "About Tigers"]', render_string('<<tigers,About Tigers>>'), 1
+    input = <<-EOS
+<<tigers,About Tigers>>
+
+[#tigers]
+== Tigers
+    EOS
+    assert_xpath '//a[@href="#tigers"][text() = "About Tigers"]', render_string(input), 1
   end
 
   test 'xref using angled bracket syntax with quoted label' do
-    assert_xpath '//a[@href="#tigers"][text() = "About Tigers"]', render_string('<<tigers,"About Tigers">>'), 1
+    input = <<-EOS
+<<tigers,"About Tigers">>
+
+[#tigers]
+== Tigers
+    EOS
+    assert_xpath %q(//a[@href="#tigers"][text() = '"About Tigers"']), render_string(input), 1
   end
 
   test 'xref using angled bracket syntax with path sans extension' do
     doc = document_from_string '<<tigers#>>', :header_footer => false
-    assert_xpath '//a[@href="tigers.html"][text() = "[tigers]"]', doc.render, 1
+    assert_xpath '//a[@href="tigers.html"][text() = "tigers.html"]', doc.render, 1
+  end
+
+  test 'inter-document xref should not truncate after period if path has no extension' do
+    result = render_embedded_string '<<using-.net-web-services#,Using .NET web services>>'
+    assert_xpath '//a[@href="using-.net-web-services.html"][text() = "Using .NET web services"]', result, 1
+  end
+
+  test 'inter-document xref should only remove the file extension part if the path contains a period elsewhere' do
+    result = render_embedded_string '<<using-.net-web-services.adoc#,Using .NET web services>>'
+    assert_xpath '//a[@href="using-.net-web-services.html"][text() = "Using .NET web services"]', result, 1
   end
 
   test 'xref using angled bracket syntax with path sans extension using docbook backend' do
@@ -231,12 +412,12 @@ context 'Links' do
 
   test 'xref using angled bracket syntax with path and extension' do
     doc = document_from_string '<<tigers.adoc#>>', :header_footer => false
-    assert_xpath '//a[@href="tigers.html"][text() = "[tigers]"]', doc.render, 1
+    assert_xpath '//a[@href="tigers.html"][text() = "tigers.html"]', doc.render, 1
   end
 
   test 'xref using angled bracket syntax with path and fragment' do
     doc = document_from_string '<<tigers#about>>', :header_footer => false
-    assert_xpath '//a[@href="tigers.html#about"][text() = "[tigers#about]"]', doc.render, 1
+    assert_xpath '//a[@href="tigers.html#about"][text() = "tigers.html"]', doc.render, 1
   end
 
   test 'xref using angled bracket syntax with path, fragment and text' do
@@ -252,70 +433,164 @@ context 'Links' do
 
   test 'xref using angled bracket syntax with path which has been included in this document' do
     doc = document_from_string '<<tigers#about,About Tigers>>', :header_footer => false
-    doc.references[:includes] << 'tigers'
+    doc.catalog[:includes] << 'tigers'
     assert_xpath '//a[@href="#about"][text() = "About Tigers"]', doc.render, 1
   end
 
   test 'xref using angled bracket syntax with nested path which has been included in this document' do
     doc = document_from_string '<<part1/tigers#about,About Tigers>>', :header_footer => false
-    doc.references[:includes] << 'part1/tigers'
+    doc.catalog[:includes] << 'part1/tigers'
     assert_xpath '//a[@href="#about"][text() = "About Tigers"]', doc.render, 1
   end
 
   test 'xref using angled bracket syntax inline with text' do
-    assert_xpath '//a[@href="#tigers"][text() = "about tigers"]', render_string('Want to learn <<tigers,about tigers>>?'), 1
+    input = <<-EOS
+Want to learn <<tigers,about tigers>>?
+
+[#tigers]
+== Tigers
+    EOS
+    assert_xpath '//a[@href="#tigers"][text() = "about tigers"]', render_string(input), 1
   end
 
   test 'xref using angled bracket syntax with multi-line label inline with text' do
-    assert_xpath %{//a[@href="#tigers"][normalize-space(text()) = "about tigers"]}, render_string("Want to learn <<tigers,about\ntigers>>?"), 1
+    input = <<-EOS
+Want to learn <<tigers,about
+tigers>>?
+
+[#tigers]
+== Tigers
+    EOS
+    assert_xpath %{//a[@href="#tigers"][normalize-space(text()) = "about tigers"]}, render_string(input), 1
   end
 
   test 'xref with escaped text' do
     # when \x0 was used as boundary character for passthrough, it was getting stripped
     # now using unicode marks as boundary characters, which resolves issue
-    input = 'See the <<tigers , `[tigers]`>> section for data about tigers'
+    input = <<-EOS
+See the <<tigers, `+[tigers]+`>> section for details about tigers.
+
+[#tigers]
+== Tigers
+    EOS
     output = render_embedded_string input
     assert_xpath %(//a[@href="#tigers"]/code[text()="[tigers]"]), output, 1
   end
 
+  test 'xref with target that begins with attribute reference in title' do
+    ['<<{lessonsdir}/lesson-1#,Lesson 1>>', 'xref:{lessonsdir}/lesson-1#[Lesson 1]'].each do |xref|
+      input = <<-EOS
+:lessonsdir: lessons
+
+[#lesson-1-listing]
+== #{xref}
+
+A summary of the first lesson.
+      EOS
+
+      output = render_embedded_string input
+      assert_xpath '//h2/a[@href="lessons/lesson-1.html"]', output, 1
+    end
+  end
+
   test 'xref using macro syntax' do
     doc = document_from_string 'xref:tigers[]'
-    doc.references[:ids]['tigers'] = '[tigers]'
+    doc.register :refs, ['tigers', (Asciidoctor::Inline.new doc, :anchor, '[tigers]', :type => :ref, :target => 'tigers'), '[tigers]']
     assert_xpath '//a[@href="#tigers"][text() = "[tigers]"]', doc.render, 1
   end
 
+  test 'xref using macro syntax with explicit hash' do
+    doc = document_from_string 'xref:#tigers[]'
+    doc.register :refs, ['tigers', (Asciidoctor::Inline.new doc, :anchor, 'Tigers', :type => :ref, :target => 'tigers'), 'Tigers']
+    assert_xpath '//a[@href="#tigers"][text() = "Tigers"]', doc.render, 1
+  end
+
   test 'xref using macro syntax with label' do
-    assert_xpath '//a[@href="#tigers"][text() = "About Tigers"]', render_string('xref:tigers[About Tigers]'), 1
+    input = <<-EOS
+xref:tigers[About Tigers]
+
+[#tigers]
+== Tigers
+    EOS
+    assert_xpath '//a[@href="#tigers"][text() = "About Tigers"]', render_string(input), 1
   end
 
   test 'xref using macro syntax inline with text' do
-    assert_xpath '//a[@href="#tigers"][text() = "about tigers"]', render_string('Want to learn xref:tigers[about tigers]?'), 1
+    input = <<-EOS
+Want to learn xref:tigers[about tigers]?
+
+[#tigers]
+== Tigers
+    EOS
+
+    assert_xpath '//a[@href="#tigers"][text() = "about tigers"]', render_string(input), 1
   end
 
   test 'xref using macro syntax with multi-line label inline with text' do
-    assert_xpath %{//a[@href="#tigers"][normalize-space(text()) = "about tigers"]}, render_string("Want to learn xref:tigers[about\ntigers]?"), 1
+    input = <<-EOS
+Want to learn xref:tigers[about
+tigers]?
+
+[#tigers]
+== Tigers
+    EOS
+    assert_xpath %{//a[@href="#tigers"][normalize-space(text()) = "about tigers"]}, render_string(input), 1
+  end
+
+  test 'xref using macro syntax with text that contains an escaped closing bracket' do
+    input = <<-EOS
+xref:tigers[[tigers\\]]
+
+[#tigers]
+== Tigers
+    EOS
+    assert_xpath '//a[@href="#tigers"][text() = "[tigers]"]', render_string(input), 1
+  end
+
+  test 'unescapes square bracket in reftext used by xref' do
+    input = 'anchor:foo[b[a\]r]about
+
+see <<foo>>'
+    result = render_embedded_string input
+    assert_xpath '//a[@href="#foo"]', result, 1
+    assert_xpath '//a[@href="#foo"][text()="b[a]r"]', result, 1
   end
 
   test 'xref using invalid macro syntax does not create link' do
     doc = document_from_string 'xref:tigers'
-    doc.references[:ids]['tigers'] = '[tigers]'
+    doc.register :refs, ['tigers', (Asciidoctor::Inline.new doc, :anchor, 'Tigers', :type => :ref, :target => 'tigers'), 'Tigers']
     assert_xpath '//a', doc.render, 0
   end
 
-  test 'xref creates link for unknown reference' do
-    doc = document_from_string '<<tigers>>'
-    assert_xpath '//a[@href="#tigers"][text() = "[tigers]"]', doc.render, 1
-  end
-
-  test 'xref shows label from title of target for forward and backward references in html backend' do
+  test 'should warn and create link if verbose flag is set and reference is not found' do
     input = <<-EOS
-== Section A
-
-<\<_section_b>>
+[#foobar]
+== Foobar
 
 == Section B
 
-<\<_section_a>>
+See <<foobaz>>.
+    EOS
+    begin
+      old_verbose, $VERBOSE = $VERBOSE, true
+      output, warnings = redirect_streams {|_, err| [(render_embedded_string input), err.string] }
+      assert_xpath '//a[@href="#foobaz"][text() = "[foobaz]"]', output, 1
+      refute_empty warnings
+      assert_includes warnings, 'asciidoctor: WARNING: invalid reference: foobaz'
+    ensure
+      $VERBOSE = old_verbose
+    end
+  end
+
+  test 'xref uses title of target as label for forward and backward references in html output' do
+    input = <<-EOS
+== Section A
+
+<<_section_b>>
+
+== Section B
+
+<<_section_a>>
     EOS
 
     output = render_embedded_string input
@@ -327,21 +602,21 @@ context 'Links' do
 
   test 'anchor creates reference' do
     doc = document_from_string "[[tigers]]Tigers roam here."
-    assert_equal({'tigers' => '[tigers]'}, doc.references[:ids])
+    assert_equal({'tigers' => '[tigers]'}, doc.catalog[:ids])
   end
 
   test 'anchor with label creates reference' do
     doc = document_from_string "[[tigers,Tigers]]Tigers roam here."
-    assert_equal({'tigers' => 'Tigers'}, doc.references[:ids])
+    assert_equal({'tigers' => 'Tigers'}, doc.catalog[:ids])
   end
 
   test 'anchor with quoted label creates reference with quoted label text' do
     doc = document_from_string %([[tigers,"Tigers roam here"]]Tigers roam here.)
-    assert_equal({'tigers' => '"Tigers roam here"'}, doc.references[:ids])
+    assert_equal({'tigers' => '"Tigers roam here"'}, doc.catalog[:ids])
   end
 
   test 'anchor with label containing a comma creates reference' do
     doc = document_from_string %([[tigers,Tigers, scary tigers, roam here]]Tigers roam here.)
-    assert_equal({'tigers' => 'Tigers, scary tigers, roam here'}, doc.references[:ids])
+    assert_equal({'tigers' => 'Tigers, scary tigers, roam here'}, doc.catalog[:ids])
   end
 end
