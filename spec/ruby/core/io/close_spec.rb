@@ -31,6 +31,13 @@ describe "IO#close" do
     lambda { @io.write "data" }.should raise_error(IOError)
   end
 
+  it 'does not close the stream if autoclose is false' do
+    other_io = IO.new(@io.fileno)
+    other_io.autoclose = false
+    other_io.close
+    lambda { @io.write "data" }.should_not raise_error(IOError)
+  end
+
   ruby_version_is ''...'2.3' do
     it "raises an IOError if closed" do
       @io.close
@@ -79,4 +86,3 @@ describe "IO#close on an IO.popen stream" do
   end
 
 end
-
