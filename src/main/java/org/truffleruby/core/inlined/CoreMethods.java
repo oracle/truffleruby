@@ -64,11 +64,10 @@ public class CoreMethods {
 
     final Assumption nilClassIsNilAssumption;
 
-    final Assumption stringBytesizeAssumpton;
-
     public final InternalMethod BLOCK_GIVEN;
     public final InternalMethod NOT;
     public final InternalMethod KERNEL_IS_NIL;
+    public final InternalMethod STRING_BYTESIZE;
 
     public CoreMethods(RubyContext context) {
         this.context = context;
@@ -110,11 +109,10 @@ public class CoreMethods {
 
         nilClassIsNilAssumption = registerAssumption(nilClass, "nil?");
 
-        stringBytesizeAssumpton = registerAssumption(stringClass, "bytesize");
-
         BLOCK_GIVEN = getMethod(kernelModule, "block_given?");
         NOT = getMethod(basicObjectClass, "!");
         KERNEL_IS_NIL = getMethod(kernelModule, "nil?");
+        STRING_BYTESIZE = getMethod(stringClass, "bytesize");
     }
 
     private Assumption registerAssumption(DynamicObject klass, String methodName) {
