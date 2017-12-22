@@ -102,6 +102,7 @@ import org.truffleruby.language.exceptions.RescueNode;
 import org.truffleruby.language.exceptions.RescueSplatNode;
 import org.truffleruby.language.exceptions.TryNode;
 import org.truffleruby.language.globals.AliasGlobalVarNode;
+import org.truffleruby.language.globals.CheckLastLineNumberNode;
 import org.truffleruby.language.globals.CheckMatchVariableTypeNode;
 import org.truffleruby.language.globals.CheckOutputSeparatorVariableTypeNode;
 import org.truffleruby.language.globals.CheckProgramNameVariableTypeNode;
@@ -1632,6 +1633,10 @@ public class BodyTranslator extends Translator {
                 break;
             case "$,":
                 rhs = new CheckOutputSeparatorVariableTypeNode(rhs);
+                rhs.unsafeSetSourceSection(sourceSection);
+                break;
+            case "$.":
+                rhs = new CheckLastLineNumberNode(rhs);
                 rhs.unsafeSetSourceSection(sourceSection);
                 break;
             case "$SAFE":
