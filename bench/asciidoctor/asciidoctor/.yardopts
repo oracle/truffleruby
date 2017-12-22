@@ -1,0 +1,5 @@
+--exclude opal_ext
+--hide-api private
+--plugin tomdoc
+--title "Asciidoctor API Documentation"
+--output-dir rdoc

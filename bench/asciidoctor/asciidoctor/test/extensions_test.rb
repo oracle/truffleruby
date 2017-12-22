@@ -3,7 +3,24 @@ unless defined? ASCIIDOCTOR_PROJECT_DIR
   $: << File.dirname(__FILE__); $:.uniq!
   require 'test_helper'
 end
-require 'asciidoctor/extensions'
+
+class ExtensionsInitTest < Minitest::Test
+  def test_autoload
+    doc = empty_document
+    refute doc.extensions?, 'Extensions should not be enabled by default'
+
+    begin
+      # NOTE trigger extensions to autoload
+      Asciidoctor::Extensions.groups
+    rescue; end
+
+    doc = empty_document
+    assert doc.extensions?, 'Extensions should be enabled after being autoloaded'
+
+    self.class.remove_tests self.class
+  end
+  self
+end.new(nil).test_autoload
 
 class SamplePreprocessor < Asciidoctor::Extensions::Preprocessor
   def process doc, reader
@@ -17,8 +34,13 @@ end
 class SampleDocinfoProcessor < Asciidoctor::Extensions::DocinfoProcessor
 end
 
+# NOTE intentionally using the deprecated name
 class SampleTreeprocessor < Asciidoctor::Extensions::Treeprocessor
+  def process document
+    nil
+  end
 end
+SampleTreeProcessor = SampleTreeprocessor
 
 class SamplePostprocessor < Asciidoctor::Extensions::Postprocessor
 end
@@ -61,7 +83,7 @@ class BoilerplateTextIncludeProcessor < Asciidoctor::Extensions::IncludeProcesso
   end
 end
 
-class ReplaceAuthorTreeprocessor < Asciidoctor::Extensions::Treeprocessor
+class ReplaceAuthorTreeProcessor < Asciidoctor::Extensions::TreeProcessor
   def process document
     document.attributes['firstname'] = 'Ghost'
     document.attributes['author'] = 'Ghost Writer'
@@ -69,7 +91,7 @@ class ReplaceAuthorTreeprocessor < Asciidoctor::Extensions::Treeprocessor
   end
 end
 
-class ReplaceTreeTreeprocessor < Asciidoctor::Extensions::Treeprocessor
+class ReplaceTreeTreeProcessor < Asciidoctor::Extensions::TreeProcessor
   def process document
     if document.doctitle == 'Original Document'
       Asciidoctor.load %(== Replacement Document\nReplacement Author\n\ncontent)
@@ -86,9 +108,9 @@ class StripAttributesPostprocessor < Asciidoctor::Extensions::Postprocessor
 end
 
 class UppercaseBlock < Asciidoctor::Extensions::BlockProcessor; use_dsl
-  match_name :yell
-  on_contexts :paragraph
-  parse_content_as :simple
+  named :yell
+  bound_to :paragraph
+  parses_content_as :simple
   def process parent, reader, attributes
     create_paragraph parent, reader.lines.map(&:upcase), attributes
   end
@@ -96,23 +118,43 @@ end
 
 class SnippetMacro < Asciidoctor::Extensions::BlockMacroProcessor
   def process parent, target, attributes
-    create_pass_block parent, %(<script src="http://example.com/#{target}.js"></script>), {}, :content_model => :raw
+    create_pass_block parent, %(<script src="http://example.com/#{target}.js?_mode=#{attributes['mode']}"></script>), {}, :content_model => :raw
   end
 end
 
 class TemperatureMacro < Asciidoctor::Extensions::InlineMacroProcessor; use_dsl
   named :degrees
-  name_attributes 'units'
+  resolves_attributes '1:units', 'precision=1'
   def process parent, target, attributes
     units = attributes['units'] || (parent.document.attr 'temperature-unit', 'C')
+    precision = attributes['precision'].to_i
     c = target.to_f
     case units
     when 'C'
-      %(#{c} &#176;C)
+      %(#{round_with_precision c, precision} &#176;C)
     when 'F'
-      %(#{c * 1.8 + 32 } &#176;F)
+      %(#{round_with_precision c * 1.8 + 32, precision} &#176;F)
     else
-      c
+      raise ::ArgumentError, %(Unknown temperature units: #{units})
+    end
+  end
+
+  if (::Numeric.instance_method :round).arity == 0
+    def round_with_precision value, precision = 0
+      if precision == 0
+        value.round
+      else
+        factor = 10 ** precision
+        if precision < 0
+          (value * factor).round.div factor
+        else
+          (value * factor).round.fdiv factor
+        end
+      end
+    end
+  else
+    def round_with_precision value, precision = 0
+      value.round precision
     end
   end
 end
@@ -123,8 +165,7 @@ class MetaRobotsDocinfoProcessor < Asciidoctor::Extensions::DocinfoProcessor
   end
 end
 
-class MetaAppDocinfoProcessor < Asciidoctor::Extensions::DocinfoProcessor
-  use_dsl
+class MetaAppDocinfoProcessor < Asciidoctor::Extensions::DocinfoProcessor; use_dsl
   at_location :head
 
   def process document
@@ -187,7 +228,7 @@ context 'Extensions' do
 
     test 'should register extension block' do
       begin
-        Asciidoctor::Extensions.register(:sample) do
+        Asciidoctor::Extensions.register :sample do
         end
         refute_nil Asciidoctor::Extensions.groups
         assert_equal 1, Asciidoctor::Extensions.groups.size
@@ -197,43 +238,119 @@ context 'Extensions' do
       end
     end
 
+    test 'should coerce group name to symbol when registering' do
+      begin
+        Asciidoctor::Extensions.register 'sample', SampleExtensionGroup
+        refute_nil Asciidoctor::Extensions.groups
+        assert_equal 1, Asciidoctor::Extensions.groups.size
+        assert_equal SampleExtensionGroup, Asciidoctor::Extensions.groups[:sample]
+      ensure
+        Asciidoctor::Extensions.unregister_all
+      end
+    end
+
+    test 'should unregister extension group by symbol name' do
+      begin
+        Asciidoctor::Extensions.register :sample, SampleExtensionGroup
+        refute_nil Asciidoctor::Extensions.groups
+        assert_equal 1, Asciidoctor::Extensions.groups.size
+        Asciidoctor::Extensions.unregister :sample
+        assert_equal 0, Asciidoctor::Extensions.groups.size
+      ensure
+        Asciidoctor::Extensions.unregister_all
+      end
+    end
+
+    test 'should unregister extension group by string name' do
+      begin
+        Asciidoctor::Extensions.register :sample, SampleExtensionGroup
+        refute_nil Asciidoctor::Extensions.groups
+        assert_equal 1, Asciidoctor::Extensions.groups.size
+        Asciidoctor::Extensions.unregister 'sample'
+        assert_equal 0, Asciidoctor::Extensions.groups.size
+      ensure
+        Asciidoctor::Extensions.unregister_all
+      end
+    end
+
+    test 'should unregister multiple extension groups by name' do
+      begin
+        Asciidoctor::Extensions.register :sample1, SampleExtensionGroup
+        Asciidoctor::Extensions.register :sample2, SampleExtensionGroup
+        refute_nil Asciidoctor::Extensions.groups
+        assert_equal 2, Asciidoctor::Extensions.groups.size
+        Asciidoctor::Extensions.unregister :sample1, :sample2
+        assert_equal 0, Asciidoctor::Extensions.groups.size
+      ensure
+        Asciidoctor::Extensions.unregister_all
+      end
+    end
+
     test 'should get class for top-level class name' do
-      clazz = Asciidoctor::Extensions.class_for_name('Asciidoctor')
+      clazz = Asciidoctor::Extensions.class_for_name 'String'
       refute_nil clazz
-      assert_equal Asciidoctor, clazz
+      assert_equal String, clazz
     end
 
     test 'should get class for class name in module' do
-      clazz = Asciidoctor::Extensions.class_for_name('Asciidoctor::Extensions')
+      clazz = Asciidoctor::Extensions.class_for_name 'Asciidoctor::Document'
       refute_nil clazz
-      assert_equal Asciidoctor::Extensions, clazz
+      assert_equal Asciidoctor::Document, clazz
     end
 
     test 'should get class for class name resolved from root' do
-      clazz = Asciidoctor::Extensions.class_for_name('::Asciidoctor::Extensions')
+      clazz = Asciidoctor::Extensions.class_for_name '::Asciidoctor::Document'
       refute_nil clazz
-      assert_equal Asciidoctor::Extensions, clazz
+      assert_equal Asciidoctor::Document, clazz
     end
 
     test 'should raise exception if cannot find class for name' do
       begin
-        Asciidoctor::Extensions.class_for_name('InvalidModule::InvalidClass')
+        Asciidoctor::Extensions.class_for_name 'InvalidModule::InvalidClass'
         flunk 'Expecting RuntimeError to be raised'
-      rescue RuntimeError => e
+      rescue NameError => e
         assert_equal 'Could not resolve class for name: InvalidModule::InvalidClass', e.message
       end
     end
 
+    test 'should raise exception if name resolves to module' do
+      begin
+        Asciidoctor::Extensions.class_for_name 'Asciidoctor::Extensions'
+        flunk 'Expecting RuntimeError to be raised'
+      rescue NameError => e
+        assert_equal 'Could not resolve class for name: Asciidoctor::Extensions', e.message
+      end
+    end
+
     test 'should resolve class if class is given' do
-      clazz = Asciidoctor::Extensions.resolve_class(Asciidoctor::Extensions)
+      clazz = Asciidoctor::Extensions.resolve_class Asciidoctor::Document
       refute_nil clazz
-      assert_equal Asciidoctor::Extensions, clazz
+      assert_equal Asciidoctor::Document, clazz
     end
 
     test 'should resolve class if class from string' do
-      clazz = Asciidoctor::Extensions.resolve_class('Asciidoctor::Extensions')
+      clazz = Asciidoctor::Extensions.resolve_class 'Asciidoctor::Document'
       refute_nil clazz
-      assert_equal Asciidoctor::Extensions, clazz
+      assert_equal Asciidoctor::Document, clazz
+    end
+
+    test 'should allow standalone registry to be created but not registered' do
+      registry = Asciidoctor::Extensions.create 'sample' do
+        block do
+          named :whisper
+          bound_to :paragraph
+          parses_content_as :simple
+          def process parent, reader, attributes
+            create_paragraph parent, reader.lines.map(&:downcase), attributes
+          end
+        end
+      end
+
+      assert_instance_of Asciidoctor::Extensions::Registry, registry
+      refute_nil registry.groups
+      assert_equal 1, registry.groups.size
+      assert_equal 'sample', registry.groups.keys.first
+      assert_equal 0, Asciidoctor::Extensions.groups.size
     end
   end
 
@@ -318,7 +435,8 @@ context 'Extensions' do
       assert extensions.first.process_method.is_a? ::Method
     end
 
-    test 'should instantiate treeprocessors' do
+    # NOTE intentionally using the legacy names
+    test 'should instantiate tree processors' do
       registry = Asciidoctor::Extensions::Registry.new
       registry.treeprocessor SampleTreeprocessor
       registry.activate Asciidoctor::Document.new
@@ -358,7 +476,7 @@ context 'Extensions' do
       registry = Asciidoctor::Extensions::Registry.new
       registry.block SampleBlock, :sample
       registry.activate Asciidoctor::Document.new
-      assert !(registry.registered_for_block? :sample, :sidebar)
+      refute registry.registered_for_block? :sample, :sidebar
     end
 
     test 'should instantiate block macro processor' do
@@ -397,6 +515,30 @@ context 'Extensions' do
   end
 
   context 'Integration' do
+    test 'can provide extension registry as option' do
+      registry = Asciidoctor::Extensions.create do
+        tree_processor SampleTreeProcessor
+      end
+
+      doc = document_from_string %(= Document Title\n\ncontent), :extension_registry => registry
+      refute_nil doc.extensions
+      assert_equal 1, doc.extensions.groups.size
+      assert doc.extensions.tree_processors?
+      assert_equal 1, doc.extensions.tree_processors.size
+      assert_equal 0, Asciidoctor::Extensions.groups.size
+    end
+
+    test 'can provide extensions proc as option' do
+      doc = document_from_string %(= Document Title\n\ncontent), :extensions => proc {
+        tree_processor SampleTreeProcessor
+      }
+      refute_nil doc.extensions
+      assert_equal 1, doc.extensions.groups.size
+      assert doc.extensions.tree_processors?
+      assert_equal 1, doc.extensions.tree_processors.size
+      assert_equal 0, Asciidoctor::Extensions.groups.size
+    end
+
     test 'should invoke preprocessors before parsing document' do
       input = <<-EOS
 junk line
@@ -457,13 +599,17 @@ last line
       # Safe Mode is not required here
       document = empty_document :base_dir => File.expand_path(File.dirname(__FILE__))
       document.extensions.include_processor do
+        handles? do |target|
+          target == 'include-file.asciidoc'
+        end
+
         process do |doc, reader, target, attributes|
           # demonstrate that push_include normalizes endlines
           content = ["include target:: #{target}\n", "\n", "middle line\n"]
           reader.push_include content, target, target, 1, attributes
         end
       end
-      reader = Asciidoctor::PreprocessorReader.new document, input
+      reader = Asciidoctor::PreprocessorReader.new document, input, nil, :normalize => true
       lines = []
       lines << reader.read_line
       lines << reader.read_line
@@ -473,12 +619,12 @@ last line
       while reader.has_more_lines?
         lines << reader.read_line
       end
-      source = lines * ::Asciidoctor::EOL
+      source = lines * ::Asciidoctor::LF
       assert_match(/^include target:: include-file.asciidoc$/, source)
       assert_match(/^middle line$/, source)
     end
 
-    test 'should invoke treeprocessors after parsing document' do
+    test 'should invoke tree processors after parsing document' do
       input = <<-EOS
 = Document Title
 Doc Writer
@@ -488,7 +634,7 @@ content
 
       begin
         Asciidoctor::Extensions.register do
-          treeprocessor ReplaceAuthorTreeprocessor
+          tree_processor ReplaceAuthorTreeProcessor
         end
 
         doc = document_from_string input
@@ -498,7 +644,7 @@ content
       end
     end
 
-    test 'should allow treeprocessor to replace tree' do
+    test 'should allow tree processor to replace tree' do
       input = <<-EOS
 = Original Document
 Doc Writer
@@ -508,11 +654,42 @@ content
 
       begin
         Asciidoctor::Extensions.register do
-          treeprocessor ReplaceTreeTreeprocessor
+          tree_processor ReplaceTreeTreeProcessor
         end
 
         doc = document_from_string input
         assert_equal 'Replacement Document', doc.doctitle
+      ensure
+        Asciidoctor::Extensions.unregister_all
+      end
+    end
+
+    test 'should honor block title assigned in tree processor' do
+      input = <<-EOS
+= Document Title
+:!example-caption:
+
+.Old block title
+====
+example block content
+====
+      EOS
+
+      old_title = nil
+      begin
+        Asciidoctor::Extensions.register do
+          tree_processor do
+            process do |doc|
+              ex = (doc.find_by :context => :example)[0]
+              old_title = ex.title
+              ex.title = 'New block title'
+            end
+          end
+        end
+
+        doc = document_from_string input
+        assert_equal 'Old block title', old_title
+        assert_equal 'New block title', (doc.find_by :context => :example)[0].title
       ensure
         Asciidoctor::Extensions.unregister_all
       end
@@ -556,9 +733,36 @@ Hi there!
       end
     end
 
+    test 'should pass cloaked context in attributes passed to process method of custom block' do
+      input = <<-EOS
+[custom]
+****
+sidebar
+****
+      EOS
+
+      cloaked_context = nil
+      begin
+        Asciidoctor::Extensions.register do
+          block :custom do
+            on_context :sidebar
+            process do |doc, reader, attrs|
+              cloaked_context = attrs['cloaked-context']
+              nil
+            end
+          end
+        end
+
+        render_embedded_string input
+        assert_equal :sidebar, cloaked_context
+      ensure
+        Asciidoctor::Extensions.unregister_all
+      end
+    end
+
     test 'should invoke processor for custom block macro' do
       input = <<-EOS
-snippet::12345[]
+snippet::12345[mode=edit]
       EOS
 
       begin
@@ -567,7 +771,33 @@ snippet::12345[]
         end
 
         output = render_embedded_string input
-        assert output.include?('<script src="http://example.com/12345.js"></script>')
+        assert output.include?('<script src="http://example.com/12345.js?_mode=edit"></script>')
+      ensure
+        Asciidoctor::Extensions.unregister_all
+      end
+    end
+
+    test 'should match short form of block macro' do
+      input = <<-EOS
+custom_toc::[]
+      EOS
+
+      resolved_target = nil
+
+      begin
+        Asciidoctor::Extensions.register do
+          block_macro do
+            named :custom_toc
+            process do |parent, target, attrs|
+              resolved_target = target
+              create_pass_block parent, '<!-- custom toc goes here -->', {}, :content_model => :raw
+            end
+          end
+        end
+
+        output = render_embedded_string input
+        assert_equal '<!-- custom toc goes here -->', output
+        assert_equal '', resolved_target
       ensure
         Asciidoctor::Extensions.unregister_all
       end
@@ -576,14 +806,14 @@ snippet::12345[]
     test 'should invoke processor for custom inline macro' do
       begin
         Asciidoctor::Extensions.register do
-          inline_macro TemperatureMacro, :degrees
+          inline_macro TemperatureMacro, :deg
         end
 
-        output = render_embedded_string 'Room temperature is degrees:25[C].', :attributes => {'temperature-unit' => 'F'}
-        assert output.include?('Room temperature is 25.0 &#176;C.')
+        output = render_embedded_string 'Room temperature is deg:25[C,precision=0].', :attributes => { 'temperature-unit' => 'F' }
+        assert output.include?('Room temperature is 25 &#176;C.')
 
-        output = render_embedded_string 'Room temperature is degrees:25[].', :attributes => {'temperature-unit' => 'F'}
-        assert output.include?('Room temperature is 77.0 &#176;F.')
+        output = render_embedded_string 'Normal body temperature is deg:37[].', :attributes => { 'temperature-unit' => 'F' }
+        assert output.include?('Normal body temperature is 98.6 &#176;F.')
       ensure
         Asciidoctor::Extensions.unregister_all
       end
@@ -594,7 +824,8 @@ snippet::12345[]
         Asciidoctor::Extensions.register do
           inline_macro do
             named :label
-            using_format :short
+            with_format :short
+            resolves_attributes false
             process do |parent, target|
               %(<label>#{target}</label>)
             end
@@ -608,13 +839,114 @@ snippet::12345[]
       end
     end
 
+    test 'should assign captures correctly for inline macros' do
+      begin
+        Asciidoctor::Extensions.register do
+          inline_macro do
+            named :short_attributes
+            with_format :short
+            resolves_attributes '1:name'
+            process do |parent, target, attrs|
+              %(target=#{target.inspect}, attributes=#{attrs.sort_by {|k, _| k.to_s }.inspect})
+            end
+          end
+
+          inline_macro do
+            named :short_text
+            with_format :short
+            resolves_attributes false
+            process do |parent, target, attrs|
+              %(target=#{target.inspect}, attributes=#{attrs.sort_by {|k, _| k.to_s }.inspect})
+            end
+          end
+
+          inline_macro do
+            named :full_attributes
+            resolves_attributes '1:name' => nil
+            process do |parent, target, attrs|
+              %(target=#{target.inspect}, attributes=#{attrs.sort_by {|k, _| k.to_s }.inspect})
+            end
+          end
+
+          inline_macro do
+            named :full_text
+            resolves_attributes false
+            process do |parent, target, attrs|
+              %(target=#{target.inspect}, attributes=#{attrs.sort_by {|k, _| k.to_s }.inspect})
+            end
+          end
+
+          inline_macro do
+            named :@short_match
+            matching %r/@(\w+)/
+            resolves_attributes false
+            process do |parent, target, attrs|
+              %(target=#{target.inspect}, attributes=#{attrs.sort_by {|k, _| k.to_s }.inspect})
+            end
+          end
+        end
+
+        input = <<-EOS
+[subs=normal]
+++++
+short_attributes:[]
+short_attributes:[value,key=val]
+short_text:[]
+short_text:[[text\\]]
+full_attributes:target[]
+full_attributes:target[value,key=val]
+full_text:target[]
+full_text:target[[text\\]]
+@target
+++++
+        EOS
+        expected = <<-EOS.chomp
+target="", attributes=[]
+target="value,key=val", attributes=[[1, "value"], ["key", "val"], ["name", "value"]]
+target="", attributes=[["text", ""]]
+target="[text]", attributes=[["text", "[text]"]]
+target="target", attributes=[]
+target="target", attributes=[[1, "value"], ["key", "val"], ["name", "value"]]
+target="target", attributes=[["text", ""]]
+target="target", attributes=[["text", "[text]"]]
+target="target", attributes=[]
+        EOS
+        output = render_embedded_string input
+        assert_equal expected, output
+      ensure
+        Asciidoctor::Extensions.unregister_all
+      end
+    end
+
+    test 'should invoke convert on return value if value is an inline node' do
+      begin
+        Asciidoctor::Extensions.register do
+          inline_macro do
+            named :mention
+            resolves_attributes false
+            process do |parent, target, attrs|
+              if (text = attrs['text']).empty?
+                text = %(@#{target})
+              end
+              create_anchor parent, text, :type => :link, :target => %(https://github.com/#{target})
+            end
+          end
+        end
+
+        output = render_embedded_string 'mention:mojavelinux[Dan]'
+        assert output.include?('<a href="https://github.com/mojavelinux">Dan</a>')
+      ensure
+        Asciidoctor::Extensions.unregister_all
+      end
+    end
+
     test 'should not carry over attributes if block processor returns nil' do
       begin
         Asciidoctor::Extensions.register do
           block do
-            named :skip
+            named :skipme
             on_context :paragraph
-            parse_content_as :raw
+            parses_content_as :raw
             process do |parent, reader, attrs|
               nil
             end
@@ -622,7 +954,7 @@ snippet::12345[]
         end
         input = <<-EOS
 .unused title
-[skip]
+[skipme]
 not rendered
 
 --
@@ -637,13 +969,45 @@ rendered
       end
     end
 
+    test 'should not invoke process method or carry over attributes if block processor declares skip content model' do
+      begin
+        process_method_called = false
+        Asciidoctor::Extensions.register do
+          block do
+            named :ignore
+            on_context :paragraph
+            parses_content_as :skip
+            process do |parent, reader, attrs|
+              process_method_called = true
+              nil
+            end
+          end
+        end
+        input = <<-EOS
+.unused title
+[ignore]
+not rendered
+
+--
+rendered
+--
+        EOS
+        doc = document_from_string input
+        refute process_method_called
+        assert_equal 1, doc.blocks.size
+        assert_nil doc.blocks[0].attributes['title']
+      ensure
+        Asciidoctor::Extensions.unregister_all
+      end
+    end
+
     test 'should pass attributes by value to block processor' do
       begin
         Asciidoctor::Extensions.register do
           block do
             named :foo
             on_context :paragraph
-            parse_content_as :raw
+            parses_content_as :raw
             process do |parent, reader, attrs|
               original_attrs = attrs.dup
               attrs.delete('title')
@@ -660,6 +1024,90 @@ content
         assert_equal 1, doc.blocks.size
         assert_equal 'title', doc.blocks[0].attributes['title']
         assert_equal 'value', doc.blocks[0].id
+      ensure
+        Asciidoctor::Extensions.unregister_all
+      end
+    end
+
+    test 'parse_content should not share attributes between parsed blocks' do
+      begin
+        Asciidoctor::Extensions.register do
+          block do
+            named :wrap
+            on_context :open
+            process do |parent, reader, attrs|
+              wrap = create_open_block parent, nil, attrs
+              parse_content wrap, reader.read_lines
+            end
+          end
+        end
+        input = <<-EOS
+[wrap]
+--
+[foo=bar]
+====
+content
+====
+
+[baz=qux]
+====
+content
+====
+--
+        EOS
+        doc = document_from_string input
+        assert_equal 1, doc.blocks.size
+        wrap = doc.blocks[0]
+        assert_equal 2, wrap.blocks.size
+        assert_equal 2, wrap.blocks[0].attributes.size
+        assert_equal 2, wrap.blocks[1].attributes.size
+        assert_nil wrap.blocks[1].attributes['foo']
+      ensure
+        Asciidoctor::Extensions.unregister_all
+      end
+    end
+
+    test 'create_section should set up all section properties' do
+      begin
+        sect = nil
+        Asciidoctor::Extensions.register do
+          block_macro do
+            named :sect
+            process do |parent, target, attrs|
+              opts = (level = attrs.delete 'level') ? { :level => level.to_i } : {}
+              attrs['id'] = false if attrs['id'] == 'false'
+              sect = create_section parent, 'Section Title', attrs, opts
+              nil
+            end
+          end
+        end
+
+        input_tpl = <<-EOS
+= Document Title
+:doctype: book
+:sectnums:
+
+sect::[%s]
+        EOS
+
+        {
+          ''                       => ['chapter',  1, false, true, '_section_title'],
+          'level=0'                => ['part',     0, false, false, '_section_title'],
+          'level=0,style=appendix' => ['appendix', 1, true,  true, '_section_title'],
+          'style=appendix'         => ['appendix', 1, true,  true, '_section_title'],
+          'style=glossary'         => ['glossary', 1, true,  false, '_section_title'],
+          'style=abstract'         => ['chapter',  1, false, true, '_section_title'],
+          'id=section-title'       => ['chapter',  1, false, true, 'section-title'],
+          'id=false'               => ['chapter',  1, false, true, nil]
+        }.each do |attrlist, (expect_sectname, expect_level, expect_special, expect_numbered, expect_id)|
+          input = input_tpl % attrlist
+          document_from_string input, :safe => :server
+          assert_equal expect_sectname, sect.sectname
+          assert_equal expect_level, sect.level
+          assert_equal expect_special, sect.special
+          assert_equal expect_numbered, sect.numbered
+          assert_equal expect_id, sect.id
+        end
       ensure
         Asciidoctor::Extensions.unregister_all
       end
@@ -725,7 +1173,7 @@ sample content
                                           :header_footer => true,
                                           :safe => Asciidoctor::SafeMode::SERVER,
                                           :attributes => {'docinfo' => ''}
-        assert !output.empty?
+        refute_empty output
         assert_css 'script[src="modernizr.js"]', output, 1
         assert_css 'meta[name="robots"]', output, 1
         assert_css 'meta[http-equiv="imagetoolbar"]', output, 0

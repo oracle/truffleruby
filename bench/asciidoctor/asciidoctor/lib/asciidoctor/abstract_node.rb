@@ -26,20 +26,17 @@ class AbstractNode
   attr_reader :attributes
 
   def initialize parent, context, opts = {}
-    # document is a special case, should refer to itself
     if context == :document
-      @document = parent
+      # document is a special case, should refer to itself
+      @document, @parent = self, nil
     else
       if parent
-        @parent = parent
-        @document = parent.document
+        @document, @parent = parent.document, parent
       else
-        @parent = nil
-        @document = nil
+        @document = @parent = nil
       end
     end
-    @context = context
-    @node_name = context.to_s
+    @node_name = (@context = context).to_s
     # QUESTION are we correct in duplicating the attributes (seems to be just as fast)
     @attributes = (opts.key? :attributes) ? opts[:attributes].dup : {}
     @passthroughs = {}
@@ -51,8 +48,7 @@ class AbstractNode
   #
   # Returns nothing
   def parent=(parent)
-    @parent = parent
-    @document = parent.document
+    @parent, @document = parent, parent.document
     nil
   end
 
@@ -82,21 +78,17 @@ class AbstractNode
   # Document node and return the value of the attribute if found. Otherwise,
   # return the default value, which defaults to nil.
   #
-  # name          - the String or Symbol name of the attribute to lookup
-  # default_value - the Object value to return if the attribute is not found (default: nil)
-  # inherit       - a Boolean indicating whether to check for the attribute on the
-  #                 AsciiDoctor::Document if not found on this node (default: false)
+  # name        - the String or Symbol name of the attribute to lookup
+  # default_val - the Object value to return if the attribute is not found (default: nil)
+  # inherit     - a Boolean indicating whether to check for the attribute on the
+  #               AsciiDoctor::Document if not found on this node (default: false)
   #
   # return the value of the attribute or the default value if the attribute
   # is not found in the attributes of this node or the document node
-  def attr(name, default_value = nil, inherit = true)
-    name = name.to_s if ::Symbol === name
-    inherit = false if self == @document
-    if inherit
-      @attributes[name] || @document.attributes[name] || default_value
-    else
-      @attributes[name] || default_value
-    end
+  def attr name, default_val = nil, inherit = true
+    name = name.to_s
+    # NOTE if @parent is set, it means @document is also set
+    @attributes[name] || (inherit && @parent ? @document.attributes[name] || default_val : default_val)
   end
 
   # Public: Check if the attribute is defined, optionally performing a
@@ -108,35 +100,33 @@ class AbstractNode
   # comparison value is specified (not nil), return whether the two values match.
   # Otherwise, return whether the attribute was found.
   #
-  # name    - the String or Symbol name of the attribute to lookup
-  # expect  - the expected Object value of the attribute (default: nil)
-  # inherit - a Boolean indicating whether to check for the attribute on the
-  #           AsciiDoctor::Document if not found on this node (default: false)
+  # name       - the String or Symbol name of the attribute to lookup
+  # expect_val - the expected Object value of the attribute (default: nil)
+  # inherit    - a Boolean indicating whether to check for the attribute on the
+  #              AsciiDoctor::Document if not found on this node (default: false)
   #
   # return a Boolean indicating whether the attribute exists and, if a
   # comparison value is specified, whether the value of the attribute matches
   # the comparison value
-  def attr?(name, expect = nil, inherit = true)
-    name = name.to_s if ::Symbol === name
-    inherit = false if self == @document
-    if expect.nil?
-      @attributes.has_key?(name) || (inherit && @document.attributes.has_key?(name))
-    elsif inherit
-      expect == (@attributes[name] || @document.attributes[name])
+  def attr? name, expect_val = nil, inherit = true
+    name = name.to_s
+    # NOTE if @parent is set, it means @document is also set
+    if expect_val.nil?
+      (@attributes.key? name) || (inherit && @parent && (@document.attributes.key? name))
     else
-      expect == @attributes[name]
+      expect_val == (@attributes[name] || (inherit && @parent ? @document.attributes[name] : nil))
     end
   end
 
   # Public: Assign the value to the attribute name for the current node.
   #
   # name      - The String attribute name to assign
-  # value     - The Object value to assign to the attribute
+  # value     - The Object value to assign to the attribute (default: '')
   # overwrite - A Boolean indicating whether to assign the attribute
   #             if currently present in the attributes Hash (default: true)
   #
   # Returns a [Boolean] indicating whether the assignment was performed
-  def set_attr name, value, overwrite = true
+  def set_attr name, value = '', overwrite = true
     if overwrite == false && (@attributes.key? name)
       false
     else
@@ -145,14 +135,23 @@ class AbstractNode
     end
   end
 
+  # Public: Remove the attribute from the current node.
+  #
+  # name      - The String attribute name to remove
+  #
+  # Returns the previous [String] value, or nil if the attribute was not present.
+  def remove_attr name
+    @attributes.delete name
+  end
+
   # TODO document me
   def set_option(name)
-    if @attributes.has_key? 'options'
-      @attributes['options'] = "#{@attributes['options']},#{name}"
+    if @attributes.key? 'options'
+      @attributes['options'] = %(#{@attributes['options']},#{name})
     else
       @attributes['options'] = name
     end
-    @attributes["#{name}-option"] = ''
+    @attributes[%(#{name}-option)] = ''
   end
 
   # Public: A convenience method to check if the specified option attribute is
@@ -165,7 +164,7 @@ class AbstractNode
   #
   # return a Boolean indicating whether the option has been specified
   def option?(name)
-    @attributes.has_key? %(#{name}-option)
+    @attributes.key? %(#{name}-option)
   end
 
   # Public: Update the attributes of this node with the new values in
@@ -189,11 +188,11 @@ class AbstractNode
   end
 
   # Public: A convenience method that checks if the role attribute is specified
-  def role?(expect = nil)
-    if expect
-      expect == (@attributes['role'] || @document.attributes['role'])
+  def role? expect_val = nil
+    if expect_val
+      expect_val == (@attributes['role'] || @document.attributes['role'])
     else
-      @attributes.has_key?('role') || @document.attributes.has_key?('role')
+      @attributes.key?('role') || @document.attributes.key?('role')
     end
   end
 
@@ -205,45 +204,59 @@ class AbstractNode
   # Public: A convenience method that checks if the specified role is present
   # in the list of roles on this node
   def has_role?(name)
-    if (val = (@attributes['role'] || @document.attributes['role']))
-      val.split(' ').include?(name)
+    # NOTE center + include? is faster than split + include?
+    (val = @attributes['role'] || @document.attributes['role']).nil_or_empty? ? false : %( #{val} ).include?(%( #{name} ))
+  end
+
+  # Public: A convenience method that returns the role names as an Array
+  #
+  # Returns the role names as an Array or an empty Array if the role attribute is absent.
+  def roles
+    (val = @attributes['role'] || @document.attributes['role']).nil_or_empty? ? [] : val.split
+  end
+
+  # Public: A convenience method that adds the given role directly to this node
+  #
+  # Returns a Boolean indicating whether the role was added.
+  def add_role(name)
+    if (val = @attributes['role']).nil_or_empty?
+      @attributes['role'] = name
+      true
+    # NOTE center + include? is faster than split + include?
+    elsif %( #{val} ).include?(%( #{name} ))
+      false
+    else
+      @attributes['role'] = %(#{val} #{name})
+      true
+    end
+  end
+
+  # Public: A convenience method that removes the given role directly from this node
+  #
+  # Returns a Boolean indicating whether the role was removed.
+  def remove_role(name)
+    if (val = @attributes['role']).nil_or_empty?
+      false
+    elsif (val = val.split).delete name
+      if val.empty?
+        @attributes.delete('role')
+      else
+        @attributes['role'] = val * ' '
+      end
+      true
     else
       false
     end
   end
 
-  # Public: A convenience method that returns the role names as an Array
-  def roles
-    if (val = (@attributes['role'] || @document.attributes['role']))
-      val.split(' ')
-    else
-      []
-    end
-  end
-
-  # Public: A convenience method that adds the given role directly to this node
-  def add_role(name)
-    unless (roles = (@attributes['role'] || '').split(' ')).include? name
-      @attributes['role'] = roles.push(name) * ' '
-    end
-  end
-
-  # Public: A convenience method that removes the given role directly from this node
-  def remove_role(name)
-    if (roles = (@attributes['role'] || '').split(' ')).include? name
-      roles.delete name
-      @attributes['role'] = roles * ' '
-    end
-  end
-
-  # Public: A convenience method that checks if the reftext attribute is specified
+  # Public: A convenience method that checks if the reftext attribute is defined.
   def reftext?
-    @attributes.has_key?('reftext') || @document.attributes.has_key?('reftext')
+    @attributes.key? 'reftext'
   end
 
-  # Public: A convenience method that returns the value of the reftext attribute
+  # Public: A convenience method that returns the value of the reftext attribute with substitutions applied.
   def reftext
-    @attributes['reftext'] || @document.attributes['reftext']
+    (val = @attributes['reftext']) ? (apply_reftext_subs val) : nil
   end
 
   # Public: Construct a reference or data URI to an icon image for the
@@ -315,12 +328,12 @@ class AbstractNode
   #
   # Returns A String reference or data URI for the target image
   def image_uri(target_image, asset_dir_key = 'imagesdir')
-    if (doc = @document).safe < SafeMode::SECURE && doc.attr?('data-uri')
-      if (Helpers.uriish? target_image) ||
-          (asset_dir_key && (images_base = doc.attr(asset_dir_key)) && (Helpers.uriish? images_base) &&
-          (target_image = normalize_web_path(target_image, images_base, false)))
-        if doc.attr?('allow-uri-read')
-          generate_data_uri_from_uri target_image, doc.attr?('cache-uri')
+    if (doc = @document).safe < SafeMode::SECURE && (doc.attr? 'data-uri')
+      if ((Helpers.uriish? target_image) && (target_image = uri_encode_spaces target_image)) ||
+          (asset_dir_key && (images_base = doc.attr asset_dir_key) && (Helpers.uriish? images_base) &&
+          (target_image = normalize_web_path target_image, images_base, false))
+        if doc.attr? 'allow-uri-read'
+          generate_data_uri_from_uri target_image, (doc.attr? 'cache-uri')
         else
           target_image
         end
@@ -328,7 +341,7 @@ class AbstractNode
         generate_data_uri target_image, asset_dir_key
       end
     else
-      normalize_web_path target_image, (asset_dir_key ? doc.attr(asset_dir_key) : nil)
+      normalize_web_path target_image, (asset_dir_key ? (doc.attr asset_dir_key) : nil)
     end
   end
 
@@ -356,20 +369,13 @@ class AbstractNode
 
     unless ::File.readable? image_path
       warn %(asciidoctor: WARNING: image to embed not found or not readable: #{image_path})
-      # must enclose string following return in " for Opal
-      return "data:#{mimetype}:base64,"
+      return %(data:#{mimetype};base64,)
       # uncomment to return 1 pixel white dot instead
       #return 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
     end
 
-    bindata = nil
-    if ::IO.respond_to? :binread
-      bindata = ::IO.binread(image_path)
-    else
-      bindata = ::File.open(image_path, 'rb') {|file| file.read }
-    end
     # NOTE base64 is autoloaded by reference to ::Base64
-    %(data:#{mimetype};base64,#{::Base64.encode64(bindata).delete EOL})
+    %(data:#{mimetype};base64,#{::Base64.encode64(::IO.binread image_path).delete LF})
   end
 
   # Public: Read the image data from the specified URI and generate a data URI
@@ -396,12 +402,12 @@ class AbstractNode
 
     begin
       mimetype = nil
-      bindata = open(image_uri, 'rb') {|file|
-        mimetype = file.content_type
-        file.read
+      bindata = open(image_uri, 'rb') {|fd|
+        mimetype = fd.content_type
+        fd.read
       }
       # NOTE base64 is autoloaded by reference to ::Base64
-      %(data:#{mimetype};base64,#{::Base64.encode64(bindata).delete EOL})
+      %(data:#{mimetype};base64,#{::Base64.encode64(bindata).delete LF})
     rescue
       warn %(asciidoctor: WARNING: could not retrieve image data from URI: #{image_uri})
       image_uri
@@ -436,7 +442,7 @@ class AbstractNode
         Helpers.require_library 'open-uri/cached', 'open-uri-cached' if doc.attr? 'cache-uri'
         begin
           data = ::OpenURI.open_uri(target) {|fd| fd.read }
-          data = (Helpers.normalize_lines_from_string data) * EOL if opts[:normalize]
+          data = (Helpers.normalize_lines_from_string data) * LF if opts[:normalize]
         rescue
           warn %(asciidoctor: WARNING: could not retrieve contents of #{opts[:label] || 'asset'} at URI: #{target}) if opts.fetch :warn_on_failure, true
           data = nil
@@ -447,7 +453,7 @@ class AbstractNode
       end
     else
       target = normalize_system_path target, opts[:start], nil, :target_name => (opts[:label] || 'asset')
-      data = read_asset target, :normalize => opts[:normalize], :warn_on_failure => (opts.fetch :warn_on_failure, true)
+      data = read_asset target, :normalize => opts[:normalize], :warn_on_failure => (opts.fetch :warn_on_failure, true), :label => opts[:label]
     end
     data
   end
@@ -465,25 +471,24 @@ class AbstractNode
   #
   # Returns the [String] content of the file at the specified path, or nil
   # if the file does not exist.
-  def read_asset(path, opts = {})
+  def read_asset path, opts = {}
     # remap opts for backwards compatibility
     opts = { :warn_on_failure => (opts != false) } unless ::Hash === opts
     if ::File.readable? path
       if opts[:normalize]
-        Helpers.normalize_lines_from_string(::IO.read(path)) * EOL
+        Helpers.normalize_lines_from_string(::IO.read path) * LF
       else
         # QUESTION should we chomp or rstrip content?
-        ::IO.read(path)
+        ::IO.read path
       end
-    else
-      warn %(asciidoctor: WARNING: file does not exist or cannot be read: #{path}) if opts[:warn_on_failure]
-      nil
+    elsif opts[:warn_on_failure]
+      warn %(asciidoctor: WARNING: #{(attr 'docfile') || '<stdin>'}: #{opts[:label] || 'file'} does not exist or cannot be read: #{path})
     end
   end
 
-  # Public: Normalize the web page using the PathResolver.
+  # Public: Normalize the web path using the PathResolver.
   #
-  # See {PathResolver#web_path} for details.
+  # See {PathResolver#web_path} for details about path resolution and encoding.
   #
   # target              - the String target path
   # start               - the String start (i.e, parent) path (optional, default: nil)
@@ -492,10 +497,19 @@ class AbstractNode
   # Returns the resolved [String] path
   def normalize_web_path(target, start = nil, preserve_uri_target = true)
     if preserve_uri_target && (Helpers.uriish? target)
-      target
+      uri_encode_spaces target
     else
       (@path_resolver ||= PathResolver.new).web_path target, start
     end
+  end
+
+  # Internal: URI encode spaces in a String
+  #
+  # str - the String to encode
+  #
+  # Returns the String with all spaces replaced with %20.
+  def uri_encode_spaces str
+    (str.include? ' ') ? (str.gsub ' ', '%20') : str
   end
 
   # Public: Resolve and normalize a secure path from the target and start paths
@@ -545,11 +559,6 @@ class AbstractNode
   def normalize_asset_path(asset_ref, asset_name = 'path', autocorrect = true)
     normalize_system_path(asset_ref, @document.base_dir, nil,
         :target_name => asset_name, :recover => autocorrect)
-  end
-
-  # Public: Calculate the relative path to this absolute filename from the Document#base_dir
-  def relative_path(filename)
-    (@path_resolver ||= PathResolver.new).relative_path filename, @document.base_dir
   end
 
   # Public: Check whether the specified String is a URI by

@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: asciidoctor
 .\"    Author: Dan Allen, Sarah White, Ryan Waldron
-.\" Generator: Asciidoctor 1.5.4
-.\"      Date: 2016-01-05
+.\" Generator: Asciidoctor 1.5.6.1
+.\"      Date: 2017-07-23
 .\"    Manual: Asciidoctor Manual
-.\"    Source: Asciidoctor 1.5.4
+.\"    Source: Asciidoctor 1.5.6.1
 .\"  Language: English
 .\"
-.TH "ASCIIDOCTOR" "1" "2016-01-05" "Asciidoctor 1.5.4" "Asciidoctor Manual"
+.TH "ASCIIDOCTOR" "1" "2017-07-23" "Asciidoctor 1.5.6.1" "Asciidoctor Manual"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -35,7 +35,7 @@ If \fIFILE\fP is \fI\-\fP then the AsciiDoc source is read from standard input.
 .RS 4
 Base directory containing the document and resources.
 Defaults to the directory containing the source file, or the working directory if the source is read from a stream.
-Can be used as a way to chroot the execution of the program.
+When combined with the safe mode setting, can be used to chroot the execution of the program.
 .RE
 .sp
 \fB\-S, \-\-safe\-mode\fP=\fISAFE_MODE\fP
@@ -48,7 +48,7 @@ If not set, the safe mode level defaults to \fIunsafe\fP when Asciidoctor is inv
 \fB\-\-safe\fP
 .RS 4
 Set safe mode level to \fIsafe\fP.
-Enables include macros, but restricts access to ancestor paths of source file.
+Enables include directives, but prevents access to ancestor paths of source file.
 Provided for compatibility with the asciidoc command.
 If not set, the safe mode level defaults to \fIunsafe\fP when Asciidoctor is invoked using this script.
 .RE
@@ -57,7 +57,7 @@ If not set, the safe mode level defaults to \fIunsafe\fP when Asciidoctor is inv
 \fB\-a, \-\-attribute\fP=\fIATTRIBUTE\fP
 .RS 4
 Define, override or delete a document attribute.
-Command\-line attributes take precedence over attributes defined in the source file.
+Command\-line attributes take precedence over attributes defined in the source file unless the value ends with \fI@\fP.
 .sp
 \fIATTRIBUTE\fP is normally formatted as a key\-value pair, in the form \fINAME=VALUE\fP.
 Alternate acceptable forms are \fINAME\fP (where the \fIVALUE\fP defaults to an empty string), \fINAME!\fP (unassigns the \fINAME\fP attribute) and \fINAME=VALUE@\fP (where \fIVALUE\fP does not override value of \fINAME\fP attribute if it\(cqs already defined in the source document).
@@ -70,8 +70,8 @@ This option may be specified more than once.
 .RS 4
 Backend output file format: \fIhtml5\fP, \fIdocbook5\fP, \fIdocbook45\fP and \fImanpage\fP are supported out of the box.
 You can also use the backend alias names \fIhtml\fP (aliased to \fIhtml5\fP) or \fIdocbook\fP (aliased to \fIdocbook5\fP).
+Other values can be passed, but if Asciidoctor cannot resolve the backend to a converter, it will fail.
 Defaults to \fIhtml5\fP.
-Other options can be passed, but if Asciidoctor cannot find the backend, it will fail during conversion.
 .RE
 .sp
 \fB\-d, \-\-doctype\fP=\fIDOCTYPE\fP
@@ -79,7 +79,7 @@ Other options can be passed, but if Asciidoctor cannot find the backend, it will
 Document type: \fIarticle\fP, \fIbook\fP, \fImanpage\fP or \fIinline\fP.
 Sets the root element when using the \fIdocbook\fP backend and the style class on the HTML body element when using the \fIhtml\fP backend.
 The \fIbook\fP document type allows multiple level\-0 section titles in a single document.
-The \fImanpage\fP document type enables parsing of metadata necessary to produce a manpage.
+The \fImanpage\fP document type enables parsing of metadata necessary to produce a man page.
 The \fIinline\fP document type allows the content of a single paragraph to be formatted and returned without wrapping it in a containing element.
 Defaults to \fIarticle\fP.
 .RE
@@ -129,9 +129,9 @@ Synonym for \fB\-\-attribute numbered\fP.
 .RS 4
 Write output to file \fIOUT_FILE\fP.
 Defaults to the base name of the input file suffixed with \fIbackend\fP extension.
-If the input is read from standard input, then the output file defaults to stdout.
-If \fIOUT_FILE\fP is \fI\-\fP then the standard output is also used.
-If specified, the file is resolved relative to the working directory.
+The file is resolved relative to the working directory.
+If the input is read from standard input or a named pipe (fifo), then the output file defaults to stdout.
+If \fIOUT_FILE\fP is \fI\-\fP, then the output file is written to standard output.
 .RE
 .sp
 \fB\-r, \-\-require\fP=\fILIBRARY\fP
@@ -180,9 +180,11 @@ Display timings information (time to read, parse and convert).
 .RE
 .SS "Program Information"
 .sp
-\fB\-h, \-\-help\fP
+\fB\-h, \-\-help\fP [\fITOPIC\fP]
 .RS 4
-Show the help message.
+Print the help message.
+Show the command usage if \fITOPIC\fP is not specified (or not recognized).
+Dump the Asciidoctor man page (in troff/groff format) if \fITOPIC\fP is \fImanpage\fP.
 .RE
 .sp
 \fB\-V, \-\-version\fP
@@ -191,6 +193,13 @@ Print program version number.
 .sp
 \f[CR]\-v\fP can also be used if no other flags or arguments are present.
 .RE
+.SH "ENVIRONMENT"
+.sp
+\fBAsciidoctor\fP honors the \fBSOURCE_DATE_EPOCH\fP environment variable.
+If this variable is assigned an integer value, that value is used as the epoch of all input documents and as the local date and time.
+See \c
+.URL "https://reproducible\-builds.org/specs/source\-date\-epoch/" "" " "
+for more information about this environment variable.
 .SH "EXIT STATUS"
 .sp
 \fB0\fP
@@ -226,7 +235,7 @@ Refer to the \fBAsciidoctor\fP issue tracker at \c
 .URL "http://discuss.asciidoctor.org" "" ""
 .SH "COPYING"
 .sp
-Copyright (C) 2012\-2016 Dan Allen, Ryan Waldron and the Asciidoctor Project.
+Copyright (C) 2012\-2017 Dan Allen, Ryan Waldron and the Asciidoctor Project.
 Free use of this software is granted under the terms of the MIT License.
 .SH "AUTHOR(S)"
 .sp

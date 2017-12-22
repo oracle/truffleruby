@@ -4,11 +4,11 @@ module Asciidoctor
 class List < AbstractBlock
 
   # Public: Create alias for blocks
-  alias :items :blocks
+  alias items blocks
   # Public: Get the items in this list as an Array
-  alias :content :blocks
+  alias content blocks
   # Public: Create alias to check if this list has blocks
-  alias :items? :blocks?
+  alias items? blocks?
 
   def initialize parent, context
     super
@@ -32,7 +32,7 @@ class List < AbstractBlock
   end
 
   # Alias render to convert to maintain backwards compatibility
-  alias :render :convert
+  alias render convert
 
   def to_s
     %(#<#{self.class}@#{object_id} {context: #{@context.inspect}, style: #{@style.inspect}, items: #{items.size}}>)
@@ -42,6 +42,9 @@ end
 
 # Public: Methods for managing items for AsciiDoc olists, ulist, and dlists.
 class ListItem < AbstractBlock
+
+  # A contextual alias for the list parent node; counterpart to the items alias on List
+  alias list parent
 
   # Public: Get/Set the String used to mark this list item
   attr_accessor :marker
@@ -54,14 +57,30 @@ class ListItem < AbstractBlock
     super parent, :list_item
     @text = text
     @level = parent.level
+    @subs = NORMAL_SUBS.dup
   end
 
+  # Public: A convenience method that checks whether the text of this list item
+  # is not blank (i.e., not nil or empty string).
   def text?
     !@text.nil_or_empty?
   end
 
+  # Public: Get the String text of this ListItem with substitutions applied.
+  #
+  # By default, normal substitutions are applied to the text. The substitutions
+  # can be modified by altering the subs property of this object.
+  #
+  # Returns the converted String text for this ListItem
   def text
-    apply_subs @text
+    apply_subs @text, @subs
+  end
+
+  # Public: Set the String text.
+  #
+  # Returns the new String text assigned to this ListItem
+  def text= val
+    @text = val
   end
 
   # Check whether this list item has simple content (no nested blocks aside from a single outline list).

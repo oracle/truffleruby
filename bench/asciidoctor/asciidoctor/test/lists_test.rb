@@ -185,7 +185,7 @@ Bar
 
       output = render_embedded_string input
       assert_css 'ul ul', output, 1
-      assert !output.include?('* Foo')
+      refute output.include?('* Foo')
     end
 
     test 'a list item for a different list terminates non-indented paragraph for text of list item' do
@@ -205,9 +205,9 @@ term:: def
 
       output = render_embedded_string input
       assert_css 'ul ol', output, 1
-      assert !output.include?('* Foo')
+      refute output.include?('* Foo')
       assert_css 'ul dl', output, 1
-      assert !output.include?('term:: def')
+      refute output.include?('term:: def')
     end
 
     test 'an indented wrapped line is unindented and folded into text of list item' do
@@ -255,7 +255,7 @@ second wrapped line
 
       output = render_embedded_string input
       assert_css 'ul ul', output, 1
-      assert !output.include?('* Foo')
+      refute output.include?('* Foo')
     end
 
     test 'a list item that starts with a sequence of list markers characters should not match a nested list' do
@@ -287,9 +287,9 @@ term:: def
 
       output = render_embedded_string input
       assert_css 'ul ol', output, 1
-      assert !output.include?('* Foo')
+      refute output.include?('* Foo')
       assert_css 'ul dl', output, 1
-      assert !output.include?('term:: def')
+      refute output.include?('term:: def')
     end
 
     test "a literal paragraph offset by blank lines in list content is appended as a literal block" do
@@ -999,7 +999,7 @@ literal
       assert_xpath '(//*[@class="ulist"])[1]/following-sibling::*[@class="literalblock"]/*[@class="title"]', output, 1
     end
 
-    test "lines with alternating markers of bulleted and labeled list types separated by blank lines should be nested" do
+    test "lines with alternating markers of bulleted and description list types separated by blank lines should be nested" do
       input = <<-EOS
 List
 ====
@@ -1480,7 +1480,7 @@ attached paragraph
       end
     end
 
-    test 'indented labeled list item inside outline list item offset by a blank line should be recognized as a nested list' do
+    test 'indented description list item inside outline list item offset by a blank line should be recognized as a nested list' do
       input = <<-EOS
 * item 1
 
@@ -1605,6 +1605,19 @@ List
       output = render_embedded_string input
       assert_css '.olist.loweralpha.dry', output, 1
       assert_css '.olist ol.loweralpha', output, 1
+    end
+
+    test 'should set reversed attribute on list if reversed option is set' do
+      input = <<-EOS
+[%reversed, start=3]
+. three
+. two
+. one
+. blast off!
+      EOS
+
+      output = render_embedded_string input
+      assert_css 'ol[reversed][start="3"]', output, 1
     end
 
     test 'should represent implicit role attribute as style class' do
@@ -1939,7 +1952,7 @@ term2::
       assert_xpath '//dl/dt', output, 2
       assert_xpath '//dl/dt/following-sibling::dd', output, 2
       assert_xpath '(//dl/dt)[1][normalize-space(text()) = "term1"]', output, 1
-      assert_xpath %((//dl/dt)[1]/following-sibling::dd/p[text() = "def1#{entity 8201}#{entity 8212}#{entity 8201}and a note"]), output, 1
+      assert_xpath %((//dl/dt)[1]/following-sibling::dd/p[text() = "def1#{decode_char 8201}#{decode_char 8212}#{decode_char 8201}and a note"]), output, 1
       assert_xpath '(//dl/dt)[2][normalize-space(text()) = "term2"]', output, 1
       assert_xpath '(//dl/dt)[2]/following-sibling::dd/p[text() = "def2"]', output, 1
     end
@@ -2045,7 +2058,7 @@ def2
       assert_xpath '(//dl/dt)[2]/a[@id = "term2"]', output, 1
     end
 
-    test "missing space before term does not produce labeled list" do
+    test "missing space before term does not produce description list" do
       input = <<-EOS
 term1::def1
 term2::def2
@@ -2054,7 +2067,7 @@ term2::def2
       assert_xpath '//dl', output, 0
     end
 
-    test "literal block inside labeled list" do
+    test "literal block inside description list" do
       input = <<-EOS
 term::
 +
@@ -2073,7 +2086,7 @@ anotherterm:: def
       assert_xpath '(//dl/dd)[2]/p[text() = "def"]', output, 1
     end
 
-    test "literal block inside labeled list with trailing line continuation" do
+    test "literal block inside description list with trailing line continuation" do
       input = <<-EOS
 term::
 +
@@ -2093,7 +2106,7 @@ anotherterm:: def
       assert_xpath '(//dl/dd)[2]/p[text() = "def"]', output, 1
     end
 
-    test "multiple listing blocks inside labeled list" do
+    test "multiple listing blocks inside description list" do
       input = <<-EOS
 term::
 +
@@ -2118,7 +2131,7 @@ anotherterm:: def
       assert_xpath '(//dl/dd)[2]/p[text() = "def"]', output, 1
     end
 
-    test "open block inside labeled list" do
+    test "open block inside description list" do
       input = <<-EOS
 term::
 +
@@ -2134,7 +2147,7 @@ anotherterm:: def
       assert_xpath '(//dl/dd)[1]//*[@class="openblock"]//p', output, 2
     end
 
-    test "paragraph attached by a list continuation on either side in a labeled list" do
+    test "paragraph attached by a list continuation on either side in a description list" do
       input = <<-EOS
 term1:: def1
 +
@@ -2150,7 +2163,7 @@ term2:: def2
       assert_xpath '(//dl/dd)[1]/p/following-sibling::*[@class="paragraph"]/p[text() = "more detail"]', output, 1
     end
 
-    test "paragraph attached by a list continuation on either side to a multi-line element in a labeled list" do
+    test "paragraph attached by a list continuation on either side to a multi-line element in a description list" do
       input = <<-EOS
 term1::
 def1
@@ -2167,7 +2180,7 @@ term2:: def2
       assert_xpath '(//dl/dd)[1]/p/following-sibling::*[@class="paragraph"]/p[text() = "more detail"]', output, 1
     end
 
-    test "verse paragraph inside a labeled list" do
+    test "verse paragraph inside a description list" do
       input = <<-EOS
 term1:: def
 +
@@ -2181,7 +2194,7 @@ term2:: def
       assert_xpath '(//dl/dd)[1]/*[@class="verseblock"]/pre[text() = "la la la"]', output, 1
     end
 
-    test "list inside a labeled list" do
+    test "list inside a description list" do
       input = <<-EOS
 term1::
 * level 1
@@ -2196,7 +2209,7 @@ term2:: def
       assert_xpath '((//dl/dd)[1]//ul)[1]//ul', output, 1
     end
 
-    test "list inside a labeled list offset by blank lines" do
+    test "list inside a description list offset by blank lines" do
       input = <<-EOS
 term1::
 
@@ -2286,7 +2299,7 @@ A new paragraph.
       assert_xpath '(//*[@class="dlist"]/following-sibling::*[@class="paragraph"])[1]/p[text() = "A new paragraph."]', output, 1
     end
 
-    test 'should not match comment line that looks like labeled list term' do
+    test 'should not match comment line that looks like description list term' do
       input = <<-EOS
 * item
 
@@ -2759,6 +2772,103 @@ last question::
       assert_css 'bibliodiv > bibliomixed:nth-child(1) > bibliomisc > anchor[xreflabel="[taoup]"]', output, 1
       assert_css 'bibliodiv > bibliomixed:nth-child(2) > bibliomisc > anchor', output, 1
       assert_css 'bibliodiv > bibliomixed:nth-child(2) > bibliomisc > anchor[xreflabel="[walsh-muellner]"]', output, 1
+    end
+
+    test 'should automatically add bibliography style to top-level lists in bibliography section' do
+      input = <<-EOS
+[bibliography]
+== Bibliography
+
+.Books
+* [[[taoup]]] Eric Steven Raymond. _The Art of Unix
+  Programming_. Addison-Wesley. ISBN 0-13-142901-9.
+* [[[walsh-muellner]]] Norman Walsh & Leonard Muellner.
+  _DocBook - The Definitive Guide_. O'Reilly & Associates. 1999.
+  ISBN 1-56592-580-7.
+
+.Periodicals
+* [[[doc-writer]]] Doc Writer. _Documentation As Code_. Static Times, 54. August 2016.
+      EOS
+      doc = document_from_string input
+      ulists = doc.find_by :context => :ulist
+      assert_equal 2, ulists.size
+      assert_equal ulists[0].style, 'bibliography'
+      assert_equal ulists[1].style, 'bibliography'
+    end
+
+    test 'should not recognize bibliography anchor that begins with a digit' do
+      input = <<-EOS
+[bibliography]
+- [[[1984]]] George Orwell. '1984'. New American Library. 1950.
+      EOS
+
+      output = render_embedded_string input
+      assert_includes output, '[[[1984]]]'
+      assert_xpath '//a[@id="1984"]', output, 0
+    end
+
+    test 'should recognize bibliography anchor that contains a digit but does not start with one' do
+      input = <<-EOS
+[bibliography]
+- [[[_1984]]] George Orwell. '1984'. New American Library. 1950.
+      EOS
+
+      output = render_embedded_string input
+      refute_includes output, '[[[_1984]]]'
+      assert_includes output, '[_1984]'
+      assert_xpath '//a[@id="_1984"]', output, 1
+    end
+
+    test 'should catalog bibliography anchors in bibliography list' do
+      input = <<-EOS
+= Article Title
+
+Please read #{'<<'}Fowler_1997>>.
+
+[bibliography]
+== References
+
+* [[[Fowler_1997]]] Fowler M. _Analysis Patterns: Reusable Object Models_. Addison-Wesley. 1997.
+      EOS
+
+      doc = document_from_string input
+      ids = doc.catalog[:ids]
+      assert ids.key?('Fowler_1997')
+      assert_equal '[Fowler_1997]', ids['Fowler_1997']
+    end
+
+    test 'should use reftext from bibliography anchor at xref and entry' do
+      input = <<-EOS
+= Article Title
+
+Please read #{'<<'}Fowler_1997>>.
+
+[bibliography]
+== References
+
+* [[[Fowler_1997,1]]] Fowler M. _Analysis Patterns: Reusable Object Models_. Addison-Wesley. 1997.
+      EOS
+
+      doc = document_from_string input, :header_footer => false
+      ids = doc.catalog[:ids]
+      assert ids.key?('Fowler_1997')
+      assert_equal '[1]', ids['Fowler_1997']
+      result = doc.convert :header_footer => false
+      assert_xpath '//a[@href="#Fowler_1997"]', result, 1
+      assert_xpath '//a[@href="#Fowler_1997"][text()="[1]"]', result, 1
+      assert_xpath '//a[@id="Fowler_1997"]', result, 1
+      text = (xmlnodes_at_xpath '(//a[@id="Fowler_1997"])[1]/following-sibling::text()', result, 1).text
+      assert text.start_with?('[1] ')
+    end
+
+    test 'should assign reftext of bibliography anchor to xreflabel in DocBook backend' do
+      input = <<-EOS
+[bibliography]
+* [[[Fowler_1997,1]]] Fowler M. _Analysis Patterns: Reusable Object Models_. Addison-Wesley. 1997.
+      EOS
+
+      result = render_embedded_string input, :backend => :docbook
+      assert_includes result, '<anchor xml:id="Fowler_1997" xreflabel="[1]"/>'
     end
   end
 end
@@ -3326,7 +3436,7 @@ para
       assert_xpath '//*[@class="dlist"]//dd/*[@class="paragraph"]/p[text()="para"]', output, 1
     end
 
-    test 'attached paragraph does not break on adjacent nested labeled list term' do
+    test 'attached paragraph does not break on adjacent nested description list term' do
       input = <<-EOS
 term1:: def
 +
@@ -3343,7 +3453,7 @@ not a term::: def
 
     # FIXME pending
 =begin
-    test 'attached paragraph does not break on adjacent sibling labeled list term' do
+    test 'attached paragraph does not break on adjacent sibling description list term' do
       input = <<-EOS
 term1:: def
 +
@@ -3359,7 +3469,7 @@ not a term:: def
     end
 =end
 
-    test 'attached styled paragraph does not break on adjacent nested labeled list term' do
+    test 'attached styled paragraph does not break on adjacent nested description list term' do
       input = <<-EOS
 term1:: def
 +
@@ -3952,7 +4062,32 @@ puts doc.render # <2>
     assert_xpath '((//calloutlist)[2]/callout)[2][@arearefs = "CO2-2"]', output, 1
   end
 
-  test 'callout list with block content' do
+  test 'callout list retains block content' do
+    input = <<-EOS
+[source, ruby]
+----
+require 'asciidoctor' # <1>
+doc = Asciidoctor::Document.new('Hello, World!') # <2>
+puts doc.render # <3>
+----
+<1> Imports the library
+as a RubyGem
+<2> Creates a new document
+* Scans the lines for known blocks
+* Converts the lines into blocks
+<3> Renders the document
++
+You can write this to file rather than printing to stdout.
+    EOS
+    output = render_embedded_string input
+    assert_xpath '//ol/li', output, 3
+    assert_xpath %((//ol/li)[1]/p[text()="Imports the library\nas a RubyGem"]), output, 1
+    assert_xpath %((//ol/li)[2]//ul), output, 1
+    assert_xpath %((//ol/li)[2]//ul/li), output, 2
+    assert_xpath %((//ol/li)[3]//p), output, 2
+  end
+
+  test 'callout list retains block content when converted to DocBook' do
     input = <<-EOS
 [source, ruby]
 ----
@@ -4053,17 +4188,18 @@ Second line <2-->
     assert_xpath '//b', output, 0
   end
 
-  test 'should not recognize callouts in an indented labeled list paragraph' do
+  test 'should not recognize callouts in an indented description list paragraph' do
     input = <<-EOS
 foo::
   bar <1>
 
 <1> Not pointing to a callout
     EOS
-    output = render_embedded_string input
+    output, warnings = redirect_streams {|_, err| [(render_embedded_string input), err.string] }
     assert_xpath '//dl//b', output, 0
     assert_xpath '//dl/dd/p[text()="bar <1>"]', output, 1
     assert_xpath '//ol/li/p[text()="Not pointing to a callout"]', output, 1
+    assert_includes warnings, 'line 4: no callouts refer to list item 1'
   end
 
   test 'should not recognize callouts in an indented outline list paragraph' do
@@ -4073,10 +4209,28 @@ foo::
 
 <1> Not pointing to a callout
     EOS
-    output = render_embedded_string input
+    output, warnings = redirect_streams {|_, err| [(render_embedded_string input), err.string] }
     assert_xpath '//ul//b', output, 0
     assert_xpath %(//ul/li/p[text()="foo\nbar <1>"]), output, 1
     assert_xpath '//ol/li/p[text()="Not pointing to a callout"]', output, 1
+    assert_includes warnings, 'line 4: no callouts refer to list item 1'
+  end
+
+  test 'should warn if numbers in callout list are out of sequence' do
+    input = <<-EOS
+----
+<beans> <1>
+  <bean class="com.example.HelloWorld"/>
+</beans>
+----
+<1> Container of beans.
+Beans are fun.
+<3> An actual bean.
+    EOS
+    output, warnings = redirect_streams {|_, err| [(render_embedded_string input), err.string] }
+    assert_xpath '//ol/li', output, 2
+    assert_includes warnings, 'line 8: callout list item index: expected 2 got 3'
+    assert_includes warnings, 'line 8: no callouts refer to list item 2'
   end
 
   test 'should remove line comment chars that precedes callout number' do
@@ -4215,10 +4369,10 @@ context 'Checklists' do
 
     output = render_embedded_string input
     assert_css '.ulist.checklist', output, 1
-    assert_xpath %((/*[@class="ulist checklist"]/ul/li)[1]/p[text()="#{expand_entity 10063} todo"]), output, 1
-    assert_xpath %((/*[@class="ulist checklist"]/ul/li)[2]/p[text()="#{expand_entity 10003} done"]), output, 1
-    assert_xpath %((/*[@class="ulist checklist"]/ul/li)[3]/p[text()="#{expand_entity 10063} another todo"]), output, 1
-    assert_xpath %((/*[@class="ulist checklist"]/ul/li)[4]/p[text()="#{expand_entity 10003} another done"]), output, 1
+    assert_xpath %((/*[@class="ulist checklist"]/ul/li)[1]/p[text()="#{decode_char 10063} todo"]), output, 1
+    assert_xpath %((/*[@class="ulist checklist"]/ul/li)[2]/p[text()="#{decode_char 10003} done"]), output, 1
+    assert_xpath %((/*[@class="ulist checklist"]/ul/li)[3]/p[text()="#{decode_char 10063} another todo"]), output, 1
+    assert_xpath %((/*[@class="ulist checklist"]/ul/li)[4]/p[text()="#{decode_char 10003} another done"]), output, 1
     assert_xpath '(/*[@class="ulist checklist"]/ul/li)[5]/p[text()="plain"]', output, 1
   end
 
@@ -4317,7 +4471,7 @@ label:: desc
 
     doc = document_from_string input
     list = doc.blocks.first
-    assert !list.outline?
+    refute list.outline?
   end
 
   test 'simple? should return true for list item with no nested blocks' do
@@ -4330,7 +4484,7 @@ label:: desc
     doc = document_from_string input
     list = doc.blocks.first
     assert list.items.first.simple?
-    assert !list.items.first.compound?
+    refute list.items.first.compound?
   end
 
   test 'simple? should return true for list item with nested outline list' do
@@ -4345,7 +4499,7 @@ label:: desc
     doc = document_from_string input
     list = doc.blocks.first
     assert list.items.first.simple?
-    assert !list.items.first.compound?
+    refute list.items.first.compound?
   end
 
   test 'simple? should return false for list item with block content' do
@@ -4361,7 +4515,45 @@ listing block in list item 1
 
     doc = document_from_string input
     list = doc.blocks.first
-    assert !list.items.first.simple?
+    refute list.items.first.simple?
     assert list.items.first.compound?
+  end
+
+  test 'should allow text of ListItem to be assigned' do
+    input = <<-EOS
+* one
+* two
+* three
+    EOS
+
+    doc = document_from_string input
+    list = (doc.find_by :context => :ulist).first
+    assert_equal 3, list.items.size
+    assert_equal 'one', list.items[0].text
+    list.items[0].text = 'un'
+    assert_equal 'un', list.items[0].text
+  end
+
+  test 'should allow API control over substitutions applied to ListItem text' do
+    input = <<-EOS
+* *one*
+* _two_
+* `three`
+* #four#
+    EOS
+
+    doc = document_from_string input
+    list = (doc.find_by :context => :ulist).first
+    assert_equal 4, list.items.size
+    list.items[0].remove_sub :quotes
+    assert_equal '*one*', list.items[0].text
+    refute_includes list.items[0].subs, :quotes
+    list.items[1].subs.clear
+    assert_empty list.items[1].subs
+    assert_equal '_two_', list.items[1].text
+    list.items[2].subs.replace [:specialcharacters]
+    assert_equal [:specialcharacters], list.items[2].subs
+    assert_equal '`three`', list.items[2].text
+    assert_equal '<mark>four</mark>', list.items[3].text
   end
 end

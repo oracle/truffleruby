@@ -21,7 +21,8 @@ To get the best results under MRI, tune Ruby using environment variables as foll
  $ RUBY_GC_MALLOC_LIMIT=90000000 RUBY_FREE_MIN=650000 ruby benchmark.rb userguide-loop 10
 
 .Ruby >= 2.1
- $ RUBY_GC_MALLOC_LIMIT=128000000 RUBY_GC_OLDMALLOC_LIMIT=128000000 RUBY_GC_HEAP_INIT_SLOTS=800000 RUBY_GC_HEAP_FREE_SLOTS=800000 RUBY_GC_HEAP_GROWTH_MAX_SLOTS=250000 RUBY_GC_HEAP_GROWTH_FACTOR=2 ruby benchmark.rb userguide-loop 10
+ $ RUBY_GC_MALLOC_LIMIT=128000000 RUBY_GC_OLDMALLOC_LIMIT=128000000 RUBY_GC_HEAP_INIT_SLOTS=10000000 RUBY_GC_HEAP_FREE_SLOTS=10000000 RUBY_GC_HEAP_GROWTH_MAX_SLOTS=250000 RUBY_GC_HEAP_GROWTH_FACTOR=2 ruby benchmark.rb userguide-loop 10
+ $ RUBY_GC_MALLOC_LIMIT=128000000 RUBY_GC_OLDMALLOC_LIMIT=128000000 RUBY_GC_HEAP_INIT_SLOTS=20000000 RUBY_GC_HEAP_FREE_SLOTS=1000000 RUBY_GC_HEAP_GROWTH_MAX_SLOTS=250000 RUBY_GC_HEAP_GROWTH_FACTOR=2 ruby benchmark.rb userguide-loop 10
 
 Asciidoctor starts with ~ 12,500 objects, adds ~ 300,000 each run, so tune RUBY_GC_HEAP_* accordingly
 
@@ -78,7 +79,7 @@ when 'userguide'
   result = Benchmark.bmbm {|bm|
     bm.report(%(Convert #{sample_file} (x#{$repeat}))) {
       $repeat.times {
-        Asciidoctor.render_file sample_file, :backend => backend, :safe => Asciidoctor::SafeMode::SAFE, :eruby => 'erubis', :header_footer => true, :to_file => false, :attributes => {'linkcss' => '', 'toc' => nil, 'numbered' => nil, 'icons' => nil, 'compat-mode' => ''}
+        Asciidoctor.render_file sample_file, :backend => backend, :safe => Asciidoctor::SafeMode::SAFE, :eruby => 'erubis', :header_footer => true, :to_file => false, :attributes => {'stylesheet' => nil, 'toc' => nil, 'numbered' => nil, 'icons' => nil, 'compat-mode' => ''}
       }
     }
   }
@@ -94,18 +95,22 @@ when 'userguide-loop'
   backend = ENV['BENCH_BACKEND'] || 'html5'
   fetch_userguide if sample_file == 'sample-data/userguide.adoc' && !(File.exist? sample_file)
 
-  best = nil
+  timings = []
   2.times.each do
-    outer_start = Time.now
+    loop_timings = []
     (1..$repeat).each do
-      inner_start = Time.now
-      Asciidoctor.render_file sample_file, :backend => backend, :safe => Asciidoctor::SafeMode::SAFE, :eruby => 'erubis', :header_footer => true, :to_file => false, :attributes => {'linkcss' => '', 'toc' => nil, 'numbered' => nil, 'icons' => nil, 'compat-mode' => ''}
-      puts (elapsed = Time.now - inner_start)
-      best = (best ? [best, elapsed].min : elapsed)
+      start = Time.now
+      Asciidoctor.render_file sample_file, :backend => backend, :safe => Asciidoctor::SafeMode::SAFE, :eruby => 'erubis', :header_footer => true, :to_file => false, :attributes => { 'stylesheet' => nil, 'toc' => nil, 'numbered' => nil, 'icons' => nil, 'compat-mode' => '' }
+      loop_timings << (Time.now - start)
     end
-    puts %(Run Total: #{Time.now - outer_start})
+    timings << loop_timings
   end
-  puts %(Best Time: #{best})
+  best_time = nil
+  timings.each do |loop_timings|
+    puts %(#{loop_timings * "\n"}\nRun Total: #{loop_timings.reduce :+})
+    best_time = best_time ? [best_time, loop_timings.min].min : loop_timings.min
+  end
+  puts %(Best Time: #{best_time})
 
 when 'mdbasics-loop'
   require '../lib/asciidoctor.rb'
@@ -113,17 +118,21 @@ when 'mdbasics-loop'
   sample_file = ENV['BENCH_TEST_FILE'] || 'sample-data/mdbasics.adoc'
   backend = ENV['BENCH_BACKEND'] || 'html5'
 
-  best = nil
+  timings = []
   2.times do
-    outer_start = Time.now
+    loop_timings = []
     (1..$repeat).each do
-      inner_start = Time.now
-      Asciidoctor.render_file sample_file, :backend => backend, :safe => Asciidoctor::SafeMode::SAFE, :header_footer => false, :to_file => false, :attributes => {'linkcss' => '', 'idprefix' => '', 'idseparator' => '-', 'showtitle' => ''}
-      puts (elapsed = Time.now - inner_start)
-      best = (best ? [best, elapsed].min : elapsed)
+      start = Time.now
+      Asciidoctor.render_file sample_file, :backend => backend, :safe => Asciidoctor::SafeMode::SAFE, :header_footer => false, :to_file => false, :attributes => { 'stylesheet' => nil, 'idprefix' => '', 'idseparator' => '-', 'showtitle' => '' }
+      loop_timings << (Time.now - start)
     end
-    puts %(Run Total: #{Time.now - outer_start})
+    timings << loop_timings
   end
-  puts %(Best Time: #{best})
+  best_time = nil
+  timings.each do |loop_timings|
+    puts %(#{loop_timings * "\n"}\nRun Total: #{loop_timings.reduce :+})
+    best_time = best_time ? [best_time, loop_timings.min].min : loop_timings.min
+  end
+  puts %(Best Time: #{best_time})
 
 end

@@ -24,17 +24,42 @@ EOS
 
 context 'Manpage' do
   context 'Configuration' do
+    test 'should set proper manpage-related attributes' do
+      input = SAMPLE_MANPAGE_HEADER
+      doc = Asciidoctor.load input, :backend => :manpage
+      assert_equal 'man', doc.attributes['filetype']
+      assert_equal '', doc.attributes['filetype-man']
+      assert_equal '1', doc.attributes['manvolnum']
+      assert_equal '.1', doc.attributes['outfilesuffix']
+      assert_equal 'command', doc.attributes['manname']
+      assert_equal 'command', doc.attributes['mantitle']
+      assert_equal 'does stuff', doc.attributes['manpurpose']
+      assert_equal 'command', doc.attributes['docname']
+    end
+
     test 'should define default linkstyle' do
       input = SAMPLE_MANPAGE_HEADER
       output = Asciidoctor.convert input, :backend => :manpage, :header_footer => true
-      assert_match(/^\.LINKSTYLE blue R < >$/, output)
+      assert_includes output.lines, %(.LINKSTYLE blue R < >\n)
     end
 
     test 'should use linkstyle defined by man-linkstyle attribute' do
       input = SAMPLE_MANPAGE_HEADER
       output = Asciidoctor.convert input, :backend => :manpage, :header_footer => true,
           :attributes => { 'man-linkstyle' => 'cyan B \[fo] \[fc]' }
-      assert_match(/^\.LINKSTYLE cyan B \\\[fo\] \\\[fc\]$/, output)
+      assert_includes output.lines, %(.LINKSTYLE cyan B \\[fo] \\[fc]\n)
+    end
+
+    test 'should require specialchars in value of man-linkstyle attribute defined in document to be escaped' do
+      input = %(:man-linkstyle: cyan R < >
+#{SAMPLE_MANPAGE_HEADER})
+      output = Asciidoctor.convert input, :backend => :manpage, :header_footer => true
+      assert_includes output.lines, %(.LINKSTYLE cyan R &lt; &gt;\n)
+
+      input = %(:man-linkstyle: pass:[cyan R < >]
+#{SAMPLE_MANPAGE_HEADER})
+      output = Asciidoctor.convert input, :backend => :manpage, :header_footer => true
+      assert_includes output.lines, %(.LINKSTYLE cyan R < >\n)
     end
   end
 
@@ -91,6 +116,17 @@ baz)
  \\fB makes text bold)
       output = Asciidoctor.convert input, :backend => :manpage
       assert_match '\(rsfB makes text bold', output
+    end
+
+    test 'should preserve inline breaks' do
+      input = %(#{SAMPLE_MANPAGE_HEADER}
+
+Before break. +
+After break.)
+      output = Asciidoctor.convert input, :backend => :manpage
+      assert_equal 'Before break.
+.br
+After break.', output.lines.entries[-3..-1].join
     end
   end
 
@@ -182,6 +218,137 @@ before asking.', output.lines.entries[-4..-1].join
     end
   end
 
+  context 'Table' do
+    test 'should manify normal table cell content' do
+      input = %(#{SAMPLE_MANPAGE_HEADER}
+
+[%header%footer,cols=2*]
+|===
+|*Col A* |_Col B_
+|*bold* |`mono`
+|_italic_ | #mark#
+|===)
+      output = Asciidoctor.convert input, :backend => :manpage
+      refute_match(/<\/?BOUNDARY>/, output)
+    end
+
+    test 'should manify table title' do
+      input = %(#{SAMPLE_MANPAGE_HEADER}
+
+.Table of options
+|===
+| Name | Description | Default
+
+| dim
+| dimension of the object
+| 3
+|===)
+      output = Asciidoctor.convert input, :backend => :manpage
+      assert output.end_with? '.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table 1. Table of options
+.TS
+allbox tab(:);
+lt lt lt.
+T{
+.sp
+Name
+T}:T{
+.sp
+Description
+T}:T{
+.sp
+Default
+T}
+T{
+.sp
+dim
+T}:T{
+.sp
+dimension of the object
+T}:T{
+.sp
+3
+T}
+.TE
+.sp'
+    end
+
+    test 'should manify and preserve whitespace in literal table cell' do
+      input = %(#{SAMPLE_MANPAGE_HEADER}
+
+|===
+|a l|b
+c    _d_
+.
+|===)
+      output = Asciidoctor.convert input, :backend => :manpage
+      assert output.end_with? '.TS
+allbox tab(:);
+lt lt.
+T{
+.sp
+a
+T}:T{
+.sp
+.nf
+b
+c    _d_
+\\&.
+.fi
+T}
+.TE
+.sp'
+    end
+
+    test 'should manify and preserve whitespace in verse table cell' do
+      input = %(#{SAMPLE_MANPAGE_HEADER}
+
+|===
+|a v|b
+c    _d_
+.
+|===)
+      output = Asciidoctor.convert input, :backend => :manpage
+      assert output.end_with? '.TS
+allbox tab(:);
+lt lt.
+T{
+.sp
+a
+T}:T{
+.sp
+.nf
+b
+c    \\fId\\fP
+\\&.
+.fi
+T}
+.TE
+.sp'
+    end
+  end
+
+  context 'Images' do
+    test 'should replace inline image with alt text' do
+      input = %(#{SAMPLE_MANPAGE_HEADER}
+
+The Magic 8 Ball says image:signs-point-to-yes.jpg[].)
+      output = Asciidoctor.convert input, :backend => :manpage
+      assert_includes output, 'The Magic 8 Ball says [signs point to yes].'
+    end
+
+    test 'should place link after alt text for inline image if link is defined' do
+      input = %(#{SAMPLE_MANPAGE_HEADER}
+
+The Magic 8 Ball says image:signs-point-to-yes.jpg[link=https://en.wikipedia.org/wiki/Magic_8-Ball].)
+      output = Asciidoctor.convert input, :backend => :manpage
+      assert_includes output, 'The Magic 8 Ball says [signs point to yes] <https://en.wikipedia.org/wiki/Magic_8\-Ball>.'
+    end
+  end
+
   context 'Callout List' do
     test 'should generate callout list using proper formatting commands' do
       input = %(#{SAMPLE_MANPAGE_HEADER}
@@ -198,6 +365,41 @@ r lw(\n(.lu*75u/100u).
 Installs the asciidoctor gem from RubyGems.org
 T}
 .TE'
+    end
+  end
+
+  context 'Environment' do
+    test 'should use SOURCE_DATE_EPOCH as modified time of input file and local time' do
+      old_source_date_epoch = ENV.delete 'SOURCE_DATE_EPOCH'
+      begin
+        ENV['SOURCE_DATE_EPOCH'] = '1234123412'
+        output = Asciidoctor.convert SAMPLE_MANPAGE_HEADER, :backend => :manpage, :header_footer => true
+        assert_match(/Date: 2009-02-08/, output)
+        assert_match(/^\.TH "COMMAND" "1" "2009-02-08" "Command 1.2.3" "Command Manual"$/, output)
+      ensure
+        if old_source_date_epoch
+          ENV['SOURCE_DATE_EPOCH'] = old_source_date_epoch
+        else
+          ENV.delete 'SOURCE_DATE_EPOCH'
+        end
+      end
+    end
+
+    test 'should fail if SOURCE_DATE_EPOCH is malformed' do
+      old_source_date_epoch = ENV.delete 'SOURCE_DATE_EPOCH'
+      begin
+        ENV['SOURCE_DATE_EPOCH'] = 'aaaaaaaa'
+        Asciidoctor.convert SAMPLE_MANPAGE_HEADER, :backend => :manpage, :header_footer => true
+        assert false
+      rescue
+        assert true
+      ensure
+        if old_source_date_epoch
+          ENV['SOURCE_DATE_EPOCH'] = old_source_date_epoch
+        else
+          ENV.delete 'SOURCE_DATE_EPOCH'
+        end
+      end
     end
   end
 end

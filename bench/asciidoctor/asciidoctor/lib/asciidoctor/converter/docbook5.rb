@@ -4,6 +4,8 @@ module Asciidoctor
   # similar to the docbook45 backend from AsciiDoc Python, but migrated to the
   # DocBook 5 specification.
   class Converter::DocBook5Converter < Converter::BuiltIn
+    ImageMacroRx = /^image::?(.+?)\[(.*?)\]$/
+
     def document node
       result = []
       if (root_tag_name = node.doctype) == 'manpage'
@@ -29,34 +31,25 @@ module Asciidoctor
       end
       lang_attribute = (node.attr? 'nolang') ? nil : %( #{lang_attribute_name}="#{node.attr 'lang', 'en'}")
       result << %(<#{root_tag_name}#{document_ns_attributes node}#{lang_attribute}>)
-      result << (document_info_element node, root_tag_name)
+      result << (document_info_element node, root_tag_name) unless node.noheader
       result << node.content if node.blocks?
       unless (footer_docinfo = node.docinfo :footer).empty?
         result << footer_docinfo
       end
       result << %(</#{root_tag_name}>)
 
-      result * EOL
+      result * LF
     end
 
-    alias :embedded :content
+    alias embedded content
+
+    MANPAGE_SECTION_TAGS = { 'section' => 'refsection', 'synopsis' => 'refsynopsisdiv' }
 
     def section node
-      doctype = node.document.doctype
-      if node.special
-        if (tag_name = node.sectname).start_with? 'sect'
-          # a normal child section of a special section
-          tag_name = 'section'
-        end
+      if node.document.doctype == 'manpage'
+        tag_name = MANPAGE_SECTION_TAGS[tag_name = node.sectname] || tag_name
       else
-        tag_name = doctype == 'book' && node.level <= 1 ? (node.level == 0 ? 'part' : 'chapter') : 'section'
-      end
-      if doctype == 'manpage'
-        if tag_name == 'section'
-          tag_name = 'refsection'
-        elsif tag_name == 'synopsis'
-          tag_name = 'refsynopsisdiv'
-        end
+        tag_name = node.sectname
       end
       %(<#{tag_name}#{common_attributes node.id, node.role, node.reftext}>
 <title>#{node.title}</title>
@@ -70,7 +63,7 @@ module Asciidoctor
 </#{tag_name}>)
     end
 
-    alias :audio :skip
+    alias audio skip
 
     def colist node
       result = []
@@ -83,16 +76,10 @@ module Asciidoctor
         result << '</callout>'
       end
       result << %(</calloutlist>)
-      result * EOL
+      result * LF
     end
 
     (DLIST_TAGS = {
-      'labeled' => {
-        :list  => 'variablelist',
-        :entry => 'varlistentry',
-        :term  => 'term',
-        :item  => 'listitem'
-      },
       'qanda' => {
         :list  => 'qandaset',
         :entry => 'qandaentry',
@@ -106,7 +93,7 @@ module Asciidoctor
         :term  => 'glossterm',
         :item  => 'glossdef'
       }
-    }).default = { # default value == DLIST['labeled'], expanded for Opal
+    }).default = { # default is variable
       :list => 'variablelist',
       :entry => 'varlistentry',
       :term => 'term',
@@ -172,7 +159,7 @@ module Asciidoctor
         result << %(</#{list_tag}>) if list_tag
       end
 
-      result * EOL
+      result * LF
     end
 
     def example node
@@ -193,19 +180,29 @@ module Asciidoctor
     end
 
     def image node
-      width_attribute = (node.attr? 'width') ? %( contentwidth="#{node.attr 'width'}") : nil
-      depth_attribute = (node.attr? 'height') ? %( contentdepth="#{node.attr 'height'}") : nil
-      # FIXME if scaledwidth is set, we should remove width & depth
-      # See http://www.docbook.org/tdg/en/html/imagedata.html#d0e92271 for details
-      swidth_attribute = (node.attr? 'scaledwidth') ? %( width="#{node.attr 'scaledwidth'}" scalefit="1") : nil
-      scale_attribute = (node.attr? 'scale') ? %( scale="#{node.attr 'scale'}") : nil
+      # NOTE according to the DocBook spec, content area, scaling, and scaling to fit are mutually exclusive
+      # See http://tdg.docbook.org/tdg/4.5/imagedata-x.html#d0e79635
+      if node.attr? 'scaledwidth'
+        width_attribute = %( width="#{node.attr 'scaledwidth'}")
+        depth_attribute = nil
+        scale_attribute = nil
+      elsif node.attr? 'scale'
+        # QUESTION should we set the viewport using width and depth? (the scaled image would be contained within this box)
+        #width_attribute = (node.attr? 'width') ? %( width="#{node.attr 'width'}") : nil
+        #depth_attribute = (node.attr? 'height') ? %( depth="#{node.attr 'height'}") : nil
+        scale_attribute = %( scale="#{node.attr 'scale'}")
+      else
+        width_attribute = (node.attr? 'width') ? %( contentwidth="#{node.attr 'width'}") : nil
+        depth_attribute = (node.attr? 'height') ? %( contentdepth="#{node.attr 'height'}") : nil
+        scale_attribute = nil
+      end
       align_attribute = (node.attr? 'align') ? %( align="#{node.attr 'align'}") : nil
 
       mediaobject = %(<mediaobject>
 <imageobject>
-<imagedata fileref="#{node.image_uri(node.attr 'target')}"#{width_attribute}#{depth_attribute}#{swidth_attribute}#{scale_attribute}#{align_attribute}/>
+<imagedata fileref="#{node.image_uri(node.attr 'target')}"#{width_attribute}#{depth_attribute}#{scale_attribute}#{align_attribute}/>
 </imageobject>
-<textobject><phrase>#{node.attr 'alt'}</phrase></textobject>
+<textobject><phrase>#{node.alt}</phrase></textobject>
 </mediaobject>)
 
       if node.title?
@@ -224,7 +221,7 @@ module Asciidoctor
       informal = !node.title?
       listing_attributes = (common_attributes node.id, node.role, node.reftext)
       if node.style == 'source' && (node.attr? 'language')
-        numbering = (node.attr? 'linenums') ? 'numbered' : 'unnumbered'
+        numbering = (node.attr? 'linenums', nil, false) ? 'numbered' : 'unnumbered'
         listing_content = %(<programlisting#{informal ? listing_attributes : nil} language="#{node.attr 'language', nil, false}" linenumbering="#{numbering}">#{node.content}</programlisting>)
       else
         listing_content = %(<screen#{informal ? listing_attributes : nil}>#{node.content}</screen>)
@@ -256,10 +253,12 @@ module Asciidoctor
 
     def stem node
       if (idx = node.subs.index :specialcharacters)
-        node.subs.delete :specialcharacters
+        node.subs.delete_at idx
+        equation = node.content
+        idx > 0 ? (node.subs.insert idx, :specialcharacters) : (node.subs.unshift :specialcharacters)
+      else
+        equation = node.content
       end
-      equation = node.content
-      node.subs.insert idx, :specialcharacters if idx
       if node.style == 'asciimath'
         if ((defined? ::AsciiMath) || ((defined? @asciimath_available) ? @asciimath_available :
             (@asciimath_available = Helpers.require_library 'asciimath', true, :warn)))
@@ -299,13 +298,13 @@ module Asciidoctor
         result << '</listitem>'
       end
       result << %(</orderedlist>)
-      result * EOL
+      result * LF
     end
 
     def open node
       case node.style
       when 'abstract'
-        if node.parent == node.document && node.document.attr?('doctype', 'book')
+        if node.parent == node.document && node.document.doctype == 'book'
           warn 'asciidoctor: WARNING: abstract block cannot be used in a document without a title when doctype is book. Excluding block content.'
           ''
         else
@@ -368,7 +367,7 @@ module Asciidoctor
       end
       result << (resolve_content node)
       result << '</blockquote>'
-      result * EOL
+      result * LF
     end
 
     def thematic_break node
@@ -382,13 +381,12 @@ module Asciidoctor
     end
 
     TABLE_PI_NAMES = ['dbhtml', 'dbfo', 'dblatex']
-    TABLE_SECTIONS = [:head, :foot, :body]
 
     def table node
       has_body = false
       result = []
       pgwide_attribute = (node.option? 'pgwide') ? ' pgwide="1"' : nil
-      result << %(<#{tag_name = node.title? ? 'table' : 'informaltable'}#{common_attributes node.id, node.role, node.reftext}#{pgwide_attribute} frame="#{node.attr 'frame', 'all'}" rowsep="#{['none', 'cols'].include?(node.attr 'grid') ? 0 : 1}" colsep="#{['none', 'rows'].include?(node.attr 'grid') ? 0 : 1}">)
+      result << %(<#{tag_name = node.title? ? 'table' : 'informaltable'}#{common_attributes node.id, node.role, node.reftext}#{pgwide_attribute} frame="#{node.attr 'frame', 'all'}" rowsep="#{['none', 'cols'].include?(node.attr 'grid') ? 0 : 1}" colsep="#{['none', 'rows'].include?(node.attr 'grid') ? 0 : 1}"#{(node.attr? 'orientation', 'landscape', nil) ? ' orient="land"' : nil}>)
       if (node.option? 'unbreakable')
         result << '<?dbfo keep-together="always"?>'
       elsif (node.option? 'breakable')
@@ -407,10 +405,11 @@ module Asciidoctor
       node.columns.each do |col|
         result << %(<colspec colname="col_#{col.attr 'colnumber'}" colwidth="#{col.attr col_width_key}*"/>)
       end
-      TABLE_SECTIONS.select {|tblsec| !node.rows[tblsec].empty? }.each do |tblsec|
-        has_body = true if tblsec == :body
-        result << %(<t#{tblsec}>)
-        node.rows[tblsec].each do |row|
+      node.rows.by_section.each do |tsec, rows|
+        next if rows.empty?
+        has_body = true if tsec == :body
+        result << %(<t#{tsec}>)
+        rows.each do |row|
           result << '<row>'
           row.each do |cell|
             halign_attribute = (cell.attr? 'halign') ? %( align="#{cell.attr 'halign'}") : nil
@@ -419,20 +418,20 @@ module Asciidoctor
             rowspan_attribute = cell.rowspan ? %( morerows="#{cell.rowspan - 1}") : nil
             # NOTE <entry> may not have whitespace (e.g., line breaks) as a direct descendant according to DocBook rules
             entry_start = %(<entry#{halign_attribute}#{valign_attribute}#{colspan_attribute}#{rowspan_attribute}>)
-            cell_content = if tblsec == :head
-              cell.text
+            if tsec == :head
+              cell_content = cell.text
             else
               case cell.style
               when :asciidoc
-                cell.content
+                cell_content = cell.content
               when :verse
-                %(<literallayout>#{cell.text}</literallayout>)
+                cell_content = %(<literallayout>#{cell.text}</literallayout>)
               when :literal
-                %(<literallayout class="monospaced">#{cell.text}</literallayout>)
+                cell_content = %(<literallayout class="monospaced">#{cell.text}</literallayout>)
               when :header
-                cell.content.map {|text| %(<simpara><emphasis role="strong">#{text}</emphasis></simpara>) }.join
+                cell_content = (cell_content = cell.content).empty? ? '' : %(<simpara><emphasis role="strong">#{cell_content * '</emphasis></simpara><simpara><emphasis role="strong">'}</emphasis></simpara>)
               else
-                cell.content.map {|text| %(<simpara>#{text}</simpara>) }.join
+                cell_content = (cell_content = cell.content).empty? ? '' : %(<simpara>#{cell_content * '</simpara><simpara>'}</simpara>)
               end
             end
             entry_end = (node.document.attr? 'cellbgcolor') ? %(<?dbfo bgcolor="#{node.document.attr 'cellbgcolor'}"?></entry>) : '</entry>'
@@ -440,16 +439,16 @@ module Asciidoctor
           end
           result << '</row>'
         end
-        result << %(</t#{tblsec}>)
+        result << %(</t#{tsec}>)
       end
       result << '</tgroup>'
       result << %(</#{tag_name}>)
 
       warn 'asciidoctor: WARNING: tables must have at least one body row' unless has_body
-      result * EOL
+      result * LF
     end
 
-    alias :toc :skip
+    alias toc skip
 
     def ulist node
       result = []
@@ -482,7 +481,7 @@ module Asciidoctor
         result << '</itemizedlist>'
       end
 
-      result * EOL
+      result * LF
     end
 
     def verse node
@@ -501,15 +500,15 @@ module Asciidoctor
       end
       result << %(<literallayout>#{node.content}</literallayout>)
       result << '</blockquote>'
-      result * EOL
+      result * LF
     end
 
-    alias :video :skip
+    alias video skip
 
     def inline_anchor node
       case node.type
       when :ref
-        %(<anchor#{common_attributes node.target, nil, node.text}/>)
+        %(<anchor#{common_attributes((id = node.id), nil, node.reftext || %([#{id}]))}/>)
       when :xref
         if (path = node.attributes['path'])
           # QUESTION should we use refid as fallback text instead? (like the html5 backend?)
@@ -521,8 +520,8 @@ module Asciidoctor
       when :link
         %(<link xl:href="#{node.target}">#{node.text}</link>)
       when :bibref
-        target = node.target
-        %(<anchor#{common_attributes target, nil, "[#{target}]"}/>[#{target}])
+        # NOTE technically node.text should be node.reftext, but subs have already been applied to text
+        %(<anchor#{common_attributes node.id, nil, (text = node.text)}/>#{text})
       else
         warn %(asciidoctor: WARNING: unknown anchor type: #{node.type.inspect})
       end
@@ -555,7 +554,7 @@ module Asciidoctor
 <imageobject>
 <imagedata fileref="#{node.type == 'icon' ? (node.icon_uri node.target) : (node.image_uri node.target)}"#{width_attribute}#{depth_attribute}/>
 </imageobject>
-<textobject><phrase>#{node.attr 'alt'}</phrase></textobject>
+<textobject><phrase>#{node.alt}</phrase></textobject>
 </inlinemediaobject>)
     end
 
@@ -578,7 +577,7 @@ module Asciidoctor
         result << %(<indexterm>
 <primary>#{terms[-1]}</primary>
 </indexterm>)
-        result * EOL
+        result * LF
       end
     end
 
@@ -586,32 +585,33 @@ module Asciidoctor
       if (keys = node.attr 'keys').size == 1
         %(<keycap>#{keys[0]}</keycap>)
       else
-        %(<keycombo>#{keys.map {|key| "<keycap>#{key}</keycap>" }.join}</keycombo>)
+        %(<keycombo><keycap>#{keys * '</keycap><keycap>'}</keycap></keycombo>)
       end
     end
 
     def inline_menu node
       menu = node.attr 'menu'
-      if !(submenus = node.attr 'submenus').empty?
-        submenu_path = submenus.map {|submenu| %(<guisubmenu>#{submenu}</guisubmenu> ) }.join.chop
-        %(<menuchoice><guimenu>#{menu}</guimenu> #{submenu_path} <guimenuitem>#{node.attr 'menuitem'}</guimenuitem></menuchoice>)
-      elsif (menuitem = node.attr 'menuitem')
-        %(<menuchoice><guimenu>#{menu}</guimenu> <guimenuitem>#{menuitem}</guimenuitem></menuchoice>)
+      if (submenus = node.attr 'submenus').empty?
+        if (menuitem = node.attr 'menuitem', nil, false)
+          %(<menuchoice><guimenu>#{menu}</guimenu> <guimenuitem>#{menuitem}</guimenuitem></menuchoice>)
+        else
+          %(<guimenu>#{menu}</guimenu>)
+        end
       else
-        %(<guimenu>#{menu}</guimenu>)
+        %(<menuchoice><guimenu>#{menu}</guimenu> <guisubmenu>#{submenus * '</guisubmenu> <guisubmenu>'}</guisubmenu> <guimenuitem>#{node.attr 'menuitem'}</guimenuitem></menuchoice>)
       end
     end
 
     (QUOTE_TAGS = {
+      :monospaced  => ['<literal>',                '</literal>',     false],
       :emphasis    => ['<emphasis>',               '</emphasis>',    true],
       :strong      => ['<emphasis role="strong">', '</emphasis>',    true],
-      :monospaced  => ['<literal>',                '</literal>',     false],
-      :superscript => ['<superscript>',            '</superscript>', false],
-      :subscript   => ['<subscript>',              '</subscript>',   false],
       :double      => ['&#8220;',                  '&#8221;',        true],
       :single      => ['&#8216;',                  '&#8217;',        true],
-      :mark        => ['<emphasis role="marked">', '</emphasis>',    false]
-    }).default = [nil, nil, true]
+      :mark        => ['<emphasis role="marked">', '</emphasis>',    false],
+      :superscript => ['<superscript>',            '</superscript>', false],
+      :subscript   => ['<subscript>',              '</subscript>',   false]
+    }).default = ['', '', true]
 
     def inline_quoted node
       if (type = node.type) == :asciimath
@@ -628,11 +628,11 @@ module Asciidoctor
       else
         open, close, supports_phrase = QUOTE_TAGS[type]
         text = node.text
-        if (role = node.role)
+        if node.role
           if supports_phrase
-            quoted_text = %(#{open}<phrase role="#{role}">#{text}</phrase>#{close})
+            quoted_text = %(#{open}<phrase role="#{node.role}">#{text}</phrase>#{close})
           else
-            quoted_text = %(#{open.chop} role="#{role}">#{text}#{close})
+            quoted_text = %(#{open.chop} role="#{node.role}">#{text}#{close})
           end
         else
           quoted_text = %(#{open}#{text}#{close})
@@ -658,14 +658,20 @@ module Asciidoctor
       result << %(<email>#{doc.attr email_key}</email>) if doc.attr? email_key
       result << '</author>'
 
-      result * EOL
+      result * LF
     end
 
     def common_attributes id, role = nil, reftext = nil
-      res = id ? %( xml:id="#{id}") : ''
-      res = %(#{res} role="#{role}") if role
-      res = %(#{res} xreflabel="#{reftext}") if reftext
-      res
+      attrs = id ? %( xml:id="#{id}") : ''
+      attrs = %(#{attrs} role="#{role}") if role
+      if reftext
+        if (reftext.include? '<') && ((reftext = reftext.gsub XmlSanitizeRx, '').include? ' ')
+          reftext = (reftext.squeeze ' ').strip
+        end
+        reftext = (reftext.gsub '"', '&quot;') if reftext.include? '"'
+        attrs = %(#{attrs} xreflabel="#{reftext}")
+      end
+      attrs
     end
 
     def doctype_declaration root_tag_name
@@ -673,7 +679,7 @@ module Asciidoctor
     end
 
     def document_info_element doc, info_tag_prefix, use_info_tag_prefix = false
-      info_tag_prefix = '' unless use_info_tag_prefix
+      info_tag_prefix = nil unless use_info_tag_prefix
       result = []
       result << %(<#{info_tag_prefix}info>)
       result << document_title_tags(doc.doctitle :partition => true, :use_fallback => true) unless doc.notitle
@@ -703,6 +709,16 @@ module Asciidoctor
           result << %(</revision>
 </revhistory>)
         end
+        unless use_info_tag_prefix
+          if (doc.attr? 'front-cover-image') || (doc.attr? 'back-cover-image')
+            if (back_cover_tag = cover_tag doc, 'back')
+              result << (cover_tag doc, 'front', true)
+              result << back_cover_tag
+            elsif (front_cover_tag = cover_tag doc, 'front')
+              result << front_cover_tag
+            end
+          end
+        end
         unless (head_docinfo = doc.docinfo).empty?
           result << head_docinfo
         end
@@ -721,7 +737,7 @@ module Asciidoctor
         result << '</refnamediv>'
       end
 
-      result * EOL
+      result * LF
     end
 
     def document_ns_attributes doc
@@ -748,6 +764,35 @@ module Asciidoctor
 
     def title_tag node, optional = true
       !optional || node.title? ? %(<title>#{node.title}</title>\n) : nil
+    end
+
+    def cover_tag doc, face, use_placeholder = false
+      if (cover_image = doc.attr %(#{face}-cover-image))
+        width_attr = nil
+        depth_attr = nil
+        if (cover_image.include? ':') && ImageMacroRx =~ cover_image
+          cover_image = doc.image_uri $1
+          unless $2.empty?
+            attrs = (AttributeList.new $2).parse ['alt', 'width', 'height']
+            if attrs.key? 'scaledwidth'
+              # NOTE scalefit="1" is the default in this case
+              width_attr = %( width="#{attrs['scaledwidth']}")
+            else
+              width_attr = %( contentwidth="#{attrs['width']}") if attrs.key? 'width'
+              depth_attr = %( contentdepth="#{attrs['height']}") if attrs.key? 'height'
+            end
+          end
+        end
+        %(<cover role="#{face}">
+<mediaobject>
+<imageobject>
+<imagedata fileref="#{cover_image}"#{width_attr}#{depth_attr}/>
+</imageobject>
+</mediaobject>
+</cover>)
+      elsif use_placeholder
+        %(<cover role="#{face}"/>)
+      end
     end
   end
 end

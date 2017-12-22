@@ -5,9 +5,9 @@ module Asciidoctor
   # {AbstractNode} objects from a parsed AsciiDoc document tree to the backend
   # format.
   #
-  # The converter scans the provided directories for template files that are
+  # The converter scans the specified directories for template files that are
   # supported by Tilt. If an engine name (e.g., "slim") is specified in the
-  # options Hash passed to the constructor, the scan is limited to template
+  # options Hash passed to the constructor, the scan is restricted to template
   # files that have a matching extension (e.g., ".slim"). The scanner trims any
   # extensions from the basename of the file and uses the resulting name as the
   # key under which to store the template. When the {Converter#convert} method
@@ -15,20 +15,21 @@ module Asciidoctor
   # table and use it to convert the node.
   #
   # For example, the template file "path/to/templates/paragraph.html.slim" will
-  # be registered as the "paragraph" transform. The template would then be used
-  # to convert a paragraph {Block} object from the parsed AsciiDoc tree to an
-  # HTML backend format (e.g., "html5").
+  # be registered as the "paragraph" transform. The template is then used to
+  # convert a paragraph {Block} object from the parsed AsciiDoc tree to an HTML
+  # backend format (e.g., "html5").
   #
   # As an optimization, scan results and templates are cached for the lifetime
   # of the Ruby process. If the {https://rubygems.org/gems/thread_safe
   # thread_safe} gem is installed, these caches are guaranteed to be thread
-  # safe. If this gem is not present, they are not and a warning is issued.
+  # safe. If this gem is not present, there is no such guarantee and a warning
+  # will be issued.
   class Converter::TemplateConverter < Converter::Base
     DEFAULT_ENGINE_OPTIONS = {
       :erb =>  { :trim => '<' },
       # TODO line 466 of haml/compiler.rb sorts the attributes; file an issue to make this configurable
       # NOTE AsciiDoc syntax expects HTML/XML output to use double quotes around attribute values
-      :haml => { :format => :xhtml, :attr_wrapper => '"', :ugly => true, :escape_attrs => false },
+      :haml => { :format => :xhtml, :attr_wrapper => '"', :escape_attrs => false, :ugly => true },
       :slim => { :disable_escape => true, :sort_attrs => false, :pretty => false }
     }
 
@@ -58,6 +59,7 @@ module Asciidoctor
       @template_dirs = template_dirs
       @eruby = opts[:eruby]
       @safe = opts[:safe]
+      @active_engines = {}
       @engine = opts[:template_engine]
       @engine_options = DEFAULT_ENGINE_OPTIONS.inject({}) do |accum, (engine, default_opts)|
         accum[engine] = default_opts.dup
@@ -67,6 +69,7 @@ module Asciidoctor
         @engine_options[:haml][:format] = :html5
         @engine_options[:slim][:format] = :html
       end
+      @engine_options[:slim][:include_dirs] = template_dirs.reverse.map {|dir| ::File.expand_path dir }
       if (overrides = opts[:template_engine_options])
         overrides.each do |engine, override_opts|
           (@engine_options[engine] ||= {}).update override_opts
@@ -208,7 +211,7 @@ module Asciidoctor
     #
     # Returns a [Hash] of Tilt template objects keyed by template name.
     def templates
-      @templates.dup.freeze
+      @templates.dup
     end
 
     # Public: Registers a Tilt template with this converter.
@@ -231,41 +234,53 @@ module Asciidoctor
     #
     # Returns the scan result as a [Hash]
     def scan_dir template_dir, pattern, template_cache = nil
-      result = {}
-      eruby_loaded = nil
+      result, helpers = {}, nil
       # Grab the files in the top level of the directory (do not recurse)
       ::Dir.glob(pattern).select {|match| ::File.file? match }.each do |file|
-        if (basename = ::File.basename file) == 'helpers.rb' || (path_segments = basename.split '.').size < 2
+        if (basename = ::File.basename file) == 'helpers.rb'
+          helpers = file
+          next
+        elsif (path_segments = basename.split '.').size < 2
           next
         end
-        # TODO we could derive the basebackend from the minor extension of the template file
-        #name, *rest, ext_name = *path_segments # this form only works in Ruby >= 1.9
-        name = path_segments[0]
-        if name == 'block_ruler'
+        if (name = path_segments[0]) == 'block_ruler'
           name = 'thematic_break'
         elsif name.start_with? 'block_'
-          name = name[6..-1]
+          name = name.slice 6, name.length
         end
-        ext_name = path_segments[-1]
-        template_class = ::Tilt
-        extra_engine_options = {}
-        if ext_name == 'slim'
-          # slim doesn't get loaded by Tilt, so we have to load it explicitly
-          Helpers.require_library 'slim' unless defined? ::Slim
-          # align safe mode of AsciiDoc embedded in Slim template with safe mode of current document
-          (@engine_options[:slim][:asciidoc] ||= {})[:safe] ||= @safe if @safe && ::Slim::VERSION >= '3.0'
-          # load include plugin when using Slim >= 2.1
-          require 'slim/include' unless (defined? ::Slim::Include) || ::Slim::VERSION < '2.1'
-        elsif ext_name == 'erb'
-          template_class, extra_engine_options = (eruby_loaded ||= load_eruby(@eruby))
-        end
-        next unless ::Tilt.registered? ext_name
         unless template_cache && (template = template_cache[file])
-          template = template_class.new file, 1, (@engine_options[ext_name.to_sym] || {}).merge(extra_engine_options)
+          template_class, extra_engine_options, extsym = ::Tilt, {}, path_segments[-1].to_sym
+          case extsym
+          when :slim
+            unless @active_engines[extsym]
+              # NOTE slim doesn't get automatically loaded by Tilt
+              Helpers.require_library 'slim' unless defined? ::Slim
+              # align safe mode of AsciiDoc embedded in Slim template with safe mode of current document
+              # NOTE safe mode won't get updated if using template cache and changing safe mode
+              (@engine_options[extsym][:asciidoc] ||= {})[:safe] ||= @safe if @safe && ::Slim::VERSION >= '3.0'
+              # load include plugin when using Slim >= 2.1
+              require 'slim/include' unless (defined? ::Slim::Include) || ::Slim::VERSION < '2.1'
+              @active_engines[extsym] = true
+            end
+          when :haml
+            unless @active_engines[extsym]
+              Helpers.require_library 'haml' unless defined? ::Haml
+              # NOTE Haml 5 dropped support for pretty printing
+              @engine_options[extsym].delete :ugly if defined? ::Haml::TempleEngine
+              @active_engines[extsym] = true
+            end
+          when :erb
+            template_class, extra_engine_options = (@active_engines[extsym] ||= (load_eruby @eruby))
+          when :rb
+            next
+          else
+            next unless ::Tilt.registered? extsym.to_s
+          end
+          template = template_class.new file, 1, (@engine_options[extsym] ||= {}).merge(extra_engine_options)
         end
         result[name] = template
       end
-      if ::File.file?(helpers = (::File.join template_dir, 'helpers.rb'))
+      if helpers || ::File.file?(helpers = (::File.join template_dir, 'helpers.rb'))
         require helpers
       end
       result

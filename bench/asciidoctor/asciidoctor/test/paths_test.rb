@@ -88,12 +88,16 @@ context 'Path Resolver' do
       assert_equal 'assets/images', @resolver.web_path(nil, 'assets/images')
     end
 
-    test 'posixfies windows paths' do
+    test 'posixifies windows paths' do
       assert_equal '/images', @resolver.web_path('\\images')
       assert_equal '../images', @resolver.web_path('..\\images')
       assert_equal '/images', @resolver.web_path('\\..\\images')
       assert_equal 'assets/images', @resolver.web_path('assets\\images')
       assert_equal '../assets/images', @resolver.web_path('assets\\images', '..\\images\\..')
+    end
+
+    test 'URL encode spaces in path' do
+      assert_equal 'assets%20and%20stuff/lots%20of%20images', @resolver.web_path('lots of images', 'assets and stuff')
     end
   end
 
@@ -105,9 +109,23 @@ context 'Path Resolver' do
     end
 
     test 'prevents access to paths outside of jail' do
-      assert_equal "#{JAIL}/css", @resolver.system_path('../../../../../css', "#{JAIL}/assets/stylesheets", JAIL)
-      assert_equal "#{JAIL}/css", @resolver.system_path('/../../../../../css', "#{JAIL}/assets/stylesheets", JAIL)
-      assert_equal "#{JAIL}/css", @resolver.system_path('../../../css', '../../..', JAIL)
+      result, warnings = redirect_streams do |_, err|
+        [(@resolver.system_path '../../../../../css', %(#{JAIL}/assets/stylesheets), JAIL), err.string]
+      end
+      assert_equal %(#{JAIL}/css), result
+      assert_includes warnings, 'path has illegal reference to ancestor of jail'
+
+      result, warnings = redirect_streams do |_, err|
+        [(@resolver.system_path '/../../../../../css', %(#{JAIL}/assets/stylesheets), JAIL), err.string]
+      end
+      assert_equal %(#{JAIL}/css), result
+      assert_includes warnings, 'path has illegal reference to ancestor of jail'
+
+      result, warnings = redirect_streams do |_, err|
+        [(@resolver.system_path '../../../css', '../../..', JAIL), err.string]
+      end
+      assert_equal %(#{JAIL}/css), result
+      assert_includes warnings, 'path has illegal reference to ancestor of jail'
     end
 
     test 'throws exception for illegal path access if recover is false' do
@@ -181,6 +199,7 @@ context 'Path Resolver' do
       pwd = File.expand_path(Dir.pwd)
       assert_equal "#{pwd}/images/tiger.png", @resolver.system_path('images/tiger.png', '')
       assert_equal "#{pwd}/images/tiger.png", @resolver.system_path('images/tiger.png', nil)
+      assert_equal "#{pwd}/images/tiger.png", @resolver.system_path('images/tiger.png')
     end
 
     test 'resolves relative hidden target relative to current directory if start is empty' do
@@ -190,28 +209,50 @@ context 'Path Resolver' do
     end
 
     test 'resolves and normalizes start with target is empty' do
-      pwd = File.expand_path(Dir.pwd)
-      assert_equal '/home/doctor/docs', @resolver.system_path('', '/home/doctor/docs')
-      assert_equal '/home/doctor/docs', @resolver.system_path(nil, '/home/doctor/docs')
-      assert_equal "#{pwd}/assets/images", @resolver.system_path(nil, 'assets/images')
-      assert_equal "#{JAIL}/assets/images", @resolver.system_path('', '../assets/images', JAIL)
+      pwd = File.expand_path Dir.pwd
+      assert_equal '/home/doctor/docs', (@resolver.system_path '', '/home/doctor/docs')
+      assert_equal '/home/doctor/docs', (@resolver.system_path nil, '/home/doctor/docs')
+      assert_equal %(#{pwd}/assets/images), (@resolver.system_path nil, 'assets/images')
+      result, warnings = redirect_streams do |_, err|
+        [(@resolver.system_path '', '../assets/images', JAIL), err.string]
+      end
+      assert_equal %(#{JAIL}/assets/images), result
+      assert_includes warnings, 'path has illegal reference to ancestor of jail'
     end
 
-    test 'posixfies windows paths' do
+    test 'posixifies windows paths' do
       assert_equal "#{JAIL}/assets/css", @resolver.system_path('..\\css', 'assets\\stylesheets', JAIL)
     end
 
     test 'resolves windows paths when file separator is backlash' do
       @resolver.file_separator = '\\'
-      assert_equal 'C:/data/docs', @resolver.system_path('..', "C:\\data\\docs\\assets", 'C:\\data\\docs')
-      assert_equal 'C:/data/docs', @resolver.system_path('..\\..', "C:\\data\\docs\\assets", 'C:\\data\\docs')
-      assert_equal 'C:/data/docs/css', @resolver.system_path('..\\..\\css', "C:\\data\\docs\\assets", 'C:\\data\\docs')
+
+      assert_equal 'C:/data/docs', (@resolver.system_path '..', 'C:\\data\\docs\\assets', 'C:\\data\\docs')
+
+      result, warnings = redirect_streams do |_, err|
+        [(@resolver.system_path '..\\..', 'C:\\data\\docs\\assets', 'C:\\data\\docs'), err.string]
+      end
+      assert_equal 'C:/data/docs', result
+      assert_includes warnings, 'path has illegal reference to ancestor of jail'
+
+      result, warnings = redirect_streams do |_, err|
+        [(@resolver.system_path '..\\..\\css', 'C:\\data\\docs\\assets', 'C:\\data\\docs'), err.string]
+      end
+      assert_equal 'C:/data/docs/css', result
+      assert_includes warnings, 'path has illegal reference to ancestor of jail'
     end
 
     test 'should calculate relative path' do
       filename = @resolver.system_path('part1/chapter1/section1.adoc', nil, JAIL)
       assert_equal "#{JAIL}/part1/chapter1/section1.adoc", filename
       assert_equal 'part1/chapter1/section1.adoc', @resolver.relative_path(filename, JAIL)
+    end
+
+    test 'should resolve relative path to filename if does not share common root with base directory' do
+      filename = '/docs/partials'
+      base_dir = '/home/user/docs'
+      result = @resolver.relative_path filename, base_dir
+      assert_equal filename, result
     end
 
     test 'should resolve relative path relative to base dir in unsafe mode' do
