@@ -30,6 +30,9 @@ class BasicSocket < IO
 
     IO.setup(sock, fixnum, nil, true)
     sock.binmode
+    # TruffleRuby: start
+    sock.do_not_reverse_lookup = do_not_reverse_lookup
+    # TruffleRuby: end
 
     sock
   end
