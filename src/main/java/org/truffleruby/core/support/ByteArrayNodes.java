@@ -22,8 +22,10 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeGuards;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
@@ -156,17 +158,58 @@ public abstract class ByteArrayNodes {
     @CoreMethod(names = "locate", required = 3, lowerFixnum = { 2, 3 })
     public abstract static class LocateNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyString(pattern)")
+        @Specialization(guards = { "isRubyString(pattern)", "isSingleBytePattern(pattern)" })
+        public Object getByteSingleByte(DynamicObject bytes, DynamicObject pattern, int start, int length,
+                                        @Cached("create()") RopeNodes.BytesNode bytesNode,
+                                        @Cached("create()") BranchProfile tooSmallStartProfile,
+                                        @Cached("create()") BranchProfile tooLargeStartProfile,
+                                        @Cached("create()") BranchProfile matchFoundProfile,
+                                        @Cached("create()") BranchProfile noMatchProfile) {
+
+            final ByteArrayBuilder in = Layouts.BYTE_ARRAY.getBytes(bytes);
+            final Rope rope = StringOperations.rope(pattern);
+            final byte searchByte = bytesNode.execute(rope)[0];
+
+            if (start >= length) {
+                tooLargeStartProfile.enter();
+                return nil();
+            }
+
+            if (start < 0) {
+                tooSmallStartProfile.enter();
+                start = 0;
+            }
+
+            for (int i = start; i < length; i++) {
+                if (in.get(i) == searchByte) {
+                    matchFoundProfile.enter();
+                    return i + 1;
+                }
+            }
+
+            noMatchProfile.enter();
+            return nil();
+        }
+
+        @Specialization(guards = { "isRubyString(pattern)", "!isSingleBytePattern(pattern)" })
         public Object getByte(DynamicObject bytes, DynamicObject pattern, int start, int length,
-                              @Cached("create()") RopeNodes.BytesNode bytesNode) {
+                              @Cached("create()") RopeNodes.BytesNode bytesNode,
+                              @Cached("createBinaryProfile()") ConditionProfile notFoundProfile) {
             final Rope patternRope = StringOperations.rope(pattern);
             final int index = indexOf(Layouts.BYTE_ARRAY.getBytes(bytes), start, length, bytesNode.execute(patternRope));
 
-            if (index == -1) {
+            if (notFoundProfile.profile(index == -1)) {
                 return nil();
             } else {
                 return index + patternRope.characterLength();
             }
+        }
+
+        protected boolean isSingleBytePattern(DynamicObject pattern) {
+            assert RubyGuards.isRubyString(pattern);
+
+            final Rope rope = StringOperations.rope(pattern);
+            return RopeGuards.isSingleByteString(rope);
         }
 
         public int indexOf(ByteArrayBuilder in, int start, int length, byte[] target) {
