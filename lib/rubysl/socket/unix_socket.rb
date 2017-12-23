@@ -29,9 +29,9 @@ class UNIXSocket < BasicSocket
 
   def self.socketpair(type = Socket::SOCK_STREAM, protocol = 0)
     family = Socket::AF_UNIX
-    type   = RubySL::Socket.socket_type(type)
+    type   = Truffle::Socket.socket_type(type)
 
-    fd0, fd1 = RubySL::Socket::Foreign.socketpair(family, type, protocol)
+    fd0, fd1 = Truffle::Socket::Foreign.socketpair(family, type, protocol)
 
     [for_fd(fd0), for_fd(fd1)]
   end
@@ -44,7 +44,7 @@ class UNIXSocket < BasicSocket
     @no_reverse_lookup = self.class.do_not_reverse_lookup
     @path              = '' # empty for client sockets
 
-    fd = RubySL::Socket::Foreign.socket(Socket::AF_UNIX, Socket::SOCK_STREAM, 0)
+    fd = Truffle::Socket::Foreign.socket(Socket::AF_UNIX, Socket::SOCK_STREAM, 0)
 
     Errno.handle('socket(2)') if fd < 0
 
@@ -52,21 +52,21 @@ class UNIXSocket < BasicSocket
     binmode
 
     sockaddr = Socket.sockaddr_un(path)
-    status   = RubySL::Socket::Foreign.connect(descriptor, sockaddr)
+    status   = Truffle::Socket::Foreign.connect(descriptor, sockaddr)
 
     Errno.handle('connect(2)') if status < 0
   end
 
   def recvfrom(bytes_read, flags = 0)
-    RubySL::Socket::Foreign.memory_pointer(bytes_read) do |buf|
-      n_bytes = RubySL::Socket::Foreign.recvfrom(@descriptor, buf, bytes_read, flags, nil, nil)
+    Truffle::Socket::Foreign.memory_pointer(bytes_read) do |buf|
+      n_bytes = Truffle::Socket::Foreign.recvfrom(@descriptor, buf, bytes_read, flags, nil, nil)
       Errno.handle('recvfrom(2)') if n_bytes == -1
       return [buf.read_string(n_bytes), ['AF_UNIX', '']]
     end
   end
 
   def path
-    @path ||= RubySL::Socket::Foreign.getsockname(descriptor).unpack('SZ*')[1]
+    @path ||= Truffle::Socket::Foreign.getsockname(descriptor).unpack('SZ*')[1]
   end
 
   def addr
@@ -74,7 +74,7 @@ class UNIXSocket < BasicSocket
   end
 
   def peeraddr
-    path = RubySL::Socket::Foreign.getpeername(descriptor).unpack('SZ*')[1]
+    path = Truffle::Socket::Foreign.getpeername(descriptor).unpack('SZ*')[1]
 
     ['AF_UNIX', path]
   end

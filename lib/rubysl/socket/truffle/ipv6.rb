@@ -24,38 +24,40 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module RubySL
+module Truffle
   module Socket
-    module Foreign
-      class Hostent < Truffle::FFI::Struct
-        config('platform.hostent', :h_name, :h_aliases, :h_addrtype,
-               :h_length, :h_addr_list)
+    module IPv6
+      # The IPv6 loopback address as produced by inet_pton(INET6, "::1")
+      LOOPBACK = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
 
-        def hostname
-          self[:h_name]
-        end
+      # The bytes used for an unspecified IPv6 address.
+      UNSPECIFIED = [0] * 16
 
-        def type
-          self[:h_addrtype]
-        end
+      # The first 10 bytes of an IPv4 compatible IPv6 address.
+      COMPAT_PREFIX = [0] * 10
 
-        def aliases
-          return [] if self[:h_aliases].null?
+      def self.ipv4_embedded?(bytes)
+        ipv4_mapped?(bytes) || ipv4_compatible?(bytes)
+      end
 
-          RubySL::Socket::Foreign.pointers_of_type(self[:h_aliases], :string)
-            .map(&:read_string)
-        end
+      def self.ipv4_mapped?(bytes)
+        prefix = bytes.first(10)
+        follow = bytes[10..11]
 
-        def addresses
-          return [] if self[:h_addr_list].null?
+        prefix == COMPAT_PREFIX &&
+          follow[0] == 255 &&
+          follow[1] == 255 &&
+          (bytes[-4] > 0 || bytes[-3] > 0 || bytes[-2] > 0)
+      end
 
-          RubySL::Socket::Foreign.pointers_of_type(self[:h_addr_list], :string)
-            .map { |pointer| pointer.read_string(self[:h_length]) }
-        end
+      def self.ipv4_compatible?(bytes)
+        prefix = bytes.first(10)
+        follow = bytes[10..11]
 
-        def to_s
-          pointer.read_string(size)
-        end
+        prefix == COMPAT_PREFIX &&
+          follow[0] == 0 &&
+          follow[1] == 0 &&
+          (bytes[-4] > 0 || bytes[-3] > 0 || bytes[-2] > 0)
       end
     end
   end

@@ -24,57 +24,42 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module RubySL
+module Truffle
   module Socket
-    module AncillaryData
-      LEVEL_PREFIXES = {
-        ::Socket::SOL_SOCKET   => %w{SCM_ UNIX},
-        ::Socket::IPPROTO_IP   => %w{IP_ IP},
-        ::Socket::IPPROTO_IPV6 => %w{IPV6_ IPV6},
-        ::Socket::IPPROTO_TCP  => %w{TCP_ TCP},
-        ::Socket::IPPROTO_UDP  => %w{UDP_ UDP}
-      }
+    module Foreign
+      class Linger < Truffle::FFI::Struct
+        config('platform.linger', :l_onoff, :l_linger)
 
-      def self.level(raw_level)
-        if raw_level.is_a?(Fixnum)
-          raw_level
-        else
-          level = Socket.coerce_to_string(raw_level)
+        def self.from_string(string)
+          linger = new
 
-          if level == 'SOL_SOCKET' or level == 'SOCKET'
-            ::Socket::SOL_SOCKET
+          linger.pointer.write_string(string, string.bytesize)
 
-          # Translates "TCP" into "IPPROTO_TCP", "UDP" into "IPPROTO_UDP", etc.
+          linger
+        end
+
+        def on_off
+          self[:l_onoff]
+        end
+
+        def linger
+          self[:l_linger].to_i
+        end
+
+        def on_off=(value)
+          if value.is_a?(Integer)
+            self[:l_onoff] = value
           else
-            Socket.prefixed_socket_constant(level, 'IPPROTO_') do
-              "unknown protocol level: #{level}"
-            end
+            self[:l_onoff] = value ? 1 : 0
           end
         end
-      end
 
-      def self.type(family, level, raw_type)
-        if raw_type.is_a?(Fixnum)
-          raw_type
-        else
-          type = Socket.coerce_to_string(raw_type)
+        def linger=(value)
+          self[:l_linger] = value
+        end
 
-          if family == ::Socket::AF_INET or family == ::Socket::AF_INET6
-            prefix, label = LEVEL_PREFIXES[level]
-          else
-            prefix, label = LEVEL_PREFIXES[::Socket::SOL_SOCKET]
-          end
-
-          # Translates "RIGHTS" into "SCM_RIGHTS", "CORK" into "TCP_CORK" (when
-          # the level is IPPROTO_TCP), etc.
-          if prefix and label
-            Socket.prefixed_socket_constant(type, prefix) do
-              "Unknown #{label} control message: #{type}"
-            end
-          else
-            raise TypeError,
-              "no implicit conversion of #{type.class} into Integer"
-          end
+        def to_s
+          pointer.read_string(pointer.total)
         end
       end
     end

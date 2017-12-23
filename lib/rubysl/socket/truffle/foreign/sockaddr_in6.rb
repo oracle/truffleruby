@@ -24,42 +24,26 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module RubySL
+module Truffle
   module Socket
     module Foreign
-      class Linger < Truffle::FFI::Struct
-        config('platform.linger', :l_onoff, :l_linger)
+      class SockaddrIn6 < Truffle::FFI::Struct
+        config("platform.sockaddr_in6", :sin6_family, :sin6_port,
+               :sin6_flowinfo, :sin6_addr, :sin6_scope_id)
 
-        def self.from_string(string)
-          linger = new
+        def self.with_sockaddr(addr)
+          pointer = Foreign.memory_pointer(addr.bytesize)
+          pointer.write_string(addr, addr.bytesize)
 
-          linger.pointer.write_string(string, string.bytesize)
-
-          linger
+          new(pointer)
         end
 
-        def on_off
-          self[:l_onoff]
-        end
-
-        def linger
-          self[:l_linger].to_i
-        end
-
-        def on_off=(value)
-          if value.is_a?(Integer)
-            self[:l_onoff] = value
-          else
-            self[:l_onoff] = value ? 1 : 0
-          end
-        end
-
-        def linger=(value)
-          self[:l_linger] = value
+        def family
+          self[:sin6_family]
         end
 
         def to_s
-          pointer.read_string(pointer.total)
+          pointer.read_string(self.class.size)
         end
       end
     end

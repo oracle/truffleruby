@@ -52,11 +52,11 @@ class BasicSocket < IO
   end
 
   def getsockopt(level, optname)
-    sockname = RubySL::Socket::Foreign.getsockname(descriptor)
-    family   = RubySL::Socket.family_for_sockaddr_in(sockname)
-    level    = RubySL::Socket::SocketOptions.socket_level(level, family)
-    optname  = RubySL::Socket::SocketOptions.socket_option(level, optname)
-    data     = RubySL::Socket::Foreign.getsockopt(descriptor, level, optname)
+    sockname = Truffle::Socket::Foreign.getsockname(descriptor)
+    family   = Truffle::Socket.family_for_sockaddr_in(sockname)
+    level    = Truffle::Socket::SocketOptions.socket_level(level, family)
+    optname  = Truffle::Socket::SocketOptions.socket_option(level, optname)
+    data     = Truffle::Socket::Foreign.getsockopt(descriptor, level, optname)
 
     Socket::Option.new(family, level, optname, data)
   end
@@ -83,24 +83,24 @@ class BasicSocket < IO
     optval = 1 if optval == true
     optval = 0 if optval == false
 
-    sockname = RubySL::Socket::Foreign.getsockname(descriptor)
-    family   = RubySL::Socket.family_for_sockaddr_in(sockname)
-    level    = RubySL::Socket::SocketOptions.socket_level(level, family)
-    optname  = RubySL::Socket::SocketOptions.socket_option(level, optname)
+    sockname = Truffle::Socket::Foreign.getsockname(descriptor)
+    family   = Truffle::Socket.family_for_sockaddr_in(sockname)
+    level    = Truffle::Socket::SocketOptions.socket_level(level, family)
+    optname  = Truffle::Socket::SocketOptions.socket_option(level, optname)
     error    = 0
 
     if optval.is_a?(Fixnum)
-      RubySL::Socket::Foreign.memory_pointer(:socklen_t) do |pointer|
+      Truffle::Socket::Foreign.memory_pointer(:socklen_t) do |pointer|
         pointer.write_int(optval)
 
-        error = RubySL::Socket::Foreign
+        error = Truffle::Socket::Foreign
           .setsockopt(descriptor, level, optname, pointer, pointer.total)
       end
     elsif optval.is_a?(String)
-      RubySL::Socket::Foreign.memory_pointer(optval.bytesize) do |pointer|
+      Truffle::Socket::Foreign.memory_pointer(optval.bytesize) do |pointer|
         pointer.write_string(optval)
 
-        error = RubySL::Socket::Foreign
+        error = Truffle::Socket::Foreign
           .setsockopt(descriptor, level, optname, pointer, optval.bytesize)
       end
     else
@@ -113,11 +113,11 @@ class BasicSocket < IO
   end
 
   def getsockname
-    RubySL::Socket::Foreign.getsockname(descriptor)
+    Truffle::Socket::Foreign.getsockname(descriptor)
   end
 
   def getpeername
-    RubySL::Socket::Foreign.getpeername(descriptor)
+    Truffle::Socket::Foreign.getpeername(descriptor)
   end
 
   def send(message, flags, dest_sockaddr = nil)
@@ -128,33 +128,33 @@ class BasicSocket < IO
       dest_sockaddr = dest_sockaddr.to_sockaddr
     end
 
-    RubySL::Socket::Foreign.char_pointer(bytes) do |buffer|
+    Truffle::Socket::Foreign.char_pointer(bytes) do |buffer|
       buffer.write_string(message)
 
       if dest_sockaddr.is_a?(String)
-        addr = RubySL::Socket.sockaddr_class_for_socket(self)
+        addr = Truffle::Socket.sockaddr_class_for_socket(self)
           .with_sockaddr(dest_sockaddr)
 
         begin
-          bytes_sent = RubySL::Socket::Foreign
+          bytes_sent = Truffle::Socket::Foreign
             .sendto(descriptor, buffer, bytes, flags, addr, addr.size)
         ensure
           addr.free
         end
       else
-        bytes_sent = RubySL::Socket::Foreign
+        bytes_sent = Truffle::Socket::Foreign
           .send(descriptor, buffer, bytes, flags)
       end
     end
 
-    RubySL::Socket::Error.write_error('send(2)', self) if bytes_sent < 0
+    Truffle::Socket::Error.write_error('send(2)', self) if bytes_sent < 0
 
     bytes_sent
   end
 
   def recv(bytes_to_read, flags = 0)
-    RubySL::Socket::Foreign.memory_pointer(bytes_to_read) do |buf|
-      n_bytes = RubySL::Socket::Foreign.recv(@descriptor, buf, bytes_to_read, flags)
+    Truffle::Socket::Foreign.memory_pointer(bytes_to_read) do |buf|
+      n_bytes = Truffle::Socket::Foreign.recv(@descriptor, buf, bytes_to_read, flags)
       Errno.handle('recv(2)') if n_bytes == -1
       return buf.read_string(n_bytes)
     end
@@ -174,18 +174,18 @@ class BasicSocket < IO
     msg_len = max_msg_len || 4096
 
     loop do
-      msg_buffer = RubySL::Socket::Foreign.char_pointer(msg_len)
-      address    = RubySL::Socket.sockaddr_class_for_socket(self).new
-      io_vec     = RubySL::Socket::Foreign::Iovec.with_buffer(msg_buffer)
-      header     = RubySL::Socket::Foreign::Msghdr.with_buffers(address, io_vec)
+      msg_buffer = Truffle::Socket::Foreign.char_pointer(msg_len)
+      address    = Truffle::Socket.sockaddr_class_for_socket(self).new
+      io_vec     = Truffle::Socket::Foreign::Iovec.with_buffer(msg_buffer)
+      header     = Truffle::Socket::Foreign::Msghdr.with_buffers(address, io_vec)
 
       begin
         need_more = false
 
-        msg_size = RubySL::Socket::Foreign
+        msg_size = Truffle::Socket::Foreign
           .recvmsg(descriptor, header.pointer, flags)
 
-        RubySL::Socket::Error.read_error('recvmsg(2)', self) if msg_size < 0
+        Truffle::Socket::Error.read_error('recvmsg(2)', self) if msg_size < 0
 
         if grow_msg and header.message_truncated?
           need_more = true
@@ -220,9 +220,9 @@ class BasicSocket < IO
   end
 
   def sendmsg(message, flags = 0, dest_sockaddr = nil, *_)
-    msg_buffer = RubySL::Socket::Foreign.char_pointer(message.bytesize)
-    io_vec     = RubySL::Socket::Foreign::Iovec.with_buffer(msg_buffer)
-    header     = RubySL::Socket::Foreign::Msghdr.new
+    msg_buffer = Truffle::Socket::Foreign.char_pointer(message.bytesize)
+    io_vec     = Truffle::Socket::Foreign::Iovec.with_buffer(msg_buffer)
+    header     = Truffle::Socket::Foreign::Msghdr.new
     address    = nil
 
     begin
@@ -235,16 +235,16 @@ class BasicSocket < IO
       end
 
       if dest_sockaddr.is_a?(String)
-        address = RubySL::Socket::Foreign::SockaddrIn
+        address = Truffle::Socket::Foreign::SockaddrIn
           .with_sockaddr(dest_sockaddr)
 
         header.address = address
       end
 
-      num_bytes = RubySL::Socket::Foreign
+      num_bytes = Truffle::Socket::Foreign
         .sendmsg(descriptor, header.pointer, flags)
 
-      RubySL::Socket::Error.read_error('sendmsg(2)', self) if num_bytes < 0
+      Truffle::Socket::Error.read_error('sendmsg(2)', self) if num_bytes < 0
 
       num_bytes
     ensure
@@ -268,7 +268,7 @@ class BasicSocket < IO
       return close
     end
 
-    RubySL::Socket::Foreign.shutdown(descriptor, 0)
+    Truffle::Socket::Foreign.shutdown(descriptor, 0)
 
     force_write_only
 
@@ -282,7 +282,7 @@ class BasicSocket < IO
       return close
     end
 
-    RubySL::Socket::Foreign.shutdown(descriptor, 1)
+    Truffle::Socket::Foreign.shutdown(descriptor, 1)
 
     force_read_only
 
@@ -292,14 +292,14 @@ class BasicSocket < IO
   def recv_nonblock(bytes_to_read, flags = 0)
     fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
 
-    RubySL::Socket::Error.wrap_read_nonblock do
+    Truffle::Socket::Error.wrap_read_nonblock do
       recv(bytes_to_read, flags)
     end
   end
 
   def shutdown(how = Socket::SHUT_RDWR)
-    how = RubySL::Socket.shutdown_option(how)
-    err = RubySL::Socket::Foreign.shutdown(descriptor, how)
+    how = Truffle::Socket.shutdown_option(how)
+    err = Truffle::Socket::Foreign.shutdown(descriptor, how)
 
     Errno.handle('shutdown(2)') unless err == 0
 
@@ -321,6 +321,6 @@ class BasicSocket < IO
   end
 
   def getpeereid
-    RubySL::Socket::Foreign.getpeereid(descriptor)
+    Truffle::Socket::Foreign.getpeereid(descriptor)
   end
 end

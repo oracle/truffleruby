@@ -24,19 +24,18 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module RubySL
+module Truffle
   module Socket
     module Foreign
-      class Iovec < Truffle::FFI::Struct
-        config('platform.iovec', :iov_base, :iov_len)
+      class Servent < Truffle::FFI::Struct
+        config('platform.servent', :s_name, :s_aliases, :s_port, :s_proto)
 
-        def self.with_buffer(buffer)
-          vec = new
+        def name
+          self[:s_name].read_string
+        end
 
-          vec[:iov_base] = buffer
-          vec[:iov_len]  = buffer.total
-
-          vec
+        def port
+          self[:s_port]
         end
       end
     end

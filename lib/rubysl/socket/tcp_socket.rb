@@ -34,7 +34,7 @@ class TCPSocket < IPSocket
     addresses    = addrinfos.map { |a| a[3] }
     alternatives = []
 
-    RubySL::Socket.aliases_for_hostname(hostname).each do |name|
+    Truffle::Socket.aliases_for_hostname(hostname).each do |name|
       alternatives << name unless name == hostname
     end
 
@@ -45,13 +45,13 @@ class TCPSocket < IPSocket
     @no_reverse_lookup = self.class.do_not_reverse_lookup
 
     if host
-      host = RubySL::Socket.coerce_to_string(host)
+      host = Truffle::Socket.coerce_to_string(host)
     end
 
     if service.is_a?(Fixnum)
       service = service.to_s
     else
-      service = RubySL::Socket.coerce_to_string(service)
+      service = Truffle::Socket.coerce_to_string(service)
     end
 
     local_addrinfo = nil
@@ -60,13 +60,13 @@ class TCPSocket < IPSocket
     # socket to said address (besides also connecting to the remote address).
     if local_host or local_service
       if local_host
-        local_host = RubySL::Socket.coerce_to_string(local_host)
+        local_host = Truffle::Socket.coerce_to_string(local_host)
       end
 
       if local_service.is_a?(Fixnum)
         local_service = local_service.to_s
       elsif local_service
-        local_service = RubySL::Socket.coerce_to_string(local_service)
+        local_service = Truffle::Socket.coerce_to_string(local_service)
       end
 
       local_addrinfo = Socket
@@ -85,7 +85,7 @@ class TCPSocket < IPSocket
     Socket.getaddrinfo(host, service, :UNSPEC, :STREAM).each do |addrinfo|
       _, port, address, _, family, socktype, protocol = addrinfo
 
-      descriptor = RubySL::Socket::Foreign.socket(family, socktype, protocol)
+      descriptor = Truffle::Socket::Foreign.socket(family, socktype, protocol)
 
       next if descriptor < 0
 
@@ -97,21 +97,21 @@ class TCPSocket < IPSocket
         end
 
         if local_info
-          status = RubySL::Socket::Foreign
+          status = Truffle::Socket::Foreign
             .bind(descriptor, Socket.sockaddr_in(local_info[1], local_info[2]))
 
           Errno.handle('bind(2)') if status < 0
         end
       end
 
-      connect_status = RubySL::Socket::Foreign
+      connect_status = Truffle::Socket::Foreign
         .connect(descriptor, Socket.sockaddr_in(port, address))
 
       break if connect_status >= 0
     end
 
     if connect_status < 0
-      RubySL::Socket::Foreign.close(descriptor)
+      Truffle::Socket::Foreign.close(descriptor)
 
       Errno.handle('connect(2)')
     else

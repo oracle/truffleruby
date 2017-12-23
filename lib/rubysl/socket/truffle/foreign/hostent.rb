@@ -24,18 +24,38 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# This file is only available on Linux systems.
-
-module RubySL
+module Truffle
   module Socket
     module Foreign
-      def self.getpeereid(descriptor)
-        data = Foreign
-          .getsockopt(descriptor, ::Socket::SOL_SOCKET, ::Socket::SO_PEERCRED)
+      class Hostent < Truffle::FFI::Struct
+        config('platform.hostent', :h_name, :h_aliases, :h_addrtype,
+               :h_length, :h_addr_list)
 
-        _, euid, egid = data.unpack('iii')
+        def hostname
+          self[:h_name]
+        end
 
-        [euid, egid]
+        def type
+          self[:h_addrtype]
+        end
+
+        def aliases
+          return [] if self[:h_aliases].null?
+
+          Truffle::Socket::Foreign.pointers_of_type(self[:h_aliases], :string)
+            .map(&:read_string)
+        end
+
+        def addresses
+          return [] if self[:h_addr_list].null?
+
+          Truffle::Socket::Foreign.pointers_of_type(self[:h_addr_list], :string)
+            .map { |pointer| pointer.read_string(self[:h_length]) }
+        end
+
+        def to_s
+          pointer.read_string(size)
+        end
       end
     end
   end
