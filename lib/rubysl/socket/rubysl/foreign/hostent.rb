@@ -28,7 +28,7 @@ module RubySL
   module Socket
     module Foreign
       class Hostent < Truffle::FFI::Struct
-        config('rbx.platform.hostent', :h_name, :h_aliases, :h_addrtype,
+        config('platform.hostent', :h_name, :h_aliases, :h_addrtype,
                :h_length, :h_addr_list)
 
         def hostname

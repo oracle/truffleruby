@@ -28,7 +28,7 @@ module RubySL
   module Socket
     module Foreign
       class Msghdr < Truffle::FFI::Struct
-        config('rbx.platform.msghdr', :msg_name, :msg_namelen, :msg_iov,
+        config('platform.msghdr', :msg_name, :msg_namelen, :msg_iov,
                :msg_iovlen, :msg_control, :msg_controllen, :msg_flags)
 
         def self.with_buffers(address, io_vec)

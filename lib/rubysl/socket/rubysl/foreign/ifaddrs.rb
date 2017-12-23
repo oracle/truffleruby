@@ -38,7 +38,7 @@ module RubySL
       # pointers (including the pointer of "self") stored in this class have the
       # "autorelease" option set to false.
       class Ifaddrs < Truffle::FFI::Struct
-        config("rbx.platform.ifaddrs", :ifa_next, :ifa_name, :ifa_flags,
+        config("platform.ifaddrs", :ifa_next, :ifa_name, :ifa_flags,
                :ifa_addr, :ifa_netmask, :ifa_broadaddr, :ifa_dstaddr)
 
         POINTERS = [

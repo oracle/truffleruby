@@ -34,41 +34,41 @@
 
 module Process
   module Constants
-    EXIT_SUCCESS = Truffle::Config['rbx.platform.process.EXIT_SUCCESS'] || 0
-    EXIT_FAILURE = Truffle::Config['rbx.platform.process.EXIT_FAILURE'] || 1
+    EXIT_SUCCESS = Truffle::Config['platform.process.EXIT_SUCCESS'] || 0
+    EXIT_FAILURE = Truffle::Config['platform.process.EXIT_FAILURE'] || 1
 
-    PRIO_PGRP    = Truffle::Config['rbx.platform.process.PRIO_PGRP']
-    PRIO_PROCESS = Truffle::Config['rbx.platform.process.PRIO_PROCESS']
-    PRIO_USER    = Truffle::Config['rbx.platform.process.PRIO_USER']
+    PRIO_PGRP    = Truffle::Config['platform.process.PRIO_PGRP']
+    PRIO_PROCESS = Truffle::Config['platform.process.PRIO_PROCESS']
+    PRIO_USER    = Truffle::Config['platform.process.PRIO_USER']
 
-    RLIM_INFINITY  = Truffle::Config['rbx.platform.process.RLIM_INFINITY']
-    RLIM_SAVED_MAX = Truffle::Config['rbx.platform.process.RLIM_SAVED_MAX']
-    RLIM_SAVED_CUR = Truffle::Config['rbx.platform.process.RLIM_SAVED_CUR']
+    RLIM_INFINITY  = Truffle::Config['platform.process.RLIM_INFINITY']
+    RLIM_SAVED_MAX = Truffle::Config['platform.process.RLIM_SAVED_MAX']
+    RLIM_SAVED_CUR = Truffle::Config['platform.process.RLIM_SAVED_CUR']
 
-    RLIMIT_AS      = Truffle::Config['rbx.platform.process.RLIMIT_AS']
-    RLIMIT_CORE    = Truffle::Config['rbx.platform.process.RLIMIT_CORE']
-    RLIMIT_CPU     = Truffle::Config['rbx.platform.process.RLIMIT_CPU']
-    RLIMIT_DATA    = Truffle::Config['rbx.platform.process.RLIMIT_DATA']
-    RLIMIT_FSIZE   = Truffle::Config['rbx.platform.process.RLIMIT_FSIZE']
-    RLIMIT_NOFILE  = Truffle::Config['rbx.platform.process.RLIMIT_NOFILE']
-    RLIMIT_STACK   = Truffle::Config['rbx.platform.process.RLIMIT_STACK']
+    RLIMIT_AS      = Truffle::Config['platform.process.RLIMIT_AS']
+    RLIMIT_CORE    = Truffle::Config['platform.process.RLIMIT_CORE']
+    RLIMIT_CPU     = Truffle::Config['platform.process.RLIMIT_CPU']
+    RLIMIT_DATA    = Truffle::Config['platform.process.RLIMIT_DATA']
+    RLIMIT_FSIZE   = Truffle::Config['platform.process.RLIMIT_FSIZE']
+    RLIMIT_NOFILE  = Truffle::Config['platform.process.RLIMIT_NOFILE']
+    RLIMIT_STACK   = Truffle::Config['platform.process.RLIMIT_STACK']
 
     %i[RLIMIT_MEMLOCK RLIMIT_NPROC RLIMIT_RSS RLIMIT_SBSIZE].each do |limit|
-      if value = Truffle::Config.lookup("rbx.platform.process.#{limit}")
+      if value = Truffle::Config.lookup("platform.process.#{limit}")
         const_set limit, value
       end
     end
 
-    if Truffle::Config.lookup('rbx.platform.process.RLIMIT_RTPRIO')
-      RLIMIT_RTPRIO     = Truffle::Config['rbx.platform.process.RLIMIT_RTPRIO']
-      RLIMIT_RTTIME     = Truffle::Config['rbx.platform.process.RLIMIT_RTTIME']
-      RLIMIT_SIGPENDING = Truffle::Config['rbx.platform.process.RLIMIT_SIGPENDING']
-      RLIMIT_MSGQUEUE   = Truffle::Config['rbx.platform.process.RLIMIT_MSGQUEUE']
-      RLIMIT_NICE       = Truffle::Config['rbx.platform.process.RLIMIT_NICE']
+    if Truffle::Config.lookup('platform.process.RLIMIT_RTPRIO')
+      RLIMIT_RTPRIO     = Truffle::Config['platform.process.RLIMIT_RTPRIO']
+      RLIMIT_RTTIME     = Truffle::Config['platform.process.RLIMIT_RTTIME']
+      RLIMIT_SIGPENDING = Truffle::Config['platform.process.RLIMIT_SIGPENDING']
+      RLIMIT_MSGQUEUE   = Truffle::Config['platform.process.RLIMIT_MSGQUEUE']
+      RLIMIT_NICE       = Truffle::Config['platform.process.RLIMIT_NICE']
     end
 
-    WNOHANG =   Truffle::Config['rbx.platform.process.WNOHANG']
-    WUNTRACED = Truffle::Config['rbx.platform.process.WUNTRACED']
+    WNOHANG =   Truffle::Config['platform.process.WNOHANG']
+    WUNTRACED = Truffle::Config['platform.process.WUNTRACED']
   end
   include Constants
 
@@ -233,7 +233,7 @@ module Process
       max_limit = Truffle::Type.coerce_to max_limit, Integer, :to_int
     end
 
-    rlim_t = Truffle::Config['rbx.platform.typedef.rlim_t']
+    rlim_t = Truffle::Config['platform.typedef.rlim_t']
     raise rlim_t unless rlim_t == 'ulong' or rlim_t == 'ulong_long'
 
     Truffle::FFI::MemoryPointer.new(:rlim_t, 2) do |ptr|
@@ -248,7 +248,7 @@ module Process
   def self.getrlimit(resource)
     resource = coerce_rlimit_resource(resource)
 
-    rlim_t = Truffle::Config['rbx.platform.typedef.rlim_t']
+    rlim_t = Truffle::Config['platform.typedef.rlim_t']
     raise rlim_t unless rlim_t == 'ulong' or rlim_t == 'ulong_long'
 
     Truffle::FFI::MemoryPointer.new(:rlim_t, 2) do |ptr|
@@ -475,7 +475,7 @@ module Process
     ngroups = Truffle::POSIX.getgroups(0, FFI::Pointer::NULL)
     Errno.handle if ngroups == -1
 
-    gid_t = Truffle::Config['rbx.platform.typedef.gid_t']
+    gid_t = Truffle::Config['platform.typedef.gid_t']
     raise gid_t unless gid_t == 'uint'
 
     FFI::MemoryPointer.new(:gid_t, ngroups) do |ptr|
@@ -486,7 +486,7 @@ module Process
   end
 
   def self.groups=(groups)
-    gid_t = Truffle::Config['rbx.platform.typedef.gid_t']
+    gid_t = Truffle::Config['platform.typedef.gid_t']
     raise gid_t unless gid_t == 'uint'
 
     @maxgroups = groups.size if groups.size > @maxgroups

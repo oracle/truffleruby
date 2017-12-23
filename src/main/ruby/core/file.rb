@@ -46,27 +46,27 @@ class File < IO
   FNM_SYSCASE = CASEFOLD_FILESYSTEM ? FNM_CASEFOLD : 0
 
   module Constants
-    F_GETFL  = Truffle::Config['rbx.platform.fcntl.F_GETFL']
-    F_SETFL  = Truffle::Config['rbx.platform.fcntl.F_SETFL']
+    F_GETFL  = Truffle::Config['platform.fcntl.F_GETFL']
+    F_SETFL  = Truffle::Config['platform.fcntl.F_SETFL']
 
-    F_GETFD  = Truffle::Config['rbx.platform.fcntl.F_GETFD']
-    F_SETFD  = Truffle::Config['rbx.platform.fcntl.F_SETFD']
-    FD_CLOEXEC = Truffle::Config['rbx.platform.fcntl.FD_CLOEXEC']
+    F_GETFD  = Truffle::Config['platform.fcntl.F_GETFD']
+    F_SETFD  = Truffle::Config['platform.fcntl.F_SETFD']
+    FD_CLOEXEC = Truffle::Config['platform.fcntl.FD_CLOEXEC']
 
-    RDONLY   = Truffle::Config['rbx.platform.file.O_RDONLY']
-    WRONLY   = Truffle::Config['rbx.platform.file.O_WRONLY']
-    RDWR     = Truffle::Config['rbx.platform.file.O_RDWR']
-    ACCMODE  = Truffle::Config['rbx.platform.file.O_ACCMODE']
+    RDONLY   = Truffle::Config['platform.file.O_RDONLY']
+    WRONLY   = Truffle::Config['platform.file.O_WRONLY']
+    RDWR     = Truffle::Config['platform.file.O_RDWR']
+    ACCMODE  = Truffle::Config['platform.file.O_ACCMODE']
 
-    CREAT    = Truffle::Config['rbx.platform.file.O_CREAT']
-    EXCL     = Truffle::Config['rbx.platform.file.O_EXCL']
-    NOCTTY   = Truffle::Config['rbx.platform.file.O_NOCTTY']
-    TRUNC    = Truffle::Config['rbx.platform.file.O_TRUNC']
-    APPEND   = Truffle::Config['rbx.platform.file.O_APPEND']
-    NONBLOCK = Truffle::Config['rbx.platform.file.O_NONBLOCK']
-    SYNC     = Truffle::Config['rbx.platform.file.O_SYNC']
+    CREAT    = Truffle::Config['platform.file.O_CREAT']
+    EXCL     = Truffle::Config['platform.file.O_EXCL']
+    NOCTTY   = Truffle::Config['platform.file.O_NOCTTY']
+    TRUNC    = Truffle::Config['platform.file.O_TRUNC']
+    APPEND   = Truffle::Config['platform.file.O_APPEND']
+    NONBLOCK = Truffle::Config['platform.file.O_NONBLOCK']
+    SYNC     = Truffle::Config['platform.file.O_SYNC']
 
-    if value = Truffle::Config.lookup('rbx.platform.file.O_TMPFILE')
+    if value = Truffle::Config.lookup('platform.file.O_TMPFILE')
       TMPFILE = value
     end
 

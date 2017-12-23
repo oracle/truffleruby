@@ -28,7 +28,7 @@ module RubySL
   module Socket
     module Foreign
       class SockaddrUn < Truffle::FFI::Struct
-        config('rbx.platform.sockaddr_un', :sun_family, :sun_path)
+        config('platform.sockaddr_un', :sun_family, :sun_path)
 
         def self.with_sockaddr(addr)
           if addr.bytesize > size

@@ -71,7 +71,7 @@ public class EncodingManager {
     public void initializeLocaleEncoding(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
         final String localeEncodingName;
         if (context.getOptions().NATIVE_PLATFORM) {
-            final int codeset = (int) nativeConfiguration.get("rbx.platform.langinfo.CODESET");
+            final int codeset = (int) nativeConfiguration.get("platform.langinfo.CODESET");
 
             // char *nl_langinfo(nl_item item);
             // nl_item is int on at least Linux, macOS & Solaris

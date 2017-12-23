@@ -176,7 +176,7 @@ public class ThreadManager {
 
     private void setupSignalHandler(RubyContext context) {
         final NativeConfiguration config = context.getNativeConfiguration();
-        SIGVTALRM = (int) config.get("rbx.platform.signal.SIGVTALRM");
+        SIGVTALRM = (int) config.get("platform.signal.SIGVTALRM");
 
         final TruffleNFIPlatform nfi = context.getTruffleNFI();
         final TruffleObject libC = nfi.getDefaultLibrary();
@@ -185,8 +185,8 @@ public class ThreadManager {
         final TruffleObject abs = nfi.lookup(libC, "abs");
         final NativeFunction sigaction = nfi.getFunction("sigaction", 3, "(sint32,pointer,pointer):sint32");
 
-        final int sizeOfSigAction = (int) config.get("rbx.platform.sigaction.sizeof");
-        final int handlerOffset = (int) config.get("rbx.platform.sigaction.sa_handler.offset");
+        final int sizeOfSigAction = (int) config.get("platform.sigaction.sizeof");
+        final int handlerOffset = (int) config.get("platform.sigaction.sa_handler.offset");
 
         try (Pointer structSigAction = Pointer.calloc(sizeOfSigAction)) {
             structSigAction.writeLong(handlerOffset, nfi.asPointer(abs));

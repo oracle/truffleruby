@@ -99,12 +99,12 @@ module Truffle::FFI
     end
 
     def config(name)
-      Truffle::Config["rbx.platform.#{name}"]
+      Truffle::Config["platform.#{name}"]
     end
 
     def config_hash(name)
       vals = {}
-      section = "rbx.platform.#{name}."
+      section = "platform.#{name}."
       Truffle::Config.section section do |key, value|
         vals[key.substring(section.size, key.length)] = value
       end
@@ -202,8 +202,8 @@ module Truffle::FFI
 
   # Load all the platform dependent types
 
-  Truffle::Config.section('rbx.platform.typedef.') do |key, value|
-    add_typedef(find_type(value.to_sym), key.substring(21, key.length).to_sym)
+  Truffle::Config.section('platform.typedef.') do |key, value|
+    add_typedef(find_type(value.to_sym), key.substring('platform.typedef.'.length, key.length).to_sym)
   end
 
   # It's a class to be compat with the ffi gem.
