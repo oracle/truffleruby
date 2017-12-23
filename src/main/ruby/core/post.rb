@@ -102,7 +102,6 @@ if ruby_home
   $LOAD_PATH.push "#{ruby_home}/lib/ruby/site_ruby/2.3.0"
 
   $LOAD_PATH.push "#{ruby_home}/lib/truffle"
-  $LOAD_PATH.push "#{ruby_home}/lib/rubysl"
   $LOAD_PATH.push "#{ruby_home}/lib/mri"
   $LOAD_PATH.push "#{ruby_home}/lib/json/lib"
 end
