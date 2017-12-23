@@ -12,6 +12,7 @@
 require 'socket'
 require 'io/nonblock'
 require 'etc'
+require 'timeout'
 
 module WEBrick
   module Utils
@@ -62,12 +63,22 @@ module WEBrick
       unless port
         raise ArgumentError, "must specify port"
       end
-      sockets = Socket.tcp_server_sockets(address, port)
-      sockets = sockets.map {|s|
-        s.autoclose = false
-        ts = TCPServer.for_fd(s.fileno)
-        s.close
-        ts
+      res = Socket::getaddrinfo(address, port,
+                                Socket::AF_UNSPEC,   # address family
+                                Socket::SOCK_STREAM, # socket type
+                                0,                   # protocol
+                                Socket::AI_PASSIVE)  # flag
+      last_error = nil
+      sockets = []
+      res.each{|ai|
+        begin
+          sock = TCPServer.new(ai[3], port)
+          port = sock.addr[1] if port == 0
+          Utils::set_close_on_exec(sock)
+          sockets << sock
+        rescue => ex
+          last_error  = ex
+        end
       }
       return sockets
     end
@@ -231,15 +242,9 @@ module WEBrick
     # than +seconds+.
     #
     # If +seconds+ is zero or nil, simply executes the block
-    def timeout(seconds, exception=Timeout::Error)
+    def timeout(seconds, exception=Timeout::Error, &block)
       return yield if seconds.nil? or seconds.zero?
-      # raise ThreadError, "timeout within critical session" if Thread.critical
-      id = TimeoutHandler.register(seconds, exception)
-      begin
-        yield(seconds)
-      ensure
-        TimeoutHandler.cancel(id)
-      end
+      Timeout.timeout(seconds, exception, &block)
     end
     module_function :timeout
   end
