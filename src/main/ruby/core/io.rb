@@ -203,7 +203,7 @@ class IO
       return 0 if @write_synced or empty?
       @write_synced = true
 
-      data = String.from_bytearray(@storage, @start, size)
+      data = String.from_bytearray(@storage, @start, size, Encoding::ASCII_8BIT)
       Truffle::POSIX.write_string io, data, true
       reset!
 
@@ -272,12 +272,12 @@ class IO
     ##
     # Returns +count+ bytes from the +start+ of the buffer as a new String.
     # If +count+ is +nil+, returns all available bytes in the buffer.
-    def shift(count=nil)
+    def shift(count=nil, encoding=Encoding::ASCII_8BIT)
       Truffle.synchronize(self) do
         total = size
         total = count if count and count < total
 
-        str = String.from_bytearray @storage, @start, total
+        str = String.from_bytearray @storage, @start, total, encoding
         @start += total
 
         str

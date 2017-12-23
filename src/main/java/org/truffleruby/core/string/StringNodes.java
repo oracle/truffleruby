@@ -4254,16 +4254,17 @@ public abstract class StringNodes {
     }
 
     @NonStandard
-    @CoreMethod(names = "from_bytearray", onSingleton = true, required = 3, lowerFixnum = { 2, 3 })
+    @CoreMethod(names = "from_bytearray", onSingleton = true, required = 4, lowerFixnum = { 2, 3 })
     public static abstract class StringFromByteArrayPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isByteArray(bytes)")
-        public DynamicObject stringFromByteArray(DynamicObject bytes, int start, int count,
+        @Specialization(guards = { "isByteArray(bytes)", "isRubyEncoding(rubyEncoding)" })
+        public DynamicObject stringFromByteArray(DynamicObject bytes, int start, int count, DynamicObject rubyEncoding,
                                                  @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final ByteArrayBuilder builder = Layouts.BYTE_ARRAY.getBytes(bytes);
             final byte[] array = ArrayUtils.extractRange(builder.getUnsafeBytes(), start, start + count);
+            final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
 
-            return makeStringNode.executeMake(array, ASCIIEncoding.INSTANCE, CR_UNKNOWN);
+            return makeStringNode.executeMake(array, encoding, CR_UNKNOWN);
         }
 
     }
