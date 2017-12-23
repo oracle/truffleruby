@@ -25,11 +25,6 @@ glob('lib/mri/net/*.rb').map { |file| File.basename(file, '.*') }.each { |file|
   stdlibs << "net/#{file}"
 }
 
-glob('lib/rubysl/*.rb') { |file|
-  lib = File.basename(file, '.*')
-  stdlibs << lib
-}
-
 stdlibs += %w[json]
 
 ignore = %w[continuation debug mathn profile psych_jars shell]
