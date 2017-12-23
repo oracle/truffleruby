@@ -24,30 +24,42 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module RubySL
+module Truffle
   module Socket
     module Foreign
-      class SockaddrUn < Truffle::FFI::Struct
-        config('platform.sockaddr_un', :sun_family, :sun_path)
+      class Msghdr < Truffle::FFI::Struct
+        config('platform.msghdr', :msg_name, :msg_namelen, :msg_iov,
+               :msg_iovlen, :msg_control, :msg_controllen, :msg_flags)
 
-        def self.with_sockaddr(addr)
-          if addr.bytesize > size
-            raise ArgumentError,
-              "UNIX socket path is too long (max: #{size} bytes)"
-          end
+        def self.with_buffers(address, io_vec)
+          header = new
 
-          pointer = Foreign.memory_pointer(size)
-          pointer.write_string(addr, addr.bytesize)
+          header.address = address
+          header.message = io_vec
 
-          new(pointer)
+          header
         end
 
-        def family
-          self[:sun_family]
+        def address=(address)
+          self[:msg_name]    = address.pointer
+          self[:msg_namelen] = address.pointer.total
         end
 
-        def to_s
-          pointer.read_string(pointer.total)
+        def message=(vec)
+          self[:msg_iov]    = vec.pointer
+          self[:msg_iovlen] = 1
+        end
+
+        def address_size
+          self[:msg_namelen]
+        end
+
+        def flags
+          self[:msg_flags]
+        end
+
+        def message_truncated?
+          flags & ::Socket::MSG_TRUNC > 0
         end
       end
     end

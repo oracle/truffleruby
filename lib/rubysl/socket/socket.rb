@@ -38,7 +38,7 @@ class Socket < BasicSocket
   def self.getaddrinfo(host, service, family = 0, socktype = 0,
                        protocol = 0, flags = 0, reverse_lookup = nil)
     if host
-      host = RubySL::Socket.coerce_to_string(host)
+      host = Truffle::Socket.coerce_to_string(host)
     end
 
     if host && (host.empty? || host == '<any>')
@@ -50,21 +50,21 @@ class Socket < BasicSocket
     if service.kind_of?(Fixnum)
       service = service.to_s
     elsif service
-      service = RubySL::Socket.coerce_to_string(service)
+      service = Truffle::Socket.coerce_to_string(service)
     end
 
-    family    = RubySL::Socket.address_family(family)
-    socktype  = RubySL::Socket.socket_type(socktype)
-    addrinfos = RubySL::Socket::Foreign
+    family    = Truffle::Socket.address_family(family)
+    socktype  = Truffle::Socket.socket_type(socktype)
+    addrinfos = Truffle::Socket::Foreign
       .getaddrinfo(host, service, family, socktype, protocol, flags)
 
-    reverse_lookup = RubySL::Socket
+    reverse_lookup = Truffle::Socket
       .convert_reverse_lookup(nil, reverse_lookup)
 
     addrinfos.map do |ai|
       addrinfo = []
 
-      unpacked = RubySL::Socket::Foreign
+      unpacked = Truffle::Socket::Foreign
         .unpack_sockaddr_in(ai[4], reverse_lookup)
 
       addrinfo << Socket::Constants::AF_TO_FAMILY[ai[1]]
@@ -109,18 +109,18 @@ class Socket < BasicSocket
         family = Socket::AF_INET6
       end
 
-      sockaddr = RubySL::Socket::Foreign
+      sockaddr = Truffle::Socket::Foreign
         .pack_sockaddr_in(host, port, family, Socket::SOCK_STREAM, 0)
     end
 
-    _, port, host, _ = RubySL::Socket::Foreign.getnameinfo(sockaddr, flags)
+    _, port, host, _ = Truffle::Socket::Foreign.getnameinfo(sockaddr, flags)
 
     [host, port]
   end
 
   def self.gethostname
-    RubySL::Socket::Foreign.char_pointer(::Socket::NI_MAXHOST) do |pointer|
-      RubySL::Socket::Foreign.gethostname(pointer, pointer.total)
+    Truffle::Socket::Foreign.char_pointer(::Socket::NI_MAXHOST) do |pointer|
+      Truffle::Socket::Foreign.gethostname(pointer, pointer.total)
 
       pointer.read_string
     end
@@ -133,18 +133,18 @@ class Socket < BasicSocket
     hostname     = addrinfos[0][2]
     family       = addrinfos[0][4]
     addresses    = []
-    alternatives = RubySL::Socket.aliases_for_hostname(hostname)
+    alternatives = Truffle::Socket.aliases_for_hostname(hostname)
 
     addrinfos.each do |a|
       sockaddr = Socket.sockaddr_in(0, a[3])
 
 
       if a[4] == AF_INET
-        offset, type = RubySL::Socket::Foreign::SockaddrIn.layout[:sin_addr]
+        offset, type = Truffle::Socket::Foreign::SockaddrIn.layout[:sin_addr]
         size = FFI.type_size(type)  # TODO BJF 30-Apr-2017 This appears to be a bug in rubysl-socket?
         addresses << sockaddr.byteslice(offset, size)
       elsif a[4] == AF_INET6
-        offset, type = RubySL::Socket::Foreign::SockaddrIn6.layout[:sin6_addr]
+        offset, type = Truffle::Socket::Foreign::SockaddrIn6.layout[:sin6_addr]
         size = FFI.type_size(type)  # TODO BJF 30-Apr-2017 This appears to be a bug in rubysl-socket?
         addresses << sockaddr.byteslice(offset, size)
       end
@@ -160,48 +160,48 @@ class Socket < BasicSocket
       family = Socket::AF_INET
     end
 
-    family = RubySL::Socket.address_family(family)
+    family = Truffle::Socket.address_family(family)
 
-    RubySL::Socket::Foreign.char_pointer(addr.bytesize) do |in_pointer|
+    Truffle::Socket::Foreign.char_pointer(addr.bytesize) do |in_pointer|
       in_pointer.write_string(addr)
 
-      out_pointer = RubySL::Socket::Foreign
+      out_pointer = Truffle::Socket::Foreign
         .gethostbyaddr(in_pointer, in_pointer.total, family)
 
       if out_pointer.null?
         raise SocketError, "No host found for address #{addr.inspect}"
       end
 
-      struct = RubySL::Socket::Foreign::Hostent.new(out_pointer)
+      struct = Truffle::Socket::Foreign::Hostent.new(out_pointer)
 
       [struct.hostname, struct.aliases, struct.type, *struct.addresses]
     end
   end
 
   def self.getservbyname(service, proto = 'tcp')
-    pointer = RubySL::Socket::Foreign.getservbyname(service, proto)
+    pointer = Truffle::Socket::Foreign.getservbyname(service, proto)
 
     raise SocketError, "no such service #{service}/#{proto}" if pointer.null?
 
-    struct = RubySL::Socket::Foreign::Servent.new(pointer)
+    struct = Truffle::Socket::Foreign::Servent.new(pointer)
 
-    RubySL::Socket::Foreign.ntohs(struct.port)
+    Truffle::Socket::Foreign.ntohs(struct.port)
   end
 
   def self.getservbyport(port, proto = nil)
     proto ||= 'tcp'
-    pointer = RubySL::Socket::Foreign.getservbyport(port, proto)
+    pointer = Truffle::Socket::Foreign.getservbyport(port, proto)
 
     raise SocketError, "no such service for port #{port}/#{proto}" if pointer.null?
 
-    struct = RubySL::Socket::Foreign::Servent.new(pointer)
+    struct = Truffle::Socket::Foreign::Servent.new(pointer)
 
     struct.name
   end
 
   def self.getifaddrs
-    initial = RubySL::Socket::Foreign::Ifaddrs.new
-    status  = RubySL::Socket::Foreign.getifaddrs(initial.pointer)
+    initial = Truffle::Socket::Foreign::Ifaddrs.new
+    status  = Truffle::Socket::Foreign.getifaddrs(initial.pointer)
     ifaddrs = []
     index   = 1
 
@@ -224,16 +224,16 @@ class Socket < BasicSocket
 
       ifaddrs
     ensure
-      RubySL::Socket::Foreign.freeifaddrs(initial.pointer)
+      Truffle::Socket::Foreign.freeifaddrs(initial.pointer)
     end
   end
 
   def self.pack_sockaddr_in(port, host)
-    RubySL::Socket::Foreign.pack_sockaddr_in(host, port)
+    Truffle::Socket::Foreign.pack_sockaddr_in(host, port)
   end
 
   def self.unpack_sockaddr_in(sockaddr)
-    _, address, port = RubySL::Socket::Foreign
+    _, address, port = Truffle::Socket::Foreign
       .unpack_sockaddr_in(sockaddr, false)
 
     return port, address
@@ -246,10 +246,10 @@ class Socket < BasicSocket
   end
 
   def self.socketpair(family, type, protocol = 0)
-    family = RubySL::Socket.address_family(family)
-    type   = RubySL::Socket.socket_type(type)
+    family = Truffle::Socket.address_family(family)
+    type   = Truffle::Socket.socket_type(type)
 
-    fd0, fd1 = RubySL::Socket::Foreign.socketpair(family, type, protocol)
+    fd0, fd1 = Truffle::Socket::Foreign.socketpair(family, type, protocol)
 
     [for_fd(fd0), for_fd(fd1)]
   end
@@ -259,14 +259,14 @@ class Socket < BasicSocket
     alias_method :pair, :socketpair
   end
 
-  if RubySL::Socket.unix_socket_support?
+  if Truffle::Socket.unix_socket_support?
     def self.pack_sockaddr_un(file)
       max_path_size =  Truffle::Config['platform.sockaddr_un.sun_path.size'] - 1
       if file.bytesize > max_path_size
         raise ArgumentError, "too long unix socket path (#{file.bytesize} bytes given but #{max_path_size} bytes max)"
       end
 
-      struct = RubySL::Socket::Foreign::SockaddrUn.new
+      struct = Truffle::Socket::Foreign::SockaddrUn.new
       struct[:sun_family] = Socket::AF_UNIX
       struct[:sun_path] = file
 
@@ -278,7 +278,7 @@ class Socket < BasicSocket
     end
 
     def self.unpack_sockaddr_un(addr)
-      struct = RubySL::Socket::Foreign::SockaddrUn.with_sockaddr(addr)
+      struct = Truffle::Socket::Foreign::SockaddrUn.with_sockaddr(addr)
 
       begin
         struct[:sun_path].to_s
@@ -295,10 +295,10 @@ class Socket < BasicSocket
   def initialize(family, socket_type, protocol = 0)
     @no_reverse_lookup = self.class.do_not_reverse_lookup
 
-    @family      = RubySL::Socket.protocol_family(family)
-    @socket_type = RubySL::Socket.socket_type(socket_type)
+    @family      = Truffle::Socket.protocol_family(family)
+    @socket_type = Truffle::Socket.socket_type(socket_type)
 
-    descriptor = RubySL::Socket::Foreign.socket(@family, @socket_type, protocol)
+    descriptor = Truffle::Socket::Foreign.socket(@family, @socket_type, protocol)
 
     Errno.handle('socket(2)') if descriptor < 0
 
@@ -311,7 +311,7 @@ class Socket < BasicSocket
       addr = addr.to_sockaddr
     end
 
-    err = RubySL::Socket::Foreign.bind(descriptor, addr)
+    err = Truffle::Socket::Foreign.bind(descriptor, addr)
 
     Errno.handle('bind(2)') unless err == 0
 
@@ -323,9 +323,9 @@ class Socket < BasicSocket
       sockaddr = sockaddr.to_sockaddr
     end
 
-    status = RubySL::Socket::Foreign.connect(descriptor, sockaddr)
+    status = Truffle::Socket::Foreign.connect(descriptor, sockaddr)
 
-    RubySL::Socket::Error.write_error('connect(2)', self) if status < 0
+    Truffle::Socket::Error.write_error('connect(2)', self) if status < 0
 
     0
   end
@@ -337,11 +337,11 @@ class Socket < BasicSocket
       sockaddr = sockaddr.to_sockaddr
     end
 
-    status = RubySL::Socket::Foreign.connect(descriptor, sockaddr)
+    status = Truffle::Socket::Foreign.connect(descriptor, sockaddr)
 
     if status < 0
       if exception
-        RubySL::Socket::Error.write_nonblock('connect(2)')
+        Truffle::Socket::Error.write_nonblock('connect(2)')
       else
         :wait_writable
       end
@@ -351,13 +351,13 @@ class Socket < BasicSocket
   end
 
   def local_address
-    sockaddr = RubySL::Socket::Foreign.getsockname(descriptor)
+    sockaddr = Truffle::Socket::Foreign.getsockname(descriptor)
 
     Addrinfo.new(sockaddr, @family, @socket_type, 0)
   end
 
   def remote_address
-    sockaddr = RubySL::Socket::Foreign.getpeername(descriptor)
+    sockaddr = Truffle::Socket::Foreign.getpeername(descriptor)
 
     Addrinfo.new(sockaddr, @family, @socket_type, 0)
   end
@@ -375,15 +375,15 @@ class Socket < BasicSocket
   end
 
   def listen(backlog)
-    RubySL::Socket.listen(self, backlog)
+    Truffle::Socket.listen(self, backlog)
   end
 
   def accept
-    RubySL::Socket.accept(self, Socket)
+    Truffle::Socket.accept(self, Socket)
   end
 
   def accept_nonblock
-    RubySL::Socket.accept_nonblock(self, Socket)
+    Truffle::Socket.accept_nonblock(self, Socket)
   end
 
   def sysaccept

@@ -24,15 +24,15 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module RubySL
+module Truffle
   module Socket
     module Foreign
       # Class representing an "ifaddrs" C structure.
       #
       # The memory used by this structure should be free'd using
-      # `RubySL::Socket::Foreign.freeifaddrs` _only_ as following:
+      # `Truffle::Socket::Foreign.freeifaddrs` _only_ as following:
       #
-      #     RubySL::Socket::Foreign.freeifaddrs(initial_ifaddrs_struct)
+      #     Truffle::Socket::Foreign.freeifaddrs(initial_ifaddrs_struct)
       #
       # To ensure Rubinius doesn't accidentally free invalid pointers all
       # pointers (including the pointer of "self") stored in this class have the

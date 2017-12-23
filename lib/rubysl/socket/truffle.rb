@@ -24,7 +24,7 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module RubySL
+module Truffle
   module Socket
     def self.bsd_support?
       Truffle.bsd? || Truffle.darwin?
@@ -72,10 +72,10 @@ module RubySL
       sockaddr = sockaddr_class_for_socket(source).new
 
       begin
-        fd = RubySL::Socket::Foreign.memory_pointer(:int) do |size_p|
+        fd = Truffle::Socket::Foreign.memory_pointer(:int) do |size_p|
           size_p.write_int(sockaddr.size)
 
-          RubySL::Socket::Foreign
+          Truffle::Socket::Foreign
             .accept(source.descriptor, sockaddr.pointer, size_p)
         end
 

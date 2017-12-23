@@ -24,40 +24,31 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module RubySL
+module Truffle
   module Socket
-    module IPv6
-      # The IPv6 loopback address as produced by inet_pton(INET6, "::1")
-      LOOPBACK = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+    module Foreign
+      class SockaddrUn < Truffle::FFI::Struct
+        config('platform.sockaddr_un', :sun_family, :sun_path)
 
-      # The bytes used for an unspecified IPv6 address.
-      UNSPECIFIED = [0] * 16
+        def self.with_sockaddr(addr)
+          if addr.bytesize > size
+            raise ArgumentError,
+              "UNIX socket path is too long (max: #{size} bytes)"
+          end
 
-      # The first 10 bytes of an IPv4 compatible IPv6 address.
-      COMPAT_PREFIX = [0] * 10
+          pointer = Foreign.memory_pointer(size)
+          pointer.write_string(addr, addr.bytesize)
 
-      def self.ipv4_embedded?(bytes)
-        ipv4_mapped?(bytes) || ipv4_compatible?(bytes)
-      end
+          new(pointer)
+        end
 
-      def self.ipv4_mapped?(bytes)
-        prefix = bytes.first(10)
-        follow = bytes[10..11]
+        def family
+          self[:sun_family]
+        end
 
-        prefix == COMPAT_PREFIX &&
-          follow[0] == 255 &&
-          follow[1] == 255 &&
-          (bytes[-4] > 0 || bytes[-3] > 0 || bytes[-2] > 0)
-      end
-
-      def self.ipv4_compatible?(bytes)
-        prefix = bytes.first(10)
-        follow = bytes[10..11]
-
-        prefix == COMPAT_PREFIX &&
-          follow[0] == 0 &&
-          follow[1] == 0 &&
-          (bytes[-4] > 0 || bytes[-3] > 0 || bytes[-2] > 0)
+        def to_s
+          pointer.read_string(pointer.total)
+        end
       end
     end
   end

@@ -24,18 +24,29 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module RubySL
+# This file is only available on BSD/Darwin systems.
+
+module Truffle
   module Socket
     module Foreign
-      class Servent < Truffle::FFI::Struct
-        config('platform.servent', :s_name, :s_aliases, :s_port, :s_proto)
+      attach_function :_getpeereid,
+        :getpeereid, [:int, :pointer, :pointer], :int
 
-        def name
-          self[:s_name].read_string
-        end
+      def self.getpeereid(descriptor)
+        euid = Foreign.memory_pointer(:int)
+        egid = Foreign.memory_pointer(:int)
 
-        def port
-          self[:s_port]
+        begin
+          res = _getpeereid(descriptor, euid, egid)
+
+          if res == 0
+            [euid.read_int, egid.read_int]
+          else
+            Errno.handle('getpeereid(3)')
+          end
+        ensure
+          euid.free
+          egid.free
         end
       end
     end

@@ -24,26 +24,19 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module RubySL
+module Truffle
   module Socket
     module Foreign
-      class SockaddrIn6 < Truffle::FFI::Struct
-        config("platform.sockaddr_in6", :sin6_family, :sin6_port,
-               :sin6_flowinfo, :sin6_addr, :sin6_scope_id)
+      class Iovec < Truffle::FFI::Struct
+        config('platform.iovec', :iov_base, :iov_len)
 
-        def self.with_sockaddr(addr)
-          pointer = Foreign.memory_pointer(addr.bytesize)
-          pointer.write_string(addr, addr.bytesize)
+        def self.with_buffer(buffer)
+          vec = new
 
-          new(pointer)
-        end
+          vec[:iov_base] = buffer
+          vec[:iov_len]  = buffer.total
 
-        def family
-          self[:sin6_family]
-        end
-
-        def to_s
-          pointer.read_string(self.class.size)
+          vec
         end
       end
     end

@@ -26,7 +26,7 @@
 
 class Socket < BasicSocket
   module Constants
-    all_valid = RubySL::Socket.constant_pairs
+    all_valid = Truffle::Socket.constant_pairs
 
     all_valid.each {|name, value| const_set name, Integer(value) }
 

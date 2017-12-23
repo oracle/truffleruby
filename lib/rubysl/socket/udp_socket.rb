@@ -27,9 +27,9 @@
 class UDPSocket < IPSocket
   def initialize(family = Socket::AF_INET)
     @no_reverse_lookup = self.class.do_not_reverse_lookup
-    @family            = RubySL::Socket.address_family(family)
+    @family            = Truffle::Socket.address_family(family)
 
-    descriptor = RubySL::Socket::Foreign
+    descriptor = Truffle::Socket::Foreign
       .socket(@family, Socket::SOCK_DGRAM, Socket::IPPROTO_UDP)
 
     Errno.handle('socket(2)') if descriptor < 0
@@ -40,7 +40,7 @@ class UDPSocket < IPSocket
 
   def bind(host, port)
     addr   = Socket.sockaddr_in(port.to_i, host)
-    status = RubySL::Socket::Foreign.bind(descriptor, addr)
+    status = Truffle::Socket::Foreign.bind(descriptor, addr)
 
     Errno.handle('bind(2)') if status < 0
 
@@ -48,12 +48,12 @@ class UDPSocket < IPSocket
   end
 
   def connect(host, port)
-    sockaddr = RubySL::Socket::Foreign
+    sockaddr = Truffle::Socket::Foreign
       .pack_sockaddr_in(host, port.to_i, @family, Socket::SOCK_DGRAM, 0)
 
-    status = RubySL::Socket::Foreign.connect(descriptor, sockaddr)
+    status = Truffle::Socket::Foreign.connect(descriptor, sockaddr)
 
-    RubySL::Socket::Error.write_error('connect(2)', self) if status < 0
+    Truffle::Socket::Error.write_error('connect(2)', self) if status < 0
 
     0
   end

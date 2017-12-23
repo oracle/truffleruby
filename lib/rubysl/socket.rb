@@ -26,36 +26,36 @@
 
 require 'fcntl'
 
-require 'socket/rubysl'
-require 'socket/rubysl/version'
-require 'socket/rubysl/socket_options'
+require 'socket/truffle'
+require 'socket/truffle/version'
+require 'socket/truffle/socket_options'
 
 require 'socket/socket_error'
 require 'socket/basic_socket'
 require 'socket/constants'
 
-require 'socket/rubysl/foreign/addrinfo'
-require 'socket/rubysl/foreign/linger'
-require 'socket/rubysl/foreign/ifaddrs'
-require 'socket/rubysl/foreign/sockaddr'
-require 'socket/rubysl/foreign/sockaddr_in'
-require 'socket/rubysl/foreign/sockaddr_in6'
+require 'socket/truffle/foreign/addrinfo'
+require 'socket/truffle/foreign/linger'
+require 'socket/truffle/foreign/ifaddrs'
+require 'socket/truffle/foreign/sockaddr'
+require 'socket/truffle/foreign/sockaddr_in'
+require 'socket/truffle/foreign/sockaddr_in6'
 
-if RubySL::Socket.unix_socket_support?
-  require 'socket/rubysl/foreign/sockaddr_un'
+if Truffle::Socket.unix_socket_support?
+  require 'socket/truffle/foreign/sockaddr_un'
 end
 
-require 'socket/rubysl/foreign/iovec'
-require 'socket/rubysl/foreign/msghdr'
-require 'socket/rubysl/foreign/hostent'
-require 'socket/rubysl/foreign/servent'
+require 'socket/truffle/foreign/iovec'
+require 'socket/truffle/foreign/msghdr'
+require 'socket/truffle/foreign/hostent'
+require 'socket/truffle/foreign/servent'
 
-require 'socket/rubysl/ipv6'
-require 'socket/rubysl/ancillary_data'
-require 'socket/rubysl/foreign'
-require 'socket/rubysl/error'
-require 'socket/rubysl/bsd' if RubySL::Socket.bsd_support?
-require 'socket/rubysl/linux' if RubySL::Socket.linux_support?
+require 'socket/truffle/ipv6'
+require 'socket/truffle/ancillary_data'
+require 'socket/truffle/foreign'
+require 'socket/truffle/error'
+require 'socket/truffle/bsd' if Truffle::Socket.bsd_support?
+require 'socket/truffle/linux' if Truffle::Socket.linux_support?
 
 require 'socket/socket'
 require 'socket/option'

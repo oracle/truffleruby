@@ -24,23 +24,18 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module RubySL
+# This file is only available on Linux systems.
+
+module Truffle
   module Socket
     module Foreign
-      class Sockaddr < Truffle::FFI::Struct
-        config("platform.sockaddr", :sa_data, :sa_family)
+      def self.getpeereid(descriptor)
+        data = Foreign
+          .getsockopt(descriptor, ::Socket::SOL_SOCKET, ::Socket::SO_PEERCRED)
 
-        def data
-          self[:sa_data]
-        end
+        _, euid, egid = data.unpack('iii')
 
-        def family
-          self[:sa_family]
-        end
-
-        def to_s
-          pointer.read_string(self.class.size)
-        end
+        [euid, egid]
       end
     end
   end

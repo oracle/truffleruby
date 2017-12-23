@@ -76,15 +76,15 @@ class Socket < BasicSocket
     end
 
     def initialize(family, level, type, data)
-      @family = RubySL::Socket.address_family(family)
-      @data   = RubySL::Socket.coerce_to_string(data)
-      @level  = RubySL::Socket::AncillaryData.level(level)
-      @type   = RubySL::Socket::AncillaryData.type(@family, @level, type)
+      @family = Truffle::Socket.address_family(family)
+      @data   = Truffle::Socket.coerce_to_string(data)
+      @level  = Truffle::Socket::AncillaryData.level(level)
+      @type   = Truffle::Socket::AncillaryData.type(@family, @level, type)
     end
 
     def cmsg_is?(level, type)
-      level = RubySL::Socket::AncillaryData.level(level)
-      type  = RubySL::Socket::AncillaryData.type(@family, level, type)
+      level = Truffle::Socket::AncillaryData.level(level)
+      type  = Truffle::Socket::AncillaryData.type(@family, level, type)
 
       @level == level && @type == type
     end

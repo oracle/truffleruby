@@ -37,7 +37,7 @@ class Socket < BasicSocket
     end
 
     def self.linger(onoff, secs)
-      linger = RubySL::Socket::Foreign::Linger.new
+      linger = Truffle::Socket::Foreign::Linger.new
 
       begin
         linger.on_off = onoff
@@ -50,9 +50,9 @@ class Socket < BasicSocket
     end
 
     def initialize(family, level, optname, data)
-      @family  = RubySL::Socket.address_family(family)
-      @level   = RubySL::Socket::SocketOptions.socket_level(level, @family)
-      @optname = RubySL::Socket::SocketOptions.socket_option(@level, optname)
+      @family  = Truffle::Socket.address_family(family)
+      @level   = Truffle::Socket::SocketOptions.socket_level(level, @family)
+      @optname = Truffle::Socket::SocketOptions.socket_option(@level, optname)
       @data    = data
     end
 
@@ -65,7 +65,7 @@ class Socket < BasicSocket
     end
 
     def bool
-      expected_size = RubySL::Socket::Foreign::SIZEOF_INT
+      expected_size = Truffle::Socket::Foreign::SIZEOF_INT
 
       unless @data.bytesize == expected_size
         raise TypeError,
@@ -80,7 +80,7 @@ class Socket < BasicSocket
     end
 
     def int
-      expected_size = RubySL::Socket::Foreign::SIZEOF_INT
+      expected_size = Truffle::Socket::Foreign::SIZEOF_INT
 
       unless @data.bytesize == expected_size
         raise TypeError,
@@ -95,14 +95,14 @@ class Socket < BasicSocket
         raise TypeError, 'linger socket option expected'
       end
 
-      expected_size = RubySL::Socket::Foreign::Linger.size
+      expected_size = Truffle::Socket::Foreign::Linger.size
 
       if @data.bytesize != expected_size
         raise TypeError,
           "invalid size, expected #{expected_size} but got #{@data.bytesize}"
       end
 
-      linger = RubySL::Socket::Foreign::Linger.from_string(@data)
+      linger = Truffle::Socket::Foreign::Linger.from_string(@data)
       onoff  = nil
 
       case linger.on_off

@@ -44,11 +44,11 @@ class TCPServer < TCPSocket
     end
 
     unless service.is_a?(Fixnum)
-      service = RubySL::Socket.coerce_to_string(service)
+      service = Truffle::Socket.coerce_to_string(service)
     end
 
     if host
-      host = RubySL::Socket.coerce_to_string(host)
+      host = Truffle::Socket.coerce_to_string(host)
     else
       host = ''
     end
@@ -59,7 +59,7 @@ class TCPServer < TCPSocket
     remote_addrs.each do |addrinfo|
       _, port, address, _, family, socktype, protocol = addrinfo
 
-      descriptor = RubySL::Socket::Foreign.socket(family, socktype, protocol)
+      descriptor = Truffle::Socket::Foreign.socket(family, socktype, protocol)
 
       next if descriptor < 0
 
@@ -68,11 +68,11 @@ class TCPServer < TCPSocket
       binmode
       setsockopt(:SOCKET, :REUSEADDR, true)
 
-      status = RubySL::Socket::Foreign
+      status = Truffle::Socket::Foreign
         .bind(descriptor, Socket.sockaddr_in(port, address))
 
       if status < 0
-        RubySL::Socket::Foreign.close(descriptor)
+        Truffle::Socket::Foreign.close(descriptor)
 
         Errno.handle('bind(2)')
       else
@@ -84,17 +84,17 @@ class TCPServer < TCPSocket
   end
 
   def listen(backlog)
-    RubySL::Socket.listen(self, backlog)
+    Truffle::Socket.listen(self, backlog)
   end
 
   def accept
-    socket, _ = RubySL::Socket.accept(self, TCPSocket)
+    socket, _ = Truffle::Socket.accept(self, TCPSocket)
 
     socket
   end
 
   def accept_nonblock
-    socket, _ = RubySL::Socket.accept_nonblock(self, TCPSocket)
+    socket, _ = Truffle::Socket.accept_nonblock(self, TCPSocket)
 
     socket
   end

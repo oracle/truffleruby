@@ -51,21 +51,21 @@ class Addrinfo
 
   def self.ip(ip)
     sockaddr = Socket.sockaddr_in(0, ip)
-    family   = RubySL::Socket.family_for_sockaddr_in(sockaddr)
+    family   = Truffle::Socket.family_for_sockaddr_in(sockaddr)
 
     new(sockaddr, family)
   end
 
   def self.tcp(ip, port)
     sockaddr = Socket.sockaddr_in(port, ip)
-    pfamily  = RubySL::Socket.family_for_sockaddr_in(sockaddr)
+    pfamily  = Truffle::Socket.family_for_sockaddr_in(sockaddr)
 
     new(sockaddr, pfamily, Socket::SOCK_STREAM, Socket::IPPROTO_TCP)
   end
 
   def self.udp(ip, port)
     sockaddr = Socket.sockaddr_in(port, ip)
-    pfamily  = RubySL::Socket.family_for_sockaddr_in(sockaddr)
+    pfamily  = Truffle::Socket.family_for_sockaddr_in(sockaddr)
 
     new(sockaddr, pfamily, Socket::SOCK_DGRAM, Socket::IPPROTO_UDP)
   end
@@ -97,7 +97,7 @@ class Addrinfo
 
   def initialize(sockaddr, pfamily = nil, socktype = 0, protocol = 0)
     if sockaddr.kind_of?(Array)
-      @afamily    = RubySL::Socket.address_family(sockaddr[0])
+      @afamily    = Truffle::Socket.address_family(sockaddr[0])
       @ip_port    = sockaddr[1]
       @ip_address = sockaddr[3]
 
@@ -106,13 +106,13 @@ class Addrinfo
         pfamily = Socket::PF_INET6
       end
     else
-      if sockaddr.bytesize == RubySL::Socket::Foreign::SockaddrUn.size
+      if sockaddr.bytesize == Truffle::Socket::Foreign::SockaddrUn.size
         @unix_path = Socket.unpack_sockaddr_un(sockaddr)
         @afamily   = Socket::AF_UNIX
       else
         @ip_port, @ip_address = Socket.unpack_sockaddr_in(sockaddr)
 
-        if sockaddr.bytesize == RubySL::Socket::Foreign::SockaddrIn6.size
+        if sockaddr.bytesize == Truffle::Socket::Foreign::SockaddrIn6.size
           @afamily = Socket::AF_INET6
         else
           @afamily = Socket::AF_INET
@@ -120,9 +120,9 @@ class Addrinfo
       end
     end
 
-    @pfamily ||= RubySL::Socket.protocol_family(pfamily)
+    @pfamily ||= Truffle::Socket.protocol_family(pfamily)
 
-    @socktype = RubySL::Socket.socket_type(socktype || 0)
+    @socktype = Truffle::Socket.socket_type(socktype || 0)
     @protocol = protocol || 0
 
     # Per MRI behaviour setting the protocol family should also set the address
@@ -262,7 +262,7 @@ class Addrinfo
         "UNIX #{unix_path}"
       end
     else
-      RubySL::Socket.address_family_name(afamily)
+      Truffle::Socket.address_family_name(afamily)
     end
   end
 
@@ -275,10 +275,10 @@ class Addrinfo
         when Socket::SOCK_DGRAM
           suffix = 'UDP'
         else
-          suffix = RubySL::Socket.socket_type_name(socktype)
+          suffix = Truffle::Socket.socket_type_name(socktype)
         end
       else
-        suffix = RubySL::Socket.socket_type_name(socktype)
+        suffix = Truffle::Socket.socket_type_name(socktype)
       end
 
       "#<Addrinfo: #{inspect_sockaddr} #{suffix}>"
@@ -298,19 +298,19 @@ class Addrinfo
   def ipv4_loopback?
     return false unless ipv4?
 
-    RubySL::Socket::Foreign.inet_network(ip_address) & 0xff000000 == 0x7f000000
+    Truffle::Socket::Foreign.inet_network(ip_address) & 0xff000000 == 0x7f000000
   end
 
   def ipv4_multicast?
     return false unless ipv4?
 
-    RubySL::Socket::Foreign.inet_network(ip_address) & 0xf0000000 == 0xe0000000
+    Truffle::Socket::Foreign.inet_network(ip_address) & 0xf0000000 == 0xe0000000
   end
 
   def ipv4_private?
     return false unless ipv4?
 
-    num = RubySL::Socket::Foreign.inet_network(ip_address)
+    num = Truffle::Socket::Foreign.inet_network(ip_address)
 
     num & 0xff000000 == 0x0a000000 ||
       num & 0xfff00000 == 0xac100000 ||
@@ -320,14 +320,14 @@ class Addrinfo
   def ipv6_loopback?
     return false unless ipv6?
 
-    RubySL::Socket::Foreign.ip_to_bytes(afamily, ip_address) ==
-      RubySL::Socket::IPv6::LOOPBACK
+    Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address) ==
+      Truffle::Socket::IPv6::LOOPBACK
   end
 
   def ipv6_linklocal?
     return false unless ipv6?
 
-    bytes = RubySL::Socket::Foreign.ip_to_bytes(afamily, ip_address)
+    bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
 
     bytes[0] == 0xfe && bytes[1] >= 0x80
   end
@@ -335,7 +335,7 @@ class Addrinfo
   def ipv6_multicast?
     return false unless ipv6?
 
-    bytes = RubySL::Socket::Foreign.ip_to_bytes(afamily, ip_address)
+    bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
 
     bytes[0] == 0xff
   end
@@ -343,7 +343,7 @@ class Addrinfo
   def ipv6_sitelocal?
     return false unless ipv6?
 
-    bytes = RubySL::Socket::Foreign.ip_to_bytes(afamily, ip_address)
+    bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
 
     bytes[0] == 0xfe && bytes[1] >= 0xe0
   end
@@ -351,7 +351,7 @@ class Addrinfo
   def ipv6_mc_global?
     return false unless ipv6?
 
-    bytes = RubySL::Socket::Foreign.ip_to_bytes(afamily, ip_address)
+    bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
 
     bytes[0] == 0xff && bytes[1] & 0xf == 0xe
   end
@@ -359,7 +359,7 @@ class Addrinfo
   def ipv6_mc_linklocal?
     return false unless ipv6?
 
-    bytes = RubySL::Socket::Foreign.ip_to_bytes(afamily, ip_address)
+    bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
 
     bytes[0] == 0xff && bytes[1] & 0xf == 0x2
   end
@@ -367,7 +367,7 @@ class Addrinfo
   def ipv6_mc_nodelocal?
     return false unless ipv6?
 
-    bytes = RubySL::Socket::Foreign.ip_to_bytes(afamily, ip_address)
+    bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
 
     bytes[0] == 0xff && bytes[1] & 0xf == 0x1
   end
@@ -375,7 +375,7 @@ class Addrinfo
   def ipv6_mc_orglocal?
     return false unless ipv6?
 
-    bytes = RubySL::Socket::Foreign.ip_to_bytes(afamily, ip_address)
+    bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
 
     bytes[0] == 0xff && bytes[1] & 0xf == 0x8
   end
@@ -383,7 +383,7 @@ class Addrinfo
   def ipv6_mc_sitelocal?
     return false unless ipv6?
 
-    bytes = RubySL::Socket::Foreign.ip_to_bytes(afamily, ip_address)
+    bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
 
     bytes[0] == 0xff && bytes[1] & 0xf == 0x5
   end
@@ -391,9 +391,9 @@ class Addrinfo
   def ipv6_to_ipv4
     return unless ipv6?
 
-    bytes = RubySL::Socket::Foreign.ip_to_bytes(afamily, ip_address)
+    bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
 
-    if RubySL::Socket::IPv6.ipv4_embedded?(bytes)
+    if Truffle::Socket::IPv6.ipv4_embedded?(bytes)
       Addrinfo.ip(bytes.last(4).join('.'))
     else
       nil
@@ -403,31 +403,31 @@ class Addrinfo
   def ipv6_unspecified?
     return false unless ipv6?
 
-    bytes = RubySL::Socket::Foreign.ip_to_bytes(afamily, ip_address)
+    bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
 
-    bytes == RubySL::Socket::IPv6::UNSPECIFIED
+    bytes == Truffle::Socket::IPv6::UNSPECIFIED
   end
 
   def ipv6_v4compat?
     return false unless ipv6?
 
-    bytes = RubySL::Socket::Foreign.ip_to_bytes(afamily, ip_address)
+    bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
 
-    RubySL::Socket::IPv6.ipv4_compatible?(bytes)
+    Truffle::Socket::IPv6.ipv4_compatible?(bytes)
   end
 
   def ipv6_v4mapped?
     return false unless ipv6?
 
-    bytes = RubySL::Socket::Foreign.ip_to_bytes(afamily, ip_address)
+    bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
 
-    RubySL::Socket::IPv6.ipv4_mapped?(bytes)
+    Truffle::Socket::IPv6.ipv4_mapped?(bytes)
   end
 
   def ipv6_unique_local?
     return false unless ipv6?
 
-    bytes = RubySL::Socket::Foreign.ip_to_bytes(afamily, ip_address)
+    bytes = Truffle::Socket::Foreign.ip_to_bytes(afamily, ip_address)
 
     bytes[0] == 0xfc || bytes[0] == 0xfd
   end
@@ -442,14 +442,14 @@ class Addrinfo
     if unix?
       protocol = 0
     else
-      protocol = RubySL::Socket.protocol_name(self.protocol)
+      protocol = Truffle::Socket.protocol_name(self.protocol)
     end
 
     [
-      RubySL::Socket.address_family_name(afamily),
+      Truffle::Socket.address_family_name(afamily),
       address,
-      RubySL::Socket.protocol_family_name(pfamily),
-      RubySL::Socket.socket_type_name(socktype),
+      Truffle::Socket.protocol_family_name(pfamily),
+      Truffle::Socket.socket_type_name(socktype),
       protocol,
       canonname
     ]
@@ -458,9 +458,9 @@ class Addrinfo
   def marshal_load(array)
     afamily, address, pfamily, socktype, protocol, canonname = array
 
-    @afamily  = RubySL::Socket.address_family(afamily)
-    @pfamily  = RubySL::Socket.protocol_family(pfamily)
-    @socktype = RubySL::Socket.socket_type(socktype)
+    @afamily  = Truffle::Socket.address_family(afamily)
+    @pfamily  = Truffle::Socket.protocol_family(pfamily)
+    @socktype = Truffle::Socket.socket_type(socktype)
 
     if protocol and protocol != 0
       @protocol = ::Socket.const_get(protocol)
