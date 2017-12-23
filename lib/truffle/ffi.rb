@@ -11,10 +11,10 @@ module FFI
   Platform = Truffle::FFI::Platform
 
   class DynamicLibrary
-    RTLD_LAZY   = Truffle::Config['rbx.platform.dlopen.RTLD_LAZY']
-    RTLD_NOW    = Truffle::Config['rbx.platform.dlopen.RTLD_NOW']
-    RTLD_GLOBAL = Truffle::Config['rbx.platform.dlopen.RTLD_GLOBAL']
-    RTLD_LOCAL  = Truffle::Config['rbx.platform.dlopen.RTLD_LOCAL']
+    RTLD_LAZY   = Truffle::Config['platform.dlopen.RTLD_LAZY']
+    RTLD_NOW    = Truffle::Config['platform.dlopen.RTLD_NOW']
+    RTLD_GLOBAL = Truffle::Config['platform.dlopen.RTLD_GLOBAL']
+    RTLD_LOCAL  = Truffle::Config['platform.dlopen.RTLD_LOCAL']
 
     attr_reader :name
 

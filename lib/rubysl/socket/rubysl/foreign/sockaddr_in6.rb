@@ -28,7 +28,7 @@ module RubySL
   module Socket
     module Foreign
       class SockaddrIn6 < Truffle::FFI::Struct
-        config("rbx.platform.sockaddr_in6", :sin6_family, :sin6_port,
+        config("platform.sockaddr_in6", :sin6_family, :sin6_port,
                :sin6_flowinfo, :sin6_addr, :sin6_scope_id)
 
         def self.with_sockaddr(addr)

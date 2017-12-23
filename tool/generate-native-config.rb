@@ -35,7 +35,7 @@
 # From https://github.com/rubinius/rubinius/blob/v2.71828182/rakelib/platform.rake
 # and its required files, but greatly simplified.
 
-PREFIX = 'rbx.platform'
+PREFIX = 'platform'
 ROOT = File.expand_path('../..', __FILE__)
 SCRIPT = File.expand_path(__FILE__)[ROOT.size+1..-1]
 

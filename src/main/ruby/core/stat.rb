@@ -28,31 +28,31 @@ class File
   class Stat
     include Comparable
 
-    S_IRUSR  = Truffle::Config['rbx.platform.file.S_IRUSR']
-    S_IWUSR  = Truffle::Config['rbx.platform.file.S_IWUSR']
-    S_IXUSR  = Truffle::Config['rbx.platform.file.S_IXUSR']
-    S_IRGRP  = Truffle::Config['rbx.platform.file.S_IRGRP']
-    S_IWGRP  = Truffle::Config['rbx.platform.file.S_IWGRP']
-    S_IXGRP  = Truffle::Config['rbx.platform.file.S_IXGRP']
-    S_IROTH  = Truffle::Config['rbx.platform.file.S_IROTH']
-    S_IWOTH  = Truffle::Config['rbx.platform.file.S_IWOTH']
-    S_IXOTH  = Truffle::Config['rbx.platform.file.S_IXOTH']
+    S_IRUSR  = Truffle::Config['platform.file.S_IRUSR']
+    S_IWUSR  = Truffle::Config['platform.file.S_IWUSR']
+    S_IXUSR  = Truffle::Config['platform.file.S_IXUSR']
+    S_IRGRP  = Truffle::Config['platform.file.S_IRGRP']
+    S_IWGRP  = Truffle::Config['platform.file.S_IWGRP']
+    S_IXGRP  = Truffle::Config['platform.file.S_IXGRP']
+    S_IROTH  = Truffle::Config['platform.file.S_IROTH']
+    S_IWOTH  = Truffle::Config['platform.file.S_IWOTH']
+    S_IXOTH  = Truffle::Config['platform.file.S_IXOTH']
 
     S_IRUGO  = S_IRUSR | S_IRGRP | S_IROTH
     S_IWUGO  = S_IWUSR | S_IWGRP | S_IWOTH
     S_IXUGO  = S_IXUSR | S_IXGRP | S_IXOTH
 
-    S_IFMT   = Truffle::Config['rbx.platform.file.S_IFMT']
-    S_IFIFO  = Truffle::Config['rbx.platform.file.S_IFIFO']
-    S_IFCHR  = Truffle::Config['rbx.platform.file.S_IFCHR']
-    S_IFDIR  = Truffle::Config['rbx.platform.file.S_IFDIR']
-    S_IFBLK  = Truffle::Config['rbx.platform.file.S_IFBLK']
-    S_IFREG  = Truffle::Config['rbx.platform.file.S_IFREG']
-    S_IFLNK  = Truffle::Config['rbx.platform.file.S_IFLNK']
-    S_IFSOCK = Truffle::Config['rbx.platform.file.S_IFSOCK']
-    S_ISUID  = Truffle::Config['rbx.platform.file.S_ISUID']
-    S_ISGID  = Truffle::Config['rbx.platform.file.S_ISGID']
-    S_ISVTX  = Truffle::Config['rbx.platform.file.S_ISVTX']
+    S_IFMT   = Truffle::Config['platform.file.S_IFMT']
+    S_IFIFO  = Truffle::Config['platform.file.S_IFIFO']
+    S_IFCHR  = Truffle::Config['platform.file.S_IFCHR']
+    S_IFDIR  = Truffle::Config['platform.file.S_IFDIR']
+    S_IFBLK  = Truffle::Config['platform.file.S_IFBLK']
+    S_IFREG  = Truffle::Config['platform.file.S_IFREG']
+    S_IFLNK  = Truffle::Config['platform.file.S_IFLNK']
+    S_IFSOCK = Truffle::Config['platform.file.S_IFSOCK']
+    S_ISUID  = Truffle::Config['platform.file.S_ISUID']
+    S_ISGID  = Truffle::Config['platform.file.S_ISGID']
+    S_ISVTX  = Truffle::Config['platform.file.S_ISVTX']
 
     attr_reader :path
 

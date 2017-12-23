@@ -33,10 +33,10 @@ module Signal
     0 => 'EXIT'
   }
 
-  NSIG = Truffle::Config['rbx.platform.limits.NSIG']
+  NSIG = Truffle::Config['platform.limits.NSIG']
 
   # Fill the Names and Numbers Hash.
-  prefix = 'rbx.platform.signal.'
+  prefix = 'platform.signal.'
   Truffle::Config.section(prefix) do |name, number|
     name = name[prefix.size+3..-1]
     Names[name] = number

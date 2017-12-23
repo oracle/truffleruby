@@ -48,7 +48,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public class NativeConfiguration {
 
-    public static final String PREFIX = "rbx.platform.";
+    public static final String PREFIX = "platform.";
 
     private final Map<String, Object> configuration = new HashMap<>(); // Only written to by create() once per RubyContext.
 

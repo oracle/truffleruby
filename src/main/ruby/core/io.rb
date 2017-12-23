@@ -78,9 +78,9 @@ class IO
 
   # Import platform constants
 
-  SEEK_SET = Truffle::Config['rbx.platform.io.SEEK_SET']
-  SEEK_CUR = Truffle::Config['rbx.platform.io.SEEK_CUR']
-  SEEK_END = Truffle::Config['rbx.platform.io.SEEK_END']
+  SEEK_SET = Truffle::Config['platform.io.SEEK_SET']
+  SEEK_CUR = Truffle::Config['platform.io.SEEK_CUR']
+  SEEK_END = Truffle::Config['platform.io.SEEK_END']
 
   # InternalBuffer provides a sliding window into a region of bytes.
   # The buffer is filled to the +used+ indicator, which is

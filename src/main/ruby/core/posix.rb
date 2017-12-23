@@ -40,7 +40,7 @@ module Truffle::POSIX
   def self.to_nfi_type(type)
     if found = TYPES[type]
       found
-    elsif typedef = Truffle::Config.lookup("rbx.platform.typedef.#{type}")
+    elsif typedef = Truffle::Config.lookup("platform.typedef.#{type}")
       TYPES[type] = to_nfi_type(typedef.to_sym)
     else
       TYPES[type] = type
