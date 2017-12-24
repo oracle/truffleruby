@@ -67,7 +67,7 @@ public class EncodingManager {
         }
     }
 
-    // This must be run after the locale is set for AOT, see the setLocale() call above
+    // This must be run after the locale is set for native, see the setLocale() call above
     public void initializeLocaleEncoding(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
         final String localeEncodingName;
         if (context.getOptions().NATIVE_PLATFORM) {

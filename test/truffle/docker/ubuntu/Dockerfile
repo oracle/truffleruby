@@ -12,7 +12,7 @@ ENV LANG=en_US.UTF-8
 # Tools we will need to get and run our tests
 RUN apt-get install -y git
 
-# The AOT tool uses gcc and zlib.h to figure out struct layouts and link
+# The native image tool uses gcc and zlib.h to figure out struct layouts and link
 RUN apt-get install -y gcc zlib1g-dev
 
 # These are the actual runtime GraalVM dependencies

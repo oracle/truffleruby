@@ -215,7 +215,7 @@ public abstract class TruffleSystemNodes {
 
     }
 
-    @CoreMethod(names = "aot_set_process_title", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "native_set_process_title", isModuleFunction = true, required = 1)
     public abstract static class SetProcessTitleNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary

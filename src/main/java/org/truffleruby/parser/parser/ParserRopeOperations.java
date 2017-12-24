@@ -25,7 +25,7 @@ import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 public class ParserRopeOperations {
 
     public Rope withEncoding(Rope rope, Encoding encoding) {
-        if (isBuildingAOTImage()) {
+        if (isBuildingNativeImage()) {
             if (rope.isAsciiOnly() && encoding.isAsciiCompatible()) {
                 return rope.withEncoding(encoding, CR_7BIT);
             }
@@ -37,7 +37,7 @@ public class ParserRopeOperations {
     }
 
     public Rope makeShared(Rope rope, int sharedStart, int sharedLength) {
-        if (isBuildingAOTImage()) {
+        if (isBuildingNativeImage()) {
             if (sharedLength == rope.byteLength()) {
                 return rope;
             }
@@ -48,9 +48,9 @@ public class ParserRopeOperations {
         }
     }
 
-    private static boolean isBuildingAOTImage() {
+    private static boolean isBuildingNativeImage() {
         // We can't use a detached RopeNode during image construction because it trips up the static analysis, but
-        // we can use it at runtime. We check if a context has been created as a proxy for whether we're in the AOT
+        // we can use it at runtime. We check if a context has been created as a proxy for whether we're in the native
         // image builder or running at runtime.
         return TruffleOptions.AOT && RubyContext.FIRST_INSTANCE == null;
     }
@@ -85,6 +85,6 @@ public class ParserRopeOperations {
 
     }
 
-    private final RopeNode ropeNode = isBuildingAOTImage() ? null : new RopeNode();
+    private final RopeNode ropeNode = isBuildingNativeImage() ? null : new RopeNode();
 
 }

@@ -146,8 +146,8 @@ module Process
   #
   def self.setproctitle(title)
     title = Truffle::Type.coerce_to(title, String, :to_str)
-    if Truffle.aot?
-      Truffle::System.aot_set_process_title(title)
+    if Truffle.native?
+      Truffle::System.native_set_process_title(title)
     elsif Truffle.linux? && File.readable?('/proc/self/maps')
       setproctitle_linux_from_proc_maps(title)
     elsif Truffle.darwin?

@@ -8,10 +8,10 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "Truffle.aot?" do
+describe "Truffle.native?" do
   
   it "returns a Boolean value" do
-    Truffle.aot?.should be_true_or_false
+    Truffle.native?.should be_true_or_false
   end
   
 end

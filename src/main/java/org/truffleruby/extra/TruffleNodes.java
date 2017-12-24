@@ -29,11 +29,11 @@ public abstract class TruffleNodes {
 
     }
 
-    @CoreMethod(names = "aot?", onSingleton = true)
-    public abstract static class AOTNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "native?", onSingleton = true)
+    public abstract static class NativeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean aot() {
+        public boolean isNative() {
             return TruffleOptions.AOT;
         }
 
