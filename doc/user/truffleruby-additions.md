@@ -35,7 +35,7 @@ TruffleRuby using the standard `RUBY_ENGINE_VERSION` constant.
 `Truffle.graal?` reports if the Graal compiler is available and will be
 used.
 
-`Truffle.aot?` reports if TruffleRuby has been ahead-of-time compiled.
+`Truffle.native?` reports if TruffleRuby has been ahead-of-time compiled.
 In practice this implies that the SubstrateVM is being used.
 
 ## Polyglot interoperability

@@ -73,7 +73,7 @@ We do run Rails, and pass the majority of the Rails test suite. But we are
 missing support for OpenSSL, Nokogiri, and ActiveRecord database drivers
 which makes it not practical to run real Rails applications at the moment.
 
-#### What is happening with AOT, startup time, and the SubstrateVM?
+#### What is happening with native, startup time, and the SubstrateVM?
 
 You don't need a JVM to run TruffleRuby. With the
 [SubstrateVM](doc/user/svm.md)

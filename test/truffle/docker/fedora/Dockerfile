@@ -11,7 +11,7 @@ RUN dnf install -y git
 # Used in spec/truffle.mspec
 RUN dnf install -y which
 
-# The AOT tool uses gcc and zlib.h to figure out struct layouts and link
+# The native image tool uses gcc and zlib.h to figure out struct layouts and link
 RUN dnf install -y gcc zlib-devel
 
 # These are the actual runtime GraalVM dependencies

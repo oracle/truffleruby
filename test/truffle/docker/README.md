@@ -23,4 +23,4 @@ You need to specify `GRAALVM_VERSION` as the version of GraalVM that you are
 using.
 
 Docker will need to run the container with at least 8 GB of RAM if you are using
-virtualisation, to give enough space for the AOT image to build.
+virtualisation, to give enough space for the native image to build.

@@ -220,7 +220,7 @@ public class Launcher {
     }
 
     private static void printTruffleMemoryMetric() {
-        // Memory stats aren't available on AOT.
+        // Memory stats aren't available in native.
         if (!IS_NATIVE && METRICS_MEMORY_USED_ON_EXIT) {
             for (int n = 0; n < 10; n++) {
                 System.gc();
