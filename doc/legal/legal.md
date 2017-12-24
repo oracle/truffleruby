@@ -22,7 +22,7 @@ in `lib/cext` and `src/main/c/cext`, and OpenSSL in
 `src/main/c/openssl`.
 
 MRI is copyright Yukihiro Matsumoto. It is made available under the terms of the
-BSD licence `ruby-bsdl.txt`, or a custom licence `ruby-licence.txt`.
+2-clause BSD licence `ruby-bsdl.txt`, or a custom licence `ruby-licence.txt`.
 
 ## JRuby
 
