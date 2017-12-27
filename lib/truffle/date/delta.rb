@@ -189,9 +189,9 @@ class Date
       def once(*ids) # :nodoc: -- restricted
         for id in ids
           module_eval <<-"end;"
-            alias_method :__#{id.object_id}__, :#{id.to_s}
+            alias_method :__#{id.object_id}__, :#{id}
             private :__#{id.object_id}__
-            def #{id.to_s}(*args)
+            def #{id}(*args)
               @__ca__[#{id.object_id}] ||= __#{id.object_id}__(*args)
             end
           end;
