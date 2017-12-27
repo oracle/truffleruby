@@ -84,7 +84,7 @@ module Timeout
   def self.watch_channel
     reqs = []
 
-    while true
+    loop do
       begin
         while reqs.empty?
           req = @chan.receive
