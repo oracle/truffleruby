@@ -11,10 +11,10 @@ class Date::Delta::Parser
 
   rule
 
-  stmt        : expr
+  stmt  : expr
         ;
 
-  expr        : time
+  expr  : time
         | iso
         | expr '+' expr   {result += val[2]}
         | expr ',' expr   {result += val[2]}
@@ -28,13 +28,13 @@ class Date::Delta::Parser
         | '(' expr ')'    {result =  val[1]}
         ;
 
-  time        : DIGITS unit {result = val[0] * val[1]}
+  time  : DIGITS unit {result = val[0] * val[1]}
         ;
 
-  unit        : {result = 1} | UNIT
+  unit  : {result = 1} | UNIT
         ;
 
-  iso        : DURATION
+  iso   : DURATION
         ;
 
 ---- header ----
