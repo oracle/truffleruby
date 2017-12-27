@@ -73,14 +73,14 @@ module SecureRandom
       flags |= File::NONBLOCK if defined? File::NONBLOCK
       flags |= File::NOCTTY if defined? File::NOCTTY
       begin
-        File.open("/dev/urandom", flags) {|f|
+        File.open('/dev/urandom', flags) {|f|
           unless f.stat.chardev?
             raise Errno::ENOENT
           end
           @has_urandom = true
           ret = f.readpartial(n)
           if ret.length != n
-            raise NotImplementedError, "Unexpected partial read from random device"
+            raise NotImplementedError, 'Unexpected partial read from random device'
           end
           return ret
         }
@@ -93,10 +93,10 @@ module SecureRandom
       begin
         require 'Win32API'
 
-        crypt_acquire_context = Win32API.new("advapi32", "CryptAcquireContext", 'PPPII', 'L')
-        @crypt_gen_random = Win32API.new("advapi32", "CryptGenRandom", 'LIP', 'L')
+        crypt_acquire_context = Win32API.new('advapi32', 'CryptAcquireContext', 'PPPII', 'L')
+        @crypt_gen_random = Win32API.new('advapi32', 'CryptGenRandom', 'LIP', 'L')
 
-        hProvStr = " " * 4
+        hProvStr = ' ' * 4
         prov_rsa_full = 1
         crypt_verifycontext = 0xF0000000
 
@@ -111,14 +111,14 @@ module SecureRandom
       end
     end
     if @has_win32
-      bytes = " ".force_encoding("ASCII-8BIT") * n
+      bytes = ' '.force_encoding('ASCII-8BIT') * n
       if @crypt_gen_random.call(@hProv, bytes.size, bytes) == 0
         raise SystemCallError, "CryptGenRandom failed: #{lastWin32ErrorMessage}"
       end
       return bytes
     end
 
-    raise NotImplementedError, "No random device"
+    raise NotImplementedError, 'No random device'
   end
 
   # SecureRandom.hex generates a random hex string.
@@ -137,7 +137,7 @@ module SecureRandom
   # If secure random number generator is not available,
   # NotImplementedError is raised.
   def self.hex(n=nil)
-    random_bytes(n).unpack("H*")[0]
+    random_bytes(n).unpack('H*')[0]
   end
 
   # SecureRandom.base64 generates a random base64 string.
@@ -158,7 +158,7 @@ module SecureRandom
   #
   # See RFC 3548 for the definition of base64.
   def self.base64(n=nil)
-    [random_bytes(n)].pack("m*").delete("\n")
+    [random_bytes(n)].pack('m*').delete("\n")
   end
 
   # SecureRandom.urlsafe_base64 generates a random URL-safe base64 string.
@@ -188,10 +188,10 @@ module SecureRandom
   #
   # See RFC 3548 for the definition of URL-safe base64.
   def self.urlsafe_base64(n=nil, padding=false)
-    s = [random_bytes(n)].pack("m*")
+    s = [random_bytes(n)].pack('m*')
     s.delete!("\n")
-    s.tr!("+/", "-_")
-    s.delete!("=") if !padding
+    s.tr!('+/', '-_')
+    s.delete!('=') if !padding
     s
   end
 
@@ -215,7 +215,7 @@ module SecureRandom
     if 0 < n
       hex = n.to_s(16)
       hex = '0' + hex if (hex.length & 1) == 1
-      bin = [hex].pack("H*")
+      bin = [hex].pack('H*')
       mask = bin[0].ord
       mask |= mask >> 1
       mask |= mask >> 2
@@ -224,10 +224,10 @@ module SecureRandom
         rnd = SecureRandom.random_bytes(bin.length)
         rnd[0] = (rnd[0].ord & mask).chr
       end until rnd < bin
-      rnd.unpack("H*")[0].hex
+      rnd.unpack('H*')[0].hex
     else
       # assumption: Float::MANT_DIG <= 64
-      i64 = SecureRandom.random_bytes(8).unpack("Q")[0]
+      i64 = SecureRandom.random_bytes(8).unpack('Q')[0]
       Math.ldexp(i64 >> (64-Float::MANT_DIG), -Float::MANT_DIG)
     end
   end
@@ -244,16 +244,16 @@ module SecureRandom
   # See RFC 4122 for details of UUID.
   #
   def self.uuid
-    ary = self.random_bytes(16).unpack("NnnnnN")
+    ary = self.random_bytes(16).unpack('NnnnnN')
     ary[2] = (ary[2] & 0x0fff) | 0x4000
     ary[3] = (ary[3] & 0x3fff) | 0x8000
-    "%08x-%04x-%04x-%04x-%04x%08x" % ary
+    '%08x-%04x-%04x-%04x-%04x%08x' % ary
   end
 
   # Following code is based on David Garamond's GUID library for Ruby.
   def self.lastWin32ErrorMessage # :nodoc:
-    get_last_error = Win32API.new("kernel32", "GetLastError", '', 'L')
-    format_message = Win32API.new("kernel32", "FormatMessageA", 'LPLLPLPPPPPPPP', 'L')
+    get_last_error = Win32API.new('kernel32', 'GetLastError', '', 'L')
+    format_message = Win32API.new('kernel32', 'FormatMessageA', 'LPLLPLPPPPPPPP', 'L')
     format_message_ignore_inserts = 0x00000200
     format_message_from_system    = 0x00001000
 

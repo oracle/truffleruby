@@ -65,7 +65,7 @@ module Timeout
     # Raise @exception if @thread.
     def cancel
       if @thread and @thread.alive?
-        @thread.raise @exception, "execution expired"
+        @thread.raise @exception, 'execution expired'
       end
 
       @left = 0
@@ -115,7 +115,7 @@ module Timeout
         reqs << new_req if new_req
 
       rescue Exception => e
-        e.render("ERROR IN TIMEOUT THREAD")
+        e.render('ERROR IN TIMEOUT THREAD')
       end
     end
   end
@@ -139,7 +139,7 @@ module Timeout
   if Truffle::Boot.single_threaded?
   
     def timeout(sec, exception=Error)
-      Truffle::Debug.log_warning "threads are disabled, so timeout is being ignored"
+      Truffle::Debug.log_warning 'threads are disabled, so timeout is being ignored'
       yield sec
     end
   
@@ -156,7 +156,7 @@ module Timeout
 
     def timeout(sec, exception=Error)
       return yield if sec == nil or sec.zero?
-      raise ThreadError, "timeout within critical session" if Thread.respond_to?(:critical) && Thread.critical
+      raise ThreadError, 'timeout within critical session' if Thread.respond_to?(:critical) && Thread.critical
 
       req = Timeout.add_timeout sec, exception
 

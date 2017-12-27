@@ -1,5 +1,5 @@
 module Truffle
   module Socket
-    VERSION = "2.2"
+    VERSION = '2.2'
   end
 end

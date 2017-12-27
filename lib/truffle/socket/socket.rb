@@ -42,7 +42,7 @@ class Socket < BasicSocket
     end
 
     if host && (host.empty? || host == '<any>')
-      host = "0.0.0.0"
+      host = '0.0.0.0'
     elsif host == '<broadcast>'
       host = '255.255.255.255'
     end

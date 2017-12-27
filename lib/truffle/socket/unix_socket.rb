@@ -83,7 +83,7 @@ class UNIXSocket < BasicSocket
     begin
       fd = recv_fd
     rescue PrimitiveFailure
-      raise SocketError, "file descriptor was not passed"
+      raise SocketError, 'file descriptor was not passed'
     end
 
     return fd unless klass

@@ -269,7 +269,7 @@ module Truffle
         hints[:ai_flags]    = flags
 
         if host and host.empty?
-          host = "0.0.0.0"
+          host = '0.0.0.0'
         end
 
         res_p = memory_pointer(:pointer)

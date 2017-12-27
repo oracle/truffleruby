@@ -193,7 +193,7 @@
 class Pathname
 
   # :stopdoc:
-  if RUBY_VERSION < "1.9"
+  if RUBY_VERSION < '1.9'
     TO_PATH = :to_str
   else
     # to_path is implemented so Pathname objects are usable with File.open, etc.
@@ -273,7 +273,7 @@ class Pathname
         begin
           old = Thread.current[:pathname_sub_matchdata]
           Thread.current[:pathname_sub_matchdata] = $~
-          eval("$~ = Thread.current[:pathname_sub_matchdata]", block.binding)
+          eval('$~ = Thread.current[:pathname_sub_matchdata]', block.binding)
         ensure
           Thread.current[:pathname_sub_matchdata] = old
         end
@@ -329,7 +329,7 @@ class Pathname
       File.dirname(prefix)
     elsif /#{SEPARATOR_PAT}/o =~ prefix
       prefix = File.dirname(prefix)
-      prefix = File.join(prefix, "") if File.basename(prefix + 'a') != 'a'
+      prefix = File.join(prefix, '') if File.basename(prefix + 'a') != 'a'
       prefix + relpath
     else
       prefix + relpath
@@ -398,7 +398,7 @@ class Pathname
     if File.basename(path + 'a') == 'a'
       path
     else
-      File.join(path, "") # xxx: Is File.join is appropriate to add separator?
+      File.join(path, '') # xxx: Is File.join is appropriate to add separator?
     end
   end
   private :add_trailing_separator

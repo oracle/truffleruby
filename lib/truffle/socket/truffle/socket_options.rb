@@ -37,7 +37,7 @@ module Truffle
             elsif level.to_s == 'SOCKET'
               ::Socket::SOL_SOCKET
             else
-              constant("IPPROTO", level)
+              constant('IPPROTO', level)
             end
           end
         elsif level.respond_to?(:to_str)
@@ -55,15 +55,15 @@ module Truffle
           else
             case level
             when ::Socket::SOL_SOCKET
-              constant("SO", optname)
+              constant('SO', optname)
             when ::Socket::IPPROTO_IP
-              constant("IP", optname)
+              constant('IP', optname)
             when ::Socket::IPPROTO_TCP
-              constant("TCP", optname)
+              constant('TCP', optname)
             when ::Socket::IPPROTO_UDP
-              constant("UDP", optname)
+              constant('UDP', optname)
             when ::Socket.const_defined?(:IPPROTO_IPV6, false) && ::Socket::IPPROTO_IPV6 # Truffle: added inherit false
-              constant("IPV6", optname)
+              constant('IPV6', optname)
             else
               raise SocketError,
                 "Unsupported socket level option name: #{optname}"
@@ -79,11 +79,11 @@ module Truffle
       end
 
       def self.is_ip_family?(family)
-        family == "AF_INET" || family == "AF_INET6"
+        family == 'AF_INET' || family == 'AF_INET6'
       end
 
       def self.ip_level_to_int(level)
-        prefixes = ["IPPROTO", "SOL", "IPV6"]
+        prefixes = ['IPPROTO', 'SOL', 'IPV6']
 
         prefixes.each do |prefix|
           const = "#{prefix}_#{level}"

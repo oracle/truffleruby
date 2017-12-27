@@ -71,13 +71,13 @@ class Addrinfo
   #
   def family_addrinfo(*args)
     if args.empty?
-      raise ArgumentError, "no address specified"
+      raise ArgumentError, 'no address specified'
     elsif Addrinfo === args.first
-      raise ArgumentError, "too many arguments" if args.length != 1
+      raise ArgumentError, 'too many arguments' if args.length != 1
       addrinfo = args.first
       if (self.pfamily != addrinfo.pfamily) ||
          (self.socktype != addrinfo.socktype)
-        raise ArgumentError, "Addrinfo type mismatch"
+        raise ArgumentError, 'Addrinfo type mismatch'
       end
       addrinfo
     elsif self.ip?
@@ -89,7 +89,7 @@ class Addrinfo
       path, = args
       Addrinfo.unix(path)
     else
-      raise ArgumentError, "unexpected family"
+      raise ArgumentError, 'unexpected family'
     end
   end
 
@@ -315,21 +315,21 @@ class BasicSocket < IO
     addr = local_address
     afamily = addr.afamily
     if afamily == Socket::AF_INET
-      raise SocketError, "unbound IPv4 socket" if addr.ip_port == 0
-      if addr.ip_address == "0.0.0.0"
-        addr = Addrinfo.new(["AF_INET", addr.ip_port, nil, "127.0.0.1"], addr.pfamily, addr.socktype, addr.protocol)
+      raise SocketError, 'unbound IPv4 socket' if addr.ip_port == 0
+      if addr.ip_address == '0.0.0.0'
+        addr = Addrinfo.new(['AF_INET', addr.ip_port, nil, '127.0.0.1'], addr.pfamily, addr.socktype, addr.protocol)
       end
     elsif defined?(Socket::AF_INET6) && afamily == Socket::AF_INET6
-      raise SocketError, "unbound IPv6 socket" if addr.ip_port == 0
-      if addr.ip_address == "::"
-        addr = Addrinfo.new(["AF_INET6", addr.ip_port, nil, "::1"], addr.pfamily, addr.socktype, addr.protocol)
-      elsif addr.ip_address == "0.0.0.0" # MacOS X 10.4 returns "a.b.c.d" for IPv4-mapped IPv6 address.
-        addr = Addrinfo.new(["AF_INET6", addr.ip_port, nil, "::1"], addr.pfamily, addr.socktype, addr.protocol)
-      elsif addr.ip_address == "::ffff:0.0.0.0" # MacOS X 10.6 returns "::ffff:a.b.c.d" for IPv4-mapped IPv6 address.
-        addr = Addrinfo.new(["AF_INET6", addr.ip_port, nil, "::1"], addr.pfamily, addr.socktype, addr.protocol)
+      raise SocketError, 'unbound IPv6 socket' if addr.ip_port == 0
+      if addr.ip_address == '::'
+        addr = Addrinfo.new(['AF_INET6', addr.ip_port, nil, '::1'], addr.pfamily, addr.socktype, addr.protocol)
+      elsif addr.ip_address == '0.0.0.0' # MacOS X 10.4 returns "a.b.c.d" for IPv4-mapped IPv6 address.
+        addr = Addrinfo.new(['AF_INET6', addr.ip_port, nil, '::1'], addr.pfamily, addr.socktype, addr.protocol)
+      elsif addr.ip_address == '::ffff:0.0.0.0' # MacOS X 10.6 returns "::ffff:a.b.c.d" for IPv4-mapped IPv6 address.
+        addr = Addrinfo.new(['AF_INET6', addr.ip_port, nil, '::1'], addr.pfamily, addr.socktype, addr.protocol)
       end
     elsif defined?(Socket::AF_UNIX) && afamily == Socket::AF_UNIX
-      raise SocketError, "unbound Unix socket" if addr.unix_path == ""
+      raise SocketError, 'unbound Unix socket' if addr.unix_path == ''
     end
     addr
   end
@@ -405,7 +405,7 @@ class Socket < BasicSocket
       if last_error
         raise last_error
       else
-        raise SocketError, "no appropriate local address"
+        raise SocketError, 'no appropriate local address'
       end
     end
     if block_given?
@@ -554,7 +554,7 @@ class Socket < BasicSocket
   def self.accept_loop(*sockets) # :yield: socket, client_addrinfo
     sockets.flatten!(1)
     if sockets.empty?
-      raise ArgumentError, "no sockets"
+      raise ArgumentError, 'no sockets'
     end
     loop {
       readable, _, _ = IO.select(sockets)
@@ -655,12 +655,12 @@ class Socket < BasicSocket
 
     ip_list = []
     Addrinfo.foreach(host, port, nil, :DGRAM, nil, Socket::AI_PASSIVE) {|ai|
-      if ai.ipv4? && ai.ip_address == "0.0.0.0"
+      if ai.ipv4? && ai.ip_address == '0.0.0.0'
         local_addrs.each {|a|
           next if !a.ipv4?
           ip_list << Addrinfo.new(a.to_sockaddr, :INET, :DGRAM, 0);
         }
-      elsif ai.ipv6? && ai.ip_address == "::" && !ipv6_recvpktinfo
+      elsif ai.ipv6? && ai.ip_address == '::' && !ipv6_recvpktinfo
         local_addrs.each {|a|
           next if !a.ipv6?
           ip_list << Addrinfo.new(a.to_sockaddr, :INET6, :DGRAM, 0);
@@ -690,7 +690,7 @@ class Socket < BasicSocket
 
     sockets.each {|s|
       ai = s.local_address
-      if ipv6_recvpktinfo && ai.ipv6? && ai.ip_address == "::"
+      if ipv6_recvpktinfo && ai.ipv6? && ai.ip_address == '::'
         s.setsockopt(:IPV6, ipv6_recvpktinfo, 1)
       end
     }
