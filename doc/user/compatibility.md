@@ -16,6 +16,16 @@ if we could design the language better. If we can support a feature, we will do.
 In the future we aim to provide compatibility with extra functionality provided
 by JRuby, but at the moment we do not.
 
+## Identification
+
+TruffleReport defines these constants for identification:
+
+- `RUBY_ENGINE` is `'truffleruby'`
+- `RUBY_VERSION` is the compatible MRI version
+- `RUBY_REVISION` and `RUBY_PATCHLEVEL` are always zero
+- `RUBY_RELEASE_DATE` is the current year
+- `RUBY_ENGINE_VERSION` is the GraalVM version, or `0.0` if your build is not part of a GraalVM release.
+
 ## Features entirely missing
 
 #### Continuations and `callcc`
