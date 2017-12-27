@@ -132,7 +132,7 @@ module Timeout
     r = TimeoutRequest.new(time, Thread.current, exc)
     @chan << r
     ensure_timeout_thread_running
-    return r
+    r
   end
 
 

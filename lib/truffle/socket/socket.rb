@@ -365,13 +365,13 @@ class Socket < BasicSocket
   def recvfrom(bytes, flags = 0)
     message, addr = recvmsg(bytes, flags)
 
-    return message, addr
+    [message, addr]
   end
 
   def recvfrom_nonblock(bytes, flags = 0)
     message, addr = recvmsg_nonblock(bytes, flags)
 
-    return message, addr
+    [message, addr]
   end
 
   def listen(backlog)
@@ -389,6 +389,6 @@ class Socket < BasicSocket
   def sysaccept
     socket, addrinfo = accept
 
-    return socket.fileno, addrinfo
+    [socket.fileno, addrinfo]
   end
 end

@@ -288,7 +288,7 @@ class Date
 
     def coerce(other)
       case other
-      when Numeric; return -d, d
+      when Numeric; [-d, d]
       else
         super
       end
@@ -384,7 +384,7 @@ class Date
       y = jd_to_civil(jd, sg)[0]
       j = find_fdoy(y, sg)
       doy = jd - j + 1
-      return y, doy
+      [y, doy]
     end
 
     # Convert a Civil Date to a Julian Day Number.
@@ -433,7 +433,7 @@ class Date
         m = e - 13
         y = c - 4715
       end
-      return y, m, dom
+      [y, m, dom]
     end
 
     # Convert a Commercial Date to a Julian Day Number.
@@ -461,7 +461,7 @@ class Date
       w = 1 + ((jd - commercial_to_jd(y, 1, 1, sg)) / 7).floor
       d = (jd + 1) % 7
       d = 7 if d == 0
-      return y, w, d
+      [y, w, d]
     end
 
     def weeknum_to_jd(y, w, d, f=0, sg=GREGORIAN) # :nodoc:
@@ -473,7 +473,7 @@ class Date
       y, m, d = jd_to_civil(jd, sg)
       a = find_fdoy(y, sg) + 6
       w, d = (jd - (a - ((a - f) + 1) % 7) + 7).divmod(7)
-      return y, w, d
+      [y, w, d]
     end
 
     def nth_kday_to_jd(y, m, n, k, sg=GREGORIAN) # :nodoc:
@@ -488,7 +488,7 @@ class Date
     def jd_to_nth_kday(jd, sg=GREGORIAN) # :nodoc:
       y, m, d = jd_to_civil(jd, sg)
       j = find_fdom(y, m, sg)
-      return y, m, ((jd - j) / 7).floor + 1, jd_to_wday(jd)
+      [y, m, ((jd - j) / 7).floor + 1, jd_to_wday(jd)]
     end
 
     # Convert an Astronomical Julian Day Number to a (civil) Julian
@@ -518,7 +518,7 @@ class Date
       ss,  fr = fr.divmod(SECONDS_IN_DAY) # 4p
       h,   ss = ss.divmod(3600)
       min, s  = ss.divmod(60)
-      return h, min, s, fr * 86400
+      [h, min, s, fr * 86400]
     end
 
     # Convert an +h+ hour, +min+ minutes, +s+ seconds period

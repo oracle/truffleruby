@@ -58,6 +58,6 @@ class IPSocket < BasicSocket
       end
     end
 
-    return message, [aname, addr.ip_port, hostname, addr.ip_address]
+    [message, [aname, addr.ip_port, hostname, addr.ip_address]]
   end
 end

@@ -320,7 +320,7 @@ class Pathname
       path, basename = r
       names.unshift basename
     end
-    return path, names
+    [path, names]
   end
   private :split_names
 

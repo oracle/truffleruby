@@ -461,7 +461,7 @@ class StringIO
     end
 
     d.pos += str.length
-    return str
+    str
   end
 
   def readchar
@@ -530,7 +530,7 @@ class StringIO
 
     @__data__.pos = to
 
-    return 0
+    0
   end
 
   def size
@@ -586,7 +586,7 @@ class StringIO
     else
       string << "\000" * (len - string.bytesize)
     end
-    return length
+    length
   end
 
   def ungetc(char)
@@ -765,6 +765,6 @@ class StringIO
 
     d.lineno += 1
 
-    return line
+    line
   end
 end

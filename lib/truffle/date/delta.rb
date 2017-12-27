@@ -131,7 +131,7 @@ class Date
         s = -s
       end
 
-      return y, m, d, h, min, s, fr
+      [y, m, d, h, min, s, fr]
     end
 
     def self.dhms_to_delta(y, m, d, h, min, s, fr)
@@ -246,11 +246,11 @@ class Date
 
     def dx_addsub(m, n)
       case n
-      when Numeric; return self.class.new!(@delta.__send__(m, n))
-      when Delta; return self.class.new!(@delta.__send__(m, n.delta))
+      when Numeric; self.class.new!(@delta.__send__(m, n))
+      when Delta; self.class.new!(@delta.__send__(m, n.delta))
       else
         l, r = n.coerce(self)
-        return l.__send__(m, r)
+        l.__send__(m, r)
       end
     end
 
@@ -262,10 +262,10 @@ class Date
     def dx_muldiv(m, n)
       case n
       when Numeric
-        return self.class.new!(@delta.__send__(m, n))
+        self.class.new!(@delta.__send__(m, n))
       else
         l, r = n.coerce(self)
-        return l.__send__(m, r)
+        l.__send__(m, r)
       end
     end
 
@@ -347,7 +347,7 @@ class Date
 
     def coerce(other)
       case other
-      when Numeric; return other, @delta
+      when Numeric; [other, @delta]
       else
         super
       end
