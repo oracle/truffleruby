@@ -3,18 +3,18 @@ require File.expand_path('../../../spec_helper', __FILE__)
 describe 'TracePoint#disable' do
   def test; end
   it 'returns true if trace was enabled' do
-    event_name, method_name = nil
+    called = false
     trace = TracePoint.new(:call) do |tp|
-      event_name = tp.event
-      method_name = tp.method_id
+      called = true
     end
 
     trace.enable
     trace.disable.should be_true
-    event_name, method_name = nil
+
+    # Check the TracePoint is disabled
+    called = false
     test
-    method_name.equal?(:test).should be_false
-    event_name.should equal(nil)
+    called.should == false
   end
 
   it 'returns false if trace was disabled' do

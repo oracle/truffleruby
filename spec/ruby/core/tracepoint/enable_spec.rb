@@ -5,11 +5,9 @@ describe 'TracePoint#enable' do
 
   describe 'without a block' do
     it 'returns true if trace was enabled' do
-      event_name, method_name = nil, nil
-      method_name = []
+      event_name = nil
       trace = TracePoint.new(:call) do |tp|
         event_name = tp.event
-        method_name << tp.method_id
       end
 
       test

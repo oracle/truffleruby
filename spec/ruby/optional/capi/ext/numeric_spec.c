@@ -5,6 +5,10 @@
 extern "C" {
 #endif
 
+static VALUE numeric_spec_size_of_VALUE(VALUE self) {
+  return INT2FIX(sizeof(VALUE));
+}
+
 #ifdef HAVE_NUM2CHR
 static VALUE numeric_spec_NUM2CHR(VALUE self, VALUE value) {
   return INT2FIX(NUM2CHR(value));
@@ -115,6 +119,8 @@ static VALUE numeric_spec_rb_absint_singlebit_p(VALUE self, VALUE num) {
 void Init_numeric_spec(void) {
   VALUE cls;
   cls = rb_define_class("CApiNumericSpecs", rb_cObject);
+
+  rb_define_method(cls, "size_of_VALUE", numeric_spec_size_of_VALUE, 0);
 
 #ifdef HAVE_NUM2CHR
   rb_define_method(cls, "NUM2CHR", numeric_spec_NUM2CHR, 1);

@@ -271,7 +271,7 @@ describe "CApiNumericSpecs" do
     it "creates a new Bignum from a negative long" do
       i = @s.rb_uint2inum_n14()
       i.should be_kind_of(Bignum)
-      i.should eql(2 ** (PlatformGuard.wordsize?(64) ? 64 : 32) - 14)
+      i.should eql(2 ** (@s.size_of_VALUE * 8) - 14)
     end
   end
 
