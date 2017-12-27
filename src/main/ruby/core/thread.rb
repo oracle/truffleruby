@@ -240,11 +240,11 @@ class Thread
   private def internal_thread_initialize
     @thread_local_variables = {}
     @recursive_objects = {}
-    @randomizer = Rubinius::Randomizer.new
+    @randomizer = Truffle::Randomizer.new
   end
 
   def freeze
-    Rubinius.synchronize(self) { @thread_local_variables.freeze }
+    Truffle.synchronize(self) { @thread_local_variables.freeze }
     super
   end
 
@@ -255,7 +255,7 @@ class Thread
 
   def name=(val)
     unless val.nil?
-      val = Rubinius::Type.check_null_safe(StringValue(val))
+      val = Truffle::Type.check_null_safe(StringValue(val))
       raise ArgumentError, "ASCII incompatible encoding #{val.encoding.name}" unless val.encoding.ascii_compatible?
       # TODO BJF Aug 27, 2016 Need to rb_str_new_frozen the val here and SET_ANOTHER_THREAD_NAME
     end
@@ -340,7 +340,7 @@ class Thread
 
   def [](name)
     var = convert_to_local_name(name)
-    Rubinius.synchronize(self) do
+    Truffle.synchronize(self) do
       locals = Truffle.invoke_primitive :thread_get_fiber_locals, self
       Truffle.invoke_primitive :object_ivar_get, locals, var
     end
@@ -348,7 +348,7 @@ class Thread
 
   def []=(name, value)
     var = convert_to_local_name(name)
-    Rubinius.synchronize(self) do
+    Truffle.synchronize(self) do
       Truffle.check_frozen
       locals = Truffle.invoke_primitive :thread_get_fiber_locals, self
       Truffle.invoke_primitive :object_ivar_set, locals, var, value
@@ -357,14 +357,14 @@ class Thread
 
   def key?(name)
     var = convert_to_local_name(name)
-    Rubinius.synchronize(self) do
+    Truffle.synchronize(self) do
       locals = Truffle.invoke_primitive :thread_get_fiber_locals, self
       Truffle.invoke_primitive :object_ivar_defined?, locals, var
     end
   end
 
   def keys
-    Rubinius.synchronize(self) do
+    Truffle.synchronize(self) do
       locals = Truffle.invoke_primitive :thread_get_fiber_locals, self
       locals.instance_variables
     end
@@ -374,21 +374,21 @@ class Thread
 
   def thread_variable_get(name)
     var = convert_to_local_name(name)
-    Rubinius.synchronize(self) { @thread_local_variables[var] }
+    Truffle.synchronize(self) { @thread_local_variables[var] }
   end
 
   def thread_variable_set(name, value)
     var = convert_to_local_name(name)
-    Rubinius.synchronize(self) { @thread_local_variables[var] = value }
+    Truffle.synchronize(self) { @thread_local_variables[var] = value }
   end
 
   def thread_variable?(name)
     var = convert_to_local_name(name)
-    Rubinius.synchronize(self) { @thread_local_variables.key? var }
+    Truffle.synchronize(self) { @thread_local_variables.key? var }
   end
 
   def thread_variables
-    Rubinius.synchronize(self) { @thread_local_variables.keys }
+    Truffle.synchronize(self) { @thread_local_variables.keys }
   end
 end
 

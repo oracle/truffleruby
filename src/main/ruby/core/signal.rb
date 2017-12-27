@@ -33,11 +33,11 @@ module Signal
     0 => 'EXIT'
   }
 
-  NSIG = Rubinius::Config['rbx.platform.limits.NSIG']
+  NSIG = Truffle::Config['rbx.platform.limits.NSIG']
 
   # Fill the Names and Numbers Hash.
   prefix = 'rbx.platform.signal.'
-  Rubinius::Config.section(prefix) do |name, number|
+  Truffle::Config.section(prefix) do |name, number|
     name = name[prefix.size+3..-1]
     Names[name] = number
     Numbers[number] = name
@@ -69,7 +69,7 @@ module Signal
         raise ArgumentError, "Unknown signal '#{osig}'"
       end
     else
-      number = Rubinius::Type.coerce_to sig, Fixnum, :to_int
+      number = Truffle::Type.coerce_to sig, Fixnum, :to_int
     end
 
     signame = self.signame(number)
@@ -127,7 +127,7 @@ module Signal
   end
 
   def self.signame(signo)
-    index = Rubinius::Type.coerce_to signo, Fixnum, :to_int
+    index = Truffle::Type.coerce_to signo, Fixnum, :to_int
 
     Numbers[index]
   end

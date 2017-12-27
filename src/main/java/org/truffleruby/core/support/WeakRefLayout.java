@@ -7,27 +7,25 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.core.rubinius;
+package org.truffleruby.core.support;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 
+import java.lang.ref.WeakReference;
+
 @Layout
-public interface IOLayout extends BasicObjectLayout {
+public interface WeakRefLayout extends BasicObjectLayout {
 
-    String DESCRIPTOR_IDENTIFIER = "@descriptor";
-
-    DynamicObjectFactory createIOShape(DynamicObject logicalClass,
+    DynamicObjectFactory createWeakRefShape(DynamicObject logicalClass,
                                        DynamicObject metaClass);
 
-    DynamicObject createIO(DynamicObjectFactory factory,
-                           int descriptor);
+    DynamicObject createWeakRef(DynamicObjectFactory factory,
+                                WeakReference<Object> reference);
 
-    boolean isIO(DynamicObject object);
-
-    int getDescriptor(DynamicObject object);
-    void setDescriptor(DynamicObject object, int value);
+    WeakReference<Object> getReference(DynamicObject object);
+    void setReference(DynamicObject object, WeakReference<Object> value);
 
 }

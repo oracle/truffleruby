@@ -123,7 +123,7 @@ module Truffle
     
     def self.to_java_array(array)
       Truffle.primitive :to_java_array
-      to_java_array(Rubinius::Type.coerce_to(array, ::Array, :to_a))
+      to_java_array(Truffle::Type.coerce_to(array, ::Array, :to_a))
     end
     
     def self.respond_to?(object, name)

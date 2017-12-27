@@ -24,7 +24,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module Rubinius
+module Truffle
   class Mirror
     class Numeric < Mirror
       self.subject = ::Numeric
@@ -85,8 +85,8 @@ module Rubinius
         value = @object
         asc = step > 0
         if value.kind_of? Float or limit.kind_of? Float or step.kind_of? Float
-          [Rubinius::Type.rb_num2dbl(value), Rubinius::Type.rb_num2dbl(limit),
-            Rubinius::Type.rb_num2dbl(step), asc, true]
+          [Truffle::Type.rb_num2dbl(value), Truffle::Type.rb_num2dbl(limit),
+            Truffle::Type.rb_num2dbl(step), asc, true]
         else
           [value, limit, step, asc, false]
         end

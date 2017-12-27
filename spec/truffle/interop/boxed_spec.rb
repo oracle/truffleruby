@@ -18,8 +18,8 @@ describe "Truffle::Interop.boxed?" do
     Truffle::Interop.boxed?(:test).should be_true
   end
 
-  it "returns true for Rubinius::FFI::Pointer objects" do
-    Truffle::Interop.boxed?(Rubinius::FFI::Pointer.new(0)).should be_true
+  it "returns true for Truffle::FFI::Pointer objects" do
+    Truffle::Interop.boxed?(Truffle::FFI::Pointer.new(0)).should be_true
   end
 
   it "returns true for objects that respond to #unbox" do

@@ -23,7 +23,7 @@ jt ruby -Xsingle_threaded -e 'require "timeout"; Timeout.timeout(1) { exit! 0 };
 
 # Creating objects that use finalization should work
 
-jt ruby -Xsingle_threaded -e 'Rubinius::FFI::MemoryPointer.new(1024)'
+jt ruby -Xsingle_threaded -e 'Truffle::FFI::MemoryPointer.new(1024)'
 
 # Finalizations should actually be run
 

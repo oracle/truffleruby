@@ -37,7 +37,7 @@
  */
 package org.truffleruby.platform;
 
-public abstract class RubiniusTypes {
+public abstract class NativeTypes {
 
     public static final int TYPE_CHAR = 0;
     public static final int TYPE_UCHAR = 1;

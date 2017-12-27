@@ -79,7 +79,7 @@ module Timeout
     end
   end
 
-  @chan = Rubinius::Channel.new
+  @chan = Truffle::Channel.new
 
   def self.watch_channel
     reqs = []
@@ -121,7 +121,7 @@ module Timeout
   end
 
   def self.ensure_timeout_thread_running
-    Rubinius.synchronize(self) do
+    Truffle.synchronize(self) do
       unless @controller
         @controller = Thread.new { watch_channel }
       end

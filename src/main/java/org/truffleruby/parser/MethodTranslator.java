@@ -239,7 +239,7 @@ public class MethodTranslator extends BodyTranslator {
 
         RubyNode body;
         if (isPrimitive) {
-            body = translateRubiniusPrimitive(sourceSection, (BlockParseNode) bodyNode, loadArguments);
+            body = translatePrimitive(sourceSection, (BlockParseNode) bodyNode, loadArguments);
         } else {
             body = translateNodeOrNil(sourceSection, bodyNode);
         }

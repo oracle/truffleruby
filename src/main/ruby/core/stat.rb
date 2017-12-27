@@ -28,40 +28,40 @@ class File
   class Stat
     include Comparable
 
-    S_IRUSR  = Rubinius::Config['rbx.platform.file.S_IRUSR']
-    S_IWUSR  = Rubinius::Config['rbx.platform.file.S_IWUSR']
-    S_IXUSR  = Rubinius::Config['rbx.platform.file.S_IXUSR']
-    S_IRGRP  = Rubinius::Config['rbx.platform.file.S_IRGRP']
-    S_IWGRP  = Rubinius::Config['rbx.platform.file.S_IWGRP']
-    S_IXGRP  = Rubinius::Config['rbx.platform.file.S_IXGRP']
-    S_IROTH  = Rubinius::Config['rbx.platform.file.S_IROTH']
-    S_IWOTH  = Rubinius::Config['rbx.platform.file.S_IWOTH']
-    S_IXOTH  = Rubinius::Config['rbx.platform.file.S_IXOTH']
+    S_IRUSR  = Truffle::Config['rbx.platform.file.S_IRUSR']
+    S_IWUSR  = Truffle::Config['rbx.platform.file.S_IWUSR']
+    S_IXUSR  = Truffle::Config['rbx.platform.file.S_IXUSR']
+    S_IRGRP  = Truffle::Config['rbx.platform.file.S_IRGRP']
+    S_IWGRP  = Truffle::Config['rbx.platform.file.S_IWGRP']
+    S_IXGRP  = Truffle::Config['rbx.platform.file.S_IXGRP']
+    S_IROTH  = Truffle::Config['rbx.platform.file.S_IROTH']
+    S_IWOTH  = Truffle::Config['rbx.platform.file.S_IWOTH']
+    S_IXOTH  = Truffle::Config['rbx.platform.file.S_IXOTH']
 
     S_IRUGO  = S_IRUSR | S_IRGRP | S_IROTH
     S_IWUGO  = S_IWUSR | S_IWGRP | S_IWOTH
     S_IXUGO  = S_IXUSR | S_IXGRP | S_IXOTH
 
-    S_IFMT   = Rubinius::Config['rbx.platform.file.S_IFMT']
-    S_IFIFO  = Rubinius::Config['rbx.platform.file.S_IFIFO']
-    S_IFCHR  = Rubinius::Config['rbx.platform.file.S_IFCHR']
-    S_IFDIR  = Rubinius::Config['rbx.platform.file.S_IFDIR']
-    S_IFBLK  = Rubinius::Config['rbx.platform.file.S_IFBLK']
-    S_IFREG  = Rubinius::Config['rbx.platform.file.S_IFREG']
-    S_IFLNK  = Rubinius::Config['rbx.platform.file.S_IFLNK']
-    S_IFSOCK = Rubinius::Config['rbx.platform.file.S_IFSOCK']
-    S_ISUID  = Rubinius::Config['rbx.platform.file.S_ISUID']
-    S_ISGID  = Rubinius::Config['rbx.platform.file.S_ISGID']
-    S_ISVTX  = Rubinius::Config['rbx.platform.file.S_ISVTX']
+    S_IFMT   = Truffle::Config['rbx.platform.file.S_IFMT']
+    S_IFIFO  = Truffle::Config['rbx.platform.file.S_IFIFO']
+    S_IFCHR  = Truffle::Config['rbx.platform.file.S_IFCHR']
+    S_IFDIR  = Truffle::Config['rbx.platform.file.S_IFDIR']
+    S_IFBLK  = Truffle::Config['rbx.platform.file.S_IFBLK']
+    S_IFREG  = Truffle::Config['rbx.platform.file.S_IFREG']
+    S_IFLNK  = Truffle::Config['rbx.platform.file.S_IFLNK']
+    S_IFSOCK = Truffle::Config['rbx.platform.file.S_IFSOCK']
+    S_ISUID  = Truffle::Config['rbx.platform.file.S_ISUID']
+    S_ISGID  = Truffle::Config['rbx.platform.file.S_ISGID']
+    S_ISVTX  = Truffle::Config['rbx.platform.file.S_ISVTX']
 
     attr_reader :path
 
     def initialize(path_or_buffer)
-      if path_or_buffer.is_a?(Rubinius::FFI::MemoryPointer)
+      if path_or_buffer.is_a?(Truffle::FFI::MemoryPointer)
         @buffer = path_or_buffer.read_array_of_uint64(BUFFER_ELEMENTS)
       else
-        path = Rubinius::Type.coerce_to_path(path_or_buffer)
-        Rubinius::FFI::MemoryPointer.new(:uint64, BUFFER_ELEMENTS) do |ptr|
+        path = Truffle::Type.coerce_to_path(path_or_buffer)
+        Truffle::FFI::MemoryPointer.new(:uint64, BUFFER_ELEMENTS) do |ptr|
           result = Truffle::POSIX.truffleposix_stat(path, ptr)
           Errno.handle path unless result == 0
           @buffer = ptr.read_array_of_uint64(BUFFER_ELEMENTS)
@@ -70,8 +70,8 @@ class File
     end
 
     def self.stat(path)
-      path = Rubinius::Type.coerce_to_path(path)
-      Rubinius::FFI::MemoryPointer.new(:uint64, BUFFER_ELEMENTS) do |ptr|
+      path = Truffle::Type.coerce_to_path(path)
+      Truffle::FFI::MemoryPointer.new(:uint64, BUFFER_ELEMENTS) do |ptr|
         if Truffle::POSIX.truffleposix_stat(path, ptr) == 0
           Stat.new ptr
         else
@@ -87,8 +87,8 @@ class File
     end
 
     def self.lstat?(path)
-      path = Rubinius::Type.coerce_to_path(path)
-      Rubinius::FFI::MemoryPointer.new(:uint64, BUFFER_ELEMENTS) do |ptr|
+      path = Truffle::Type.coerce_to_path(path)
+      Truffle::FFI::MemoryPointer.new(:uint64, BUFFER_ELEMENTS) do |ptr|
         if Truffle::POSIX.truffleposix_lstat(path, ptr) == 0
           Stat.new ptr
         else
@@ -98,8 +98,8 @@ class File
     end
 
     def self.fstat(fd)
-      fd = Rubinius::Type.coerce_to fd, Integer, :to_int
-      Rubinius::FFI::MemoryPointer.new(:uint64, BUFFER_ELEMENTS) do |ptr|
+      fd = Truffle::Type.coerce_to fd, Integer, :to_int
+      Truffle::FFI::MemoryPointer.new(:uint64, BUFFER_ELEMENTS) do |ptr|
         result = Truffle::POSIX.truffleposix_fstat(fd, ptr)
         Errno.handle "file descriptor #{descriptor}" unless result == 0
         Stat.new ptr
@@ -221,14 +221,14 @@ class File
     def world_readable?
       if mode & S_IROTH == S_IROTH
         tmp = mode & (S_IRUGO | S_IWUGO | S_IXUGO)
-        Rubinius::Type.coerce_to tmp, Fixnum, :to_int
+        Truffle::Type.coerce_to tmp, Fixnum, :to_int
       end
     end
 
     def world_writable?
       if mode & S_IWOTH == S_IWOTH
         tmp = mode & (S_IRUGO | S_IWUGO | S_IXUGO)
-        Rubinius::Type.coerce_to tmp, Fixnum, :to_int
+        Truffle::Type.coerce_to tmp, Fixnum, :to_int
       end
     end
 

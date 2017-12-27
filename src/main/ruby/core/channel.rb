@@ -32,8 +32,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Implementation of Rubinius::Channel using a Queue
-module Rubinius
+module Truffle
   class Channel
     def initialize
       @queue = Queue.new
@@ -63,7 +62,7 @@ module Rubinius
     end
 
     def inspect
-      "#<Rubinius::Channel:0x#{object_id.to_s(16)}>"
+      "#<Truffle::Channel:0x#{object_id.to_s(16)}>"
     end
   end
 end

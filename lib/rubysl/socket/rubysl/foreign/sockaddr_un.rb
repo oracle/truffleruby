@@ -27,7 +27,7 @@
 module RubySL
   module Socket
     module Foreign
-      class SockaddrUn < Rubinius::FFI::Struct
+      class SockaddrUn < Truffle::FFI::Struct
         config('rbx.platform.sockaddr_un', :sun_family, :sun_path)
 
         def self.with_sockaddr(addr)

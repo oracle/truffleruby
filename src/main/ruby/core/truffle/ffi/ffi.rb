@@ -35,9 +35,12 @@
 ##
 # A Foreign Function Interface used to bind C libraries to ruby.
 
-module Rubinius::FFI
-  # Let FFI refer to Rubinius::FFI under Rubinius::FFI
+module Truffle::FFI
+  # Let FFI refer to Truffle::FFI under Truffle::FFI
   FFI = self
+
+  class DynamicLibrary
+  end
 
   #  Specialised error classes
   class TypeError < RuntimeError; end
@@ -55,11 +58,11 @@ module Rubinius::FFI
         raise TypeError, "Unable to resolve type '#{current}'" unless code
       end
 
-      Rubinius::FFI::TypeDefs[add] = code
+      Truffle::FFI::TypeDefs[add] = code
     end
 
     def find_type(name)
-      code = Rubinius::FFI::TypeDefs[name]
+      code = Truffle::FFI::TypeDefs[name]
       raise TypeError, "Unable to resolve type '#{name}'" unless code
       code
     end
@@ -68,8 +71,8 @@ module Rubinius::FFI
     # Given a +type+ as a number, indicate how many bytes that type
     # takes up on this platform.
 
-    Rubinius::NativeFunction = Class.new
-    Rubinius::FFI::Enum = Class.new
+    Truffle::NativeFunction = Class.new
+    Truffle::FFI::Enum = Class.new
 
     def type_size(type)
       Truffle.primitive :nativefunction_type_size
@@ -77,9 +80,9 @@ module Rubinius::FFI
       case type
       when Symbol
         return type_size(find_type(type))
-      when Rubinius::NativeFunction
+      when Truffle::NativeFunction
         return type_size(TYPE_PTR)
-      when Rubinius::FFI::Enum
+      when Truffle::FFI::Enum
         return type_size(TYPE_ENUM)
       end
 
@@ -96,13 +99,13 @@ module Rubinius::FFI
     end
 
     def config(name)
-      Rubinius::Config["rbx.platform.#{name}"]
+      Truffle::Config["rbx.platform.#{name}"]
     end
 
     def config_hash(name)
       vals = {}
       section = "rbx.platform.#{name}."
-      Rubinius::Config.section section do |key, value|
+      Truffle::Config.section section do |key, value|
         vals[key.substring(section.size, key.length)] = value
       end
       vals
@@ -183,7 +186,7 @@ module Rubinius::FFI
   # Converts a varargs argument
   add_typedef TYPE_VARARGS, :varargs
 
-  if Rubinius::L64
+  if Truffle::L64
     add_typedef TYPE_LONG,  :int64
     add_typedef TYPE_ULONG, :uint64
   else
@@ -195,11 +198,11 @@ module Rubinius::FFI
   TypeSizes[1] = :char
   TypeSizes[2] = :short
   TypeSizes[4] = :int
-  TypeSizes[8] = Rubinius::L64 ? :long : :long_long
+  TypeSizes[8] = Truffle::L64 ? :long : :long_long
 
   # Load all the platform dependent types
 
-  Rubinius::Config.section('rbx.platform.typedef.') do |key, value|
+  Truffle::Config.section('rbx.platform.typedef.') do |key, value|
     add_typedef(find_type(value.to_sym), key.substring(21, key.length).to_sym)
   end
 
@@ -253,13 +256,13 @@ end
 ##
 # Namespace for holding platform-specific C constants.
 
-module Rubinius::FFI::Platform
+module Truffle::FFI::Platform
   case
-  when Rubinius.windows?
+  when Truffle.windows?
     LIBSUFFIX = 'dll'
     IS_WINDOWS = true
     OS = 'windows'
-  when Rubinius.darwin?
+  when Truffle.darwin?
     LIBSUFFIX = 'dylib'
     IS_WINDOWS = false
     OS = 'darwin'
@@ -272,26 +275,26 @@ module Rubinius::FFI::Platform
   LIBPREFIX = 'lib'
   IS_GNU = (OS == 'linux') # TODO (eregon, 6 March 2017): actually check
 
-  ARCH = Rubinius::CPU
+  ARCH = Truffle::CPU
 
   # ruby-ffi compatible
-  LONG_SIZE = Rubinius::SIZEOF_LONG * 8
-  ADDRESS_SIZE = Rubinius::WORDSIZE
+  LONG_SIZE = Truffle::SIZEOF_LONG * 8
+  ADDRESS_SIZE = Truffle::WORDSIZE
 
   def self.bsd?
-    Rubinius.bsd?
+    Truffle.bsd?
   end
 
   def self.windows?
-    Rubinius.windows?
+    Truffle.windows?
   end
 
   def self.mac?
-    Rubinius.darwin?
+    Truffle.darwin?
   end
 
   def self.solaris?
-    Rubinius.solaris?
+    Truffle.solaris?
   end
 
   def self.unix?

@@ -94,7 +94,7 @@ public abstract class SplatCastNode extends RubyNode {
     public DynamicObject splat(VirtualFrame frame, Object object,
             @Cached("create()") BranchProfile errorProfile,
             @Cached("new()") SnippetNode snippetNode) {
-        final Object array = snippetNode.execute(frame, "Rubinius::Type.rb_check_convert_type(v, Array, method)",
+        final Object array = snippetNode.execute(frame, "Truffle::Type.rb_check_convert_type(v, Array, method)",
             "v", object, "method", conversionMethod);
         if (RubyGuards.isRubyArray(array)) {
             return (DynamicObject) array;

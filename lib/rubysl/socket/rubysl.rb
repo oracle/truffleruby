@@ -27,11 +27,11 @@
 module RubySL
   module Socket
     def self.bsd_support?
-      Rubinius.bsd? || Rubinius.darwin?
+      Truffle.bsd? || Truffle.darwin?
     end
 
     def self.linux_support?
-      Rubinius.linux?
+      Truffle.linux?
     end
 
     def self.unix_socket_support?
@@ -102,7 +102,7 @@ module RubySL
     end
 
     def self.listen(source, backlog)
-      backlog = Rubinius::Type.coerce_to(backlog, Fixnum, :to_int)
+      backlog = Truffle::Type.coerce_to(backlog, Fixnum, :to_int)
       err     = Foreign.listen(source.descriptor, backlog)
 
       Error.read_error('listen(2)', source) if err < 0
@@ -125,14 +125,14 @@ module RubySL
 
     def self.constant_pairs
       # Truffle: no need to filter here since only defined constants are in the config
-      Rubinius::FFI.config_hash('socket')
+      Truffle::FFI.config_hash('socket')
     end
 
     def self.coerce_to_string(object)
       if object.is_a?(String) or object.is_a?(Symbol)
         object.to_s
       elsif object.respond_to?(:to_str)
-        Rubinius::Type.coerce_to(object, String, :to_str)
+        Truffle::Type.coerce_to(object, String, :to_str)
       else
         raise TypeError, "no implicit conversion of #{object.inspect} into Integer"
       end
@@ -184,7 +184,7 @@ module RubySL
         ::Socket::AF_UNSPEC
       else
         if family.respond_to?(:to_str)
-          address_family(Rubinius::Type.coerce_to(family, String, :to_str))
+          address_family(Truffle::Type.coerce_to(family, String, :to_str))
         else
           raise SocketError, "unknown socket domain: #{family}"
         end
@@ -255,7 +255,7 @@ module RubySL
         ::Socket::PF_UNSPEC
       else
         if family.respond_to?(:to_str)
-          protocol_family(Rubinius::Type.coerce_to(family, String, :to_str))
+          protocol_family(Truffle::Type.coerce_to(family, String, :to_str))
         else
           raise SocketError, "unknown socket domain: #{family}"
         end
@@ -282,7 +282,7 @@ module RubySL
         0
       else
         if type.respond_to?(:to_str)
-          socket_type(Rubinius::Type.coerce_to(type, String, :to_str))
+          socket_type(Truffle::Type.coerce_to(type, String, :to_str))
         else
           raise SocketError, "unknown socket type: #{type}"
         end

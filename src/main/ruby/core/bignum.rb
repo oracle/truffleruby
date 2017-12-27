@@ -30,7 +30,7 @@ class Bignum < Integer
   public :remainder
 
   def [](index)
-    index = Rubinius::Type.coerce_to(index, Integer, :to_int)
+    index = Truffle::Type.coerce_to(index, Integer, :to_int)
     return 0 if index.is_a?(Bignum)
     index < 0 ? 0 : (self >> index) & 1
   end

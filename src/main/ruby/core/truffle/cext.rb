@@ -215,7 +215,7 @@ module Truffle::CExt
     end
 
     def to_native
-      Rubinius::FFI::Pointer.new(Truffle::CExt.string_pointer_to_native(@string))
+      Truffle::FFI::Pointer.new(Truffle::CExt.string_pointer_to_native(@string))
     end
 
     def [](index)
@@ -240,7 +240,7 @@ module Truffle::CExt
     end
 
     def to_native
-      Rubinius::FFI::Pointer.new(Truffle::CExt.string_pointer_to_native(@string) + @string.bytesize)
+      Truffle::FFI::Pointer.new(Truffle::CExt.string_pointer_to_native(@string) + @string.bytesize)
     end
   end
 
@@ -429,7 +429,7 @@ module Truffle::CExt
   # START from tool/generate-cext-constants.rb
 
   def Qundef
-    Rubinius::UNDEFINED
+    Truffle::UNDEFINED
   end
 
   def Qtrue
@@ -727,15 +727,15 @@ module Truffle::CExt
   # END from tool/generate-cext-constants.rb
 
   def rb_to_int(val)
-    Rubinius::Type.rb_to_int(val)
+    Truffle::Type.rb_to_int(val)
   end
 
   def rb_fix2int(value)
-    Rubinius::Type.rb_num2int(value)
+    Truffle::Type.rb_num2int(value)
   end
 
   def rb_fix2uint(value)
-    Rubinius::Type.rb_num2uint(value)
+    Truffle::Type.rb_num2uint(value)
   end
 
   def RB_NIL_P(value)
@@ -768,7 +768,7 @@ module Truffle::CExt
   end
 
   def rb_tr_obj_infect(dest, source)
-    Rubinius::Type.infect(dest, source)
+    Truffle::Type.infect(dest, source)
   end
 
   def rb_float_new(value)
@@ -780,23 +780,23 @@ module Truffle::CExt
   end
 
   def rb_num2int(val)
-    Rubinius::Type.rb_num2int(val)
+    Truffle::Type.rb_num2int(val)
   end
 
   def rb_num2long(val)
-    Rubinius::Type.rb_num2long(val)
+    Truffle::Type.rb_num2long(val)
   end
 
   def rb_big2dbl(val)
-    Rubinius::Type.rb_big2dbl(val)
+    Truffle::Type.rb_big2dbl(val)
   end
 
   def rb_big2long(val)
-    Rubinius::Type.rb_big2long(val)
+    Truffle::Type.rb_big2long(val)
   end
 
   def rb_big2ulong(val)
-    Rubinius::Type.rb_big2long(val)
+    Truffle::Type.rb_big2long(val)
   end
 
   def rb_dbl2big(val)
@@ -862,17 +862,17 @@ module Truffle::CExt
   end
 
   def rb_num2uint(val)
-    Rubinius::Type.rb_num2uint(val)
+    Truffle::Type.rb_num2uint(val)
   end
 
   def rb_num2ulong(val)
     # We're going to create a signed long here, and rely on the C to
     # cast it to an unsigned one.
-    Rubinius::Type.rb_num2ulong(val)
+    Truffle::Type.rb_num2ulong(val)
   end
 
   def rb_num2dbl(val)
-    Rubinius::Type.rb_num2dbl(val)
+    Truffle::Type.rb_num2dbl(val)
   end
 
   def rb_Integer(value)
@@ -902,19 +902,19 @@ module Truffle::CExt
   end
 
   def rb_obj_respond_to(object, id, priv)
-    Rubinius::Type.object_respond_to?(object, id, priv != 0)
+    Truffle::Type.object_respond_to?(object, id, priv != 0)
   end
 
   def rb_check_convert_type(obj, type_name, method)
-    Rubinius::Type.rb_check_convert_type(obj, Object.const_get(type_name), method.to_sym)
+    Truffle::Type.rb_check_convert_type(obj, Object.const_get(type_name), method.to_sym)
   end
 
   def rb_convert_type(obj, type_name, method)
-    Rubinius::Type.rb_convert_type(obj, Object.const_get(type_name), method.to_sym)
+    Truffle::Type.rb_convert_type(obj, Object.const_get(type_name), method.to_sym)
   end
 
   def rb_check_to_integer(obj, method)
-    Rubinius::Type.rb_check_to_integer(obj, method.to_sym)
+    Truffle::Type.rb_check_to_integer(obj, method.to_sym)
   end
 
   def rb_obj_method_arity(object, id)
@@ -934,7 +934,7 @@ module Truffle::CExt
   end
 
   def rb_inspect(object)
-    Rubinius::Type.rb_inspect(object)
+    Truffle::Type.rb_inspect(object)
   end
 
   def rb_range_new(beg, last, exclude_end)
@@ -1003,7 +1003,7 @@ module Truffle::CExt
   end
 
   def rb_to_encoding_index(enc)
-    enc = Rubinius::Type.coerce_to_encoding(enc)
+    enc = Truffle::Type.coerce_to_encoding(enc)
     return -1 if enc == false
     rb_enc_find_index(enc.name)
   end
@@ -1091,7 +1091,7 @@ module Truffle::CExt
   end
 
   def rb_str_new_cstr(pointer, length)
-    Rubinius::FFI::Pointer.new(pointer).read_string(length)
+    Truffle::FFI::Pointer.new(pointer).read_string(length)
   end
 
   def rb_enc_str_coderange(str)

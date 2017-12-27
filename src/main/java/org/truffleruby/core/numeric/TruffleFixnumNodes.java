@@ -15,7 +15,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 
-@CoreClass("Truffle::Fixnum")
+@CoreClass("Truffle::FixnumOperations")
 public abstract class TruffleFixnumNodes {
 
     @CoreMethod(names = "lower", isModuleFunction = true, required = 1)

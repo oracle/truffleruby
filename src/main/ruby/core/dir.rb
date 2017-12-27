@@ -39,14 +39,14 @@ class Dir
   alias_method :to_path, :path
 
   def initialize(path, options=undefined)
-    @path = Rubinius::Type.coerce_to_path path
+    @path = Truffle::Type.coerce_to_path path
 
     if undefined.equal? options
       enc = nil
     else
-      options = Rubinius::Type.coerce_to options, Hash, :to_hash
+      options = Truffle::Type.coerce_to options, Hash, :to_hash
       enc = options[:encoding]
-      enc = Rubinius::Type.coerce_to_encoding enc if enc
+      enc = Truffle::Type.coerce_to_encoding enc if enc
     end
 
     @encoding = enc || Encoding::FILESYSTEM
@@ -174,7 +174,7 @@ class Dir
 
     def [](*patterns)
       if patterns.size == 1
-        pattern = Rubinius::Type.coerce_to_path(patterns[0], false)
+        pattern = Truffle::Type.coerce_to_path(patterns[0], false)
         return [] if pattern.empty?
         patterns = glob_split pattern
       end
@@ -186,7 +186,7 @@ class Dir
       if pattern.kind_of? Array
         patterns = pattern
       else
-        pattern = Rubinius::Type.coerce_to_path(pattern, false)
+        pattern = Truffle::Type.coerce_to_path(pattern, false)
 
         return [] if pattern.empty?
 
@@ -197,13 +197,13 @@ class Dir
       index = 0
 
       patterns.each do |pat|
-        pat = Rubinius::Type.coerce_to_path pat
-        enc = Rubinius::Type.ascii_compatible_encoding pat
+        pat = Truffle::Type.coerce_to_path pat
+        enc = Truffle::Type.ascii_compatible_encoding pat
         Dir::Glob.glob pat, flags, matches
 
         total = matches.size
         while index < total
-          Rubinius::Type.encode_string matches[index], enc
+          Truffle::Type.encode_string matches[index], enc
           index += 1
         end
       end
@@ -239,7 +239,7 @@ class Dir
     end
 
     def chdir(path = ENV['HOME'])
-      path = Rubinius::Type.coerce_to_path path
+      path = Truffle::Type.coerce_to_path path
 
       if block_given?
         original_path = self.getwd
@@ -260,13 +260,13 @@ class Dir
     end
 
     def mkdir(path, mode = 0777)
-      ret = Truffle::POSIX.mkdir(Rubinius::Type.coerce_to_path(path), mode)
+      ret = Truffle::POSIX.mkdir(Truffle::Type.coerce_to_path(path), mode)
       Errno.handle path if ret != 0
       ret
     end
 
     def rmdir(path)
-      ret = Truffle::POSIX.rmdir(Rubinius::Type.coerce_to_path(path))
+      ret = Truffle::POSIX.rmdir(Truffle::Type.coerce_to_path(path))
       Errno.handle path if ret != 0
       ret
     end
@@ -274,17 +274,17 @@ class Dir
     alias_method :unlink, :rmdir
 
     def getwd
-      Rubinius::FFI::MemoryPointer.new(Rubinius::PATH_MAX) do |ptr|
-        wd = Truffle::POSIX.getcwd(ptr, Rubinius::PATH_MAX)
+      Truffle::FFI::MemoryPointer.new(Truffle::PATH_MAX) do |ptr|
+        wd = Truffle::POSIX.getcwd(ptr, Truffle::PATH_MAX)
         Errno.handle unless wd
 
-        Rubinius::Type.external_string wd
+        Truffle::Type.external_string wd
       end
     end
     alias_method :pwd, :getwd
 
     def chroot(path)
-      path = Rubinius::Type.coerce_to_path(path)
+      path = Truffle::Type.coerce_to_path(path)
       ret = Truffle::POSIX.chroot path
       Errno.handle path if ret != 0
       ret

@@ -36,8 +36,8 @@ class BasicObject
   private def __marshal__(ms)
     out = ms.serialize_extended_object self
     out << 'o'
-    cls = ::Rubinius::Type.object_class self
-    name = ::Rubinius::Type.module_name cls
+    cls = ::Truffle::Type.object_class self
+    name = ::Truffle::Type.module_name cls
     out << ms.serialize(name.to_sym)
     out << ms.serialize_instance_variables_suffix(self, true)
   end
@@ -92,7 +92,7 @@ class Float
       sl += 1
     end
 
-    Rubinius::Type.binary_string("f#{ms.serialize_integer(sl)}#{ss}#{str}")
+    Truffle::Type.binary_string("f#{ms.serialize_integer(sl)}#{ss}#{str}")
   end
 end
 
@@ -103,8 +103,8 @@ class Exception
   private def __marshal__(ms)
     out = ms.serialize_extended_object self
     out << 'o'
-    cls = Rubinius::Type.object_class self
-    name = Rubinius::Type.module_name cls
+    cls = Truffle::Type.object_class self
+    name = Truffle::Type.module_name cls
     out << ms.serialize(name.to_sym)
     out << ms.serialize_fixnum(2)
 
@@ -119,7 +119,7 @@ end
 
 class Time
   def __custom_marshal__(ms)
-    out = Rubinius::Type.binary_string('')
+    out = Truffle::Type.binary_string('')
 
     # Order matters.
     extra_values = {}
@@ -136,8 +136,8 @@ class Time
     end
 
     ivars = ms.serializable_instance_variables(self, false)
-    out << Rubinius::Type.binary_string('I')
-    out << Rubinius::Type.binary_string("u#{ms.serialize(self.class.name.to_sym)}")
+    out << Truffle::Type.binary_string('I')
+    out << Truffle::Type.binary_string("u#{ms.serialize(self.class.name.to_sym)}")
 
     str = _dump
     out << ms.serialize_integer(str.length) + str
@@ -163,12 +163,12 @@ end
 module Marshal
   class State
     def serialize_encoding?(obj)
-      enc = Rubinius::Type.object_encoding(obj)
+      enc = Truffle::Type.object_encoding(obj)
       enc && enc != Encoding::BINARY
     end
 
     def serialize_encoding(obj)
-      enc = Rubinius::Type.object_encoding(obj)
+      enc = Truffle::Type.object_encoding(obj)
       Truffle.privately do
         case enc
         when Encoding::US_ASCII
@@ -218,7 +218,7 @@ module Marshal
 
     def construct_string
       obj = get_byte_sequence
-      Rubinius::Unsafe.set_class(obj, get_user_class) if @user_class
+      Truffle::Unsafe.set_class(obj, get_user_class) if @user_class
 
       set_object_encoding(obj, Encoding::ASCII_8BIT)
 
@@ -237,8 +237,8 @@ class Range
   private def __marshal__(ms)
     out = ms.serialize_extended_object self
     out << 'o'
-    cls = Rubinius::Type.object_class self
-    name = Rubinius::Type.module_name cls
+    cls = Truffle::Type.object_class self
+    name = Truffle::Type.module_name cls
     out << ms.serialize(name.to_sym)
 
     ivars = self.instance_variables
@@ -260,26 +260,26 @@ end
 
 class NilClass
   private def __marshal__(ms)
-    Rubinius::Type.binary_string('0')
+    Truffle::Type.binary_string('0')
   end
 end
 
 class TrueClass
   private def __marshal__(ms)
-    Rubinius::Type.binary_string('T')
+    Truffle::Type.binary_string('T')
   end
 end
 
 class FalseClass
   private def __marshal__(ms)
-    Rubinius::Type.binary_string('F')
+    Truffle::Type.binary_string('F')
   end
 end
 
 class Symbol
   private def __marshal__(ms)
     if idx = ms.find_symlink(self)
-      Rubinius::Type.binary_string(";#{ms.serialize_integer(idx)}")
+      Truffle::Type.binary_string(";#{ms.serialize_integer(idx)}")
     else
       ms.add_symlink self
       ms.serialize_symbol(self)
@@ -504,8 +504,8 @@ module Marshal
 
       parts = String(name).split '::'
       parts.each do |part|
-        mod = if Rubinius::Type.const_exists?(mod, part)
-                Rubinius::Type.const_get(mod, part, false)
+        mod = if Truffle::Type.const_exists?(mod, part)
+                Truffle::Type.const_get(mod, part, false)
               else
                 begin
                   mod.const_missing(part)
@@ -523,7 +523,7 @@ module Marshal
     end
 
     def add_non_immediate_object(obj)
-      return if Rubinius::Type.object_kind_of? obj, ImmediateValue
+      return if Truffle::Type.object_kind_of? obj, ImmediateValue
       add_object(obj)
     end
 
@@ -665,7 +665,7 @@ module Marshal
       if @user_class
         cls = get_user_class()
         if cls < Array
-          Rubinius::Unsafe.set_class obj, cls
+          Truffle::Unsafe.set_class obj, cls
         else
           # This is what MRI does, it's weird.
           return cls.allocate
@@ -707,7 +707,7 @@ module Marshal
 
       store_unique_object obj
 
-      unless Rubinius::Type.object_respond_to? obj, :_load_data
+      unless Truffle::Type.object_respond_to? obj, :_load_data
         raise TypeError,
               "class #{name} needs to have instance method `_load_data'"
       end
@@ -864,7 +864,7 @@ module Marshal
 
       data = get_byte_sequence
 
-      if Rubinius::Type.object_respond_to? klass, :__construct__
+      if Truffle::Type.object_respond_to? klass, :__construct__
         return klass.__construct__(self, data, ivar_index, @has_ivar)
       end
 
@@ -891,7 +891,7 @@ module Marshal
 
       extend_object obj if @modules
 
-      unless Rubinius::Type.object_respond_to_marshal_load? obj
+      unless Truffle::Type.object_respond_to_marshal_load? obj
         raise TypeError, "instance of #{klass} needs to have method `marshal_load'"
       end
 
@@ -962,14 +962,14 @@ module Marshal
       @depth -= 1;
 
       if link = find_link(obj)
-        str = Rubinius::Type.binary_string("@#{serialize_integer(link)}")
+        str = Truffle::Type.binary_string("@#{serialize_integer(link)}")
       else
         add_non_immediate_object obj
 
         # ORDER MATTERS.
-        if Rubinius::Type.object_respond_to_marshal_dump? obj
+        if Truffle::Type.object_respond_to_marshal_dump? obj
           str = serialize_user_marshal obj
-        elsif Rubinius::Type.object_respond_to__dump? obj
+        elsif Truffle::Type.object_respond_to__dump? obj
           str = serialize_user_defined obj
         else
           Truffle.privately do
@@ -980,7 +980,7 @@ module Marshal
 
       @depth += 1
 
-      Rubinius::Type.infect(str, obj)
+      Truffle::Type.infect(str, obj)
     end
 
     def serialize_extended_object(obj)
@@ -988,7 +988,7 @@ module Marshal
       Truffle.invoke_primitive :vm_extended_modules, obj, -> mod do
         str << "e#{serialize(mod.name.to_sym)}"
       end
-      Rubinius::Type.binary_string(str)
+      Truffle::Type.binary_string(str)
     end
 
     def serializable_instance_variables(obj, exclude_ivars)
@@ -999,14 +999,14 @@ module Marshal
 
     def serialize_instance_variables_prefix(obj, exclude_ivars = false)
       ivars = serializable_instance_variables(obj, exclude_ivars)
-      Rubinius::Type.binary_string(!ivars.empty? || serialize_encoding?(obj) ? 'I' : '')
+      Truffle::Type.binary_string(!ivars.empty? || serialize_encoding?(obj) ? 'I' : '')
     end
 
     def serialize_instance_variables_suffix(obj, force=false, exclude_ivars=false)
       ivars = serializable_instance_variables(obj, exclude_ivars)
 
       unless force or !ivars.empty? or serialize_encoding?(obj)
-        return Rubinius::Type.binary_string('')
+        return Truffle::Type.binary_string('')
       end
 
       count = ivars.size
@@ -1024,12 +1024,12 @@ module Marshal
         str << serialize(val)
       end
 
-      Rubinius::Type.binary_string(str)
+      Truffle::Type.binary_string(str)
     end
 
     def serialize_integer(n, prefix = nil)
-      if (!Rubinius::L64 && n.is_a?(Fixnum)) || ((n >> 31) == 0 or (n >> 31) == -1)
-        Rubinius::Type.binary_string(prefix.to_s + serialize_fixnum(n))
+      if (!Truffle::L64 && n.is_a?(Fixnum)) || ((n >> 31) == 0 or (n >> 31) == -1)
+        Truffle::Type.binary_string(prefix.to_s + serialize_fixnum(n))
       else
         serialize_bignum(n)
       end
@@ -1053,7 +1053,7 @@ module Marshal
         end
         s[0] = (n < 0 ? 256 - cnt : cnt).chr
       end
-      Rubinius::Type.binary_string(s)
+      Truffle::Type.binary_string(s)
     end
 
     def serialize_bignum(n)
@@ -1072,39 +1072,39 @@ module Marshal
         cnt += 1
       end
 
-      Rubinius::Type.binary_string(str[0..1] + serialize_fixnum(cnt / 2) + str[2..-1])
+      Truffle::Type.binary_string(str[0..1] + serialize_fixnum(cnt / 2) + str[2..-1])
     end
 
     def serialize_symbol(obj)
       str = obj.to_s
       mf = 'I' unless str.ascii_only?
       if mf
-        if Rubinius::Type.object_encoding(obj).equal? Encoding::BINARY
+        if Truffle::Type.object_encoding(obj).equal? Encoding::BINARY
           me = serialize_integer(0)
         elsif serialize_encoding?(obj)
           me = serialize_integer(1) + serialize_encoding(obj.encoding)
         end
       end
       mi = serialize_integer(str.bytesize)
-      s = Rubinius::Type.binary_string str
-      Rubinius::Type.binary_string("#{mf}:#{mi}#{s}#{me}")
+      s = Truffle::Type.binary_string str
+      Truffle::Type.binary_string("#{mf}:#{mi}#{s}#{me}")
     end
 
     def serialize_string(str)
-      output = Rubinius::Type.binary_string("\"#{serialize_integer(str.bytesize)}")
-      output + Rubinius::Type.binary_string(str.dup)
+      output = Truffle::Type.binary_string("\"#{serialize_integer(str.bytesize)}")
+      output + Truffle::Type.binary_string(str.dup)
     end
 
     def serialize_user_class(obj, cls)
       if obj.class != cls
-        Rubinius::Type.binary_string("C#{serialize(obj.class.name.to_sym)}")
+        Truffle::Type.binary_string("C#{serialize(obj.class.name.to_sym)}")
       else
-        Rubinius::Type.binary_string('')
+        Truffle::Type.binary_string('')
       end
     end
 
     def serialize_user_defined(obj)
-      if Rubinius::Type.object_respond_to? obj, :__custom_marshal__
+      if Truffle::Type.object_respond_to? obj, :__custom_marshal__
         return obj.__custom_marshal__(self)
       end
 
@@ -1112,12 +1112,12 @@ module Marshal
         obj._dump @depth
       end
 
-      unless Rubinius::Type.object_kind_of? str, String
+      unless Truffle::Type.object_kind_of? str, String
         raise TypeError, '_dump() must return string'
       end
 
       out = serialize_instance_variables_prefix(str)
-      out << Rubinius::Type.binary_string("u#{serialize(obj.class.name.to_sym)}")
+      out << Truffle::Type.binary_string("u#{serialize(obj.class.name.to_sym)}")
       out << serialize_integer(str.length) + str
       out << serialize_instance_variables_suffix(str)
 
@@ -1131,13 +1131,13 @@ module Marshal
 
       add_non_immediate_object val
 
-      cls = Rubinius::Type.object_class obj
-      name = Rubinius::Type.module_name cls
+      cls = Truffle::Type.object_class obj
+      name = Truffle::Type.module_name cls
       name = serialize(name.to_sym)
       marshaled = Truffle.privately do
         val.__marshal__(self)
       end
-      Rubinius::Type.binary_string("U#{name}#{marshaled}")
+      Truffle::Type.binary_string("U#{name}#{marshaled}")
     end
 
     def store_unique_object(obj)
@@ -1174,7 +1174,7 @@ module Marshal
         raise TypeError, 'dump format error' unless Object === obj
 
         store_unique_object obj
-        if Rubinius::Type.object_kind_of? obj, Exception
+        if Truffle::Type.object_kind_of? obj, Exception
           set_exception_variables obj
         else
           set_instance_variables obj
@@ -1259,7 +1259,7 @@ module Marshal
 
   def self.dump(obj, an_io=nil, limit=nil)
     unless limit
-      if Rubinius::Type.object_kind_of? an_io, Fixnum
+      if Truffle::Type.object_kind_of? an_io, Fixnum
         limit = an_io
         an_io = nil
       else
@@ -1267,19 +1267,19 @@ module Marshal
       end
     end
 
-    depth = Rubinius::Type.coerce_to limit, Fixnum, :to_int
+    depth = Truffle::Type.coerce_to limit, Fixnum, :to_int
     ms = State.new nil, depth, nil
 
     if an_io
-      if !Rubinius::Type.object_respond_to? an_io, :write
+      if !Truffle::Type.object_respond_to? an_io, :write
         raise TypeError, 'output must respond to write'
       end
-      if Rubinius::Type.object_respond_to? an_io, :binmode
+      if Truffle::Type.object_respond_to? an_io, :binmode
         an_io.binmode
       end
     end
 
-    str = Rubinius::Type.binary_string(VERSION_STRING) + ms.serialize(obj)
+    str = Truffle::Type.binary_string(VERSION_STRING) + ms.serialize(obj)
 
     if an_io
       an_io.write(str)
@@ -1290,7 +1290,7 @@ module Marshal
   end
 
   def self.load(obj, prc = nil)
-    if Rubinius::Type.object_respond_to? obj, :to_str
+    if Truffle::Type.object_respond_to? obj, :to_str
       data = obj.to_s
 
       major = data.getbyte 0
@@ -1298,8 +1298,8 @@ module Marshal
 
       ms = StringState.new data, nil, prc
 
-    elsif Rubinius::Type.object_respond_to? obj, :read and
-          Rubinius::Type.object_respond_to? obj, :getc
+    elsif Truffle::Type.object_respond_to? obj, :read and
+          Truffle::Type.object_respond_to? obj, :getc
       ms = IOState.new obj, nil, prc
 
       major = ms.consume_byte

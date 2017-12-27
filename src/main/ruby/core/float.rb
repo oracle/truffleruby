@@ -141,7 +141,7 @@ class Float < Numeric
   def round(ndigits=0)
     Truffle.primitive :float_round
 
-    ndigits = Rubinius::Type.coerce_to(ndigits, Integer, :to_int)
+    ndigits = Truffle::Type.coerce_to(ndigits, Integer, :to_int)
 
     if ndigits == 0
       return self.round

@@ -24,7 +24,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module Rubinius::FFI
+module Truffle::FFI
   ##
   # Represents a C struct as ruby class.
 
@@ -191,14 +191,14 @@ module Rubinius::FFI
     end
 
     def self.config(base, *fields)
-      @size = Rubinius::Config["#{base}.sizeof"]
+      @size = Truffle::Config["#{base}.sizeof"]
       cspec = {}
 
       fields.each do |field|
         field  = field.to_sym
-        offset = Rubinius::Config["#{base}.#{field}.offset"]
-        size   = Rubinius::Config["#{base}.#{field}.size"]
-        type   = Rubinius::Config.lookup("#{base}.#{field}.type")
+        offset = Truffle::Config["#{base}.#{field}.offset"]
+        size   = Truffle::Config["#{base}.#{field}.size"]
+        type   = Truffle::Config.lookup("#{base}.#{field}.type")
         type   = type ? type.to_sym : FFI.size_to_type(size)
 
         code = FFI.find_type type
@@ -308,7 +308,7 @@ module Rubinius::FFI
         end
 
         raise TypeError, 'Unable to set inline array'
-      when Rubinius::NativeFunction
+      when Truffle::NativeFunction
         @pointer.set_at_offset(offset, FFI::TYPE_PTR, val)
       else
         @pointer.set_at_offset(offset, type, val)
@@ -330,7 +330,7 @@ module Rubinius::FFI
         type.implementation.new(type, @pointer + offset)
       when FFI::Type::StructByValue
         type.implementation.new(@pointer + offset)
-      when Rubinius::NativeFunction
+      when Truffle::NativeFunction
         ptr = @pointer.get_at_offset(offset, FFI::TYPE_PTR)
         if ptr
           FFI::Function.new(type.return_type, type.argument_types, ptr)

@@ -65,7 +65,7 @@ module Readline
         result = Array(result)
       end
       result.map { |e|
-        Rubinius::Type.coerce_to(e, String, :to_s)
+        Truffle::Type.coerce_to(e, String, :to_s)
       }.sort
     }
 

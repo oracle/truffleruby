@@ -46,27 +46,27 @@ class File < IO
   FNM_SYSCASE = CASEFOLD_FILESYSTEM ? FNM_CASEFOLD : 0
 
   module Constants
-    F_GETFL  = Rubinius::Config['rbx.platform.fcntl.F_GETFL']
-    F_SETFL  = Rubinius::Config['rbx.platform.fcntl.F_SETFL']
+    F_GETFL  = Truffle::Config['rbx.platform.fcntl.F_GETFL']
+    F_SETFL  = Truffle::Config['rbx.platform.fcntl.F_SETFL']
 
-    F_GETFD  = Rubinius::Config['rbx.platform.fcntl.F_GETFD']
-    F_SETFD  = Rubinius::Config['rbx.platform.fcntl.F_SETFD']
-    FD_CLOEXEC = Rubinius::Config['rbx.platform.fcntl.FD_CLOEXEC']
+    F_GETFD  = Truffle::Config['rbx.platform.fcntl.F_GETFD']
+    F_SETFD  = Truffle::Config['rbx.platform.fcntl.F_SETFD']
+    FD_CLOEXEC = Truffle::Config['rbx.platform.fcntl.FD_CLOEXEC']
 
-    RDONLY   = Rubinius::Config['rbx.platform.file.O_RDONLY']
-    WRONLY   = Rubinius::Config['rbx.platform.file.O_WRONLY']
-    RDWR     = Rubinius::Config['rbx.platform.file.O_RDWR']
-    ACCMODE  = Rubinius::Config['rbx.platform.file.O_ACCMODE']
+    RDONLY   = Truffle::Config['rbx.platform.file.O_RDONLY']
+    WRONLY   = Truffle::Config['rbx.platform.file.O_WRONLY']
+    RDWR     = Truffle::Config['rbx.platform.file.O_RDWR']
+    ACCMODE  = Truffle::Config['rbx.platform.file.O_ACCMODE']
 
-    CREAT    = Rubinius::Config['rbx.platform.file.O_CREAT']
-    EXCL     = Rubinius::Config['rbx.platform.file.O_EXCL']
-    NOCTTY   = Rubinius::Config['rbx.platform.file.O_NOCTTY']
-    TRUNC    = Rubinius::Config['rbx.platform.file.O_TRUNC']
-    APPEND   = Rubinius::Config['rbx.platform.file.O_APPEND']
-    NONBLOCK = Rubinius::Config['rbx.platform.file.O_NONBLOCK']
-    SYNC     = Rubinius::Config['rbx.platform.file.O_SYNC']
+    CREAT    = Truffle::Config['rbx.platform.file.O_CREAT']
+    EXCL     = Truffle::Config['rbx.platform.file.O_EXCL']
+    NOCTTY   = Truffle::Config['rbx.platform.file.O_NOCTTY']
+    TRUNC    = Truffle::Config['rbx.platform.file.O_TRUNC']
+    APPEND   = Truffle::Config['rbx.platform.file.O_APPEND']
+    NONBLOCK = Truffle::Config['rbx.platform.file.O_NONBLOCK']
+    SYNC     = Truffle::Config['rbx.platform.file.O_SYNC']
 
-    if value = Rubinius::Config.lookup('rbx.platform.file.O_TMPFILE')
+    if value = Truffle::Config.lookup('rbx.platform.file.O_TMPFILE')
       TMPFILE = value
     end
 
@@ -89,7 +89,7 @@ class File < IO
     FNM_CASEFOLD = 0x08
     FNM_EXTGLOB  = 0x10
 
-    if Rubinius.windows?
+    if Truffle.windows?
       NULL = 'NUL'
     else
       NULL = '/dev/null'
@@ -98,7 +98,7 @@ class File < IO
     FNM_SYSCASE = File::FNM_SYSCASE
   end
 
-  FFI = Rubinius::FFI
+  FFI = Truffle::FFI
 
   SEPARATOR = FFI::Platform::File::SEPARATOR
   Separator = FFI::Platform::File::SEPARATOR
@@ -113,7 +113,7 @@ class File < IO
   # the value to 0 if it is greater than 0xffff. Also, negative values
   # don't make any sense here.
   def self.clamp_short(value)
-    mode = Rubinius::Type.coerce_to value, Integer, :to_int
+    mode = Truffle::Type.coerce_to value, Integer, :to_int
     mode < 0 || mode > 0xffff ? 0 : mode
   end
 
@@ -144,7 +144,7 @@ class File < IO
   #  File.basename("/home/gumby/work/ruby.rb")          #=> "ruby.rb"
   #  File.basename("/home/gumby/work/ruby.rb", ".rb")   #=> "ruby"
   def self.basename(path, ext=undefined)
-    path = Rubinius::Type.coerce_to_path(path)
+    path = Truffle::Type.coerce_to_path(path)
 
     slash = '/'
 
@@ -225,7 +225,7 @@ class File < IO
     mode = clamp_short mode
 
     paths.each do |path|
-      n = POSIX.chmod Rubinius::Type.coerce_to_path(path), mode
+      n = POSIX.chmod Truffle::Type.coerce_to_path(path), mode
       Errno.handle if n == -1
     end
     paths.size
@@ -238,10 +238,10 @@ class File < IO
   # Often not available.
   def self.lchmod(mode, *paths)
 
-    mode = Rubinius::Type.coerce_to(mode, Integer, :to_int)
+    mode = Truffle::Type.coerce_to(mode, Integer, :to_int)
 
     paths.each do |path|
-      n = POSIX.lchmod Rubinius::Type.coerce_to_path(path), mode
+      n = POSIX.lchmod Truffle::Type.coerce_to_path(path), mode
       Errno.handle if n == -1
     end
 
@@ -261,19 +261,19 @@ class File < IO
   #  File.chown(nil, 100, "testfile")
   def self.chown(owner, group, *paths)
     if owner
-      owner = Rubinius::Type.coerce_to(owner, Integer, :to_int)
+      owner = Truffle::Type.coerce_to(owner, Integer, :to_int)
     else
       owner = -1
     end
 
     if group
-      group = Rubinius::Type.coerce_to(group, Integer, :to_int)
+      group = Truffle::Type.coerce_to(group, Integer, :to_int)
     else
       group = -1
     end
 
     paths.each do |path|
-      n = POSIX.chown Rubinius::Type.coerce_to_path(path), owner, group
+      n = POSIX.chown Truffle::Type.coerce_to_path(path), owner, group
       Errno.handle if n == -1
     end
 
@@ -281,7 +281,7 @@ class File < IO
   end
 
   def chmod(mode)
-    mode = Rubinius::Type.coerce_to(mode, Integer, :to_int)
+    mode = Truffle::Type.coerce_to(mode, Integer, :to_int)
     n = POSIX.fchmod @descriptor, File.clamp_short(mode)
     Errno.handle if n == -1
     n
@@ -289,13 +289,13 @@ class File < IO
 
   def chown(owner, group)
     if owner
-      owner = Rubinius::Type.coerce_to(owner, Integer, :to_int)
+      owner = Truffle::Type.coerce_to(owner, Integer, :to_int)
     else
       owner = -1
     end
 
     if group
-      group = Rubinius::Type.coerce_to(group, Integer, :to_int)
+      group = Truffle::Type.coerce_to(group, Integer, :to_int)
     else
       group = -1
     end
@@ -312,22 +312,22 @@ class File < IO
   # by the link). Often not available. Returns number
   # of files in the argument list.
   def self.lchown(owner, group, *paths)
-    raise NotImplementedError, 'lchown not implemented on this platform' unless Rubinius::HAVE_LCHOWN
+    raise NotImplementedError, 'lchown not implemented on this platform' unless Truffle::Support::HAVE_LCHOWN
 
     if owner
-      owner = Rubinius::Type.coerce_to(owner, Integer, :to_int)
+      owner = Truffle::Type.coerce_to(owner, Integer, :to_int)
     else
       owner = -1
     end
 
     if group
-      group = Rubinius::Type.coerce_to(group, Integer, :to_int)
+      group = Truffle::Type.coerce_to(group, Integer, :to_int)
     else
       group = -1
     end
 
     paths.each do |path|
-      n = POSIX.lchown Rubinius::Type.coerce_to_path(path), owner, group
+      n = POSIX.lchown Truffle::Type.coerce_to_path(path), owner, group
       Errno.handle if n == -1
     end
 
@@ -335,8 +335,8 @@ class File < IO
   end
 
   def self.mkfifo(path, mode = 0666)
-    mode = Rubinius::Type.coerce_to mode, Integer, :to_int
-    path = Rubinius::Type.coerce_to_path(path)
+    mode = Truffle::Type.coerce_to mode, Integer, :to_int
+    path = Truffle::Type.coerce_to_path(path)
     status = Truffle::POSIX.mkfifo(path, mode)
     Errno.handle path if status != 0
     status
@@ -357,7 +357,7 @@ class File < IO
   #
   # File.directory?(".")
   def self.directory?(io_or_path)
-    io = Rubinius::Type.try_convert io_or_path, IO, :to_io
+    io = Truffle::Type.try_convert io_or_path, IO, :to_io
 
     if io.is_a? IO
       Stat.fstat(io.fileno).directory?
@@ -388,7 +388,7 @@ class File < IO
   #
   #  File.dirname("/home/gumby/work/ruby.rb")   #=> "/home/gumby/work"
   def self.dirname(path)
-    path = Rubinius::Type.coerce_to_path(path)
+    path = Truffle::Type.coerce_to_path(path)
 
     # edge case
     return '.' if path.empty?
@@ -460,7 +460,7 @@ class File < IO
   #  File.expand_path("~oracle/bin")           #=> "/home/oracle/bin"
   #  File.expand_path("../../bin", "/tmp/x")   #=> "/bin"
   def self.expand_path(path, dir=nil)
-    path = Rubinius::Type.coerce_to_path(path)
+    path = Truffle::Type.coerce_to_path(path)
     str = ''.force_encoding path.encoding
     first = path[0]
     if first == ?~
@@ -549,7 +549,7 @@ class File < IO
   #  File.extname("test")            #=> ""
   #  File.extname(".profile")        #=> ""
   def self.extname(path)
-    path = Rubinius::Type.coerce_to_path(path)
+    path = Truffle::Type.coerce_to_path(path)
     path_size = path.bytesize
 
     dot_idx = path.find_string_reverse('.', path_size)
@@ -714,8 +714,8 @@ class File < IO
 
   def self.fnmatch(pattern, path, flags=0)
     pattern = StringValue(pattern)
-    path    = Rubinius::Type.coerce_to_path(path)
-    flags   = Rubinius::Type.coerce_to(flags, Fixnum, :to_int)
+    path    = Truffle::Type.coerce_to_path(path)
+    flags   = Truffle::Type.coerce_to(flags, Fixnum, :to_int)
     brace_match = false
 
     if (flags & FNM_EXTGLOB) != 0
@@ -763,9 +763,9 @@ class File < IO
   #   open("d", "w") {}
   #   p File.identical?("a", "d")      #=> false
   def self.identical?(orig, copy)
-    orig = Rubinius::Type.coerce_to_path(orig)
+    orig = Truffle::Type.coerce_to_path(orig)
     st_o = File::Stat.stat(orig)
-    copy = Rubinius::Type.coerce_to_path(copy)
+    copy = Truffle::Type.coerce_to_path(copy)
     st_c = File::Stat.stat(copy)
 
     return false if st_o.nil? || st_c.nil?
@@ -805,7 +805,7 @@ class File < IO
     else
       # We need to use dup here, since it's possible that
       # StringValue gives us a direct object we shouldn't mutate
-      first = Rubinius::Type.coerce_to_path(first).dup
+      first = Truffle::Type.coerce_to_path(first).dup
     end
 
     ret = first
@@ -823,7 +823,7 @@ class File < IO
 
         raise ArgumentError, 'recursive array' if recursion
       else
-        value = Rubinius::Type.coerce_to_path(el)
+        value = Truffle::Type.coerce_to_path(el)
       end
 
       if value.start_with? sep
@@ -845,7 +845,7 @@ class File < IO
   #  File.link("testfile", ".testfile")   #=> 0
   #  IO.readlines(".testfile")[0]         #=> "This is line one\n"
   def self.link(from, to)
-    n = POSIX.link Rubinius::Type.coerce_to_path(from), Rubinius::Type.coerce_to_path(to)
+    n = POSIX.link Truffle::Type.coerce_to_path(from), Truffle::Type.coerce_to_path(to)
     Errno.handle if n == -1
     n
   end
@@ -906,8 +906,8 @@ class File < IO
   #  File.symlink("testfile", "link2test")   #=> 0
   #  File.readlink("link2test")              #=> "testfile"
   def self.readlink(path)
-    FFI::MemoryPointer.new(Rubinius::PATH_MAX) do |ptr|
-      n = POSIX.readlink Rubinius::Type.coerce_to_path(path), ptr, Rubinius::PATH_MAX
+    FFI::MemoryPointer.new(Truffle::PATH_MAX) do |ptr|
+      n = POSIX.readlink Truffle::Type.coerce_to_path(path), ptr, Truffle::PATH_MAX
       Errno.handle if n == -1
 
       ptr.read_string(n).force_encoding(Encoding.find('filesystem'))
@@ -974,7 +974,7 @@ class File < IO
   #
   #  File.rename("afile", "afile.bak")   #=> 0
   def self.rename(from, to)
-    n = POSIX.rename Rubinius::Type.coerce_to_path(from), Rubinius::Type.coerce_to_path(to)
+    n = POSIX.rename Truffle::Type.coerce_to_path(from), Truffle::Type.coerce_to_path(to)
     Errno.handle if n == -1
     n
   end
@@ -982,7 +982,7 @@ class File < IO
   ##
   # Returns the size of file_name.
   def self.size(io_or_path)
-    io = Rubinius::Type.try_convert io_or_path, IO, :to_io
+    io = Truffle::Type.try_convert io_or_path, IO, :to_io
 
     if io.is_a? IO
       Stat.fstat(io.fileno).size
@@ -997,7 +997,7 @@ class File < IO
   def self.size?(io_or_path)
     s = 0
 
-    io = Rubinius::Type.try_convert io_or_path, IO, :to_io
+    io = Truffle::Type.try_convert io_or_path, IO, :to_io
 
     if io.is_a? IO
       s = Stat.fstat(io.fileno).size
@@ -1022,7 +1022,7 @@ class File < IO
   #
   #  File.split("/home/gumby/.profile")   #=> ["/home/gumby", ".profile"]
   def self.split(path)
-    p = Rubinius::Type.coerce_to_path(path)
+    p = Truffle::Type.coerce_to_path(path)
     [dirname(p), basename(p)]
   end
 
@@ -1041,7 +1041,7 @@ class File < IO
   #
   #  File.symlink("testfile", "link2test")   #=> 0
   def self.symlink(from, to)
-    n = POSIX.symlink Rubinius::Type.coerce_to_path(from), Rubinius::Type.coerce_to_path(to)
+    n = POSIX.symlink Truffle::Type.coerce_to_path(from), Truffle::Type.coerce_to_path(to)
     Errno.handle if n == -1
     n
   end
@@ -1066,13 +1066,13 @@ class File < IO
   #  File.truncate("out", 5)   #=> 0
   #  File.size("out")          #=> 5
   def self.truncate(path, length)
-    path = Rubinius::Type.coerce_to_path(path)
+    path = Truffle::Type.coerce_to_path(path)
 
     unless exist?(path)
       raise Errno::ENOENT, path
     end
 
-    length = Rubinius::Type.coerce_to length, Integer, :to_int
+    length = Truffle::Type.coerce_to length, Integer, :to_int
 
     r = Truffle::POSIX.truncate(path, length)
     Errno.handle(path) if r == -1
@@ -1106,7 +1106,7 @@ class File < IO
   # See also Dir.rmdir.
   def self.unlink(*paths)
     paths.each do |path|
-      n = POSIX.unlink Rubinius::Type.coerce_to_path(path)
+      n = POSIX.unlink Truffle::Type.coerce_to_path(path)
       Errno.handle if n == -1
     end
 
@@ -1127,7 +1127,7 @@ class File < IO
     atime = Time.at(atime) unless atime.kind_of?(Time)
     mtime = Time.at(mtime) unless mtime.kind_of?(Time)
     paths.each do |path|
-      path = Rubinius::Type.coerce_to_path(path)
+      path = Truffle::Type.coerce_to_path(path)
       n = POSIX.truffleposix_utimes(path, atime.to_i, atime.usec,
                                           mtime.to_i, mtime.usec)
       Errno.handle unless n == 0
@@ -1135,23 +1135,23 @@ class File < IO
   end
 
   def self.world_readable?(path)
-    path = Rubinius::Type.coerce_to_path path
+    path = Truffle::Type.coerce_to_path path
     return nil unless exist? path
     mode = Stat.new(path).mode
     if (mode & Stat::S_IROTH) == Stat::S_IROTH
       tmp = mode & (Stat::S_IRUGO | Stat::S_IWUGO | Stat::S_IXUGO)
-      return Rubinius::Type.coerce_to tmp, Fixnum, :to_int
+      return Truffle::Type.coerce_to tmp, Fixnum, :to_int
     end
     nil
   end
 
   def self.world_writable?(path)
-    path = Rubinius::Type.coerce_to_path path
+    path = Truffle::Type.coerce_to_path path
     return nil unless exist? path
     mode = Stat.new(path).mode
     if (mode & Stat::S_IWOTH) == Stat::S_IWOTH
       tmp = mode & (Stat::S_IRUGO | Stat::S_IWUGO | Stat::S_IXUGO)
-      return Rubinius::Type.coerce_to tmp, Fixnum, :to_int
+      return Truffle::Type.coerce_to tmp, Fixnum, :to_int
     end
   end
 
@@ -1231,7 +1231,7 @@ class File < IO
       super(path_or_fd, mode, options)
       @path = nil
     else
-      path = Rubinius::Type.coerce_to_path path_or_fd
+      path = Truffle::Type.coerce_to_path path_or_fd
 
       # TODO: fix normalize_options
       case mode
@@ -1243,12 +1243,12 @@ class File < IO
         options = mode
         mode = nil
       else
-        options = Rubinius::Type.coerce_to mode, Hash, :to_hash
+        options = Truffle::Type.coerce_to mode, Hash, :to_hash
         mode = nil
       end
 
       if undefined.equal?(options) and !undefined.equal?(perm)
-        options = Rubinius::Type.try_convert(perm, Hash, :to_hash)
+        options = Truffle::Type.try_convert(perm, Hash, :to_hash)
         perm = undefined if options
       end
 
@@ -1272,7 +1272,7 @@ class File < IO
 
   def reopen(other, mode = 'r+')
     unless other.kind_of? IO
-      other = Rubinius::Type.coerce_to_path(other)
+      other = Truffle::Type.coerce_to_path(other)
     end
     super(other, mode)
   end
@@ -1282,7 +1282,7 @@ class File < IO
   end
 
   def flock(const)
-    const = Rubinius::Type.coerce_to const, Integer, :to_int
+    const = Truffle::Type.coerce_to const, Integer, :to_int
 
     result = POSIX.truffleposix_flock @descriptor, const
     if result == -1
@@ -1310,7 +1310,7 @@ class File < IO
   alias_method :to_path, :path
 
   def truncate(length)
-    length = Rubinius::Type.coerce_to length, Integer, :to_int
+    length = Truffle::Type.coerce_to length, Integer, :to_int
 
     ensure_open_and_writable
     raise Errno::EINVAL, "Can't truncate a file to a negative length" if length < 0

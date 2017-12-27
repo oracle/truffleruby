@@ -7,25 +7,24 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.core.rubinius;
+package org.truffleruby.core.support;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.collections.ByteArrayBuilder;
+import org.truffleruby.algorithms.Randomizer;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
-public interface ByteArrayLayout extends BasicObjectLayout {
+public interface RandomizerLayout extends BasicObjectLayout {
 
-    DynamicObjectFactory createByteArrayShape(DynamicObject logicalClass,
-                                              DynamicObject metaClass);
+    DynamicObjectFactory createRandomizerShape(DynamicObject logicalClass,
+                                               DynamicObject metaClass);
 
-    DynamicObject createByteArray(DynamicObjectFactory factory,
-                                  ByteArrayBuilder bytes);
+    DynamicObject createRandomizer(DynamicObjectFactory factory,
+                                   Randomizer randomizer);
 
-    boolean isByteArray(DynamicObject object);
-
-    ByteArrayBuilder getBytes(DynamicObject object);
+    Randomizer getRandomizer(DynamicObject object);
+    void setRandomizer(DynamicObject object, Randomizer value);
 
 }

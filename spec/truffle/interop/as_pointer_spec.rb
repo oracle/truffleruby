@@ -26,8 +26,8 @@ describe "Truffle::Interop.as_pointer" do
     lambda { Truffle::Interop.as_pointer(Object.new) }.should raise_error(ArgumentError)
   end
 
-  it "works on Rubinius::FFI::Pointer" do
-    Truffle::Interop.as_pointer(Rubinius::FFI::Pointer.new(0x123)).should == 0x123
+  it "works on Truffle::FFI::Pointer" do
+    Truffle::Interop.as_pointer(Truffle::FFI::Pointer.new(0x123)).should == 0x123
   end
 
   it "calls #address" do

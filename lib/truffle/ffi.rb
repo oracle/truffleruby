@@ -8,13 +8,13 @@
 
 # Minimal support needed to run ffi/library
 module FFI
-  Platform = Rubinius::FFI::Platform
+  Platform = Truffle::FFI::Platform
 
   class DynamicLibrary
-    RTLD_LAZY   = Rubinius::Config['rbx.platform.dlopen.RTLD_LAZY']
-    RTLD_NOW    = Rubinius::Config['rbx.platform.dlopen.RTLD_NOW']
-    RTLD_GLOBAL = Rubinius::Config['rbx.platform.dlopen.RTLD_GLOBAL']
-    RTLD_LOCAL  = Rubinius::Config['rbx.platform.dlopen.RTLD_LOCAL']
+    RTLD_LAZY   = Truffle::Config['rbx.platform.dlopen.RTLD_LAZY']
+    RTLD_NOW    = Truffle::Config['rbx.platform.dlopen.RTLD_NOW']
+    RTLD_GLOBAL = Truffle::Config['rbx.platform.dlopen.RTLD_GLOBAL']
+    RTLD_LOCAL  = Truffle::Config['rbx.platform.dlopen.RTLD_LOCAL']
 
     attr_reader :name
 
@@ -39,7 +39,7 @@ module FFI
   end
 
   def self.find_type(*args)
-    Rubinius::FFI.find_type(*args)
+    Truffle::FFI.find_type(*args)
   end
 end
 
@@ -47,9 +47,9 @@ require_relative 'ffi/library'
 
 module FFI
   module Library
-    LIBC = Rubinius::LIBC
+    LIBC = Truffle::LIBC
 
-    # Indicies are based on RubiniusTypes
+    # Indicies are based on the NativeTypes enum
     TO_NFI_TYPE = [
       'SINT8',  # char
       'UINT8',  # uchar
@@ -110,10 +110,10 @@ module FFI
     end
   end
 
-  Pointer = Rubinius::FFI::Pointer
-  MemoryPointer = Rubinius::FFI::MemoryPointer
-  Struct = Rubinius::FFI::Struct
-  Union = Rubinius::FFI::Union
+  Pointer = Truffle::FFI::Pointer
+  MemoryPointer = Truffle::FFI::MemoryPointer
+  Struct = Truffle::FFI::Struct
+  Union = Truffle::FFI::Union
 
   class Struct
     def self.ptr

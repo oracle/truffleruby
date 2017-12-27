@@ -253,7 +253,7 @@ public class RubyContext {
                 SolarisSparcV9NativeConfiguration.load(nativeConfiguration, this);
                 break;
             default:
-                Log.LOGGER.severe("no Rubinius configuration for this platform");
+                Log.LOGGER.severe("no native configuration for this platform");
                 break;
         }
 

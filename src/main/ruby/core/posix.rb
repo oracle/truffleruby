@@ -18,7 +18,7 @@ module Truffle::POSIX
     LIBTRUFFLEPOSIX = LIBC
   end
 
-  if Rubinius.linux?
+  if Truffle.linux?
     LIBCRYPT = Truffle::Interop.eval('application/x-native', 'load libcrypt.so')
   else
     LIBCRYPT = LIBC
@@ -40,7 +40,7 @@ module Truffle::POSIX
   def self.to_nfi_type(type)
     if found = TYPES[type]
       found
-    elsif typedef = Rubinius::Config.lookup("rbx.platform.typedef.#{type}")
+    elsif typedef = Truffle::Config.lookup("rbx.platform.typedef.#{type}")
       TYPES[type] = to_nfi_type(typedef.to_sym)
     else
       TYPES[type] = type
@@ -107,11 +107,11 @@ module Truffle::POSIX
           if result.nil?
             result = nil
           else
-            ptr = Rubinius::FFI::Pointer.new(Truffle::Interop.as_pointer(result))
+            ptr = Truffle::FFI::Pointer.new(Truffle::Interop.as_pointer(result))
             result = ptr.read_string_to_null
           end
         elsif return_type == :pointer
-          result = Rubinius::FFI::Pointer.new(Truffle::Interop.as_pointer(result))
+          result = Truffle::FFI::Pointer.new(Truffle::Interop.as_pointer(result))
         end
 
         result
@@ -231,18 +231,18 @@ module Truffle::POSIX
   attach_function :truffleposix_get_user_home, [:string], :pointer, library: LIBTRUFFLEPOSIX
 
   # Errno-related
-  if Rubinius.linux?
+  if Truffle.linux?
     attach_function :__errno_location, [], :pointer, as: :errno_address
-  elsif Rubinius.darwin?
+  elsif Truffle.darwin?
     attach_function :__error, [], :pointer, as: :errno_address
-  elsif Rubinius.solaris?
+  elsif Truffle.solaris?
     attach_function :___errno, [], :pointer, as: :errno_address
   else
     raise 'Unsupported platform'
   end
 
   # Platform-specific
-  if Rubinius.darwin?
+  if Truffle.darwin?
     attach_function :_NSGetArgv, [], :pointer
   end
 end if Truffle::Boot.get_option 'platform.native'
@@ -252,9 +252,9 @@ module Truffle::POSIX
 
   def self.with_array_of_ints(ints)
     if ints.empty?
-      yield Rubinius::FFI::Pointer::NULL
+      yield Truffle::FFI::Pointer::NULL
     else
-      Rubinius::FFI::MemoryPointer.new(:int, ints.size) do |ptr|
+      Truffle::FFI::MemoryPointer.new(:int, ints.size) do |ptr|
         ptr.write_array_of_int(ints)
         yield ptr
       end
@@ -262,11 +262,11 @@ module Truffle::POSIX
   end
 
   def self.with_array_of_strings_pointer(strings)
-    Rubinius::FFI::MemoryPointer.new(:pointer, strings.size + 1) do |ptr|
+    Truffle::FFI::MemoryPointer.new(:pointer, strings.size + 1) do |ptr|
       pointers = strings.map { |str|
-        Rubinius::FFI::MemoryPointer.from_string(str)
+        Truffle::FFI::MemoryPointer.from_string(str)
       }
-      pointers << Rubinius::FFI::Pointer::NULL
+      pointers << Truffle::FFI::Pointer::NULL
       ptr.write_array_of_pointer pointers
       yield(ptr)
     end

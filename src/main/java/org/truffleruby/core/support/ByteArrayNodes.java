@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.core.rubinius;
+package org.truffleruby.core.support;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -28,7 +28,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
-@CoreClass("Rubinius::ByteArray")
+@CoreClass("Truffle::ByteArray")
 public abstract class ByteArrayNodes {
 
     public static DynamicObject createByteArray(DynamicObjectFactory factory, ByteArrayBuilder bytes) {

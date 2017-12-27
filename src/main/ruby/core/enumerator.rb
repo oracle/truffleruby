@@ -63,7 +63,7 @@ class Enumerator
       receiver = receiver_or_size
     end
 
-    method_name = Rubinius::Type.coerce_to method_name, Symbol, :to_sym
+    method_name = Truffle::Type.coerce_to method_name, Symbol, :to_sym
 
     initialize_enumerator receiver, size, method_name, *method_args
 
@@ -194,7 +194,7 @@ class Enumerator
 
   def with_index(offset=0)
     if offset
-      offset = Rubinius::Type.coerce_to offset, Integer, :to_int
+      offset = Truffle::Type.coerce_to offset, Integer, :to_int
     else
       offset = 0
     end
@@ -294,7 +294,7 @@ class Enumerator
     alias_method :force, :to_a
 
     def take(n)
-      n = Rubinius::Type.coerce_to n, Integer, :to_int
+      n = Truffle::Type.coerce_to n, Integer, :to_int
       raise ArgumentError, 'attempt to take negative size' if n < 0
 
       current_size = enumerator_size
@@ -319,7 +319,7 @@ class Enumerator
     end
 
     def drop(n)
-      n = Rubinius::Type.coerce_to n, Integer, :to_int
+      n = Truffle::Type.coerce_to n, Integer, :to_int
       raise ArgumentError, 'attempt to drop negative size' if n < 0
 
       current_size = enumerator_size
@@ -446,13 +446,13 @@ class Enumerator
       Lazy.new(self, nil) do |yielder, *args|
         yield_ret = yield(*args)
 
-        if Rubinius::Type.object_respond_to?(yield_ret, :force) &&
-           Rubinius::Type.object_respond_to?(yield_ret, :each)
+        if Truffle::Type.object_respond_to?(yield_ret, :force) &&
+           Truffle::Type.object_respond_to?(yield_ret, :each)
           yield_ret.each do |v|
             yielder.yield v
           end
         else
-          array = Rubinius::Type.check_convert_type yield_ret, Array, :to_ary
+          array = Truffle::Type.check_convert_type yield_ret, Array, :to_ary
           if array
             array.each do |v|
               yielder.yield v
@@ -469,12 +469,12 @@ class Enumerator
       return super(*lists) { |entry| yield entry } if block_given?
 
       lists.map! do |list|
-        array = Rubinius::Type.check_convert_type list, Array, :to_ary
+        array = Truffle::Type.check_convert_type list, Array, :to_ary
 
         case
         when array
           array
-        when Rubinius::Type.object_respond_to?(list, :each)
+        when Truffle::Type.object_respond_to?(list, :each)
           list.to_enum :each
         else
           raise TypeError, "wrong argument type #{list.class} (must respond to :each)"

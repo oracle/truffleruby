@@ -498,7 +498,7 @@ public abstract class StringNodes {
         @Specialization(guards = { "!isRubyRange(index)", "!isRubyRegexp(index)", "!isRubyString(index)" })
         public Object getIndex(VirtualFrame frame, DynamicObject string, Object index, NotProvided length,
                 @Cached("new()") SnippetNode snippetNode) {
-            return getIndex(frame, string, (int) snippetNode.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", index), length);
+            return getIndex(frame, string, (int) snippetNode.execute(frame, "Truffle::Type.rb_num2int(v)", "v", index), length);
         }
 
         @Specialization(guards = "isIntRange(range)")
@@ -517,8 +517,8 @@ public abstract class StringNodes {
                 @Cached("new()") SnippetNode snippetNode1,
                 @Cached("new()") SnippetNode snippetNode2) {
             // TODO (nirvdrum 31-Mar-15) The begin and end values may return Fixnums beyond int boundaries and we should handle that -- Bignums are always errors.
-            final int coercedBegin = (int) snippetNode1.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", Layouts.OBJECT_RANGE.getBegin(range));
-            final int coercedEnd = (int) snippetNode2.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", Layouts.OBJECT_RANGE.getEnd(range));
+            final int coercedBegin = (int) snippetNode1.execute(frame, "Truffle::Type.rb_num2int(v)", "v", Layouts.OBJECT_RANGE.getBegin(range));
+            final int coercedEnd = (int) snippetNode2.execute(frame, "Truffle::Type.rb_num2int(v)", "v", Layouts.OBJECT_RANGE.getEnd(range));
 
             return sliceRange(frame, string, coercedBegin, coercedEnd, Layouts.OBJECT_RANGE.getExcludedEnd(range));
         }
@@ -571,14 +571,14 @@ public abstract class StringNodes {
         @Specialization(guards = "wasProvided(length)")
         public Object slice(VirtualFrame frame, DynamicObject string, int start, Object length,
                 @Cached("new()") SnippetNode snippetNode) {
-            return slice(frame, string, start, (int) snippetNode.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", length));
+            return slice(frame, string, start, (int) snippetNode.execute(frame, "Truffle::Type.rb_num2int(v)", "v", length));
         }
 
         @Specialization(guards = { "!isRubyRange(start)", "!isRubyRegexp(start)", "!isRubyString(start)", "wasProvided(length)" })
         public Object slice(VirtualFrame frame, DynamicObject string, Object start, Object length,
                 @Cached("new()") SnippetNode snippetNode1,
                 @Cached("new()") SnippetNode snippetNode2) {
-            return slice(frame, string, (int) snippetNode1.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", start), (int) snippetNode2.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", length));
+            return slice(frame, string, (int) snippetNode1.execute(frame, "Truffle::Type.rb_num2int(v)", "v", start), (int) snippetNode2.execute(frame, "Truffle::Type.rb_num2int(v)", "v", length));
         }
 
         @Specialization(guards = "isRubyRegexp(regexp)")
@@ -1016,7 +1016,7 @@ public abstract class StringNodes {
             return string;
         }
 
-        // TODO (nirvdrum 10-Mar-15): This was extracted from JRuby, but likely will need to become a Rubinius primitive.
+        // TODO (nirvdrum 10-Mar-15): This was extracted from JRuby, but likely will need to become a primitive.
         // Don't be tempted to extract the rope from the passed string. If the block being yielded to modifies the
         // source string, you'll get a different rope. Unlike String#each_byte, String#each_char does not make
         // modifications to the string visible to the rest of the iteration.
@@ -2101,7 +2101,7 @@ public abstract class StringNodes {
                           DynamicObject string,
                           Object bits,
                           @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "sum Rubinius::Type.coerce_to(bits, Fixnum, :to_int)", "bits", bits);
+            return snippetNode.execute(frame, "sum Truffle::Type.coerce_to(bits, Fixnum, :to_int)", "bits", bits);
         }
 
     }
@@ -4257,7 +4257,7 @@ public abstract class StringNodes {
     @CoreMethod(names = "from_bytearray", onSingleton = true, required = 3, lowerFixnum = { 2, 3 })
     public static abstract class StringFromByteArrayPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubiniusByteArray(bytes)")
+        @Specialization(guards = "isByteArray(bytes)")
         public DynamicObject stringFromByteArray(DynamicObject bytes, int start, int count,
                                                  @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final ByteArrayBuilder builder = Layouts.BYTE_ARRAY.getBytes(bytes);

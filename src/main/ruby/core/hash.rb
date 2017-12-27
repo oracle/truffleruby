@@ -61,18 +61,18 @@ class Hash
   private_class_method :new_from_associate_array
 
   def self.try_convert(obj)
-    Rubinius::Type.try_convert obj, Hash, :to_hash
+    Truffle::Type.try_convert obj, Hash, :to_hash
   end
 
   # Fallback for Hash.[]
   def self._constructor_fallback(*args)
     if args.size == 1
       obj = args.first
-      if hash = Rubinius::Type.check_convert_type(obj, Hash, :to_hash)
+      if hash = Truffle::Type.check_convert_type(obj, Hash, :to_hash)
         new_hash = allocate.replace(hash)
         new_hash.default = nil
         return new_hash
-      elsif associate_array = Rubinius::Type.check_convert_type(obj, Array, :to_ary)
+      elsif associate_array = Truffle::Type.check_convert_type(obj, Array, :to_ary)
         return new_from_associate_array(associate_array)
       end
     end
@@ -101,13 +101,13 @@ class Hash
   alias_method :__store__, :[]=
 
   def <(other)
-    other = Rubinius::Type.coerce_to(other, Hash, :to_hash)
+    other = Truffle::Type.coerce_to(other, Hash, :to_hash)
     return false if self.size >= other.size
     self.class.contains_all_internal(self, other)
   end
 
   def <=(other)
-    other = Rubinius::Type.coerce_to(other, Hash, :to_hash)
+    other = Truffle::Type.coerce_to(other, Hash, :to_hash)
     return false if self.size > other.size
     self.class.contains_all_internal(self, other)
   end
@@ -131,7 +131,7 @@ class Hash
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
-        unless Rubinius::Type.object_equal(value, other_value) or value == other_value
+        unless Truffle::Type.object_equal(value, other_value) or value == other_value
           return false
         end
       end
@@ -158,7 +158,7 @@ class Hash
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
-        unless Rubinius::Type.object_equal(value, other_value) or value.eql?(other_value)
+        unless Truffle::Type.object_equal(value, other_value) or value.eql?(other_value)
           return false
         end
       end
@@ -167,13 +167,13 @@ class Hash
   end
 
   def >(other)
-    other = Rubinius::Type.coerce_to(other, Hash, :to_hash)
+    other = Truffle::Type.coerce_to(other, Hash, :to_hash)
     return false if self.size <= other.size
     self.class.contains_all_internal(other, self)
   end
 
   def >=(other)
-    other = Rubinius::Type.coerce_to(other, Hash, :to_hash)
+    other = Truffle::Type.coerce_to(other, Hash, :to_hash)
     return false if self.size < other.size
     self.class.contains_all_internal(other, self)
   end
@@ -194,7 +194,7 @@ class Hash
   def default_proc=(proc)
     Truffle.check_frozen
     unless proc.nil?
-      proc = Rubinius::Type.coerce_to proc, Proc, :to_proc
+      proc = Truffle::Type.coerce_to proc, Proc, :to_proc
 
       if proc.lambda? and proc.arity != 2
         raise TypeError, 'default proc must have arity 2'
@@ -253,7 +253,7 @@ class Hash
   def merge!(other)
     Truffle.check_frozen
 
-    other = Rubinius::Type.coerce_to other, Hash, :to_hash
+    other = Truffle::Type.coerce_to other, Hash, :to_hash
 
     if block_given?
       other.each_pair do |key,value|
@@ -360,15 +360,15 @@ class Hash
     out = []
     return '{...}' if Thread.detect_recursion self do
       each_pair do |key,value|
-        str =  Rubinius::Type.rb_inspect(key)
+        str =  Truffle::Type.rb_inspect(key)
         str << '=>'
-        str << Rubinius::Type.rb_inspect(value)
+        str << Truffle::Type.rb_inspect(value)
         out << str
       end
     end
 
     ret = "{#{out.join ', '}}"
-    Rubinius::Type.infect(ret, self) unless empty?
+    Truffle::Type.infect(ret, self) unless empty?
     ret
   end
   alias_method :to_s, :inspect
@@ -421,7 +421,7 @@ class Hash
       ary << [key, value]
     end
 
-    Rubinius::Type.infect ary, self
+    Truffle::Type.infect ary, self
     ary
   end
 
@@ -462,12 +462,12 @@ class Hash
   def to_proc
     proc_hash = self
     Proc.new do |*args|
-      Rubinius::Type.check_arity(args.size, 1, 1)
+      Truffle::Type.check_arity(args.size, 1, 1)
       proc_hash[args[0]]
     end
   end
 
   def merge_fallback(other, &block)
-    merge(Rubinius::Type.coerce_to other, Hash, :to_hash, &block)
+    merge(Truffle::Type.coerce_to other, Hash, :to_hash, &block)
   end
 end

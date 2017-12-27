@@ -32,7 +32,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module Rubinius::FFI
+module Truffle::FFI
 
   ##
   # Pointer is Rubinius's "fat" pointer class. It represents an actual
@@ -204,7 +204,7 @@ module Rubinius::FFI
 
     # Number of bytes taken up by a pointer.
     def self.size
-      Rubinius::WORDSIZE / 8
+      Truffle::WORDSIZE / 8
     end
 
     # Primitive methods

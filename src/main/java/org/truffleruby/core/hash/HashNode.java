@@ -54,7 +54,7 @@ public class HashNode extends RubyBaseNode {
             }
 
             final Object coercedHashedObject = snippetNode.execute(frame,
-                    "Rubinius::Type.coerce_to_int hashedObject",
+                    "Truffle::Type.coerce_to_int hashedObject",
                     "hashedObject", hashedObject);
 
             if (isIntegerProfile2.profile(coercedHashedObject instanceof Integer)) {

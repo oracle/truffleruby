@@ -29,7 +29,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
 
-@CoreClass("Truffle::Encoding")
+@CoreClass("Truffle::EncodingOperations")
 public abstract class TruffleEncodingNodes {
 
     @CoreMethod(names = "default_external=", onSingleton = true, required = 1)

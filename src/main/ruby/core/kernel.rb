@@ -34,11 +34,11 @@
 
 module Kernel
   def Array(obj)
-    ary = Rubinius::Type.check_convert_type obj, Array, :to_ary
+    ary = Truffle::Type.check_convert_type obj, Array, :to_ary
 
     return ary if ary
 
-    if array = Rubinius::Type.check_convert_type(obj, Array, :to_a)
+    if array = Truffle::Type.check_convert_type(obj, Array, :to_a)
       array
     else
       [obj]
@@ -65,12 +65,12 @@ module Kernel
       raise TypeError, "can't convert nil into Float"
     when Complex
       if obj.respond_to?(:imag) && obj.imag.equal?(0)
-        Rubinius::Type.coerce_to obj, Float, :to_f
+        Truffle::Type.coerce_to obj, Float, :to_f
       else
         raise RangeError, "can't convert #{obj} into Float"
       end
     else
-      Rubinius::Type.coerce_to obj, Float, :to_f
+      Truffle::Type.coerce_to obj, Float, :to_f
     end
   end
   module_function :Float
@@ -78,7 +78,7 @@ module Kernel
   def Hash(obj)
     return {} if obj.equal?(nil) || obj == []
 
-    if hash = Rubinius::Type.check_convert_type(obj, Hash, :to_hash)
+    if hash = Truffle::Type.check_convert_type(obj, Hash, :to_hash)
       return hash
     end
 
@@ -121,7 +121,7 @@ module Kernel
         end
       end
 
-      Rubinius::Type.coerce_to obj, Integer, :to_i
+      Truffle::Type.coerce_to obj, Integer, :to_i
     end
   end
   module_function :Integer
@@ -134,9 +134,9 @@ module Kernel
   module_function :Rational
 
   def String(obj)
-    str = Rubinius::Type.rb_check_convert_type(obj, String, :to_str)
+    str = Truffle::Type.rb_check_convert_type(obj, String, :to_str)
     if str.nil?
-      str = Rubinius::Type.rb_convert_type(obj, String, :to_s)
+      str = Truffle::Type.rb_convert_type(obj, String, :to_s)
     end
     str
   end
@@ -155,7 +155,7 @@ module Kernel
   # and use String(obj, :to_str) instead of StringValue(obj)
 
   def StringValue(obj)
-    Rubinius::Type.coerce_to obj, String, :to_str
+    Truffle::Type.coerce_to obj, String, :to_str
   end
   module_function :StringValue
 
@@ -166,7 +166,7 @@ module Kernel
     output = io.read
     io.close
 
-    Rubinius::Type.external_string output
+    Truffle::Type.external_string output
   end
   module_function :` # `
 
@@ -296,7 +296,7 @@ module Kernel
     ivars = Truffle.invoke_primitive :object_ivars, self
 
     if ivars.empty?
-      return Rubinius::Type.infect "#{prefix}>", self
+      return Truffle::Type.infect "#{prefix}>", self
     end
 
     # Otherwise, if it's already been inspected, return the ...
@@ -318,13 +318,13 @@ module Kernel
       str = "#{prefix} #{parts.join(', ')}>"
     end
 
-    Rubinius::Type.infect(str, self)
+    Truffle::Type.infect(str, self)
 
     str
   end
 
   def load(filename, wrap = false)
-    filename = Rubinius::Type.coerce_to_path filename
+    filename = Truffle::Type.coerce_to_path filename
 
     # load absolute path
     if filename.start_with? File::SEPARATOR
@@ -384,7 +384,7 @@ module Kernel
       end
     end
 
-    path = Rubinius::Type.coerce_to_path obj
+    path = Truffle::Type.coerce_to_path obj
 
     if path.kind_of? String and path.start_with? '|'
       return IO.popen(path[1..-1], *rest, &block)
@@ -405,16 +405,8 @@ module Kernel
   module_function :print
 
   def public_method(name)
-    name = Rubinius::Type.coerce_to_symbol name
-    code = Rubinius.find_public_method(self, name)
-
-    if code
-      Method.new(self, code[1], code[0], name)
-    elsif respond_to_missing?(name, false)
-      Method.new(self, self.class, Rubinius::MissingMethod.new(self,  name), name)
-    else
-      raise NameError, "undefined method `#{name}' for #{self.inspect}"
-    end
+    Truffle::Type.coerce_to_symbol name
+    raise NotImplementedError, 'Kernel#public_method is not implemented'
   end
 
   def putc(int)
@@ -467,7 +459,7 @@ module Kernel
       seed = Thread.current.randomizer.generate_seed
     end
 
-    seed = Rubinius::Type.coerce_to seed, Integer, :to_int
+    seed = Truffle::Type.coerce_to seed, Integer, :to_int
     Thread.current.randomizer.swap_seed seed
   end
   module_function :srand

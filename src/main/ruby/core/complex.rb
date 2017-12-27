@@ -81,7 +81,7 @@ class Complex < Numeric
       if real.kind_of?(Numeric) && !real.real?
         return real
       elsif !real.kind_of?(Numeric)
-        return Rubinius::Type.coerce_to(real, Complex, :to_c)
+        return Truffle::Type.coerce_to(real, Complex, :to_c)
       else
         imag = 0
       end
@@ -89,7 +89,7 @@ class Complex < Numeric
       return real + imag * Complex.new(0, 1)
     end
 
-    return real if Rubinius.mathn_loaded? && imag.equal?(0)
+    return real if Truffle.mathn_loaded? && imag.equal?(0)
     rect(real, imag)
   end
 

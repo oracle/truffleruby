@@ -63,7 +63,7 @@ Truffle::KernelOperations.at_exit true do
   STDERR.flush
 end
 
-module Rubinius
+module Truffle
   module Type
     def self.const_get(mod, name, inherit=true, resolve=true)
       raise 'unsupported' unless resolve

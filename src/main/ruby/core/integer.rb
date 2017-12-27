@@ -57,7 +57,7 @@ class Integer < Numeric
         enc = Encoding::ASCII_8BIT
       end
     else
-      enc = Rubinius::Type.coerce_to_encoding enc
+      enc = Truffle::Type.coerce_to_encoding enc
     end
 
     String.from_codepoint self, enc
@@ -72,7 +72,7 @@ class Integer < Numeric
       end
     end
 
-    ndigits = Rubinius::Type.coerce_to ndigits, Integer, :to_int
+    ndigits = Truffle::Type.coerce_to ndigits, Integer, :to_int
 
     if ndigits > 0
       to_f

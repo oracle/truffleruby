@@ -32,7 +32,7 @@ module RubySL
                                        on: self, as: method_name, blocking: blocking)
       end
 
-      SIZEOF_INT = Rubinius::FFI.type_size(:int)
+      SIZEOF_INT = Truffle::FFI.type_size(:int)
 
       attach_function :_bind, :bind, [:int, :pointer, :socklen_t], :int
       attach_function :_connect, :connect, [:int, :pointer, :socklen_t], :int, blocking: true
@@ -329,12 +329,12 @@ module RubySL
       end
 
       def self.memory_pointer(*args, &block)
-        Rubinius::FFI::MemoryPointer.new(*args, &block)
+        Truffle::FFI::MemoryPointer.new(*args, &block)
       end
 
       def self.pointers_of_type(current, type)
         pointers = []
-        size     = Rubinius::FFI.type_size(type)
+        size     = Truffle::FFI.type_size(type)
         pointer  = current.read_pointer
 
         until pointer.null?

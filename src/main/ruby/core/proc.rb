@@ -71,7 +71,7 @@ class Proc
       end
     end
 
-    m = Rubinius::Mirror.reflect self
+    m = Truffle::Mirror.reflect self
     f = m.curry self, [], arity
 
     def f.binding

@@ -26,15 +26,11 @@
 
 # Only part of Rubinius's character.rb
 
-# We use String throughout, rather than Rubinius::Character.  As such, we're adding the Rubinius::Character methods
-# to String for simplicity.  However, the Rubinius::Character methods are being added here to better match the
-# Rubinius code layout.
-
 class String
 
   def printable?
     Truffle.primitive :character_printable_p
-    raise PrimitiveFailure, 'Rubinius::Character#printable? primitive failed'
+    raise PrimitiveFailure, 'Truffle::String#printable? primitive failed'
   end
 
 end
