@@ -201,10 +201,10 @@ class Pathname
   end
 
   SAME_PATHS = if File::FNM_SYSCASE.nonzero?
-    proc {|a, b| a.casecmp(b).zero?}
-  else
-    proc {|a, b| a == b}
-  end
+                 proc {|a, b| a.casecmp(b).zero?}
+               else
+                 proc {|a, b| a == b}
+               end
 
   # :startdoc:
 

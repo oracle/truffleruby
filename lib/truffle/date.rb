@@ -1280,8 +1280,10 @@ class Date
 
   def fix_style # :nodoc:
     if julian?
-    then self.class::JULIAN
-    else self.class::GREGORIAN end
+      self.class::JULIAN
+    else
+      self.class::GREGORIAN
+    end
   end
 
   private :fix_style
