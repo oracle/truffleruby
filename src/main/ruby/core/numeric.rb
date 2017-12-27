@@ -219,6 +219,9 @@ class Numeric
     begin
       values = other.coerce(self)
     rescue
+      warn 'warning: Numerical comparison operators will no more rescue exceptions of #coerce',
+           'warning: in the next release. Return nil in #coerce if the coercion is impossible.'
+
       if error == :coerce_error
         raise TypeError, "#{other.class} can't be coerced into #{self.class}"
       else
