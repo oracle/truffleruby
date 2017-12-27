@@ -27,7 +27,6 @@
 require 'fcntl'
 
 require 'socket/truffle'
-require 'socket/truffle/version'
 require 'socket/truffle/socket_options'
 
 require 'socket/socket_error'
