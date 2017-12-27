@@ -74,8 +74,8 @@ class Range
 
     max -= 1 if max.kind_of? Integer and exclude_end?
 
-    start = min = Rubinius::Type.coerce_to min, Integer, :to_int
-    max = Rubinius::Type.coerce_to max, Integer, :to_int
+    start = min = Truffle::Type.coerce_to min, Integer, :to_int
+    max = Truffle::Type.coerce_to max, Integer, :to_int
 
     last_true = nil
 
@@ -209,7 +209,7 @@ class Range
 
   def inspect
     result = "#{self.begin.inspect}#{exclude_end? ? "..." : ".."}#{self.end.inspect}"
-    Rubinius::Type.infect(result, self)
+    Truffle::Type.infect(result, self)
   end
 
   def last(n=undefined)
@@ -243,11 +243,11 @@ class Range
 
   def step_internal(step_size=1) # :yields: object
     return to_enum(:step, step_size) do
-      m = Rubinius::Mirror::Range.reflect(self)
+      m = Truffle::Mirror::Range.reflect(self)
       m.step_iterations_size(*m.validate_step_size(self.begin, self.end, step_size))
     end unless block_given?
 
-    m = Rubinius::Mirror::Range.reflect(self)
+    m = Truffle::Mirror::Range.reflect(self)
     values = m.validate_step_size(self.begin, self.end, step_size)
     first = values[0]
     last = values[1]
@@ -285,7 +285,7 @@ class Range
 
   def to_s
     result = "#{self.begin}#{exclude_end? ? "..." : ".."}#{self.end}"
-    Rubinius::Type.infect(result, self)
+    Truffle::Type.infect(result, self)
   end
 
   def cover?(value)
@@ -360,7 +360,7 @@ class Range
       ary << o
       nil
     end
-    Rubinius::Type.infect ary, self
+    Truffle::Type.infect ary, self
     ary
   end
 end

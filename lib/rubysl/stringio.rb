@@ -73,7 +73,7 @@ class StringIO
       set_encoding(nil)
       mode = IO::RDWR
     else
-      string = Rubinius::Type.coerce_to string, String, :to_str
+      string = Truffle::Type.coerce_to string, String, :to_str
       @__data__ = Data.new string
     end
 
@@ -92,7 +92,7 @@ class StringIO
   end
 
   def initialize_copy(from)
-    from = Rubinius::Type.coerce_to(from, StringIO, :to_strio)
+    from = Truffle::Type.coerce_to(from, StringIO, :to_strio)
 
     taint if from.tainted?
 
@@ -221,7 +221,7 @@ class StringIO
       string.byte_append str
       d.pos = string.bytesize
     elsif pos > string.bytesize
-      m = Rubinius::Mirror.reflect string
+      m = Truffle::Mirror.reflect string
       m.splice string.bytesize, 0, "\000" * (pos - string.bytesize)
       string.byte_append str
       d.pos = string.bytesize
@@ -230,7 +230,7 @@ class StringIO
       if str.bytesize < stop
         stop = str.bytesize
       end
-      m = Rubinius::Mirror.reflect string
+      m = Truffle::Mirror.reflect string
       m.splice pos, stop, str
       d.pos += str.bytesize
       string.taint if str.tainted?
@@ -371,7 +371,7 @@ class StringIO
     if obj.is_a?(String)
       char = obj[0]
     else
-      c = Rubinius::Type.coerce_to obj, Integer, :to_int
+      c = Truffle::Type.coerce_to obj, Integer, :to_int
       char = (c & 0xff).chr
     end
 
@@ -383,12 +383,12 @@ class StringIO
       string.byte_append char
       d.pos = string.bytesize
     elsif pos > string.bytesize
-      m = Rubinius::Mirror.reflect string
+      m = Truffle::Mirror.reflect string
       m.splice string.bytesize, 0, "\000" * (pos - string.bytesize)
       string.byte_append char
       d.pos = string.bytesize
     else
-      m = Rubinius::Mirror.reflect string
+      m = Truffle::Mirror.reflect string
       m.splice pos, char.bytesize, char
       d.pos += char.bytesize
     end
@@ -407,7 +407,7 @@ class StringIO
           line = "[...]"
         else
           begin
-            arg = Rubinius::Type.coerce_to(arg, Array, :to_ary)
+            arg = Truffle::Type.coerce_to(arg, Array, :to_ary)
             Thread.recursion_guard arg do
               arg.each { |a| puts a }
             end
@@ -432,7 +432,7 @@ class StringIO
     string = d.string
 
     if length
-      length = Rubinius::Type.coerce_to length, Integer, :to_int
+      length = Truffle::Type.coerce_to length, Integer, :to_int
       raise ArgumentError if length < 0
 
       buffer = StringValue(buffer) if buffer
@@ -493,7 +493,7 @@ class StringIO
 
   def reopen(string=nil, mode=Undefined)
     if string and not string.kind_of? String and mode.equal? Undefined
-      stringio = Rubinius::Type.coerce_to(string, StringIO, :to_strio)
+      stringio = Truffle::Type.coerce_to(string, StringIO, :to_strio)
 
       taint if stringio.tainted?
       initialize_copy stringio
@@ -514,7 +514,7 @@ class StringIO
 
   def seek(to, whence = IO::SEEK_SET)
     raise IOError, "closed stream" if self.closed?
-    to = Rubinius::Type.coerce_to to, Integer, :to_int
+    to = Truffle::Type.coerce_to to, Integer, :to_int
 
     case whence
     when IO::SEEK_CUR
@@ -577,7 +577,7 @@ class StringIO
 
   def truncate(length)
     check_writable
-    len = Rubinius::Type.coerce_to length, Integer, :to_int
+    len = Truffle::Type.coerce_to length, Integer, :to_int
     raise Errno::EINVAL, "negative length" if len < 0
     string = @__data__.string
 
@@ -597,9 +597,9 @@ class StringIO
     string = d.string
 
     if char.kind_of? Integer
-      char = Rubinius::Type.coerce_to char, String, :chr
+      char = Truffle::Type.coerce_to char, String, :chr
     else
-      char = Rubinius::Type.coerce_to char, String, :to_str
+      char = Truffle::Type.coerce_to char, String, :to_str
     end
 
     if pos > string.bytesize
@@ -705,15 +705,15 @@ class StringIO
 
   def getline(arg_error, sep, limit)
     if limit != Undefined
-      limit = Rubinius::Type.coerce_to limit, Fixnum, :to_int if limit
-      sep = Rubinius::Type.coerce_to sep, String, :to_str if sep
+      limit = Truffle::Type.coerce_to limit, Fixnum, :to_int if limit
+      sep = Truffle::Type.coerce_to sep, String, :to_str if sep
     else
       limit = nil
 
       unless sep == $/ or sep.nil?
         osep = sep
-        sep = Rubinius::Type.check_convert_type sep, String, :to_str
-        limit = Rubinius::Type.coerce_to osep, Fixnum, :to_int unless sep
+        sep = Truffle::Type.check_convert_type sep, String, :to_str
+        limit = Truffle::Type.coerce_to osep, Fixnum, :to_int unless sep
       end
     end
 

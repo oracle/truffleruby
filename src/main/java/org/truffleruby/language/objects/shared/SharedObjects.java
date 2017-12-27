@@ -50,7 +50,7 @@ public class SharedObjects {
             stack.push(object);
         }
 
-        // Share the Rubinius configuration
+        // Share the native configuration
         for (DynamicObject object : context.getNativeConfiguration().dynamicObjectValues()) {
             stack.push(object);
         }

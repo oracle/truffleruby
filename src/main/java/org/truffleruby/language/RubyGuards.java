@@ -197,7 +197,7 @@ public abstract class RubyGuards {
         return Layouts.POINTER.isPointer(value);
     }
 
-    public static boolean isRubiniusByteArray(DynamicObject value) {
+    public static boolean isByteArray(DynamicObject value) {
         return Layouts.BYTE_ARRAY.isByteArray(value);
     }
 

@@ -24,7 +24,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-class Rubinius::Randomizer
+class Truffle::Randomizer
   def initialize
     self.seed = generate_seed
   end
@@ -60,7 +60,7 @@ class Rubinius::Randomizer
         raise ArgumentError, "invalid argument - #{limit}" if limit <= 0
         random_float * limit
       else
-        limit_int = Rubinius::Type.coerce_to limit, Integer, :to_int
+        limit_int = Truffle::Type.coerce_to limit, Integer, :to_int
         raise ArgumentError, "invalid argument - #{limit}" if limit_int <= 0
 
         if limit.is_a?(Integer)
@@ -155,7 +155,7 @@ class Random
       seed = Thread.current.randomizer.generate_seed
     end
 
-    seed = Rubinius::Type.coerce_to seed, Integer, :to_int
+    seed = Truffle::Type.coerce_to seed, Integer, :to_int
     Thread.current.randomizer.swap_seed seed
   end
 
@@ -164,7 +164,7 @@ class Random
   end
 
   def initialize(seed=undefined)
-    @randomizer = Rubinius::Randomizer.new
+    @randomizer = Truffle::Randomizer.new
     if !undefined.equal?(seed)
       @randomizer.swap_seed seed.to_int
     end

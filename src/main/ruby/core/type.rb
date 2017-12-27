@@ -58,7 +58,7 @@
 ##
 # Namespace for coercion functions between various ruby objects.
 
-module Rubinius
+module Truffle
   module Type
 
     def self.object_respond_to?(obj, name, include_private = false)
@@ -77,7 +77,7 @@ module Rubinius
 
     def self.object_encoding(obj)
       Truffle.primitive :encoding_get_object_encoding
-      raise PrimitiveFailure, 'Rubinius::Type.object_encoding primitive failed'
+      raise PrimitiveFailure, 'Truffle::Type.object_encoding primitive failed'
     end
 
     ##
@@ -86,7 +86,7 @@ module Rubinius
     # right kind. TypeErrors are raised if the conversion method fails or the
     # conversion result is wrong.
     #
-    # Uses Rubinius::Type.object_kind_of to bypass type check overrides.
+    # Uses Truffle::Type.object_kind_of to bypass type check overrides.
     #
     # Equivalent to MRI's rb_convert_type().
 
@@ -410,7 +410,7 @@ module Rubinius
 
     def self.clamp_to_int(n)
       if Truffle.invoke_primitive(:fixnum_fits_into_int, n)
-        Truffle::Fixnum.lower(n)
+        Truffle::FixnumOperations.lower(n)
       else
         n > 0 ? INT_MAX : INT_MIN
       end
@@ -572,7 +572,7 @@ module Rubinius
         offset = $2.to_i*60*60 + $3.to_i*60
         offset = -offset if $1.ord == 45
       else
-        offset = Rubinius::Type.coerce_to_exact_num(offset)
+        offset = Truffle::Type.coerce_to_exact_num(offset)
       end
 
       if Rational === offset
@@ -635,7 +635,7 @@ module Rubinius
     # Misc
 
     def self.rb_inspect(val)
-      str = Rubinius::Type.rb_obj_as_string(val.inspect)
+      str = Truffle::Type.rb_obj_as_string(val.inspect)
       result_encoding = Encoding.default_internal || Encoding.default_external
       if str.ascii_only? || (result_encoding.ascii_compatible? && str.encoding == result_encoding)
         str
@@ -647,8 +647,8 @@ module Rubinius
     def self.rb_obj_as_string(obj)
       return obj if object_kind_of?(obj, String)
       str = obj.to_s
-      return Rubinius::Type.rb_any_to_s(obj) unless object_kind_of?(str, String)
-      Rubinius::Type.infect(str, obj)
+      return Truffle::Type.rb_any_to_s(obj) unless object_kind_of?(str, String)
+      Truffle::Type.infect(str, obj)
       str
     end
 

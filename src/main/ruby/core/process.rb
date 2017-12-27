@@ -34,45 +34,45 @@
 
 module Process
   module Constants
-    EXIT_SUCCESS = Rubinius::Config['rbx.platform.process.EXIT_SUCCESS'] || 0
-    EXIT_FAILURE = Rubinius::Config['rbx.platform.process.EXIT_FAILURE'] || 1
+    EXIT_SUCCESS = Truffle::Config['rbx.platform.process.EXIT_SUCCESS'] || 0
+    EXIT_FAILURE = Truffle::Config['rbx.platform.process.EXIT_FAILURE'] || 1
 
-    PRIO_PGRP    = Rubinius::Config['rbx.platform.process.PRIO_PGRP']
-    PRIO_PROCESS = Rubinius::Config['rbx.platform.process.PRIO_PROCESS']
-    PRIO_USER    = Rubinius::Config['rbx.platform.process.PRIO_USER']
+    PRIO_PGRP    = Truffle::Config['rbx.platform.process.PRIO_PGRP']
+    PRIO_PROCESS = Truffle::Config['rbx.platform.process.PRIO_PROCESS']
+    PRIO_USER    = Truffle::Config['rbx.platform.process.PRIO_USER']
 
-    RLIM_INFINITY  = Rubinius::Config['rbx.platform.process.RLIM_INFINITY']
-    RLIM_SAVED_MAX = Rubinius::Config['rbx.platform.process.RLIM_SAVED_MAX']
-    RLIM_SAVED_CUR = Rubinius::Config['rbx.platform.process.RLIM_SAVED_CUR']
+    RLIM_INFINITY  = Truffle::Config['rbx.platform.process.RLIM_INFINITY']
+    RLIM_SAVED_MAX = Truffle::Config['rbx.platform.process.RLIM_SAVED_MAX']
+    RLIM_SAVED_CUR = Truffle::Config['rbx.platform.process.RLIM_SAVED_CUR']
 
-    RLIMIT_AS      = Rubinius::Config['rbx.platform.process.RLIMIT_AS']
-    RLIMIT_CORE    = Rubinius::Config['rbx.platform.process.RLIMIT_CORE']
-    RLIMIT_CPU     = Rubinius::Config['rbx.platform.process.RLIMIT_CPU']
-    RLIMIT_DATA    = Rubinius::Config['rbx.platform.process.RLIMIT_DATA']
-    RLIMIT_FSIZE   = Rubinius::Config['rbx.platform.process.RLIMIT_FSIZE']
-    RLIMIT_NOFILE  = Rubinius::Config['rbx.platform.process.RLIMIT_NOFILE']
-    RLIMIT_STACK   = Rubinius::Config['rbx.platform.process.RLIMIT_STACK']
+    RLIMIT_AS      = Truffle::Config['rbx.platform.process.RLIMIT_AS']
+    RLIMIT_CORE    = Truffle::Config['rbx.platform.process.RLIMIT_CORE']
+    RLIMIT_CPU     = Truffle::Config['rbx.platform.process.RLIMIT_CPU']
+    RLIMIT_DATA    = Truffle::Config['rbx.platform.process.RLIMIT_DATA']
+    RLIMIT_FSIZE   = Truffle::Config['rbx.platform.process.RLIMIT_FSIZE']
+    RLIMIT_NOFILE  = Truffle::Config['rbx.platform.process.RLIMIT_NOFILE']
+    RLIMIT_STACK   = Truffle::Config['rbx.platform.process.RLIMIT_STACK']
 
     %i[RLIMIT_MEMLOCK RLIMIT_NPROC RLIMIT_RSS RLIMIT_SBSIZE].each do |limit|
-      if value = Rubinius::Config.lookup("rbx.platform.process.#{limit}")
+      if value = Truffle::Config.lookup("rbx.platform.process.#{limit}")
         const_set limit, value
       end
     end
 
-    if Rubinius::Config.lookup('rbx.platform.process.RLIMIT_RTPRIO')
-      RLIMIT_RTPRIO     = Rubinius::Config['rbx.platform.process.RLIMIT_RTPRIO']
-      RLIMIT_RTTIME     = Rubinius::Config['rbx.platform.process.RLIMIT_RTTIME']
-      RLIMIT_SIGPENDING = Rubinius::Config['rbx.platform.process.RLIMIT_SIGPENDING']
-      RLIMIT_MSGQUEUE   = Rubinius::Config['rbx.platform.process.RLIMIT_MSGQUEUE']
-      RLIMIT_NICE       = Rubinius::Config['rbx.platform.process.RLIMIT_NICE']
+    if Truffle::Config.lookup('rbx.platform.process.RLIMIT_RTPRIO')
+      RLIMIT_RTPRIO     = Truffle::Config['rbx.platform.process.RLIMIT_RTPRIO']
+      RLIMIT_RTTIME     = Truffle::Config['rbx.platform.process.RLIMIT_RTTIME']
+      RLIMIT_SIGPENDING = Truffle::Config['rbx.platform.process.RLIMIT_SIGPENDING']
+      RLIMIT_MSGQUEUE   = Truffle::Config['rbx.platform.process.RLIMIT_MSGQUEUE']
+      RLIMIT_NICE       = Truffle::Config['rbx.platform.process.RLIMIT_NICE']
     end
 
-    WNOHANG =   Rubinius::Config['rbx.platform.process.WNOHANG']
-    WUNTRACED = Rubinius::Config['rbx.platform.process.WUNTRACED']
+    WNOHANG =   Truffle::Config['rbx.platform.process.WNOHANG']
+    WUNTRACED = Truffle::Config['rbx.platform.process.WUNTRACED']
   end
   include Constants
 
-  FFI = Rubinius::FFI
+  FFI = Truffle::FFI
 
   # Terminate with given status code.
   #
@@ -83,7 +83,7 @@ module Process
     when false
       code = 1
     else
-      code = Rubinius::Type.coerce_to code, Integer, :to_int
+      code = Truffle::Type.coerce_to code, Integer, :to_int
     end
 
     raise SystemExit, code
@@ -98,7 +98,7 @@ module Process
     when false
       code = 1
     else
-      code = Rubinius::Type.coerce_to code, Integer, :to_int
+      code = Truffle::Type.coerce_to code, Integer, :to_int
     end
     exit! code
   end
@@ -145,12 +145,12 @@ module Process
   # @return [Title]
   #
   def self.setproctitle(title)
-    title = Rubinius::Type.coerce_to(title, String, :to_str)
+    title = Truffle::Type.coerce_to(title, String, :to_str)
     if Truffle.aot?
       Truffle::System.aot_set_process_title(title)
-    elsif Rubinius.linux? && File.readable?('/proc/self/maps')
+    elsif Truffle.linux? && File.readable?('/proc/self/maps')
       setproctitle_linux_from_proc_maps(title)
-    elsif Rubinius.darwin?
+    elsif Truffle.darwin?
       # When we call _NSGetArgv we seem to always get a string that looks like what we'd expect from running ps, but
       # with a null character inserted early. I don't know where this comes from, but it means I don't know how to get
       # the length of space available for writing in the new program name. We therefore limit to about 40 characters,
@@ -225,18 +225,18 @@ module Process
 
   def self.setrlimit(resource, cur_limit, max_limit=undefined)
     resource =  coerce_rlimit_resource(resource)
-    cur_limit = Rubinius::Type.coerce_to cur_limit, Integer, :to_int
+    cur_limit = Truffle::Type.coerce_to cur_limit, Integer, :to_int
 
     if undefined.equal? max_limit
       max_limit = cur_limit
     else
-      max_limit = Rubinius::Type.coerce_to max_limit, Integer, :to_int
+      max_limit = Truffle::Type.coerce_to max_limit, Integer, :to_int
     end
 
-    rlim_t = Rubinius::Config['rbx.platform.typedef.rlim_t']
+    rlim_t = Truffle::Config['rbx.platform.typedef.rlim_t']
     raise rlim_t unless rlim_t == 'ulong' or rlim_t == 'ulong_long'
 
-    Rubinius::FFI::MemoryPointer.new(:rlim_t, 2) do |ptr|
+    Truffle::FFI::MemoryPointer.new(:rlim_t, 2) do |ptr|
       ptr[0].write_ulong cur_limit
       ptr[1].write_ulong max_limit
       ret = Truffle::POSIX.setrlimit(resource, ptr)
@@ -248,10 +248,10 @@ module Process
   def self.getrlimit(resource)
     resource = coerce_rlimit_resource(resource)
 
-    rlim_t = Rubinius::Config['rbx.platform.typedef.rlim_t']
+    rlim_t = Truffle::Config['rbx.platform.typedef.rlim_t']
     raise rlim_t unless rlim_t == 'ulong' or rlim_t == 'ulong_long'
 
-    Rubinius::FFI::MemoryPointer.new(:rlim_t, 2) do |ptr|
+    Truffle::FFI::MemoryPointer.new(:rlim_t, 2) do |ptr|
       ret = Truffle::POSIX.getrlimit(resource, ptr)
       Errno.handle if ret == -1
       cur = ptr[0].read_ulong
@@ -272,7 +272,7 @@ module Process
   Truffle.invoke_primitive :method_unimplement, method(:fork)
 
   def self.times
-    Rubinius::FFI::MemoryPointer.new(:double, 4) do |ptr|
+    Truffle::FFI::MemoryPointer.new(:double, 4) do |ptr|
       ret = Truffle::POSIX.truffleposix_getrusage(ptr)
       Errno.handle if ret == -1
       Struct::Tms.new(*ptr.read_array_of_double(4))
@@ -306,7 +306,7 @@ module Process
     end
 
     pids.each do |pid|
-      pid = Rubinius::Type.coerce_to pid, Integer, :to_int
+      pid = Truffle::Type.coerce_to pid, Integer, :to_int
 
       if pid == Process.pid
         signal_name = Signal::Numbers[signal].to_sym
@@ -330,7 +330,7 @@ module Process
   end
 
   def self.getpgid(pid)
-    pid = Rubinius::Type.coerce_to pid, Integer, :to_int
+    pid = Truffle::Type.coerce_to pid, Integer, :to_int
 
     ret = Truffle::POSIX.getpgid(pid)
     Errno.handle if ret == -1
@@ -338,8 +338,8 @@ module Process
   end
 
   def self.setpgid(pid, int)
-    pid = Rubinius::Type.coerce_to pid, Integer, :to_int
-    int = Rubinius::Type.coerce_to int, Integer, :to_int
+    pid = Truffle::Type.coerce_to pid, Integer, :to_int
+    int = Truffle::Type.coerce_to int, Integer, :to_int
 
     ret = Truffle::POSIX.setpgid(pid, int)
     Errno.handle if ret == -1
@@ -372,7 +372,7 @@ module Process
     # the 4 rescue clauses below are needed
     # until respond_to? can be used to query the implementation of methods attached via FFI
     # atm respond_to returns true if a method is attached but not implemented on the platform
-    uid = Rubinius::Type.coerce_to uid, Integer, :to_int
+    uid = Truffle::Type.coerce_to uid, Integer, :to_int
     begin
       ret = Truffle::POSIX.setresuid(uid, -1, -1)
     rescue NotImplementedError
@@ -397,7 +397,7 @@ module Process
   end
 
   def self.gid=(gid)
-    gid = Rubinius::Type.coerce_to gid, Integer, :to_int
+    gid = Truffle::Type.coerce_to gid, Integer, :to_int
     Process::Sys.setgid gid
   end
 
@@ -405,7 +405,7 @@ module Process
     # the 4 rescue clauses below are needed
     # until respond_to? can be used to query the implementation of methods attached via FFI
     # atm respond_to returns true if a method is attached but not implemented on the platform
-    uid = Rubinius::Type.coerce_to uid, Integer, :to_int
+    uid = Truffle::Type.coerce_to uid, Integer, :to_int
     begin
       ret = Truffle::POSIX.setresuid(-1, uid, -1)
     rescue NotImplementedError
@@ -430,7 +430,7 @@ module Process
   end
 
   def self.egid=(gid)
-    gid = Rubinius::Type.coerce_to gid, Integer, :to_int
+    gid = Truffle::Type.coerce_to gid, Integer, :to_int
     Process::Sys.setegid gid
   end
 
@@ -451,8 +451,8 @@ module Process
   end
 
   def self.getpriority(kind, id)
-    kind = Rubinius::Type.coerce_to kind, Integer, :to_int
-    id =   Rubinius::Type.coerce_to id, Integer, :to_int
+    kind = Truffle::Type.coerce_to kind, Integer, :to_int
+    id =   Truffle::Type.coerce_to id, Integer, :to_int
 
     ret = Truffle::POSIX.truffleposix_getpriority(kind, id)
     if ret <= -100
@@ -462,9 +462,9 @@ module Process
   end
 
   def self.setpriority(kind, id, priority)
-    kind = Rubinius::Type.coerce_to kind, Integer, :to_int
-    id =   Rubinius::Type.coerce_to id, Integer, :to_int
-    priority = Rubinius::Type.coerce_to priority, Integer, :to_int
+    kind = Truffle::Type.coerce_to kind, Integer, :to_int
+    id =   Truffle::Type.coerce_to id, Integer, :to_int
+    priority = Truffle::Type.coerce_to priority, Integer, :to_int
 
     ret = Truffle::POSIX.setpriority(kind, id, priority)
     Errno.handle if ret == -1
@@ -475,7 +475,7 @@ module Process
     ngroups = Truffle::POSIX.getgroups(0, FFI::Pointer::NULL)
     Errno.handle if ngroups == -1
 
-    gid_t = Rubinius::Config['rbx.platform.typedef.gid_t']
+    gid_t = Truffle::Config['rbx.platform.typedef.gid_t']
     raise gid_t unless gid_t == 'uint'
 
     FFI::MemoryPointer.new(:gid_t, ngroups) do |ptr|
@@ -486,7 +486,7 @@ module Process
   end
 
   def self.groups=(groups)
-    gid_t = Rubinius::Config['rbx.platform.typedef.gid_t']
+    gid_t = Truffle::Config['rbx.platform.typedef.gid_t']
     raise gid_t unless gid_t == 'uint'
 
     @maxgroups = groups.size if groups.size > @maxgroups
@@ -501,7 +501,7 @@ module Process
 
   def self.initgroups(username, gid)
     username = StringValue(username)
-    gid = Rubinius::Type.coerce_to gid, Integer, :to_int
+    gid = Truffle::Type.coerce_to gid, Integer, :to_int
 
     if Truffle::POSIX.initgroups(username, gid) == -1
       Errno.handle
@@ -538,7 +538,7 @@ module Process
   # TODO: Support other options such as WUNTRACED? --rue
   #
   def self.wait2(input_pid=-1, flags=nil)
-    input_pid = Rubinius::Type.coerce_to input_pid, Integer, :to_int
+    input_pid = Truffle::Type.coerce_to input_pid, Integer, :to_int
     flags ||= 0
 
     FFI::MemoryPointer.new(:int, 3) do |ptr|
@@ -615,11 +615,11 @@ module Process
   end
 
   def self.exec(*args)
-    Rubinius::Mirror::Process.exec(*args)
+    Truffle::Mirror::Process.exec(*args)
   end
 
   def self.spawn(*args)
-    Rubinius::Mirror::Process.spawn(*args)
+    Truffle::Mirror::Process.spawn(*args)
   end
 
   # TODO: Should an error be raised on ECHILD? --rue
@@ -646,8 +646,8 @@ module Process
     when Symbol, String
       # do nothing
     else
-      unless r = Rubinius::Type.check_convert_type(resource, String, :to_str)
-        return Rubinius::Type.coerce_to resource, Integer, :to_int
+      unless r = Truffle::Type.check_convert_type(resource, String, :to_str)
+        return Truffle::Type.coerce_to resource, Integer, :to_int
       end
 
       resource = r
@@ -760,7 +760,7 @@ module Process
       end
 
       def setgid(gid)
-        gid = Rubinius::Type.coerce_to gid, Integer, :to_int
+        gid = Truffle::Type.coerce_to gid, Integer, :to_int
 
         ret = Truffle::POSIX.setgid gid
         Errno.handle if ret == -1
@@ -768,7 +768,7 @@ module Process
       end
 
       def setuid(uid)
-        uid = Rubinius::Type.coerce_to uid, Integer, :to_int
+        uid = Truffle::Type.coerce_to uid, Integer, :to_int
 
         ret = Truffle::POSIX.setuid uid
         Errno.handle if ret == -1
@@ -776,7 +776,7 @@ module Process
       end
 
       def setegid(egid)
-        egid = Rubinius::Type.coerce_to egid, Integer, :to_int
+        egid = Truffle::Type.coerce_to egid, Integer, :to_int
 
         ret = Truffle::POSIX.setegid egid
         Errno.handle if ret == -1
@@ -784,7 +784,7 @@ module Process
       end
 
       def seteuid(euid)
-        euid = Rubinius::Type.coerce_to euid, Integer, :to_int
+        euid = Truffle::Type.coerce_to euid, Integer, :to_int
 
         ret = Truffle::POSIX.seteuid euid
         Errno.handle if ret == -1
@@ -800,8 +800,8 @@ module Process
       end
 
       def setregid(rid, eid)
-        rid = Rubinius::Type.coerce_to rid, Integer, :to_int
-        eid = Rubinius::Type.coerce_to eid, Integer, :to_int
+        rid = Truffle::Type.coerce_to rid, Integer, :to_int
+        eid = Truffle::Type.coerce_to eid, Integer, :to_int
 
         ret = Truffle::POSIX.setregid rid, eid
         Errno.handle if ret == -1
@@ -809,8 +809,8 @@ module Process
       end
 
       def setreuid(rid, eid)
-        rid = Rubinius::Type.coerce_to rid, Integer, :to_int
-        eid = Rubinius::Type.coerce_to eid, Integer, :to_int
+        rid = Truffle::Type.coerce_to rid, Integer, :to_int
+        eid = Truffle::Type.coerce_to eid, Integer, :to_int
 
         ret = Truffle::POSIX.setreuid rid, eid
         Errno.handle if ret == -1
@@ -818,9 +818,9 @@ module Process
       end
 
       def setresgid(rid, eid, sid)
-        rid = Rubinius::Type.coerce_to rid, Integer, :to_int
-        eid = Rubinius::Type.coerce_to eid, Integer, :to_int
-        sid = Rubinius::Type.coerce_to sid, Integer, :to_int
+        rid = Truffle::Type.coerce_to rid, Integer, :to_int
+        eid = Truffle::Type.coerce_to eid, Integer, :to_int
+        sid = Truffle::Type.coerce_to sid, Integer, :to_int
 
         ret = Truffle::POSIX.setresgid rid, eid, sid
         Errno.handle if ret == -1
@@ -828,9 +828,9 @@ module Process
       end
 
       def setresuid(rid, eid, sid)
-        rid = Rubinius::Type.coerce_to rid, Integer, :to_int
-        eid = Rubinius::Type.coerce_to eid, Integer, :to_int
-        sid = Rubinius::Type.coerce_to sid, Integer, :to_int
+        rid = Truffle::Type.coerce_to rid, Integer, :to_int
+        eid = Truffle::Type.coerce_to eid, Integer, :to_int
+        sid = Truffle::Type.coerce_to sid, Integer, :to_int
 
         ret = Truffle::POSIX.setresuid rid, eid, sid
         Errno.handle if ret == -1
@@ -842,7 +842,7 @@ module Process
   module UID
     class << self
       def change_privilege(uid)
-        uid = Rubinius::Type.coerce_to uid, Integer, :to_int
+        uid = Truffle::Type.coerce_to uid, Integer, :to_int
 
         ret = Truffle::POSIX.setreuid(uid, uid)
         Errno.handle if ret == -1
@@ -854,7 +854,7 @@ module Process
       end
 
       def eid=(uid)
-        uid = Rubinius::Type.coerce_to uid, Integer, :to_int
+        uid = Truffle::Type.coerce_to uid, Integer, :to_int
 
         ret = Truffle::POSIX.seteuid(uid)
         Errno.handle if ret == -1
@@ -899,7 +899,7 @@ module Process
   module GID
     class << self
       def change_privilege(gid)
-        gid = Rubinius::Type.coerce_to gid, Integer, :to_int
+        gid = Truffle::Type.coerce_to gid, Integer, :to_int
 
         ret = Truffle::POSIX.setregid(gid, gid)
         Errno.handle if ret == -1
@@ -911,7 +911,7 @@ module Process
       end
 
       def eid=(gid)
-        gid = Rubinius::Type.coerce_to gid, Integer, :to_int
+        gid = Truffle::Type.coerce_to gid, Integer, :to_int
 
         ret = Truffle::POSIX.setegid(gid)
         Errno.handle if ret == -1

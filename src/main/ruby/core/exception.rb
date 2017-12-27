@@ -36,7 +36,7 @@ class Exception
   attr_reader :cause
 
   def ==(other)
-    other.instance_of?(Rubinius::Type.object_class(self)) &&
+    other.instance_of?(Truffle::Type.object_class(self)) &&
       message == other.message &&
       backtrace == other.backtrace
   end
@@ -377,7 +377,7 @@ class SystemCallError < StandardError
       end
 
       error = allocate
-      Rubinius::Unsafe.set_class error, self
+      Truffle::Unsafe.set_class error, self
       Truffle.privately { error.initialize(*args) }
       error
     end
@@ -410,7 +410,7 @@ class SignalException < Exception
   attr_reader :signo
 
   def initialize(sig, message = undefined)
-    signo = Rubinius::Type.rb_check_to_integer(sig, :to_int)
+    signo = Truffle::Type.rb_check_to_integer(sig, :to_int)
     if signo.nil?
       raise ArgumentError, 'wrong number of arguments (given 2, expected 1)' unless undefined.equal?(message)
       if sig.is_a?(Symbol)
@@ -450,23 +450,4 @@ end
 class StopIteration
   attr_accessor :result
   private :result=
-end
-
-##
-# Base class for various exceptions raised in the VM.
-
-class Rubinius::VMException < Exception
-end
-
-##
-# Raised in the VM when an assertion fails.
-
-class Rubinius::AssertionError < Rubinius::VMException
-end
-
-##
-# Raised in the VM when attempting to read/write outside
-# the bounds of an object.
-
-class Rubinius::ObjectBoundsExceededError < Rubinius::VMException
 end

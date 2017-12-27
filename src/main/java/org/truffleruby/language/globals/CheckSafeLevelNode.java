@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.globals;
 
-
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyNode;
@@ -31,7 +30,7 @@ public class CheckSafeLevelNode extends RubyNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             checkSafeLevelNode = insert(CallDispatchHeadNode.create());
         }
-        return checkSafeLevelNode.call(frame, getContext().getCoreLibrary().getRubiniusTypeModule(), "check_safe_level", value);
+        return checkSafeLevelNode.call(frame, getContext().getCoreLibrary().getTruffleTypeModule(), "check_safe_level", value);
     }
 
 }

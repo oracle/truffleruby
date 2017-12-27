@@ -79,11 +79,11 @@ class Numeric
 
     unless block_given?
       return to_enum(:step, limit, step) do
-        Rubinius::Mirror::Numeric.reflect(self).step_size(limit, step, by)
+        Truffle::Mirror::Numeric.reflect(self).step_size(limit, step, by)
       end
     end
 
-    m = Rubinius::Mirror::Numeric.reflect(self)
+    m = Truffle::Mirror::Numeric.reflect(self)
     values = m.step_fetch_args(limit, step, by)
     value = values[0]
     limit = values[1]
@@ -171,11 +171,11 @@ class Numeric
   end
 
   def floor
-    Rubinius::Type.rb_num2dbl(self).floor
+    Truffle::Type.rb_num2dbl(self).floor
   end
 
   def ceil
-    Rubinius::Type.rb_num2dbl(self).ceil
+    Truffle::Type.rb_num2dbl(self).ceil
   end
 
   def remainder(other)
@@ -226,7 +226,7 @@ class Numeric
       end
     end
 
-    unless Rubinius::Type.object_kind_of?(values, Array) && values.length == 2
+    unless Truffle::Type.object_kind_of?(values, Array) && values.length == 2
       raise TypeError, 'coerce must return [x, y]'
     end
 

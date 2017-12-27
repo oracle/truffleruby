@@ -635,7 +635,7 @@ public abstract class HashNodes {
                         DynamicObject self,
                         Object other,
                         @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "replace(Rubinius::Type.coerce_to other, Hash, :to_hash)", "other", other);
+            return snippetNode.execute(frame, "replace(Truffle::Type.coerce_to other, Hash, :to_hash)", "other", other);
         }
 
         private void copyOtherFields(DynamicObject self, DynamicObject from) {

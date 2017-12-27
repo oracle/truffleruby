@@ -117,7 +117,7 @@ public class TranscodingManager {
     }
 
     public static EConv create(Encoding sourceEncoding, Encoding destinationEncoding, int options) {
-        final EConv ec = open(sourceEncoding.getName(), destinationEncoding.getName(), rubiniusToJRubyFlags(options));
+        final EConv ec = open(sourceEncoding.getName(), destinationEncoding.getName(), toJCodingFlags(options));
 
         if (ec == null) {
             return null;
@@ -130,7 +130,7 @@ public class TranscodingManager {
     }
 
     private static EConv create(byte[] sourceEncodingName, byte[] destinationEncodingName, int options) {
-        final EConv ec = open(sourceEncodingName, destinationEncodingName, rubiniusToJRubyFlags(options));
+        final EConv ec = open(sourceEncodingName, destinationEncodingName, toJCodingFlags(options));
 
         if (ec == null) {
             return null;
@@ -140,11 +140,11 @@ public class TranscodingManager {
     }
 
     /**
-     * Rubinius and JRuby process Encoding::Converter options flags differently.  Rubinius splits the processing
-     * between initial setup and the replacement value setup, whereas JRuby handles them all during initial setup.
-     * We figure out what flags JRuby additionally expects to be set and set them to satisfy EConv.
+     * We and JCodings process Encoding::Converter options flags differently.  We split the processing
+     * between initial setup and the replacement value setup, whereas JCodings handles them all during initial setup.
+     * We figure out what flags JCodings additionally expects to be set and set them to satisfy EConv.
      */
-    private static int rubiniusToJRubyFlags(int flags) {
+    private static int toJCodingFlags(int flags) {
         if ((flags & EConvFlags.XML_TEXT_DECORATOR) != 0) {
             flags |= EConvFlags.UNDEF_HEX_CHARREF;
         }

@@ -57,7 +57,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-module Rubinius
+module Truffle
   class Mirror
     module Process
       SHELL_META_CHARS = [
@@ -133,11 +133,11 @@ module Rubinius
         # elements are guaranteed to be non-nil. When no env or options are
         # given, empty hashes are returned.
         def parse(env_or_cmd, *args)
-          if options = Rubinius::Type.try_convert(args.last, ::Hash, :to_hash)
+          if options = Truffle::Type.try_convert(args.last, ::Hash, :to_hash)
             args.pop
           end
 
-          if env = Rubinius::Type.try_convert(env_or_cmd, ::Hash, :to_hash)
+          if env = Truffle::Type.try_convert(env_or_cmd, ::Hash, :to_hash)
             unless command = args.shift
               raise ArgumentError, 'command argument expected'
             end
@@ -145,11 +145,11 @@ module Rubinius
             command = env_or_cmd
           end
 
-          if args.empty? and cmd = Rubinius::Type.try_convert(command, ::String, :to_str)
+          if args.empty? and cmd = Truffle::Type.try_convert(command, ::String, :to_str)
             @command = cmd
             @argv = []
           else
-            if cmd = Rubinius::Type.try_convert(command, ::Array, :to_ary)
+            if cmd = Truffle::Type.try_convert(command, ::Array, :to_ary)
               raise ArgumentError, 'wrong first argument' unless cmd.size == 2
               command = StringValue(cmd[0])
               name = StringValue(cmd[1])
@@ -164,7 +164,7 @@ module Rubinius
             @argv = argv
           end
 
-          @command = Rubinius::Type.check_null_safe(StringValue(@command))
+          @command = Truffle::Type.check_null_safe(StringValue(@command))
 
           if @argv.empty? # A single String for both command and arguments
             if should_use_shell?(@command)
@@ -238,14 +238,14 @@ module Rubinius
               if value == true
                 value = 0
               elsif value
-                value = Rubinius::Type.coerce_to value, ::Integer, :to_int
+                value = Truffle::Type.coerce_to value, ::Integer, :to_int
                 raise ArgumentError, "negative process group ID : #{value}" if value < 0
               else
                 value = -1
               end
               @options[key] = value
             when :chdir
-              @options[key] = Rubinius::Type.coerce_to_path(value)
+              @options[key] = Truffle::Type.coerce_to_path(value)
             when :umask
               @options[key] = value
             when :close_others
@@ -336,12 +336,12 @@ module Rubinius
           when nil
             OFLAGS['r']
           else
-            Rubinius::Type.coerce_to obj, Integer, :to_int
+            Truffle::Type.coerce_to obj, Integer, :to_int
           end
         end
 
         def convert_env_key(key)
-          key = Rubinius::Type.check_null_safe(StringValue(key))
+          key = Truffle::Type.check_null_safe(StringValue(key))
 
           if key.include?('=')
             raise ArgumentError, "environment name contains a equal : #{key}"
@@ -352,7 +352,7 @@ module Rubinius
 
         def convert_env_value(value)
           return if value.nil?
-          Rubinius::Type.check_null_safe(StringValue(value))
+          Truffle::Type.check_null_safe(StringValue(value))
         end
 
         # Mapping of string open modes to integer oflag versions.

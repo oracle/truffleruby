@@ -7,24 +7,27 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.core.rubinius;
+package org.truffleruby.core.support;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.algorithms.Randomizer;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
-public interface RandomizerLayout extends BasicObjectLayout {
+public interface IOLayout extends BasicObjectLayout {
 
-    DynamicObjectFactory createRandomizerShape(DynamicObject logicalClass,
-                                               DynamicObject metaClass);
+    String DESCRIPTOR_IDENTIFIER = "@descriptor";
 
-    DynamicObject createRandomizer(DynamicObjectFactory factory,
-                                   Randomizer randomizer);
+    DynamicObjectFactory createIOShape(DynamicObject logicalClass,
+                                       DynamicObject metaClass);
 
-    Randomizer getRandomizer(DynamicObject object);
-    void setRandomizer(DynamicObject object, Randomizer value);
+    DynamicObject createIO(DynamicObjectFactory factory,
+                           int descriptor);
+
+    boolean isIO(DynamicObject object);
+
+    int getDescriptor(DynamicObject object);
+    void setDescriptor(DynamicObject object, int value);
 
 }

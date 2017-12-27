@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.core.rubinius;
+package org.truffleruby.core.support;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,7 +48,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 
-@CoreClass("Rubinius::Type")
+@CoreClass("Truffle::Type")
 public abstract class TypeNodes {
 
     @CoreMethod(names = "object_kind_of?", onSingleton = true, required = 2)

@@ -13,14 +13,14 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.NodeFactory;
 
 import org.truffleruby.collections.ConcurrentOperations;
-import org.truffleruby.core.rubinius.UndefinedPrimitiveNodesFactory.UndefinedPrimitiveNodeFactory;
+import org.truffleruby.core.support.UndefinedPrimitiveNodesFactory.UndefinedPrimitiveNodeFactory;
 import org.truffleruby.language.RubyNode;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Manages the available Rubinius primitive calls.
+ * Manages the available primitive calls.
  */
 public class PrimitiveManager {
 

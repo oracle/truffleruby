@@ -42,7 +42,7 @@ module Kernel
     tags = Truffle.invoke_primitive :fiber_get_catch_tags
 
     tags.each do |c|
-      if Rubinius::Type.object_equal(c, tag)
+      if Truffle::Type.object_equal(c, tag)
         Truffle.invoke_primitive :vm_throw, tag, value
       end
     end

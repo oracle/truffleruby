@@ -33,7 +33,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class IO
-  FFI = Rubinius::FFI
+  FFI = Truffle::FFI
 
   include Enumerable
 
@@ -78,9 +78,9 @@ class IO
 
   # Import platform constants
 
-  SEEK_SET = Rubinius::Config['rbx.platform.io.SEEK_SET']
-  SEEK_CUR = Rubinius::Config['rbx.platform.io.SEEK_CUR']
-  SEEK_END = Rubinius::Config['rbx.platform.io.SEEK_END']
+  SEEK_SET = Truffle::Config['rbx.platform.io.SEEK_SET']
+  SEEK_CUR = Truffle::Config['rbx.platform.io.SEEK_CUR']
+  SEEK_END = Truffle::Config['rbx.platform.io.SEEK_END']
 
   # InternalBuffer provides a sliding window into a region of bytes.
   # The buffer is filled to the +used+ indicator, which is
@@ -111,7 +111,7 @@ class IO
     SIZE = 32768
 
     def initialize
-      @storage = Rubinius::ByteArray.new(SIZE)
+      @storage = Truffle::ByteArray.new(SIZE)
       @used = 0
       @total = SIZE
       @write_synced = true
@@ -178,7 +178,7 @@ class IO
     #
     # Returns the number of bytes in the buffer.
     def fill_from(io, skip = nil)
-      Rubinius.synchronize(self) do
+      Truffle.synchronize(self) do
         empty_to io
         discard skip if skip
 
@@ -257,7 +257,7 @@ class IO
     end
 
     def unseek!(io)
-      Rubinius.synchronize(self) do
+      Truffle.synchronize(self) do
         # Unseek the still buffered amount
         return unless write_synced?
         unless empty?
@@ -273,7 +273,7 @@ class IO
     # Returns +count+ bytes from the +start+ of the buffer as a new String.
     # If +count+ is +nil+, returns all available bytes in the buffer.
     def shift(count=nil)
-      Rubinius.synchronize(self) do
+      Truffle.synchronize(self) do
         total = size
         total = count if count and count < total
 
@@ -311,7 +311,7 @@ class IO
     def getbyte(io)
       return if size == 0 and fill_from(io) == 0
 
-      Rubinius.synchronize(self) do
+      Truffle.synchronize(self) do
         byte = @storage[@start]
         @start += 1
         byte
@@ -322,7 +322,7 @@ class IO
     def getchar(io)
       return if size == 0 and fill_from(io) == 0
 
-      Rubinius.synchronize(self) do
+      Truffle.synchronize(self) do
         char = ''
         while size > 0
           char.force_encoding Encoding::ASCII_8BIT
@@ -439,7 +439,7 @@ class IO
         if obj.kind_of? String
           io = File.open obj, mode
         elsif obj.respond_to? :to_path
-          path = Rubinius::Type.coerce_to obj, String, :to_path
+          path = Truffle::Type.coerce_to obj, String, :to_path
           io = File.open path, mode
         else
           io = obj
@@ -507,7 +507,7 @@ class IO
   def self.foreach(name, separator=undefined, limit=undefined, options=undefined)
     return to_enum(:foreach, name, separator, limit, options) unless block_given?
 
-    name = Rubinius::Type.coerce_to_path name
+    name = Truffle::Type.coerce_to_path name
 
     separator = $/ if undefined.equal?(separator)
     case separator
@@ -537,10 +537,10 @@ class IO
       end
     else
       value = limit
-      limit = Rubinius::Type.try_convert limit, Fixnum, :to_int
+      limit = Truffle::Type.try_convert limit, Fixnum, :to_int
 
       unless limit
-        options = Rubinius::Type.coerce_to value, Hash, :to_hash
+        options = Truffle::Type.coerce_to value, Hash, :to_hash
       end
     end
 
@@ -551,7 +551,7 @@ class IO
     when nil
       options = {}
     else
-      options = Rubinius::Type.coerce_to options, Hash, :to_hash
+      options = Truffle::Type.coerce_to options, Hash, :to_hash
     end
 
     if name[0] == ?|
@@ -623,20 +623,20 @@ class IO
 
   def self.read(name, length_or_options=undefined, offset=0, options=nil)
     offset = 0 if offset.nil?
-    name = Rubinius::Type.coerce_to_path name
+    name = Truffle::Type.coerce_to_path name
     mode = 'r'
 
     if undefined.equal? length_or_options
       length = undefined
-    elsif Rubinius::Type.object_kind_of? length_or_options, Hash
+    elsif Truffle::Type.object_kind_of? length_or_options, Hash
       length = undefined
       offset = 0
       options = length_or_options
     elsif length_or_options
-      offset = Rubinius::Type.coerce_to(offset || 0, Fixnum, :to_int)
+      offset = Truffle::Type.coerce_to(offset || 0, Fixnum, :to_int)
       raise Errno::EINVAL, 'offset must not be negative' if offset < 0
 
-      length = Rubinius::Type.coerce_to(length_or_options, Fixnum, :to_int)
+      length = Truffle::Type.coerce_to(length_or_options, Fixnum, :to_int)
       raise ArgumentError, 'length must not be negative' if length < 0
     else
       length = undefined
@@ -671,29 +671,29 @@ class IO
   end
 
   def self.try_convert(obj)
-    Rubinius::Type.try_convert obj, IO, :to_io
+    Truffle::Type.try_convert obj, IO, :to_io
   end
 
   def self.normalize_options(mode, options)
     autoclose = true
 
     if undefined.equal?(options)
-      options = Rubinius::Type.try_convert(mode, Hash, :to_hash)
+      options = Truffle::Type.try_convert(mode, Hash, :to_hash)
       mode = nil if options
     elsif !options.nil?
-      options = Rubinius::Type.try_convert(options, Hash, :to_hash)
+      options = Truffle::Type.try_convert(options, Hash, :to_hash)
       raise ArgumentError, 'wrong number of arguments (3 for 1..2)' unless options
     end
 
     if mode
-      mode = (Rubinius::Type.try_convert(mode, Integer, :to_int) or
-              Rubinius::Type.coerce_to(mode, String, :to_str))
+      mode = (Truffle::Type.try_convert(mode, Integer, :to_int) or
+              Truffle::Type.coerce_to(mode, String, :to_str))
     end
 
     if options
       if optmode = options[:mode]
-        optmode = (Rubinius::Type.try_convert(optmode, Integer, :to_int) or
-                   Rubinius::Type.coerce_to(optmode, String, :to_str))
+        optmode = (Truffle::Type.try_convert(optmode, Integer, :to_int) or
+                   Truffle::Type.coerce_to(optmode, String, :to_str))
       end
 
       if mode
@@ -765,7 +765,7 @@ class IO
   end
 
   def self.parse_mode(mode)
-    return mode if Rubinius::Type.object_kind_of? mode, Integer
+    return mode if Truffle::Type.object_kind_of? mode, Integer
 
     mode = StringValue(mode)
 
@@ -854,11 +854,11 @@ class IO
   end
 
   def self.popen(*args)
-    if env = Rubinius::Type.try_convert(args.first, Hash, :to_hash)
+    if env = Truffle::Type.try_convert(args.first, Hash, :to_hash)
       args.shift
     end
 
-    if io_options = Rubinius::Type.try_convert(args.last, Hash, :to_hash)
+    if io_options = Truffle::Type.try_convert(args.last, Hash, :to_hash)
       args.pop
     end
 
@@ -870,12 +870,12 @@ class IO
     mode ||= 'r'
 
     if cmd.kind_of? Array
-      if sub_env = Rubinius::Type.try_convert(cmd.first, Hash, :to_hash)
+      if sub_env = Truffle::Type.try_convert(cmd.first, Hash, :to_hash)
         env = sub_env unless env
         cmd.shift
       end
 
-      if exec_options = Rubinius::Type.try_convert(cmd.last, Hash, :to_hash)
+      if exec_options = Truffle::Type.try_convert(cmd.last, Hash, :to_hash)
         cmd.pop
       end
     end
@@ -904,7 +904,7 @@ class IO
     if readable and writable
       # Transmogrify pa_read into a BidirectionalPipe object,
       # and then tell it about its pid and pa_write
-      Rubinius::Unsafe.set_class pa_read, IO::BidirectionalPipe
+      Truffle::Unsafe.set_class pa_read, IO::BidirectionalPipe
       pipe = pa_read
       pipe.set_pipe_info(pa_write)
     elsif readable
@@ -940,7 +940,7 @@ class IO
         options.merge! exec_options
       end
 
-      pid = Rubinius::Mirror::Process.spawn(env || {}, *cmd, options)
+      pid = Truffle::Mirror::Process.spawn(env || {}, *cmd, options)
     end
 
     pipe.pid = pid
@@ -984,7 +984,7 @@ class IO
   #
   def self.select(readables=nil, writables=nil, errorables=nil, timeout=nil)
     if timeout
-      unless Rubinius::Type.object_kind_of? timeout, Numeric
+      unless Truffle::Type.object_kind_of? timeout, Numeric
         raise TypeError, 'Timeout must be numeric'
       end
 
@@ -996,13 +996,13 @@ class IO
 
     if readables
       readables =
-        Rubinius::Type.coerce_to(readables, Array, :to_ary).map do |obj|
+        Truffle::Type.coerce_to(readables, Array, :to_ary).map do |obj|
           if obj.kind_of? IO
             raise IOError, 'closed stream' if obj.closed?
             return [[obj],[],[]] unless obj.buffer_empty?
             obj
           else
-            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
+            io = Truffle::Type.coerce_to(obj, IO, :to_io)
             raise IOError, 'closed stream' if io.closed?
             [obj, io]
           end
@@ -1011,12 +1011,12 @@ class IO
 
     if writables
       writables =
-        Rubinius::Type.coerce_to(writables, Array, :to_ary).map do |obj|
+        Truffle::Type.coerce_to(writables, Array, :to_ary).map do |obj|
           if obj.kind_of? IO
             raise IOError, 'closed stream' if obj.closed?
             obj
           else
-            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
+            io = Truffle::Type.coerce_to(obj, IO, :to_io)
             raise IOError, 'closed stream' if io.closed?
             [obj, io]
           end
@@ -1025,12 +1025,12 @@ class IO
 
     if errorables
       errorables =
-        Rubinius::Type.coerce_to(errorables, Array, :to_ary).map do |obj|
+        Truffle::Type.coerce_to(errorables, Array, :to_ary).map do |obj|
           if obj.kind_of? IO
             raise IOError, 'closed stream' if obj.closed?
             obj
           else
-            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
+            io = Truffle::Type.coerce_to(obj, IO, :to_io)
             raise IOError, 'closed stream' if io.closed?
             [obj, io]
           end
@@ -1116,7 +1116,7 @@ class IO
   # Opens the given path, returning the underlying file descriptor as a Fixnum.
   #  IO.sysopen("testfile")   #=> 3
   def self.sysopen(path, mode = nil, perm = nil)
-    path = Rubinius::Type.coerce_to_path path
+    path = Truffle::Type.coerce_to_path path
     mode = parse_mode(mode || 'r')
     perm ||= 0666
 
@@ -1181,7 +1181,7 @@ class IO
 
     mode, binary, external, internal, @autoclose = IO.normalize_options(mode, options)
 
-    IO.setup self, Rubinius::Type.coerce_to(fd, Integer, :to_int), mode
+    IO.setup self, Truffle::Type.coerce_to(fd, Integer, :to_int), mode
 
     binmode if binary
     set_encoding external, internal
@@ -1230,8 +1230,8 @@ class IO
       raise NotImplementedError, "Unsupported advice: #{advice}"
     end
 
-    _offset = Rubinius::Type.coerce_to offset, Integer, :to_int
-    _len = Rubinius::Type.coerce_to len, Integer, :to_int
+    _offset = Truffle::Type.coerce_to offset, Integer, :to_int
+    _len = Truffle::Type.coerce_to len, Integer, :to_int
 
     # Truffle.invoke_primitive :io_advise, self, advice, offset, len
     raise 'IO#advise not implemented'
@@ -1548,7 +1548,7 @@ class IO
     ensure_open_and_readable
 
     if limit
-      limit = Rubinius::Type.coerce_to limit, Integer, :to_int
+      limit = Truffle::Type.coerce_to limit, Integer, :to_int
       sep = sep_or_limit ? StringValue(sep_or_limit) : nil
     else
       case sep_or_limit
@@ -1557,9 +1557,9 @@ class IO
       when nil
         sep = nil
       else
-        unless sep = Rubinius::Type.check_convert_type(sep_or_limit, String, :to_str)
+        unless sep = Truffle::Type.check_convert_type(sep_or_limit, String, :to_str)
           sep = $/
-          limit = Rubinius::Type.coerce_to sep_or_limit, Integer, :to_int
+          limit = Truffle::Type.coerce_to sep_or_limit, Integer, :to_int
         end
       end
     end
@@ -1679,10 +1679,10 @@ class IO
     elsif arg.kind_of? String
       raise NotImplementedError, 'cannot handle String'
     else
-      arg = Rubinius::Type.coerce_to arg, Fixnum, :to_int
+      arg = Truffle::Type.coerce_to arg, Fixnum, :to_int
     end
 
-    command = Rubinius::Type.coerce_to command, Fixnum, :to_int
+    command = Truffle::Type.coerce_to command, Fixnum, :to_int
     Truffle::POSIX.fcntl descriptor, command, arg
   end
 
@@ -1716,10 +1716,10 @@ class IO
       buffer.write_string arg, arg.bytesize
       real_arg = buffer.address
     else
-      real_arg = Rubinius::Type.coerce_to arg, Fixnum, :to_int
+      real_arg = Truffle::Type.coerce_to arg, Fixnum, :to_int
     end
 
-    command = Rubinius::Type.coerce_to command, Fixnum, :to_int
+    command = Truffle::Type.coerce_to command, Fixnum, :to_int
     ret = Truffle::POSIX.ioctl descriptor, command, real_arg
     Errno.handle if ret < 0
     if arg.kind_of?(String)
@@ -1932,10 +1932,10 @@ class IO
   #
   #  AA
   def putc(obj)
-    if Rubinius::Type.object_kind_of? obj, String
+    if Truffle::Type.object_kind_of? obj, String
       write obj.substring(0, 1)
     else
-      byte = Rubinius::Type.coerce_to(obj, Integer, :to_int) & 0xff
+      byte = Truffle::Type.coerce_to(obj, Integer, :to_int) & 0xff
       write byte.chr
     end
 
@@ -2257,7 +2257,7 @@ class IO
       Errno.handle if mode < 0
       @mode = mode
 
-      Rubinius::Unsafe.set_class self, io.class
+      Truffle::Unsafe.set_class self, io.class
       if io.respond_to?(:path)
         @path = io.path
       end
@@ -2276,7 +2276,7 @@ class IO
         mode = IO.parse_mode(mode)
       end
 
-      path = Rubinius::Type.coerce_to_path(other)
+      path = Truffle::Type.coerce_to_path(other)
       reset_buffering
 
       if closed?
@@ -2381,7 +2381,7 @@ class IO
     unless undefined.equal? options
       # TODO: set the encoding options on the IO instance
       if options and not options.kind_of? Hash
-        _options = Rubinius::Type.coerce_to options, Hash, :to_hash
+        _options = Truffle::Type.coerce_to options, Hash, :to_hash
       end
     end
 

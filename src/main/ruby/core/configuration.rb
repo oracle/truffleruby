@@ -24,7 +24,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module Rubinius
+module Truffle
   class Configuration
     def initialize
     end
@@ -33,7 +33,7 @@ module Rubinius
 
     def get_variable(name)
       Truffle.primitive :vm_get_config_item
-      raise PrimitiveFailure, 'Rubinius::Configuration#get_variable primitive failed'
+      raise PrimitiveFailure, 'Truffle::Configuration#get_variable primitive failed'
     end
 
     def section(section, &block)

@@ -24,7 +24,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.PrimitiveNodeConstructor;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.IsNilNode;
-import org.truffleruby.core.IsRubiniusUndefinedNode;
+import org.truffleruby.core.IsUndefinedNode;
 import org.truffleruby.core.RaiseIfFrozenNode;
 import org.truffleruby.core.array.ArrayAppendOneNodeGen;
 import org.truffleruby.core.array.ArrayConcatNode;
@@ -525,11 +525,11 @@ public class BodyTranslator extends Translator {
                 case "primitive":
                     throw new AssertionError("Invalid usage of Truffle.primitive at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
                 case "invoke_primitive": {
-                    final RubyNode ret = translateRubiniusInvokePrimitive(sourceSection, node);
+                    final RubyNode ret = translateInvokePrimitive(sourceSection, node);
                     return addNewlineIfNeeded(node, ret);
                 }
                 case "privately": {
-                    final RubyNode ret = translateRubiniusPrivately(node);
+                    final RubyNode ret = translatePrivately(node);
                     return addNewlineIfNeeded(node, ret);
                 }
                 case "single_block_arg": {
@@ -559,7 +559,7 @@ public class BodyTranslator extends Translator {
                 && getSourcePath(sourceSection).startsWith(corePath())
                 && methodName.equals("equal?")) {
             RubyNode argument = translateArgumentsAndBlock(sourceSection, null, node.getArgsNode(), methodName).getArguments()[0];
-            final RubyNode ret = new IsRubiniusUndefinedNode(argument);
+            final RubyNode ret = new IsUndefinedNode(argument);
             ret.unsafeSetSourceSection(sourceSection);
             return addNewlineIfNeeded(node, ret);
         }
@@ -567,7 +567,7 @@ public class BodyTranslator extends Translator {
         return translateCallNode(node, false, false, false);
     }
 
-    protected RubyNode translateRubiniusPrimitive(SourceIndexLength sourceSection, BlockParseNode body, RubyNode loadArguments) {
+    protected RubyNode translatePrimitive(SourceIndexLength sourceSection, BlockParseNode body, RubyNode loadArguments) {
         /*
          * Translates something that looks like
          *
@@ -608,7 +608,7 @@ public class BodyTranslator extends Translator {
         return primitive.createCallPrimitiveNode(context, source, sourceSection, fallbackNode);
     }
 
-    private RubyNode translateRubiniusInvokePrimitive(SourceIndexLength sourceSection, CallParseNode node) {
+    private RubyNode translateInvokePrimitive(SourceIndexLength sourceSection, CallParseNode node) {
         /*
          * Translates something that looks like
          *
@@ -640,7 +640,7 @@ public class BodyTranslator extends Translator {
         return primitive.createInvokePrimitiveNode(context, source, sourceSection, arguments.toArray(new RubyNode[arguments.size()]));
     }
 
-    private RubyNode translateRubiniusPrivately(CallParseNode node) {
+    private RubyNode translatePrivately(CallParseNode node) {
         /*
          * Translates something that looks like
          *

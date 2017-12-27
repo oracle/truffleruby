@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.core.rubinius;
+package org.truffleruby.core.support;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -20,7 +20,7 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-@CoreClass("Rubinius::AtomicReference")
+@CoreClass("Truffle::AtomicReference")
 public abstract class AtomicReferenceNodes {
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)

@@ -32,7 +32,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module Rubinius
+module Truffle
   class Mirror
     def self.subject=(klass)
       @subject = klass
@@ -40,20 +40,20 @@ module Rubinius
 
     def self.module_mirror(obj)
       case obj
-      when ::Numeric then Rubinius::Mirror::Numeric
-      when ::String then Rubinius::Mirror::String
-      when ::Range then Rubinius::Mirror::Range
-      when ::Process then Rubinius::Mirror::Process
-      when ::Proc then Rubinius::Mirror::Proc
+      when ::Numeric then Truffle::Mirror::Numeric
+      when ::String then Truffle::Mirror::String
+      when ::Range then Truffle::Mirror::Range
+      when ::Process then Truffle::Mirror::Process
+      when ::Proc then Truffle::Mirror::Proc
       else
         begin
-          Rubinius::Mirror.const_get(obj.class.name.to_sym, false)
+          Truffle::Mirror.const_get(obj.class.name.to_sym, false)
         rescue NameError
           ancestor = obj.class.superclass
 
           until ancestor.nil?
             begin
-              return Rubinius::Mirror.const_get(ancestor.name.to_sym, false)
+              return Truffle::Mirror.const_get(ancestor.name.to_sym, false)
             rescue NameError
               ancestor = ancestor.superclass
             end

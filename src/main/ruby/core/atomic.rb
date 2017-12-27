@@ -24,8 +24,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module Rubinius
-  # TODO (pitr-ch 11-Jun-2016): move under Truffle
+module Truffle
   class AtomicReference
     def initialize(val=nil)
       set(val) unless val.nil?

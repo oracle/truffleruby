@@ -35,7 +35,7 @@
 ##
 # Interface to process environment variables.
 
-module Rubinius
+module Truffle
   class EnvironmentVariables
     include Enumerable
 
@@ -311,7 +311,7 @@ module Rubinius
   end
 end
 
-ENV = Rubinius::EnvironmentVariables.new
+ENV = Truffle::EnvironmentVariables.new
 
 # JRuby uses this for example to make proxy settings visible to stdlib/uri/common.rb
 

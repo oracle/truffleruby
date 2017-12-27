@@ -56,9 +56,9 @@ import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.launcher.Launcher;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.platform.NativeTypes;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.NativeConfiguration;
-import org.truffleruby.platform.RubiniusTypes;
 import org.truffleruby.stdlib.psych.YAMLEncoding;
 
 import com.oracle.truffle.api.CallTarget;
@@ -165,11 +165,10 @@ public class CoreLibrary {
     private final DynamicObject enumerableModule;
     private final DynamicObject errnoModule;
     private final DynamicObject kernelModule;
-    private final DynamicObject rubiniusModule;
-    private final DynamicObject rubiniusFFIModule;
-    private final DynamicObject rubiniusFFIPointerClass;
-    private final DynamicObject rubiniusFFINullPointerErrorClass;
-    private final DynamicObject rubiniusTypeModule;
+    private final DynamicObject truffleFFIModule;
+    private final DynamicObject truffleFFIPointerClass;
+    private final DynamicObject truffleFFINullPointerErrorClass;
+    private final DynamicObject truffleTypeModule;
     private final DynamicObject truffleModule;
     private final DynamicObject truffleBootModule;
     private final DynamicObject truffleInteropModule;
@@ -203,7 +202,7 @@ public class CoreLibrary {
     private final GlobalVariables globalVariables;
     private final DynamicObject mainObject;
     private final DynamicObject nil;
-    private final Object rubiniusUndefined;
+    private final Object supportUndefined;
     private final DynamicObject digestClass;
     private final DynamicObjectFactory digestFactory;
 
@@ -503,7 +502,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "Digest");
         defineModule(truffleModule, "ObjSpace");
         defineModule(truffleModule, "Etc");
-        defineModule(truffleModule, "Encoding");
+        defineModule(truffleModule, "EncodingOperations");
         defineModule(truffleModule, "Coverage");
         defineModule(truffleModule, "Graal");
         defineModule(truffleModule, "Ropes");
@@ -512,7 +511,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "RegexpOperations");
         defineModule(truffleModule, "StringOperations");
         truffleBootModule = defineModule(truffleModule, "Boot");
-        defineModule(truffleModule, "Fixnum");
+        defineModule(truffleModule, "FixnumOperations");
         defineModule(truffleModule, "System");
         truffleKernelOperationsModule = defineModule(truffleModule, "KernelOperations");
         defineModule(truffleModule, "Process");
@@ -535,25 +534,21 @@ public class CoreLibrary {
         final DynamicObject gem = defineModule(truffleModule, "Gem");
         defineModule(gem, "BCrypt");
 
-        // Rubinius
+        truffleFFIModule = defineModule(truffleModule, "FFI");
+        truffleFFIPointerClass = defineClass(truffleFFIModule, objectClass, "Pointer");
+        Layouts.CLASS.setInstanceFactoryUnsafe(truffleFFIPointerClass, Layouts.POINTER.createPointerShape(truffleFFIPointerClass, truffleFFIPointerClass));
+        truffleFFINullPointerErrorClass = defineClass(truffleFFIModule, runtimeErrorClass, "NullPointerError");
 
-        rubiniusModule = defineModule("Rubinius");
+        defineClass(truffleModule, objectClass, "Mirror");
+        truffleTypeModule = defineModule(truffleModule, "Type");
 
-        rubiniusFFIModule = defineModule(rubiniusModule, "FFI");
-        rubiniusFFIPointerClass = defineClass(rubiniusFFIModule, objectClass, "Pointer");
-        Layouts.CLASS.setInstanceFactoryUnsafe(rubiniusFFIPointerClass, Layouts.POINTER.createPointerShape(rubiniusFFIPointerClass, rubiniusFFIPointerClass));
-        rubiniusFFINullPointerErrorClass = defineClass(rubiniusFFIModule, runtimeErrorClass, "NullPointerError");
-
-        defineClass(rubiniusModule, objectClass, "Mirror");
-        rubiniusTypeModule = defineModule(rubiniusModule, "Type");
-
-        byteArrayClass = defineClass(rubiniusModule, objectClass, "ByteArray");
+        byteArrayClass = defineClass(truffleModule, objectClass, "ByteArray");
         byteArrayFactory = Layouts.BYTE_ARRAY.createByteArrayShape(byteArrayClass, byteArrayClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(byteArrayClass, byteArrayFactory);
-        defineClass(rubiniusModule, objectClass, "StringData");
+        defineClass(truffleModule, objectClass, "StringData");
         defineClass(encodingClass, objectClass, "Transcoding");
-        randomizerClass = defineClass(rubiniusModule, objectClass, "Randomizer");
-        atomicReferenceClass = defineClass(rubiniusModule, objectClass, "AtomicReference");
+        randomizerClass = defineClass(truffleModule, objectClass, "Randomizer");
+        atomicReferenceClass = defineClass(truffleModule, objectClass, "AtomicReference");
         Layouts.CLASS.setInstanceFactoryUnsafe(atomicReferenceClass,
                 Layouts.ATOMIC_REFERENCE.createAtomicReferenceShape(atomicReferenceClass, atomicReferenceClass));
         randomizerFactory = Layouts.RANDOMIZER.createRandomizerShape(randomizerClass, randomizerClass);
@@ -574,7 +569,7 @@ public class CoreLibrary {
         mainObject = objectFactory.newInstance();
         nil = nilFactory.newInstance();
         argv = Layouts.ARRAY.createArray(arrayFactory, null, 0);
-        rubiniusUndefined = NotProvided.INSTANCE;
+        supportUndefined = NotProvided.INSTANCE;
 
         globalVariables = new GlobalVariables(nil);
 
@@ -682,26 +677,26 @@ public class CoreLibrary {
     }
 
     private void initializeConstants() {
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_CHAR", RubiniusTypes.TYPE_CHAR);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_UCHAR", RubiniusTypes.TYPE_UCHAR);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_BOOL", RubiniusTypes.TYPE_BOOL);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_SHORT", RubiniusTypes.TYPE_SHORT);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_USHORT", RubiniusTypes.TYPE_USHORT);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_INT", RubiniusTypes.TYPE_INT);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_UINT", RubiniusTypes.TYPE_UINT);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_LONG", RubiniusTypes.TYPE_LONG);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_ULONG", RubiniusTypes.TYPE_ULONG);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_LL", RubiniusTypes.TYPE_LL);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_ULL", RubiniusTypes.TYPE_ULL);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_FLOAT", RubiniusTypes.TYPE_FLOAT);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_DOUBLE", RubiniusTypes.TYPE_DOUBLE);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_PTR", RubiniusTypes.TYPE_PTR);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_VOID", RubiniusTypes.TYPE_VOID);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_STRING", RubiniusTypes.TYPE_STRING);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_STRPTR", RubiniusTypes.TYPE_STRPTR);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_CHARARR", RubiniusTypes.TYPE_CHARARR);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_ENUM", RubiniusTypes.TYPE_ENUM);
-        Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_VARARGS", RubiniusTypes.TYPE_VARARGS);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_CHAR", NativeTypes.TYPE_CHAR);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_UCHAR", NativeTypes.TYPE_UCHAR);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_BOOL", NativeTypes.TYPE_BOOL);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_SHORT", NativeTypes.TYPE_SHORT);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_USHORT", NativeTypes.TYPE_USHORT);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_INT", NativeTypes.TYPE_INT);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_UINT", NativeTypes.TYPE_UINT);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_LONG", NativeTypes.TYPE_LONG);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_ULONG", NativeTypes.TYPE_ULONG);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_LL", NativeTypes.TYPE_LL);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_ULL", NativeTypes.TYPE_ULL);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_FLOAT", NativeTypes.TYPE_FLOAT);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_DOUBLE", NativeTypes.TYPE_DOUBLE);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_PTR", NativeTypes.TYPE_PTR);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_VOID", NativeTypes.TYPE_VOID);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_STRING", NativeTypes.TYPE_STRING);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_STRPTR", NativeTypes.TYPE_STRPTR);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_CHARARR", NativeTypes.TYPE_CHARARR);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_ENUM", NativeTypes.TYPE_ENUM);
+        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_VARARGS", NativeTypes.TYPE_VARARGS);
 
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_VERSION", frozenUSASCIIString(RubyLanguage.RUBY_VERSION));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PATCHLEVEL", 0);
@@ -719,8 +714,8 @@ public class CoreLibrary {
 
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "ARGV", argv);
 
-        Layouts.MODULE.getFields(rubiniusModule).setConstant(context, node, "UNDEFINED", rubiniusUndefined);
-        Layouts.MODULE.getFields(rubiniusModule).setConstant(context, node, "LIBC", frozenUSASCIIString(Platform.LIBC));
+        Layouts.MODULE.getFields(truffleModule).setConstant(context, node, "UNDEFINED", supportUndefined);
+        Layouts.MODULE.getFields(truffleModule).setConstant(context, node, "LIBC", frozenUSASCIIString(Platform.LIBC));
 
         Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "INVALID_MASK", EConvFlags.INVALID_MASK);
         Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "INVALID_REPLACE", EConvFlags.INVALID_REPLACE);
@@ -1120,16 +1115,16 @@ public class CoreLibrary {
         return regexpFactory;
     }
 
-    public DynamicObject getRubiniusFFIPointerClass() {
-        return rubiniusFFIPointerClass;
+    public DynamicObject getTruffleFFIPointerClass() {
+        return truffleFFIPointerClass;
     }
 
-    public DynamicObject getRubiniusFFINullPointerErrorClass() {
-        return rubiniusFFINullPointerErrorClass;
+    public DynamicObject getTruffleFFINullPointerErrorClass() {
+        return truffleFFINullPointerErrorClass;
     }
 
-    public DynamicObject getRubiniusTypeModule() {
-        return rubiniusTypeModule;
+    public DynamicObject getTruffleTypeModule() {
+        return truffleTypeModule;
     }
 
     public DynamicObject getRubyTruffleErrorClass() {
@@ -1447,7 +1442,8 @@ public class CoreLibrary {
             "/core/false.rb",
             "/core/gc.rb",
             "/core/nil.rb",
-            "/core/rubinius.rb",
+            "/core/truffle/platform.rb",
+            "/core/support.rb",
             "/core/string.rb",
             "/core/random.rb",
             "/core/thread.rb",

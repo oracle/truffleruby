@@ -27,7 +27,7 @@
 module RubySL
   module Socket
     module Foreign
-      class Servent < Rubinius::FFI::Struct
+      class Servent < Truffle::FFI::Struct
         config('rbx.platform.servent', :s_name, :s_aliases, :s_port, :s_proto)
 
         def name

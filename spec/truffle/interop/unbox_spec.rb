@@ -47,7 +47,7 @@ describe "Truffle::Interop.unbox" do
   end
     
   it "unboxes a pointer to the address" do
-    Truffle::Interop.unbox(Rubinius::FFI::Pointer.new(1024)).should == 1024
+    Truffle::Interop.unbox(Truffle::FFI::Pointer.new(1024)).should == 1024
   end
     
   it "is not supported for nil" do

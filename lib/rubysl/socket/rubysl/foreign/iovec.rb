@@ -27,7 +27,7 @@
 module RubySL
   module Socket
     module Foreign
-      class Iovec < Rubinius::FFI::Struct
+      class Iovec < Truffle::FFI::Struct
         config('rbx.platform.iovec', :iov_base, :iov_len)
 
         def self.with_buffer(buffer)

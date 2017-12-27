@@ -117,7 +117,7 @@ class Regexp
   end
 
   def self.try_convert(obj)
-    Rubinius::Type.try_convert obj, Regexp, :to_regexp
+    Truffle::Type.try_convert obj, Regexp, :to_regexp
   end
 
   def self.convert(pattern)
@@ -211,7 +211,7 @@ class Regexp
     if other.kind_of? Symbol
       other = other.to_s
     elsif !other.kind_of? String
-      other = Rubinius::Type.check_convert_type other, String, :to_str
+      other = Truffle::Type.check_convert_type other, String, :to_str
       unless other
         Truffle.invoke_primitive(:regexp_set_last_match, nil)
         return false

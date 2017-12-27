@@ -30,7 +30,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.Linker;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
-import org.truffleruby.core.rubinius.IONodes.GetThreadBufferNode;
+import org.truffleruby.core.support.IONodes.GetThreadBufferNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.control.JavaException;

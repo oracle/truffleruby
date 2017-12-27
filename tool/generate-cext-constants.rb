@@ -9,7 +9,7 @@
 # GNU Lesser General Public License version 2.1
 
 constants = [
-    ['Rubinius::UNDEFINED', 'undef'],
+    ['Truffle::UNDEFINED', 'undef'],
     true,
     false,
     nil,

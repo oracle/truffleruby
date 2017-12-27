@@ -14,8 +14,8 @@ describe "Truffle::Interop.pointer?" do
     Truffle::Interop.pointer?(nil).should be_false
   end
     
-  it "returns true for Rubinius::FFI::Pointer" do
-    Truffle::Interop.pointer?(Rubinius::FFI::Pointer.new(0x123)).should be_true
+  it "returns true for Truffle::FFI::Pointer" do
+    Truffle::Interop.pointer?(Truffle::FFI::Pointer.new(0x123)).should be_true
   end
 
 end

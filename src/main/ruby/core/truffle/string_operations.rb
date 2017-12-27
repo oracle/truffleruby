@@ -29,7 +29,7 @@ module Truffle
 
     def self.gsub_internal(orig, pattern, replacement)
       unless replacement.kind_of?(String)
-        hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
+        hash = Truffle::Type.check_convert_type(replacement, Hash, :to_hash)
         replacement = StringValue(replacement) unless hash
       end
 
@@ -57,7 +57,7 @@ module Truffle
         raise ArgumentError, "invalid byte sequence in #{orig.encoding}"
       end
 
-      pattern = Rubinius::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
+      pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
       match = pattern.search_region(orig, 0, orig.bytesize, true)
 
       return nil unless match

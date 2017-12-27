@@ -7,25 +7,25 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.core.rubinius;
+package org.truffleruby.core.support;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
+import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 
-import java.lang.ref.WeakReference;
-
 @Layout
-public interface WeakRefLayout extends BasicObjectLayout {
+public interface ByteArrayLayout extends BasicObjectLayout {
 
-    DynamicObjectFactory createWeakRefShape(DynamicObject logicalClass,
-                                       DynamicObject metaClass);
+    DynamicObjectFactory createByteArrayShape(DynamicObject logicalClass,
+                                              DynamicObject metaClass);
 
-    DynamicObject createWeakRef(DynamicObjectFactory factory,
-                                WeakReference<Object> reference);
+    DynamicObject createByteArray(DynamicObjectFactory factory,
+                                  ByteArrayBuilder bytes);
 
-    WeakReference<Object> getReference(DynamicObject object);
-    void setReference(DynamicObject object, WeakReference<Object> value);
+    boolean isByteArray(DynamicObject object);
+
+    ByteArrayBuilder getBytes(DynamicObject object);
 
 }

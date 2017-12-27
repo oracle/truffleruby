@@ -145,7 +145,7 @@ module Enumerable
     each do |*args|
       result = yield(*args)
 
-      value = Rubinius::Type.try_convert(result, Array, :to_ary) || result
+      value = Truffle::Type.try_convert(result, Array, :to_ary) || result
 
       if value.kind_of? Array
         array.concat value
@@ -166,7 +166,7 @@ module Enumerable
   end
 
   def enumerator_size
-    Rubinius::Type.object_respond_to?(self, :size) ? size : nil
+    Truffle::Type.object_respond_to?(self, :size) ? size : nil
   end
   private :enumerator_size
 
@@ -183,7 +183,7 @@ module Enumerable
         h[key] = [o]
       end
     end
-    Rubinius::Type.infect h, self
+    Truffle::Type.infect h, self
     h
   end
 
@@ -273,7 +273,7 @@ module Enumerable
       ary << o
       nil
     end
-    Rubinius::Type.infect ary, self
+    Truffle::Type.infect ary, self
     ary
   end
   alias_method :entries, :to_a
@@ -492,12 +492,12 @@ module Enumerable
   def cycle(many=nil)
     unless block_given?
       return to_enum(:cycle, many) do
-        Rubinius::EnumerableHelper.cycle_size(enumerator_size, many)
+        Truffle::EnumerableHelper.cycle_size(enumerator_size, many)
       end
     end
 
     if many
-      many = Rubinius::Type.coerce_to_collection_index many
+      many = Truffle::Type.coerce_to_collection_index many
       return nil if many <= 0
     else
       many = nil
@@ -529,7 +529,7 @@ module Enumerable
   end
 
   def drop(n)
-    n = Rubinius::Type.coerce_to_collection_index n
+    n = Truffle::Type.coerce_to_collection_index n
     raise ArgumentError, 'attempt to drop negative size' if n < 0
 
     ary = to_a
@@ -551,7 +551,7 @@ module Enumerable
   end
 
   def each_cons(num)
-    n = Rubinius::Type.coerce_to_collection_index num
+    n = Truffle::Type.coerce_to_collection_index num
     raise ArgumentError, "invalid size: #{n}" if n <= 0
 
     unless block_given?
@@ -578,7 +578,7 @@ module Enumerable
   end
 
   def each_slice(slice_size)
-    n = Rubinius::Type.coerce_to_collection_index slice_size
+    n = Truffle::Type.coerce_to_collection_index slice_size
     raise ArgumentError, "invalid slice size: #{n}" if n <= 0
 
     unless block_given?
@@ -717,7 +717,7 @@ module Enumerable
   private :max_n
 
   private def max_by_n(n, &block)
-    n = Rubinius::Type.rb_num2long(n)
+    n = Truffle::Type.rb_num2long(n)
     raise ArgumentError, "negative size #{n}" if n < 0
     return [] if n == 0
     self.sort_by(&block).last(n).reverse
@@ -735,7 +735,7 @@ module Enumerable
       result = yield object
 
       if undefined.equal?(max_result) or \
-           Rubinius::Type.coerce_to_comparison(max_result, result) < 0
+           Truffle::Type.coerce_to_comparison(max_result, result) < 0
         max_object = object
         max_result = result
       end
@@ -745,7 +745,7 @@ module Enumerable
   end
 
   private def min_by_n(n, &block)
-    n = Rubinius::Type.rb_num2long(n)
+    n = Truffle::Type.rb_num2long(n)
     raise ArgumentError, "negative size #{n}" if n < 0
     return [] if n == 0
     self.sort_by(&block).first(n)
@@ -763,7 +763,7 @@ module Enumerable
       result = yield object
 
       if undefined.equal?(min_result) or \
-           Rubinius::Type.coerce_to_comparison(min_result, result) > 0
+           Truffle::Type.coerce_to_comparison(min_result, result) > 0
         min_object = object
         min_result = result
       end
@@ -821,13 +821,13 @@ module Enumerable
       result = yield object
 
       if undefined.equal?(min_result) or \
-           Rubinius::Type.coerce_to_comparison(min_result, result) > 0
+           Truffle::Type.coerce_to_comparison(min_result, result) > 0
         min_object = object
         min_result = result
       end
 
       if undefined.equal?(max_result) or \
-           Rubinius::Type.coerce_to_comparison(max_result, result) < 0
+           Truffle::Type.coerce_to_comparison(max_result, result) < 0
         max_object = object
         max_result = result
       end
@@ -902,7 +902,7 @@ module Enumerable
   end
 
   def take(n)
-    n = Rubinius::Type.coerce_to_collection_index n
+    n = Truffle::Type.coerce_to_collection_index n
     raise ArgumentError, "attempt to take negative size: #{n}" if n < 0
 
     array = []

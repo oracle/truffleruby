@@ -88,7 +88,6 @@ public class AmbiguousOptionalArgumentChecker {
         for (String guard : guards) {
             if (guard.equals("wasProvided(" + name + ")") ||
                     guard.equals("wasNotProvided(" + name + ")") ||
-                    guard.equals("wasNotProvided(" + name + ") || isRubiniusUndefined(" + name + ")") ||
                     guard.equals("isNil(" + name + ")")) {
                 return true;
             }

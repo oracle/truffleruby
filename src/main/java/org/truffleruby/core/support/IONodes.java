@@ -59,7 +59,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.truffleruby.core.rubinius;
+package org.truffleruby.core.support;
 
 import static org.truffleruby.core.string.StringOperations.rope;
 
@@ -538,7 +538,7 @@ public abstract class IONodes {
         @Specialization
         public DynamicObject getThreadBuffer(long size,
                 @Cached("create()") AllocateObjectNode allocateObjectNode) {
-            return allocateObjectNode.allocate(getContext().getCoreLibrary().getRubiniusFFIPointerClass(), getBuffer(getContext(), size));
+            return allocateObjectNode.allocate(getContext().getCoreLibrary().getTruffleFFIPointerClass(), getBuffer(getContext(), size));
         }
 
         @TruffleBoundary

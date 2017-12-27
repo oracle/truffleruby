@@ -36,7 +36,7 @@
 # Interface to the C errno integer.
 
 module Errno
-  FFI = Rubinius::FFI
+  FFI = Truffle::FFI
 
   ##
   # Raises the appropriate SystemCallError exception with +additional+ as the

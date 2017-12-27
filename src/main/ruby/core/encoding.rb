@@ -57,14 +57,14 @@ class Encoding
         map[key] = [nil, index]
       end
 
-      Truffle::Encoding.each_alias do |alias_name, index|
+      Truffle::EncodingOperations.each_alias do |alias_name, index|
         key = alias_name.upcase.to_sym
         map[key] = [alias_name, index]
       end
 
       %w[internal external locale filesystem].each do |name|
         key = name.upcase.to_sym
-        enc = Truffle::Encoding.get_default_encoding(name)
+        enc = Truffle::EncodingOperations.get_default_encoding(name)
         index = enc ? map[enc.name.upcase.to_sym].last : nil
         map[key] = [name, index]
       end
@@ -89,8 +89,8 @@ class Encoding
   TranscodingMap = build_transcoding_map
   EncodingMap = build_encoding_map
 
-  @default_external = Truffle::Encoding.get_default_encoding('external')
-  @default_internal = Truffle::Encoding.get_default_encoding('internal')
+  @default_external = Truffle::EncodingOperations.get_default_encoding('external')
+  @default_internal = Truffle::EncodingOperations.get_default_encoding('internal')
 
   class UndefinedConversionError < EncodingError
     attr_accessor :source_encoding_name
@@ -146,7 +146,7 @@ class Encoding
     attr_reader :options
 
     def self.asciicompat_encoding(string_or_encoding)
-      encoding = Rubinius::Type.try_convert_to_encoding string_or_encoding
+      encoding = Truffle::Type.try_convert_to_encoding string_or_encoding
 
       return unless encoding
       return if encoding.ascii_compatible?
@@ -162,13 +162,13 @@ class Encoding
     end
 
     def initialize(from, to, options=0)
-      @source_encoding = Rubinius::Type.coerce_to_encoding from
-      @destination_encoding = Rubinius::Type.coerce_to_encoding to
+      @source_encoding = Truffle::Type.coerce_to_encoding from
+      @destination_encoding = Truffle::Type.coerce_to_encoding to
 
       if options.kind_of? Fixnum
         @options = options
       else
-        options = Rubinius::Type.coerce_to options, Hash, :to_hash
+        options = Truffle::Type.coerce_to options, Hash, :to_hash
 
         @options = 0
         unless options.empty?
@@ -209,7 +209,7 @@ class Encoding
 
       if (@options & (INVALID_REPLACE | UNDEF_REPLACE | UNDEF_HEX_CHARREF))
         unless new_replacement.nil?
-          new_replacement = Rubinius::Type.coerce_to new_replacement, String, :to_str
+          new_replacement = Truffle::Type.coerce_to new_replacement, String, :to_str
           self.replacement = new_replacement # We can only call `self.replacement=` after the converter has been initialized.
 
           replacement_encoding_name = new_replacement.encoding.name.upcase
@@ -256,13 +256,13 @@ class Encoding
       if offset.nil?
         offset = target.bytesize
       else
-        offset = Rubinius::Type.coerce_to offset, Fixnum, :to_int
+        offset = Truffle::Type.coerce_to offset, Fixnum, :to_int
       end
 
       if size.nil?
         size = -1
       else
-        size = Rubinius::Type.coerce_to size, Fixnum, :to_int
+        size = Truffle::Type.coerce_to size, Fixnum, :to_int
 
         if size < 0
           raise ArgumentError, 'byte size is negative'
@@ -278,7 +278,7 @@ class Encoding
       end
 
       if !options.kind_of? Fixnum
-        opts = Rubinius::Type.coerce_to options, Hash, :to_hash
+        opts = Truffle::Type.coerce_to options, Hash, :to_hash
 
         options = 0
         options |= PARTIAL_INPUT if opts[:partial_input]
@@ -358,11 +358,11 @@ class Encoding
 
       Truffle.privately do
         exc.source_encoding_name = source_encoding_name
-        src = Rubinius::Type.try_convert_to_encoding source_encoding_name
+        src = Truffle::Type.try_convert_to_encoding source_encoding_name
         exc.source_encoding = src unless false == src
 
         exc.destination_encoding_name = destination_encoding_name
-        dst = Rubinius::Type.try_convert_to_encoding destination_encoding_name
+        dst = Truffle::Type.try_convert_to_encoding destination_encoding_name
         exc.destination_encoding = dst unless false == dst
 
         if error_char
@@ -503,7 +503,7 @@ class Encoding
     set_alias_index 'external', enc
     set_alias_index 'filesystem', enc
     @default_external = enc
-    Truffle::Encoding.default_external = enc
+    Truffle::EncodingOperations.default_external = enc
   end
 
   def self.default_internal
@@ -514,11 +514,11 @@ class Encoding
     enc = find(enc) unless enc.nil?
     set_alias_index 'internal', enc
     @default_internal = enc
-    Truffle::Encoding.default_internal = enc
+    Truffle::EncodingOperations.default_internal = enc
   end
 
   def self.find(name)
-    enc = Rubinius::Type.try_convert_to_encoding name
+    enc = Truffle::Type.try_convert_to_encoding name
     return enc unless false == enc
 
     raise ArgumentError, "unknown encoding name - #{name}"

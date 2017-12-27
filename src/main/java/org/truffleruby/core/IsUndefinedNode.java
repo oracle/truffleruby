@@ -13,11 +13,11 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 
-public class IsRubiniusUndefinedNode extends RubyNode {
+public class IsUndefinedNode extends RubyNode {
 
     @Child private RubyNode child;
 
-    public IsRubiniusUndefinedNode(RubyNode child) {
+    public IsUndefinedNode(RubyNode child) {
         this.child = child;
     }
 

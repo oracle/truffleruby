@@ -27,7 +27,7 @@
 module RubySL
   module Socket
     module Foreign
-      class Msghdr < Rubinius::FFI::Struct
+      class Msghdr < Truffle::FFI::Struct
         config('rbx.platform.msghdr', :msg_name, :msg_namelen, :msg_iov,
                :msg_iovlen, :msg_control, :msg_controllen, :msg_flags)
 

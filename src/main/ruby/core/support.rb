@@ -1,3 +1,11 @@
+# Copyright (c) 2014, 2017 Oracle and/or its affiliates. All rights reserved. This
+# code is released under a tri EPL/GPL/LGPL license. You can use it,
+# redistribute it and/or modify it under the terms of the:
+#
+# Eclipse Public License version 1.0
+# GNU General Public License version 2
+# GNU Lesser General Public License version 2.1
+
 # Copyright (c) 2007-2015, Evan Phoenix and contributors
 # All rights reserved.
 #
@@ -24,11 +32,25 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-##
-# Platform specific behavior for the File class.
+module Truffle
 
-module Truffle::FFI::Platform::File
-  SEPARATOR = '/'
-  ALT_SEPARATOR = nil
-  PATH_SEPARATOR = ':'
+  module Unsafe
+    def self.set_class(obj, cls)
+      Truffle.primitive :vm_set_class
+
+      if obj.kind_of? ImmediateValue
+        raise TypeError, 'Can not change the class of an immediate'
+      end
+
+      raise ArgumentError, "Class #{cls} is not compatible with #{obj.inspect}"
+    end
+  end
+  
+  def self.synchronize(object, &block)
+    Truffle::System.synchronized(object, &block)
+  end
+  
+end
+
+class PrimitiveFailure < Exception # rubocop:disable Lint/InheritException
 end

@@ -43,11 +43,11 @@ class String
     Truffle.primitive :string_byte_substring
 
     if index_or_range.kind_of? Range
-      index = Rubinius::Type.rb_num2int(index_or_range.begin)
+      index = Truffle::Type.rb_num2int(index_or_range.begin)
       index += bytesize if index < 0
       return if index < 0 or index > bytesize
 
-      finish = Rubinius::Type.rb_num2int(index_or_range.end)
+      finish = Truffle::Type.rb_num2int(index_or_range.end)
       finish += bytesize if finish < 0
 
       finish += 1 unless index_or_range.exclude_end?
@@ -55,14 +55,14 @@ class String
 
       return byteslice 0, 0 if length < 0
     else
-      index = Rubinius::Type.rb_num2int(index_or_range)
+      index = Truffle::Type.rb_num2int(index_or_range)
       index += bytesize if index < 0
 
       if undefined.equal?(length)
         return if index == bytesize
         length = 1
       else
-        length = Rubinius::Type.rb_num2int(length)
+        length = Truffle::Type.rb_num2int(length)
         return if length < 0
       end
 
@@ -73,7 +73,7 @@ class String
   end
 
   def self.try_convert(obj)
-    Rubinius::Type.try_convert obj, String, :to_str
+    Truffle::Type.try_convert obj, String, :to_str
   end
 
   def =~(pattern)
@@ -192,7 +192,7 @@ class String
 
   def scan(pattern)
     taint = tainted? || pattern.tainted?
-    pattern = Rubinius::Type.coerce_to_regexp(pattern, true)
+    pattern = Truffle::Type.coerce_to_regexp(pattern, true)
     index = 0
 
     last_match = nil
@@ -233,7 +233,7 @@ class String
   end
 
   def split(pattern=nil, limit=undefined)
-    Rubinius::Splitter.split(self, pattern, limit)
+    Truffle::Splitter.split(self, pattern, limit)
   end
 
   def squeeze(*strings)
@@ -262,7 +262,7 @@ class String
   end
 
   def to_i(base=10)
-    base = Rubinius::Type.coerce_to base, Integer, :to_int
+    base = Truffle::Type.coerce_to base, Integer, :to_int
 
     if base < 0 || base == 1 || base > 36
       raise ArgumentError, "illegal radix #{base}"
@@ -346,13 +346,13 @@ class String
 
     return nil unless match
 
-    if index = Rubinius::Type.check_convert_type(capture, Fixnum, :to_int)
+    if index = Truffle::Type.check_convert_type(capture, Fixnum, :to_int)
       return nil if index >= match.size || -index >= match.size
       capture = index
     end
 
     str = match[capture]
-    Rubinius::Type.infect str, pattern
+    Truffle::Type.infect str, pattern
     [match, str]
   end
   private :subpattern
@@ -403,13 +403,13 @@ class String
         options = to
         to_enc = Encoding.default_internal
       else
-        opts = Rubinius::Type.check_convert_type to, Hash, :to_hash
+        opts = Truffle::Type.check_convert_type to, Hash, :to_hash
 
         if opts
           options = opts
           to_enc = Encoding.default_internal
         else
-          to_enc = Rubinius::Type.try_convert_to_encoding to
+          to_enc = Truffle::Type.try_convert_to_encoding to
         end
       end
     end
@@ -422,13 +422,13 @@ class String
       options = from
       from_enc = encoding
     else
-      opts = Rubinius::Type.check_convert_type from, Hash, :to_hash
+      opts = Truffle::Type.check_convert_type from, Hash, :to_hash
 
       if opts
         options = opts
         from_enc = encoding
       else
-        from_enc = Rubinius::Type.coerce_to_encoding from
+        from_enc = Truffle::Type.coerce_to_encoding from
       end
     end
 
@@ -443,7 +443,7 @@ class String
       when Hash
         # do nothing
       else
-        options = Rubinius::Type.coerce_to options, Hash, :to_hash
+        options = Truffle::Type.coerce_to options, Hash, :to_hash
       end
     end
 
@@ -494,7 +494,7 @@ class String
 
   def end_with?(*suffixes)
     suffixes.each do |original_suffix|
-      suffix = Rubinius::Type.check_convert_type original_suffix, String, :to_str
+      suffix = Truffle::Type.check_convert_type original_suffix, String, :to_str
       unless suffix
         raise TypeError, "no implicit conversion of #{original_suffix.class} into String"
       end
@@ -511,7 +511,7 @@ class String
 
     enc = encoding
     ascii = enc.ascii_compatible?
-    unicode = Truffle::Encoding.unicode?(enc)
+    unicode = Truffle::EncodingOperations.unicode?(enc)
 
     if unicode
       if enc.equal? Encoding::UTF_16
@@ -622,7 +622,7 @@ class String
 
     size = array.inject(0) { |s, chr| s + chr.bytesize }
     result = String.pattern size + 2, ?".ord
-    m = Rubinius::Mirror.reflect result
+    m = Truffle::Mirror.reflect result
 
     index = 1
     array.each do |chr|
@@ -630,7 +630,7 @@ class String
       index += chr.bytesize
     end
 
-    Rubinius::Type.infect result, self
+    Truffle::Type.infect result, self
     result.force_encoding result_encoding
   end
 
@@ -643,7 +643,7 @@ class String
     stop = StringValue(stop)
 
     if stop.size == 1 && size == 1
-      enc = Rubinius::Type.compatible_encoding(self.encoding, stop.encoding)
+      enc = Truffle::Type.compatible_encoding(self.encoding, stop.encoding)
 
       return self if self > stop
       after_stop = stop.getbyte(0) + (exclusive ? 0 : 1)
@@ -704,7 +704,7 @@ class String
       untrusted = replacement.untrusted?
 
       unless replacement.kind_of?(String)
-        hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
+        hash = Truffle::Type.check_convert_type(replacement, Hash, :to_hash)
         replacement = StringValue(replacement) unless hash
         tainted ||= replacement.tainted?
         untrusted ||= replacement.untrusted?
@@ -712,7 +712,7 @@ class String
       use_yield = false
     end
 
-    pattern = Rubinius::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
+    pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
     match = pattern.match_from(self, 0)
 
     Regexp.set_block_last_match(block, match) if block_given?
@@ -800,7 +800,7 @@ class String
   def chop!
     Truffle.check_frozen
 
-    m = Rubinius::Mirror.reflect self
+    m = Truffle::Mirror.reflect self
 
     bytes = m.previous_byte_index bytesize
     return unless bytes
@@ -830,7 +830,7 @@ class String
 
     return if sep.nil?
 
-    m = Rubinius::Mirror.reflect self
+    m = Truffle::Mirror.reflect self
 
     if sep == DEFAULT_RECORD_SEPARATOR
       return unless bytes = m.previous_byte_index(bytesize)
@@ -898,7 +898,7 @@ class String
       end
     end
 
-    Rubinius::Type.infect(self, other)
+    Truffle::Type.infect(self, other)
     append(other)
   end
 
@@ -1027,7 +1027,7 @@ class String
   end
 
   def match(pattern, pos=0)
-    pattern = Rubinius::Type.coerce_to_regexp(pattern) unless pattern.kind_of? Regexp
+    pattern = Truffle::Type.coerce_to_regexp(pattern) unless pattern.kind_of? Regexp
 
     result = if block_given?
                pattern.match self, pos do |match|
@@ -1097,7 +1097,7 @@ class String
       count = count_or_replacement
     end
 
-    m = Rubinius::Mirror.reflect self
+    m = Truffle::Mirror.reflect self
 
     case index
     when Fixnum
@@ -1112,7 +1112,7 @@ class String
       end
 
       if count
-        count = Rubinius::Type.coerce_to count, Fixnum, :to_int
+        count = Truffle::Type.coerce_to count, Fixnum, :to_int
 
         if count < 0
           raise IndexError, 'count is negative'
@@ -1129,7 +1129,7 @@ class String
       end
 
       replacement = StringValue replacement
-      enc = Rubinius::Type.compatible_encoding self, replacement
+      enc = Truffle::Type.compatible_encoding self, replacement
 
       m.splice bi, bs, replacement, enc
     when String
@@ -1138,11 +1138,11 @@ class String
       end
 
       replacement = StringValue replacement
-      enc = Rubinius::Type.compatible_encoding self, replacement
+      enc = Truffle::Type.compatible_encoding self, replacement
 
       m.splice start, index.bytesize, replacement, enc
     when Range
-      start = Rubinius::Type.coerce_to index.first, Fixnum, :to_int
+      start = Truffle::Type.coerce_to index.first, Fixnum, :to_int
 
       start += size if start < 0
 
@@ -1154,7 +1154,7 @@ class String
         raise IndexError, "unable to find character at: #{start}"
       end
 
-      stop = Rubinius::Type.coerce_to index.last, Fixnum, :to_int
+      stop = Truffle::Type.coerce_to index.last, Fixnum, :to_int
       stop += size if stop < 0
       stop -= 1 if index.exclude_end?
 
@@ -1167,12 +1167,12 @@ class String
       end
 
       replacement = StringValue replacement
-      enc = Rubinius::Type.compatible_encoding self, replacement
+      enc = Truffle::Type.compatible_encoding self, replacement
 
       m.splice bi, bs, replacement, enc
     when Regexp
       if count
-        count = Rubinius::Type.coerce_to count, Fixnum, :to_int
+        count = Truffle::Type.coerce_to count, Fixnum, :to_int
       else
         count = 0
       end
@@ -1193,14 +1193,14 @@ class String
       end
 
       replacement = StringValue replacement
-      enc = Rubinius::Type.compatible_encoding self, replacement
+      enc = Truffle::Type.compatible_encoding self, replacement
 
       bi = m.string_byte_index_from_char_index match.begin(count)
       bs = m.string_byte_index_from_char_index(match.end(count)) - bi
 
       m.splice bi, bs, replacement, enc
     else
-      index = Rubinius::Type.coerce_to index, Fixnum, :to_int
+      index = Truffle::Type.coerce_to index, Fixnum, :to_int
 
       if count
         return self[index, count] = replacement
@@ -1209,7 +1209,7 @@ class String
       end
     end
 
-    Rubinius::Type.infect self, replacement
+    Truffle::Type.infect self, replacement
 
     replacement
   end
@@ -1218,9 +1218,9 @@ class String
     padding = StringValue(padding)
     raise ArgumentError, 'zero width padding' if padding.size == 0
 
-    enc = Rubinius::Type.compatible_encoding self, padding
+    enc = Truffle::Type.compatible_encoding self, padding
 
-    width = Rubinius::Type.coerce_to width, Fixnum, :to_int
+    width = Truffle::Type.coerce_to width, Fixnum, :to_int
     return dup if width <= size
 
     width -= size
@@ -1231,7 +1231,7 @@ class String
 
     if pbs > 1
       ps = padding.size
-      pm = Rubinius::Mirror.reflect padding
+      pm = Truffle::Mirror.reflect padding
 
       x = left / ps
       y = left % ps
@@ -1249,14 +1249,14 @@ class String
 
       pad = self.class.pattern rbytes, padding
       str = self.class.pattern lbytes + bs + rbytes, ''
-      m = Rubinius::Mirror.reflect str
+      m = Truffle::Mirror.reflect str
 
       m.copy_from self, 0, bs, lbytes
       m.copy_from pad, 0, lbytes, 0
       m.copy_from pad, 0, rbytes, lbytes + bs
     else
       str = self.class.pattern width + bs, padding
-      m = Rubinius::Mirror.reflect str
+      m = Truffle::Mirror.reflect str
       m.copy_from self, 0, bs, left
     end
 
@@ -1268,9 +1268,9 @@ class String
     padding = StringValue(padding)
     raise ArgumentError, 'zero width padding' if padding.size == 0
 
-    enc = Rubinius::Type.compatible_encoding self, padding
+    enc = Truffle::Type.compatible_encoding self, padding
 
-    width = Rubinius::Type.coerce_to width, Fixnum, :to_int
+    width = Truffle::Type.coerce_to width, Fixnum, :to_int
     return dup if width <= size
 
     width -= size
@@ -1280,7 +1280,7 @@ class String
 
     if pbs > 1
       ps = padding.size
-      pm = Rubinius::Mirror.reflect padding
+      pm = Truffle::Mirror.reflect padding
 
       x = width / ps
       y = width % ps
@@ -1289,7 +1289,7 @@ class String
       bytes = x * pbs + pbi
 
       str = self.class.pattern bytes + bs, self
-      m = Rubinius::Mirror.reflect str
+      m = Truffle::Mirror.reflect str
 
       i = 0
       bi = bs
@@ -1304,7 +1304,7 @@ class String
       m.copy_from padding, 0, pbi, bi
     else
       str = self.class.pattern width + bs, padding
-      m = Rubinius::Mirror.reflect str
+      m = Truffle::Mirror.reflect str
 
       m.copy_from self, 0, bs, 0
     end
@@ -1317,9 +1317,9 @@ class String
     padding = StringValue(padding)
     raise ArgumentError, 'zero width padding' if padding.size == 0
 
-    enc = Rubinius::Type.compatible_encoding self, padding
+    enc = Truffle::Type.compatible_encoding self, padding
 
-    width = Rubinius::Type.coerce_to width, Fixnum, :to_int
+    width = Truffle::Type.coerce_to width, Fixnum, :to_int
     return dup if width <= size
 
     width -= size
@@ -1329,7 +1329,7 @@ class String
 
     if pbs > 1
       ps = padding.size
-      pm = Rubinius::Mirror.reflect padding
+      pm = Truffle::Mirror.reflect padding
 
       x = width / ps
       y = width % ps
@@ -1340,7 +1340,7 @@ class String
     end
 
     str = self.class.pattern bytes + bs, padding
-    m = Rubinius::Mirror.reflect str
+    m = Truffle::Mirror.reflect str
 
     m.copy_from self, 0, bs, bytes
 
@@ -1352,7 +1352,7 @@ class String
     if undefined.equal?(start)
       start = 0
     else
-      start = Rubinius::Type.coerce_to start, Fixnum, :to_int
+      start = Truffle::Type.coerce_to start, Fixnum, :to_int
 
       start += size if start < 0
       if start < 0 or start > size
@@ -1362,9 +1362,9 @@ class String
     end
 
     if str.kind_of? Regexp
-      Rubinius::Type.compatible_encoding self, str
+      Truffle::Type.compatible_encoding self, str
 
-      m = Rubinius::Mirror.reflect self
+      m = Truffle::Mirror.reflect self
       start = m.character_to_byte_index start
       if match = str.match_from(self, start)
         Truffle.invoke_primitive(:regexp_set_last_match, match)
@@ -1378,11 +1378,11 @@ class String
     str = StringValue(str)
     return start if str == ''
 
-    Rubinius::Type.compatible_encoding self, str
+    Truffle::Type.compatible_encoding self, str
 
     return if str.size > size
 
-    m = Rubinius::Mirror.reflect self
+    m = Truffle::Mirror.reflect self
     m.character_index str, start
   end
 
@@ -1400,13 +1400,13 @@ class String
     if undefined.equal?(finish)
       finish = size
     else
-      finish = Rubinius::Type.coerce_to(finish, Integer, :to_int)
+      finish = Truffle::Type.coerce_to(finish, Integer, :to_int)
       finish += size if finish < 0
       return nil if finish < 0
       finish = size if finish >= size
     end
 
-    m = Rubinius::Mirror.reflect self
+    m = Truffle::Mirror.reflect self
     byte_finish = m.character_to_byte_index finish
 
     case sub
@@ -1426,7 +1426,7 @@ class String
       end
 
     when Regexp
-      Rubinius::Type.compatible_encoding self, sub
+      Truffle::Type.compatible_encoding self, sub
 
       match_data = sub.search_region(self, 0, byte_finish, false)
       Truffle.invoke_primitive(:regexp_set_last_match, match_data)
@@ -1442,7 +1442,7 @@ class String
       # Boundary case
       return finish if needle_size == 0
 
-      Rubinius::Type.compatible_encoding self, needle
+      Truffle::Type.compatible_encoding self, needle
       if byte_index = find_string_reverse(needle, byte_finish)
         return m.byte_to_character_index byte_index
       end
@@ -1453,7 +1453,7 @@ class String
 
   def start_with?(*prefixes)
     prefixes.each do |original_prefix|
-      prefix = Rubinius::Type.check_convert_type original_prefix, String, :to_str
+      prefix = Truffle::Type.check_convert_type original_prefix, String, :to_str
       unless prefix
         raise TypeError, "no implicit conversion of #{original_prefix.class} into String"
       end
@@ -1465,7 +1465,7 @@ class String
   def insert(index, other)
     other = StringValue(other)
 
-    index = Rubinius::Type.coerce_to index, Fixnum, :to_int
+    index = Truffle::Type.coerce_to index, Fixnum, :to_int
     index = length + 1 + index if index < 0
 
     if index > length or index < 0 then
@@ -1484,7 +1484,7 @@ class String
       replace(left + other + right)
     end
 
-    Rubinius::Type.infect self, other
+    Truffle::Type.infect self, other
     self
   end
 
@@ -1492,7 +1492,7 @@ class String
     if args.is_a? Hash
       sprintf(self, args)
     else
-      result = Rubinius::Type.check_convert_type args, Array, :to_ary
+      result = Truffle::Type.check_convert_type args, Array, :to_ary
       if result.nil?
         sprintf(self, args)
       else

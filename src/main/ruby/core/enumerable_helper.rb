@@ -24,11 +24,11 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module Rubinius
+module Truffle
   module EnumerableHelper
     def self.cycle_size(enum_size, many)
       if many
-        many = Rubinius::Type.coerce_to_collection_index many
+        many = Truffle::Type.coerce_to_collection_index many
         many = 0 if many < 0
         (size = enum_size).nil? ? nil : size * many
       else

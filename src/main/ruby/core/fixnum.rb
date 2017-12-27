@@ -44,7 +44,7 @@ class Fixnum < Integer
   MAX =  9223372036854775807
 
   def [](index)
-    index = Rubinius::Type.coerce_to(index, Integer, :to_int)
+    index = Truffle::Type.coerce_to(index, Integer, :to_int)
     return 0 if index.is_a?(Bignum)
     index < 0 ? 0 : (self >> index) & 1
   end
@@ -77,7 +77,7 @@ class Fixnum < Integer
   def left_shift_fallback(other)
     # Fallback from Rubinius' Fixnum#<<, after the primitive call
 
-    other = Rubinius::Type.coerce_to other, Integer, :to_int
+    other = Truffle::Type.coerce_to other, Integer, :to_int
     unless other.kind_of? Fixnum
       raise RangeError, 'argument is out of range for a Fixnum'
     end
@@ -90,7 +90,7 @@ class Fixnum < Integer
   def right_shift_fallback(other)
     # Fallback from Rubinius' Fixnum#>>, after the primitive call
 
-    other = Rubinius::Type.coerce_to other, Integer, :to_int
+    other = Truffle::Type.coerce_to other, Integer, :to_int
     unless other.kind_of? Fixnum
       raise RangeError, 'argument is out of range for a Fixnum'
     end

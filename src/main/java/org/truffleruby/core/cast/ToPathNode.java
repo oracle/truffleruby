@@ -30,7 +30,7 @@ public abstract class ToPathNode extends RubyNode {
             VirtualFrame frame,
             Object object,
             @Cached("new()") SnippetNode snippetNode) {
-        return (DynamicObject) snippetNode.execute(frame, "Rubinius::Type.coerce_to_path(object)", "object", object);
+        return (DynamicObject) snippetNode.execute(frame, "Truffle::Type.coerce_to_path(object)", "object", object);
     }
 
 }

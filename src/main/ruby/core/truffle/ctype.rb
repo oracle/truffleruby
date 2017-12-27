@@ -45,7 +45,3 @@ module Truffle::CType
     num >= 48 and num <= 57
   end
 end
-
-module Rubinius
-  CType = Truffle::CType
-end

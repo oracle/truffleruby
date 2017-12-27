@@ -315,7 +315,7 @@ class Rational < Numeric
     end
 
     if den.equal?(1) && !(Integer === num)
-      return Rubinius::Type.coerce_to(num, Rational, :to_r)
+      return Truffle::Type.coerce_to(num, Rational, :to_r)
     elsif Numeric === num && Numeric === den &&
         !(Integer === num && Integer === den)
       return num / den
@@ -345,7 +345,7 @@ class Rational < Numeric
       end
 
       if den == 1
-        return (mathn && Rubinius.mathn_loaded?) ? num : new(num, den)
+        return (mathn && Truffle.mathn_loaded?) ? num : new(num, den)
       end
     when Numeric
       den = den.to_i
@@ -357,7 +357,7 @@ class Rational < Numeric
     num = num / gcd
     den = den / gcd
 
-    return num if mathn && Rubinius.mathn_loaded? && den == 1
+    return num if mathn && Truffle.mathn_loaded? && den == 1
 
     new(num, den)
   end

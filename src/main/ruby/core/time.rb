@@ -150,7 +150,7 @@ class Time
 
   def localtime(offset = nil)
     if offset
-      offset = Rubinius::Type.coerce_to_utc_offset(offset)
+      offset = Truffle::Type.coerce_to_utc_offset(offset)
     end
     Truffle.invoke_primitive(:time_localtime, self, offset)
   end
@@ -164,7 +164,7 @@ class Time
   def +(other)
     raise TypeError, 'time + time?' if other.kind_of?(Time)
 
-    case other = Rubinius::Type.coerce_to_exact_num(other)
+    case other = Truffle::Type.coerce_to_exact_num(other)
     when Integer
       other_sec = other
       other_nsec = 0
@@ -183,7 +183,7 @@ class Time
       return (tv_sec - other.tv_sec) + ((tv_nsec - other.tv_nsec) * 0.000_000_001)
     end
 
-    case other = Rubinius::Type.coerce_to_exact_num(other)
+    case other = Truffle::Type.coerce_to_exact_num(other)
     when Integer
       other_sec = other
       other_nsec = 0
@@ -277,8 +277,8 @@ class Time
 
       usec = 0 if undefined.equal?(usec)
 
-      s = Rubinius::Type.coerce_to_exact_num(sec)
-      u = Rubinius::Type.coerce_to_exact_num(usec)
+      s = Truffle::Type.coerce_to_exact_num(sec)
+      u = Truffle::Type.coerce_to_exact_num(usec)
 
       sec       = s.to_i
       nsec_frac = s % 1.0
@@ -298,9 +298,9 @@ class Time
       if sec.kind_of?(String)
         sec = sec.to_i
       elsif nsec
-        sec = Rubinius::Type.coerce_to(sec || 0, Integer, :to_int)
+        sec = Truffle::Type.coerce_to(sec || 0, Integer, :to_int)
       else
-        s = Rubinius::Type.coerce_to_exact_num(sec || 0)
+        s = Truffle::Type.coerce_to_exact_num(sec || 0)
 
         sec       = s.to_i
         nsec_frac = s % 1.0
@@ -352,13 +352,13 @@ class Time
 
         raise ArgumentError, 'month argument out of range' unless m
       else
-        m = Rubinius::Type.coerce_to(m || 1, Integer, :to_int)
+        m = Truffle::Type.coerce_to(m || 1, Integer, :to_int)
       end
 
-      y   = y.kind_of?(String)   ? y.to_i   : Rubinius::Type.coerce_to(y,        Integer, :to_int)
-      d   = d.kind_of?(String)   ? d.to_i   : Rubinius::Type.coerce_to(d   || 1, Integer, :to_int)
-      hr  = hr.kind_of?(String)  ? hr.to_i  : Rubinius::Type.coerce_to(hr  || 0, Integer, :to_int)
-      min = min.kind_of?(String) ? min.to_i : Rubinius::Type.coerce_to(min || 0, Integer, :to_int)
+      y   = y.kind_of?(String)   ? y.to_i   : Truffle::Type.coerce_to(y,        Integer, :to_int)
+      d   = d.kind_of?(String)   ? d.to_i   : Truffle::Type.coerce_to(d   || 1, Integer, :to_int)
+      hr  = hr.kind_of?(String)  ? hr.to_i  : Truffle::Type.coerce_to(hr  || 0, Integer, :to_int)
+      min = min.kind_of?(String) ? min.to_i : Truffle::Type.coerce_to(min || 0, Integer, :to_int)
 
       nsec = nil
       if usec.kind_of?(String)
@@ -396,7 +396,7 @@ class Time
       elsif utc_offset == :dst
         compose(:local, second, minute, hour, day, month, year, nil, nil, true, nil)
       else
-        utc_offset = Rubinius::Type.coerce_to_utc_offset(utc_offset)
+        utc_offset = Truffle::Type.coerce_to_utc_offset(utc_offset)
         compose(utc_offset, year, month, day, hour, minute, second)
       end
     end

@@ -13,7 +13,7 @@ describe "Truffle::Interop.to_native" do
   class InteropToNativeClass
     
     def to_native
-      Rubinius::FFI::Pointer.new(0x123)
+      Truffle::FFI::Pointer.new(0x123)
     end
     
   end
@@ -27,7 +27,7 @@ describe "Truffle::Interop.to_native" do
   end
 
   it "calls #to_native" do
-    Truffle::Interop.to_native(InteropToNativeClass.new).should == Rubinius::FFI::Pointer.new(0x123)
+    Truffle::Interop.to_native(InteropToNativeClass.new).should == Truffle::FFI::Pointer.new(0x123)
   end
 
 end

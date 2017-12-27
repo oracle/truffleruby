@@ -38,9 +38,9 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.platform.RubiniusTypes;
+import org.truffleruby.platform.NativeTypes;
 
-@CoreClass("Rubinius::FFI::Pointer")
+@CoreClass("Truffle::FFI::Pointer")
 public abstract class PointerNodes {
 
     public static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);
@@ -76,40 +76,40 @@ public abstract class PointerNodes {
         @Specialization
         public long typeSize(int type) {
             switch (type) {
-                case RubiniusTypes.TYPE_CHAR:
-                case RubiniusTypes.TYPE_UCHAR:
+                case NativeTypes.TYPE_CHAR:
+                case NativeTypes.TYPE_UCHAR:
                     return 1;
 
-                case RubiniusTypes.TYPE_SHORT:
-                case RubiniusTypes.TYPE_USHORT:
+                case NativeTypes.TYPE_SHORT:
+                case NativeTypes.TYPE_USHORT:
                     return 2;
 
-                case RubiniusTypes.TYPE_INT:
-                case RubiniusTypes.TYPE_UINT:
+                case NativeTypes.TYPE_INT:
+                case NativeTypes.TYPE_UINT:
                     return 4;
 
-                case RubiniusTypes.TYPE_LONG:
-                case RubiniusTypes.TYPE_ULONG:
-                case RubiniusTypes.TYPE_LL:
-                case RubiniusTypes.TYPE_ULL:
+                case NativeTypes.TYPE_LONG:
+                case NativeTypes.TYPE_ULONG:
+                case NativeTypes.TYPE_LL:
+                case NativeTypes.TYPE_ULL:
                     return 8;
 
-                case RubiniusTypes.TYPE_FLOAT:
+                case NativeTypes.TYPE_FLOAT:
                     return 4;
 
-                case RubiniusTypes.TYPE_DOUBLE:
+                case NativeTypes.TYPE_DOUBLE:
                     return 8;
 
-                case RubiniusTypes.TYPE_PTR:
-                case RubiniusTypes.TYPE_STRPTR:
-                case RubiniusTypes.TYPE_STRING:
-                case RubiniusTypes.TYPE_CHARARR:
+                case NativeTypes.TYPE_PTR:
+                case NativeTypes.TYPE_STRPTR:
+                case NativeTypes.TYPE_STRING:
+                case NativeTypes.TYPE_CHARARR:
                     return 8;
 
-                case RubiniusTypes.TYPE_BOOL:
-                case RubiniusTypes.TYPE_VOID:
-                case RubiniusTypes.TYPE_ENUM:
-                case RubiniusTypes.TYPE_VARARGS:
+                case NativeTypes.TYPE_BOOL:
+                case NativeTypes.TYPE_VOID:
+                case NativeTypes.TYPE_ENUM:
+                case NativeTypes.TYPE_VARARGS:
                 default:
                     throw new UnsupportedOperationException("no type size for: " + type);
             }
@@ -399,7 +399,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_get_at_offset", lowerFixnum = { 1, 2 })
-    @ImportStatic(RubiniusTypes.class)
+    @ImportStatic(NativeTypes.class)
     public static abstract class PointerGetAtOffsetPrimitiveNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "type == TYPE_CHAR")
@@ -494,7 +494,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_set_at_offset", lowerFixnum = { 1, 2, 3 })
-    @ImportStatic(RubiniusTypes.class)
+    @ImportStatic(NativeTypes.class)
     public static abstract class PointerSetAtOffsetPrimitiveNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "type == TYPE_CHAR")

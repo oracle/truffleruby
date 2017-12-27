@@ -125,7 +125,7 @@ class Symbol
       Truffle.invoke_primitive(:regexp_set_last_match, match_data)
       if match_data
         result = match_data.to_s
-        Rubinius::Type.infect result, index
+        Truffle::Type.infect result, index
         return result
       end
     else

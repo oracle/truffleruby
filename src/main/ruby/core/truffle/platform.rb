@@ -32,11 +32,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Only part of Rubinius' rubinius.rb
+module Truffle
 
-module Rubinius
-
-  # Used by Rubinius::FFI
+  # Used by Truffle::FFI
   L64 = true
   CPU = 'jvm'
   SIZEOF_LONG = 8 # bytes
@@ -74,30 +72,7 @@ module Rubinius
     false
   end
 
-  module FFI
-    class DynamicLibrary
-    end
-  end
-
   # jnr-posix hard codes this value
   PATH_MAX = 1024
 
-  module Unsafe
-    def self.set_class(obj, cls)
-      Truffle.primitive :vm_set_class
-
-      if obj.kind_of? ImmediateValue
-        raise TypeError, 'Can not change the class of an immediate'
-      end
-
-      raise ArgumentError, "Class #{cls} is not compatible with #{obj.inspect}"
-    end
-  end
-
-  def self.synchronize(object, &block)
-    Truffle::System.synchronized(object, &block)
-  end
-end
-
-class PrimitiveFailure < Exception # rubocop:disable Lint/InheritException
 end

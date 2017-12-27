@@ -52,11 +52,11 @@ class Array
   # Returns converted array or nil if obj cannot be converted
   # for any reason. This method is to check if an argument is an array.
   def self.try_convert(obj)
-    Rubinius::Type.try_convert obj, Array, :to_ary
+    Truffle::Type.try_convert obj, Array, :to_ary
   end
 
   def &(other)
-    other = Rubinius::Type.coerce_to other, Array, :to_ary
+    other = Truffle::Type.coerce_to other, Array, :to_ary
 
     h = {}
     other.each { |e| h[e] = true }
@@ -64,7 +64,7 @@ class Array
   end
 
   def |(other)
-    other = Rubinius::Type.coerce_to other, Array, :to_ary
+    other = Truffle::Type.coerce_to other, Array, :to_ary
 
     h = {}
     each { |e| h[e] = true }
@@ -73,7 +73,7 @@ class Array
   end
 
   def -(other)
-    other = Rubinius::Type.coerce_to other, Array, :to_ary
+    other = Truffle::Type.coerce_to other, Array, :to_ary
 
     h = {}
     other.each { |e| h[e] = true }
@@ -81,7 +81,7 @@ class Array
   end
 
   def <=>(other)
-    other = Rubinius::Type.check_convert_type other, Array, :to_ary
+    other = Truffle::Type.check_convert_type other, Array, :to_ary
     return 0 if equal? other
     return nil if other.nil?
 
@@ -107,10 +107,10 @@ class Array
 
   def *(count)
     Truffle.primitive :array_mul
-    if str = Rubinius::Type.check_convert_type(count, String, :to_str)
+    if str = Truffle::Type.check_convert_type(count, String, :to_str)
       join(str)
     else
-      self * Rubinius::Type.coerce_to(count, Integer, :to_int)
+      self * Truffle::Type.coerce_to(count, Integer, :to_int)
     end
   end
 
@@ -160,14 +160,14 @@ class Array
         if start_index.is_a?(Bignum) || end_index.is_a?(Bignum)
           raise RangeError, "bignum too big to convert into `long'"
         end
-        start_index = Rubinius::Type.clamp_to_int(start_index)
-        end_index = Rubinius::Type.clamp_to_int(end_index)
+        start_index = Truffle::Type.clamp_to_int(start_index)
+        end_index = Truffle::Type.clamp_to_int(end_index)
         range = Range.new(start_index, end_index, arg.exclude_end?)
         send(method_name, range)
       when Bignum
         raise RangeError, "bignum too big to convert into `long'"
       else
-        send(method_name, Rubinius::Type.rb_num2long(arg))
+        send(method_name, Truffle::Type.rb_num2long(arg))
       end
     else
       start_index = start.to_int
@@ -175,8 +175,8 @@ class Array
       if start_index.is_a?(Bignum) || end_index.is_a?(Bignum)
         raise RangeError, "bignum too big to convert into `long'"
       end
-      start_index = Rubinius::Type.clamp_to_int(start_index)
-      end_index = Rubinius::Type.clamp_to_int(end_index)
+      start_index = Truffle::Type.clamp_to_int(start_index)
+      end_index = Truffle::Type.clamp_to_int(end_index)
       send(method_name, start_index, end_index)
     end
   end
@@ -196,12 +196,12 @@ class Array
         converted = [value] unless converted
         self[index] = converted
       else
-        index = Rubinius::Type.rb_num2long(index)
+        index = Truffle::Type.rb_num2long(index)
         self[index] = value
       end
     else
-      index = Rubinius::Type.rb_num2long(index)
-      length = Rubinius::Type.rb_num2long(length)
+      index = Truffle::Type.rb_num2long(index)
+      length = Truffle::Type.rb_num2long(length)
       converted = value
       unless Array === value
         converted = Array.try_convert(value)
@@ -272,7 +272,7 @@ class Array
   end
 
   def combination(num)
-    num = Rubinius::Type.coerce_to_collection_index num
+    num = Truffle::Type.coerce_to_collection_index num
 
     unless block_given?
       return to_enum(:combination, num) do
@@ -327,7 +327,7 @@ class Array
   def cycle(n = nil)
     unless block_given?
       return to_enum(:cycle, n) do
-        Rubinius::EnumerableHelper.cycle_size(size, n)
+        Truffle::EnumerableHelper.cycle_size(size, n)
       end
     end
 
@@ -338,7 +338,7 @@ class Array
         each { |x| yield x }
       end
     else
-      n = Rubinius::Type.coerce_to_collection_index n
+      n = Truffle::Type.coerce_to_collection_index n
       n.times do
         each { |x| yield x }
       end
@@ -400,7 +400,7 @@ class Array
 
   def fetch(idx, default=undefined)
     orig = idx
-    idx = Rubinius::Type.coerce_to_collection_index idx
+    idx = Truffle::Type.coerce_to_collection_index idx
 
     idx += size if idx < 0
 
@@ -443,23 +443,23 @@ class Array
     elsif one.kind_of? Range
       raise TypeError, 'length invalid with range' unless undefined.equal?(two)
 
-      left = Rubinius::Type.coerce_to_collection_length one.begin
+      left = Truffle::Type.coerce_to_collection_length one.begin
       left += size if left < 0
       raise RangeError, "#{one.inspect} out of range" if left < 0
 
-      right = Rubinius::Type.coerce_to_collection_length one.end
+      right = Truffle::Type.coerce_to_collection_length one.end
       right += size if right < 0
       right += 1 unless one.exclude_end?
       return self if right <= left           # Nothing to modify
 
     elsif one
-      left = Rubinius::Type.coerce_to_collection_length one
+      left = Truffle::Type.coerce_to_collection_length one
       left += size if left < 0
       left = 0 if left < 0
 
       if !undefined.equal?(two) and two
         begin
-          right = Rubinius::Type.coerce_to_collection_length two
+          right = Truffle::Type.coerce_to_collection_length two
         rescue ArgumentError
           raise RangeError, 'bignum too big to convert into `long'
         rescue TypeError
@@ -496,26 +496,26 @@ class Array
   def first(n = undefined)
     return at(0) if undefined.equal?(n)
 
-    n = Rubinius::Type.coerce_to_collection_index(n)
+    n = Truffle::Type.coerce_to_collection_index(n)
     raise ArgumentError, 'Size must be positive' if n < 0
 
     Array.new self[0, n]
   end
 
   def flatten(level=-1)
-    level = Rubinius::Type.coerce_to_collection_index level
+    level = Truffle::Type.coerce_to_collection_index level
     return self.dup if level == 0
 
     out = self.class.allocate # new_reserved size
     recursively_flatten(self, out, level)
-    Rubinius::Type.infect(out, self)
+    Truffle::Type.infect(out, self)
     out
   end
 
   def flatten!(level=-1)
     Truffle.check_frozen
 
-    level = Rubinius::Type.coerce_to_collection_index level
+    level = Truffle::Type.coerce_to_collection_index level
     return nil if level == 0
 
     out = self.class.allocate # new_reserved size
@@ -588,7 +588,7 @@ class Array
     return self if items.length == 0
 
     # Adjust the index for correct insertion
-    idx = Rubinius::Type.coerce_to_collection_index idx
+    idx = Truffle::Type.coerce_to_collection_index idx
     idx += (size + 1) if idx < 0    # Negatives add AFTER the element
     raise IndexError, "#{idx} out of bounds" if idx < 0
 
@@ -604,13 +604,13 @@ class Array
 
     return '[...]' if Thread.detect_recursion self do
       each_with_index do |element, index|
-        temp = Rubinius::Type.rb_inspect(element)
+        temp = Truffle::Type.rb_inspect(element)
         result.force_encoding(temp.encoding) if index == 0
         result << temp << comma
       end
     end
 
-    Rubinius::Type.infect(result, self)
+    Truffle::Type.infect(result, self)
     result.shorten!(2)
     result << ']'
     result
@@ -660,7 +660,7 @@ class Array
       end
     end
 
-    Rubinius::Type.infect(out, self)
+    Truffle::Type.infect(out, self)
   end
 
   def keep_if(&block)
@@ -678,7 +678,7 @@ class Array
       return []
     end
 
-    n = Rubinius::Type.coerce_to_collection_index n
+    n = Truffle::Type.coerce_to_collection_index n
     return [] if n == 0
 
     raise ArgumentError, 'count must be positive' if n < 0
@@ -697,7 +697,7 @@ class Array
     if undefined.equal? num
       num = size
     else
-      num = Rubinius::Type.coerce_to_collection_index num
+      num = Truffle::Type.coerce_to_collection_index num
     end
 
     if num < 0 || size < num
@@ -732,7 +732,7 @@ class Array
     if undefined.equal? num
       k = self.size
     else
-      k = Rubinius::Type.coerce_to_collection_index num
+      k = Truffle::Type.coerce_to_collection_index num
     end
     descending_factorial(n, k)
   end
@@ -779,7 +779,7 @@ class Array
   # combinations by building it up successively using "inject" and starting
   # with one responsible to append the values.
   def product(*args)
-    args.map! { |x| Rubinius::Type.coerce_to(x, Array, :to_ary) }
+    args.map! { |x| Truffle::Type.coerce_to(x, Array, :to_ary) }
 
     # Check the result size will fit in an Array.
     sum = args.inject(size) { |n, x| n * x.size }
@@ -954,7 +954,7 @@ class Array
   end
 
   def rotate(n=1)
-    n = Rubinius::Type.coerce_to_collection_index n
+    n = Truffle::Type.coerce_to_collection_index n
 
     len = self.length
     return Array.new(self) if len <= 1
@@ -965,7 +965,7 @@ class Array
   end
 
   def rotate!(n=1)
-    n = Rubinius::Type.coerce_to_collection_index n
+    n = Truffle::Type.coerce_to_collection_index n
     Truffle.check_frozen
 
     len = self.length
@@ -982,7 +982,7 @@ class Array
     end
 
     def rand(size)
-      random = Rubinius::Type.coerce_to_collection_index @rng.rand(size)
+      random = Truffle::Type.coerce_to_collection_index @rng.rand(size)
       raise RangeError, 'random value must be >= 0' if random < 0
       raise RangeError, 'random value must be less than Array size' unless random < size
 
@@ -994,16 +994,16 @@ class Array
     return at Kernel.rand(size) if undefined.equal? count
 
     if undefined.equal? options
-      if o = Rubinius::Type.check_convert_type(count, Hash, :to_hash)
+      if o = Truffle::Type.check_convert_type(count, Hash, :to_hash)
         options = o
         count = nil
       else
         options = nil
-        count = Rubinius::Type.coerce_to_collection_index count
+        count = Truffle::Type.coerce_to_collection_index count
       end
     else
-      count = Rubinius::Type.coerce_to_collection_index count
-      options = Rubinius::Type.coerce_to options, Hash, :to_hash
+      count = Truffle::Type.coerce_to_collection_index count
+      options = Truffle::Type.coerce_to options, Hash, :to_hash
     end
 
     if count and count < 0
@@ -1118,7 +1118,7 @@ class Array
     random_generator = Kernel
 
     unless undefined.equal? options
-      options = Rubinius::Type.coerce_to options, Hash, :to_hash
+      options = Truffle::Type.coerce_to options, Hash, :to_hash
       random_generator = options[:random] if options[:random].respond_to?(:rand)
     end
 
@@ -1131,7 +1131,7 @@ class Array
   end
 
   def drop(n)
-    n = Rubinius::Type.coerce_to_collection_index n
+    n = Truffle::Type.coerce_to_collection_index n
     raise ArgumentError, 'attempt to drop negative size' if n < 0
 
     new_size = size - n
@@ -1171,7 +1171,7 @@ class Array
     max = nil
 
     each do |ary|
-      ary = Rubinius::Type.coerce_to ary, Array, :to_ary
+      ary = Truffle::Type.coerce_to ary, Array, :to_ary
       max ||= ary.size
 
       # Catches too-large as well as too-small (for which #fetch would suffice)
@@ -1204,8 +1204,8 @@ class Array
     args.each do |elem|
       # Cannot use #[] because of subtly different errors
       if elem.kind_of? Range
-        finish = Rubinius::Type.coerce_to_collection_index elem.last
-        start = Rubinius::Type.coerce_to_collection_index elem.first
+        finish = Truffle::Type.coerce_to_collection_index elem.last
+        start = Truffle::Type.coerce_to_collection_index elem.first
 
         start += size if start < 0
         next if start < 0
@@ -1218,7 +1218,7 @@ class Array
         start.upto(finish) { |i| out << at(i) }
 
       else
-        i = Rubinius::Type.coerce_to_collection_index elem
+        i = Truffle::Type.coerce_to_collection_index elem
         out << at(i)
       end
     end
@@ -1283,7 +1283,7 @@ class Array
 
     max_levels -= 1
     recursion = Thread.detect_recursion(array) do
-      array = Rubinius::Type.coerce_to(array, Array, :to_ary)
+      array = Truffle::Type.coerce_to(array, Array, :to_ary)
 
       i = 0
       size = array.size
@@ -1291,7 +1291,7 @@ class Array
       while i < size
         o = array.at i
 
-        tmp = Rubinius::Type.rb_check_convert_type(o, Array, :to_ary)
+        tmp = Truffle::Type.rb_check_convert_type(o, Array, :to_ary)
         if tmp.nil?
           out << o
         else
@@ -1523,12 +1523,12 @@ class Array
         range = start
         out = self[range]
 
-        range_start = Rubinius::Type.coerce_to_collection_index range.begin
+        range_start = Truffle::Type.coerce_to_collection_index range.begin
         if range_start < 0
           range_start = range_start + size
         end
 
-        range_end = Rubinius::Type.coerce_to_collection_index range.end
+        range_end = Truffle::Type.coerce_to_collection_index range.end
         if range_end < 0
           range_end = range_end + size
         elsif range_end >= size
@@ -1546,7 +1546,7 @@ class Array
       else
         # make sure that negative values are not passed through to the
         # []= assignment
-        start = Rubinius::Type.coerce_to_collection_index start
+        start = Truffle::Type.coerce_to_collection_index start
         start = start + size if start < 0
 
         # This is to match the MRI behaviour of not extending the array
@@ -1565,8 +1565,8 @@ class Array
         end
       end
     else
-      start = Rubinius::Type.coerce_to_collection_index start
-      length = Rubinius::Type.coerce_to_collection_length length
+      start = Truffle::Type.coerce_to_collection_index start
+      length = Truffle::Type.coerce_to_collection_length length
       return nil if length < 0
 
       out = self[start, length]

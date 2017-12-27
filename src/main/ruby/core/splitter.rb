@@ -32,7 +32,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module Rubinius
+module Truffle
   class Splitter
     def self.split_characters(string, pattern, limit, tail_empty)
       if limit
@@ -60,7 +60,7 @@ module Rubinius
       if undefined.equal?(limit)
         limited = false
       else
-        limit = Rubinius::Type.coerce_to limit, Fixnum, :to_int
+        limit = Truffle::Type.coerce_to limit, Fixnum, :to_int
 
         if limit > 0
           return [string.dup] if limit == 1
