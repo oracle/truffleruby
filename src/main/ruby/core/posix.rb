@@ -146,6 +146,7 @@ module Truffle::POSIX
   attach_function :getcwd, [:pointer, :size_t], :string
   attach_function :isatty, [:int], :int
   attach_function :lchmod, [:string, :mode_t], :int
+  attach_function :lchown, [:string, :uid_t, :gid_t], :int
   attach_function :link, [:string, :string], :int
   attach_function :lseek, [:int, :off_t, :int], :off_t
   attach_function :truffleposix_lstat, [:string, :pointer], :int, library: LIBTRUFFLEPOSIX
