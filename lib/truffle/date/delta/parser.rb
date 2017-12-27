@@ -29,22 +29,22 @@ module_eval <<'..end parser.ry modeval..id43bff5dec9', 'parser.ry', 42
       case str
       when /\A\s+/
       when /\AP(\d+y)?(\d+m)?(\d+d)?t?(\d+h)?(\d+m)?(\d+s)?(\d+w)?/i
-	y, m, d, h, min, s, w =
-	  [$1, $2, $3, $4, $5, $6, $7].collect{|x| x.to_i}
-	y *= UNITS4KEY['years']
-	m *= UNITS4KEY['months']
-	d *= UNITS4KEY['days']
-	h *= UNITS4KEY['hours']
-	min *= UNITS4KEY['minutes']
-	s *= UNITS4KEY['seconds']
-	w *= UNITS4KEY['weeks']
-	@q.push [:DURATION, y + m + d + h + min + s + w]
+        y, m, d, h, min, s, w =
+          [$1, $2, $3, $4, $5, $6, $7].collect{|x| x.to_i}
+        y *= UNITS4KEY['years']
+        m *= UNITS4KEY['months']
+        d *= UNITS4KEY['days']
+        h *= UNITS4KEY['hours']
+        min *= UNITS4KEY['minutes']
+        s *= UNITS4KEY['seconds']
+        w *= UNITS4KEY['weeks']
+        @q.push [:DURATION, y + m + d + h + min + s + w]
       when /\A\d+/
-	@q.push [:DIGITS, $&.to_i]
+        @q.push [:DIGITS, $&.to_i]
       when /\A[a-z]+/i
-	@q.push lookup($&)
+        @q.push lookup($&)
       when /\A.|\n/
-	@q.push [$&, $&]
+        @q.push [$&, $&]
       end
       str = $'
     end
