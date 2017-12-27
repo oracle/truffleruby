@@ -325,7 +325,7 @@ class Date
         begin
           l, r = other.coerce(self)
           return l <=> r
-        rescue NoMethodError
+        rescue NoMethodError # rubocop:disable Lint/HandleExceptions
         end
       end
       nil
@@ -339,7 +339,7 @@ class Date
         begin
           l, r = other.coerce(self)
           return l == r
-        rescue NoMethodError
+        rescue NoMethodError # rubocop:disable Lint/HandleExceptions
         end
       end
       nil

@@ -35,7 +35,7 @@
 
 begin
   require 'openssl'
-rescue LoadError
+rescue LoadError # rubocop:disable Lint/HandleExceptions
 end
 
 module SecureRandom

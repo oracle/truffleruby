@@ -114,7 +114,7 @@ module Timeout
         end
         reqs << new_req if new_req
 
-      rescue Exception => e
+      rescue Exception => e # rubocop:disable Lint/RescueException
         e.render('ERROR IN TIMEOUT THREAD')
       end
     end
