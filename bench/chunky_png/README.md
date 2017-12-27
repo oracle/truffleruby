@@ -6,6 +6,8 @@ We use this old revision because we know it has interesting patterns of
 meta-programming that we are interested in benchmarking. Some of these
 patterns were replaced in later versions.
 
+Only `ext/`, `lib/` and `LICENSE` are kept.
+
 We've also applied this patch, to fix obvious bugs in keyword arguments which
 limits optimisations.
 
