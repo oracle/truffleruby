@@ -308,7 +308,7 @@ module Truffle
           raise ArgumentError, 'not an AF_INET/AF_INET6 sockaddr'
         end
 
-        return host, ip, port.to_i
+        [host, ip, port.to_i]
       end
 
       def self.getpeereid(*)

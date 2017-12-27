@@ -165,7 +165,7 @@ class StringScanner
       end
 
       str.taint if @string.tainted?
-      return str
+      str
     else
       "#<#{self.class} (uninitialized)>"
     end
@@ -220,7 +220,7 @@ class StringScanner
   end
 
   def rest?
-    return !eos?
+    !eos?
   end
 
   def rest_size
