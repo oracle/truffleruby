@@ -116,13 +116,13 @@ class Addrinfo
           end
           begin
             sock.connect_nonblock(self) # check connection failure
-          rescue Errno::EISCONN
+          rescue Errno::EISCONN # rubocop:disable Lint/HandleExceptions
           end
         end
       else
         sock.connect(self)
       end
-    rescue Exception
+    rescue Exception # rubocop:disable Lint/RescueException
       sock.close
       raise
     end
@@ -240,7 +240,7 @@ class Addrinfo
       sock.ipv6only! if self.ipv6?
       sock.setsockopt(:SOCKET, :REUSEADDR, 1)
       sock.bind(self)
-    rescue Exception
+    rescue Exception # rubocop:disable Lint/RescueException
       sock.close
       raise
     end
@@ -263,7 +263,7 @@ class Addrinfo
       sock.setsockopt(:SOCKET, :REUSEADDR, 1)
       sock.bind(self)
       sock.listen(backlog)
-    rescue Exception
+    rescue Exception # rubocop:disable Lint/RescueException
       sock.close
       raise
     end
@@ -446,7 +446,7 @@ class Socket < BasicSocket
     rescue Errno::EADDRINUSE
       sockets.each {|s| s.close }
       retry
-    rescue Exception
+    rescue Exception # rubocop:disable Lint/RescueException
       sockets.each {|s| s.close }
       raise
     end
@@ -463,7 +463,7 @@ class Socket < BasicSocket
       sockets.each {|s|
         s.listen(Socket::SOMAXCONN)
       }
-    rescue Exception
+    rescue Exception # rubocop:disable Lint/RescueException
       sockets.each {|s| s.close }
       raise
     end
@@ -526,7 +526,7 @@ class Socket < BasicSocket
         if sockets.empty?
           raise last_error
         end
-      rescue Exception
+      rescue Exception # rubocop:disable Lint/RescueException
         sockets.each {|s| s.close }
         raise
       end
@@ -866,7 +866,7 @@ class Socket < BasicSocket
     if !unix_socket_abstract_name?(path)
       begin
         st = File.lstat(path)
-      rescue Errno::ENOENT
+      rescue Errno::ENOENT # rubocop:disable Lint/HandleExceptions
       end
       if st && st.socket? && st.owned?
         File.unlink path
