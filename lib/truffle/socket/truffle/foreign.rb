@@ -150,7 +150,7 @@ module Truffle
 
         addrinfos = []
 
-        while true
+        loop do
           addrinfo = []
           addrinfo << res[:ai_flags]
           addrinfo << res[:ai_family]
