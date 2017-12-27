@@ -1,0 +1,1 @@
+fails:top-level constant lookup on a class searches Object successfully after searching other scopes

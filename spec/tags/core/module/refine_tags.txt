@@ -28,3 +28,10 @@ fails:Module#refine when super is called in a refinement looks in the refined cl
 fails:Module#refine when super is called in a refinement looks in the refined class even if there is another active refinement
 fails:Module#refine module inclusion activates all refinements from all ancestors
 fails:Module#refine module inclusion overrides methods of ancestors by methods in descendants
+fails:Module#refine for methods accessed indirectly is not honored by Kernel#send
+fails:Module#refine for methods accessed indirectly is not honored by BasicObject#__send__
+fails:Module#refine for methods accessed indirectly is not honored by Symbol#to_proc
+fails:Module#refine for methods accessed indirectly is not honored by string interpolation
+fails:Module#refine for methods accessed indirectly is honored by Kernel#binding
+fails:Module#refine for methods accessed indirectly is not honored by Kernel#method
+fails:Module#refine for methods accessed indirectly is not honored by Kernel#respond_to?

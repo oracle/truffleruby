@@ -47,8 +47,7 @@ class Rational < Numeric
     when Float
       to_f * other
     else
-      a, b = other.coerce(self)
-      a * b
+      redo_coerced :*, other
     end
   end
 
@@ -90,8 +89,7 @@ class Rational < Numeric
 
       to_f ** other
     else
-      a, b = other.coerce(self)
-      a ** b
+      redo_coerced :**, other
     end
   end
 
@@ -106,8 +104,7 @@ class Rational < Numeric
     when Float
       to_f + other
     else
-      a, b = other.coerce(self)
-      a + b
+      redo_coerced :+, other
     end
   end
 
@@ -122,8 +119,7 @@ class Rational < Numeric
     when Float
       to_f - other
     else
-      a, b = other.coerce(self)
-      a - b
+      redo_coerced :-, other
     end
   end
 
@@ -156,8 +152,13 @@ class Rational < Numeric
     when Float
       to_f <=> other
     else
-      if defined?(other.coerce)
+      begin
         a, b = other.coerce(self)
+      rescue
+        warn 'warning: Numerical comparison operators will no more rescue exceptions of #coerce',
+             'warning: in the next release. Return nil in #coerce if the coercion is impossible.'
+        nil
+      else
         a <=> b
       end
     end

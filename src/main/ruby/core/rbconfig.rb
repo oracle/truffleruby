@@ -77,6 +77,7 @@ module RbConfig
       'host'              => host,
       'LIBEXT'            => 'a',
       'OBJEXT'            => 'bc',
+      'ENABLE_SHARED'     => 'yes',
       'exeext'            => '',
       'EXEEXT'            => '',
       'EXECUTABLE_EXTS'   => '',
