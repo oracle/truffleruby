@@ -2,6 +2,16 @@ AllCops:
   DisabledByDefault: true
   DisplayCopNames: true
   ExtraDetails: true
+  Exclude:
+    - 'lib/truffle/date.rb'
+    - 'lib/truffle/pathname.rb'
+    - 'lib/truffle/securerandom.rb'
+    - 'lib/truffle/socket.rb'
+    - 'lib/truffle/stringio.rb'
+    - 'lib/truffle/strscan.rb'
+    - 'lib/truffle/timeout.rb'
+    - 'lib/truffle/date/**/*.rb'
+    - 'lib/truffle/socket/**/*.rb'
 
 # Department 'Lint' (58):
 Lint/AmbiguousOperator:
