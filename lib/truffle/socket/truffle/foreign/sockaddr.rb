@@ -28,7 +28,7 @@ module Truffle
   module Socket
     module Foreign
       class Sockaddr < Truffle::FFI::Struct
-        config("platform.sockaddr", :sa_data, :sa_family)
+        config('platform.sockaddr', :sa_data, :sa_family)
 
         def data
           self[:sa_data]

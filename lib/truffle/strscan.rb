@@ -38,8 +38,8 @@
 class ScanError < StandardError; end
 
 class StringScanner
-  Id = "None$Id".freeze
-  Version = "1.0.0".freeze
+  Id = 'None$Id'.freeze
+  Version = '1.0.0'.freeze
 
   attr_reader :pos, :match, :prev_pos
 
@@ -89,7 +89,7 @@ class StringScanner
   end
 
   def clear
-    warn "StringScanner#clear is obsolete; use #terminate instead" if $VERBOSE
+    warn 'StringScanner#clear is obsolete; use #terminate instead' if $VERBOSE
     terminate
   end
 
@@ -100,12 +100,12 @@ class StringScanner
   alias_method :<<, :concat
 
   def empty?
-    warn "StringScanner#empty? is obsolete; use #eos? instead?" if $VERBOSE
+    warn 'StringScanner#empty? is obsolete; use #eos? instead?' if $VERBOSE
     eos?
   end
 
   def eos?
-    raise ArgumentError, "uninitialized StringScanner object" unless @string # Truffle
+    raise ArgumentError, 'uninitialized StringScanner object' unless @string # Truffle
     @pos >= @string.bytesize
   end
 
@@ -119,7 +119,7 @@ class StringScanner
   end
 
   def getbyte
-    warn "StringScanner#getbyte is obsolete; use #get_byte instead" if $VERBOSE
+    warn 'StringScanner#getbyte is obsolete; use #get_byte instead' if $VERBOSE
     get_byte
   end
 
@@ -192,7 +192,7 @@ class StringScanner
   end
 
   def matchedsize
-    warn "StringScanner#matchedsize is obsolete; use #matched_size instead" if $VERBOSE
+    warn 'StringScanner#matchedsize is obsolete; use #matched_size instead' if $VERBOSE
     matched_size
   end
 
@@ -228,7 +228,7 @@ class StringScanner
   end
 
   def restsize
-    warn "StringScanner#restsize is obsolete; use #rest_size instead" if $VERBOSE
+    warn 'StringScanner#restsize is obsolete; use #rest_size instead' if $VERBOSE
     rest_size
   end
 
@@ -292,14 +292,14 @@ class StringScanner
 
   def peek(len)
     raise ArgumentError if len < 0
-    return "" if len.zero?
+    return '' if len.zero?
 
     # Truffle: correctly use byte offsets and no rescue
     @string.byteslice(pos, len)
   end
 
   def peep(len)
-    warn "StringScanner#peep is obsolete; use #peek instead" if $VERBOSE
+    warn 'StringScanner#peep is obsolete; use #peek instead' if $VERBOSE
     peek len
   end
 
@@ -307,7 +307,7 @@ class StringScanner
     unless pattern.kind_of? Regexp
       raise TypeError, "bad pattern argument: #{pattern.inspect}"
     end
-    raise ArgumentError, "uninitialized StringScanner object" unless @string # Truffle
+    raise ArgumentError, 'uninitialized StringScanner object' unless @string # Truffle
 
     @match = nil
 

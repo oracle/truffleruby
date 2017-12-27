@@ -69,7 +69,7 @@ class StringIO
 
   def initialize(string=nil, mode=nil)
     if string.nil?
-      @__data__ = Data.new ""
+      @__data__ = Data.new ''
       set_encoding(nil)
       mode = IO::RDWR
     else
@@ -85,7 +85,7 @@ class StringIO
         mode_from_string(mode)
       end
     else
-      mode_from_string(string.frozen? ? "r" : "r+")
+      mode_from_string(string.frozen? ? 'r' : 'r+')
     end
 
     self
@@ -105,14 +105,14 @@ class StringIO
   end
 
   def check_readable
-    raise IOError, "not opened for reading" unless @readable
+    raise IOError, 'not opened for reading' unless @readable
   end
 
   private :check_readable
 
   def check_writable
-    raise IOError, "not opened for writing" unless @writable
-    raise IOError, "unable to modify data" if @__data__.string.frozen?
+    raise IOError, 'not opened for writing' unless @writable
+    raise IOError, 'unable to modify data' if @__data__.string.frozen?
   end
 
   private :check_writable
@@ -242,7 +242,7 @@ class StringIO
   alias_method :write_nonblock, :write
 
   def close
-    raise IOError, "closed stream" if closed?
+    raise IOError, 'closed stream' if closed?
     @readable = @writable = nil
   end
 
@@ -275,7 +275,7 @@ class StringIO
   alias_method :eof, :eof?
 
   def fcntl
-    raise NotImplementedError, "StringIO#fcntl is not implemented"
+    raise NotImplementedError, 'StringIO#fcntl is not implemented'
   end
 
   def fileno
@@ -402,9 +402,9 @@ class StringIO
     else
       args.each do |arg|
         if arg.nil?
-          line = ""
+          line = ''
         elsif Thread.guarding? arg
-          line = "[...]"
+          line = '[...]'
         else
           begin
             arg = Truffle::Type.coerce_to(arg, Array, :to_ary)
@@ -440,7 +440,7 @@ class StringIO
       if eof?
         buffer.clear if buffer
         if length == 0
-          return "".force_encoding(Encoding::ASCII_8BIT)
+          return ''.force_encoding(Encoding::ASCII_8BIT)
         else
           return nil
         end
@@ -453,7 +453,7 @@ class StringIO
     else
       if eof?
         buffer.clear if buffer
-        return "".force_encoding(Encoding::ASCII_8BIT)
+        return ''.force_encoding(Encoding::ASCII_8BIT)
       end
 
       str = string.byteslice(pos..-1)
@@ -465,7 +465,7 @@ class StringIO
   end
 
   def readchar
-    raise IO::EOFError, "end of file reached" if eof?
+    raise IO::EOFError, 'end of file reached' if eof?
     getc
   end
 
@@ -475,7 +475,7 @@ class StringIO
 
   def readline(sep=$/, limit=Undefined)
     check_readable
-    raise IO::EOFError, "end of file reached" if eof?
+    raise IO::EOFError, 'end of file reached' if eof?
 
     Truffle.invoke_primitive(:io_set_last_line, getline(true, sep, limit))
   end
@@ -499,7 +499,7 @@ class StringIO
       initialize_copy stringio
     else
       mode = nil if mode.equal? Undefined
-      string = "" unless string
+      string = '' unless string
 
       initialize string, mode
     end
@@ -513,7 +513,7 @@ class StringIO
   end
 
   def seek(to, whence = IO::SEEK_SET)
-    raise IOError, "closed stream" if self.closed?
+    raise IOError, 'closed stream' if self.closed?
     to = Truffle::Type.coerce_to to, Integer, :to_int
 
     case whence
@@ -523,7 +523,7 @@ class StringIO
       to += @__data__.string.bytesize
     when IO::SEEK_SET, nil
     else
-      raise Errno::EINVAL, "invalid whence"
+      raise Errno::EINVAL, 'invalid whence'
     end
 
     raise Errno::EINVAL if to < 0
@@ -557,12 +557,12 @@ class StringIO
     val
   end
 
-  def sysread(length=nil, buffer="")
+  def sysread(length=nil, buffer='')
     str = read(length, buffer)
 
     if str.nil?
       buffer.clear
-      raise IO::EOFError, "end of file reached"
+      raise IO::EOFError, 'end of file reached'
     end
 
     str
@@ -578,11 +578,11 @@ class StringIO
   def truncate(length)
     check_writable
     len = Truffle::Type.coerce_to length, Integer, :to_int
-    raise Errno::EINVAL, "negative length" if len < 0
+    raise Errno::EINVAL, 'negative length' if len < 0
     string = @__data__.string
 
     if len < string.bytesize
-      string[len..string.bytesize] = ""
+      string[len..string.bytesize] = ''
     else
       string << "\000" * (len - string.bytesize)
     end
@@ -620,7 +620,7 @@ class StringIO
     return unless bytes
 
     if bytes.kind_of? Fixnum
-      bytes = "" << bytes
+      bytes = '' << bytes
     else
       bytes = StringValue(bytes)
       return if bytes.bytesize == 0
@@ -650,7 +650,7 @@ class StringIO
   end
 
   def init_with(coder)
-    @__data__ = Data.new("")
+    @__data__ = Data.new('')
   end
 
   def to_yaml_properties
@@ -658,7 +658,7 @@ class StringIO
   end
 
   def yaml_initialize(type, val)
-    @__data__ = Data.new("")
+    @__data__ = Data.new('')
   end
 
   protected
@@ -682,8 +682,8 @@ class StringIO
     end
 
     d = @__data__
-    raise Errno::EACCES, "Permission denied" if @writable && d.string.frozen?
-    d.string.replace("") if truncate
+    raise Errno::EACCES, 'Permission denied' if @writable && d.string.frozen?
+    d.string.replace('') if truncate
   end
 
   def mode_from_integer(mode)
@@ -695,12 +695,12 @@ class StringIO
     end
 
     if mode & (IO::WRONLY | IO::RDWR) != 0
-      raise Errno::EACCES, "Permission denied" if d.string.frozen?
+      raise Errno::EACCES, 'Permission denied' if d.string.frozen?
       @writable = true
     end
 
     @append = true if (mode & IO::APPEND) != 0
-    d.string.replace("") if (mode & IO::TRUNC) != 0
+    d.string.replace('') if (mode & IO::TRUNC) != 0
   end
 
   def getline(arg_error, sep, limit)
