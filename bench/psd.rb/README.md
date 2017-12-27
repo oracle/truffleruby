@@ -9,6 +9,8 @@ patterns were replaced in later versions.
 See also the ChunkyPNG benchmarks - we use the same version of ChunkyPNG as
 in those.
 
+Only `ext/`, `lib/` and `LICENSE.txt` are kept.
+
 We are using PSDNative at revision `bbea04db2f4f483bde73b6793e68eff73f3b9c3f`,
 with this patch, which worked around limitations in the original TruffleC
 (you could also reasonably call them bugs in PSDNative).
