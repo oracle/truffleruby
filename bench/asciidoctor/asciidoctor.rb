@@ -1,6 +1,6 @@
 require_relative 'asciidoctor/lib/asciidoctor'
 
-sample_file = File.expand_path(__FILE__, '../data/userguide.adoc')
+sample_file = File.expand_path('../data/userguide.adoc', __FILE__)
 sample_file_io = File.open(sample_file)
 sample_file_text = File.read(sample_file)
 sample_file_lines = sample_file_text.lines
