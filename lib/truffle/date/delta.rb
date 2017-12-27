@@ -111,7 +111,7 @@ class Date
     def self.delta_to_dhms(delta)
       fr = delta.imag.abs
       y,   fr = fr.divmod(12)
-      m,   fr = fr.divmod(1)
+      m,   _ = fr.divmod(1)
 
       if delta.imag < 0
         y = -y
