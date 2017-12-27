@@ -312,8 +312,6 @@ class File < IO
   # by the link). Often not available. Returns number
   # of files in the argument list.
   def self.lchown(owner, group, *paths)
-    raise NotImplementedError, 'lchown not implemented on this platform' unless Truffle::Support::HAVE_LCHOWN
-
     if owner
       owner = Truffle::Type.coerce_to(owner, Integer, :to_int)
     else
