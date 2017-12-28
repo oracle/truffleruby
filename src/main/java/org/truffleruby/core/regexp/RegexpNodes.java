@@ -71,6 +71,7 @@ import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNodeGe
 import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
@@ -448,6 +449,7 @@ public abstract class RegexpNodes {
 
         @Child ReadCallerFrameNode readCallerFrame = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode;
+        @CompilationFinal DynamicObject lastMatchSymbol;
 
         @Specialization
         public Object lastMatch(VirtualFrame frame, NotProvided index) {
@@ -469,10 +471,11 @@ public abstract class RegexpNodes {
         private Object getMatchData(VirtualFrame frame) {
             if (threadLocalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create(LAST_MATCH_VARIABLE));
+                lastMatchSymbol = getContext().getSymbolTable().getSymbol(LAST_MATCH_VARIABLE);
+                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create());
             }
             Frame callerFrame = readCallerFrame.execute(frame);
-            ThreadAndFrameLocalStorage lastMatch = threadLocalNode.execute(callerFrame.materialize());
+            ThreadAndFrameLocalStorage lastMatch = threadLocalNode.execute(lastMatchSymbol, callerFrame.materialize());
             return lastMatch.get();
         }
 
@@ -484,6 +487,7 @@ public abstract class RegexpNodes {
 
         @Child ReadCallerFrameNode readCallerFrame = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode;
+        @CompilationFinal DynamicObject lastMatchSymbol;
 
         public static RegexpSetLastMatchPrimitiveNode create() {
             return RegexpSetLastMatchPrimitiveNodeFactory.create(null);
@@ -495,10 +499,11 @@ public abstract class RegexpNodes {
         public DynamicObject setLastMatchData(VirtualFrame frame, DynamicObject matchData) {
             if (threadLocalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create(LAST_MATCH_VARIABLE));
+                lastMatchSymbol = getContext().getSymbolTable().getSymbol(LAST_MATCH_VARIABLE);
+                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create());
             }
             Frame callerFrame = readCallerFrame.execute(frame);
-            ThreadAndFrameLocalStorage lastMatch = threadLocalNode.execute(callerFrame.materialize());
+            ThreadAndFrameLocalStorage lastMatch = threadLocalNode.execute(lastMatchSymbol, callerFrame.materialize());
             lastMatch.set(matchData);
             return matchData;
         }
@@ -509,6 +514,7 @@ public abstract class RegexpNodes {
     public static abstract class RegexpSetBlockLastMatchPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode;
+        @CompilationFinal DynamicObject lastMatchSymbol;
 
         @Specialization(guards = { "isRubyProc(block)", "isSuitableMatchDataType(getContext(), matchData)" })
         public Object setBlockLastMatch(DynamicObject block, DynamicObject matchData) {
@@ -518,10 +524,11 @@ public abstract class RegexpNodes {
             }
             if (threadLocalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create(LAST_MATCH_VARIABLE));
+                lastMatchSymbol = getContext().getSymbolTable().getSymbol(LAST_MATCH_VARIABLE);
+                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create());
             }
 
-            ThreadAndFrameLocalStorage lastMatch = threadLocalNode.execute(declarationFrame.materialize());
+            ThreadAndFrameLocalStorage lastMatch = threadLocalNode.execute(lastMatchSymbol, declarationFrame.materialize());
             lastMatch.set(matchData);
             return matchData;
         }

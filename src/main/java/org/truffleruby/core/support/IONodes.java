@@ -96,6 +96,7 @@ import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 import org.truffleruby.platform.Platform;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -490,15 +491,17 @@ public abstract class IONodes {
 
         @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode;
+        @CompilationFinal DynamicObject lastLineSymbol;
 
         @Specialization
         public Object getLastLine(VirtualFrame frame) {
             Frame callerFrame = callerFrameNode.execute(frame);
             if (threadLocalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create(LAST_LINE_VARIABLE));
+                lastLineSymbol = getContext().getSymbolTable().getSymbol(LAST_LINE_VARIABLE);
+                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create());
             }
-            return threadLocalNode.execute(callerFrame.materialize()).get();
+            return threadLocalNode.execute(lastLineSymbol, callerFrame.materialize()).get();
         }
     }
 
@@ -507,17 +510,19 @@ public abstract class IONodes {
 
         @Child ReadCallerFrameNode readCallerFrame = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode;
+        @CompilationFinal DynamicObject lastLineSymbol;
 
         @Specialization
-        public DynamicObject setLastLine(VirtualFrame frame, DynamicObject matchData) {
+        public DynamicObject setLastLine(VirtualFrame frame, DynamicObject lastLine) {
             if (threadLocalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create(LAST_LINE_VARIABLE));
+                lastLineSymbol = getContext().getSymbolTable().getSymbol(LAST_LINE_VARIABLE);
+                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create());
             }
             Frame callerFrame = readCallerFrame.execute(frame);
-            ThreadAndFrameLocalStorage lastLine = threadLocalNode.execute(callerFrame.materialize());
-            lastLine.set(matchData);
-            return matchData;
+            ThreadAndFrameLocalStorage storage = threadLocalNode.execute(lastLineSymbol, callerFrame.materialize());
+            storage.set(lastLine);
+            return lastLine;
         }
     }
 

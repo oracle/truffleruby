@@ -9,16 +9,8 @@
  */
 package org.truffleruby.core.kernel;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import java.io.IOException;
+
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
@@ -32,9 +24,20 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNode;
+import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNodeGen;
 import org.truffleruby.parser.ParserContext;
 
-import java.io.IOException;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeChildren;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 @CoreClass("Truffle::KernelOperations")
 public abstract class TruffleKernelNodes {
@@ -101,4 +104,28 @@ public abstract class TruffleKernelNodes {
 
     }
 
+    @CoreMethod(names = "frame_local_variable_get", isModuleFunction = true, required = 2)
+    public abstract static class GetFrameAndThreadLocalVariable extends CoreMethodArrayArgumentsNode {
+
+        @Child FindThreadAndFrameLocalStorageNode threadLocalNode = FindThreadAndFrameLocalStorageNodeGen.create();
+
+        @Specialization(guards = { "isRubySymbol(name)", "isRubyBinding(binding)" })
+        public Object executeGetValue(DynamicObject name, DynamicObject binding) {
+            return threadLocalNode.execute(name, Layouts.BINDING.getFrame(binding)).get();
+        }
+
+    }
+
+    @CoreMethod(names = "frame_local_variable_set", isModuleFunction = true, required = 3)
+    public abstract static class SetFrameAndThreadLocalVariable extends CoreMethodArrayArgumentsNode {
+
+        @Child FindThreadAndFrameLocalStorageNode threadLocalNode = FindThreadAndFrameLocalStorageNodeGen.create();
+
+        @Specialization(guards = { "isRubySymbol(name)", "isRubyBinding(binding)" })
+        public Object executeGetValue(DynamicObject name, DynamicObject binding, Object value) {
+            threadLocalNode.execute(name, Layouts.BINDING.getFrame(binding)).set(value);
+            return value;
+        }
+
+    }
 }
