@@ -190,6 +190,10 @@ module RbConfig
     val
   end
 
+  if ruby_home
+    expanded['LDSHARED'] = "#{RbConfig.ruby} -Xgraal.warn_unless=false #{libdir}/cext/ldshared.rb"
+  end
+
 end
 
 CROSS_COMPILING = nil
