@@ -28,9 +28,7 @@ public class GlobalVariables {
     public static final Set<String> READ_ONLY_GLOBAL_VARIABLES = new HashSet<>(
             Arrays.asList("$LOAD_PATH", "$LOADED_FEATURES", "$<", "$FILENAME", "$?", "$-a", "$-l", "$-p"));
 
-    public static final Set<String> ALWAYS_DEFINED_GLOBALS = new HashSet<>(Arrays.asList("$~"));
-
-    public static final Set<String> THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES = new HashSet<>(Arrays.asList("$~", "$_"));
+    public static final Set<String> THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES = new HashSet<>(Arrays.asList("$_"));
 
     public static final Set<String> BACKREF_GLOBAL_VARIABLES = new HashSet<>(Arrays.asList("$+", "$&", "$`", "$'"));
 

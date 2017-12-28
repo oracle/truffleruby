@@ -19,5 +19,19 @@ module Truffle
       pos = m.character_to_byte_index pos
       re.search_region(str, pos, str.bytesize, true)
     end
+
+    def self.last_match(a_binding)
+      Truffle::KernelOperations.frame_local_variable_get(:$~, a_binding)
+    end
+
+    def self.set_last_match(value, a_binding)
+      unless value.nil? || Truffle::Type.object_kind_of?(value, MatchData)
+        raise TypeError, "Wrong argument type #{value} (expected MatchData)"
+      end
+      Truffle::KernelOperations.frame_local_variable_set(:$~, a_binding, value)
+    end
+
+    Truffle::Graal.always_split(method(:last_match))
+    Truffle::Graal.always_split(method(:set_last_match))
   end
 end

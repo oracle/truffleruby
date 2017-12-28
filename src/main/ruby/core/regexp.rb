@@ -396,3 +396,8 @@ class MatchData
     self[0]
   end
 end
+
+Truffle::KernelOperations.define_hooked_variable(
+  :$~,
+  Truffle::Graal.always_split( -> b { Truffle::RegexpOperations.last_match(b) }),
+  Truffle::Graal.always_split( -> v, b { Truffle::RegexpOperations.set_last_match(v, b) }))
