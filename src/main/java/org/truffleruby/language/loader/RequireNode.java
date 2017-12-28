@@ -167,7 +167,7 @@ public abstract class RequireNode extends RubyNode {
 
         if (!ForeignAccess.sendIsExecutable(isExecutableNode, initFunction)) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException(initFunction + "() is not IS_EXECUTABLE");
         }
 
         try {
