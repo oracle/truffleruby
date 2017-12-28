@@ -103,7 +103,6 @@ import org.truffleruby.language.exceptions.RescueSplatNode;
 import org.truffleruby.language.exceptions.TryNode;
 import org.truffleruby.language.globals.AliasGlobalVarNode;
 import org.truffleruby.language.globals.CheckLastLineNumberNode;
-import org.truffleruby.language.globals.CheckMatchVariableTypeNode;
 import org.truffleruby.language.globals.CheckOutputSeparatorVariableTypeNode;
 import org.truffleruby.language.globals.CheckProgramNameVariableTypeNode;
 import org.truffleruby.language.globals.CheckRecordSeparatorVariableTypeNode;
@@ -1602,9 +1601,6 @@ public class BodyTranslator extends Translator {
         }
 
         switch (name) {
-            case "$~":
-                rhs = new CheckMatchVariableTypeNode(rhs);
-                break;
             case "$0":
                 rhs = new CheckProgramNameVariableTypeNode(rhs);
                 rhs.unsafeSetSourceSection(sourceSection);
@@ -1690,8 +1686,7 @@ public class BodyTranslator extends Translator {
 
         final RubyNode ret;
         if (GlobalVariables.BACKREF_GLOBAL_VARIABLES.contains(name) || isLastMatchVariable(name)) {
-            final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, sourceSection);
-            final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
+            final RubyNode readMatchNode = ReadGlobalVariableNodeGen.create("$~");
             final char type = name.charAt(1);
             switch (type) {
                 case '`':
@@ -1999,9 +1994,9 @@ public class BodyTranslator extends Translator {
                     nilSetters[n] = match2NilSetter(node, name);
                     setters[n] = match2NonNilSetter(node, name, tempVar);
                 }
-                final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, node.getPosition());
+                final RubyNode readNode = ReadGlobalVariableNodeGen.create("$~");
                 ReadLocalNode tempVarReadNode = environment.findLocalVarNode(tempVar, source, node.getPosition());
-                RubyNode readMatchNode = tempVarReadNode.makeWriteNode(new GetFromThreadAndFrameLocalStorageNode(readNode));
+                RubyNode readMatchNode = tempVarReadNode.makeWriteNode(readNode);
                 ret = new ReadMatchReferenceNodes.SetNamedVariablesMatchNode(ret, readMatchNode, setters, nilSetters);
             }
         }

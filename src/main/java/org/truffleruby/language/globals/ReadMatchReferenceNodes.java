@@ -28,11 +28,11 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
 
     public static class ReadPreMatchNode extends RubyNode {
         @Child CallDispatchHeadNode preMatchNode = CallDispatchHeadNode.create();
-        @Child private GetFromThreadAndFrameLocalStorageNode readMatchNode;
+        @Child private RubyNode readMatchNode;
 
         protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
 
-        public ReadPreMatchNode(GetFromThreadAndFrameLocalStorageNode readMatchNode) {
+        public ReadPreMatchNode(RubyNode readMatchNode) {
             this.readMatchNode = readMatchNode;
         }
 
@@ -59,11 +59,11 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
 
     public static class ReadPostMatchNode extends RubyNode {
         @Child CallDispatchHeadNode postMatchNode = CallDispatchHeadNode.create();
-        @Child private GetFromThreadAndFrameLocalStorageNode readMatchNode;
+        @Child private RubyNode readMatchNode;
 
         protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
 
-        public ReadPostMatchNode(GetFromThreadAndFrameLocalStorageNode readMatchNode) {
+        public ReadPostMatchNode(RubyNode readMatchNode) {
             this.readMatchNode = readMatchNode;
         }
 
@@ -90,10 +90,10 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
 
     public static class ReadMatchNode extends RubyNode {
         @Child private CallDispatchHeadNode getMatchIndexNode = CallDispatchHeadNode.create();
-        @Child private GetFromThreadAndFrameLocalStorageNode readMatchNode;
+        @Child private RubyNode readMatchNode;
         protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
 
-        public ReadMatchNode(GetFromThreadAndFrameLocalStorageNode readMatchNode) {
+        public ReadMatchNode(RubyNode readMatchNode) {
             this.readMatchNode = readMatchNode;
         }
 
@@ -119,12 +119,12 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
     }
 
     public static class ReadHighestMatchNode extends RubyNode {
-        @Child private GetFromThreadAndFrameLocalStorageNode readMatchNode;
+        @Child private RubyNode readMatchNode;
         @Child private ValuesNode getValues = ValuesNode.create();
 
         protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
 
-        public ReadHighestMatchNode(GetFromThreadAndFrameLocalStorageNode readMatchNode) {
+        public ReadHighestMatchNode(RubyNode readMatchNode) {
             this.readMatchNode = readMatchNode;
         }
 
@@ -160,13 +160,13 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
     }
 
     public static class ReadNthMatchNode extends RubyNode {
-        @Child private GetFromThreadAndFrameLocalStorageNode readMatchNode;
+        @Child private RubyNode readMatchNode;
         @Child private CallDispatchHeadNode getIndexNode = CallDispatchHeadNode.create();
         private final int index;
 
         protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
 
-        public ReadNthMatchNode(GetFromThreadAndFrameLocalStorageNode readMatchNode, int index) {
+        public ReadNthMatchNode(RubyNode readMatchNode, int index) {
             this.readMatchNode = readMatchNode;
             this.index = index;
         }

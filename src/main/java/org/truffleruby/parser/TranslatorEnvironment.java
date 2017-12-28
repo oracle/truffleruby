@@ -161,11 +161,7 @@ public class TranslatorEnvironment {
         final FrameSlot slot = methodScope.declareVar(name);
 
         final LocalVariableType type;
-        if (GlobalVariables.ALWAYS_DEFINED_GLOBALS.contains(name)) {
-            type = LocalVariableType.ALWAYS_DEFINED_GLOBAL;
-        } else {
-            type = LocalVariableType.FRAME_LOCAL_GLOBAL;
-        }
+        type = LocalVariableType.FRAME_LOCAL_GLOBAL;
 
         final ReadLocalNode node;
         if (level == 0) {
