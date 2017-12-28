@@ -52,12 +52,7 @@ public abstract class ReadGlobalVariableNode extends RubyNode {
     public Object isDefined(VirtualFrame frame) {
         final GlobalVariableStorage storage = getStorage();
 
-        if (storage.hasHooks()) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new UnsupportedOperationException();
-        }
-
-        if (storage.getValue() != nil()) {
+        if (storage.isDefined()) {
             return coreStrings().GLOBAL_VARIABLE.createInstance();
         } else {
             return nil();

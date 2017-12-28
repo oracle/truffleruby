@@ -15,8 +15,11 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import org.truffleruby.RubyContext;
+import org.truffleruby.language.NotProvided;
 
 public class GlobalVariableStorage {
+
+    private static final Object UNSET_VALUE = NotProvided.INSTANCE;
 
     private final CyclicAssumption unchangedAssumption = new CyclicAssumption("global variable unchanged");
     private int changes = 0;
@@ -26,18 +29,25 @@ public class GlobalVariableStorage {
 
     private volatile Object value;
 
+    private final Object defaultValue;
     private final DynamicObject getter;
     private final DynamicObject setter;
 
     GlobalVariableStorage(Object value, DynamicObject getter, DynamicObject setter) {
-        this.value = value;
+        this.defaultValue = value;
+        this.value = UNSET_VALUE;
         this.getter = getter;
         this.setter = setter;
         assert (getter != null) == (setter != null);
     }
 
     public Object getValue() {
-        return value;
+        Object currentValue = value;
+        return currentValue == UNSET_VALUE ? defaultValue : currentValue;
+    }
+
+    public boolean isDefined() {
+        return hasHooks() || value != UNSET_VALUE;
     }
 
     public boolean isSimple() {
