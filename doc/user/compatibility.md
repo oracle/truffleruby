@@ -23,7 +23,7 @@ TruffleReport defines these constants for identification:
 - `RUBY_ENGINE` is `'truffleruby'`
 - `RUBY_VERSION` is the compatible MRI version
 - `RUBY_REVISION` and `RUBY_PATCHLEVEL` are always zero
-- `RUBY_RELEASE_DATE` is the current year
+- `RUBY_RELEASE_DATE` is the year of release
 - `RUBY_ENGINE_VERSION` is the GraalVM version, or `0.0` if your build is not part of a GraalVM release.
 
 ## Features entirely missing

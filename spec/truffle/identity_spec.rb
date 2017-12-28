@@ -33,7 +33,8 @@ describe "Identifying features such as" do
   end
 
   it "RUBY_RELEASE_DATE is the current year" do
-    RUBY_RELEASE_DATE.should == Time.now.year.to_s
+    year = Time.now.year
+    ((year-1..year) === RUBY_RELEASE_DATE.to_i).should be_true
   end
 
   it "Gem.ruby_engine matches RUBY_ENGINE" do
