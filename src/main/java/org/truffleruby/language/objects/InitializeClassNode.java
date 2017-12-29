@@ -107,7 +107,7 @@ public abstract class InitializeClassNode extends RubyNode {
 
         ClassNodes.initialize(getContext(), rubyClass, superclass);
         triggerInheritedHook(frame, rubyClass, superclass);
-        moduleInitialize(rubyClass, block);
+        moduleInitialize(frame, rubyClass, block);
 
         return rubyClass;
     }
@@ -137,12 +137,12 @@ public abstract class InitializeClassNode extends RubyNode {
         inheritedNode.call(frame, superClass, "inherited", subClass);
     }
 
-    private void moduleInitialize(DynamicObject rubyClass, DynamicObject block) {
+    private void moduleInitialize(VirtualFrame frame, DynamicObject rubyClass, DynamicObject block) {
         if (moduleInitializeNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             moduleInitializeNode = insert(ModuleNodesFactory.InitializeNodeFactory.create(null));
         }
-        moduleInitializeNode.executeInitialize(rubyClass, block);
+        moduleInitializeNode.executeInitialize(frame, rubyClass, block);
     }
 
 }

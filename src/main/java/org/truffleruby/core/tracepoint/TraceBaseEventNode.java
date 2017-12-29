@@ -15,6 +15,7 @@ import org.truffleruby.language.yield.YieldNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -50,13 +51,13 @@ public class TraceBaseEventNode extends ExecutionEventNode {
         return line;
     }
 
-    protected Object yield(DynamicObject block, Object... arguments) {
+    protected Object yield(VirtualFrame frame, DynamicObject block, Object... arguments) {
         if (yieldNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             yieldNode = insert(new YieldNode());
         }
 
-        return yieldNode.dispatch(block, arguments);
+        return yieldNode.dispatch(frame, block, arguments);
     }
 
 }

@@ -962,11 +962,11 @@ public class CExtNodes {
     public abstract static class CaptureExceptionNode extends YieldingCoreMethodNode {
 
         @Specialization
-        public Object executeWithProtect(DynamicObject block,
+        public Object executeWithProtect(VirtualFrame frame, DynamicObject block,
                 @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("create()") BranchProfile noExceptionProfile) {
             try {
-                yield(block);
+                yield(frame, block);
                 noExceptionProfile.enter();
                 return nil();
             } catch (Throwable e) {

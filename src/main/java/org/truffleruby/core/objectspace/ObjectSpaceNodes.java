@@ -16,6 +16,10 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+
+import java.util.ArrayList;
+import java.util.Set;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -98,38 +102,38 @@ public abstract class ObjectSpaceNodes {
 
     }
 
-    @CoreMethod(names = "each_object", isModuleFunction = true, needsBlock = true, optional = 1, returnsEnumeratorIfNoBlock = true)
+    @CoreMethod(names = "all_objects", isModuleFunction = true, optional = 1)
     public abstract static class EachObjectNode extends YieldingCoreMethodNode {
 
         @TruffleBoundary // for the iterator
-        @Specialization
-        public int eachObject(NotProvided ofClass, DynamicObject block) {
-            int count = 0;
+        @Specialization(guards = "isNil(ofClass)")
+        public DynamicObject eachObject(DynamicObject ofClass) {
+            Set<DynamicObject> objects = ObjectGraph.stopAndGetAllObjects(this, getContext());
+            ArrayList<DynamicObject> objectList = new ArrayList<>(objects.size());
 
-            for (DynamicObject object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
+            for (DynamicObject object : objects) {
                 if (!isHidden(object)) {
-                    yield(block, object);
-                    count++;
+                    objectList.add(object);
                 }
             }
 
-            return count;
+            return createArray(objectList.toArray(), objectList.size());
         }
 
         @TruffleBoundary // for the iterator
         @Specialization(guards = "isRubyModule(ofClass)")
-        public int eachObject(DynamicObject ofClass, DynamicObject block,
+        public DynamicObject eachObjectOfClass(DynamicObject ofClass,
                 @Cached("create()") IsANode isANode) {
-            int count = 0;
+            Set<DynamicObject> objects = ObjectGraph.stopAndGetAllObjects(this, getContext());
+            ArrayList<DynamicObject> objectList = new ArrayList<>(objects.size());
 
-            for (DynamicObject object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
+            for (DynamicObject object : objects) {
                 if (!isHidden(object) && isANode.executeIsA(object, ofClass)) {
-                    yield(block, object);
-                    count++;
+                    objectList.add(object);
                 }
             }
 
-            return count;
+            return createArray(objectList.toArray(), objectList.size());
         }
 
         private boolean isHidden(DynamicObject object) {

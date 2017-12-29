@@ -285,8 +285,8 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization
-        public Object instanceEval(Object receiver, NotProvided string, NotProvided fileName, NotProvided line, DynamicObject block) {
-            return yield.dispatchWithModifiedSelf(block, receiver, receiver);
+        public Object instanceEval(VirtualFrame frame, Object receiver, NotProvided string, NotProvided fileName, NotProvided line, DynamicObject block) {
+            return yield.dispatchWithModifiedSelf(frame, block, receiver, receiver);
         }
 
         private String getSpace(int line) {
@@ -306,8 +306,8 @@ public abstract class BasicObjectNodes {
         @Child private YieldNode yield = new YieldNode(DeclarationContext.INSTANCE_EVAL);
 
         @Specialization
-        public Object instanceExec(Object receiver, Object[] arguments, DynamicObject block) {
-            return yield.dispatchWithModifiedSelf(block, receiver, arguments);
+        public Object instanceExec(VirtualFrame frame, Object receiver, Object[] arguments, DynamicObject block) {
+            return yield.dispatchWithModifiedSelf(frame, block, receiver, arguments);
         }
 
         @Specialization

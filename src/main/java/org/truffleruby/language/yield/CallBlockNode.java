@@ -98,31 +98,33 @@ public abstract class CallBlockNode extends RubyNode {
         }
     }
 
-    public abstract Object executeCallBlock(DynamicObject block, Object self, Object blockArgument, Object[] arguments);
+    public abstract Object executeCallBlock(VirtualFrame frame, DynamicObject block, Object self, Object blockArgument, Object[] arguments);
 
     // blockArgument is typed as Object below because it must accept "null".
     @Specialization(
             guards = "getBlockCallTarget(block) == cachedCallTarget",
             limit = "getCacheLimit()")
     protected Object callBlockCached(
+            VirtualFrame frame,
             DynamicObject block,
             Object self,
             Object blockArgument,
             Object[] arguments,
             @Cached("getBlockCallTarget(block)") CallTarget cachedCallTarget,
             @Cached("createBlockCallNode(block, cachedCallTarget)") DirectCallNode callNode) {
-        final Object[] frameArguments = packArguments(null, block, self, blockArgument, arguments);
+        final Object[] frameArguments = packArguments(frame, block, self, blockArgument, arguments);
         return callNode.call(frameArguments);
     }
 
     @Specialization(replaces = "callBlockCached")
     protected Object callBlockUncached(
+            VirtualFrame frame,
             DynamicObject block,
             Object self,
             Object blockArgument,
             Object[] arguments,
             @Cached("create()") IndirectCallNode callNode) {
-        final Object[] frameArguments = packArguments(null, block, self, blockArgument, arguments);
+        final Object[] frameArguments = packArguments(frame, block, self, blockArgument, arguments);
         return callNode.call(getBlockCallTarget(block), frameArguments);
     }
 

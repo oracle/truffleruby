@@ -37,7 +37,14 @@ module Truffle
     end
 
     def section(section, &block)
-      Truffle.invoke_primitive :vm_get_config_section, section, block
+      a_config = Truffle.invoke_primitive :vm_get_config_section, section
+      limit = a_config.size
+      # We don't have all the standard enumerable methods at this point, so can't use each_slice.
+      index = 0
+      while (index < limit) do
+        yield a_config[index], a_config[index + 1]
+        index += 2
+      end
     end
 
     def lookup(name)

@@ -17,6 +17,7 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.jcodings.Encoding;
@@ -56,6 +57,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -124,12 +126,13 @@ public abstract class EncodingConverterNodes {
     }
 
     @NonStandard
-    @CoreMethod(names = "each_transcoder", onSingleton = true, needsBlock = true)
+    @CoreMethod(names = "all_transcoders", onSingleton = true, needsBlock = true)
     public abstract static class EachTranscoderNode extends YieldingCoreMethodNode {
 
         @TruffleBoundary // Only called once, during startup
         @Specialization
-        public Object transcodingMap(DynamicObject block) {
+        public Object transcodingMap() {
+            ArrayList<Object> encodings = new ArrayList<>();
             for (Entry<String, Map<String, TranscoderReference>> sourceEntry : TranscodingManager.allTranscoders.entrySet()) {
                 final DynamicObject source = getContext().getSymbolTable().getSymbol(sourceEntry.getKey());
                 final int size = sourceEntry.getValue().size();
@@ -139,11 +142,11 @@ public abstract class EncodingConverterNodes {
                 for (Entry<String, TranscoderReference> destinationEntry : sourceEntry.getValue().entrySet()) {
                     destinations[i++] = getContext().getSymbolTable().getSymbol(destinationEntry.getKey());
                 }
-
-                yield(block, source, createArray(destinations, size));
+                encodings.add(source);
+                encodings.add(createArray(destinations, size));
             }
 
-            return nil();
+            return createArray(encodings.toArray(), encodings.size());
         }
     }
 

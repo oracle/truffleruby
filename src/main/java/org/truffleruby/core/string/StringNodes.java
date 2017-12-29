@@ -717,13 +717,13 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        public DynamicObject bytes(DynamicObject string, DynamicObject block,
+        public DynamicObject bytes(VirtualFrame frame, DynamicObject string, DynamicObject block,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
             Rope rope = rope(string);
             byte[] bytes = bytesNode.execute(rope);
 
             for (int i = 0; i < bytes.length; i++) {
-                yield(block, bytes[i] & 0xff);
+                yield(frame, block, bytes[i] & 0xff);
             }
 
             return string;
@@ -948,7 +948,7 @@ public abstract class StringNodes {
     public abstract static class EachByteNode extends YieldingCoreMethodNode {
 
         @Specialization
-        public DynamicObject eachByte(DynamicObject string, DynamicObject block,
+        public DynamicObject eachByte(VirtualFrame frame, DynamicObject string, DynamicObject block,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") RopeNodes.BytesNode updatedBytesNode,
                 @Cached("createBinaryProfile()") ConditionProfile ropeChangedProfile) {
@@ -956,7 +956,7 @@ public abstract class StringNodes {
             byte[] bytes = bytesNode.execute(rope);
 
             for (int i = 0; i < bytes.length; i++) {
-                yield(block, bytes[i] & 0xff);
+                yield(frame, block, bytes[i] & 0xff);
 
                 Rope updatedRope = rope(string);
                 if (ropeChangedProfile.profile(rope != updatedRope)) {
@@ -979,7 +979,7 @@ public abstract class StringNodes {
         @Child private TaintResultNode taintResultNode;
 
         @Specialization(guards = "!isBrokenCodeRange(string)")
-        public DynamicObject eachChar(DynamicObject string, DynamicObject block,
+        public DynamicObject eachChar(VirtualFrame frame, DynamicObject string, DynamicObject block,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
             final byte[] ptrBytes = bytesNode.execute(rope);
@@ -991,14 +991,14 @@ public abstract class StringNodes {
             for (int i = 0; i < len; i += n) {
                 n = StringSupport.encLength(enc, ptrBytes, i, len);
 
-                yield(block, substr(rope, string, i, n));
+                yield(frame, block, substr(rope, string, i, n));
             }
 
             return string;
         }
 
         @Specialization(guards = "isBrokenCodeRange(string)")
-        public DynamicObject eachCharMultiByteEncoding(DynamicObject string, DynamicObject block,
+        public DynamicObject eachCharMultiByteEncoding(VirtualFrame frame, DynamicObject string, DynamicObject block,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
             final byte[] ptrBytes = bytesNode.execute(rope);
@@ -1010,7 +1010,7 @@ public abstract class StringNodes {
             for (int i = 0; i < len; i += n) {
                 n = StringSupport.length(enc, ptrBytes, i, len);
 
-                yield(block, substr(rope, string, i, n));
+                yield(frame, block, substr(rope, string, i, n));
             }
 
             return string;
@@ -1420,7 +1420,7 @@ public abstract class StringNodes {
         @Child private MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization(guards = { "isBrokenCodeRange(string)", "isAsciiCompatible(string)" })
-        public DynamicObject scrubAsciiCompat(DynamicObject string, DynamicObject block,
+        public DynamicObject scrubAsciiCompat(VirtualFrame frame, DynamicObject string, DynamicObject block,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
@@ -1467,7 +1467,7 @@ public abstract class StringNodes {
                             }
                         }
                     }
-                    DynamicObject repl = (DynamicObject) yield(block, makeStringNode.fromRope(makeSubstringNode.executeMake(rope, p, clen)));
+                    DynamicObject repl = (DynamicObject) yield(frame, block, makeStringNode.fromRope(makeSubstringNode.executeMake(rope, p, clen)));
                     buf = makeConcatNode.executeMake(buf, rope(repl), enc);
                     p += clen;
                     p1 = p;
@@ -1482,7 +1482,7 @@ public abstract class StringNodes {
                 buf = makeConcatNode.executeMake(buf, makeSubstringNode.executeMake(rope, p1, p - p1), enc);
             }
             if (p < e) {
-                DynamicObject repl = (DynamicObject) yield(block, makeStringNode.fromRope(makeSubstringNode.executeMake(rope, p, e - p)));
+                DynamicObject repl = (DynamicObject) yield(frame, block, makeStringNode.fromRope(makeSubstringNode.executeMake(rope, p, e - p)));
                 buf = makeConcatNode.executeMake(buf, rope(repl), enc);
             }
 
@@ -1490,7 +1490,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "isBrokenCodeRange(string)", "!isAsciiCompatible(string)" })
-        public DynamicObject scrubAsciiIncompatible(DynamicObject string, DynamicObject block,
+        public DynamicObject scrubAsciiIncompatible(VirtualFrame frame, DynamicObject string, DynamicObject block,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
@@ -1532,7 +1532,7 @@ public abstract class StringNodes {
                         }
                     }
 
-                    DynamicObject repl = (DynamicObject) yield(block, makeStringNode.fromRope(makeSubstringNode.executeMake(rope, p, clen)));
+                    DynamicObject repl = (DynamicObject) yield(frame, block, makeStringNode.fromRope(makeSubstringNode.executeMake(rope, p, clen)));
                     buf = makeConcatNode.executeMake(buf, rope(repl), enc);
                     p += clen;
                     p1 = p;
@@ -1542,15 +1542,15 @@ public abstract class StringNodes {
                 buf = makeConcatNode.executeMake(buf, makeSubstringNode.executeMake(rope, p1, p - p1), enc);
             }
             if (p < e) {
-                DynamicObject repl = (DynamicObject) yield(block, makeStringNode.fromRope(makeSubstringNode.executeMake(rope, p, e - p)));
+                DynamicObject repl = (DynamicObject) yield(frame, block, makeStringNode.fromRope(makeSubstringNode.executeMake(rope, p, e - p)));
                 buf = makeConcatNode.executeMake(buf, rope(repl), enc);
             }
 
             return makeStringNode.fromRope(buf);
         }
 
-        public Object yield(DynamicObject block, Object... arguments) {
-            return yieldNode.dispatch(block, arguments);
+        public Object yield(VirtualFrame frame, DynamicObject block, Object... arguments) {
+            return yieldNode.dispatch(frame, block, arguments);
         }
 
     }

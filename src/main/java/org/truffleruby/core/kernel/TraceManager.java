@@ -126,12 +126,12 @@ public class TraceManager {
 
             isInTraceFunc = true;
             try {
-                yield(traceFunc, event,
+                yield(frame, traceFunc,
+                        event,
                         getFile(),
                         getLine(),
                         context.getCoreLibrary().getNil(),
-                        BindingNodes.createBinding(context, frame.materialize()),
-                        context.getCoreLibrary().getNil());
+                        BindingNodes.createBinding(context, frame.materialize()), context.getCoreLibrary().getNil());
             } finally {
                 isInTraceFunc = false;
             }
@@ -169,12 +169,12 @@ public class TraceManager {
             isInTraceFunc = true;
 
             try {
-                yield(traceFunc, event,
+                yield(frame, traceFunc,
+                        event,
                         getFile(file),
                         line,
                         context.getSymbolTable().getSymbol(RubyArguments.getMethod(frame).getName()),
-                        BindingNodes.createBinding(context, frame.materialize()),
-                        getLogicalClass(RubyArguments.getSelf(frame)));
+                        BindingNodes.createBinding(context, frame.materialize()), getLogicalClass(RubyArguments.getSelf(frame)));
             } finally {
                 isInTraceFunc = false;
             }

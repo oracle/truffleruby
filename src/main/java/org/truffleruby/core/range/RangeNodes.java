@@ -49,7 +49,7 @@ public abstract class RangeNodes {
     public abstract static class IntegerMapNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isIntRange(range)")
-        public DynamicObject map(DynamicObject range, DynamicObject block,
+        public DynamicObject map(VirtualFrame frame, DynamicObject range, DynamicObject block,
                                  @Cached("create()") ArrayBuilderNode arrayBuilder,
                                  @Cached("new()") YieldNode yieldNode) {
             final int begin = Layouts.INT_RANGE.getBegin(range);
@@ -67,7 +67,7 @@ public abstract class RangeNodes {
                         count++;
                     }
 
-                    store = arrayBuilder.appendValue(store, n, yieldNode.dispatch(block, begin + direction * n));
+                    store = arrayBuilder.appendValue(store, n, yieldNode.dispatch(frame, block, begin + direction * n));
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -91,7 +91,7 @@ public abstract class RangeNodes {
         @Child private CallDispatchHeadNode eachInternalCall;
 
         @Specialization(guards = "isIntRange(range)")
-        public Object eachInt(DynamicObject range, DynamicObject block) {
+        public Object eachInt(VirtualFrame frame, DynamicObject range, DynamicObject block) {
             int result;
             if (Layouts.INT_RANGE.getExcludedEnd(range)) {
                 result = Layouts.INT_RANGE.getEnd(range);
@@ -108,7 +108,7 @@ public abstract class RangeNodes {
                         count++;
                     }
 
-                    yield(block, n);
+                    yield(frame, block, n);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -120,7 +120,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "isLongRange(range)")
-        public Object eachLong(DynamicObject range, DynamicObject block) {
+        public Object eachLong(VirtualFrame frame, DynamicObject range, DynamicObject block) {
             long result;
             if (Layouts.LONG_RANGE.getExcludedEnd(range)) {
                 result = Layouts.LONG_RANGE.getEnd(range);
@@ -137,7 +137,7 @@ public abstract class RangeNodes {
                         count++;
                     }
 
-                    yield(block, n);
+                    yield(frame, block, n);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -275,7 +275,7 @@ public abstract class RangeNodes {
         @Child private CallDispatchHeadNode stepInternalCall;
 
         @Specialization(guards = { "isIntRange(range)", "step > 0" })
-        public Object stepInt(DynamicObject range, int step, DynamicObject block) {
+        public Object stepInt(VirtualFrame frame, DynamicObject range, int step, DynamicObject block) {
             int count = 0;
 
             try {
@@ -290,7 +290,7 @@ public abstract class RangeNodes {
                         count++;
                     }
 
-                    yield(block, n);
+                    yield(frame, block, n);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -302,7 +302,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = { "isLongRange(range)", "step > 0" })
-        public Object stepLong(DynamicObject range, int step, DynamicObject block) {
+        public Object stepLong(VirtualFrame frame, DynamicObject range, int step, DynamicObject block) {
             int count = 0;
 
             try {
@@ -317,7 +317,7 @@ public abstract class RangeNodes {
                         count++;
                     }
 
-                    yield(block, n);
+                    yield(frame, block, n);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {

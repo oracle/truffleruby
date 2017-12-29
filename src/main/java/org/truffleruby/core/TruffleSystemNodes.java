@@ -42,6 +42,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -135,9 +136,9 @@ public abstract class TruffleSystemNodes {
 
         // We must not allow to synchronize on boxed primitives.
         @Specialization
-        public Object synchronize(DynamicObject self, DynamicObject block) {
+        public Object synchronize(VirtualFrame frame, DynamicObject self, DynamicObject block) {
             synchronized (self) {
-                return yield(block);
+                return yield(frame, block);
             }
         }
     }

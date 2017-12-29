@@ -345,7 +345,7 @@ public abstract class HashNodes {
         public Object deleteNull(VirtualFrame frame, DynamicObject hash, Object key, DynamicObject block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
-            return yieldNode.dispatch(block, key);
+            return yieldNode.dispatch(frame, block, key);
         }
 
         @Specialization(guards = "isPackedHash(hash)")
@@ -378,7 +378,7 @@ public abstract class HashNodes {
             if (maybeBlock == NotProvided.INSTANCE) {
                 return nil();
             } else {
-                return yieldNode.dispatch((DynamicObject) maybeBlock, key);
+                return yieldNode.dispatch(frame, (DynamicObject) maybeBlock, key);
             }
         }
 
@@ -392,7 +392,7 @@ public abstract class HashNodes {
                 if (maybeBlock == NotProvided.INSTANCE) {
                     return nil();
                 } else {
-                    return yieldNode.dispatch((DynamicObject) maybeBlock, key);
+                    return yieldNode.dispatch(frame, (DynamicObject) maybeBlock, key);
                 }
             }
 
@@ -448,7 +448,7 @@ public abstract class HashNodes {
 
         @ExplodeLoop
         @Specialization(guards = "isPackedHash(hash)")
-        public DynamicObject eachPackedArray(DynamicObject hash, DynamicObject block) {
+        public DynamicObject eachPackedArray(VirtualFrame frame, DynamicObject hash, DynamicObject block) {
             assert HashOperations.verifyStore(getContext(), hash);
             final Object[] originalStore = (Object[]) Layouts.HASH.getStore(hash);
 
@@ -465,7 +465,7 @@ public abstract class HashNodes {
                     }
 
                     if (n < size) {
-                        yieldPair(block, PackedArrayStrategy.getKey(storeCopy, n), PackedArrayStrategy.getValue(storeCopy, n));
+                        yieldPair(frame, block, PackedArrayStrategy.getKey(storeCopy, n), PackedArrayStrategy.getValue(storeCopy, n));
                     }
                 }
             } finally {
@@ -478,11 +478,11 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        public DynamicObject eachBuckets(DynamicObject hash, DynamicObject block) {
+        public DynamicObject eachBuckets(VirtualFrame frame, DynamicObject hash, DynamicObject block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             for (KeyValue keyValue : BucketsStrategy.iterableKeyValues(Layouts.HASH.getFirstInSequence(hash))) {
-                yieldPair(block, keyValue.getKey(), keyValue.getValue());
+                yieldPair(frame, block, keyValue.getKey(), keyValue.getValue());
             }
 
             return hash;
@@ -499,8 +499,8 @@ public abstract class HashNodes {
             return toEnumNode.call(frame, hash, "to_enum", getSymbol(method.getName()));
         }
 
-        private Object yieldPair(DynamicObject block, Object key, Object value) {
-            return yield(block, createArray(new Object[]{key, value}, 2));
+        private Object yieldPair(VirtualFrame frame, DynamicObject block, Object key, Object value) {
+            return yield(frame, block, createArray(new Object[]{key, value}, 2));
         }
 
     }
@@ -659,7 +659,7 @@ public abstract class HashNodes {
 
         @ExplodeLoop
         @Specialization(guards = "isPackedHash(hash)")
-        public DynamicObject mapPackedArray(DynamicObject hash, DynamicObject block,
+        public DynamicObject mapPackedArray(VirtualFrame frame, DynamicObject hash, DynamicObject block,
                         @Cached("create()") ArrayBuilderNode arrayBuilderNode) {
             assert HashOperations.verifyStore(getContext(), hash);
 
@@ -673,7 +673,7 @@ public abstract class HashNodes {
                     if (n < length) {
                         final Object key = PackedArrayStrategy.getKey(store, n);
                         final Object value = PackedArrayStrategy.getValue(store, n);
-                        resultStore = arrayBuilderNode.appendValue(resultStore, n, yieldPair(block, key, value));
+                        resultStore = arrayBuilderNode.appendValue(resultStore, n, yieldPair(frame, block, key, value));
                     }
                 }
             } finally {
@@ -686,7 +686,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        public DynamicObject mapBuckets(DynamicObject hash, DynamicObject block,
+        public DynamicObject mapBuckets(VirtualFrame frame, DynamicObject hash, DynamicObject block,
                         @Cached("create()") ArrayBuilderNode arrayBuilderNode) {
             assert HashOperations.verifyStore(getContext(), hash);
 
@@ -697,7 +697,7 @@ public abstract class HashNodes {
 
             try {
                 for (KeyValue keyValue : BucketsStrategy.iterableKeyValues(Layouts.HASH.getFirstInSequence(hash))) {
-                    arrayBuilderNode.appendValue(store, index, yieldPair(block, keyValue.getKey(), keyValue.getValue()));
+                    arrayBuilderNode.appendValue(store, index, yieldPair(frame, block, keyValue.getKey(), keyValue.getValue()));
                     index++;
                 }
             } finally {
@@ -709,8 +709,8 @@ public abstract class HashNodes {
             return createArray(arrayBuilderNode.finish(store, length), length);
         }
 
-        private Object yieldPair(DynamicObject block, Object key, Object value) {
-            return yield(block, createArray(new Object[]{key, value}, 2));
+        private Object yieldPair(VirtualFrame frame, DynamicObject block, Object key, Object value) {
+            return yield(frame, block, createArray(new Object[]{key, value}, 2));
         }
 
     }
@@ -963,7 +963,7 @@ public abstract class HashNodes {
                 } else {
                     final Object oldValue = searchResult.getEntry().getValue();
                     final Object newValue = keyValue.getValue();
-                    final Object mergedValue = yield(block, keyValue.getKey(), oldValue, newValue);
+                    final Object mergedValue = yield(frame, block, keyValue.getKey(), oldValue, newValue);
 
                     setNode.executeSet(frame, merged, keyValue.getKey(), mergedValue, false);
                 }

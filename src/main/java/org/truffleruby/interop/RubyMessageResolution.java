@@ -268,6 +268,7 @@ public class RubyMessageResolution {
 
         protected Object access(VirtualFrame frame, DynamicObject object, Object[] arguments) {
             return executeMethodNode.executeCall(
+                    frame,
                     object,
                     foreignToRubyArgumentsNode.executeConvert(arguments));
         }

@@ -34,7 +34,7 @@ public abstract class IntegerNodes {
         @Child private CallDispatchHeadNode downtoInternalCall;
 
         @Specialization
-        public Object downto(int from, int to, DynamicObject block) {
+        public Object downto(VirtualFrame frame, int from, int to, DynamicObject block) {
             int count = 0;
 
             try {
@@ -43,7 +43,7 @@ public abstract class IntegerNodes {
                         count++;
                     }
 
-                    yield(block, i);
+                    yield(frame, block, i);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -55,12 +55,12 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        public Object downto(int from, double to, DynamicObject block) {
-            return downto(from, (int) Math.ceil(to), block);
+        public Object downto(VirtualFrame frame, int from, double to, DynamicObject block) {
+            return downto(frame, from, (int) Math.ceil(to), block);
         }
 
         @Specialization
-        public Object downto(long from, long to, DynamicObject block) {
+        public Object downto(VirtualFrame frame, long from, long to, DynamicObject block) {
             // TODO BJF 22-Apr-2015 how to handle reportLoopCount(long)
             int count = 0;
 
@@ -70,7 +70,7 @@ public abstract class IntegerNodes {
                         count++;
                     }
 
-                    yield(block, i);
+                    yield(frame, block, i);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -82,8 +82,8 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        public Object downto(long from, double to, DynamicObject block) {
-            return downto(from, (long) Math.ceil(to), block);
+        public Object downto(VirtualFrame frame, long from, double to, DynamicObject block) {
+            return downto(frame, from, (long) Math.ceil(to), block);
         }
 
         @Specialization(guards = "isDynamicObject(from) || isDynamicObject(to)")
@@ -124,7 +124,7 @@ public abstract class IntegerNodes {
         @Child private CallDispatchHeadNode uptoInternalCall;
 
         @Specialization
-        public Object upto(int from, int to, DynamicObject block) {
+        public Object upto(VirtualFrame frame, int from, int to, DynamicObject block) {
             int count = 0;
 
             try {
@@ -133,7 +133,7 @@ public abstract class IntegerNodes {
                         count++;
                     }
 
-                    yield(block, i);
+                    yield(frame, block, i);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -145,12 +145,12 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        public Object upto(int from, double to, DynamicObject block) {
-            return upto(from, (int) Math.floor(to), block);
+        public Object upto(VirtualFrame frame, int from, double to, DynamicObject block) {
+            return upto(frame, from, (int) Math.floor(to), block);
         }
 
         @Specialization
-        public Object upto(long from, long to, DynamicObject block) {
+        public Object upto(VirtualFrame frame, long from, long to, DynamicObject block) {
             int count = 0;
 
             try {
@@ -159,7 +159,7 @@ public abstract class IntegerNodes {
                         count++;
                     }
 
-                    yield(block, i);
+                    yield(frame, block, i);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -171,8 +171,8 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        public Object upto(long from, double to, DynamicObject block) {
-            return upto(from, (long) Math.ceil(to), block);
+        public Object upto(VirtualFrame frame, long from, double to, DynamicObject block) {
+            return upto(frame, from, (long) Math.ceil(to), block);
         }
 
         @Specialization(guards = "isDynamicObject(from) || isDynamicObject(to)")

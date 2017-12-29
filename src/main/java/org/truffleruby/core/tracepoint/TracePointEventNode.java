@@ -43,7 +43,7 @@ class TracePointEventNode extends TraceBaseEventNode {
 
         Layouts.TRACE_POINT.setInsideProc(tracePoint, true);
         try {
-            yield(proc, tracePoint);
+            yield(frame, proc, tracePoint);
         } finally {
             Layouts.TRACE_POINT.setInsideProc(tracePoint, false);
             // Reset the binding so it can be escaped analyzed. This is also semantically correct

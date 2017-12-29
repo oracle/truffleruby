@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
@@ -71,12 +72,12 @@ public abstract class TruffleEncodingNodes {
         @Child private org.truffleruby.core.string.StringNodes.MakeStringNode makeStringNode = org.truffleruby.core.string.StringNodes.MakeStringNode.create();
 
         @Specialization
-        public DynamicObject eachAlias(DynamicObject block) {
+        public DynamicObject eachAlias(VirtualFrame frame, DynamicObject block) {
             CompilerAsserts.neverPartOfCompilation();
             for (Hash.HashEntry<EncodingDB.Entry> entry : EncodingDB.getAliases().entryIterator()) {
                 final CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = (CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry>) entry;
                 final DynamicObject aliasName = makeStringNode.executeMake(ArrayUtils.extractRange(e.bytes, e.p, e.end), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-                yield(block, aliasName, entry.value.getIndex());
+                yield(frame, block, aliasName, entry.value.getIndex());
             }
             return nil();
         }

@@ -40,16 +40,8 @@
  */
 package org.truffleruby.core.thread;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.source.SourceSection;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -88,8 +80,18 @@ import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNode;
 import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNodeGen;
 import org.truffleruby.language.yield.YieldNode;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.source.SourceSection;
 
 @CoreClass("Thread")
 public abstract class ThreadNodes {
@@ -193,14 +195,14 @@ public abstract class ThreadNodes {
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Specialization(guards = { "isRubyClass(exceptionClass)", "isRubySymbol(timing)" })
-        public Object handle_interrupt(DynamicObject self, DynamicObject exceptionClass, DynamicObject timing, DynamicObject block) {
+        public Object handle_interrupt(VirtualFrame frame, DynamicObject self, DynamicObject exceptionClass, DynamicObject timing, DynamicObject block) {
             // TODO (eregon, 12 July 2015): should we consider exceptionClass?
             final InterruptMode newInterruptMode = symbolToInterruptMode(timing);
 
             final InterruptMode oldInterruptMode = Layouts.THREAD.getInterruptMode(self);
             Layouts.THREAD.setInterruptMode(self, newInterruptMode);
             try {
-                return yield(block);
+                return yield(frame, block);
             } finally {
                 Layouts.THREAD.setInterruptMode(self, oldInterruptMode);
             }
@@ -503,12 +505,14 @@ public abstract class ThreadNodes {
     @CoreMethod(names = "unblock", required = 2)
     public abstract static class UnblockNode extends YieldingCoreMethodNode {
 
+        static final VirtualFrame NEW_FRAME = Truffle.getRuntime().createVirtualFrame(new Object[0], new FrameDescriptor());
+
         @TruffleBoundary
-        @Specialization(guards = {"isRubyProc(unblocker)", "isRubyProc(runner)"})
+        @Specialization(guards = { "isRubyProc(unblocker)", "isRubyProc(runner)" })
         public Object unblock(DynamicObject thread, DynamicObject unblocker, DynamicObject runner) {
             return getContext().getThreadManager().runUntilResult(this,
-                    () -> yield(runner),
-                    () -> yield(unblocker));
+                    () -> yield(NEW_FRAME, runner),
+                    () -> yield(NEW_FRAME, unblocker));
         }
 
     }
@@ -666,10 +670,10 @@ public abstract class ThreadNodes {
     public static abstract class ThreadRunBlockingSystemCallNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyProc(block)")
-        public Object runBlockingSystemCall(DynamicObject block,
+        public Object runBlockingSystemCall(VirtualFrame frame, DynamicObject block,
                 @Cached("new()") YieldNode yieldNode) {
             return getContext().getThreadManager().runBlockingNFISystemCallUntilResult(this,
-                    () -> yieldNode.dispatch(block));
+                    () -> yieldNode.dispatch(frame, block));
         }
     }
 

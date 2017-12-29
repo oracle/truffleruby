@@ -621,8 +621,8 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        public Object classEval(DynamicObject self, NotProvided code, NotProvided file, NotProvided line, DynamicObject block) {
-            return yield.dispatchWithModifiedSelf(block, self, self);
+        public Object classEval(VirtualFrame frame, DynamicObject self, NotProvided code, NotProvided file, NotProvided line, DynamicObject block) {
+            return yield.dispatchWithModifiedSelf(frame, block, self, self);
         }
 
         @Specialization
@@ -642,15 +642,15 @@ public abstract class ModuleNodes {
 
         @Child private YieldNode yield = new YieldNode(DeclarationContext.CLASS_EVAL);
 
-        public abstract Object executeClassExec(DynamicObject self, Object[] args, Object block);
+        public abstract Object executeClassExec(VirtualFrame frame, DynamicObject self, Object[] args, Object block);
 
         @Specialization
-        public Object classExec(DynamicObject self, Object[] args, DynamicObject block) {
-            return yield.dispatchWithModifiedSelf(block, self, args);
+        public Object classExec(VirtualFrame frame, DynamicObject self, Object[] args, DynamicObject block) {
+            return yield.dispatchWithModifiedSelf(frame, block, self, args);
         }
 
         @Specialization
-        public Object classExec(DynamicObject self, Object[] args, NotProvided block) {
+        public Object classExec(VirtualFrame frame, DynamicObject self, Object[] args, NotProvided block) {
             throw new RaiseException(coreExceptions().noBlockGiven(this));
         }
 
@@ -1130,24 +1130,24 @@ public abstract class ModuleNodes {
 
         @Child private ModuleNodes.ClassExecNode classExecNode;
 
-        public abstract DynamicObject executeInitialize(DynamicObject module, Object block);
+        public abstract DynamicObject executeInitialize(VirtualFrame frame, DynamicObject module, Object block);
 
-        void classEval(DynamicObject module, DynamicObject block) {
+        void classEval(VirtualFrame frame, DynamicObject module, DynamicObject block) {
             if (classExecNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 classExecNode = insert(ModuleNodesFactory.ClassExecNodeFactory.create(null));
             }
-            classExecNode.executeClassExec(module, new Object[]{module}, block);
+            classExecNode.executeClassExec(frame, module, new Object[]{ module }, block);
         }
 
         @Specialization
-        public DynamicObject initialize(DynamicObject module, NotProvided block) {
+        public DynamicObject initialize(VirtualFrame frame, DynamicObject module, NotProvided block) {
             return module;
         }
 
         @Specialization
-        public DynamicObject initialize(DynamicObject module, DynamicObject block) {
-            classEval(module, block);
+        public DynamicObject initialize(VirtualFrame frame, DynamicObject module, DynamicObject block) {
+            classEval(frame, module, block);
             return module;
         }
 

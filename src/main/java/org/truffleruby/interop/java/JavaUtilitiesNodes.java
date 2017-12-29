@@ -16,6 +16,7 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.builtins.CoreClass;
@@ -186,7 +187,7 @@ public class JavaUtilitiesNodes {
     public static abstract class InvocationHandlerNode extends YieldingCoreMethodNode {
 
         @Specialization
-        public Object createHandler(DynamicObject aProc) {
+        public Object createHandler(VirtualFrame frame, DynamicObject aProc) {
             return new InvocationHandler() {
                 public Object invoke(Object aProxy, Method method, Object[] args) {
                     Object[] rubyArgs;
@@ -197,7 +198,7 @@ public class JavaUtilitiesNodes {
                         rubyArgs = new Object[1];
                     }
                     rubyArgs[0] = method;
-                    return yield(aProc, rubyArgs);
+                    return yield(frame, aProc, rubyArgs);
                 }
             };
         }

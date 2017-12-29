@@ -12,6 +12,7 @@ package org.truffleruby.core.tracepoint;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventBinding;
 import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -79,7 +80,7 @@ public abstract class TracePointNodes {
         }
 
         @Specialization(guards = "isTracePoint(tracePoint)")
-        public Object enable(DynamicObject tracePoint, DynamicObject block) {
+        public Object enable(VirtualFrame frame, DynamicObject tracePoint, DynamicObject block) {
             EventBinding<?> eventBinding = (EventBinding<?>) Layouts.TRACE_POINT.getEventBinding(tracePoint);
             final boolean alreadyEnabled = eventBinding != null;
 
@@ -89,7 +90,7 @@ public abstract class TracePointNodes {
             }
 
             try {
-                return yield(block);
+                return yield(frame, block);
             } finally {
                 if (!alreadyEnabled) {
                     dispose(eventBinding);
@@ -117,12 +118,12 @@ public abstract class TracePointNodes {
     public abstract static class DisableNode extends YieldingCoreMethodNode {
 
         @Specialization(guards = "isTracePoint(tracePoint)")
-        public boolean disable(DynamicObject tracePoint, NotProvided block) {
-            return disable(tracePoint, (DynamicObject) null);
+        public boolean disable(VirtualFrame frame, DynamicObject tracePoint, NotProvided block) {
+            return disable(frame, tracePoint, (DynamicObject) null);
         }
 
         @Specialization(guards = "isTracePoint(tracePoint)")
-        public boolean disable(DynamicObject tracePoint, DynamicObject block) {
+        public boolean disable(VirtualFrame frame, DynamicObject tracePoint, DynamicObject block) {
             EventBinding<?> eventBinding = (EventBinding<?>) Layouts.TRACE_POINT.getEventBinding(tracePoint);
             final boolean alreadyEnabled = eventBinding != null;
 
@@ -133,7 +134,7 @@ public abstract class TracePointNodes {
 
             if (block != null) {
                 try {
-                    yield(block);
+                    yield(frame, block);
                 } finally {
                     if (alreadyEnabled) {
                         eventBinding = EnableNode.createEventBinding(getContext(), tracePoint);

@@ -37,15 +37,10 @@
  */
 package org.truffleruby.core;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleContext;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import java.util.ArrayList;
+import java.util.Map.Entry;
+import java.util.function.Consumer;
+
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.Log;
@@ -53,6 +48,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.fiber.FiberManager;
@@ -72,10 +68,18 @@ import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.platform.Signals;
-import sun.misc.Signal;
 
-import java.util.Map.Entry;
-import java.util.function.Consumer;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleContext;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+
+import sun.misc.Signal;
 
 @CoreClass(value = "VM primitives")
 public abstract class VMPrimitiveNodes {
@@ -91,7 +95,7 @@ public abstract class VMPrimitiveNodes {
                 @Cached("createBinaryProfile()") ConditionProfile matchProfile,
                 @Cached("create()") ReferenceEqualNode referenceEqualNode) {
             try {
-                return dispatchNode.dispatch(block, tag);
+                return dispatchNode.dispatch(frame, block, tag);
             } catch (ThrowException e) {
                 catchProfile.enter();
                 if (matchProfile.profile(referenceEqualNode.executeReferenceEqual(e.getTag(), tag))) {
@@ -135,7 +139,7 @@ public abstract class VMPrimitiveNodes {
     public static abstract class VMExtendedModulesNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object vmExtendedModules(Object object, DynamicObject block,
+        public Object vmExtendedModules(VirtualFrame frame, Object object, DynamicObject block,
                 @Cached("create()") MetaClassNode metaClassNode,
                 @Cached("new()") YieldNode yieldNode,
                 @Cached("createBinaryProfile()") ConditionProfile isSingletonProfile) {
@@ -143,7 +147,7 @@ public abstract class VMPrimitiveNodes {
 
             if (isSingletonProfile.profile(Layouts.CLASS.getIsSingleton(metaClass))) {
                 for (DynamicObject included : Layouts.MODULE.getFields(metaClass).prependedAndIncludedModules()) {
-                    yieldNode.dispatch(block, included);
+                    yieldNode.dispatch(frame, block, included);
                 }
             }
 
@@ -347,19 +351,18 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMGetConfigSectionPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-        @Child private YieldNode yieldNode = new YieldNode();
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubyString(section)", "isRubyProc(block)" })
-        public DynamicObject getSection(DynamicObject section, DynamicObject block) {
+        @Specialization
+        public DynamicObject getSection(DynamicObject section) {
+            ArrayList<Object> config = new ArrayList<>();
             for (Entry<String, Object> entry : getContext().getNativeConfiguration().getSection(StringOperations.getString(section))) {
                 final DynamicObject key = makeStringNode.executeMake(entry.getKey(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
-                yieldNode.dispatch(block, key, entry.getValue());
+                config.add(key);
+                config.add(entry.getValue());
             }
-
-            return nil();
+            return createArray(config.toArray(), config.size());
         }
-
     }
 
     @Primitive(name = "vm_set_class", needsSelf = false)

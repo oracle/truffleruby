@@ -28,4 +28,15 @@ module ObjectSpace
   def self.garbage_collect
     GC.start
   end
+
+  def self.each_object( of_class = nil )
+    objects = all_objects(of_class)
+
+    return to_enum(:each_object, of_class) { objects.size } unless block_given?
+    
+    objects.each do |o|
+      yield o
+    end
+    objects.size
+  end
 end
