@@ -13,7 +13,10 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+
+import org.truffleruby.Layouts;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
 import org.truffleruby.language.yield.YieldNode;
@@ -63,12 +66,26 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
         return value;
     }
 
-    @Specialization(guards = "storage.hasHooks()")
-    public Object writeHooks(Object value,
+    @Specialization(guards = { "storage.hasHooks()", "arity != 2" })
+    public Object writeHooks(VirtualFrame frame, Object value,
                              @Cached("getStorage()") GlobalVariableStorage storage,
+                             @Cached("setterArity(storage)") int arity,
                              @Cached("new()") YieldNode yieldNode) {
         yieldNode.dispatch(storage.getSetter(), value);
         return value;
+    }
+
+    @Specialization(guards = { "storage.hasHooks()", "arity == 2" })
+    public Object writeHooksWithBinding(VirtualFrame frame, Object value,
+            @Cached("getStorage()") GlobalVariableStorage storage,
+            @Cached("setterArity(storage)") int arity,
+            @Cached("new()") YieldNode yieldNode) {
+        yieldNode.dispatch(storage.getSetter(), value, BindingNodes.createBinding(getContext(), frame.materialize()));
+        return value;
+    }
+
+    protected int setterArity(GlobalVariableStorage storage) {
+        return Layouts.PROC.getSharedMethodInfo(storage.getSetter()).getArity().getArityNumber();
     }
 
     protected GlobalVariableStorage getStorage() {

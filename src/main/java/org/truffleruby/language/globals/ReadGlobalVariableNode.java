@@ -13,6 +13,9 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+
+import org.truffleruby.Layouts;
+import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -38,11 +41,24 @@ public abstract class ReadGlobalVariableNode extends RubyNode {
         return storage.getValue();
     }
 
-    @Specialization(guards = "storage.hasHooks()")
-    public Object readHooks(
+    @Specialization(guards = { "storage.hasHooks()", "arity == 0" })
+    public Object readHooks(VirtualFrame frame,
             @Cached("getStorage()") GlobalVariableStorage storage,
+            @Cached("getterArity(storage)") int arity,
             @Cached("new()") YieldNode yieldNode) {
         return yieldNode.dispatch(storage.getGetter());
+    }
+
+    @Specialization(guards = { "storage.hasHooks()", "arity == 1" })
+    public Object readHooksWithBinding(VirtualFrame frame,
+            @Cached("getStorage()") GlobalVariableStorage storage,
+            @Cached("getterArity(storage)") int arity,
+            @Cached("new()") YieldNode yieldNode) {
+        return yieldNode.dispatch(storage.getGetter(), BindingNodes.createBinding(getContext(), frame.materialize()));
+    }
+
+    protected int getterArity(GlobalVariableStorage storage) {
+        return Layouts.PROC.getSharedMethodInfo(storage.getGetter()).getArity().getArityNumber();
     }
 
     protected GlobalVariableStorage getStorage() {

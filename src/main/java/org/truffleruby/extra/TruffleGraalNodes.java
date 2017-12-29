@@ -71,6 +71,11 @@ public abstract class TruffleGraalNodes {
             return rubyMethod;
         }
 
+        @Specialization(guards = "isRubyProc(rubyProc)")
+        public DynamicObject splitProc(DynamicObject rubyProc) {
+            Layouts.PROC.getSharedMethodInfo(rubyProc).setAlwaysClone(true);
+            return rubyProc;
+        }
     }
 
     // Like Smalltalk's fixTemps but not mutating the Proc
