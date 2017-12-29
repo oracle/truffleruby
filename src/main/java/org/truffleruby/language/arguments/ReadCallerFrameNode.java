@@ -12,6 +12,7 @@ package org.truffleruby.language.arguments;
 import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CachedDispatchNode;
+import org.truffleruby.language.yield.CallBlockNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
@@ -48,6 +49,8 @@ public class ReadCallerFrameNode extends RubyNode {
             Node parent = callerNode.getParent();
             if (parent instanceof CachedDispatchNode) {
                 ((CachedDispatchNode) parent).startSendingOwnFrame();
+            } else if (parent instanceof CallBlockNode) {
+                ((CallBlockNode) parent).startSendingOwnFrame();
             }
         }
     }
