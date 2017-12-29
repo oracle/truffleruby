@@ -6,9 +6,6 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
-class Data
-end
-
 module Truffle::CExt
   extend self
 
