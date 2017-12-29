@@ -15,7 +15,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ForeignAccess;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.Message;
@@ -48,8 +47,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class RequireNode extends RubyNode {
 
     @Child private IndirectCallNode callNode = IndirectCallNode.create();
-    @Child private CallDispatchHeadNode isInLoadedFeatures = CallDispatchHeadNode.create();
-    @Child private CallDispatchHeadNode addToLoadedFeatures = CallDispatchHeadNode.create();
+    @Child private CallDispatchHeadNode isInLoadedFeatures = CallDispatchHeadNode.createOnSelf();
+    @Child private CallDispatchHeadNode addToLoadedFeatures = CallDispatchHeadNode.createOnSelf();
 
     @Child private Node isExecutableNode = Message.IS_EXECUTABLE.createNode();
     @Child private Node executeNode = Message.createExecute(0).createNode();
@@ -58,10 +57,10 @@ public abstract class RequireNode extends RubyNode {
         return RequireNodeGen.create(null);
     }
 
-    public abstract boolean executeRequire(VirtualFrame frame, String feature);
+    public abstract boolean executeRequire(String feature);
 
     @Specialization
-    protected boolean require(VirtualFrame frame, String feature,
+    protected boolean require(String feature,
             @Cached("create()") BranchProfile errorProfile,
             @Cached("createBinaryProfile()") ConditionProfile isLoadedProfile,
             @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
@@ -76,7 +75,7 @@ public abstract class RequireNode extends RubyNode {
 
         final DynamicObject pathString = makeStringNode.executeMake(expandedPath, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
-        if (isLoadedProfile.profile(isFeatureLoaded(frame, pathString))) {
+        if (isLoadedProfile.profile(isFeatureLoaded(pathString))) {
             return false;
         }
 
@@ -96,7 +95,7 @@ public abstract class RequireNode extends RubyNode {
             }
 
             try {
-                if (isFeatureLoaded(frame, pathString)) {
+                if (isFeatureLoaded(pathString)) {
                     return false;
                 }
 
@@ -138,7 +137,7 @@ public abstract class RequireNode extends RubyNode {
                     }
                 }
 
-                addToLoadedFeatures(frame, pathString);
+                addToLoadedFeatures(pathString);
 
                 return true;
             } finally {
@@ -259,17 +258,17 @@ public abstract class RequireNode extends RubyNode {
         }
     }
 
-    public boolean isFeatureLoaded(VirtualFrame frame, DynamicObject feature) {
+    public boolean isFeatureLoaded(DynamicObject feature) {
         final DynamicObject loadedFeatures = getContext().getCoreLibrary().getLoadedFeatures();
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
-            return isInLoadedFeatures.callBoolean(frame, loadedFeatures, "include?", null, feature);
+            return isInLoadedFeatures.callBoolean(null, loadedFeatures, "include?", null, feature);
         }
     }
 
-    private void addToLoadedFeatures(VirtualFrame frame, DynamicObject feature) {
+    private void addToLoadedFeatures(DynamicObject feature) {
         final DynamicObject loadedFeatures = coreLibrary().getLoadedFeatures();
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
-            addToLoadedFeatures.call(frame, loadedFeatures, "<<", feature);
+            addToLoadedFeatures.call(null, loadedFeatures, "<<", feature);
         }
     }
 
