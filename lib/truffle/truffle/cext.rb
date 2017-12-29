@@ -6,8 +6,6 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
-# TODO CS 3-Feb-17 only load this when people use cexts
-
 class Data
 end
 

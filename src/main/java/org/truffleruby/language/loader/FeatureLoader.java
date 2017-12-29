@@ -228,7 +228,7 @@ public class FeatureLoader {
         return context.getEnv().isMimeTypeSupported(RubyLanguage.SULONG_BITCODE_BASE64_MIME_TYPE);
     }
 
-    public void ensureCExtImplementationLoaded(String feature) {
+    public void ensureCExtImplementationLoaded(String feature, RequireNode requireNode) {
         synchronized (cextImplementationLock) {
             if (cextImplementationLoaded) {
                 return;
@@ -237,6 +237,9 @@ public class FeatureLoader {
             if (!isSulongAvailable()) {
                 throw new RaiseException(context.getCoreExceptions().loadError("Sulong is required to support C extensions, and it doesn't appear to be available", feature, null));
             }
+
+            final String cextRBpath = context.getRubyHome() + "/lib/truffle/truffle/cext.rb";
+            requireNode.executeRequire(cextRBpath);
 
             String rubySUpath = loadCExtLibRuby(feature);
 
