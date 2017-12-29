@@ -150,7 +150,7 @@ public abstract class RequireNode extends RubyNode {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
 
         try {
-            featureLoader.ensureCExtImplementationLoaded(feature);
+            featureLoader.ensureCExtImplementationLoaded(feature, this);
 
             if (getContext().getOptions().CEXTS_LOG_LOAD) {
                 info("loading cext module %s (requested as %s)", expandedPath, feature);
