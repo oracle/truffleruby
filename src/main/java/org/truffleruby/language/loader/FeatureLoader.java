@@ -286,7 +286,7 @@ public class FeatureLoader {
     private final Node executeSulongLoadLibraryNode = Message.createExecute(1).createNode();
 
     private void loadNativeLibrary(String path, String library) {
-        ensureCExtImplementationLoaded(path);
+        assert sulongLoadLibraryFunction != null;
 
         final String remapped = remapNativeLibrary(library);
 
