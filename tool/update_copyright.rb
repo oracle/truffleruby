@@ -44,17 +44,31 @@ OTHER_COPYRIGHTS = [
   /Copyright \(c\) \d{4} Software Architecture Group, Hasso Plattner Institute/,
   /Copyright \(c\) \d{4}(?:-\d{4})?,? Evan Phoenix/,
   /Copyright \(c\) \d{4} Engine Yard/,
+  /Copyright \(c\) \d{4} Akinori MUSHA/, # SHA-2
+  /Copyright \(c\) \d{4}-\d{4} The JRuby project/, # io/console
   /Copyright \(c\) \d{4} Damien Miller <djm@mindrot\.org>/, # BCrypt
+  /Copyright \(C\) \d{4}-\d{4} Wayne Meissner/, # FFI
+  /Copyright \(c\) \d{4}, Brian Shirai/, # rubysl-socket
+  /Ruby is copyrighted free software by Yukihiro Matsumoto/, # MRI license
+  #Copyright (C) 2000  Network Applied Communication Laboratory, Inc.
+  /Copyright(?:::)?\s+\(C\)\s+\d{4}\s+Network Applied Communication Laboratory, Inc\./, # MRI stdlibs: thread, timeout
   /\* BEGIN LICENSE BLOCK \**\s*\n\s*\*\s*Version: EPL 1\.0\/GPL 2\.0\/LGPL 2\.1/,
+  /#+\s*BEGIN LICENSE BLOCK\s*#+\s*\n\s*#\s*Version: EPL 1\.0\/GPL 2\.0\/LGPL 2\.1/,
 ]
 
 truffle_paths = %w[
+  lib/cext
+  lib/truffle
+  lib/truffleruby-tool
   src
   test/truffle
   spec/truffle
 ] + [__FILE__]
 
 excludes = %w[
+  lib/truffle/date
+  lib/truffle/pathname
+  lib/truffle/securerandom
   test/truffle/pack-real-usage.rb
   test/truffle/cexts
   test/truffle/ecosystem
@@ -98,13 +112,13 @@ paths = diff.each_delta.to_a.map { |delta|
   EXTENSIONS.include?(File.extname(path)) &&
     truffle_paths.any? { |prefix| path.start_with? prefix } &&
     excludes.none? { |prefix| path.start_with? prefix } &&
-    !excluded_files.include?(File.basename(path))
+    !excluded_files.include?(File.basename(path)) &&
+    File.exist?(path) &&
+    File.readlines(path).size > 2
 }
 
 paths.each do |file|
-  next unless File.exist? file
-
-  header = File.read(file, 200)
+  header = File.read(file, 400)
 
   unless COPYRIGHT =~ header
     if OTHER_COPYRIGHTS.none? { |copyright| copyright =~ header }
