@@ -48,7 +48,7 @@ public abstract class CallBlockNode extends RubyNode {
             Object blockArgument,
             Object[] arguments,
             @Cached("getBlockCallTarget(block)") CallTarget cachedCallTarget,
-            @Cached("createBlockCallNode(cachedCallTarget)") DirectCallNode callNode) {
+            @Cached("createBlockCallNode(block, cachedCallTarget)") DirectCallNode callNode) {
         final Object[] frameArguments = packArguments(declarationContext, block, self, blockArgument, arguments);
         return callNode.call(frameArguments);
     }
@@ -81,10 +81,11 @@ public abstract class CallBlockNode extends RubyNode {
         return Layouts.PROC.getCallTargetForType(block);
     }
 
-    protected DirectCallNode createBlockCallNode(CallTarget callTarget) {
+    protected DirectCallNode createBlockCallNode(DynamicObject block, CallTarget callTarget) {
         final DirectCallNode callNode = Truffle.getRuntime().createDirectCallNode(callTarget);
 
-        if (getContext().getOptions().YIELD_ALWAYS_CLONE && callNode.isCallTargetCloningAllowed()) {
+        final boolean clone = Layouts.PROC.getSharedMethodInfo(block).shouldAlwaysClone() || getContext().getOptions().YIELD_ALWAYS_CLONE;
+        if (clone && callNode.isCallTargetCloningAllowed()) {
             callNode.cloneCallTarget();
         }
 
