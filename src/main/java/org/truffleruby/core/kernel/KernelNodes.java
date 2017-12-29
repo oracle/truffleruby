@@ -1271,7 +1271,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "isRubyString(featureString)")
-        public boolean require(VirtualFrame frame, DynamicObject featureString,
+        public boolean require(DynamicObject featureString,
                 @Cached("create()") RequireNode requireNode) {
 
             String feature = StringOperations.getString(featureString);
@@ -1286,7 +1286,7 @@ public abstract class KernelNodes {
                 throw new RaiseException(coreExceptions().loadErrorCannotLoad(feature, this));
             }
 
-            return requireNode.executeRequire(frame, feature);
+            return requireNode.executeRequire(feature);
         }
 
         @TruffleBoundary
@@ -1308,12 +1308,12 @@ public abstract class KernelNodes {
     public abstract static class RequireRelativeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(feature)")
-        public boolean requireRelative(VirtualFrame frame, DynamicObject feature,
+        public boolean requireRelative(DynamicObject feature,
                 @Cached("create()") RequireNode requireNode) {
             final String featureString = StringOperations.getString(feature);
             final String featurePath = getFullPath(featureString);
 
-            return requireNode.executeRequire(frame, featurePath);
+            return requireNode.executeRequire(featurePath);
         }
 
         @TruffleBoundary

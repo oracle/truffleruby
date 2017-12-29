@@ -886,7 +886,7 @@ public abstract class ModuleNodes {
                 return getConstantNode.executeGetConstant(frame, module, name, null, lookupConstantNode);
             } else {
                 if (constant.getConstant().isAutoload()) {
-                    loadAutoloadedConstant(frame, constant);
+                    loadAutoloadedConstant(constant);
                     constant = ModuleOperations.lookupConstantWithInherit(getContext(), module, name, false, currentNode);
                 }
 
@@ -915,14 +915,14 @@ public abstract class ModuleNodes {
             return name.contains("::");
         }
 
-        private void loadAutoloadedConstant(VirtualFrame frame, ConstantLookupResult constant) {
+        private void loadAutoloadedConstant(ConstantLookupResult constant) {
             if (requireNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 requireNode = insert(RequireNode.create());
             }
 
             final String feature = StringOperations.getString((DynamicObject) constant.getConstant().getValue());
-            requireNode.executeRequire(frame, feature);
+            requireNode.executeRequire(feature);
         }
 
         protected int getLimit() {
