@@ -70,7 +70,7 @@ module RbConfig
       'LDFLAGS'           => '',
       'DLDFLAGS'          => '',
       'DLEXT'             => 'su',
-      'NATIVE_DLEXT'      => RUBY_PLATFORM.include?('darwin') ? 'dylib' : 'so',
+      'NATIVE_DLEXT'      => Truffle::Platform::NATIVE_DLEXT,
       'host_alias'        => '',
       'host_os'           => host_os_full,
       'host_cpu'          => host_cpu,

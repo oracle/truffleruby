@@ -21,6 +21,8 @@ module Truffle::Platform
   IS_BSD = HOST_OS == 'freebsd' || HOST_OS == 'netbsd' || HOST_OS == 'openbsd'
   IS_WINDOWS = HOST_OS == 'mswin32'
 
+  NATIVE_DLEXT = IS_DARWIN ? 'dylib' : 'so'
+
   def self.linux?
     IS_LINUX
   end
