@@ -1040,10 +1040,11 @@ module Commands
         case gem_name
         when 'backtraces'
           run_ruby "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", err: output_file, continue_on_failure: true
-          unless File.read(output_file)
-              .gsub(TRUFFLERUBY_DIR, '')
-              .gsub(/\/cext\.rb:(\d+)/, '/cext.rb:n') == File.read("#{dir}/expected.txt")
-            abort "c extension #{dir} didn't work as expected"
+          actual = File.read(output_file).gsub(TRUFFLERUBY_DIR, '').gsub(/\/cext\.rb:(\d+)/, '/cext.rb:n')
+          expected = File.read("#{dir}/expected.txt")
+          unless actual == expected
+            abort "C extension #{dir} didn't work as expected\n" \
+                  "Actual:\n#{actual}\nExpected:\n#{expected}"
           end
         else
           run_ruby "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", out: output_file
