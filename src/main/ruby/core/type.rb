@@ -697,5 +697,12 @@ module Truffle
       level
     end
 
+    # Needs to be in core for assigning $!
+    def self.set_last_exception(error)
+      if !error.nil? && !error.is_a?(Exception)
+        raise TypeError, 'assigning non-exception to ?!'
+      end
+      $! = error
+    end
   end
 end
