@@ -8,10 +8,12 @@ describe :fiber_resume, shared: true do
     fiber = Fiber.new { 42 }
     Thread.new do
       -> {
-        fiber.resume
+        fiber.send(@method)
       }.should raise_error(FiberError)
     end.join
-    fiber.resume.should == 42
+
+    # Check the Fiber can still be used
+    fiber.send(@method).should == 42
   end
 
   it "passes control to the beginning of the block on first invocation" do
