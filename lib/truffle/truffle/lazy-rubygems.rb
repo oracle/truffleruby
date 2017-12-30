@@ -28,4 +28,10 @@ end
 
 class Object
   autoload :Gem, 'rubygems'
+
+  # RbConfig is required by RubyGems, which makes it available in Ruby by default.
+  # Autoload it since we do not load RubyGems eagerly.
+  autoload :RbConfig, 'rbconfig'
+  # Defined by RbConfig
+  autoload :CROSS_COMPILING, 'rbconfig'
 end
