@@ -226,15 +226,13 @@ public abstract class RequireNode extends RubyNode {
     @TruffleBoundary
     private DynamicObject cextSupportNotAvailable(String expandedPath) {
         return getContext().getCoreExceptions().internalError(
-                "cext support is not available to load " + expandedPath,
-                callNode);
+                "cext support is not available to load " + expandedPath, this);
     }
 
     @TruffleBoundary
     private DynamicObject unknownLanguage(String expandedPath, String mimeType) {
         return getContext().getCoreExceptions().internalError(
-                "unknown language " + mimeType + " for " + expandedPath,
-                callNode);
+                "unknown language " + mimeType + " for " + expandedPath, this);
     }
 
     @TruffleBoundary
