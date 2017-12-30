@@ -8,10 +8,9 @@
 
 module Truffle::POSIX
   LIBC = Truffle::Interop.eval('application/x-native', 'default')
-  DL_EXT = RbConfig::CONFIG['NATIVE_DLEXT']
 
   home = Truffle::Boot.ruby_home
-  libtruffleposix = "#{home}/lib/cext/truffleposix.#{DL_EXT}" if home
+  libtruffleposix = "#{home}/lib/cext/truffleposix.#{Truffle::Platform::NATIVE_DLEXT}" if home
   if home
     LIBTRUFFLEPOSIX = Truffle::Interop.eval('application/x-native', "load '#{libtruffleposix}'")
   else
