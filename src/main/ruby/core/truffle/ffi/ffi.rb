@@ -275,11 +275,11 @@ module Truffle::FFI::Platform
   LIBPREFIX = 'lib'
   IS_GNU = (OS == 'linux') # TODO (eregon, 6 March 2017): actually check
 
-  ARCH = Truffle::CPU
+  ARCH = 'jvm'
 
   # ruby-ffi compatible
-  LONG_SIZE = Truffle::SIZEOF_LONG * 8
-  ADDRESS_SIZE = Truffle::WORDSIZE
+  LONG_SIZE = 64
+  ADDRESS_SIZE = 64
 
   def self.bsd?
     Truffle.bsd?

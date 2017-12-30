@@ -204,7 +204,7 @@ module Truffle::FFI
 
     # Number of bytes taken up by a pointer.
     def self.size
-      Truffle::WORDSIZE / 8
+      8
     end
 
     # Primitive methods
