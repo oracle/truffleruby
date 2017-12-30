@@ -1028,7 +1028,7 @@ module Marshal
     end
 
     def serialize_integer(n, prefix = nil)
-      if (!Truffle::L64 && n.is_a?(Fixnum)) || ((n >> 31) == 0 or (n >> 31) == -1)
+      if (!Truffle::Platform::L64 && n.is_a?(Fixnum)) || ((n >> 31) == 0 or (n >> 31) == -1)
         Truffle::Type.binary_string(prefix.to_s + serialize_fixnum(n))
       else
         serialize_bignum(n)

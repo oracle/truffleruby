@@ -148,9 +148,9 @@ module Process
     title = Truffle::Type.coerce_to(title, String, :to_str)
     if Truffle.native?
       Truffle::System.native_set_process_title(title)
-    elsif Truffle.linux? && File.readable?('/proc/self/maps')
+    elsif Truffle::Platform.linux? && File.readable?('/proc/self/maps')
       setproctitle_linux_from_proc_maps(title)
-    elsif Truffle.darwin?
+    elsif Truffle::Platform.darwin?
       # When we call _NSGetArgv we seem to always get a string that looks like what we'd expect from running ps, but
       # with a null character inserted early. I don't know where this comes from, but it means I don't know how to get
       # the length of space available for writing in the new program name. We therefore limit to about 40 characters,

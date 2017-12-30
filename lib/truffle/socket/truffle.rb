@@ -27,11 +27,11 @@
 module Truffle
   module Socket
     def self.bsd_support?
-      Truffle.bsd? || Truffle.darwin?
+      Truffle::Platform.bsd? || Truffle::Platform.darwin?
     end
 
     def self.linux_support?
-      Truffle.linux?
+      Truffle::Platform.linux?
     end
 
     def self.unix_socket_support?

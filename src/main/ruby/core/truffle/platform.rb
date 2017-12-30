@@ -6,10 +6,12 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
-module Truffle
-
+module Truffle::Platform
   # Used by Truffle::FFI
   L64 = true
+
+  # jnr-posix hard codes this value
+  PATH_MAX = 1024
 
   HOST_OS = Truffle::System.host_os
 
@@ -42,8 +44,4 @@ module Truffle
   def self.mathn_loaded?
     false
   end
-
-  # jnr-posix hard codes this value
-  PATH_MAX = 1024
-
 end

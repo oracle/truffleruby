@@ -18,7 +18,7 @@ module Truffle::POSIX
     LIBTRUFFLEPOSIX = LIBC
   end
 
-  if Truffle.linux?
+  if Truffle::Platform.linux?
     LIBCRYPT = Truffle::Interop.eval('application/x-native', 'load libcrypt.so')
   else
     LIBCRYPT = LIBC
@@ -232,18 +232,18 @@ module Truffle::POSIX
   attach_function :truffleposix_get_user_home, [:string], :pointer, library: LIBTRUFFLEPOSIX
 
   # Errno-related
-  if Truffle.linux?
+  if Truffle::Platform.linux?
     attach_function :__errno_location, [], :pointer, as: :errno_address
-  elsif Truffle.darwin?
+  elsif Truffle::Platform.darwin?
     attach_function :__error, [], :pointer, as: :errno_address
-  elsif Truffle.solaris?
+  elsif Truffle::Platform.solaris?
     attach_function :___errno, [], :pointer, as: :errno_address
   else
     raise 'Unsupported platform'
   end
 
   # Platform-specific
-  if Truffle.darwin?
+  if Truffle::Platform.darwin?
     attach_function :_NSGetArgv, [], :pointer
   end
 end if Truffle::Boot.get_option 'platform.native'
