@@ -1846,7 +1846,7 @@ module Commands
 
   def verify_native_bin!
     unless File.exist?(Utilities.find_launcher(true))
-      raise "Could not find native image -- either build with 'jt build --native' or set AOT_BIN to an image location"
+      raise "Could not find native image -- either build with 'jt build native' or set AOT_BIN to an image location"
     end
   end
 
