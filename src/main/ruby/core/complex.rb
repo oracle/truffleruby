@@ -89,7 +89,7 @@ class Complex < Numeric
       return real + imag * Complex.new(0, 1)
     end
 
-    return real if Truffle.mathn_loaded? && imag.equal?(0)
+    return real if Truffle::Platform.mathn_loaded? && imag.equal?(0)
     rect(real, imag)
   end
 

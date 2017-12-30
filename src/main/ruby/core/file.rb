@@ -89,7 +89,7 @@ class File < IO
     FNM_CASEFOLD = 0x08
     FNM_EXTGLOB  = 0x10
 
-    if Truffle.windows?
+    if Truffle::Platform.windows?
       NULL = 'NUL'
     else
       NULL = '/dev/null'
@@ -904,8 +904,8 @@ class File < IO
   #  File.symlink("testfile", "link2test")   #=> 0
   #  File.readlink("link2test")              #=> "testfile"
   def self.readlink(path)
-    FFI::MemoryPointer.new(Truffle::PATH_MAX) do |ptr|
-      n = POSIX.readlink Truffle::Type.coerce_to_path(path), ptr, Truffle::PATH_MAX
+    FFI::MemoryPointer.new(Truffle::Platform::PATH_MAX) do |ptr|
+      n = POSIX.readlink Truffle::Type.coerce_to_path(path), ptr, Truffle::Platform::PATH_MAX
       Errno.handle if n == -1
 
       ptr.read_string(n).force_encoding(Encoding.find('filesystem'))

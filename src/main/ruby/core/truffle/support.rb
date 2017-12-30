@@ -12,7 +12,7 @@ module Truffle
     file.seek(offset)
 
     # flock() does not work on Solaris if the File is not open in write mode
-    unless Truffle.solaris?
+    unless Truffle::Platform.solaris?
       if Truffle::POSIX.respond_to? :flock
         # I think if the file can't be locked then we just silently ignore
         if file.flock(File::LOCK_EX | File::LOCK_NB)

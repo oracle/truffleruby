@@ -186,7 +186,7 @@ module Truffle::FFI
   # Converts a varargs argument
   add_typedef TYPE_VARARGS, :varargs
 
-  if Truffle::L64
+  if Truffle::Platform::L64
     add_typedef TYPE_LONG,  :int64
     add_typedef TYPE_ULONG, :uint64
   else
@@ -198,7 +198,7 @@ module Truffle::FFI
   TypeSizes[1] = :char
   TypeSizes[2] = :short
   TypeSizes[4] = :int
-  TypeSizes[8] = Truffle::L64 ? :long : :long_long
+  TypeSizes[8] = Truffle::Platform::L64 ? :long : :long_long
 
   # Load all the platform dependent types
 
@@ -258,11 +258,11 @@ end
 
 module Truffle::FFI::Platform
   case
-  when Truffle.windows?
+  when Truffle::Platform.windows?
     LIBSUFFIX = 'dll'
     IS_WINDOWS = true
     OS = 'windows'
-  when Truffle.darwin?
+  when Truffle::Platform.darwin?
     LIBSUFFIX = 'dylib'
     IS_WINDOWS = false
     OS = 'darwin'
@@ -282,19 +282,19 @@ module Truffle::FFI::Platform
   ADDRESS_SIZE = 64
 
   def self.bsd?
-    Truffle.bsd?
+    Truffle::Platform.bsd?
   end
 
   def self.windows?
-    Truffle.windows?
+    Truffle::Platform.windows?
   end
 
   def self.mac?
-    Truffle.darwin?
+    Truffle::Platform.darwin?
   end
 
   def self.solaris?
-    Truffle.solaris?
+    Truffle::Platform.solaris?
   end
 
   def self.unix?
