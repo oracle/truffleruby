@@ -32,9 +32,11 @@ module Truffle::Boot
   def self.find_s_file(name)
     # Nonstandard lookup
 
-    # added to look up truffleruby own files first when it's not on PATH
-    name_in_ruby_home_bin = "#{RbConfig::CONFIG['bindir']}/#{name}"
-    return name_in_ruby_home_bin if File.exist?(name_in_ruby_home_bin)
+    if ruby_home = Truffle::Boot.ruby_home
+      # added to look up truffleruby own files first when it's not on PATH
+      name_in_ruby_home_bin = "#{ruby_home}/bin/#{name}"
+      return name_in_ruby_home_bin if File.exist?(name_in_ruby_home_bin)
+    end
 
     # Standard lookups
 
@@ -61,4 +63,3 @@ module Truffle::Boot
   private_class_method :find_in_environment_paths
 
 end
-
