@@ -14,7 +14,7 @@ TRUFFLE_MOCK := $(ROOT)/lib/cext/trufflemock.bc
 RUBY_LIBRARY := $(ROOT)/lib/cext/ruby.su
 
 RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/*.h) $(wildcard $(ROOT)/lib/cext/ruby/*.h)
-RBCONFIG := $(ROOT)/src/main/ruby/core/rbconfig.rb
+RBCONFIG := $(ROOT)/lib/truffle/rbconfig.rb
 RBCONFIG_MKMF := $(ROOT)/lib/truffle/rbconfig-for-mkmf.rb
 PREPROCESS := $(ROOT)/lib/cext/preprocess.rb
 MKMF := $(ROOT)/lib/mri/mkmf.rb
