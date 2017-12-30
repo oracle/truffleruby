@@ -287,10 +287,6 @@ public class FiberManager {
 
     @TruffleBoundary
     public void shutdown(Thread javaThread) {
-        if (javaThread != Layouts.FIBER.getThread(rootFiber)) {
-            throw new UnsupportedOperationException("FiberManager.shutdown() must be called on the root Fiber");
-        }
-
         // All Fibers except the current one are in waitForResume(),
         // so sending a FiberShutdownMessage is enough to finish them.
         // This also avoids the performance cost of a safepoint.
