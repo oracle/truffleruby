@@ -228,6 +228,7 @@ public class FeatureLoader {
         return context.getEnv().isMimeTypeSupported(RubyLanguage.SULONG_BITCODE_BASE64_MIME_TYPE);
     }
 
+    @TruffleBoundary
     public void ensureCExtImplementationLoaded(String feature, RequireNode requireNode) {
         synchronized (cextImplementationLock) {
             if (cextImplementationLoaded) {

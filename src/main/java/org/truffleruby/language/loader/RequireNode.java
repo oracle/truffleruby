@@ -146,6 +146,7 @@ public abstract class RequireNode extends RubyNode {
         }
     }
 
+    @TruffleBoundary
     private void requireCExtension(String feature, String expandedPath) {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
 
