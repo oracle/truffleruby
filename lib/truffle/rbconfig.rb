@@ -116,10 +116,11 @@ module RbConfig
 
   if ruby_home
     prefix = ruby_home
+    bindir = "#{prefix}/bin"
 
     common = {
       'prefix' => prefix,
-      'bindir' => "#{prefix}/bin",
+      'bindir' => bindir,
       'hdrdir' => "#{prefix}/lib/cext",
       'rubyhdrdir' => "#{prefix}/lib/cext",
       'rubyarchhdrdir' => "#{prefix}/lib/cext",
@@ -160,15 +161,23 @@ module RbConfig
     mkconfig['topdir'] = '$(archdir)'
   end
 
-  def self.ruby
-    @ruby_launcher ||= begin
-      # ruby launcher is properly set
-      Truffle::Boot.ruby_launcher ||
-          # determine launcher from ruby_home
-          ("#{CONFIG['bindir']}/#{CONFIG['ruby_install_name']}" if Truffle::Boot.ruby_home) ||
-          # use fallback, e.g. there is no launcher if TruffleRuby is embedded with the polyglot API
-          CONFIG['ruby_install_name']
+  launcher = Truffle::Boot.ruby_launcher
+  unless launcher
+    if ruby_home
+      launcher = "#{bindir}/#{ruby_install_name}"
+    else
+      launcher = ruby_install_name
     end
+  end
+
+  if ruby_home
+    expanded['LDSHARED'] = "#{launcher} -Xgraal.warn_unless=false #{libdir}/cext/ldshared.rb"
+  end
+
+  RUBY = launcher
+
+  def self.ruby
+    RUBY
   end
 
   def RbConfig.expand(val, config = CONFIG)
@@ -188,10 +197,6 @@ module RbConfig
     }
     val.replace(newval) unless newval == val
     val
-  end
-
-  if ruby_home
-    expanded['LDSHARED'] = "#{RbConfig.ruby} -Xgraal.warn_unless=false #{libdir}/cext/ldshared.rb"
   end
 
 end
