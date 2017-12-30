@@ -4,11 +4,6 @@ describe :fiber_resume, shared: true do
    fiber.send(@method).should == :fiber
   end
 
-  it "raises a FiberError if the Fiber tries to resume itself" do
-    fiber = Fiber.new { fiber.resume }
-    -> { fiber.resume }.should raise_error(FiberError, /double resume/)
-  end
-
   it "raises a FiberError if invoked from a different Thread" do
     fiber = Fiber.new { 42 }
     Thread.new do
