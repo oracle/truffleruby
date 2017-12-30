@@ -30,7 +30,6 @@ import org.truffleruby.Log;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.JavaException;
@@ -41,6 +40,7 @@ import org.truffleruby.parser.ParserContext;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 import java.util.concurrent.locks.ReentrantLock;
 
 @NodeChild("feature")
@@ -61,7 +61,8 @@ public abstract class RequireNode extends RubyNode {
 
     @Specialization
     protected boolean require(String feature,
-            @Cached("create()") BranchProfile errorProfile,
+            @Cached("create()") BranchProfile notFoundProfile,
+            @Cached("create()") BranchProfile mimeTypeNotFoundProfile,
             @Cached("createBinaryProfile()") ConditionProfile isLoadedProfile,
             @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
@@ -69,7 +70,7 @@ public abstract class RequireNode extends RubyNode {
         final String expandedPath = featureLoader.findFeature(feature);
 
         if (expandedPath == null) {
-            errorProfile.enter();
+            notFoundProfile.enter();
             throw new RaiseException(getContext().getCoreExceptions().loadErrorCannotLoad(feature, this));
         }
 
@@ -128,13 +129,8 @@ public abstract class RequireNode extends RubyNode {
                 } else if (RubyLanguage.CEXT_MIME_TYPE.equals(mimeType)) {
                     requireCExtension(feature, expandedPath);
                 } else {
-                    errorProfile.enter();
-
-                    if (StringUtils.toLowerCase(expandedPath).endsWith(".su")) {
-                        throw new RaiseException(cextSupportNotAvailable(expandedPath));
-                    } else {
-                        throw new RaiseException(unknownLanguage(expandedPath, mimeType));
-                    }
+                    mimeTypeNotFoundProfile.enter();
+                    throw new RaiseException(mimeTypeNotFound(expandedPath, mimeType));
                 }
 
                 addToLoadedFeatures(pathString);
@@ -143,6 +139,15 @@ public abstract class RequireNode extends RubyNode {
             } finally {
                 fileLocks.unlock(expandedPath, lock);
             }
+        }
+    }
+
+    @TruffleBoundary
+    private DynamicObject mimeTypeNotFound(String expandedPath, String mimeType) {
+        if (expandedPath.toLowerCase(Locale.ENGLISH).endsWith(".su")) {
+            return coreExceptions().internalError("cext support is not available to load " + expandedPath, this);
+        } else {
+            return coreExceptions().internalError("unknown language " + mimeType + " for " + expandedPath, this);
         }
     }
 
@@ -221,18 +226,6 @@ public abstract class RequireNode extends RubyNode {
     @TruffleBoundary
     private String getSourceMimeType(Source source) {
         return source.getMimeType();
-    }
-
-    @TruffleBoundary
-    private DynamicObject cextSupportNotAvailable(String expandedPath) {
-        return getContext().getCoreExceptions().internalError(
-                "cext support is not available to load " + expandedPath, this);
-    }
-
-    @TruffleBoundary
-    private DynamicObject unknownLanguage(String expandedPath, String mimeType) {
-        return getContext().getCoreExceptions().internalError(
-                "unknown language " + mimeType + " for " + expandedPath, this);
     }
 
     @TruffleBoundary
