@@ -94,6 +94,11 @@ class Symbol
 
   alias_method :=~, :match
 
+  def match?(pattern, pos=0)
+    pattern = Truffle::Type.coerce_to_regexp(pattern) unless pattern.kind_of? Regexp
+    pattern.match? to_s, pos
+  end
+
   def encoding
     Truffle.invoke_primitive :encoding_get_object_encoding, self
   end

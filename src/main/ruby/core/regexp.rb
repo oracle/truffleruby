@@ -207,6 +207,10 @@ class Regexp
     end
   end
 
+  def match?(str, pos = 0)
+    Truffle::RegexpOperations.match(self, str, pos) != nil
+  end
+
   def ===(other)
     if other.kind_of? Symbol
       other = other.to_s

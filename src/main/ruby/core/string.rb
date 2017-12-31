@@ -1040,6 +1040,11 @@ class String
     result
   end
 
+  def match?(pattern, pos=0)
+    pattern = Truffle::Type.coerce_to_regexp(pattern) unless pattern.kind_of? Regexp
+    pattern.match? self, pos
+  end
+
   def scrub(replace = nil, &block)
     return dup if valid_encoding?
 
