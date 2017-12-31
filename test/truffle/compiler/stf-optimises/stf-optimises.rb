@@ -7,13 +7,13 @@
 # GNU Lesser General Public License version 2.1
 
 def foo
-  foo = 14
-  foo * 2
+  var = 14
+  var * 2
 end
 
 set_trace_func proc { |event, file, line, id, binding, classname|
   if event == 'line' && file == __FILE__ && line == 11
-    binding.local_variable_set(:foo, 100)
+    binding.local_variable_set(:var, 100)
   end
 }
 
