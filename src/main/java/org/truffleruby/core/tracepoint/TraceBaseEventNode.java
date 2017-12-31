@@ -18,11 +18,8 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class TraceBaseEventNode extends ExecutionEventNode {
-
-    protected final ConditionProfile inTraceFuncProfile = ConditionProfile.createBinaryProfile();
 
     protected final RubyContext context;
     protected final EventContext eventContext;
