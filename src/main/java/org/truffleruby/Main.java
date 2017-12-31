@@ -44,10 +44,11 @@
  */
 package org.truffleruby;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
-import org.truffleruby.launcher.Launcher;
 
-import java.util.Locale;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.launcher.Launcher;
 
 public class Main {
 
@@ -55,7 +56,8 @@ public class Main {
         Launcher.main(isGraal(), args);
     }
 
+    @TruffleBoundary
     public static boolean isGraal() {
-        return Truffle.getRuntime().getName().toLowerCase(Locale.ENGLISH).contains("graal");
+        return StringUtils.toLowerCase(Truffle.getRuntime().getName()).contains("graal");
     }
 }

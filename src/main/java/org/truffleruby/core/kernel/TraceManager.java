@@ -159,8 +159,8 @@ public class TraceManager {
             final int line;
 
             if (sourceSection != null && sourceSection.getSource() != null) {
-                file = sourceSection.getSource().getName();
-                line = sourceSection.getStartLine();
+                file = getFile(sourceSection);
+                line = getLine(sourceSection);
             } else {
                 file = "<internal>";
                 line = -1;
@@ -178,6 +178,16 @@ public class TraceManager {
             } finally {
                 isInTraceFunc = false;
             }
+        }
+
+        @TruffleBoundary
+        private String getFile(SourceSection sourceSection) {
+            return sourceSection.getSource().getName();
+        }
+
+        @TruffleBoundary
+        private int getLine(SourceSection sourceSection) {
+            return sourceSection.getStartLine();
         }
 
         @TruffleBoundary
