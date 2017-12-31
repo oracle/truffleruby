@@ -46,6 +46,9 @@ class TracePointEventNode extends TraceBaseEventNode {
             yield(proc, tracePoint);
         } finally {
             Layouts.TRACE_POINT.setInsideProc(tracePoint, false);
+            // Reset the binding so it can be escaped analyzed. This is also semantically correct
+            // because the TracePoint information is reset outside the TracePoint block in MRI.
+            Layouts.TRACE_POINT.setBinding(tracePoint, null);
         }
     }
 
