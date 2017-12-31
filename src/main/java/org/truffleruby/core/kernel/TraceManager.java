@@ -11,14 +11,12 @@ package org.truffleruby.core.kernel;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventBinding;
 import com.oracle.truffle.api.instrumentation.EventContext;
-import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.nodes.Node;
@@ -30,11 +28,11 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.tracepoint.TraceBaseEventNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.LogicalClassNodeGen;
-import org.truffleruby.language.yield.YieldNode;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -107,23 +105,15 @@ public class TraceManager {
         }
     }
 
-    private class BaseEventEventNode extends ExecutionEventNode {
+    private class BaseEventEventNode extends TraceBaseEventNode {
 
         protected final ConditionProfile inTraceFuncProfile = ConditionProfile.createBinaryProfile();
 
-        protected final RubyContext context;
-        protected final EventContext eventContext;
         protected final DynamicObject traceFunc;
         protected final Object event;
 
-        @Child private YieldNode yieldNode;
-
-        @CompilationFinal private DynamicObject file;
-        @CompilationFinal private int line;
-
         public BaseEventEventNode(RubyContext context, EventContext eventContext, DynamicObject traceFunc, Object event) {
-            this.context = context;
-            this.eventContext = eventContext;
+            super(context, eventContext);
             this.traceFunc = traceFunc;
             this.event = event;
         }
@@ -135,9 +125,8 @@ public class TraceManager {
             }
 
             isInTraceFunc = true;
-
             try {
-                getYieldNode().dispatch(traceFunc, event,
+                yield(traceFunc, event,
                         getFile(),
                         getLine(),
                         context.getCoreLibrary().getNil(),
@@ -146,33 +135,6 @@ public class TraceManager {
             } finally {
                 isInTraceFunc = false;
             }
-        }
-
-        private DynamicObject getFile() {
-            if (file == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                file = StringOperations.createString(context, context.getRopeTable().getRopeUTF8(eventContext.getInstrumentedSourceSection().getSource().getName()));
-            }
-
-            return file;
-        }
-
-        private int getLine() {
-            if (line == 0) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                line = eventContext.getInstrumentedSourceSection().getStartLine();
-            }
-
-            return line;
-        }
-
-        protected YieldNode getYieldNode() {
-            if (yieldNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                yieldNode = insert(new YieldNode());
-            }
-
-            return yieldNode;
         }
 
     }
@@ -207,7 +169,7 @@ public class TraceManager {
             isInTraceFunc = true;
 
             try {
-                getYieldNode().dispatch(traceFunc, event,
+                yield(traceFunc, event,
                         getFile(file),
                         line,
                         context.getSymbolTable().getSymbol(RubyArguments.getMethod(frame).getName()),
