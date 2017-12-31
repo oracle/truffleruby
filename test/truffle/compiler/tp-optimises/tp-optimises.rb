@@ -12,7 +12,9 @@ def foo
 end
 
 tp = TracePoint.new(:line) do |tp|
-  tp.binding.local_variable_set(:var, 100)
+  if tp.path == __FILE__ && tp.lineno == 11
+    tp.binding.local_variable_set(:var, 100)
+  end
 end
 
 tp.enable
