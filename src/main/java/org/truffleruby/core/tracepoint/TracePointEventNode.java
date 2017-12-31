@@ -22,10 +22,12 @@ class TracePointEventNode extends TraceBaseEventNode {
     private final ConditionProfile inTracePointProfile = ConditionProfile.createBinaryProfile();
 
     private final DynamicObject tracePoint;
+    private final DynamicObject proc;
 
     public TracePointEventNode(RubyContext context, EventContext eventContext, DynamicObject tracePoint) {
         super(context, eventContext);
         this.tracePoint = tracePoint;
+        this.proc = Layouts.TRACE_POINT.getProc(tracePoint);
     }
 
     @Override
@@ -41,7 +43,7 @@ class TracePointEventNode extends TraceBaseEventNode {
 
         Layouts.TRACE_POINT.setInsideProc(tracePoint, true);
         try {
-            yield(Layouts.TRACE_POINT.getProc(tracePoint), tracePoint);
+            yield(proc, tracePoint);
         } finally {
             Layouts.TRACE_POINT.setInsideProc(tracePoint, false);
         }
