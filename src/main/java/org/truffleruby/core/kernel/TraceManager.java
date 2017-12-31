@@ -14,6 +14,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventBinding;
 import com.oracle.truffle.api.instrumentation.EventContext;
@@ -219,8 +220,12 @@ public class TraceManager {
 
         @TruffleBoundary
         private SourceSection getCallerSourceSection() {
-            final Node callNode = Truffle.getRuntime().getCallerFrame().getCallNode();
+            final FrameInstance callerFrame = Truffle.getRuntime().getCallerFrame();
+            if (callerFrame == null) {
+                return null;
+            }
 
+            final Node callNode = callerFrame.getCallNode();
             if (callNode == null) {
                 return null;
             } else {
