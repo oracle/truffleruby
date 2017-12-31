@@ -7,12 +7,12 @@
 # GNU Lesser General Public License version 2.1
 
 def foo
-  foo = 14
-  foo * 2
+  var = 14
+  var * 2
 end
 
 tp = TracePoint.new(:line) do |tp|
-  tp.binding.local_variable_set(:foo, 100)
+  tp.binding.local_variable_set(:var, 100)
 end
 
 tp.enable
