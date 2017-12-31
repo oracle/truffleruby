@@ -99,11 +99,11 @@ public abstract class TracePointNodes {
         }
 
         @TruffleBoundary
-        public static EventBinding<?> createEventBinding(final RubyContext context, final DynamicObject tracePoint) {
+        public static EventBinding<?> createEventBinding(RubyContext context, DynamicObject tracePoint) {
             return context.getInstrumenter().attachFactory(SourceSectionFilter.newBuilder()
                     .mimeTypeIs(RubyLanguage.MIME_TYPE)
                     .tagIs((Class<?>[]) Layouts.TRACE_POINT.getTags(tracePoint))
-                    .build(), eventContext -> new TracePointEventNode(context, tracePoint));
+                    .build(), eventContext -> new TracePointEventNode(context, eventContext, tracePoint));
         }
 
         @TruffleBoundary

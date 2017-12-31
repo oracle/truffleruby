@@ -12,6 +12,7 @@ package org.truffleruby.core.tracepoint;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -26,6 +27,7 @@ class TracePointEventNode extends ExecutionEventNode {
     private final ConditionProfile inTraceFuncProfile = ConditionProfile.createBinaryProfile();
 
     private final RubyContext context;
+    private final EventContext eventContext;
     private final DynamicObject tracePoint;
 
     @Child private YieldNode yieldNode;
@@ -33,8 +35,9 @@ class TracePointEventNode extends ExecutionEventNode {
     @CompilationFinal private DynamicObject path;
     @CompilationFinal private int line;
 
-    public TracePointEventNode(RubyContext context, DynamicObject tracePoint) {
+    public TracePointEventNode(RubyContext context, EventContext eventContext, DynamicObject tracePoint) {
         this.context = context;
+        this.eventContext = eventContext;
         this.tracePoint = tracePoint;
     }
 
@@ -61,7 +64,7 @@ class TracePointEventNode extends ExecutionEventNode {
     private DynamicObject getPath() {
         if (path == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            path = StringOperations.createString(context, context.getRopeTable().getRopeUTF8(getEncapsulatingSourceSection().getSource().getName()));
+            path = StringOperations.createString(context, context.getRopeTable().getRopeUTF8(eventContext.getInstrumentedSourceSection().getSource().getName()));
         }
 
         return path;
@@ -70,7 +73,7 @@ class TracePointEventNode extends ExecutionEventNode {
     private int getLine() {
         if (line == 0) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            line = getEncapsulatingSourceSection().getStartLine();
+            line = eventContext.getInstrumentedSourceSection().getStartLine();
         }
 
         return line;
