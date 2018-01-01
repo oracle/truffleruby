@@ -101,6 +101,7 @@ public abstract class ObjectSpaceNodes {
     @CoreMethod(names = "each_object", isModuleFunction = true, needsBlock = true, optional = 1, returnsEnumeratorIfNoBlock = true)
     public abstract static class EachObjectNode extends YieldingCoreMethodNode {
 
+        @TruffleBoundary // for the iterator
         @Specialization
         public int eachObject(NotProvided ofClass, DynamicObject block) {
             int count = 0;
@@ -115,6 +116,7 @@ public abstract class ObjectSpaceNodes {
             return count;
         }
 
+        @TruffleBoundary // for the iterator
         @Specialization(guards = "isRubyModule(ofClass)")
         public int eachObject(DynamicObject ofClass, DynamicObject block,
                 @Cached("create()") IsANode isANode) {
