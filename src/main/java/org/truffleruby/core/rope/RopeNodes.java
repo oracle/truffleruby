@@ -542,7 +542,7 @@ public abstract class RopeNodes {
                     calculatedCharacterLength += q - p;
                     p = q;
                 }
-                int delta = StringSupport.encFastMBCLen(bytes, p, e, encoding);
+                int delta = StringSupport.encLength(encoding, bytes, p, e);
 
                 if (delta < 0) {
                     errorProfile.enter();

@@ -52,7 +52,7 @@ public final class StringSupport {
 
     // rb_enc_fast_mbclen
     @TruffleBoundary
-    public static int encFastMBCLen(byte[] bytes, int p, int e, Encoding enc) {
+    public static int encLength(Encoding enc, byte[] bytes, int p, int e) {
         return enc.length(bytes, p, e);
     }
 
@@ -143,7 +143,7 @@ public final class StringSupport {
                         c += q - p;
                         p = q;
                     }
-                    p += encFastMBCLen(bytes, p, e, enc);
+                    p += encLength(enc, bytes, p, e);
                     c++;
                 }
             } else {

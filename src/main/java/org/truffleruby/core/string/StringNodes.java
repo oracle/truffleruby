@@ -989,7 +989,7 @@ public abstract class StringNodes {
             int n;
 
             for (int i = 0; i < len; i += n) {
-                n = StringSupport.encFastMBCLen(ptrBytes, i, len, enc);
+                n = StringSupport.encLength(enc, ptrBytes, i, len);
 
                 yield(block, substr(rope, string, i, n));
             }
