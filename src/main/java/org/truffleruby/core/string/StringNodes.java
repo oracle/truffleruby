@@ -3376,7 +3376,7 @@ public abstract class StringNodes {
             checkEncodingNode.executeCheckEncoding(string, pattern);
 
             // Rubinius will pass in a byte index for the `start` value, but StringSupport.index requires a character index.
-            final int charIndex = byteIndexToCharIndexNode.executeStringByteCharacterIndex(string, start, 0);
+            final int charIndex = byteIndexToCharIndexNode.executeStringByteCharacterIndex(string, start);
 
             final int index = index(rope(string), rope(pattern), charIndex, encoding(string));
 
@@ -3493,65 +3493,63 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_character_byte_index", needsSelf = false, lowerFixnum = { 2, 3 })
+    @Primitive(name = "string_character_byte_index", needsSelf = false, lowerFixnum = 2)
     @ImportStatic(StringGuards.class)
     public static abstract class CharacterByteIndexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isSingleByteOptimizable(string)")
-        public int stringCharacterByteIndex(DynamicObject string, int charIndex, int start) {
-            return start + charIndex;
+        public int stringCharacterByteIndex(DynamicObject string, int charIndex) {
+            return charIndex;
         }
 
         @Specialization(guards = { "!isSingleByteOptimizable(string)", "isFixedWidthEncoding(string)" })
-        public int stringCharacterByteIndexFixedWidthEncoding(DynamicObject string, int charIndex, int start) {
+        public int stringCharacterByteIndexFixedWidthEncoding(DynamicObject string, int charIndex) {
             final Encoding encoding = encoding(string);
-
-            return start + charIndex * encoding.minLength();
+            return charIndex * encoding.minLength();
         }
 
         @Specialization(guards = { "!isSingleByteOptimizable(string)", "!isFixedWidthEncoding(string)" })
-        public int stringCharacterByteIndexMultiByteEncoding(DynamicObject string, int charIndex, int start) {
+        public int stringCharacterByteIndexMultiByteEncoding(DynamicObject string, int charIndex) {
             final Rope rope = rope(string);
-
-            return StringSupport.nth(rope.getEncoding(), rope.getBytes(), start, rope.byteLength(), charIndex);
+            return StringSupport.nth(rope.getEncoding(), rope.getBytes(), 0, rope.byteLength(), charIndex);
         }
     }
 
-    @Primitive(name = "string_byte_character_index", needsSelf = false, lowerFixnum = { 2, 3 })
+    @Primitive(name = "string_byte_character_index", needsSelf = false, lowerFixnum = 2)
     @ImportStatic(StringGuards.class)
     public static abstract class StringByteCharacterIndexNode extends PrimitiveArrayArgumentsNode {
 
-        public abstract int executeStringByteCharacterIndex(DynamicObject string, int byteIndex, int start);
+        public abstract int executeStringByteCharacterIndex(DynamicObject string, int byteIndex);
 
         @Specialization(guards = "isSingleByteOptimizable(string)")
-        public int singleByte(DynamicObject string, int byteIndex, int start) {
+        public int singleByte(DynamicObject string, int byteIndex) {
             // Taken from Rubinius's String::find_byte_character_index.
             return byteIndex;
         }
 
         @Specialization(guards = { "!isSingleByteOptimizable(string)", "isFixedWidthEncoding(string)" })
-        public int fixedWidth(DynamicObject string, int byteIndex, int start) {
+        public int fixedWidth(DynamicObject string, int byteIndex) {
             // Taken from Rubinius's String::find_byte_character_index.
             return byteIndex / encoding(string).minLength();
         }
 
         @Specialization(guards = { "!isSingleByteOptimizable(string)", "!isFixedWidthEncoding(string)", "isValidUtf8(string)" })
-        public int validUtf8(DynamicObject string, int byteIndex, int start) {
+        public int validUtf8(DynamicObject string, int byteIndex) {
             // Taken from Rubinius's String::find_byte_character_index.
 
             // TODO (nirvdrum 02-Apr-15) There's a way to optimize this for UTF-8, but porting all that code isn't necessary at the moment.
-            return notValidUtf8(string, byteIndex, start);
+            return notValidUtf8(string, byteIndex);
         }
 
         @TruffleBoundary
         @Specialization(guards = { "!isSingleByteOptimizable(string)", "!isFixedWidthEncoding(string)", "!isValidUtf8(string)" })
-        public int notValidUtf8(DynamicObject string, int byteIndex, int start) {
+        public int notValidUtf8(DynamicObject string, int byteIndex) {
             // Taken from Rubinius's String::find_byte_character_index and Encoding::find_byte_character_index.
 
             final Rope rope = rope(string);
             final byte[] bytes = rope.getBytes();
             final Encoding encoding = rope.getEncoding();
-            int p = start;
+            int p = 0;
             final int end = bytes.length;
             int charIndex = 0;
 
