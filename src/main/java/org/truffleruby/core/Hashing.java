@@ -13,22 +13,18 @@ import java.util.Random;
 
 public class Hashing {
 
-    private static final boolean SIPHASH_ENABLED = false;
     private static final boolean CONSISTENT_HASHING_ENABLED = false;
 
     private static final int MURMUR2_MAGIC = 0x5bd1e995;
 
-    public static final long SEED_K0;
-    public static final long SEED_K1;
+    private static final long SEED;
 
     static {
         if (CONSISTENT_HASHING_ENABLED) {
-            SEED_K0 = -561135208506705104L;
-            SEED_K1 = 7114160726623585955L;
+            SEED = 7114160726623585955L;
         } else {
             final Random random = new Random();
-            SEED_K0 = random.nextLong();
-            SEED_K1 = random.nextLong();
+            SEED = random.nextLong();
         }
     }
 
@@ -37,14 +33,7 @@ public class Hashing {
     }
 
     public static long start(long value) {
-        long hash = value;
-
-        if (SIPHASH_ENABLED) {
-            hash += SEED_K0;
-        } else {
-            hash += SEED_K1;
-        }
-        return hash;
+        return value + SEED;
     }
 
     public static long update(long hash, long value) {
