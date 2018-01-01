@@ -48,17 +48,12 @@ public class Hashing {
     }
 
     public static long update(long hash, long value) {
-        long v = 0;
         hash += value;
-        v = murmur1(v + hash);
-        v = murmur1(v + (hash >>> 4 * 8));
-        return v;
+        return murmur1(murmur1(hash) + (hash >>> 32));
     }
 
     public static long end(long hash) {
-        hash = murmur_step(hash, 10);
-        hash = murmur_step(hash, 17);
-        return hash;
+        return murmur_step(murmur_step(hash, 10), 17);
     }
 
     private static long murmur1(long h) {
