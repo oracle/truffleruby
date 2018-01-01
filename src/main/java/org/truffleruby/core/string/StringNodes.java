@@ -3523,20 +3523,16 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isSingleByteOptimizable(string)")
         public int singleByte(DynamicObject string, int byteIndex) {
-            // Taken from Rubinius's String::find_byte_character_index.
             return byteIndex;
         }
 
         @Specialization(guards = { "!isSingleByteOptimizable(string)", "isFixedWidthEncoding(string)" })
         public int fixedWidth(DynamicObject string, int byteIndex) {
-            // Taken from Rubinius's String::find_byte_character_index.
             return byteIndex / encoding(string).minLength();
         }
 
         @Specialization(guards = { "!isSingleByteOptimizable(string)", "!isFixedWidthEncoding(string)", "isValidUtf8(string)" })
         public int validUtf8(DynamicObject string, int byteIndex) {
-            // Taken from Rubinius's String::find_byte_character_index.
-
             // TODO (nirvdrum 02-Apr-15) There's a way to optimize this for UTF-8, but porting all that code isn't necessary at the moment.
             return notValidUtf8(string, byteIndex);
         }
