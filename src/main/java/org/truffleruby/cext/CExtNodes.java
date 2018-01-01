@@ -1097,6 +1097,7 @@ public class CExtNodes {
     @CoreMethod(names = "rb_enc_left_char_head", onSingleton = true, required = 5, lowerFixnum = { 3, 4, 5 })
     public abstract static class RbEncLeftCharHeadNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
         public Object rbEncLeftCharHead(DynamicObject enc, DynamicObject str, int start, int p, int end) {
             return EncodingOperations.getEncoding(enc).leftAdjustCharHead(

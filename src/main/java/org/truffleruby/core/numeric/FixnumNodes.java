@@ -1196,6 +1196,7 @@ public abstract class FixnumNodes {
     @Primitive(name = "fixnum_memhash")
     public static abstract class FixnumMemhashPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
         public long memhashLongLong(long a, long b) {
             final ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES * 2);

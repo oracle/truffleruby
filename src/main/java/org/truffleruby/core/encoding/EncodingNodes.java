@@ -495,7 +495,7 @@ public abstract class EncodingNodes {
             final String name = StringOperations.getString(nameObject);
             final Encoding encoding = EncodingOperations.getEncoding(self);
 
-            final DynamicObject newEncoding = getContext().getEncodingManager().replicateEncoding(encoding, name);
+            final DynamicObject newEncoding = replicate(name, encoding);
             if (newEncoding == null) {
                 throw new RaiseException(coreExceptions().argumentErrorEncodingAlreadyRegistered(name, this));
             }
@@ -503,6 +503,11 @@ public abstract class EncodingNodes {
             final Entry entry = EncodingDB.getEncodings().get(name.getBytes());
             snippetNode.execute(frame, "Encoding::EncodingMap[enc.name.upcase.to_sym] = [nil, index]", "enc", newEncoding, "index", entry.getIndex());
             return newEncoding;
+        }
+
+        @TruffleBoundary
+        private DynamicObject replicate(final String name, final Encoding encoding) {
+            return getContext().getEncodingManager().replicateEncoding(encoding, name);
         }
 
     }
