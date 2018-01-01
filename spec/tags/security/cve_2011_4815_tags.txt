@@ -13,3 +13,5 @@ fails:String#hash resists CVE-2011-4815 by having different hash codes in differ
 fails:Symbol#hash resists CVE-2011-4815 by having different hash codes in different processes
 fails:Array#hash resists CVE-2011-4815 by having different hash codes in different processes
 fails:Hash#hash resists CVE-2011-4815 by having different hash codes in different processes
+slow:Rational#hash resists CVE-2011-4815 by having different hash codes in different processes
+slow:Complex#hash resists CVE-2011-4815 by having different hash codes in different processes
