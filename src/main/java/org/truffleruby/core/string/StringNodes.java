@@ -1435,7 +1435,7 @@ public abstract class StringNodes {
                 p = e;
             }
             while (p < e) {
-                int ret = enc.length(pBytes, p, e);
+                int ret = StringSupport.encLength(enc, pBytes, p, e);
                 if (MBCLEN_NEEDMORE_P(ret)) {
                     break;
                 } else if (MBCLEN_CHARFOUND_P(ret)) {
@@ -1457,7 +1457,7 @@ public abstract class StringNodes {
                         final int q = p;
                         clen--;
                         for (; clen > 1; clen--) {
-                            ret = enc.length(pBytes, q, q + clen);
+                            ret = StringSupport.encLength(enc, pBytes, q, q + clen);
                             if (MBCLEN_NEEDMORE_P(ret)) {
                                 break;
                             } else if (MBCLEN_INVALID_P(ret)) {
@@ -1523,7 +1523,7 @@ public abstract class StringNodes {
                     } else {
                         clen -= mbminlen;
                         for (; clen > mbminlen; clen -= mbminlen) {
-                            ret = enc.length(pBytes, q, q + clen);
+                            ret = StringSupport.encLength(enc, pBytes, q, q + clen);
                             if (MBCLEN_NEEDMORE_P(ret)) {
                                 break;
                             }
@@ -3060,7 +3060,7 @@ public abstract class StringNodes {
 
             while (p < pend) {
                 int c, cc;
-                int n = enc.length(pBytes, p, pend);
+                int n = StringSupport.encLength(enc, pBytes, p, pend);
                 if (!MBCLEN_CHARFOUND_P(n)) {
                     if (p > prev) {
                         result.append(pBytes, prev, p - prev);
