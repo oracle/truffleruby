@@ -500,9 +500,14 @@ public abstract class EncodingNodes {
                 throw new RaiseException(coreExceptions().argumentErrorEncodingAlreadyRegistered(name, this));
             }
 
-            final Entry entry = EncodingDB.getEncodings().get(name.getBytes());
+            final Entry entry = getEntry(name);
             snippetNode.execute(frame, "Encoding::EncodingMap[enc.name.upcase.to_sym] = [nil, index]", "enc", newEncoding, "index", entry.getIndex());
             return newEncoding;
+        }
+
+        @TruffleBoundary
+        private Entry getEntry(final String name) {
+            return EncodingDB.getEncodings().get(name.getBytes());
         }
 
         @TruffleBoundary
