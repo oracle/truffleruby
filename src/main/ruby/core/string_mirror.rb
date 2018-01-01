@@ -37,12 +37,12 @@ module Truffle
     class String < Mirror
       self.subject = ::String
 
-      def character_to_byte_index(idx, start=0)
-        Truffle.invoke_primitive :string_character_byte_index, @object, idx, start
+      def character_to_byte_index(idx)
+        Truffle.invoke_primitive :string_character_byte_index, @object, idx
       end
 
-      def byte_to_character_index(idx, start=0)
-        Truffle.invoke_primitive :string_byte_character_index, @object, idx, start
+      def byte_to_character_index(idx)
+        Truffle.invoke_primitive :string_byte_character_index, @object, idx
       end
 
       def character_index(str, start)
