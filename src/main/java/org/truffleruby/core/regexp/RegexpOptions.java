@@ -235,9 +235,7 @@ public class RegexpOptions implements Cloneable {
         RegexpOptions options = fromJoniOptions(embeddedOptions);
 
         options.kcodeDefault = (embeddedOptions & ReOptions.RE_DEFAULT) != 0;
-        options.once = (embeddedOptions & ReOptions.RE_OPTION_ONCE) != 0;
         options.literal = (embeddedOptions & ReOptions.RE_LITERAL) != 0;
-        options.fixed = (embeddedOptions & ReOptions.RE_FIXED) != 0;
         options.encodingNone = (embeddedOptions & ReOptions.RE_NONE) != 0;
         
         return options;
