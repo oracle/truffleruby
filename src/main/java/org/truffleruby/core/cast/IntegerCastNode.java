@@ -9,10 +9,12 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.RubyNode;
@@ -43,7 +45,12 @@ public abstract class IntegerCastNode extends RubyNode {
 
     @Fallback
     public int doBasicObject(Object object) {
-        throw new RaiseException(coreExceptions().typeErrorIsNotA(object.toString(), "Fixnum (fitting in int)", this));
+        throw new RaiseException(notAFixnum(object));
+    }
+
+    @TruffleBoundary
+    private DynamicObject notAFixnum(Object object) {
+        return coreExceptions().typeErrorIsNotA(object.toString(), "Fixnum (fitting in int)", this);
     }
 
 }
