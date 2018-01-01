@@ -939,7 +939,7 @@ public abstract class ArrayNodes {
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("create()") CallDispatchHeadNode toHashNode) {
             final int size = strategy.getSize(array);
-            long h = Hashing.start(size);
+            long h = getContext().getHashing().start(size);
             h = Hashing.update(h, MURMUR_ARRAY_SEED);
             final ArrayMirror store = strategy.newMirror(array);
 

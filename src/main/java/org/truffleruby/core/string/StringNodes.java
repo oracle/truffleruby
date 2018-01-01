@@ -1113,10 +1113,12 @@ public abstract class StringNodes {
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
+        protected static final int MURMUR_SEED = System.identityHashCode(StringNodes.class);
+
         @Specialization
-        public int hash(DynamicObject string,
+        public long hash(DynamicObject string,
                 @Cached("create()") RopeNodes.HashNode hashNode) {
-            return hashNode.execute(rope(string));
+            return getContext().getHashing().hash(MURMUR_SEED, hashNode.execute(rope(string)));
         }
 
     }

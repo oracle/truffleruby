@@ -24,7 +24,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.core.Hashing;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
@@ -621,7 +620,7 @@ public abstract class BignumNodes {
 
         @Specialization
         public long hash(DynamicObject value) {
-            return Hashing.hash(MURMUR_SEED, Layouts.BIGNUM.getValue(value).hashCode());
+            return getContext().getHashing().hash(MURMUR_SEED, Layouts.BIGNUM.getValue(value).hashCode());
         }
 
     }

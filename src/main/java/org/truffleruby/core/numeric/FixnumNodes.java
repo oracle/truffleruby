@@ -1198,7 +1198,7 @@ public abstract class FixnumNodes {
 
         @Specialization
         public long memhashLongLong(long a, long b) {
-            long h = Hashing.start(MURMUR_ARRAY_SEED);
+            long h = getContext().getHashing().start(MURMUR_ARRAY_SEED);
             h = Hashing.update(h, a);
             h = Hashing.update(h, b);
             return Hashing.end(h);

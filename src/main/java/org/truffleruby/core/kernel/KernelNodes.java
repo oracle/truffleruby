@@ -51,7 +51,6 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
@@ -691,22 +690,22 @@ public abstract class KernelNodes {
 
         @Specialization
         public long hash(int value) {
-            return Hashing.hash(MURMUR_SEED, value);
+            return getContext().getHashing().hash(MURMUR_SEED, value);
         }
 
         @Specialization
         public long hash(long value) {
-            return Hashing.hash(MURMUR_SEED, value);
+            return getContext().getHashing().hash(MURMUR_SEED, value);
         }
 
         @Specialization
         public long hash(double value) {
-            return Hashing.hash(MURMUR_SEED, Double.doubleToRawLongBits(value));
+            return getContext().getHashing().hash(MURMUR_SEED, Double.doubleToRawLongBits(value));
         }
 
         @Specialization
         public long hash(boolean value) {
-            return Hashing.hash(MURMUR_SEED, Boolean.valueOf(value).hashCode());
+            return getContext().getHashing().hash(MURMUR_SEED, Boolean.valueOf(value).hashCode());
         }
 
         @TruffleBoundary

@@ -11,7 +11,6 @@ package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
 import org.truffleruby.core.FinalizationService;
-import org.truffleruby.core.Hashing;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.extra.ffi.Pointer;
@@ -56,10 +55,7 @@ public class NativeRope extends Rope {
     @Override
     public int hashCode() {
         // TODO (pitr-ch 16-May-2017): this forces Rope#hashCode to be non-final, which is bad for performance
-        return Long.hashCode(
-                Hashing.hash(
-                        MURMUR_SEED,
-                        RopeOperations.hashForRange(this, 1, 0, byteLength())));
+        return RopeOperations.hashForRange(this, 1, 0, byteLength());
     }
 
     @Override

@@ -11,29 +11,29 @@ package org.truffleruby.core;
 
 import java.util.Random;
 
-public class Hashing {
+public final class Hashing {
 
     private static final boolean CONSISTENT_HASHING_ENABLED = false;
 
     private static final int MURMUR2_MAGIC = 0x5bd1e995;
 
-    private static final long SEED;
+    private final long seed;
 
-    static {
+    public Hashing() {
         if (CONSISTENT_HASHING_ENABLED) {
-            SEED = 7114160726623585955L;
+            seed = 7114160726623585955L;
         } else {
             final Random random = new Random();
-            SEED = random.nextLong();
+            seed = random.nextLong();
         }
     }
 
-    public static long hash(long seed, long value) {
+    public long hash(long seed, long value) {
         return end(update(start(seed), value));
     }
 
-    public static long start(long value) {
-        return value + SEED;
+    public long start(long value) {
+        return value + seed;
     }
 
     public static long update(long hash, long value) {
