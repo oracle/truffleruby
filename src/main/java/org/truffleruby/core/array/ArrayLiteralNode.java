@@ -63,9 +63,9 @@ public abstract class ArrayLiteralNode extends RubyNode {
 
     @ExplodeLoop
     @Override
-    public void executeVoid(VirtualFrame frame) {
+    public void doExecuteVoid(VirtualFrame frame) {
         for (RubyNode value : values) {
-            value.executeVoid(frame);
+            value.doExecuteVoid(frame);
         }
     }
 

@@ -64,10 +64,10 @@ public class RescueNodeWrapper implements InstrumentableFactory<RescueNode> {
         }
 
         @Override
-        public void executeVoid(VirtualFrame frame) {
+        public void doExecuteVoid(VirtualFrame frame) {
             try {
                 probeNode.onEnter(frame);
-                delegateNode.executeVoid(frame);
+                delegateNode.doExecuteVoid(frame);
                 probeNode.onReturnValue(frame, null);
             } catch (Throwable t) {
                 probeNode.onReturnExceptional(frame, t);

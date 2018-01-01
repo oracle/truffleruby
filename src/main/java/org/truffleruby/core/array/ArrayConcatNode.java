@@ -86,9 +86,9 @@ public final class ArrayConcatNode extends RubyNode {
 
     @ExplodeLoop
     @Override
-    public void executeVoid(VirtualFrame frame) {
+    public void doExecuteVoid(VirtualFrame frame) {
         for (int n = 0; n < children.length; n++) {
-            children[n].executeVoid(frame);
+            children[n].doExecuteVoid(frame);
         }
     }
 

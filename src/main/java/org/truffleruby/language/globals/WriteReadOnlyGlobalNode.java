@@ -25,14 +25,14 @@ public class WriteReadOnlyGlobalNode extends RubyNode {
     }
 
     @Override
-    public void executeVoid(VirtualFrame frame) {
-        value.executeVoid(frame);
+    public void doExecuteVoid(VirtualFrame frame) {
+        value.doExecuteVoid(frame);
         throw new RaiseException(coreExceptions().nameErrorReadOnly(name, this));
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        executeVoid(frame);
+        doExecuteVoid(frame);
         return nil();
     }
 

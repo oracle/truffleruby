@@ -31,12 +31,12 @@ public class ElidableResultNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        required.executeVoid(frame);
+        required.doExecuteVoid(frame);
         return elidableResult.execute(frame);
     }
 
     @Override
-    public void executeVoid(VirtualFrame frame) {
+    public void doExecuteVoid(VirtualFrame frame) {
         required.execute(frame);
     }
 

@@ -42,30 +42,30 @@ public class EnsureNode extends RubyNode {
             throw exception;
         } catch (Throwable throwable) {
             javaExceptionPath.enter();
-            ensurePart.executeVoid(frame);
+            ensurePart.doExecuteVoid(frame);
             throw throwable;
         }
 
-        ensurePart.executeVoid(frame);
+        ensurePart.doExecuteVoid(frame);
 
         return value;
     }
 
     @Override
-    public void executeVoid(VirtualFrame frame) {
+    public void doExecuteVoid(VirtualFrame frame) {
         try {
-            tryPart.executeVoid(frame);
+            tryPart.doExecuteVoid(frame);
         } catch (RaiseException exception) {
             rubyExceptionPath.enter();
             setLastExceptionAndRunEnsure(frame, exception);
             throw exception;
         } catch (Throwable throwable) {
             javaExceptionPath.enter();
-            ensurePart.executeVoid(frame);
+            ensurePart.doExecuteVoid(frame);
             throw throwable;
         }
 
-        ensurePart.executeVoid(frame);
+        ensurePart.doExecuteVoid(frame);
     }
 
     private void setLastExceptionAndRunEnsure(VirtualFrame frame, RaiseException exception) {

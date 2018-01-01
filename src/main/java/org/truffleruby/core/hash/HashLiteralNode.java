@@ -57,9 +57,9 @@ public abstract class HashLiteralNode extends RubyNode {
 
     @ExplodeLoop
     @Override
-    public void executeVoid(VirtualFrame frame) {
+    public void doExecuteVoid(VirtualFrame frame) {
         for (RubyNode child : keyValues) {
-            child.executeVoid(frame);
+            child.doExecuteVoid(frame);
         }
     }
 

@@ -22,13 +22,13 @@ public class InitFlipFlopSlotNode extends RubyNode {
     }
 
     @Override
-    public void executeVoid(VirtualFrame frame) {
+    public void doExecuteVoid(VirtualFrame frame) {
         frame.setBoolean(frameSlot, false);
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        executeVoid(frame);
+        doExecuteVoid(frame);
         return null;
     }
 

@@ -24,7 +24,7 @@ public class InvokePrimitiveNode extends RubyNode {
     }
 
     @Override
-    public void executeVoid(VirtualFrame frame) {
+    public void doExecuteVoid(VirtualFrame frame) {
         primitive.execute(frame);
     }
 

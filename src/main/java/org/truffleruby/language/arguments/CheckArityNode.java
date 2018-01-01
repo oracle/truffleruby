@@ -26,7 +26,7 @@ public class CheckArityNode extends RubyNode {
     }
 
     @Override
-    public void executeVoid(VirtualFrame frame) {
+    public void doExecuteVoid(VirtualFrame frame) {
         final int given = RubyArguments.getArgumentsCount(frame);
 
         if (!checkArity(arity, given)) {
@@ -41,7 +41,7 @@ public class CheckArityNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        executeVoid(frame);
+        doExecuteVoid(frame);
         return nil();
     }
 

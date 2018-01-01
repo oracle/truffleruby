@@ -21,7 +21,11 @@ public abstract class RubyNode extends RubyBaseNode {
 
     public abstract Object execute(VirtualFrame frame);
 
-    public void executeVoid(VirtualFrame frame) {
+    /**
+     * This method does not start with "execute" on purpose, so the Truffle DSL does not generate
+     * useless copies of this method which would increase the number of runtime compilable methods.
+     */
+    public void doExecuteVoid(VirtualFrame frame) {
         execute(frame);
     }
 
