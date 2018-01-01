@@ -66,14 +66,9 @@ public class Hashing {
     }
 
     private static long murmur_step(long h, long k) {
-        return murmur(h, k, 16);
-    }
-
-    private static long murmur(long h, long k, int r) {
-        long m = MURMUR2_MAGIC;
         h += k;
-        h *= m;
-        h ^= h >> r;
+        h *= MURMUR2_MAGIC;
+        h ^= h >> 16;
         return h;
     }
 
