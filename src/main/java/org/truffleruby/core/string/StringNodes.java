@@ -3494,22 +3494,36 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_character_byte_index", needsSelf = false, lowerFixnum = 2)
-    @ImportStatic(StringGuards.class)
+    @ImportStatic({ StringGuards.class, StringOperations.class })
     public static abstract class CharacterByteIndexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isSingleByteOptimizable(string)")
-        public int stringCharacterByteIndex(DynamicObject string, int charIndex) {
+        int singleByteOptimizable(DynamicObject string, int charIndex) {
             return charIndex;
         }
 
         @Specialization(guards = { "!isSingleByteOptimizable(string)", "isFixedWidthEncoding(string)" })
-        public int stringCharacterByteIndexFixedWidthEncoding(DynamicObject string, int charIndex) {
+        int fixedWidthEncoding(DynamicObject string, int charIndex) {
             final Encoding encoding = encoding(string);
             return charIndex * encoding.minLength();
         }
 
-        @Specialization(guards = { "!isSingleByteOptimizable(string)", "!isFixedWidthEncoding(string)" })
-        public int stringCharacterByteIndexMultiByteEncoding(DynamicObject string, int charIndex) {
+        @Specialization(guards = { "!isSingleByteOptimizable(string)", "!isFixedWidthEncoding(string)",
+                "charIndex == 0" })
+        int multiByteZeroIndex(DynamicObject string, int charIndex) {
+            return 0;
+        }
+
+        @Specialization(guards = { "!isSingleByteOptimizable(string)", "!isFixedWidthEncoding(string)",
+                "charIndex == rope(string).characterLength()" })
+        int multiByteEndIndex(DynamicObject string, int charIndex) {
+            return rope(string).byteLength();
+        }
+
+        @Specialization(guards = {
+                "!isSingleByteOptimizable(string)", "!isFixedWidthEncoding(string)",
+                "charIndex != 0", "charIndex != rope(string).characterLength()" })
+        int multiByteEncoding(DynamicObject string, int charIndex) {
             final Rope rope = rope(string);
             return StringSupport.nth(rope.getEncoding(), rope.getBytes(), 0, rope.byteLength(), charIndex);
         }
