@@ -53,6 +53,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.core.cast.ToIntNodeGen;
@@ -167,7 +168,7 @@ public abstract class ReadlineHistoryNodes {
         public DynamicObject each(DynamicObject history, DynamicObject block) {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
-            for (final History.Entry e : consoleHolder.getHistory()) {
+            for (final History.Entry e : BoundaryIterable.wrap(consoleHolder.getHistory())) {
                 final DynamicObject line = makeStringNode.executeMake(historyEntryToString(e), getLocaleEncoding(), CodeRange.CR_UNKNOWN);
 
                 yield(block, taintNode.executeTaint(line));

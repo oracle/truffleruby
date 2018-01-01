@@ -10,6 +10,7 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.CodeRange;
@@ -38,7 +39,7 @@ public class DataNode extends RubyNode {
             snippetNode = insert(new SnippetNode());
         }
 
-        final String path = getEncapsulatingSourceSection().getSource().getPath();
+        final String path = getPath();
         final Object data = snippetNode.execute(frame,
                 "Truffle.get_data(file, offset)",
                 "file", makeStringNode.executeMake(path, getContext().getEncodingManager().getLocaleEncoding(), CodeRange.CR_UNKNOWN),
@@ -47,6 +48,11 @@ public class DataNode extends RubyNode {
         Layouts.MODULE.getFields(coreLibrary().getObjectClass()).setConstant(getContext(), null, "DATA", data);
 
         return nil();
+    }
+
+    @TruffleBoundary
+    private String getPath() {
+        return getEncapsulatingSourceSection().getSource().getPath();
     }
 
 }
