@@ -227,6 +227,7 @@ public final class StringSupport {
         return (int) (cr >>> 31);
     }
 
+    @TruffleBoundary
     public static int codePoint(Encoding enc, byte[] bytes, int p, int end) {
         if (p >= end) {
             throw new IllegalArgumentException("empty string");
@@ -238,10 +239,12 @@ public final class StringSupport {
         return enc.mbcToCode(bytes, p, end);
     }
 
+    @TruffleBoundary
     public static int codeLength(Encoding enc, int c) {
         return enc.codeToMbcLength(c);
     }
 
+    @TruffleBoundary
     public static int preciseCodePoint(Encoding enc, byte[]bytes, int p, int end) {
         int l = preciseLength(enc, bytes, p, end);
         if (l > 0) {
@@ -356,6 +359,7 @@ public final class StringSupport {
         return scanHex(bytes, p, len, ASCIIEncoding.INSTANCE);
     }
 
+    @TruffleBoundary
     public static int scanHex(byte[]bytes, int p, int len, Encoding enc) {
         int v = 0;
         int c;
@@ -369,6 +373,7 @@ public final class StringSupport {
         return hexLength(bytes, p, len, ASCIIEncoding.INSTANCE);
     }
 
+    @TruffleBoundary
     public static int hexLength(byte[]bytes, int p, int len, Encoding enc) {
         int hlen = 0;
         while (len-- > 0 && enc.isXDigit(bytes[p++] & 0xff)) {
@@ -381,6 +386,7 @@ public final class StringSupport {
         return scanOct(bytes, p, len, ASCIIEncoding.INSTANCE);
     }
 
+    @TruffleBoundary
     public static int scanOct(byte[]bytes, int p, int len, Encoding enc) {
         int v = 0;
         int c;
@@ -394,6 +400,7 @@ public final class StringSupport {
         return octLength(bytes, p, len, ASCIIEncoding.INSTANCE);
     }
 
+    @TruffleBoundary
     public static int octLength(byte[]bytes, int p, int len, Encoding enc) {
         int olen = 0;
         int c;
@@ -433,6 +440,7 @@ public final class StringSupport {
     /**
      * rb_str_count
      */
+    @TruffleBoundary
     public static int strCount(Rope str, boolean[] table, TrTables tables, Encoding enc) {
         final byte[] bytes = str.getBytes();
         int p = 0;
@@ -905,6 +913,7 @@ public final class StringSupport {
     /**
      * rb_str_delete_bang
      */
+    @TruffleBoundary
     public static Rope delete_bangCommon19(Rope rubyString, boolean[] squeeze, TrTables tables, Encoding enc) {
         int s = 0;
         int t = s;
@@ -1272,6 +1281,7 @@ public final class StringSupport {
         return false;
     }
 
+    @TruffleBoundary
     public static boolean multiByteSqueeze(RopeBuilder value, boolean squeeze[], TrTables tables, Encoding enc, boolean isArg) {
         int s = 0;
         int t = s;

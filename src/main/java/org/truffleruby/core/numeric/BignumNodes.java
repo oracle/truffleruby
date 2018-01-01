@@ -495,6 +495,7 @@ public abstract class BignumNodes {
 
         public abstract Object executeLeftShift(VirtualFrame frame, DynamicObject a, Object b);
 
+        @TruffleBoundary
         @Specialization
         public Object leftShift(DynamicObject a, int b,
                                 @Cached("createBinaryProfile()") ConditionProfile bPositive) {
