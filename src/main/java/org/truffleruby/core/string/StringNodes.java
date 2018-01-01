@@ -3344,7 +3344,7 @@ public abstract class StringNodes {
         @Child private NormalizeIndexNode normalizeIndexNode = StringNodesFactory.NormalizeIndexNodeGen.create(null, null);
 
         @Specialization(guards = { "isRubyString(pattern)", "!isBrokenCodeRange(pattern)", "isSingleByteSearch(string, pattern)" })
-        public Object stringIndex(VirtualFrame frame, DynamicObject string, DynamicObject pattern, int start,
+        public Object stringIndex(DynamicObject string, DynamicObject pattern, int start,
                                   @Cached("create()") RopeNodes.BytesNode bytesNode,
                                   @Cached("createBinaryProfile()") ConditionProfile badStartProfile,
                                   @Cached("create()") BranchProfile matchFoundProfile,
@@ -3370,13 +3370,13 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "isRubyString(pattern)", "!isBrokenCodeRange(pattern)", "!isSingleByteSearch(string, pattern)" })
-        public Object stringIndexGeneric(VirtualFrame frame, DynamicObject string, DynamicObject pattern, int start,
+        public Object stringIndexGeneric(DynamicObject string, DynamicObject pattern, int start,
                                   @Cached("create()") EncodingNodes.CheckEncodingNode checkEncodingNode,
                                   @Cached("createBinaryProfile()") ConditionProfile badIndexProfile) {
             checkEncodingNode.executeCheckEncoding(string, pattern);
 
             // Rubinius will pass in a byte index for the `start` value, but StringSupport.index requires a character index.
-            final int charIndex = byteIndexToCharIndexNode.executeStringByteCharacterIndex(frame, string, start, 0);
+            final int charIndex = byteIndexToCharIndexNode.executeStringByteCharacterIndex(string, start, 0);
 
             final int index = index(rope(string), rope(pattern), charIndex, encoding(string));
 
@@ -3497,8 +3497,6 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public static abstract class CharacterByteIndexNode extends PrimitiveArrayArgumentsNode {
 
-        public abstract int executeInt(VirtualFrame frame, DynamicObject string, int charIndex, int start);
-
         @Specialization(guards = "isSingleByteOptimizable(string)")
         public int stringCharacterByteIndex(DynamicObject string, int charIndex, int start) {
             return start + charIndex;
@@ -3523,7 +3521,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public static abstract class StringByteCharacterIndexNode extends PrimitiveArrayArgumentsNode {
 
-        public abstract int executeStringByteCharacterIndex(VirtualFrame frame, DynamicObject string, int byteIndex, int start);
+        public abstract int executeStringByteCharacterIndex(DynamicObject string, int byteIndex, int start);
 
         @Specialization(guards = "isSingleByteOptimizable(string)")
         public int singleByte(DynamicObject string, int byteIndex, int start) {
