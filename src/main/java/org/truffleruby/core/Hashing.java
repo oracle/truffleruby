@@ -65,11 +65,11 @@ public class Hashing {
         return murmur_step(h, 16);
     }
 
-    public static long murmur_step(long h, long k) {
-        return murmur((h), (k), 16);
+    private static long murmur_step(long h, long k) {
+        return murmur(h, k, 16);
     }
 
-    public static long murmur(long h, long k, int r) {
+    private static long murmur(long h, long k, int r) {
         long m = MURMUR2_MAGIC;
         h += k;
         h *= m;
