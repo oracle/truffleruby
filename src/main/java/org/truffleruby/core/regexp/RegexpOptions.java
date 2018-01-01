@@ -63,10 +63,6 @@ public class RegexpOptions implements Cloneable {
     public KCode getKCode() {
         return kcode;
     }
-    
-    public String getKCodeName() {
-        return isKcodeDefault() ? null : getKCode().name().toLowerCase();
-    }    
 
     /**
      * This regexp has an explicit encoding flag or 'nesu' letter associated
