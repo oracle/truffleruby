@@ -20,7 +20,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.algorithms.SipHash;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -42,7 +41,6 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 
 @CoreClass("Fixnum")
 public abstract class FixnumNodes {
@@ -1196,16 +1194,15 @@ public abstract class FixnumNodes {
     @Primitive(name = "fixnum_memhash")
     public static abstract class FixnumMemhashPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary
+        private static final int MURMUR_ARRAY_SEED = System.identityHashCode(FixnumMemhashPrimitiveNode.class);
+
         @Specialization
         public long memhashLongLong(long a, long b) {
-            final ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES * 2);
-            buffer.putLong(a);
-            buffer.putLong(b);
-            return SipHash.hash24(Hashing.SEED_K0, Hashing.SEED_K1, buffer.array());
+            long h = Hashing.start(MURMUR_ARRAY_SEED);
+            h = Hashing.update(h, a);
+            h = Hashing.update(h, b);
+            return Hashing.end(h);
         }
-
-
 
     }
 
