@@ -10,7 +10,6 @@
 package org.truffleruby.core.exception;
 
 import java.util.EnumSet;
-import java.util.List;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -44,20 +43,19 @@ public abstract class ExceptionOperations {
     }
 
     @TruffleBoundary
-    public static List<String> format(RubyContext context, DynamicObject exception, Backtrace backtrace) {
+    public static String[] format(RubyContext context, DynamicObject exception, Backtrace backtrace) {
         final BacktraceFormatter formatter = new BacktraceFormatter(context, FORMAT_FLAGS);
         return formatter.formatBacktrace(context, exception, backtrace);
     }
 
-    @TruffleBoundary
     public static DynamicObject backtraceAsRubyStringArray(RubyContext context, DynamicObject exception, Backtrace backtrace) {
-        final List<String> lines = format(context, exception, backtrace);
+        final String[] lines = format(context, exception, backtrace);
 
-        final Object[] array = new Object[lines.size()];
+        final Object[] array = new Object[lines.length];
 
-        for (int n = 0; n < lines.size(); n++) {
+        for (int n = 0; n < lines.length; n++) {
             array[n] = StringOperations.createString(context,
-                    StringOperations.encodeRope(lines.get(n), UTF8Encoding.INSTANCE));
+                    StringOperations.encodeRope(lines[n], UTF8Encoding.INSTANCE));
         }
 
         return ArrayHelpers.createArray(context, array, array.length);
