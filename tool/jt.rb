@@ -408,6 +408,9 @@ module Commands
       jt build [options]                             build
           parser                                     build the parser
           options                                    build the options
+          cexts                                      build only the C extensions (part of "jt build")
+          sulong                                     update to latest Sulong and build it
+          native [sulong]                            build a native image of TruffleRuby, optionally with Sulong
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt clean                                       clean
       jt env                                         prints the current environment
@@ -500,7 +503,7 @@ module Commands
   BUILD_OPTIONS = %w[parser options cexts sulong native]
 
   def build(*options)
-    project = options.first
+    project = options.shift
     case project
     when 'parser'
       jay = Utilities.find_or_clone_repo('https://github.com/jruby/jay.git', '9ffc59aabf21bee1737836fe972c4bd51f41049e')
@@ -523,7 +526,7 @@ module Commands
       cores = Etc.respond_to?(:nprocessors) ? Etc.nprocessors : 4
       raw_sh "make", "-j#{cores}", chdir: "#{TRUFFLERUBY_DIR}/src/main/c"
     when 'native'
-      build_native_image
+      build_native_image(*options)
     when nil
       mx 'sforceimports'
       mx 'build', '--force-javac', '--warning-as-error',
@@ -1768,8 +1771,11 @@ module Commands
     puts "$ #{TRUFFLERUBY_DIR}/tool/jt.rb ruby --graal ..."
   end
 
-  def build_native_image
+  def build_native_image(*options)
+    sulong = options.delete "sulong"
+
     build
+    build('sulong') if sulong
     java_home = install_jvmci
     graal = checkout_or_update_graal_repo
 
@@ -1777,7 +1783,11 @@ module Commands
     chdir("#{graal}/substratevm") do
       File.write('mx.substratevm/env', "JAVA_HOME=#{java_home}\n")
       mx 'build'
-      mx 'image', '-ruby', '-H:Name=native-ruby'
+      if sulong
+        mx 'image', '-sulong', '-ruby', '-H:MaxRuntimeCompileMethods=15000', '-H:Name=native-ruby'
+      else
+        mx 'image', '-ruby', '-H:Name=native-ruby'
+      end
       FileUtils.mv('svmbuild/native-ruby', '../../truffleruby/bin/')
     end
   end
@@ -1869,7 +1879,7 @@ class JT
       send(args.shift)
     when "build"
       command = [args.shift]
-      if Commands::BUILD_OPTIONS.include?(args.first)
+      while Commands::BUILD_OPTIONS.include?(args.first)
         command << args.shift
       end
       send(*command)
