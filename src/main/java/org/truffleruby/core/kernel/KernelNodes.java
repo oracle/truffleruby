@@ -299,12 +299,12 @@ public abstract class KernelNodes {
             // Build the description of Thread::Backtrace::Location eagerly since backtrace
             // formatting relies on accessing activations above to show a user file path for core
             // methods.
-            final List<String> descriptions = ExceptionOperations.format(getContext(), null, backtrace);
+            final String[] descriptions = ExceptionOperations.format(getContext(), null, backtrace);
 
             final Activation[] activations = backtrace.getActivations();
             int locationsCount = activations.length;
 
-            if (length != UNLIMITED && locationsCount > length) {
+            if (length != UNLIMITED && length < locationsCount) {
                 locationsCount = length;
             }
 
@@ -315,7 +315,7 @@ public abstract class KernelNodes {
                 locations[n] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(
                         coreLibrary().getThreadBacktraceLocationFactory(),
                         activation,
-                        descriptions.get(n));
+                        descriptions[n]);
             }
 
             return createArray(locations, locations.length);

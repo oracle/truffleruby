@@ -57,7 +57,7 @@ public class BacktraceFormatter {
         return new BacktraceFormatter(context, flags);
     }
 
-    private static List<String> rubyBacktrace(RubyContext context, Node node) {
+    private static String[] rubyBacktrace(RubyContext context, Node node) {
         return new BacktraceFormatter(context, EnumSet.of(FormattingFlags.INCLUDE_CORE_FILES)).
                         formatBacktrace(context, null, context.getCallStack().getBacktrace(node));
     }
@@ -95,7 +95,7 @@ public class BacktraceFormatter {
         }
     }
 
-    public List<String> formatBacktrace(RubyContext context, DynamicObject exception, Backtrace backtrace) {
+    public String[] formatBacktrace(RubyContext context, DynamicObject exception, Backtrace backtrace) {
         if (backtrace == null) {
             backtrace = context.getCallStack().getBacktrace(null);
         }
@@ -105,7 +105,7 @@ public class BacktraceFormatter {
 
         if (activations.length == 0 && !flags.contains(FormattingFlags.OMIT_EXCEPTION) && exception != null) {
             lines.add(formatException(exception));
-            return lines;
+            return lines.toArray(new String[lines.size()]);
         }
 
         for (int n = 0; n < activations.length; n++) {
@@ -125,10 +125,11 @@ public class BacktraceFormatter {
         }
 
         if (backtrace.getJavaThrowable() != null && flags.contains(FormattingFlags.INTERLEAVE_JAVA)) {
-            return BacktraceInterleaver.interleave(lines, backtrace.getJavaThrowable().getStackTrace());
+            final List<String> interleaved = BacktraceInterleaver.interleave(lines, backtrace.getJavaThrowable().getStackTrace());
+            return interleaved.toArray(new String[interleaved.size()]);
         }
 
-        return lines;
+        return lines.toArray(new String[lines.size()]);
     }
 
     public String formatLine(Activation[] activations, int n, DynamicObject exception) {
