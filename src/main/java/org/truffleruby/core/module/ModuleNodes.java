@@ -537,7 +537,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "isRubyString(name)")
         public Object autoloadQueryString(DynamicObject module, DynamicObject name) {
-            return autoloadQuery(module, name.toString());
+            return autoloadQuery(module, StringOperations.getString(name));
         }
 
         private Object autoloadQuery(DynamicObject module, String name) {
@@ -574,26 +574,26 @@ public abstract class ModuleNodes {
         @Specialization(guards = {"isRubyString(code)", "isRubyString(file)"})
         public Object classEval(DynamicObject module, DynamicObject code, DynamicObject file, NotProvided line, NotProvided block,
                 @Cached("create()") IndirectCallNode callNode) {
-            return classEvalSource(module, code, file.toString(), callNode);
+            return classEvalSource(module, code, StringOperations.getString(file), callNode);
         }
 
         @Specialization(guards = {"isRubyString(code)", "isRubyString(file)"})
         public Object classEval(DynamicObject module, DynamicObject code, DynamicObject file, int line, NotProvided block,
                 @Cached("create()") IndirectCallNode callNode) {
-            final CodeLoader.DeferredCall deferredCall = classEvalSource(module, code, file.toString(), line);
+            final CodeLoader.DeferredCall deferredCall = classEvalSource(module, code, StringOperations.getString(file), line);
             return deferredCall.call(callNode);
         }
 
         @Specialization(guards = "wasProvided(code)")
         public Object classEval(VirtualFrame frame, DynamicObject module, Object code, NotProvided file, NotProvided line, NotProvided block,
                 @Cached("create()") IndirectCallNode callNode) {
-            return classEvalSource(module, toStr(frame, code), file.toString(), callNode);
+            return classEvalSource(module, toStr(frame, code), "(eval)", callNode);
         }
 
         @Specialization(guards = {"isRubyString(code)", "wasProvided(file)"})
         public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, Object file, NotProvided line, NotProvided block,
                 @Cached("create()") IndirectCallNode callNode) {
-            return classEvalSource(module, code, toStr(frame, file).toString(), callNode);
+            return classEvalSource(module, code, StringOperations.getString(toStr(frame, file)), callNode);
         }
 
         private Object classEvalSource(DynamicObject module, DynamicObject code, String file,
