@@ -50,7 +50,7 @@ public class FiberManager {
     private final RubyContext context;
     private final DynamicObject rootFiber;
     private DynamicObject currentFiber;
-    private final Set<DynamicObject> runningFibers = Collections.newSetFromMap(new ConcurrentHashMap<DynamicObject, Boolean>());
+    private final Set<DynamicObject> runningFibers = newFiberSet();
 
     private final Map<Thread, DynamicObject> rubyFiberForeignMap = new ConcurrentHashMap<>();
     private final ThreadLocal<DynamicObject> rubyFiber = ThreadLocal.withInitial(() -> rubyFiberForeignMap.get(Thread.currentThread()));
@@ -59,6 +59,11 @@ public class FiberManager {
         this.context = context;
         this.rootFiber = createRootFiber(context, rubyThread);
         this.currentFiber = rootFiber;
+    }
+
+    @TruffleBoundary
+    private static Set<DynamicObject> newFiberSet() {
+        return Collections.newSetFromMap(new ConcurrentHashMap<DynamicObject, Boolean>());
     }
 
     public DynamicObject getRootFiber() {
@@ -104,12 +109,17 @@ public class FiberManager {
                 catchTags,
                 new CountDownLatch(1),
                 new CountDownLatch(1),
-                new LinkedBlockingQueue<>(),
+                newMessageQueue(),
                 thread,
                 null,
                 true,
                 null,
                 false);
+    }
+
+    @TruffleBoundary
+    private static LinkedBlockingQueue<FiberMessage> newMessageQueue() {
+        return new LinkedBlockingQueue<>();
     }
 
     public void initialize(DynamicObject fiber, DynamicObject block, Node currentNode) {

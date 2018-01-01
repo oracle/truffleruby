@@ -127,6 +127,7 @@ public abstract class EncodingConverterNodes {
     @CoreMethod(names = "each_transcoder", onSingleton = true, needsBlock = true)
     public abstract static class EachTranscoderNode extends YieldingCoreMethodNode {
 
+        @TruffleBoundary // Only called once, during startup
         @Specialization
         public Object transcodingMap(DynamicObject block) {
             for (Entry<String, Map<String, TranscoderReference>> sourceEntry : TranscodingManager.allTranscoders.entrySet()) {

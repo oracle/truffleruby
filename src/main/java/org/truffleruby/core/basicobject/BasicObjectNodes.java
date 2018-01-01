@@ -224,7 +224,12 @@ public abstract class BasicObjectNodes {
 
         @Fallback
         public long objectID(Object object) {
-            return Integer.toUnsignedLong(object.hashCode());
+            return Integer.toUnsignedLong(hashCode(object));
+        }
+
+        @TruffleBoundary
+        private int hashCode(Object object) {
+            return object.hashCode();
         }
 
         protected ReadObjectFieldNode createReadObjectIDNode() {
