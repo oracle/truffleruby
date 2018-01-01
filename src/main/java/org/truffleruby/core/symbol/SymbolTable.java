@@ -36,6 +36,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class SymbolTable {
 
     private final DynamicObjectFactory symbolFactory;
+    private final Hashing hashing;
 
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
@@ -47,8 +48,9 @@ public class SymbolTable {
     // deduplicate symbols
     private final Map<SymbolEquality, Reference<DynamicObject>> symbolSet = new WeakHashMap<>();
 
-    public SymbolTable(DynamicObjectFactory symbolFactory) {
+    public SymbolTable(DynamicObjectFactory symbolFactory, Hashing hashing) {
         this.symbolFactory = symbolFactory;
+        this.hashing = hashing;
     }
 
     @TruffleBoundary
@@ -142,7 +144,7 @@ public class SymbolTable {
                 symbolFactory,
                 string,
                 rope,
-                Hashing.hash(MURMUR_SEED, string.hashCode()),
+                hashing.hash(MURMUR_SEED, string.hashCode()),
                 equalityWrapper);
 
         equalityWrapper.setSymbol(symbol);

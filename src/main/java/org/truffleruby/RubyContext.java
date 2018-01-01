@@ -22,6 +22,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.FinalizationService;
+import org.truffleruby.core.Hashing;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.inlined.CoreMethods;
@@ -78,6 +79,7 @@ public class RubyContext {
     private final Options options;
     private final String rubyHome;
 
+    private final Hashing hashing = new Hashing();
     private final RopeTable ropeTable = new RopeTable();
     private final PrimitiveManager primitiveManager = new PrimitiveManager();
     private final SafepointManager safepointManager = new SafepointManager(this);
@@ -178,7 +180,7 @@ public class RubyContext {
         coreLibrary.initialize();
         Launcher.printTruffleTimeMetric("after-create-core-library");
 
-        symbolTable = new SymbolTable(coreLibrary.getSymbolFactory());
+        symbolTable = new SymbolTable(coreLibrary.getSymbolFactory(), hashing);
         rootLexicalScope = new LexicalScope(null, coreLibrary.getObjectClass());
 
         // Create objects that need core classes
@@ -319,6 +321,10 @@ public class RubyContext {
 
     public TruffleLanguage.Env getEnv() {
         return env;
+    }
+
+    public Hashing getHashing() {
+        return hashing;
     }
 
     public AllocationReporter getAllocationReporter() {
