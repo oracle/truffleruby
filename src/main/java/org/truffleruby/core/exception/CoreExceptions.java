@@ -57,7 +57,7 @@ public class CoreExceptions {
         if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
             final String exceptionClass = Layouts.MODULE.getFields(rubyClass).getName();
             String from = "";
-            if (backtrace != null && !backtrace.getActivations().isEmpty()) {
+            if (backtrace != null && backtrace.getActivations().length > 0) {
                 from = " at " + debugBacktraceFormatter.formatLine(backtrace.getActivations(), 0, null);
             }
             Object stderr = context.getCoreLibrary().getStderr();

@@ -100,15 +100,15 @@ public class BacktraceFormatter {
             backtrace = context.getCallStack().getBacktrace(null);
         }
 
-        final List<Activation> activations = backtrace.getActivations();
+        final Activation[] activations = backtrace.getActivations();
         final ArrayList<String> lines = new ArrayList<>();
 
-        if (activations.isEmpty() && !flags.contains(FormattingFlags.OMIT_EXCEPTION) && exception != null) {
+        if (activations.length == 0 && !flags.contains(FormattingFlags.OMIT_EXCEPTION) && exception != null) {
             lines.add(formatException(exception));
             return lines;
         }
 
-        for (int n = 0; n < activations.size(); n++) {
+        for (int n = 0; n < activations.length; n++) {
             try {
                 lines.add(formatLine(activations, n, exception));
             } catch (Exception e) {
@@ -131,8 +131,8 @@ public class BacktraceFormatter {
         return lines;
     }
 
-    public String formatLine(List<Activation> activations, int n, DynamicObject exception) {
-        final Activation activation = activations.get(n);
+    public String formatLine(Activation[] activations, int n, DynamicObject exception) {
+        final Activation activation = activations[n];
 
         if (activation == Activation.OMITTED_LIMIT) {
             return context.getCoreStrings().BACKTRACE_OMITTED_LIMIT.toString();
@@ -228,9 +228,9 @@ public class BacktraceFormatter {
         }
     }
 
-    private SourceSection nextUserSourceSection(List<Activation> activations, int n) {
-        while (n < activations.size()) {
-            final Node callNode = activations.get(n).getCallNode();
+    private SourceSection nextUserSourceSection(Activation[] activations, int n) {
+        while (n < activations.length) {
+            final Node callNode = activations[n].getCallNode();
 
             if (callNode != null) {
                 final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();

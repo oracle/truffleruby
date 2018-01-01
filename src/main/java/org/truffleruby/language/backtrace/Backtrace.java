@@ -15,10 +15,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.List;
 
 public class Backtrace {
 
@@ -37,8 +34,11 @@ public class Backtrace {
         return location;
     }
 
-    public List<Activation> getActivations() {
-        return Collections.unmodifiableList(Arrays.asList(activations));
+    /**
+     * Returns an array to PE better. Do not modify it.
+     */
+    public Activation[] getActivations() {
+        return activations;
     }
 
     public Throwable getJavaThrowable() {
