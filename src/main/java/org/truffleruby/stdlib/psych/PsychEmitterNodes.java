@@ -397,6 +397,7 @@ public abstract class PsychEmitterNodes {
     @CoreMethod(names = "alias", required = 1)
     public abstract static class AliasNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
         public DynamicObject alias(DynamicObject emitter, Object anchor) {
             emit(emitter, new AliasEvent(anchor.toString(), NULL_MARK, NULL_MARK));
