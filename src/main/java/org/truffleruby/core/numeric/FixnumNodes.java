@@ -1194,11 +1194,11 @@ public abstract class FixnumNodes {
     @Primitive(name = "fixnum_memhash")
     public static abstract class FixnumMemhashPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        private static final int MURMUR_ARRAY_SEED = System.identityHashCode(FixnumMemhashPrimitiveNode.class);
+        private static final int MURMUR_SEED = System.identityHashCode(FixnumMemhashPrimitiveNode.class);
 
         @Specialization
         public long memhashLongLong(long a, long b) {
-            long h = getContext().getHashing().start(MURMUR_ARRAY_SEED);
+            long h = getContext().getHashing().start(MURMUR_SEED);
             h = Hashing.update(h, a);
             h = Hashing.update(h, b);
             return Hashing.end(h);
