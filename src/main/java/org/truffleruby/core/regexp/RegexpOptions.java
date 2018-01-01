@@ -150,13 +150,13 @@ public class RegexpOptions implements Cloneable {
         }
 
         if (explicitKCode == KCode.EUC) {
-            setFixed(true);
+            fixed = true;
             return EUCJPEncoding.INSTANCE;
         } else if (explicitKCode == KCode.SJIS) {
-            setFixed(true);
+            fixed = true;
             return Windows_31JEncoding.INSTANCE;
         } else if (explicitKCode == KCode.UTF8) {
-            setFixed(true);
+            fixed = true;
             return UTF8Encoding.INSTANCE;
         }
 
@@ -239,28 +239,28 @@ public class RegexpOptions implements Cloneable {
         RegexpOptions options = fromJoniOptions(embeddedOptions);
 
         options.kcodeDefault = (embeddedOptions & ReOptions.RE_DEFAULT) != 0;
-        options.setOnce((embeddedOptions & ReOptions.RE_OPTION_ONCE) != 0);
-        options.setLiteral((embeddedOptions & ReOptions.RE_LITERAL) != 0);
-        options.setFixed((embeddedOptions & ReOptions.RE_FIXED) != 0);
-        options.setEncodingNone((embeddedOptions & ReOptions.RE_NONE) != 0);
+        options.once = (embeddedOptions & ReOptions.RE_OPTION_ONCE) != 0;
+        options.literal = (embeddedOptions & ReOptions.RE_LITERAL) != 0;
+        options.fixed = (embeddedOptions & ReOptions.RE_FIXED) != 0;
+        options.encodingNone = (embeddedOptions & ReOptions.RE_NONE) != 0;
         
         return options;
     }
 
     public static RegexpOptions fromJoniOptions(int joniOptions) {
         RegexpOptions options = new RegexpOptions();
-        options.setMultiline((joniOptions & ReOptions.RE_OPTION_MULTILINE) != 0);
-        options.setIgnorecase((joniOptions & ReOptions.RE_OPTION_IGNORECASE) != 0);
-        options.setExtended((joniOptions & ReOptions.RE_OPTION_EXTENDED) != 0);
-        options.setFixed((joniOptions & ReOptions.RE_FIXED) != 0);
-        options.setOnce((joniOptions & ReOptions.RE_OPTION_ONCE) != 0);
+        options.multiline = (joniOptions & ReOptions.RE_OPTION_MULTILINE) != 0;
+        options.ignorecase = (joniOptions & ReOptions.RE_OPTION_IGNORECASE) != 0;
+        options.extended = (joniOptions & ReOptions.RE_OPTION_EXTENDED) != 0;
+        options.fixed = (joniOptions & ReOptions.RE_FIXED) != 0;
+        options.once = (joniOptions & ReOptions.RE_OPTION_ONCE) != 0;
 
         return options;
     }
 
     public RegexpOptions withoutOnce() {
         RegexpOptions options = (RegexpOptions) clone();
-        options.setOnce(false);
+        options.once = false;
         return options;
     }
 
