@@ -2922,7 +2922,7 @@ public class RubyLexer {
         }
 
         // Barring all else, we must inspect the bytes for the substring.
-        return StringSupport.encFastMBCLen(rope.getBytes(), 0, rope.byteLength(), current_enc);
+        return StringSupport.encLength(current_enc, rope.getBytes(), 0, rope.byteLength());
     }
 
     public void pushback(int c) {
