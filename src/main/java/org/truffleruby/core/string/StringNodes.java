@@ -1670,7 +1670,7 @@ public abstract class StringNodes {
                             len++;
                         } else {
                             if (enc.isUTF8()) {
-                                int n = preciseLength(enc, bytes, p - 1, end) - 1;
+                                int n = StringSupport.preciseLength(enc, bytes, p - 1, end) - 1;
                                 if (n > 0) {
                                     if (buf == null) {
                                         buf = new RopeBuilder();
@@ -1740,7 +1740,7 @@ public abstract class StringNodes {
                 } else {
                     out[q++] = '\\';
                     if (enc.isUTF8()) {
-                        int n = preciseLength(enc, bytes, p - 1, end) - 1;
+                        int n = StringSupport.preciseLength(enc, bytes, p - 1, end) - 1;
                         if (n > 0) {
                             int cc = codePointX(enc, bytes, p - 1, end);
                             p += n;
@@ -1770,36 +1770,9 @@ public abstract class StringNodes {
             return c == '$' || c == '@' || c == '{';
         }
 
-        // rb_enc_precise_mbclen
-        private static int preciseLength(Encoding enc, byte[]bytes, int p, int end) {
-            if (p >= end) {
-                return -1 - (1);
-            }
-            int n = enc.length(bytes, p, end);
-            if (n > end - p) {
-                return MBCLEN_NEEDMORE(n - (end - p));
-            }
-            return n;
-        }
-
-        private static int MBCLEN_NEEDMORE(int n) {
-            return -1 - n;
-        }
-
-        private static int codePoint(Encoding enc, byte[] bytes, int p, int end) {
-            if (p >= end) {
-                throw new IllegalArgumentException("empty string");
-            }
-            int cl = preciseLength(enc, bytes, p, end);
-            if (cl <= 0) {
-                throw new IllegalArgumentException("invalid byte sequence in " + enc);
-            }
-            return enc.mbcToCode(bytes, p, end);
-        }
-
         private int codePointX(Encoding enc, byte[] bytes, int p, int end) {
             try {
-                return codePoint(enc, bytes, p, end);
+                return StringSupport.codePoint(enc, bytes, p, end);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(getContext().getCoreExceptions().argumentError(e.getMessage(), this));
             }
