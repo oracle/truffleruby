@@ -28,7 +28,7 @@ public final class SequenceNode extends RubyNode {
     @Override
     public Object execute(VirtualFrame frame) {
         for (int n = 0; n < body.length - 1; n++) {
-            body[n].executeVoid(frame);
+            body[n].doExecuteVoid(frame);
         }
 
         return body[body.length - 1].execute(frame);
@@ -36,9 +36,9 @@ public final class SequenceNode extends RubyNode {
 
     @ExplodeLoop
     @Override
-    public void executeVoid(VirtualFrame frame) {
+    public void doExecuteVoid(VirtualFrame frame) {
         for (int n = 0; n < body.length; n++) {
-            body[n].executeVoid(frame);
+            body[n].doExecuteVoid(frame);
         }
     }
 

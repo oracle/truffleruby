@@ -36,7 +36,7 @@ public class CheckKeywordArityNode extends RubyNode {
     }
 
     @Override
-    public void executeVoid(VirtualFrame frame) {
+    public void doExecuteVoid(VirtualFrame frame) {
         final Object keywordArguments = readUserKeywordsHashNode.execute(frame);
 
         int given = RubyArguments.getArgumentsCount(frame);
@@ -60,7 +60,7 @@ public class CheckKeywordArityNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        executeVoid(frame);
+        doExecuteVoid(frame);
         return nil();
     }
 

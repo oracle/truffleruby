@@ -83,8 +83,8 @@ public abstract class HashCastNode extends RubyNode {
     }
 
     @Override
-    public void executeVoid(VirtualFrame frame) {
-        getChild().executeVoid(frame);
+    public void doExecuteVoid(VirtualFrame frame) {
+        getChild().doExecuteVoid(frame);
     }
 
 }
