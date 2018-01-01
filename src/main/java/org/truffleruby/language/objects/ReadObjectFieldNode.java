@@ -74,6 +74,7 @@ public abstract class ReadObjectFieldNode extends RubyBaseNode {
         }
     }
 
+    @TruffleBoundary
     public static Object read(DynamicObject object, Object name, Object defaultValue) {
         final Shape shape = object.getShape();
         final Property property = getProperty(shape, name);

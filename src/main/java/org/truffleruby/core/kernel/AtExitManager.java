@@ -81,6 +81,7 @@ public class AtExitManager {
         return handlers;
     }
 
+    @TruffleBoundary
     @SuppressWarnings("deprecation")
     public static DynamicObject handleAtExitException(RubyContext context, RaiseException raiseException) {
         final DynamicObject rubyException = raiseException.getException();

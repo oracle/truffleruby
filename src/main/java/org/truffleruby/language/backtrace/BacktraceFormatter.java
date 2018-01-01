@@ -43,6 +43,7 @@ public class BacktraceFormatter {
     private final RubyContext context;
     private final EnumSet<FormattingFlags> flags;
 
+    @TruffleBoundary
     public static BacktraceFormatter createDefaultFormatter(RubyContext context) {
         final EnumSet<FormattingFlags> flags = EnumSet.noneOf(FormattingFlags.class);
 
