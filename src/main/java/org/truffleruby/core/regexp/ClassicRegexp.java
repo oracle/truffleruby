@@ -55,6 +55,8 @@ import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.ReOptions;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
@@ -165,8 +167,9 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
+    @TruffleBoundary
     @SuppressWarnings("fallthrough")
-    public static boolean unescapeNonAscii(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end, Encoding enc, Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
+    private static boolean unescapeNonAscii(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end, Encoding enc, Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
         boolean hasProperty = false;
         byte[] buf = null;
 
@@ -602,6 +605,8 @@ public class ClassicRegexp implements ReOptions {
      *
      */
     private static final int QUOTED_V = 11;
+
+    @TruffleBoundary
     public static Rope quote19(Rope bs, boolean asciiOnly) {
         int p = 0;
         int end = bs.byteLength();
@@ -708,6 +713,7 @@ public class ClassicRegexp implements ReOptions {
     }
 
     // rb_reg_initialize
+    @TruffleBoundary
     public ClassicRegexp regexpInitialize(Rope bytes, Encoding enc, RegexpOptions options) {
         this.options = options;
 
