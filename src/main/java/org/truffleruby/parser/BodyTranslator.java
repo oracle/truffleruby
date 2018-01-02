@@ -774,6 +774,7 @@ public class BodyTranslator extends Translator {
     }
 
     public static final Object BAD_FRAME_SLOT = new Object();
+    private static final ParseNode[] EMPTY_ARGUMENTS = new ParseNode[]{};
 
     public Deque<Object> frameOnStackMarkerSlotStack = new ArrayDeque<>();
 
@@ -785,7 +786,7 @@ public class BodyTranslator extends Translator {
 
         if (argsNode == null) {
             // No arguments
-            arguments = new ParseNode[0];
+            arguments = EMPTY_ARGUMENTS;
         } else if (argsNode instanceof ArrayParseNode) {
             // Multiple arguments
             arguments = ((ArrayParseNode) argsNode).children();
@@ -3141,7 +3142,7 @@ public class BodyTranslator extends Translator {
         final ParseNode[] arguments;
         if (argsNode == null) {
             // No arguments
-            arguments = new ParseNode[0];
+            arguments = EMPTY_ARGUMENTS;
         } else if (argsNode instanceof ArrayParseNode) {
             // Multiple arguments
             arguments = ((ArrayParseNode) argsNode).children();
