@@ -43,7 +43,6 @@ import org.joni.NameEntry;
 import org.joni.Option;
 import org.joni.Regex;
 import org.joni.Syntax;
-import org.joni.WarnCallback;
 import org.joni.exception.JOniException;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.WeakValuedMap;
