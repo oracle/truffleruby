@@ -283,13 +283,15 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "inner_check_syntax", onSingleton = true, required = 1)
     public abstract static class InnerCheckSyntaxNode extends CoreMethodArrayArgumentsNode {
 
+        private static final String[] EMPTY_ARGUMENT_NAMES = new String[]{};
+
         @TruffleBoundary
         @Specialization
         public DynamicObject innerCheckSyntax(Source source) {
             final TranslatorDriver translator = new TranslatorDriver(getContext());
 
             translator.parse(source, UTF8Encoding.INSTANCE,
-                    ParserContext.TOP_LEVEL, new String[]{}, null, null, true, null);
+                    ParserContext.TOP_LEVEL, EMPTY_ARGUMENT_NAMES, null, null, true, null);
 
             return nil();
         }
