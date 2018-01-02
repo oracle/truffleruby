@@ -42,7 +42,7 @@ public class RunModuleDefinitionNode extends RubyNode {
         final InternalMethod definition = definitionMethod.createMethod(frame, lexicalScope, module);
 
         return callModuleDefinitionNode.call(definition.getCallTarget(), RubyArguments.pack(
-                null, null, definition, DeclarationContext.MODULE, null, module, null, new Object[]{}));
+                null, null, definition, DeclarationContext.MODULE, null, module, null, RubyNode.EMPTY_ARGUMENTS));
     }
 
 }

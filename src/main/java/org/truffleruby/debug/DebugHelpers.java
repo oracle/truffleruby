@@ -19,6 +19,7 @@ import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.loader.CodeLoader;
@@ -47,7 +48,7 @@ public abstract class DebugHelpers {
                 null,
                 RubyArguments.getSelf(currentFrame),
                 null,
-                new Object[]{});
+                RubyNode.EMPTY_ARGUMENTS);
 
         final FrameDescriptor frameDescriptor = new FrameDescriptor(currentFrame.getFrameDescriptor().getDefaultValue());
 

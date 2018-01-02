@@ -28,6 +28,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyObjectType;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -132,7 +133,7 @@ public class RubyMessageResolution {
             } else if (pointerProfile.profile(Layouts.POINTER.isPointer(object))) {
                 return Layouts.POINTER.getPointer(object).getAddress();
             } else if (doesRespond.doesRespondTo(frame, "unbox", object)) {
-                return dispatchNode.dispatch(frame, object, "unbox", null, new Object[]{});
+                return dispatchNode.dispatch(frame, object, "unbox", null, RubyNode.EMPTY_ARGUMENTS);
             } else {
                 throw UnsupportedMessageException.raise(Message.UNBOX);
             }
@@ -181,7 +182,7 @@ public class RubyMessageResolution {
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
             if (doesRespond.doesRespondTo(frame, "to_native", object)) {
-                return dispatchNode.dispatch(frame, object, "to_native", null, new Object[]{});
+                return dispatchNode.dispatch(frame, object, "to_native", null, RubyNode.EMPTY_ARGUMENTS);
             } else {
                 throw UnsupportedMessageException.raise(Message.TO_NATIVE);
             }

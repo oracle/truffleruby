@@ -21,6 +21,7 @@ import com.oracle.truffle.api.source.Source;
 import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -102,7 +103,7 @@ public class CodeLoader {
                 null,
                 self,
                 null,
-                new Object[]{}));
+                RubyNode.EMPTY_ARGUMENTS));
     }
 
     public static class DeferredCall {

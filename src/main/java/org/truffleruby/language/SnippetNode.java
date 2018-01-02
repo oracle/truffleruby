@@ -88,7 +88,7 @@ public class SnippetNode extends RubyBaseNode {
                 null,
                 RubyArguments.getSelf(frame),
                 null,
-                new Object[]{});
+                RubyNode.EMPTY_ARGUMENTS);
 
         return directCallNode.call(callArguments);
     }
@@ -114,7 +114,7 @@ public class SnippetNode extends RubyBaseNode {
                 null,
                 RubyArguments.getSelf(frame),
                 null,
-                new Object[]{});
+                RubyNode.EMPTY_ARGUMENTS);
 
         final MaterializedFrame parentFrame = Truffle.getRuntime().createMaterializedFrame(
                 parentFrameArguments,
