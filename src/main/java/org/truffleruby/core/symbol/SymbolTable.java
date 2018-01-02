@@ -134,7 +134,7 @@ public class SymbolTable {
         }
     }
 
-    private static final int MURMUR_SEED = System.identityHashCode(SymbolTable.class);
+    private static final int CLASS_SALT = System.identityHashCode(SymbolTable.class);
 
     private DynamicObject createSymbol(Rope rope) {
         final String string = RopeOperations.decodeRope(rope);
@@ -144,7 +144,7 @@ public class SymbolTable {
                 symbolFactory,
                 string,
                 rope,
-                hashing.hash(MURMUR_SEED, string.hashCode()),
+                hashing.hash(CLASS_SALT, string.hashCode()),
                 equalityWrapper);
 
         equalityWrapper.setSymbol(symbol);
