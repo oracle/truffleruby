@@ -29,11 +29,9 @@ public abstract class UnaryInlinedOperationNode extends InlinedOperationNode {
         return getSelf();
     }
 
-    private static final RubyNode[] EMPTY_ARRAY = new RubyNode[0];
-
     @Override
     protected RubyNode[] getArgumentNodes() {
-        return EMPTY_ARRAY;
+        return RubyNode.EMPTY_ARRAY;
     }
 
 }
