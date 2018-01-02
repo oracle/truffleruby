@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicLongArray;
 
 public class CoverageManager {
 
-    public class LineTag {
+    public static class LineTag {
     }
 
     public static final long NO_CODE = -1;

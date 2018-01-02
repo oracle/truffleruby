@@ -152,7 +152,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         return getContext().getOptions().INTEROP_EXECUTE_CACHE;
     }
 
-    protected abstract class OutgoingNode extends Node {
+    protected abstract static class OutgoingNode extends Node {
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
         private final BranchProfile unknownIdentifierProfile = BranchProfile.create();
