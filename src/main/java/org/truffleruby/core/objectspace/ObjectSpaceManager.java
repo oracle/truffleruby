@@ -81,7 +81,7 @@ public class ObjectSpaceManager {
         final List<DynamicObject> roots;
 
         if (callable instanceof DynamicObject) {
-            roots = Arrays.asList((DynamicObject) callable);
+            roots = Collections.singletonList((DynamicObject) callable);
         } else {
             roots = Collections.emptyList();
         }
