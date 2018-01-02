@@ -58,6 +58,18 @@ public final class Hashing {
         return murmurStep(murmurStep(hash, 10), 17);
     }
 
+    public static int rawHash(byte[] bytes, int startingHashCode, int offset, int length) {
+        assert offset + length <= bytes.length;
+
+        int hashCode = startingHashCode;
+        final int endIndex = offset + length;
+        for (int i = offset; i < endIndex; i++) {
+            hashCode = 31 * hashCode + bytes[i];
+        }
+
+        return hashCode;
+    }
+
     private static long murmur(long h) {
         return murmurStep(h, 16);
     }
