@@ -2106,9 +2106,7 @@ states[279] = (support, lexer, yyVal, yyVals, yyTop) -> {
                     yyVal = support.arg_blk_pass((ParseNode)yyVal, ((BlockPassParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
-states[280] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    return yyVal;
-};
+states[280] = (support, lexer, yyVal, yyVals, yyTop) -> yyVal;
 states[281] = (support, lexer, yyVal, yyVals, yyTop) -> {
                     yyVal = lexer.getCmdArgumentState().getStack();
                     lexer.getCmdArgumentState().begin();
@@ -2484,9 +2482,7 @@ states[367] = (support, lexer, yyVal, yyVals, yyTop) -> {
                     yyVal = ((ParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
-states[369] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    return yyVal;
-};
+states[369] = (support, lexer, yyVal, yyVals, yyTop) -> yyVal;
 states[370] = (support, lexer, yyVal, yyVals, yyTop) -> {
                      yyVal = support.assignableInCurr(((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
     return yyVal;

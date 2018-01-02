@@ -62,11 +62,23 @@ class PostProcessor
     @out.puts "};"
   end
 
+  def action_body_method(code_body)
+    if code_body.empty?
+      # If the code body is empty, we can generate a Java lambda expression rather than the more verbose lambda statement.
+      'yyVal;'
+    else
+      # Generate a full Java lambda expression for the action.
+      ret = "{\n"
+
+      code_body.each { |line| ret << line }
+
+      ret << "    return yyVal;\n"
+      ret << "};\n"
+    end
+  end
+
   def generate_action_body_method(state, code_body)
-    @out.puts "states[#{state}] = (support, lexer, yyVal, yyVals, yyTop) -> {"
-    code_body.each { |line| @out.puts line }
-    @out.puts "    return yyVal;"
-    @out.puts "};"
+    @out.puts "states[#{state}] = (support, lexer, yyVal, yyVals, yyTop) -> #{action_body_method(code_body)}"
   end
 
   def translate_actions
