@@ -441,9 +441,7 @@ public class ThreadManager {
         if (context.getOptions().NATIVE_INTERRUPT && isRubyManagedThread(thread)) {
             final Object pThreadID = pthread_self.call();
 
-            blockingNativeCallUnblockingAction.set(() -> {
-                pthread_kill.call(pThreadID, SIGVTALRM);
-            });
+            blockingNativeCallUnblockingAction.set(() -> pthread_kill.call(pThreadID, SIGVTALRM));
         }
 
         unblockingActions.put(thread, EMPTY_UNBLOCKING_ACTION);

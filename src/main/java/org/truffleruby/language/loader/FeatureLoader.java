@@ -277,9 +277,7 @@ public class FeatureLoader {
 
         try {
             Linker.loadLibrary(file,
-                    library -> {
-                        loadNativeLibrary(path, library);
-                    }, this::parseSource);
+                    library -> loadNativeLibrary(path, library), this::parseSource);
         } catch (IOException e) {
             throw new JavaException(e);
         }
