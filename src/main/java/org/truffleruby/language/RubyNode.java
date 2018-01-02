@@ -18,6 +18,7 @@ import com.oracle.truffle.api.source.SourceSection;
 public abstract class RubyNode extends RubyBaseNode {
 
     public static final RubyNode[] EMPTY_ARRAY = new RubyNode[]{};
+    public static final Object[] EMPTY_ARGUMENTS = new Object[]{};
 
     // Fundamental execute methods
 
