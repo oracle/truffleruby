@@ -125,7 +125,11 @@ public class RopeOperations {
         }
 
         final CodeRange codeRange = encoding.isAsciiCompatible() ? CR_7BIT : CR_VALID;
-        return withEncodingVerySlow(RopeConstants.EMPTY_ASCII_8BIT_ROPE, encoding, codeRange);
+        if (codeRange == CR_7BIT) {
+            return new AsciiOnlyLeafRope(RopeConstants.EMPTY_BYTES, encoding);
+        } else {
+            return new ValidLeafRope(RopeConstants.EMPTY_BYTES, encoding, 0);
+        }
     }
 
     @TruffleBoundary

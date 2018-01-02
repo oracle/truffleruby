@@ -69,7 +69,7 @@ public abstract class RopeNodes {
                                        @Cached("createBinaryProfile()") ConditionProfile isUSAscii,
                                        @Cached("createBinaryProfile()") ConditionProfile isAscii8Bit,
                                        @Cached("createBinaryProfile()") ConditionProfile isAsciiCompatible,
-                                       @Cached("create()") WithEncodingNode withEncodingNode) {
+                                       @Cached("create()") MakeLeafRopeNode makeLeafRopeNode) {
             if (isUTF8.profile(base.getEncoding() == UTF8Encoding.INSTANCE)) {
                 return RopeConstants.EMPTY_UTF8_ROPE;
             }
@@ -84,7 +84,7 @@ public abstract class RopeNodes {
 
             final CodeRange codeRange = isAsciiCompatible.profile(base.getEncoding().isAsciiCompatible()) ? CR_7BIT : CR_VALID;
 
-            return withEncodingNode.executeWithEncoding(RopeConstants.EMPTY_ASCII_8BIT_ROPE, base.getEncoding(), codeRange);
+            return makeLeafRopeNode.executeMake(RopeConstants.EMPTY_BYTES, base.getEncoding(), codeRange, 0);
         }
 
         @Specialization(guards = "byteLength == 1")
@@ -595,10 +595,10 @@ public abstract class RopeNodes {
             }
 
             if (isAsciiCompatible.profile(encoding.isAsciiCompatible())) {
-                return new AsciiOnlyLeafRope(bytes, encoding);
+                return new AsciiOnlyLeafRope(RopeConstants.EMPTY_BYTES, encoding);
             }
 
-            return new ValidLeafRope(bytes, encoding, 0);
+            return new ValidLeafRope(RopeConstants.EMPTY_BYTES, encoding, 0);
         }
 
         @Specialization(guards = { "isUnknown(codeRange)", "!isEmpty(bytes)", "isBinaryString(encoding)" })
