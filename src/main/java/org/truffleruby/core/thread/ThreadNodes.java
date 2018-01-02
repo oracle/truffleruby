@@ -315,14 +315,9 @@ public abstract class ThreadNodes {
 
         @TruffleBoundary
         public static void doJoin(RubyNode currentNode, final DynamicObject thread) {
-            currentNode.getContext().getThreadManager().runUntilResult(currentNode, new ThreadManager.BlockingAction<Boolean>() {
-
-                @Override
-                public Boolean block() throws InterruptedException {
-                    Layouts.THREAD.getFinishedLatch(thread).await();
-                    return SUCCESS;
-                }
-
+            currentNode.getContext().getThreadManager().runUntilResult(currentNode, () -> {
+                Layouts.THREAD.getFinishedLatch(thread).await();
+                return ThreadManager.BlockingAction.SUCCESS;
             });
 
             final DynamicObject exception = Layouts.THREAD.getException(thread);

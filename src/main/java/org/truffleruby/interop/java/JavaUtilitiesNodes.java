@@ -187,18 +187,16 @@ public class JavaUtilitiesNodes {
 
         @Specialization
         public Object createHandler(DynamicObject aProc) {
-            return new InvocationHandler() {
-                public Object invoke(Object aProxy, Method method, Object[] args) {
-                    Object[] rubyArgs;
-                    if (args != null) {
-                        rubyArgs = new Object[args.length + 1];
-                        System.arraycopy(args, 0, rubyArgs, 1, args.length);
-                    } else {
-                        rubyArgs = new Object[1];
-                    }
-                    rubyArgs[0] = method;
-                    return yield(aProc, rubyArgs);
+            return (InvocationHandler) (aProxy, method, args) -> {
+                Object[] rubyArgs;
+                if (args != null) {
+                    rubyArgs = new Object[args.length + 1];
+                    System.arraycopy(args, 0, rubyArgs, 1, args.length);
+                } else {
+                    rubyArgs = new Object[1];
                 }
+                rubyArgs[0] = method;
+                return yield(aProc, rubyArgs);
             };
         }
     }

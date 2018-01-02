@@ -30,15 +30,10 @@ public abstract class MutexOperations {
             throw new RaiseException(context.getCoreExceptions().threadErrorRecursiveLocking(currentNode));
         }
 
-        context.getThreadManager().runUntilResult(currentNode, new ThreadManager.BlockingAction<Boolean>() {
-
-            @Override
-            public Boolean block() throws InterruptedException {
-                lock.lockInterruptibly();
-                Layouts.THREAD.getOwnedLocks(thread).add(lock);
-                return SUCCESS;
-            }
-
+        context.getThreadManager().runUntilResult(currentNode, () -> {
+            lock.lockInterruptibly();
+            Layouts.THREAD.getOwnedLocks(thread).add(lock);
+            return ThreadManager.BlockingAction.SUCCESS;
         });
     }
 
@@ -56,15 +51,10 @@ public abstract class MutexOperations {
         try {
             while (true) {
                 try {
-                    context.getThreadManager().runUntilResult(currentNode, new ThreadManager.BlockingAction<Boolean>() {
-
-                        @Override
-                        public Boolean block() throws InterruptedException {
-                            lock.lockInterruptibly();
-                            Layouts.THREAD.getOwnedLocks(thread).add(lock);
-                            return SUCCESS;
-                        }
-
+                    context.getThreadManager().runUntilResult(currentNode, () -> {
+                        lock.lockInterruptibly();
+                        Layouts.THREAD.getOwnedLocks(thread).add(lock);
+                        return ThreadManager.BlockingAction.SUCCESS;
                     });
                     break;
                 } catch (Throwable t) {

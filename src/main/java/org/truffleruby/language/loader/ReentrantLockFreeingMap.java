@@ -69,12 +69,9 @@ public class ReentrantLockFreeingMap<K> {
         // Also sets status to sleep in MRI
         threadManager.runUntilResult(
                 currentNode,
-                new ThreadManager.BlockingAction<Boolean>() {
-                    @Override
-                    public Boolean block() throws InterruptedException {
-                        lock.lockInterruptibly();
-                        return SUCCESS;
-                    }
+                () -> {
+                    lock.lockInterruptibly();
+                    return ThreadManager.BlockingAction.SUCCESS;
                 });
         // ensure that we are not holding removed lock
         if (lock == locks.get(key)) {

@@ -94,12 +94,7 @@ public class ClassicRegexp implements ReOptions {
 
     private static Regex makeRegexp(RubyContext runtime, RopeBuilder bytes, RegexpOptions options, Encoding enc) {
         try {
-            return new Regex(bytes.getUnsafeBytes(), 0, bytes.getLength(), options.toJoniOptions(), enc, Syntax.DEFAULT, new WarnCallback() {
-                @Override
-                public void warn(String s) {
-                    //
-                }
-            });
+            return new Regex(bytes.getUnsafeBytes(), 0, bytes.getLength(), options.toJoniOptions(), enc, Syntax.DEFAULT, s -> { });
         } catch (Exception e) {
             throw new RaiseException(runtime.getCoreExceptions().regexpError(e.getMessage(), null));
         }
