@@ -2006,7 +2006,7 @@ qsym_list      : /* none */ {
                 }
 
 string_contents : /* none */ {
-                    $$ = lexer.createStr(RopeOperations.create(new byte[]{}, lexer.getEncoding(), CR_UNKNOWN), 0);
+                    $$ = lexer.createStr(RopeOperations.emptyRope(lexer.getEncoding()), 0);
                 }
                 | string_contents string_content {
                     $$ = support.literal_concat($1, $<ParseNode>2);
