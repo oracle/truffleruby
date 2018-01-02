@@ -3162,9 +3162,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitZArrayNode(ZArrayParseNode node) {
-        final RubyNode[] values = new RubyNode[0];
-
-        final RubyNode ret = ArrayLiteralNode.create(values);
+        final RubyNode ret = ArrayLiteralNode.create(RubyNode.EMPTY_ARRAY);
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
     }

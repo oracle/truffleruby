@@ -17,6 +17,8 @@ import com.oracle.truffle.api.source.SourceSection;
 @Instrumentable(factory = RubyNodeWrapper.class)
 public abstract class RubyNode extends RubyBaseNode {
 
+    public static final RubyNode[] EMPTY_ARRAY = new RubyNode[]{};
+
     // Fundamental execute methods
 
     public abstract Object execute(VirtualFrame frame);
