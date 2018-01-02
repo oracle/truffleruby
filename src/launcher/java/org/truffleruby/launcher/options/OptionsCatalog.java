@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2018 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -116,6 +116,11 @@ public class OptionsCatalog {
             "Enable default lazy options",
             null,
             true);
+    public static final BooleanOptionDescription HASHING_DETERMINISTIC = new BooleanOptionDescription(
+            "ruby.hashing.deterministic",
+            "Produce deterministic hash values",
+            null,
+            false);
     public static final BooleanOptionDescription FROZEN_STRING_LITERALS = new BooleanOptionDescription(
             "ruby.frozen_string_literals",
             "Use frozen string literals",
@@ -644,6 +649,8 @@ public class OptionsCatalog {
                 return ARGV_GLOBAL_FLAGS;
             case "ruby.lazy.default":
                 return DEFAULT_LAZY;
+            case "ruby.hashing.deterministic":
+                return HASHING_DETERMINISTIC;
             case "ruby.frozen_string_literals":
                 return FROZEN_STRING_LITERALS;
             case "ruby.rubygems":
@@ -865,6 +872,7 @@ public class OptionsCatalog {
             ARGV_GLOBAL_VALUES,
             ARGV_GLOBAL_FLAGS,
             DEFAULT_LAZY,
+            HASHING_DETERMINISTIC,
             FROZEN_STRING_LITERALS,
             RUBYGEMS,
             LAZY_RUBYGEMS,

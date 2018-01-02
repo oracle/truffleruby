@@ -198,4 +198,11 @@ describe "The launcher" do
     end
   end
 
+  it "enables deterministic hashing if -Xhashing.deterministic is set" do
+    out = `#{RbConfig.ruby} -Xhashing.deterministic=true -e 'puts 14.hash' 2>&1`
+    $?.success?.should == true
+    out.should include("SEVERE deterministic hashing is enabled - this may make you vulnerable to denial of service attacks")
+    out.should include("4619262684610599513")
+  end
+
 end

@@ -13,14 +13,12 @@ import java.util.Random;
 
 public final class Hashing {
 
-    private static final boolean CONSISTENT_HASHING_ENABLED = false;
-
     private static final int MURMUR2_MAGIC = 0x5bd1e995;
 
     private final long seed;
 
-    public Hashing() {
-        if (CONSISTENT_HASHING_ENABLED) {
+    public Hashing(boolean deterministic) {
+        if (deterministic) {
             seed = 7114160726623585955L;
         } else {
             final Random random = new Random();
