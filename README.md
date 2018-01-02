@@ -41,6 +41,10 @@ chris.seaton@oracle.com.
 Announcements about GraalVM, including TruffleRuby, are made on the
 [graalvm-dev](https://oss.oracle.com/mailman/listinfo/graalvm-dev) mailing list.
 
+## Security
+
+See the [security documentation](doc/user/security.md).
+
 ## System Compatibility
 
 TruffleRuby is actively tested on these systems:
