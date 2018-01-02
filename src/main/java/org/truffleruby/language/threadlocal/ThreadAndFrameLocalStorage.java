@@ -49,13 +49,7 @@ public class ThreadAndFrameLocalStorage {
                 if (otherThreadValues != null) {
                     return otherThreadValues;
                 } else {
-                    otherThreadValues = new ThreadLocal<Object>() {
-                        @Override
-                        protected Object initialValue() {
-                            return ThreadAndFrameLocalStorage.this.initialValue();
-                        }
-
-                    };
+                    otherThreadValues = ThreadLocal.withInitial(() -> ThreadAndFrameLocalStorage.this.initialValue());
                     return otherThreadValues;
                 }
             }
