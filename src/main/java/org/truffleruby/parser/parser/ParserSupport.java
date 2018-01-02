@@ -1692,9 +1692,9 @@ public class ParserSupport {
     // regexp options encoding so dregexps can end up starting with the
     // right encoding.
     private Rope createMaster(RegexpOptions options) {
-        Encoding encoding = options.setup();
+        final Encoding encoding = options.setup();
+        final Rope rope = RopeOperations.emptyRope(encoding == null ? ASCIIEncoding.INSTANCE : encoding);
 
-        Rope rope = RopeOperations.create(new byte[]{}, encoding == null ? ASCIIEncoding.INSTANCE : encoding, CR_UNKNOWN);
         return rope;
     }
     

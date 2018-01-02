@@ -111,6 +111,23 @@ public class RopeOperations {
         return create(new byte[] { b }, encoding, codeRange);
     }
 
+    public static Rope emptyRope(Encoding encoding) {
+        if (encoding == UTF8Encoding.INSTANCE) {
+            return RopeConstants.EMPTY_UTF8_ROPE;
+        }
+
+        if (encoding == USASCIIEncoding.INSTANCE) {
+            return RopeConstants.EMPTY_US_ASCII_ROPE;
+        }
+
+        if (encoding == ASCIIEncoding.INSTANCE) {
+            return RopeConstants.EMPTY_ASCII_8BIT_ROPE;
+        }
+
+        final CodeRange codeRange = encoding.isAsciiCompatible() ? CR_7BIT : CR_VALID;
+        return withEncodingVerySlow(RopeConstants.EMPTY_ASCII_8BIT_ROPE, encoding, codeRange);
+    }
+
     @TruffleBoundary
     public static Rope withEncodingVerySlow(Rope originalRope, Encoding newEncoding, CodeRange newCodeRange) {
         if ((originalRope.getEncoding() == newEncoding) && (originalRope.getCodeRange() == newCodeRange)) {

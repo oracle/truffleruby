@@ -3781,7 +3781,7 @@ states[479] = new ParserState() {
 };
 states[480] = new ParserState() {
   @Override public Object execute(ParserSupport support, RubyLexer lexer, Object yyVal, Object[] yyVals, int yyTop) {
-                    yyVal = lexer.createStr(RopeOperations.create(new byte[]{}, lexer.getEncoding(), CR_UNKNOWN), 0);
+                    yyVal = lexer.createStr(RopeOperations.emptyRope(lexer.getEncoding()), 0);
     return yyVal;
   }
 };
