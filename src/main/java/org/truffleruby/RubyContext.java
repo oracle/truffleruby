@@ -16,6 +16,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.CompilerOptions;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -64,6 +65,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
@@ -101,6 +105,7 @@ public class RubyContext {
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
 
+    private final Random random;
     private final Hashing hashing;
     private final TruffleNFIPlatform truffleNFIPlatform;
     private final CoreLibrary coreLibrary;
@@ -139,11 +144,22 @@ public class RubyContext {
                     "this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md");
         }
 
-        if (options.HASHING_DETERMINISTIC) {
-            Log.LOGGER.severe("deterministic hashing is enabled - this may make you vulnerable to denial of service attacks");
+        try {
+             random = TruffleOptions.AOT ? SecureRandom.getInstance("SHA1PRNG") : new SecureRandom();
+        } catch (NoSuchAlgorithmException e) {
+            throw new UnsupportedOperationException(e);
         }
 
-        hashing = new Hashing(options.HASHING_DETERMINISTIC);
+        final long hashingSeed;
+
+        if (options.HASHING_DETERMINISTIC) {
+            Log.LOGGER.severe("deterministic hashing is enabled - this may make you vulnerable to denial of service attacks");
+            hashingSeed = random.nextLong();
+        } else {
+            hashingSeed = 7114160726623585955L;
+        }
+
+        hashing = new Hashing(hashingSeed);
 
         try {
             rubyHome = findRubyHome();
@@ -531,5 +547,9 @@ public class RubyContext {
 
     public NativeConfiguration getNativeConfiguration() {
         return nativeConfiguration;
+    }
+
+    public Random getRandom() {
+        return random;
     }
 }
