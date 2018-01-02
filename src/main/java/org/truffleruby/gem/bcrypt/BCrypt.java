@@ -14,7 +14,7 @@
 package org.truffleruby.gem.bcrypt;
 
 import java.io.UnsupportedEncodingException;
-import java.security.SecureRandom;
+import java.util.Random;
 
 /**
  * BCrypt implements OpenBSD-style Blowfish password hashing using
@@ -715,7 +715,7 @@ public class BCrypt {
      * @param random an instance of SecureRandom to use
      * @return an encoded salt value
      */
-    public static String gensalt(int log_rounds, SecureRandom random) {
+    public static String gensalt(int log_rounds, Random random) {
         StringBuilder rs = new StringBuilder();
         byte rnd[] = new byte[BCRYPT_SALT_LEN];
 
@@ -738,8 +738,8 @@ public class BCrypt {
      *            therefore increases as 2**log_rounds.
      * @return an encoded salt value
      */
-    public static String gensalt(int log_rounds) {
-        return gensalt(log_rounds, new SecureRandom());
+    public static String gensalt(Random random, int log_rounds) {
+        return gensalt(log_rounds, random);
     }
 
 }
