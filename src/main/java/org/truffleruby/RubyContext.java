@@ -79,7 +79,6 @@ public class RubyContext {
     private final Options options;
     private final String rubyHome;
 
-    private final Hashing hashing = new Hashing();
     private final RopeTable ropeTable = new RopeTable();
     private final PrimitiveManager primitiveManager = new PrimitiveManager();
     private final SafepointManager safepointManager = new SafepointManager(this);
@@ -102,6 +101,7 @@ public class RubyContext {
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
 
+    private final Hashing hashing;
     private final TruffleNFIPlatform truffleNFIPlatform;
     private final CoreLibrary coreLibrary;
     private CoreMethods coreMethods;
@@ -138,6 +138,12 @@ public class RubyContext {
             Log.performanceOnce(
                     "this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md");
         }
+
+        if (options.HASHING_DETERMINISTIC) {
+            Log.LOGGER.severe("deterministic hashing is enabled - this may make you vulnerable to denial of service attacks");
+        }
+
+        hashing = new Hashing(options.HASHING_DETERMINISTIC);
 
         try {
             rubyHome = findRubyHome();
