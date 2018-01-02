@@ -739,13 +739,13 @@ public abstract class InteropNodes {
                 @Cached("create()") RopeNodes.EqualNode mimeTypeEqualNode,
                 @Cached("create()") RopeNodes.EqualNode sourceEqualNode
         ) {
-            return callNode.call(new Object[]{});
+            return callNode.call(RubyNode.EMPTY_ARGUMENTS);
         }
 
         @Specialization(guards = {"isRubyString(mimeType)", "isRubyString(source)"}, replaces = "evalCached")
         public Object evalUncached(DynamicObject mimeType, DynamicObject source,
                 @Cached("create()") IndirectCallNode callNode) {
-            return callNode.call(parse(mimeType, source), new Object[]{});
+            return callNode.call(parse(mimeType, source), RubyNode.EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
