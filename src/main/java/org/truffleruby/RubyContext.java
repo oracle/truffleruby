@@ -151,9 +151,9 @@ public class RubyContext {
 
         if (options.HASHING_DETERMINISTIC) {
             Log.LOGGER.severe("deterministic hashing is enabled - this may make you vulnerable to denial of service attacks");
-            hashingSeed = random.nextLong();
-        } else {
             hashingSeed = 7114160726623585955L;
+        } else {
+            hashingSeed = random.nextLong();
         }
 
         hashing = new Hashing(hashingSeed);
