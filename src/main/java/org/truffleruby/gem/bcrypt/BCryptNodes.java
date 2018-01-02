@@ -47,7 +47,7 @@ public abstract class BCryptNodes {
         @TruffleBoundary
         @Specialization
         public Object gensalt(int cost) {
-            return makeStringNode.executeMake(BCrypt.gensalt(cost), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(BCrypt.gensalt(cost, getContext().getRandom()), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }
     }
 
