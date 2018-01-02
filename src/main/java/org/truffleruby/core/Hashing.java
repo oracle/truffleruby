@@ -58,18 +58,18 @@ public final class Hashing {
 
     public static long update(long hash, long value) {
         hash += value;
-        return murmur1(murmur1(hash) + (hash >>> 32));
+        return murmur(murmur(hash) + (hash >>> 32));
     }
 
     public static long end(long hash) {
-        return murmur_step(murmur_step(hash, 10), 17);
+        return murmurStep(murmurStep(hash, 10), 17);
     }
 
-    private static long murmur1(long h) {
-        return murmur_step(h, 16);
+    private static long murmur(long h) {
+        return murmurStep(h, 16);
     }
 
-    private static long murmur_step(long h, long k) {
+    private static long murmurStep(long h, long k) {
         h += k;
         h *= MURMUR2_MAGIC;
         h ^= h >> 16;
