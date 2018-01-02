@@ -72,6 +72,7 @@ import org.truffleruby.core.format.exceptions.FormatException;
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
 import org.truffleruby.core.format.printf.PrintfCompiler;
 import org.truffleruby.core.kernel.KernelNodesFactory.CopyNodeFactory;
+import org.truffleruby.core.kernel.KernelNodesFactory.GetMethodObjectNodeGen;
 import org.truffleruby.core.kernel.KernelNodesFactory.ObjectSameOrEqualNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SingletonMethodsNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.ToHexStringNodeFactory;
@@ -1024,15 +1025,11 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "method", required = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "object"),
-            @NodeChild(type = RubyNode.class, value = "name")
-    })
+    @NodeChild(type = RubyNode.class, value = "receiver")
+    @NodeChild(type = RubyNode.class, value = "name")
     public abstract static class MethodNode extends CoreMethodNode {
 
-        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-        @Child private LookupMethodNode lookupMethodNode = LookupMethodNodeGen.create(true, false, null, null);
-        @Child private CallDispatchHeadNode respondToMissingNode = CallDispatchHeadNode.createOnSelf();
+        @Child private GetMethodObjectNode getMethodObjectNode = GetMethodObjectNode.create(true);
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
@@ -1040,14 +1037,42 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        public DynamicObject method(VirtualFrame frame, Object self, DynamicObject name,
+        protected DynamicObject method(VirtualFrame frame, Object self, DynamicObject name) {
+            return getMethodObjectNode.executeGetMethodObject(frame, self, name);
+        }
+
+    }
+
+    @NodeChild("receiver")
+    @NodeChild("name")
+    public abstract static class GetMethodObjectNode extends RubyNode {
+
+        public static GetMethodObjectNode create(boolean ignoreVisibility) {
+            return GetMethodObjectNodeGen.create(ignoreVisibility, null, null);
+        }
+
+        private final boolean ignoreVisibility;
+
+        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
+        @Child private LookupMethodNode lookupMethodNode;
+        @Child private CallDispatchHeadNode respondToMissingNode = CallDispatchHeadNode.createOnSelf();
+
+        public GetMethodObjectNode(boolean ignoreVisibility) {
+            this.ignoreVisibility = ignoreVisibility;
+            lookupMethodNode = LookupMethodNodeGen.create(ignoreVisibility, !ignoreVisibility, null, null);
+        }
+
+        public abstract DynamicObject executeGetMethodObject(VirtualFrame frame, Object self, DynamicObject name);
+
+        @Specialization
+        protected DynamicObject methods(VirtualFrame frame, Object self, DynamicObject name,
                 @Cached("createBinaryProfile()") ConditionProfile notFoundProfile,
                 @Cached("createBinaryProfile()") ConditionProfile respondToMissingProfile) {
             final String normalizedName = nameToJavaStringNode.executeToJavaString(name);
             InternalMethod method = lookupMethodNode.executeLookupMethod(frame, self, normalizedName);
 
             if (notFoundProfile.profile(method == null)) {
-                if (respondToMissingProfile.profile(respondToMissingNode.callBoolean(frame, self, "respond_to_missing?", null, name, true))) {
+                if (respondToMissingProfile.profile(respondToMissingNode.callBoolean(frame, self, "respond_to_missing?", null, name, ignoreVisibility))) {
                     final InternalMethod methodMissing = lookupMethodNode.executeLookupMethod(frame, self, "method_missing").withName(normalizedName);
                     method = createMissingMethod(self, name, normalizedName, methodMissing);
                 } else {
@@ -1215,6 +1240,25 @@ public abstract class KernelNodes {
 
             Object[] objects = Layouts.MODULE.getFields(metaClass).filterMethodsOnObject(getContext(), includeAncestors, MethodFilter.PROTECTED).toArray();
             return createArray(objects, objects.length);
+        }
+
+    }
+
+    @CoreMethod(names = "public_method", required = 1)
+    @NodeChild(type = RubyNode.class, value = "receiver")
+    @NodeChild(type = RubyNode.class, value = "name")
+    public abstract static class PublicMethodNode extends CoreMethodNode {
+
+        @Child private GetMethodObjectNode getMethodObjectNode = GetMethodObjectNode.create(false);
+
+        @CreateCast("name")
+        public RubyNode coerceToString(RubyNode name) {
+            return ToStringOrSymbolNodeGen.create(name);
+        }
+
+        @Specialization
+        protected DynamicObject publicMethod(VirtualFrame frame, Object self, DynamicObject name) {
+            return getMethodObjectNode.executeGetMethodObject(frame, self, name);
         }
 
     }
