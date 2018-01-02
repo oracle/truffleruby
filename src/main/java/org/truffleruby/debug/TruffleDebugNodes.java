@@ -362,7 +362,7 @@ public abstract class TruffleDebugNodes {
         }
 
         private static void throwingMethod(String message) {
-            throw new RuntimeException(message.toString());
+            throw new RuntimeException(message);
         }
 
     }
