@@ -26,68 +26,6 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
     public static final int GLOBAL = -3;
     public static final int HIGHEST = -4;
 
-    public static class ReadPreMatchNode extends RubyNode {
-        @Child CallDispatchHeadNode preMatchNode = CallDispatchHeadNode.create();
-        @Child private RubyNode readMatchNode;
-
-        protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
-
-        public ReadPreMatchNode(RubyNode readMatchNode) {
-            this.readMatchNode = readMatchNode;
-        }
-
-        @Override
-        public Object execute(VirtualFrame frame) {
-            final Object match = readMatchNode.execute(frame);
-
-            if (matchNilProfile.profile(match == nil())) {
-                return nil();
-            }
-
-            return preMatchNode.call(frame, match, "pre_match");
-        }
-
-        @Override
-        public Object isDefined(VirtualFrame frame) {
-            if (isNil(execute(frame))) {
-                return nil();
-            } else {
-                return coreStrings().GLOBAL_VARIABLE.createInstance();
-            }
-        }
-    }
-
-    public static class ReadPostMatchNode extends RubyNode {
-        @Child CallDispatchHeadNode postMatchNode = CallDispatchHeadNode.create();
-        @Child private RubyNode readMatchNode;
-
-        protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
-
-        public ReadPostMatchNode(RubyNode readMatchNode) {
-            this.readMatchNode = readMatchNode;
-        }
-
-        @Override
-        public Object execute(VirtualFrame frame) {
-            final Object match = readMatchNode.execute(frame);
-
-            if (matchNilProfile.profile(match == nil())) {
-                return nil();
-            }
-
-            return postMatchNode.call(frame, match, "post_match");
-        }
-
-        @Override
-        public Object isDefined(VirtualFrame frame) {
-            if (isNil(execute(frame))) {
-                return nil();
-            } else {
-                return coreStrings().GLOBAL_VARIABLE.createInstance();
-            }
-        }
-    }
-
     public static class ReadMatchNode extends RubyNode {
         @Child private CallDispatchHeadNode getMatchIndexNode = CallDispatchHeadNode.create();
         @Child private RubyNode readMatchNode;
