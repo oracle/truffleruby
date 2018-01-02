@@ -83,7 +83,7 @@ public abstract class QueueNodes {
 
         @TruffleBoundary
         private Object doPop(final UnsizedQueue queue) {
-            return getContext().getThreadManager().runUntilResult(this, () -> queue.take());
+            return getContext().getThreadManager().runUntilResult(this, queue::take);
         }
 
         @Specialization(guards = "nonBlocking")

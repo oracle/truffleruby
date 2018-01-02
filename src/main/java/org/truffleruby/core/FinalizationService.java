@@ -70,11 +70,11 @@ public class FinalizationService {
         }
 
         public List<Runnable> getFinalizerActions() {
-            return finalizers.stream().map(f -> f.getAction()).collect(Collectors.toList());
+            return finalizers.stream().map(Finalizer::getAction).collect(Collectors.toList());
         }
 
         public Stream<DynamicObject> getRoots() {
-            return finalizers.stream().flatMap(f -> f.getRoots());
+            return finalizers.stream().flatMap(Finalizer::getRoots);
         }
     }
 
@@ -146,7 +146,7 @@ public class FinalizationService {
         threadManager.initialize(finalizerThread, null, "finalizer", () -> {
             while (true) {
                 final FinalizerReference finalizerReference = (FinalizerReference) threadManager.runUntilResult(null,
-                        () -> finalizerQueue.remove());
+                        finalizerQueue::remove);
 
                 runFinalizer(finalizerReference);
             }
@@ -155,7 +155,7 @@ public class FinalizationService {
 
     private void runFinalizer(FinalizerReference finalizerReference) {
         try {
-            finalizerReference.getFinalizerActions().forEach(action -> action.run());
+            finalizerReference.getFinalizerActions().forEach(Runnable::run);
         } catch (TerminationException e) {
             throw e;
         } catch (RaiseException e) {
@@ -177,7 +177,7 @@ public class FinalizationService {
     }
 
     public synchronized Stream<DynamicObject> getRoots() {
-        return finalizerReferences.values().stream().flatMap(f -> f.getRoots());
+        return finalizerReferences.values().stream().flatMap(FinalizerReference::getRoots);
     }
 
 }
