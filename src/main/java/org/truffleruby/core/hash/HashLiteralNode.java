@@ -66,7 +66,7 @@ public abstract class HashLiteralNode extends RubyNode {
     public static class EmptyHashLiteralNode extends HashLiteralNode {
 
         public EmptyHashLiteralNode() {
-            super(new RubyNode[]{});
+            super(RubyNode.EMPTY_ARRAY);
         }
 
         @ExplodeLoop
