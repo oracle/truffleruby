@@ -295,7 +295,6 @@ public abstract class RandomizerNodes {
             }
         }
 
-        @TruffleBoundary
         @Specialization
         public DynamicObject randomizerGenSeed(DynamicObject randomizerClass) {
             final BigInteger seed = randomSeedBigInteger(RANDOM);
@@ -304,7 +303,8 @@ public abstract class RandomizerNodes {
 
         private static final int DEFAULT_SEED_CNT = 4;
 
-        public static BigInteger randomSeedBigInteger(java.util.Random random) {
+        @TruffleBoundary
+        public static BigInteger randomSeedBigInteger(Random random) {
             byte[] seed = new byte[DEFAULT_SEED_CNT * 4];
             random.nextBytes(seed);
             return new BigInteger(seed).abs();
