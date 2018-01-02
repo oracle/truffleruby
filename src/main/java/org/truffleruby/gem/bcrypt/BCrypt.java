@@ -1,5 +1,3 @@
-package org.truffleruby.gem.bcrypt;
-
 // Copyright (c) 2006 Damien Miller <djm@mindrot.org>
 //
 // Permission to use, copy, modify, and distribute this software for any
@@ -13,6 +11,7 @@ package org.truffleruby.gem.bcrypt;
 // WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+package org.truffleruby.gem.bcrypt;
 
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
@@ -61,8 +60,8 @@ import java.security.SecureRandom;
  * @version 0.2
  */
 public class BCrypt {
+
     // BCrypt parameters
-    private static final int GENSALT_DEFAULT_LOG2_ROUNDS = 10;
     private static final int BCRYPT_SALT_LEN = 16;
 
     // Blowfish parameters
@@ -743,24 +742,4 @@ public class BCrypt {
         return gensalt(log_rounds, new SecureRandom());
     }
 
-    /**
-     * Generate a salt for use with the BCrypt.hashpw() method, selecting a reasonable default for
-     * the number of hashing rounds to apply
-     * 
-     * @return an encoded salt value
-     */
-    public static String gensalt() {
-        return gensalt(GENSALT_DEFAULT_LOG2_ROUNDS);
-    }
-
-    /**
-     * Check that a plaintext password matches a previously hashed one
-     * 
-     * @param plaintext the plaintext password to verify
-     * @param hashed the previously-hashed password
-     * @return true if the passwords match, false otherwise
-     */
-    public static boolean checkpw(String plaintext, String hashed) {
-        return (hashed.compareTo(hashpw(plaintext, hashed)) == 0);
-    }
 }

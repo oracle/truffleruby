@@ -50,4 +50,5 @@ public abstract class BCryptNodes {
             return makeStringNode.executeMake(BCrypt.gensalt(cost), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }
     }
+
 }
