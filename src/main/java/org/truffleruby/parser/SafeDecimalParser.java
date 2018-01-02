@@ -59,7 +59,7 @@ class SafeDecimalParser {
      * @return <code>true</code> if the value is suspicious, <code>false</code> otherwise
      */
     final protected static boolean isSuspicious(String s) {
-        return digits(s).indexOf(SUSPICIOUS_DIGITS) >= 0;
+        return digits(s).contains(SUSPICIOUS_DIGITS);
     }
 
     /**

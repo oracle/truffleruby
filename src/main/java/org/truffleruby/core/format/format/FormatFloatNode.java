@@ -633,7 +633,7 @@ public abstract class FormatFloatNode extends FormatNode {
                 final String precisionFormat = hasPrecisionFlag ? "." + precision : "";
                 final String formatString = "%" + precisionFormat + (isUpper ? "A" : "a");
                 floatingPointLiteral = String.format(formatString, dval);
-                if (floatingPointLiteral.indexOf(pMinus) < 0) {
+                if (!floatingPointLiteral.contains(pMinus)) {
                     floatingPointLiteral = floatingPointLiteral.replace(p, pPlus);
                 }
                 if (hasPrecisionFlag && precision == 0) {
