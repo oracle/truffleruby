@@ -368,7 +368,7 @@ public abstract class MatchDataNodes {
         @Child private IsTaintedNode isTaintedNode = IsTaintedNode.create();
 
         public static ValuesNode create() {
-            return ValuesNodeFactory.create(new RubyNode[0]);
+            return ValuesNodeFactory.create(null);
         }
 
         public abstract Object[] execute(DynamicObject matchData);
@@ -493,7 +493,7 @@ public abstract class MatchDataNodes {
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         public static PreMatchNode create() {
-            return PreMatchNodeFactory.create(new RubyNode[0]);
+            return PreMatchNodeFactory.create(null);
         }
 
         public abstract DynamicObject execute(DynamicObject matchData);
@@ -518,7 +518,7 @@ public abstract class MatchDataNodes {
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         public static PostMatchNode create() {
-            return PostMatchNodeFactory.create(new RubyNode[0]);
+            return PostMatchNodeFactory.create(null);
         }
 
         public abstract DynamicObject execute(DynamicObject matchData);

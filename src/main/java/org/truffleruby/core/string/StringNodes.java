@@ -2235,7 +2235,7 @@ public abstract class StringNodes {
             if (rope(toStr).isEmpty()) {
                 if (deleteBangNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    deleteBangNode = insert(StringNodesFactory.DeleteBangNodeFactory.create(new RubyNode[] {}));
+                    deleteBangNode = insert(StringNodesFactory.DeleteBangNodeFactory.create(null));
                 }
 
                 return deleteBangNode.executeDeleteBang(frame, self, new DynamicObject[] { fromStr });
@@ -2280,7 +2280,7 @@ public abstract class StringNodes {
             if (rope(toStr).isEmpty()) {
                 if (deleteBangNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    deleteBangNode = insert(StringNodesFactory.DeleteBangNodeFactory.create(new RubyNode[] {}));
+                    deleteBangNode = insert(StringNodesFactory.DeleteBangNodeFactory.create(null));
                 }
 
                 return deleteBangNode.executeDeleteBang(frame, self, new DynamicObject[] { fromStr });
