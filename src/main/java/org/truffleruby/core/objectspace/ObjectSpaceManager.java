@@ -85,9 +85,7 @@ public class ObjectSpaceManager {
             roots = Collections.emptyList();
         }
 
-        finalizationService.addFinalizer(object, ObjectSpaceManager.class, () -> {
-            context.send(callable, "call", null);
-        }, roots);
+        finalizationService.addFinalizer(object, ObjectSpaceManager.class, () -> context.send(callable, "call", null), roots);
     }
 
     public synchronized void undefineFinalizer(DynamicObject object) {

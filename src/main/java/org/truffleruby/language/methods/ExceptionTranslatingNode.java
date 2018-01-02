@@ -290,9 +290,7 @@ public class ExceptionTranslatingNode extends RubyNode {
                 messageBuilder.append(t.getStackTrace()[0].toString());
             }
 
-            extraLines.forEach(line -> {
-                messageBuilder.append("\n\t" + line);
-            });
+            extraLines.forEach(line -> messageBuilder.append("\n\t" + line));
 
             t = t.getCause();
             exceptionCount++;
