@@ -19,6 +19,7 @@ import org.truffleruby.language.yield.YieldNode;
 public abstract class ReadGlobalVariableNode extends RubyNode {
 
     private final String name;
+    @Child private IsDefinedGlobalVariableNode definedNode;
 
     public ReadGlobalVariableNode(String name) {
         this.name = name;
@@ -50,13 +51,12 @@ public abstract class ReadGlobalVariableNode extends RubyNode {
 
     @Override
     public Object isDefined(VirtualFrame frame) {
-        final GlobalVariableStorage storage = getStorage();
-
-        if (storage.isDefined()) {
-            return coreStrings().GLOBAL_VARIABLE.createInstance();
-        } else {
-            return nil();
+        if (definedNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            definedNode = insert(IsDefinedGlobalVariableNode.create(name));
         }
+
+        return definedNode.execute(frame);
     }
 
 }

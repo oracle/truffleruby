@@ -55,19 +55,19 @@ public class GlobalVariables {
     @TruffleBoundary
     public GlobalVariableStorage getStorage(String name) {
         return ConcurrentOperations.getOrCompute(variables, name,
-                k -> new GlobalVariableStorage(defaultValue, null, null));
+                k -> new GlobalVariableStorage(defaultValue, null, null, null));
     }
 
     public GlobalVariableStorage put(String name, Object value) {
         assert !variables.containsKey(name);
-        final GlobalVariableStorage storage = new GlobalVariableStorage(value, null, null);
+        final GlobalVariableStorage storage = new GlobalVariableStorage(value, null, null, null);
         variables.put(name, storage);
         return storage;
     }
 
-    public GlobalVariableStorage put(String name, DynamicObject getter, DynamicObject setter) {
+    public GlobalVariableStorage put(String name, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
         assert !variables.containsKey(name);
-        final GlobalVariableStorage storage = new GlobalVariableStorage(null, getter, setter);
+        final GlobalVariableStorage storage = new GlobalVariableStorage(null, getter, setter, isDefined);
         variables.put(name, storage);
         return storage;
     }

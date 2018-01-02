@@ -89,13 +89,13 @@ public abstract class TruffleKernelNodes {
 
     }
 
-    @CoreMethod(names = "define_hooked_variable", isModuleFunction = true, required = 3)
+    @CoreMethod(names = "define_hooked_variable_with_is_defined", isModuleFunction = true, required = 4)
     public abstract static class DefineHookedVariableInnerNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubySymbol(name)", "isRubyProc(getter)", "isRubyProc(setter)" })
-        public DynamicObject defineHookedVariableInnerNode(DynamicObject name, DynamicObject getter, DynamicObject setter) {
-            getContext().getCoreLibrary().getGlobalVariables().put(Layouts.SYMBOL.getString(name), getter, setter);
+        public DynamicObject defineHookedVariableInnerNode(DynamicObject name, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
+            getContext().getCoreLibrary().getGlobalVariables().put(Layouts.SYMBOL.getString(name), getter, setter, isDefined);
             return nil();
         }
 
