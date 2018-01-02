@@ -84,7 +84,7 @@ public class CoverageManager {
 
         binding = instrumenter.attachFactory(SourceSectionFilter.newBuilder()
                 .mimeTypeIs(RubyLanguage.MIME_TYPE)
-                .sourceIs((source) -> coveredSources.contains(source))
+                .sourceIs(coveredSources::contains)
                 .tagIs(LineTag.class)
                 .build(), eventContext -> new ExecutionEventNode() {
 

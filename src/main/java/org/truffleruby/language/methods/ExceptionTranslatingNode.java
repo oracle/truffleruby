@@ -258,7 +258,7 @@ public class ExceptionTranslatingNode extends RubyNode {
             Stream<String> extraLines = Stream.empty();
 
             if (t.getClass().getSimpleName().equals("SulongRuntimeException")) {
-                extraLines = Arrays.stream(message.split("\n")).skip(1).map(line -> line.trim());
+                extraLines = Arrays.stream(message.split("\n")).skip(1).map(String::trim);
                 message = "error in C extension";
             } else if (t instanceof RaiseException) {
                 /*
