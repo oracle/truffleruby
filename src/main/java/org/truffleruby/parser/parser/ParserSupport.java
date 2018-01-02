@@ -139,7 +139,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.parser.lexer.RubyLexer.ASCII8BIT_ENCODING;
 import static org.truffleruby.parser.lexer.RubyLexer.USASCII_ENCODING;
 import static org.truffleruby.parser.lexer.RubyLexer.UTF8_ENCODING;
