@@ -58,6 +58,10 @@ public final class Hashing {
         return murmurStep(murmurStep(hash, 10), 17);
     }
 
+    /*
+     * rawHash is not resistant to known Ruby vulnerabilities and so should be used in combination with the context's
+     * Hashing instance.
+     */
     public static int rawHash(byte[] bytes, int startingHashCode, int offset, int length) {
         assert offset + length <= bytes.length;
 
