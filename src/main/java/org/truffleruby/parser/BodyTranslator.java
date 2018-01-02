@@ -1689,12 +1689,6 @@ public class BodyTranslator extends Translator {
             final RubyNode readMatchNode = ReadGlobalVariableNodeGen.create("$~");
             final char type = name.charAt(1);
             switch (type) {
-                case '`':
-                    ret = new ReadMatchReferenceNodes.ReadPreMatchNode(readMatchNode);
-                    break;
-                case '\'':
-                    ret = new ReadMatchReferenceNodes.ReadPostMatchNode(readMatchNode);
-                    break;
                 case '&':
                     ret = new ReadMatchReferenceNodes.ReadMatchNode(readMatchNode);
                     break;
