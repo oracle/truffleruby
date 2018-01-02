@@ -144,11 +144,8 @@ public class RubyContext {
                     "this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md");
         }
 
-        try {
-             random = TruffleOptions.AOT ? SecureRandom.getInstance("SHA1PRNG") : new SecureRandom();
-        } catch (NoSuchAlgorithmException e) {
-            throw new UnsupportedOperationException(e);
-        }
+        // We need to construct this at runtime
+        random = new SecureRandom();
 
         final long hashingSeed;
 
