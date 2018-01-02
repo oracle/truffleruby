@@ -704,7 +704,7 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         private Object doImport(String name) {
-            return getContext().getInteropManager().importObject(name.toString());
+            return getContext().getInteropManager().importObject(name);
         }
 
     }
