@@ -59,13 +59,12 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
             VirtualFrame frame,
             Object receiverObject,
             Object methodName,
-            DynamicObject blockObject,
             Object... argumentsObjects) {
         if (booleanCastNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             booleanCastNode = insert(BooleanCastNodeGen.create(null));
         }
-        return booleanCastNode.executeToBoolean(dispatch(frame, receiverObject, methodName, blockObject, argumentsObjects));
+        return booleanCastNode.executeToBoolean(call(frame, receiverObject, methodName, argumentsObjects));
     }
 
 }
