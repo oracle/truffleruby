@@ -29,7 +29,7 @@ public class ReadRemainingArgumentsNode extends RubyNode {
         if (remainingArguments.profile(start < count)) {
             return RubyArguments.getArguments(frame, start);
         } else {
-            return new Object[] {};
+            return RubyNode.EMPTY_ARGUMENTS;
         }
     }
 
