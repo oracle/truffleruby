@@ -103,7 +103,7 @@ public abstract class CmpIntNode extends RubyNode {
             gtNode = insert(CallDispatchHeadNode.create());
         }
 
-        if (gtNode.callBoolean(frame, value, ">", null, 0)) {
+        if (gtNode.callBoolean(frame, value, ">", 0)) {
             return 1;
         }
 
@@ -112,7 +112,7 @@ public abstract class CmpIntNode extends RubyNode {
             ltNode = insert(CallDispatchHeadNode.create());
         }
 
-        if (ltNode.callBoolean(frame, value, "<", null, 0)) {
+        if (ltNode.callBoolean(frame, value, "<", 0)) {
             return -1;
         }
 

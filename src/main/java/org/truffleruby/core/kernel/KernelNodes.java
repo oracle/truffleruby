@@ -188,7 +188,7 @@ public abstract class KernelNodes {
                 equalNode = insert(CallDispatchHeadNode.create());
             }
 
-            return equalNode.callBoolean(frame, left, "==", null, right);
+            return equalNode.callBoolean(frame, left, "==", right);
         }
 
     }
@@ -229,7 +229,7 @@ public abstract class KernelNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 eqlNode = insert(CallDispatchHeadNode.create());
             }
-            return eqlNode.callBoolean(frame, left, "eql?", null, right);
+            return eqlNode.callBoolean(frame, left, "eql?", right);
         }
 
     }
@@ -1072,7 +1072,7 @@ public abstract class KernelNodes {
             InternalMethod method = lookupMethodNode.executeLookupMethod(frame, self, normalizedName);
 
             if (notFoundProfile.profile(method == null)) {
-                if (respondToMissingProfile.profile(respondToMissingNode.callBoolean(frame, self, "respond_to_missing?", null, name, ignoreVisibility))) {
+                if (respondToMissingProfile.profile(respondToMissingNode.callBoolean(frame, self, "respond_to_missing?", name, ignoreVisibility))) {
                     final InternalMethod methodMissing = lookupMethodNode.executeLookupMethod(frame, self, "method_missing");
                     method = createMissingMethod(self, name, normalizedName, methodMissing);
                 } else {
@@ -1466,7 +1466,7 @@ public abstract class KernelNodes {
                 respondToMissingNode = insert(CallDispatchHeadNode.createOnSelf());
             }
 
-            return respondToMissingNode.callBoolean(frame, object, "respond_to_missing?", null, name, includeProtectedAndPrivate);
+            return respondToMissingNode.callBoolean(frame, object, "respond_to_missing?", name, includeProtectedAndPrivate);
         }
     }
 

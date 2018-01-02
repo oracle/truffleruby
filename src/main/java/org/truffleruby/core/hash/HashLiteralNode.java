@@ -112,7 +112,7 @@ public abstract class HashLiteralNode extends RubyNode {
                 for (int i = 0; i < n; i++) {
                     if (i < size &&
                             hashed == PackedArrayStrategy.getHashed(store, i) &&
-                            equalNode.callBoolean(frame, key, "eql?", null, PackedArrayStrategy.getKey(store, i))) {
+                            equalNode.callBoolean(frame, key, "eql?", PackedArrayStrategy.getKey(store, i))) {
                         PackedArrayStrategy.setKey(store, i, key);
                         PackedArrayStrategy.setValue(store, i, value);
                         continue initializers;

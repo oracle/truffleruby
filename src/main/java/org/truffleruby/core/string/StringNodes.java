@@ -363,7 +363,7 @@ public abstract class StringNodes {
                     objectEqualNode = insert(CallDispatchHeadNode.create());
                 }
 
-                return objectEqualNode.callBoolean(frame, b, "==", null, a);
+                return objectEqualNode.callBoolean(frame, b, "==", a);
             }
 
             return false;
@@ -621,7 +621,7 @@ public abstract class StringNodes {
                 includeNode = insert(CallDispatchHeadNode.create());
             }
 
-            boolean result = includeNode.callBoolean(frame, string, "include?", null, matchStr);
+            boolean result = includeNode.callBoolean(frame, string, "include?", matchStr);
 
             if (result) {
                 if (dupNode == null) {
