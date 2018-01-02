@@ -32,13 +32,15 @@ public class GlobalVariableStorage {
     private final Object defaultValue;
     private final DynamicObject getter;
     private final DynamicObject setter;
+    private final DynamicObject isDefined;
 
-    GlobalVariableStorage(Object value, DynamicObject getter, DynamicObject setter) {
+    GlobalVariableStorage(Object value, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
         this.defaultValue = value;
         this.value = UNSET_VALUE;
         this.getter = getter;
         this.setter = setter;
-        assert (getter != null) == (setter != null);
+        this.isDefined = isDefined;
+        assert ((getter == null) == (setter == null)) & ((getter == null) == (isDefined == null));
     }
 
     public Object getValue() {
@@ -47,7 +49,7 @@ public class GlobalVariableStorage {
     }
 
     public boolean isDefined() {
-        return hasHooks() || value != UNSET_VALUE;
+        return value != UNSET_VALUE;
     }
 
     public boolean isSimple() {
@@ -55,7 +57,7 @@ public class GlobalVariableStorage {
     }
 
     public boolean hasHooks() {
-        return (getter != null) && (setter != null);
+        return (getter != null) && (setter != null) && (isDefined != null);
     }
 
     public DynamicObject getGetter() {
@@ -64,6 +66,10 @@ public class GlobalVariableStorage {
 
     public DynamicObject getSetter() {
         return setter;
+    }
+
+    public DynamicObject getIsDefined() {
+        return isDefined;
     }
 
     public Assumption getUnchangedAssumption() {

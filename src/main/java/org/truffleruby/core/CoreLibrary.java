@@ -1459,6 +1459,7 @@ public class CoreLibrary {
             "/core/kernel.rb", // Needed before boot.rb since binding is now in Ruby.
             "/core/truffle/boot.rb",
             "/core/truffle/debug.rb",
+            "/core/truffle/kernel_operations.rb",
             "/core/truffle/string_operations.rb",
             "/core/truffle/regexp_operations.rb",
             "/core/splitter.rb",
