@@ -404,11 +404,6 @@ module Kernel
   end
   module_function :print
 
-  def public_method(name)
-    Truffle::Type.coerce_to_symbol name
-    raise NotImplementedError, 'Kernel#public_method is not implemented'
-  end
-
   def putc(int)
     $stdout.putc(int)
   end
