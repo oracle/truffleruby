@@ -43,3 +43,4 @@ aot:The launcher '-J:classpath ' adds the jar
 aot:The launcher '-J:cp ' adds the jar
 aot:The launcher '--jvm.classpath=' adds the jar
 aot:The launcher '--jvm.cp=' adds the jar
+slow:The launcher enables deterministic hashing if -Xhashing.deterministic is set
