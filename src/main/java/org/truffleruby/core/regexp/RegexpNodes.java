@@ -531,24 +531,21 @@ public abstract class RegexpNodes {
     }
 
     private static Frame getMatchDataFrameSearchingStack() {
-        return Truffle.getRuntime().iterateFrames(new FrameInstanceVisitor<Frame>() {
-            @Override
-            public Frame visitFrame(FrameInstance frameInstance) {
-                final Frame frame = frameInstance.getFrame(FrameAccess.READ_ONLY);
-                InternalMethod method = RubyArguments.tryGetMethod(frame);
+        return Truffle.getRuntime().iterateFrames(frameInstance -> {
+            final Frame frame = frameInstance.getFrame(FrameAccess.READ_ONLY);
+            InternalMethod method = RubyArguments.tryGetMethod(frame);
 
-                if (method == null) {
-                    // not a Ruby method, continue
+            if (method == null) {
+                // not a Ruby method, continue
+                return null;
+            } else {
+                final Frame frameOfDeclaration = RegexpNodes.
+                        getMatchDataFrameSearchingDeclarations(frame, false);
+                if (frameOfDeclaration == null) {
+                    // Does not have a $~ slot, continue
                     return null;
                 } else {
-                    final Frame frameOfDeclaration = RegexpNodes.
-                            getMatchDataFrameSearchingDeclarations(frame, false);
-                    if (frameOfDeclaration == null) {
-                        // Does not have a $~ slot, continue
-                        return null;
-                    } else {
-                        return frameOfDeclaration;
-                    }
+                    return frameOfDeclaration;
                 }
             }
         });

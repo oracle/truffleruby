@@ -124,12 +124,9 @@ public abstract class SizedQueueNodes {
 
         @TruffleBoundary
         private void doPushBlocking(final Object value, final SizedQueue queue) {
-            getContext().getThreadManager().runUntilResult(this, new BlockingAction<Boolean>() {
-                @Override
-                public Boolean block() throws InterruptedException {
-                    queue.put(value);
-                    return SUCCESS;
-                }
+            getContext().getThreadManager().runUntilResult(this, () -> {
+                queue.put(value);
+                return BlockingAction.SUCCESS;
             });
         }
 

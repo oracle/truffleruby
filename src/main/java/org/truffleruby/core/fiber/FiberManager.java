@@ -132,12 +132,9 @@ public class FiberManager {
     public static void waitForInitialization(RubyContext context, DynamicObject fiber, Node currentNode) {
         final CountDownLatch initializedLatch = Layouts.FIBER.getInitializedLatch(fiber);
 
-        context.getThreadManager().runUntilResultKeepStatus(currentNode, new BlockingAction<Boolean>() {
-            @Override
-            public Boolean block() throws InterruptedException {
-                initializedLatch.await();
-                return SUCCESS;
-            }
+        context.getThreadManager().runUntilResultKeepStatus(currentNode, () -> {
+            initializedLatch.await();
+            return BlockingAction.SUCCESS;
         });
     }
 
