@@ -1701,33 +1701,39 @@ module Commands
   def install_jvmci
     raise "Installing JVMCI is only available on Linux and macOS currently" unless LINUX || MAC
 
+    jvmci_version = ENV["JVMCI_VERSION"] || Utilities.jvmci_version
     dir = File.expand_path("..", TRUFFLERUBY_DIR)
     java_home = chdir(dir) do
       if LINUX
-        jvmci_version = ENV["JVMCI_VERSION"] || Utilities.jvmci_version
-        jvmci_grep = "#{dir}/openjdk1.8.0*#{jvmci_version}"
-        if Dir[jvmci_grep].empty?
+        dir_pattern = "#{dir}/openjdk1.8.0*#{jvmci_version}"
+        if Dir[dir_pattern].empty?
           puts "Downloading JDK8 with JVMCI"
           jvmci_releases = "https://github.com/dougxc/openjdk8-jvmci-builder/releases/download"
           filename = "openjdk1.8.0_141-#{jvmci_version}-linux-amd64.tar.gz"
           raw_sh "curl", "-L", "#{jvmci_releases}/#{jvmci_version}/#{filename}", "-o", filename
           raw_sh "tar", "xf", filename
         end
-        java_home = Dir[jvmci_grep].sort.first
+        dirs = Dir[dir_pattern]
+        raise 'ambiguous JVMCI directories' if dirs.length != 1
+        java_home = dirs.first
       elsif MAC
-        puts "You need to download manually the latest JVMCI-enabled JDK at"
-        puts "http://www.oracle.com/technetwork/oracle-labs/program-languages/downloads/index.html"
-        puts "Download the file named labsjdk-...-darwin-amd64.tar.gz"
-        puts "And move it to the directory #{dir}"
-        puts "When done, enter 'done':"
-        begin
-          print "> "
-          done = STDIN.gets
-        end until done.chomp == "done"
-        archive = Dir["#{dir}/labsjdk-*darwin*.tar.gz"].sort.first
-        abort "Could not find the JVMCI-enabled JDK" unless archive
-        raw_sh "tar", "xf", archive
-        Dir["#{dir}/labsjdk1.8.0*"].sort.first
+        dir_pattern = "#{dir}/labsjdk1.8.0*-#{jvmci_version}"
+        if Dir[dir_pattern].empty?
+          archive_pattern = "#{dir}/labsjdk-8*-#{jvmci_version}-darwin-amd64.tar.gz"
+          archives = Dir[archive_pattern]
+          if archives.empty?
+            puts "You need to download manually the latest JVMCI-enabled JDK at"
+            puts "http://www.oracle.com/technetwork/oracle-labs/program-languages/downloads/index.html"
+            puts "Download the file named labsjdk-8...-#{jvmci_version}-darwin-amd64.tar.gz"
+            puts "And move it to the directory #{dir}"
+            exit 1
+          end
+          raise 'ambiguous JVMCI archives' if archives.length != 1
+          raw_sh "tar", "xf", archives.first
+        end
+        dirs = Dir[dir_pattern]
+        raise 'ambiguous JVMCI directories' if dirs.length != 1
+        java_home = "#{dirs.first}/Contents/Home"
       end
     end
 
