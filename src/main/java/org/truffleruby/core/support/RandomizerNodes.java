@@ -284,20 +284,9 @@ public abstract class RandomizerNodes {
     @Primitive(name = "randomizer_gen_seed")
     public static abstract class RandomizerGenSeedPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        // Single instance of Random per host VM
-        private static final Random RANDOM;
-
-        static {
-            try {
-                RANDOM = TruffleOptions.AOT ? SecureRandom.getInstance("SHA1PRNG") : new SecureRandom();
-            } catch (NoSuchAlgorithmException e) {
-                throw new UnsupportedOperationException(e);
-            }
-        }
-
         @Specialization
         public DynamicObject randomizerGenSeed(DynamicObject randomizerClass) {
-            final BigInteger seed = randomSeedBigInteger(RANDOM);
+            final BigInteger seed = randomSeedBigInteger(getContext().getRandom());
             return createBignum(seed);
         }
 
