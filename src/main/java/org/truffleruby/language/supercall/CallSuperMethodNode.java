@@ -34,7 +34,7 @@ public abstract class CallSuperMethodNode extends RubyNode {
 
     private final ConditionProfile missingProfile = ConditionProfile.createBinaryProfile();
 
-    @Child private CallInternalMethodNode callMethodNode = CallInternalMethodNodeGen.create(null, new RubyNode[] {});
+    @Child private CallInternalMethodNode callMethodNode = CallInternalMethodNodeGen.create(null, null);
     @Child private CallDispatchHeadNode callMethodMissingNode;
 
     @Specialization

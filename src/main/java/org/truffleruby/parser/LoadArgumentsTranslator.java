@@ -543,7 +543,7 @@ public class LoadArgumentsTranslator extends Translator {
                             .makeWriteNode(ArrayLiteralNode.create(new RubyNode[] { new NilLiteralNode(true) })));
                 } else {
                     nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(name, source, sourceSection)
-                            .makeWriteNode(ArrayLiteralNode.create(new RubyNode[] {})));
+                            .makeWriteNode(ArrayLiteralNode.create(null)));
                 }
             } else if (node.getRest() instanceof StarParseNode) {
                 // Don't think we need to do anything

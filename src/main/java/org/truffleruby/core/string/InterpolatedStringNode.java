@@ -27,7 +27,7 @@ public final class InterpolatedStringNode extends RubyNode {
 
     @Children private final ToSNode[] children;
 
-    @Child private StringNodes.StringAppendPrimitiveNode appendNode = StringNodesFactory.StringAppendPrimitiveNodeFactory.create(new RubyNode[] {});
+    @Child private StringNodes.StringAppendPrimitiveNode appendNode = StringNodesFactory.StringAppendPrimitiveNodeFactory.create(null);
     @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
     @Child private IsTaintedNode isTaintedNode = IsTaintedNode.create();
     @Child private TaintNode taintNode = TaintNode.create();
