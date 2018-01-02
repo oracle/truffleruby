@@ -41,12 +41,12 @@ public final class Hashing {
         this.seed = seed;
     }
 
-    public long hash(long seed, long value) {
-        return end(update(start(seed), value));
+    public long hash(long salt, long value) {
+        return end(update(start(salt), value));
     }
 
-    public long start(long value) {
-        return value + seed;
+    public long start(long salt) {
+        return salt + seed;
     }
 
     public static long update(long hash, long value) {

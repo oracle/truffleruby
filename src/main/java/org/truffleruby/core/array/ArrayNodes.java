@@ -930,7 +930,7 @@ public abstract class ArrayNodes {
     @CoreMethod(names = "hash_internal", visibility = Visibility.PRIVATE)
     public abstract static class HashNode extends ArrayCoreMethodNode {
 
-        private static final int MURMUR_SEED = System.identityHashCode(ArrayNodes.class);
+        private static final int CLASS_SALT = System.identityHashCode(ArrayNodes.class);
 
         @Child private ToIntNode toIntNode;
 
@@ -940,7 +940,7 @@ public abstract class ArrayNodes {
                 @Cached("create()") CallDispatchHeadNode toHashNode) {
             final int size = strategy.getSize(array);
             long h = getContext().getHashing().start(size);
-            h = Hashing.update(h, MURMUR_SEED);
+            h = Hashing.update(h, CLASS_SALT);
             final ArrayMirror store = strategy.newMirror(array);
 
             for (int n = 0; n < size; n++) {

@@ -616,11 +616,11 @@ public abstract class BignumNodes {
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
-        private static final int MURMUR_SEED = System.identityHashCode(HashNode.class);
+        private static final int CLASS_SALT = System.identityHashCode(HashNode.class);
 
         @Specialization
         public long hash(DynamicObject value) {
-            return getContext().getHashing().hash(MURMUR_SEED, Layouts.BIGNUM.getValue(value).hashCode());
+            return getContext().getHashing().hash(CLASS_SALT, Layouts.BIGNUM.getValue(value).hashCode());
         }
 
     }
