@@ -731,15 +731,4 @@ public class BCrypt {
         return rs.toString();
     }
 
-    /**
-     * Generate a salt for use with the BCrypt.hashpw() method
-     * 
-     * @param log_rounds the log2 of the number of rounds of hashing to apply - the work factor
-     *            therefore increases as 2**log_rounds.
-     * @return an encoded salt value
-     */
-    public static String gensalt(Random random, int log_rounds) {
-        return gensalt(log_rounds, random);
-    }
-
 }
