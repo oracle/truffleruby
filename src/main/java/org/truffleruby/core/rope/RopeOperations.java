@@ -32,6 +32,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.collections.Memo;
+import org.truffleruby.core.Hashing;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.StringOperations;
@@ -485,22 +486,10 @@ public class RopeOperations {
                 ) / patternLength);
     }
 
-    public static int hashCodeForLeafRope(byte[] bytes, int startingHashCode, int offset, int length) {
-        assert offset + length <= bytes.length;
-
-        int hashCode = startingHashCode;
-        final int endIndex = offset + length;
-        for (int i = offset; i < endIndex; i++) {
-            hashCode = 31 * hashCode + bytes[i];
-        }
-
-        return hashCode;
-    }
-
     @TruffleBoundary
     public static int hashForRange(Rope rope, int startingHashCode, int offset, int length) {
         if (rope instanceof LeafRope) {
-            return hashCodeForLeafRope(rope.getBytes(), startingHashCode, offset, length);
+            return Hashing.rawHash(rope.getBytes(), startingHashCode, offset, length);
         } else if (rope instanceof SubstringRope) {
             final SubstringRope substringRope = (SubstringRope) rope;
 
@@ -555,9 +544,9 @@ public class RopeOperations {
 
             return hash;
         } else if (rope instanceof LazyRope) {
-            return hashCodeForLeafRope(rope.getBytes(), startingHashCode, offset, length);
+            return Hashing.rawHash(rope.getBytes(), startingHashCode, offset, length);
         } else if (rope instanceof NativeRope) {
-            return hashCodeForLeafRope(rope.getBytes(), startingHashCode, offset, length);
+            return Hashing.rawHash(rope.getBytes(), startingHashCode, offset, length);
         } else {
             throw new RuntimeException("Hash code not supported for rope of type: " + rope.getClass().getName());
         }
