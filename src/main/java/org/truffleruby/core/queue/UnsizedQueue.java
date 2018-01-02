@@ -169,7 +169,7 @@ public class UnsizedQueue {
         return objects;
     }
 
-    private class Item {
+    private static class Item {
 
         private final Object item;
         private Item nextToTake;
