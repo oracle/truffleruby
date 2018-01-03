@@ -117,7 +117,6 @@ import org.truffleruby.language.globals.UpdateLastBacktraceNode;
 import org.truffleruby.language.globals.UpdateVerbosityNode;
 import org.truffleruby.language.globals.WriteGlobalVariableNodeGen;
 import org.truffleruby.language.globals.WriteReadOnlyGlobalNode;
-import org.truffleruby.language.globals.CheckSafeLevelNode;
 import org.truffleruby.language.literal.BooleanLiteralNode;
 import org.truffleruby.language.literal.FloatLiteralNode;
 import org.truffleruby.language.literal.IntegerFixnumLiteralNode;
@@ -1627,10 +1626,6 @@ public class BodyTranslator extends Translator {
                 rhs = new CheckLastLineNumberNode(rhs);
                 rhs.unsafeSetSourceSection(sourceSection);
                 break;
-            case "$SAFE":
-                rhs = new CheckSafeLevelNode(rhs);
-                rhs.unsafeSetSourceSection(sourceSection);
-                break;
             case "$stdout":
                 rhs = new CheckStdoutVariableTypeNode(rhs);
                 rhs.unsafeSetSourceSection(sourceSection);
@@ -1650,10 +1645,6 @@ public class BodyTranslator extends Translator {
         final RubyNode ret;
         if (!inCore && GlobalVariables.READ_ONLY_GLOBAL_VARIABLES.contains(name)) {
             ret = new WriteReadOnlyGlobalNode(variableName, rhs);
-        } else if (GlobalVariables.THREAD_LOCAL_GLOBAL_VARIABLES.contains(name)) {
-            final GetThreadLocalsObjectNode getThreadLocalsObjectNode = GetThreadLocalsObjectNodeGen.create();
-            getThreadLocalsObjectNode.unsafeSetSourceSection(sourceSection);
-            ret = new WriteInstanceVariableNode(name, getThreadLocalsObjectNode, rhs);
         } else if (GlobalVariables.THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
             final ReadLocalNode localVarNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
             ret = new SetInThreadAndFrameLocalStorageNode(localVarNode, rhs);
@@ -1731,8 +1722,6 @@ public class BodyTranslator extends Translator {
             // Assignment is implicit for these, so we need to declare when we use
             RubyNode readNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
             ret = new GetFromThreadAndFrameLocalStorageNode(readNode);
-        } else if (GlobalVariables.THREAD_LOCAL_GLOBAL_VARIABLES.contains(name)) {
-            ret = new ReadThreadLocalGlobalVariableNode(name, GlobalVariables.ALWAYS_DEFINED_GLOBALS.contains(name));
         } else if (name.equals("$@")) {
             // $@ is a special-case and reads the backtrace of $!
             ret = new ReadLastBacktraceNode();

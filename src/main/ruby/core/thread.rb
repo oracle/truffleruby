@@ -326,6 +326,11 @@ class Thread
     end
   end
 
+  def safe_level
+    locals = Truffle.invoke_primitive :thread_get_locals, self
+    Truffle.invoke_primitive :object_ivar_get, locals, :$SAFE
+  end
+
   # Fiber-local variables
 
   private def convert_to_local_name(name)
@@ -434,3 +439,22 @@ class Thread::Backtrace::Location
     to_s.inspect
   end
 end
+
+Truffle::KernelOperations.define_hooked_variable(
+  :$SAFE,
+  -> { Thread.current.safe_level },
+  -> value { value = Truffle::Type.check_safe_level(value)
+             Truffle::ThreadOperations.set_thread_local(:$SAFE, value) }
+)
+
+Truffle::KernelOperations.define_hooked_variable(
+  :$!,
+  -> { Truffle::ThreadOperations.get_thread_local(:$!) },
+  -> value { Truffle::ThreadOperations.set_thread_local(:$!, value) }
+)
+
+Truffle::KernelOperations.define_hooked_variable(
+  :$?,
+  -> { Truffle::ThreadOperations.get_thread_local(:$?) },
+  -> { raise NameError, '$? is a read-only variable' }
+)

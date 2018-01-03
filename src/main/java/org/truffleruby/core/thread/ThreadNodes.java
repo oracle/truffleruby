@@ -40,16 +40,8 @@
  */
 package org.truffleruby.core.thread;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.source.SourceSection;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -79,17 +71,19 @@ import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
-import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNode;
-import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNodeGen;
 import org.truffleruby.language.yield.YieldNode;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.source.SourceSection;
 
 @CoreClass("Thread")
 public abstract class ThreadNodes {
@@ -376,56 +370,6 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = "safe_level")
-    public abstract static class SafeLevelNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private ReadObjectFieldNode readNode;
-
-        @Specialization
-        public int safeLevel(DynamicObject thread) {
-            return (int) getReadNode().execute(Layouts.THREAD.getThreadLocals(thread));
-        }
-
-        private ReadObjectFieldNode getReadNode() {
-            if (readNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                readNode = insert(ReadObjectFieldNodeGen.create("$SAFE", nil()));
-            }
-            return readNode;
-        }
-
-    }
-
-    @Primitive(name = "thread_set_safe_level_force", needsSelf = false, lowerFixnum = 1)
-    public static abstract class ThreadSetSafeLevelForceNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private GetThreadLocalsObjectNode getThreadLocalsObjectNode;
-        @Child private WriteObjectFieldNode writeSafeLevel;
-
-        @Specialization
-        public int safeLevel(VirtualFrame frame, int safeLevel) {
-            writeSafeLevel(getThreadLocalsObject(frame), safeLevel);
-            return safeLevel;
-        }
-
-        private DynamicObject getThreadLocalsObject(VirtualFrame frame) {
-            if (getThreadLocalsObjectNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                getThreadLocalsObjectNode = insert(GetThreadLocalsObjectNodeGen.create());
-            }
-            return getThreadLocalsObjectNode.executeGetThreadLocalsObject(frame);
-        }
-
-        private void writeSafeLevel(DynamicObject threadLocals, int value) {
-            if (writeSafeLevel == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                writeSafeLevel = insert(WriteObjectFieldNodeGen.create("$SAFE"));
-            }
-            writeSafeLevel.write(threadLocals, value);
-        }
-
-    }
-
     @CoreMethod(names = "status")
     public abstract static class StatusNode extends CoreMethodArrayArgumentsNode {
 
@@ -645,6 +589,16 @@ public abstract class ThreadNodes {
             Layouts.THREAD.setThreadGroup(thread, threadGroup);
             return threadGroup;
         }
+    }
+
+    @Primitive(name = "thread_get_locals")
+    public static abstract class ThreadLocalsNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyThread(thread)")
+        public DynamicObject getLocals(DynamicObject thread) {
+            return Layouts.THREAD.getThreadLocals(thread);
+        }
+
     }
 
     @Primitive(name = "thread_get_fiber_locals")
