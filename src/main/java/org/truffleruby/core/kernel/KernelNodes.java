@@ -687,7 +687,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
-        private static final int CLASS_SALT = System.identityHashCode(HashNode.class);
+        private static final int CLASS_SALT = 55927484;
 
         @Specialization
         public long hash(int value) {

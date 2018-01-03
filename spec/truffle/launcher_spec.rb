@@ -202,7 +202,7 @@ describe "The launcher" do
     out = `#{RbConfig.ruby} -Xhashing.deterministic -e 'puts 14.hash' 2>&1`
     $?.success?.should == true
     out.should include("SEVERE deterministic hashing is enabled - this may make you vulnerable to denial of service attacks")
-    out.should include("4619262684610599513")
+    out.should include("7141275149799654099")
   end
 
 end

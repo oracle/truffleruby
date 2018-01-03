@@ -1194,7 +1194,7 @@ public abstract class FixnumNodes {
     @Primitive(name = "fixnum_memhash")
     public static abstract class FixnumMemhashPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        private static final int CLASS_SALT = System.identityHashCode(FixnumMemhashPrimitiveNode.class);
+        private static final int CLASS_SALT = 94974697;
 
         @Specialization
         public long memhashLongLong(long a, long b) {

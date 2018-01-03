@@ -930,7 +930,7 @@ public abstract class ArrayNodes {
     @CoreMethod(names = "hash_internal", visibility = Visibility.PRIVATE)
     public abstract static class HashNode extends ArrayCoreMethodNode {
 
-        private static final int CLASS_SALT = System.identityHashCode(ArrayNodes.class);
+        private static final int CLASS_SALT = 42753062;
 
         @Child private ToIntNode toIntNode;
 

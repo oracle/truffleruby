@@ -1113,7 +1113,7 @@ public abstract class StringNodes {
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
-        protected static final int CLASS_SALT = System.identityHashCode(StringNodes.class);
+        protected static final int CLASS_SALT = 54008340;
 
         @Specialization
         public long hash(DynamicObject string,
