@@ -15,15 +15,23 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.specific.USASCIIEncoding;
+import org.jcodings.transcode.TranscodingManager;
+import org.jcodings.transcode.TranscodingManager.TranscoderReference;
 import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.jcodings.util.Hash;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.rope.CodeRange;
@@ -32,6 +40,31 @@ import org.truffleruby.language.control.RaiseException;
 
 @CoreClass("Truffle::EncodingOperations")
 public abstract class TruffleEncodingNodes {
+
+    @NonStandard
+    @CoreMethod(names = "all_transcoders", onSingleton = true)
+    public abstract static class EachTranscoderNode extends YieldingCoreMethodNode {
+
+        @TruffleBoundary // Only called once, during startup
+        @Specialization
+        public Object transcodingMap() {
+            ArrayList<Object> encodings = new ArrayList<>();
+            for (Entry<String, Map<String, TranscoderReference>> sourceEntry : TranscodingManager.allTranscoders.entrySet()) {
+                final DynamicObject source = getContext().getSymbolTable().getSymbol(sourceEntry.getKey());
+                final int size = sourceEntry.getValue().size();
+                final Object[] destinations = new Object[size];
+
+                int i = 0;
+                for (Entry<String, TranscoderReference> destinationEntry : sourceEntry.getValue().entrySet()) {
+                    destinations[i++] = getContext().getSymbolTable().getSymbol(destinationEntry.getKey());
+                }
+                encodings.add(source);
+                encodings.add(createArray(destinations, size));
+            }
+
+            return createArray(encodings.toArray(), encodings.size());
+        }
+    }
 
     @CoreMethod(names = "default_external=", onSingleton = true, required = 1)
     public abstract static class SetDefaultExternalNode extends CoreMethodArrayArgumentsNode {

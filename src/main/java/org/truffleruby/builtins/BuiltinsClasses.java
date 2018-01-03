@@ -86,6 +86,8 @@ import org.truffleruby.core.numeric.TruffleFixnumNodesBuiltins;
 import org.truffleruby.core.numeric.TruffleFixnumNodesFactory;
 import org.truffleruby.core.objectspace.ObjectSpaceNodesBuiltins;
 import org.truffleruby.core.objectspace.ObjectSpaceNodesFactory;
+import org.truffleruby.core.objectspace.TruffleObjectSpaceNodesBuiltins;
+import org.truffleruby.core.objectspace.TruffleObjectSpaceNodesFactory;
 import org.truffleruby.core.proc.ProcNodesBuiltins;
 import org.truffleruby.core.proc.ProcNodesFactory;
 import org.truffleruby.core.queue.QueueNodesBuiltins;
@@ -241,6 +243,7 @@ public abstract class BuiltinsClasses {
         TruffleNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleGraalNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleKernelNodesBuiltins.setup(coreManager, primitiveManager);
+        TruffleObjectSpaceNodesBuiltins.setup(coreManager, primitiveManager);
         TrufflePosixNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleRegexpNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleRopesNodesBuiltins.setup(coreManager, primitiveManager);
@@ -322,6 +325,7 @@ public abstract class BuiltinsClasses {
             TruffleNodesFactory.getFactories(),
             TruffleGraalNodesFactory.getFactories(),
             TruffleKernelNodesFactory.getFactories(),
+            TruffleObjectSpaceNodesFactory.getFactories(),
             TrufflePosixNodesFactory.getFactories(),
             TruffleRegexpNodesFactory.getFactories(),
             TruffleRopesNodesFactory.getFactories(),

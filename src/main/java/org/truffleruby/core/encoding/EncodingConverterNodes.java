@@ -125,31 +125,6 @@ public abstract class EncodingConverterNodes {
 
     }
 
-    @NonStandard
-    @CoreMethod(names = "all_transcoders", onSingleton = true, needsBlock = true)
-    public abstract static class EachTranscoderNode extends YieldingCoreMethodNode {
-
-        @TruffleBoundary // Only called once, during startup
-        @Specialization
-        public Object transcodingMap() {
-            ArrayList<Object> encodings = new ArrayList<>();
-            for (Entry<String, Map<String, TranscoderReference>> sourceEntry : TranscodingManager.allTranscoders.entrySet()) {
-                final DynamicObject source = getContext().getSymbolTable().getSymbol(sourceEntry.getKey());
-                final int size = sourceEntry.getValue().size();
-                final Object[] destinations = new Object[size];
-
-                int i = 0;
-                for (Entry<String, TranscoderReference> destinationEntry : sourceEntry.getValue().entrySet()) {
-                    destinations[i++] = getContext().getSymbolTable().getSymbol(destinationEntry.getKey());
-                }
-                encodings.add(source);
-                encodings.add(createArray(destinations, size));
-            }
-
-            return createArray(encodings.toArray(), encodings.size());
-        }
-    }
-
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 

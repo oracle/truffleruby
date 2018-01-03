@@ -74,7 +74,7 @@ class Encoding
 
     def build_transcoding_map
       map = {}
-      all = Encoding::Converter.all_transcoders.each_slice(2) do |source, destinations|
+      all = Truffle::EncodingOperations.all_transcoders.each_slice(2) do |source, destinations|
         h = {}
         destinations.each do |dest|
           h[dest] = Transcoding.new(source, dest)

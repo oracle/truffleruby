@@ -175,6 +175,7 @@ public class CoreLibrary {
     private final DynamicObject truffleInteropForeignClass;
     private final DynamicObject truffleInteropJavaModule;
     private final DynamicObject truffleKernelOperationsModule;
+    private final DynamicObject truffleObjectSpaceOperationsModule;
     private final DynamicObject bigDecimalClass;
     private final DynamicObject encodingCompatibilityErrorClass;
     private final DynamicObject encodingUndefinedConversionErrorClass;
@@ -509,6 +510,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "Ropes");
         defineModule(truffleModule, "GC");
         defineModule(truffleModule, "Array");
+        truffleObjectSpaceOperationsModule = defineModule(truffleModule, "ObjectSpaceOperations");
         defineModule(truffleModule, "RegexpOperations");
         defineModule(truffleModule, "StringOperations");
         truffleBootModule = defineModule(truffleModule, "Boot");

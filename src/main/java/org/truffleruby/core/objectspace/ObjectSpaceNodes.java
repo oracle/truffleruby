@@ -102,46 +102,6 @@ public abstract class ObjectSpaceNodes {
 
     }
 
-    @CoreMethod(names = "all_objects", isModuleFunction = true, optional = 1)
-    public abstract static class EachObjectNode extends YieldingCoreMethodNode {
-
-        @TruffleBoundary // for the iterator
-        @Specialization(guards = "isNil(ofClass)")
-        public DynamicObject eachObject(DynamicObject ofClass) {
-            Set<DynamicObject> objects = ObjectGraph.stopAndGetAllObjects(this, getContext());
-            ArrayList<DynamicObject> objectList = new ArrayList<>(objects.size());
-
-            for (DynamicObject object : objects) {
-                if (!isHidden(object)) {
-                    objectList.add(object);
-                }
-            }
-
-            return createArray(objectList.toArray(), objectList.size());
-        }
-
-        @TruffleBoundary // for the iterator
-        @Specialization(guards = "isRubyModule(ofClass)")
-        public DynamicObject eachObjectOfClass(DynamicObject ofClass,
-                @Cached("create()") IsANode isANode) {
-            Set<DynamicObject> objects = ObjectGraph.stopAndGetAllObjects(this, getContext());
-            ArrayList<DynamicObject> objectList = new ArrayList<>(objects.size());
-
-            for (DynamicObject object : objects) {
-                if (!isHidden(object) && isANode.executeIsA(object, ofClass)) {
-                    objectList.add(object);
-                }
-            }
-
-            return createArray(objectList.toArray(), objectList.size());
-        }
-
-        private boolean isHidden(DynamicObject object) {
-            return !RubyGuards.isRubyBasicObject(object) || RubyGuards.isSingletonClass(object);
-        }
-
-    }
-
     @CoreMethod(names = "define_finalizer", isModuleFunction = true, required = 2)
     public abstract static class DefineFinalizerNode extends CoreMethodArrayArgumentsNode {
 
