@@ -1194,7 +1194,7 @@ public abstract class FixnumNodes {
     @Primitive(name = "fixnum_memhash")
     public static abstract class FixnumMemhashPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        private static final int CLASS_SALT = 94974697;
+        private static final int CLASS_SALT = 94974697; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
         @Specialization
         public long memhashLongLong(long a, long b) {

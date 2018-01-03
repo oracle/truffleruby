@@ -1113,7 +1113,7 @@ public abstract class StringNodes {
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
-        protected static final int CLASS_SALT = 54008340;
+        protected static final int CLASS_SALT = 54008340; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
         @Specialization
         public long hash(DynamicObject string,
