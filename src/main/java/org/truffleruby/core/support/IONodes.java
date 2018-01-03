@@ -471,14 +471,14 @@ public abstract class IONodes {
             final Rope rope = rope(string);
 
             RopeOperations.visitBytes(rope, (bytes, offset, length) ->
-              getContext().getThreadManager().runUntilResult(this, () -> {
-                try {
-                    stream.write(bytes, offset, length);
-                } catch (IOException e) {
-                    throw new JavaException(e);
-                }
-                return BlockingAction.SUCCESS;
-              }));
+                getContext().getThreadManager().runUntilResult(this, () -> {
+                    try {
+                        stream.write(bytes, offset, length);
+                    } catch (IOException e) {
+                        throw new JavaException(e);
+                    }
+                    return BlockingAction.SUCCESS;
+                }));
 
             return rope.byteLength();
         }
