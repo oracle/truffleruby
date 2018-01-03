@@ -458,3 +458,10 @@ Truffle::KernelOperations.define_hooked_variable(
   -> { Truffle::ThreadOperations.get_thread_local(:$?) },
   -> { raise NameError, '$? is a read-only variable' }
 )
+
+Truffle::KernelOperations.define_hooked_variable(
+  :$@,
+  -> { $!.backtrace if $! },
+  -> value { raise ArgumentError, '$! not set' unless $!
+             $!.set_backtrace value }
+)

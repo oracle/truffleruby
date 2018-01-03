@@ -110,10 +110,7 @@ import org.truffleruby.language.globals.CheckRecordSeparatorVariableTypeNode;
 import org.truffleruby.language.globals.CheckStdoutVariableTypeNode;
 import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
-import org.truffleruby.language.globals.ReadLastBacktraceNode;
 import org.truffleruby.language.globals.ReadMatchReferenceNodes;
-import org.truffleruby.language.globals.ReadThreadLocalGlobalVariableNode;
-import org.truffleruby.language.globals.UpdateLastBacktraceNode;
 import org.truffleruby.language.globals.UpdateVerbosityNode;
 import org.truffleruby.language.globals.WriteGlobalVariableNodeGen;
 import org.truffleruby.language.globals.WriteReadOnlyGlobalNode;
@@ -155,8 +152,6 @@ import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.language.objects.WriteClassVariableNode;
 import org.truffleruby.language.objects.WriteInstanceVariableNode;
 import org.truffleruby.language.threadlocal.GetFromThreadAndFrameLocalStorageNode;
-import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNode;
-import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNodeGen;
 import org.truffleruby.language.threadlocal.SetInThreadAndFrameLocalStorageNode;
 import org.truffleruby.language.yield.YieldExpressionNode;
 import org.truffleruby.parser.ast.AliasParseNode;
@@ -1634,10 +1629,6 @@ public class BodyTranslator extends Translator {
                 rhs = new UpdateVerbosityNode(rhs);
                 rhs.unsafeSetSourceSection(sourceSection);
                 break;
-            case "$@":
-                // $@ is a special-case and doesn't write to a global.
-                // Instead, it writes to the backtrace field of the thread-local $! value.
-                return withSourceSection(sourceSection, new UpdateLastBacktraceNode(rhs));
         }
 
         final boolean inCore = getSourcePath(node.getValueNode().getPosition()).startsWith(corePath());
@@ -1722,9 +1713,6 @@ public class BodyTranslator extends Translator {
             // Assignment is implicit for these, so we need to declare when we use
             RubyNode readNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
             ret = new GetFromThreadAndFrameLocalStorageNode(readNode);
-        } else if (name.equals("$@")) {
-            // $@ is a special-case and reads the backtrace of $!
-            ret = new ReadLastBacktraceNode();
         } else {
             ret = ReadGlobalVariableNodeGen.create(name);
         }
