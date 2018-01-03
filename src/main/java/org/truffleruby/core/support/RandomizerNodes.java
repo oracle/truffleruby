@@ -52,7 +52,6 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.Visibility;
 
 import java.math.BigInteger;
-import java.util.Random;
 
 @CoreClass("Truffle::Randomizer")
 public abstract class RandomizerNodes {
