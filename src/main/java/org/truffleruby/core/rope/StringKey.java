@@ -37,7 +37,7 @@ public class StringKey {
 
     @Override
     public String toString() {
-        return key.toString();
+        return key;
     }
 
 }
