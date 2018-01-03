@@ -14,7 +14,7 @@ slow:The launcher prioritises options on the command line using -X over system p
 slow:The launcher allows -cp in JAVA_OPTS
 slow:The launcher allows -classpath in JAVA_OPTS
 slow:The launcher prints available options for -Xoptions
-slow:The launcher logs options if -Xoptions.log=true is set
+slow:The launcher logs options if -Xoptions.log is set
 slow:The launcher prints an error for an unknown option
 aot:The launcher prints the full java command with -J-cmd
 aot:The launcher prints the full java command with -cmd in JAVA_OPTS
