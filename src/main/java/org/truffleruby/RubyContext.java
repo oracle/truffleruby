@@ -550,6 +550,7 @@ public class RubyContext {
     }
 
     public byte[] getRandomSeedBytes(int numBytes) {
+        // We'd like to use /dev/urandom each time here by using NativePRNGNonBlocking, but this is not supported on the SVM
         final byte[] bytes = new byte[numBytes];
         random.nextBytes(bytes);
         return bytes;
