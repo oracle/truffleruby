@@ -49,6 +49,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.rope.RopeKey;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.control.RaiseException;
@@ -104,13 +105,14 @@ public class ClassicRegexp implements ReOptions {
 
     static Regex getRegexpFromCache(RubyContext runtime, RopeBuilder bytes, Encoding enc, RegexpOptions options) {
         Rope key = RopeOperations.ropeFromRopeBuilder(bytes);
-        Regex regex = runtime.getRegexpCache().get(key);
+        RopeKey ropeKey = new RopeKey(key, runtime.getHashing());
+        Regex regex = runtime.getRegexpCache().get(ropeKey);
         if (regex != null && regex.getEncoding() == enc && regex.getOptions() == options.toJoniOptions()) {
             return regex;
         }
         regex = makeRegexp(runtime, bytes, options, enc);
         regex.setUserObject(bytes);
-        runtime.getRegexpCache().put(key, regex);
+        runtime.getRegexpCache().put(ropeKey, regex);
         return regex;
     }
 

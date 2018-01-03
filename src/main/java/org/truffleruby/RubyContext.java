@@ -33,6 +33,7 @@ import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeKey;
 import org.truffleruby.core.rope.RopeTable;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.FrozenStrings;
@@ -100,7 +101,7 @@ public class RubyContext {
     private final FrozenStrings frozenStrings = new FrozenStrings(this);
     private final CoreExceptions coreExceptions = new CoreExceptions(this);
     private final EncodingManager encodingManager = new EncodingManager(this);
-    private final WeakValuedMap<Rope, Regex> regexpCache = new WeakValuedMap<>();
+    private final WeakValuedMap<RopeKey, Regex> regexpCache = new WeakValuedMap<>();
     private final NativeConfiguration nativeConfiguration;
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
@@ -554,7 +555,7 @@ public class RubyContext {
         return bytes;
     }
 
-    public WeakValuedMap<Rope, Regex> getRegexpCache() {
+    public WeakValuedMap<RopeKey, Regex> getRegexpCache() {
         return regexpCache;
     }
 
