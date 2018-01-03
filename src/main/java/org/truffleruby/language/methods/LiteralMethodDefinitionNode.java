@@ -44,7 +44,7 @@ public class LiteralMethodDefinitionNode extends RubyNode {
         if (!isDefSingleton) {
             this.visibilityNode = new GetCurrentVisibilityNode();
         }
-        this.addMethodNode = AddMethodNodeGen.create(isDefSingleton, null, null, null);
+        this.addMethodNode = AddMethodNode.create(isDefSingleton);
     }
 
     @Override
