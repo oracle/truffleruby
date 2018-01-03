@@ -616,7 +616,7 @@ public abstract class BignumNodes {
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
-        private static final int CLASS_SALT = 64260138;
+        private static final int CLASS_SALT = 64260138; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
         @Specialization
         public long hash(DynamicObject value) {

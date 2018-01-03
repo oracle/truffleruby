@@ -138,7 +138,7 @@ public class SymbolTable {
         }
     }
 
-    private static final int CLASS_SALT = 92021474;
+    private static final int CLASS_SALT = 92021474; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
     private DynamicObject createSymbol(Rope rope) {
         final String string = RopeOperations.decodeRope(rope);

@@ -930,7 +930,7 @@ public abstract class ArrayNodes {
     @CoreMethod(names = "hash_internal", visibility = Visibility.PRIVATE)
     public abstract static class HashNode extends ArrayCoreMethodNode {
 
-        private static final int CLASS_SALT = 42753062;
+        private static final int CLASS_SALT = 42753062; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
         @Child private ToIntNode toIntNode;
 
