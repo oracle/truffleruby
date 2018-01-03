@@ -33,8 +33,6 @@ package org.truffleruby.core;
 
 public final class Hashing {
 
-    private static final int MURMUR2_MAGIC = 0x5bd1e995;
-
     private final long seed;
 
     public Hashing(long seed) {
@@ -80,7 +78,7 @@ public final class Hashing {
 
     private static long murmurStep(long h, long k) {
         h += k;
-        h *= MURMUR2_MAGIC;
+        h *= 0x5bd1e995; // The MurmurHash2 magic number
         h ^= h >> 16;
         return h;
     }
