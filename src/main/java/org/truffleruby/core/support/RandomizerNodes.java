@@ -291,7 +291,6 @@ public abstract class RandomizerNodes {
 
         @TruffleBoundary
         public static BigInteger randomSeedBigInteger(RubyContext context) {
-            // MRI uses /dev/urandom each time for this, but Java only makes it easy to use /dev/random which blocks too much in practice
             byte[] seed = context.getRandomSeedBytes(DEFAULT_SEED_CNT * 4);
             return new BigInteger(seed).abs();
         }
