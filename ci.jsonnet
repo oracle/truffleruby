@@ -84,9 +84,9 @@ local ci = {
           if std.type(content) == 'object'
           then ci.add_inclusion_tracking(
             new_prefix,
-            content,            
+            content,
             // assume parts are always nested 1 level in a group
-            true 
+            true
           )
           else content
       )
@@ -117,39 +117,6 @@ local ci = {
     if std.length(restriction) == 0
     then builds
     else std.filter(function(b) std.count(restriction, b.name) > 0, builds),
-
-  // Combines objects holding partials in the given order producing
-  // all possible variants:
-  //  self.combine_partials([
-  //    { a_: { d+: ['a1'] } },
-  //    { b1_: { d+: ['b1'] },
-  //      b2_: { d+: ['b2'] } },
-  //    { c: { d+: ['c1']} },
-  //  ])
-  // Produces (in YAML syntax):
-  //  a_b1_c:
-  //    d:
-  //      - a1
-  //      - b1
-  //      - c1
-  //  a_b2_c:
-  //    d:
-  //      - a1
-  //      - b2
-  //      - c1
-  combine_partials: function(partials)
-    local init = partials[0];
-    local collection = std.slice(partials, 1, std.length(partials), 1);
-    std.foldl(
-      function(results, partials)
-        {
-          [rk + pk]: { included_parts+: [] } + results[rk] + partials[pk]
-          for rk in std.objectFields(results)
-          for pk in std.objectFields(partials)
-        },
-      collection,
-      init
-    ),
 
   // try to read a field, if not present print error including the name
   // of the object
@@ -685,98 +652,106 @@ local part_definitions = {
 
 local composition_environment = ci.add_inclusion_tracking('$', part_definitions, false) {
 
-  partial_svm_test:: {
-    local shared =
-      $.use.maven + $.jdk.labsjdk8 + $.use.common +
-      $.use.svm + $.cap.gate +
-      $.run.svm_gate,
-    linux:
-      $.platform.linux + shared +
-      { '$.run.svm_gate':: { tags: 'build,ruby_debug,ruby_product' } },
-    darwin:
-      $.platform.darwin + shared +
-      { '$.run.svm_gate':: { tags: 'build,darwin_ruby' } },
-  },
+  test_builds:
+    {
+      local ruby_deploy_and_spec = $.use.maven + $.jdk.labsjdk8 +
+                                   $.use.common + $.use.build +
+                                   $.cap.deploy + $.cap.gate +
+                                   $.run.deploy_and_spec,
 
-  test_builds: {
-    local ruby_deploy_and_spec = $.use.maven + $.jdk.labsjdk8 +
-                                 $.use.common + $.use.build +
-                                 $.cap.deploy + $.cap.gate +
-                                 $.run.deploy_and_spec,
+      'ruby-deploy-and-specs-linux':
+        $.platform.linux + ruby_deploy_and_spec,
+      'ruby-deploy-and-specs-darwin':
+        $.platform.darwin + ruby_deploy_and_spec,
+      'ruby-deploy-and-specs-solaris':
+        $.platform.solaris + ruby_deploy_and_spec,
+    } +
 
-    'ruby-deploy-and-specs-linux':
-      $.platform.linux + ruby_deploy_and_spec,
-    'ruby-deploy-and-specs-darwin':
-      $.platform.darwin + ruby_deploy_and_spec,
-    'ruby-deploy-and-specs-solaris':
-      $.platform.solaris + ruby_deploy_and_spec,
-  } + {
-    'ruby-test-fast-java9-linux':
-      $.platform.linux +
-      $.jdk.labsjdk9 +
-      $.use.common + $.use.build +
-      $.cap.gate +
-      $.run.test_fast,
-  } + {
-    local linux_gate = $.platform.linux + $.cap.gate + $.use.maven + $.jdk.labsjdk8 +
-                       $.use.common,
+    {
+      'ruby-test-fast-java9-linux':
+        $.platform.linux +
+        $.jdk.labsjdk9 +
+        $.use.common + $.use.build +
+        $.cap.gate +
+        $.run.test_fast,
+    } +
 
-    'ruby-lint':
-      linux_gate + $.run.lint,
-    'ruby-test-tck':
-      linux_gate + $.use.build + { run+: [['mx', 'rubytck']] },
-    'ruby-test-mri':
-      $.cap.fast_cpu +
-      linux_gate +
-      $.use.build +
-      $.use.sulong +  // OpenSSL is required to run RubyGems tests
-      $.run.test_mri,
-    'ruby-test-integration':
-      linux_gate + $.use.build + $.use.sulong +
-      $.run.test_integration,
-    'ruby-test-cexts':
-      linux_gate + $.use.build + $.use.sulong + $.use.gem_test_pack +
-      $.run.test_cexts,
-    'ruby-test-gems':
-      linux_gate + $.use.build + $.use.gem_test_pack +
-      $.run.test_gems,
-    'ruby-test-bundle-no-sulong':
-      linux_gate + $.use.build +
-      $.run.test_bundle,
-    'ruby-test-ecosystem':
-      linux_gate + $.use.build + $.use.sulong + $.use.gem_test_pack +
-      $.run.test_ecosystem,
+    {
+      local linux_gate = $.platform.linux + $.cap.gate + $.use.maven + $.jdk.labsjdk8 +
+                         $.use.common,
 
-    'ruby-test-compiler-graal-core':
-      linux_gate + $.use.build + $.use.truffleruby + $.graal.core +
-      $.run.test_compiler,
-    // TODO was commented out, needs to be rewritten?
-    // {name: "ruby-test-compiler-graal-enterprise"} + linux_gate + $.graal_enterprise + {run: jt(["test", "compiler"])},
-    // {name: "ruby-test-compiler-graal-vm-snapshot"} + linux_gate + $.graal_vm_snapshot + {run: jt(["test", "compiler"])},
-  } + {
-    local shared = $.platform.linux + $.cap.gate + $.jdk.labsjdk9 +
-                   $.use.common + $.use.build +
-                   $.use.truffleruby + $.graal.core,
-    'ruby-test-compiler-graal-core-java9': shared + $.run.test_compiler,
-    'ruby-test-compiler-standalone-java9': shared + $.run.compiler_standalone,
-  } + {
-    ['ruby-test-svm-graal-core-' + k]:
-      $.use.build + $.svm.core + $.partial_svm_test[k] +
-      // Owerride tags provided by partials
-      { '$.run.svm_gate':: { tags: 'build,ruby' } }
-    for k in std.objectFields($.partial_svm_test)
-  } + {
-    ['ruby-test-svm-graal-enterprise-' + k]:
-      $.use.build + $.svm.enterprise + $.partial_svm_test[k]
-    for k in std.objectFields($.partial_svm_test)
-  },
+      'ruby-lint':
+        linux_gate + $.run.lint,
+      'ruby-test-tck':
+        linux_gate + $.use.build + { run+: [['mx', 'rubytck']] },
+      'ruby-test-mri':
+        $.cap.fast_cpu +
+        linux_gate +
+        $.use.build +
+        $.use.sulong +  // OpenSSL is required to run RubyGems tests
+        $.run.test_mri,
+      'ruby-test-integration':
+        linux_gate + $.use.build + $.use.sulong +
+        $.run.test_integration,
+      'ruby-test-cexts':
+        linux_gate + $.use.build + $.use.sulong + $.use.gem_test_pack +
+        $.run.test_cexts,
+      'ruby-test-gems':
+        linux_gate + $.use.build + $.use.gem_test_pack +
+        $.run.test_gems,
+      'ruby-test-bundle-no-sulong':
+        linux_gate + $.use.build +
+        $.run.test_bundle,
+      'ruby-test-ecosystem':
+        linux_gate + $.use.build + $.use.sulong + $.use.gem_test_pack +
+        $.run.test_ecosystem,
 
-  partial_other_rubies:: {
+      'ruby-test-compiler-graal-core':
+        linux_gate + $.use.build + $.use.truffleruby + $.graal.core +
+        $.run.test_compiler,
+      // TODO was commented out, needs to be rewritten?
+      // {name: "ruby-test-compiler-graal-enterprise"} + linux_gate + $.graal_enterprise + {run: jt(["test", "compiler"])},
+      // {name: "ruby-test-compiler-graal-vm-snapshot"} + linux_gate + $.graal_vm_snapshot + {run: jt(["test", "compiler"])},
+    } +
+
+    {
+      local shared = $.platform.linux + $.cap.gate + $.jdk.labsjdk9 +
+                     $.use.common + $.use.build +
+                     $.use.truffleruby + $.graal.core,
+      'ruby-test-compiler-graal-core-java9': shared + $.run.test_compiler,
+      'ruby-test-compiler-standalone-java9': shared + $.run.compiler_standalone,
+    } +
+
+    local svm_test_platforms = {
+      local shared =
+        $.use.maven + $.jdk.labsjdk8 + $.use.common +
+        $.use.svm + $.cap.gate +
+        $.run.svm_gate,
+      linux:
+        $.platform.linux + shared +
+        { '$.run.svm_gate':: { tags: 'build,ruby_debug,ruby_product' } },
+      darwin:
+        $.platform.darwin + shared +
+        { '$.run.svm_gate':: { tags: 'build,darwin_ruby' } },
+    };
+    {
+      ['ruby-test-svm-graal-core-' + k]:
+        $.use.build + $.svm.core +
+        svm_test_platforms[k] +
+        { '$.run.svm_gate':: { tags: 'build,ruby' } }
+      for k in std.objectFields(svm_test_platforms)
+    } + {
+      ['ruby-test-svm-graal-enterprise-' + k]:
+        $.use.build + $.svm.enterprise +
+        svm_test_platforms[k]
+      for k in std.objectFields(svm_test_platforms)
+    },
+
+  local other_rubies = {
     mri: $.use.mri + $.cap.bench + $.cap.weekly,
     jruby: $.use.jruby + $.cap.bench + $.cap.weekly,
   },
-
-  partial_graal_builds:: {
+  local graal_configurations = {
     local shared = $.use.truffleruby + $.use.build + $.cap.daily + $.cap.bench,
     // TODO was commented out, needs to be rewritten?
     // { name: "no-graal",               caps: $.weekly_bench_caps, setup: $.no_graal,               kind: "graal"  },
@@ -785,8 +760,7 @@ local composition_environment = ci.add_inclusion_tracking('$', part_definitions,
     'graal-enterprise': shared + $.graal.enterprise,
     'graal-enterprise-no-om': shared + $.graal.enterprise + $.graal.without_om,
   },
-
-  partial_svm_builds:: {
+  local svm_configurations = {
     local shared = $.cap.bench + $.cap.daily +
                    $.use.truffleruby +
                    $.use.build +
@@ -796,15 +770,68 @@ local composition_environment = ci.add_inclusion_tracking('$', part_definitions,
     'svm-graal-enterprise': shared + $.svm.enterprise + $.svm.build_image,
   },
 
-  partial_solaris_bench:: {
-    local shared = $.platform.solaris + $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.build +
-                   $.use.truffleruby +
-                   $.cap.bench + $.cap.daily,
-    'graal-core-solaris': shared + $.graal.core,
-    'graal-enterprise-solaris': shared + $.graal.enterprise,
-  },
-
   bench_builds:
+    {
+      ['ruby-metrics-compiler-' + k]:
+        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
+        $.benchmark.runner + $.benchmark.compiler_metrics +
+        graal_configurations[k]
+      for k in std.objectFields(graal_configurations)
+    } +
+
+    {
+      ['ruby-build-stats-' + k]:
+        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
+        $.benchmark.runner + $.benchmark.svm_build_stats +
+        svm_configurations[k] +
+        // TODO this 2 jobs have GUEST_VM_CONFIG: 'default' instead of 'truffle', why?
+        { environment+: { GUEST_VM_CONFIG: 'default' } }
+      for k in std.objectFields(svm_configurations)
+    } +
+
+    {
+      ['ruby-metrics-' + k]:
+        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
+        $.benchmark.run_svm_metrics +
+        svm_configurations[k] +
+        $.cap.x52_18_override
+      for k in std.objectFields(svm_configurations)
+    } +
+
+    {
+      ['ruby-benchmarks-classic-' + k]:
+        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
+        $.benchmark.runner + $.benchmark.classic +
+        (other_rubies + graal_configurations + svm_configurations)[k]
+      for k in std.objectFields(other_rubies + graal_configurations + svm_configurations)
+    } +
+
+    local benchmarks = {
+      'chunky-': $.benchmark.runner + $.benchmark.chunky,
+      'psd-': $.benchmark.runner + $.benchmark.psd,
+      'asciidoctor-': $.benchmark.runner + $.benchmark.asciidoctor,
+      'other-': $.benchmark.runner + $.benchmark.other,
+    };
+    {
+      local svm_build = std.objectHas(svm_configurations, configuration_name),
+      local other_bench = benchmark_name == 'other-',
+      ['ruby-benchmarks-' + benchmark_name + configuration_name]:
+        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
+        benchmarks[benchmark_name] +
+        (other_rubies + graal_configurations + svm_configurations)[configuration_name] +
+        (if other_bench && !svm_build then $.benchmark.other_extra else {})
+      for benchmark_name in std.objectFields(benchmarks)
+      for configuration_name in std.objectFields(other_rubies + graal_configurations + svm_configurations)
+    } +
+
+    {
+      ['ruby-benchmarks-server-' + k]:
+        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
+        $.benchmark.runner + $.benchmark.server +
+        (other_rubies + graal_configurations)[k]
+      for k in std.objectFields(other_rubies + graal_configurations)
+    } +
+
     {
       'ruby-metrics-truffle':
         $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.build +
@@ -812,73 +839,6 @@ local composition_environment = ci.add_inclusion_tracking('$', part_definitions,
         $.cap.bench + $.cap.daily +
         $.benchmark.runner + $.benchmark.metrics,
     } +
-
-    ci.combine_partials([
-      { 'ruby-metrics-compiler-':
-        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-        $.benchmark.runner + $.benchmark.compiler_metrics },
-      $.partial_graal_builds,
-    ]) +
-
-    ci.combine_partials([
-      { 'ruby-build-stats-':
-        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-        $.benchmark.runner + $.benchmark.svm_build_stats },
-      $.partial_svm_builds,
-      // a workaround to replace empty field `'':` with `[empty_name]:`,
-      // otherwise autoformatter deletes the key and the result is invalid
-      local empty_name = '';
-      // TODO this 2 jobs have GUEST_VM_CONFIG: 'default' instead of 'truffle', why?
-      { [empty_name]: { environment+: { GUEST_VM_CONFIG: 'default' } } },
-    ]) +
-
-    {
-      ['ruby-metrics-' + k]:
-        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-        $.benchmark.run_svm_metrics +
-        $.partial_svm_builds[k] +
-        $.cap.x52_18_override
-      for k in std.objectFields($.partial_svm_builds)
-    } +
-
-    ci.combine_partials([
-      { 'ruby-benchmarks-classic-':
-        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-        $.benchmark.runner + $.benchmark.classic },
-      $.partial_other_rubies + $.partial_graal_builds + $.partial_svm_builds,
-    ]) +
-
-    ci.combine_partials([
-      { 'ruby-benchmarks-classic-': $.benchmark.runner + $.benchmark.classic },
-      $.partial_solaris_bench,
-    ]) +
-
-    ci.combine_partials([
-      { 'ruby-benchmarks-': $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common },
-      ci.combine_partials([
-        {
-          'chunky-': $.benchmark.runner + $.benchmark.chunky,
-          'psd-': $.benchmark.runner + $.benchmark.psd,
-          'asciidoctor-': $.benchmark.runner + $.benchmark.asciidoctor,
-        },
-        $.partial_other_rubies + $.partial_graal_builds + $.partial_svm_builds,
-      ]) +
-      ci.combine_partials([
-        { 'other-': $.benchmark.runner + $.benchmark.other + $.benchmark.other_extra },
-        $.partial_other_rubies + $.partial_graal_builds,
-      ]) +
-      ci.combine_partials([
-        { 'other-': $.benchmark.runner + $.benchmark.other },
-        $.partial_svm_builds,
-      ]),
-    ]) +
-
-    ci.combine_partials([
-      { 'ruby-benchmarks-server-':
-        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-        $.benchmark.runner + $.benchmark.server },
-      $.partial_other_rubies + $.partial_graal_builds,
-    ]) +
 
     {
       'ruby-benchmarks-cext':
@@ -892,6 +852,20 @@ local composition_environment = ci.add_inclusion_tracking('$', part_definitions,
         $.graal.core + $.use.sulong + $.use.gem_test_pack + $.use.build +
         $.cap.bench + $.cap.daily +
         $.benchmark.runner + $.benchmark.cext_chunky,
+    } +
+
+    local solaris_benchmarks = {
+      local shared = $.platform.solaris + $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.build +
+                     $.use.truffleruby +
+                     $.cap.bench + $.cap.daily,
+      'graal-core-solaris': shared + $.graal.core,
+      'graal-enterprise-solaris': shared + $.graal.enterprise,
+    };
+    {
+      ['ruby-benchmarks-classic-' + k]:
+        $.benchmark.runner + $.benchmark.classic +
+        solaris_benchmarks[k]
+      for k in std.objectFields(solaris_benchmarks)
     },
 
   timelimits: {
