@@ -1289,11 +1289,8 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitDefnNode(DefnParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final RubyNode classNode = new RaiseIfFrozenNode(new GetDefaultDefineeNode());
-
-        String methodName = node.getName();
-
-        final RubyNode ret = translateMethodDefinition(sourceSection, classNode, methodName, node.getArgsNode(), node, node.getBodyNode(), false);
+        final RubyNode moduleNode = new RaiseIfFrozenNode(new GetDefaultDefineeNode());
+        final RubyNode ret = translateMethodDefinition(sourceSection, moduleNode, node.getName(), node.getArgsNode(), node, node.getBodyNode(), false);
 
         return addNewlineIfNeeded(node, ret);
     }
@@ -1312,7 +1309,7 @@ public class BodyTranslator extends Translator {
         return addNewlineIfNeeded(node, ret);
     }
 
-    protected RubyNode translateMethodDefinition(SourceIndexLength sourceSection, RubyNode classNode, String methodName,
+    protected RubyNode translateMethodDefinition(SourceIndexLength sourceSection, RubyNode moduleNode, String methodName,
             ArgsParseNode argsNode, MethodDefParseNode defNode, ParseNode bodyNode, boolean isDefs) {
         final Arity arity = MethodTranslator.getArity(argsNode);
         final ArgumentDescriptor[] argumentDescriptors = Helpers.argsNodeToArgumentDescriptors(argsNode);
@@ -1337,7 +1334,7 @@ public class BodyTranslator extends Translator {
         final MethodTranslator methodCompiler = new MethodTranslator(currentNode, context, this, newEnvironment, false, source, parserContext, argsNode);
         final CallTarget callTarget = methodCompiler.compileMethodNode(sourceSection, methodName, defNode, bodyNode, sharedMethodInfo);
 
-        return withSourceSection(sourceSection, new LiteralMethodDefinitionNode(classNode, methodName, sharedMethodInfo, callTarget, isDefs));
+        return withSourceSection(sourceSection, new LiteralMethodDefinitionNode(moduleNode, methodName, sharedMethodInfo, callTarget, isDefs));
     }
 
     @Override
