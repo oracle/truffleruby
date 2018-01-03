@@ -34,7 +34,6 @@
 package org.truffleruby.core.support;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -52,8 +51,6 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.Visibility;
 
 import java.math.BigInteger;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Random;
 
 @CoreClass("Truffle::Randomizer")
