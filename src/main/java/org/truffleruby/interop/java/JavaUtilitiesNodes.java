@@ -185,8 +185,8 @@ public class JavaUtilitiesNodes {
     public static abstract class InvocationHandlerNode extends YieldingCoreMethodNode {
 
         @Specialization
-        public Object createHandler(DynamicObject aProc) {
-            return (InvocationHandler) (aProxy, method, args) -> {
+        public InvocationHandler createHandler(DynamicObject aProc) {
+            return (aProxy, method, args) -> {
                 Object[] rubyArgs;
                 if (args != null) {
                     rubyArgs = new Object[args.length + 1];
