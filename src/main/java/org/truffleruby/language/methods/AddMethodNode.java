@@ -29,6 +29,10 @@ import org.truffleruby.language.objects.SingletonClassNodeGen;
 })
 public abstract class AddMethodNode extends RubyNode {
 
+    public static AddMethodNode create(boolean ignoreNameVisibility) {
+        return AddMethodNodeGen.create(ignoreNameVisibility, null, null, null);
+    }
+
     // Some method names such as #initialize imply that the method is private - this flag says to ignore that implication
     private final boolean ignoreNameVisibility;
 

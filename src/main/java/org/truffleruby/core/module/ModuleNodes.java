@@ -83,7 +83,6 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.RequireNode;
 import org.truffleruby.language.methods.AddMethodNode;
-import org.truffleruby.language.methods.AddMethodNodeGen;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.CanBindMethodToModuleNode;
 import org.truffleruby.language.methods.CanBindMethodToModuleNodeGen;
@@ -999,7 +998,7 @@ public abstract class ModuleNodes {
     })
     public abstract static class DefineMethodNode extends CoreMethodNode {
 
-        @Child private AddMethodNode addMethodNode = AddMethodNodeGen.create(false, null, null, null);
+        @Child private AddMethodNode addMethodNode = AddMethodNode.create(false);
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
@@ -1835,7 +1834,7 @@ public abstract class ModuleNodes {
         private final Visibility visibility;
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-        @Child private AddMethodNode addMethodNode = AddMethodNodeGen.create(true, null, null, null);
+        @Child private AddMethodNode addMethodNode = AddMethodNode.create(true);
 
         public SetMethodVisibilityNode(Visibility visibility) {
             this.visibility = visibility;
