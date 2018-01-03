@@ -42,7 +42,7 @@ public abstract class AddMethodNode extends RubyNode {
         this.ignoreNameVisibility = ignoreNameVisibility;
     }
 
-    public abstract DynamicObject executeAddMethod(DynamicObject module, InternalMethod method, Visibility visibility);
+    public abstract Object executeAddMethod(DynamicObject module, InternalMethod method, Visibility visibility);
 
     @TruffleBoundary
     @Specialization(guards = "isRubyModule(module)")
@@ -61,7 +61,7 @@ public abstract class AddMethodNode extends RubyNode {
             addMethodToModule(module, method);
         }
 
-        return getSymbol(method.getName());
+        return nil();
     }
 
     public void addMethodToModule(DynamicObject module, InternalMethod method) {

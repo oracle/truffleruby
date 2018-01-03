@@ -1096,7 +1096,8 @@ public abstract class ModuleNodes {
 
             final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_ONLY);
             final Visibility visibility = GetCurrentVisibilityNode.getVisibilityFromNameAndFrame(name, frame);
-            return addMethodNode.executeAddMethod(module, method, visibility);
+            addMethodNode.executeAddMethod(module, method, visibility);
+            return getSymbol(method.getName());
         }
 
         protected CanBindMethodToModuleNode createCanBindMethodToModuleNode() {
@@ -1840,10 +1841,10 @@ public abstract class ModuleNodes {
             this.visibility = visibility;
         }
 
-        public abstract DynamicObject executeSetMethodVisibility(VirtualFrame frame, DynamicObject module, Object name);
+        public abstract Object executeSetMethodVisibility(VirtualFrame frame, DynamicObject module, Object name);
 
         @Specialization
-        public DynamicObject setMethodVisibility(DynamicObject module, Object name,
+        public Object setMethodVisibility(DynamicObject module, Object name,
                 @Cached("create()") BranchProfile errorProfile) {
             final String methodName = nameToJavaStringNode.executeToJavaString(name);
 
@@ -1860,7 +1861,9 @@ public abstract class ModuleNodes {
              * want to add a copy of the method with a different visibility
              * to this module.
              */
-            return addMethodNode.executeAddMethod(module, method, visibility);
+            addMethodNode.executeAddMethod(module, method, visibility);
+
+            return nil();
         }
 
     }
