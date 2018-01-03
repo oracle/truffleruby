@@ -68,9 +68,25 @@ class PostProcessor
       'yyVal;'
     else
       # Generate a full Java lambda expression for the action.
+
+      # The generated code has some strange spacing stemming from the grammar file. To make the Java source file a bit
+      # more readable, we attempt to figure out the indentation for the action body and normalize it down to four spaces,
+      # matching the rest of our codebase. Generally, the first line has the presiding indentation level, but sometimes
+      # it does not. In such cases we default to treating as if it has no indentation and thus nothing to trim.
+      leading_space = [code_body.first.index(/\S/) - 4, 0].max
+
       ret = "{\n"
 
-      code_body.each { |line| ret << line }
+      code_body.each do |line|
+        # Some lines, such as empty ones, won't have the minimum amount of leading space, so there's nothing to trim.
+        # This also serves as a precautionary check that we don't accidentally trim good characters from strangely
+        # indented lines.
+        ret << if line.index(/\S/).to_i >= leading_space
+                 line[leading_space..-1]
+               else
+                 line
+               end
+      end
 
       ret << "    return yyVal;\n"
       ret << "};\n"

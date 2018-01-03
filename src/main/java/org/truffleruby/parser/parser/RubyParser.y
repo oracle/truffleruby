@@ -327,7 +327,7 @@ program       : {
                   lexer.setState(EXPR_BEG);
                   support.initTopLocalVariables();
               } top_compstmt {
-  // ENEBO: Removed !compile_for_eval which probably is to reduce warnings
+                  // ENEBO: Removed !compile_for_eval which probably is to reduce warnings
                   if ($2 != null) {
                       /* last expression should not be void */
                       if ($2 instanceof BlockParseNode) {
@@ -485,7 +485,7 @@ stmt            : kALIAS fitem {
                     }
                 }
                 | primary_value '[' opt_call_args rbracket tOP_ASGN command_call {
-  // FIXME: arg_concat logic missing for opt_call_args
+                    // FIXME: arg_concat logic missing for opt_call_args
                     $$ = support.new_opElementAsgnNode($1, $5, $3, $6);
                 }
                 | primary_value call_op tIDENTIFIER tOP_ASGN command_call {
@@ -1061,7 +1061,7 @@ arg             : lhs '=' arg {
                     }
                 }
                 | primary_value '[' opt_call_args rbracket tOP_ASGN arg {
-  // FIXME: arg_concat missing for opt_call_args
+                    // FIXME: arg_concat missing for opt_call_args
                     $$ = support.new_opElementAsgnNode($1, $5, $3, $6);
                 }
                 | primary_value call_op tIDENTIFIER tOP_ASGN arg {
