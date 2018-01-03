@@ -29,7 +29,7 @@ import org.truffleruby.language.objects.SingletonClassNodeGen;
 })
 public abstract class AddMethodNode extends RubyNode {
 
-    // Some method names such as initialize imply that the method is private - this flag says to ignore that implication
+    // Some method names such as #initialize imply that the method is private - this flag says to ignore that implication
     private final boolean ignoreNameVisibility;
 
     @Child private SingletonClassNode singletonClassNode;
@@ -60,7 +60,7 @@ public abstract class AddMethodNode extends RubyNode {
         return getSymbol(method.getName());
     }
 
-    public void addMethodToModule(final DynamicObject module, InternalMethod method) {
+    public void addMethodToModule(DynamicObject module, InternalMethod method) {
         Layouts.MODULE.getFields(module).addMethod(getContext(), this, method);
     }
 
