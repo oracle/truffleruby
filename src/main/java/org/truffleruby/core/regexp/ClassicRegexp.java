@@ -89,7 +89,8 @@ public class ClassicRegexp implements ReOptions {
         // FIXME: transcode?
     }
 
-    static final WeakValuedMap<Rope, Regex> patternCache = new WeakValuedMap<>();
+    // This cache doesn't need to use context hashing because regexps are not expected to come from runtime data
+    private static final WeakValuedMap<Rope, Regex> patternCache = new WeakValuedMap<>();
 
     private static Regex makeRegexp(RubyContext runtime, RopeBuilder bytes, RegexpOptions options, Encoding enc) {
         try {
