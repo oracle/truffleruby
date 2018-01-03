@@ -717,7 +717,7 @@ public class BCrypt {
      */
     public static String gensalt(int log_rounds, RubyContext context) {
         StringBuilder rs = new StringBuilder();
-        byte rnd[] = context.getSecureSeedBytes(BCRYPT_SALT_LEN);
+        byte rnd[] = context.getRandomSeedBytes(BCRYPT_SALT_LEN);
         rs.append("$2a$");
         if (log_rounds < 10) {
             rs.append("0");

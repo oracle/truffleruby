@@ -544,7 +544,9 @@ public class RubyContext {
         return nativeConfiguration;
     }
 
-    public byte[] getSecureSeedBytes(int numBytes) {
-        return random.generateSeed(numBytes);
+    public byte[] getRandomSeedBytes(int numBytes) {
+        final byte[] bytes = new byte[numBytes];
+        random.nextBytes(bytes);
+        return bytes;
     }
 }
