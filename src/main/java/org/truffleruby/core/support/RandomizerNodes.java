@@ -39,6 +39,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.algorithms.Randomizer;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -283,16 +284,16 @@ public abstract class RandomizerNodes {
 
         @Specialization
         public DynamicObject randomizerGenSeed(DynamicObject randomizerClass) {
-            final BigInteger seed = randomSeedBigInteger(getContext().getRandom());
+            final BigInteger seed = randomSeedBigInteger(getContext());
             return createBignum(seed);
         }
 
         private static final int DEFAULT_SEED_CNT = 4;
 
         @TruffleBoundary
-        public static BigInteger randomSeedBigInteger(Random random) {
+        public static BigInteger randomSeedBigInteger(RubyContext context) {
             byte[] seed = new byte[DEFAULT_SEED_CNT * 4];
-            random.nextBytes(seed);
+            context.getRandom().nextBytes(seed);
             return new BigInteger(seed).abs();
         }
 

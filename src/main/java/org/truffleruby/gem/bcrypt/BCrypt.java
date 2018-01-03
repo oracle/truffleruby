@@ -13,8 +13,9 @@
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 package org.truffleruby.gem.bcrypt;
 
+import org.truffleruby.RubyContext;
+
 import java.io.UnsupportedEncodingException;
-import java.util.Random;
 
 /**
  * BCrypt implements OpenBSD-style Blowfish password hashing using
@@ -712,14 +713,13 @@ public class BCrypt {
      * 
      * @param log_rounds the log2 of the number of rounds of hashing to apply - the work factor
      *            therefore increases as 2**log_rounds.
-     * @param random an instance of SecureRandom to use
      * @return an encoded salt value
      */
-    public static String gensalt(int log_rounds, Random random) {
+    public static String gensalt(int log_rounds, RubyContext context) {
         StringBuilder rs = new StringBuilder();
         byte rnd[] = new byte[BCRYPT_SALT_LEN];
 
-        random.nextBytes(rnd);
+        context.getRandom().nextBytes(rnd);
 
         rs.append("$2a$");
         if (log_rounds < 10) {
