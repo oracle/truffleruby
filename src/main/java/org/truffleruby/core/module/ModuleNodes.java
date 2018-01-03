@@ -53,6 +53,7 @@ import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
 import org.truffleruby.core.method.MethodFilter;
+import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -63,6 +64,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -1345,7 +1347,7 @@ public abstract class ModuleNodes {
     public abstract static class PublicClassMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Child private SingletonClassNode singletonClassNode = SingletonClassNodeGen.create(null);
-        @Child private SetMethodVisibilityNode setMethodVisibilityNode = ModuleNodesFactory.SetMethodVisibilityNodeGen.create(Visibility.PUBLIC, null, null);
+        @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNodeGen.create(Visibility.PUBLIC);
 
         @Specialization
         public DynamicObject publicClassMethod(VirtualFrame frame, DynamicObject module, Object[] names) {
@@ -1395,7 +1397,7 @@ public abstract class ModuleNodes {
     public abstract static class PrivateClassMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Child private SingletonClassNode singletonClassNode = SingletonClassNodeGen.create(null);
-        @Child private SetMethodVisibilityNode setMethodVisibilityNode = ModuleNodesFactory.SetMethodVisibilityNodeGen.create(Visibility.PRIVATE, null, null);
+        @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNodeGen.create(Visibility.PRIVATE);
 
         @Specialization
         public DynamicObject privateClassMethod(VirtualFrame frame, DynamicObject module, Object[] names) {
@@ -1809,7 +1811,7 @@ public abstract class ModuleNodes {
 
         public SetVisibilityNode(Visibility visibility) {
             this.visibility = visibility;
-            setMethodVisibilityNode = ModuleNodesFactory.SetMethodVisibilityNodeGen.create(visibility, null, null);
+            setMethodVisibilityNode = SetMethodVisibilityNodeGen.create(visibility);
         }
 
         public abstract DynamicObject executeSetVisibility(VirtualFrame frame, DynamicObject module, Object[] arguments);
@@ -1829,8 +1831,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @NodeChildren({ @NodeChild(value = "module"), @NodeChild(value = "name") })
-    public abstract static class SetMethodVisibilityNode extends RubyNode {
+    public abstract static class SetMethodVisibilityNode extends RubyBaseNode {
 
         private final Visibility visibility;
 
@@ -1841,10 +1842,10 @@ public abstract class ModuleNodes {
             this.visibility = visibility;
         }
 
-        public abstract Object executeSetMethodVisibility(VirtualFrame frame, DynamicObject module, Object name);
+        public abstract void executeSetMethodVisibility(VirtualFrame frame, DynamicObject module, Object name);
 
         @Specialization
-        public Object setMethodVisibility(DynamicObject module, Object name,
+        public void setMethodVisibility(DynamicObject module, Object name,
                 @Cached("create()") BranchProfile errorProfile) {
             final String methodName = nameToJavaStringNode.executeToJavaString(name);
 
@@ -1862,8 +1863,6 @@ public abstract class ModuleNodes {
              * to this module.
              */
             addMethodNode.executeAddMethod(module, method, visibility);
-
-            return nil();
         }
 
     }
