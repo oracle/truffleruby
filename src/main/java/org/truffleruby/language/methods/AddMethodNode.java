@@ -32,13 +32,10 @@ public abstract class AddMethodNode extends RubyNode {
     // Some method names such as initialize imply that the method is private - this flag says to ignore that implication
     private final boolean ignoreNameVisibility;
 
-    private final boolean isLiteralDef;
-
     @Child private SingletonClassNode singletonClassNode;
 
-    public AddMethodNode(boolean ignoreNameVisibility, boolean isLiteralDef) {
+    public AddMethodNode(boolean ignoreNameVisibility) {
         this.ignoreNameVisibility = ignoreNameVisibility;
-        this.isLiteralDef = isLiteralDef;
     }
 
     public abstract DynamicObject executeAddMethod(DynamicObject module, InternalMethod method, Visibility visibility);
@@ -51,10 +48,6 @@ public abstract class AddMethodNode extends RubyNode {
         }
 
         method = method.withVisibility(visibility);
-
-        if (isLiteralDef) {
-            method = method.withDeclaringModule(module);
-        }
 
         if (visibility == Visibility.MODULE_FUNCTION) {
             addMethodToModule(module, method.withVisibility(Visibility.PRIVATE));

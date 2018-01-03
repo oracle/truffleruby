@@ -999,7 +999,7 @@ public abstract class ModuleNodes {
     })
     public abstract static class DefineMethodNode extends CoreMethodNode {
 
-        @Child private AddMethodNode addMethodNode = AddMethodNodeGen.create(false, false, null, null, null);
+        @Child private AddMethodNode addMethodNode = AddMethodNodeGen.create(false, null, null, null);
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
@@ -1835,7 +1835,7 @@ public abstract class ModuleNodes {
         private final Visibility visibility;
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-        @Child private AddMethodNode addMethodNode = AddMethodNodeGen.create(true, false, null, null, null);
+        @Child private AddMethodNode addMethodNode = AddMethodNodeGen.create(true, null, null, null);
 
         public SetMethodVisibilityNode(Visibility visibility) {
             this.visibility = visibility;

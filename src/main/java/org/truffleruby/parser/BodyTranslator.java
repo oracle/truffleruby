@@ -65,7 +65,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
-import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArrayIsAtLeastAsLargeAsNode;
 import org.truffleruby.language.arguments.SingleBlockArgNode;
 import org.truffleruby.language.constants.ReadConstantNode;
@@ -132,12 +131,11 @@ import org.truffleruby.language.locals.InitFlipFlopSlotNode;
 import org.truffleruby.language.locals.LocalFlipFlopStateNode;
 import org.truffleruby.language.locals.LocalVariableType;
 import org.truffleruby.language.locals.ReadLocalVariableNode;
-import org.truffleruby.language.methods.AddMethodNodeGen;
+import org.truffleruby.language.methods.LiteralMethodDefinitionNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.CatchBreakNode;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
-import org.truffleruby.language.methods.GetCurrentVisibilityNode;
 import org.truffleruby.language.methods.GetDefaultDefineeNode;
 import org.truffleruby.language.methods.MethodDefinitionNode;
 import org.truffleruby.language.methods.ModuleBodyDefinitionNode;
@@ -1340,14 +1338,7 @@ public class BodyTranslator extends Translator {
 
         final MethodDefinitionNode methodDefinitionNode = methodCompiler.compileMethodNode(sourceSection, methodName, defNode, bodyNode, sharedMethodInfo);
 
-        final RubyNode visibilityNode;
-        if (isDefs) {
-            visibilityNode = new ObjectLiteralNode(Visibility.PUBLIC);
-        } else {
-            visibilityNode = new GetCurrentVisibilityNode();
-        }
-
-        return withSourceSection(sourceSection, AddMethodNodeGen.create(isDefs, true, classNode, methodDefinitionNode, visibilityNode));
+        return withSourceSection(sourceSection, new LiteralMethodDefinitionNode(isDefs, classNode, methodDefinitionNode));
     }
 
     @Override

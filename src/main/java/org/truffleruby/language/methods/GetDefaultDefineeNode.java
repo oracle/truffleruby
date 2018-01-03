@@ -12,6 +12,8 @@ package org.truffleruby.language.methods;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.objects.SingletonClassNode;
@@ -34,6 +36,8 @@ public class GetDefaultDefineeNode extends RubyNode {
             return capturedDefaultDefinee;
         }
 
-        return declarationContext.getModuleToDefineMethods(self, method, getContext(), singletonClassNode);
+        final DynamicObject moduleToDefineMethods = declarationContext.getModuleToDefineMethods(self, method, getContext(), singletonClassNode);
+        assert RubyGuards.isRubyModule(moduleToDefineMethods);
+        return moduleToDefineMethods;
     }
 }
