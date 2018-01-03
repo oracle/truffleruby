@@ -44,7 +44,6 @@ import org.truffleruby.language.methods.CatchForLambdaNode;
 import org.truffleruby.language.methods.CatchForMethodNode;
 import org.truffleruby.language.methods.CatchForProcNode;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
-import org.truffleruby.language.methods.MethodDefinitionNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.supercall.ReadSuperArgumentsNode;
@@ -283,7 +282,7 @@ public class MethodTranslator extends BodyTranslator {
         return false;
     }
 
-    public MethodDefinitionNode compileMethodNode(SourceIndexLength sourceSection, String methodName, MethodDefParseNode defNode, ParseNode bodyNode, SharedMethodInfo sharedMethodInfo) {
+    public CallTarget compileMethodNode(SourceIndexLength sourceSection, String methodName, MethodDefParseNode defNode, ParseNode bodyNode, SharedMethodInfo sharedMethodInfo) {
         final SourceIndexLength sourceIndexLength = defNode.getPosition();
         final SourceSection fullMethodSourceSection = sourceIndexLength.toSourceSection(source);
 
@@ -307,11 +306,7 @@ public class MethodTranslator extends BodyTranslator {
                 environment.getSharedMethodInfo(),
                 body);
 
-        final CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
-
-        final MethodDefinitionNode ret = new MethodDefinitionNode(methodName, environment.getSharedMethodInfo(), callTarget);
-        ret.unsafeSetSourceSection(sourceSection);
-        return ret;
+        return Truffle.getRuntime().createCallTarget(rootNode);
     }
 
     private void declareArguments() {
