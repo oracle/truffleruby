@@ -616,7 +616,7 @@ public abstract class BignumNodes {
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
-        private static final int CLASS_SALT = System.identityHashCode(HashNode.class);
+        private static final int CLASS_SALT = 64260138;
 
         @Specialization
         public long hash(DynamicObject value) {

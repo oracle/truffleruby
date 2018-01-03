@@ -134,7 +134,7 @@ public class SymbolTable {
         }
     }
 
-    private static final int CLASS_SALT = System.identityHashCode(SymbolTable.class);
+    private static final int CLASS_SALT = 92021474;
 
     private DynamicObject createSymbol(Rope rope) {
         final String string = RopeOperations.decodeRope(rope);
