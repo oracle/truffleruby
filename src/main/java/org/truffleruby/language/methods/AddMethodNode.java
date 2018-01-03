@@ -11,26 +11,19 @@ package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.SingletonClassNodeGen;
 
-@NodeChildren({
-        @NodeChild("moduleNode"),
-        @NodeChild("methodNode"),
-        @NodeChild("visibilityNode")
-})
-public abstract class AddMethodNode extends RubyNode {
+public abstract class AddMethodNode extends RubyBaseNode {
 
     public static AddMethodNode create(boolean ignoreNameVisibility) {
-        return AddMethodNodeGen.create(ignoreNameVisibility, null, null, null);
+        return AddMethodNodeGen.create(ignoreNameVisibility);
     }
 
     // Some method names such as #initialize imply that the method is private - this flag says to ignore that implication
@@ -42,11 +35,11 @@ public abstract class AddMethodNode extends RubyNode {
         this.ignoreNameVisibility = ignoreNameVisibility;
     }
 
-    public abstract Object executeAddMethod(DynamicObject module, InternalMethod method, Visibility visibility);
+    public abstract void executeAddMethod(DynamicObject module, InternalMethod method, Visibility visibility);
 
     @TruffleBoundary
     @Specialization(guards = "isRubyModule(module)")
-    public DynamicObject addMethod(DynamicObject module, InternalMethod method, Visibility visibility) {
+    public void addMethod(DynamicObject module, InternalMethod method, Visibility visibility) {
         if (!ignoreNameVisibility && ModuleOperations.isMethodPrivateFromName(method.getName())) {
             visibility = Visibility.PRIVATE;
         }
@@ -60,8 +53,6 @@ public abstract class AddMethodNode extends RubyNode {
         } else {
             addMethodToModule(module, method);
         }
-
-        return nil();
     }
 
     public void addMethodToModule(DynamicObject module, InternalMethod method) {
