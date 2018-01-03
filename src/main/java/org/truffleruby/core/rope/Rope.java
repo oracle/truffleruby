@@ -95,7 +95,6 @@ public abstract class Rope {
     @TruffleBoundary
     public int hashCode() {
         if (!isHashCodeCalculated()) {
-            // FIXME CS 2-Jan-18 RopeOperations.hashForRange uses Hashing.rawHash which isn't randomised per-process!
             hashCode = RopeOperations.hashForRange(this, 1, 0, byteLength);
         }
 
