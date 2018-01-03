@@ -85,8 +85,9 @@ local ci = {
           if std.type(content) == 'object'
           then ci.add_inclusion_tracking(
             new_prefix,
-            content,
-            std.objectHasAll(content, 'parts') && content.parts
+            content,            
+            // assume parts are always nested 1 level in a group
+            true 
           )
           else content
       )
@@ -106,7 +107,7 @@ local ci = {
                                    []);
         if std.length(repeated) == 0
         then build
-        else error 'A parts ' + repeated +
+        else error 'Parts ' + repeated +
                    ' are used more than once in build: ' + name +
                    '. See for duplicates: ' + build.included_parts,
       builds
@@ -168,8 +169,6 @@ local part_definitions = {
   local jt = function(args) [['ruby', 'tool/jt.rb'] + args],
 
   use: {
-    parts:: true,
-
     common: {
       local build = self,
       environment+: {
@@ -284,8 +283,6 @@ local part_definitions = {
   },
 
   graal: {
-    parts:: true,
-
     core: {
       setup+: [
         ['cd', '../graal/compiler'],
@@ -343,8 +340,6 @@ local part_definitions = {
   },
 
   svm: {
-    parts:: true,
-
     core: {
       build_has_to_already_have+:: ['$.use.build'],
 
@@ -415,8 +410,6 @@ local part_definitions = {
   },
 
   jdk: {
-    parts:: true,
-
     labsjdk8: {
       downloads+: {
         JAVA_HOME: {
@@ -439,8 +432,6 @@ local part_definitions = {
   },
 
   platform: {
-    parts:: true,
-
     linux: {
       local build = self,
       '$.run.deploy_and_spec':: { test_spec_options: ['-Gci'] },
@@ -481,8 +472,6 @@ local part_definitions = {
   },
 
   cap: {
-    parts:: true,
-
     gate: {
       capabilities+: self['$.cap'].normal_machine,
       targets+: ['gate', 'post-push'],
@@ -505,8 +494,6 @@ local part_definitions = {
   },
 
   run: {
-    parts:: true,
-
     deploy_and_spec: {
       local without_rewrites = function(commands)
         [
@@ -608,8 +595,6 @@ local part_definitions = {
   },
 
   benchmark: {
-    parts:: true,
-
     local post_process = [
       // ["cat", "bench-results-processed.json"],
       ['tool/post-process-results-json.rb', 'bench-results.json', 'bench-results-processed.json'],
