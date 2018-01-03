@@ -50,7 +50,6 @@ import org.truffleruby.collections.WeakValuedMap;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeKey;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.control.RaiseException;
@@ -91,7 +90,7 @@ public class ClassicRegexp implements ReOptions {
         // FIXME: transcode?
     }
 
-    static final WeakValuedMap<RopeKey, Regex> patternCache = new WeakValuedMap<>();
+    static final WeakValuedMap<Rope, Regex> patternCache = new WeakValuedMap<>();
 
     private static Regex makeRegexp(RubyContext runtime, RopeBuilder bytes, RegexpOptions options, Encoding enc) {
         try {
@@ -107,7 +106,7 @@ public class ClassicRegexp implements ReOptions {
     }
 
     static Regex getRegexpFromCache(RubyContext runtime, RopeBuilder bytes, Encoding enc, RegexpOptions options) {
-        RopeKey key = new RopeKey(RopeOperations.ropeFromRopeBuilder(bytes), runtime.getHashing());
+        Rope key = RopeOperations.ropeFromRopeBuilder(bytes);
         Regex regex = patternCache.get(key);
         if (regex != null && regex.getEncoding() == enc && regex.getOptions() == options.toJoniOptions()) {
             return regex;
