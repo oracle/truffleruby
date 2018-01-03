@@ -138,7 +138,6 @@ import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.CatchBreakNode;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.GetDefaultDefineeNode;
-import org.truffleruby.language.methods.MethodDefinitionNode;
 import org.truffleruby.language.methods.ModuleBodyDefinitionNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
@@ -1336,13 +1335,9 @@ public class BodyTranslator extends Translator {
         // ownScopeForAssignments is the same for the defined method as the current one.
 
         final MethodTranslator methodCompiler = new MethodTranslator(currentNode, context, this, newEnvironment, false, source, parserContext, argsNode);
-
         final CallTarget callTarget = methodCompiler.compileMethodNode(sourceSection, methodName, defNode, bodyNode, sharedMethodInfo);
 
-        final MethodDefinitionNode methodDefinitionNode = new MethodDefinitionNode(methodName, environment.getSharedMethodInfo(), callTarget);
-        methodDefinitionNode.unsafeSetSourceSection(sourceSection);
-
-        return withSourceSection(sourceSection, new LiteralMethodDefinitionNode(isDefs, classNode, methodDefinitionNode));
+        return withSourceSection(sourceSection, new LiteralMethodDefinitionNode(classNode, methodName, sharedMethodInfo, callTarget, isDefs));
     }
 
     @Override

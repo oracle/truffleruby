@@ -11,7 +11,10 @@ package org.truffleruby.language.methods;
 
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.RubyArguments;
 
+import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -21,18 +24,23 @@ import com.oracle.truffle.api.object.DynamicObject;
  */
 public class LiteralMethodDefinitionNode extends RubyNode {
 
+    private final String name;
+    private final SharedMethodInfo sharedMethodInfo;
+    private final CallTarget callTarget;
     private final boolean isDefSingleton;
 
+    @Child private GetDefaultDefineeNode getDefaultDefineeNode;
     @Child private RubyNode moduleNode;
-    @Child private MethodDefinitionNode methodDefinitionNode;
     @Child private RubyNode visibilityNode;
 
     @Child private AddMethodNode addMethodNode;
 
-    public LiteralMethodDefinitionNode(boolean isDefSingleton, RubyNode moduleNode, MethodDefinitionNode methodDefinitionNode) {
+    public LiteralMethodDefinitionNode(RubyNode moduleNode, String name, SharedMethodInfo sharedMethodInfo, CallTarget callTarget, boolean isDefSingleton) {
+        this.name = name;
+        this.sharedMethodInfo = sharedMethodInfo;
+        this.callTarget = callTarget;
         this.isDefSingleton = isDefSingleton;
         this.moduleNode = moduleNode;
-        this.methodDefinitionNode = methodDefinitionNode;
         if (!isDefSingleton) {
             this.visibilityNode = new GetCurrentVisibilityNode();
         }
@@ -50,11 +58,29 @@ public class LiteralMethodDefinitionNode extends RubyNode {
             visibility = (Visibility) visibilityNode.execute(frame);
         }
 
-        final InternalMethod method = (InternalMethod) methodDefinitionNode.execute(frame);
+        final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
+        final InternalMethod currentMethod = RubyArguments.getMethod(frame);
+        final Object self = RubyArguments.getSelf(frame);
+        final DynamicObject capturedDefaultDefinee = captureDefaultDefinee(declarationContext, currentMethod, self);
 
-        addMethodNode.executeAddMethod(module, method.withDeclaringModule(module), visibility);
+        final InternalMethod method = new InternalMethod(getContext(),
+                sharedMethodInfo, currentMethod.getLexicalScope(), name, module, visibility, false, null, callTarget, null, capturedDefaultDefinee);
 
-        return getSymbol(method.getName());
+        addMethodNode.executeAddMethod(module, method, visibility);
+
+        return getSymbol(name);
+    }
+
+    @TruffleBoundary
+    private DynamicObject captureDefaultDefinee(DeclarationContext declarationContext, InternalMethod currentMethod, Object self) {
+        if (declarationContext == DeclarationContext.INSTANCE_EVAL) {
+            if (getDefaultDefineeNode == null) {
+                getDefaultDefineeNode = insert(new GetDefaultDefineeNode());
+            }
+            return getDefaultDefineeNode.getDefaultDefinee(currentMethod, self, declarationContext);
+        } else {
+            return null;
+        }
     }
 
 }
