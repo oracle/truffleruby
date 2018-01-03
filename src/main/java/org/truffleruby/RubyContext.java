@@ -65,7 +65,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
-import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
@@ -102,7 +101,7 @@ public class RubyContext {
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
 
-    private final Random random;
+    private final SecureRandom random;
     private final Hashing hashing;
     private final RopeTable ropeTable;
     private final TruffleNFIPlatform truffleNFIPlatform;
@@ -545,7 +544,7 @@ public class RubyContext {
         return nativeConfiguration;
     }
 
-    public Random getRandom() {
-        return random;
+    public byte[] getSecureSeedBytes(int numBytes) {
+        return random.generateSeed(numBytes);
     }
 }

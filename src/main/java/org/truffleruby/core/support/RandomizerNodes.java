@@ -292,8 +292,7 @@ public abstract class RandomizerNodes {
 
         @TruffleBoundary
         public static BigInteger randomSeedBigInteger(RubyContext context) {
-            byte[] seed = new byte[DEFAULT_SEED_CNT * 4];
-            context.getRandom().nextBytes(seed);
+            byte[] seed = context.getSecureSeedBytes(DEFAULT_SEED_CNT * 4);
             return new BigInteger(seed).abs();
         }
 
