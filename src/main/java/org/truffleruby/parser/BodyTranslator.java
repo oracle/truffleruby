@@ -9,6 +9,7 @@
  */
 package org.truffleruby.parser;
 
+import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.NodeUtil;
@@ -1336,7 +1337,10 @@ public class BodyTranslator extends Translator {
 
         final MethodTranslator methodCompiler = new MethodTranslator(currentNode, context, this, newEnvironment, false, source, parserContext, argsNode);
 
-        final MethodDefinitionNode methodDefinitionNode = methodCompiler.compileMethodNode(sourceSection, methodName, defNode, bodyNode, sharedMethodInfo);
+        final CallTarget callTarget = methodCompiler.compileMethodNode(sourceSection, methodName, defNode, bodyNode, sharedMethodInfo);
+
+        final MethodDefinitionNode methodDefinitionNode = new MethodDefinitionNode(methodName, environment.getSharedMethodInfo(), callTarget);
+        methodDefinitionNode.unsafeSetSourceSection(sourceSection);
 
         return withSourceSection(sourceSection, new LiteralMethodDefinitionNode(isDefs, classNode, methodDefinitionNode));
     }
