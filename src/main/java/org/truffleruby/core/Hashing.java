@@ -59,10 +59,10 @@ public final class Hashing {
     }
 
     /*
-     * rawHash is not resistant to known Ruby vulnerabilities and so should be used in combination with the context's
+     * stringHash is not resistant to known Ruby vulnerabilities and so should be used in combination with the context's
      * Hashing instance.
      */
-    public static int rawHash(byte[] bytes, int startingHashCode, int offset, int length) {
+    public static int stringHash(byte[] bytes, int startingHashCode, int offset, int length) {
         assert offset + length <= bytes.length;
 
         int hashCode = startingHashCode;

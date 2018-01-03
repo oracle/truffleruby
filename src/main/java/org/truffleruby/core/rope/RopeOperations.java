@@ -489,7 +489,7 @@ public class RopeOperations {
     @TruffleBoundary
     public static int hashForRange(Rope rope, int startingHashCode, int offset, int length) {
         if (rope instanceof LeafRope) {
-            return Hashing.rawHash(rope.getBytes(), startingHashCode, offset, length);
+            return Hashing.stringHash(rope.getBytes(), startingHashCode, offset, length);
         } else if (rope instanceof SubstringRope) {
             final SubstringRope substringRope = (SubstringRope) rope;
 
@@ -544,9 +544,9 @@ public class RopeOperations {
 
             return hash;
         } else if (rope instanceof LazyRope) {
-            return Hashing.rawHash(rope.getBytes(), startingHashCode, offset, length);
+            return Hashing.stringHash(rope.getBytes(), startingHashCode, offset, length);
         } else if (rope instanceof NativeRope) {
-            return Hashing.rawHash(rope.getBytes(), startingHashCode, offset, length);
+            return Hashing.stringHash(rope.getBytes(), startingHashCode, offset, length);
         } else {
             throw new RuntimeException("Hash code not supported for rope of type: " + rope.getClass().getName());
         }
