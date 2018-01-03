@@ -19,7 +19,9 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeKey;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.rope.StringKey;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.Identifiers;
@@ -41,9 +43,9 @@ public class SymbolTable {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     // Cache searches based on String
-    private final Map<String, Reference<DynamicObject>> stringSymbolMap = new WeakHashMap<>();
+    private final Map<StringKey, Reference<DynamicObject>> stringSymbolMap = new WeakHashMap<>();
     // Cache searches based on Rope
-    private final Map<Rope, Reference<DynamicObject>> ropeSymbolMap = new WeakHashMap<>();
+    private final Map<RopeKey, Reference<DynamicObject>> ropeSymbolMap = new WeakHashMap<>();
     // Weak set of Symbols, SymbolEquality implements equality based on inner rope, to be able to
     // deduplicate symbols
     private final Map<SymbolEquality, Reference<DynamicObject>> symbolSet = new WeakHashMap<>();
@@ -54,9 +56,10 @@ public class SymbolTable {
     }
 
     @TruffleBoundary
-    public DynamicObject getSymbol(String stringKey) {
+    public DynamicObject getSymbol(String string) {
+        final StringKey stringKey = new StringKey(string, hashing);
         lock.readLock().lock();
-        DynamicObject symbol = null;
+        DynamicObject symbol;
         try {
             symbol = readRef(stringSymbolMap, stringKey);
             if (symbol != null) {
@@ -74,10 +77,10 @@ public class SymbolTable {
             }
 
             final Rope rope;
-            if (StringOperations.isASCIIOnly(stringKey)) {
-                rope = RopeOperations.encodeAscii(stringKey, USASCIIEncoding.INSTANCE);
+            if (StringOperations.isASCIIOnly(string)) {
+                rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
             } else {
-                rope = StringOperations.encodeRope(stringKey, UTF8Encoding.INSTANCE);
+                rope = StringOperations.encodeRope(string, UTF8Encoding.INSTANCE);
             }
 
             symbol = getDeduplicatedSymbol(rope);
@@ -91,9 +94,10 @@ public class SymbolTable {
     }
 
     @TruffleBoundary
-    public DynamicObject getSymbol(Rope ropeKey) {
+    public DynamicObject getSymbol(Rope rope) {
+        final RopeKey ropeKey = new RopeKey(rope, hashing);
         lock.readLock().lock();
-        DynamicObject symbol = null;
+        DynamicObject symbol;
         try {
             symbol = readRef(ropeSymbolMap, ropeKey);
             if (symbol != null) {
@@ -110,10 +114,10 @@ public class SymbolTable {
                 return symbol;
             }
 
-            final Rope rope = RopeOperations.flatten(ropeKey);
-            symbol = getDeduplicatedSymbol(rope);
+            final Rope flatRope = RopeOperations.flatten(rope);
+            symbol = getDeduplicatedSymbol(flatRope);
 
-            ropeSymbolMap.put(rope, new WeakReference<>(symbol));
+            ropeSymbolMap.put(new RopeKey(flatRope, hashing), new WeakReference<>(symbol));
         } finally {
             lock.writeLock().unlock();
         }

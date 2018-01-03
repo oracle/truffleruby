@@ -7,16 +7,15 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-
 package org.truffleruby.core.rope;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.core.Hashing;
 import org.truffleruby.core.string.StringOperations;
 
 import java.lang.ref.WeakReference;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -25,14 +24,20 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class RopeTable {
 
+    private final Hashing hashing;
+
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
-    private final WeakHashMap<String, Key> stringsTable = new WeakHashMap<>();
-    private final WeakHashMap<Key, WeakReference<Rope>> ropesTable = new WeakHashMap<>();
-    private final Set<Key> keys = new HashSet<>();
+    private final WeakHashMap<StringKey, BytesKey> stringsTable = new WeakHashMap<>();
+    private final WeakHashMap<BytesKey, WeakReference<Rope>> ropesTable = new WeakHashMap<>();
+    private final Set<BytesKey> keys = new HashSet<>();
 
     private int byteArrayReusedCount;
     private int ropesReusedCount;
     private int ropeBytesSaved;
+
+    public RopeTable(Hashing hashing) {
+        this.hashing = hashing;
+    }
 
     public Rope getRopeUTF8(String string) {
         return getRope(string);
@@ -44,10 +49,12 @@ public class RopeTable {
 
     @TruffleBoundary
     public Rope getRope(String string) {
+        final StringKey stringKey = new StringKey(string, hashing);
+
         lock.readLock().lock();
 
         try {
-            final Key key = stringsTable.get(string);
+            final BytesKey key = stringsTable.get(stringKey);
 
             if (key != null) {
                 final WeakReference<Rope> ropeReference = ropesTable.get(key);
@@ -69,11 +76,11 @@ public class RopeTable {
         try {
             final Rope rope = StringOperations.encodeRope(string, UTF8Encoding.INSTANCE);
 
-            Key key = stringsTable.get(string);
+            BytesKey key = stringsTable.get(stringKey);
 
             if (key == null) {
-                key = new Key(rope.getBytes(), UTF8Encoding.INSTANCE);
-                stringsTable.put(string, key);
+                key = new BytesKey(rope.getBytes(), UTF8Encoding.INSTANCE, hashing);
+                stringsTable.put(stringKey, key);
             }
 
             WeakReference<Rope> ropeReference = ropesTable.get(key);
@@ -91,7 +98,7 @@ public class RopeTable {
 
     @TruffleBoundary
     public Rope getRope(byte[] bytes, Encoding encoding, CodeRange codeRange) {
-        final Key key = new Key(bytes, encoding);
+        final BytesKey key = new BytesKey(bytes, encoding, hashing);
 
         lock.readLock().lock();
 
@@ -161,7 +168,7 @@ public class RopeTable {
     }
 
     public boolean contains(Rope rope) {
-        final Key key = new Key(rope.getBytes(), rope.getEncoding());
+        final BytesKey key = new BytesKey(rope.getBytes(), rope.getEncoding(), hashing);
 
         lock.readLock().lock();
 
@@ -186,41 +193,6 @@ public class RopeTable {
 
     public int totalRopes() {
         return ropesTable.size();
-    }
-
-    public static class Key {
-
-        private final byte[] bytes;
-        private final Encoding encoding;
-        private int hashCode;
-
-        public Key(byte[] bytes, Encoding encoding) {
-            this.bytes = bytes;
-            this.encoding = encoding;
-            this.hashCode = Arrays.hashCode(bytes);
-        }
-
-        @Override
-        public int hashCode() {
-            return hashCode;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o instanceof Key) {
-                final Key other = (Key) o;
-
-                return ((encoding == other.encoding) || (encoding == null)) && Arrays.equals(bytes, other.bytes);
-            }
-
-            return false;
-        }
-
-        @Override
-        public String toString() {
-            return RopeOperations.create(bytes, encoding, CodeRange.CR_UNKNOWN).toString();
-        }
-
     }
 
 }

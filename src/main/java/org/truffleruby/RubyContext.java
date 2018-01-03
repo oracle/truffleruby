@@ -81,7 +81,6 @@ public class RubyContext {
     private final Options options;
     private final String rubyHome;
 
-    private final RopeTable ropeTable = new RopeTable();
     private final PrimitiveManager primitiveManager = new PrimitiveManager();
     private final SafepointManager safepointManager = new SafepointManager(this);
     private final SymbolTable symbolTable;
@@ -105,6 +104,7 @@ public class RubyContext {
 
     private final Random random;
     private final Hashing hashing;
+    private final RopeTable ropeTable;
     private final TruffleNFIPlatform truffleNFIPlatform;
     private final CoreLibrary coreLibrary;
     private CoreMethods coreMethods;
@@ -155,6 +155,7 @@ public class RubyContext {
         }
 
         hashing = new Hashing(hashingSeed);
+        ropeTable = new RopeTable(hashing);
 
         try {
             rubyHome = findRubyHome();

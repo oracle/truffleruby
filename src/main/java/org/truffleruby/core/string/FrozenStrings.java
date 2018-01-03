@@ -59,8 +59,8 @@ public class FrozenStrings {
         return string;
     }
 
-    // TODO (nirvdrum 29-Nov-2016) This is a temporary measure to cope with Rope#equals not taking Encoding into consideration. Fixing that is a much more involved effort, but once completed this wrapper class can be removed.
-    private static class RopeHolder {
+    // TODO (nirvdrum 29-Nov-2016) This is a temporary measure to cope with Rope#equals not taking Encoding into consideration. Fixing that is a much more involved effort, but once completed we can just use RopeKey
+    private class RopeHolder {
 
         private final Rope rope;
 
@@ -74,14 +74,13 @@ public class FrozenStrings {
 
         @Override
         public int hashCode() {
-            return rope.hashCode();
+            return context.getHashing().hash(rope.hashCode());
         }
 
         @Override
         public boolean equals(Object o) {
             if (o instanceof RopeHolder) {
                 final RopeHolder other = (RopeHolder) o;
-
                 return rope.getEncoding() == other.getRope().getEncoding() && rope.equals(other.getRope());
             }
 
