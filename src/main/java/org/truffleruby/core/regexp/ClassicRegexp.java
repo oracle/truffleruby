@@ -104,6 +104,11 @@ public class ClassicRegexp implements ReOptions {
     }
 
     static Regex getRegexpFromCache(RubyContext runtime, RopeBuilder bytes, Encoding enc, RegexpOptions options) {
+        if (runtime == null) {
+            Regex regex = makeRegexp(runtime, bytes, options, enc);
+            regex.setUserObject(bytes);
+            return regex;
+        }
         Rope key = RopeOperations.ropeFromRopeBuilder(bytes);
         RopeKey ropeKey = new RopeKey(key, runtime.getHashing());
         Regex regex = runtime.getRegexpCache().get(ropeKey);
