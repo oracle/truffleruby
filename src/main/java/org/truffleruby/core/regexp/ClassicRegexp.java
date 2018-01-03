@@ -46,7 +46,6 @@ import org.joni.Syntax;
 import org.joni.WarnCallback;
 import org.joni.exception.JOniException;
 import org.truffleruby.RubyContext;
-import org.truffleruby.collections.WeakValuedMap;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
@@ -90,9 +89,6 @@ public class ClassicRegexp implements ReOptions {
         // FIXME: transcode?
     }
 
-    // This cache doesn't need to use context hashing because regexps are not expected to come from runtime data
-    private static final WeakValuedMap<Rope, Regex> patternCache = new WeakValuedMap<>();
-
     private static Regex makeRegexp(RubyContext runtime, RopeBuilder bytes, RegexpOptions options, Encoding enc) {
         try {
             return new Regex(bytes.getUnsafeBytes(), 0, bytes.getLength(), options.toJoniOptions(), enc, Syntax.DEFAULT, new WarnCallback() {
@@ -108,13 +104,13 @@ public class ClassicRegexp implements ReOptions {
 
     static Regex getRegexpFromCache(RubyContext runtime, RopeBuilder bytes, Encoding enc, RegexpOptions options) {
         Rope key = RopeOperations.ropeFromRopeBuilder(bytes);
-        Regex regex = patternCache.get(key);
+        Regex regex = runtime.getRegexpCache().get(key);
         if (regex != null && regex.getEncoding() == enc && regex.getOptions() == options.toJoniOptions()) {
             return regex;
         }
         regex = makeRegexp(runtime, bytes, options, enc);
         regex.setUserObject(bytes);
-        patternCache.put(key, regex);
+        runtime.getRegexpCache().put(key, regex);
         return regex;
     }
 
