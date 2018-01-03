@@ -159,8 +159,8 @@ describe "The launcher" do
     out.should include("-Xverbosity=")
   end
 
-  it "logs options if -Xoptions.log=true is set" do
-    out = `#{RbConfig.ruby} -Xoptions.log=true -Xlog=config -e 14 2>&1`
+  it "logs options if -Xoptions.log is set" do
+    out = `#{RbConfig.ruby} -Xoptions.log -Xlog=config -e 14 2>&1`
     $?.success?.should == true
     out.should include("CONFIG option home=")
   end
@@ -199,7 +199,7 @@ describe "The launcher" do
   end
 
   it "enables deterministic hashing if -Xhashing.deterministic is set" do
-    out = `#{RbConfig.ruby} -Xhashing.deterministic=true -e 'puts 14.hash' 2>&1`
+    out = `#{RbConfig.ruby} -Xhashing.deterministic -e 'puts 14.hash' 2>&1`
     $?.success?.should == true
     out.should include("SEVERE deterministic hashing is enabled - this may make you vulnerable to denial of service attacks")
     out.should include("4619262684610599513")
