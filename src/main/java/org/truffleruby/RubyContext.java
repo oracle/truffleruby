@@ -32,7 +32,6 @@ import org.truffleruby.core.kernel.AtExitManager;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeKey;
 import org.truffleruby.core.rope.RopeTable;
 import org.truffleruby.core.string.CoreStrings;
