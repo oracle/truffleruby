@@ -1,6 +1,5 @@
-// File formatted with
-// `jsonnet fmt --indent 2 --max-blank-lines 2 --sort-imports \
-//  --string-style s --comment-style s`
+// File is formatted with
+// `jsonnet fmt --indent 2 --max-blank-lines 2 --sort-imports --string-style s --comment-style s`
 
 // VSCODE is recomended for editting it has 'jsonnet' and 'jsonnet Formatter'
 // plugins which makes it a functioning IDE for jsonnet.
