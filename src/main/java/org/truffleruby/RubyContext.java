@@ -19,7 +19,9 @@ import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.joni.Regex;
 import org.truffleruby.builtins.PrimitiveManager;
+import org.truffleruby.collections.WeakValuedMap;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.FinalizationService;
 import org.truffleruby.core.Hashing;
@@ -30,6 +32,7 @@ import org.truffleruby.core.kernel.AtExitManager;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeTable;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.FrozenStrings;
@@ -97,6 +100,7 @@ public class RubyContext {
     private final FrozenStrings frozenStrings = new FrozenStrings(this);
     private final CoreExceptions coreExceptions = new CoreExceptions(this);
     private final EncodingManager encodingManager = new EncodingManager(this);
+    private final WeakValuedMap<Rope, Regex> regexpCache = new WeakValuedMap<>();
     private final NativeConfiguration nativeConfiguration;
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
@@ -549,4 +553,9 @@ public class RubyContext {
         random.nextBytes(bytes);
         return bytes;
     }
+
+    public WeakValuedMap<Rope, Regex> getRegexpCache() {
+        return regexpCache;
+    }
+
 }
