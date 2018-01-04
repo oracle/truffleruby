@@ -33,7 +33,8 @@ public class DeclarationContext {
     private enum DefaultDefinee {
         LEXICAL_SCOPE,
         SINGLETON_CLASS,
-        SELF
+        SELF,
+        NONE
     }
 
     public final Visibility visibility;
@@ -93,6 +94,8 @@ public class DeclarationContext {
         case SELF:
             assert RubyGuards.isRubyModule(self);
             return (DynamicObject) self;
+        case NONE:
+            throw new UnsupportedOperationException("Trying to find the default definee but this method should not have method definitions inside");
         default:
             throw new UnsupportedOperationException();
         }
@@ -106,6 +109,6 @@ public class DeclarationContext {
     public static final DeclarationContext CLASS_EVAL = new DeclarationContext(Visibility.PUBLIC, DefaultDefinee.SELF);
 
     /** Used when we know there cannot be a method definition inside a given method. */
-    public static final DeclarationContext NONE = null;
+    public static final DeclarationContext NONE = new DeclarationContext(Visibility.PUBLIC, DefaultDefinee.NONE);
 
 }
