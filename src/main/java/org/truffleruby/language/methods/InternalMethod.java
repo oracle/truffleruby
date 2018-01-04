@@ -44,7 +44,6 @@ public class InternalMethod implements ObjectGraphNode {
 
     private final CallTarget callTarget;
     private final DynamicObject capturedBlock;
-    private final DynamicObject capturedDefaultDefinee;
 
     public static InternalMethod fromProc(
             RubyContext context,
@@ -65,7 +64,7 @@ public class InternalMethod implements ObjectGraphNode {
                 false,
                 proc,
                 callTarget,
-                Layouts.PROC.getBlock(proc), null);
+                Layouts.PROC.getBlock(proc));
     }
 
     public InternalMethod(
@@ -77,7 +76,7 @@ public class InternalMethod implements ObjectGraphNode {
             DynamicObject declaringModule,
             Visibility visibility,
             CallTarget callTarget) {
-        this(context, sharedMethodInfo, lexicalScope, declarationContext, name, declaringModule, visibility, false, null, callTarget, null, null);
+        this(context, sharedMethodInfo, lexicalScope, declarationContext, name, declaringModule, visibility, false, null, callTarget, null);
     }
 
     public InternalMethod(
@@ -91,10 +90,9 @@ public class InternalMethod implements ObjectGraphNode {
             boolean undefined,
             DynamicObject proc,
             CallTarget callTarget,
-            DynamicObject capturedBlock,
-            DynamicObject capturedDefaultDefinee) {
+            DynamicObject capturedBlock) {
         this(sharedMethodInfo, lexicalScope, declarationContext, name, declaringModule, visibility, undefined,
-                false, !context.getCoreLibrary().isLoaded(), proc, callTarget, capturedBlock, capturedDefaultDefinee);
+                false, !context.getCoreLibrary().isLoaded(), proc, callTarget, capturedBlock);
     }
 
     private InternalMethod(
@@ -109,7 +107,7 @@ public class InternalMethod implements ObjectGraphNode {
             boolean builtIn,
             DynamicObject proc,
             CallTarget callTarget,
-            DynamicObject capturedBlock, DynamicObject capturedDefaultDefinee) {
+            DynamicObject capturedBlock) {
         assert RubyGuards.isRubyModule(declaringModule);
         assert lexicalScope != null;
         this.sharedMethodInfo = sharedMethodInfo;
@@ -124,7 +122,6 @@ public class InternalMethod implements ObjectGraphNode {
         this.proc = proc;
         this.callTarget = callTarget;
         this.capturedBlock = capturedBlock;
-        this.capturedDefaultDefinee = capturedDefaultDefinee;
     }
 
     public SharedMethodInfo getSharedMethodInfo() {
@@ -177,7 +174,7 @@ public class InternalMethod implements ObjectGraphNode {
                     builtIn,
                     proc,
                     callTarget,
-                    capturedBlock, capturedDefaultDefinee);
+                    capturedBlock);
         }
     }
 
@@ -197,7 +194,7 @@ public class InternalMethod implements ObjectGraphNode {
                     builtIn,
                     proc,
                     callTarget,
-                    capturedBlock, capturedDefaultDefinee);
+                    capturedBlock);
         }
     }
 
@@ -217,7 +214,7 @@ public class InternalMethod implements ObjectGraphNode {
                     builtIn,
                     proc,
                     callTarget,
-                    capturedBlock, capturedDefaultDefinee);
+                    capturedBlock);
         }
     }
 
@@ -234,7 +231,7 @@ public class InternalMethod implements ObjectGraphNode {
                 builtIn,
                 proc,
                 callTarget,
-                capturedBlock, capturedDefaultDefinee);
+                capturedBlock);
     }
 
     public InternalMethod unimplemented() {
@@ -250,7 +247,7 @@ public class InternalMethod implements ObjectGraphNode {
                 builtIn,
                 proc,
                 callTarget,
-                capturedBlock, capturedDefaultDefinee);
+                capturedBlock);
     }
 
     @TruffleBoundary
@@ -305,10 +302,6 @@ public class InternalMethod implements ObjectGraphNode {
 
     public DynamicObject getCapturedBlock() {
         return capturedBlock;
-    }
-
-    public DynamicObject getCapturedDefaultDefinee() {
-        return capturedDefaultDefinee;
     }
 
     public LexicalScope getLexicalScope() {
