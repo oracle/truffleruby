@@ -48,7 +48,6 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.loader.SourceLoader;
-import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.launcher.Launcher;
@@ -293,7 +292,7 @@ public class RubyContext {
         }
 
         return method.getCallTarget().call(
-                RubyArguments.pack(null, null, method, DeclarationContext.METHOD, null, object, block, arguments));
+                RubyArguments.pack(null, null, method, method.getDeclarationContext(), null, object, block, arguments));
     }
 
     public void finalizeContext() {

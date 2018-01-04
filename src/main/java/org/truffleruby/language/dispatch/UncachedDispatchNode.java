@@ -21,7 +21,6 @@ import org.truffleruby.core.cast.ToSymbolNodeGen;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.LookupMethodNodeGen;
@@ -115,7 +114,7 @@ public class UncachedDispatchNode extends DispatchNode {
     private Object call(InternalMethod method, Object receiverObject, DynamicObject blockObject, Object[] argumentsObjects) {
         return indirectCallNode.call(
                 method.getCallTarget(),
-                RubyArguments.pack(null, null, method, DeclarationContext.METHOD, null, receiverObject, blockObject, argumentsObjects));
+                RubyArguments.pack(null, null, method, method.getDeclarationContext(), null, receiverObject, blockObject, argumentsObjects));
     }
 
 }
