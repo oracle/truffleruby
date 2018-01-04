@@ -51,6 +51,7 @@ import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
+import org.truffleruby.language.methods.DeclarationContext.SingletonClassOfSelfDefaultDefinee;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
@@ -267,7 +268,8 @@ public abstract class BasicObjectNodes {
             final Source source = loadFragment(space + RopeOperations.decodeRope(code), RopeOperations.decodeRope(StringOperations.rope(fileName)));
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, code.getEncoding(), ParserContext.EVAL, null, true, this);
-            final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(ParserContext.EVAL, DeclarationContext.INSTANCE_EVAL, rootNode, null, receiver);
+            final DeclarationContext declarationContext = new DeclarationContext(Visibility.PUBLIC, new SingletonClassOfSelfDefaultDefinee(receiver));
+            final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(ParserContext.EVAL, declarationContext, rootNode, null, receiver);
             return deferredCall.call(callNode);
         }
 
@@ -313,7 +315,7 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         public Object instanceExec(Object receiver, Object[] arguments, DynamicObject block) {
-            final DeclarationContext declarationContext = DeclarationContext.INSTANCE_EVAL;
+            final DeclarationContext declarationContext = new DeclarationContext(Visibility.PUBLIC, new SingletonClassOfSelfDefaultDefinee(receiver));
             return callBlockNode.executeCallBlock(declarationContext, block, receiver, Layouts.PROC.getBlock(block), arguments);
         }
 
