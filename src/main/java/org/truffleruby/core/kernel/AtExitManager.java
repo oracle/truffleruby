@@ -14,7 +14,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.proc.ProcOperations;
-import org.truffleruby.debug.DebugHelpers;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.RaiseException;
@@ -82,7 +81,6 @@ public class AtExitManager {
     }
 
     @TruffleBoundary
-    @SuppressWarnings("deprecation")
     public static DynamicObject handleAtExitException(RubyContext context, RaiseException raiseException) {
         final DynamicObject rubyException = raiseException.getException();
         if (Layouts.BASIC_OBJECT.getLogicalClass(rubyException) == context.getCoreLibrary().getSystemExitClass()) {
@@ -93,9 +91,8 @@ public class AtExitManager {
             if (backtrace != null) {
                 BacktraceFormatter.createDefaultFormatter(context).printBacktrace(context, rubyException, backtrace);
             } else {
-                // TODO (pitr-ch 10-Aug-2016): replace temporary duplication, BacktraceFormatter works only with Backtrace
-                final String code = "puts format \"%s: %s (%s)\\n%s\", e.backtrace[0], e.message, e.class, e.backtrace[1..-1].map { |l| \"\\tfrom \" + l }.join(\"\\n\")";
-                DebugHelpers.eval(context, code, "e", rubyException);
+                final Object fullMessage = context.send(rubyException, "full_message", null);
+                context.send(context.getCoreLibrary().getStderr(), "puts", null, fullMessage);
             }
         }
         return rubyException;
