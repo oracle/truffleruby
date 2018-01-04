@@ -29,12 +29,6 @@ public class GetDefaultDefineeNode extends RubyNode {
 
     @TruffleBoundary
     public DynamicObject getDefaultDefinee(InternalMethod method, Object self, DeclarationContext declarationContext) {
-        final DynamicObject capturedDefaultDefinee = method.getCapturedDefaultDefinee();
-
-        if (capturedDefaultDefinee != null) {
-            return capturedDefaultDefinee;
-        }
-
         return declarationContext.getModuleToDefineMethods(self, method, getContext(), singletonClassNode);
     }
 }

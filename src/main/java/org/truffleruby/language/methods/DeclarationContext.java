@@ -123,7 +123,6 @@ public class DeclarationContext {
     public static final DeclarationContext METHOD = new DeclarationContext(Visibility.PUBLIC, LEXICAL_SCOPE_DEFAULT_DEFINEE);
     public static final DeclarationContext BLOCK = new DeclarationContext(null, LEXICAL_SCOPE_DEFAULT_DEFINEE);
     public static final DeclarationContext TOP_LEVEL = new DeclarationContext(Visibility.PRIVATE, LEXICAL_SCOPE_DEFAULT_DEFINEE);
-    public static final DeclarationContext INSTANCE_EVAL = null;
 
     /** Used when we know there cannot be a method definition inside a given method. */
     public static final DeclarationContext NONE = new DeclarationContext(Visibility.PUBLIC, null);
