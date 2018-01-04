@@ -89,7 +89,7 @@ public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNo
                 null,
                 null,
                 method,
-                DeclarationContext.TOP_LEVEL,
+                method.getDeclarationContext(),
                 null,
                 mainObject,
                 null,
