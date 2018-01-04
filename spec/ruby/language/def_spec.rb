@@ -507,6 +507,37 @@ describe "A nested method definition" do
   end
 end
 
+describe "A method definition always resets the visibility to public for nested definitions" do
+  it "in Class.new" do
+    cls = Class.new do
+      private
+      def do_def
+        def new_def
+          1
+        end
+      end
+    end
+
+    obj = cls.new
+    -> { obj.do_def }.should raise_error(NoMethodError, /private/)
+    obj.send :do_def
+    obj.new_def.should == 1
+
+    cls.new.new_def.should == 1
+
+    -> { Object.new.new_def }.should raise_error(NoMethodError)
+  end
+
+  it "at the toplevel" do
+    obj = Object.new
+    -> { obj.toplevel_define_other_method }.should raise_error(NoMethodError, /private/)
+    toplevel_define_other_method
+    nested_method_in_toplevel_method.should == 42
+
+    Object.new.nested_method_in_toplevel_method.should == 42
+  end
+end
+
 describe "A method definition inside an instance_eval" do
   it "creates a singleton method" do
     obj = Object.new
