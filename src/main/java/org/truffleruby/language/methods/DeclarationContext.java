@@ -48,7 +48,7 @@ public class DeclarationContext {
         }
 
         public DynamicObject getModuleToDefineMethods(InternalMethod method, SingletonClassNode singletonClassNode) {
-            return singletonClassNode.executeSingletonClass(this.self);
+            return singletonClassNode.executeSingletonClass(self);
         }
     }
 
