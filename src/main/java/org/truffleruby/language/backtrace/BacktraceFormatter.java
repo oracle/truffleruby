@@ -197,7 +197,7 @@ public class BacktraceFormatter {
 
         String message;
         try {
-            Object messageObject = context.send(exception, "message", null);
+            Object messageObject = context.send(exception, "message");
             if (RubyGuards.isRubyString(messageObject)) {
                 message = StringOperations.getString((DynamicObject) messageObject);
             } else {

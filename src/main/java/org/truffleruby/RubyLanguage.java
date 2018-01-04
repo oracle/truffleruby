@@ -153,7 +153,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
             return null;
         }
 
-        return context.send(context.getCoreLibrary().getTruffleInteropModule(), "lookup_symbol", null, context.getSymbolTable().getSymbol(symbolName));
+        return context.send(context.getCoreLibrary().getTruffleInteropModule(), "lookup_symbol", context.getSymbolTable().getSymbol(symbolName));
     }
 
     @Override
@@ -171,7 +171,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         if (value == null) {
             return "<null>";
         } else if (RubyGuards.isBoxedPrimitive(value) ||  RubyGuards.isRubyBasicObject(value)) {
-            return context.send(value, "inspect", null).toString();
+            return context.send(value, "inspect").toString();
         } else if (value instanceof String) {
             return (String) value;
         } else {

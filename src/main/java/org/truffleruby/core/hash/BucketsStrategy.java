@@ -52,7 +52,7 @@ public abstract class BucketsStrategy {
             Object key = entry.getKey();
 
             if (!byIdentity && RubyGuards.isRubyString(key)) {
-                key = context.send(context.send(key, "dup", null), "freeze", null);
+                key = context.send(context.send(key, "dup"), "freeze");
             }
 
             final int hashed = hashKey(context, key);
@@ -289,7 +289,7 @@ public abstract class BucketsStrategy {
     }
 
     private static int hashKey(RubyContext context, Object key) {
-        final Object hashValue = context.send(key, "hash", null);
+        final Object hashValue = context.send(key, "hash");
 
         if (hashValue instanceof Integer) {
             return (int) hashValue;
@@ -309,7 +309,7 @@ public abstract class BucketsStrategy {
             method = "eql?";
         }
 
-        final Object equalityResult = context.send(a, method, null, b);
+        final Object equalityResult = context.send(a, method, b);
 
         if (equalityResult instanceof Boolean) {
             return (boolean) equalityResult;

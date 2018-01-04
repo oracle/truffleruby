@@ -378,13 +378,11 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
                 context.send(
                         receiver,
                         "singleton_method_added",
-                        null,
                         context.getSymbolTable().getSymbol(method.getName()));
             } else {
                 context.send(
                         rubyModuleObject,
                         "method_added",
-                        null,
                         context.getSymbolTable().getSymbol(method.getName()));
             }
         }

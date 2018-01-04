@@ -63,7 +63,7 @@ public class CoreExceptions {
             Object stderr = context.getCoreLibrary().getStderr();
             String output = "Exception `" + exceptionClass + "'" + from + " - " + message + "\n";
             DynamicObject outputString = StringOperations.createString(context, StringOperations.encodeRope(output, UTF8Encoding.INSTANCE));
-            context.send(stderr, "write", null, outputString);
+            context.send(stderr, "write", outputString);
         }
     }
 
@@ -632,7 +632,7 @@ public class CoreExceptions {
 
         // e.g. BasicObject does not have inspect
         final boolean hasInspect = ModuleOperations.lookupMethod(logicalClass, "inspect", Visibility.PUBLIC) != null;
-        final Object stringRepresentation = hasInspect ? context.send(receiver, "inspect", null) : context.getCoreLibrary().getNil();
+        final Object stringRepresentation = hasInspect ? context.send(receiver, "inspect") : context.getCoreLibrary().getNil();
 
         return noMethodError(StringUtils.format("undefined method `%s' for %s:%s", name, stringRepresentation, moduleName), receiver, name, args, currentNode);
     }

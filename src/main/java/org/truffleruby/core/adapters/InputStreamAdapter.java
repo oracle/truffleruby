@@ -27,7 +27,7 @@ public class InputStreamAdapter extends InputStream {
 
     @Override
     public int read() throws IOException {
-        final Object result = context.send(object, "getbyte", null);
+        final Object result = context.send(object, "getbyte");
 
         if (result == context.getCoreLibrary().getNil()) {
             return -1;

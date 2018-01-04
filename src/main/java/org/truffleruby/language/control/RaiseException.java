@@ -86,7 +86,7 @@ public class RaiseException extends ControlFlowException implements TruffleExcep
     }
 
     private boolean isA(RubyContext context, DynamicObject rubyClass) {
-        return context.send(exception, "is_a?", null, rubyClass) == Boolean.TRUE;
+        return context.send(exception, "is_a?", rubyClass) == Boolean.TRUE;
     }
 
 }
