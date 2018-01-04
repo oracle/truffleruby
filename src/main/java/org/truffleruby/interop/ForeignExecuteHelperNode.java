@@ -20,7 +20,6 @@ import org.truffleruby.language.methods.CallBoundMethodNode;
 import org.truffleruby.language.methods.CallBoundMethodNodeGen;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.yield.CallBlockNode;
-import org.truffleruby.language.yield.CallBlockNodeGen;
 
 @NodeChildren({
         @NodeChild("receiver"),
@@ -32,13 +31,9 @@ abstract class ForeignExecuteHelperNode extends RubyNode {
 
     @Specialization(guards = "isRubyProc(proc)")
     protected Object callProc(DynamicObject proc, Object[] arguments,
-                              @Cached("createCallBlockNode()") CallBlockNode callBlockNode) {
-        Object self = Layouts.PROC.getSelf(proc);
+                              @Cached("create()") CallBlockNode callBlockNode) {
+        final Object self = Layouts.PROC.getSelf(proc);
         return callBlockNode.executeCallBlock(DeclarationContext.BLOCK, proc, self, null, arguments);
-    }
-
-    protected CallBlockNode createCallBlockNode() {
-        return CallBlockNodeGen.create(null, null, null, null);
     }
 
     @Specialization(guards = "isRubyMethod(method)")

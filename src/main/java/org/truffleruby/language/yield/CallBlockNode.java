@@ -31,6 +31,10 @@ import org.truffleruby.language.methods.DeclarationContext;
 })
 public abstract class CallBlockNode extends RubyNode {
 
+    public static CallBlockNode create() {
+        return CallBlockNodeGen.create(null, null, null, null);
+    }
+
     public abstract Object executeCallBlock(DeclarationContext declarationContext, DynamicObject block, Object self, Object blockArgument, Object[] arguments);
 
     // blockArgument is typed as Object below because it must accept "null".
