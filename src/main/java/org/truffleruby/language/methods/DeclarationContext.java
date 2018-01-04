@@ -122,6 +122,8 @@ public class DeclarationContext {
         return defaultDefinee.getModuleToDefineMethods(method, singletonClassNode);
     }
 
+    // TODO (eregon, 4 Jan. 2018): This is a hack, the DeclarationContext should be saved in the
+    // Proc from the current value in the frame.
     public static final DeclarationContext BLOCK = new DeclarationContext(null, new LexicalScopeDefaultDefinee());
 
     /** Used when we know there cannot be a method definition inside a given method. */
