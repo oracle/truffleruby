@@ -46,7 +46,7 @@ public abstract class CallSuperMethodNode extends RubyNode {
             return callMethodMissing(frame, self, block, methodMissingArguments);
         }
 
-        final Object[] frameArguments = RubyArguments.pack(null, null, superMethod, superMethod.getDeclarationContext(), null, self, (DynamicObject) block, arguments);
+        final Object[] frameArguments = RubyArguments.pack(null, null, superMethod, null, self, (DynamicObject) block, arguments);
 
         return callMethodNode.executeCallMethod(superMethod, frameArguments);
     }

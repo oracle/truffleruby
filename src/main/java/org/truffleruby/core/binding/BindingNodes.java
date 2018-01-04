@@ -102,7 +102,7 @@ public abstract class BindingNodes {
                         parent,
                         null,
                         RubyArguments.getMethod(parent),
-                        RubyArguments.getMethod(parent).getDeclarationContext(),
+                        RubyArguments.getDeclarationContext(parent),
                         null,
                         RubyArguments.getSelf(parent),
                         RubyArguments.getBlock(parent),

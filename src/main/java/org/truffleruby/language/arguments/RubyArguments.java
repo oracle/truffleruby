@@ -34,6 +34,18 @@ public final class RubyArguments {
 
     private final static int RUNTIME_ARGUMENT_COUNT = ArgumentIndicies.values().length;
 
+    /** In most cases the DeclarationContext is the one of the InternalMethod. */
+    public static Object[] pack(
+            MaterializedFrame declarationFrame,
+            MaterializedFrame callerFrame,
+            InternalMethod method,
+            FrameOnStackMarker frameOnStackMarker,
+            Object self,
+            DynamicObject block,
+            Object[] arguments) {
+        return pack(declarationFrame, callerFrame, method, method.getDeclarationContext(), frameOnStackMarker, self, block, arguments);
+    }
+
     public static Object[] pack(
             MaterializedFrame declarationFrame,
             MaterializedFrame callerFrame,

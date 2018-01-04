@@ -292,7 +292,7 @@ public class RubyContext {
         }
 
         return method.getCallTarget().call(
-                RubyArguments.pack(null, null, method, method.getDeclarationContext(), null, object, block, arguments));
+                RubyArguments.pack(null, null, method, null, object, block, arguments));
     }
 
     public void finalizeContext() {
