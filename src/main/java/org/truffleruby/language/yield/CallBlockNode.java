@@ -31,41 +31,37 @@ import org.truffleruby.language.methods.DeclarationContext;
 })
 public abstract class CallBlockNode extends RubyNode {
 
-    private final DeclarationContext declarationContext;
-
-    public CallBlockNode(DeclarationContext declarationContext) {
-        this.declarationContext = declarationContext;
-    }
-
-    public abstract Object executeCallBlock(DynamicObject block, Object self, Object blockArgument, Object[] arguments);
+    public abstract Object executeCallBlock(DeclarationContext declarationContext, DynamicObject block, Object self, Object blockArgument, Object[] arguments);
 
     // blockArgument is typed as Object below because it must accept "null".
     @Specialization(
             guards = "getBlockCallTarget(block) == cachedCallTarget",
             limit = "getCacheLimit()")
     protected Object callBlockCached(
+            DeclarationContext declarationContext,
             DynamicObject block,
             Object self,
             Object blockArgument,
             Object[] arguments,
             @Cached("getBlockCallTarget(block)") CallTarget cachedCallTarget,
             @Cached("createBlockCallNode(cachedCallTarget)") DirectCallNode callNode) {
-        final Object[] frameArguments = packArguments(block, self, blockArgument, arguments);
+        final Object[] frameArguments = packArguments(declarationContext, block, self, blockArgument, arguments);
         return callNode.call(frameArguments);
     }
 
     @Specialization(replaces = "callBlockCached")
     protected Object callBlockUncached(
+            DeclarationContext declarationContext,
             DynamicObject block,
             Object self,
             Object blockArgument,
             Object[] arguments,
             @Cached("create()") IndirectCallNode callNode) {
-        final Object[] frameArguments = packArguments(block, self, blockArgument, arguments);
+        final Object[] frameArguments = packArguments(declarationContext, block, self, blockArgument, arguments);
         return callNode.call(getBlockCallTarget(block), frameArguments);
     }
 
-    private Object[] packArguments(DynamicObject block, Object self, Object blockArgument, Object[] arguments) {
+    private Object[] packArguments(DeclarationContext declarationContext, DynamicObject block, Object self, Object blockArgument, Object[] arguments) {
         return RubyArguments.pack(
                 Layouts.PROC.getDeclarationFrame(block),
                 null,
