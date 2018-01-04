@@ -17,21 +17,11 @@ import org.truffleruby.language.methods.DeclarationContext;
 
 public class YieldNode extends Node {
 
-    private final DeclarationContext declarationContext;
-
     @Child private CallBlockNode callBlockNode;
-
-    public YieldNode() {
-        this(DeclarationContext.BLOCK);
-    }
-
-    public YieldNode(DeclarationContext declarationContext) {
-        this.declarationContext = declarationContext;
-    }
 
     public Object dispatch(DynamicObject block, Object... argumentsObjects) {
         return getCallBlockNode().executeCallBlock(
-                declarationContext,
+                DeclarationContext.BLOCK,
                 block,
                 Layouts.PROC.getSelf(block),
                 Layouts.PROC.getBlock(block),
@@ -40,19 +30,10 @@ public class YieldNode extends Node {
 
     public Object dispatchWithBlock(DynamicObject block, DynamicObject blockArgument, Object... argumentsObjects) {
         return getCallBlockNode().executeCallBlock(
-                declarationContext,
+                DeclarationContext.BLOCK,
                 block,
                 Layouts.PROC.getSelf(block),
                 blockArgument,
-                argumentsObjects);
-    }
-
-    public Object dispatchWithModifiedSelf(DynamicObject block, Object self, Object... argumentsObjects) {
-        return getCallBlockNode().executeCallBlock(
-                declarationContext,
-                block,
-                self,
-                Layouts.PROC.getBlock(block),
                 argumentsObjects);
     }
 
