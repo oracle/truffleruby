@@ -12,156 +12,13 @@ local restrict_builds_to = [];
 // Set to false to disable overlay application
 local use_overlay = true;
 
-/*
+// Support functions
+local utils = import 'utils.libsonnet';
 
-# Structure
-
-- All builds are composed from disjunct parts.
-- Part is just an jsonnet object which includes a part of a build declaration
-  so fields like setup, run, etc.
-- All parts are defined in part_definitions in groups like
-  platform, graal, etc.
-  - They are always nested one level deep therefore
-    $.<group_name>.<part_name>
-- Each part is included in a build at most once. A helper function is
-  checking it and will raise an error otherwise with a message
-  `Parts ["$.use.maven", "$.use.maven"] are used more than once in build: ruby-metrics-svm-graal-core. ...`
-- All parts have to be disjoint and distinct.
-- All parts have to be compose-able with each other. Therefore all fields
-  like setup or run should end with '+' to avoid overriding.
-  - An example of nested compose-able field (e.g. PATH in an environment)
-    can be found in `$.use.common.environment`, look for `path::` and `PATH:`
-
-## Exceptions
-
-- In few cases values in a part (A) depend on values provided in another
-  part (O), therefore (A) needs (O) to also be used in a build.
-  - The inter part dependencies should be kept to minimum.
-  - Use name of the part (A) for the field in (O).
-  - See `$.platform` parts for an example.
-  - If (A) is used without (O) an error is risen that a field
-    (e.g. '$.run.deploy_and_spec') is missing which makes it easy to look up
-    which inter dependency is broken.
-- Very few parts depend on other parts already being included, in this case
-  they have `build_has_to_already_have+:: ['$.a_group.a_name']` which ensures
-  the required part are included before.
-  See $.use.truffleruby_cexts
-  - This is checked and ensured by add_inclusion_tracking function.
-
-# How to edit
-
-- The composition of builds is intentionally kept very flat.
-- All parts included in the build are listed where the build is being defined.
-- Since parts do not inherit from each other or use each others' fields
-  there is no need to track down what is composed of what.
-- Each manifested build has included_parts field with names of all
-  the included parts, which makes it clear what the build is
-  using and doing.
-  - The included parts is also stored in environment variable
-    PARTS_INCLUDED_IN_BUILD therefore printed in each build log.
-- The structure rules exist to simplify thinking about the build, to find
-  out the composition of any build one needs to only investigate all named
-  parts in the definition, where the name tells its placement in
-  part_definitions object. Nothing else is in the build.
-- When a part is edited, it can be easily looked up where it's used just by
-  using its full name (e.g. $.run.deploy_and_spec). It's used nowhere else.
-
-*/
-
-// Helper functions of this CI definition. They only help with the structure
-// and warn about broken rules. With few small modifications in final build
-// field for comprehension they could be completely dropped and this file would
-// still produce the same result.
-local ci = {
-
-  ensure_it_has:: function(included_parts, part, name)
-    if std.count(included_parts, part) == 0
-    then error 'part ' + part + ' has to be included before ' + name +
-               ' but has only ' + included_parts
-    else true,
-
-  // It computes full name for each part (e.g. $.platform.linux) and adds field
-  // `included_parts+: ['$.platform.linux']` into each part. When parts are
-  // added together to form a build the array in `included_parts` composes and
-  // keeps track of all parts used to compose the build.
-  // The function returns part_definitions with the included_parts added to
-  // each part.
-  add_inclusion_tracking: function(part_definitions, prefix, contains_parts)
-    {
-      local content = part_definitions[k],
-      local new_prefix = prefix + '.' + k,
-
-      [k]: (
-        if std.type(content) == 'object' && contains_parts
-        then
-          // process the part object
-          content { included_parts+:
-            // piggy back the build_has_to_already_have check here to avoid
-            // extra field in the output
-            local included_before_check =
-              if std.objectHasAll(content, 'build_has_to_already_have')
-              then
-                std.foldl(
-                  // make sure all required parts are already in there using super
-                  function(r, p) r && ci.ensure_it_has(super.included_parts, p, new_prefix),
-                  content.build_has_to_already_have,
-                  true
-                )
-              else true;
-            // if check is ok just add the part's name into included_parts
-            if included_before_check then [new_prefix] }
-        else
-          // look recursively for parts
-          if std.type(content) == 'object'
-          then ci.add_inclusion_tracking(
-            content,
-            new_prefix,
-            // assume parts are always nested 1 level in a group
-            true
-          )
-          else content
-      )
-      for k in std.objectFields(part_definitions)
-    },
-
-  // Ensures that no part is included twice using `included_parts` field.
-  included_once_check: function(builds)
-    std.map(
-      function(build)
-        local name = if std.objectHas(build, 'name') then build.name else build;
-        // collect repeated parts
-        local repeated = std.foldl(function(r, i)
-                                     if std.count(build.included_parts, i) == 1
-                                     then r else r + [i],
-                                   build.included_parts,
-                                   []);
-        if std.length(repeated) == 0
-        then build
-        else error 'Parts ' + repeated +
-                   ' are used more than once in build: ' + name +
-                   '. See for duplicates: ' + build.included_parts,
-      builds
-    ),
-
-  // Restrict builds to a list given in restriction
-  restrict_to: function(restriction, builds)
-    if std.length(restriction) == 0
-    then builds
-    else std.filter(function(b) std.count(restriction, b.name) > 0, builds),
-
-  // Try to read a field, if not present print error including the name
-  // of the object
-  debug_read: function(obj, field)
-    if std.objectHasAll(obj, field)
-    then obj[field]
-    else error 'missing field: ' + field + ' in ' + obj.name,
-
-  index: function(arr, obj)
-    std.filter(function(i) obj == arr[i],
-               std.range(0, std.length(arr) - 1)),
-};
-
-// Contains grouped definitions of all parts used to compose builds
+// All builds are composed directly from independent disjunct composable 
+// jsonnet objects defined in here. 
+// All used objects used to compose a build are listed
+// where build is defined, there are no other objects in the middle.
 local part_definitions = {
   local jt = function(args) [['ruby', 'tool/jt.rb'] + args],
 
@@ -681,7 +538,9 @@ local part_definitions = {
   },
 };
 
-local composition_environment = ci.add_inclusion_tracking(part_definitions, '$', false) {
+// composition_environment inherits from part_definitions all building blocks
+// (parts) can be addressed using jsonnet root syntax e.g. $.use.maven
+local composition_environment = utils.add_inclusion_tracking(part_definitions, '$', false) {
 
   test_builds:
     {
@@ -974,32 +833,14 @@ local composition_environment = ci.add_inclusion_tracking(part_definitions, '$',
 
   builds:
     local all_builds = $.test_builds + $.bench_builds;
-    ci.restrict_to(
+    utils.decorate_and_check_builds(
       restrict_builds_to,
-      ci.included_once_check([
-        local build = all_builds[key];
-        build {
-          // Move name inside into `name` field
-          name: key,
-          // Add timelimit
-          timelimit: $.timelimits[key],
-          environment+: {
-            // Add PARTS_INCLUDED_IN_BUILD env var so the parts used
-            // in the build are printed in its log
-            PARTS_INCLUDED_IN_BUILD:
-              std.join(
-                ', ',
-                std.map(
-                  // there is no way to escape $ afaik, stripping it instead,
-                  // otherwise it is interpreted as variable
-                  function(name) std.substr(name, 2, std.length(name) - 2),
-                  build.included_parts
-                )
-              ),
-          },
-        }
-        for key in std.objectFields(all_builds)
-      ])
+      // Move name inside into `name` field
+      // and add timelimit
+      [
+        all_builds[k] { name: k, timelimit: $.timelimits[k] }
+        for k in std.objectFields(all_builds)
+      ]
     ),
 };
 
@@ -1009,3 +850,61 @@ local composition_environment = ci.add_inclusion_tracking(part_definitions, '$',
 
   builds: composition_environment.builds,
 }
+
+/**
+
+# Additional notes
+
+## Structure
+
+- All builds are composed from disjunct parts.
+- Part is just an jsonnet object which includes a part of a build declaration
+  so fields like setup, run, etc.
+- All parts are defined in part_definitions in groups like
+  platform, graal, etc.
+  - They are always nested one level deep therefore
+    $.<group_name>.<part_name>
+- Each part is included in a build at most once. A helper function is
+  checking it and will raise an error otherwise with a message
+  `Parts ["$.use.maven", "$.use.maven"] are used more than once in build: ruby-metrics-svm-graal-core. ...`
+- All parts have to be disjoint and distinct.
+- All parts have to be compose-able with each other. Therefore all fields
+  like setup or run should end with '+' to avoid overriding.
+  - An example of nested compose-able field (e.g. PATH in an environment)
+    can be found in `$.use.common.environment`, look for `path::` and `PATH:`
+
+### Exceptions
+
+- In few cases values in a part (A) depend on values provided in another
+  part (O), therefore (A) needs (O) to also be used in a build.
+  - The inter part dependencies should be kept to minimum.
+  - Use name of the part (A) for the field in (O).
+  - See `$.platform` parts for an example.
+  - If (A) is used without (O) an error is risen that a field
+    (e.g. '$.run.deploy_and_spec') is missing which makes it easy to look up
+    which inter dependency is broken.
+- Very few parts depend on other parts already being included, in this case
+  they have `build_has_to_already_have+:: ['$.a_group.a_name']` which ensures
+  the required part are included before.
+  See $.use.truffleruby_cexts
+  - This is checked and ensured by add_inclusion_tracking function.
+
+## How to edit
+
+- The composition of builds is intentionally kept very flat.
+- All parts included in the build are listed where the build is being defined.
+- Since parts do not inherit from each other or use each others' fields
+  there is no need to track down what is composed of what.
+- Each manifested build has included_parts field with names of all
+  the included parts, which makes it clear what the build is
+  using and doing.
+  - The included parts is also stored in environment variable
+    PARTS_INCLUDED_IN_BUILD therefore printed in each build log.
+- The structure rules exist to simplify thinking about the build, to find
+  out the composition of any build one needs to only investigate all named
+  parts in the definition, where the name tells its placement in
+  part_definitions object. Nothing else is in the build.
+- When a part is edited, it can be easily looked up where it's used just by
+  using its full name (e.g. $.run.deploy_and_spec). It's used nowhere else.
+
+ */
