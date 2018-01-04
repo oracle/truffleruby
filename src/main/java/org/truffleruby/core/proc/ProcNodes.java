@@ -15,7 +15,6 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -25,7 +24,9 @@ import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.ArgumentDescriptor;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -211,16 +212,28 @@ public abstract class ProcNodes {
     }
 
     @CoreMethod(names = { "call", "[]", "yield" }, rest = true, needsBlock = true)
-    public abstract static class CallNode extends YieldingCoreMethodNode {
+    public abstract static class CallNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private CallBlockNode callBlockNode = CallBlockNode.create();
 
         @Specialization
         public Object call(DynamicObject proc, Object[] args, NotProvided block) {
-            return yield(proc, args);
+            return callBlockNode.executeCallBlock(
+                    DeclarationContext.BLOCK,
+                    proc,
+                    Layouts.PROC.getSelf(proc),
+                    Layouts.PROC.getBlock(proc),
+                    args);
         }
 
         @Specialization
-        public Object call(DynamicObject proc, Object[] args, DynamicObject block) {
-            return yieldWithBlock(proc, block, args);
+        public Object call(DynamicObject proc, Object[] args, DynamicObject blockArgument) {
+            return callBlockNode.executeCallBlock(
+                    DeclarationContext.BLOCK,
+                    proc,
+                    Layouts.PROC.getSelf(proc),
+                    blockArgument,
+                    args);
         }
 
     }

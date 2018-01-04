@@ -28,15 +28,6 @@ public class YieldNode extends Node {
                 argumentsObjects);
     }
 
-    public Object dispatchWithBlock(DynamicObject block, DynamicObject blockArgument, Object... argumentsObjects) {
-        return getCallBlockNode().executeCallBlock(
-                DeclarationContext.BLOCK,
-                block,
-                Layouts.PROC.getSelf(block),
-                blockArgument,
-                argumentsObjects);
-    }
-
     private CallBlockNode getCallBlockNode() {
         if (callBlockNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

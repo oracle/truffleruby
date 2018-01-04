@@ -28,10 +28,6 @@ public abstract class YieldingCoreMethodNode extends CoreMethodArrayArgumentsNod
         return dispatchNode.dispatch(block, arguments);
     }
 
-    public Object yieldWithBlock(DynamicObject block, DynamicObject blockArgument, Object... arguments) {
-        return dispatchNode.dispatchWithBlock(block, blockArgument, arguments);
-    }
-
     public boolean yieldIsTruthy(DynamicObject block, Object... arguments) {
         return booleanCast(yield(block, arguments));
     }
