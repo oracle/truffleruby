@@ -14,12 +14,10 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.methods.CallBoundMethodNode;
 import org.truffleruby.language.methods.CallBoundMethodNodeGen;
-import org.truffleruby.language.methods.DeclarationContext;
-import org.truffleruby.language.yield.CallBlockNode;
+import org.truffleruby.language.yield.YieldNode;
 
 @NodeChildren({
         @NodeChild("receiver"),
@@ -31,9 +29,8 @@ abstract class ForeignExecuteHelperNode extends RubyNode {
 
     @Specialization(guards = "isRubyProc(proc)")
     protected Object callProc(DynamicObject proc, Object[] arguments,
-                              @Cached("create()") CallBlockNode callBlockNode) {
-        final Object self = Layouts.PROC.getSelf(proc);
-        return callBlockNode.executeCallBlock(DeclarationContext.BLOCK, proc, self, null, arguments);
+                              @Cached("new()") YieldNode yieldNode) {
+        return yieldNode.dispatch(proc, arguments);
     }
 
     @Specialization(guards = "isRubyMethod(method)")
