@@ -60,14 +60,14 @@ public class GlobalVariables {
 
     public GlobalVariableStorage put(String name, Object value) {
         assert !variables.containsKey(name);
-        final GlobalVariableStorage storage = new GlobalVariableStorage(value, null, null, null);
+        final GlobalVariableStorage storage = new GlobalVariableStorage(value, defaultValue, null, null, null);
         variables.put(name, storage);
         return storage;
     }
 
     public GlobalVariableStorage put(String name, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
         assert !variables.containsKey(name);
-        final GlobalVariableStorage storage = new GlobalVariableStorage(null, getter, setter, isDefined);
+        final GlobalVariableStorage storage = new GlobalVariableStorage(defaultValue, getter, setter, isDefined);
         variables.put(name, storage);
         return storage;
     }
