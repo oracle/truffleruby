@@ -56,7 +56,7 @@ public class LiteralMethodDefinitionNode extends RubyNode {
             visibility = (Visibility) visibilityNode.execute(frame);
         }
 
-        final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
+        final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame).withVisibility(Visibility.PUBLIC);
         final InternalMethod currentMethod = RubyArguments.getMethod(frame);
 
         final InternalMethod method = new InternalMethod(getContext(),
