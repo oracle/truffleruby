@@ -799,7 +799,7 @@ public class CoreLibrary {
 
                     final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                             ParserContext.TOP_LEVEL,
-                            DeclarationContext.TOP_LEVEL,
+                            DeclarationContext.topLevel(context),
                             rootNode,
                             null,
                             context.getCoreLibrary().getMainObject());
@@ -833,7 +833,7 @@ public class CoreLibrary {
             final RubyRootNode rootNode = context.getCodeLoader().parse(context.getSourceLoader().load(getCoreLoadPath() + "/post-boot/post-boot.rb"),
                     UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
             final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
-                    ParserContext.TOP_LEVEL, DeclarationContext.TOP_LEVEL, rootNode, null, context.getCoreLibrary().getMainObject());
+                    ParserContext.TOP_LEVEL, DeclarationContext.topLevel(context), rootNode, null, context.getCoreLibrary().getMainObject());
             deferredCall.callWithoutCallNode();
         } catch (IOException e) {
             throw new JavaException(e);

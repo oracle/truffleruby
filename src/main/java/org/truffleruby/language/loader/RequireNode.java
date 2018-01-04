@@ -120,7 +120,7 @@ public abstract class RequireNode extends RubyNode {
 
                     final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                             ParserContext.TOP_LEVEL,
-                            DeclarationContext.TOP_LEVEL,
+                            DeclarationContext.topLevel(getContext()),
                             rootNode,
                             null,
                             coreLibrary().getMainObject());

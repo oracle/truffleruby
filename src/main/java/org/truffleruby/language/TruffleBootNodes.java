@@ -122,7 +122,7 @@ public abstract class TruffleBootNodes {
 
                 final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                         ParserContext.TOP_LEVEL_FIRST,
-                        DeclarationContext.TOP_LEVEL,
+                        DeclarationContext.topLevel(getContext()),
                         rootNode,
                         null,
                         coreLibrary().getMainObject());
