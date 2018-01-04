@@ -99,7 +99,6 @@ public class CodeLoader {
                 parentFrame,
                 null,
                 method,
-                declarationContext,
                 null,
                 self,
                 null,

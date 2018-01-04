@@ -187,7 +187,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
         }
 
         final MaterializedFrame callerFrame = getFrameIfRequired(frame);
-        return callNode.call(RubyArguments.pack(null, callerFrame, method, method.getDeclarationContext(), null, receiver, block, arguments));
+        return callNode.call(RubyArguments.pack(null, callerFrame, method, null, receiver, block, arguments));
     }
 
     private MaterializedFrame getFrameIfRequired(VirtualFrame frame) {

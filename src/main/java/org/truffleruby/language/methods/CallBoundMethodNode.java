@@ -45,7 +45,6 @@ public abstract class CallBoundMethodNode extends RubyNode {
                 null,
                 null,
                 internalMethod,
-                internalMethod.getDeclarationContext(),
                 null,
                 Layouts.METHOD.getReceiver(method),
                 block,

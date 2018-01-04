@@ -576,7 +576,7 @@ public abstract class KernelNodes {
                     RubyArguments.getMethod(parentFrame).getDeclaringModule(),
                     Visibility.PUBLIC, callTarget);
 
-            return callNode.call(RubyArguments.pack(parentFrame, null, method, method.getDeclarationContext(), null, self, null, RubyNode.EMPTY_ARGUMENTS));
+            return callNode.call(RubyArguments.pack(parentFrame, null, method, null, self, null, RubyNode.EMPTY_ARGUMENTS));
         }
 
         @TruffleBoundary
