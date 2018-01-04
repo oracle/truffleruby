@@ -53,6 +53,18 @@ public class DeclarationContext {
         }
     }
 
+    public static class FixedDefaultDefinee implements DefaultDefinee {
+        private final DynamicObject module;
+
+        public FixedDefaultDefinee(DynamicObject module) {
+            this.module = module;
+        }
+
+        public DynamicObject getModuleToDefineMethods(Object self, InternalMethod method, RubyContext context, SingletonClassNode singletonClassNode) {
+            return module;
+        }
+    }
+
     public final Visibility visibility;
     public final DefaultDefinee defaultDefinee;
 
@@ -108,7 +120,6 @@ public class DeclarationContext {
 
     private static final DefaultDefinee LEXICAL_SCOPE_DEFAULT_DEFINEE = new LexicalScopeDefaultDefinee();
 
-    public static final DeclarationContext MODULE = new DeclarationContext(Visibility.PUBLIC, LEXICAL_SCOPE_DEFAULT_DEFINEE);
     public static final DeclarationContext METHOD = new DeclarationContext(Visibility.PUBLIC, LEXICAL_SCOPE_DEFAULT_DEFINEE);
     public static final DeclarationContext BLOCK = new DeclarationContext(null, LEXICAL_SCOPE_DEFAULT_DEFINEE);
     public static final DeclarationContext TOP_LEVEL = new DeclarationContext(Visibility.PRIVATE, LEXICAL_SCOPE_DEFAULT_DEFINEE);
