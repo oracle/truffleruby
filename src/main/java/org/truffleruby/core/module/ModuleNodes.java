@@ -93,6 +93,7 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.GetCurrentVisibilityNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
+import org.truffleruby.language.methods.DeclarationContext.FixedDefaultDefinee;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsANodeGen;
 import org.truffleruby.language.objects.IsFrozenNode;
@@ -618,7 +619,8 @@ public abstract class ModuleNodes {
             Source source = Source.newBuilder(space + code).name(file).mimeType(RubyLanguage.MIME_TYPE).build();
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, encoding, ParserContext.MODULE, callerFrame, true, this);
-            return getContext().getCodeLoader().prepareExecute(ParserContext.MODULE, DeclarationContext.CLASS_EVAL, rootNode, callerFrame, module);
+            final DeclarationContext declarationContext = new DeclarationContext(Visibility.PUBLIC, new FixedDefaultDefinee(module));
+            return getContext().getCodeLoader().prepareExecute(ParserContext.MODULE, declarationContext, rootNode, callerFrame, module);
         }
 
         @Specialization
@@ -652,7 +654,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         public Object classExec(DynamicObject self, Object[] args, DynamicObject block) {
-            final DeclarationContext declarationContext = DeclarationContext.CLASS_EVAL;
+            final DeclarationContext declarationContext = new DeclarationContext(Visibility.PUBLIC, new FixedDefaultDefinee(self));
             return callBlockNode.executeCallBlock(declarationContext, block, self, Layouts.PROC.getBlock(block), args);
         }
 

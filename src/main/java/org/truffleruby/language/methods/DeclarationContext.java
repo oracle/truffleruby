@@ -46,17 +46,11 @@ public class DeclarationContext {
         }
     }
 
-    private static class SelfDefaultDefinee implements DefaultDefinee {
-        public DynamicObject getModuleToDefineMethods(Object self, InternalMethod method, RubyContext context, SingletonClassNode singletonClassNode) {
-            assert RubyGuards.isRubyModule(self);
-            return (DynamicObject) self;
-        }
-    }
-
     public static class FixedDefaultDefinee implements DefaultDefinee {
         private final DynamicObject module;
 
         public FixedDefaultDefinee(DynamicObject module) {
+            assert RubyGuards.isRubyModule(module);
             this.module = module;
         }
 
@@ -124,7 +118,6 @@ public class DeclarationContext {
     public static final DeclarationContext BLOCK = new DeclarationContext(null, LEXICAL_SCOPE_DEFAULT_DEFINEE);
     public static final DeclarationContext TOP_LEVEL = new DeclarationContext(Visibility.PRIVATE, LEXICAL_SCOPE_DEFAULT_DEFINEE);
     public static final DeclarationContext INSTANCE_EVAL = new DeclarationContext(Visibility.PUBLIC, new SingletonClassOfSelfDefaultDefinee());
-    public static final DeclarationContext CLASS_EVAL = new DeclarationContext(Visibility.PUBLIC, new SelfDefaultDefinee());
 
     /** Used when we know there cannot be a method definition inside a given method. */
     public static final DeclarationContext NONE = new DeclarationContext(Visibility.PUBLIC, null);
