@@ -1072,13 +1072,18 @@ public abstract class ModuleNodes {
             final RootCallTarget callTarget = (RootCallTarget) Layouts.PROC.getCallTargetForLambdas(proc);
             final RubyRootNode rootNode = (RubyRootNode) callTarget.getRootNode();
             final SharedMethodInfo info = Layouts.PROC.getSharedMethodInfo(proc).withName(name);
+            final MaterializedFrame declarationFrame = Layouts.PROC.getDeclarationFrame(proc);
 
             final RubyNode body = NodeUtil.cloneNode(rootNode.getBody());
-            final RubyNode newBody = new CallMethodWithProcBody(Layouts.PROC.getDeclarationFrame(proc), body);
+            final RubyNode newBody = new CallMethodWithProcBody(declarationFrame, body);
             final RubyRootNode newRootNode = new RubyRootNode(getContext(), info.getSourceSection(), rootNode.getFrameDescriptor(), info, newBody);
             final CallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
-            final InternalMethod method = InternalMethod.fromProc(getContext(), info, DeclarationContext.METHOD, name, module, Visibility.PUBLIC, proc, newCallTarget);
+            // TODO (eregon, 7 Jan. 2018): Should be just the method's declaration context,
+            // but currently block calls do not forward the DeclarationContext.
+            final DeclarationContext declarationContext = declarationFrame != null ? RubyArguments.getDeclarationContext(declarationFrame) : Layouts.PROC.getMethod(proc).getDeclarationContext();
+
+            final InternalMethod method = InternalMethod.fromProc(getContext(), info, declarationContext, name, module, Visibility.PUBLIC, proc, newCallTarget);
             return addMethod(module, name, method);
         }
 
