@@ -53,6 +53,7 @@ import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
 import org.truffleruby.core.method.MethodFilter;
+import org.truffleruby.core.module.ModuleNodesFactory.ClassExecNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -100,7 +101,7 @@ import org.truffleruby.language.objects.ReadInstanceVariableNode;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.language.objects.WriteInstanceVariableNode;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.Translator;
@@ -555,7 +556,6 @@ public abstract class ModuleNodes {
     @CoreMethod(names = { "class_eval", "module_eval" }, optional = 3, lowerFixnum = 3, needsBlock = true)
     public abstract static class ClassEvalNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private YieldNode yield = new YieldNode(DeclarationContext.CLASS_EVAL);
         @Child private ToStrNode toStrNode;
 
         protected DynamicObject toStr(VirtualFrame frame, Object object) {
@@ -622,8 +622,9 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        public Object classEval(DynamicObject self, NotProvided code, NotProvided file, NotProvided line, DynamicObject block) {
-            return yield.dispatchWithModifiedSelf(block, self, self);
+        public Object classEval(DynamicObject self, NotProvided code, NotProvided file, NotProvided line, DynamicObject block,
+                @Cached("create()") ClassExecNode classExecNode) {
+            return classExecNode.executeClassExec(self, new Object[]{ self }, block);
         }
 
         @Specialization
@@ -641,13 +642,18 @@ public abstract class ModuleNodes {
     @CoreMethod(names = { "class_exec", "module_exec" }, rest = true, needsBlock = true)
     public abstract static class ClassExecNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private YieldNode yield = new YieldNode(DeclarationContext.CLASS_EVAL);
+        public static ClassExecNode create() {
+            return ClassExecNodeFactory.create(null);
+        }
+
+        @Child private CallBlockNode callBlockNode = CallBlockNode.create();
 
         public abstract Object executeClassExec(DynamicObject self, Object[] args, Object block);
 
         @Specialization
         public Object classExec(DynamicObject self, Object[] args, DynamicObject block) {
-            return yield.dispatchWithModifiedSelf(block, self, args);
+            final DeclarationContext declarationContext = DeclarationContext.CLASS_EVAL;
+            return callBlockNode.executeCallBlock(declarationContext, block, self, Layouts.PROC.getBlock(block), args);
         }
 
         @Specialization
@@ -1130,14 +1136,14 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "initialize", needsBlock = true)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ModuleNodes.ClassExecNode classExecNode;
+        @Child private ClassExecNode classExecNode;
 
         public abstract DynamicObject executeInitialize(DynamicObject module, Object block);
 
         void classEval(DynamicObject module, DynamicObject block) {
             if (classExecNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                classExecNode = insert(ModuleNodesFactory.ClassExecNodeFactory.create(null));
+                classExecNode = insert(ClassExecNode.create());
             }
             classExecNode.executeClassExec(module, new Object[]{module}, block);
         }
