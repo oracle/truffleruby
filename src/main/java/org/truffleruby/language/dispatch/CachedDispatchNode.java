@@ -17,7 +17,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 
 import com.oracle.truffle.api.Assumption;
@@ -187,8 +186,8 @@ public abstract class CachedDispatchNode extends DispatchNode {
             reassessSplittingInliningStrategy();
         }
 
-        MaterializedFrame callerFrame = getFrameIfRequired(frame);
-        return callNode.call(RubyArguments.pack(null, callerFrame, method, DeclarationContext.METHOD, null, receiver, block, arguments));
+        final MaterializedFrame callerFrame = getFrameIfRequired(frame);
+        return callNode.call(RubyArguments.pack(null, callerFrame, method, method.getDeclarationContext(), null, receiver, block, arguments));
     }
 
     private MaterializedFrame getFrameIfRequired(VirtualFrame frame) {

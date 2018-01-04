@@ -22,7 +22,6 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.CallInternalMethodNodeGen;
-import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 
 @NodeChildren({
@@ -47,7 +46,7 @@ public abstract class CallSuperMethodNode extends RubyNode {
             return callMethodMissing(frame, self, block, methodMissingArguments);
         }
 
-        final Object[] frameArguments = RubyArguments.pack(null, null, superMethod, DeclarationContext.METHOD, null, self, (DynamicObject) block, arguments);
+        final Object[] frameArguments = RubyArguments.pack(null, null, superMethod, superMethod.getDeclarationContext(), null, self, (DynamicObject) block, arguments);
 
         return callMethodNode.executeCallMethod(superMethod, frameArguments);
     }
