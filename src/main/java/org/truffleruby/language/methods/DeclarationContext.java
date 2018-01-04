@@ -30,11 +30,27 @@ import org.truffleruby.language.objects.SingletonClassNode;
 public class DeclarationContext {
 
     /** @see <a href="http://yugui.jp/articles/846">http://yugui.jp/articles/846</a> */
-    private enum DefaultDefinee {
-        LEXICAL_SCOPE,
-        SINGLETON_CLASS,
-        SELF,
-        NONE
+    private interface DefaultDefinee {
+        DynamicObject getModuleToDefineMethods(Object self, InternalMethod method, RubyContext context, SingletonClassNode singletonClassNode);
+    }
+
+    private static class LexicalScopeDefaultDefinee implements DefaultDefinee {
+        public DynamicObject getModuleToDefineMethods(Object self, InternalMethod method, RubyContext context, SingletonClassNode singletonClassNode) {
+            return method.getSharedMethodInfo().getLexicalScope().getLiveModule();
+        }
+    }
+
+    private static class SingletonClassOfSelfDefaultDefinee implements DefaultDefinee {
+        public DynamicObject getModuleToDefineMethods(Object self, InternalMethod method, RubyContext context, SingletonClassNode singletonClassNode) {
+            return singletonClassNode.executeSingletonClass(self);
+        }
+    }
+
+    private static class SelfDefaultDefinee implements DefaultDefinee {
+        public DynamicObject getModuleToDefineMethods(Object self, InternalMethod method, RubyContext context, SingletonClassNode singletonClassNode) {
+            assert RubyGuards.isRubyModule(self);
+            return (DynamicObject) self;
+        }
     }
 
     public final Visibility visibility;
@@ -86,29 +102,20 @@ public class DeclarationContext {
 
     @TruffleBoundary
     public DynamicObject getModuleToDefineMethods(Object self, InternalMethod method, RubyContext context, SingletonClassNode singletonClassNode) {
-        switch (defaultDefinee) {
-        case LEXICAL_SCOPE:
-            return method.getSharedMethodInfo().getLexicalScope().getLiveModule();
-        case SINGLETON_CLASS:
-            return singletonClassNode.executeSingletonClass(self);
-        case SELF:
-            assert RubyGuards.isRubyModule(self);
-            return (DynamicObject) self;
-        case NONE:
-            throw new UnsupportedOperationException("Trying to find the default definee but this method should not have method definitions inside");
-        default:
-            throw new UnsupportedOperationException();
-        }
+        assert defaultDefinee != null : "Trying to find the default definee but this method should not have method definitions inside";
+        return defaultDefinee.getModuleToDefineMethods(self, method, context, singletonClassNode);
     }
 
-    public static final DeclarationContext MODULE = new DeclarationContext(Visibility.PUBLIC, DefaultDefinee.LEXICAL_SCOPE);
-    public static final DeclarationContext METHOD = new DeclarationContext(Visibility.PUBLIC, DefaultDefinee.LEXICAL_SCOPE);
-    public static final DeclarationContext BLOCK = new DeclarationContext(null, DefaultDefinee.LEXICAL_SCOPE);
-    public static final DeclarationContext TOP_LEVEL = new DeclarationContext(Visibility.PRIVATE, DefaultDefinee.LEXICAL_SCOPE);
-    public static final DeclarationContext INSTANCE_EVAL = new DeclarationContext(Visibility.PUBLIC, DefaultDefinee.SINGLETON_CLASS);
-    public static final DeclarationContext CLASS_EVAL = new DeclarationContext(Visibility.PUBLIC, DefaultDefinee.SELF);
+    private static final DefaultDefinee LEXICAL_SCOPE_DEFAULT_DEFINEE = new LexicalScopeDefaultDefinee();
+
+    public static final DeclarationContext MODULE = new DeclarationContext(Visibility.PUBLIC, LEXICAL_SCOPE_DEFAULT_DEFINEE);
+    public static final DeclarationContext METHOD = new DeclarationContext(Visibility.PUBLIC, LEXICAL_SCOPE_DEFAULT_DEFINEE);
+    public static final DeclarationContext BLOCK = new DeclarationContext(null, LEXICAL_SCOPE_DEFAULT_DEFINEE);
+    public static final DeclarationContext TOP_LEVEL = new DeclarationContext(Visibility.PRIVATE, LEXICAL_SCOPE_DEFAULT_DEFINEE);
+    public static final DeclarationContext INSTANCE_EVAL = new DeclarationContext(Visibility.PUBLIC, new SingletonClassOfSelfDefaultDefinee());
+    public static final DeclarationContext CLASS_EVAL = new DeclarationContext(Visibility.PUBLIC, new SelfDefaultDefinee());
 
     /** Used when we know there cannot be a method definition inside a given method. */
-    public static final DeclarationContext NONE = new DeclarationContext(Visibility.PUBLIC, DefaultDefinee.NONE);
+    public static final DeclarationContext NONE = new DeclarationContext(Visibility.PUBLIC, null);
 
 }
