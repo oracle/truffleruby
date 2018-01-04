@@ -103,4 +103,7 @@ public class DeclarationContext {
     public static final DeclarationContext INSTANCE_EVAL = new DeclarationContext(Visibility.PUBLIC, DefaultDefinee.SINGLETON_CLASS);
     public static final DeclarationContext CLASS_EVAL = new DeclarationContext(Visibility.PUBLIC, DefaultDefinee.SELF);
 
+    /** Used when we know there cannot be a method definition inside a given method. */
+    public static final DeclarationContext NONE = null;
+
 }

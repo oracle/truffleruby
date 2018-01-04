@@ -64,7 +64,7 @@ public class LiteralMethodDefinitionNode extends RubyNode {
         final DynamicObject capturedDefaultDefinee = captureDefaultDefinee(declarationContext, currentMethod, self);
 
         final InternalMethod method = new InternalMethod(getContext(),
-                sharedMethodInfo, currentMethod.getLexicalScope(), name, module, visibility, false, null, callTarget, null, capturedDefaultDefinee);
+                sharedMethodInfo, currentMethod.getLexicalScope(), declarationContext, name, module, visibility, false, null, callTarget, null, capturedDefaultDefinee);
 
         addMethodNode.executeAddMethod(module, method, visibility);
 

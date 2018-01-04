@@ -39,6 +39,7 @@ import org.truffleruby.language.arguments.ReadRemainingArgumentsNode;
 import org.truffleruby.language.arguments.ReadSelfNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.methods.Arity;
+import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
@@ -207,7 +208,7 @@ public class CoreMethodNodeManager {
             if (ModuleOperations.isMethodPrivateFromName(name)) {
                 visibility = Visibility.PRIVATE;
             }
-            final InternalMethod method = new InternalMethod(context, sharedMethodInfo, sharedMethodInfo.getLexicalScope(), name, module, visibility, callTarget);
+            final InternalMethod method = new InternalMethod(context, sharedMethodInfo, sharedMethodInfo.getLexicalScope(), DeclarationContext.NONE, name, module, visibility, callTarget);
 
             Layouts.MODULE.getFields(module).addMethod(context, null, method);
         }
