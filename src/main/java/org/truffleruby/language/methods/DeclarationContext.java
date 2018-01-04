@@ -111,9 +111,13 @@ public class DeclarationContext {
         changeVisibility(callerFrame, visibility);
     }
 
-    private DeclarationContext withVisibility(Visibility visibility) {
+    public DeclarationContext withVisibility(Visibility visibility) {
         assert visibility != null;
-        return new DeclarationContext(visibility, defaultDefinee);
+        if (visibility == this.visibility) {
+            return this;
+        } else {
+            return new DeclarationContext(visibility, defaultDefinee);
+        }
     }
 
     @TruffleBoundary
