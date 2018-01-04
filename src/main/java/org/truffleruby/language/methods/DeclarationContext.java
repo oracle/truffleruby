@@ -31,11 +31,11 @@ public class DeclarationContext {
 
     /** @see <a href="http://yugui.jp/articles/846">http://yugui.jp/articles/846</a> */
     private interface DefaultDefinee {
-        DynamicObject getModuleToDefineMethods(Object self, InternalMethod method, RubyContext context, SingletonClassNode singletonClassNode);
+        DynamicObject getModuleToDefineMethods(InternalMethod method, SingletonClassNode singletonClassNode);
     }
 
     private static class LexicalScopeDefaultDefinee implements DefaultDefinee {
-        public DynamicObject getModuleToDefineMethods(Object self, InternalMethod method, RubyContext context, SingletonClassNode singletonClassNode) {
+        public DynamicObject getModuleToDefineMethods(InternalMethod method, SingletonClassNode singletonClassNode) {
             return method.getSharedMethodInfo().getLexicalScope().getLiveModule();
         }
     }
@@ -47,7 +47,7 @@ public class DeclarationContext {
             this.self = self;
         }
 
-        public DynamicObject getModuleToDefineMethods(Object self, InternalMethod method, RubyContext context, SingletonClassNode singletonClassNode) {
+        public DynamicObject getModuleToDefineMethods(InternalMethod method, SingletonClassNode singletonClassNode) {
             return singletonClassNode.executeSingletonClass(this.self);
         }
     }
@@ -60,7 +60,7 @@ public class DeclarationContext {
             this.module = module;
         }
 
-        public DynamicObject getModuleToDefineMethods(Object self, InternalMethod method, RubyContext context, SingletonClassNode singletonClassNode) {
+        public DynamicObject getModuleToDefineMethods(InternalMethod method, SingletonClassNode singletonClassNode) {
             return module;
         }
     }
@@ -113,9 +113,9 @@ public class DeclarationContext {
     }
 
     @TruffleBoundary
-    public DynamicObject getModuleToDefineMethods(Object self, InternalMethod method, RubyContext context, SingletonClassNode singletonClassNode) {
+    public DynamicObject getModuleToDefineMethods(InternalMethod method, SingletonClassNode singletonClassNode) {
         assert defaultDefinee != null : "Trying to find the default definee but this method should not have method definitions inside";
-        return defaultDefinee.getModuleToDefineMethods(self, method, context, singletonClassNode);
+        return defaultDefinee.getModuleToDefineMethods(method, singletonClassNode);
     }
 
     private static final DefaultDefinee LEXICAL_SCOPE_DEFAULT_DEFINEE = new LexicalScopeDefaultDefinee();

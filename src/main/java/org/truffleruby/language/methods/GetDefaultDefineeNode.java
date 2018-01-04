@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.methods;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -24,11 +23,7 @@ public class GetDefaultDefineeNode extends RubyNode {
 
     @Override
     public DynamicObject execute(VirtualFrame frame) {
-        return getDefaultDefinee(RubyArguments.getMethod(frame), RubyArguments.getSelf(frame), RubyArguments.getDeclarationContext(frame));
-    }
-
-    @TruffleBoundary
-    public DynamicObject getDefaultDefinee(InternalMethod method, Object self, DeclarationContext declarationContext) {
-        return declarationContext.getModuleToDefineMethods(self, method, getContext(), singletonClassNode);
+        final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
+        return declarationContext.getModuleToDefineMethods(RubyArguments.getMethod(frame), singletonClassNode);
     }
 }
