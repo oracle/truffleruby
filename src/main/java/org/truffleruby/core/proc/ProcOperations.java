@@ -17,18 +17,16 @@ import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.FrameOnStackMarker;
-import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
 public abstract class ProcOperations {
 
-    public static Object[] packArguments(DynamicObject proc, Object... args) {
+    private static Object[] packArguments(DynamicObject proc, Object... args) {
         return RubyArguments.pack(
                 Layouts.PROC.getDeclarationFrame(proc),
                 null,
                 Layouts.PROC.getMethod(proc),
-                DeclarationContext.BLOCK,
                 Layouts.PROC.getFrameOnStackMarker(proc),
                 Layouts.PROC.getSelf(proc),
                 Layouts.PROC.getBlock(proc),
