@@ -34,11 +34,11 @@ abstract class ForeignExecuteHelperNode extends RubyNode {
     protected Object callProc(DynamicObject proc, Object[] arguments,
                               @Cached("createCallBlockNode()") CallBlockNode callBlockNode) {
         Object self = Layouts.PROC.getSelf(proc);
-        return callBlockNode.executeCallBlock(proc, self, null, arguments);
+        return callBlockNode.executeCallBlock(DeclarationContext.BLOCK, proc, self, null, arguments);
     }
 
     protected CallBlockNode createCallBlockNode() {
-        return CallBlockNodeGen.create(DeclarationContext.BLOCK, null, null, null, null);
+        return CallBlockNodeGen.create(null, null, null, null);
     }
 
     @Specialization(guards = "isRubyMethod(method)")

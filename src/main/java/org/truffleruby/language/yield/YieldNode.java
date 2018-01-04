@@ -31,6 +31,7 @@ public class YieldNode extends Node {
 
     public Object dispatch(DynamicObject block, Object... argumentsObjects) {
         return getCallBlockNode().executeCallBlock(
+                declarationContext,
                 block,
                 Layouts.PROC.getSelf(block),
                 Layouts.PROC.getBlock(block),
@@ -39,6 +40,7 @@ public class YieldNode extends Node {
 
     public Object dispatchWithBlock(DynamicObject block, DynamicObject blockArgument, Object... argumentsObjects) {
         return getCallBlockNode().executeCallBlock(
+                declarationContext,
                 block,
                 Layouts.PROC.getSelf(block),
                 blockArgument,
@@ -47,6 +49,7 @@ public class YieldNode extends Node {
 
     public Object dispatchWithModifiedSelf(DynamicObject block, Object self, Object... argumentsObjects) {
         return getCallBlockNode().executeCallBlock(
+                declarationContext,
                 block,
                 self,
                 Layouts.PROC.getBlock(block),
@@ -56,7 +59,7 @@ public class YieldNode extends Node {
     private CallBlockNode getCallBlockNode() {
         if (callBlockNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callBlockNode = insert(CallBlockNodeGen.create(declarationContext, null, null, null, null));
+            callBlockNode = insert(CallBlockNodeGen.create(null, null, null, null));
         }
 
         return callBlockNode;
