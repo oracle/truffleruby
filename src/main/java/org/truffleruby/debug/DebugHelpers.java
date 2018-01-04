@@ -44,7 +44,7 @@ public abstract class DebugHelpers {
                 null,
                 null,
                 RubyArguments.getMethod(currentFrame),
-                DeclarationContext.INSTANCE_EVAL,
+                RubyArguments.getDeclarationContext(currentFrame),
                 null,
                 RubyArguments.getSelf(currentFrame),
                 null,
