@@ -86,7 +86,7 @@ public class ObjectSpaceManager {
         }
 
         finalizationService.addFinalizer(object, ObjectSpaceManager.class,
-                () -> context.send(callable, "call", null), roots);
+                () -> context.send(callable, "call"), roots);
     }
 
     public synchronized void undefineFinalizer(DynamicObject object) {
@@ -119,7 +119,7 @@ public class ObjectSpaceManager {
         tracingPaused = true;
 
         try {
-            context.send(context.getCoreLibrary().getObjectSpaceModule(), "trace_allocation", null, object, classPath, methodId, sourcefile, sourceline, getCollectionCount());
+            context.send(context.getCoreLibrary().getObjectSpaceModule(), "trace_allocation", object, classPath, methodId, sourcefile, sourceline, getCollectionCount());
         } finally {
             tracingPaused = false;
         }

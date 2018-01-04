@@ -325,7 +325,7 @@ public abstract class ReadlineNodes {
             }
 
             DynamicObject string = StringOperations.createString(context, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
-            DynamicObject completions = (DynamicObject) context.send(proc, "call", null, string);
+            DynamicObject completions = (DynamicObject) context.send(proc, "call", string);
             assert RubyGuards.isRubyArray(completions);
             for (Object element : ArrayOperations.toIterable(completions)) {
                 assert RubyGuards.isRubyString(element);

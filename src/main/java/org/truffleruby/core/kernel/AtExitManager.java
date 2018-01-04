@@ -91,8 +91,8 @@ public class AtExitManager {
             if (backtrace != null) {
                 BacktraceFormatter.createDefaultFormatter(context).printBacktrace(context, rubyException, backtrace);
             } else {
-                final Object fullMessage = context.send(rubyException, "full_message", null);
-                context.send(context.getCoreLibrary().getStderr(), "puts", null, fullMessage);
+                final Object fullMessage = context.send(rubyException, "full_message");
+                context.send(context.getCoreLibrary().getStderr(), "puts", fullMessage);
             }
         }
         return rubyException;

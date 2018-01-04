@@ -18,7 +18,7 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
-import com.oracle.truffle.api.object.DynamicObject;
+
 import org.joni.Regex;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.collections.WeakValuedMap;
@@ -41,7 +41,6 @@ import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.interop.InteropManager;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.JavaException;
@@ -282,9 +281,8 @@ public class RubyContext {
         return nativeConfiguration;
     }
 
-    public Object send(Object object, String methodName, DynamicObject block, Object... arguments) {
+    public Object send(Object object, String methodName, Object... arguments) {
         CompilerAsserts.neverPartOfCompilation();
-        assert block == null || RubyGuards.isRubyProc(block);
 
         final InternalMethod method = ModuleOperations.lookupMethodUncached(coreLibrary.getMetaClass(object), methodName);
         if (method == null || method.isUndefined()) {
@@ -292,7 +290,7 @@ public class RubyContext {
         }
 
         return method.getCallTarget().call(
-                RubyArguments.pack(null, null, method, null, object, block, arguments));
+                RubyArguments.pack(null, null, method, null, object, null, arguments));
     }
 
     public void finalizeContext() {

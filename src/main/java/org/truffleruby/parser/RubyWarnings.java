@@ -99,7 +99,7 @@ public class RubyWarnings implements WarnCallback {
             final Object stderr = context.getCoreLibrary().getStderr();
             final Rope messageRope = StringOperations.encodeRope(message, UTF8Encoding.INSTANCE);
             final DynamicObject messageString = StringOperations.createString(context, messageRope);
-            context.send(stderr, "write", null, messageString);
+            context.send(stderr, "write", messageString);
         } else {
             try {
                 context.getEnv().err().write(message.getBytes(StandardCharsets.UTF_8));
