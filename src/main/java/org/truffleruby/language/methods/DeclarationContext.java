@@ -65,6 +65,10 @@ public class DeclarationContext {
         }
     }
 
+    public static DeclarationContext topLevel(RubyContext context) {
+        return new DeclarationContext(Visibility.PRIVATE, new FixedDefaultDefinee(context.getCoreLibrary().getObjectClass()));
+    }
+
     public final Visibility visibility;
     public final DefaultDefinee defaultDefinee;
 
@@ -118,10 +122,7 @@ public class DeclarationContext {
         return defaultDefinee.getModuleToDefineMethods(method, singletonClassNode);
     }
 
-    private static final DefaultDefinee LEXICAL_SCOPE_DEFAULT_DEFINEE = new LexicalScopeDefaultDefinee();
-
-    public static final DeclarationContext BLOCK = new DeclarationContext(null, LEXICAL_SCOPE_DEFAULT_DEFINEE);
-    public static final DeclarationContext TOP_LEVEL = new DeclarationContext(Visibility.PRIVATE, LEXICAL_SCOPE_DEFAULT_DEFINEE);
+    public static final DeclarationContext BLOCK = new DeclarationContext(null, new LexicalScopeDefaultDefinee());
 
     /** Used when we know there cannot be a method definition inside a given method. */
     public static final DeclarationContext NONE = new DeclarationContext(Visibility.PUBLIC, null);

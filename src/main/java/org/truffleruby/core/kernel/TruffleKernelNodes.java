@@ -76,7 +76,7 @@ public abstract class TruffleKernelNodes {
                         UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL,
                         null, true, this);
                 final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
-                        ParserContext.TOP_LEVEL, DeclarationContext.TOP_LEVEL, rootNode, null,
+                        ParserContext.TOP_LEVEL, DeclarationContext.topLevel(getContext()), rootNode, null,
                         getContext().getCoreLibrary().getMainObject());
                 deferredCall.call(callNode);
             } catch (IOException e) {
