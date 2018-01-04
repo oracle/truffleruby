@@ -15,6 +15,7 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.RubyContext;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.objects.SingletonClassNode;
@@ -90,6 +91,7 @@ public class DeclarationContext {
         case SINGLETON_CLASS:
             return singletonClassNode.executeSingletonClass(self);
         case SELF:
+            assert RubyGuards.isRubyModule(self);
             return (DynamicObject) self;
         default:
             throw new UnsupportedOperationException();
