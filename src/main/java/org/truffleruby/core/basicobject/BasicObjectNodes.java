@@ -31,6 +31,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.module.ModuleOperations;
@@ -57,7 +58,7 @@ import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.supercall.SuperCallNode;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.ParserContext;
 
 @CoreClass("BasicObject")
@@ -255,8 +256,6 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "instance_eval", needsBlock = true, optional = 3, lowerFixnum = 3, unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
     public abstract static class InstanceEvalNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private YieldNode yield = new YieldNode(DeclarationContext.INSTANCE_EVAL);
-
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })
         public Object instanceEval(Object receiver, DynamicObject string, DynamicObject fileName, int line, NotProvided block,
@@ -285,8 +284,9 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization
-        public Object instanceEval(Object receiver, NotProvided string, NotProvided fileName, NotProvided line, DynamicObject block) {
-            return yield.dispatchWithModifiedSelf(block, receiver, receiver);
+        public Object instanceEval(Object receiver, NotProvided string, NotProvided fileName, NotProvided line, DynamicObject block,
+                @Cached("create()") InstanceExecNode instanceExecNode) {
+            return instanceExecNode.executeInstanceExec(receiver, new Object[]{ receiver }, block);
         }
 
         private String getSpace(int line) {
@@ -303,11 +303,18 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "instance_exec", needsBlock = true, rest = true)
     public abstract static class InstanceExecNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private YieldNode yield = new YieldNode(DeclarationContext.INSTANCE_EVAL);
+        public static InstanceExecNode create() {
+            return InstanceExecNodeFactory.create(null);
+        }
+
+        @Child private CallBlockNode callBlockNode = CallBlockNode.create();
+
+        public abstract Object executeInstanceExec(Object self, Object[] args, Object block);
 
         @Specialization
         public Object instanceExec(Object receiver, Object[] arguments, DynamicObject block) {
-            return yield.dispatchWithModifiedSelf(block, receiver, arguments);
+            final DeclarationContext declarationContext = DeclarationContext.INSTANCE_EVAL;
+            return callBlockNode.executeCallBlock(declarationContext, block, receiver, Layouts.PROC.getBlock(block), arguments);
         }
 
         @Specialization
