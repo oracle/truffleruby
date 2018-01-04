@@ -505,6 +505,10 @@ describe "The defined? keyword for variables" do
     DefinedSpecs::Basic.new.global_variable_read.should be_nil
   end
 
+  it "returns 'global-variable' for a global variable that has been assigned nil" do
+    DefinedSpecs::Basic.new.global_variable_defined_as_nil.should == "global-variable"
+  end
+
   # MRI appears to special case defined? for $! and $~ in that it returns
   # 'global-variable' even when they are not set (or they are always "set"
   # but the value may be nil). In other words, 'defined?($~)' will return
