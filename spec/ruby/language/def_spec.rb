@@ -488,7 +488,7 @@ describe "A nested method definition" do
     DefSpecNested.should_not have_instance_method :body_method
   end
 
-  it "defines methods as public by default" do
+  it "creates an instance method inside Class.new" do
     cls = Class.new do
       def do_def
         def new_def
@@ -500,6 +500,10 @@ describe "A nested method definition" do
     obj = cls.new
     obj.do_def
     obj.new_def.should == 1
+
+    cls.new.new_def.should == 1
+
+    -> { Object.new.new_def }.should raise_error(NoMethodError)
   end
 end
 
