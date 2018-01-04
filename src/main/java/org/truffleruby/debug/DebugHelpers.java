@@ -40,11 +40,13 @@ public abstract class DebugHelpers {
 
         final Frame currentFrame = currentFrameInstance.getFrame(FrameInstance.FrameAccess.MATERIALIZE);
 
+        final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(currentFrame);
+
         final Object[] packedArguments = RubyArguments.pack(
                 null,
                 null,
                 RubyArguments.getMethod(currentFrame),
-                RubyArguments.getDeclarationContext(currentFrame),
+                declarationContext,
                 null,
                 RubyArguments.getSelf(currentFrame),
                 null,
@@ -76,7 +78,7 @@ public abstract class DebugHelpers {
 
         final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                 ParserContext.INLINE,
-                DeclarationContext.INSTANCE_EVAL,
+                declarationContext,
                 rootNode,
                 evalFrame,
                 RubyArguments.getSelf(evalFrame));
