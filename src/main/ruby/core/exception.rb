@@ -107,6 +107,13 @@ class Exception
     end
   end
 
+  def full_message
+    bt = backtrace
+    "#{bt[0]}: #{message} (#{self.class})\n" + bt[1..-1].map { |l|
+      "\tfrom #{l}"
+    }.join("\n")
+  end
+
   class << self
     alias_method :exception, :new
   end
