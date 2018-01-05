@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.language.RubyGuards;
@@ -37,17 +36,6 @@ public abstract class ToSNode extends RubyNode {
     @Specialization(guards = "isRubyString(string)")
     public DynamicObject toS(DynamicObject string) {
         return string;
-    }
-
-    @Specialization(guards = "!isRubyString(object)", rewriteOn = UnexpectedResultException.class)
-    public DynamicObject toS(VirtualFrame frame, Object object) throws UnexpectedResultException {
-        final Object value = callToSNode.call(frame, object, "to_s");
-
-        if (RubyGuards.isRubyString(value)) {
-            return (DynamicObject) value;
-        }
-
-        throw new UnexpectedResultException(value);
     }
 
     @Specialization(guards = "!isRubyString(object)")
