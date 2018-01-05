@@ -77,7 +77,7 @@ public class BlockDefinitionNode extends RubyNode {
                 RubyArguments.getSelf(frame),
                 RubyArguments.getBlock(frame),
                 frameOnStackMarker,
-                RubyArguments.getDeclarationContext(frame));
+                RubyArguments.getDeclarationContext(frame).withVisibility(null));
     }
 
 }

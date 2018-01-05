@@ -106,7 +106,6 @@ public class DeclarationContext {
     }
 
     public DeclarationContext withVisibility(Visibility visibility) {
-        assert visibility != null;
         if (visibility == this.visibility) {
             return this;
         } else {
