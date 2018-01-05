@@ -1079,10 +1079,7 @@ public abstract class ModuleNodes {
             final RubyRootNode newRootNode = new RubyRootNode(getContext(), info.getSourceSection(), rootNode.getFrameDescriptor(), info, newBody);
             final CallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
-            // TODO (eregon, 7 Jan. 2018): Should be just the method's declaration context,
-            // but currently block calls do not forward the DeclarationContext.
-            final DeclarationContext declarationContext = declarationFrame != null ? RubyArguments.getDeclarationContext(declarationFrame) : Layouts.PROC.getMethod(proc).getDeclarationContext();
-
+            final DeclarationContext declarationContext = Layouts.PROC.getDeclarationContext(proc);
             final InternalMethod method = InternalMethod.fromProc(getContext(), info, declarationContext, name, module, Visibility.PUBLIC, proc, newCallTarget);
             return addMethod(module, name, method);
         }
