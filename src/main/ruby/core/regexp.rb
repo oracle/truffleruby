@@ -192,6 +192,21 @@ class Regexp
     compile pattern, opts
   end
 
+  def =~(str)
+    unless str
+      Truffle.invoke_primitive(:regexp_set_last_match, nil)
+      return nil
+    end
+    result = Truffle::RegexpOperations.match(self, str, 0)
+    Truffle.invoke_primitive(:regexp_set_last_match, result)
+
+    if result
+      result.begin 0
+    else
+      nil
+    end
+  end
+
   def match(str, pos=0)
     unless str
       Truffle.invoke_primitive(:regexp_set_last_match, nil)
