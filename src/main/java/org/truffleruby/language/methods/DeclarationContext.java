@@ -34,12 +34,6 @@ public class DeclarationContext {
         DynamicObject getModuleToDefineMethods(InternalMethod method, SingletonClassNode singletonClassNode);
     }
 
-    private static class LexicalScopeDefaultDefinee implements DefaultDefinee {
-        public DynamicObject getModuleToDefineMethods(InternalMethod method, SingletonClassNode singletonClassNode) {
-            return method.getSharedMethodInfo().getLexicalScope().getLiveModule();
-        }
-    }
-
     public static class SingletonClassOfSelfDefaultDefinee implements DefaultDefinee {
         private final Object self;
 
@@ -125,10 +119,6 @@ public class DeclarationContext {
         assert defaultDefinee != null : "Trying to find the default definee but this method should not have method definitions inside";
         return defaultDefinee.getModuleToDefineMethods(method, singletonClassNode);
     }
-
-    // TODO (eregon, 4 Jan. 2018): This is a hack, the DeclarationContext should be saved in the
-    // Proc from the current value in the frame.
-    public static final DeclarationContext BLOCK = new DeclarationContext(null, new LexicalScopeDefaultDefinee());
 
     /** Used when we know there cannot be a method definition inside a given method. */
     public static final DeclarationContext NONE = new DeclarationContext(Visibility.PUBLIC, null);
