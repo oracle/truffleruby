@@ -24,7 +24,6 @@ import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.ArgumentDescriptor;
@@ -219,7 +218,7 @@ public abstract class ProcNodes {
         @Specialization
         public Object call(DynamicObject proc, Object[] args, NotProvided block) {
             return callBlockNode.executeCallBlock(
-                    DeclarationContext.BLOCK,
+                    Layouts.PROC.getDeclarationContext(proc),
                     proc,
                     Layouts.PROC.getSelf(proc),
                     Layouts.PROC.getBlock(proc),
@@ -229,7 +228,7 @@ public abstract class ProcNodes {
         @Specialization
         public Object call(DynamicObject proc, Object[] args, DynamicObject blockArgument) {
             return callBlockNode.executeCallBlock(
-                    DeclarationContext.BLOCK,
+                    Layouts.PROC.getDeclarationContext(proc),
                     proc,
                     Layouts.PROC.getSelf(proc),
                     blockArgument,

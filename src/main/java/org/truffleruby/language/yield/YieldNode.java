@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
-import org.truffleruby.language.methods.DeclarationContext;
 
 public class YieldNode extends Node {
 
@@ -21,7 +20,7 @@ public class YieldNode extends Node {
 
     public Object dispatch(DynamicObject block, Object... argumentsObjects) {
         return getCallBlockNode().executeCallBlock(
-                DeclarationContext.BLOCK,
+                Layouts.PROC.getDeclarationContext(block),
                 block,
                 Layouts.PROC.getSelf(block),
                 Layouts.PROC.getBlock(block),
