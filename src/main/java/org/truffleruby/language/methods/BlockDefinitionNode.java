@@ -39,6 +39,7 @@ public class BlockDefinitionNode extends RubyNode {
     private final BreakID breakID;
 
     @Child private ReadFrameSlotNode readFrameOnStackMarkerNode;
+    @Child private WithoutVisibilityNode withoutVisibilityNode = WithoutVisibilityNodeGen.create();
 
     public BlockDefinitionNode(ProcType type, SharedMethodInfo sharedMethodInfo,
                                CallTarget callTargetForProcs, CallTarget callTargetForLambdas, BreakID breakID, FrameSlot frameOnStackMarkerSlot) {
@@ -71,13 +72,17 @@ public class BlockDefinitionNode extends RubyNode {
             assert frameOnStackMarker != null;
         }
 
-        return ProcOperations.createRubyProc(coreLibrary().getProcFactory(), type, sharedMethodInfo,
-                callTargetForProcs, callTargetForLambdas, frame.materialize(),
+        return ProcOperations.createRubyProc(coreLibrary().getProcFactory(),
+                type,
+                sharedMethodInfo,
+                callTargetForProcs,
+                callTargetForLambdas,
+                frame.materialize(),
                 RubyArguments.getMethod(frame),
                 RubyArguments.getSelf(frame),
                 RubyArguments.getBlock(frame),
                 frameOnStackMarker,
-                RubyArguments.getDeclarationContext(frame).withVisibility(null));
+                withoutVisibilityNode.executeWithoutVisibility(RubyArguments.getDeclarationContext(frame)));
     }
 
 }
