@@ -31,7 +31,7 @@ public class DeclarationContext {
 
     /** @see <a href="http://yugui.jp/articles/846">http://yugui.jp/articles/846</a> */
     private interface DefaultDefinee {
-        DynamicObject getModuleToDefineMethods(InternalMethod method, SingletonClassNode singletonClassNode);
+        DynamicObject getModuleToDefineMethods(SingletonClassNode singletonClassNode);
     }
 
     public static class SingletonClassOfSelfDefaultDefinee implements DefaultDefinee {
@@ -41,7 +41,7 @@ public class DeclarationContext {
             this.self = self;
         }
 
-        public DynamicObject getModuleToDefineMethods(InternalMethod method, SingletonClassNode singletonClassNode) {
+        public DynamicObject getModuleToDefineMethods(SingletonClassNode singletonClassNode) {
             return singletonClassNode.executeSingletonClass(self);
         }
     }
@@ -54,7 +54,7 @@ public class DeclarationContext {
             this.module = module;
         }
 
-        public DynamicObject getModuleToDefineMethods(InternalMethod method, SingletonClassNode singletonClassNode) {
+        public DynamicObject getModuleToDefineMethods(SingletonClassNode singletonClassNode) {
             return module;
         }
     }
@@ -114,9 +114,9 @@ public class DeclarationContext {
     }
 
     @TruffleBoundary
-    public DynamicObject getModuleToDefineMethods(InternalMethod method, SingletonClassNode singletonClassNode) {
+    public DynamicObject getModuleToDefineMethods(SingletonClassNode singletonClassNode) {
         assert defaultDefinee != null : "Trying to find the default definee but this method should not have method definitions inside";
-        return defaultDefinee.getModuleToDefineMethods(method, singletonClassNode);
+        return defaultDefinee.getModuleToDefineMethods(singletonClassNode);
     }
 
     /** Used when we know there cannot be a method definition inside a given method. */

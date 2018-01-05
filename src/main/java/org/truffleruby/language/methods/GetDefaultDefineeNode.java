@@ -24,6 +24,6 @@ public class GetDefaultDefineeNode extends RubyNode {
     @Override
     public DynamicObject execute(VirtualFrame frame) {
         final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
-        return declarationContext.getModuleToDefineMethods(RubyArguments.getMethod(frame), singletonClassNode);
+        return declarationContext.getModuleToDefineMethods(singletonClassNode);
     }
 }
