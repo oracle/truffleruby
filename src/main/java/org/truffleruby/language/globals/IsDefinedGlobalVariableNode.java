@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.globals;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -38,11 +40,24 @@ public abstract class IsDefinedGlobalVariableNode extends RubyNode {
         }
     }
 
-    @Specialization(guards = "storage.hasHooks()")
+    @Specialization(guards = { "storage.hasHooks()", "arity == 0" })
     public Object executeDefinedHooks(VirtualFrame frame,
             @Cached("getStorage()") GlobalVariableStorage storage,
+            @Cached("isDefinedArity(storage)") int arity,
             @Cached("new()") YieldNode yieldNode) {
         return yieldNode.dispatch(storage.getIsDefined());
+    }
+
+    @Specialization(guards = { "storage.hasHooks()", "arity == 1" })
+    public Object executeDefinedHooksWithBinding(VirtualFrame frame,
+            @Cached("getStorage()") GlobalVariableStorage storage,
+            @Cached("isDefinedArity(storage)") int arity,
+            @Cached("new()") YieldNode yieldNode) {
+        return yieldNode.dispatch(storage.getIsDefined(), BindingNodes.createBinding(getContext(), frame.materialize()));
+    }
+
+    protected int isDefinedArity(GlobalVariableStorage storage) {
+        return Layouts.PROC.getSharedMethodInfo(storage.getIsDefined()).getArity().getArityNumber();
     }
 
     protected GlobalVariableStorage getStorage() {
