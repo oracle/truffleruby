@@ -109,7 +109,7 @@ public abstract class TruffleGraalNodes {
                 callTargetForLambdas = Layouts.PROC.getCallTargetForLambdas(proc);
             }
 
-            return Layouts.PROC.createProc(coreLibrary().getProcFactory(),
+            return coreLibrary().getProcFactory().newInstance(Layouts.PROC.build(
                     Layouts.PROC.getType(proc),
                     Layouts.PROC.getSharedMethodInfo(proc),
                     newCallTarget,
@@ -119,7 +119,7 @@ public abstract class TruffleGraalNodes {
                     Layouts.PROC.getSelf(proc),
                     Layouts.PROC.getBlock(proc),
                     Layouts.PROC.getFrameOnStackMarker(proc),
-                    Layouts.PROC.getDeclarationContext(proc));
+                    Layouts.PROC.getDeclarationContext(proc)));
         }
 
     }

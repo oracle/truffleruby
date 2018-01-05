@@ -35,8 +35,7 @@ public interface ProcLayout extends BasicObjectLayout {
     DynamicObjectFactory createProcShape(DynamicObject logicalClass,
                                          DynamicObject metaClass);
 
-    DynamicObject createProc(
-            DynamicObjectFactory factory,
+    Object[] build(
             ProcType type,
             SharedMethodInfo sharedMethodInfo,
             CallTarget callTargetForType,
