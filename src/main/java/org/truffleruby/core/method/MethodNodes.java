@@ -235,7 +235,8 @@ public abstract class MethodNodes {
                     method,
                     Layouts.METHOD.getReceiver(methodObject),
                     null,
-                    null);
+                    null,
+                    method.getDeclarationContext());
         }
 
         @TruffleBoundary

@@ -18,6 +18,7 @@ import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.language.control.FrameOnStackMarker;
+import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
@@ -44,7 +45,8 @@ public interface ProcLayout extends BasicObjectLayout {
             @Nullable InternalMethod method,
             Object self,
             @Nullable DynamicObject block,
-            @Nullable FrameOnStackMarker frameOnStackMarker);
+            @Nullable FrameOnStackMarker frameOnStackMarker,
+            DeclarationContext declarationContext);
 
     boolean isProc(ObjectType objectType);
     boolean isProc(DynamicObject object);
@@ -67,5 +69,7 @@ public interface ProcLayout extends BasicObjectLayout {
     DynamicObject getBlock(DynamicObject object);
 
     FrameOnStackMarker getFrameOnStackMarker(DynamicObject object);
+
+    DeclarationContext getDeclarationContext(DynamicObject object);
 
 }
