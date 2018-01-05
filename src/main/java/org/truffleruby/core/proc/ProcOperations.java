@@ -73,8 +73,7 @@ public abstract class ProcOperations {
                 throw new IllegalArgumentException();
         }
 
-        return Layouts.PROC.createProc(
-                instanceFactory,
+        return instanceFactory.newInstance(Layouts.PROC.build(
                 type,
                 sharedMethodInfo,
                 callTargetForType,
@@ -84,7 +83,7 @@ public abstract class ProcOperations {
                 self,
                 block,
                 frameOnStackMarker,
-                declarationContext);
+                declarationContext));
     }
 
 }

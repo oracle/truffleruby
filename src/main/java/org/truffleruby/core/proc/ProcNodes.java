@@ -116,8 +116,7 @@ public abstract class ProcNodes {
         public DynamicObject procSpecial(VirtualFrame frame, DynamicObject procClass, Object[] args, DynamicObject block) {
             // Instantiate a new instance of procClass as classes do not correspond
 
-            final DynamicObject proc = getAllocateObjectNode().allocate(
-                    procClass,
+            final DynamicObject proc = getAllocateObjectNode().allocate(procClass, Layouts.PROC.build(
                     Layouts.PROC.getType(block),
                     Layouts.PROC.getSharedMethodInfo(block),
                     Layouts.PROC.getCallTargetForType(block),
@@ -127,7 +126,7 @@ public abstract class ProcNodes {
                     Layouts.PROC.getSelf(block),
                     Layouts.PROC.getBlock(block),
                     Layouts.PROC.getFrameOnStackMarker(block),
-                    Layouts.PROC.getDeclarationContext(block));
+                    Layouts.PROC.getDeclarationContext(block)));
 
             getInitializeNode().callWithBlock(frame, proc, "initialize", block, args);
 
@@ -165,8 +164,7 @@ public abstract class ProcNodes {
 
         @Specialization
         public DynamicObject dup(DynamicObject proc) {
-            final DynamicObject copy = getAllocateObjectNode().allocate(
-                    Layouts.BASIC_OBJECT.getLogicalClass(proc),
+            final DynamicObject copy = getAllocateObjectNode().allocate(Layouts.BASIC_OBJECT.getLogicalClass(proc), Layouts.PROC.build(
                     Layouts.PROC.getType(proc),
                     Layouts.PROC.getSharedMethodInfo(proc),
                     Layouts.PROC.getCallTargetForType(proc),
@@ -176,7 +174,7 @@ public abstract class ProcNodes {
                     Layouts.PROC.getSelf(proc),
                     Layouts.PROC.getBlock(proc),
                     Layouts.PROC.getFrameOnStackMarker(proc),
-                    Layouts.PROC.getDeclarationContext(proc));
+                    Layouts.PROC.getDeclarationContext(proc)));
 
             return copy;
         }
