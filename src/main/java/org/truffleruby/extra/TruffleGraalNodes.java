@@ -118,7 +118,8 @@ public abstract class TruffleGraalNodes {
                     Layouts.PROC.getMethod(proc),
                     Layouts.PROC.getSelf(proc),
                     Layouts.PROC.getBlock(proc),
-                    Layouts.PROC.getFrameOnStackMarker(proc));
+                    Layouts.PROC.getFrameOnStackMarker(proc),
+                    Layouts.PROC.getDeclarationContext(proc));
         }
 
     }

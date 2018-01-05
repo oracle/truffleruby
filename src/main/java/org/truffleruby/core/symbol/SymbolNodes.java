@@ -32,6 +32,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.Arity;
+import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.SymbolProcNode;
@@ -124,7 +125,8 @@ public abstract class SymbolNodes {
                     method,
                     nil(),
                     null,
-                    null);
+                    null,
+                    DeclarationContext.NONE);
         }
 
         protected InternalMethod getMethod(VirtualFrame frame) {

@@ -126,7 +126,8 @@ public abstract class ProcNodes {
                     Layouts.PROC.getMethod(block),
                     Layouts.PROC.getSelf(block),
                     Layouts.PROC.getBlock(block),
-                    Layouts.PROC.getFrameOnStackMarker(block));
+                    Layouts.PROC.getFrameOnStackMarker(block),
+                    Layouts.PROC.getDeclarationContext(block));
 
             getInitializeNode().callWithBlock(frame, proc, "initialize", block, args);
 
@@ -174,7 +175,8 @@ public abstract class ProcNodes {
                     Layouts.PROC.getMethod(proc),
                     Layouts.PROC.getSelf(proc),
                     Layouts.PROC.getBlock(proc),
-                    Layouts.PROC.getFrameOnStackMarker(proc));
+                    Layouts.PROC.getFrameOnStackMarker(proc),
+                    Layouts.PROC.getDeclarationContext(proc));
 
             return copy;
         }

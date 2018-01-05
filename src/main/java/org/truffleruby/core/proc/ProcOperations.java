@@ -17,6 +17,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.FrameOnStackMarker;
+import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
@@ -55,7 +56,8 @@ public abstract class ProcOperations {
             MaterializedFrame declarationFrame,
             InternalMethod method,
             Object self, DynamicObject block,
-            FrameOnStackMarker frameOnStackMarker) {
+            FrameOnStackMarker frameOnStackMarker,
+            DeclarationContext declarationContext) {
         assert block == null || RubyGuards.isRubyProc(block);
 
         final CallTarget callTargetForType;
@@ -81,7 +83,8 @@ public abstract class ProcOperations {
                 method,
                 self,
                 block,
-                frameOnStackMarker);
+                frameOnStackMarker,
+                declarationContext);
     }
 
 }
