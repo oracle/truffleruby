@@ -106,14 +106,18 @@ public class BuildInformationProcessor extends AbstractProcessor {
     }
 
     public String getRevision() throws IOException {
-        final Process git = Runtime.getRuntime().exec("git rev-parse --short HEAD");
+        return runCommand("git rev-parse --short HEAD");
+    }
+
+    public String getCompileDate() throws IOException {
+        return runCommand("git log -1 --date=short --pretty=format:%cd");
+    }
+
+    private static String runCommand(String command) throws IOException {
+        final Process git = Runtime.getRuntime().exec(command);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(git.getInputStream()))) {
             return reader.readLine();
         }
-    }
-
-    public String getCompileDate() {
-        return new SimpleDateFormat("yyyy-MM-dd").format(new Date());
     }
 
 }
