@@ -21,8 +21,12 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -101,13 +105,15 @@ public class BuildInformationProcessor extends AbstractProcessor {
         }
     }
 
-    public String getRevision() {
-        return "f00fc3fc33";
+    public String getRevision() throws IOException {
+        final Process git = Runtime.getRuntime().exec("git rev-parse --short HEAD");
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(git.getInputStream()))) {
+            return reader.readLine();
+        }
     }
 
     public String getCompileDate() {
-        return "2018-01-07";
+        return new SimpleDateFormat("yyyy-MM-dd").format(new Date());
     }
-
 
 }
