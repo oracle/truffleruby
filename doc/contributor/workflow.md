@@ -73,6 +73,10 @@ $ jt build native
 
 This will create a new executable named `native-ruby` in the `bin/` directory.
 
+Note that build information such as the date and Git revision hash will not be
+updated when you build for a second time. Releases should always be built from
+scratch.
+
 ## Sulong
 
 TruffleRuby runs C extension using Sulong. You should build Sulong from source.

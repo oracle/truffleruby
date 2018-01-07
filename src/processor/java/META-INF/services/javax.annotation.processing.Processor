@@ -1,1 +1,2 @@
-org.truffleruby.processor.TruffleRubyProcessor
+org.truffleruby.processor.CoreClassProcessor
+org.truffleruby.processor.BuildInformationProcessor
