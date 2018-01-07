@@ -33,12 +33,13 @@ public class TruffleNFIPlatform {
 
     private final Node bindNode = Message.createInvoke(1).createNode();
 
+    private final String size_t;
     private final NativeFunction strlen;
 
     public TruffleNFIPlatform(RubyContext context) {
         defaultLibrary = (TruffleObject) context.getEnv().parse(Source.newBuilder("default").mimeType("application/x-native").name("native").build()).call();
 
-        final String size_t = resolveType(context.getNativeConfiguration(), "size_t");
+        size_t = resolveType(context.getNativeConfiguration(), "size_t");
         strlen = getFunction("strlen", 1, "(pointer):" + size_t);
     }
 
@@ -105,6 +106,10 @@ public class TruffleNFIPlatform {
         final TruffleObject symbol = lookup(defaultLibrary, functionName);
         final TruffleObject function = bind(symbol, signature);
         return new NativeFunction(function, arguments);
+    }
+
+    public String size_t() {
+        return size_t;
     }
 
     public NativeFunction getStrlen() {
