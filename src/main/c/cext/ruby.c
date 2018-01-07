@@ -1739,7 +1739,7 @@ VALUE rb_check_array_type(VALUE array) {
 }
 
 VALUE rb_ary_cat(VALUE array, const VALUE *cat, long n) {
-  rb_tr_error("rb_ary_cat not implemented");
+  return (VALUE) truffle_invoke(array, "concat", rb_ary_new4(n, cat));
 }
 
 VALUE rb_ary_rotate(VALUE array, long n) {
