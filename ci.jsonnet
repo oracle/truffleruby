@@ -82,11 +82,10 @@ local part_definitions = {
       ],
     },
 
-    // TODO what is a purpose of this part, resp. its environment variables?
     truffleruby: {
       '$.benchmark.server':: { options: [] },
       environment+: {
-        // TODO why do we still have jruby?
+        // Using jruby for compatibility with existing benchmark results.
         GUEST_VM: 'jruby',
         GUEST_VM_CONFIG: 'truffle',
       },
@@ -95,6 +94,7 @@ local part_definitions = {
     truffleruby_cexts: {
       is_after+:: ['$.use.truffleruby'],
       environment+: {
+        // to differentiate running without (chunky_png) and with cexts (oily_png).
         GUEST_VM_CONFIG+: '-cexts',
       },
     },
@@ -410,7 +410,7 @@ local part_definitions = {
       ],
     },
 
-    // TODO what does it test? That we run with graal which is part of java9?
+    // It tests that the locally-built Graal on Java 9 works fine.
     compiler_standalone: {
       is_after+:: ['$.jdk.labsjdk9'],
       run+: [
@@ -733,9 +733,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
     {
       'ruby-benchmarks-cext':
         $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-        // TODO why are these the only builds using $.use.truffleruby_cexts
-        // and not just $.use.truffleruby? We have cexts enabled by default
-        // don't we?
         $.use.truffleruby + $.use.truffleruby_cexts +
         // TODO build was previously called before sulong setup, which seems
         // wrong, was there a reason?
