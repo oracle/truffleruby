@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 
 @TruffleLanguage.Registration(
-        name = "ruby",
+        name = "Ruby",
         id = Launcher.LANGUAGE_ID,
         version = Launcher.LANGUAGE_VERSION,
         mimeType = RubyLanguage.MIME_TYPE,
