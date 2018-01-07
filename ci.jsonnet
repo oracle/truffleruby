@@ -8,7 +8,8 @@ local overlay = 'be5262d04726cbb2bf50fc08b32257692b40a046';
 
 // For debugging: generated builds will be restricted to those listed in
 // the array. No restriction is applied when it is empty.
-local restrict_builds_to = [];
+local restrict_builds_to = [],
+      debug = std.length(restrict_builds_to) > 0;
 // Set to false to disable overlay application
 local use_overlay = true;
 
@@ -451,8 +452,8 @@ local part_definitions = {
 
   benchmark: {
     local post_process = [
-      // ["cat", "bench-results-processed.json"],
       ['tool/post-process-results-json.rb', 'bench-results.json', 'bench-results-processed.json'],
+      if debug then ['cat', 'bench-results-processed.json'] else [],
     ],
     local upload_results =
       [['bench-uploader.py', 'bench-results-processed.json']],
