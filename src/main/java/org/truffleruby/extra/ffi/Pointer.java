@@ -11,6 +11,7 @@ package org.truffleruby.extra.ffi;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.FinalizationService;
 import org.truffleruby.parser.parser.SuppressFBWarnings;
 
@@ -133,21 +134,26 @@ public class Pointer implements AutoCloseable {
         return UNSAFE.getDouble(address + offset);
     }
 
-    public byte[] readZeroTerminatedByteArray(long offset) {
-        final int length = findByte(offset, (byte) 0);
+    public byte[] readZeroTerminatedByteArray(RubyContext context, long offset) {
+        final int length = findNullByte(context, offset);
         final byte[] bytes = new byte[length];
         readBytes(offset, bytes, 0, length);
         return bytes;
     }
 
+
     public Pointer readPointer(long offset) {
         return new Pointer(readLong(offset));
     }
 
-    public int findByte(long offset, byte value) {
+    public int findNullByte(RubyContext context, long offset) {
+        if (context.getOptions().NATIVE_PLATFORM) {
+            return (int) (long) context.getTruffleNFI().getStrlen().call(address + offset);
+        }
+
         int n = 0;
         while (true) {
-            if (readByte(offset + n) == value) {
+            if (readByte(offset + n) == 0) {
                 return n;
             }
             n++;

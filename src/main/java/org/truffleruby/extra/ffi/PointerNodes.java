@@ -245,7 +245,7 @@ public abstract class PointerNodes {
                                               @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
-            final byte[] bytes = ptr.readZeroTerminatedByteArray(0);
+            final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0);
             return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
@@ -478,7 +478,7 @@ public abstract class PointerNodes {
                                                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
-            final byte[] bytes = ptr.readZeroTerminatedByteArray(offset);
+            final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), offset);
             return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 

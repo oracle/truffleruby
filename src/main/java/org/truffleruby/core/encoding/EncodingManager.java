@@ -78,7 +78,7 @@ public class EncodingManager {
             final NativeFunction nl_langinfo = nfi.getFunction("nl_langinfo", 1, "(sint32):string");
 
             final long address = nfi.asPointer((TruffleObject) nl_langinfo.call(codeset));
-            final byte[] bytes = new Pointer(address).readZeroTerminatedByteArray(0);
+            final byte[] bytes = new Pointer(address).readZeroTerminatedByteArray(context, 0);
             localeEncodingName = new String(bytes, StandardCharsets.ISO_8859_1);
         } else {
             localeEncodingName = Charset.defaultCharset().name();
