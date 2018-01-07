@@ -15,8 +15,8 @@ local use_overlay = true;
 // Support functions
 local utils = import 'utils.libsonnet';
 
-// All builds are composed directly from independent disjunct composable 
-// jsonnet objects defined in here. 
+// All builds are composed **directly** from **independent disjunct composable**
+// jsonnet objects defined in here.
 // All used objects used to compose a build are listed
 // where build is defined, there are no other objects in the middle.
 local part_definitions = {
@@ -59,6 +59,7 @@ local part_definitions = {
     },
 
     sulong: {
+      is_before+:: ['$.use.build'],
       downloads+: {
         LIBGMP: {
           name: 'libgmp',
@@ -92,7 +93,7 @@ local part_definitions = {
     },
 
     truffleruby_cexts: {
-      build_has_to_already_have+:: ['$.use.truffleruby'],
+      is_after+:: ['$.use.truffleruby'],
       environment+: {
         GUEST_VM_CONFIG+: '-cexts',
       },
@@ -184,7 +185,7 @@ local part_definitions = {
     },
 
     without_om: {
-      build_has_to_already_have+:: ['$.graal.enterprise', '$.use.common'],
+      is_after+:: ['$.graal.enterprise', '$.use.common'],
       environment+: {
         HOST_VM_CONFIG+: '-no-om',
         java_opts+::
@@ -195,7 +196,7 @@ local part_definitions = {
 
   svm: {
     core: {
-      build_has_to_already_have+:: ['$.use.build'],
+      is_after+:: ['$.use.build'],
 
       setup+: [
         ['cd', '../graal/substratevm'],
@@ -216,7 +217,7 @@ local part_definitions = {
     },
 
     enterprise: {
-      build_has_to_already_have+:: ['$.use.build'],
+      is_after+:: ['$.use.build'],
 
       setup+: [
         [
@@ -337,7 +338,7 @@ local part_definitions = {
     fast_cpu: { capabilities+: ['x62'] },
     bench: { capabilities+: self['$.cap'].bench_machine },
     x52_18_override: {
-      build_has_to_already_have+:: ['$.cap.bench'],
+      is_after+:: ['$.cap.bench'],
       capabilities: if std.count(super.capabilities, 'x52') > 0
       then std.map(function(c) if c == 'x52' then 'x52_18' else c,
                    super.capabilities)
@@ -399,7 +400,7 @@ local part_definitions = {
     test_compiler: { run+: jt(['test', 'compiler']) },
 
     test_cexts: {
-      build_has_to_already_have+:: ['$.use.common'],
+      is_after+:: ['$.use.common'],
       environment+: {
         // TODO why is this option applied?
         java_opts+:: ['-Dgraal.TruffleCompileOnly=nothing'],
@@ -411,7 +412,7 @@ local part_definitions = {
 
     // TODO what does it test? That we run with graal which is part of java9?
     compiler_standalone: {
-      build_has_to_already_have+:: ['$.jdk.labsjdk9'],
+      is_after+:: ['$.jdk.labsjdk9'],
       run+: [
         [
           'bin/truffleruby',
@@ -559,8 +560,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
 
     {
       'ruby-test-fast-java9-linux':
-        $.platform.linux +
-        $.jdk.labsjdk9 +
+        $.platform.linux + $.jdk.labsjdk9 +
         $.use.common + $.use.build +
         $.cap.gate +
         $.run.test_fast,
@@ -577,14 +577,14 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
       'ruby-test-mri':
         $.cap.fast_cpu +
         linux_gate +
-        $.use.build +
         $.use.sulong +  // OpenSSL is required to run RubyGems tests
+        $.use.build +
         $.run.test_mri,
       'ruby-test-integration':
-        linux_gate + $.use.build + $.use.sulong +
+        linux_gate + $.use.sulong + $.use.build +
         $.run.test_integration,
       'ruby-test-cexts':
-        linux_gate + $.use.build + $.use.sulong + $.use.gem_test_pack +
+        linux_gate + $.use.sulong + $.use.build + $.use.gem_test_pack +
         $.run.test_cexts,
       'ruby-test-gems':
         linux_gate + $.use.build + $.use.gem_test_pack +
@@ -593,7 +593,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
         linux_gate + $.use.build +
         $.run.test_bundle,
       'ruby-test-ecosystem':
-        linux_gate + $.use.build + $.use.sulong + $.use.gem_test_pack +
+        linux_gate + $.use.sulong + $.use.build + $.use.gem_test_pack +
         $.run.test_ecosystem,
 
       'ruby-test-compiler-graal-core':
@@ -833,7 +833,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
 
   builds:
     local all_builds = $.test_builds + $.bench_builds;
-    utils.decorate_and_check_builds(
+    utils.check_builds(
       restrict_builds_to,
       // Move name inside into `name` field
       // and add timelimit
@@ -883,11 +883,10 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
   - If (A) is used without (O) an error is risen that a field
     (e.g. '$.run.deploy_and_spec') is missing which makes it easy to look up
     which inter dependency is broken.
-- Very few parts depend on other parts already being included, in this case
-  they have `build_has_to_already_have+:: ['$.a_group.a_name']` which ensures
-  the required part are included before.
+- Few parts depend on othering with other parts, in this case
+  they have `is_after+:: ['$.a_group.a_name']` (or `is_before`) which ensures
+  the required part are included in correct order.
   See $.use.truffleruby_cexts
-  - This is checked and ensured by add_inclusion_tracking function.
 
 ## How to edit
 
@@ -908,3 +907,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
   using its full name (e.g. $.run.deploy_and_spec). It's used nowhere else.
 
  */
+
+
+
