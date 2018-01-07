@@ -63,7 +63,9 @@ public class Launcher {
     public static final boolean IS_NATIVE = Boolean.getBoolean("com.oracle.graalvm.isaot")
             || Boolean.getBoolean("com.oracle.truffle.aot");
     public static final String LANGUAGE_ID = "ruby";
+    public static final String ENGINE_ID = "truffleruby";
     public static final String LANGUAGE_VERSION = "2.3.5";
+    public static final String ENGINE_VERSION = System.getProperty("org.graalvm.version", BuildInformationImpl.INSTANCE.getRevision());
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
     public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2017 Oracle and/or its affiliates";
 
@@ -236,15 +238,14 @@ public class Launcher {
         }
     }
 
-    public static String getGraalVMVersion() {
-        return System.getProperty("org.graalvm.version", "Development Build");
-    }
-
     public static String getVersionString(boolean isGraal) {
         return String.format(
-                "truffleruby %s, like ruby %s <%s %s %s> [%s-%s]",
-                getGraalVMVersion(),
+                "%s %s, like ruby %s (%s revision %s) <%s %s %s> [%s-%s]",
+                ENGINE_ID,
+                ENGINE_VERSION,
                 LANGUAGE_VERSION,
+                BuildInformationImpl.INSTANCE.getCompileDate(),
+                BuildInformationImpl.INSTANCE.getRevision(),
                 IS_NATIVE ? "native" : System.getProperty("java.vm.name", "unknown JVM"),
                 IS_NATIVE ? "build" : System.getProperty(
                         "java.runtime.version",
@@ -256,7 +257,7 @@ public class Launcher {
     }
 
     public static void printHelp(PrintStream out) {
-        out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
+        out.printf("Usage: %s [switches] [--] [programfile] [arguments]%n", ENGINE_ID);
         out.println("  -0[octal]       specify record separator (\0, if no argument)");
         out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
         out.println("  -c              check syntax only");
@@ -333,4 +334,5 @@ public class Launcher {
         out.println("  -x[directory]   strip off text before #!ruby line and perhaps cd to directory");
         out.println("  -h              show this message, --help for more info");
     }
+
 }

@@ -63,9 +63,9 @@ $ echo MX_BINARY_SUITES=truffle,sdk > mx.truffleruby/env
 $ jt build
 ```
 
-By default the `jt build` command only builds the JVM-based launcher for TruffleRuby.
-If you'd like to build the native image using the Substrate VM, you can do so by
-providing an extra argument to the build command.
+By default the `jt build` command only builds the JVM-based launcher for
+TruffleRuby. If you'd like to build the native image using the Substrate VM, you
+can do so by providing an extra argument to the build command.
 
 ```bash
 $ jt build native
