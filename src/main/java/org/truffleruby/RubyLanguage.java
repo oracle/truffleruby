@@ -45,9 +45,9 @@ import java.util.List;
 import java.util.Map;
 
 @TruffleLanguage.Registration(
-        name = RubyLanguage.NAME,
-        id = RubyLanguage.ID,
-        version = RubyLanguage.RUBY_VERSION,
+        name = "ruby",
+        id = Launcher.LANGUAGE_ID,
+        version = Launcher.LANGUAGE_VERSION,
         mimeType = RubyLanguage.MIME_TYPE,
         dependentLanguages = "llvm")
 @ProvidedTags({
@@ -61,15 +61,7 @@ import java.util.Map;
 })
 public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
-    public static final String NAME = "Ruby";
-    public static final String ID = Launcher.LANGUAGE_ID;
-
     public static final String PLATFORM = String.format("%s-%s", Platform.getArchitecture(), Platform.getOSName());
-    public static final String RUBY_VERSION = Launcher.LANGUAGE_VERSION;
-    public static final int    RUBY_REVISION = 0;
-    public static final String COMPILE_DATE = "2017";
-    public static final String ENGINE = "truffleruby";
-    public static final String ENGINE_VERSION = System.getProperty("graal.version", "0.0");
 
     public static final String MIME_TYPE = "application/x-ruby";
     public static final String EXTENSION = ".rb";
