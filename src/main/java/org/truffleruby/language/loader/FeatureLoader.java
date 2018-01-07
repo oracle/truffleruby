@@ -66,8 +66,7 @@ public class FeatureLoader {
 
     public void initialize(NativeConfiguration nativeConfiguration, TruffleNFIPlatform nfi) {
         if (context.getOptions().NATIVE_PLATFORM) {
-            final String size_t = nfi.resolveType(nativeConfiguration, "size_t");
-            this.getcwd = nfi.getFunction("getcwd", 2, "(pointer," + size_t + "):pointer");
+            this.getcwd = nfi.getFunction("getcwd", 2, "(pointer," + nfi.size_t() + "):pointer");
         }
     }
 
