@@ -90,10 +90,13 @@ public class Pointer implements AutoCloseable {
         UNSAFE.setMemory(address + offset, size, value);
     }
 
-    public void writeBytes(long offset, byte[] bytes, int index, int length) {
-        for (int n = 0; n < length; n++) {
-            writeByte(offset + n, bytes[index + n]);
-        }
+    public void writeBytes(long offset, byte[] buffer, int bufferPos, int length) {
+        assert address + offset != 0 || length == 0;
+        assert buffer != null;
+        assert bufferPos >= 0;
+        assert length >= 0;
+
+        UNSAFE.copyMemory(buffer, Unsafe.ARRAY_BYTE_BASE_OFFSET + bufferPos, null, address + offset, length);
     }
 
     public byte readByte(long offset) {
@@ -101,10 +104,13 @@ public class Pointer implements AutoCloseable {
         return UNSAFE.getByte(address + offset);
     }
 
-    public void readBytes(long from, byte[] buffer, int bufferPos, int i) {
-        for (int n = 0; n < i; n++) {
-            buffer[bufferPos + n] = readByte(from + n);
-        }
+    public void readBytes(long offset, byte[] buffer, int bufferPos, int length) {
+        assert address + offset != 0 || length == 0;
+        assert buffer != null;
+        assert bufferPos >= 0;
+        assert length >= 0;
+
+        UNSAFE.copyMemory(null, address + offset, buffer, Unsafe.ARRAY_BYTE_BASE_OFFSET + bufferPos, length);
     }
 
     public short readShort(long offset) {
