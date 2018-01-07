@@ -65,7 +65,7 @@ public class Launcher {
     public static final String LANGUAGE_ID = "ruby";
     public static final String ENGINE_ID = "truffleruby";
     public static final String LANGUAGE_VERSION = "2.3.5";
-    public static final String ENGINE_VERSION = System.getProperty("org.graalvm.version", BuildInformationImpl.INSTANCE.getRevision());
+    public static final String ENGINE_VERSION = System.getProperty("org.graalvm.version", "0.0-" + BuildInformationImpl.INSTANCE.getRevision());
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
     public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2017 Oracle and/or its affiliates";
 
