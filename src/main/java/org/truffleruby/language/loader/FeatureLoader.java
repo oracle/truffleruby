@@ -83,7 +83,7 @@ public class FeatureLoader {
         if (address == 0) {
             throw new UnsupportedOperationException("getcwd() failed");
         }
-        final byte[] bytes = buffer.readZeroTerminatedByteArray(0);
+        final byte[] bytes = buffer.readZeroTerminatedByteArray(context, 0);
         final Encoding localeEncoding = context.getEncodingManager().getLocaleEncoding();
         return new String(bytes, EncodingManager.charsetForEncoding(localeEncoding));
     }
