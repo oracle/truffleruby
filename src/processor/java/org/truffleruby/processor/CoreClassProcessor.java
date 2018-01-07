@@ -31,7 +31,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.Primitive;
 
 @SupportedAnnotationTypes("org.truffleruby.builtins.CoreClass")
-public class TruffleRubyProcessor extends AbstractProcessor {
+public class CoreClassProcessor extends AbstractProcessor {
 
     private static final String SUFFIX = "Builtins";
 
