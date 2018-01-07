@@ -160,7 +160,11 @@ suite = {
             "dir": "src/launcher",
             "sourceDirs": ["java"],
             "dependencies": [
+                "truffleruby-annotations",
                 "sdk:GRAAL_SDK"
+            ],
+            "annotationProcessors": [
+                "TRUFFLERUBY-PROCESSOR",
             ],
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",

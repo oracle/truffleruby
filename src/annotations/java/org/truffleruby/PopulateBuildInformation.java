@@ -7,15 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.launcher;
+package org.truffleruby;
 
-import org.truffleruby.PopulateBuildInformation;
-
-@PopulateBuildInformation
-public interface BuildInformation {
-
-    String getRevision();
-
-    String getCompileDate();
-
+public @interface PopulateBuildInformation {
 }
