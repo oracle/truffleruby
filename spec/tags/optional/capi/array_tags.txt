@@ -1,2 +1,0 @@
-fails:C-API Array function rb_ary_cat pushes the given objects onto the end of the array
-fails:C-API Array function rb_ary_cat raises a RuntimeError if the array is frozen
