@@ -231,7 +231,6 @@ ruby/test_arity.rb
 ruby/test_backtrace.rb
 ruby/test_iseq.rb
 ruby/test_lazy_enumerator.rb
-ruby/test_refinement.rb
 ruby/test_rubyvm.rb
 ruby/test_threadgroup.rb
 ruby/test_weakmap.rb

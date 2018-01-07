@@ -65,7 +65,10 @@ public class ModuleBodyDefinitionNode extends RubyNode {
 
         final LexicalScope parentLexicalScope = RubyArguments.getMethod(frame).getLexicalScope();
         final LexicalScope lexicalScope = prepareLexicalScope(staticLexicalScope, parentLexicalScope, module);
-        final DeclarationContext declarationContext = new DeclarationContext(Visibility.PUBLIC, new DeclarationContext.FixedDefaultDefinee(module));
+        final DeclarationContext declarationContext = new DeclarationContext(
+                Visibility.PUBLIC,
+                new DeclarationContext.FixedDefaultDefinee(module),
+                RubyArguments.getDeclarationContext(frame).getRefinements());
         return new InternalMethod(getContext(), sharedMethodInfo, lexicalScope, declarationContext, name, module, Visibility.PUBLIC, false, null, callTarget, capturedBlock);
     }
 

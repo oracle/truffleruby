@@ -14,6 +14,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
+import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.Visibility;
@@ -30,6 +31,7 @@ public abstract class AddMethodNode extends RubyBaseNode {
     private final boolean ignoreNameVisibility;
 
     @Child private SingletonClassNode singletonClassNode;
+    @Child private LookupMethodNode lookupMethodNode;
 
     public AddMethodNode(boolean ignoreNameVisibility) {
         this.ignoreNameVisibility = ignoreNameVisibility;
@@ -44,14 +46,34 @@ public abstract class AddMethodNode extends RubyBaseNode {
             visibility = Visibility.PRIVATE;
         }
 
-        method = method.withVisibility(visibility);
+        if (Layouts.MODULE.getFields(module).isRefinement()) {
+            final DynamicObject refinedClass = Layouts.MODULE.getFields(module).getRefinedClass();
+            addRefinedMethodEntry(refinedClass, method, visibility);
+        }
 
+        doAddMethod(module, method, visibility);
+    }
+
+    @TruffleBoundary
+    private void addRefinedMethodEntry(DynamicObject module, InternalMethod method, Visibility visibility) {
+        final MethodLookupResult result = ModuleOperations.lookupMethodCached(module, method.getName(), null);
+        final InternalMethod originalMethod = result.getMethod();
+        if (originalMethod == null) {
+            doAddMethod(module, method.withRefined(true).withOriginalMethod(null), visibility);
+        } else if (originalMethod.isRefined()) {
+            // Already marked as refined
+        } else {
+            doAddMethod(module, originalMethod.withRefined(true).withOriginalMethod(originalMethod), visibility);
+        }
+    }
+
+    private void doAddMethod(DynamicObject module, InternalMethod method, Visibility visibility) {
         if (visibility == Visibility.MODULE_FUNCTION) {
             addMethodToModule(module, method.withVisibility(Visibility.PRIVATE));
             final DynamicObject singletonClass = getSingletonClass(module);
             addMethodToModule(singletonClass, method.withDeclaringModule(singletonClass).withVisibility(Visibility.PUBLIC));
         } else {
-            addMethodToModule(module, method);
+            addMethodToModule(module, method.withVisibility(visibility));
         }
     }
 

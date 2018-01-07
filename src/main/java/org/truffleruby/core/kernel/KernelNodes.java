@@ -574,7 +574,8 @@ public abstract class KernelNodes {
                     RubyArguments.getDeclarationContext(parentFrame),
                     rootNode.getRootNode().getSharedMethodInfo().getName(),
                     RubyArguments.getMethod(parentFrame).getDeclaringModule(),
-                    Visibility.PUBLIC, callTarget);
+                    Visibility.PUBLIC,
+                    callTarget);
 
             return callNode.call(RubyArguments.pack(parentFrame, null, method, null, self, null, RubyNode.EMPTY_ARGUMENTS));
         }

@@ -79,9 +79,22 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     private boolean hasFullName = false;
     private String name = null;
 
+    /** Whether this is a refinement module (R), created by #refine */
+    private boolean isRefinement = false;
+    /** The class (C) refined by this refinement module */
+    private DynamicObject refinedClass;
+    /** The namespace module (M) around the #refine call */
+    private DynamicObject refinementNamespace;
+
     private final ConcurrentMap<String, InternalMethod> methods = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, RubyConstant> constants = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, Object> classVariables = new ConcurrentHashMap<>();
+
+    /**
+     * The refinements (calls to Module#refine) nested under/contained in this namespace module (M).
+     * Represented as a map of refined classes (C) to refinement modules (R).
+     */
+    private final ConcurrentMap<DynamicObject, DynamicObject> refinements = new ConcurrentHashMap<>();
 
     private final CyclicAssumption methodsUnmodifiedAssumption;
     private final CyclicAssumption constantsUnmodifiedAssumption;
@@ -389,15 +402,30 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public void removeMethod(String methodName) {
-        methods.remove(methodName);
+    public boolean removeMethod(String methodName) {
+        final InternalMethod method = getMethod(methodName);
+        if (method == null) {
+            return false;
+        }
+
+        if (method.isRefined()) {
+            if (method.getOriginalMethod() == null) {
+                return false;
+            } else {
+                methods.put(methodName, method.withOriginalMethod(null));
+            }
+        } else {
+            methods.remove(methodName);
+        }
+
         newMethodsVersion();
         changedMethod(methodName);
+        return true;
     }
 
     @TruffleBoundary
     public void undefMethod(RubyContext context, Node currentNode, String methodName) {
-        final InternalMethod method = ModuleOperations.lookupMethodUncached(rubyModuleObject, methodName);
+        final InternalMethod method = ModuleOperations.lookupMethodUncached(rubyModuleObject, methodName, null);
         if (method == null || method.isUndefined()) {
             throw new RaiseException(context.getCoreExceptions().nameErrorUndefinedMethod(
                     methodName,
@@ -414,14 +442,14 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
      */
     @TruffleBoundary
     public InternalMethod deepMethodSearch(RubyContext context, String name) {
-        InternalMethod method = ModuleOperations.lookupMethodUncached(rubyModuleObject, name);
+        InternalMethod method = ModuleOperations.lookupMethodUncached(rubyModuleObject, name, null);
         if (method != null && !method.isUndefined()) {
             return method;
         }
 
         // Also search on Object if we are a Module. JRuby calls it deepMethodSearch().
         if (!RubyGuards.isRubyClass(rubyModuleObject)) { // TODO: handle undefined methods
-            method = ModuleOperations.lookupMethodUncached(context.getCoreLibrary().getObjectClass(), name);
+            method = ModuleOperations.lookupMethodUncached(context.getCoreLibrary().getObjectClass(), name, null);
 
             if (method != null && !method.isUndefined()) {
                 return method;
@@ -529,6 +557,24 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         return hasFullName() || givenBaseName != null;
     }
 
+    public boolean isRefinement() {
+        return isRefinement;
+    }
+
+    public void setupRefinementModule(DynamicObject refinedClass, DynamicObject refinementNamespace) {
+        this.isRefinement = true;
+        this.refinedClass = refinedClass;
+        this.refinementNamespace = refinementNamespace;
+    }
+
+    public DynamicObject getRefinedClass() {
+        return refinedClass;
+    }
+
+    public DynamicObject getRefinementNamespace() {
+        return refinementNamespace;
+    }
+
     @Override
     public String toString() {
         return super.toString() + "(" + getName() + ")";
@@ -580,6 +626,10 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
 
     public ConcurrentMap<String, Object> getClassVariables() {
         return classVariables;
+    }
+
+    public ConcurrentMap<DynamicObject, DynamicObject> getRefinements() {
+        return refinements;
     }
 
     public ModuleChain getParentModule() {

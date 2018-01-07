@@ -42,6 +42,8 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.NonStandard;
+import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.RaiseIfFrozenNode;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNode;
@@ -94,6 +96,8 @@ import org.truffleruby.language.methods.GetCurrentVisibilityNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.DeclarationContext.FixedDefaultDefinee;
+import org.truffleruby.language.methods.UsingNode;
+import org.truffleruby.language.methods.UsingNodeGen;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsANodeGen;
 import org.truffleruby.language.objects.IsFrozenNode;
@@ -109,9 +113,13 @@ import org.truffleruby.parser.Translator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 
 @CoreClass("Module")
 public abstract class ModuleNodes {
@@ -1267,7 +1275,7 @@ public abstract class ModuleNodes {
         public boolean isMethodDefined(DynamicObject module, String name, boolean inherit) {
             final InternalMethod method;
             if (inherit) {
-                method = ModuleOperations.lookupMethodUncached(module, name);
+                method = ModuleOperations.lookupMethodUncached(module, name, null);
             } else {
                 method = Layouts.MODULE.getFields(module).getMethod(name);
             }
@@ -1437,7 +1445,7 @@ public abstract class ModuleNodes {
         public DynamicObject publicInstanceMethod(DynamicObject module, String name,
                 @Cached("create()") BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
-            final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name);
+            final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
 
             if (method == null || method.isUndefined()) {
                 errorProfile.enter();
@@ -1593,7 +1601,7 @@ public abstract class ModuleNodes {
         public DynamicObject instanceMethod(DynamicObject module, String name,
                 @Cached("create()") BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
-            final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name);
+            final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
 
             if (method == null || method.isUndefined()) {
                 errorProfile.enter();
@@ -1731,8 +1739,7 @@ public abstract class ModuleNodes {
         private void removeMethod(VirtualFrame frame, DynamicObject module, String name) {
             isFrozenNode.raiseIfFrozen(module);
 
-            if (Layouts.MODULE.getFields(module).getMethod(name) != null) {
-                Layouts.MODULE.getFields(module).removeMethod(name);
+            if (Layouts.MODULE.getFields(module).removeMethod(name)) {
                 if (RubyGuards.isSingletonClass(module)) {
                     final DynamicObject receiver = Layouts.CLASS.getAttached(module);
                     methodRemovedNode.call(frame, receiver, "singleton_method_removed", getSymbol(name));
@@ -1757,6 +1764,7 @@ public abstract class ModuleNodes {
         public DynamicObject toS(VirtualFrame frame, DynamicObject module) {
 
             final String moduleName;
+            final ModuleFields fields = Layouts.MODULE.getFields(module);
             if (RubyGuards.isSingletonClass(module)) {
                 final DynamicObject attached = Layouts.CLASS.getAttached(module);
                 final String name;
@@ -1769,11 +1777,15 @@ public abstract class ModuleNodes {
                         "Truffle::Type.rb_inspect(val)", "val", attached);
                     name = StringOperations.getString(inspectResult);
                 } else {
-                    name = Layouts.MODULE.getFields(module).getName();
+                    name = fields.getName();
                 }
                 moduleName = "#<Class:" + name + ">";
+            } else if (fields.isRefinement()) {
+                final String refinedClass = Layouts.MODULE.getFields(fields.getRefinedClass()).getName();
+                final String refinementNamespace = Layouts.MODULE.getFields(fields.getRefinementNamespace()).getName();
+                moduleName = "#<refinement:" + refinedClass + "@" + refinementNamespace + ">";
             } else {
-                moduleName = Layouts.MODULE.getFields(module).getName();
+                moduleName = fields.getName();
             }
 
             // TODO BJF Aug 31, 2016 Add refinements to_s
@@ -1808,6 +1820,47 @@ public abstract class ModuleNodes {
             } else {
                 methodUndefinedNode.call(frame, module, "method_undefined", getSymbol(name));
             }
+        }
+
+    }
+
+    @CoreMethod(names = "used_modules", onSingleton = true)
+    public abstract static class UsedModulesNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject usedModules() {
+            final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_ONLY);
+            final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
+            final Set<DynamicObject> refinementNamespaces = new HashSet<>();
+            for (DynamicObject refinementModules[] : declarationContext.getRefinements().values()) {
+                for (DynamicObject refinementModule : refinementModules) {
+                    refinementNamespaces.add(Layouts.MODULE.getFields(refinementModule).getRefinementNamespace());
+                }
+            }
+            final Object[] refinements = refinementNamespaces.toArray(new Object[refinementNamespaces.size()]);
+            return createArray(refinements, refinements.length);
+        }
+
+    }
+
+    @NonStandard
+    @CoreMethod(names = "used_refinements", onSingleton = true)
+    public abstract static class UsedRefinementsNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject usedRefinements() {
+            final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_ONLY);
+            final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
+            final Set<DynamicObject> refinements = new HashSet<>();
+            for (DynamicObject refinementModules[] : declarationContext.getRefinements().values()) {
+                for (DynamicObject refinementModule : refinementModules) {
+                    refinements.add(refinementModule);
+                }
+            }
+            final Object[] refinementsArray = refinements.toArray(new Object[refinements.size()]);
+            return createArray(refinementsArray, refinementsArray.length);
         }
 
     }
@@ -1873,6 +1926,74 @@ public abstract class ModuleNodes {
              * to this module.
              */
             addMethodNode.executeAddMethod(module, method, visibility);
+        }
+
+    }
+
+    @CoreMethod(names = "refine", needsBlock = true, required = 1, visibility = Visibility.PRIVATE)
+    public abstract static class RefineNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private CallBlockNode callBlockNode = CallBlockNode.create();
+
+        @Specialization
+        protected DynamicObject refine(DynamicObject self, DynamicObject classToRefine, NotProvided block) {
+            throw new RaiseException(coreExceptions().argumentError("no block given", this));
+        }
+
+        @Specialization(guards = "!isRubyClass(classToRefine)")
+        protected DynamicObject refineNotClass(DynamicObject self, Object classToRefine, DynamicObject block) {
+            throw new RaiseException(coreExceptions().typeErrorWrongArgumentType(classToRefine, "Class", this));
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyClass(classToRefine)")
+        protected DynamicObject refine(DynamicObject namespace, DynamicObject classToRefine, DynamicObject block) {
+            final ConcurrentMap<DynamicObject, DynamicObject> refinements = Layouts.MODULE.getFields(namespace).getRefinements();
+            final DynamicObject refinement = ConcurrentOperations.getOrCompute(refinements, classToRefine, klass -> newRefinementModule(namespace, classToRefine));
+
+            // Apply the existing refinements in this namespace and the new refinement inside the refine block
+            final Map<DynamicObject, DynamicObject[]> refinementsInDeclarationContext = new HashMap<>();
+            for (Entry<DynamicObject, DynamicObject> existingRefinement : refinements.entrySet()) {
+                refinementsInDeclarationContext.put(existingRefinement.getKey(), new DynamicObject[]{ existingRefinement.getValue() });
+            }
+            refinementsInDeclarationContext.put(classToRefine, new DynamicObject[]{ refinement });
+            final DeclarationContext declarationContext = new DeclarationContext(Visibility.PUBLIC, new FixedDefaultDefinee(refinement), refinementsInDeclarationContext);
+
+            // Update methods in existing refinements in this namespace to also see this new refine block's refinements
+            for (DynamicObject existingRefinement : refinements.values()) {
+                final ModuleFields fields = Layouts.MODULE.getFields(existingRefinement);
+                for (InternalMethod refinedMethodInExistingRefinement : fields.getMethods()) {
+                    fields.addMethod(getContext(), this, refinedMethodInExistingRefinement.withDeclarationContext(declarationContext));
+                }
+            }
+
+            callBlockNode.executeCallBlock(declarationContext, block, refinement, Layouts.PROC.getBlock(block), EMPTY_ARGUMENTS);
+            return refinement;
+        }
+
+        private DynamicObject newRefinementModule(DynamicObject namespace, DynamicObject classToRefine) {
+            final DynamicObject refinement = createModule(getContext(), getEncapsulatingSourceSection(), coreLibrary().getModuleClass(), null, null, this);
+            final ModuleFields refinementFields = Layouts.MODULE.getFields(refinement);
+            refinementFields.setupRefinementModule(classToRefine, namespace);
+            return refinement;
+        }
+
+    }
+
+    @CoreMethod(names = "using", required = 1, visibility = Visibility.PRIVATE)
+    public abstract static class ModuleUsingNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private UsingNode usingNode = UsingNodeGen.create();
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject moduleUsing(DynamicObject self, DynamicObject refinementModule) {
+            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_ONLY);
+            if (self != RubyArguments.getSelf(callerFrame)) {
+                throw new RaiseException(coreExceptions().runtimeError("Module#using is not called on self", this));
+            }
+            usingNode.executeUsing(refinementModule);
+            return self;
         }
 
     }
