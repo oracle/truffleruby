@@ -27,8 +27,10 @@ public class RopeCache {
     private final Hashing hashing;
 
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
-    private final WeakHashMap<StringKey, BytesKey> stringsTable = new WeakHashMap<>();
-    private final WeakHashMap<BytesKey, WeakReference<Rope>> ropesTable = new WeakHashMap<>();
+
+    private final WeakHashMap<StringKey, BytesKey> javaStringToBytes = new WeakHashMap<>();
+    private final WeakHashMap<BytesKey, WeakReference<Rope>> bytesToRope = new WeakHashMap<>();
+
     private final Set<BytesKey> keys = new HashSet<>();
 
     private int byteArrayReusedCount;
@@ -58,10 +60,10 @@ public class RopeCache {
         lock.readLock().lock();
 
         try {
-            final BytesKey key = stringsTable.get(stringKey);
+            final BytesKey key = javaStringToBytes.get(stringKey);
 
             if (key != null) {
-                final WeakReference<Rope> ropeReference = ropesTable.get(key);
+                final WeakReference<Rope> ropeReference = bytesToRope.get(key);
 
                 if (ropeReference != null) {
                     final Rope rope = ropeReference.get();
@@ -80,18 +82,18 @@ public class RopeCache {
         try {
             final Rope rope = StringOperations.encodeRope(string, UTF8Encoding.INSTANCE);
 
-            BytesKey key = stringsTable.get(stringKey);
+            BytesKey key = javaStringToBytes.get(stringKey);
 
             if (key == null) {
                 key = new BytesKey(rope.getBytes(), UTF8Encoding.INSTANCE, hashing);
-                stringsTable.put(stringKey, key);
+                javaStringToBytes.put(stringKey, key);
             }
 
-            WeakReference<Rope> ropeReference = ropesTable.get(key);
+            WeakReference<Rope> ropeReference = bytesToRope.get(key);
 
             if (ropeReference == null || ropeReference.get() == null) {
                 ropeReference = new WeakReference<>(rope);
-                ropesTable.put(key, ropeReference);
+                bytesToRope.put(key, ropeReference);
             }
 
             return rope;
@@ -107,7 +109,7 @@ public class RopeCache {
         lock.readLock().lock();
 
         try {
-            final WeakReference<Rope> ropeReference = ropesTable.get(key);
+            final WeakReference<Rope> ropeReference = bytesToRope.get(key);
 
             if (ropeReference != null) {
                 final Rope rope = ropeReference.get();
@@ -133,7 +135,7 @@ public class RopeCache {
         lock.writeLock().lock();
 
         try {
-            final WeakReference<Rope> ropeReference = ropesTable.get(key);
+            final WeakReference<Rope> ropeReference = bytesToRope.get(key);
 
             if (ropeReference != null) {
                 final Rope rope = ropeReference.get();
@@ -160,7 +162,7 @@ public class RopeCache {
                 rope = RopeOperations.create(bytes, encoding, codeRange);
             }
 
-            ropesTable.put(key, new WeakReference<>(rope));
+            bytesToRope.put(key, new WeakReference<>(rope));
 
             // TODO (nirvdrum 30-Mar-16): Revisit this. The purpose is to keep all keys live so the weak rope table never expunges results. We don't want that -- we want something that naturally ties to lifetime. Unfortunately, the old approach expunged live values because the key is synthetic.
             keys.add(key);
@@ -177,7 +179,7 @@ public class RopeCache {
         lock.readLock().lock();
 
         try {
-            return ropesTable.get(key) != null;
+            return bytesToRope.get(key) != null;
         } finally {
             lock.readLock().unlock();
         }
@@ -196,7 +198,7 @@ public class RopeCache {
     }
 
     public int totalRopes() {
-        return ropesTable.size();
+        return bytesToRope.size();
     }
 
 }
