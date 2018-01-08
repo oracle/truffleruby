@@ -43,6 +43,10 @@ public class RopeTable {
         return getRope(string);
     }
 
+    public Rope getRope(Rope string) {
+        return getRope(string.getBytes(), string.getEncoding(), string.getCodeRange());
+    }
+
     public Rope getRope(Rope string, CodeRange codeRange) {
         return getRope(string.getBytes(), string.getEncoding(), codeRange);
     }

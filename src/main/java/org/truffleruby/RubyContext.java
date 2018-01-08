@@ -199,7 +199,7 @@ public class RubyContext {
         coreLibrary.initialize();
         Launcher.printTruffleTimeMetric("after-create-core-library");
 
-        symbolTable = new SymbolTable(coreLibrary.getSymbolFactory(), hashing);
+        symbolTable = new SymbolTable(ropeTable, coreLibrary.getSymbolFactory(), hashing);
         rootLexicalScope = new LexicalScope(null, coreLibrary.getObjectClass());
 
         // Create objects that need core classes
