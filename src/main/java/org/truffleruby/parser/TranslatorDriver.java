@@ -271,7 +271,7 @@ public class TranslatorDriver {
     }
 
     public RootParseNode parseToJRubyAST(Source source, DynamicScope blockScope, ParserConfiguration configuration) {
-        LexerSource ByteListLexerSource = new LexerSource(source, configuration.getLineNumber(), configuration.getDefaultEncoding());
+        LexerSource lexerSource = new LexerSource(source, configuration.getLineNumber(), configuration.getDefaultEncoding());
         // We only need to pass in current scope if we are evaluating as a block (which
         // is only done for evals).  We need to pass this in so that we can appropriately scope
         // down to captured scopes when we are parsing.
@@ -279,7 +279,7 @@ public class TranslatorDriver {
             configuration.parseAsBlock(blockScope);
         }
 
-        RubyParser parser = new RubyParser(context, ByteListLexerSource, new RubyWarnings(configuration.getContext()));
+        RubyParser parser = new RubyParser(context, lexerSource, new RubyWarnings(configuration.getContext()));
         RubyParserResult result;
         try {
             result = parser.parse(configuration);
