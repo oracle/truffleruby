@@ -241,12 +241,10 @@ public class Launcher {
 
     public static String getVersionString(boolean isGraal) {
         return String.format(
-                "%s %s, like ruby %s (%s revision %s) <%s %s %s> [%s-%s]",
+                "%s %s, like ruby %s <%s %s %s> [%s-%s]",
                 ENGINE_ID,
                 ENGINE_VERSION,
                 LANGUAGE_VERSION,
-                BuildInformationImpl.INSTANCE.getCompileDate(),
-                BuildInformationImpl.INSTANCE.getRevision(),
                 IS_NATIVE ? "native" : System.getProperty("java.vm.name", "unknown JVM"),
                 IS_NATIVE ? "build" : System.getProperty(
                         "java.runtime.version",
