@@ -25,7 +25,7 @@ TruffleReport defines these constants for identification:
 - `RUBY_REVISION` is the compatible MRI version revision
 - `RUBY_PATCHLEVEL` is always zero
 - `RUBY_RELEASE_DATE` is the Git commit date
-- `RUBY_ENGINE_VERSION` is the GraalVM version, or the Git commit hash if your build is not part of a GraalVM release.
+- `RUBY_ENGINE_VERSION` is the GraalVM version, or `0.0-` and the Git commit hash if your build is not part of a GraalVM release.
 
 Additionally, TruffleRuby defines
 
