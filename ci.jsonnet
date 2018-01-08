@@ -478,7 +478,9 @@
 
   deploy_and_specs_linux: {
     run: deploy_binaries +
-      jt(["test", "specs", "-Gci"]),
+      jt(["test", "specs", "-Gci"]) +
+      jt(["test", "specs", ":ruby24"]) +
+      jt(["test", "specs", ":ruby25"]),
     timelimit: "30:00"
   },
 
