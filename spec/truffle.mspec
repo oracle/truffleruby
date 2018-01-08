@@ -95,6 +95,16 @@ class MSpecScript
     "spec/truffle"
   ]
 
+  set :ruby24, [
+    "spec/ruby/core/integer/digits_spec.rb",
+    "spec/ruby/core/regexp/match_spec.rb",
+    "spec/ruby/core/string/match_spec.rb",
+  ]
+
+  set :ruby25, [
+    "spec/ruby/core/kernel/yield_self_spec.rb",
+  ]
+
   set :backtrace_filter, /mspec\//
 
   set :tags_patterns, [
@@ -131,6 +141,14 @@ class MSpecScript
   MSpec.enable_feature :readline
 
   set :files, get(:command_line) + get(:language) + get(:core) + get(:library) + get(:truffle) + get(:security)
+end
+
+if MSpecScript.child_process?
+  if ARGV.include? ":ruby24"
+    ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("2.4.3")
+  elsif ARGV.include? ":ruby25"
+    ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("2.5.0")
+  end
 end
 
 if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and MSpecScript.child_process?
