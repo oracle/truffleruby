@@ -38,7 +38,7 @@ public class CoreString {
         if (rope == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
 
-            rope = context.getRopeTable().getRope(
+            rope = context.getRopeCache().getRope(
                     literal.getBytes(StandardCharsets.US_ASCII),
                     ASCIIEncoding.INSTANCE,
                     CodeRange.CR_7BIT);

@@ -33,7 +33,7 @@ import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.rope.RopeKey;
-import org.truffleruby.core.rope.RopeTable;
+import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.symbol.SymbolTable;
@@ -105,7 +105,7 @@ public class RubyContext {
 
     private final SecureRandom random;
     private final Hashing hashing;
-    private final RopeTable ropeTable;
+    private final RopeCache ropeCache;
     private final TruffleNFIPlatform truffleNFIPlatform;
     private final CoreLibrary coreLibrary;
     private CoreMethods coreMethods;
@@ -156,7 +156,7 @@ public class RubyContext {
         }
 
         hashing = new Hashing(hashingSeed);
-        ropeTable = new RopeTable(hashing);
+        ropeCache = new RopeCache(hashing);
 
         try {
             rubyHome = findRubyHome();
@@ -199,7 +199,7 @@ public class RubyContext {
         coreLibrary.initialize();
         Launcher.printTruffleTimeMetric("after-create-core-library");
 
-        symbolTable = new SymbolTable(ropeTable, coreLibrary.getSymbolFactory(), hashing);
+        symbolTable = new SymbolTable(ropeCache, coreLibrary.getSymbolFactory(), hashing);
         rootLexicalScope = new LexicalScope(null, coreLibrary.getObjectClass());
 
         // Create objects that need core classes
@@ -315,10 +315,10 @@ public class RubyContext {
 
     private void doShutdown() {
         if (options.ROPE_PRINT_INTERN_STATS) {
-            Log.LOGGER.info("ropes re-used: " + getRopeTable().getRopesReusedCount());
-            Log.LOGGER.info("rope byte arrays re-used: " + getRopeTable().getByteArrayReusedCount());
-            Log.LOGGER.info("rope bytes saved: " + getRopeTable().getRopeBytesSaved());
-            Log.LOGGER.info("total ropes interned: " + getRopeTable().totalRopes());
+            Log.LOGGER.info("ropes re-used: " + getRopeCache().getRopesReusedCount());
+            Log.LOGGER.info("rope byte arrays re-used: " + getRopeCache().getByteArrayReusedCount());
+            Log.LOGGER.info("rope bytes saved: " + getRopeCache().getRopeBytesSaved());
+            Log.LOGGER.info("total ropes interned: " + getRopeCache().totalRopes());
         }
 
         if (options.COVERAGE_GLOBAL) {
@@ -409,8 +409,8 @@ public class RubyContext {
         return sourceLoader;
     }
 
-    public RopeTable getRopeTable() {
-        return ropeTable;
+    public RopeCache getRopeCache() {
+        return ropeCache;
     }
 
     public SymbolTable getSymbolTable() {

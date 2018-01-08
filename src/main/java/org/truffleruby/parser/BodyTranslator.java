@@ -508,7 +508,7 @@ public class BodyTranslator extends Translator {
             final Rope nodeRope = strNode.getValue();
             final CodeRange codeRange = strNode.getCodeRange();
 
-            final Rope rope = context.getRopeTable().getRope(nodeRope, codeRange);
+            final Rope rope = context.getRopeCache().getRope(nodeRope, codeRange);
 
             final DynamicObject frozenString = context.getFrozenStrings().getFrozenString(rope);
 
@@ -2997,7 +2997,7 @@ public class BodyTranslator extends Translator {
 
         final Rope nodeRope = node.getValue();
         final CodeRange codeRange = node.getCodeRange();
-        final Rope rope = context.getRopeTable().getRope(nodeRope, codeRange);
+        final Rope rope = context.getRopeCache().getRope(nodeRope, codeRange);
 
         final RubyNode ret;
 

@@ -98,7 +98,7 @@ public class EncodingManager {
         assert end == name.length : "Ropes must have the same exact length as the name array (len = " + end + "; name.length = " + name.length + ")";
 
         final Rope rope = RopeOperations.create(name, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-        final Rope cachedRope = context.getRopeTable().getRope(rope.getBytes(), rope.getEncoding(), rope.getCodeRange());
+        final Rope cachedRope = context.getRopeCache().getRope(rope.getBytes(), rope.getEncoding(), rope.getCodeRange());
         final DynamicObject string = context.getFrozenStrings().getFrozenString(cachedRope);
 
         return Layouts.ENCODING.createEncoding(context.getCoreLibrary().getEncodingFactory(), encoding, string, dummy);

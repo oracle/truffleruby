@@ -21,7 +21,7 @@ import org.truffleruby.core.Hashing;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeKey;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.rope.RopeTable;
+import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.rope.StringKey;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
@@ -38,7 +38,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class SymbolTable {
 
-    private final RopeTable ropeTable;
+    private final RopeCache ropeCache;
     private final DynamicObjectFactory symbolFactory;
     private final Hashing hashing;
 
@@ -52,8 +52,8 @@ public class SymbolTable {
     // deduplicate symbols
     private final Map<SymbolEquality, Reference<DynamicObject>> symbolSet = new WeakHashMap<>();
 
-    public SymbolTable(RopeTable ropeTable, DynamicObjectFactory symbolFactory, Hashing hashing) {
-        this.ropeTable = ropeTable;
+    public SymbolTable(RopeCache ropeCache, DynamicObjectFactory symbolFactory, Hashing hashing) {
+        this.ropeCache = ropeCache;
         this.symbolFactory = symbolFactory;
         this.hashing = hashing;
     }
@@ -150,7 +150,7 @@ public class SymbolTable {
         final DynamicObject symbol = Layouts.SYMBOL.createSymbol(
                 symbolFactory,
                 string,
-                ropeTable.getRope(rope),
+                ropeCache.getRope(rope),
                 hashing.hash(CLASS_SALT, string.hashCode()),
                 equalityWrapper);
 

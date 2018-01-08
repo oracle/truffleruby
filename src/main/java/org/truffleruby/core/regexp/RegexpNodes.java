@@ -756,7 +756,7 @@ public abstract class RegexpNodes {
             for (final Iterator<NameEntry> iter = Layouts.REGEXP.getRegex(regexp).namedBackrefIterator(); iter.hasNext();) {
                 final NameEntry e = iter.next();
                 final byte[] bytes = Arrays.copyOfRange(e.name, e.nameP, e.nameEnd);
-                final Rope rope = getContext().getRopeTable().getRope(bytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+                final Rope rope = getContext().getRopeCache().getRope(bytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
                 final DynamicObject name = getContext().getFrozenStrings().getFrozenString(rope);
 
                 final int[] backrefs = e.getBackRefs();

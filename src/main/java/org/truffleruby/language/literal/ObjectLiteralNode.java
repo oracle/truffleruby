@@ -48,7 +48,7 @@ public class ObjectLiteralNode extends RubyNode {
             return true;
         }
 
-        assert getContext().getRopeTable().contains(rope);
+        assert getContext().getRopeCache().contains(rope);
 
         return true;
     }
