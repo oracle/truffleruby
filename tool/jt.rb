@@ -446,6 +446,9 @@ module Commands
       jt test specs fast                             run all specs except sub-processes, GC, sleep, ...
       jt test spec/ruby/language                     run specs in this directory
       jt test spec/ruby/language/while_spec.rb       run specs in this file
+      jt test test/mri/tests/test_find.rb [-- <MRI runner options>]
+                                                     run tests in given file, -n option of the runner can be used to further 
+                                                     limit executed test methods 
       jt test compiler                               run compiler tests (uses the same logic as --graal to find Graal)
       jt test integration                            runs all integration tests
       jt test integration [TESTS]                    runs the given integration tests
@@ -869,6 +872,14 @@ module Commands
   private :jt
 
   def test_mri(*args)
+    double_dash_index = args.index '--'
+    if double_dash_index
+      runner_args = args[(double_dash_index + 1)..-1]
+      args        = args[0...double_dash_index]
+    else
+      runner_args = []
+    end
+
     if args.delete('--openssl')
       include_pattern = "#{TRUFFLERUBY_DIR}/test/mri/tests/openssl/test_*.rb"
       exclude_file = "#{TRUFFLERUBY_DIR}/test/mri/openssl.exclude"
@@ -915,11 +926,11 @@ module Commands
 
     files_to_run.sort!
 
-    run_mri_tests(args, files_to_run)
+    run_mri_tests(args, files_to_run, runner_args)
   end
   private :test_mri
 
-  def run_mri_tests(extra_args, test_files, run_options = {})
+  def run_mri_tests(extra_args, test_files, runner_args = [], run_options = {})
     truffle_args =  if extra_args.include?('--native')
                       %W[-XX:YoungGenerationSize=2G -XX:OldGenerationSize=4G -Xhome=#{TRUFFLERUBY_DIR}]
                     else
@@ -964,7 +975,7 @@ module Commands
 
     command = %w[test/mri/tests/runner.rb -v --color=never --tty=no -q]
     command.unshift("-I#{TRUFFLERUBY_DIR}/.ext")  if !cext_tests.empty?
-    run_ruby(env_vars, *truffle_args, *extra_args, *command, *test_files, run_options)
+    run_ruby(env_vars, *truffle_args, *extra_args, *command, *test_files, *runner_args, run_options)
   end
   private :run_mri_tests
 
@@ -981,7 +992,7 @@ module Commands
 
     puts "1. Tagging tests"
     output_file = "mri_tests.txt"
-    run_mri_tests(options, test_files, out: output_file, continue_on_failure: true)
+    run_mri_tests(options, test_files, [], out: output_file, continue_on_failure: true)
 
     puts "2. Parsing errors"
     sh "ruby", "tool/parse_mri_errors.rb", output_file
