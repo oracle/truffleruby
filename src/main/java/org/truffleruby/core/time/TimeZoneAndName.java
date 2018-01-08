@@ -59,7 +59,7 @@ public class TimeZoneAndName {
         if (name == null) {
             return context.getCoreLibrary().getNil();
         } else {
-            return StringOperations.createString(context, context.getRopeTable().getRope(name));
+            return StringOperations.createString(context, context.getRopeCache().getRope(name));
         }
     }
 }

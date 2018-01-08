@@ -607,7 +607,7 @@ public class RopeOperations {
             } else if (value instanceof Integer) {
                 valueRope = new LazyIntRope((int) value);
             } else if (value instanceof String) {
-                valueRope = context.getRopeTable().getRope((String) value);
+                valueRope = context.getRopeCache().getRope((String) value);
             } else {
                 throw new IllegalArgumentException();
             }

@@ -59,7 +59,7 @@ public class PrintfSimpleTreeBuilder {
                 final FormatNode valueNode;
 
                 if (config.getNamesBytes() != null) {
-                    final DynamicObject key = context.getSymbolTable().getSymbol(context.getRopeTable().getRope(config.getNamesBytes(), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
+                    final DynamicObject key = context.getSymbolTable().getSymbol(context.getRopeCache().getRope(config.getNamesBytes(), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
                     valueNode = ReadHashValueNodeGen.create(key, new SourceNode());
                 } else if (config.getAbsoluteArgumentIndex() != null) {
                     valueNode = ReadArgumentIndexValueNodeGen.create(config.getAbsoluteArgumentIndex(), new SourceNode());

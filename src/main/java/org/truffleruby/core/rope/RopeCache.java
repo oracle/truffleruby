@@ -22,7 +22,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class RopeTable {
+public class RopeCache {
 
     private final Hashing hashing;
 
@@ -35,7 +35,7 @@ public class RopeTable {
     private int ropesReusedCount;
     private int ropeBytesSaved;
 
-    public RopeTable(Hashing hashing) {
+    public RopeCache(Hashing hashing) {
         this.hashing = hashing;
     }
 

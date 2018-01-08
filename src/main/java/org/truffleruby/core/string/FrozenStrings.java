@@ -30,7 +30,7 @@ public class FrozenStrings {
     }
 
     public DynamicObject getFrozenString(Rope rope) {
-        assert context.getRopeTable().contains(rope);
+        assert context.getRopeCache().contains(rope);
 
         final RopeHolder holder = new RopeHolder(rope);
         DynamicObject string;

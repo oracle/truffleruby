@@ -49,7 +49,7 @@ public class ThreadBacktraceLocationNodes {
             if (path == null) {
                 return coreStrings().UNKNOWN.createInstance();
             } else {
-                return makeStringNode.fromRope(getContext().getRopeTable().getRope(path));
+                return makeStringNode.fromRope(getContext().getRopeCache().getRope(path));
             }
         }
 
@@ -77,7 +77,7 @@ public class ThreadBacktraceLocationNodes {
             if (path == null) {
                 return coreStrings().UNKNOWN.createInstance();
             } else {
-                return makeStringNode.fromRope(getContext().getRopeTable().getRope(path));
+                return makeStringNode.fromRope(getContext().getRopeCache().getRope(path));
             }
         }
 
