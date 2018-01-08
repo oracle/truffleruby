@@ -22,7 +22,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
 import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.HashSet;
@@ -46,7 +46,7 @@ public class BuildInformationProcessor extends AbstractProcessor {
             for (Element element : roundEnvironment.getElementsAnnotatedWith(PopulateBuildInformation.class)) {
                 try {
                     processBuildInformation((TypeElement) element);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     processingEnv.getMessager().printMessage(Kind.ERROR, e.getClass() + " " + e.getMessage(), element);
                 }
             }
@@ -55,7 +55,7 @@ public class BuildInformationProcessor extends AbstractProcessor {
         return true;
     }
 
-    private void processBuildInformation(TypeElement element) throws IOException {
+    private void processBuildInformation(TypeElement element) throws Exception {
         final PackageElement packageElement = (PackageElement) element.getEnclosingElement();
         final String packageName = packageElement.getQualifiedName().toString();
 
@@ -103,16 +103,18 @@ public class BuildInformationProcessor extends AbstractProcessor {
         }
     }
 
-    public String getRevision() throws IOException {
-        return runCommand("git rev-parse --short HEAD");
+    public String getRevision() throws Exception {
+        return runGitCommand("git rev-parse --short HEAD");
     }
 
-    public String getCompileDate() throws IOException {
-        return runCommand("git log -1 --date=short --pretty=format:%cd");
+    public String getCompileDate() throws Exception {
+        return runGitCommand("git log -1 --date=short --pretty=format:%cd");
     }
 
-    private static String runCommand(String command) throws IOException {
-        final Process git = Runtime.getRuntime().exec(command);
+    private String runGitCommand(String command) throws Exception {
+        final Process git = new ProcessBuilder(command.split("\\s+"))
+                .directory(new File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile())
+                .start();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(git.getInputStream()))) {
             return reader.readLine();
         }
