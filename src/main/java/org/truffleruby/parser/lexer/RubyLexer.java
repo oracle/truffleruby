@@ -3084,7 +3084,7 @@ public class RubyLexer {
     }
 
     protected boolean strncmp(Rope one, Rope two, int length) {
-        if (one.byteLength() < length || two.byteLength() < length) {
+        if (one.byteLength() != two.byteLength() && (one.byteLength() < length || two.byteLength() < length)) {
             return false;
         }
 
