@@ -18,7 +18,7 @@ run_directly = false
 modules = [
   BasicObject, Kernel, Object,
   Enumerable, Enumerator,
-  Numeric, Integer, Fixnum, Bignum,
+  Numeric, Fixnum, Bignum, # Integer,
   Array,
 ]
 # Hash, Range, String
