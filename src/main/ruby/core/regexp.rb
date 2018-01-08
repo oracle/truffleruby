@@ -417,3 +417,19 @@ Truffle::KernelOperations.define_hooked_variable_with_is_defined(
            match.post_match if match }),
   -> { raise SyntaxError, "Can't set variable $'"},
   Truffle::Graal.always_split( -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) }))
+
+Truffle::KernelOperations.define_hooked_variable_with_is_defined(
+  :$&,
+  Truffle::Graal.always_split(
+    -> b { match = Truffle::RegexpOperations.last_match(b)
+           match[0] if match }),
+  -> { raise SyntaxError, "Can't set variable $&"},
+  Truffle::Graal.always_split( -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) }))
+
+Truffle::KernelOperations.define_hooked_variable_with_is_defined(
+  :$+,
+  Truffle::Graal.always_split(
+    -> b { match = Truffle::RegexpOperations.last_match(b)
+           match.captures.reject { |m| m.nil? }.last if match }),
+  -> { raise SyntaxError, "Can't set variable $+"},
+  Truffle::Graal.always_split( -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) }))

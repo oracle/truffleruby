@@ -30,12 +30,6 @@ public class GlobalVariables {
 
     public static final Set<String> THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES = new HashSet<>(Arrays.asList("$_"));
 
-    public static final Set<String> BACKREF_GLOBAL_VARIABLES = new HashSet<>(Arrays.asList("$+", "$&"));
-
-    static {
-        READ_ONLY_GLOBAL_VARIABLES.addAll(BACKREF_GLOBAL_VARIABLES);
-    }
-
     private final DynamicObject defaultValue;
     private final ConcurrentMap<String, GlobalVariableStorage> variables = new ConcurrentHashMap<>();
     private final Map<String, String> aliases = new ConcurrentHashMap<>();

@@ -9,13 +9,16 @@
  */
 package org.truffleruby.parser;
 
-import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.List;
+
 import org.joni.NameEntry;
 import org.joni.Regex;
 import org.joni.Syntax;
@@ -51,9 +54,9 @@ import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.range.RangeNodesFactory;
 import org.truffleruby.core.regexp.InterpolatedRegexpNode;
+import org.truffleruby.core.regexp.MatchDataNodes.GetIndexNode;
 import org.truffleruby.core.regexp.RegexpNodes;
 import org.truffleruby.core.regexp.RegexpOptions;
-import org.truffleruby.core.regexp.MatchDataNodes.GetIndexNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
@@ -106,6 +109,7 @@ import org.truffleruby.language.globals.CheckLastLineNumberNode;
 import org.truffleruby.language.globals.CheckOutputSeparatorVariableTypeNode;
 import org.truffleruby.language.globals.CheckProgramNameVariableTypeNode;
 import org.truffleruby.language.globals.CheckRecordSeparatorVariableTypeNode;
+import org.truffleruby.language.globals.CheckSafeLevelNode;
 import org.truffleruby.language.globals.CheckStdoutVariableTypeNode;
 import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
@@ -127,12 +131,12 @@ import org.truffleruby.language.locals.InitFlipFlopSlotNode;
 import org.truffleruby.language.locals.LocalFlipFlopStateNode;
 import org.truffleruby.language.locals.LocalVariableType;
 import org.truffleruby.language.locals.ReadLocalVariableNode;
-import org.truffleruby.language.methods.LiteralMethodDefinitionNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.CatchBreakNode;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.GetDefaultDefineeNode;
+import org.truffleruby.language.methods.LiteralMethodDefinitionNode;
 import org.truffleruby.language.methods.ModuleBodyDefinitionNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
@@ -265,15 +269,13 @@ import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.platform.graal.AssertConstantNodeGen;
 import org.truffleruby.platform.graal.AssertNotCompiledNodeGen;
 
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.List;
+import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 
 /**
  * A JRuby parser node visitor which translates JRuby AST nodes into truffle Nodes. Therefore there is some namespace
@@ -1685,16 +1687,10 @@ public class BodyTranslator extends Translator {
 
 
         final RubyNode ret;
-        if (GlobalVariables.BACKREF_GLOBAL_VARIABLES.contains(name) || isLastMatchVariable(name)) {
+        if (isLastMatchVariable(name)) {
             final RubyNode readMatchNode = ReadGlobalVariableNodeGen.create("$~");
             final char type = name.charAt(1);
             switch (type) {
-                case '&':
-                    ret = new ReadMatchReferenceNodes.ReadMatchNode(readMatchNode);
-                    break;
-                case '+':
-                    ret = new ReadMatchReferenceNodes.ReadHighestMatchNode(readMatchNode);
-                    break;
                 default:
                     ret = new ReadMatchReferenceNodes.ReadNthMatchNode(readMatchNode, Integer.parseInt(name.substring(1)));
             }
