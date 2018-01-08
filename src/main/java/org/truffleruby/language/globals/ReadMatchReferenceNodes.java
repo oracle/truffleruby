@@ -9,10 +9,8 @@
  */
 package org.truffleruby.language.globals;
 
-import org.truffleruby.core.regexp.MatchDataNodes.ValuesNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.threadlocal.GetFromThreadAndFrameLocalStorageNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;

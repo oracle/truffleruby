@@ -138,6 +138,16 @@ class Regexp
     end
   end
 
+  def self.last_match(index=nil)
+    match = Truffle::RegexpOperations.last_match(Truffle.invoke_primitive(:caller_binding))
+    if index
+      Truffle::Type.coerce_to index, Fixnum, :to_int
+      match[index] if match
+    else
+      match
+    end
+  end
+
   def self.union(*patterns)
     case patterns.size
     when 0

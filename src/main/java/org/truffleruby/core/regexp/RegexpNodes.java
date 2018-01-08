@@ -56,7 +56,6 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -372,43 +371,6 @@ public abstract class RegexpNodes {
             int range = rope.byteLength();
             return matchNode.execute(regexp, dupedString, matcher, startPos, range, true);
         }
-    }
-
-    @CoreMethod(names = "last_match", onSingleton = true, optional = 1, lowerFixnum = 1)
-    public abstract static class LastMatchNode extends CoreMethodArrayArgumentsNode {
-
-        @Child ReadCallerFrameNode readCallerFrame = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
-        @Child FindThreadAndFrameLocalStorageNode threadLocalNode;
-        @CompilationFinal DynamicObject lastMatchSymbol;
-
-        @Specialization
-        public Object lastMatch(VirtualFrame frame, NotProvided index) {
-            return getMatchData(frame);
-        }
-
-        @Specialization
-        public Object lastMatch(VirtualFrame frame, int index,
-                                @Cached("create()") MatchDataNodes.GetIndexNode getIndexNode) {
-            final Object matchData = getMatchData(frame);
-
-            if (matchData == nil()) {
-                return nil();
-            } else {
-                return getIndexNode.executeGetIndex(frame, matchData, index, NotProvided.INSTANCE);
-            }
-        }
-
-        private Object getMatchData(VirtualFrame frame) {
-            if (threadLocalNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                lastMatchSymbol = getContext().getSymbolTable().getSymbol(LAST_MATCH_VARIABLE);
-                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create());
-            }
-            Frame callerFrame = readCallerFrame.execute(frame);
-            ThreadAndFrameLocalStorage lastMatch = threadLocalNode.execute(lastMatchSymbol, callerFrame.materialize());
-            return lastMatch.get();
-        }
-
     }
 
     @Primitive(name = "regexp_set_last_match", needsSelf = false)
