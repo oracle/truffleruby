@@ -180,6 +180,13 @@ class Integer < Numeric
     self - 1
   end
 
+  def digits(base = 10)
+    raise Math::DomainError, 'out of domain' if negative?
+    base = Truffle::Type.coerce_to_int(base)
+
+    to_s(base).chars.map(&:to_i).reverse
+  end
+
   private def upto_internal(val)
     return to_enum(:upto, val) { self <= val ? val - self + 1 : 0 } unless block_given?
 
