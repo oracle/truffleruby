@@ -60,7 +60,7 @@ public class ParserCache {
         } catch (IOException e) {
             throw new JavaException(e);
         }
-        return driver.parse(source, dynamicScope, parserConfiguration);
+        return driver.parseToJRubyAST(source, dynamicScope, parserConfiguration);
     }
 
     public RootParseNode lookup(String canonicalPath) {
