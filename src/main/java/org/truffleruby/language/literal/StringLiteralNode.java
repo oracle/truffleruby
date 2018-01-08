@@ -29,6 +29,7 @@ public class StringLiteralNode extends RubyNode {
     private final Rope rope;
 
     public StringLiteralNode(Rope rope) {
+        assert getContext().getRopeTable().contains(rope);
         this.rope = rope;
     }
 
