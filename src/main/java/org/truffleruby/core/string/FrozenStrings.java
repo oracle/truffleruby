@@ -13,7 +13,9 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.Rope;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -24,6 +26,8 @@ public class FrozenStrings {
 
     private final Map<RopeHolder, DynamicObject> frozenStrings = new WeakHashMap<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
+
+    private final Set<RopeHolder> keys = new HashSet<>();
 
     public FrozenStrings(RubyContext context) {
         this.context = context;
@@ -50,6 +54,8 @@ public class FrozenStrings {
             string = frozenStrings.get(holder);
             if (string == null) {
                 string = StringOperations.createFrozenString(context, rope);
+                // TODO CS 8-Jan-18 as in RopeCache the map is weak, but the key is a wrapper! So we just hold on to everything forever using this method.
+                keys.add(holder);
                 frozenStrings.put(holder, string);
             }
         } finally {
