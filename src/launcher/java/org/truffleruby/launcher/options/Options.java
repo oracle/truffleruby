@@ -96,6 +96,7 @@ public class Options {
     public final int TIME_FORMAT_CACHE;
     public final int POW_CACHE;
     public final int ARRAY_DUP_CACHE;
+    public final int FRAME_VARIABLE_ACCESS_CACHE;
     public final boolean CLONE_DEFAULT;
     public final boolean INLINE_DEFAULT;
     public final boolean CORE_ALWAYS_CLONE;
@@ -133,7 +134,6 @@ public class Options {
     public final boolean OPTIONS_LOG;
     public final boolean LOG_LOAD;
     public final boolean LOG_FEATURE_LOCATION;
-    public final int FRAME_VARIABLE_ACCESS_LIMIT;
     
     Options(OptionsBuilder builder) {
         HOME = builder.getOrDefault(OptionsCatalog.HOME);
@@ -216,6 +216,7 @@ public class Options {
         TIME_FORMAT_CACHE = builder.getOrDefault(OptionsCatalog.TIME_FORMAT_CACHE, DEFAULT_CACHE);
         POW_CACHE = builder.getOrDefault(OptionsCatalog.POW_CACHE, DEFAULT_CACHE);
         ARRAY_DUP_CACHE = builder.getOrDefault(OptionsCatalog.ARRAY_DUP_CACHE);
+        FRAME_VARIABLE_ACCESS_CACHE = builder.getOrDefault(OptionsCatalog.FRAME_VARIABLE_ACCESS_CACHE);
         CLONE_DEFAULT = builder.getOrDefault(OptionsCatalog.CLONE_DEFAULT);
         INLINE_DEFAULT = builder.getOrDefault(OptionsCatalog.INLINE_DEFAULT);
         CORE_ALWAYS_CLONE = builder.getOrDefault(OptionsCatalog.CORE_ALWAYS_CLONE, CLONE_DEFAULT);
@@ -253,7 +254,6 @@ public class Options {
         OPTIONS_LOG = builder.getOrDefault(OptionsCatalog.OPTIONS_LOG);
         LOG_LOAD = builder.getOrDefault(OptionsCatalog.LOG_LOAD);
         LOG_FEATURE_LOCATION = builder.getOrDefault(OptionsCatalog.LOG_FEATURE_LOCATION);
-        FRAME_VARIABLE_ACCESS_LIMIT = builder.getOrDefault(OptionsCatalog.FRAME_VARIABLE_ACCESS_LIMIT);
     }
 
     public Object fromDescription(OptionDescription<?> description) {
@@ -418,6 +418,8 @@ public class Options {
                 return POW_CACHE;
             case "ruby.array.dup.cache":
                 return ARRAY_DUP_CACHE;
+            case "ruby.frame.variable.access.cache":
+                return FRAME_VARIABLE_ACCESS_CACHE;
             case "ruby.clone.default":
                 return CLONE_DEFAULT;
             case "ruby.inline.default":
@@ -492,8 +494,6 @@ public class Options {
                 return LOG_LOAD;
             case "ruby.log.feature_location":
                 return LOG_FEATURE_LOCATION;
-            case "ruby.frame.variable.access.limit":
-                return FRAME_VARIABLE_ACCESS_LIMIT;
             default:
                 return null;
         }
