@@ -33,7 +33,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  *
- * Copyright (c) 2016 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2018 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -55,6 +55,7 @@ import org.joni.Option;
 import org.joni.Regex;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.ByteArrayBuilder;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -3087,7 +3088,7 @@ public class RubyLexer {
             return false;
         }
 
-        return parserRopeOperations.makeShared(one, 0, length).equals(parserRopeOperations.makeShared(two, 0, length));
+        return ArrayUtils.memcmp(one.getBytes(), 0, two.getBytes(), 0, length) == 0;
     }
 
     public void tokAdd(int first_byte, RopeBuilder buffer) {
