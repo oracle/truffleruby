@@ -416,6 +416,11 @@ public class OptionsCatalog {
             "Cache size for copying small arrays",
             null,
             3);
+    public static final IntegerOptionDescription FRAME_VARIABLE_ACCESS_CACHE = new IntegerOptionDescription(
+            "ruby.frame.variable.access.cache",
+            "Cache size for accessing variables in another frame",
+            null,
+            5);
     public static final BooleanOptionDescription CLONE_DEFAULT = new BooleanOptionDescription(
             "ruby.clone.default",
             "Default option for cloning",
@@ -601,11 +606,6 @@ public class OptionsCatalog {
             "Log the process of finding features",
             null,
             false);
-    public static final IntegerOptionDescription FRAME_VARIABLE_ACCESS_LIMIT = new IntegerOptionDescription(
-            "ruby.frame.variable.access.limit",
-            "Maximum number of specialisations for nodes which access variables in another frame",
-            null,
-            5);
     
     public static OptionDescription<?> fromName(String name) {
         switch (name) {
@@ -769,6 +769,8 @@ public class OptionsCatalog {
                 return POW_CACHE;
             case "ruby.array.dup.cache":
                 return ARRAY_DUP_CACHE;
+            case "ruby.frame.variable.access.cache":
+                return FRAME_VARIABLE_ACCESS_CACHE;
             case "ruby.clone.default":
                 return CLONE_DEFAULT;
             case "ruby.inline.default":
@@ -843,8 +845,6 @@ public class OptionsCatalog {
                 return LOG_LOAD;
             case "ruby.log.feature_location":
                 return LOG_FEATURE_LOCATION;
-            case "ruby.frame.variable.access.limit":
-                return FRAME_VARIABLE_ACCESS_LIMIT;
             default:
                 return null;
         }
@@ -932,6 +932,7 @@ public class OptionsCatalog {
             TIME_FORMAT_CACHE,
             POW_CACHE,
             ARRAY_DUP_CACHE,
+            FRAME_VARIABLE_ACCESS_CACHE,
             CLONE_DEFAULT,
             INLINE_DEFAULT,
             CORE_ALWAYS_CLONE,
@@ -969,7 +970,6 @@ public class OptionsCatalog {
             OPTIONS_LOG,
             LOG_LOAD,
             LOG_FEATURE_LOCATION,
-            FRAME_VARIABLE_ACCESS_LIMIT,
         };
     }
 

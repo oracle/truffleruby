@@ -32,7 +32,7 @@ public abstract class FindThreadAndFrameLocalStorageNode extends RubyBaseNode {
     public abstract ThreadAndFrameLocalStorage execute(DynamicObject symbol, MaterializedFrame frame);
 
     protected int getLimit() {
-        return getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT;
+        return getContext().getOptions().FRAME_VARIABLE_ACCESS_CACHE;
     }
 
     @Specialization(guards = { "symbol == cachedSymbol", "strategy.matches(frame)" }, limit = "getLimit()")

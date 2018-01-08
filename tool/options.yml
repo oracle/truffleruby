@@ -90,6 +90,7 @@ INTEROP_NEW_CACHE: [interop.new.cache, integer, DEFAULT_CACHE, Cache size for in
 TIME_FORMAT_CACHE: [time.format.cache, integer, DEFAULT_CACHE, Cache size for parsed time format specifiers]
 POW_CACHE: [integer.pow.cache, integer, DEFAULT_CACHE, Cache size for Integer#** with a constant exponent]
 ARRAY_DUP_CACHE: [array.dup.cache, integer, 3, Cache size for copying small arrays]
+FRAME_VARIABLE_ACCESS_CACHE: [frame.variable.access.cache, integer, 5, Cache size for accessing variables in another frame]
 
 CLONE_DEFAULT: [clone.default, boolean, true, Default option for cloning]
 INLINE_DEFAULT: [inline.default, boolean, true, Default option for inlining]
@@ -136,5 +137,3 @@ OPTIONS_LOG: [options.log, boolean, false, Log the final value of all options]
 
 LOG_LOAD: [log.load, boolean, false, Log loading files]
 LOG_FEATURE_LOCATION: [log.feature_location, boolean, false, Log the process of finding features]
-
-FRAME_VARIABLE_ACCESS_LIMIT: [frame.variable.access.limit, integer, 5, Maximum number of specialisations for nodes which access variables in another frame]
