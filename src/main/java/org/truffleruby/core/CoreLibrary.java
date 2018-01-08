@@ -57,6 +57,7 @@ import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.launcher.BuildInformationImpl;
 import org.truffleruby.launcher.Launcher;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.platform.NativeTypes;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.NativeConfiguration;
@@ -794,8 +795,9 @@ public class CoreLibrary {
 
             try {
                 for (int n = 0; n < CORE_FILES.length; n++) {
-                    final RubyRootNode rootNode = context.getCodeLoader().parse(
-                            context.getSourceLoader().load(getCoreLoadPath() + CORE_FILES[n]),
+                    final Source source = context.getSourceLoader().load(getCoreLoadPath() + CORE_FILES[n]);
+
+                    final RubyRootNode rootNode = context.getCodeLoader().parse(source,
                             UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
 
                     final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
@@ -805,7 +807,9 @@ public class CoreLibrary {
                             null,
                             context.getCoreLibrary().getMainObject());
 
+                    TranslatorDriver.printParseTranslateExecuteMetric("before-execute", context, source);
                     deferredCall.callWithoutCallNode();
+                    TranslatorDriver.printParseTranslateExecuteMetric("after-execute", context, source);
                 }
             } catch (IOException e) {
                 throw new JavaException(e);

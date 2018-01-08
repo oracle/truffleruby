@@ -134,6 +134,8 @@ public class Options {
     public final boolean OPTIONS_LOG;
     public final boolean LOG_LOAD;
     public final boolean LOG_FEATURE_LOCATION;
+    public final boolean METRICS_TIME_PARSING;
+    public final boolean METRICS_TIME_PARSING_FILE;
     
     Options(OptionsBuilder builder) {
         HOME = builder.getOrDefault(OptionsCatalog.HOME);
@@ -254,6 +256,8 @@ public class Options {
         OPTIONS_LOG = builder.getOrDefault(OptionsCatalog.OPTIONS_LOG);
         LOG_LOAD = builder.getOrDefault(OptionsCatalog.LOG_LOAD);
         LOG_FEATURE_LOCATION = builder.getOrDefault(OptionsCatalog.LOG_FEATURE_LOCATION);
+        METRICS_TIME_PARSING = builder.getOrDefault(OptionsCatalog.METRICS_TIME_PARSING);
+        METRICS_TIME_PARSING_FILE = builder.getOrDefault(OptionsCatalog.METRICS_TIME_PARSING_FILE);
     }
 
     public Object fromDescription(OptionDescription<?> description) {
@@ -494,6 +498,10 @@ public class Options {
                 return LOG_LOAD;
             case "ruby.log.feature_location":
                 return LOG_FEATURE_LOCATION;
+            case "ruby.metrics.time.parsing":
+                return METRICS_TIME_PARSING;
+            case "ruby.metrics.time.parsing.file":
+                return METRICS_TIME_PARSING_FILE;
             default:
                 return null;
         }
