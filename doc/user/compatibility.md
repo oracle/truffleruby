@@ -1,7 +1,7 @@
 # Compatibility
 
 TruffleRuby aims to be highly compatible with the standard implementation of
-Ruby, MRI, version 2.3.5.
+Ruby, MRI, version 2.3.5, revision 59905.
 
 Our policy is to match the behaviour of MRI, except where we do not know how to
 do so with good performance for typical Ruby programs. Some features work but
@@ -22,10 +22,14 @@ TruffleReport defines these constants for identification:
 
 - `RUBY_ENGINE` is `'truffleruby'`
 - `RUBY_VERSION` is the compatible MRI version
-- `RUBY_REVISION` is the Git commit hash
+- `RUBY_REVISION` is the compatible MRI version revision
 - `RUBY_PATCHLEVEL` is always zero
 - `RUBY_RELEASE_DATE` is the Git commit date
 - `RUBY_ENGINE_VERSION` is the GraalVM version, or the Git commit hash if your build is not part of a GraalVM release.
+
+Additionally, TruffleRuby defines
+
+- `Truffle.revision` which is the Git commit hash
 
 ## Features entirely missing
 

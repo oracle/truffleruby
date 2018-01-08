@@ -28,10 +28,6 @@ describe "Identifying features such as" do
     Gem::Version.new(RUBY_ENGINE_VERSION).should be_kind_of(Gem::Version)
   end
 
-  it "RUBY_REVISION is matches /\A[[:xdigit:]]+\z/" do
-    RUBY_REVISION.should =~ /\A[[:xdigit:]]+\z/
-  end
-
   it "RUBY_PATCHLEVEL is 0" do
     RUBY_PATCHLEVEL.should == 0
   end
@@ -63,6 +59,10 @@ describe "Identifying features such as" do
 
   it "RbConfig::CONFIG['RUBY_BASE_NAME'] is 'ruby'" do
     RbConfig::CONFIG['RUBY_BASE_NAME'].should == 'ruby'
+  end
+
+  it "Truffle.revision matches /\A[[:xdigit:]]+\z/" do
+    Truffle.revision.should =~ /\A[[:xdigit:]]+\z/
   end
 
   describe "the Rubinius module" do
