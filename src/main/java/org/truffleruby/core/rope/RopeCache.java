@@ -164,7 +164,7 @@ public class RopeCache {
 
             bytesToRope.put(key, new WeakReference<>(rope));
 
-            // TODO (nirvdrum 30-Mar-16): Revisit this. The purpose is to keep all keys live so the weak rope table never expunges results. We don't want that -- we want something that naturally ties to lifetime. Unfortunately, the old approach expunged live values because the key is synthetic.
+            // TODO (nirvdrum 30-Mar-16): Revisit this. The purpose is to keep all keys live so the weak rope table never expunges results. We don't want that -- we want something that naturally ties to lifetime. Unfortunately, the old approach expunged live values because the key is synthetic. See also FrozenStrings
             keys.add(key);
 
             return rope;
