@@ -69,6 +69,7 @@ import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
+import org.truffleruby.launcher.Launcher;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.parser.lexer.LexerSource;
 import org.truffleruby.parser.lexer.SyntaxException;
@@ -158,7 +159,9 @@ public class TranslatorDriver {
         }
 
         if (node == null) {
+            printParseTranslateExecuteMetric("before-parsing", context, source);
             node = parseToJRubyAST(source, dynamicScope, parserConfiguration);
+            printParseTranslateExecuteMetric("after-parsing", context, source);
         }
 
         final SourceSection sourceSection = source.createSection(0, source.getCharacters().length());
@@ -207,7 +210,9 @@ public class TranslatorDriver {
 
         final BodyTranslator translator = new BodyTranslator(currentNode, context, null, environment, source, parserContext, topLevel);
 
+        printParseTranslateExecuteMetric("before-translate", context, source);
         RubyNode truffleNode = translator.translateNodeOrNil(sourceIndexLength, node.getBodyNode());
+        printParseTranslateExecuteMetric("after-translate", context, source);
 
         // Load arguments
 
@@ -350,6 +355,20 @@ public class TranslatorDriver {
             // TODO(CS): how do we know if the frame is a block or not?
             return new TranslatorEnvironment(environmentForFrame(context, parent), parseEnvironment,
                             parseEnvironment.allocateReturnID(), true, true, false, sharedMethodInfo, sharedMethodInfo.getName(), 0, null, frame.getFrameDescriptor());
+        }
+    }
+
+    public static void printParseTranslateExecuteMetric(String id, RubyContext context, Source source) {
+        if (context.getOptions().METRICS_TIME_PARSING_FILE) {
+            String name = source.getName();
+            int lastSlash = name.lastIndexOf('/');
+            int lastDot = name.lastIndexOf('.');
+            if (lastSlash >= 0 && lastDot >= 0) {
+                name = name.substring(lastSlash + 1, lastDot);
+            }
+            Launcher.printTruffleTimeMetric(id + "-" + name);
+        } else if (context.getOptions().METRICS_TIME_PARSING) {
+            Launcher.printTruffleTimeMetric(id);
         }
     }
 
