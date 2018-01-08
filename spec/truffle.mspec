@@ -97,6 +97,7 @@ class MSpecScript
 
   set :ruby24, [
     "spec/ruby/core/file/empty_spec.rb",
+    "spec/ruby/core/hash/compact_spec.rb",
     "spec/ruby/core/integer/digits_spec.rb",
     "spec/ruby/core/regexp/match_spec.rb",
     "spec/ruby/core/string/match_spec.rb",

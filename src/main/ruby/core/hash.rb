@@ -183,6 +183,14 @@ class Hash
     nil
   end
 
+  def compact
+    reject { |_k, v| v.nil? }
+  end
+
+  def compact!
+    reject! { |_k, v| v.nil? }
+  end
+
   def default(key=undefined)
     if default_proc and !undefined.equal?(key)
       default_proc.call(self, key)
