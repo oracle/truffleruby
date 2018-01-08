@@ -702,7 +702,7 @@ public class CoreLibrary {
 
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_VERSION", frozenUSASCIIString(Launcher.LANGUAGE_VERSION));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PATCHLEVEL", 0);
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_REVISION", frozenUSASCIIString(BuildInformationImpl.INSTANCE.getRevision()));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_REVISION", Launcher.LANGUAGE_REVISION);
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE", frozenUSASCIIString(Launcher.ENGINE_ID));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE_VERSION", frozenUSASCIIString(Launcher.ENGINE_VERSION));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PLATFORM", frozenUSASCIIString(RubyLanguage.PLATFORM));

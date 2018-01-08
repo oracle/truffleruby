@@ -9,12 +9,18 @@
  */
 package org.truffleruby.extra;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.Main;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.launcher.BuildInformationImpl;
 
 @CoreClass("Truffle")
 public abstract class TruffleNodes {
@@ -35,6 +41,18 @@ public abstract class TruffleNodes {
         @Specialization
         public boolean isNative() {
             return TruffleOptions.AOT;
+        }
+
+    }
+
+    @CoreMethod(names = "revision", onSingleton = true)
+    public abstract static class RevisionNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject revision() {
+            return StringOperations.createFrozenString(getContext(),
+                    RopeOperations.encodeAscii(BuildInformationImpl.INSTANCE.getRevision(), USASCIIEncoding.INSTANCE));
         }
 
     }
