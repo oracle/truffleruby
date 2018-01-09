@@ -1633,9 +1633,6 @@ public class BodyTranslator extends Translator {
         final RubyNode ret;
         if (!inCore && GlobalVariables.READ_ONLY_GLOBAL_VARIABLES.contains(name)) {
             ret = new WriteReadOnlyGlobalNode(variableName, rhs);
-        } else if (GlobalVariables.THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
-            final ReadLocalNode localVarNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
-            ret = new SetInThreadAndFrameLocalStorageNode(localVarNode, rhs);
         } else {
             final RubyNode writeGlobalVariableNode = WriteGlobalVariableNodeGen.create(name, rhs);
 
@@ -1693,10 +1690,6 @@ public class BodyTranslator extends Translator {
                 default:
                     ret = new ReadMatchReferenceNodes.ReadNthMatchNode(readMatchNode, Integer.parseInt(name.substring(1)));
             }
-        } else if (GlobalVariables.THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
-            // Assignment is implicit for these, so we need to declare when we use
-            RubyNode readNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
-            ret = new GetFromThreadAndFrameLocalStorageNode(readNode);
         } else {
             ret = ReadGlobalVariableNodeGen.create(name);
         }

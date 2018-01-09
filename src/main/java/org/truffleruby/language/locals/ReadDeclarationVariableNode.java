@@ -58,9 +58,6 @@ public class ReadDeclarationVariableNode extends ReadLocalNode {
                     return nil();
                 }
 
-            case ALWAYS_DEFINED_GLOBAL:
-                return coreStrings().GLOBAL_VARIABLE.createInstance();
-
             default:
                 throw new UnsupportedOperationException("didn't expect local type " + type);
         }

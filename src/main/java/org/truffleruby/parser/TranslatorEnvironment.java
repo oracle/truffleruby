@@ -147,29 +147,6 @@ public class TranslatorEnvironment {
         return null;
     }
 
-    public ReadLocalNode findFrameLocalGlobalVarNode(String name, Source source, SourceIndexLength sourceSection) {
-        // Frame-local globals are always defined in the method scope
-        TranslatorEnvironment methodScope = this;
-        int level = 0;
-
-        while (methodScope.isBlock()) {
-            methodScope = methodScope.getParent();
-            level++;
-        }
-
-        final FrameSlot slot = methodScope.declareVar(name);
-
-        final ReadLocalNode node;
-        if (level == 0) {
-            node = new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL_GLOBAL, slot);
-        } else {
-            node = new ReadDeclarationVariableNode(LocalVariableType.FRAME_LOCAL_GLOBAL, level, slot);
-        }
-
-        node.unsafeSetSourceSection(sourceSection);
-        return node;
-    }
-
     public FrameDescriptor getFrameDescriptor() {
         return frameDescriptor;
     }
