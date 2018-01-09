@@ -470,4 +470,24 @@ class Hash
   def merge_fallback(other, &block)
     merge(Truffle::Type.coerce_to other, Hash, :to_hash, &block)
   end
+
+  def transform_values
+    return to_enum(:transform_values) { size } unless block_given?
+
+    h = {}
+    each_pair do |key, value|
+      h[key] = yield(value)
+    end
+    h
+  end
+
+  def transform_values!
+    return to_enum(:transform_values!) { size } unless block_given?
+    raise RuntimeError, "can't modify frozen Hash" if frozen?
+
+    each_pair do |key, value|
+      self[key] = yield(value)
+    end
+    self
+  end
 end
