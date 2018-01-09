@@ -901,10 +901,6 @@ public final class StringSupport {
         }
     }
 
-    public static boolean isSingleByteOptimizable(CodeRangeable string, Encoding encoding) {
-        return string.getCodeRange() == CR_7BIT || encoding.maxLength() == 1;
-    }
-
     /**
      * rb_str_delete_bang
      */
