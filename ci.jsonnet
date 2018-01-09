@@ -453,8 +453,7 @@ local part_definitions = {
   benchmark: {
     local post_process = [
       ['tool/post-process-results-json.rb', 'bench-results.json', 'bench-results-processed.json'],
-      if debug then ['cat', 'bench-results-processed.json'] else [],
-    ],
+    ] + if debug then [['cat', 'bench-results-processed.json']] else [],
     local upload_results =
       [['bench-uploader.py', 'bench-results-processed.json']],
     local post_process_and_upload_results =
