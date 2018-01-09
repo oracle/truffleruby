@@ -109,7 +109,6 @@ import org.truffleruby.language.globals.CheckLastLineNumberNode;
 import org.truffleruby.language.globals.CheckOutputSeparatorVariableTypeNode;
 import org.truffleruby.language.globals.CheckProgramNameVariableTypeNode;
 import org.truffleruby.language.globals.CheckRecordSeparatorVariableTypeNode;
-import org.truffleruby.language.globals.CheckSafeLevelNode;
 import org.truffleruby.language.globals.CheckStdoutVariableTypeNode;
 import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
