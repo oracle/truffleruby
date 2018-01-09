@@ -24,6 +24,4 @@ class Method
   
   alias_method :to_s, :inspect
 
-  alias_method :===, :call
-
 end
