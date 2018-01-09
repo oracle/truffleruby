@@ -359,16 +359,20 @@ public class TranslatorDriver {
     }
 
     public static void printParseTranslateExecuteMetric(String id, RubyContext context, Source source) {
-        if (context.getOptions().METRICS_TIME_PARSING_FILE) {
-            String name = source.getName();
-            int lastSlash = name.lastIndexOf('/');
-            int lastDot = name.lastIndexOf('.');
-            if (lastSlash >= 0 && lastDot >= 0) {
-                name = name.substring(lastSlash + 1, lastDot);
+        if (Launcher.METRICS_TIME) {
+            if (context.getOptions().METRICS_TIME_PARSING_FILE) {
+                String name = source.getName();
+                int lastSlash = name.lastIndexOf('/');
+                int lastDot = name.lastIndexOf('.');
+                if (lastSlash >= 0 && lastDot >= 0) {
+                    name = name.substring(lastSlash + 1, lastDot);
+                }
+                Launcher.printTruffleTimeMetric(id + "-" + name);
+            } else if (context.getCoreLibrary().isLoadingRubyCore()) {
+                // Only show times for core (the biggest contributor) to avoid multiple metrics with
+                // the same name, which is not supported in mx_truffleruby_benchmark.py.
+                Launcher.printTruffleTimeMetric(id + "-core");
             }
-            Launcher.printTruffleTimeMetric(id + "-" + name);
-        } else if (context.getOptions().METRICS_TIME_PARSING) {
-            Launcher.printTruffleTimeMetric(id);
         }
     }
 

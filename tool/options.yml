@@ -138,5 +138,4 @@ OPTIONS_LOG: [options.log, boolean, false, Log the final value of all options]
 LOG_LOAD: [log.load, boolean, false, Log loading files]
 LOG_FEATURE_LOCATION: [log.feature_location, boolean, false, Log the process of finding features]
 
-METRICS_TIME_PARSING: [metrics.time.parsing, boolean, false, 'Measure time for parsing, translating and executing files']
 METRICS_TIME_PARSING_FILE: [metrics.time.parsing.file, boolean, false, 'Measure time for parsing, translating and executing files, per file']
