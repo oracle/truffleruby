@@ -1452,6 +1452,7 @@ public class CoreLibrary {
             "/core/support.rb",
             "/core/string.rb",
             "/core/random.rb",
+            "/core/truffle/io_operations.rb",
             "/core/truffle/kernel_operations.rb",
             "/core/truffle/thread_operations.rb",
             "/core/thread.rb",

@@ -11,6 +11,5 @@ package org.truffleruby.language.locals;
 
 public enum LocalVariableType {
     FRAME_LOCAL,
-    FRAME_LOCAL_GLOBAL,
-    ALWAYS_DEFINED_GLOBAL
+    FRAME_LOCAL_GLOBAL
 }

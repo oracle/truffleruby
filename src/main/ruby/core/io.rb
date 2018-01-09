@@ -2775,3 +2775,8 @@ class IO::BidirectionalPipe < IO
   end
 
 end
+
+Truffle::KernelOperations.define_hooked_variable(
+  :$_,
+  -> b { Truffle::IOOperations.last_line(b) },
+  -> v, b { Truffle::IOOperations.set_last_line(v, b) })
