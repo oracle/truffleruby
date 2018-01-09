@@ -72,7 +72,7 @@ public class Launcher {
 
     // These system properties are used before outside the SDK option system
 
-    private static boolean METRICS_TIME;
+    public static boolean METRICS_TIME;
     private static final boolean METRICS_MEMORY_USED_ON_EXIT =
             Boolean.getBoolean("truffleruby.metrics.memory_used_on_exit");
 

@@ -606,11 +606,6 @@ public class OptionsCatalog {
             "Log the process of finding features",
             null,
             false);
-    public static final BooleanOptionDescription METRICS_TIME_PARSING = new BooleanOptionDescription(
-            "ruby.metrics.time.parsing",
-            "Measure time for parsing, translating and executing files",
-            null,
-            false);
     public static final BooleanOptionDescription METRICS_TIME_PARSING_FILE = new BooleanOptionDescription(
             "ruby.metrics.time.parsing.file",
             "Measure time for parsing, translating and executing files, per file",
@@ -855,8 +850,6 @@ public class OptionsCatalog {
                 return LOG_LOAD;
             case "ruby.log.feature_location":
                 return LOG_FEATURE_LOCATION;
-            case "ruby.metrics.time.parsing":
-                return METRICS_TIME_PARSING;
             case "ruby.metrics.time.parsing.file":
                 return METRICS_TIME_PARSING_FILE;
             default:
@@ -984,7 +977,6 @@ public class OptionsCatalog {
             OPTIONS_LOG,
             LOG_LOAD,
             LOG_FEATURE_LOCATION,
-            METRICS_TIME_PARSING,
             METRICS_TIME_PARSING_FILE,
         };
     }
