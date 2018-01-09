@@ -202,12 +202,20 @@ public abstract class ProcNodes {
     @CoreMethod(names = "binding")
     public abstract static class BindingNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization
+        @Specialization(guards = "hasDeclarationFrame(proc)")
         public DynamicObject binding(DynamicObject proc) {
             final MaterializedFrame frame = Layouts.PROC.getDeclarationFrame(proc);
-            return frame == null ? nil() : BindingNodes.createBinding(getContext(), frame);
+            return BindingNodes.createBinding(getContext(), frame);
         }
 
+        @Specialization(guards = "!hasDeclarationFrame(proc)")
+        public DynamicObject noBinding(DynamicObject proc) {
+            return nil();
+        }
+
+        protected boolean hasDeclarationFrame(DynamicObject proc) {
+            return Layouts.PROC.getDeclarationFrame(proc) != null;
+        }
     }
 
     @CoreMethod(names = { "call", "[]", "yield" }, rest = true, needsBlock = true)

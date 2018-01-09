@@ -141,7 +141,7 @@ class Regexp
   def self.last_match(index=nil)
     match = Truffle::RegexpOperations.last_match(Truffle.invoke_primitive(:caller_binding))
     if index
-      Truffle::Type.coerce_to index, Fixnum, :to_int
+      index = Truffle::Type.coerce_to index, Fixnum, :to_int
       match[index] if match
     else
       match
@@ -210,11 +210,7 @@ class Regexp
     result = Truffle::RegexpOperations.match(self, str, 0)
     Truffle.invoke_primitive(:regexp_set_last_match, result)
 
-    if result
-      result.begin 0
-    else
-      nil
-    end
+    result.begin(0) if result
   end
 
   def match(str, pos=0)
@@ -409,37 +405,33 @@ end
 
 Truffle::KernelOperations.define_hooked_variable(
   :$~,
-  Truffle::Graal.always_split( -> b { Truffle::RegexpOperations.last_match(b) }),
-  Truffle::Graal.always_split( -> v, b { Truffle::RegexpOperations.set_last_match(v, b) }))
+  -> b { Truffle::RegexpOperations.last_match(b) },
+  -> v, b { Truffle::RegexpOperations.set_last_match(v, b) })
 
-Truffle::KernelOperations.define_hooked_variable_with_is_defined(
-  :$`,
-  Truffle::Graal.always_split(
-    -> b { match = Truffle::RegexpOperations.last_match(b)
-           match.pre_match if match }),
+Truffle::KernelOperations.define_hooked_variable(
+  %s{$`},
+  -> b { match = Truffle::RegexpOperations.last_match(b)
+         match.pre_match if match },
   -> { raise SyntaxError, "Can't set variable $`"},
-  Truffle::Graal.always_split( -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) }))
+  -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })
 
-Truffle::KernelOperations.define_hooked_variable_with_is_defined(
-  :$',
-  Truffle::Graal.always_split(
-    -> b { match = Truffle::RegexpOperations.last_match(b)
-           match.post_match if match }),
+Truffle::KernelOperations.define_hooked_variable(
+  %s{$'},
+  -> b { match = Truffle::RegexpOperations.last_match(b)
+         match.post_match if match },
   -> { raise SyntaxError, "Can't set variable $'"},
-  Truffle::Graal.always_split( -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) }))
+  -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })
 
-Truffle::KernelOperations.define_hooked_variable_with_is_defined(
+Truffle::KernelOperations.define_hooked_variable(
   :$&,
-  Truffle::Graal.always_split(
-    -> b { match = Truffle::RegexpOperations.last_match(b)
-           match[0] if match }),
+  -> b { match = Truffle::RegexpOperations.last_match(b)
+         match[0] if match },
   -> { raise SyntaxError, "Can't set variable $&"},
-  Truffle::Graal.always_split( -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) }))
+  -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })
 
-Truffle::KernelOperations.define_hooked_variable_with_is_defined(
+Truffle::KernelOperations.define_hooked_variable(
   :$+,
-  Truffle::Graal.always_split(
-    -> b { match = Truffle::RegexpOperations.last_match(b)
-           match.captures.reject { |m| m.nil? }.last if match }),
+  -> b { match = Truffle::RegexpOperations.last_match(b)
+         match.captures.reverse.find { |m| !m.nil? } if match },
   -> { raise SyntaxError, "Can't set variable $+"},
-  Truffle::Graal.always_split( -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) }))
+  -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })

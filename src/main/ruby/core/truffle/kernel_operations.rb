@@ -8,8 +8,11 @@
 
 module Truffle
   module KernelOperations
-    def self.define_hooked_variable(name, getter, setter)
-      define_hooked_variable_with_is_defined(name, getter, setter, proc { 'global-variable' } )
+    def self.define_hooked_variable(name, getter, setter, defined = proc { 'global-variable' })
+      getter = Truffle::Graal.always_split(getter) if getter.arity == 1
+      setter = Truffle::Graal.always_split(setter) if setter.arity == 2
+      defined = Truffle::Graal.always_split(defined) if defined.arity == 1
+      define_hooked_variable_with_is_defined(name, getter, setter, defined)
     end
   end
 end

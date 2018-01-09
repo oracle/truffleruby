@@ -763,6 +763,17 @@ public abstract class RegexpNodes {
             return StringUtils.format("invalid byte sequence in %s", Layouts.STRING.getRope(string).getEncoding());
         }
 
+        // Creating a MatchData will store a copy of the source string. It's tempting to use a rope here, but a bit
+        // inconvenient because we can't work with ropes directly in Ruby and some MatchData methods are nicely
+        // implemented using the source string data. Likewise, we need to taint objects based on the source string's
+        // taint state. We mustn't allow the source string's contents to change, however, so we must ensure that we have
+        // a private copy of that string. Since the source string would otherwise be a reference to string held outside
+        // the MatchData object, it would be possible for the source string to be modified externally.
+        //
+        // Ex. x = "abc"; x =~ /(.*)/; x.upcase!
+        //
+        // Without a private copy, the MatchData's source could be modified to be upcased when it should remain the
+        // same as when the MatchData was created.
         @Specialization(guards = { "isInitialized(regexp)", "isRubyString(string)", "isValidEncoding(string)" })
         public Object searchRegion(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int start, int end, boolean forward,
                 @Cached("create()") CallDispatchHeadNode dupNode,
