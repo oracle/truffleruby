@@ -20,14 +20,12 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.EncodingDB.Entry;
-import org.jcodings.specific.ISO8859_16Encoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.string.ISO_8859_16;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -35,7 +33,6 @@ import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -179,21 +176,7 @@ public class EncodingManager {
 
     @TruffleBoundary
     public static Charset charsetForEncoding(Encoding encoding) {
-        final String encodingName = encoding.toString();
-
-        if (encodingName.equals("ASCII-8BIT")) {
-            return StandardCharsets.ISO_8859_1;
-        }
-
-        if (encoding == ISO8859_16Encoding.INSTANCE) {
-            return ISO_8859_16.INSTANCE;
-        }
-
-        try {
-            return Charset.forName(encodingName);
-        } catch (UnsupportedCharsetException uce) {
-            throw new UnsupportedOperationException("no java.nio.charset.Charset found for encoding `" + encoding.toString() + "'", uce);
-        }
+        return encoding.getCharset();
     }
 
     public Encoding getLocaleEncoding() {
