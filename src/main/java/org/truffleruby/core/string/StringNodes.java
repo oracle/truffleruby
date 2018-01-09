@@ -2121,8 +2121,10 @@ public abstract class StringNodes {
     @ImportStatic({ StringCachingGuards.class, StringGuards.class, StringOperations.class })
     public abstract static class ToSymNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "!isBrokenCodeRange(string)", "equalNode.execute(rope(string), cachedRope)" },
-                limit = "getLimit()")
+        @Specialization(guards = {
+                "!isBrokenCodeRange(string)",
+                "equalNode.execute(rope(string),cachedRope)"
+        }, limit = "getLimit()")
         public DynamicObject toSymCached(DynamicObject string,
                 @Cached("privatizeRope(string)") Rope cachedRope,
                 @Cached("getSymbol(cachedRope)") DynamicObject cachedSymbol,
