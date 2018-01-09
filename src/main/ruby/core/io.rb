@@ -504,8 +504,8 @@ class IO
     StreamCopier.new(from, to, max_length, offset).run
   end
 
-  def self.foreach(name, separator=undefined, limit=undefined, options=undefined)
-    return to_enum(:foreach, name, separator, limit, options) unless block_given?
+  def self.foreach(name, separator=undefined, limit=undefined, options=undefined, &block)
+    return to_enum(:foreach, name, separator, limit, options) unless block
 
     name = Truffle::Type.coerce_to_path name
 
@@ -565,7 +565,7 @@ class IO
     each_reader = Truffle.privately { io.create_each_reader(separator, limit) }
 
     begin
-      each_reader&.each { |line| yield line }
+      each_reader&.each(&block)
     ensure
       io.close
     end
