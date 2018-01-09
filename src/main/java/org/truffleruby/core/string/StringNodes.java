@@ -2118,10 +2118,11 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = {"to_sym", "intern"})
-    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
+    @ImportStatic({ StringCachingGuards.class, StringGuards.class, StringOperations.class })
     public abstract static class ToSymNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "equalNode.execute(rope(string), cachedRope)", limit = "getLimit()")
+        @Specialization(guards = { "!isBrokenCodeRange(string)", "equalNode.execute(rope(string), cachedRope)" },
+                limit = "getLimit()")
         public DynamicObject toSymCached(DynamicObject string,
                 @Cached("privatizeRope(string)") Rope cachedRope,
                 @Cached("getSymbol(cachedRope)") DynamicObject cachedSymbol,
@@ -2129,9 +2130,14 @@ public abstract class StringNodes {
             return cachedSymbol;
         }
 
-        @Specialization(replaces = "toSymCached")
+        @Specialization(guards = "!isBrokenCodeRange(string)", replaces = "toSymCached")
         public DynamicObject toSym(DynamicObject string) {
             return getSymbol(rope(string));
+        }
+
+        @Specialization(guards = "isBrokenCodeRange(string)")
+        public DynamicObject toSymBroken(DynamicObject string) {
+            throw new RaiseException(coreExceptions().encodingCompatibilityError("invalid encoding symbol", this));
         }
 
         protected int getLimit() {
