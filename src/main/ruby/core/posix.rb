@@ -300,7 +300,7 @@ module Truffle::POSIX
   def self.read_string(io, length)
     fd = io.descriptor
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
-    bytes_read = read(fd, buffer, length)
+    bytes_read = Truffle::POSIX.read(fd, buffer, length)
     if bytes_read < 0
       [nil, Errno.errno]
     elsif bytes_read == 0 # EOF
@@ -318,7 +318,7 @@ module Truffle::POSIX
 
     written = 0
     while written < length
-      ret = write(fd, buffer + written, length - written)
+      ret = Truffle::POSIX.write(fd, buffer + written, length - written)
       if ret < 0
         errno = Errno.errno
         if TRY_AGAIN_ERRNOS.include? errno
@@ -341,7 +341,7 @@ module Truffle::POSIX
     length = string.bytesize
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
     buffer.write_string string
-    written = write(fd, buffer, length)
+    written = Truffle::POSIX.write(fd, buffer, length)
 
     if written < 0
       errno = Errno.errno
