@@ -410,11 +410,6 @@ public final class StringSupport {
         return olen;
     }
 
-    public static boolean isUnicode(Encoding enc) {
-        byte[] name = enc.getName();
-        return name.length > 4 && name[0] == 'U' && name[1] == 'T' && name[2] == 'F' && name[4] != '7';
-    }
-
     public static String escapedCharFormat(int c, boolean isUnicode) {
         String format;
         // c comparisons must be unsigned 32-bit
