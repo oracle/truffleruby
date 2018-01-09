@@ -56,7 +56,10 @@ local part_definitions = {
     },
 
     build: {
-      setup+: [['mx', 'build', '--force-javac', '--warning-as-error']],
+      setup+: [
+        ['mx', 'build', '--force-javac', '--warning-as-error'],
+        ['mx', 'sversions'],
+      ],
     },
 
     sulong: {
@@ -76,9 +79,10 @@ local part_definitions = {
 
       setup+: [
         ['git', 'clone', ['mx', 'urlrewrite', 'https://github.com/graalvm/sulong.git'], '../sulong'],
+        ['mx', 'sforceimports'], // ensure versions declared in TruffleRuby
         ['cd', '../sulong'],
-        ['mx', 'sversions'],
         ['mx', 'build'],
+        ['mx', 'sversions'],
         ['cd', '../main'],
       ],
     },
