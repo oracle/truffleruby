@@ -19,7 +19,6 @@ module Truffle::Patching
     'rake-compiler' => "#{DIR}/rake-compiler",
     'rspec-core' => "#{DIR}/rspec-core",
     'rspec-support' => "#{DIR}/rspec-support",
-    'ruby-progressbar' => "#{DIR}/ruby-progressbar",
     'thread_safe' => "#{DIR}/thread_safe",
   }
 
