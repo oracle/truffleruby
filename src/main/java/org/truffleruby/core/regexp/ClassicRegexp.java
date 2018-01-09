@@ -885,7 +885,6 @@ public class ClassicRegexp implements ReOptions {
         if (!needEscape) {
             to.append(bytes, start, len);
         } else {
-            boolean isUnicode = StringSupport.isUnicode(enc);
             p = start;
             while (p < end) {
                 final int c;
@@ -913,7 +912,7 @@ public class ClassicRegexp implements ReOptions {
                         to.append(String.format("\\x%02X", c).getBytes(StandardCharsets.US_ASCII));
                     } else if (resEnc != null) {
                         int code = enc.mbcToCode(bytes, p, end);
-                        to.append(String.format(StringSupport.escapedCharFormat(code, isUnicode), code).getBytes(StandardCharsets.US_ASCII));
+                        to.append(String.format(StringSupport.escapedCharFormat(code, enc.isUnicode()), code).getBytes(StandardCharsets.US_ASCII));
                     } else {
                         to.append(bytes, p, l);
                     }
