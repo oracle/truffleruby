@@ -260,9 +260,12 @@ in the CI too.
 
 ## How to fix a failing MRI test
 
-Remove the exclusion of either the file (`test/mri_standard.exclude`) or the the
+Remove the exclusion of either the file (`test/mri_standard.exclude`) or the
 individual method (`test/mri/excludes_truffle`) and run the individual file
 `jt test mri test/mri/file.rb` to see any errors.
 
 As with specs, you probably then want to recreate the test in a standalone Ruby
 file to fix it.
+
+You can also recompute the tags automatically for an entire test file with
+`jt retag test/mri/file.rb`.
