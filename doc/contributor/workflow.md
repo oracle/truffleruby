@@ -226,7 +226,7 @@ specs that are marked as failing.
 $ jt untag spec/ruby/core/string
 ```
 
-When you find a spec that you want to work on it's usually best to look at the
+When you find a spec that you want to work on, it can be easier to look at the
 spec's source (for example look in `spec/ruby/core/string`) and recreate it
 as a standalone Ruby file for simplicity.
 
