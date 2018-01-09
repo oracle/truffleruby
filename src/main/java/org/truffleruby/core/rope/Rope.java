@@ -122,8 +122,7 @@ public abstract class Rope {
                 return false;
             }
 
-            // TODO (nirvdrum 21-Jan-16): We really should be taking the encoding into account here. We're currently not because it breaks the symbol table.
-            return byteLength() == other.byteLength() && Arrays.equals(getBytes(), other.getBytes());
+            return encoding == other.getEncoding() && byteLength() == other.byteLength() && Arrays.equals(getBytes(), other.getBytes());
         }
 
         return false;
