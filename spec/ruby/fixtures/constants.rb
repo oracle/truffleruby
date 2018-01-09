@@ -70,6 +70,14 @@ module ConstantSpecs
     CS_CONST10 = :const10_8
   end
 
+  module ProtectedConstMissing
+    protected
+
+    def const_missing(name)
+      "Found:#{name}"
+    end
+  end
+
   # The following classes/modules have all the constants set "statically".
   # Contrast with the classes below where the constants are set as the specs
   # are run.
