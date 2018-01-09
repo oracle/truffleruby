@@ -317,7 +317,7 @@ class StringIO
 
     # Truffle: $_ is thread and frame local, so we use a primitive to
     # set it in the caller's frame.
-    Truffle.invoke_primitive(:io_set_last_line, getline(false, sep, limit))
+    Truffle::IOOperations.set_last_line(getline(false, sep, limit), Truffle.invoke_primitive(:caller_binding))
   end
 
   def isatty
@@ -348,7 +348,7 @@ class StringIO
 
   def print(*args)
     check_writable
-    args << Truffle.invoke_primitive(:io_get_last_line) if args.empty?
+    args << Truffle::IOOperations.last_line(Truffle.invoke_primitive(:caller_binding)) if args.empty?
     write((args << $\).flatten.join)
     nil
   end
@@ -477,7 +477,7 @@ class StringIO
     check_readable
     raise IO::EOFError, 'end of file reached' if eof?
 
-    Truffle.invoke_primitive(:io_set_last_line, getline(true, sep, limit))
+    Truffle::IOOperations.set_last_line(getline(true, sep, limit), Truffle.invoke_primitive(:caller_binding))
   end
 
   def readlines(sep=$/, limit=Undefined)

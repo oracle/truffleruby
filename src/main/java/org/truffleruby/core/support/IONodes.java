@@ -71,7 +71,6 @@ import java.util.Arrays;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -85,22 +84,15 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNode;
-import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNodeGen;
-import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 import org.truffleruby.platform.Platform;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -484,46 +476,6 @@ public abstract class IONodes {
             return rope.byteLength();
         }
 
-    }
-
-    @Primitive(name = "io_get_last_line", needsSelf = false)
-    public static abstract class GetLastLineNode extends PrimitiveArrayArgumentsNode {
-
-        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
-        @Child FindThreadAndFrameLocalStorageNode threadLocalNode;
-        @CompilationFinal DynamicObject lastLineSymbol;
-
-        @Specialization
-        public Object getLastLine(VirtualFrame frame) {
-            Frame callerFrame = callerFrameNode.execute(frame);
-            if (threadLocalNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                lastLineSymbol = getContext().getSymbolTable().getSymbol(LAST_LINE_VARIABLE);
-                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create());
-            }
-            return threadLocalNode.execute(lastLineSymbol, callerFrame.materialize()).get();
-        }
-    }
-
-    @Primitive(name = "io_set_last_line", needsSelf = false)
-    public static abstract class SetLastLineNode extends PrimitiveArrayArgumentsNode {
-
-        @Child ReadCallerFrameNode readCallerFrame = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
-        @Child FindThreadAndFrameLocalStorageNode threadLocalNode;
-        @CompilationFinal DynamicObject lastLineSymbol;
-
-        @Specialization
-        public DynamicObject setLastLine(VirtualFrame frame, DynamicObject lastLine) {
-            if (threadLocalNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                lastLineSymbol = getContext().getSymbolTable().getSymbol(LAST_LINE_VARIABLE);
-                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create());
-            }
-            Frame callerFrame = readCallerFrame.execute(frame);
-            ThreadAndFrameLocalStorage storage = threadLocalNode.execute(lastLineSymbol, callerFrame.materialize());
-            storage.set(lastLine);
-            return lastLine;
-        }
     }
 
     @Primitive(name = "io_get_thread_buffer", needsSelf = false)

@@ -153,8 +153,6 @@ import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.language.objects.WriteClassVariableNode;
 import org.truffleruby.language.objects.WriteInstanceVariableNode;
-import org.truffleruby.language.threadlocal.GetFromThreadAndFrameLocalStorageNode;
-import org.truffleruby.language.threadlocal.SetInThreadAndFrameLocalStorageNode;
 import org.truffleruby.language.yield.YieldExpressionNode;
 import org.truffleruby.parser.ast.AliasParseNode;
 import org.truffleruby.parser.ast.AndParseNode;
