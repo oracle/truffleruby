@@ -1801,7 +1801,7 @@ class IO
       line = l
       break
     end
-    Truffle.invoke_primitive(:io_set_last_line, line) if line
+    Truffle::IOOperations.set_last_line(line, Truffle.invoke_primitive(:caller_binding)) if line
     line
   end
 
@@ -1921,7 +1921,7 @@ class IO
   # nil.
   def print(*args)
     if args.empty?
-      write Truffle.invoke_primitive(:io_get_last_line).to_s
+      write Truffle::IOOperations.last_line(Truffle.invoke_primitive(:caller_binding)).to_s
     else
       args.each { |o| write o.to_s }
     end

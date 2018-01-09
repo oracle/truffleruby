@@ -290,7 +290,7 @@ module Truffle
           next
         end
 
-        Truffle.invoke_primitive(:io_set_last_line, line) if line
+        Truffle::IOOperations.set_last_line(line, Truffle.invoke_primitive(:caller_binding)) if line
         @last_lineno = @lineno += 1
         return line
       end
