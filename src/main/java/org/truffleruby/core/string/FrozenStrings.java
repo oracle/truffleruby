@@ -24,10 +24,10 @@ public class FrozenStrings {
 
     private final RubyContext context;
 
-    private final Map<RopeHolder, DynamicObject> frozenStrings = new WeakHashMap<>();
+    private final Map<Rope, DynamicObject> frozenStrings = new WeakHashMap<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    private final Set<RopeHolder> keys = new HashSet<>();
+    private final Set<Rope> keys = new HashSet<>();
 
     public FrozenStrings(RubyContext context) {
         this.context = context;
@@ -36,12 +36,11 @@ public class FrozenStrings {
     public DynamicObject getFrozenString(Rope rope) {
         assert context.getRopeCache().contains(rope);
 
-        final RopeHolder holder = new RopeHolder(rope);
         DynamicObject string;
 
         lock.readLock().lock();
         try {
-            string = frozenStrings.get(holder);
+            string = frozenStrings.get(rope);
             if (string != null) {
                 return string;
             }
@@ -51,12 +50,12 @@ public class FrozenStrings {
 
         lock.writeLock().lock();
         try {
-            string = frozenStrings.get(holder);
+            string = frozenStrings.get(rope);
             if (string == null) {
                 string = StringOperations.createFrozenString(context, rope);
-                // TODO CS 8-Jan-18 as in RopeCache the map is weak, but the key is a wrapper! So we just hold on to everything forever using this method.
-                keys.add(holder);
-                frozenStrings.put(holder, string);
+                // TODO CS 8-Jan-18 as in RopeCache the map is weak. So we just hold on to everything forever using this method.
+                keys.add(rope);
+                frozenStrings.put(rope, string);
             }
         } finally {
             lock.writeLock().unlock();
@@ -65,32 +64,4 @@ public class FrozenStrings {
         return string;
     }
 
-    // TODO (nirvdrum 29-Nov-2016) This is a temporary measure to cope with Rope#equals not taking Encoding into consideration. Fixing that is a much more involved effort, but once completed we can just use RopeKey
-    private class RopeHolder {
-
-        private final Rope rope;
-
-        public RopeHolder(Rope rope) {
-            this.rope = rope;
-        }
-
-        public Rope getRope() {
-            return rope;
-        }
-
-        @Override
-        public int hashCode() {
-            return context.getHashing().hash(rope.hashCode());
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o instanceof RopeHolder) {
-                final RopeHolder other = (RopeHolder) o;
-                return rope.getEncoding() == other.getRope().getEncoding() && rope.equals(other.getRope());
-            }
-
-            return false;
-        }
-    }
 }
