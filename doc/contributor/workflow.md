@@ -236,6 +236,28 @@ exception.
 When the spec is fixed the `untag` command will remove the tag and you can
 commit the fix and the removal of the tag.
 
+## Running specs for Ruby 2.4/2.5 features
+
+TruffleRuby currently targets Ruby 2.3. However, we welcome pull requests for
+Ruby 2.4/2.5 features as long as they don't conflict significantly with
+Ruby 2.3 semantics.
+
+It is possible to run specs for Ruby 2.4 and 2.5 features by setting
+`PRETEND_RUBY_VERSION`:
+
+```bash
+# String#match? is introduced in 2.4
+$ PRETEND_RUBY_VERSION=2.4.3 jt test spec/ruby/core/string/match_spec.rb
+# Integer#digits is introduced in 2.5
+$ PRETEND_RUBY_VERSION=2.5.0 jt test spec/ruby/core/integer/digits_spec.rb
+```
+
+This also works for `jt tag`/`jt untag`.
+
+When working on a 2.4/2.5 feature, add the spec file in the corresponding file
+list (`:ruby24` or `:ruby25`) in `spec/truffle.mspec` so that the specs are run
+in the CI too.
+
 ## How to fix a failing MRI test
 
 Remove the exclusion of either the file (`test/mri_standard.exclude`) or the the
