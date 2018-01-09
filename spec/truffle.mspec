@@ -144,7 +144,9 @@ class MSpecScript
 end
 
 if MSpecScript.child_process?
-  if ARGV.include? ":ruby24"
+  if version = ENV["PRETEND_RUBY_VERSION"]
+    ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new(version)
+  elsif ARGV.include? ":ruby24"
     ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("2.4.3")
   elsif ARGV.include? ":ruby25"
     ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("2.5.0")
