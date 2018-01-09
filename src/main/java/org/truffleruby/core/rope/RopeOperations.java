@@ -30,7 +30,6 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.encoding.EncodingManager;
@@ -43,7 +42,6 @@ import org.truffleruby.language.RubyGuards;
 import java.nio.charset.Charset;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
@@ -51,8 +49,6 @@ import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 
 public class RopeOperations {
-
-    private static final ConcurrentHashMap<Encoding, Charset> encodingToCharsetMap = new ConcurrentHashMap<>();
 
     @TruffleBoundary
     public static LeafRope create(byte[] bytes, Encoding encoding, CodeRange codeRange) {
@@ -182,8 +178,7 @@ public class RopeOperations {
 
     @TruffleBoundary
     private static String decodeNonAscii(Rope value, int byteOffset, int byteLength) {
-        final Encoding encoding = value.getEncoding();
-        final Charset charset = ConcurrentOperations.getOrCompute(encodingToCharsetMap, encoding, EncodingManager::charsetForEncoding);
+        final Charset charset = EncodingManager.charsetForEncoding(value.getEncoding());
 
         return decode(charset, value.getBytes(), byteOffset, byteLength);
     }
