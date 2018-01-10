@@ -104,6 +104,10 @@ class MSpecScript
   set :ruby25, [
     "spec/ruby/core/kernel/yield_self_spec.rb",
     "spec/ruby/core/method/case_compare_spec.rb",
+    "spec/ruby/core/enumerable/all_spec.rb",
+    "spec/ruby/core/enumerable/any_spec.rb",
+    "spec/ruby/core/enumerable/none_spec.rb",
+    "spec/ruby/core/enumerable/one_spec.rb",
   ]
 
   set :backtrace_filter, /mspec\//
