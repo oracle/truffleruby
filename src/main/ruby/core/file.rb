@@ -100,10 +100,10 @@ class File < IO
 
   FFI = Truffle::FFI
 
-  SEPARATOR = FFI::Platform::File::SEPARATOR
-  Separator = FFI::Platform::File::SEPARATOR
-  ALT_SEPARATOR = FFI::Platform::File::ALT_SEPARATOR
-  PATH_SEPARATOR = FFI::Platform::File::PATH_SEPARATOR
+  SEPARATOR = '/'
+  Separator = SEPARATOR
+  ALT_SEPARATOR = nil
+  PATH_SEPARATOR = ':'
   POSIX = Truffle::POSIX
 
   attr_reader :path
