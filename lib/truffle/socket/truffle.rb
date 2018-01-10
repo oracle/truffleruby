@@ -125,7 +125,12 @@ module Truffle
 
     def self.constant_pairs
       # Truffle: no need to filter here since only defined constants are in the config
-      Truffle::FFI.config_hash('socket')
+      vals = {}
+      section = 'platform.socket.'
+      Truffle::Config.section(section) do |key, value|
+        vals[key.substring(section.size, key.length)] = value
+      end
+      vals
     end
 
     def self.coerce_to_string(object)
