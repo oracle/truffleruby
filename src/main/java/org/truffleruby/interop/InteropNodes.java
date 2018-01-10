@@ -20,6 +20,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.ForeignAccess;
+import com.oracle.truffle.api.interop.KeyInfo;
 import com.oracle.truffle.api.interop.Message;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
@@ -712,6 +713,22 @@ public abstract class InteropNodes {
 
     }
 
+    @CoreMethod(names = "key_info_bits", isModuleFunction = true, required = 2)
+    public abstract static class KeyInfoBitsNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object keyInfo(VirtualFrame frame, TruffleObject receiver, DynamicObject name,
+                              @Cached("create()") RubyToForeignNode rubyToForeignNode,
+                              @Cached("createKeyInfoNode()") Node keyInfoNode) {
+            return ForeignAccess.sendKeyInfo(keyInfoNode, receiver, rubyToForeignNode.executeConvert(name));
+        }
+
+        protected static Node createKeyInfoNode() {
+            return Message.KEY_INFO.createNode();
+        }
+
+    }
+
     @CoreMethod(names = "export", isModuleFunction = true, required = 2)
     public abstract static class ExportNode extends CoreMethodArrayArgumentsNode {
 
@@ -898,6 +915,107 @@ public abstract class InteropNodes {
         @Specialization
         public Object metaObject(Object value) {
             return getContext().getLanguage().findMetaObject(getContext(), value);
+        }
+
+    }
+
+    @CoreMethod(names = "existing_bit?", isModuleFunction = true, required = 1)
+    public abstract static class HasExistingBitNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean readableBit(int bits) {
+            return KeyInfo.isExisting(bits);
+        }
+
+    }
+
+    @CoreMethod(names = "readable_bit?", isModuleFunction = true, required = 1)
+    public abstract static class HasReadableBitNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean readableBit(int bits) {
+            return KeyInfo.isReadable(bits);
+        }
+
+    }
+
+    @CoreMethod(names = "writable_bit?", isModuleFunction = true, required = 1)
+    public abstract static class HasWritableBitNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean writableBit(int bits) {
+            return KeyInfo.isWritable(bits);
+        }
+
+    }
+
+    @CoreMethod(names = "invocable_bit?", isModuleFunction = true, required = 1)
+    public abstract static class HasInvocableBitNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean invocableBit(int bits) {
+            return KeyInfo.isInvocable(bits);
+        }
+
+    }
+
+    @CoreMethod(names = "internal_bit?", isModuleFunction = true, required = 1)
+    public abstract static class HasInternalBitNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean internalBit(int bits) {
+            return KeyInfo.isInternal(bits);
+        }
+
+    }
+
+    @CoreMethod(names = "existing_bit", isModuleFunction = true)
+    public abstract static class ExistingBitNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public int existingBit() {
+            // KeyInfo builders are existing by default
+            return KeyInfo.newBuilder().build();
+        }
+
+    }
+
+    @CoreMethod(names = "readable_bit", isModuleFunction = true)
+    public abstract static class ReadableBitNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public int readableBit() {
+            return KeyInfo.newBuilder().setReadable(true).build();
+        }
+
+    }
+
+    @CoreMethod(names = "writable_bit", isModuleFunction = true)
+    public abstract static class WritableBitNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public int writableBit() {
+            return KeyInfo.newBuilder().setWritable(true).build();
+        }
+
+    }
+
+    @CoreMethod(names = "invocable_bit", isModuleFunction = true)
+    public abstract static class InvocableBitNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public int invocableBit() {
+            return KeyInfo.newBuilder().setInvocable(true).build();
+        }
+
+    }
+
+    @CoreMethod(names = "internal_bit", isModuleFunction = true)
+    public abstract static class InternalBitNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public int internalBit() {
+            return KeyInfo.newBuilder().setInternal(true).build();
         }
 
     }

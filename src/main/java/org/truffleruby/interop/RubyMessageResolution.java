@@ -262,6 +262,29 @@ public class RubyMessageResolution {
 
     }
 
+    @Resolve(message = "KEY_INFO")
+    public static abstract class ForeignKeyInfoNode extends Node {
+
+        @CompilationFinal private RubyContext context;
+
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
+        @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
+
+        protected Object access(VirtualFrame frame, DynamicObject object, String name) {
+            return dispatchNode.call(frame, getContext().getCoreLibrary().getTruffleInteropModule(), "object_key_info", object, foreignToRubyNode.executeConvert(name));
+        }
+
+        private RubyContext getContext() {
+            if (context == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                context = RubyLanguage.getCurrentContext();
+            }
+
+            return context;
+        }
+
+    }
+
     @Resolve(message = "IS_EXECUTABLE")
     public static abstract class ForeignIsExecutableNode extends Node {
 

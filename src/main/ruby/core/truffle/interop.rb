@@ -37,6 +37,46 @@ module Truffle
       end
     end
     
+    def self.key_info(object, name)
+      key_info_flags_from_bits(key_info_bits(object, name.to_sym))
+    end
+    
+    def self.object_key_info(object, name)
+      flags = []
+      if object.is_a?(Hash)
+        flags.push :existing, :readable, :writable if object.key?(name)
+      else
+        name = name.to_sym
+        readable = object.respond_to?(name)
+        writable = object.respond_to?((name.to_s + '=').to_sym)
+        flags << :readable if readable
+        flags << :writable if writable
+        flags << :existing if readable || writable
+      end
+      key_info_flags_to_bits(flags)
+    end
+    
+    def self.key_info_flags_from_bits(bits)
+      flags = []
+      flags << :existing  if existing_bit?(bits)
+      flags << :readable  if readable_bit?(bits)
+      flags << :writable  if writable_bit?(bits)
+      flags << :invocable if invocable_bit?(bits)
+      flags << :internal  if internal_bit?(bits)
+      flags
+    end
+    
+    def self.key_info_flags_to_bits(flags)
+      bits = 0
+      # We assume here that key info values can be combined with a bit-wise disjunction
+      bits |= existing_bit  if flags.include?(:existing)
+      bits |= readable_bit  if flags.include?(:readable)
+      bits |= writable_bit  if flags.include?(:writable)
+      bits |= invocable_bit if flags.include?(:invocable)
+      bits |= internal_bit  if flags.include?(:internal)
+      bits
+    end
+    
     def self.lookup_symbol(name)
       if MAIN.respond_to?(name, true)
         MAIN.method(name)
