@@ -1459,7 +1459,6 @@ public class CoreLibrary {
             "/core/true.rb",
             "/core/type.rb",
             "/core/weakref.rb",
-            "/core/truffle/ffi/ffi.rb",
             "/core/truffle/ffi/pointer.rb",
             "/core/truffle/support.rb",
             "/core/kernel.rb",
