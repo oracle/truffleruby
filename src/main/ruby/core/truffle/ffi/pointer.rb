@@ -1156,8 +1156,7 @@ module Truffle::FFI
       if type.kind_of? Fixnum
         size = type
       elsif type.kind_of? Symbol
-        type = FFI.find_type type
-        size = FFI.type_size(type)
+        size = FFI.type_size(FFI.find_type(type))
       else
         size = type.size
       end
