@@ -100,6 +100,29 @@ objects.
 
 TruffleRuby ignores the `internal` flag to this message.
 
+### `KEY_INFO`
+
+If the object is a Ruby `Hash`, and the key is in the hash, `READABLE`,
+`WRITABLE` are set. If the key is not in the hash, neither are set. Note that
+the interface for `KEY_INFO` converts the key to a Java `String`, so if your
+keys are `Symbol`, they will not match.
+
+If the object is not a Ruby `Hash`:
+
+`READABLE` is set if the object responds to a method of the same name.
+
+`WRITABLE` is set if the object responds to a method of the same name appended
+with `=`.
+
+For all objects:
+
+`EXISTING` is set if if either `READABLE` or `WRITABLE` are set.
+
+`INVOCABLE` is never set, because currently `KEYS` does not include methods.
+
+`INTERNAL` is never set, and TruffleRuby ignores the `internal` flag to the
+`KEYS` message.
+
 ### `READ`
 
 The name must be an `int` (small Ruby `Fixnum`), or a Ruby `String` or `Symbol`,
@@ -228,6 +251,14 @@ In all cases where a call is made no block is passed.
 
 TruffleRuby will convert the returned value from a foreign object of Java
 `String` objects, to a Ruby `Array` of Ruby `String` objects.
+
+### `KEY_INFO`
+
+`Truffle::Interop.key_info(object, name)`
+
+Returns an array containing zero or more of the symbols
+`[:existing, :readable, :writable, :invocable, :internal]` in an undefined
+order.
 
 ### `READ`
 
