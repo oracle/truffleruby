@@ -195,6 +195,7 @@ class Array
         converted = Array.try_convert(value)
         converted = [value] unless converted
         self[index] = converted
+        value
       else
         index = Truffle::Type.rb_num2long(index)
         self[index] = value
@@ -208,6 +209,7 @@ class Array
         converted = [value] unless converted
       end
       self[index, length] = converted
+      value
     end
   end
   private :element_set_fallback
