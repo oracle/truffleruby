@@ -27,6 +27,10 @@ public class ReadCallerFrameNode extends RubyNode {
 
     private final CallerFrameAccess accessMode;
 
+    public static ReadCallerFrameNode create() {
+        return new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
+    }
+
     public ReadCallerFrameNode(CallerFrameAccess callerFrameAccess) {
         this.accessMode = callerFrameAccess;
     }

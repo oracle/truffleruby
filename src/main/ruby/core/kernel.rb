@@ -176,7 +176,7 @@ module Kernel
 
   def !~(other)
     r = self =~ other ? false : true
-    Truffle.invoke_primitive(:regexp_set_last_match, $~)
+    Truffle::RegexpOperations.set_last_match($~, Truffle.invoke_primitive(:caller_binding))
     r
   end
 

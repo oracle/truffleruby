@@ -21,7 +21,7 @@ module Truffle
     end
 
     def self.last_match(a_binding)
-      Truffle::KernelOperations.frame_local_variable_get(:$~, a_binding)
+      Truffle::KernelOperations.frame_local_variable_get(:$~, a_binding) if a_binding
     end
     Truffle::Graal.always_split(method(:last_match))
 

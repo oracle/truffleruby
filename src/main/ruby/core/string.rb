@@ -80,7 +80,7 @@ class String
     case pattern
     when Regexp
       match_data = pattern.search_region(self, 0, bytesize, true)
-      Truffle.invoke_primitive(:regexp_set_last_match, match_data)
+      Truffle::RegexpOperations.set_last_match(match_data, Truffle.invoke_primitive(:caller_binding))
       return match_data.begin(0) if match_data
     when String
       raise TypeError, 'type mismatch: String given'
@@ -142,7 +142,7 @@ class String
 
     if pattern.kind_of? Regexp
       if m = Truffle::RegexpOperations.match(pattern, self)
-        Truffle.invoke_primitive(:regexp_set_last_match, m)
+        Truffle::RegexpOperations.set_last_match(m, Truffle.invoke_primitive(:caller_binding))
         return [m.pre_match, m.to_s, m.post_match]
       end
     else
@@ -165,7 +165,7 @@ class String
   def rpartition(pattern)
     if pattern.kind_of? Regexp
       if m = pattern.search_region(self, 0, size, false)
-        Truffle.invoke_primitive(:regexp_set_last_match, m)
+        Truffle::RegexpOperations.set_last_match(m, Truffle.invoke_primitive(:caller_binding))
         [m.pre_match, m[0], m.post_match]
       end
     else
@@ -190,7 +190,7 @@ class String
     str.rstrip! || str
   end
 
-  def scan(pattern)
+  def scan(pattern, &block)
     taint = tainted? || pattern.tainted?
     pattern = Truffle::Type.coerce_to_regexp(pattern, true)
     index = 0
@@ -220,15 +220,15 @@ class String
       val = (match.length == 1 ? match[0] : match.captures)
       val.taint if taint
 
-      if block_given?
-        Truffle.invoke_primitive(:regexp_set_last_match, match)
+      if block
+        Truffle::RegexpOperations.set_last_match(match, Truffle.invoke_primitive(:caller_binding))
         yield(val)
       else
         ret << val
       end
     end
 
-    Truffle.invoke_primitive(:regexp_set_last_match, last_match)
+    Truffle::RegexpOperations.set_last_match(last_match, Truffle.invoke_primitive(:caller_binding))
     ret
   end
 
@@ -679,7 +679,7 @@ class String
   def sub(pattern, replacement=undefined, &block)
     s = dup
     s.sub!(pattern, replacement, &block)
-    Truffle.invoke_primitive(:regexp_set_last_match, $~)
+    Truffle::RegexpOperations.set_last_match($~, Truffle.invoke_primitive(:caller_binding))
     s
   end
 
@@ -716,7 +716,7 @@ class String
     match = pattern.match_from(self, 0)
 
     Truffle::RegexpOperations.set_last_match(match, block.binding) if block
-    Truffle.invoke_primitive(:regexp_set_last_match, match)
+    Truffle::RegexpOperations.set_last_match(match, Truffle.invoke_primitive(:caller_binding))
 
     ret = byteslice(0, 0) # Empty string and string subclass
 
@@ -767,7 +767,7 @@ class String
       if one.kind_of? Regexp
         lm = $~
         self[one] = '' if result
-        Truffle.invoke_primitive(:regexp_set_last_match, lm)
+        Truffle::RegexpOperations.set_last_match(lm, Truffle.invoke_primitive(:caller_binding))
       else
         self[one] = '' if result
       end
@@ -777,7 +777,7 @@ class String
       if one.kind_of? Regexp
         lm = $~
         self[one, two] = '' if result
-        Truffle.invoke_primitive(:regexp_set_last_match, lm)
+        Truffle::RegexpOperations.set_last_match(lm, Truffle.invoke_primitive(:caller_binding))
       else
         self[one, two] = '' if result
       end
@@ -1002,7 +1002,7 @@ class String
     else
       ret, match_data = Truffle::StringOperations.gsub_internal(s, pattern, replacement)
     end
-    Truffle.invoke_primitive(:regexp_set_last_match, match_data)
+    Truffle::RegexpOperations.set_last_match(match_data, Truffle.invoke_primitive(:caller_binding))
     s.replace(ret) if ret
     s
   end
@@ -1017,7 +1017,7 @@ class String
     else
       ret, match_data = Truffle::StringOperations.gsub_internal(self, pattern, replacement)
     end
-    Truffle.invoke_primitive(:regexp_set_last_match, match_data)
+    Truffle::RegexpOperations.set_last_match(match_data, Truffle.invoke_primitive(:caller_binding))
     if ret
       replace(ret)
       self
@@ -1036,7 +1036,7 @@ class String
              else
                pattern.match self, pos
              end
-    Truffle.invoke_primitive(:regexp_set_last_match, $~)
+    Truffle::RegexpOperations.set_last_match($~, Truffle.invoke_primitive(:caller_binding))
     result
   end
 
@@ -1361,7 +1361,7 @@ class String
 
       start += size if start < 0
       if start < 0 or start > size
-        Truffle.invoke_primitive(:regexp_set_last_match, nil) if str.kind_of? Regexp
+        Truffle::RegexpOperations.set_last_match(nil, Truffle.invoke_primitive(:caller_binding)) if str.kind_of? Regexp
         return
       end
     end
@@ -1372,10 +1372,10 @@ class String
       m = Truffle::Mirror.reflect self
       start = m.character_to_byte_index start
       if match = str.match_from(self, start)
-        Truffle.invoke_primitive(:regexp_set_last_match, match)
+        Truffle::RegexpOperations.set_last_match(match, Truffle.invoke_primitive(:caller_binding))
         return match.begin(0)
       else
-        Truffle.invoke_primitive(:regexp_set_last_match, nil)
+        Truffle::RegexpOperations.set_last_match(nil, Truffle.invoke_primitive(:caller_binding))
         return
       end
     end
@@ -1434,7 +1434,7 @@ class String
       Truffle::Type.compatible_encoding self, sub
 
       match_data = sub.search_region(self, 0, byte_finish, false)
-      Truffle.invoke_primitive(:regexp_set_last_match, match_data)
+      Truffle::RegexpOperations.set_last_match(match_data, Truffle.invoke_primitive(:caller_binding))
       return match_data.begin(0) if match_data
 
     else

@@ -199,22 +199,22 @@ class Regexp
 
   def =~(str)
     unless str
-      Truffle.invoke_primitive(:regexp_set_last_match, nil)
+      Truffle::RegexpOperations.set_last_match(nil, Truffle.invoke_primitive(:caller_binding))
       return nil
     end
     result = Truffle::RegexpOperations.match(self, str, 0)
-    Truffle.invoke_primitive(:regexp_set_last_match, result)
+    Truffle::RegexpOperations.set_last_match(result, Truffle.invoke_primitive(:caller_binding))
 
     result.begin(0) if result
   end
 
   def match(str, pos=0)
     unless str
-      Truffle.invoke_primitive(:regexp_set_last_match, nil)
+      Truffle::RegexpOperations.set_last_match(nil, Truffle.invoke_primitive(:caller_binding))
       return nil
     end
     result = Truffle::RegexpOperations.match(self, str, pos)
-    Truffle.invoke_primitive(:regexp_set_last_match, result)
+    Truffle::RegexpOperations.set_last_match(result, Truffle.invoke_primitive(:caller_binding))
 
     if result && block_given?
       yield result
@@ -233,16 +233,16 @@ class Regexp
     elsif !other.kind_of? String
       other = Truffle::Type.check_convert_type other, String, :to_str
       unless other
-        Truffle.invoke_primitive(:regexp_set_last_match, nil)
+        Truffle::RegexpOperations.set_last_match(nil, Truffle.invoke_primitive(:caller_binding))
         return false
       end
     end
 
     if match = match_from(other, 0)
-      Truffle.invoke_primitive(:regexp_set_last_match, match)
+      Truffle::RegexpOperations.set_last_match(match, Truffle.invoke_primitive(:caller_binding))
       true
     else
-      Truffle.invoke_primitive(:regexp_set_last_match, nil)
+      Truffle::RegexpOperations.set_last_match(nil, Truffle.invoke_primitive(:caller_binding))
       false
     end
   end
@@ -271,7 +271,7 @@ class Regexp
     line = Truffle::IOOperations.last_line(Truffle.invoke_primitive(:caller_binding))
 
     unless line.kind_of?(String)
-      Truffle.invoke_primitive(:regexp_set_last_match, nil)
+      Truffle::RegexpOperations.set_last_match(nil, Truffle.invoke_primitive(:caller_binding))
       return nil
     end
 

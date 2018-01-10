@@ -35,7 +35,6 @@ import org.joni.exception.SyntaxException;
 import org.joni.exception.ValueException;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -46,7 +45,6 @@ import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.regexp.RegexpNodesFactory.MatchNodeGen;
-import org.truffleruby.core.regexp.RegexpNodesFactory.RegexpSetLastMatchPrimitiveNodeFactory;
 import org.truffleruby.core.regexp.RegexpNodesFactory.ToSNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -59,18 +57,13 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNode;
-import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNodeGen;
-import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
@@ -377,34 +370,6 @@ public abstract class RegexpNodes {
             final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true);
             int range = rope.byteLength();
             return matchNode.execute(regexp, string, matcher, startPos, range, true);
-        }
-    }
-
-    @Primitive(name = "regexp_set_last_match", needsSelf = false)
-    @ImportStatic(RegexpNodes.class)
-    public static abstract class RegexpSetLastMatchPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Child ReadCallerFrameNode readCallerFrame = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
-        @Child FindThreadAndFrameLocalStorageNode threadLocalNode;
-        @CompilationFinal DynamicObject lastMatchSymbol;
-
-        public static RegexpSetLastMatchPrimitiveNode create() {
-            return RegexpSetLastMatchPrimitiveNodeFactory.create(null);
-        }
-
-        public abstract DynamicObject executeSetLastMatch(VirtualFrame frame, Object matchData);
-
-        @Specialization(guards = "isSuitableMatchDataType(getContext(), matchData)")
-        public DynamicObject setLastMatchData(VirtualFrame frame, DynamicObject matchData) {
-            if (threadLocalNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                lastMatchSymbol = getContext().getSymbolTable().getSymbol(LAST_MATCH_VARIABLE);
-                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create());
-            }
-            Frame callerFrame = readCallerFrame.execute(frame);
-            ThreadAndFrameLocalStorage lastMatch = threadLocalNode.execute(lastMatchSymbol, callerFrame.materialize());
-            lastMatch.set(matchData);
-            return matchData;
         }
     }
 
