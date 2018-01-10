@@ -66,7 +66,7 @@ public class Launcher {
     public static final String ENGINE_ID = "truffleruby";
     public static final String LANGUAGE_VERSION = "2.3.5";
     public static final int LANGUAGE_REVISION = 59905;
-    public static final String ENGINE_VERSION = System.getProperty("org.graalvm.version", "0.0-" + BuildInformationImpl.INSTANCE.getRevision());
+    public static final String ENGINE_VERSION = getEngineVersion();
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
     public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2017 Oracle and/or its affiliates";
 
@@ -87,6 +87,17 @@ public class Launcher {
 
         metricsEnd();
         System.exit(exitCode);
+    }
+
+    private static String getEngineVersion() {
+        final String systemVersion = System.getProperty("org.graalvm.version");
+
+        // GraalVM dev builds set the version to "dev" and expect us to do something reasonable with it.
+        if (systemVersion == null || systemVersion.equals("dev")) {
+            return "0.0-" + BuildInformationImpl.INSTANCE.getRevision();
+        }
+
+        return systemVersion;
     }
 
     public static void metricsBegin() {
