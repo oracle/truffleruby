@@ -229,6 +229,17 @@ public class RubyMessageResolution {
 
     }
 
+    @Resolve(message = "HAS_KEYS")
+    public static abstract class ForeignHasKeysNode extends Node {
+
+        @Child private HasKeysNode hasKeysNode = HasKeysNode.create();
+
+        protected Object access(VirtualFrame frame, DynamicObject object) {
+            return hasKeysNode.executeHasKeys(object);
+        }
+
+    }
+
     @Resolve(message = "KEYS")
     public static abstract class ForeignKeysNode extends Node {
 

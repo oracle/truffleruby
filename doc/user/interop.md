@@ -79,6 +79,12 @@ Calls `to_native` if the object responds to it, otherwise throws
 
 Returns true only for the `nil` object.
 
+### `HAS_KEYS`
+
+Returns true for all objects except those primitives that are always frozen,
+`nil`, `true`, `false`, `Fixnum`, `Bignum`, `Float`, `Symbol`. Note that `KEYS`
+will continue to return an empty list, even if `HAS_KEYS` returns false.
+
 ### `KEYS`
 
 If the receiver is a Ruby `Hash`, return the hash keys.
@@ -209,6 +215,10 @@ In all cases where a call is made no block is passed.
 ### `IS_NULL`
 
 `Truffle::Interop.null?(value)`
+
+### `HAS_KEYS`
+
+`Truffle::Interop.keys?(value)`
 
 ### `KEYS`
 
