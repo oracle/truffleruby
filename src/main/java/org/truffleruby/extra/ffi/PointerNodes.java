@@ -74,7 +74,7 @@ public abstract class PointerNodes {
     public static abstract class NativeFunctionTypeSizePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public long typeSize(int type) {
+        public int typeSize(int type) {
             switch (type) {
                 case NativeTypes.TYPE_CHAR:
                 case NativeTypes.TYPE_UCHAR:
