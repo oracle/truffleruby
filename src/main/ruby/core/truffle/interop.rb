@@ -25,16 +25,25 @@ module Truffle
       export(name.to_s, Object.method(name.to_sym))
     end
 
-    def self.object_keys(object)
+    def self.object_keys(object, internal)
       if object.is_a?(Hash)
-        object.keys.map(&:to_s)
+        keys = object.keys.map(&:to_s)
       else
-        object.instance_variables.map { |ivar|
+        keys = object.instance_variables.map { |ivar|
           ivar = ivar.to_s
           ivar = ivar[1..-1] if ivar.start_with?('@')
           ivar
         }
       end
+      if internal
+        object.instance_variables.each do |ivar|
+          ivar = ivar.to_s
+          if ivar.start_with?('@')
+            keys << ivar
+          end
+        end
+      end
+      keys
     end
     
     def self.key_info(object, name)
@@ -52,6 +61,11 @@ module Truffle
         flags << :readable if readable
         flags << :writable if writable
         flags << :existing if readable || writable
+      end
+      if name.to_s[0] == '@' && object.instance_variable_defined?(name)
+        flags << :internal
+        flags << :writable
+        flags << :existing
       end
       key_info_flags_to_bits(flags)
     end

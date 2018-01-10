@@ -27,5 +27,19 @@ describe "Truffle::Interop.keys" do
   it "returns the instance variables of something that isn't a hash" do
     Truffle::Interop.keys(InteropKeysClass.new).sort.should == ['a', 'b', 'c']
   end
+  
+  describe "with internal set" do
+    
+    it "returns instance variables of something that isn't a hash" do
+      hash = {a: 1, b: 2, c: 3}
+      hash.instance_variable_set(:@foo, 14)
+      Truffle::Interop.keys(hash, true).should include('@foo')
+    end
+    
+    it "returns instance variables of something that isn't a hash" do
+      Truffle::Interop.keys(InteropKeysClass.new, true).should include('@a', '@b', '@c')
+    end
+    
+  end
 
 end

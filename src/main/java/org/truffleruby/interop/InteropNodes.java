@@ -46,6 +46,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SnippetNode;
@@ -689,22 +690,29 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "keys", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "keys", isModuleFunction = true, required = 1, optional = 1)
     public abstract static class KeysNode extends CoreMethodArrayArgumentsNode {
 
+        public abstract Object executeSize(VirtualFrame frame, TruffleObject receiver, Object internal);
+
         @Specialization
-        public Object size(VirtualFrame frame, TruffleObject receiver,
+        public Object size(VirtualFrame frame, TruffleObject receiver, boolean internal,
                 @Cached("createKeysNode()") Node keysNode,
                 @Cached("new()") SnippetNode snippetNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
                 return snippetNode.execute(frame,
                         "Truffle::Interop.enumerable(keys).map { |key| Truffle::Interop.from_java_string(key) }",
-                        "keys", ForeignAccess.sendKeys(keysNode, receiver));
+                        "keys", ForeignAccess.sendKeys(keysNode, receiver, internal));
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
+        }
+
+        @Specialization
+        public Object size(VirtualFrame frame, TruffleObject receiver, NotProvided internal) {
+            return executeSize(frame, receiver, false);
         }
 
         protected Node createKeysNode() {
