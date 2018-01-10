@@ -98,6 +98,8 @@ Otherwise, return the instance variable names, without the leading `@`.
 In both cases the keys are returned as a Ruby `Array` containing Ruby `String`
 objects.
 
+TruffleRuby ignores the `internal` flag to this message.
+
 ### `READ`
 
 The name must be an `int` (small Ruby `Fixnum`), or a Ruby `String` or `Symbol`,
