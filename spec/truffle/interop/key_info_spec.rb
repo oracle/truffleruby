@@ -9,6 +9,10 @@
 require_relative '../../ruby/spec_helper'
 
 class KeyInfoFixture
+  
+  def initialize
+    @foo = 14
+  end
 
   attr_reader :ro
   attr_accessor :rw
@@ -22,6 +26,7 @@ describe "Truffle::Interop.key_info" do
     
     before :all do
       @hash = {'a' => 1, 'b' => 2, 'c' => 3}
+      @hash.instance_variable_set(:@foo, 14)
     end
     
     it "returns :existing for all keys" do
@@ -48,10 +53,18 @@ describe "Truffle::Interop.key_info" do
       end
     end
     
-    it "does not return :internal" do
+    it "does not return :internal for keys" do
       @hash.keys.each do |k|
         Truffle::Interop.key_info(@hash, k).should_not include(:internal)
       end
+    end
+    
+    it "returns :internal for an instance variable" do
+      Truffle::Interop.key_info(@hash, :@foo).should include(:internal)
+    end
+    
+    it "does not return :internal for an instance variable that does not exist" do
+      Truffle::Interop.key_info(@hash, :@bar).should_not include(:internal)
     end
     
     it "returns nothing for a missing key" do
@@ -96,10 +109,18 @@ describe "Truffle::Interop.key_info" do
       Truffle::Interop.key_info(@object, :wo).should_not include(:invocable)
     end
 
-    it "does not return :internal" do
+    it "does not return :internal for methods" do
       Truffle::Interop.key_info(@object, :ro).should_not include(:internal)
       Truffle::Interop.key_info(@object, :rw).should_not include(:internal)
       Truffle::Interop.key_info(@object, :wo).should_not include(:internal)
+    end
+
+    it "returns :internal for an instance variable" do
+      Truffle::Interop.key_info(@object, :@foo).should include(:internal)
+    end
+
+    it "does not return :internal for an instance variable that does not exist" do
+      Truffle::Interop.key_info(@object, :@bar).should_not include(:internal)
     end
 
     it "does not return anything for an undefined method" do

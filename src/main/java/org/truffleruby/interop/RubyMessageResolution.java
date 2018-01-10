@@ -247,8 +247,8 @@ public class RubyMessageResolution {
 
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
 
-        protected Object access(VirtualFrame frame, DynamicObject object) {
-            return dispatchNode.call(frame, getContext().getCoreLibrary().getTruffleInteropModule(), "object_keys", object);
+        protected Object access(VirtualFrame frame, DynamicObject object, boolean internal) {
+            return dispatchNode.call(frame, getContext().getCoreLibrary().getTruffleInteropModule(), "object_keys", object, internal);
         }
 
         private RubyContext getContext() {

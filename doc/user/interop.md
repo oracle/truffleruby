@@ -95,17 +95,17 @@ Otherwise, return the instance variable names, without the leading `@`.
 
 `KEYS(other)` → `other.instance_variables.map { |key| ...key without @... }`
 
-In both cases the keys are returned as a Ruby `Array` containing Ruby `String`
-objects.
+In both cases if the `internal` flag is set, instance variable names with the
+leading `@` are also returned.
 
-TruffleRuby ignores the `internal` flag to this message.
+Keys are returned as a Ruby `Array` containing Ruby `String` objects.
 
 ### `KEY_INFO`
 
 If the object is a Ruby `Hash`, and the key is in the hash, `READABLE`,
 `WRITABLE` are set. If the key is not in the hash, neither are set. Note that
 the interface for `KEY_INFO` converts the key to a Java `String`, so if your
-keys are `Symbol`, they will not match.
+keys are `Symbol`, they will not match. `INTERNAL` will never be set.
 
 If the object is not a Ruby `Hash`:
 
@@ -120,8 +120,8 @@ For all objects:
 
 `INVOCABLE` is never set, because currently `KEYS` does not include methods.
 
-`INTERNAL` is never set, and TruffleRuby ignores the `internal` flag to the
-`KEYS` message.
+`READABLE`, `WRITABLE`, and `INTERNAL` will be set for names with a leading `@`,
+if there is an instance variable with that name.
 
 ### `READ`
 
@@ -247,7 +247,7 @@ In all cases where a call is made no block is passed.
 
 ### `KEYS`
 
-`Truffle::Interop.keys(value)`
+`Truffle::Interop.keys(value, internal=false)`
 
 TruffleRuby will convert the returned value from a foreign object of Java
 `String` objects, to a Ruby `Array` of Ruby `String` objects.
