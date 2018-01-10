@@ -44,6 +44,10 @@ module FFI
   def self.find_type(*args)
     Truffle::FFI.find_type(*args)
   end
+
+  def self.type_size(*args)
+    Truffle::FFI.type_size(*args)
+  end
 end
 
 require_relative 'ffi/library'
