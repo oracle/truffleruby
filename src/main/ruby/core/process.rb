@@ -190,7 +190,7 @@ module Process
 
       size = 2 * 4096 + args_length + env_length
       base = to - size
-      base_ptr = FFI::Pointer.new(FFI::Type::CHAR, base)
+      base_ptr = FFI::Pointer.new(:char, base)
       haystack = base_ptr.read_string(size)
 
       i = haystack.index("\x00#{command}")
@@ -213,7 +213,7 @@ module Process
     end
     new_title = title + "\x00" * (@_argv0_max_length - title.bytesize)
 
-    argv0_ptr = FFI::Pointer.new(FFI::Type::CHAR, @_argv0_address)
+    argv0_ptr = FFI::Pointer.new(:char, @_argv0_address)
     argv0_ptr.write_string(new_title)
 
     new_command = File.binread('/proc/self/cmdline')
