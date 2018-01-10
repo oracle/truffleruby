@@ -483,7 +483,8 @@ class Hash
 
   def transform_values!
     return to_enum(:transform_values!) { size } unless block_given?
-    raise RuntimeError, "can't modify frozen Hash" if frozen?
+
+    Truffle.check_frozen
 
     each_pair do |key, value|
       self[key] = yield(value)
