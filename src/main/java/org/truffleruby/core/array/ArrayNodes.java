@@ -426,9 +426,9 @@ public abstract class ArrayNodes {
             return FAILURE;
         }
 
-        // array[start..end] = object_or_array
+        // array[start..end] = array
 
-        @Specialization(guards = "isIntRange(range)")
+        @Specialization(guards = { "isIntRange(range)", "isRubyArray(value)" })
         public Object setRange(DynamicObject array, DynamicObject range, Object value, NotProvided unused,
                 @Cached("createBinaryProfile()") ConditionProfile negativeBeginProfile,
                 @Cached("createBinaryProfile()") ConditionProfile negativeEndProfile,
@@ -449,6 +449,15 @@ public abstract class ArrayNodes {
             final int normalizeLength = length > -1 ? length : 0;
             return executeSet(array, start, normalizeLength, value);
         }
+
+        // array[start..end] = object (not array)
+
+        @Specialization(guards = { "isIntRange(range)", "!isRubyArray(value)" })
+        public Object setRangeWithNonArray(DynamicObject array, DynamicObject range, Object value, NotProvided unused) {
+            return FAILURE;
+        }
+
+        // array[start..end] = object_or_array (non-int range)
 
         @Specialization(guards = { "!isIntRange(range)", "isRubyRange(range)" })
         public Object setOtherRange(DynamicObject array, DynamicObject range, Object value, NotProvided unused) {
