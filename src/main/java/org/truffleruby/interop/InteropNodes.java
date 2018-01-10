@@ -282,6 +282,27 @@ public abstract class InteropNodes {
 
     }
 
+    @CoreMethod(names = "instantiable?", isModuleFunction = true, required = 1)
+    public abstract static class InstantiableNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean isInstantiable(
+                TruffleObject receiver,
+                @Cached("createIsInstantiableNode()") Node isInstantiableNode) {
+            return ForeignAccess.sendIsInstantiable(isInstantiableNode, receiver);
+        }
+
+        protected Node createIsInstantiableNode() {
+            return Message.IS_INSTANTIABLE.createNode();
+        }
+
+        @Fallback
+        public boolean isInstantiable(Object receiver) {
+            return false;
+        }
+
+    }
+
     @CoreMethod(names = "new", isModuleFunction = true, required = 1, rest = true)
     public abstract static class NewNode extends CoreMethodArrayArgumentsNode {
 

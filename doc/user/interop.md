@@ -34,6 +34,10 @@ Doesn't pass a block.
 Calls the method with the name you provided, passing the arguments as you'd
 expect. Doesn't pass a block.
 
+### `IS_INSTANTIABLE`
+
+Returns if the object responds to `new`.
+
 ### `NEW`
 
 Calls `new`, passing the arguments as you'd expect.
@@ -164,6 +168,10 @@ In all cases where a call is made no block is passed.
 
 `name` can be a `String` or `Symbol`.
 
+### `IS_INSTANTIABLE`
+
+`Truffle::Interop.instantiable?(receiver)`
+
 ### `NEW`
 
 `Truffle::Interop.new(receiver, *args)`
@@ -232,6 +240,10 @@ Not supported.
 `object.name(*args)`
 
 `object.name!` if there are no arguments (otherwise it is a `READ`)
+
+### `IS_INSTANTIABLE`
+
+`object.respond_to?(:new)`
 
 ### `NEW`
 
@@ -307,7 +319,8 @@ an integer, or anything else
 
 `object.new(*args)` sends `NEW`
 
-`object.respond_to?` calls `Truffle::Interop.respond_to?(object, message)`
+`object.respond_to?` calls `Truffle::Interop.respond_to?(object, message)`,
+which supports `to_a`, `to_ary`, `new` and returns `false` for everything else.
 
 `object.to_a` and `object.to_ary` calls `Truffle::Interop.to_array(object)`
 
