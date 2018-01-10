@@ -70,6 +70,54 @@ public abstract class PointerNodes {
 
     }
 
+    @Primitive(name = "pointer_find_type_size", needsSelf = false)
+    public static abstract class PointerFindTypeSizePrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubySymbol(type)")
+        protected int findTypeSize(DynamicObject type) {
+            final String typeString = Layouts.SYMBOL.getString(type);
+            final int size = typeSize(typeString);
+            if (size > 0) {
+                return size;
+            } else {
+                final Object typedef = getContext().getTruffleNFI().resolveTypeRaw(getContext().getNativeConfiguration(), typeString);
+                final int typedefSize = typeSize(StringOperations.getString((DynamicObject) typedef));
+                assert typedefSize > 0 : typedef;
+                return typedefSize;
+            }
+        }
+
+        private static int typeSize(String type) {
+            switch (type) {
+                case "char":
+                case "uchar":
+                    return 1;
+                case "short":
+                case "ushort":
+                    return 2;
+                case "int":
+                case "uint":
+                case "int32":
+                case "uint32":
+                case "float":
+                    return 4;
+                case "long":
+                case "ulong":
+                case "int64":
+                case "uint64":
+                case "long_long":
+                case "ulong_long":
+                case "double":
+                case "pointer":
+                    return 8;
+                default:
+                    return -1;
+            }
+        }
+
+    }
+
     @Primitive(name = "nativefunction_type_size", needsSelf = false, lowerFixnum = 1)
     public static abstract class NativeFunctionTypeSizePrimitiveNode extends PrimitiveArrayArgumentsNode {
 

@@ -56,6 +56,14 @@ module Truffle::FFI
   # invalid address will cause bus errors and segmentation faults.
   #
   class Pointer
+    def self.find_type_size(type)
+      if defined?(::FFI) # Full FFI loaded
+        ::FFI.type_size(::FFI.find_type(type))
+      else
+        Truffle.invoke_primitive :pointer_find_type_size, type
+      end
+    end
+
     def initialize(a1, a2=undefined)
       if undefined.equal? a2
         if Truffle::Interop.foreign?(a1) && Truffle::Interop.pointer?(a1)
@@ -170,7 +178,7 @@ module Truffle::FFI
 
       # Build up the array
       ary = []
-      size = FFI.type_size(FFI.find_type type)
+      size = Pointer.find_type_size(type)
       tmp = self
       length.times {
         ary << tmp.send(reader, *args)
@@ -181,7 +189,7 @@ module Truffle::FFI
 
     # Write a sequence of types +type+  using method +reader+ from +ary+
     def write_array_of_type(type, writer, ary)
-      size = FFI.type_size(FFI.find_type type)
+      size = Pointer.find_type_size(type)
       tmp = self
       ary.each do |i|
         tmp.send(writer, i)
@@ -1156,7 +1164,7 @@ module Truffle::FFI
       if type.kind_of? Fixnum
         size = type
       elsif type.kind_of? Symbol
-        size = FFI.type_size(FFI.find_type(type))
+        size = Pointer.find_type_size(type)
       else
         size = type.size
       end

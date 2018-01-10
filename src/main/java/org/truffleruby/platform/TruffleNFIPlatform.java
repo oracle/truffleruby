@@ -83,11 +83,16 @@ public class TruffleNFIPlatform {
         }
     }
 
-    public String resolveType(NativeConfiguration nativeConfiguration, String type) {
+    public Object resolveTypeRaw(NativeConfiguration nativeConfiguration, String type) {
         final Object typedef = nativeConfiguration.get("platform.typedef." + type);
         if (typedef == null) {
             throw new UnsupportedOperationException("Type " + type + " is not defined in the native configuration");
         }
+        return typedef;
+    }
+
+    public String resolveType(NativeConfiguration nativeConfiguration, String type) {
+        final Object typedef = resolveTypeRaw(nativeConfiguration, type);
         return toNFIType(StringOperations.getString((DynamicObject) typedef));
     }
 
