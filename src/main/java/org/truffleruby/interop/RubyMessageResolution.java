@@ -291,6 +291,17 @@ public class RubyMessageResolution {
 
     }
 
+    @Resolve(message = "IS_INSTANTIABLE")
+    public static abstract class ForeignIsInstantiableNode extends Node {
+
+        @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
+
+        protected Object access(VirtualFrame frame, DynamicObject receiver) {
+            return doesRespond.doesRespondTo(frame, "new", receiver);
+        }
+
+    }
+
     @Resolve(message = "NEW")
     public static abstract class ForeignNewNode extends Node {
 

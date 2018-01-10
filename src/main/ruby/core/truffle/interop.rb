@@ -130,6 +130,8 @@ module Truffle
       case name.to_sym
       when :to_a, :to_ary
         Truffle::Interop.size?(object)
+      when :new
+        Truffle::Interop.instantiable?(object)
       else
         false
       end
