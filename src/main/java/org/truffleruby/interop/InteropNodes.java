@@ -666,6 +666,28 @@ public abstract class InteropNodes {
 
     }
 
+    @CoreMethod(names = "keys?", isModuleFunction = true, required = 1)
+    public abstract static class InteropHasKeysNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean hasKeys(
+                TruffleObject receiver,
+                @Cached("createHasKeysNode()") Node hasKeysNode) {
+            return ForeignAccess.sendHasKeys(hasKeysNode, receiver);
+        }
+
+        protected Node createHasKeysNode() {
+            return Message.HAS_KEYS.createNode();
+        }
+
+        @Specialization(guards = "!isTruffleObject(receiver)")
+        public boolean hasKeys(Object receiver,
+                               @Cached("create()") HasKeysNode hasKeysNode) {
+            return hasKeysNode.executeHasKeys(receiver);
+        }
+
+    }
+
     @CoreMethod(names = "keys", isModuleFunction = true, required = 1)
     public abstract static class KeysNode extends CoreMethodArrayArgumentsNode {
 
