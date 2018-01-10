@@ -402,10 +402,10 @@ class Enumerator
             yielder.yield val
           end
 
-          Truffle.invoke_primitive(:regexp_set_last_match, $~)
+          Truffle::RegexpOperations.set_last_match($~, Truffle.invoke_primitive(:caller_binding))
         end
 
-        Truffle.invoke_primitive(:regexp_set_last_match, $~)
+        Truffle::RegexpOperations.set_last_match($~, Truffle.invoke_primitive(:caller_binding))
 
         lazy
       end

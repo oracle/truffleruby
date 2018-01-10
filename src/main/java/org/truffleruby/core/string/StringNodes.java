@@ -97,6 +97,7 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.array.ArrayCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
@@ -113,7 +114,6 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
-import org.truffleruby.core.regexp.RegexpNodes.RegexpSetLastMatchPrimitiveNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.ConcatRope;
 import org.truffleruby.core.rope.LeafRope;
@@ -136,6 +136,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
@@ -587,8 +588,9 @@ public abstract class StringNodes {
                 DynamicObject regexp,
                 NotProvided capture,
                 @Cached("createOnSelf()") CallDispatchHeadNode callNode,
-                @Cached("create()") RegexpSetLastMatchPrimitiveNode setLastMatchNode) {
-            return sliceCapture(frame, string, regexp, 0, callNode, setLastMatchNode);
+                @Cached("createOnSelf()") CallDispatchHeadNode setLastMatchNode,
+                @Cached("create()") ReadCallerFrameNode readCallerNode) {
+            return sliceCapture(frame, string, regexp, 0, callNode, setLastMatchNode, readCallerNode);
         }
 
         @Specialization(guards = {"isRubyRegexp(regexp)", "wasProvided(capture)"})
@@ -598,17 +600,19 @@ public abstract class StringNodes {
                 DynamicObject regexp,
                 Object capture,
                 @Cached("createOnSelf()") CallDispatchHeadNode callNode,
-                @Cached("create()") RegexpSetLastMatchPrimitiveNode setLastMatchNode) {
+                @Cached("createOnSelf()") CallDispatchHeadNode setLastMatchNode,
+                @Cached("create()") ReadCallerFrameNode readCallerNode) {
             final Object matchStrPair = callNode.call(frame, string, "subpattern", regexp, capture);
 
+            DynamicObject binding = BindingNodes.createBinding(getContext(), readCallerNode.execute(frame).materialize());
             if (matchStrPair == nil()) {
-                setLastMatchNode.executeSetLastMatch(frame, nil());
+                setLastMatchNode.call(frame, coreLibrary().getTruffleRegexpOperationsModule(), "set_last_match", nil(), binding);
                 return nil();
             }
 
             final Object[] array = (Object[]) Layouts.ARRAY.getStore((DynamicObject) matchStrPair);
 
-            setLastMatchNode.executeSetLastMatch(frame, array[0]);
+            setLastMatchNode.call(frame, coreLibrary().getTruffleRegexpOperationsModule(), "set_last_match", array[0], binding);
 
             return array[1];
         }
