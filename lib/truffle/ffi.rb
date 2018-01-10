@@ -6,6 +6,8 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
+require_relative 'truffle/ffi/ffi_struct'
+
 # Minimal support needed to run ffi/library
 module FFI
   Platform = Truffle::FFI::Platform
