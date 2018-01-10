@@ -102,15 +102,6 @@ module Truffle::FFI
       Truffle::Config["platform.#{name}"]
     end
 
-    def config_hash(name)
-      vals = {}
-      section = "platform.#{name}."
-      Truffle::Config.section section do |key, value|
-        vals[key.substring(section.size, key.length)] = value
-      end
-      vals
-    end
-
     def errno
       Errno.errno
     end
