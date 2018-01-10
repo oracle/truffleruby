@@ -99,6 +99,7 @@ class MSpecScript
     "spec/ruby/core/integer/digits_spec.rb",
     "spec/ruby/core/regexp/match_spec.rb",
     "spec/ruby/core/string/match_spec.rb",
+    "spec/ruby/core/hash/transform_values_spec.rb",
   ]
 
   set :ruby25, [
