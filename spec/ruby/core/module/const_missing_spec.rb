@@ -25,7 +25,12 @@ describe "Module#const_missing" do
   end
 
   it "is called regardless of visibility" do
-    klass = Class.new { extend ConstantSpecs::ProtectedConstMissing }
+    klass = Class.new do
+      def self.const_missing(name)
+        "Found:#{name}"
+      end
+      private_class_method :const_missing
+    end
     klass::Hello.should == 'Found:Hello'
   end
 end
