@@ -471,8 +471,10 @@ module Enumerable
   end
   alias_method :reduce, :inject
 
-  def all?
-    if block_given?
+  def all?(pattern = undefined)
+    if !undefined.equal?(pattern)
+      each { return false unless pattern === Truffle.single_block_arg }
+    elsif block_given?
       each { |*e| return false unless yield(*e) }
     else
       each { return false unless Truffle.single_block_arg }
@@ -480,8 +482,10 @@ module Enumerable
     true
   end
 
-  def any?
-    if block_given?
+  def any?(pattern = undefined)
+    if !undefined.equal?(pattern)
+      each { return true if pattern === Truffle.single_block_arg }
+    elsif block_given?
       each { |*o| return true if yield(*o) }
     else
       each { return true if Truffle.single_block_arg }
@@ -836,8 +840,10 @@ module Enumerable
     [min_object, max_object]
   end
 
-  def none?
-    if block_given?
+  def none?(pattern = undefined)
+    if !undefined.equal?(pattern)
+      each { return false if pattern === Truffle.single_block_arg }
+    elsif block_given?
       each { |*o| return false if yield(*o) }
     else
       each { return false if Truffle.single_block_arg }
@@ -846,10 +852,17 @@ module Enumerable
     true
   end
 
-  def one?
+  def one?(pattern = undefined)
     found_one = false
 
-    if block_given?
+    if !undefined.equal?(pattern)
+      each do
+        if pattern === Truffle.single_block_arg
+          return false if found_one
+          found_one = true
+        end
+      end
+    elsif block_given?
       each do |*o|
         if yield(*o)
           return false if found_one
