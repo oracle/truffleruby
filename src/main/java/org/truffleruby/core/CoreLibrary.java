@@ -1443,7 +1443,6 @@ public class CoreLibrary {
             "/core/array.rb",
             "/core/mirror.rb",
             "/core/channel.rb",
-            "/core/character.rb",
             "/core/configuration.rb",
             "/core/false.rb",
             "/core/gc.rb",

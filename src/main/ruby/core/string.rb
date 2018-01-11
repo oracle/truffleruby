@@ -590,7 +590,7 @@ class String
           end
         end
 
-        if char.printable?
+        if Truffle.invoke_primitive(:character_printable_p, char)
           array << char
         else
           code = char.ord
