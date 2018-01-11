@@ -88,11 +88,11 @@ public abstract class ObjectGraph {
         return visited;
     }
 
-    public static void visitContextRoots(RubyContext context, Collection<DynamicObject> stack) {
+    public static void visitContextRoots(RubyContext context, Collection<DynamicObject> roots) {
         // We do not want to expose the global object
-        stack.addAll(context.getCoreLibrary().getGlobalVariables().dynamicObjectValues());
-        stack.addAll(context.getAtExitManager().getHandlers());
-        context.getFinalizationService().collectRoots(stack);
+        roots.addAll(context.getCoreLibrary().getGlobalVariables().dynamicObjectValues());
+        roots.addAll(context.getAtExitManager().getHandlers());
+        context.getFinalizationService().collectRoots(roots);
     }
 
     public static Set<DynamicObject> getAdjacentObjects(DynamicObject object) {
