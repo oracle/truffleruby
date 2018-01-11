@@ -16,7 +16,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
-import java.util.stream.Collectors;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.thread.ThreadManager;
@@ -68,8 +67,10 @@ public class FinalizationService {
             finalizers.removeIf(f -> f.getOwner() == owner);
         }
 
-        public List<Runnable> getFinalizerActions() {
-            return finalizers.stream().map(Finalizer::getAction).collect(Collectors.toList());
+        public void runFinalizerActions() {
+            for (Finalizer finalizer : finalizers) {
+                finalizer.getAction().run();
+            }
         }
 
         public void collectRoots(Collection<DynamicObject> roots) {
@@ -160,7 +161,7 @@ public class FinalizationService {
 
     private void runFinalizer(FinalizerReference finalizerReference) {
         try {
-            finalizerReference.getFinalizerActions().forEach(Runnable::run);
+            finalizerReference.runFinalizerActions();
         } catch (TerminationException e) {
             throw e;
         } catch (RaiseException e) {
