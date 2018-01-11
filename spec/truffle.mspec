@@ -110,6 +110,7 @@ class MSpecScript
     "spec/ruby/core/enumerable/any_spec.rb",
     "spec/ruby/core/enumerable/none_spec.rb",
     "spec/ruby/core/enumerable/one_spec.rb",
+    "spec/ruby/core/hash/transform_keys_spec.rb",
   ]
 
   set :backtrace_filter, /mspec\//
