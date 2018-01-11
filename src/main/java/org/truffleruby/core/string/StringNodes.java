@@ -78,7 +78,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jcodings.constants.CharacterType;
 import org.jcodings.Encoding;
 import org.jcodings.exception.EncodingException;
 import org.jcodings.specific.ASCIIEncoding;
@@ -2704,32 +2703,24 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "character_printable_p")
-    @ImportStatic(StringGuards.class)
     public static abstract class CharacterPrintablePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private RopeNodes.GetCodePointNode getCodePointNode = RopeNodes.GetCodePointNode.create();
-
-        @Specialization(guards = "is7Bit(character)")
-        public boolean isCharacterPrintable(DynamicObject character) {
+        @Specialization
+        public boolean isCharacterPrintable(DynamicObject character,
+                                            @Cached("createBinaryProfile()") ConditionProfile is7BitProfile,
+                                            @Cached("create()") RopeNodes.GetCodePointNode getCodePointNode) {
             final Rope rope = rope(character);
-
             final int codePoint = getCodePointNode.executeGetCodePoint(rope, 0);
 
-            return StringSupport.isAsciiPrintable(codePoint);
-        }
-
-        @Specialization(guards = "!is7Bit(character)")
-        public Object isCharacterPrintableGeneric(DynamicObject character) {
-            final Rope rope = rope(character);
-            final Encoding encoding = rope.getEncoding();
-
-            final int codePoint = getCodePointNode.executeGetCodePoint(rope, 0);
-
-            return isPrintable(encoding, codePoint);
+            if (is7BitProfile.profile(rope.isAsciiOnly())) {
+                return StringSupport.isAsciiPrintable(codePoint);
+            } else {
+                return isMBCPrintable(rope.getEncoding(), codePoint);
+            }
         }
 
         @TruffleBoundary
-        protected boolean isPrintable(Encoding encoding, int codePoint) {
+        protected boolean isMBCPrintable(Encoding encoding, int codePoint) {
             return encoding.isPrint(codePoint);
         }
 
