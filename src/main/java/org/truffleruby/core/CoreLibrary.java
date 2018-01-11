@@ -667,8 +667,6 @@ public class CoreLibrary {
         stderrStorage = globals.getStorage("$stderr");
 
         globals.put("$=", false);
-
-        globals.alias("$0", "$PROGRAM_NAME");
     }
 
     private void findGlobalVariableStorage() {

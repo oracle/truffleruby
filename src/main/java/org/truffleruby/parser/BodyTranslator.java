@@ -107,15 +107,12 @@ import org.truffleruby.language.exceptions.TryNode;
 import org.truffleruby.language.globals.AliasGlobalVarNode;
 import org.truffleruby.language.globals.CheckLastLineNumberNode;
 import org.truffleruby.language.globals.CheckOutputSeparatorVariableTypeNode;
-import org.truffleruby.language.globals.CheckProgramNameVariableTypeNode;
 import org.truffleruby.language.globals.CheckRecordSeparatorVariableTypeNode;
 import org.truffleruby.language.globals.CheckStdoutVariableTypeNode;
-import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.globals.ReadMatchReferenceNodes;
 import org.truffleruby.language.globals.UpdateVerbosityNode;
 import org.truffleruby.language.globals.WriteGlobalVariableNodeGen;
-import org.truffleruby.language.globals.WriteReadOnlyGlobalNode;
 import org.truffleruby.language.literal.BooleanLiteralNode;
 import org.truffleruby.language.literal.FloatLiteralNode;
 import org.truffleruby.language.literal.IntegerFixnumLiteralNode;
@@ -1600,10 +1597,6 @@ public class BodyTranslator extends Translator {
         }
 
         switch (name) {
-            case "$0":
-                rhs = new CheckProgramNameVariableTypeNode(rhs);
-                rhs.unsafeSetSourceSection(sourceSection);
-                break;
             case "$/":
                 rhs = new CheckRecordSeparatorVariableTypeNode(rhs);
                 rhs.unsafeSetSourceSection(sourceSection);
@@ -1626,21 +1619,9 @@ public class BodyTranslator extends Translator {
                 break;
         }
 
-        final boolean inCore = getSourcePath(node.getValueNode().getPosition()).startsWith(corePath());
-
-        final RubyNode ret;
         final RubyNode writeGlobalVariableNode = WriteGlobalVariableNodeGen.create(name, rhs);
 
-        if (name.equals("$0")) {
-            // Call Process.setproctitle
-            RubyNode processClass = new ObjectLiteralNode(context.getCoreLibrary().getProcessModule());
-            ret = new RubyCallNode(new RubyCallNodeParameters(processClass, "setproctitle", null,
-                    new RubyNode[]{ writeGlobalVariableNode }, false, false));
-        } else {
-            ret = writeGlobalVariableNode;
-        }
-
-        return addNewlineIfNeeded(node, withSourceSection(sourceSection, ret));
+        return addNewlineIfNeeded(node, withSourceSection(sourceSection, writeGlobalVariableNode));
     }
 
     @Override
