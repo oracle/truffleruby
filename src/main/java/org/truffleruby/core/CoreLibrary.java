@@ -634,17 +634,7 @@ public class CoreLibrary {
     private void initializeGlobalVariables() {
         GlobalVariables globals = globalVariables;
 
-        loadPathStorage = globals.put("$LOAD_PATH",
-                Layouts.ARRAY.createArray(arrayFactory, null, 0));
-        globals.alias("$LOAD_PATH", "$:");
-        globals.alias("$LOAD_PATH", "$-I");
-
-        loadedFeaturesStorage = globals.put("$LOADED_FEATURES",
-                Layouts.ARRAY.createArray(arrayFactory, null, 0));
-        globals.alias("$LOADED_FEATURES", "$\"");
-
         globals.put("$,", nil);
-        globals.put("$*", argv);
 
         debugStorage = globals.put("$DEBUG", context.getOptions().DEBUG);
         globals.alias("$DEBUG", "$-d");
@@ -679,6 +669,12 @@ public class CoreLibrary {
         globals.put("$=", false);
 
         globals.alias("$0", "$PROGRAM_NAME");
+    }
+
+    private void findGlobalVariableStorage() {
+        GlobalVariables globals = globalVariables;
+        loadPathStorage = globals.getStorage("$LOAD_PATH");
+        loadedFeaturesStorage = globals.getStorage("$LOADED_FEATURES");
     }
 
     private void initializeConstants() {
@@ -835,6 +831,8 @@ public class CoreLibrary {
 
     public void initializePostBoot() {
         // Load code that can't be run until everything else is boostrapped, such as pre-loaded Ruby stdlib.
+
+        findGlobalVariableStorage();
 
         try {
             final RubyRootNode rootNode = context.getCodeLoader().parse(context.getSourceLoader().load(getCoreLoadPath() + "/post-boot/post-boot.rb"),

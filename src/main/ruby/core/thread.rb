@@ -453,11 +453,7 @@ Truffle::KernelOperations.define_hooked_variable(
   -> value { Truffle::ThreadOperations.set_thread_local(:$!, value) }
 )
 
-Truffle::KernelOperations.define_hooked_variable(
-  :$?,
-  -> { Truffle::ThreadOperations.get_thread_local(:$?) },
-  -> { raise NameError, '$? is a read-only variable' }
-)
+Truffle::KernelOperations.define_read_only_global(:$?, -> { Truffle::ThreadOperations.get_thread_local(:$?) })
 
 Truffle::KernelOperations.define_hooked_variable(
   :$@,
