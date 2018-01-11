@@ -2715,7 +2715,7 @@ public abstract class StringNodes {
 
             final int codePoint = getCodePointNode.executeGetCodePoint(rope, 0);
 
-            return USASCIIEncoding.INSTANCE.isCodeCType(codePoint, CharacterType.PRINT);
+            return StringSupport.isAsciiPrintable(codePoint);
         }
 
         @Specialization(guards = "!is7Bit(character)")
