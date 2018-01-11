@@ -64,7 +64,7 @@ public abstract class DebugHelpers {
 
         for (int n = 0; n < arguments.length; n += 2) {
             final Object identifier = arguments[n];
-            assert identifier != null && (!(identifier instanceof String) || !((String) identifier).isEmpty());
+            assert !(identifier == null || (identifier instanceof String && ((String) identifier).isEmpty()));
             evalFrame.setObject(evalFrame.getFrameDescriptor().findOrAddFrameSlot(identifier), arguments[n + 1]);
         }
 
