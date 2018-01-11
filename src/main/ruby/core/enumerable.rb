@@ -355,7 +355,7 @@ module Enumerable
       each do
         o = Truffle.single_block_arg
         if pattern === o
-          Regexp.set_block_last_match(block, $~)
+          Truffle::RegexpOperations.set_last_match($~, block.binding)
           ary << yield(o)
         end
       end

@@ -391,7 +391,7 @@ class Enumerator
         Lazy.new(self, nil) do |yielder, *args|
           val = args.length >= 2 ? args : args.first
           if pattern === val
-            Regexp.set_block_last_match(block, $~)
+            Truffle::RegexpOperations.set_last_match($~, block.binding)
             yielder.yield yield(val)
           end
         end

@@ -715,7 +715,7 @@ class String
     pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
     match = pattern.match_from(self, 0)
 
-    Regexp.set_block_last_match(block, match) if block_given?
+    Truffle::RegexpOperations.set_last_match(match, block.binding) if block
     Truffle.invoke_primitive(:regexp_set_last_match, match)
 
     ret = byteslice(0, 0) # Empty string and string subclass
