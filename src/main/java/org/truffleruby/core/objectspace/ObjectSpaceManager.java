@@ -48,8 +48,6 @@ import org.truffleruby.language.objects.ObjectIDOperations;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -77,16 +75,15 @@ public class ObjectSpaceManager {
 
     @CompilerDirectives.TruffleBoundary
     public synchronized void defineFinalizer(DynamicObject object, Object callable) {
-        final List<DynamicObject> roots;
-
+        final DynamicObject root;
         if (callable instanceof DynamicObject) {
-            roots = Collections.singletonList((DynamicObject) callable);
+            root = (DynamicObject) callable;
         } else {
-            roots = Collections.emptyList();
+            root = null;
         }
 
         finalizationService.addFinalizer(object, ObjectSpaceManager.class,
-                () -> context.send(callable, "call"), roots);
+                () -> context.send(callable, "call"), root);
     }
 
     public synchronized void undefineFinalizer(DynamicObject object) {
