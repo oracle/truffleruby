@@ -13,6 +13,7 @@ import java.util.ArrayList;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.Memo;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Activation;
@@ -149,6 +150,36 @@ public class CallStackManager {
         } else {
             return null;
         }
+    }
+
+    @TruffleBoundary
+    public FrameInstance getCallerFrameNotInModules(Object[] modules, int skip) {
+        final FrameInstance frame = Truffle.getRuntime().iterateFrames(new FrameInstanceVisitor<FrameInstance>() {
+            int depth = 0;
+            int skipped = 0;
+
+            @Override
+            public FrameInstance visitFrame(FrameInstance frameInstance) {
+                depth++;
+                if (depth == 1) {
+                    return null; // Skip ourselves.
+                }
+                final InternalMethod method = getMethod(frameInstance);
+                if (method == null) {
+                    return null;
+                } else if (!ArrayUtils.contains(modules, method.getDeclaringModule())) {
+                    if (skipped >= skip) {
+                        return frameInstance;
+                    } else {
+                        skipped++;
+                        return null;
+                    }
+                } else {
+                    return null;
+                }
+            }
+        });
+        return frame;
     }
 
     @TruffleBoundary

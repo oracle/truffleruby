@@ -1894,6 +1894,12 @@ module Truffle::CExt
     mode == File::Constants::WRONLY || mode == File::Constants::RDWR
   end
 
+  def rb_backref_get
+    Truffle::RegexpOperations.last_match(
+      Truffle::ThreadOperations.ruby_caller(
+        1, [Truffle::CExt, Truffle::Interop.singleton_class]))
+  end
+
   def rb_gv_set(name, value)
     binding.eval("#{name} = value")
   end
