@@ -19,9 +19,9 @@ import org.truffleruby.language.RubyNode;
  */
 public class DeadNode extends RubyNode {
 
-    private final Exception reason;
+    private final String reason;
 
-    public DeadNode(Exception reason) {
+    public DeadNode(String reason) {
         this.reason = reason;
     }
 
