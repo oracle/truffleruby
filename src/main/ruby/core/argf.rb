@@ -628,11 +628,8 @@ end
 # from $stdin if no files were given.) Usable like an IO.
 #
 ARGF = Truffle::ARGFClass.new(ARGV)
-$< = ARGF
-Truffle::KernelOperations.define_hooked_variable(
-  :$FILENAME,
-  -> { ARGF.filename },
-  -> _ { raise Error, 'Attempt to set $FILENAME' } )
+Truffle::KernelOperations.define_read_only_global(:$<, -> { ARGF } )
+Truffle::KernelOperations.define_read_only_global(:$FILENAME, -> { ARGF.filename } )
 Truffle::KernelOperations.define_hooked_variable(
   :$.,
   -> { ARGF.instance_variable_get(:@last_lineno) },

@@ -13,20 +13,14 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.truffleruby.collections.ConcurrentOperations;
 
 public class GlobalVariables {
-
-    public static final Set<String> READ_ONLY_GLOBAL_VARIABLES = new HashSet<>(
-            Arrays.asList("$LOAD_PATH", "$LOADED_FEATURES", "$<", "$FILENAME", "$?", "$-a", "$-l", "$-p"));
 
     private final DynamicObject defaultValue;
     private final ConcurrentMap<String, GlobalVariableStorage> variables = new ConcurrentHashMap<>();

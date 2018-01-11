@@ -1629,19 +1629,15 @@ public class BodyTranslator extends Translator {
         final boolean inCore = getSourcePath(node.getValueNode().getPosition()).startsWith(corePath());
 
         final RubyNode ret;
-        if (!inCore && GlobalVariables.READ_ONLY_GLOBAL_VARIABLES.contains(name)) {
-            ret = new WriteReadOnlyGlobalNode(variableName, rhs);
-        } else {
-            final RubyNode writeGlobalVariableNode = WriteGlobalVariableNodeGen.create(name, rhs);
+        final RubyNode writeGlobalVariableNode = WriteGlobalVariableNodeGen.create(name, rhs);
 
-            if (name.equals("$0")) {
-                // Call Process.setproctitle
-                RubyNode processClass = new ObjectLiteralNode(context.getCoreLibrary().getProcessModule());
-                ret = new RubyCallNode(new RubyCallNodeParameters(processClass, "setproctitle", null,
-                        new RubyNode[]{ writeGlobalVariableNode }, false, false));
-            } else {
-                ret = writeGlobalVariableNode;
-            }
+        if (name.equals("$0")) {
+            // Call Process.setproctitle
+            RubyNode processClass = new ObjectLiteralNode(context.getCoreLibrary().getProcessModule());
+            ret = new RubyCallNode(new RubyCallNodeParameters(processClass, "setproctitle", null,
+                    new RubyNode[]{ writeGlobalVariableNode }, false, false));
+        } else {
+            ret = writeGlobalVariableNode;
         }
 
         return addNewlineIfNeeded(node, withSourceSection(sourceSection, ret));
