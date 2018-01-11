@@ -1774,7 +1774,7 @@ public class BodyTranslator extends Translator {
 
         final RubyNode rhs;
         if (node.getValueNode() == null) {
-            rhs = new DeadNode(new Exception("null RHS of instance variable assignment"));
+            rhs = new DeadNode("null RHS of instance variable assignment");
             rhs.unsafeSetSourceSection(sourceSection);
         } else {
             rhs = node.getValueNode().accept(this);
@@ -1892,7 +1892,7 @@ public class BodyTranslator extends Translator {
         RubyNode rhs;
 
         if (node.getValueNode() == null) {
-            rhs = new DeadNode(new Exception());
+            rhs = new DeadNode("BodyTranslator#visitLocalAsgnNode");
             rhs.unsafeSetSourceSection(sourceSection);
         } else {
             rhs = node.getValueNode().accept(this);
@@ -2373,7 +2373,7 @@ public class BodyTranslator extends Translator {
         }
 
         if (node.getPosition() == null) {
-            final RubyNode ret = new DeadNode(new Exception());
+            final RubyNode ret = new DeadNode("BodyTranslator#visitNilNode");
             return addNewlineIfNeeded(node, ret);
         }
 
