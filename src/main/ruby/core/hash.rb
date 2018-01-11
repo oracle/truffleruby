@@ -491,4 +491,26 @@ class Hash
     end
     self
   end
+
+  def transform_keys
+    return to_enum(:transform_keys) { size } unless block_given?
+
+    h = {}
+    each_pair do |key, value|
+      h[yield(key)] = value
+    end
+    h
+  end
+
+  def transform_keys!
+    return to_enum(:transform_keys!) { size } unless block_given?
+
+    Truffle.check_frozen
+
+    keys.each do |key|
+      new_key = yield(key)
+      self[new_key] = delete(key)
+    end
+    self
+  end
 end
