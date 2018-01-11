@@ -11,13 +11,12 @@ package org.truffleruby.core;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.thread.ThreadManager;
@@ -32,12 +31,12 @@ public class FinalizationService {
 
         private final Class<?> owner;
         private final Runnable action;
-        private final List<DynamicObject> roots;
+        private final DynamicObject root;
 
-        public Finalizer(Class<?> owner, Runnable action, List<DynamicObject> roots) {
+        public Finalizer(Class<?> owner, Runnable action, DynamicObject root) {
             this.owner = owner;
             this.action = action;
-            this.roots = roots;
+            this.root = root;
         }
 
         public Class<?> getOwner() {
@@ -48,8 +47,8 @@ public class FinalizationService {
             return action;
         }
 
-        public Stream<DynamicObject> getRoots() {
-            return roots.stream();
+        public DynamicObject getRoot() {
+            return root;
         }
     }
 
@@ -61,8 +60,8 @@ public class FinalizationService {
             super(object, queue);
         }
 
-        public void addFinalizer(Class<?> owner, Runnable action, List<DynamicObject> roots) {
-            finalizers.add(new Finalizer(owner, action, roots));
+        public void addFinalizer(Class<?> owner, Runnable action, DynamicObject root) {
+            finalizers.add(new Finalizer(owner, action, root));
         }
 
         public void removeFinalizers(Class<?> owner) {
@@ -73,9 +72,15 @@ public class FinalizationService {
             return finalizers.stream().map(Finalizer::getAction).collect(Collectors.toList());
         }
 
-        public Stream<DynamicObject> getRoots() {
-            return finalizers.stream().flatMap(Finalizer::getRoots);
+        public void collectRoots(Collection<DynamicObject> roots) {
+            for (Finalizer finalizer : finalizers) {
+                final DynamicObject root = finalizer.getRoot();
+                if (root != null) {
+                    roots.add(root);
+                }
+            }
         }
+
     }
 
     private final RubyContext context;
@@ -90,10 +95,10 @@ public class FinalizationService {
     }
 
     public void addFinalizer(Object object, Class<?> owner, Runnable action) {
-        addFinalizer(object, owner, action, Collections.emptyList());
+        addFinalizer(object, owner, action, null);
     }
 
-    public synchronized void addFinalizer(Object object, Class<?> owner, Runnable action, List<DynamicObject> roots) {
+    public synchronized void addFinalizer(Object object, Class<?> owner, Runnable action, DynamicObject root) {
         FinalizerReference finalizerReference = finalizerReferences.get(object);
 
         if (finalizerReference == null) {
@@ -101,7 +106,7 @@ public class FinalizationService {
             finalizerReferences.put(object, finalizerReference);
         }
 
-        finalizerReference.addFinalizer(owner, action, roots);
+        finalizerReference.addFinalizer(owner, action, root);
 
         if (context.getLanguage().SINGLE_THREADED) {
 
@@ -176,8 +181,10 @@ public class FinalizationService {
         }
     }
 
-    public synchronized Stream<DynamicObject> getRoots() {
-        return finalizerReferences.values().stream().flatMap(FinalizerReference::getRoots);
+    public synchronized void collectRoots(Collection<DynamicObject> roots) {
+        for (FinalizerReference finalizerReference : finalizerReferences.values()) {
+            finalizerReference.collectRoots(roots);
+        }
     }
 
 }
