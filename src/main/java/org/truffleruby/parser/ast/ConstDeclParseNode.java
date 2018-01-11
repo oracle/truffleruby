@@ -48,6 +48,7 @@ public class ConstDeclParseNode extends AssignableParseNode implements INameNode
     public ConstDeclParseNode(SourceIndexLength position, String name, INameNode constNode, ParseNode valueNode) {
         super(position, valueNode);
 
+        assert constNode != null || (name != null && !name.isEmpty());
         this.name = name;
         this.constNode = constNode;
     }
