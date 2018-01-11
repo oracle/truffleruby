@@ -4761,57 +4761,57 @@ VALUE rb_yield_values2(int argc, const VALUE *argv) {
 }
 
 int rb_isalnum(int c) {
-  rb_tr_error("rb_isalnum not implemented");
+  return rb_isdigit(c) || rb_isalpha(c);
 }
 
 int rb_isalpha(int c) {
-  rb_tr_error("rb_isalpha not implemented");
+  return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
 }
 
 int rb_isblank(int c) {
-  rb_tr_error("rb_isblank not implemented");
+  return c == 0x09 || c == 0x20;
 }
 
 int rb_iscntrl(int c) {
-  rb_tr_error("rb_iscntrl not implemented");
+  return (c >= 0x00 && c <= 0x1f) || c == 0x7f;
 }
 
 int rb_isdigit(int c) {
-  rb_tr_error("rb_isdigit not implemented");
+  return c >= '0' && c <= '9';
 }
 
 int rb_isgraph(int c) {
-  rb_tr_error("rb_isgraph not implemented");
+  return c >= '!' && c <= '~';
 }
 
 int rb_islower(int c) {
-  rb_tr_error("rb_islower not implemented");
+  return c >= 'a' && c <= 'z';
 }
 
 int rb_isprint(int c) {
-  rb_tr_error("rb_isprint not implemented");
+  return c == ' ' || rb_isgraph(c);
 }
 
 int rb_ispunct(int c) {
-  rb_tr_error("rb_ispunct not implemented");
+  return (c >= '!' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~');
 }
 
 int rb_isspace(int c) {
-  rb_tr_error("rb_isspace not implemented");
+  return c == 0x20 || (c >= 0x09 && c <= 0x0d);
 }
 
 int rb_isupper(int c) {
-  rb_tr_error("rb_isupper not implemented");
+  return c >= 'A' && c <= 'Z';
 }
 
 int rb_isxdigit(int c) {
-  rb_tr_error("rb_isxdigit not implemented");
+  return rb_isdigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
 }
 
 int rb_tolower(int c) {
-  rb_tr_error("rb_tolower not implemented");
+  return rb_isascii(c) && rb_isupper(c) ? c ^ 0x20 : c;
 }
 
 int rb_toupper(int c) {
-  rb_tr_error("rb_toupper not implemented");
+  return rb_isascii(c) && rb_islower(c) ? c ^ 0x20 : c;
 }
