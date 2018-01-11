@@ -17,7 +17,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 @CoreClass("Truffle::ThreadOperations")
 public class TruffleThreadNodes {
 
-    @CoreMethod(names = "ruby_caller", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "ruby_caller", isModuleFunction = true, required = 2, lowerFixnum = 1)
     @ImportStatic(ArrayGuards.class)
     public abstract static class FindRubyCaller extends CoreMethodArrayArgumentsNode {
 

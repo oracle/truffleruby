@@ -72,7 +72,6 @@ import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -80,9 +79,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -410,116 +406,6 @@ public abstract class RegexpNodes {
             lastMatch.set(matchData);
             return matchData;
         }
-    }
-
-    @Primitive(name = "regexp_set_block_last_match", needsSelf = false)
-    @ImportStatic(RegexpNodes.class)
-    public static abstract class RegexpSetBlockLastMatchPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Child FindThreadAndFrameLocalStorageNode threadLocalNode;
-        @CompilationFinal DynamicObject lastMatchSymbol;
-
-        @Specialization(guards = { "isRubyProc(block)", "isSuitableMatchDataType(getContext(), matchData)" })
-        public Object setBlockLastMatch(DynamicObject block, DynamicObject matchData) {
-            final Frame declarationFrame = Layouts.PROC.getDeclarationFrame(block);
-            if (declarationFrame == null) { // Symbol#to_proc currently does not have a declaration frame
-                return matchData;
-            }
-            if (threadLocalNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                lastMatchSymbol = getContext().getSymbolTable().getSymbol(LAST_MATCH_VARIABLE);
-                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create());
-            }
-
-            ThreadAndFrameLocalStorage lastMatch = threadLocalNode.execute(lastMatchSymbol, declarationFrame.materialize());
-            lastMatch.set(matchData);
-            return matchData;
-        }
-
-    }
-
-    private static Frame getMatchDataFrameSearchingStack() {
-        return Truffle.getRuntime().iterateFrames(frameInstance -> {
-            final Frame frame = frameInstance.getFrame(FrameAccess.READ_ONLY);
-            InternalMethod method = RubyArguments.tryGetMethod(frame);
-
-            if (method == null) {
-                // not a Ruby method, continue
-                return null;
-            } else {
-                final Frame frameOfDeclaration = RegexpNodes.
-                        getMatchDataFrameSearchingDeclarations(frame, false);
-                if (frameOfDeclaration == null) {
-                    // Does not have a $~ slot, continue
-                    return null;
-                } else {
-                    return frameOfDeclaration;
-                }
-            }
-        });
-    }
-
-    private static Frame getMatchDataFrameSearchingDeclarations(Frame topFrame, boolean returnCandidate) {
-        Frame frame = topFrame;
-
-        while (true) {
-            final FrameSlot slot = getMatchDataSlot(frame);
-            if (slot != null) {
-                break;
-            }
-
-            final Frame nextFrame = RubyArguments.getDeclarationFrame(frame);
-            if (nextFrame != null) {
-                frame = nextFrame;
-            } else {
-                // where to define when missing
-                return returnCandidate ? frame : null;
-            }
-        }
-
-        return frame;
-    }
-
-    @TruffleBoundary
-    private static FrameSlot getMatchDataSlot(Frame frame) {
-        return frame.getFrameDescriptor().findFrameSlot("$~");
-    }
-
-    @TruffleBoundary
-    public static ThreadAndFrameLocalStorage getMatchDataThreadLocalSearchingStack(RubyContext context) {
-        final Frame frame = getMatchDataFrameSearchingStack();
-        return getThreadLocalObject(context, frame, false);
-    }
-
-    @TruffleBoundary
-    public static ThreadAndFrameLocalStorage getThreadLocalObject(RubyContext context, Frame frame, boolean add) {
-        if (frame == null) {
-            return null;
-        }
-
-        FrameSlot slot = getMatchDataSlot(frame);
-        if (slot == null) {
-            // slot can be null only when add is true
-            slot = frame.getFrameDescriptor().addFrameSlot("$~", FrameSlotKind.Object);
-        }
-
-        return getThreadLocalObjectFromFrame(context, frame, slot, frame.getFrameDescriptor().getDefaultValue(), add);
-    }
-
-    private static ThreadAndFrameLocalStorage getThreadLocalObjectFromFrame(RubyContext context, Frame frame, FrameSlot slot, Object defaultValue, boolean add) {
-        final Object previousMatchData = frame.getValue(slot);
-
-        if (previousMatchData == defaultValue) { // Never written to
-            if (add) {
-                ThreadAndFrameLocalStorage threadLocalObject = new ThreadAndFrameLocalStorage(context);
-                frame.setObject(slot, threadLocalObject);
-                return threadLocalObject;
-            } else {
-                return null;
-            }
-        }
-
-        return (ThreadAndFrameLocalStorage) previousMatchData;
     }
 
     @CoreMethod(names = { "quote", "escape" }, onSingleton = true, required = 1)
