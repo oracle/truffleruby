@@ -30,15 +30,16 @@ package org.truffleruby.parser.ast;
 
 import org.truffleruby.language.SourceIndexLength;
 
-/**
- * a bare '*' or nothing.  Name is "" if it is '*' and null if it is nothing.
- */
 public class UnnamedRestArgParseNode extends RestArgParseNode {
-    public UnnamedRestArgParseNode(SourceIndexLength position, String name, int index) {
+
+    private final boolean star;
+
+    public UnnamedRestArgParseNode(SourceIndexLength position, String name, int index, boolean star) {
         super(position, name, index);
+        this.star = star;
     }
 
     public boolean isStar() {
-        return getName() != null;
+        return star;
     }
 }

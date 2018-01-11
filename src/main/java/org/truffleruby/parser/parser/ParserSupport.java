@@ -1289,6 +1289,10 @@ public class ParserSupport {
             return new ArgsTailHolder(position, keywordArg, null, blockArg);
         }
 
+        if (keywordRestArgName.isEmpty()) {
+            keywordRestArgName = "rubytruffle_temp_kwrest";
+        }
+
         String restKwargsName = keywordRestArgName;
 
         int slot = currentScope.exists(restKwargsName);
