@@ -129,6 +129,7 @@ public abstract class RegexpNodes {
     public static abstract class MatchNode extends RubyNode {
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
+        @Child CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
 
         public static MatchNode create() {
             return MatchNodeGen.create(null, null, null, null, null, null);
@@ -137,6 +138,17 @@ public abstract class RegexpNodes {
         public abstract DynamicObject execute(DynamicObject regexp, DynamicObject string, Matcher matcher,
                 int startPos, int range, boolean onlyMatchAtStart);
 
+        // Creating a MatchData will store a copy of the source string. It's tempting to use a rope here, but a bit
+        // inconvenient because we can't work with ropes directly in Ruby and some MatchData methods are nicely
+        // implemented using the source string data. Likewise, we need to taint objects based on the source string's
+        // taint state. We mustn't allow the source string's contents to change, however, so we must ensure that we have
+        // a private copy of that string. Since the source string would otherwise be a reference to string held outside
+        // the MatchData object, it would be possible for the source string to be modified externally.
+        //
+        // Ex. x = "abc"; x =~ /(.*)/; x.upcase!
+        //
+        // Without a private copy, the MatchData's source could be modified to be upcased when it should remain the
+        // same as when the MatchData was created.
         @Specialization
         protected DynamicObject executeMatch(DynamicObject regexp, DynamicObject string, Matcher matcher,
                 int startPos, int range, boolean onlyMatchAtStart,
@@ -153,7 +165,8 @@ public abstract class RegexpNodes {
             assert match >= 0;
 
             final Region region = matcher.getEagerRegion();
-            DynamicObject result = allocateNode.allocate(matchDataClass(), Layouts.MATCH_DATA.build(string,
+            final DynamicObject dupedString = (DynamicObject) dupNode.call(null, string, "dup");
+            DynamicObject result = allocateNode.allocate(matchDataClass(), Layouts.MATCH_DATA.build(dupedString,
                     regexp, region, null));
             return (DynamicObject) taintResultNode.maybeTaint(string, result);
         }
@@ -359,17 +372,15 @@ public abstract class RegexpNodes {
     @CoreMethod(names = "match_start", required = 2, lowerFixnum = 2)
     public abstract static class MatchStartNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
         @Child private MatchNode matchNode = MatchNode.create();
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization(guards = "isRubyString(string)")
         public Object matchStart(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int startPos) {
-            final DynamicObject dupedString = (DynamicObject) dupNode.call(frame, string, "dup");
             final Rope rope = StringOperations.rope(string);
             final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true);
             int range = rope.byteLength();
-            return matchNode.execute(regexp, dupedString, matcher, startPos, range, true);
+            return matchNode.execute(regexp, string, matcher, startPos, range, true);
         }
     }
 
@@ -556,36 +567,31 @@ public abstract class RegexpNodes {
     @CoreMethod(names = "search_from", required = 2, lowerFixnum = 2)
     public abstract static class SearchFromNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
         @Child private MatchNode matchNode = MatchNode.create();
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization(guards = "isRubyString(string)")
         public Object searchFrom(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int startPos) {
-            final DynamicObject dupedString = (DynamicObject) dupNode.call(frame, string, "dup");
-            final Rope rope = StringOperations.rope(dupedString);
+            final Rope rope = StringOperations.rope(string);
             final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true);
             int range = StringOperations.rope(string).byteLength();
 
-            return matchNode.execute(regexp, dupedString, matcher, startPos, range, false);
+            return matchNode.execute(regexp, string, matcher, startPos, range, false);
         }
     }
 
     @Primitive(name = "regexp_search_from_binary", lowerFixnum = 2)
     public abstract static class SearchFromBinaryNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
         @Child private MatchNode matchNode = MatchNode.create();
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization(guards = "isRubyString(string)")
         public Object searchFrom(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int startPos) {
-            final DynamicObject dupedString = (DynamicObject) dupNode.call(frame, string, "dup");
-
-            final Rope rope = StringOperations.rope(dupedString);
+            final Rope rope = StringOperations.rope(string);
             final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), false);
             final int endPos = rope.byteLength();
-            return matchNode.execute(regexp, dupedString, matcher, startPos, endPos, false);
+            return matchNode.execute(regexp, string, matcher, startPos, endPos, false);
         }
     }
 
@@ -763,32 +769,19 @@ public abstract class RegexpNodes {
             return StringUtils.format("invalid byte sequence in %s", Layouts.STRING.getRope(string).getEncoding());
         }
 
-        // Creating a MatchData will store a copy of the source string. It's tempting to use a rope here, but a bit
-        // inconvenient because we can't work with ropes directly in Ruby and some MatchData methods are nicely
-        // implemented using the source string data. Likewise, we need to taint objects based on the source string's
-        // taint state. We mustn't allow the source string's contents to change, however, so we must ensure that we have
-        // a private copy of that string. Since the source string would otherwise be a reference to string held outside
-        // the MatchData object, it would be possible for the source string to be modified externally.
-        //
-        // Ex. x = "abc"; x =~ /(.*)/; x.upcase!
-        //
-        // Without a private copy, the MatchData's source could be modified to be upcased when it should remain the
-        // same as when the MatchData was created.
         @Specialization(guards = { "isInitialized(regexp)", "isRubyString(string)", "isValidEncoding(string)" })
         public Object searchRegion(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int start, int end, boolean forward,
-                @Cached("create()") CallDispatchHeadNode dupNode,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") MatchNode matchNode) {
-            final DynamicObject dupedString = (DynamicObject) dupNode.call(frame, string, "dup");
-            final Rope rope = StringOperations.rope(dupedString);
+            final Rope rope = StringOperations.rope(string);
             final Matcher matcher = RegexpNodes.createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true);
 
             if (forward) {
                 // Search forward through the string.
-                return matchNode.execute(regexp, dupedString, matcher, start, end, false);
+                return matchNode.execute(regexp, string, matcher, start, end, false);
             } else {
                 // Search backward through the string.
-                return matchNode.execute(regexp, dupedString, matcher, end, start, false);
+                return matchNode.execute(regexp, string, matcher, end, start, false);
             }
         }
 
