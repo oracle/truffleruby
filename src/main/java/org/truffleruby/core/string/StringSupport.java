@@ -1392,4 +1392,8 @@ public final class StringSupport {
         return c == 0x20 || (c >= 0x09 && c <= 0x0d);
     }
 
+    public static boolean isAsciiPrintable(int c) {
+        return c == ' ' || (c >= '!' && c <= '~');
+    }
+
 }
