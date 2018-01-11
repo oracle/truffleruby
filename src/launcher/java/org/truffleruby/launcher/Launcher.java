@@ -92,10 +92,16 @@ public class Launcher {
     private static String getEngineVersion() {
         final String systemVersion = System.getProperty("org.graalvm.version");
 
-        // GraalVM dev builds set the version to "dev" and expect us to do something reasonable with it.
+        // No version information, or just "dev" - use 0.0-commit
         if (systemVersion == null || systemVersion.equals("dev")) {
             return "0.0-" + BuildInformationImpl.INSTANCE.getRevision();
         }
+
+        // A "-dev" version number - append the commit as well
+        if (systemVersion.endsWith("-dev")) {
+            return systemVersion + "-" + BuildInformationImpl.INSTANCE.getRevision();
+        }
+
 
         return systemVersion;
     }
