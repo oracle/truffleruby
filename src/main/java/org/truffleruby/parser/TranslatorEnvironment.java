@@ -107,6 +107,7 @@ public class TranslatorEnvironment {
     }
 
     public FrameSlot declareVar(String name) {
+        assert name != null && !name.isEmpty();
         return getFrameDescriptor().findOrAddFrameSlot(name);
     }
 

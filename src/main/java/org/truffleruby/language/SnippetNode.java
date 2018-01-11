@@ -50,7 +50,9 @@ public class SnippetNode extends RubyBaseNode {
             parameterFrameSlots = new FrameSlot[parameters.length];
 
             for (int n = 0; n < parameters.length; n++) {
-                parameterFrameSlots[n] = frameDescriptor.findOrAddFrameSlot(parameters[n]);
+                final String identifier = parameters[n];
+                assert identifier != null && !identifier.isEmpty();
+                parameterFrameSlots[n] = frameDescriptor.findOrAddFrameSlot(identifier);
             }
 
             final Source source = Source.newBuilder(this.expression).name("(snippet)").internal().mimeType(RubyLanguage.MIME_TYPE).build();

@@ -63,7 +63,9 @@ public abstract class DebugHelpers {
         }
 
         for (int n = 0; n < arguments.length; n += 2) {
-            evalFrame.setObject(evalFrame.getFrameDescriptor().findOrAddFrameSlot(arguments[n]), arguments[n + 1]);
+            final Object identifier = arguments[n];
+            assert identifier != null && (!(identifier instanceof String) || !((String) identifier).isEmpty());
+            evalFrame.setObject(evalFrame.getFrameDescriptor().findOrAddFrameSlot(identifier), arguments[n + 1]);
         }
 
         final Source source = Source.newBuilder(code).name("debug-eval").mimeType(RubyLanguage.MIME_TYPE).build();
