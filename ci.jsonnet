@@ -63,7 +63,6 @@ local part_definitions = {
     },
 
     sulong: {
-      is_before+:: ['$.use.build'],
       downloads+: {
         LIBGMP: {
           name: 'libgmp',
