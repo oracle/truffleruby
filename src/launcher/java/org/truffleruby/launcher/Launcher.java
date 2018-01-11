@@ -66,7 +66,6 @@ public class Launcher {
     public static final String ENGINE_ID = "truffleruby";
     public static final String LANGUAGE_VERSION = "2.3.5";
     public static final int LANGUAGE_REVISION = 59905;
-    public static final String ENGINE_VERSION = getEngineVersion();
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
     public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2017 Oracle and/or its affiliates";
 
@@ -89,7 +88,8 @@ public class Launcher {
         System.exit(exitCode);
     }
 
-    private static String getEngineVersion() {
+    public static String getEngineVersion() {
+        // The property cannot be read in a static initializer, it's set later
         final String systemVersion = System.getProperty("org.graalvm.version");
 
         // No version information, or just "dev" - use 0.0-commit
@@ -260,7 +260,7 @@ public class Launcher {
         return String.format(
                 "%s %s, like ruby %s <%s %s %s> [%s-%s]",
                 ENGINE_ID,
-                ENGINE_VERSION,
+                getEngineVersion(),
                 LANGUAGE_VERSION,
                 IS_NATIVE ? "native" : System.getProperty("java.vm.name", "unknown JVM"),
                 IS_NATIVE ? "build" : System.getProperty(
