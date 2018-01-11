@@ -264,7 +264,7 @@ public class LoadArgumentsTranslator extends Translator {
     @Override
     public RubyNode visitKeywordRestArgNode(KeywordRestArgParseNode node) {
         final RubyNode readNode = new ReadKeywordRestArgumentNode(required, excludedKeywords.toArray(new String[excludedKeywords.size()]));
-        final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findOrAddFrameSlot(node.getName());
+        final FrameSlot slot = methodBodyTranslator.getEnvironment().declareVar(node.getName());
 
         return new WriteLocalVariableNode(slot, readNode);
     }
@@ -275,8 +275,7 @@ public class LoadArgumentsTranslator extends Translator {
 
         final AssignableParseNode asgnNode = node.getAssignable();
         final String name = ((INameNode) asgnNode).getName();
-
-        final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findOrAddFrameSlot(name);
+        final FrameSlot slot = methodBodyTranslator.getEnvironment().declareVar(name);
 
         final RubyNode defaultValue;
         if (asgnNode.getValueNode() instanceof RequiredKeywordArgumentValueParseNode) {
@@ -365,7 +364,7 @@ public class LoadArgumentsTranslator extends Translator {
     private RubyNode translateLocalAssignment(SourceIndexLength sourcePosition, String name, ParseNode valueNode) {
         final SourceIndexLength sourceSection = sourcePosition;
 
-        final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findOrAddFrameSlot(name);
+        final FrameSlot slot = methodBodyTranslator.getEnvironment().declareVar(name);
 
         final RubyNode readNode;
 
