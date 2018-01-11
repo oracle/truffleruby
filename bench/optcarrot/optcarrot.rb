@@ -1,4 +1,4 @@
-require_relative File.expand_path('../lib/optcarrot', __FILE__)
+require_relative 'lib/optcarrot'
 
 # Accomodates Rubinius
 require_relative 'tools/shim' if RUBY_ENGINE == 'rbx'
