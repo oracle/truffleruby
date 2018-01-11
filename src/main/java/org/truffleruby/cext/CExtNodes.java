@@ -45,7 +45,6 @@ import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
-import org.truffleruby.core.regexp.RegexpNodes;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
@@ -87,7 +86,6 @@ import org.truffleruby.language.objects.ObjectIVarSetNode;
 import org.truffleruby.language.objects.ObjectIVarSetNodeGen;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.language.supercall.CallSuperMethodNodeGen;
-import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 import org.truffleruby.parser.Identifiers;
 
 import java.io.IOException;
@@ -741,23 +739,6 @@ public class CExtNodes {
         @Specialization(guards = "isRubyString(message)")
         public Object rbSysErrFail(int errno, DynamicObject message) {
             throw new RaiseException(coreExceptions().errnoError(errno, StringOperations.getString(message), this));
-        }
-
-    }
-
-    @CoreMethod(names = "rb_backref_get", onSingleton = true)
-    public abstract static class BackRefGet extends CoreMethodNode {
-
-        @Specialization
-        @TruffleBoundary
-        public Object backRefGet() {
-            final ThreadAndFrameLocalStorage storage = RegexpNodes.getMatchDataThreadLocalSearchingStack(getContext());
-
-            if (storage == null) {
-                return nil();
-            } else {
-                return storage.get();
-            }
         }
 
     }
