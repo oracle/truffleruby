@@ -11,7 +11,7 @@ module Truffle
 
     def self.gsub_block_set_last_match(s, pattern, &block)
       Truffle::StringOperations.gsub_internal_block(s, pattern) do |m|
-        Regexp.set_block_last_match(block, m)
+        Truffle::RegexpOperations.set_last_match(m, block.binding)
         yield m.to_s
       end
     end

@@ -102,11 +102,6 @@ class Regexp
     raise PrimitiveFailure, 'Regexp#options primitive failed'
   end
 
-  def self.set_block_last_match(block, match_data)
-    Truffle.primitive :regexp_set_block_last_match
-    raise PrimitiveFailure, 'Regexp#set_block_last_match primitive failed'
-  end
-
   def fixed_encoding?
     Truffle.primitive :regexp_fixed_encoding_p
     raise PrimitiveFailure, 'Regexp.fixed_encoding? primitive failed'
