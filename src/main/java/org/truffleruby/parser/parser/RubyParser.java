@@ -2580,7 +2580,7 @@ states[393] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[394] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    RestArgParseNode rest = new UnnamedRestArgParseNode(((ListParseNode)yyVals[-1+yyTop]).getPosition(), null, support.getCurrentScope().addVariable("*"));
+    RestArgParseNode rest = new UnnamedRestArgParseNode(((ListParseNode)yyVals[-1+yyTop]).getPosition(), "rubytruffle_temp_anon_rest", support.getCurrentScope().addVariable("*"), false);
     yyVal = support.new_args(((ListParseNode)yyVals[-1+yyTop]).getPosition(), ((ListParseNode)yyVals[-1+yyTop]), null, rest, null, (ArgsTailHolder) null);
     return yyVal;
 };
@@ -3481,7 +3481,7 @@ states[596] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[597] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new UnnamedRestArgParseNode(lexer.getPosition(), "", support.getCurrentScope().addVariable("*"));
+    yyVal = new UnnamedRestArgParseNode(lexer.getPosition(), "rubytruffle_temp_rest", support.getCurrentScope().addVariable("*"), true);
     return yyVal;
 };
 states[600] = (support, lexer, yyVal, yyVals, yyTop) -> {
