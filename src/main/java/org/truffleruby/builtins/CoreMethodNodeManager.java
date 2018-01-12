@@ -359,7 +359,7 @@ public class CoreMethodNodeManager {
     public void allMethodInstalled() {
         if (CHECK_DSL_USAGE) {
             if (!(AmbiguousOptionalArgumentChecker.SUCCESS && LowerFixnumChecker.SUCCESS)) {
-                System.exit(1);
+                throw new Error("The DSL checkers failed!");
             }
         }
     }
