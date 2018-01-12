@@ -53,19 +53,21 @@ module Truffle
     def self.object_key_info(object, name)
       flags = []
       if object.is_a?(Hash)
-        flags.push :existing, :readable, :writable if object.key?(name)
+        if object.key?(name)
+          flags.push :existing, :readable
+          flags << :writable unless object.frozen?
+        end
       else
         name = name.to_sym
         readable = object.respond_to?(name)
-        writable = object.respond_to?((name.to_s + '=').to_sym)
+        writable = object.respond_to?((name.to_s + '=').to_sym) && !object.frozen?
         flags << :readable if readable
         flags << :writable if writable
         flags << :existing if readable || writable
       end
       if name.to_s[0] == '@' && object.instance_variable_defined?(name)
-        flags << :internal
-        flags << :writable
-        flags << :existing
+        flags << :writable unless object.frozen?
+        flags.push :existing, :readable, :internal
       end
       key_info_flags_to_bits(flags)
     end
