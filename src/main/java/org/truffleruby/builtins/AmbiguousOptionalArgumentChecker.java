@@ -9,6 +9,7 @@
  */
 package org.truffleruby.builtins;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.Log;
@@ -16,6 +17,9 @@ import org.truffleruby.language.RubyNode;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class AmbiguousOptionalArgumentChecker {
 
@@ -36,47 +40,48 @@ public class AmbiguousOptionalArgumentChecker {
 
     private static void verifyNoAmbiguousOptionalArgumentsWithReflection(NodeFactory<? extends RubyNode> nodeFactory, CoreMethod methodAnnotation) {
         if (methodAnnotation.optional() > 0 || methodAnnotation.needsBlock()) {
-            int opt = methodAnnotation.optional();
-            if (methodAnnotation.needsBlock()) {
-                opt++;
-            }
+            final int opt = methodAnnotation.optional();
 
-            Class<?> node = nodeFactory.getNodeClass();
-
-            for (int i = 1; i <= opt; i++) {
-                boolean unguardedObjectArgument = false;
+            final Class<?> node = nodeFactory.getNodeClass();
+            for (Method method : specializations(node)) {
+                boolean unguardedParams = false;
                 StringBuilder errors = new StringBuilder();
-                for (Method method : node.getDeclaredMethods()) {
-                    if (method.isAnnotationPresent(Specialization.class)) {
-                        // count from the end to ignore optional VirtualFrame in front.
-                        Class<?>[] parameterTypes = method.getParameterTypes();
-                        int n = parameterTypes.length - i;
-                        if (methodAnnotation.rest()) {
-                            n--; // ignore final Object[] argument
-                        }
-                        Class<?> parameterType = parameterTypes[n];
-                        Parameter[] parameters = method.getParameters();
 
-                        Parameter parameter = parameters[n];
-                        boolean isNamePresent = parameter.isNamePresent();
-                        if (!isNamePresent) {
-                            AVAILABLE = SUCCESS = false;
-                            Log.LOGGER.warning("method parameters names are not available for " + method);
-                            return;
-                        }
-                        String name = parameter.getName();
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                Parameter[] parameters = method.getParameters();
 
-                        if (parameterType == Object.class && !name.startsWith("unused") && !name.startsWith("maybe")) {
-                            String[] guards = method.getAnnotation(Specialization.class).guards();
-                            if (!isGuarded(name, guards)) {
-                                unguardedObjectArgument = true;
-                                errors.append("\"").append(name).append("\" in ").append(methodToString(method, parameterTypes, parameters)).append("\n");
-                            }
-                        }
-                    }
+                int n = parameterTypes.length - 1;
+                // Ignore all the @Cached methods from our consideration.
+                while (n >= 0 && parameters[n].isAnnotationPresent(Cached.class)) {
+                    n--;
                 }
-
-                if (unguardedObjectArgument) {
+                if (methodAnnotation.needsBlock()) {
+                    if (n < 0) {
+                        SUCCESS = false;
+                        Log.LOGGER.warning("invalid block method parameter position for " + method);
+                        continue;
+                    }
+                    unguardedParams = unguardedParams | isParameterUnguarded(method, parameters, parameterTypes, n, errors);
+                    n--; // Ignore block argument.
+                }
+                if (methodAnnotation.rest()) {
+                    if (n < 0 || !parameterTypes[n].isArray()) {
+                        SUCCESS = false;
+                        Log.LOGGER.warning("invalid rest method parameter " + n + " for " + method);
+                        continue;
+                    }
+                    n--; // ignore final Object[] argument
+                }
+                for (int i = 0; i < opt; i++, n--) {
+                    if (n < 0) {
+                        SUCCESS = false;
+                        Log.LOGGER.warning("invalid optional paramenter count for " + method);
+                        continue;
+                    }
+                    unguardedParams = unguardedParams | isParameterUnguarded(method, parameters, parameterTypes, n, errors);
+                }
+                // required arguments are not checked as they should not receive a NotProvided instance.
+                if (unguardedParams) {
                     SUCCESS = false;
                     Log.LOGGER.warning("ambiguous optional argument in " + node.getCanonicalName() + ":\n" + errors);
                 }
@@ -84,6 +89,40 @@ public class AmbiguousOptionalArgumentChecker {
         }
     }
 
+    private static boolean isParameterUnguarded(Method method, Parameter[] parameters, Class<?>[] types, int n, StringBuilder errors) {
+        Class<?> parameterType = types[n];
+
+        Parameter parameter = parameters[n];
+        boolean isNamePresent = parameter.isNamePresent();
+        if (!isNamePresent) {
+            AVAILABLE = SUCCESS = false;
+            Log.LOGGER.warning("method parameters names are not available for " + method);
+            return false;
+        }
+        String name = parameter.getName();
+
+        // A specialization will only be called if the types of the arguments match its declared parameter
+        // types. So a specialization with a declared optional parameter of type NotProvided will only be
+        // called if that argument is not supplied. Similarly a specialization with a DynamicObject optional
+        // parameter will only be called if the value has been supplied.
+        //
+        // Since Object is the super type of NotProvided any optional parameter declaration of type Object
+        // must have additional guards to check whether this specialization should be called, or must make
+        // it clear in the parameter name that it may not have been provided or is not used.
+        if (parameterType == Object.class && !name.startsWith("unused") && !name.startsWith("maybe")) {
+            String[] guards = method.getAnnotation(Specialization.class).guards();
+            if (!isGuarded(name, guards)) {
+                errors.append("\"").append(name).append("\" in ").append(methodToString(method, types, parameters)).append("\n");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static List<Method> specializations(Class<?> node) {
+        Method[] methods = node.getDeclaredMethods();
+        return Arrays.stream(methods).filter(m -> m.isAnnotationPresent(Specialization.class)).collect(Collectors.toList());
+    }
     private static boolean isGuarded(String name, String[] guards) {
         for (String guard : guards) {
             if (guard.equals("wasProvided(" + name + ")") ||
