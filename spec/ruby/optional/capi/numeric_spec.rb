@@ -253,6 +253,20 @@ describe "CApiNumericSpecs" do
     end
   end
 
+  describe "rb_ull2inum" do
+    it "creates a new Fixnum from a unsigned long long" do
+      i = @s.rb_ull2inum_14()
+      i.should be_kind_of(Fixnum)
+      i.should eql(14)
+    end
+
+    it "creates a new Bignum from a negative long" do
+      i = @s.rb_ull2inum_n14()
+      i.should be_kind_of(Bignum)
+      i.should eql(2 ** (@s.size_of_long_long * 8) - 14)
+    end
+  end
+
   describe "rb_int2inum" do
     it "creates a new Fixnum from a long" do
       i = @s.rb_int2inum_14()
