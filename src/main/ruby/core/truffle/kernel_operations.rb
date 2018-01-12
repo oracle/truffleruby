@@ -41,3 +41,25 @@ Truffle::KernelOperations.define_read_only_global(:$*, -> { ARGV })
 Truffle::KernelOperations.define_read_only_global(:$-a, -> { nil })
 Truffle::KernelOperations.define_read_only_global(:$-l, -> { nil })
 Truffle::KernelOperations.define_read_only_global(:$-p, -> { nil })
+
+Truffle::KernelOperations.define_hooked_variable(
+  :$/,
+  -> { Truffle::KernelOperations.global_variable_get(:$/) },
+  -> v { if v && !Truffle::Type.object_kind_of?(v, String)
+           raise TypeError, '$/ must be a String'
+         end
+         Truffle::KernelOperations.global_variable_set(:$/, v) })
+
+$/ = "\n".freeze
+
+alias $-0 $/
+
+Truffle::KernelOperations.define_hooked_variable(
+  :$,,
+  -> { Truffle::KernelOperations.global_variable_get(:$,) },
+  -> v { if v && !Truffle::Type.object_kind_of?(v, String)
+           raise TypeError, '$, must be a String'
+         end
+         Truffle::KernelOperations.global_variable_set(:$,, v) })
+
+$, = nil # It should be defined by the time boot has finished.

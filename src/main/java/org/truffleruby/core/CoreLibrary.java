@@ -634,8 +634,6 @@ public class CoreLibrary {
     private void initializeGlobalVariables() {
         GlobalVariables globals = globalVariables;
 
-        globals.put("$,", nil);
-
         debugStorage = globals.put("$DEBUG", context.getOptions().DEBUG);
         globals.alias("$DEBUG", "$-d");
 
@@ -658,9 +656,6 @@ public class CoreLibrary {
         verboseStorage = globals.put("$VERBOSE", verbose);
         globals.alias("$VERBOSE", "$-v");
         globals.alias("$VERBOSE", "$-w");
-
-        globals.put("$/", frozenUSASCIIString(CLI_RECORD_SEPARATOR));
-        globals.alias("$/", "$-0");
 
         globals.alias("$stdout", "$>");
 
