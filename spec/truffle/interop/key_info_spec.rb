@@ -21,7 +21,6 @@ class KeyInfoFixture
 end
 
 describe "Truffle::Interop.key_info" do
-  
   describe "for a Hash with String keys" do
     
     before :each do
@@ -167,5 +166,4 @@ describe "Truffle::Interop.key_info" do
     end
 
   end
-
 end
