@@ -410,7 +410,7 @@ public abstract class BasicObjectNodes {
          * The only way to fail if method is not null and not undefined is visibility.
          */
         private Visibility lastCallWasCallingPrivateOrProtectedMethod(Object self, String name, FrameInstance callerFrame) {
-            final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(callerFrame.getFrame(FrameAccess.READ_ONLY));
+            final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(callerFrame.getFrame(FrameAccess.READ_ONLY));
             final InternalMethod method = ModuleOperations.lookupMethodUncached(coreLibrary().getMetaClass(self), name, declarationContext);
             if (method != null && !method.isUndefined()) {
                 assert method.getVisibility().isPrivate() || method.getVisibility().isProtected();
