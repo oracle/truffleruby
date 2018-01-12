@@ -102,26 +102,35 @@ Keys are returned as a Ruby `Array` containing Ruby `String` objects.
 
 ### `KEY_INFO`
 
-If the object is a Ruby `Hash`, and the key is in the hash, `READABLE`,
-`WRITABLE` are set. If the key is not in the hash, neither are set. Note that
-the interface for `KEY_INFO` converts the key to a Java `String`, so if your
-keys are `Symbol`, they will not match. `INTERNAL` will never be set.
+If the object is a Ruby `Hash`:
+
+`READABLE` will be set if the key is found.
+
+`WRITABLE` will be set if the key is found and the hash is not frozen.
+
+`INTERNAL` will never be set.
 
 If the object is not a Ruby `Hash`:
 
-`READABLE` is set if the object responds to a method of the same name.
+`READABLE` will be set if the object responds to a method of the same name.
 
-`WRITABLE` is set if the object responds to a method of the same name appended
-with `=`.
+`WRITABLE` will be set if the object responds to a method of the same name
+appended with `=`.
 
 For all objects:
 
-`EXISTING` is set if if either `READABLE` or `WRITABLE` are set.
+`EXISTING` is set if either `READABLE` or `WRITABLE` are set.
 
 `INVOCABLE` is never set, because currently `KEYS` does not include methods.
 
-`READABLE`, `WRITABLE`, and `INTERNAL` will be set for names with a leading `@`,
-if there is an instance variable with that name.
+If they key has a leading `@`:
+
+`READABLE` will be set if there is an instance variable of that name.
+
+`WRITABLE` will be set if there is an instance variable of that name and the
+object is not frozen.
+
+`INTERNAL` will be set if there is an instance variable of that name.
 
 ### `READ`
 

@@ -24,7 +24,7 @@ describe "Truffle::Interop.key_info" do
   
   describe "for a Hash with String keys" do
     
-    before :all do
+    before :each do
       @hash = {'a' => 1, 'b' => 2, 'c' => 3}
       @hash.instance_variable_set(:@foo, 14)
     end
@@ -47,6 +47,13 @@ describe "Truffle::Interop.key_info" do
       end
     end
     
+    it "does not return :writable for all keys if the hash is frozen" do
+      @hash.freeze
+      @hash.keys.each do |k|
+        Truffle::Interop.key_info(@hash, k).should_not include(:writable)
+      end
+    end
+    
     it "does not return :invocable" do
       @hash.keys.each do |k|
         Truffle::Interop.key_info(@hash, k).should_not include(:invocable)
@@ -57,6 +64,19 @@ describe "Truffle::Interop.key_info" do
       @hash.keys.each do |k|
         Truffle::Interop.key_info(@hash, k).should_not include(:internal)
       end
+    end
+    
+    it "returns :readable for an instance variable" do
+      Truffle::Interop.key_info(@hash, :@foo).should include(:readable)
+    end
+    
+    it "does not return :writable for an instance variable if the hash is frozen" do
+      @hash.freeze
+      Truffle::Interop.key_info(@hash, :@foo).should_not include(:writable)
+    end
+    
+    it "returns :writable for an instance variable" do
+      Truffle::Interop.key_info(@hash, :@foo).should include(:writable)
     end
     
     it "returns :internal for an instance variable" do
@@ -75,7 +95,7 @@ describe "Truffle::Interop.key_info" do
   
   describe "for a general object" do
     
-    before :all do
+    before :each do
       @object = KeyInfoFixture.new
     end
 
@@ -99,6 +119,12 @@ describe "Truffle::Interop.key_info" do
       Truffle::Interop.key_info(@object, :wo).should include(:writable)
     end
 
+    it "does not return :writable for a writable name for a frozen hash" do
+      @object.freeze
+      Truffle::Interop.key_info(@object, :rw).should_not include(:writable)
+      Truffle::Interop.key_info(@object, :wo).should_not include(:writable)
+    end
+
     it "does not return :writable for a read-only name" do
       Truffle::Interop.key_info(@object, :ro).should_not include(:writable)
     end
@@ -113,6 +139,19 @@ describe "Truffle::Interop.key_info" do
       Truffle::Interop.key_info(@object, :ro).should_not include(:internal)
       Truffle::Interop.key_info(@object, :rw).should_not include(:internal)
       Truffle::Interop.key_info(@object, :wo).should_not include(:internal)
+    end
+    
+    it "returns :readable for an instance variable" do
+      Truffle::Interop.key_info(@object, :@foo).should include(:readable)
+    end
+    
+    it "returns :writable for an instance variable" do
+      Truffle::Interop.key_info(@object, :@foo).should include(:writable)
+    end
+    
+    it "does not return :writable for an instance variable if the object is frozen" do
+      @object.freeze
+      Truffle::Interop.key_info(@object, :@foo).should_not include(:writable)
     end
 
     it "returns :internal for an instance variable" do
