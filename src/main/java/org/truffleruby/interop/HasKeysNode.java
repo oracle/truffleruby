@@ -35,27 +35,7 @@ public abstract class HasKeysNode extends RubyNode {
     }
 
     @Specialization
-    public boolean hasKeys(byte value) {
-        return false;
-    }
-
-    @Specialization
-    public boolean hasKeys(short value) {
-        return false;
-    }
-
-    @Specialization
-    public boolean hasKeys(int value) {
-        return false;
-    }
-
-    @Specialization
     public boolean hasKeys(long value) {
-        return false;
-    }
-
-    @Specialization
-    public boolean hasKeys(float value) {
         return false;
     }
 
