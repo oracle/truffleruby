@@ -10,8 +10,10 @@
 
 package org.truffleruby.language.globals;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
 
 public class AliasGlobalVarNode extends RubyNode {
 
@@ -25,8 +27,16 @@ public class AliasGlobalVarNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
+        checkExisting();
         getContext().getCoreLibrary().getGlobalVariables().alias(oldName, newName);
         return nil();
+    }
+
+    @TruffleBoundary
+    private void checkExisting() {
+        if (getContext().getCoreLibrary().getGlobalVariables().contains(newName)) {
+            throw new RaiseException(coreExceptions().internalError(String.format("%s is already a global", newName), this));
+        }
     }
 
 }

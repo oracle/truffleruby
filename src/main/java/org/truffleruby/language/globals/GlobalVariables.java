@@ -61,7 +61,14 @@ public class GlobalVariables {
     }
 
     @TruffleBoundary
+    public boolean contains(String name) {
+        return variables.containsKey(name);
+    }
+
+    @TruffleBoundary
     public void alias(String oldName, String newName) {
+        // Record an alias of an alias against the original.
+        oldName = aliases.getOrDefault(oldName, oldName);
         aliases.put(newName, oldName);
         final GlobalVariableStorage storage = getStorage(oldName);
         variables.put(newName, storage);
