@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -7,11 +7,11 @@
 # GNU Lesser General Public License version 2.1
 
 module Truffle::CExt
-  # Methods defined in this file are not considered as a Ruby code implementing MRI C parts,
+  # Methods defined in this file are not considered as Ruby code implementing MRI C parts,
   # see org.truffleruby.cext.CExtNodes.BlockProcNode
 
-  # methods defined with rb_define_method are normal Ruby methods therefore they cannot be defined in cext.rb
-  # file because bloks passed as arguments would be skipped by org.truffleruby.cext.CExtNodes.BlockProcNode
+  # methods defined with rb_define_method are normal Ruby methods therefore they cannot be defined in the cext.rb file
+  # file because blocks passed as arguments would be skipped by org.truffleruby.cext.CExtNodes.BlockProcNode
   def rb_define_method(mod, name, function, argc)
     method_body = Truffle::Graal.copy_captured_locals -> *args, &block do
       if argc == -1

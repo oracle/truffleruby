@@ -479,8 +479,8 @@ public class CExtNodes {
                 if (callNode != null) {
                     final RootNode rootNode = callNode.getRootNode();
                     // Skip Ruby frames in cext.rb file since they are implementing methods which are implemented
-                    // with C in MRI, and therefore also implicitly skipped when looking up proc passed
-                    // to a Ruby method.
+                    // with C in MRI, and therefore are also implicitly skipped when when looking up the block passed
+                    // to a C API function.
                     if (rootNode instanceof RubyRootNode &&
                             rootNode.getSourceSection().isAvailable() &&
                             !rootNode.getSourceSection().getSource().getName().endsWith("truffle/cext.rb")) {

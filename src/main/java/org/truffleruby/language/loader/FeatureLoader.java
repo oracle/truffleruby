@@ -239,9 +239,7 @@ public class FeatureLoader {
             }
 
             final String cextRBpath = context.getRubyHome() + "/lib/truffle/truffle/cext.rb";
-            final String cextRubyRBpath = context.getRubyHome() + "/lib/truffle/truffle/cext_ruby.rb";
             requireNode.executeRequire(cextRBpath);
-            requireNode.executeRequire(cextRubyRBpath);
 
             String rubySUpath = loadCExtLibRuby(feature);
 
