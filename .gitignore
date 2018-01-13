@@ -23,6 +23,7 @@ lib/cext/truffleposix.dylib
 lib/cext/trufflemock.bc
 lib/cext/ruby.su
 lib/cext/ruby.bc
+lib/cext/sulong-libs
 lib/mri/openssl.su
 lib/mri/zlib.su
 lib/mri/syslog.su

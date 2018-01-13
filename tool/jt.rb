@@ -1781,7 +1781,12 @@ module Commands
     sulong = options.delete "sulong"
 
     build
-    build('sulong') if sulong
+    if sulong
+      build('sulong')
+      sulong_repo = File.expand_path("../sulong", TRUFFLERUBY_DIR)
+      FileUtils::Verbose.cp_r "#{sulong_repo}/mxbuild/sulong-libs", "#{TRUFFLERUBY_DIR}/lib/cext"
+    end
+
     java_home = install_jvmci
     graal = checkout_or_update_graal_repo
 
@@ -1790,6 +1795,7 @@ module Commands
       File.write('mx.substratevm/env', "JAVA_HOME=#{java_home}\n")
       mx 'build'
       if sulong
+        ENV["TRUFFLERUBY_LIBSULONG_DIR"] = "lib/cext/sulong-libs"
         mx 'image', '-sulong', '-ruby', '-H:MaxRuntimeCompileMethods=15000', '-H:Name=native-ruby'
       else
         mx 'image', '-ruby', '-H:Name=native-ruby'
