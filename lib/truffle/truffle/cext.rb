@@ -6,6 +6,8 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
+require_relative 'cext_ruby'
+
 module Truffle::CExt
   extend self
 
@@ -1771,7 +1773,8 @@ module Truffle::CExt
   end
 
   def rb_iterate(iteration, iterated_object, callback, callback_arg)
-    if (block = rb_block_proc)
+    block = rb_block_proc
+    if block
       call_with_thread_locally_stored_block iteration, iterated_object do |block_arg|
         rb_iterate_call_block(callback, block_arg, callback_arg, &block)
       end

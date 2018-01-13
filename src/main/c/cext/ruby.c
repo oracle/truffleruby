@@ -2828,9 +2828,9 @@ int rb_tr_writable(int mode) {
 MUST_INLINE
 int rb_io_extract_encoding_option(VALUE opt, rb_encoding **enc_p, rb_encoding **enc2_p, int *fmode_p) {
   // TODO (pitr-ch 12-Jun-2017): review, just approximate implementation
-  VALUE Encoding = rb_tr_get_Encoding();
-  VALUE external_encoding = truffle_invoke(Encoding, "default_external");
-  VALUE internal_encoding = truffle_invoke(Encoding, "default_internal");
+  VALUE encoding = rb_cEncoding;
+  VALUE external_encoding = truffle_invoke(encoding, "default_external");
+  VALUE internal_encoding = truffle_invoke(encoding, "default_internal");
   if (!NIL_P(external_encoding)) {
     *enc_p = rb_tr_handle_for_managed_leaking(rb_to_encoding(external_encoding));
   }

@@ -442,13 +442,13 @@ module Commands
           --openssl       runs openssl tests
           --native        use native TruffleRuby image (set AOT_BIN)
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME, or have graal built as a sibling)
+      jt test mri test/mri/tests/test_find.rb [-- <MRI runner options>]
+                                                     run tests in given file, -n option of the runner can be used to further 
+                                                     limit executed test methods 
       jt test specs                                  run all specs
       jt test specs fast                             run all specs except sub-processes, GC, sleep, ...
       jt test spec/ruby/language                     run specs in this directory
       jt test spec/ruby/language/while_spec.rb       run specs in this file
-      jt test test/mri/tests/test_find.rb [-- <MRI runner options>]
-                                                     run tests in given file, -n option of the runner can be used to further 
-                                                     limit executed test methods 
       jt test compiler                               run compiler tests (uses the same logic as --graal to find Graal)
       jt test integration                            runs all integration tests
       jt test integration [TESTS]                    runs the given integration tests
@@ -930,7 +930,7 @@ module Commands
   end
   private :test_mri
 
-  def run_mri_tests(extra_args, test_files, runner_args = [], run_options = {})
+  def run_mri_tests(extra_args, test_files, runner_args, run_options = {})
     truffle_args =  if extra_args.include?('--native')
                       %W[-XX:YoungGenerationSize=2G -XX:OldGenerationSize=4G -Xhome=#{TRUFFLERUBY_DIR}]
                     else
@@ -998,7 +998,7 @@ module Commands
     sh "ruby", "tool/parse_mri_errors.rb", output_file
 
     puts "3. Verifying tests pass"
-    run_mri_tests(options, test_files)
+    run_mri_tests(options, test_files, [])
   end
 
   def test_compiler(*args)
@@ -1054,11 +1054,10 @@ module Commands
         case gem_name
         when 'backtraces'
           run_ruby "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", err: output_file, continue_on_failure: true
-          actual = File.read(output_file).gsub(TRUFFLERUBY_DIR, '').gsub(/\/cext(_ruby)?\.rb:(\d+)/, '/cext.rb:n')
+          actual = File.read(output_file).gsub(TRUFFLERUBY_DIR, '').gsub(/\/cext(_ruby)?\.rb:(\d+)/, '/cext\1.rb:n')
           expected = File.read("#{dir}/expected.txt")
           unless actual == expected
-            abort "C extension #{dir} didn't work as expected\n" \
-                  "Actual:\n#{actual}\nExpected:\n#{expected}"
+            abort "C extension #{dir} didn't work as expected\nActual:\n#{actual}\nExpected:\n#{expected}"
           end
         else
           run_ruby "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", out: output_file
@@ -1222,7 +1221,7 @@ module Commands
 
           run_ruby(environment, '-Xexceptions.print_java=true', *('--jdebug' if jdebug),
                    '-S', 'gem', 'install', '--no-document', 'bundler', '-v', '1.14.6', '--backtrace')
-          run_ruby(environment, '-Xexceptions.print_java=true', *('--jdebug' if jdebug), '-J-Xmx512M',
+          run_ruby(environment, '-J-Xmx512M', '-Xexceptions.print_java=true', *('--jdebug' if jdebug),
                    '-S', 'bundle', 'install')
           run_ruby(environment, '-Xexceptions.print_java=true', *('--jdebug' if jdebug),
                    '-S', 'bundle', 'exec', 'rake')

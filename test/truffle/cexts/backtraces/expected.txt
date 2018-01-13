@@ -13,5 +13,5 @@
 	from backtraces.c:8:in `foo'
 	from /lib/truffle/truffle/cext.rb:n:in `execute_without_conversion'
 	from /lib/truffle/truffle/cext.rb:n:in `execute_with_mutex'
-	from /lib/truffle/truffle/cext.rb:n:in `foo'
+	from /lib/truffle/truffle/cext_ruby.rb:n:in `foo'
 	from /test/truffle/cexts/backtraces/bin/backtraces:13:in `<main>'
