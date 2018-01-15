@@ -30,7 +30,7 @@ describe "Truffle::Interop.keys" do
   
   describe "with internal set" do
     
-    it "returns instance variables of something that isn't a hash" do
+    it "returns instance variables of a hash" do
       hash = {a: 1, b: 2, c: 3}
       hash.instance_variable_set(:@foo, 14)
       Truffle::Interop.keys(hash, true).should include('@foo')
