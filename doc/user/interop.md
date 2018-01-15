@@ -115,7 +115,7 @@ If the object is not a Ruby `Hash`:
 `READABLE` will be set if the object responds to a method of the same name.
 
 `WRITABLE` will be set if the object responds to a method of the same name
-appended with `=`.
+appended with `=` and the object is not frozen.
 
 For all objects:
 
