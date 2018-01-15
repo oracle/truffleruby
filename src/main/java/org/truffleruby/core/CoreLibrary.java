@@ -611,8 +611,7 @@ public class CoreLibrary {
     }
 
     public void loadCoreNodes(PrimitiveManager primitiveManager) {
-        final CoreMethodNodeManager coreMethodNodeManager =
-                new CoreMethodNodeManager(context, node.getSingletonClassNode(), primitiveManager);
+        final CoreMethodNodeManager coreMethodNodeManager = new CoreMethodNodeManager(context, node.getSingletonClassNode(), primitiveManager);
 
         coreMethodNodeManager.loadCoreMethodNodes();
 
@@ -639,24 +638,6 @@ public class CoreLibrary {
 
         final Object verbose;
 
-        switch (context.getOptions().VERBOSITY) {
-            case NIL:
-                verbose = nil;
-                break;
-            case FALSE:
-                verbose = false;
-                break;
-            case TRUE:
-                verbose = true;
-                break;
-            default:
-                throw new UnsupportedOperationException();
-        }
-
-        verboseStorage = globals.put("$VERBOSE", verbose);
-        globals.alias("$VERBOSE", "$-v");
-        globals.alias("$VERBOSE", "$-w");
-
         globals.alias("$stdout", "$>");
 
         stderrStorage = globals.getStorage("$stderr");
@@ -664,10 +645,24 @@ public class CoreLibrary {
         globals.put("$=", false);
     }
 
+    private Object verbosityOption() {
+        switch (context.getOptions().VERBOSITY) {
+            case NIL:
+                return nil;
+            case FALSE:
+                return false;
+            case TRUE:
+                return true;
+            default:
+                throw new UnsupportedOperationException();
+        }
+    }
+
     private void findGlobalVariableStorage() {
         GlobalVariables globals = globalVariables;
         loadPathStorage = globals.getStorage("$LOAD_PATH");
         loadedFeaturesStorage = globals.getStorage("$LOADED_FEATURES");
+        verboseStorage = globals.getStorage("$VERBOSE");
     }
 
     private void initializeConstants() {
@@ -1174,12 +1169,19 @@ public class CoreLibrary {
         return debugStorage.getValue();
     }
 
+    private Object verbosity() {
+        if (verboseStorage != null) {
+            return verboseStorage.getValue();
+        } else {
+            return verbosityOption();
+        }
+    }
     public boolean warningsEnabled() {
-        return verboseStorage.getValue() != nil;
+        return verbosity() != nil;
     }
 
     public boolean isVerbose() {
-        return verboseStorage.getValue() == Boolean.TRUE;
+        return verbosity() == Boolean.TRUE;
     }
 
     public Object getStderr() {
