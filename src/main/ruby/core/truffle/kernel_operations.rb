@@ -63,3 +63,25 @@ Truffle::KernelOperations.define_hooked_variable(
          Truffle::KernelOperations.global_variable_set(:$,, v) })
 
 $, = nil # It should be defined by the time boot has finished.
+
+Truffle::KernelOperations.define_hooked_variable(
+  :$VERBOSE,
+  -> { Truffle::KernelOperations.global_variable_get(:$VERBOSE) },
+  -> v { v = if v.nil?
+               nil
+             else
+               !!v
+             end
+         Truffle::KernelOperations.global_variable_set(:$VERBOSE, v) })
+
+$VERBOSE = case Truffle::Boot.get_option 'verbosity'
+           when :TRUE
+             true
+           when :FALSE
+             false
+           when :NIL
+             nil
+           end
+
+alias $-v $VERBOSE
+alias $-w $VERBOSE

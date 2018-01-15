@@ -109,7 +109,6 @@ import org.truffleruby.language.globals.CheckLastLineNumberNode;
 import org.truffleruby.language.globals.CheckStdoutVariableTypeNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.globals.ReadMatchReferenceNodes;
-import org.truffleruby.language.globals.UpdateVerbosityNode;
 import org.truffleruby.language.globals.WriteGlobalVariableNodeGen;
 import org.truffleruby.language.literal.BooleanLiteralNode;
 import org.truffleruby.language.literal.FloatLiteralNode;
@@ -1601,10 +1600,6 @@ public class BodyTranslator extends Translator {
                 break;
             case "$stdout":
                 rhs = new CheckStdoutVariableTypeNode(rhs);
-                rhs.unsafeSetSourceSection(sourceSection);
-                break;
-            case "$VERBOSE":
-                rhs = new UpdateVerbosityNode(rhs);
                 rhs.unsafeSetSourceSection(sourceSection);
                 break;
         }
