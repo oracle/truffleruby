@@ -78,22 +78,20 @@ public abstract class InteropNodes {
 
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "executable?", isModuleFunction = true, required = 1)
     public abstract static class IsExecutableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public boolean isExecutable(
                 TruffleObject receiver,
-                @Cached("createIsExecutableNode()") Node isExecutableNode) {
+                @Cached("IS_EXECUTABLE.createNode()") Node isExecutableNode) {
             return ForeignAccess.sendIsExecutable(isExecutableNode, receiver);
-        }
-
-        protected Node createIsExecutableNode() {
-            return Message.IS_EXECUTABLE.createNode();
         }
 
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "execute", isModuleFunction = true, required = 1, rest = true)
     public abstract static class ExecuteNode extends CoreMethodArrayArgumentsNode {
 
@@ -285,18 +283,15 @@ public abstract class InteropNodes {
 
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "instantiable?", isModuleFunction = true, required = 1)
     public abstract static class InstantiableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public boolean isInstantiable(
                 TruffleObject receiver,
-                @Cached("createIsInstantiableNode()") Node isInstantiableNode) {
+                @Cached("IS_INSTANTIABLE.createNode()") Node isInstantiableNode) {
             return ForeignAccess.sendIsInstantiable(isInstantiableNode, receiver);
-        }
-
-        protected Node createIsInstantiableNode() {
-            return Message.IS_INSTANTIABLE.createNode();
         }
 
         @Fallback
@@ -371,22 +366,20 @@ public abstract class InteropNodes {
 
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "size?", isModuleFunction = true, required = 1)
     public abstract static class HasSizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public boolean hasSize(
                 TruffleObject receiver,
-                @Cached("createHasSizeNode()") Node hasSizeNode) {
+                @Cached("HAS_SIZE.createNode()") Node hasSizeNode) {
             return ForeignAccess.sendHasSize(hasSizeNode, receiver);
-        }
-
-        protected Node createHasSizeNode() {
-            return Message.HAS_SIZE.createNode();
         }
 
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "size", isModuleFunction = true, required = 1)
     public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
 
@@ -398,7 +391,7 @@ public abstract class InteropNodes {
         @Specialization
         public Object size(
                 TruffleObject receiver,
-                @Cached("createGetSizeNode()") Node getSizeNode,
+                @Cached("GET_SIZE.createNode()") Node getSizeNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
                 return ForeignAccess.sendGetSize(getSizeNode, receiver);
@@ -408,24 +401,17 @@ public abstract class InteropNodes {
             }
         }
 
-        protected Node createGetSizeNode() {
-            return Message.GET_SIZE.createNode();
-        }
-
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "boxed?", isModuleFunction = true, required = 1)
     public abstract static class BoxedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public boolean isBoxed(
                 TruffleObject receiver,
-                @Cached("createIsBoxedNode()") Node isBoxedNode) {
+                @Cached("IS_BOXED.createNode()") Node isBoxedNode) {
             return ForeignAccess.sendIsBoxed(isBoxedNode, receiver);
-        }
-
-        protected Node createIsBoxedNode() {
-            return Message.IS_BOXED.createNode();
         }
 
         @Specialization(guards = "!isTruffleObject(receiver)")
@@ -435,12 +421,13 @@ public abstract class InteropNodes {
 
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "unbox", isModuleFunction = true, required = 1)
     public abstract static class UnboxNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public Object unbox(TruffleObject receiver,
-                @Cached("createUnboxNode()") Node unboxNode,
+                @Cached("UNBOX.createNode()") Node unboxNode,
                 @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
             final Object foreign;
@@ -469,19 +456,16 @@ public abstract class InteropNodes {
             return receiver;
         }
 
-        protected Node createUnboxNode() {
-            return Message.UNBOX.createNode();
-        }
-
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "unbox_without_conversion", isModuleFunction = true, required = 1)
     public abstract static class UnboxWithoutConversionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public Object unbox(
                 TruffleObject receiver,
-                @Cached("createUnboxNode()") Node unboxNode,
+                @Cached("UNBOX.createNode()") Node unboxNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
                 return ForeignAccess.sendUnbox(unboxNode, receiver);
@@ -496,23 +480,16 @@ public abstract class InteropNodes {
             return receiver;
         }
 
-        protected Node createUnboxNode() {
-            return Message.UNBOX.createNode();
-        }
-
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "null?", isModuleFunction = true, required = 1)
     public abstract static class NullNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public boolean isNull(TruffleObject receiver,
-                @Cached("createIsNullNode()") Node isNullNode) {
+                @Cached("IS_NULL.createNode()") Node isNullNode) {
             return ForeignAccess.sendIsNull(isNullNode, receiver);
-        }
-
-        protected Node createIsNullNode() {
-            return Message.IS_NULL.createNode();
         }
 
         @Fallback
@@ -522,18 +499,15 @@ public abstract class InteropNodes {
 
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "pointer?", isModuleFunction = true, required = 1)
     public abstract static class PointerNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public boolean isPointer(
                 TruffleObject receiver,
-                @Cached("createIsPointerNode()") Node isPointerNode) {
+                @Cached("IS_POINTER.createNode()") Node isPointerNode) {
             return ForeignAccess.sendIsPointer(isPointerNode, receiver);
-        }
-
-        protected Node createIsPointerNode() {
-            return Message.IS_POINTER.createNode();
         }
 
         @Fallback
@@ -543,13 +517,14 @@ public abstract class InteropNodes {
 
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "as_pointer", isModuleFunction = true, required = 1)
     public abstract static class AsPointerNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public Object asPointer(
                 TruffleObject receiver,
-                @Cached("createAsPointerNode()") Node asPointerNode,
+                @Cached("AS_POINTER.createNode()") Node asPointerNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
                 return ForeignAccess.sendAsPointer(asPointerNode, receiver);
@@ -559,19 +534,16 @@ public abstract class InteropNodes {
             }
         }
 
-        protected Node createAsPointerNode() {
-            return Message.AS_POINTER.createNode();
-        }
-
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "to_native", isModuleFunction = true, required = 1)
     public abstract static class ToNativeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public Object toNative(
                 TruffleObject receiver,
-                @Cached("createToNativeNode()") Node toNativeNode,
+                @Cached("TO_NATIVE.createNode()") Node toNativeNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
                 return ForeignAccess.sendToNative(toNativeNode, receiver);
@@ -581,14 +553,10 @@ public abstract class InteropNodes {
             }
         }
 
-        protected Node createToNativeNode() {
-            return Message.TO_NATIVE.createNode();
-        }
-
     }
 
     @CoreMethod(names = "read", isModuleFunction = true, required = 2)
-    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
+    @ImportStatic({ StringCachingGuards.class, StringOperations.class, Message.class })
     public abstract static class ReadNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -628,14 +596,14 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "write", isModuleFunction = true, required = 3)
-    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
+    @ImportStatic({ StringCachingGuards.class, StringOperations.class, Message.class })
     public abstract static class WriteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public Object write(TruffleObject receiver, Object identifier, Object value,
                 @Cached("create()") RubyToForeignNode identifierToForeignNode,
                 @Cached("create()") RubyToForeignNode valueToForeignNode,
-                @Cached("createWriteNode()") Node writeNode,
+                @Cached("WRITE.createNode()") Node writeNode,
                 @Cached("create()") BranchProfile unknownIdentifierProfile,
                 @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
@@ -659,28 +627,21 @@ public abstract class InteropNodes {
             return foreignToRubyNode.executeConvert(foreign);
         }
 
-        protected static Node createWriteNode() {
-            return Message.WRITE.createNode();
-        }
-
         protected int getCacheLimit() {
             return getContext().getOptions().INTEROP_WRITE_CACHE;
         }
 
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "keys?", isModuleFunction = true, required = 1)
     public abstract static class InteropHasKeysNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public boolean hasKeys(
                 TruffleObject receiver,
-                @Cached("createHasKeysNode()") Node hasKeysNode) {
+                @Cached("HAS_KEYS.createNode()") Node hasKeysNode) {
             return ForeignAccess.sendHasKeys(hasKeysNode, receiver);
-        }
-
-        protected Node createHasKeysNode() {
-            return Message.HAS_KEYS.createNode();
         }
 
         @Specialization(guards = "!isTruffleObject(receiver)")
@@ -691,6 +652,7 @@ public abstract class InteropNodes {
 
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "keys", isModuleFunction = true, required = 1, optional = 1)
     public abstract static class KeysNode extends CoreMethodArrayArgumentsNode {
 
@@ -698,7 +660,7 @@ public abstract class InteropNodes {
 
         @Specialization
         public Object size(VirtualFrame frame, TruffleObject receiver, boolean internal,
-                @Cached("createKeysNode()") Node keysNode,
+                @Cached("KEYS.createNode()") Node keysNode,
                 @Cached("new()") SnippetNode snippetNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
@@ -716,24 +678,17 @@ public abstract class InteropNodes {
             return executeSize(frame, receiver, false);
         }
 
-        protected Node createKeysNode() {
-            return Message.KEYS.createNode();
-        }
-
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "key_info_bits", isModuleFunction = true, required = 2)
     public abstract static class KeyInfoBitsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public Object keyInfo(VirtualFrame frame, TruffleObject receiver, DynamicObject name,
                               @Cached("create()") RubyToForeignNode rubyToForeignNode,
-                              @Cached("createKeyInfoNode()") Node keyInfoNode) {
+                              @Cached("KEY_INFO.createNode()") Node keyInfoNode) {
             return ForeignAccess.sendKeyInfo(keyInfoNode, receiver, rubyToForeignNode.executeConvert(name));
-        }
-
-        protected static Node createKeyInfoNode() {
-            return Message.KEY_INFO.createNode();
         }
 
     }
