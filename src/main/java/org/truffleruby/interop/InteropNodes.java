@@ -883,7 +883,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "existing_bit?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "existing_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
     public abstract static class HasExistingBitNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -893,7 +893,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "readable_bit?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "readable_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
     public abstract static class HasReadableBitNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -903,7 +903,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "writable_bit?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "writable_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
     public abstract static class HasWritableBitNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -913,7 +913,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "invocable_bit?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "invocable_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
     public abstract static class HasInvocableBitNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -923,7 +923,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "internal_bit?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "internal_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
     public abstract static class HasInternalBitNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
