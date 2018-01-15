@@ -656,10 +656,10 @@ public abstract class InteropNodes {
     @CoreMethod(names = "keys", isModuleFunction = true, required = 1, optional = 1)
     public abstract static class KeysNode extends CoreMethodArrayArgumentsNode {
 
-        public abstract Object executeSize(VirtualFrame frame, TruffleObject receiver, Object internal);
+        public abstract Object executeKeys(VirtualFrame frame, TruffleObject receiver, Object internal);
 
         @Specialization
-        public Object size(VirtualFrame frame, TruffleObject receiver, boolean internal,
+        public Object keys(VirtualFrame frame, TruffleObject receiver, boolean internal,
                 @Cached("KEYS.createNode()") Node keysNode,
                 @Cached("new()") SnippetNode snippetNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
@@ -675,7 +675,7 @@ public abstract class InteropNodes {
 
         @Specialization
         public Object size(VirtualFrame frame, TruffleObject receiver, NotProvided internal) {
-            return executeSize(frame, receiver, false);
+            return executeKeys(frame, receiver, false);
         }
 
     }
