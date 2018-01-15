@@ -1785,6 +1785,8 @@ module Commands
       build('sulong')
       sulong_repo = File.expand_path("../sulong", TRUFFLERUBY_DIR)
       FileUtils::Verbose.cp_r "#{sulong_repo}/mxbuild/sulong-libs", "#{TRUFFLERUBY_DIR}/lib/cext"
+      # Repack TRUFFLERUBY-ZIP to include the sulong-libs
+      mx 'build', '--dependencies', 'TRUFFLERUBY-ZIP'
     end
 
     java_home = install_jvmci
