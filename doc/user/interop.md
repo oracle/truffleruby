@@ -372,7 +372,7 @@ an integer, or anything else
 `object.new(*args)` sends `NEW`
 
 `object.respond_to?` calls `Truffle::Interop.respond_to?(object, message)`,
-which supports `to_a`, `to_ary`, `new` and returns `false` for everything else.
+which supports `to_a`, `to_ary`, `new`, returning `false` for everything else.
 
 `object.to_a` and `object.to_ary` calls `Truffle::Interop.to_array(object)`
 
