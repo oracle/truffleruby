@@ -933,53 +933,23 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "existing_bit", isModuleFunction = true)
-    public abstract static class ExistingBitNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "key_info_flags_to_bits", isModuleFunction = true, required = 5)
+    public abstract static class KeyInfoFlagsToBitsNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization
-        public int existingBit() {
-            // KeyInfo builders are existing by default
-            return KeyInfo.newBuilder().build();
+        @Specialization(guards = "existing")
+        public int keyInfoFlagsToBitsNode(boolean existing, boolean readable, boolean writable,
+                                          boolean invocable, boolean internal) {
+            return KeyInfo.newBuilder()
+                    .setReadable(readable)
+                    .setWritable(writable)
+                    .setInvocable(invocable)
+                    .setInternal(internal).build();
         }
 
-    }
-
-    @CoreMethod(names = "readable_bit", isModuleFunction = true)
-    public abstract static class ReadableBitNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int readableBit() {
-            return KeyInfo.newBuilder().setReadable(true).build();
-        }
-
-    }
-
-    @CoreMethod(names = "writable_bit", isModuleFunction = true)
-    public abstract static class WritableBitNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int writableBit() {
-            return KeyInfo.newBuilder().setWritable(true).build();
-        }
-
-    }
-
-    @CoreMethod(names = "invocable_bit", isModuleFunction = true)
-    public abstract static class InvocableBitNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int invocableBit() {
-            return KeyInfo.newBuilder().setInvocable(true).build();
-        }
-
-    }
-
-    @CoreMethod(names = "internal_bit", isModuleFunction = true)
-    public abstract static class InternalBitNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int internalBit() {
-            return KeyInfo.newBuilder().setInternal(true).build();
+        @Specialization(guards = {"!existing", "!readable", "!writable", "!invocable", "!internal"})
+        public int keyInfoFlagsToBitsNodeZero(boolean existing, boolean readable, boolean writable,
+                                              boolean invocable, boolean internal) {
+            return 0;
         }
 
     }
