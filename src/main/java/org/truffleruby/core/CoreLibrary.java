@@ -636,7 +636,6 @@ public class CoreLibrary {
         debugStorage = globals.put("$DEBUG", context.getOptions().DEBUG);
         globals.alias("$DEBUG", "$-d");
 
-        globals.put("$=", false);
     }
 
     private Object verbosityOption() {
