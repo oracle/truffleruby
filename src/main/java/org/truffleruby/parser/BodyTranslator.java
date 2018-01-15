@@ -105,7 +105,6 @@ import org.truffleruby.language.exceptions.RescueNode;
 import org.truffleruby.language.exceptions.RescueSplatNode;
 import org.truffleruby.language.exceptions.TryNode;
 import org.truffleruby.language.globals.AliasGlobalVarNode;
-import org.truffleruby.language.globals.CheckLastLineNumberNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.globals.ReadMatchReferenceNodes;
 import org.truffleruby.language.globals.WriteGlobalVariableNodeGen;
@@ -1590,13 +1589,6 @@ public class BodyTranslator extends Translator {
 
         if (context != null) {
             name = context.getCoreLibrary().getGlobalVariables().getOriginalName(name);
-        }
-
-        switch (name) {
-            case "$.":
-                rhs = new CheckLastLineNumberNode(rhs);
-                rhs.unsafeSetSourceSection(sourceSection);
-                break;
         }
 
         final RubyNode writeGlobalVariableNode = WriteGlobalVariableNodeGen.create(name, rhs);
