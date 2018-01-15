@@ -232,10 +232,21 @@ public class RubyMessageResolution {
     @Resolve(message = "HAS_KEYS")
     public static abstract class ForeignHasKeysNode extends Node {
 
-        @Child private HasKeysNode hasKeysNode = HasKeysNode.create();
+        @CompilationFinal private RubyContext context;
+
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
-            return hasKeysNode.executeHasKeys(object);
+            return dispatchNode.call(frame, getContext().getCoreLibrary().getTruffleInteropModule(), "object_has_keys", object);
+        }
+
+        private RubyContext getContext() {
+            if (context == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                context = RubyLanguage.getCurrentContext();
+            }
+
+            return context;
         }
 
     }

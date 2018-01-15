@@ -24,6 +24,15 @@ module Truffle
     def self.export_method(name)
       export(name.to_s, Object.method(name.to_sym))
     end
+    
+    def self.object_has_keys(object)
+      case object
+      when NilClass, TrueClass, FalseClass, Fixnum, Bignum, Float, Symbol
+        false
+      else
+        true
+      end
+    end
 
     def self.object_keys(object, internal)
       if object.is_a?(Hash)
