@@ -85,3 +85,17 @@ $VERBOSE = case Truffle::Boot.get_option 'verbosity'
 
 alias $-v $VERBOSE
 alias $-w $VERBOSE
+
+Truffle::KernelOperations.define_hooked_variable(
+  :$stdout,
+  -> { Truffle::KernelOperations.global_variable_get(:$stdout) },
+  -> v { raise TypeError, "$stdout must have a write method #{v.class} given." unless v.respond_to?(:write)
+         Truffle::KernelOperations.global_variable_set(:$stdout, v) })
+
+alias $> $stdout
+
+Truffle::KernelOperations.define_hooked_variable(
+  :$stderr,
+  -> { Truffle::KernelOperations.global_variable_get(:$stderr) },
+  -> v { raise TypeError, "$stderr must have a write method #{v.class} given." unless v.respond_to?(:write)
+         Truffle::KernelOperations.global_variable_set(:$stderr, v) })

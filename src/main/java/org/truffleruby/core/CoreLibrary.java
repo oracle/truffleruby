@@ -636,12 +636,6 @@ public class CoreLibrary {
         debugStorage = globals.put("$DEBUG", context.getOptions().DEBUG);
         globals.alias("$DEBUG", "$-d");
 
-        final Object verbose;
-
-        globals.alias("$stdout", "$>");
-
-        stderrStorage = globals.getStorage("$stderr");
-
         globals.put("$=", false);
     }
 
@@ -663,6 +657,7 @@ public class CoreLibrary {
         loadPathStorage = globals.getStorage("$LOAD_PATH");
         loadedFeaturesStorage = globals.getStorage("$LOADED_FEATURES");
         verboseStorage = globals.getStorage("$VERBOSE");
+        stderrStorage = globals.getStorage("$stderr");
     }
 
     private void initializeConstants() {

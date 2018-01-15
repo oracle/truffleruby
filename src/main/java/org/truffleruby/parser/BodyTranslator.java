@@ -106,7 +106,6 @@ import org.truffleruby.language.exceptions.RescueSplatNode;
 import org.truffleruby.language.exceptions.TryNode;
 import org.truffleruby.language.globals.AliasGlobalVarNode;
 import org.truffleruby.language.globals.CheckLastLineNumberNode;
-import org.truffleruby.language.globals.CheckStdoutVariableTypeNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.globals.ReadMatchReferenceNodes;
 import org.truffleruby.language.globals.WriteGlobalVariableNodeGen;
@@ -1596,10 +1595,6 @@ public class BodyTranslator extends Translator {
         switch (name) {
             case "$.":
                 rhs = new CheckLastLineNumberNode(rhs);
-                rhs.unsafeSetSourceSection(sourceSection);
-                break;
-            case "$stdout":
-                rhs = new CheckStdoutVariableTypeNode(rhs);
                 rhs.unsafeSetSourceSection(sourceSection);
                 break;
         }
