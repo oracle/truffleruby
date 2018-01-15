@@ -61,7 +61,14 @@ module Truffle
     
     def self.object_key_info(object, name)
       existing, readable, writable, invocable, internal = false, false, false, false, false
-      if object.is_a?(Hash)
+      if name.to_s[0] == '@'
+        writable = true unless object.frozen?
+        internal = true
+        if object.instance_variable_defined?(name)
+          existing = true
+          readable = true
+        end
+      elsif object.is_a?(Hash)
         if object.key?(name)
           existing = true
           readable = true
@@ -72,12 +79,6 @@ module Truffle
         readable = object.respond_to?(name)
         writable = object.respond_to?((name.to_s + '=').to_sym) && !object.frozen?
         existing = true if readable || writable
-      end
-      if name.to_s[0] == '@' && object.instance_variable_defined?(name)
-        writable = true unless object.frozen?
-        existing = true
-        readable = true
-        internal = true
       end
       key_info_flags_to_bits(existing, readable, writable, invocable, internal)
     end
