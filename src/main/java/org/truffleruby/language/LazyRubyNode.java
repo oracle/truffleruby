@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
+import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Log;
 import org.truffleruby.RubyLanguage;
 
@@ -87,4 +88,10 @@ public class LazyRubyNode extends RubyNode {
 
         return NodeUtil.cloneNode(masterResolution);
     }
+
+    @Override
+    public SourceSection getSourceSection() {
+        return resolve().getSourceSection();
+    }
+
 }
