@@ -60,7 +60,7 @@ module Truffle
     end
     
     def self.object_key_info(object, name)
-      exiting, readable, writable, invocable, internal = false
+      existing, readable, writable, invocable, internal = false, false, false, false, false
       if object.is_a?(Hash)
         if object.key?(name)
           existing = true
@@ -79,7 +79,7 @@ module Truffle
         readable = true
         internal = true
       end
-      key_info_flags_to_bits(exiting, readable, writable, invocable, internal)
+      key_info_flags_to_bits(existing, readable, writable, invocable, internal)
     end
     
     def self.key_info_flags_from_bits(bits)
@@ -90,17 +90,6 @@ module Truffle
       flags << :invocable if invocable_bit?(bits)
       flags << :internal  if internal_bit?(bits)
       flags
-    end
-    
-    def self.key_info_flags_to_bits(exiting, readable, writable, invocable, internal)
-      bits = 0
-      # We assume here that key info values can be combined with a bit-wise disjunction
-      bits |= existing_bit  if exiting
-      bits |= readable_bit  if readable
-      bits |= writable_bit  if writable
-      bits |= invocable_bit if invocable
-      bits |= internal_bit  if internal
-      bits
     end
     
     def self.lookup_symbol(name)
