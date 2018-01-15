@@ -60,25 +60,26 @@ module Truffle
     end
     
     def self.object_key_info(object, name)
-      flags = []
+      exiting, readable, writable, invocable, internal = false
       if object.is_a?(Hash)
         if object.key?(name)
-          flags.push :existing, :readable
-          flags << :writable unless object.frozen?
+          existing = true
+          readable = true
+          writable = true unless object.frozen?
         end
       else
         name = name.to_sym
         readable = object.respond_to?(name)
         writable = object.respond_to?((name.to_s + '=').to_sym) && !object.frozen?
-        flags << :readable if readable
-        flags << :writable if writable
-        flags << :existing if readable || writable
+        existing = true if readable || writable
       end
       if name.to_s[0] == '@' && object.instance_variable_defined?(name)
-        flags << :writable unless object.frozen?
-        flags.push :existing, :readable, :internal
+        writable = true unless object.frozen?
+        existing = true
+        readable = true
+        internal = true
       end
-      key_info_flags_to_bits(flags)
+      key_info_flags_to_bits(exiting, readable, writable, invocable, internal)
     end
     
     def self.key_info_flags_from_bits(bits)
@@ -91,14 +92,14 @@ module Truffle
       flags
     end
     
-    def self.key_info_flags_to_bits(flags)
+    def self.key_info_flags_to_bits(exiting, readable, writable, invocable, internal)
       bits = 0
       # We assume here that key info values can be combined with a bit-wise disjunction
-      bits |= existing_bit  if flags.include?(:existing)
-      bits |= readable_bit  if flags.include?(:readable)
-      bits |= writable_bit  if flags.include?(:writable)
-      bits |= invocable_bit if flags.include?(:invocable)
-      bits |= internal_bit  if flags.include?(:internal)
+      bits |= existing_bit  if exiting
+      bits |= readable_bit  if readable
+      bits |= writable_bit  if writable
+      bits |= invocable_bit if invocable
+      bits |= internal_bit  if internal
       bits
     end
     
