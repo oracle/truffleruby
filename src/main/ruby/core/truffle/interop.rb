@@ -77,7 +77,7 @@ module Truffle
       else
         name = name.to_sym
         readable = object.respond_to?(name)
-        writable = object.respond_to?((name.to_s + '=').to_sym) && !object.frozen?
+        writable = object.respond_to?((:"#{name}=").to_sym) && !object.frozen?
         existing = true if readable || writable
       end
       key_info_flags_to_bits(existing, readable, writable, invocable, internal)
