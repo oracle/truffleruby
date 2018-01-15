@@ -25,7 +25,7 @@ def check(file)
     expected = f.each_line.map { |line| eval(line) }
   end
   
-  actual = $trace
+  actual = $trace.dup
   
   #actual.each do |a|
   #  a[4] = expand_binding(a[4])
