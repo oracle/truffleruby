@@ -7,6 +7,10 @@ for normal Ruby operations on foreign objects.
 
 Interop ignores visibility entirely.
 
+This document only explains how TruffleRuby uses messages. The messages
+themselves are explained in the
+[Truffle JavaDoc](http://www.graalvm.org/truffle/javadoc/com/oracle/truffle/api/interop/Message.html).
+
 * [How Ruby responds to messages](#how-ruby-responds-to-messages)
 * [How to explicitly send messages from Ruby](#how-to-explicitly-send-messages-from-ruby)
 * [How to send messages using idiomatic Ruby](#how-to-send-messages-using-idiomatic-ruby)
