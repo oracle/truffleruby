@@ -64,6 +64,8 @@ Truffle::KernelOperations.define_hooked_variable(
 
 $, = nil # It should be defined by the time boot has finished.
 
+$= = false
+
 Truffle::KernelOperations.define_hooked_variable(
   :$VERBOSE,
   -> { Truffle::KernelOperations.global_variable_get(:$VERBOSE) },
