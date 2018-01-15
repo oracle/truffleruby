@@ -78,8 +78,6 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public class CoreLibrary {
 
-    private static final String CLI_RECORD_SEPARATOR = "\n";
-
     private static final String ERRNO_CONFIG_PREFIX = NativeConfiguration.PREFIX + "errno.";
 
     private static final Property ALWAYS_FROZEN_PROPERTY = Property.create(Layouts.FROZEN_IDENTIFIER, Layout.createLayout().createAllocator().constantLocation(true), 0);
