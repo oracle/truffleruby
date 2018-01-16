@@ -23,6 +23,8 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.globals.GlobalVariableStorage;
+import org.truffleruby.language.globals.ReadSimpleGlobalVariableNode;
+import org.truffleruby.language.globals.ReadSimpleGlobalVariableNodeGen;
 import org.truffleruby.language.globals.WriteSimpleGlobalVariableNode;
 import org.truffleruby.language.globals.WriteSimpleGlobalVariableNodeGen;
 import org.truffleruby.language.loader.CodeLoader;
@@ -128,27 +130,23 @@ public abstract class TruffleKernelNodes {
 
     @CoreMethod(names = "global_variable_get", isModuleFunction = true, required = 1)
     public abstract static class ReadGlobalVariableNode extends CoreMethodArrayArgumentsNode {
-        @Specialization(guards = { "isRubySymbol(cachedName)", "name == cachedName" }, limit = "1", assumptions = "storage.getUnchangedAssumption()")
-        public Object readConstant(DynamicObject name,
-                @Cached("name") DynamicObject cachedName,
-                @Cached("getStorage(name)") GlobalVariableStorage storage,
-                @Cached("storage.getValue()") Object value) {
-            return value;
-        }
-
-        @Specialization(guards = { "isRubySymbol(cachedName)", "name == cachedName" }, limit = "1", replaces = "readConstant")
+        @Specialization(guards = { "isRubySymbol(cachedName)", "name == cachedName" }, limit = "1")
         public Object read(DynamicObject name,
                 @Cached("name") DynamicObject cachedName,
-                @Cached("getStorage(name)") GlobalVariableStorage storage) {
-            return storage.getValue();
+                @Cached("createReadNode(name)") ReadSimpleGlobalVariableNode readNode) {
+            return readNode.execute();
         }
 
+        @TruffleBoundary
         @Specialization(guards = "isRubySymbol(name)", replaces = "read")
         public Object readGeneric(DynamicObject name) {
             return getStorage(name).getValue();
         }
 
-        @TruffleBoundary
+        protected ReadSimpleGlobalVariableNode createReadNode(DynamicObject name) {
+            return ReadSimpleGlobalVariableNodeGen.create(getStorage(name));
+        }
+
         protected GlobalVariableStorage getStorage(DynamicObject name) {
             return getContext().getCoreLibrary().getGlobalVariables().getStorage(Layouts.SYMBOL.getString(name));
         }
