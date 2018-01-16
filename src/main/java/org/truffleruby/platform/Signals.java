@@ -25,11 +25,15 @@ public class Signals {
         DEFAULT_HANDLERS.putIfAbsent(signalName, oldSunHandler);
     }
 
-    public static void restoreDefaultHandler(String signalName) {
+    public static boolean restoreDefaultHandler(String signalName) {
         final sun.misc.SignalHandler defaultHandler = Signals.DEFAULT_HANDLERS.get(signalName);
-        if (defaultHandler != null) { // otherwise it is already the default signal
+        if (defaultHandler == null) {
+            // it is already the default signal
+            return false;
+        } else {
             final Signal signal = new Signal(signalName);
             sun.misc.Signal.handle(signal, defaultHandler);
+            return true;
         }
     }
 
