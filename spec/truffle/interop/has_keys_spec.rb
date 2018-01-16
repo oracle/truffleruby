@@ -39,7 +39,7 @@ describe "Truffle::Interop.keys?" do
   end
   
   it "returns false for Bignum" do
-    Truffle::Interop.keys?(0xfffffffffffffffffffffffffffffff).should be_false
+    Truffle::Interop.keys?(bignum_value).should be_false
   end
   
   it "returns false for Float" do
