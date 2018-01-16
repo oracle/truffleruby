@@ -22,31 +22,38 @@ module Asciidoctor
 #    => {'style' => 'quote', 'attribution' => 'Famous Person', 'citetitle' => 'Famous Book (2001)'}
 #
 class AttributeList
-  BACKSLASH = '\\'
+
+  # FIXME Opal not inheriting constants from parent scope
+  # NOTE can't use ::RUBY_ENGINE_OPAL here either
+  if ::RUBY_ENGINE == 'opal'
+    CG_BLANK = '[ \\t]'
+    CC_WORD  = 'a-zA-Z0-9_'
+    CG_WORD  = '[a-zA-Z0-9_]'
+  end
 
   # Public: Regular expressions for detecting the boundary of a value
   BoundaryRxs = {
     '"' => /.*?[^\\](?=")/,
     '\'' => /.*?[^\\](?=')/,
-    ',' => /.*?(?=[ \t]*(,|$))/
+    ',' => /.*?(?=#{CG_BLANK}*(,|$))/
   }
 
   # Public: Regular expressions for unescaping quoted characters
-  EscapedQuotes = {
-    '"' => '\\"',
-    '\'' => '\\\''
+  EscapedQuoteRxs = {
+    '"' => /\\"/,
+    '\'' => /\\'/
   }
 
   # Public: A regular expression for an attribute name (approx. name token from XML)
   # TODO named attributes cannot contain dash characters
   NameRx = /#{CG_WORD}[#{CC_WORD}\-.]*/
 
-  BlankRx = /[ \t]+/
+  BlankRx = /#{CG_BLANK}+/
 
   # Public: Regular expressions for skipping blanks and delimiters
   SkipRxs = {
     :blank => BlankRx,
-    ',' => /[ \t]*(,|$)/
+    ',' => /#{CG_BLANK}*(,|$)/
   }
 
   def initialize source, block = nil, delimiter = ','
@@ -155,27 +162,16 @@ class AttributeList
       # opts is an alias for options
       case name
       when 'options', 'opts'
-        if value.include? ','
-          value = value.delete ' ' if value.include? ' '
-          (value.split ',').each {|opt| @attributes[%(#{opt}-option)] = '' unless opt.empty? }
-        else
-          @attributes[%(#{value = value.strip}-option)] = ''
-        end
-        @attributes['options'] = value
+        name = 'options'
+        value.tr(' ', '').split(',').each {|opt| @attributes[%(#{opt}-option)] = '' }
+        @attributes[name] = value
+      when 'title'
+        @attributes[name] = value
       else
-        if single_quoted_value && @block
-          case name
-          when 'title', 'reftext'
-            @attributes[name] = value
-          else
-            @attributes[name] = @block.apply_subs value
-          end
-        else
-          @attributes[name] = value
-        end
+        @attributes[name] = single_quoted_value && !value.empty? && @block ? (@block.apply_normal_subs value) : value
       end
     else
-      resolved_name = single_quoted_value && @block ? (@block.apply_subs name) : name
+      resolved_name = single_quoted_value && !name.empty? && @block ? (@block.apply_normal_subs name) : name
       if (pos_name = pos_attrs[index])
         @attributes[pos_name] = resolved_name
       end
@@ -197,11 +193,7 @@ class AttributeList
 
     if (value = scan_to_quote quote)
       @scanner.get_byte
-      if value.include? BACKSLASH
-        value.gsub EscapedQuotes[quote], quote
-      else
-        value
-      end
+      value.gsub EscapedQuoteRxs[quote], quote
     else
       %(#{quote}#{scan_to_delimiter})
     end

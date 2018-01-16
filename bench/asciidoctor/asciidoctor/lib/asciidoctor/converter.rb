@@ -184,7 +184,7 @@ module Asciidoctor
     end
 
     # Alias for backward compatibility.
-    alias convert_with_options convert
+    alias :convert_with_options :convert
   end
 
   # A module that can be used to mix the {#write} method into a {Converter}
@@ -202,9 +202,9 @@ module Asciidoctor
       if target.respond_to? :write
         target.write output.chomp
         # ensure there's a trailing endline to be nice to terminals
-        target.write LF
+        target.write EOL
       else
-        ::IO.write target, output
+        ::File.open(target, 'w') {|f| f.write output }
       end
       nil
     end
