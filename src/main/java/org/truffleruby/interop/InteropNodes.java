@@ -91,7 +91,6 @@ public abstract class InteropNodes {
 
     }
 
-    @ImportStatic(Message.class)
     @CoreMethod(names = "execute", isModuleFunction = true, required = 1, rest = true)
     public abstract static class ExecuteNode extends CoreMethodArrayArgumentsNode {
 
@@ -561,7 +560,7 @@ public abstract class InteropNodes {
 
         @Specialization
         public Object read(TruffleObject receiver, Object identifier,
-                @Cached("createReadNode()") Node readNode,
+                @Cached("READ.createNode()") Node readNode,
                 @Cached("create()") BranchProfile unknownIdentifierProfile,
                 @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("create()") RubyToForeignNode rubyToForeignNode,
@@ -583,10 +582,6 @@ public abstract class InteropNodes {
             }
 
             return foreignToRubyNode.executeConvert(foreign);
-        }
-
-        protected static Node createReadNode() {
-            return Message.READ.createNode();
         }
 
         protected int getCacheLimit() {
