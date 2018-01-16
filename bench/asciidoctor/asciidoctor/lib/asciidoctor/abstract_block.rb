@@ -13,16 +13,14 @@ class AbstractBlock < AbstractNode
   # Public: Set the Integer level of this Section or the Section level in which this Block resides
   attr_accessor :level
 
+  # Public: Set the String block title.
+  attr_writer :title
+
   # Public: Get/Set the String style (block type qualifier) for this block.
   attr_accessor :style
 
-  # Public: Set the caption for this block
-  attr_writer :caption
-
-  # Public: Get/Set the number of this block (if section, relative to parent, otherwise absolute)
-  # Only assigned to section if automatic section numbering is enabled
-  # Only assigned to formal block (block with title) if corresponding caption attribute is present
-  attr_accessor :number
+  # Public: Get/Set the caption for this block
+  attr_accessor :caption
 
   # Public: Gets/Sets the location in the AsciiDoc source where this block begins
   attr_accessor :source_location
@@ -30,18 +28,21 @@ class AbstractBlock < AbstractNode
   def initialize parent, context, opts = {}
     super
     @content_model = :compound
-    @blocks = []
     @subs = []
-    @id = @title = @title_converted = @caption = @number = @style = @default_subs = @source_location = nil
-    if context == :document
-      @level = 0
+    @default_subs = nil
+    @blocks = []
+    @id = nil
+    @title = nil
+    @caption = nil
+    @style = nil
+    @level = if context == :document
+      0
     elsif parent && context != :section
-      @level = parent.level
-    else
-      @level = nil
+      parent.level
     end
     @next_section_index = 0
     @next_section_number = 1
+    @source_location = nil
   end
 
   def block?
@@ -71,12 +72,12 @@ class AbstractBlock < AbstractNode
   end
 
   # Alias render to convert to maintain backwards compatibility
-  alias render convert
+  alias :render :convert
 
   # Public: Get the converted result of the child blocks by converting the
   # children appropriate to content model that this block supports.
   def content
-    @blocks.map {|b| b.convert } * LF
+    @blocks.map {|b| b.convert } * EOL
   end
 
   # Public: Get the source file where this block started
@@ -100,11 +101,10 @@ class AbstractBlock < AbstractNode
     @subs.include? name
   end
 
-  # Public: A convenience method that checks whether the title of this block is defined.
-  #
-  # Returns a [Boolean] indicating whether this block has a title.
+  # Public: A convenience method that indicates whether the title instance
+  # variable is blank (nil or empty)
   def title?
-    @title ? true : false
+    !@title.nil_or_empty?
   end
 
   # Public: Get the String title of this Block with title substitions applied
@@ -119,28 +119,16 @@ class AbstractBlock < AbstractNode
   #   block.title
   #   => "Foo 3^ # :: Bar(1)"
   #
-  # Returns the converted String title for this Block, or nil if the source title is falsy
+  # Returns the String title of this Block
   def title
-    # prevent substitutions from being applied to title multiple times
-    @title_converted ? @converted_title : (@converted_title = (@title_converted = true) && @title && (apply_title_subs @title))
-  end
-
-  # Public: Set the String block title.
-  #
-  # Returns the new String title assigned to this Block
-  def title= val
-    @title, @title_converted = val, nil
-  end
-
-  # Gets the caption for this block.
-  #
-  # This method routes the deprecated use of the caption method on an
-  # admonition block to the textlabel attribute.
-  #
-  # Returns the [String] caption for this block (or the value of the textlabel
-  # attribute if this is an admonition block).
-  def caption
-    @context == :admonition ? @attributes['textlabel'] : @caption
+    # prevent substitutions from being applied multiple times
+    if defined?(@subbed_title)
+      @subbed_title
+    elsif @title
+      @subbed_title = apply_title_subs(@title)
+    else
+      @title
+    end
   end
 
   # Public: Convenience method that returns the interpreted title of the Block
@@ -151,68 +139,10 @@ class AbstractBlock < AbstractNode
   # two values. If the Block does not have a caption, the interpreted title is
   # returned.
   #
-  # Returns the converted String title prefixed with the caption, or just the
-  # converted String title if no caption is set
+  # Returns the String title prefixed with the caption, or just the title if no
+  # caption is set
   def captioned_title
     %(#{@caption}#{title})
-  end
-
-  # Public: Returns the converted alt text for this block image.
-  #
-  # Returns the [String] value of the alt attribute with XML special character
-  # and replacement substitutions applied.
-  def alt
-    if (text = @attributes['alt'])
-      if text == @attributes['default-alt']
-        sub_specialchars text
-      else
-        text = sub_specialchars text
-        (ReplaceableTextRx.match? text) ? (sub_replacements text) : text
-      end
-    end
-  end
-
-  # Public: Generate cross reference text (xreftext) that can be used to refer
-  # to this block.
-  #
-  # Use the explicit reftext for this block, if specified, retrieved from the
-  # {#reftext} method. Otherwise, if this is a section or captioned block (a
-  # block with both a title and caption), generate the xreftext according to
-  # the value of the xrefstyle argument (e.g., full, short). This logic may
-  # leverage the {Substitutors#sub_quotes} method to apply formatting to the
-  # text. If this is not a captioned block, return the title, if present, or
-  # nil otherwise.
-  #
-  # xrefstyle - An optional String that specifies the style to use to format
-  #             the xreftext ('full', 'short', or 'basic') (default: nil).
-  #
-  # Returns the generated [String] xreftext used to refer to this block or
-  # nothing if there isn't sufficient information to generate one.
-  def xreftext xrefstyle = nil
-    if (val = reftext) && !val.empty?
-      val
-    # NOTE xrefstyle only applies to blocks with a title and a caption or number
-    elsif xrefstyle && @title && @caption
-      case xrefstyle
-      when 'full'
-        quoted_title = sprintf sub_quotes(@document.compat_mode ? %q(``%s'') : '"`%s`"'), title
-        if @number && (prefix = @document.attributes[@context == :image ? 'figure-caption' : %(#{@context}-caption)])
-          %(#{prefix} #{@number}, #{quoted_title})
-        else
-          %(#{@caption.chomp '. '}, #{quoted_title})
-        end
-      when 'short'
-        if @number && (prefix = @document.attributes[@context == :image ? 'figure-caption' : %(#{@context}-caption)])
-          %(#{prefix} #{@number})
-        else
-          @caption.chomp '. '
-        end
-      else # 'basic'
-        title
-      end
-    else
-      title
-    end
   end
 
   # Public: Determine whether this Block contains block content
@@ -246,7 +176,7 @@ class AbstractBlock < AbstractNode
   end
 
   # NOTE append alias required for adapting to a Java API
-  alias append <<
+  alias :append :<<
 
   # Public: Get the Array of child Section objects
   #
@@ -314,10 +244,11 @@ class AbstractBlock < AbstractNode
   end
 =end
 
-  # Public: Query for all descendant block-level nodes in the document tree
-  # that match the specified selector (context, style, id, and/or role). If a
-  # Ruby block is given, it's used as an additional filter. If no selector or
-  # Ruby block is supplied, all block-level nodes in the tree are returned.
+  # Public: Query for all descendant block nodes in the document tree that
+  # match the specified Symbol filter_context and, optionally, the style and/or
+  # role specified in the options Hash. If a block is provided, it's used as an
+  # additional filter. If no filters are specified, all block nodes in the tree
+  # are returned.
   #
   # Examples
   #
@@ -331,7 +262,7 @@ class AbstractBlock < AbstractNode
   #   doc.find_by context: :listing, style: 'source'
   #   #=> Asciidoctor::Block@13136720 { context: :listing, content_model: :verbatim, style: "source", lines: 1 }
   #
-  # Returns An Array of block-level nodes that match the filter or an empty Array if no matches are found
+  # Returns An Array of block nodes that match the given selector or an empty Array if no matches are found
   #--
   # TODO support jQuery-style selector (e.g., image.thumb)
   def find_by selector = {}, &block
@@ -359,8 +290,8 @@ class AbstractBlock < AbstractNode
       result.concat(@header.find_by selector, &block)
     end
 
+    # yuck, dlist is a special case
     unless context_selector == :document # optimization
-      # yuck, dlist is a special case
       if @context == :dlist
         if any_context || context_selector != :section # optimization
           @blocks.flatten.each do |li|
@@ -377,13 +308,7 @@ class AbstractBlock < AbstractNode
     end
     result
   end
-  alias query find_by
-
-  # Move to the next adjacent block in document order. If the current block is the last
-  # item in a list, this method will return the following sibling of the list block.
-  def next_adjacent_block
-    (sib = (p = parent).blocks[(p.blocks.find_index self) + 1]) ? sib : p.next_adjacent_block unless @context == :document
-  end
+  alias :query :find_by
 
   # Public: Remove a substitution from this block
   #
@@ -395,53 +320,39 @@ class AbstractBlock < AbstractNode
     nil
   end
 
-  # Public: Generate and assign caption to block if not already assigned.
+  # Public: Generate a caption and assign it to this block if one
+  # is not already assigned.
   #
-  # If the block has a title and a caption prefix is available for this block,
-  # then build a caption from this information, assign it a number and store it
-  # to the caption attribute on the block.
+  # If the block has a title and a caption prefix is available
+  # for this block, then build a caption from this information,
+  # assign it a number and store it to the caption attribute on
+  # the block.
   #
-  # If a caption has already been assigned to this block, do nothing.
+  # If an explicit caption has been specified on this block, then
+  # do nothing.
   #
-  # The parts of a complete caption are: <prefix> <number>. <title>
-  # This partial caption represents the part the precedes the title.
-  #
-  # value - The explicit String caption to assign to this block (default: nil).
-  # key   - The String prefix for the caption and counter attribute names.
-  #         If not provided, the name of the context for this block is used.
-  #         (default: nil)
-  #
-  # Returns nothing.
-  def assign_caption value = nil, key = nil
-    unless @caption || !@title || (@caption = value || @document.attributes['caption'])
-      if (prefix = @document.attributes[%(#{key ||= @context}-caption)])
-        @caption = %(#{prefix} #{@number = @document.increment_and_store_counter "#{key}-number", self}. )
-        nil
-      end
-    end
-  end
-
-  # Internal: Assign the next index (0-based) and number (1-based) to the section
-  #
-  # Assign to the specified section the next index and, if the section is
-  # numbered, number within this block (its parent).
+  # key         - The prefix of the caption and counter attribute names.
+  #               If not provided, the name of the context for this block
+  #               is used. (default: nil).
   #
   # Returns nothing
-  def enumerate_section section
-    @next_section_index = (section.index = @next_section_index) + 1
-    if (sectname = section.sectname) == 'appendix'
-      section.number = @document.counter 'appendix-number', 'A'
-      if (caption = @document.attributes['appendix-caption'])
-        section.caption = %(#{caption} #{section.number}: )
-      else
-        section.caption = %(#{section.number}. )
-      end
-    # NOTE currently chapters in a book doctype are sequential even for multi-part books (see #979)
-    elsif sectname == 'chapter'
-      section.number = @document.counter 'chapter-number', 1
+  def assign_caption(caption = nil, key = nil)
+    return unless title? || !@caption
+
+    if caption
+      @caption = caption
     else
-      @next_section_number = (section.number = @next_section_number) + 1
-    end if section.numbered
+      if (value = @document.attributes['caption'])
+        @caption = value
+      elsif title?
+        key ||= @context.to_s
+        caption_key = "#{key}-caption"
+        if (caption_title = @document.attributes[caption_key])
+          caption_num = @document.counter_increment("#{key}-number", self)
+          @caption = "#{caption_title} #{caption_num}. "
+        end
+      end
+    end
     nil
   end
 
@@ -456,6 +367,35 @@ class AbstractBlock < AbstractNode
     ORDERED_LIST_KEYWORDS[list_type || @style]
   end
 
+  # Internal: Assign the next index (0-based) to this section
+  #
+  # Assign the next index of this section within the parent
+  # Block (in document order)
+  #
+  # Returns nothing
+  def assign_index(section)
+    section.index = @next_section_index
+    @next_section_index += 1
+
+    if section.sectname == 'appendix'
+      appendix_number = @document.counter 'appendix-number', 'A'
+      section.number = appendix_number if section.numbered
+      if (caption = @document.attr 'appendix-caption', '').empty?
+        section.caption = %(#{appendix_number}. )
+      else
+        section.caption = %(#{caption} #{appendix_number}: )
+      end
+    elsif section.numbered
+      # chapters in a book doctype should be sequential even when divided into parts
+      if (section.level == 1 || (section.level == 0 && section.special)) && @document.doctype == 'book'
+        section.number = @document.counter('chapter-number', 1)
+      else
+        section.number = @next_section_number
+        @next_section_number += 1
+      end
+    end
+  end
+
   # Internal: Reassign the section indexes
   #
   # Walk the descendents of the current Document or Section
@@ -464,17 +404,17 @@ class AbstractBlock < AbstractNode
   #
   # IMPORTANT You must invoke this method on a node after removing
   # child sections or else the internal counters will be off.
-  #
+  # 
   # Returns nothing
   def reindex_sections
     @next_section_index = 0
-    @next_section_number = 1
-    @blocks.each do |block|
+    @next_section_number = 0
+    @blocks.each {|block|
       if block.context == :section
-        enumerate_section block
+        assign_index(block)
         block.reindex_sections
       end
-    end
+    }
   end
 end
 end

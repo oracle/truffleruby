@@ -1,4 +1,4 @@
-We are using Asciidoctor at revision `7ee2ddad66ce581439498e4e043c68bbe8b0938e` (v1.5.6.1).
+We are using Asciidoctor at revision `450554508776140c41d8c0d0de75c94f7b7c8e6b`.
 
 Only `lib/` and `LICENSE.adoc` are kept.
 
