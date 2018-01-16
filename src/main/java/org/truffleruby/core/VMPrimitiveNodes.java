@@ -72,10 +72,8 @@ import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.platform.Signals;
-import sun.misc.Signal;
 
 import java.util.Map.Entry;
-import java.util.function.Consumer;
 
 @CoreClass(value = "VM primitives")
 public abstract class VMPrimitiveNodes {
@@ -264,7 +262,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = { "isRubyString(signalName)", "isNil(nil)" })
         public boolean watchSignal(DynamicObject signalName, Object nil) {
-            return handle(signalName, (signal) -> { });
+            return handle(signalName, () -> {});
         }
 
         @Specialization(guards = { "isRubyString(signalName)", "isRubyProc(proc)" })
@@ -276,7 +274,7 @@ public abstract class VMPrimitiveNodes {
 
             final RubyContext context = getContext();
 
-            return handle(signalName, signal -> {
+            return handle(signalName, () -> {
                 if (context.getLanguage().SINGLE_THREADED) {
                     Log.LOGGER.severe("signal " + signalName + " caught but can't create a thread to handle it so ignoring");
                     return;
@@ -313,7 +311,7 @@ public abstract class VMPrimitiveNodes {
         }
 
         @TruffleBoundary
-        private boolean handle(DynamicObject signalName, Consumer<Signal> newHandler) {
+        private boolean handle(DynamicObject signalName, Runnable newHandler) {
             try {
                 Signals.registerHandler(newHandler, StringOperations.getString(signalName));
             } catch (IllegalArgumentException e) {

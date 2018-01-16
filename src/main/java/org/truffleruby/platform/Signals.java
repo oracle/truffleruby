@@ -11,7 +11,6 @@ package org.truffleruby.platform;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Consumer;
 
 import sun.misc.Signal;
 
@@ -19,10 +18,9 @@ public class Signals {
 
     private static final ConcurrentMap<sun.misc.Signal, sun.misc.SignalHandler> DEFAULT_HANDLERS = new ConcurrentHashMap<>();
 
-    public static void registerHandler(Consumer<sun.misc.Signal> newHandler, String signalName) {
+    public static void registerHandler(Runnable newHandler, String signalName) {
         final Signal signal = new Signal(signalName);
-        final sun.misc.SignalHandler oldSunHandler =
-                sun.misc.Signal.handle(signal, wrappedSignal -> newHandler.accept(signal));
+        final sun.misc.SignalHandler oldSunHandler = sun.misc.Signal.handle(signal, s -> newHandler.run());
         DEFAULT_HANDLERS.putIfAbsent(signal, oldSunHandler);
     }
 
