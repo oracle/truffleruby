@@ -17,13 +17,14 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
-import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.globals.GlobalVariableStorage;
+import org.truffleruby.language.globals.WriteSimpleGlobalVariableNode;
+import org.truffleruby.language.globals.WriteSimpleGlobalVariableNodeGen;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
@@ -97,46 +98,17 @@ public abstract class TruffleKernelNodes {
 
     @CoreMethod(names = "global_variable_set", isModuleFunction = true, required = 2)
     public abstract static class WriteGlobalVariableNode extends CoreMethodArrayArgumentsNode {
-        @Child protected WriteBarrierNode writeBarrierNode = WriteBarrierNode.create();
-
-        @Specialization(guards = { "isRubySymbol(cachedName)", "name == cachedName",
-                "referenceEqualNode.executeReferenceEqual(value, previousValue)" }, limit = "1", assumptions = "storage.getUnchangedAssumption()")
-        public Object writeTryToKeepConstant(DynamicObject name, Object value,
-                @Cached("name") DynamicObject cachedName,
-                @Cached("getStorage(name)") GlobalVariableStorage storage,
-                @Cached("storage.getValue()") Object previousValue,
-                @Cached("create()") ReferenceEqualNode referenceEqualNode) {
-            // NOTE: we still do the volatile write to get the proper memory barrier,
-            // as the global variable could be used as a publication mechanism.
-            storage.setValueInternal(value);
-            return previousValue;
-        }
-
-        @Specialization(guards = { "isRubySymbol(cachedName)", "name == cachedName", "storage.isAssumeConstant()" }, limit = "1", assumptions = "storage.getUnchangedAssumption()")
-        public Object writeAssumeConstant(DynamicObject name, Object value,
-                @Cached("name") DynamicObject cachedName,
-                @Cached("getStorage(name)") GlobalVariableStorage storage) {
-            if (getContext().getSharedObjects().isSharing()) {
-                writeBarrierNode.executeWriteBarrier(value);
-            }
-            storage.setValueInternal(value);
-            storage.updateAssumeConstant(getContext());
-            return value;
-        }
-
-        @Specialization(guards = { "isRubySymbol(cachedName)", "name == cachedName", "!storage.isAssumeConstant()" }, limit = "1", replaces = "writeAssumeConstant")
+        @Specialization(guards = { "isRubySymbol(cachedName)", "name == cachedName" }, limit = "1")
         public Object write(DynamicObject name, Object value,
                 @Cached("name") DynamicObject cachedName,
-                @Cached("getStorage(name)") GlobalVariableStorage storage) {
-            if (getContext().getSharedObjects().isSharing()) {
-                writeBarrierNode.executeWriteBarrier(value);
-            }
-            storage.setValueInternal(value);
-            return value;
+                @Cached("createWriteNode(name)") WriteSimpleGlobalVariableNode writeNode) {
+            return writeNode.execute(value);
         }
 
         @Specialization(guards = "isRubySymbol(name)")
-        public Object writeGeneric(DynamicObject name, Object value) {
+        @TruffleBoundary
+        public Object writeGeneric(DynamicObject name, Object value,
+                @Cached("create()") WriteBarrierNode writeBarrierNode) {
             GlobalVariableStorage storage = getStorage(name);
             if (getContext().getSharedObjects().isSharing()) {
                 writeBarrierNode.executeWriteBarrier(value);
@@ -145,7 +117,10 @@ public abstract class TruffleKernelNodes {
             return value;
         }
 
-        @TruffleBoundary
+        protected WriteSimpleGlobalVariableNode createWriteNode(DynamicObject name) {
+            return WriteSimpleGlobalVariableNodeGen.create(getStorage(name), null);
+        }
+
         protected GlobalVariableStorage getStorage(DynamicObject name) {
             return getContext().getCoreLibrary().getGlobalVariables().getStorage(Layouts.SYMBOL.getString(name));
         }
