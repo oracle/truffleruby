@@ -89,7 +89,9 @@ module Signal
       old = @handlers.delete(number)
 
       if number != Names['EXIT']
-        Truffle.invoke_primitive :vm_watch_signal, signame, 'DEFAULT'
+        unless Truffle.invoke_primitive :vm_watch_signal, signame, 'DEFAULT'
+          return 'SYSTEM_DEFAULT'
+        end
       end
 
       return 'DEFAULT' unless had_old

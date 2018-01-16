@@ -303,11 +303,10 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         private boolean handleDefault(DynamicObject signalName) {
             try {
-                Signals.restoreDefaultHandler(StringOperations.getString(signalName));
+                return Signals.restoreDefaultHandler(StringOperations.getString(signalName));
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
             }
-            return true;
         }
 
         @TruffleBoundary
