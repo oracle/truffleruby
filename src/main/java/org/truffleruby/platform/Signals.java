@@ -16,18 +16,19 @@ import sun.misc.Signal;
 
 public class Signals {
 
-    private static final ConcurrentMap<sun.misc.Signal, sun.misc.SignalHandler> DEFAULT_HANDLERS = new ConcurrentHashMap<>();
+    // Use String and not Signal as key to work around SVM not allowing new Signal("PROF")
+    private static final ConcurrentMap<String, sun.misc.SignalHandler> DEFAULT_HANDLERS = new ConcurrentHashMap<>();
 
     public static void registerHandler(Runnable newHandler, String signalName) {
         final Signal signal = new Signal(signalName);
         final sun.misc.SignalHandler oldSunHandler = sun.misc.Signal.handle(signal, s -> newHandler.run());
-        DEFAULT_HANDLERS.putIfAbsent(signal, oldSunHandler);
+        DEFAULT_HANDLERS.putIfAbsent(signalName, oldSunHandler);
     }
 
     public static void restoreDefaultHandler(String signalName) {
-        final Signal signal = new Signal(signalName);
-        final sun.misc.SignalHandler defaultHandler = Signals.DEFAULT_HANDLERS.get(signal);
+        final sun.misc.SignalHandler defaultHandler = Signals.DEFAULT_HANDLERS.get(signalName);
         if (defaultHandler != null) { // otherwise it is already the default signal
+            final Signal signal = new Signal(signalName);
             sun.misc.Signal.handle(signal, defaultHandler);
         }
     }
