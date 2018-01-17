@@ -1,6 +1,8 @@
 :setup:
   :file:
     stubs.rb: |
+              require 'stringio'
+
               capture_stdout = -> (&block) do
                 original_stdout = $stdout
                 $stdout         = fake = StringIO.new
