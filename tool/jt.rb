@@ -500,8 +500,6 @@ module Commands
     super(*args)
   end
 
-  BUILD_OPTIONS = %w[parser options cexts sulong native]
-
   def build(*options)
     project = options.shift
     case project
@@ -1887,19 +1885,6 @@ class JT
       help
       exit
     end
-
-    case args.first
-    when "rebuild"
-      send(args.shift)
-    when "build"
-      command = [args.shift]
-      while Commands::BUILD_OPTIONS.include?(args.first)
-        command << args.shift
-      end
-      send(*command)
-    end
-
-    return if args.empty?
 
     commands = Commands.public_instance_methods(false).map(&:to_s)
 
