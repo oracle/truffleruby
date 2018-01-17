@@ -410,7 +410,7 @@ module Commands
           options                                    build the options
           cexts                                      build only the C extensions (part of "jt build")
           sulong                                     update to latest Sulong and build it
-          native [sulong]                            build a native image of TruffleRuby, optionally with Sulong
+          native [sulong] [extra mx image options]   build a native image of TruffleRuby, optionally with Sulong
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt clean                                       clean
       jt env                                         prints the current environment
@@ -1796,9 +1796,9 @@ module Commands
       mx 'build'
       if sulong
         ENV["TRUFFLERUBY_LIBSULONG_DIR"] = "lib/cext/sulong-libs"
-        mx 'image', '-sulong', '-ruby', '-H:MaxRuntimeCompileMethods=15000', '-H:Name=native-ruby'
+        mx 'image', '-sulong', '-ruby', '-H:MaxRuntimeCompileMethods=15000', '-H:Name=native-ruby', *options
       else
-        mx 'image', '-ruby', '-H:Name=native-ruby'
+        mx 'image', '-ruby', '-H:Name=native-ruby', *options
       end
       FileUtils.mv('svmbuild/native-ruby', '../../truffleruby/bin/')
     end
