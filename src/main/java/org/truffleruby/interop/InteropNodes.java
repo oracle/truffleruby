@@ -947,14 +947,11 @@ public abstract class InteropNodes {
             return 0;
         }
 
+        @TruffleBoundary
         @Specialization(guards = {"!existing", "((readable || writable) || invocable) || internal"})
         public int keyInfoFlagsToBitsNodeNotExisting(boolean existing, boolean readable, boolean writable,
                                                      boolean invocable, boolean internal) {
-            return KeyInfo.newBuilder()
-                    .setReadable(readable)
-                    .setWritable(writable)
-                    .setInvocable(invocable)
-                    .setInternal(internal).build() & ~(KeyInfo.newBuilder().build());
+            throw new RaiseException(getContext().getCoreExceptions().internalError("incompatible key info flags", this));
         }
 
     }
