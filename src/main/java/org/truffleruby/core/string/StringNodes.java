@@ -482,6 +482,7 @@ public abstract class StringNodes {
         @Child private CallDispatchHeadNode dupNode;
         @Child private NormalizeIndexNode normalizeIndexNode;
         @Child private StringSubstringPrimitiveNode substringNode;
+        @Child private SnippetNode snippetNode;
 
         private final BranchProfile outOfBounds = BranchProfile.create();
 
@@ -496,9 +497,8 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!isRubyRange(index)", "!isRubyRegexp(index)", "!isRubyString(index)" })
-        public Object getIndex(VirtualFrame frame, DynamicObject string, Object index, NotProvided length,
-                @Cached("new()") SnippetNode snippetNode) {
-            return getIndex(frame, string, (int) snippetNode.execute(frame, "Truffle::Type.rb_num2int(v)", "v", index), length);
+        public Object getIndex(VirtualFrame frame, DynamicObject string, Object index, NotProvided length) {
+            return getIndex(frame, string, (int) getSnippetNode().execute(frame, "Truffle::Type.rb_num2int(v)", "v", index), length);
         }
 
         @Specialization(guards = "isIntRange(range)")
@@ -514,10 +514,9 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isObjectRange(range)")
         public Object sliceObjectRange(VirtualFrame frame, DynamicObject string, DynamicObject range, NotProvided length,
-                @Cached("new()") SnippetNode snippetNode1,
                 @Cached("new()") SnippetNode snippetNode2) {
             // TODO (nirvdrum 31-Mar-15) The begin and end values may return Fixnums beyond int boundaries and we should handle that -- Bignums are always errors.
-            final int coercedBegin = (int) snippetNode1.execute(frame, "Truffle::Type.rb_num2int(v)", "v", Layouts.OBJECT_RANGE.getBegin(range));
+            final int coercedBegin = (int) getSnippetNode().execute(frame, "Truffle::Type.rb_num2int(v)", "v", Layouts.OBJECT_RANGE.getBegin(range));
             final int coercedEnd = (int) snippetNode2.execute(frame, "Truffle::Type.rb_num2int(v)", "v", Layouts.OBJECT_RANGE.getEnd(range));
 
             return sliceRange(frame, string, coercedBegin, coercedEnd, Layouts.OBJECT_RANGE.getExcludedEnd(range));
@@ -569,16 +568,15 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "wasProvided(length)")
-        public Object slice(VirtualFrame frame, DynamicObject string, int start, Object length,
-                @Cached("new()") SnippetNode snippetNode) {
-            return slice(frame, string, start, (int) snippetNode.execute(frame, "Truffle::Type.rb_num2int(v)", "v", length));
+        public Object slice(VirtualFrame frame, DynamicObject string, int start, Object length) {
+            return slice(frame, string, start, (int) getSnippetNode().execute(frame, "Truffle::Type.rb_num2int(v)", "v", length));
         }
 
         @Specialization(guards = { "!isRubyRange(start)", "!isRubyRegexp(start)", "!isRubyString(start)", "wasProvided(length)" })
         public Object slice(VirtualFrame frame, DynamicObject string, Object start, Object length,
-                @Cached("new()") SnippetNode snippetNode1,
                 @Cached("new()") SnippetNode snippetNode2) {
-            return slice(frame, string, (int) snippetNode1.execute(frame, "Truffle::Type.rb_num2int(v)", "v", start), (int) snippetNode2.execute(frame, "Truffle::Type.rb_num2int(v)", "v", length));
+            return slice(frame, string, (int) getSnippetNode().execute(frame, "Truffle::Type.rb_num2int(v)", "v", start),
+                    (int) snippetNode2.execute(frame, "Truffle::Type.rb_num2int(v)", "v", length));
         }
 
         @Specialization(guards = "isRubyRegexp(regexp)")
@@ -647,6 +645,14 @@ public abstract class StringNodes {
             return substringNode;
         }
 
+        private SnippetNode getSnippetNode() {
+            if (snippetNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                snippetNode = insert(new SnippetNode());
+            }
+
+            return snippetNode;
+        }
     }
 
     @CoreMethod(names = "ascii_only?")
@@ -704,9 +710,10 @@ public abstract class StringNodes {
     @CoreMethod(names = "bytes", needsBlock = true)
     public abstract static class BytesNode extends YieldingCoreMethodNode {
 
+        @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
+
         @Specialization
-        public DynamicObject bytes(VirtualFrame frame, DynamicObject string, NotProvided block,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+        public DynamicObject bytes(VirtualFrame frame, DynamicObject string, NotProvided block) {
             final Rope rope = rope(string);
             final byte[] bytes = bytesNode.execute(rope);
 
@@ -720,8 +727,7 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        public DynamicObject bytes(DynamicObject string, DynamicObject block,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+        public DynamicObject bytes(DynamicObject string, DynamicObject block) {
             Rope rope = rope(string);
             byte[] bytes = bytesNode.execute(rope);
 
@@ -760,14 +766,14 @@ public abstract class StringNodes {
     public abstract static class CaseCmpNode extends CoreMethodNode {
 
         @Child private EncodingNodes.NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode = EncodingNodesFactory.NegotiateCompatibleEncodingNodeGen.create(null, null);
+        private final ConditionProfile incompatibleEncodingProfile = ConditionProfile.createBinaryProfile();
 
         @CreateCast("other") public RubyNode coerceOtherToString(RubyNode other) {
             return ToStrNodeGen.create(other);
         }
 
         @Specialization(guards = {"isRubyString(other)", "bothSingleByteOptimizable(string, other)"})
-        public Object caseCmpSingleByte(DynamicObject string, DynamicObject other,
-                                        @Cached("createBinaryProfile()") ConditionProfile incompatibleEncodingProfile) {
+        public Object caseCmpSingleByte(DynamicObject string, DynamicObject other) {
             // Taken from org.jruby.RubyString#casecmp19.
 
             final Encoding encoding = negotiateCompatibleEncodingNode.executeNegotiate(string, other);
@@ -779,8 +785,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = {"isRubyString(other)", "!bothSingleByteOptimizable(string, other)"})
-        public Object caseCmp(DynamicObject string, DynamicObject other,
-                              @Cached("createBinaryProfile()") ConditionProfile incompatibleEncodingProfile) {
+        public Object caseCmp(DynamicObject string, DynamicObject other) {
             // Taken from org.jruby.RubyString#casecmp19 and
 
             final Encoding encoding = negotiateCompatibleEncodingNode.executeNegotiate(string, other);
@@ -805,7 +810,6 @@ public abstract class StringNodes {
     public abstract static class CountNode extends CoreMethodArrayArgumentsNode {
 
         @Child private EncodingNodes.CheckEncodingNode checkEncodingNode = EncodingNodesFactory.CheckEncodingNodeGen.create(null, null);
-        @Child private ToStrNode toStr = ToStrNodeGen.create(null);
 
         @Specialization(guards = "isEmpty(string)")
         public int count(DynamicObject string, Object[] args) {
@@ -814,6 +818,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "!isEmpty(string)")
         public int count(VirtualFrame frame, DynamicObject string, Object[] args,
+                @Cached("create()") ToStrNode toStr,
                 @Cached("create()") BranchProfile errorProfile) {
             if (args.length == 0) {
                 errorProfile.enter();
@@ -856,7 +861,6 @@ public abstract class StringNodes {
     public abstract static class DeleteBangNode extends CoreMethodArrayArgumentsNode {
 
         @Child private EncodingNodes.CheckEncodingNode checkEncodingNode = EncodingNodesFactory.CheckEncodingNodeGen.create(null, null);
-        @Child private ToStrNode toStr = ToStrNodeGen.create(null);
 
         public abstract DynamicObject executeDeleteBang(VirtualFrame frame, DynamicObject string, Object[] args);
 
@@ -867,6 +871,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "!isEmpty(string)")
         public DynamicObject deleteBang(VirtualFrame frame, DynamicObject string, Object[] args,
+                @Cached("create()") ToStrNode toStr,
                 @Cached("create()") BranchProfile errorProfile) {
             if (args.length == 0) {
                 errorProfile.enter();
@@ -980,10 +985,10 @@ public abstract class StringNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
         @Child private TaintResultNode taintResultNode;
+        @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization(guards = "!isBrokenCodeRange(string)")
-        public DynamicObject eachChar(DynamicObject string, DynamicObject block,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+        public DynamicObject eachChar(DynamicObject string, DynamicObject block) {
             final Rope rope = rope(string);
             final byte[] ptrBytes = bytesNode.execute(rope);
             final int len = ptrBytes.length;
@@ -1001,8 +1006,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isBrokenCodeRange(string)")
-        public DynamicObject eachCharMultiByteEncoding(DynamicObject string, DynamicObject block,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+        public DynamicObject eachCharMultiByteEncoding(DynamicObject string, DynamicObject block) {
             final Rope rope = rope(string);
             final byte[] ptrBytes = bytesNode.execute(rope);
             final int len = ptrBytes.length;
@@ -1056,17 +1060,16 @@ public abstract class StringNodes {
 
         @Child private RopeNodes.WithEncodingNode withEncodingNode = RopeNodesFactory.WithEncodingNodeGen.create(null, null, null);
         @Child private ToStrNode toStrNode;
+        private final ConditionProfile differentEncodingProfile = ConditionProfile.createBinaryProfile();
 
         @Specialization(guards = "isRubyString(encodingName)")
-        public DynamicObject forceEncodingString(DynamicObject string, DynamicObject encodingName,
-                                                 @Cached("createBinaryProfile()") ConditionProfile differentEncodingProfile) {
+        public DynamicObject forceEncodingString(DynamicObject string, DynamicObject encodingName) {
             final DynamicObject encoding = getContext().getEncodingManager().getRubyEncoding(StringOperations.getString(encodingName));
-            return forceEncodingEncoding(string, encoding, differentEncodingProfile);
+            return forceEncodingEncoding(string, encoding);
         }
 
         @Specialization(guards = "isRubyEncoding(rubyEncoding)")
-        public DynamicObject forceEncodingEncoding(DynamicObject string, DynamicObject rubyEncoding,
-                                                   @Cached("createBinaryProfile()") ConditionProfile differentEncodingProfile) {
+        public DynamicObject forceEncodingEncoding(DynamicObject string, DynamicObject rubyEncoding) {
             final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
             final Rope rope = rope(string);
 
@@ -1079,14 +1082,13 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!isRubyString(encoding)", "!isRubyEncoding(encoding)" })
-        public DynamicObject forceEncoding(VirtualFrame frame, DynamicObject string, Object encoding,
-                                           @Cached("createBinaryProfile()") ConditionProfile differentEncodingProfile) {
+        public DynamicObject forceEncoding(VirtualFrame frame, DynamicObject string, Object encoding) {
             if (toStrNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toStrNode = insert(ToStrNodeGen.create(null));
             }
 
-            return forceEncodingString(string, toStrNode.executeToStr(frame, encoding), differentEncodingProfile);
+            return forceEncodingString(string, toStrNode.executeToStr(frame, encoding));
         }
 
     }
@@ -1421,10 +1423,10 @@ public abstract class StringNodes {
         @Child private RopeNodes.MakeConcatNode makeConcatNode = RopeNodes.MakeConcatNode.create();
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
         @Child private MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        private final RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization(guards = { "isBrokenCodeRange(string)", "isAsciiCompatible(string)" })
-        public DynamicObject scrubAsciiCompat(DynamicObject string, DynamicObject block,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+        public DynamicObject scrubAsciiCompat(DynamicObject string, DynamicObject block) {
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
             Rope buf = RopeConstants.EMPTY_ASCII_8BIT_ROPE;
@@ -1493,8 +1495,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "isBrokenCodeRange(string)", "!isAsciiCompatible(string)" })
-        public DynamicObject scrubAsciiIncompatible(DynamicObject string, DynamicObject block,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+        public DynamicObject scrubAsciiIncompatible(DynamicObject string, DynamicObject block) {
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
             Rope buf = RopeConstants.EMPTY_ASCII_8BIT_ROPE;
@@ -1891,6 +1892,7 @@ public abstract class StringNodes {
 
         @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
         @Child private ToStrNode toStrNode;
+        private final ConditionProfile singleByteOptimizableProfile = ConditionProfile.createBinaryProfile();
 
         @Specialization(guards = "isEmpty(string)")
         public DynamicObject squeezeBangEmptyString(DynamicObject string, Object[] args) {
@@ -1899,8 +1901,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "!isEmpty(string)", "zeroArgs(args)" })
         @TruffleBoundary
-        public Object squeezeBangZeroArgs(DynamicObject string, Object[] args,
-                                          @Cached("createBinaryProfile()") ConditionProfile singleByteOptimizableProfile) {
+        public Object squeezeBangZeroArgs(DynamicObject string, Object[] args) {
             // Taken from org.jruby.RubyString#squeeze_bang19.
 
             final Rope rope = rope(string);
@@ -1929,8 +1930,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!isEmpty(string)", "!zeroArgs(args)" })
-        public Object squeezeBang(VirtualFrame frame, DynamicObject string, Object[] args,
-                                  @Cached("createBinaryProfile()") ConditionProfile singleByteOptimizableProfile) {
+        public Object squeezeBang(VirtualFrame frame, DynamicObject string, Object[] args) {
             // Taken from org.jruby.RubyString#squeeze_bang19.
 
             if (toStrNode == null) {
@@ -1944,12 +1944,11 @@ public abstract class StringNodes {
                 otherStrings[i] = toStrNode.executeToStr(frame, args[i]);
             }
 
-            return performSqueezeBang(string, otherStrings, singleByteOptimizableProfile);
+            return performSqueezeBang(string, otherStrings);
         }
 
         @TruffleBoundary
-        private Object performSqueezeBang(DynamicObject string, DynamicObject[] otherStrings,
-                                          @Cached("createBinaryProfile()") ConditionProfile singleByteOptimizableProfile) {
+        private Object performSqueezeBang(DynamicObject string, DynamicObject[] otherStrings) {
 
             if (checkEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -2026,16 +2025,15 @@ public abstract class StringNodes {
         @Child private CallDispatchHeadNode subNode = CallDispatchHeadNode.create();
         @Child private CallDispatchHeadNode shiftNode = CallDispatchHeadNode.create();
         @Child private CallDispatchHeadNode andNode = CallDispatchHeadNode.create();
+        private final RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization
-        public Object sum(VirtualFrame frame, DynamicObject string, int bits,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
-            return sum(frame, string, (long) bits, bytesNode);
+        public Object sum(VirtualFrame frame, DynamicObject string, int bits) {
+            return sum(frame, string, (long) bits);
         }
 
         @Specialization
-        public Object sum(VirtualFrame frame, DynamicObject string, long bits,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+        public Object sum(VirtualFrame frame, DynamicObject string, long bits) {
             // Copied from JRuby
 
             final Rope rope = rope(string);
@@ -2064,9 +2062,8 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        public Object sum(VirtualFrame frame, DynamicObject string, NotProvided bits,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
-            return sum(frame, string, 16, bytesNode);
+        public Object sum(VirtualFrame frame, DynamicObject string, NotProvided bits) {
+            return sum(frame, string, 16);
         }
 
         @Specialization(guards = { "!isInteger(bits)", "!isLong(bits)", "wasProvided(bits)" })
@@ -2911,20 +2908,20 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public static abstract class StringChrAtPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringByteSubstringPrimitiveNode stringByteSubstringNode = StringByteSubstringPrimitiveNode.create();
+
         @Specialization(guards = "indexOutOfBounds(string, byteIndex)")
         public Object stringChrAtOutOfBounds(DynamicObject string, int byteIndex) {
             return nil();
         }
 
         @Specialization(guards = { "!indexOutOfBounds(string, byteIndex)", "isSingleByteOptimizable(string)" })
-        public Object stringChrAtSingleByte(DynamicObject string, int byteIndex,
-                                            @Cached("create()") StringByteSubstringPrimitiveNode stringByteSubstringNode) {
+        public Object stringChrAtSingleByte(DynamicObject string, int byteIndex) {
             return stringByteSubstringNode.executeStringByteSubstring(string, byteIndex, 1);
         }
 
         @Specialization(guards = { "!indexOutOfBounds(string, byteIndex)", "!isSingleByteOptimizable(string)" })
         public Object stringChrAt(DynamicObject string, int byteIndex,
-                @Cached("create()") StringByteSubstringPrimitiveNode stringByteSubstringNode,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
             // Taken from Rubinius's Character::create_from.
 
