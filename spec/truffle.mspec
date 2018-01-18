@@ -88,8 +88,7 @@ class MSpecScript
     "spec/ruby/optional/capi"
   ]
 
-  # TODO (pitr-ch 11-Jan-2018): rename to library_cext
-  set :openssl, [
+  set :library_cext, [
     "spec/ruby/library/openssl",
     "spec/ruby/library/zlib"
   ]
