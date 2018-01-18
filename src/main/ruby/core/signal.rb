@@ -48,9 +48,11 @@ module Signal
     Names['CLD'] = Names['CHLD']
   end
 
-  # We want Numbers[SIGCHLD_VALUE] to refer to 'CHLD' not 'CLD',
-  # as CLD is not recognized by `new sun.misc.Signal("CLD")`
+  # Signal.signame(number) always returns the original and not the alias when they have the same signal numbers
+  # for CLD => CHLD and IOT => ABRT.
+  # CLD and IOT is not always recognized by `new sun.misc.Signal(name)` (IOT is known on linux).
   Numbers[Names['CHLD']] = 'CHLD'
+  Numbers[Names['ABRT']] = 'ABRT'
 
   @threads = {}
   @handlers = {}
