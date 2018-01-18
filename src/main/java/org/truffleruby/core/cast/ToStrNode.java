@@ -29,6 +29,10 @@ public abstract class ToStrNode extends RubyNode {
 
     public abstract DynamicObject executeToStr(VirtualFrame frame, Object object);
 
+    public static ToStrNode create() {
+        return ToStrNodeGen.create(null);
+    }
+
     @Specialization(guards = "isRubyString(string)")
     public DynamicObject coerceRubyString(DynamicObject string) {
         return string;
