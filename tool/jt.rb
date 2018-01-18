@@ -1292,7 +1292,7 @@ module Commands
     end
 
     if args.any? { |arg| arg.include? 'optional/capi' } or
-        args.include?(':capi') or args.include?(':openssl')
+        args.include?(':capi') or args.include?(':library_cext')
       build("cexts")
     end
 
