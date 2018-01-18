@@ -100,6 +100,7 @@ def run_unittest(*args):
     mx_unittest.unittest(['-Dpolyglot.ruby.home='+root, '--verbose', '--suite', 'truffleruby'] + list(args))
 
 def ruby_tck(args):
+    """Run the TCK and other Java unit tests"""
     for var in ['GEM_HOME', 'GEM_PATH', 'GEM_ROOT']:
         if var in os.environ:
             del os.environ[var]
@@ -126,6 +127,7 @@ def deploy_binary_if_master_or_release(args):
         return 0
 
 def download_binary_suite(args):
+    """Download a binary suite at the given revision"""
     if len(args) == 1:
         name, version = args[0], ''
     else:
@@ -161,15 +163,18 @@ def ruby_run_specs(launcher, format, args):
         mx.run(launcher + ['spec/mspec/bin/mspec', 'run', '--config', 'spec/truffle.mspec', '--format', format, '--excl-tag', 'fails'] + args, cwd=root)
 
 def ruby_testdownstream(args):
+    """Run fast specs"""
     build_truffleruby()
     ruby_run_specs(['bin/truffleruby'], 'specdoc', ['--excl-tag', 'slow'] + args)
 
 def ruby_testdownstream_hello(args):
+    """Run a minimal Hello World test"""
     build_truffleruby()
     with VerboseMx():
         mx.run(['bin/truffleruby', '-e', 'puts "Hello Ruby!"'], cwd=root)
 
 def ruby_testdownstream_aot(args):
+    """Run tests for the native image"""
     if len(args) > 3:
         mx.abort("Incorrect argument count: mx ruby_testdownstream_aot <aot_bin> [<format>] [<build_type>]")
 
@@ -189,6 +194,7 @@ def ruby_testdownstream_aot(args):
     ruby_run_specs([aot_bin, '-Xhome='+root], format, mspec_args)
 
 def ruby_testdownstream_sulong(args):
+    """Run C extension tests"""
     build_truffleruby()
     # Ensure Sulong is available
     mx.suite('sulong')
@@ -205,7 +211,7 @@ mx.update_commands(_suite, {
     'ruby': [ruby_run_ruby, ''],
     'rubytck': [ruby_tck, ''],
     'deploy-binary-if-master-or-release': [deploy_binary_if_master_or_release, ''],
-    'ruby_download_binary_suite': [download_binary_suite, 'name', 'revision'],
+    'ruby_download_binary_suite': [download_binary_suite, 'name [revision]'],
     'ruby_testdownstream': [ruby_testdownstream, ''],
     'ruby_testdownstream_aot': [ruby_testdownstream_aot, 'aot_bin'],
     'ruby_testdownstream_hello': [ruby_testdownstream_hello, ''],
