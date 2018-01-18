@@ -150,6 +150,12 @@ def download_binary_suite(args):
         mx.SuiteImportURLInfo('https://curio.ssw.jku.at/nexus/content/repositories/snapshots', 'binary', mx.vc_system('binary'))
     ], kind=None)
 
+def ruby_run_ruby(args):
+    """run TruffleRuby (through tool/jt.rb)"""
+
+    jt = join(root, 'tool/jt.rb')
+    os.execlp(jt, jt, "ruby", *args)
+
 def ruby_run_specs(launcher, format, args):
     with VerboseMx():
         mx.run(launcher + ['spec/mspec/bin/mspec', 'run', '--config', 'spec/truffle.mspec', '--format', format, '--excl-tag', 'fails'] + args, cwd=root)
@@ -196,6 +202,7 @@ def ruby_testdownstream_sulong(args):
     jt('test', 'bundle')
 
 mx.update_commands(_suite, {
+    'ruby': [ruby_run_ruby, ''],
     'rubytck': [ruby_tck, ''],
     'deploy-binary-if-master-or-release': [deploy_binary_if_master_or_release, ''],
     'ruby_download_binary_suite': [download_binary_suite, 'name', 'revision'],
