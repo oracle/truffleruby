@@ -480,7 +480,7 @@ module Commands
                                                     if the pr_number is not supplied current HEAD is used to find a PR which contains it
       jt pr clean [--dry-run]                       delete all github/pr/<number> branches from BB whose GitHub PRs are closed
 
-      you can also put build or rebuild in front of any command
+      you can also put --build or --rebuild in front of any command to build or rebuild first
 
       recognised environment variables:
 
@@ -1884,6 +1884,11 @@ class JT
     if args.empty? or %w[-h -help --help].include? args.first
       help
       exit
+    end
+
+    if args.first =~ /^--((?:re)?build)$/
+      send $1
+      args.shift
     end
 
     commands = Commands.public_instance_methods(false).map(&:to_s)
