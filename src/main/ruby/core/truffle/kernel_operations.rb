@@ -22,82 +22,83 @@ module Truffle
 
     LOAD_PATH = []
     LOADED_FEATURES = []
+
+    define_read_only_global(:$LOAD_PATH, -> { LOAD_PATH })
+    define_read_only_global(:$LOADED_FEATURES, -> { LOADED_FEATURES })
+
+    alias $: $LOAD_PATH
+    alias $-I $LOAD_PATH
+    alias $" $LOADED_FEATURES
+
+    # The runtime needs to access these values, so we want them to be set in the variable storage.
+    global_variable_set(:$LOAD_PATH, LOAD_PATH)
+    global_variable_set(:$LOADED_FEATURES, LOADED_FEATURES)
+
+    define_read_only_global(:$*, -> { ARGV })
+
+    define_read_only_global(:$-a, -> { nil })
+    define_read_only_global(:$-l, -> { nil })
+    define_read_only_global(:$-p, -> { nil })
+
+    define_hooked_variable(
+      :$/,
+      -> { global_variable_get(:$/) },
+      -> v { if v && !Truffle::Type.object_kind_of?(v, String)
+               raise TypeError, '$/ must be a String'
+             end
+             global_variable_set(:$/, v) })
+
+    $/ = "\n".freeze
+
+    alias $-0 $/
+
+    define_hooked_variable(
+      :'$,',
+      -> { global_variable_get(:$,) },
+      -> v { if v && !Truffle::Type.object_kind_of?(v, String)
+               raise TypeError, '$, must be a String'
+             end
+             global_variable_set(:$,, v) })
+
+    $, = nil # It should be defined by the time boot has finished.
+
+    $= = false
+
+    define_hooked_variable(
+      :$VERBOSE,
+      -> { global_variable_get(:$VERBOSE) },
+      -> v { v = if v.nil?
+                   nil
+                 else
+                   !!v
+                 end
+             global_variable_set(:$VERBOSE, v) })
+
+    $VERBOSE = case Truffle::Boot.get_option 'verbosity'
+               when :TRUE
+                 true
+               when :FALSE
+                 false
+               when :NIL
+                 nil
+               end
+
+    alias $-v $VERBOSE
+    alias $-w $VERBOSE
+
+    define_hooked_variable(
+      :$stdout,
+      -> { global_variable_get(:$stdout) },
+      -> v { raise TypeError, "$stdout must have a write method #{v.class} given." unless v.respond_to?(:write)
+             global_variable_set(:$stdout, v) })
+
+    alias $> $stdout
+
+    define_hooked_variable(
+      :$stderr,
+      -> { global_variable_get(:$stderr) },
+      -> v { raise TypeError, "$stderr must have a write method #{v.class} given." unless v.respond_to?(:write)
+             global_variable_set(:$stderr, v) })
   end
 end
 
-Truffle::KernelOperations.define_read_only_global(:$LOAD_PATH, -> { Truffle::KernelOperations::LOAD_PATH })
-Truffle::KernelOperations.define_read_only_global(:$LOADED_FEATURES, -> { Truffle::KernelOperations::LOADED_FEATURES })
-
-alias $: $LOAD_PATH
-alias $-I $LOAD_PATH
-alias $" $LOADED_FEATURES
-
-# The runtime needs to access these values, so we want them to be set in the variable storage.
-Truffle::KernelOperations.global_variable_set(:$LOAD_PATH, Truffle::KernelOperations::LOAD_PATH)
-Truffle::KernelOperations.global_variable_set(:$LOADED_FEATURES, Truffle::KernelOperations::LOADED_FEATURES)
-
-Truffle::KernelOperations.define_read_only_global(:$*, -> { ARGV })
-
-Truffle::KernelOperations.define_read_only_global(:$-a, -> { nil })
-Truffle::KernelOperations.define_read_only_global(:$-l, -> { nil })
-Truffle::KernelOperations.define_read_only_global(:$-p, -> { nil })
-
-Truffle::KernelOperations.define_hooked_variable(
-  :$/,
-  -> { Truffle::KernelOperations.global_variable_get(:$/) },
-  -> v { if v && !Truffle::Type.object_kind_of?(v, String)
-           raise TypeError, '$/ must be a String'
-         end
-         Truffle::KernelOperations.global_variable_set(:$/, v) })
-
-$/ = "\n".freeze
-
-alias $-0 $/
-
-Truffle::KernelOperations.define_hooked_variable(
-  :$,,
-  -> { Truffle::KernelOperations.global_variable_get(:$,) },
-  -> v { if v && !Truffle::Type.object_kind_of?(v, String)
-           raise TypeError, '$, must be a String'
-         end
-         Truffle::KernelOperations.global_variable_set(:$,, v) })
-
-$, = nil # It should be defined by the time boot has finished.
-
-$= = false
-
-Truffle::KernelOperations.define_hooked_variable(
-  :$VERBOSE,
-  -> { Truffle::KernelOperations.global_variable_get(:$VERBOSE) },
-  -> v { v = if v.nil?
-               nil
-             else
-               !!v
-             end
-         Truffle::KernelOperations.global_variable_set(:$VERBOSE, v) })
-
-$VERBOSE = case Truffle::Boot.get_option 'verbosity'
-           when :TRUE
-             true
-           when :FALSE
-             false
-           when :NIL
-             nil
-           end
-
-alias $-v $VERBOSE
-alias $-w $VERBOSE
-
-Truffle::KernelOperations.define_hooked_variable(
-  :$stdout,
-  -> { Truffle::KernelOperations.global_variable_get(:$stdout) },
-  -> v { raise TypeError, "$stdout must have a write method #{v.class} given." unless v.respond_to?(:write)
-         Truffle::KernelOperations.global_variable_set(:$stdout, v) })
-
-alias $> $stdout
-
-Truffle::KernelOperations.define_hooked_variable(
-  :$stderr,
-  -> { Truffle::KernelOperations.global_variable_get(:$stderr) },
-  -> v { raise TypeError, "$stderr must have a write method #{v.class} given." unless v.respond_to?(:write)
-         Truffle::KernelOperations.global_variable_set(:$stderr, v) })
