@@ -11,7 +11,7 @@ require_relative '../../ruby/spec_helper'
 class KeyInfoFixture
   
   def initialize
-    @foo = 14
+    @exists = 14
   end
 
   attr_reader :ro
@@ -25,7 +25,7 @@ describe "Truffle::Interop.key_info" do
     
     before :each do
       @hash = {'a' => 1, 'b' => 2, 'c' => 3}
-      @hash.instance_variable_set(:@foo, 14)
+      @hash.instance_variable_set(:@exists, 14)
     end
     
     it "returns :existing for all keys" do
@@ -53,7 +53,7 @@ describe "Truffle::Interop.key_info" do
       end
     end
     
-    it "does not return :invocable" do
+    it "does not return :invocable for keys" do
       @hash.keys.each do |k|
         Truffle::Interop.key_info(@hash, k).should_not include(:invocable)
       end
@@ -66,44 +66,37 @@ describe "Truffle::Interop.key_info" do
     end
     
     it "returns nothing for a missing key" do
-      Truffle::Interop.key_info(@hash, :key_not_in_key_info_hash).should == []
+      Truffle::Interop.key_info(@hash, :key_not_in_key_info_hash).should be_empty
     end
     
-    it "returns :existing for an instance variable that exists" do
-      Truffle::Interop.key_info(@hash, :@foo).should include(:existing)
+    it "returns :existing for an instance variable" do
+      Truffle::Interop.key_info(@hash, :@exists).should include(:existing)
     end
 
-    it "does not return :existing for an instance variable that does not exist" do
-      Truffle::Interop.key_info(@hash, :@bar).should_not include(:existing)
-    end
-    
     it "returns :readable for an instance variable" do
-      Truffle::Interop.key_info(@hash, :@foo).should include(:readable)
+      Truffle::Interop.key_info(@hash, :@exists).should include(:readable)
     end
-    
-    it "does not return :readable for an instance variable that does not exist" do
-      Truffle::Interop.key_info(@hash, :@bar).should_not include(:readable)
+
+    it "returns :writable for an instance variable" do
+      Truffle::Interop.key_info(@hash, :@exists).should include(:writable)
     end
-    
+
+    it "returns :readable for an instance variable if the hash is frozen" do
+      @hash.freeze
+      Truffle::Interop.key_info(@hash, :@exists).should include(:readable)
+    end
+
     it "does not return :writable for an instance variable if the hash is frozen" do
       @hash.freeze
-      Truffle::Interop.key_info(@hash, :@foo).should_not include(:writable)
-    end
-    
-    it "returns :writable for an instance variable" do
-      Truffle::Interop.key_info(@hash, :@foo).should include(:writable)
-    end
-    
-    it "returns :writable for an instance variable that does not exist" do
-      Truffle::Interop.key_info(@hash, :@bar).should include(:writable)
+      Truffle::Interop.key_info(@hash, :@exists).should_not include(:writable)
     end
     
     it "returns :internal for an instance variable" do
-      Truffle::Interop.key_info(@hash, :@foo).should include(:internal)
+      Truffle::Interop.key_info(@hash, :@exists).should include(:internal)
     end
-    
-    it "returns :internal for an instance variable that does not exist" do
-      Truffle::Interop.key_info(@hash, :@bar).should include(:internal)
+
+    it "returns nothing for an instance variable that does not exist" do
+      Truffle::Interop.key_info(@hash, :@does_not_exist).should be_empty
     end
   
   end
@@ -114,7 +107,7 @@ describe "Truffle::Interop.key_info" do
       @object = KeyInfoFixture.new
     end
 
-    it "returns :existing for all readable or writable names" do
+    it "returns :existing for all methods" do
       Truffle::Interop.key_info(@object, :ro).should include(:existing)
       Truffle::Interop.key_info(@object, :rw).should include(:existing)
       Truffle::Interop.key_info(@object, :wo).should include(:existing)
@@ -160,41 +153,34 @@ describe "Truffle::Interop.key_info" do
       Truffle::Interop.key_info(@object, :method_not_defined_in_key_info_fixture).should be_empty
     end
     
-    it "returns :existing for an instance variable that exists" do
-      Truffle::Interop.key_info(@object, :@foo).should include(:existing)
-    end
-
-    it "does not return :existing for an instance variable that does not exist" do
-      Truffle::Interop.key_info(@object, :@bar).should_not include(:existing)
+    it "returns :existing for an instance variable" do
+      Truffle::Interop.key_info(@object, :@exists).should include(:existing)
     end
     
     it "returns :readable for an instance variable" do
-      Truffle::Interop.key_info(@object, :@foo).should include(:readable)
-    end
-    
-    it "does not return :readable for an instance variable that does not exist" do
-      Truffle::Interop.key_info(@object, :@bar).should_not include(:readable)
-    end
-    
-    it "does not return :writable for an instance variable if the hash is frozen" do
-      @object.freeze
-      Truffle::Interop.key_info(@object, :@foo).should_not include(:writable)
+      Truffle::Interop.key_info(@object, :@exists).should include(:readable)
     end
     
     it "returns :writable for an instance variable" do
-      Truffle::Interop.key_info(@object, :@foo).should include(:writable)
+      Truffle::Interop.key_info(@object, :@exists).should include(:writable)
     end
     
-    it "returns :writable for an instance variable that does not exist" do
-      Truffle::Interop.key_info(@object, :@bar).should include(:writable)
+    it "returns :readable for an instance variable if the object is frozen" do
+      @object.freeze
+      Truffle::Interop.key_info(@object, :@exists).should include(:readable)
+    end
+    
+    it "does not return :writable for an instance variable if the object is frozen" do
+      @object.freeze
+      Truffle::Interop.key_info(@object, :@exists).should_not include(:writable)
     end
     
     it "returns :internal for an instance variable" do
-      Truffle::Interop.key_info(@object, :@foo).should include(:internal)
+      Truffle::Interop.key_info(@object, :@exists).should include(:internal)
     end
     
-    it "returns :internal for an instance variable that does not exist" do
-      Truffle::Interop.key_info(@object, :@bar).should include(:internal)
+    it "returns nothing for an instance variable that does not exist" do
+      Truffle::Interop.key_info(@object, :@does_not_exist).should be_empty
     end
 
   end

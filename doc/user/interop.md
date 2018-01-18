@@ -114,8 +114,6 @@ If the object is a Ruby `Hash`:
 
 `INTERNAL` will never be set.
 
-`EXISTING` will be set if `READABLE` is set.
-
 If the object is not a Ruby `Hash`:
 
 `READABLE` will be set if the object responds to a method of the same name.
@@ -123,11 +121,11 @@ If the object is not a Ruby `Hash`:
 `WRITABLE` will be set if the object responds to a method of the same name
 appended with `=` and the object is not frozen.
 
-`EXISTING` will be set if either `READABLE` or `WRITABLE` are set.
-
 For all objects:
 
 `INVOCABLE` is never set, because currently `KEYS` does not include methods.
+
+`EXISTING` is set if any other flags are set.
 
 If they key has a leading `@`:
 
