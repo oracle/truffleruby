@@ -702,7 +702,7 @@ module Truffle
       if !error.nil? && !error.is_a?(Exception)
         raise TypeError, 'assigning non-exception to ?!'
       end
-      $! = error
+      Truffle::ThreadOperations.set_thread_local(:$!, error)
     end
   end
 end
