@@ -1308,8 +1308,21 @@ class Array
     raise ArgumentError, 'tried to flatten recursive array' if recursion
     modified
   end
-
   private :recursively_flatten
+
+  private def sort_fallback(&block)
+    # Use this instead of #dup as we want an instance of Array
+    sorted = Array.new(self)
+
+    Truffle.privately do
+      if block
+        sorted.mergesort_block!(block)
+      else
+        sorted.mergesort!
+      end
+    end
+    sorted
+  end
 
   # Non-recursive sort using a temporary array for scratch storage.
   # This is a hybrid mergesort; it's hybrid because for short runs under

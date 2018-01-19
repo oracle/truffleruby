@@ -61,7 +61,6 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -1946,23 +1945,21 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "!isEmptyArray(array)", "!isObjectArray(array)" })
-        public Object sortPrimitiveArrayFallback(VirtualFrame frame, DynamicObject array, NotProvided block,
-                                                 @Cached("new()") SnippetNode snippetNode) {
-            return sortArrayInRuby(frame, snippetNode);
+        public Object sortPrimitiveArrayFallback(DynamicObject array, NotProvided block,
+                @Cached("createOnSelf()") CallDispatchHeadNode fallbackNode) {
+            return fallbackNode.call(null, array, "sort_fallback");
         }
 
         @Specialization(guards = { "!isEmptyArray(array)", "isObjectArray(array)" })
-        public Object sortObjectArrayWithoutBlock(VirtualFrame frame, DynamicObject array, NotProvided block,
-                                                  @Cached("new()") SnippetNode snippetNode) {
-            return sortArrayInRuby(frame, snippetNode);
+        public Object sortObjectArrayWithoutBlock(DynamicObject array, NotProvided block,
+                @Cached("createOnSelf()") CallDispatchHeadNode fallbackNode) {
+            return fallbackNode.call(null, array, "sort_fallback");
         }
 
         @Specialization(guards = "!isEmptyArray(array)")
-        public Object sortGenericWithBlock(VirtualFrame frame, DynamicObject array, DynamicObject block,
-                                           @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame,
-                    "sorted = dup; Truffle.privately { sorted.mergesort_block!(block) }; ret = []; Truffle::Array.steal_storage(ret, sorted)",
-                   "block", block);
+        public Object sortGenericWithBlock(DynamicObject array, DynamicObject block,
+                @Cached("createOnSelf()") CallDispatchHeadNode fallbackNode) {
+            return fallbackNode.callWithBlock(null, array, "sort_fallback", block);
         }
 
         @TruffleBoundary
@@ -1994,11 +1991,6 @@ public abstract class ArrayNodes {
 
         protected boolean isSmall(DynamicObject array) {
             return getSize(array) <= getContext().getOptions().ARRAY_SMALL;
-        }
-
-        private Object sortArrayInRuby(VirtualFrame frame, SnippetNode snippetNode) {
-            return snippetNode.execute(frame,
-                    "sorted = dup; Truffle.privately { sorted.mergesort! }; ret = []; Truffle::Array.steal_storage(ret, sorted)");
         }
 
     }
