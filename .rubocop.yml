@@ -8,6 +8,7 @@ AllCops:
     - 'lib/truffle/date/delta/parser.rb' # generated code
     - 'lib/truffle/socket/mri.rb' # taken from MRI
     - 'src/test/ruby/tck.rb' # test code
+    - 'src/test/ruby/reenterValues.rb' # unusual test code
 
 # Department 'Lint' (58):
 Lint/AmbiguousOperator:

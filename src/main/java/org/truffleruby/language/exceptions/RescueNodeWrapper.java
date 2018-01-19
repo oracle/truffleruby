@@ -7,7 +7,6 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-
 package org.truffleruby.language.exceptions;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -65,6 +64,28 @@ public class RescueNodeWrapper extends RescueNode implements WrapperNode {
             }
         }
         return returnValue;
+    }
+
+    @Override
+    public void doExecuteVoid(VirtualFrame frame) {
+        for (;;) {
+            boolean wasOnReturnExecuted = false;
+            try {
+                probeNode.onEnter(frame);
+                delegateNode.doExecuteVoid(frame);
+                wasOnReturnExecuted = true;
+                probeNode.onReturnValue(frame, null);
+                break;
+            } catch (Throwable t) {
+                Object result = probeNode.onReturnExceptionalOrUnwind(frame, t, wasOnReturnExecuted);
+                if (result == ProbeNode.UNWIND_ACTION_REENTER) {
+                    continue;
+                } else if (result != null) {
+                    break;
+                }
+                throw t;
+            }
+        }
     }
 
     @Override
