@@ -271,8 +271,6 @@ public class CallStackManager {
             if (javaThrowable == null) {
                 javaThrowable = new Exception();
             }
-        } else {
-            javaThrowable = null;
         }
 
         return new Backtrace(currentNode, activations, javaThrowable);
