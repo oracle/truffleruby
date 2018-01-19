@@ -1786,8 +1786,6 @@ public abstract class ModuleNodes {
                 moduleName = fields.getName();
             }
 
-            // TODO BJF Aug 31, 2016 Add refinements to_s
-
             return makeStringNode.executeMake(moduleName, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
