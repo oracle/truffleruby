@@ -103,6 +103,7 @@ import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.EncodingNodes;
+import org.truffleruby.core.encoding.EncodingNodes.CheckRopeEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodesFactory;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.format.FormatExceptionTranslator;
@@ -127,9 +128,11 @@ import org.truffleruby.core.rope.RopeNodes.MakeRepeatingNode;
 import org.truffleruby.core.rope.RopeNodesFactory;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.SubstringRope;
+import org.truffleruby.core.string.StringNodesFactory.CountRopesNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.StringAreComparableNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringEqualNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
+import org.truffleruby.core.string.StringSupport.TrTables;
 import org.truffleruby.language.CheckLayoutNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -157,6 +160,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.java.JavaInterop;
 import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -802,53 +806,144 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "count", rest = true)
-    @ImportStatic(StringGuards.class)
     public abstract static class CountNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private EncodingNodes.CheckEncodingNode checkEncodingNode = EncodingNodesFactory.CheckEncodingNodeGen.create(null, null);
+        @Child private ToStrNode toStr = ToStrNodeGen.create(null);
+        @Child private CountRopesNode countRopesNode = CountRopesNode.create();
+
+        @Specialization(guards = "args.length == size", limit = "getCacheLimit()")
+        public int count(VirtualFrame frame, DynamicObject string, Object[] args,
+                @Cached("args.length") int size) {
+            final Rope[] ropes = argRopes(frame, args);
+            return countRopesNode.executeCount(string, ropes);
+        }
+
+        @Specialization(replaces = "count")
+        public int countSlow(VirtualFrame frame, DynamicObject string, Object[] args) {
+            final Rope[] ropes = argRopesSlow(frame, args);
+            return countRopesNode.executeCount(string, ropes);
+        }
+
+        @ExplodeLoop
+        protected Rope[] argRopes(VirtualFrame frame, Object[] args) {
+            final Rope[] strs = new Rope[args.length];
+            for (int i = 0; i < args.length; i++) {
+                strs[i] = rope(toStr.executeToStr(frame, args[i]));
+            }
+            return strs;
+        }
+
+        protected Rope[] argRopesSlow(VirtualFrame frame, Object[] args) {
+            final Rope[] strs = new Rope[args.length];
+            for (int i = 0; i < args.length; i++) {
+                strs[i] = rope(toStr.executeToStr(frame, args[i]));
+            }
+            return strs;
+        }
+
+        protected int getCacheLimit() {
+            return getContext().getOptions().DEFAULT_CACHE;
+        }
+    }
+
+    @ImportStatic({ StringGuards.class, StringOperations.class })
+    public abstract static class CountRopesNode extends TrTableNode {
+
+        public static CountRopesNode create() {
+            return CountRopesNodeFactory.create(null);
+        }
+
+        public abstract int executeCount(DynamicObject string, Rope[] ropes);
 
         @Specialization(guards = "isEmpty(string)")
         public int count(DynamicObject string, Object[] args) {
             return 0;
         }
 
+        @Specialization(guards = { "cachedArgs.length > 0",
+                "!isEmpty(string)", "cachedArgs.length == args.length",
+                "argsMatch(cachedArgs, args)", "encodingsMatch(string, cachedEncoding)"
+        })
+        public int countFast(DynamicObject string, Rope[] args,
+                @Cached(value = "args", dimensions = 1) Rope[] cachedArgs,
+                @Cached("encoding(string)") Encoding cachedEncoding,
+                @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
+                @Cached("findEncoding(string, cachedArgs)") Encoding compatEncoding,
+                @Cached("makeTables(string, cachedArgs, squeeze, compatEncoding)") TrTables tables) {
+            return processStr(string, squeeze, compatEncoding, tables);
+        }
+
+        @TruffleBoundary
+        private int processStr(DynamicObject string, boolean[] squeeze, Encoding compatEncoding, TrTables tables) {
+            return StringSupport.strCount(rope(string), squeeze, tables, compatEncoding);
+        }
+
         @Specialization(guards = "!isEmpty(string)")
-        public int count(VirtualFrame frame, DynamicObject string, Object[] args,
-                @Cached("create()") ToStrNode toStr,
+        public int count(DynamicObject string, Rope[] ropes,
                 @Cached("create()") BranchProfile errorProfile) {
-            if (args.length == 0) {
+            if (ropes.length == 0) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().argumentErrorEmptyVarargs(this));
             }
 
-            DynamicObject[] otherStrings = new DynamicObject[args.length];
-
-            for (int i = 0; i < args.length; i++) {
-                otherStrings[i] = toStr.executeToStr(frame, args[i]);
-            }
-
-            return countSlow(string, otherStrings);
+            Encoding enc = findEncoding(string, ropes);
+            return countSlow(string, ropes, enc);
         }
 
         @TruffleBoundary
-        private int countSlow(DynamicObject string, DynamicObject... otherStrings) {
+        private int countSlow(DynamicObject string, Rope[] ropes, Encoding enc) {
             assert RubyGuards.isRubyString(string);
 
-            DynamicObject otherStr = otherStrings[0];
-            Encoding enc = checkEncodingNode.executeCheckEncoding(string, otherStr);
+            final boolean[] table = squeeze();
+            final StringSupport.TrTables tables = makeTables(string, ropes, table, enc);
+            return processStr(string, table, enc, tables);
+        }
+    }
 
-            final boolean[]table = new boolean[StringSupport.TRANS_SIZE + 1];
-            StringSupport.TrTables tables = StringSupport.trSetupTable(rope(otherStr), table, null, true, enc);
-            for (int i = 1; i < otherStrings.length; i++) {
-                otherStr = otherStrings[i];
+    public abstract static class TrTableNode extends CoreMethodArrayArgumentsNode {
+        @Child protected ToStrNode toStr = ToStrNodeGen.create(null);
+        @Child protected CheckRopeEncodingNode checkEncodingNode = CheckRopeEncodingNode.create();
+        @Child protected RopeNodes.EqualNode ropeEqualNode = RopeNodes.EqualNode.create();
 
-                assert RubyGuards.isRubyString(otherStr);
+        protected boolean[] squeeze() {
+            return new boolean[StringSupport.TRANS_SIZE + 1];
+        }
 
-                enc = checkEncodingNode.executeCheckEncoding(string, otherStr);
-                tables = StringSupport.trSetupTable(rope(otherStr), table, tables, false, enc);
+        protected Encoding findEncoding(DynamicObject string, Rope[] ropes) {
+            final Rope rope = StringOperations.rope(string);
+            Encoding enc = checkEncodingNode.executeCheckEncoding(rope, ropes[0]);
+            for (int i = 1; i < ropes.length; i++) {
+                enc = checkEncodingNode.executeCheckEncoding(rope, ropes[i]);
             }
+            return enc;
+        }
 
-            return StringSupport.strCount(rope(string), table, tables, enc);
+        protected TrTables makeTables(DynamicObject string, Rope[] ropes, boolean[] squeeze, Encoding enc) {
+            // The trSetupTable method will consume the bytes from the rope one encoded character at a time and
+            // build a TrTable from this. Previously we started with the encoding of rope zero, and at each
+            // stage found a compatible encoding to build that TrTable with. Although we now calculate a single
+            // encoding with which to build the tables it must be compatible with all ropes, so will not
+            // affect the consumption of characters from those ropes.
+            StringSupport.TrTables tables = StringSupport.trSetupTable(ropes[0], squeeze, null, true, enc);
+
+            for (int i = 1; i < ropes.length; i++) {
+                tables = StringSupport.trSetupTable(ropes[i], squeeze, tables, false, enc);
+            }
+            return tables;
+        }
+
+        protected boolean encodingsMatch(DynamicObject string, Encoding encoding) {
+            return encoding == StringOperations.encoding(string);
+        }
+
+        @ExplodeLoop
+        protected boolean argsMatch(Rope[] cachedRopes, Rope[] ropes) {
+            for (int i = 0; i < cachedRopes.length; i++) {
+                if (!ropeEqualNode.execute(cachedRopes[i], ropes[i])) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 
