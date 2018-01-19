@@ -36,7 +36,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -317,12 +316,9 @@ public abstract class FloatNodes {
                 "!isInteger(b)",
                 "!isLong(b)",
                 "!isDouble(b)" })
-        public Object lessCoerced(
-                VirtualFrame frame,
-                double a,
-                Object b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "b, a = math_coerce other, :compare_error; a < b", "other", b);
+        public Object lessCoerced(double a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(null, a, "redo_compare", coreStrings().LESS_THAN.getSymbol(), b);
         }
     }
 
@@ -349,12 +345,9 @@ public abstract class FloatNodes {
                 "!isInteger(b)",
                 "!isLong(b)",
                 "!isDouble(b)" })
-        public Object lessEqualCoerced(
-                VirtualFrame frame,
-                double a,
-                Object b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "b, a = math_coerce other, :compare_error; a <= b", "other", b);
+        public Object lessEqualCoerced(double a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(null, a, "redo_compare", coreStrings().LESS_OR_EQUAL.getSymbol(), b);
         }
     }
 
@@ -475,12 +468,9 @@ public abstract class FloatNodes {
                 "!isInteger(b)",
                 "!isLong(b)",
                 "!isDouble(b)" })
-        public Object greaterEqualCoerced(
-                VirtualFrame frame,
-                double a,
-                Object b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "b, a = math_coerce other, :compare_error; a >= b", "other", b);
+        public Object greaterEqualCoerced(double a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(null, a, "redo_compare", coreStrings().GREATER_OR_EQUAL.getSymbol(), b);
         }
 
     }
@@ -508,12 +498,9 @@ public abstract class FloatNodes {
                 "!isInteger(b)",
                 "!isLong(b)",
                 "!isDouble(b)" })
-        public Object greaterCoerced(
-                VirtualFrame frame,
-                double a,
-                Object b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "b, a = math_coerce(other, :compare_error); a > b", "other", b);
+        public Object greaterCoerced(double a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(null, a, "redo_compare", coreStrings().GREATER_THAN.getSymbol(), b);
         }
     }
 
