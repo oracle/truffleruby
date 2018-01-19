@@ -463,8 +463,8 @@ public abstract class FixnumNodes {
 
     }
 
-    @CoreMethod(names = "divmod", required = 1)
-    public abstract static class DivModNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "fixnum_divmod")
+    public abstract static class DivModNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GeneralDivModNode divModNode = new GeneralDivModNode();
 
@@ -479,9 +479,8 @@ public abstract class FixnumNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        public DynamicObject divModOther(VirtualFrame frame, long a, DynamicObject b,
-                                         @Cached("new()") SnippetNode snippetNode) {
-            return (DynamicObject) snippetNode.execute(frame, "raise ZeroDivisionError if b === 0; [(a / b).floor, a-b*(a/b).floor]", "a", a, "b", b);
+        public Object divModOther(VirtualFrame frame, long a, DynamicObject b) {
+            return FAILURE;
         }
 
         @Specialization
