@@ -63,6 +63,7 @@ public class CoreStrings {
     public final CoreString SUPER;
     public final CoreString TIME_INTERVAL_MUST_BE_POS;
     public final CoreString TO_ARY;
+    public final CoreString TO_HASH;
     public final CoreString TO_STR;
     public final CoreString TOO_FEW_ARGUMENTS;
     public final CoreString TRUE;
@@ -123,6 +124,7 @@ public class CoreStrings {
         SUPER = new CoreString(context, "super");
         TIME_INTERVAL_MUST_BE_POS = new CoreString(context, "time interval must be positive");
         TO_ARY = new CoreString(context, "to_ary");
+        TO_HASH = new CoreString(context, "to_hash");
         TO_STR = new CoreString(context, "to_str");
         TOO_FEW_ARGUMENTS = new CoreString(context, "too few arguments");
         TRUE = new CoreString(context, "true");
