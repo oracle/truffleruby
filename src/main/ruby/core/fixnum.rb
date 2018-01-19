@@ -59,6 +59,15 @@ class Fixnum < Integer
     end
   end
 
+  def divmod(b)
+    Truffle.primitive :fixnum_divmod
+    raise ZeroDivisionError if b == 0
+    [
+      (self / b).floor,
+      self - b * (self / b).floor
+    ]
+  end
+
   def **(o)
     Truffle.primitive :fixnum_pow
 
