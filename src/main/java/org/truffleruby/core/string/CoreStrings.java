@@ -49,6 +49,7 @@ public class CoreStrings {
     public final CoreString NIL;
     public final CoreString ONE_HASH_REQUIRED;
     public final CoreString OUT_OF_RANGE;
+    public final CoreString PIPE;
     public final CoreString PLUS;
     public final CoreString POWER;
     public final CoreString PROC_WITHOUT_BLOCK;
@@ -107,6 +108,7 @@ public class CoreStrings {
         NIL = new CoreString(context, "nil");
         ONE_HASH_REQUIRED = new CoreString(context, "one hash required");
         OUT_OF_RANGE = new CoreString(context, "out of range");
+        PIPE = new CoreString(context, "|");
         PLUS = new CoreString(context, "+");
         POWER = new CoreString(context, "**");
         PROC_WITHOUT_BLOCK = new CoreString(context, "tried to create Proc object without a block");
