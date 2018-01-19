@@ -20,4 +20,9 @@ describe "Signal.signame" do
   it "raises a TypeError when the passed argument can't be coerced to Integer" do
     lambda { Signal.signame("hello") }.should raise_error(TypeError)
   end
+
+  it "the original should take precendence over alias when looked up by number" do
+    Signal.signame(Signal.list["ABRT"]).should == "ABRT"
+    Signal.signame(Signal.list["CHLD"]).should == "CHLD"
+  end
 end
