@@ -546,7 +546,10 @@ class Encoding
   end
 
   def replicate(name)
-    Truffle.invoke_primitive(:encoding_replicate, self, StringValue(name))
+    name = StringValue(name)
+    new_encoding, index = Truffle.invoke_primitive :encoding_replicate, self, name
+    EncodingMap[name.upcase.to_sym] = [nil, index]
+    new_encoding
   end
 
   def _dump(depth)

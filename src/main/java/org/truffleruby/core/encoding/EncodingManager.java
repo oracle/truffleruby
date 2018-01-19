@@ -26,6 +26,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -138,6 +139,16 @@ public class EncodingManager {
     @TruffleBoundary
     public DynamicObject getRubyEncoding(Encoding encoding) {
         return ENCODING_LIST_BY_ENCODING_INDEX.get(encoding.getIndex());
+    }
+
+    @TruffleBoundary
+    public int getEncodingListIndex(DynamicObject rubyEncoding) {
+        final int index = ENCODING_LIST_BY_ENCODING_LIST_INDEX.indexOf(rubyEncoding);
+        if (index < 0) {
+            final String encodingName = StringOperations.getString(Layouts.ENCODING.getName(rubyEncoding));
+            throw new UnsupportedOperationException("Encoding not found: " + encodingName);
+        }
+        return index;
     }
 
     @TruffleBoundary
