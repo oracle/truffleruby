@@ -21,7 +21,7 @@ describe "Signal.signame" do
     lambda { Signal.signame("hello") }.should raise_error(TypeError)
   end
 
-  it "Original should take precendence over alias when looked up by number" do
+  it "the original should take precendence over alias when looked up by number" do
     Signal.signame(Signal.list["ABRT"]).should == "ABRT"
     Signal.signame(Signal.list["CHLD"]).should == "CHLD"
   end
