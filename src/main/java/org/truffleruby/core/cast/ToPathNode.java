@@ -12,10 +12,9 @@ package org.truffleruby.core.cast;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SnippetNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToPathNode extends RubyNode {
@@ -26,11 +25,9 @@ public abstract class ToPathNode extends RubyNode {
     }
 
     @Specialization(guards = "!isRubyString(object)")
-    public DynamicObject coerceObject(
-            VirtualFrame frame,
-            Object object,
-            @Cached("new()") SnippetNode snippetNode) {
-        return (DynamicObject) snippetNode.execute(frame, "Truffle::Type.coerce_to_path(object)", "object", object);
+    public DynamicObject coerceObject(Object object,
+            @Cached("createOnSelf()") CallDispatchHeadNode toPathNode) {
+        return (DynamicObject) toPathNode.call(null, coreLibrary().getTruffleTypeModule(), "coerce_to_path", object);
     }
 
 }
