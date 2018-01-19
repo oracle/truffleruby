@@ -72,10 +72,7 @@ public abstract class HashNodes {
 
         @ExplodeLoop
         @Specialization(guards = "isSmallArrayOfPairs(args)")
-        public Object construct(
-                        VirtualFrame frame,
-                        DynamicObject hashClass,
-                Object[] args) {
+        public Object construct(VirtualFrame frame, DynamicObject hashClass, Object[] args) {
             final DynamicObject array = (DynamicObject) args[0];
 
             final Object[] store = (Object[]) Layouts.ARRAY.getStore(array);
