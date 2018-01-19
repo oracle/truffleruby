@@ -12,14 +12,16 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 public class DataNode extends RubyNode {
 
     @Child private StringNodes.MakeStringNode makeStringNode;
-    @Child private SnippetNode snippetNode;
+    @Child private CallDispatchHeadNode callHelperNode;
 
     private final int endPosition;
 
@@ -34,16 +36,15 @@ public class DataNode extends RubyNode {
             makeStringNode = insert(StringNodes.MakeStringNode.create());
         }
 
-        if (snippetNode == null) {
+        if (callHelperNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            snippetNode = insert(new SnippetNode());
+            callHelperNode = insert(CallDispatchHeadNode.createOnSelf());
         }
 
         final String path = getPath();
-        final Object data = snippetNode.execute(frame,
-                "Truffle.get_data(file, offset)",
-                "file", makeStringNode.executeMake(path, getContext().getEncodingManager().getLocaleEncoding(), CodeRange.CR_UNKNOWN),
-                "offset", endPosition);
+        final Object data = callHelperNode.call(frame, coreLibrary().getTruffleModule(), "get_data",
+                makeStringNode.executeMake(path, getContext().getEncodingManager().getLocaleEncoding(), CodeRange.CR_UNKNOWN),
+                endPosition);
 
         Layouts.MODULE.getFields(coreLibrary().getObjectClass()).setConstant(getContext(), null, "DATA", data);
 
