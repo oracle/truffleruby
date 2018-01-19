@@ -68,14 +68,14 @@ public abstract class HashNodes {
 
         @Child private HashNode hashNode = new HashNode();
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        @Child private CallDispatchHeadNode fallbackNode = CallDispatchHeadNode.createOnSelf();
 
         @ExplodeLoop
         @Specialization(guards = "isSmallArrayOfPairs(args)")
         public Object construct(
                         VirtualFrame frame,
                         DynamicObject hashClass,
-                        Object[] args,
-                        @Cached("new()") SnippetNode snippetNode) {
+                Object[] args) {
             final DynamicObject array = (DynamicObject) args[0];
 
             final Object[] store = (Object[]) Layouts.ARRAY.getStore(array);
@@ -88,18 +88,18 @@ public abstract class HashNodes {
                     final Object pair = store[n];
 
                     if (!RubyGuards.isRubyArray(pair)) {
-                        return snippetNode.execute(frame, "_constructor_fallback(*args)", "args", createArray(args, args.length));
+                        return fallbackNode.call(frame, hashClass, "_constructor_fallback", args);
                     }
 
                     final DynamicObject pairArray = (DynamicObject) pair;
                     final Object pairStore = Layouts.ARRAY.getStore(pairArray);
 
                     if (pairStore != null && pairStore.getClass() != Object[].class) {
-                        return snippetNode.execute(frame, "_constructor_fallback(*args)", "args", createArray(args, args.length));
+                        return fallbackNode.call(frame, hashClass, "_constructor_fallback", args);
                     }
 
                     if (Layouts.ARRAY.getSize(pairArray) != 2) {
-                        return snippetNode.execute(frame, "_constructor_fallback(*args)", "args", createArray(args, args.length));
+                        return fallbackNode.call(frame, hashClass, "_constructor_fallback", args);
                     }
 
                     final Object[] pairObjectStore = (Object[]) pairStore;
@@ -120,9 +120,8 @@ public abstract class HashNodes {
         public Object constructFallback(
                         VirtualFrame frame,
                         DynamicObject hashClass,
-                        Object[] args,
-                        @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "_constructor_fallback(*args)", "args", createArray(args, args.length));
+                Object[] args) {
+            return fallbackNode.call(frame, hashClass, "_constructor_fallback", args);
         }
 
         public boolean isSmallArrayOfPairs(Object[] args) {
