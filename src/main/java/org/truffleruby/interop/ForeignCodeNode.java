@@ -16,7 +16,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SnippetNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,7 +28,8 @@ public class ForeignCodeNode extends RubyNode {
     private final DynamicObject name;
 
     @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-    @Child private SnippetNode snippetNode = new SnippetNode();
+    @Child private CallDispatchHeadNode interopEvalNode = CallDispatchHeadNode.createOnSelf();
+    @Child private CallDispatchHeadNode importMethodNode = CallDispatchHeadNode.createOnSelf();
 
     private static final Pattern NAME_PATTERN = Pattern.compile(".*function\\s+(\\w+)\\s*\\(.*", Pattern.DOTALL);
 
@@ -43,10 +44,8 @@ public class ForeignCodeNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        snippetNode.execute(frame, "Truffle::Interop.eval mimeType, code; Truffle::Interop.import_method name",
-                "mimeType", mimeType,
-                "code", code,
-                "name", name);
+        interopEvalNode.call(frame, coreLibrary().getTruffleInteropModule(), "eval", mimeType, code);
+        importMethodNode.call(frame, coreLibrary().getTruffleInteropModule(), "import_method", name);
         return nil();
     }
 
