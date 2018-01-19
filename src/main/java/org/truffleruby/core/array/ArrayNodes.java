@@ -733,7 +733,17 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class EachNode extends YieldingCoreMethodNode {
 
-        @Specialization(guards = "strategy.matches(array)", limit = "ARRAY_STRATEGIES")
+        @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) == 1" }, limit = "ARRAY_STRATEGIES")
+        public Object eachOne(DynamicObject array, DynamicObject block,
+                              @Cached("of(array)") ArrayStrategy strategy) {
+            final ArrayMirror store = strategy.newMirror(array);
+
+            yield(block, store.get(0));
+
+            return array;
+        }
+
+        @Specialization(guards = { "strategy.matches(array)", "strategy.getSize(array) != 1" }, limit = "ARRAY_STRATEGIES")
         public Object eachOther(DynamicObject array, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy) {
             final ArrayMirror store = strategy.newMirror(array);
