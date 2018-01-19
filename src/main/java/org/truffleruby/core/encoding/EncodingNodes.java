@@ -17,13 +17,10 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
-import org.jcodings.EncodingDB;
-import org.jcodings.EncodingDB.Entry;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
@@ -38,7 +35,6 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 
@@ -490,8 +486,7 @@ public abstract class EncodingNodes {
     public static abstract class EncodingReplicateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(nameObject)")
-        public DynamicObject encodingReplicate(VirtualFrame frame, DynamicObject self, DynamicObject nameObject,
-                @Cached("new()") SnippetNode snippetNode) {
+        public DynamicObject encodingReplicate(DynamicObject self, DynamicObject nameObject) {
             final String name = StringOperations.getString(nameObject);
             final Encoding encoding = EncodingOperations.getEncoding(self);
 
@@ -500,18 +495,12 @@ public abstract class EncodingNodes {
                 throw new RaiseException(coreExceptions().argumentErrorEncodingAlreadyRegistered(name, this));
             }
 
-            final Entry entry = getEntry(name);
-            snippetNode.execute(frame, "Encoding::EncodingMap[enc.name.upcase.to_sym] = [nil, index]", "enc", newEncoding, "index", entry.getIndex());
-            return newEncoding;
+            final int index = getContext().getEncodingManager().getEncodingListIndex(newEncoding);
+            return createArray(new Object[]{ newEncoding, index }, 2);
         }
 
         @TruffleBoundary
-        private Entry getEntry(final String name) {
-            return EncodingDB.getEncodings().get(name.getBytes());
-        }
-
-        @TruffleBoundary
-        private DynamicObject replicate(final String name, final Encoding encoding) {
+        private DynamicObject replicate(String name, Encoding encoding) {
             return getContext().getEncodingManager().replicateEncoding(encoding, name);
         }
 
