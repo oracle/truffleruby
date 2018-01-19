@@ -513,11 +513,10 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isObjectRange(range)")
-        public Object sliceObjectRange(VirtualFrame frame, DynamicObject string, DynamicObject range, NotProvided length,
-                @Cached("new()") SnippetNode snippetNode2) {
+        public Object sliceObjectRange(VirtualFrame frame, DynamicObject string, DynamicObject range, NotProvided length) {
             // TODO (nirvdrum 31-Mar-15) The begin and end values may return Fixnums beyond int boundaries and we should handle that -- Bignums are always errors.
             final int coercedBegin = toInt(frame, Layouts.OBJECT_RANGE.getBegin(range));
-            final int coercedEnd = (int) snippetNode2.execute(frame, "Truffle::Type.rb_num2int(v)", "v", Layouts.OBJECT_RANGE.getEnd(range));
+            final int coercedEnd = toInt(frame, Layouts.OBJECT_RANGE.getEnd(range));
 
             return sliceRange(frame, string, coercedBegin, coercedEnd, Layouts.OBJECT_RANGE.getExcludedEnd(range));
         }
@@ -573,10 +572,8 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!isRubyRange(start)", "!isRubyRegexp(start)", "!isRubyString(start)", "wasProvided(length)" })
-        public Object slice(VirtualFrame frame, DynamicObject string, Object start, Object length,
-                @Cached("new()") SnippetNode snippetNode2) {
-            return slice(frame, string, toInt(frame, start),
-                    (int) snippetNode2.execute(frame, "Truffle::Type.rb_num2int(v)", "v", length));
+        public Object slice(VirtualFrame frame, DynamicObject string, Object start, Object length) {
+            return slice(frame, string, toInt(frame, start), toInt(frame, length));
         }
 
         @Specialization(guards = "isRubyRegexp(regexp)")
