@@ -95,7 +95,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.ByteArrayBuilder;
-import org.truffleruby.core.array.ArrayCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.cast.TaintResultNode;
@@ -2306,19 +2305,23 @@ public abstract class StringNodes {
         }
     }
 
+    @NodeChild(value = "string", type = RubyNode.class)
+    @NodeChild(value = "format", type = RubyNode.class)
     @CoreMethod(names = "unpack", required = 1, taintFrom = 1)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
-    public abstract static class UnpackNode extends ArrayCoreMethodNode {
+    public abstract static class UnpackNode extends CoreMethodNode {
+
+        @CreateCast("format")
+        public RubyNode coerceFormat(RubyNode format) {
+            return ToStrNodeGen.create(format);
+        }
 
         @Child private TaintNode taintNode;
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
 
         @Specialization(
-                guards = {
-                        "isRubyString(format)",
-                        "equalNode.execute(rope(format), cachedFormat)"
-                },
+                guards = "equalNode.execute(rope(format), cachedFormat)",
                 limit = "getCacheLimit()")
         public DynamicObject unpackCached(
                 DynamicObject string,
@@ -2342,7 +2345,7 @@ public abstract class StringNodes {
             return finishUnpack(result);
         }
 
-        @Specialization(replaces = "unpackCached", guards = "isRubyString(format)")
+        @Specialization(replaces = "unpackCached")
         public DynamicObject unpackUncached(
                 DynamicObject string,
                 DynamicObject format,
@@ -2376,20 +2379,6 @@ public abstract class StringNodes {
             }
 
             return array;
-        }
-
-        @Specialization(guards = {
-                "!isRubyString(format)",
-                "!isBoolean(format)",
-                "!isInteger(format)",
-                "!isLong(format)",
-                "!isNil(format)"})
-        public Object unpack(
-                VirtualFrame frame,
-                DynamicObject array,
-                Object format,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "unpack(format.to_str)", "format", format);
         }
 
         @TruffleBoundary
