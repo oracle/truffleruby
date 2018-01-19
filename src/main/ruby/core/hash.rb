@@ -94,6 +94,7 @@ class Hash
 
     hash
   end
+  private_class_method :_constructor_fallback
 
   alias_method :store, :[]=
 
