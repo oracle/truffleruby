@@ -50,6 +50,7 @@ public class RescueNodeWrapper implements InstrumentableFactory<RescueNode> {
             return NodeCost.NONE;
         }
 
+        @SuppressWarnings("deprecation")
         @Override
         public Object execute(VirtualFrame frame) {
             try {
@@ -63,6 +64,7 @@ public class RescueNodeWrapper implements InstrumentableFactory<RescueNode> {
             }
         }
 
+        @SuppressWarnings("deprecation")
         @Override
         public void doExecuteVoid(VirtualFrame frame) {
             try {
