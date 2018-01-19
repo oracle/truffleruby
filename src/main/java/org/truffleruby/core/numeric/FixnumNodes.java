@@ -34,7 +34,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.LazyIntRope;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -659,12 +658,9 @@ public abstract class FixnumNodes {
                 "!isLong(b)",
                 "!isDouble(b)",
                 "!isRubyBignum(b)" })
-        public Object compare(
-                VirtualFrame frame,
-                Object a,
-                Object b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "begin; b, a = math_coerce(other, :compare_error); a <=> b; rescue ArgumentError; nil; end", "other", b);
+        public Object compare(Object a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(null, a, "redo_compare_no_error", b);
         }
 
     }
