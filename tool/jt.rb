@@ -1308,13 +1308,17 @@ module Commands
   def gem_test_pack
     name = "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}"
     test_pack = File.expand_path(name, TRUFFLERUBY_DIR)
-    unless Dir.exist?(test_pack)
+    archive = "#{test_pack}.tar.gz"
+    unless File.exist?(archive)
       $stderr.puts "Downloading latest gem test pack..."
 
       # To update these files contact someone with permissions on lafo.
       url = mx('urlrewrite', "https://lafo.ssw.uni-linz.ac.at/pub/graal-external-deps/#{name}.tar.gz", capture: true).first.rstrip
       archive = "#{test_pack}.tar.gz"
       sh 'curl', '-L', '-o', archive, url
+    end
+    unless Dir.exist?(test_pack)
+      $stderr.puts "Unpacking gem test pack..."
       sh 'tar', '-zxf', archive
     end
     puts test_pack
