@@ -1297,6 +1297,10 @@ public class CoreLibrary {
         return stringFactory;
     }
 
+    public DynamicObject getHashClass() {
+        return hashClass;
+    }
+
     public DynamicObjectFactory getHashFactory() {
         return hashFactory;
     }

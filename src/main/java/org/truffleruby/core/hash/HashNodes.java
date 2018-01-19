@@ -32,11 +32,11 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.hash.HashNodesFactory.GetIndexNodeFactory;
+import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -574,6 +574,12 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
+        public static InitializeCopyNode create() {
+            return InitializeCopyNodeFactory.create(null);
+        }
+
+        public abstract DynamicObject executeReplace(DynamicObject self, DynamicObject from);
+
         @Specialization(guards = {"isRubyHash(from)", "isNullHash(from)"})
         public DynamicObject replaceNull(DynamicObject self, DynamicObject from) {
             if (self == from) {
@@ -629,12 +635,12 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "!isRubyHash(other)")
-        public Object replaceBuckets(
-                        VirtualFrame frame,
-                        DynamicObject self,
-                        Object other,
-                        @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "replace(Truffle::Type.coerce_to other, Hash, :to_hash)", "other", other);
+        public DynamicObject replaceCoerce(DynamicObject self, Object other,
+                @Cached("createOnSelf()") CallDispatchHeadNode coerceNode,
+                @Cached("create()") InitializeCopyNode initializeCopyNode) {
+            final Object otherHash = coerceNode.call(null, coreLibrary().getTruffleTypeModule(), "coerce_to",
+                    other, coreLibrary().getHashClass(), coreStrings().TO_HASH.getSymbol());
+            return initializeCopyNode.executeReplace(self, (DynamicObject) otherHash);
         }
 
         private void copyOtherFields(DynamicObject self, DynamicObject from) {
