@@ -72,7 +72,6 @@ import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.WarningNode;
@@ -1757,25 +1756,23 @@ public abstract class ModuleNodes {
     @CoreMethod(names = { "to_s", "inspect" })
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SnippetNode snippetNode;
+        @Child private CallDispatchHeadNode callRbInspect;
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        public DynamicObject toS(VirtualFrame frame, DynamicObject module) {
-
+        public DynamicObject toS(DynamicObject module) {
             final String moduleName;
             final ModuleFields fields = Layouts.MODULE.getFields(module);
             if (RubyGuards.isSingletonClass(module)) {
                 final DynamicObject attached = Layouts.CLASS.getAttached(module);
                 final String name;
                 if (Layouts.CLASS.isClass(attached) || Layouts.MODULE.isModule(attached)) {
-                    if (snippetNode == null) {
+                    if (callRbInspect == null) {
                         CompilerDirectives.transferToInterpreterAndInvalidate();
-                        snippetNode = insert(new SnippetNode());
+                        callRbInspect = insert(CallDispatchHeadNode.createOnSelf());
                     }
-                    DynamicObject inspectResult = (DynamicObject) snippetNode.execute(frame,
-                        "Truffle::Type.rb_inspect(val)", "val", attached);
-                    name = StringOperations.getString(inspectResult);
+                    final Object inspectResult = callRbInspect.call(null, coreLibrary().getTruffleTypeModule(), "rb_inspect", attached);
+                    name = StringOperations.getString((DynamicObject) inspectResult);
                 } else {
                     name = fields.getName();
                 }
