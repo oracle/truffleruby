@@ -498,7 +498,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "!isRubyRange(index)", "!isRubyRegexp(index)", "!isRubyString(index)" })
         public Object getIndex(VirtualFrame frame, DynamicObject string, Object index, NotProvided length) {
-            return getIndex(frame, string, (int) getSnippetNode().execute(frame, "Truffle::Type.rb_num2int(v)", "v", index), length);
+            return getIndex(frame, string, toInt(frame, index), length);
         }
 
         @Specialization(guards = "isIntRange(range)")
@@ -516,7 +516,7 @@ public abstract class StringNodes {
         public Object sliceObjectRange(VirtualFrame frame, DynamicObject string, DynamicObject range, NotProvided length,
                 @Cached("new()") SnippetNode snippetNode2) {
             // TODO (nirvdrum 31-Mar-15) The begin and end values may return Fixnums beyond int boundaries and we should handle that -- Bignums are always errors.
-            final int coercedBegin = (int) getSnippetNode().execute(frame, "Truffle::Type.rb_num2int(v)", "v", Layouts.OBJECT_RANGE.getBegin(range));
+            final int coercedBegin = toInt(frame, Layouts.OBJECT_RANGE.getBegin(range));
             final int coercedEnd = (int) snippetNode2.execute(frame, "Truffle::Type.rb_num2int(v)", "v", Layouts.OBJECT_RANGE.getEnd(range));
 
             return sliceRange(frame, string, coercedBegin, coercedEnd, Layouts.OBJECT_RANGE.getExcludedEnd(range));
@@ -569,13 +569,13 @@ public abstract class StringNodes {
 
         @Specialization(guards = "wasProvided(length)")
         public Object slice(VirtualFrame frame, DynamicObject string, int start, Object length) {
-            return slice(frame, string, start, (int) getSnippetNode().execute(frame, "Truffle::Type.rb_num2int(v)", "v", length));
+            return slice(frame, string, start, toInt(frame, length));
         }
 
         @Specialization(guards = { "!isRubyRange(start)", "!isRubyRegexp(start)", "!isRubyString(start)", "wasProvided(length)" })
         public Object slice(VirtualFrame frame, DynamicObject string, Object start, Object length,
                 @Cached("new()") SnippetNode snippetNode2) {
-            return slice(frame, string, (int) getSnippetNode().execute(frame, "Truffle::Type.rb_num2int(v)", "v", start),
+            return slice(frame, string, toInt(frame, start),
                     (int) snippetNode2.execute(frame, "Truffle::Type.rb_num2int(v)", "v", length));
         }
 
@@ -645,13 +645,13 @@ public abstract class StringNodes {
             return substringNode;
         }
 
-        private SnippetNode getSnippetNode() {
+        private int toInt(VirtualFrame frame, Object value) {
             if (snippetNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 snippetNode = insert(new SnippetNode());
             }
 
-            return snippetNode;
+            return (int) snippetNode.execute(frame, "Truffle::Type.rb_num2int(v)", "v", value);
         }
     }
 
