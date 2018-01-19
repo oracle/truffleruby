@@ -16,7 +16,7 @@ import org.truffleruby.Log;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SnippetNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 public class ReadRestArgumentNode extends RubyNode {
 
@@ -28,7 +28,7 @@ public class ReadRestArgumentNode extends RubyNode {
     private final BranchProfile subsetOfArgumentsProfile = BranchProfile.create();
 
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
-    @Child private SnippetNode snippetNode = new SnippetNode();
+    @Child private CallDispatchHeadNode addRejectedNode = CallDispatchHeadNode.createOnSelf();
 
     public ReadRestArgumentNode(int startIndex, int indexFromCount,
                                 boolean keywordArguments, int minimumForKWargs) {
@@ -87,10 +87,7 @@ public class ReadRestArgumentNode extends RubyNode {
                 kwargsHash = nil();
             }
 
-            snippetNode.execute(frame,
-                    "Truffle.add_rejected_kwargs_to_rest(rest, kwargs)",
-                    "rest", rest,
-                    "kwargs", kwargsHash);
+            addRejectedNode.call(frame, coreLibrary().getTruffleModule(), "add_rejected_kwargs_to_rest", rest, kwargsHash);
         }
 
         return rest;
