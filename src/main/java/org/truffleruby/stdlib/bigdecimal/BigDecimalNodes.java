@@ -31,7 +31,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -1051,16 +1050,10 @@ public abstract class BigDecimalNodes {
             return nil();
         }
 
-        @Specialization(guards = {
-                "!isRubyBigDecimal(b)",
-                "!isNil(b)"
-        })
-        public Object compareCoerced(
-                VirtualFrame frame,
-                DynamicObject a,
-                DynamicObject b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :<=>, b", "b", b);
+        @Specialization(guards = { "!isRubyBigDecimal(b)", "!isNil(b)" })
+        public Object compareCoerced(DynamicObject a, DynamicObject b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().SPACESHIP.getSymbol(), b);
         }
 
         @TruffleBoundary

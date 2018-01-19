@@ -58,6 +58,7 @@ public class CoreStrings {
     public final CoreString RESOURCE_TEMP_UNAVAIL_WRITE;
     public final CoreString UNKNOWN;
     public final CoreString SELF;
+    public final CoreString SPACESHIP;
     public final CoreString STACK_LEVEL_TOO_DEEP;
     public final CoreString SUPER;
     public final CoreString TIME_INTERVAL_MUST_BE_POS;
@@ -117,6 +118,7 @@ public class CoreStrings {
         RESOURCE_TEMP_UNAVAIL_WRITE = new CoreString(context, "Resource temporarily unavailable - write would block");
         UNKNOWN = new CoreString(context, "(unknown)");
         SELF = new CoreString(context, "self");
+        SPACESHIP = new CoreString(context, "<=>");
         STACK_LEVEL_TOO_DEEP = new CoreString(context, "stack level too deep");
         SUPER = new CoreString(context, "super");
         TIME_INTERVAL_MUST_BE_POS = new CoreString(context, "time interval must be positive");
