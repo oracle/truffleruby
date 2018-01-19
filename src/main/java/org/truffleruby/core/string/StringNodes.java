@@ -482,7 +482,7 @@ public abstract class StringNodes {
         @Child private CallDispatchHeadNode dupNode;
         @Child private NormalizeIndexNode normalizeIndexNode;
         @Child private StringSubstringPrimitiveNode substringNode;
-        @Child private SnippetNode snippetNode;
+        @Child private CallDispatchHeadNode toIntNode;
 
         private final BranchProfile outOfBounds = BranchProfile.create();
 
@@ -646,12 +646,12 @@ public abstract class StringNodes {
         }
 
         private int toInt(VirtualFrame frame, Object value) {
-            if (snippetNode == null) {
+            if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                snippetNode = insert(new SnippetNode());
+                toIntNode = insert(CallDispatchHeadNode.createOnSelf());
             }
 
-            return (int) snippetNode.execute(frame, "Truffle::Type.rb_num2int(v)", "v", value);
+            return (int) toIntNode.call(frame, coreLibrary().getTruffleTypeModule(), "rb_num2int", value);
         }
     }
 
