@@ -17,30 +17,23 @@ module Psych
     [1, 14, 0]
   end
 
-
   class ClassLoader
-
     def path2class(path)
       eval("::#{path}")
     end
-
   end
 
   module Visitors
     class ToRuby
-
       def build_exception(klass, mesg)
         klass.new(mesg)
       end
-
     end
 
     class YAMLTree
-
       def private_iv_get(target, prop)
         target.instance_variable_get("@#{prop}")
       end
-
     end
   end
 
