@@ -17,14 +17,13 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFactory;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 public class HashNode extends RubyBaseNode {
 
     @Child private CallDispatchHeadNode hashNode;
     @Child private ObjectIDNode objectIDNode;
-    @Child private SnippetNode snippetNode;
+    @Child private CallDispatchHeadNode coerceToIntNode;
 
     private final ConditionProfile isIntegerProfile1 = ConditionProfile.createBinaryProfile();
     private final ConditionProfile isLongProfile1 = ConditionProfile.createBinaryProfile();
@@ -48,14 +47,12 @@ public class HashNode extends RubyBaseNode {
         } else if (isBignumProfile1.profile(Layouts.BIGNUM.isBignum(hashedObject))) {
             return Layouts.BIGNUM.getValue((DynamicObject) hashedObject).hashCode();
         } else {
-            if (snippetNode == null) {
+            if (coerceToIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                snippetNode = insert(new SnippetNode());
+                coerceToIntNode = insert(CallDispatchHeadNode.createOnSelf());
             }
 
-            final Object coercedHashedObject = snippetNode.execute(frame,
-                    "Truffle::Type.coerce_to_int hashedObject",
-                    "hashedObject", hashedObject);
+            final Object coercedHashedObject = coerceToIntNode.call(null, coreLibrary().getTruffleTypeModule(), "coerce_to_int", hashedObject);
 
             if (isIntegerProfile2.profile(coercedHashedObject instanceof Integer)) {
                 return (int) coercedHashedObject;
