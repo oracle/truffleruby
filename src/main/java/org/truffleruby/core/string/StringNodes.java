@@ -130,6 +130,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.SubstringRope;
 import org.truffleruby.core.string.StringNodesFactory.StringAreComparableNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringEqualNodeGen;
+import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
 import org.truffleruby.language.CheckLayoutNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -2018,6 +2019,12 @@ public abstract class StringNodes {
     @CoreMethod(names = "sum", optional = 1)
     public abstract static class SumNode extends CoreMethodArrayArgumentsNode {
 
+        public static SumNode create() {
+            return SumNodeFactory.create(null);
+        }
+
+        public abstract Object executeSum(VirtualFrame frame, DynamicObject string, Object bits);
+
         @Child private CallDispatchHeadNode addNode = CallDispatchHeadNode.create();
         @Child private CallDispatchHeadNode subNode = CallDispatchHeadNode.create();
         @Child private CallDispatchHeadNode shiftNode = CallDispatchHeadNode.create();
@@ -2064,11 +2071,10 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!isInteger(bits)", "!isLong(bits)", "wasProvided(bits)" })
-        public Object sum(VirtualFrame frame,
-                          DynamicObject string,
-                          Object bits,
-                          @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "sum Truffle::Type.coerce_to(bits, Fixnum, :to_int)", "bits", bits);
+        public Object sum(VirtualFrame frame, DynamicObject string, Object bits,
+                @Cached("create()") ToIntNode toIntNode,
+                @Cached("create()") SumNode sumNode) {
+            return sumNode.executeSum(frame, string, toIntNode.executeIntOrLong(frame, bits));
         }
 
     }
