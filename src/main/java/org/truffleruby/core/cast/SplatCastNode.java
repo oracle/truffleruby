@@ -21,7 +21,6 @@ import org.truffleruby.core.array.ArrayDupNode;
 import org.truffleruby.core.array.ArrayDupNodeGen;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
@@ -93,9 +92,8 @@ public abstract class SplatCastNode extends RubyNode {
     @Specialization(guards = {"!isNil(object)", "!isRubyArray(object)"})
     public DynamicObject splat(VirtualFrame frame, Object object,
             @Cached("create()") BranchProfile errorProfile,
-            @Cached("new()") SnippetNode snippetNode) {
-        final Object array = snippetNode.execute(frame, "Truffle::Type.rb_check_convert_type(v, Array, method)",
-            "v", object, "method", conversionMethod);
+            @Cached("createOnSelf()") CallDispatchHeadNode toArrayNode) {
+        final Object array = toArrayNode.call(null, coreLibrary().getTruffleTypeModule(), "rb_check_convert_type", object, coreLibrary().getArrayClass(), conversionMethod);
         if (RubyGuards.isRubyArray(array)) {
             return (DynamicObject) array;
         } else if (array == nil()) {
