@@ -31,7 +31,6 @@ import org.truffleruby.Log;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -400,7 +399,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
     protected class ToAOutgoingNode extends OutgoingNode {
 
-        @Child private SnippetNode snippetNode = new SnippetNode();
+        @Child private CallDispatchHeadNode callToArray = CallDispatchHeadNode.createOnSelf();
 
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
@@ -409,7 +408,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                 throw new RaiseException(getContext().getCoreExceptions().argumentError(args.length, 0, this));
             }
 
-            return snippetNode.execute(frame, "Truffle::Interop.to_array(object)", "object", receiver);
+            return callToArray.call(frame, coreLibrary().getTruffleInteropModule(), "to_array", receiver);
         }
 
     }
