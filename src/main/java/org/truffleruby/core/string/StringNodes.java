@@ -134,7 +134,6 @@ import org.truffleruby.language.CheckLayoutNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.control.RaiseException;
@@ -1174,17 +1173,24 @@ public abstract class StringNodes {
     public abstract static class GetRstringPtrNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public DynamicObject getRstringPtr(VirtualFrame frame, DynamicObject string,
-                                           @Cached("new()") SnippetNode snippetNode) {
+        public DynamicObject getRstringPtr(DynamicObject string) {
             final DynamicObject existingPtr = Layouts.STRING.getRstringPtr(string);
-
             if (existingPtr != null) {
                 return existingPtr;
             } else {
-                final DynamicObject rstringPtr = (DynamicObject) snippetNode.execute(frame, "Truffle::CExt::RStringPtr.send(:new, str)", "str", string);
-                Layouts.STRING.setRstringPtr(string, rstringPtr);
-                return rstringPtr;
+                return nil();
             }
+        }
+
+    }
+
+    @Primitive(name = "string_set_rstring_ptr", needsSelf = false)
+    public abstract static class SetRstringPtrNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(string)")
+        public DynamicObject setRstringPtr(DynamicObject string, DynamicObject rstringPtr) {
+            Layouts.STRING.setRstringPtr(string, rstringPtr);
+            return rstringPtr;
         }
 
     }

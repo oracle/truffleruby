@@ -1916,7 +1916,14 @@ module Truffle::CExt
   end
 
   def RSTRING_PTR(string)
-    Truffle.invoke_primitive(:string_get_rstring_ptr, string)
+    ptr = Truffle.invoke_primitive(:string_get_rstring_ptr, string)
+    unless ptr
+      Truffle.privately do
+        ptr = RStringPtr.new(string)
+        Truffle.invoke_primitive(:string_set_rstring_ptr, string, ptr)
+      end
+    end
+    ptr
   end
 
   def RSTRING_END(string)
