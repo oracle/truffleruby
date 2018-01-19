@@ -45,8 +45,8 @@ public abstract class ToStrNode extends RubyNode {
         try {
             coerced = toStrNode.call(frame, object, "to_str");
         } catch (RaiseException e) {
+            errorProfile.enter();
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {
-                errorProfile.enter();
                 throw new RaiseException(coreExceptions().typeErrorNoImplicitConversion(object, "String", this));
             } else {
                 throw e;
