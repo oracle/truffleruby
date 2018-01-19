@@ -137,6 +137,7 @@ public class CoreLibrary {
     private final DynamicObjectFactory intRangeFactory;
     private final DynamicObjectFactory longRangeFactory;
     private final DynamicObject rangeErrorClass;
+    private final DynamicObject rationalClass;
     private final DynamicObject regexpClass;
     private final DynamicObjectFactory regexpFactory;
     private final DynamicObject regexpErrorClass;
@@ -395,7 +396,7 @@ public class CoreLibrary {
         bignumClass = defineClass(integerClass, "Bignum");
         bignumFactory = alwaysFrozen(Layouts.BIGNUM.createBignumShape(bignumClass, bignumClass));
         Layouts.CLASS.setInstanceFactoryUnsafe(bignumClass, bignumFactory);
-        defineClass(numericClass, "Rational");
+        rationalClass = defineClass(numericClass, "Rational");
 
         // Classes defined in Object
 
@@ -1095,6 +1096,10 @@ public class CoreLibrary {
 
     public DynamicObject getRangeClass() {
         return rangeClass;
+    }
+
+    public DynamicObject getRationalClass() {
+        return rationalClass;
     }
 
     public DynamicObjectFactory getRegexpFactory() {

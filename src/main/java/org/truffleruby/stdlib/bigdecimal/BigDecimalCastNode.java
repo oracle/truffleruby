@@ -48,8 +48,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.objects.IsANode;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -95,11 +95,11 @@ public abstract class BigDecimalCastNode extends RubyNode {
             VirtualFrame frame,
             DynamicObject value,
             Object roundingMode,
-            @Cached("new()") SnippetNode isRationalSnippet,
+            @Cached("create()") IsANode isRationalNode,
             @Cached("create()") CallDispatchHeadNode numeratorCallNode,
             @Cached("create()") CallDispatchHeadNode denominatorCallNode,
             @Cached("create()") CallDispatchHeadNode toFCallNode) {
-        if (roundingMode instanceof RoundingMode && (boolean) isRationalSnippet.execute(frame, "value.is_a?(Rational)", "value", value)) {
+        if (roundingMode instanceof RoundingMode && isRationalNode.executeIsA(value, coreLibrary().getRationalClass())) {
             final Object numerator = numeratorCallNode.call(frame, value, "numerator");
             final Object denominator = denominatorCallNode.call(frame, value, "denominator");
 
