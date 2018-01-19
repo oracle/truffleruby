@@ -1759,6 +1759,7 @@ public abstract class ModuleNodes {
         @Child private CallDispatchHeadNode callRbInspect;
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
+        @TruffleBoundary
         @Specialization
         public DynamicObject toS(DynamicObject module) {
             final String moduleName;
