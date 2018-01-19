@@ -2402,17 +2402,18 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = { "!isEmpty(self)", "isRubyString(fromStr)", "isRubyString(toStr)" })
-        public Object trBang(VirtualFrame frame, DynamicObject self, DynamicObject fromStr, DynamicObject toStr) {
-            if (rope(toStr).isEmpty()) {
-                if (deleteBangNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    deleteBangNode = insert(StringNodesFactory.DeleteBangNodeFactory.create(null));
-                }
-
-                return deleteBangNode.executeDeleteBang(frame, self, new DynamicObject[] { fromStr });
+        @Specialization(guards = { "!isEmpty(self)", "isRubyString(fromStr)", "isRubyString(toStr)", "isEmpty(toStr)" })
+        public Object trBangEmpty(VirtualFrame frame, DynamicObject self, DynamicObject fromStr, DynamicObject toStr) {
+            if (deleteBangNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                deleteBangNode = insert(DeleteBangNode.create());
             }
 
+            return deleteBangNode.executeDeleteBang(frame, self, new DynamicObject[]{ fromStr });
+        }
+
+        @Specialization(guards = { "!isEmpty(self)", "isRubyString(fromStr)", "isRubyString(toStr)", "!isEmpty(toStr)" })
+        public Object trBang(VirtualFrame frame, DynamicObject self, DynamicObject fromStr, DynamicObject toStr) {
             if (checkEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 checkEncodingNode = insert(EncodingNodesFactory.CheckEncodingNodeGen.create(null, null));
@@ -2452,7 +2453,7 @@ public abstract class StringNodes {
             if (rope(toStr).isEmpty()) {
                 if (deleteBangNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    deleteBangNode = insert(StringNodesFactory.DeleteBangNodeFactory.create(null));
+                    deleteBangNode = insert(DeleteBangNode.create());
                 }
 
                 return deleteBangNode.executeDeleteBang(frame, self, new DynamicObject[] { fromStr });
