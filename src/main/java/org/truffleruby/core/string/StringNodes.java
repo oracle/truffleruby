@@ -2106,11 +2106,10 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isStringSubclass(string)")
-        public Object toSOnSubclass(
-                VirtualFrame frame,
-                DynamicObject string,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "''.replace(self)", "self", string);
+        public Object toSOnSubclass(DynamicObject string,
+                @Cached("create()") IsTaintedNode isTaintedNode) {
+            return coreLibrary().getStringFactory().newInstance(Layouts.STRING.build(
+                    false, isTaintedNode.executeIsTainted(string), rope(string), null));
         }
 
         public boolean isStringSubclass(DynamicObject string) {
