@@ -442,9 +442,9 @@ public abstract class BignumNodes {
         }
 
         @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isRubyBignum(b)" })
-        public Object bitAnd(VirtualFrame frame, DynamicObject a, Object b,
-                             @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "self & bit_coerce(b)[1]", "b", b);
+        public Object bitAnd(DynamicObject a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().AMPERSAND.getSymbol(), b);
         }
     }
 
@@ -462,9 +462,9 @@ public abstract class BignumNodes {
         }
 
         @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isRubyBignum(b)" })
-        public Object bitAnd(VirtualFrame frame, DynamicObject a, Object b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "self | bit_coerce(b)[1]", "b", b);
+        public Object bitAnd(DynamicObject a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().PIPE.getSymbol(), b);
         }
     }
 
@@ -482,9 +482,9 @@ public abstract class BignumNodes {
         }
 
         @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isRubyBignum(b)" })
-        public Object bitAnd(VirtualFrame frame, DynamicObject a, Object b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "self ^ bit_coerce(b)[1]", "b", b);
+        public Object bitAnd(DynamicObject a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().CIRCUMFLEX.getSymbol(), b);
         }
 
     }
