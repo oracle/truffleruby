@@ -46,10 +46,8 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -648,29 +646,19 @@ public abstract class InteropNodes {
     }
 
     @ImportStatic(Message.class)
-    @CoreMethod(names = "keys", isModuleFunction = true, required = 1, optional = 1)
-    public abstract static class KeysNode extends CoreMethodArrayArgumentsNode {
-
-        public abstract Object executeKeys(VirtualFrame frame, TruffleObject receiver, Object internal);
+    @Primitive(name = "interop_send_keys")
+    public abstract static class KeysNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         public Object keys(VirtualFrame frame, TruffleObject receiver, boolean internal,
                 @Cached("KEYS.createNode()") Node keysNode,
-                @Cached("new()") SnippetNode snippetNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
-                return snippetNode.execute(frame,
-                        "Truffle::Interop.enumerable(keys).map { |key| Truffle::Interop.from_java_string(key) }",
-                        "keys", ForeignAccess.sendKeys(keysNode, receiver, internal));
+                return ForeignAccess.sendKeys(keysNode, receiver, internal);
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
-        }
-
-        @Specialization
-        public Object size(VirtualFrame frame, TruffleObject receiver, NotProvided internal) {
-            return executeKeys(frame, receiver, false);
         }
 
     }

@@ -34,6 +34,13 @@ module Truffle
       end
     end
 
+    def self.keys(object, internal = false)
+      keys = Truffle.invoke_primitive :interop_send_keys, object, internal
+      Truffle::Interop.enumerable(keys).map { |key|
+        Truffle::Interop.from_java_string(key)
+      }
+    end
+
     def self.object_keys(object, internal)
       if object.is_a?(Hash)
         keys = object.keys.map(&:to_s)
