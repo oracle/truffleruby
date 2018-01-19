@@ -32,7 +32,6 @@ import org.truffleruby.core.numeric.BignumNodesFactory.MulNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
@@ -235,12 +234,9 @@ public abstract class BignumNodes {
         }
 
         @Specialization(guards = {"!isInteger(b)", "!isLong(b)", "!isRubyBignum(b)"})
-        public Object mod(
-                VirtualFrame frame,
-                DynamicObject a,
-                Object b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :%, other", "other", b);
+        public Object mod(DynamicObject a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().MODULO.getSymbol(), b);
         }
 
     }
@@ -268,12 +264,9 @@ public abstract class BignumNodes {
                 "!isInteger(b)",
                 "!isLong(b)",
                 "!isDouble(b)"})
-        public Object lessCoerced(
-                VirtualFrame frame,
-                DynamicObject a,
-                Object b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "b, a = math_coerce other, :compare_error; a < b", "other", b);
+        public Object lessCoerced(DynamicObject a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(null, a, "redo_compare", coreStrings().LESS_THAN.getSymbol(), b);
         }
 
     }
@@ -301,12 +294,9 @@ public abstract class BignumNodes {
                 "!isInteger(b)",
                 "!isLong(b)",
                 "!isDouble(b)"})
-        public Object lessEqualCoerced(
-                VirtualFrame frame,
-                DynamicObject a,
-                Object b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "b, a = math_coerce other, :compare_error; a <= b", "other", b);
+        public Object lessEqualCoerced(DynamicObject a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(null, a, "redo_compare", coreStrings().LESS_OR_EQUAL.getSymbol(), b);
         }
     }
 
@@ -377,12 +367,9 @@ public abstract class BignumNodes {
                 "!isInteger(b)",
                 "!isLong(b)",
                 "!isDouble(b)"})
-        public Object greaterEqualCoerced(
-                VirtualFrame frame,
-                DynamicObject a,
-                Object b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "b, a = math_coerce other, :compare_error; a >= b", "other", b);
+        public Object greaterEqualCoerced(DynamicObject a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(null, a, "redo_compare", coreStrings().GREATER_OR_EQUAL.getSymbol(), b);
         }
     }
 
@@ -409,12 +396,9 @@ public abstract class BignumNodes {
                 "!isInteger(b)",
                 "!isLong(b)",
                 "!isDouble(b)"})
-        public Object greaterCoerced(
-                VirtualFrame frame,
-                DynamicObject a,
-                Object b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "b, a = math_coerce other, :compare_error; a > b", "other", b);
+        public Object greaterCoerced(DynamicObject a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(null, a, "redo_compare", coreStrings().GREATER_THAN.getSymbol(), b);
         }
     }
 
