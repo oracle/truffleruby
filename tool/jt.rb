@@ -827,12 +827,12 @@ module Commands
         pr_number = github_pr_branch.split('/').last
       end
 
-      sh 'git', 'push', '--force', bb, "#{github_pr_branch}:refs/heads/github/pr/#{pr_number}"
+      sh 'git', 'push', '--force', '--no-verify', bb, "#{github_pr_branch}:refs/heads/github/pr/#{pr_number}"
     end
 
     def pr_update_master(skip_upstream_fetch: false)
       sh 'git', 'fetch', upstream unless skip_upstream_fetch
-      sh 'git', 'push', bb, "#{upstream}/master:master"
+      sh 'git', 'push', '--no-verify', bb, "#{upstream}/master:master"
     end
 
     def bb
