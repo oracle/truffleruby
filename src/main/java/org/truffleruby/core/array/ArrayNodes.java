@@ -40,6 +40,7 @@ import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.cast.ToAryNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
+import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
 import org.truffleruby.core.format.exceptions.FormatException;
@@ -1328,9 +1329,16 @@ public abstract class ArrayNodes {
 
     }
 
+    @NodeChild(value = "array", type = RubyNode.class)
+    @NodeChild(value = "format", type = RubyNode.class)
     @CoreMethod(names = "pack", required = 1, taintFrom = 1)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
-    public abstract static class PackNode extends ArrayCoreMethodNode {
+    public abstract static class PackNode extends CoreMethodNode {
+
+        @CreateCast("format")
+        public RubyNode coerceFormat(RubyNode format) {
+            return ToStrNodeGen.create(format);
+        }
 
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode;
         @Child private StringNodes.MakeStringNode makeStringNode;
@@ -1339,10 +1347,7 @@ public abstract class ArrayNodes {
         private final BranchProfile exceptionProfile = BranchProfile.create();
         private final ConditionProfile resizeProfile = ConditionProfile.createBinaryProfile();
 
-        @Specialization(guards = {
-                "isRubyString(format)",
-                "equalNode.execute(rope(format), cachedFormat)"
-        }, limit = "getCacheLimit()")
+        @Specialization(guards = "equalNode.execute(rope(format), cachedFormat)", limit = "getCacheLimit()")
         public DynamicObject packCached(
                 DynamicObject array,
                 DynamicObject format,
@@ -1363,7 +1368,7 @@ public abstract class ArrayNodes {
             return finishPack(cachedFormatLength, result);
         }
 
-        @Specialization(replaces = "packCached", guards = "isRubyString(format)")
+        @Specialization(replaces = "packCached")
         public DynamicObject packUncached(
                 DynamicObject array,
                 DynamicObject format,
@@ -1414,21 +1419,6 @@ public abstract class ArrayNodes {
             }
 
             return string;
-        }
-
-        @Specialization(guards = {
-                "!isRubyString(format)",
-                "!isBoolean(format)",
-                "!isInteger(format)",
-                "!isLong(format)",
-                "!isNil(format)"
-        })
-        public Object pack(
-                VirtualFrame frame,
-                DynamicObject array,
-                Object format,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "pack(format.to_str)", "format", format);
         }
 
         @TruffleBoundary
