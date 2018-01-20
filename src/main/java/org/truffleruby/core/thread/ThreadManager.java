@@ -482,8 +482,7 @@ public class ThreadManager {
         runningRubyThreads.remove(thread);
     }
 
-    @TruffleBoundary
-    public void shutdown() {
+    private void checkCalledInMainThreadRootFiber() {
         if (getCurrentThread() != rootThread) {
             throw new UnsupportedOperationException("ThreadManager.shutdown() must be called on the root Ruby Thread");
         }
@@ -493,13 +492,14 @@ public class ThreadManager {
         if (fiberManager.getRubyFiberFromCurrentJavaThread() != fiberManager.getRootFiber()) {
             throw new UnsupportedOperationException("ThreadManager.shutdown() must be called on the root Fiber of the main Thread");
         }
+    }
 
-        try {
-            if (runningRubyThreads.size() > 1) {
-                killOtherThreads();
-            }
-        } finally {
-            cleanup(rootThread, rootJavaThread);
+    @TruffleBoundary
+    public void killAndWaitOtherThreads() {
+        checkCalledInMainThreadRootFiber();
+
+        if (runningRubyThreads.size() > 1) {
+            doKillOtherThreads();
         }
 
         fiberPool.shutdown();
@@ -511,12 +511,18 @@ public class ThreadManager {
         }
     }
 
+    @TruffleBoundary
+    public void shutdown() {
+        checkCalledInMainThreadRootFiber();
+        cleanup(rootThread, rootJavaThread);
+    }
+
     /**
      * Kill all Ruby threads, except the currently executing Thread. Waits that the killed threads
      * have finished their cleanup and killed their fibers.
      */
     @TruffleBoundary
-    private void killOtherThreads() {
+    private void doKillOtherThreads() {
         final Thread initiatingJavaThread = Thread.currentThread();
         final List<CountDownLatch> threadsToWait = Collections.synchronizedList(new ArrayList<>());
 

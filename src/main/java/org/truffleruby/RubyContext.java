@@ -295,7 +295,9 @@ public class RubyContext {
 
     public void finalizeContext() {
         finalizing = true;
+
         atExitManager.runSystemExitHooks();
+        threadManager.killAndWaitOtherThreads();
     }
 
     private final ReentrantLock disposeLock = new ReentrantLock();
