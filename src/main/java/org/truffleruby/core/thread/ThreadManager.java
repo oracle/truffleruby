@@ -507,6 +507,16 @@ public class ThreadManager {
 
         Layouts.THREAD.getFiberManager(rootThread).killOtherFibers();
 
+        // Wait and join all Java threads we created
+        for (Thread thread : rubyManagedThreads) {
+            if (thread != Thread.currentThread()) {
+                runUntilResultKeepStatus(null, () -> {
+                    thread.join();
+                    return BlockingAction.SUCCESS;
+                });
+            }
+        }
+
         // We need to wait a bit in case some threads are after the finishedLatch
         // but still not out of the submitted Runnable
         final boolean terminated = retryWhileInterrupted(() -> fiberPool.awaitTermination(1, TimeUnit.SECONDS));
