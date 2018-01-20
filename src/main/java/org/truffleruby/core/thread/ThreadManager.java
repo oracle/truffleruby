@@ -498,11 +498,13 @@ public class ThreadManager {
     public void killAndWaitOtherThreads() {
         checkCalledInMainThreadRootFiber();
 
+        // Disallow new Fibers to be created
+        fiberPool.shutdown();
+
         if (runningRubyThreads.size() > 1) {
             doKillOtherThreads();
         }
 
-        fiberPool.shutdown();
         // We need to wait a bit in case some threads are after the finishedLatch
         // but still not out of the submitted Runnable
         final boolean terminated = retryWhileInterrupted(() -> fiberPool.awaitTermination(1, TimeUnit.SECONDS));
