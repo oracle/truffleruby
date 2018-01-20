@@ -316,6 +316,9 @@ public class RubyContext {
     }
 
     private void dispose() {
+        threadManager.cleanupMainThread();
+        safepointManager.checkNoRunningThreads();
+
         if (options.ROPE_PRINT_INTERN_STATS) {
             Log.LOGGER.info("ropes re-used: " + getRopeCache().getRopesReusedCount());
             Log.LOGGER.info("rope byte arrays re-used: " + getRopeCache().getByteArrayReusedCount());
@@ -326,9 +329,6 @@ public class RubyContext {
         if (options.COVERAGE_GLOBAL) {
             coverageManager.print(System.out);
         }
-
-        threadManager.cleanupMainThread();
-        safepointManager.checkNoRunningThreads();
     }
 
     public RubyLanguage getLanguage() {

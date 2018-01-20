@@ -505,6 +505,8 @@ public class ThreadManager {
             doKillOtherThreads();
         }
 
+        Layouts.THREAD.getFiberManager(rootThread).killOtherFibers();
+
         // We need to wait a bit in case some threads are after the finishedLatch
         // but still not out of the submitted Runnable
         final boolean terminated = retryWhileInterrupted(() -> fiberPool.awaitTermination(1, TimeUnit.SECONDS));
