@@ -298,22 +298,22 @@ public class RubyContext {
         atExitManager.runSystemExitHooks();
     }
 
-    private final ReentrantLock shutdownLock = new ReentrantLock();
+    private final ReentrantLock disposeLock = new ReentrantLock();
     private boolean disposed = false;
 
-    public void shutdown() {
-        shutdownLock.lock();
+    public void disposeContext() {
+        disposeLock.lock();
         try {
             if (!disposed) {
-                doShutdown();
+                dispose();
                 disposed = true;
             }
         } finally {
-            shutdownLock.unlock();
+            disposeLock.unlock();
         }
     }
 
-    private void doShutdown() {
+    private void dispose() {
         if (options.ROPE_PRINT_INTERN_STATS) {
             Log.LOGGER.info("ropes re-used: " + getRopeCache().getRopesReusedCount());
             Log.LOGGER.info("rope byte arrays re-used: " + getRopeCache().getByteArrayReusedCount());

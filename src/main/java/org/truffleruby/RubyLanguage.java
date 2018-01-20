@@ -128,7 +128,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected void disposeContext(RubyContext context) {
-        context.shutdown();
+        context.disposeContext();
     }
 
     public static RubyContext getCurrentContext() {
