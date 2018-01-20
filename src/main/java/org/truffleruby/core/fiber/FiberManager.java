@@ -293,7 +293,7 @@ public class FiberManager {
     }
 
     @TruffleBoundary
-    public void shutdown(Thread javaThread) {
+    public void killOtherFibers() {
         // All Fibers except the current one are in waitForResume(),
         // so sending a FiberShutdownMessage is enough to finish them.
         // This also avoids the performance cost of a safepoint.
@@ -309,7 +309,11 @@ public class FiberManager {
                 });
             }
         }
+    }
 
+    @TruffleBoundary
+    public void shutdown(Thread javaThread) {
+        killOtherFibers();
         cleanup(rootFiber, javaThread);
     }
 
