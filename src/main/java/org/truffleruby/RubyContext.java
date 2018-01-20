@@ -328,7 +328,7 @@ public class RubyContext {
         }
 
         threadManager.shutdown();
-        safepointManager.shutdown();
+        safepointManager.checkNoRunningThreads();
     }
 
     public RubyLanguage getLanguage() {
