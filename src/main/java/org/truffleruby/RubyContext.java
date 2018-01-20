@@ -327,7 +327,7 @@ public class RubyContext {
             coverageManager.print(System.out);
         }
 
-        threadManager.shutdown();
+        threadManager.cleanupMainThread();
         safepointManager.checkNoRunningThreads();
     }
 

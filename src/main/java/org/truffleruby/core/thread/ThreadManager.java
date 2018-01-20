@@ -512,7 +512,7 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
-    public void shutdown() {
+    public void cleanupMainThread() {
         checkCalledInMainThreadRootFiber();
         cleanup(rootThread, rootJavaThread);
     }
