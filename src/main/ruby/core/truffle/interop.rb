@@ -13,10 +13,8 @@ module Truffle
     def self.import_method(name)
       method = import(name.to_s)
 
-      Object.class_eval do
-        define_method(name.to_sym) do |*args|
-          from_java_string execute(method, *args)
-        end
+      Object.send(:define_method, name.to_sym) do |*args|
+        from_java_string execute(method, *args)
       end
     end
 
