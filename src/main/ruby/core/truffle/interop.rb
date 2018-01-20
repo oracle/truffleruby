@@ -15,8 +15,7 @@ module Truffle
 
       Object.class_eval do
         define_method(name.to_sym) do |*args|
-          ret = Truffle::Interop.execute(method, *args)
-          Truffle::Interop.from_java_string(ret)
+          from_java_string execute(method, *args)
         end
       end
     end
@@ -36,9 +35,7 @@ module Truffle
 
     def self.keys(object, internal = false)
       keys = Truffle.invoke_primitive :interop_send_keys, object, internal
-      Truffle::Interop.enumerable(keys).map { |key|
-        Truffle::Interop.from_java_string(key)
-      }
+      enumerable(keys).map { |key| from_java_string(key) }
     end
 
     def self.object_keys(object, internal)
