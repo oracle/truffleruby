@@ -8,6 +8,10 @@
 
 module Truffle
   module KernelOperations
+    def self.to_enum_with_size(enum, method, size_method)
+      enum.to_enum(method) { enum.send(size_method) }
+    end
+
     def self.define_hooked_variable(name, getter, setter, defined = proc { 'global-variable' })
       getter = Truffle::Graal.always_split(getter) if getter.arity == 1
       setter = Truffle::Graal.always_split(setter) if setter.arity == 2
@@ -101,4 +105,3 @@ module Truffle
              global_variable_set(:$stderr, v) })
   end
 end
-
