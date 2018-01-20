@@ -14,19 +14,23 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 public class EnumeratorSizeNode extends RubyNode {
 
     @Child private RubyNode method;
-    @Child private SnippetNode snippetNode;
+    @Child private CallDispatchHeadNode toEnumWithSize;
+
     private final ConditionProfile noBlockProfile = ConditionProfile.createBinaryProfile();
-    private final String snippet;
+
+    private final DynamicObject methodName;
+    private final DynamicObject sizeMethodName;
 
     public EnumeratorSizeNode(String enumeratorSize, String methodName, RubyNode method) {
         this.method = method;
-        this.snippet = "to_enum(:" + methodName + ") { " + enumeratorSize + " }";
+        this.methodName = getSymbol(methodName);
+        this.sizeMethodName = getSymbol(enumeratorSize);
     }
 
     @Override
@@ -34,11 +38,14 @@ public class EnumeratorSizeNode extends RubyNode {
         final DynamicObject block = RubyArguments.getBlock(frame);
 
         if (noBlockProfile.profile(block == null)) {
-            if (snippetNode == null) {
+            if (toEnumWithSize == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                snippetNode = insert(new SnippetNode());
+                toEnumWithSize = insert(CallDispatchHeadNode.createOnSelf());
             }
-            return snippetNode.execute(frame, snippet);
+
+            final Object self = RubyArguments.getSelf(frame);
+            return toEnumWithSize.call(frame, coreLibrary().getTruffleKernelOperationsModule(),
+                    "to_enum_with_size", self, methodName, sizeMethodName);
         } else {
             return method.execute(frame);
         }
