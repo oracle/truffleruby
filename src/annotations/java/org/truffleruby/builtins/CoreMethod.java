@@ -73,6 +73,10 @@ public @interface CoreMethod {
 
     boolean returnsEnumeratorIfNoBlock() default false;
 
+    /**
+     * Method to call to determine the size of the returned Enumerator. Implies
+     * {@link #returnsEnumeratorIfNoBlock()}.
+     */
     String enumeratorSize() default "";
 
 }
