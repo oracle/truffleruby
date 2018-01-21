@@ -1801,12 +1801,21 @@ module Commands
     chdir("#{graal}/substratevm") do
       File.write('mx.substratevm/env', "JAVA_HOME=#{java_home}\n")
       mx 'build'
+
+      languages = %w[-ruby]
+      extra = []
       if sulong
-        ENV["TRUFFLERUBY_LIBSULONG_DIR"] = "lib/cext/sulong-libs"
-        mx 'image', '-sulong', '-ruby', '-H:MaxRuntimeCompileMethods=15000', '-H:Name=native-ruby', *options
-      else
-        mx 'image', '-ruby', '-H:Name=native-ruby', *options
+        languages.unshift '-sulong'
+        options = %w[
+          -H:MaxRuntimeCompileMethods=15000
+          -Dtruffleruby.native.libsulong_dir=lib/cext/sulong-libs
+        ] + options
       end
+
+      # SVM needs -D options first
+      properties, options = options.partition { |opt| opt.start_with?('-D') }
+      mx 'image', *languages, *properties, '-H:Name=native-ruby', *options
+
       FileUtils.mv('svmbuild/native-ruby', '../../truffleruby/bin/')
     end
   end
