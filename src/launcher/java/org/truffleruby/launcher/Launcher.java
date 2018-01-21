@@ -70,7 +70,7 @@ public class Launcher {
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
     public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2017 Oracle and/or its affiliates";
 
-    private static final String LIBSULONG_DIR = IS_NATIVE ? System.getenv("TRUFFLERUBY_LIBSULONG_DIR") : null;
+    private static final String LIBSULONG_DIR = IS_NATIVE ? System.getProperty("truffleruby.native.libsulong_dir") : null;
 
     // These system properties are used before outside the SDK option system
 
