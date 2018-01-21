@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
@@ -318,6 +319,24 @@ public abstract class TruffleBootNodes {
                 assert value instanceof Integer || value instanceof Boolean;
                 return value;
             }
+        }
+
+    }
+
+    @CoreMethod(names = "resilient_gem_home?", onSingleton = true)
+    public abstract static class IsResilientGemHomeNode extends CoreMethodArrayArgumentsNode {
+
+        private static final boolean RESILIENT_GEM_HOME = TruffleOptions.AOT ?
+                Boolean.getBoolean("truffleruby.native.resilient_gem_home") : false;
+
+        @TruffleBoundary
+        @Specialization
+        public boolean resilientGemHome() {
+            if (RESILIENT_GEM_HOME) {
+                return true;
+            }
+            final String envVar = System.getenv("TRUFFLERUBY_RESILIENT_GEM_HOME");
+            return envVar != null && !envVar.isEmpty();
         }
 
     }
