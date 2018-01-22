@@ -96,20 +96,20 @@ module FFI
       nfi_args_types = args_types.map { |type| to_nfi_type(type) }
       nfi_return_type = to_nfi_type(return_type)
 
-      function = @ffi_libs.each { |library|
+      function = @ffi_libs.each do |library|
         break library.find_symbol(native_name)
-      }
+      end
       signature = "(#{nfi_args_types.join(',')}):#{nfi_return_type}"
       function = function.bind(Truffle::Interop.to_java_string(signature))
 
-      define_singleton_method(method_name) { |*args|
+      define_singleton_method(method_name) do |*args|
         result = function.call(*args)
         if return_type == :pointer
           FFI::Pointer.new(Truffle::Interop.unbox(result))
         else
           result
         end
-      }
+      end
     end
 
     def find_type(t)

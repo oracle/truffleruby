@@ -274,9 +274,9 @@ module Truffle::FFI
     end
     
     def to_h
-      members.map { |member|
+      members.map do |member|
         [member, self[member]]
-      }.to_h
+      end.to_h
     end
 
     def offsets

@@ -1059,13 +1059,13 @@ class IO
     }
 
     to_fds = -> array {
-      array.map { |e|
+      array.map do |e|
         if IO === e
           e.fileno
         else
           e[1].fileno
         end
-      }
+      end
     }
 
     Truffle::POSIX.with_array_of_ints(to_fds.call(readables)) do |readables_ptr|

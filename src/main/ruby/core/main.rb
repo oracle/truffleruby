@@ -57,7 +57,7 @@ end
 
 show_backtraces = -> {
   puts 'Threads and backtraces:'
-  Thread.list.each { |thread|
+  Thread.list.each do |thread|
     $stderr.puts thread
     if thread == Thread.current
       # Ignore the signal handler frames
@@ -66,7 +66,7 @@ show_backtraces = -> {
       $stderr.puts thread.backtrace
     end
     $stderr.puts
-  }
+  end
 }
 
 Signal.trap('INT') do

@@ -269,7 +269,7 @@ class Pathname
   # Return a pathname which is substituted by String#sub.
   def sub(pattern, *rest, &block)
     if block
-      path = @path.sub(pattern, *rest) {|*args|
+      path = @path.sub(pattern, *rest) do |*args|
         begin
           old = Thread.current[:pathname_sub_matchdata]
           Thread.current[:pathname_sub_matchdata] = $~
@@ -278,7 +278,7 @@ class Pathname
           Thread.current[:pathname_sub_matchdata] = old
         end
         yield(*args)
-      }
+      end
     else
       path = @path.sub(pattern, *rest)
     end
@@ -648,11 +648,11 @@ class Pathname
     result = args.pop
     result = Pathname.new(result) unless Pathname === result
     return result if result.absolute?
-    args.reverse_each {|arg|
+    args.reverse_each do |arg|
       arg = Pathname.new(arg) unless Pathname === arg
       result = arg + result
       return result if result.absolute?
-    }
+    end
     result
   end
 
@@ -680,14 +680,14 @@ class Pathname
   def children(with_directory=true)
     with_directory = false if @path == '.'
     result = []
-    Dir.foreach(@path) {|e|
+    Dir.foreach(@path) do |e|
       next if e == '.' || e == '..'
       if with_directory
         result << self.class.new(File.join(@path, e))
       else
         result << self.class.new(e)
       end
-    }
+    end
     result
   end
 

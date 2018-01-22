@@ -64,9 +64,9 @@ module Readline
       unless Array === result
         result = Array(result)
       end
-      result.map { |e|
+      result.map do |e|
         Truffle::Type.coerce_to(e, String, :to_s)
-      }.sort
+      end.sort
     }
 
     @completion_proc = proc

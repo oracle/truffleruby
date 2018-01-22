@@ -6,6 +6,7 @@ AllCops:
   Exclude:
     - 'lib/truffle/date/format.rb' # crashes Rubocop in VariableForce
     - 'lib/truffle/date/delta/parser.rb' # generated code
+    - 'lib/truffle/socket/mri.rb' # taken from MRI
 
 # Department 'Lint' (58):
 Lint/AmbiguousOperator:
@@ -312,6 +313,10 @@ Lint/Void:
   Enabled: true
 
 #################### Style ###########################
+
+# Supports --auto-correct
+Style/BlockDelimiters:
+  Enabled: true
 
 Style/CaseIndentation:
   Enabled: true

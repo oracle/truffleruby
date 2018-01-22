@@ -35,12 +35,12 @@ module Digest
     # Updates the digest with the contents of a given file _name_ and
     # returns self.
     def file(name)
-      File.open(name, 'rb') {|f|
+      File.open(name, 'rb') do |f|
         buf = ''
         while f.read(16384, buf)
           update buf
         end
-      }
+      end
       self
     end
 
@@ -83,9 +83,9 @@ module Digest
 
     def digest(message = NO_MESSAGE)
       if NO_MESSAGE == message
-        Truffle.privately {
+        Truffle.privately do
           clone.finish
-        }
+        end
       else
         reset
         update message

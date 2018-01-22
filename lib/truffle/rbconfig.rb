@@ -182,7 +182,7 @@ module RbConfig
   end
 
   def RbConfig.expand(val, config = CONFIG)
-    newval = val.gsub(/\$\$|\$\(([^()]+)\)|\$\{([^{}]+)\}/) {
+    newval = val.gsub(/\$\$|\$\(([^()]+)\)|\$\{([^{}]+)\}/) do
       var = $&
       if !(v = $1 || $2)
         '$'
@@ -195,7 +195,7 @@ module RbConfig
       else
         var
       end
-    }
+    end
     val.replace(newval) unless newval == val
     val
   end
