@@ -57,6 +57,33 @@ end
 # wait for sub-processes to handle the interrupt
 trap(:INT) {}
 
+class MxSuite
+  attr_reader :name, :dir
+  def initialize(name, dir)
+    @name = name
+    @dir = dir
+    @mx_dir = "#{dir}/mx.#{name}"
+  end
+
+  def env_file
+    "#{@mx_dir}/env"
+  end
+
+  def binary_suites
+    return [] unless File.exist?(env_file)
+    line = File.readlines(env_file).find { |line| line.start_with? 'MX_BINARY_SUITES=' }
+    return [] unless line
+    line[/^MX_BINARY_SUITES=(.+)/, 1].split(',')
+  end
+
+  def binary_suite?(suite)
+    binary_suites.include?(suite)
+  end
+end
+
+TRUFFLERUBY = MxSuite.new('truffleruby', TRUFFLERUBY_DIR)
+SULONG = MxSuite.new('sulong', File.expand_path('../sulong', TRUFFLERUBY_DIR))
+
 module Utilities
   def self.truffle_version
     suite = File.read("#{TRUFFLERUBY_DIR}/mx.truffleruby/suite.py")
@@ -519,7 +546,11 @@ module Commands
       sulong = Utilities.find_or_clone_repo('https://github.com/graalvm/sulong.git')
       chdir(sulong) do
         raw_sh 'git', 'pull'
-        mx 'sforceimports'
+        # Only update the Truffle import if not shared with TruffleRuby as a source suite
+        if SULONG.binary_suite?('truffle') || TRUFFLERUBY.binary_suite?('truffle')
+          mx 'sforceimports'
+        end
+        mx 'sversions'
         mx 'build', '--dependencies', 'SULONG'
       end
     when "cexts" # Included in 'mx build' but useful to recompile just that part
@@ -1788,8 +1819,7 @@ module Commands
     build
     if sulong
       build('sulong')
-      sulong_repo = File.expand_path("../sulong", TRUFFLERUBY_DIR)
-      FileUtils::Verbose.cp_r "#{sulong_repo}/mxbuild/sulong-libs", "#{TRUFFLERUBY_DIR}/lib/cext"
+      FileUtils::Verbose.cp_r "#{SULONG.dir}/mxbuild/sulong-libs", "#{TRUFFLERUBY_DIR}/lib/cext"
       # Repack TRUFFLERUBY-ZIP to include the sulong-libs
       mx 'build', '--dependencies', 'TRUFFLERUBY-ZIP'
     end
