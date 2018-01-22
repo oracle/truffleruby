@@ -717,9 +717,9 @@ class File < IO
     brace_match = false
 
     if (flags & FNM_EXTGLOB) != 0
-      brace_match = braces(pattern, flags).any? { |p|
+      brace_match = braces(pattern, flags).any? do |p|
         Truffle.invoke_primitive :file_fnmatch, p, path, flags
-      }
+      end
     end
     brace_match || Truffle.invoke_primitive(:file_fnmatch, pattern, path, flags)
   end

@@ -1679,9 +1679,9 @@ module Truffle::CExt
   def rb_exec_recursive(func, obj, arg)
     result = nil
 
-    recursive = Thread.detect_recursion(obj) {
+    recursive = Thread.detect_recursion(obj) do
       result = execute_with_mutex(func, obj, arg, 0)
-    }
+    end
 
     if recursive
       execute_with_mutex(func, obj, arg, 1)

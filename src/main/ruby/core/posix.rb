@@ -70,19 +70,19 @@ module Truffle::POSIX
 
     if func
       string_args = []
-      argument_types.each_with_index { |arg_type, i|
+      argument_types.each_with_index do |arg_type, i|
         if arg_type == :string
           string_args << i
           argument_types[i] = '[sint8]'
         end
-      }
+      end
       string_args.freeze
 
       return_type = to_nfi_type(return_type)
       argument_types = argument_types.map { |type| to_nfi_type(type) }
       bound_func = func.bind("(#{argument_types.join(',')}):#{return_type}")
 
-      on.define_singleton_method(method_name) { |*args|
+      on.define_singleton_method(method_name) do |*args|
         string_args.each do |i|
           str = args.fetch(i)
           # TODO CS 14-Nov-17 this involves copying to a Java byte[], and then NFI will copy it again!
@@ -114,11 +114,11 @@ module Truffle::POSIX
         end
 
         result
-      }
+      end
     else
-      on.define_singleton_method(method_name) { |*|
+      on.define_singleton_method(method_name) do |*|
         raise NotImplementedError, "#{native_name} is not available"
-      }
+      end
       Truffle.invoke_primitive :method_unimplement, method(method_name)
     end
   end
@@ -263,9 +263,9 @@ module Truffle::POSIX
 
   def self.with_array_of_strings_pointer(strings)
     Truffle::FFI::MemoryPointer.new(:pointer, strings.size + 1) do |ptr|
-      pointers = strings.map { |str|
+      pointers = strings.map do |str|
         Truffle::FFI::MemoryPointer.from_string(str)
-      }
+      end
       pointers << Truffle::FFI::Pointer::NULL
       ptr.write_array_of_pointer pointers
       yield(ptr)

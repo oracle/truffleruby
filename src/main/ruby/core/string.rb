@@ -1077,9 +1077,9 @@ class String
       replace = validate.call(replace)
       replace_block = Proc.new { |_broken| replace }
     else
-      replace_block = Proc.new { |broken|
+      replace_block = Proc.new do |broken|
         validate.call(block.call(broken))
-      }
+      end
     end
 
     val = Truffle.invoke_primitive(:string_scrub, self, replace_block)

@@ -98,7 +98,7 @@ module Java
     end
 
     def initialize(*name_parts)
-      ruby_name = name_parts.reduce('') do |memo, obj| memo + obj.capitalize end
+      ruby_name = name_parts.reduce('') { |memo, obj| memo + obj.capitalize }
       java_name = name_parts.join('.')
       @package_name = java_name
       @children = {}

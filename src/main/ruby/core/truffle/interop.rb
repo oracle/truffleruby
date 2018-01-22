@@ -40,11 +40,11 @@ module Truffle
       if object.is_a?(Hash)
         keys = object.keys.map(&:to_s)
       else
-        keys = object.instance_variables.map { |ivar|
+        keys = object.instance_variables.map do |ivar|
           ivar = ivar.to_s
           ivar = ivar[1..-1] if ivar.start_with?('@')
           ivar
-        }
+        end
       end
       if internal
         object.instance_variables.each do |ivar|

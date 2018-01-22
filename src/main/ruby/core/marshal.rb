@@ -1211,9 +1211,9 @@ module Marshal
       range = klass.new(range_begin, range_end, range_exclude_end)
       store_unique_object range
 
-      ivars.each { |name, value|
+      ivars.each do |name, value|
         Truffle.invoke_primitive :object_ivar_set, range, name, value
-      }
+      end
 
       range
     end

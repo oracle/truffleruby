@@ -180,10 +180,10 @@ module Truffle::FFI
       ary = []
       size = Pointer.find_type_size(type)
       tmp = self
-      length.times {
+      length.times do
         ary << tmp.send(reader, *args)
         tmp += size
-      }
+      end
       ary
     end
 

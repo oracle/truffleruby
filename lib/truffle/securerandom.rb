@@ -73,7 +73,7 @@ module SecureRandom
       flags |= File::NONBLOCK if defined? File::NONBLOCK
       flags |= File::NOCTTY if defined? File::NOCTTY
       begin
-        File.open('/dev/urandom', flags) {|f|
+        File.open('/dev/urandom', flags) do |f|
           unless f.stat.chardev?
             raise Errno::ENOENT
           end
@@ -83,7 +83,7 @@ module SecureRandom
             raise NotImplementedError, 'Unexpected partial read from random device'
           end
           return ret
-        }
+        end
       rescue Errno::ENOENT
         @has_urandom = false
       end
