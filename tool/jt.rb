@@ -776,7 +776,7 @@ module Commands
       require 'net/http'
 
       dry_run = args.delete '--dry-run'
-      uri     = URI('https://api.github.com/repos/graalvm/truffleruby/pulls')
+      uri     = URI('https://api.github.com/repos/oracle/truffleruby/pulls')
       puts "Contacting GitHub: #{uri}"
       data     = Net::HTTP.get(uri)
       prs_data = JSON.parse data
@@ -839,7 +839,7 @@ module Commands
     end
 
     def upstream
-      remote_urls.find { |r, u| u.include? 'graalvm/truffleruby' }.first
+      remote_urls.find { |r, u| u.include? 'oracle/truffleruby' }.first
     end
 
     def remote_urls
