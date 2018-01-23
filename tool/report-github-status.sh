@@ -21,7 +21,7 @@ if [ "${report}" = "true" ]; then
     # Each build has to have its context, since only the last status posted for a given context is considered
     # in the GitHub UI
     # TODO add an url, "target_url": "${BUILD_URL}/builds/${BUILD_NUMBER}",
-    curl -X POST "https://api.github.com/repos/graalvm/truffleruby/statuses/${commit}" \
+    curl -X POST "https://api.github.com/repos/oracle/truffleruby/statuses/${commit}" \
         -H "authorization: token ${github_status_token}" \
         -H "cache-control: no-cache" \
         -H "content-type: application/json" \
