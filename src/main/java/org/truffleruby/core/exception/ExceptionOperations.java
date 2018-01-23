@@ -17,9 +17,11 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
+import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
@@ -37,7 +39,7 @@ public abstract class ExceptionOperations {
             FormattingFlags.OMIT_EXCEPTION);
 
     @TruffleBoundary
-    public static String messageToString(RubyContext context, DynamicObject exception) {
+    private static String messageFieldToString(RubyContext context, DynamicObject exception) {
         Object message = Layouts.EXCEPTION.getMessage(exception);
         if (message == null || message == context.getCoreLibrary().getNil()) {
             final ModuleFields exceptionClass = Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception));
@@ -45,6 +47,19 @@ public abstract class ExceptionOperations {
         } else {
             return message.toString();
         }
+    }
+
+    @TruffleBoundary
+    public static String messageToString(RubyContext context, DynamicObject exception) {
+        try {
+            final Object messageObject = context.send(exception, "message");
+            if (RubyGuards.isRubyString(messageObject)) {
+                return StringOperations.getString((DynamicObject) messageObject);
+            }
+        } catch (RaiseException e) {
+            // Fall back to the internal message field
+        }
+        return messageFieldToString(context, exception);
     }
 
     @TruffleBoundary

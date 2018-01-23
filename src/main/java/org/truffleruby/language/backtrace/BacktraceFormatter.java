@@ -19,11 +19,8 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.ExceptionOperations;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.loader.SourceLoader;
 
 import java.io.PrintWriter;
@@ -194,18 +191,7 @@ public class BacktraceFormatter {
     private String formatException(DynamicObject exception) {
         final StringBuilder builder = new StringBuilder();
 
-
-        String message;
-        try {
-            Object messageObject = context.send(exception, "message");
-            if (RubyGuards.isRubyString(messageObject)) {
-                message = StringOperations.getString((DynamicObject) messageObject);
-            } else {
-                message = ExceptionOperations.messageToString(context, exception);
-            }
-        } catch (RaiseException e) {
-            message = ExceptionOperations.messageToString(context, exception);
-        }
+        final String message = ExceptionOperations.messageToString(context, exception);
 
         final String exceptionClass = Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception)).getName();
 
