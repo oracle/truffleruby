@@ -1957,8 +1957,7 @@ VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
 }
 
 void rb_check_arity(int argc, int min, int max) {
-  if ((argc < min) || (max != UNLIMITED_ARGUMENTS && argc > max))
-    rb_tr_error("bad arity"); // TODO (pitr-ch 08-Jun-2017): fix error message
+  truffle_invoke(RUBY_CEXT, "rb_check_arity", argc, min, max);
 }
 
 char* ruby_strdup(const char *str) {

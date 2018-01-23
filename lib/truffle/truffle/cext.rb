@@ -1356,6 +1356,10 @@ module Truffle::CExt
     $!
   end
 
+  def rb_check_arity(arg_count, min, max)
+    Truffle::Type.check_arity arg_count, min, max
+  end
+
   def rb_raise(object, name)
     raise 'not implemented'
   end
