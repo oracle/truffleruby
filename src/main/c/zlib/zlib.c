@@ -1978,7 +1978,9 @@ static VALUE
 rb_inflate_add_dictionary(VALUE obj, VALUE dictionary)
 {
     VALUE dictionaries = rb_ivar_get(obj, id_dictionaries);
-    VALUE checksum = do_checksum(1, &dictionary, adler32);
+    VALUE argv[1];
+    argv[0] = dictionary;
+    VALUE checksum = do_checksum(1, argv, adler32);
 
     rb_hash_aset(dictionaries, checksum, dictionary);
 
