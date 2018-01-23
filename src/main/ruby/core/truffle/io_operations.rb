@@ -16,6 +16,18 @@ module Truffle
       Truffle::KernelOperations.frame_local_variable_set(:$_, a_binding, value)
     end
 
+    def self.print(io, args, last_line_binding)
+      if args.empty?
+        raise 'last_line_binding is required' if last_line_binding.nil?
+        io.write Truffle::IOOperations.last_line(last_line_binding).to_s
+      else
+        args.each { |o| io.write o.to_s }
+      end
+
+      io.write $\.to_s
+      nil
+    end
+
     Truffle::Graal.always_split(method(:last_line))
     Truffle::Graal.always_split(method(:set_last_line))
   end

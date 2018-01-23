@@ -1920,14 +1920,7 @@ class IO
   # IO#gets) if called without arguments. Appends $\.to_s to output. Returns
   # nil.
   def print(*args)
-    if args.empty?
-      write Truffle::IOOperations.last_line(Truffle.invoke_primitive(:caller_binding)).to_s
-    else
-      args.each { |o| write o.to_s }
-    end
-
-    write $\.to_s
-    nil
+    Truffle::IOOperations.print self, args, Truffle.invoke_primitive(:caller_binding)
   end
 
   ##
