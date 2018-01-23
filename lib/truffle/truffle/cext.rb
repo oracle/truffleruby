@@ -1422,7 +1422,7 @@ module Truffle::CExt
   end
 
   def rb_io_print(out, args)
-    out.print(*args)
+    Truffle::IOOperations.print out, args, nil
   end
 
   def rb_io_puts(out, args)
