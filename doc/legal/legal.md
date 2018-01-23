@@ -118,12 +118,6 @@ Dave Thomas and Eric Hodel and is available under the terms of the GPL 2 (see
 other files in RDoc have different, but compatible, licences detailed in the
 files.
 
-#### pr-zlib
-
-TruffleRuby uses pr-zlib 1.0.3, with modifications. pr-zlib is copyright Park
-Heesob and Daniel Berger and covered under the same license as zlib itself (see
-`zlib.txt`).
-
 #### FFI
 
 TruffleRuby includes parts of the FFI gem 1.9.18. The FFI gem is copyright

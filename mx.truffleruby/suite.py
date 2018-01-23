@@ -33,10 +33,6 @@ suite = {
             "name": "Apache License 2.0",
             "url": "https://opensource.org/licenses/Apache-2.0"
         },
-        "zlib": {
-            "name": "The zlib License",
-            "url": "https://opensource.org/licenses/zlib"
-        },
     },
 
     "repositories": {
@@ -48,7 +44,6 @@ suite = {
                 "BSD-new",          # Rubinius, FFI
                 "MIT",              # JCodings, minitest, did_you_mean, rake
                 "Apache-2.0",       # SnakeYAML
-                "zlib",             # pr-zlib
             ]
         },
     },
@@ -235,7 +230,6 @@ suite = {
                 "MIT",              # minitest, did_you_mean, rake
                 "BSD-simplified",   # MRI
                 "BSD-new",          # Rubinius, FFI and RubySL
-                "zlib",             # pr-zlib
             ],
         },
 
@@ -329,7 +323,6 @@ suite = {
                 "MIT",              # minitest, did_you_mean, rake
                 "BSD-simplified",   # MRI
                 "BSD-new",          # Rubinius, FFI
-                "zlib",             # pr-zlib
             ],
         },
 

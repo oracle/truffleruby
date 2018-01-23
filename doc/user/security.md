@@ -98,7 +98,7 @@ We are not aware of any known vulnerabilities.
 
 ## Other Dependency Vulnerabilities
 
-## pr-zlib
+## zlib
 
 We are not aware of any known vulnerabilities, but consider potential
 vulnerabilities in your system `zlib`.
