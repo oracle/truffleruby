@@ -552,7 +552,8 @@ module Commands
           mx 'sforceimports'
         end
         mx 'sversions'
-        mx 'build', '--dependencies', 'SULONG'
+        # SULONG_DOC needed for mx fetch-languages --sulong with SVM
+        mx 'build', '--dependencies', 'SULONG,SULONG_DOC'
       end
     when "cexts" # Included in 'mx build' but useful to recompile just that part
       require 'etc'
@@ -1846,21 +1847,20 @@ module Commands
       File.write('mx.substratevm/env', "JAVA_HOME=#{java_home}\n")
       mx 'build'
 
-      languages = %w[-ruby]
+      languages = %w[--ruby]
       extra = []
       if sulong
-        languages.unshift '-sulong'
+        languages.unshift '--sulong'
         options = %w[
-          -H:MaxRuntimeCompileMethods=15000
           -Dtruffleruby.native.libsulong_dir=lib/cext/sulong-libs
         ] + options
       end
 
-      # SVM needs -D options first
-      properties, options = options.partition { |opt| opt.start_with?('-D') }
-      mx 'image', *languages, *properties, '-H:Name=native-ruby', *options
+      mx 'fetch-languages', *languages
 
-      FileUtils.mv('svmbuild/native-ruby', '../../truffleruby/bin/')
+      env = { "JAVA_HOME" => java_home }
+      output_options = "-H:Path=#{TRUFFLERUBY_DIR}/bin", '-H:Name=native-ruby'
+      raw_sh env, './native-image', '-no-server', *languages, *output_options, *options
     end
   end
 
