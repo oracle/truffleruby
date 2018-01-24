@@ -60,6 +60,7 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.platform.NativeTypes;
 import org.truffleruby.platform.Platform;
+import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.stdlib.psych.YAMLEncoding;
 
@@ -872,12 +873,15 @@ public class CoreLibrary {
         }
     }
 
-    public void initializeEncodingManager() {
-        final EncodingManager encodingManager = getContext().getEncodingManager();
-
+    public void defineEncodings() {
         initializeEncodings();
         initializeEncodingAliases();
-        encodingManager.initializeLocaleEncoding(getContext().getTruffleNFI(), getContext().getNativeConfiguration());
+    }
+
+    public void initializeDefaultEncodings(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
+        final EncodingManager encodingManager = getContext().getEncodingManager();
+
+        encodingManager.initializeLocaleEncoding(nfi, nativeConfiguration);
 
         // External should always have a value, but Encoding.external_encoding{,=} will lazily setup
         final String externalEncodingName = getContext().getOptions().EXTERNAL_ENCODING;

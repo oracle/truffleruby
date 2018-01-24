@@ -85,10 +85,10 @@ public class ThreadManager {
         this.fiberPool = Executors.newCachedThreadPool(this::createJavaThread);
     }
 
-    public void initialize() {
+    public void initialize(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
         if (context.getOptions().NATIVE_INTERRUPT) {
-            setupSignalHandler(context);
-            setupNativeThreadSupport();
+            setupSignalHandler(nfi, nativeConfiguration);
+            setupNativeThreadSupport(nfi, nativeConfiguration);
         }
 
         rubyManagedThreads.add(rootJavaThread);
@@ -172,11 +172,9 @@ public class ThreadManager {
         return threadLocals;
     }
 
-    private void setupSignalHandler(RubyContext context) {
-        final NativeConfiguration config = context.getNativeConfiguration();
+    private void setupSignalHandler(TruffleNFIPlatform nfi, NativeConfiguration config) {
         SIGVTALRM = (int) config.get("platform.signal.SIGVTALRM");
 
-        final TruffleNFIPlatform nfi = context.getTruffleNFI();
         final TruffleObject libC = nfi.getDefaultLibrary();
 
         // We use abs() as a function taking a int and having no side effects
@@ -198,9 +196,8 @@ public class ThreadManager {
         }
     }
 
-    private void setupNativeThreadSupport() {
-        final TruffleNFIPlatform nfi = context.getTruffleNFI();
-        final String pthread_t = nfi.resolveType(context.getNativeConfiguration(), "pthread_t");
+    private void setupNativeThreadSupport(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
+        final String pthread_t = nfi.resolveType(nativeConfiguration, "pthread_t");
 
         pthread_self = nfi.getFunction("pthread_self", 0, "():" + pthread_t);
         pthread_kill = nfi.getFunction("pthread_kill", 2, "(" + pthread_t + ",sint32):sint32");
