@@ -15,6 +15,7 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
@@ -112,8 +113,13 @@ public abstract class SymbolNodes {
                     "proc",
                     ArgumentDescriptor.ANON_REST,
                     false);
-
-            final RubyRootNode rootNode = new RubyRootNode(getContext(), sourceSection, new FrameDescriptor(nil()), sharedMethodInfo, Translator.sequence(sourceIndexLength, Arrays.asList(Translator.createCheckArityNode(Arity.AT_LEAST_ONE), new SymbolProcNode(Layouts.SYMBOL.getString(symbol)))));
+            final Object[] args = RubyArguments.pack(null, null, method, null, nil(), null, EMPTY_ARGUMENTS);
+            // MRI raises an error on Proc#binding if you attempt to access the binding of a procedure generated
+            // by Symbol#to_proc. We generate a declaration frame here so that all procedures will have a
+            // binding as this simplifies the logic elsewhere in the runtime.
+            final MaterializedFrame declarationFrame = Truffle.getRuntime().createMaterializedFrame(args, coreLibrary().getEmptyDescriptor());
+            final RubyRootNode rootNode = new RubyRootNode(getContext(), sourceSection, new FrameDescriptor(nil()), sharedMethodInfo,
+                    Translator.sequence(sourceIndexLength, Arrays.asList(Translator.createCheckArityNode(Arity.AT_LEAST_ONE), new SymbolProcNode(Layouts.SYMBOL.getString(symbol)))));
 
             final CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
@@ -121,7 +127,7 @@ public abstract class SymbolNodes {
                     coreLibrary().getProcFactory(),
                     ProcType.PROC,
                     sharedMethodInfo,
-                    callTarget, callTarget, null,
+                    callTarget, callTarget, declarationFrame,
                     method,
                     nil(),
                     null,
