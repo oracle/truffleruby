@@ -21,7 +21,7 @@ module Truffle
     end
 
     def self.last_match(a_binding)
-      Truffle::KernelOperations.frame_local_variable_get(:$~, a_binding) if a_binding
+      Truffle::KernelOperations.frame_local_variable_get(:$~, a_binding)
     end
     Truffle::Graal.always_split(method(:last_match))
 
@@ -30,7 +30,7 @@ module Truffle
         raise TypeError, "Wrong argument type #{value} (expected MatchData)"
       end
       # TODO DMM 2018-01-12 Proc.binding being nil is a bug, we can remove the check once we've fixed it.
-      Truffle::KernelOperations.frame_local_variable_set(:$~, a_binding, value) if a_binding
+      Truffle::KernelOperations.frame_local_variable_set(:$~, a_binding, value)
     end
     Truffle::Graal.always_split(method(:set_last_match))
   end
