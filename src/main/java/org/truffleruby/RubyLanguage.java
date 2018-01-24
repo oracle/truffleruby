@@ -227,7 +227,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected void initializeThread(RubyContext context, Thread thread) {
-        if (thread == context.getThreadManager().getRootJavaThread()) {
+        if (thread == context.getThreadManager().getOrInitializeRootJavaThread()) {
             // Already initialized when creating the context
             return;
         }

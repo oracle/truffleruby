@@ -295,6 +295,15 @@ public class ThreadManager {
         return rootJavaThread;
     }
 
+    public synchronized Thread getOrInitializeRootJavaThread() {
+        // rootJavaThread can be null with a pre-initialized context.
+        // In such a case, the first Thread in is considered the root Thread.
+        if (rootJavaThread == null) {
+            rootJavaThread = Thread.currentThread();
+        }
+        return rootJavaThread;
+    }
+
     public DynamicObject getRootThread() {
         return rootThread;
     }
