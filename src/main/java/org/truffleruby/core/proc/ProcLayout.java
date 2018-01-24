@@ -40,7 +40,7 @@ public interface ProcLayout extends BasicObjectLayout {
             SharedMethodInfo sharedMethodInfo,
             CallTarget callTargetForType,
             CallTarget callTargetForLambdas,
-            @Nullable MaterializedFrame declarationFrame,
+            MaterializedFrame declarationFrame,
             @Nullable InternalMethod method,
             Object self,
             @Nullable DynamicObject block,
