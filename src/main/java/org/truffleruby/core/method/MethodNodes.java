@@ -15,6 +15,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.RootNode;
@@ -220,36 +221,48 @@ public abstract class MethodNodes {
             return proc;
         }
 
+        @Specialization(guards = "cachedMethod == internalMethod(methodObject)", limit = "getCacheLimit()", replaces = "toProcCached")
+        public DynamicObject toProcCachedTarget(DynamicObject methodObject,
+                @Cached("internalMethod(methodObject)") InternalMethod cachedMethod,
+                @Cached("methodCallTarget(cachedMethod)") CallTarget callTarget) {
+            return createProc(callTarget, cachedMethod, Layouts.METHOD.getReceiver(methodObject));
+        }
+
         @Specialization
         public DynamicObject toProcUncached(DynamicObject methodObject) {
-            final CallTarget callTarget = method2proc(methodObject);
-            final InternalMethod method = Layouts.METHOD.getMethod(methodObject);
+            final InternalMethod method = internalMethod(methodObject);
+            final CallTarget callTarget = methodCallTarget(method);
+            final Object receiver = Layouts.METHOD.getReceiver(methodObject);
+            return createProc(callTarget, method, receiver);
+        }
 
+        private DynamicObject createProc(final CallTarget callTarget, final InternalMethod method, final Object receiver) {
+            final Object[] packedArgs = RubyArguments.pack(null, null, method, null, receiver, null, EMPTY_ARGUMENTS);
+            final MaterializedFrame declarationFrame = Truffle.getRuntime().createMaterializedFrame(packedArgs, coreLibrary().getEmptyDescriptor());
             return ProcOperations.createRubyProc(
                     coreLibrary().getProcFactory(),
                     ProcType.LAMBDA,
                     method.getSharedMethodInfo(),
                     callTarget,
                     callTarget,
-                    null,
+                    declarationFrame,
                     method,
-                    Layouts.METHOD.getReceiver(methodObject),
+                    receiver,
                     null,
                     null,
                     method.getDeclarationContext());
         }
 
         @TruffleBoundary
-        protected CallTarget method2proc(DynamicObject methodObject) {
+        protected CallTarget methodCallTarget(InternalMethod method) {
             // translate to something like:
             // lambda { |same args list| method.call(args) }
             // We need to preserve the method receiver and we want to have the same argument list
 
-            final InternalMethod method = Layouts.METHOD.getMethod(methodObject);
             final SourceSection sourceSection = method.getSharedMethodInfo().getSourceSection();
             final RootNode oldRootNode = ((RootCallTarget) method.getCallTarget()).getRootNode();
 
-            final SetReceiverNode setReceiverNode = new SetReceiverNode(Layouts.METHOD.getReceiver(methodObject), method.getCallTarget());
+            final SetReceiverNode setReceiverNode = new SetReceiverNode(method.getCallTarget());
             final RootNode newRootNode = new RubyRootNode(getContext(), sourceSection, oldRootNode.getFrameDescriptor(), method.getSharedMethodInfo(), setReceiverNode);
             return Truffle.getRuntime().createCallTarget(newRootNode);
         }
@@ -258,6 +271,9 @@ public abstract class MethodNodes {
             return getContext().getOptions().METHOD_TO_PROC_CACHE;
         }
 
+        protected InternalMethod internalMethod(DynamicObject a) {
+            return Layouts.METHOD.getMethod(a);
+        }
     }
 
     @Primitive(name = "method_unimplement")
@@ -275,16 +291,15 @@ public abstract class MethodNodes {
 
     private static class SetReceiverNode extends RubyNode {
 
-        private final Object receiver;
         @Child private DirectCallNode methodCallNode;
 
-        public SetReceiverNode(Object receiver, CallTarget methodCallTarget) {
-            this.receiver = receiver;
+        public SetReceiverNode(CallTarget methodCallTarget) {
             this.methodCallNode = DirectCallNode.create(methodCallTarget);
         }
 
         @Override
         public Object execute(VirtualFrame frame) {
+            Object receiver = RubyArguments.getSelf(RubyArguments.getDeclarationFrame(frame));
             RubyArguments.setSelf(frame, receiver);
             return methodCallNode.call(frame.getArguments());
         }
