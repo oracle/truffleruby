@@ -204,20 +204,18 @@ public class RubyContext {
 
         // Create objects that need core classes
 
-        Launcher.printTruffleTimeMetric("before-create-native-platform");
-        truffleNFIPlatform = options.NATIVE_PLATFORM ? new TruffleNFIPlatform(this) : null;
-        featureLoader.initialize(nativeConfiguration, truffleNFIPlatform);
-        Launcher.printTruffleTimeMetric("after-create-native-platform");
+        truffleNFIPlatform = createNativePlatform();
 
         // The encoding manager relies on POSIX having been initialized, so we can't process it during
         // normal core library initialization.
         Launcher.printTruffleTimeMetric("before-initialize-encodings");
-        coreLibrary.initializeEncodingManager();
+        coreLibrary.defineEncodings();
+        coreLibrary.initializeDefaultEncodings(truffleNFIPlatform, nativeConfiguration);
         Launcher.printTruffleTimeMetric("after-initialize-encodings");
 
         Launcher.printTruffleTimeMetric("before-thread-manager");
         threadManager = new ThreadManager(this);
-        threadManager.initialize();
+        threadManager.initialize(truffleNFIPlatform, nativeConfiguration);
         Launcher.printTruffleTimeMetric("after-thread-manager");
 
         Launcher.printTruffleTimeMetric("before-instruments");
@@ -258,6 +256,14 @@ public class RubyContext {
         }
 
         initialized = true;
+    }
+
+    private TruffleNFIPlatform createNativePlatform() {
+        Launcher.printTruffleTimeMetric("before-create-native-platform");
+        final TruffleNFIPlatform truffleNFIPlatform = options.NATIVE_PLATFORM ? new TruffleNFIPlatform(this) : null;
+        featureLoader.initialize(nativeConfiguration, truffleNFIPlatform);
+        Launcher.printTruffleTimeMetric("after-create-native-platform");
+        return truffleNFIPlatform;
     }
 
     private NativeConfiguration loadNativeConfiguration() {
