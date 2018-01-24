@@ -14,6 +14,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -82,6 +83,8 @@ public abstract class TruffleGraalNodes {
     @CoreMethod(names = "copy_captured_locals", onSingleton = true, required = 1)
     public abstract static class CopyCapturedLocalsNode extends CoreMethodArrayArgumentsNode {
 
+        private static final FrameDescriptor descriptor = new FrameDescriptor();
+
         @TruffleBoundary
         @Specialization(guards = "isRubyProc(proc)")
         public DynamicObject copyCapturedLocals(DynamicObject proc) {
@@ -109,12 +112,15 @@ public abstract class TruffleGraalNodes {
                 callTargetForLambdas = Layouts.PROC.getCallTargetForLambdas(proc);
             }
 
+            final Object[] args = RubyArguments.pack(null, null, RubyArguments.getMethod(declarationFrame), null, nil(), null, new Object[0]);
+            final MaterializedFrame newDeclarationFrame = Truffle.getRuntime().createMaterializedFrame(args, descriptor);
+
             return coreLibrary().getProcFactory().newInstance(Layouts.PROC.build(
                     Layouts.PROC.getType(proc),
                     Layouts.PROC.getSharedMethodInfo(proc),
                     newCallTarget,
                     callTargetForLambdas,
-                    null, // The Proc no longer needs a declaration frame
+                    newDeclarationFrame, // The Proc no longer needs a original declaration frame
                     Layouts.PROC.getMethod(proc),
                     Layouts.PROC.getSelf(proc),
                     Layouts.PROC.getBlock(proc),
