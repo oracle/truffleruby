@@ -68,6 +68,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
@@ -208,6 +209,8 @@ public class CoreLibrary {
     private final Object supportUndefined;
     private final DynamicObject digestClass;
     private final DynamicObjectFactory digestFactory;
+
+    private final FrameDescriptor emptyDescriptor;
 
     @CompilationFinal private DynamicObject eagainWaitReadable;
     @CompilationFinal private DynamicObject eagainWaitWritable;
@@ -574,6 +577,7 @@ public class CoreLibrary {
 
         mainObject = objectFactory.newInstance();
         nil = nilFactory.newInstance();
+        emptyDescriptor = new FrameDescriptor(nil);
         argv = Layouts.ARRAY.createArray(arrayFactory, null, 0);
         supportUndefined = NotProvided.INSTANCE;
 
@@ -1066,6 +1070,10 @@ public class CoreLibrary {
 
     public DynamicObject getNilClass() {
         return nilClass;
+    }
+
+    public FrameDescriptor getEmptyDescriptor() {
+        return emptyDescriptor;
     }
 
     public DynamicObject getNoMemoryErrorClass() {
