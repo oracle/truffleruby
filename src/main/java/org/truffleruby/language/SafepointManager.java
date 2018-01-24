@@ -41,7 +41,16 @@ public class SafepointManager {
     private final Set<Thread> runningThreads = Collections.newSetFromMap(new ConcurrentHashMap<Thread, Boolean>());
 
     private final ReentrantLock lock = new ReentrantLock();
-    private final Phaser phaser = new Phaser();
+
+    private final Phaser phaser = new Phaser() {
+        @Override
+        protected boolean onAdvance(int phase, int registeredParties) {
+            // This Phaser should not be automatically terminated,
+            // even when registeredParties drops to 0.
+            // This notably happens when pre-initializing the context.
+            return false;
+        }
+    };
 
     @CompilationFinal private Assumption assumption = Truffle.getRuntime().createAssumption("SafepointManager");
 
@@ -56,9 +65,9 @@ public class SafepointManager {
         CompilerAsserts.neverPartOfCompilation();
 
         lock.lock();
-
         try {
-            phaser.register();
+            int phase = phaser.register();
+            assert phase >= 0 : "Phaser terminated";
             runningThreads.add(Thread.currentThread());
         } finally {
             lock.unlock();
