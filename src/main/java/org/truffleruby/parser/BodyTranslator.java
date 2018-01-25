@@ -348,7 +348,7 @@ public class BodyTranslator extends Translator {
             translatedNodes.add(catNode.accept(this));
         }
 
-        final RubyNode ret = new ArrayConcatNode(translatedNodes.toArray(new RubyNode[translatedNodes.size()]));
+        final RubyNode ret = new ArrayConcatNode(translatedNodes.toArray(RubyNode.EMPTY_ARRAY));
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
     }
@@ -387,7 +387,7 @@ public class BodyTranslator extends Translator {
     public RubyNode visitArrayNode(ArrayParseNode node) {
         final ParseNode[] values = node.children();
 
-        final RubyNode[] translatedValues = new RubyNode[values.length];
+        final RubyNode[] translatedValues = values.length == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[values.length];
 
         for (int n = 0; n < values.length; n++) {
             translatedValues[n] = values[n].accept(this);
@@ -619,7 +619,7 @@ public class BodyTranslator extends Translator {
             arguments.add(readArgumentNode);
         }
 
-        return primitive.createInvokePrimitiveNode(context, source, sourceSection, arguments.toArray(new RubyNode[arguments.size()]));
+        return primitive.createInvokePrimitiveNode(context, source, sourceSection, arguments.toArray(RubyNode.EMPTY_ARRAY));
     }
 
     private RubyNode translatePrivately(CallParseNode node) {
@@ -703,7 +703,7 @@ public class BodyTranslator extends Translator {
 
         children.addAll(Arrays.asList(argumentsAndBlock.getArguments()));
 
-        final SourceIndexLength enclosingSourceSection = enclosing(sourceSection, children.toArray(new RubyNode[children.size()]));
+        final SourceIndexLength enclosingSourceSection = enclosing(sourceSection, children.toArray(RubyNode.EMPTY_ARRAY));
 
         RubyCallNodeParameters callParameters = new RubyCallNodeParameters(receiver, methodName, argumentsAndBlock.getBlock(), argumentsAndBlock.getArguments(), argumentsAndBlock.isSplatted(), privately || ignoreVisibility, isVCall, node.isLazy(), isAttrAssign);
         RubyNode translated = Translator.withSourceSection(enclosingSourceSection, context.getCoreMethods().createCallNode(callParameters));
@@ -779,7 +779,7 @@ public class BodyTranslator extends Translator {
             throw new UnsupportedOperationException("Unknown argument node type: " + argsNode.getClass());
         }
 
-        final RubyNode[] argumentsTranslated = new RubyNode[arguments.length];
+        final RubyNode[] argumentsTranslated = arguments.length == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[arguments.length];
         for (int i = 0; i < arguments.length; i++) {
             argumentsTranslated[i] = arguments[i].accept(this);
         }
@@ -1656,7 +1656,7 @@ public class BodyTranslator extends Translator {
         for (ParseNodeTuple pair : node.getPairs()) {
             if (pair.getKey() == null) {
                 // This null case is for splats {a: 1, **{b: 2}, c: 3}
-                final RubyNode hashLiteralSoFar = HashLiteralNode.create(context, keyValues.toArray(new RubyNode[keyValues.size()]));
+                final RubyNode hashLiteralSoFar = HashLiteralNode.create(context, keyValues.toArray(RubyNode.EMPTY_ARRAY));
                 hashConcats.add(hashLiteralSoFar);
                 hashConcats.add(new EnsureSymbolKeysNode(
                     HashCastNodeGen.create(pair.getValue().accept(this))));
@@ -1672,7 +1672,7 @@ public class BodyTranslator extends Translator {
             }
         }
 
-        final RubyNode hashLiteralSoFar = HashLiteralNode.create(context, keyValues.toArray(new RubyNode[keyValues.size()]));
+        final RubyNode hashLiteralSoFar = HashLiteralNode.create(context, keyValues.toArray(RubyNode.EMPTY_ARRAY));
         hashConcats.add(hashLiteralSoFar);
 
         if (hashConcats.size() == 1) {
@@ -1680,7 +1680,7 @@ public class BodyTranslator extends Translator {
             return addNewlineIfNeeded(node, ret);
         }
 
-        final RubyNode ret = new ConcatHashLiteralNode(hashConcats.toArray(new RubyNode[hashConcats.size()]));
+        final RubyNode ret = new ConcatHashLiteralNode(hashConcats.toArray(RubyNode.EMPTY_ARRAY));
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
@@ -2790,7 +2790,7 @@ public class BodyTranslator extends Translator {
     private RescueNode translateRescueArrayParseNode(ArrayParseNode arrayParse, RescueBodyParseNode rescueBody, SourceIndexLength sourceSection) {
         final ParseNode[] exceptionNodes = arrayParse.children();
 
-        final RubyNode[] handlingClasses = new RubyNode[exceptionNodes.length];
+        final RubyNode[] handlingClasses = exceptionNodes.length == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[exceptionNodes.length];
 
         for (int n = 0; n < handlingClasses.length; n++) {
             handlingClasses[n] = exceptionNodes[n].accept(this);
@@ -3038,7 +3038,7 @@ public class BodyTranslator extends Translator {
             arguments = new ParseNode[]{ node.getArgsNode() };
         }
 
-        final RubyNode[] argumentsTranslated = new RubyNode[arguments.length];
+        final RubyNode[] argumentsTranslated = arguments.length == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[arguments.length];
 
         for (int i = 0; i < arguments.length; i++) {
             argumentsTranslated[i] = arguments[i].accept(this);
@@ -3067,7 +3067,7 @@ public class BodyTranslator extends Translator {
     }
 
     protected RubyNode initFlipFlopStates(SourceIndexLength sourceSection) {
-        final RubyNode[] initNodes = new RubyNode[environment.getFlipFlopStates().size()];
+        final RubyNode[] initNodes = environment.getFlipFlopStates().size() == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[environment.getFlipFlopStates().size()];
 
         for (int n = 0; n < initNodes.length; n++) {
             initNodes[n] = new InitFlipFlopSlotNode(environment.getFlipFlopStates().get(n));
