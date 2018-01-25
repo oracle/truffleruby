@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.constants;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import org.truffleruby.Layouts;
@@ -23,8 +24,8 @@ public class ReadConstantNode extends RubyNode {
     private final String name;
 
     @Child private RubyNode moduleNode;
-    @Child private LookupConstantNode lookupConstantNode = LookupConstantNodeGen.create(false, false);
-    @Child private GetConstantNode getConstantNode = GetConstantNode.create();
+    @Child private LookupConstantNode lookupConstantNode;
+    @Child private GetConstantNode getConstantNode;
 
     public ReadConstantNode(RubyNode moduleNode, String name) {
         this.name = name;
@@ -35,9 +36,25 @@ public class ReadConstantNode extends RubyNode {
     public Object execute(VirtualFrame frame) {
         final Object module = moduleNode.execute(frame);
 
-        final RubyConstant constant = lookupConstantNode.lookupConstant(frame, module, name);
+        final RubyConstant constant = getLookupConstantNode().lookupConstant(frame, module, name);
 
-        return getConstantNode.executeGetConstant(frame, module, name, constant, lookupConstantNode);
+        return getGetConstantNode().executeGetConstant(frame, module, name, constant, getLookupConstantNode());
+    }
+
+    private GetConstantNode getGetConstantNode() {
+        if (getConstantNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            getConstantNode = insert(GetConstantNode.create());
+        }
+        return getConstantNode;
+    }
+
+    private LookupConstantNode getLookupConstantNode() {
+        if (lookupConstantNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            lookupConstantNode = insert(LookupConstantNodeGen.create(false, false));
+        }
+        return lookupConstantNode;
     }
 
     @Override
@@ -56,7 +73,7 @@ public class ReadConstantNode extends RubyNode {
 
         final RubyConstant constant;
         try {
-            constant = lookupConstantNode.lookupConstant(frame, module, name);
+            constant = getLookupConstantNode().lookupConstant(frame, module, name);
         } catch (RaiseException e) {
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNameErrorClass()) {
                 // private constant

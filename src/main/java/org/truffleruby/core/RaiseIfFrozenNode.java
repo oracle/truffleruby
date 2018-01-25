@@ -10,6 +10,7 @@
 
 package org.truffleruby.core;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.RubyNode;
@@ -22,7 +23,7 @@ public class RaiseIfFrozenNode extends RubyNode {
     private final BranchProfile errorProfile = BranchProfile.create();
 
     @Child private RubyNode child;
-    @Child private IsFrozenNode isFrozenNode = IsFrozenNodeGen.create(null);
+    @Child private IsFrozenNode isFrozenNode;
 
     public RaiseIfFrozenNode(RubyNode child) {
         this.child = child;
@@ -32,11 +33,19 @@ public class RaiseIfFrozenNode extends RubyNode {
     public Object execute(VirtualFrame frame) {
         Object result = child.execute(frame);
 
-        if (isFrozenNode.executeIsFrozen(result)) {
+        if (getIsFrozen().executeIsFrozen(result)) {
             errorProfile.enter();
             throw new RaiseException(coreExceptions().frozenError(result, this));
         }
 
         return result;
+    }
+
+    private IsFrozenNode getIsFrozen() {
+        if (isFrozenNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            isFrozenNode = insert(IsFrozenNodeGen.create(null));
+        }
+        return isFrozenNode;
     }
 }
