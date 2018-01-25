@@ -1416,23 +1416,15 @@ module Commands
   end
 
   def build_stats_native_build_time(*args)
-    if File.exist?('aot-build.log')
-      log = File.read('aot-build.log')
-      log =~ /\[total\]: (?<build_time>.+) ms/m
-      Float($~[:build_time].gsub(',', '')) / 1000.0
-    else
-      -1
-    end
+    log = File.read('aot-build.log')
+    log =~ /\[total\]: (?<build_time>.+) ms/m
+    Float($~[:build_time].gsub(',', '')) / 1000.0
   end
 
   def build_stats_native_runtime_compilable_methods(*args)
-    if File.exist?('aot-build.log')
-      log = File.read('aot-build.log')
-      log =~ /(?<method_count>\d+) method\(s\) included for runtime compilation/m
-      Integer($~[:method_count])
-    else
-      -1
-    end
+    log = File.read('aot-build.log')
+    log =~ /(?<method_count>\d+) method\(s\) included for runtime compilation/m
+    Integer($~[:method_count])
   end
 
   def metrics(command, *args)
