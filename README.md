@@ -3,6 +3,17 @@
 A high performance implementation of the Ruby programming language. Built on the
 GraalVM by [Oracle Labs](https://labs.oracle.com).
 
+## Aim
+
+TruffleRuby aims to:
+
+* Run idiomatic Ruby code faster
+* Boot Ruby applications in less time
+* Execute C extensions in a managed environment
+* Provide new tooling such as debuggers and monitoring
+* Interoperate with languages like JavaScript, Python and R
+* All while maintaining very high compatibility with the standard implementation of Ruby
+
 ## Authors
 
 The main authors of TruffleRuby in order of joining the project are:
