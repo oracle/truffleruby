@@ -9,11 +9,10 @@
  */
 package org.truffleruby.builtins;
 
-import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.TruffleOptions;
-import com.oracle.truffle.api.dsl.NodeFactory;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
@@ -46,9 +45,11 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.parser.Translator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.TruffleOptions;
+import com.oracle.truffle.api.dsl.NodeFactory;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class CoreMethodNodeManager {
 
@@ -296,7 +297,7 @@ public class CoreMethodNodeManager {
         if (signature.size() == 0) {
             return nodeFactory.createNode();
         } else {
-            final RubyNode[] argumentsArray = argumentsNodes.toArray(new RubyNode[argumentsNodes.size()]);
+            final RubyNode[] argumentsArray = argumentsNodes.toArray(RubyNode.EMPTY_ARRAY);
             if (signature.size() == 1 && signature.get(0) == RubyNode[].class) {
                 Object args = argumentsArray;
                 return nodeFactory.createNode(args);
