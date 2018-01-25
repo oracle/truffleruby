@@ -8,6 +8,7 @@ GraalVM by [Oracle Labs](https://labs.oracle.com).
 TruffleRuby aims to:
 
 * Run idiomatic Ruby code faster
+* Run Ruby code in parallel
 * Boot Ruby applications in less time
 * Execute C extensions in a managed environment
 * Provide new tooling such as debuggers and monitoring
