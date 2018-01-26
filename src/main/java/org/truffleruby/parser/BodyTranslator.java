@@ -387,7 +387,7 @@ public class BodyTranslator extends Translator {
     public RubyNode visitArrayNode(ArrayParseNode node) {
         final ParseNode[] values = node.children();
 
-        final RubyNode[] translatedValues = values.length == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[values.length];
+        final RubyNode[] translatedValues = RubyNode.createArray(values.length);
 
         for (int n = 0; n < values.length; n++) {
             translatedValues[n] = values[n].accept(this);
@@ -779,7 +779,7 @@ public class BodyTranslator extends Translator {
             throw new UnsupportedOperationException("Unknown argument node type: " + argsNode.getClass());
         }
 
-        final RubyNode[] argumentsTranslated = arguments.length == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[arguments.length];
+        final RubyNode[] argumentsTranslated = RubyNode.createArray(arguments.length);
         for (int i = 0; i < arguments.length; i++) {
             argumentsTranslated[i] = arguments[i].accept(this);
         }
@@ -2790,7 +2790,7 @@ public class BodyTranslator extends Translator {
     private RescueNode translateRescueArrayParseNode(ArrayParseNode arrayParse, RescueBodyParseNode rescueBody, SourceIndexLength sourceSection) {
         final ParseNode[] exceptionNodes = arrayParse.children();
 
-        final RubyNode[] handlingClasses = exceptionNodes.length == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[exceptionNodes.length];
+        final RubyNode[] handlingClasses = RubyNode.createArray(exceptionNodes.length);
 
         for (int n = 0; n < handlingClasses.length; n++) {
             handlingClasses[n] = exceptionNodes[n].accept(this);
@@ -3038,7 +3038,7 @@ public class BodyTranslator extends Translator {
             arguments = new ParseNode[]{ node.getArgsNode() };
         }
 
-        final RubyNode[] argumentsTranslated = arguments.length == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[arguments.length];
+        final RubyNode[] argumentsTranslated = RubyNode.createArray(arguments.length);
 
         for (int i = 0; i < arguments.length; i++) {
             argumentsTranslated[i] = arguments[i].accept(this);
@@ -3067,7 +3067,7 @@ public class BodyTranslator extends Translator {
     }
 
     protected RubyNode initFlipFlopStates(SourceIndexLength sourceSection) {
-        final RubyNode[] initNodes = environment.getFlipFlopStates().size() == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[environment.getFlipFlopStates().size()];
+        final RubyNode[] initNodes = RubyNode.createArray(environment.getFlipFlopStates().size());
 
         for (int n = 0; n < initNodes.length; n++) {
             initNodes[n] = new InitFlipFlopSlotNode(environment.getFlipFlopStates().get(n));

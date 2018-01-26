@@ -9,20 +9,21 @@
  */
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
+
 @NodeChild(type = RubyNode.class)
 public abstract class ToSNode extends RubyNode {
 
-    @Child private CallDispatchHeadNode callToSNode;
     @Child private KernelNodes.ToSNode kernelToSNode;
 
     protected DynamicObject kernelToS(Object object) {
@@ -33,22 +34,15 @@ public abstract class ToSNode extends RubyNode {
         return kernelToSNode.executeToS(object);
     }
 
-    private CallDispatchHeadNode getCallToSNode() {
-        if (callToSNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            callToSNode = insert(CallDispatchHeadNode.createOnSelf());
-        }
-        return callToSNode;
-    }
-
     @Specialization(guards = "isRubyString(string)")
     public DynamicObject toS(DynamicObject string) {
         return string;
     }
 
     @Specialization(guards = "!isRubyString(object)")
-    public DynamicObject toSFallback(VirtualFrame frame, Object object) {
-        final Object value = getCallToSNode().call(frame, object, "to_s");
+    public DynamicObject toSFallback(VirtualFrame frame, Object object,
+            @Cached("createOnSelf()") CallDispatchHeadNode callToSNode) {
+        final Object value = callToSNode.call(frame, object, "to_s");
 
         if (RubyGuards.isRubyString(value)) {
             return (DynamicObject) value;
