@@ -29,7 +29,6 @@ import org.truffleruby.language.methods.LookupMethodNodeGen;
 
 public class UncachedDispatchNode extends DispatchNode {
 
-    protected final boolean onlyCallPublic;
     private final MissingBehavior missingBehavior;
 
     @Child private LookupMethodNode lookupMethodNode;
@@ -44,7 +43,6 @@ public class UncachedDispatchNode extends DispatchNode {
 
     public UncachedDispatchNode(boolean ignoreVisibility, boolean onlyCallPublic, DispatchAction dispatchAction, MissingBehavior missingBehavior) {
         super(dispatchAction);
-        this.onlyCallPublic = onlyCallPublic;
         this.missingBehavior = missingBehavior;
         this.lookupMethodNode = LookupMethodNodeGen.create(ignoreVisibility, onlyCallPublic, null, null);
         this.lookupMethodMissingNode = LookupMethodNode.createIgnoreVisibility();

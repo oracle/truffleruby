@@ -9,19 +9,9 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.TypeSystemReference;
-import com.oracle.truffle.api.instrumentation.StandardTags;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
+import java.math.BigInteger;
+
 import org.jcodings.Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
@@ -33,7 +23,17 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.stdlib.CoverageManager;
 
-import java.math.BigInteger;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.TypeSystemReference;
+import com.oracle.truffle.api.instrumentation.StandardTags;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.RootNode;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 
 @TypeSystemReference(RubyTypes.class)
 @ImportStatic(RubyGuards.class)
@@ -93,10 +93,6 @@ public abstract class RubyBaseNode extends Node {
 
     protected CoreExceptions coreExceptions() {
         return getContext().getCoreExceptions();
-    }
-
-    protected DynamicObject handle(Object object) {
-        return Layouts.HANDLE.createHandle(coreLibrary().getHandleFactory(), object);
     }
 
     // Accessors

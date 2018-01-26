@@ -19,11 +19,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class ReadMatchReferenceNodes extends RubyNode {
 
-    public static final int PRE = -1;
-    public static final int POST = -2;
-    public static final int GLOBAL = -3;
-    public static final int HIGHEST = -4;
-
     public static class ReadNthMatchNode extends RubyNode {
         @Child private RubyNode readMatchNode;
         @Child private CallDispatchHeadNode getIndexNode = CallDispatchHeadNode.create();

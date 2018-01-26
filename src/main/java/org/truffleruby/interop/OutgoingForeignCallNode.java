@@ -9,6 +9,20 @@
  */
 package org.truffleruby.interop;
 
+import java.util.Arrays;
+
+import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Log;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.methods.ExceptionTranslatingNode;
+import org.truffleruby.language.methods.UnsupportedOperationBehavior;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -23,22 +37,8 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Log;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.JavaException;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.methods.ExceptionTranslatingNode;
-import org.truffleruby.language.methods.UnsupportedOperationBehavior;
-
-import java.util.Arrays;
 
 @NodeChildren({
         @NodeChild("receiver"),
@@ -122,29 +122,6 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         } else {
             return new InvokeOutgoingNode(name, argsLength);
         }
-    }
-
-    protected RubyToForeignNode[] createToForeignNodes(int argsLength) {
-        final RubyToForeignNode[] toForeignNodes = new RubyToForeignNode[argsLength];
-
-        for (int n = 0; n < argsLength; n++) {
-            toForeignNodes[n] = RubyToForeignNodeGen.create(null);
-        }
-
-        return toForeignNodes;
-    }
-
-    @ExplodeLoop
-    protected Object[] argsToForeign(VirtualFrame frame, RubyToForeignNode[] toForeignNodes, Object[] args) {
-        assert toForeignNodes.length == args.length;
-
-        final Object[] foreignArgs = new Object[toForeignNodes.length];
-
-        for (int n = 0; n < toForeignNodes.length; n++) {
-            foreignArgs[n] = toForeignNodes[n].executeConvert(args[n]);
-        }
-
-        return foreignArgs;
     }
 
     protected int getCacheLimit() {

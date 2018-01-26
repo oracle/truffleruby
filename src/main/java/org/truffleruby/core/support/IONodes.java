@@ -103,7 +103,6 @@ import org.truffleruby.extra.ffi.Pointer;
 public abstract class IONodes {
 
     private static final int CLOSED_FD = -1;
-    public static final String LAST_LINE_VARIABLE = "$_";
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public static abstract class AllocateNode extends UnaryCoreMethodNode {

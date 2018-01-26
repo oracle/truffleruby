@@ -46,7 +46,6 @@ import org.truffleruby.parser.ast.CallParseNode;
 import org.truffleruby.parser.ast.CaseParseNode;
 import org.truffleruby.parser.ast.ClassParseNode;
 import org.truffleruby.parser.ast.ClassVarAsgnParseNode;
-import org.truffleruby.parser.ast.ClassVarDeclParseNode;
 import org.truffleruby.parser.ast.ClassVarParseNode;
 import org.truffleruby.parser.ast.Colon2ParseNode;
 import org.truffleruby.parser.ast.Colon3ParseNode;
@@ -91,7 +90,6 @@ import org.truffleruby.parser.ast.Match3ParseNode;
 import org.truffleruby.parser.ast.MatchParseNode;
 import org.truffleruby.parser.ast.ModuleParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
-import org.truffleruby.parser.ast.NewlineParseNode;
 import org.truffleruby.parser.ast.NextParseNode;
 import org.truffleruby.parser.ast.NilParseNode;
 import org.truffleruby.parser.ast.NthRefParseNode;
@@ -229,10 +227,6 @@ public abstract class AbstractNodeVisitor<T> implements NodeVisitor<T> {
         return defaultVisit(node);
     }
 
-    @Override
-    public T visitClassVarDeclNode(ClassVarDeclParseNode node) {
-        return defaultVisit(node);
-    }
 
     @Override
     public T visitClassVarNode(ClassVarParseNode node) {
@@ -461,11 +455,6 @@ public abstract class AbstractNodeVisitor<T> implements NodeVisitor<T> {
 
     @Override
     public T visitModuleNode(ModuleParseNode node) {
-        return defaultVisit(node);
-    }
-
-    @Override
-    public T visitNewlineNode(NewlineParseNode node) {
         return defaultVisit(node);
     }
 

@@ -83,7 +83,7 @@ public final class SourceLoaderSupport {
                         Source source = Source.newBuilder(reader).name(name).mimeType(RubyLanguage.MIME_TYPE).internal().build();
 
                         // TODO CS 5-Sep-17 can we keep the source as a CharSequence rather than using toString?
-                        coreLibrary.put(name, new CoreLibraryFile(source.getCharacters().toString(), null));
+                        coreLibrary.put(name, new CoreLibraryFile(source.getCharacters().toString()));
                     } else {
                         throw new Error("Unable to load ruby core library file " + name);
                     }
@@ -99,20 +99,8 @@ public final class SourceLoaderSupport {
 
     public static class CoreLibraryFile {
         public final String code;
-        public final Map<Integer, CoreLibraryMethod> methods;
 
-        public CoreLibraryFile(String code, Map<Integer, CoreLibraryMethod> methods) {
-            this.code = code;
-            this.methods = methods;
-        }
-    }
-
-    public static class CoreLibraryMethod {
-        public final String name;
-        public final byte[] code;
-
-        public CoreLibraryMethod(String name, byte[] code) {
-            this.name = name;
+        public CoreLibraryFile(String code) {
             this.code = code;
         }
     }

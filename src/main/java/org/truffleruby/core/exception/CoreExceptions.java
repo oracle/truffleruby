@@ -280,11 +280,6 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject errnoError(int errno, Node currentNode) {
-        return errnoError(errno, "", currentNode);
-    }
-
-    @TruffleBoundary
     public DynamicObject errnoError(int errno, String extraMessage, Node currentNode) {
         final String errnoName = context.getCoreLibrary().getErrnoName(errno);
         if (errnoName == null) {
@@ -382,11 +377,6 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorMustHaveWriteMethod(Object object, Node currentNode) {
-        return typeError(StringUtils.format("$stdout must have write method, %s given", Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(object)).getName()), currentNode);
-    }
-
-    @TruffleBoundary
     public DynamicObject typeErrorCantConvertTo(Object from, String toClass, String methodUsed, Object result, Node currentNode) {
         String fromClass = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(from)).getName();
         return typeError(StringUtils.format("can't convert %s to %s (%s#%s gives %s)",
@@ -416,11 +406,6 @@ public class CoreExceptions {
     @TruffleBoundary
     public DynamicObject typeErrorNoImplicitConversion(Object from, String to, Node currentNode) {
         return typeError(StringUtils.format("no implicit conversion of %s into %s", Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(from)).getName(), to), currentNode);
-    }
-
-    @TruffleBoundary
-    public DynamicObject typeErrorMustBe(String variable, String type, Node currentNode) {
-        return typeError(StringUtils.format("value of %s must be %s", variable, type), currentNode);
     }
 
     @TruffleBoundary
@@ -521,11 +506,6 @@ public class CoreExceptions {
     @TruffleBoundary
     public DynamicObject nameErrorInstanceVariableNotDefined(String name, Object receiver, Node currentNode) {
         return nameError(StringUtils.format("instance variable %s not defined", name), receiver, name, currentNode);
-    }
-
-    @TruffleBoundary
-    public DynamicObject nameErrorReadOnly(String name, Node currentNode) {
-        return nameError(StringUtils.format("%s is a read-only variable", name), null, name, currentNode);
     }
 
     @TruffleBoundary
@@ -746,20 +726,9 @@ public class CoreExceptions {
     // RangeError
 
     @TruffleBoundary
-    public DynamicObject rangeError(int code, DynamicObject encoding, Node currentNode) {
-        assert RubyGuards.isRubyEncoding(encoding);
-        return rangeError(StringUtils.format("invalid codepoint %x in %s", code, EncodingOperations.getEncoding(encoding)), currentNode);
-    }
-
-    @TruffleBoundary
     public DynamicObject rangeError(long code, DynamicObject encoding, Node currentNode) {
         assert RubyGuards.isRubyEncoding(encoding);
         return rangeError(StringUtils.format("invalid codepoint %x in %s", code, EncodingOperations.getEncoding(encoding)), currentNode);
-    }
-
-    @TruffleBoundary
-    public DynamicObject rangeError(String type, String value, String range, Node currentNode) {
-        return rangeError(StringUtils.format("%s %s out of range of %s", type, value, range), currentNode);
     }
 
     @TruffleBoundary
@@ -794,10 +763,6 @@ public class CoreExceptions {
     }
 
     // InternalError
-
-    public DynamicObject internalErrorUnsafe(Node currentNode) {
-        return internalError("unsafe operation", currentNode, null);
-    }
 
     public DynamicObject internalError(String message, Node currentNode) {
         return internalError(message, currentNode, null);
@@ -928,28 +893,6 @@ public class CoreExceptions {
             errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         }
         return ExceptionOperations.createSystemCallError(context, exceptionClass, errorMessage, currentNode, errno);
-    }
-
-    // IO::EAGAINWaitReadable, IO::EAGAINWaitWritable
-
-    @TruffleBoundary
-    public DynamicObject eAGAINWaitReadable(Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().getEagainWaitReadable();
-        return ExceptionOperations.createSystemCallError(
-                context,
-                exceptionClass,
-                coreStrings().RESOURCE_TEMP_UNAVAIL_READ.createInstance(),
-                currentNode, context.getCoreLibrary().getErrnoValue("EAGAIN"));
-    }
-
-    @TruffleBoundary
-    public DynamicObject eAGAINWaitWritable(Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().getEagainWaitWritable();
-        return ExceptionOperations.createSystemCallError(
-                context,
-                exceptionClass,
-                coreStrings().RESOURCE_TEMP_UNAVAIL_WRITE.createInstance(),
-                currentNode, context.getCoreLibrary().getErrnoValue("EAGAIN"));
     }
 
     // FFI::NullPointerError

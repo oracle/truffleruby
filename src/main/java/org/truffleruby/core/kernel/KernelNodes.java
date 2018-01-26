@@ -489,7 +489,6 @@ public abstract class KernelNodes {
     public abstract static class EvalNode extends PrimitiveArrayArgumentsNode {
 
         @Child private BindingNodes.CallerBindingNode bindingNode;
-        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
 
         protected static class RootNodeWrapper {
             private final RubyRootNode rootNode;

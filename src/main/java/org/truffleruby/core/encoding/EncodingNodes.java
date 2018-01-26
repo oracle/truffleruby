@@ -319,17 +319,6 @@ public abstract class EncodingNodes {
             return null;
         }
 
-        protected boolean isEmpty(Object string) {
-            // The Truffle DSL generator will calculate @Cached values used in guards above all guards. In practice,
-            // this guard is only used on Ruby strings, but the method must handle any object type because of the form
-            // of the generated code. If the object is not a Ruby string, the resulting value is never used.
-            if (RubyGuards.isRubyString(string)) {
-                return StringOperations.rope((DynamicObject) string).isEmpty();
-            }
-
-            return false;
-        }
-
         protected CodeRange getCodeRange(Object string) {
             // The Truffle DSL generator will calculate @Cached values used in guards above all guards. In practice,
             // this guard is only used on Ruby strings, but the method must handle any object type because of the form
@@ -370,11 +359,6 @@ public abstract class EncodingNodes {
 
             return getRubyEncodingNode.executeGetRubyEncoding(negotiatedEncoding);
         }
-
-        protected int getCacheLimit() {
-            return getContext().getOptions().ENCODING_COMPATIBLE_QUERY_CACHE;
-        }
-
     }
 
     @CoreMethod(names = "list", onSingleton = true)
