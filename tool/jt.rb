@@ -1094,7 +1094,7 @@ module Commands
                 gsub(/\/cext(_ruby)?\.rb:(\d+)/, '/cext\1.rb:n')
             expected = File.read("#{dir}/expected.txt")
             unless actual == expected
-              abort "C extension #{dir} didn't work as expected\nActual:\n#{actual}\nExpected:\n#{expected}\n"
+              abort "C extension #{dir} didn't work as expected\nActual:\n#{actual}\nExpected:\n#{expected}"
             end
           else
             run_ruby "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", out: output_file
