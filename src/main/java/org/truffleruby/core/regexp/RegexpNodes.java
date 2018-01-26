@@ -43,7 +43,6 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToStrNode;
-import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.regexp.RegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.regexp.RegexpNodesFactory.ToSNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
