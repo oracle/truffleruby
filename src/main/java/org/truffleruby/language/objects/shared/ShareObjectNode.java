@@ -100,7 +100,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
     }
 
     protected ReadAndShareFieldNode[] createReadAndShareFieldNodes(List<Property> properties) {
-        ReadAndShareFieldNode[] nodes = new ReadAndShareFieldNode[properties.size()];
+        ReadAndShareFieldNode[] nodes = properties.size() == 0 ? ReadAndShareFieldNode.EMPTY_ARRAY : new ReadAndShareFieldNode[properties.size()];
         for (int i = 0; i < nodes.length; i++) {
             nodes[i] = ReadAndShareFieldNodeGen.create(properties.get(i), depth);
         }

@@ -122,7 +122,7 @@ public class Arity {
             descs.add(new ArgumentDescriptor(ArgumentType.anonkeyrest));
         }
 
-        return descs.toArray(new ArgumentDescriptor[descs.size()]);
+        return descs.toArray(ArgumentDescriptor.EMPTY_ARRAY);
     }
 
     @Override
