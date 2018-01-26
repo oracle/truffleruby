@@ -753,9 +753,7 @@ public abstract class StringNodes {
 
         @Specialization
         protected int byteSize(DynamicObject string) {
-            final Rope rope = rope(string);
-
-            return rope.byteLength();
+            return rope(string).byteLength();
         }
 
     }
