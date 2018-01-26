@@ -141,7 +141,7 @@ public class Helpers {
             descs.add(new ArgumentDescriptor(ArgumentType.block, argsNode.getBlock().getName()));
         }
 
-        return descs.toArray(new ArgumentDescriptor[descs.size()]);
+        return descs.toArray(ArgumentDescriptor.EMPTY_ARRAY);
     }
 
     public static boolean isRequiredKeywordArgumentValueNode(ParseNode asgnNode) {

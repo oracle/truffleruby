@@ -20,6 +20,8 @@ public abstract class ReadAndShareFieldNode extends Node {
     
     @Child private WriteBarrierNode writeBarrierNode;
 
+    public static final ReadAndShareFieldNode[] EMPTY_ARRAY = new ReadAndShareFieldNode[]{};
+
     public ReadAndShareFieldNode(Property property, int depth) {
         this.property = property;
         this.writeBarrierNode = WriteBarrierNodeGen.create(depth);
