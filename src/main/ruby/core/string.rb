@@ -370,21 +370,17 @@ class String
     self
   end
 
-  def chars
+  def chars(&block)
     if block_given?
-      each_char do |char|
-        yield char
-      end
+      each_char(&block)
     else
       each_char.to_a
     end
   end
 
-  def codepoints
+  def codepoints(&block)
     if block_given?
-      each_codepoint do |codepoint|
-        yield codepoint
-      end
+      each_codepoint(&block)
     else
       each_codepoint.to_a
     end
@@ -982,11 +978,9 @@ class String
     self
   end
 
-  def lines(sep=$/)
+  def lines(sep=$/, &block)
     if block_given?
-      each_line(sep) do |line|
-        yield line
-      end
+      each_line(sep, &block)
     else
       each_line(sep).to_a
     end
