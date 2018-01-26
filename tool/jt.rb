@@ -1050,42 +1050,40 @@ module Commands
   private :test_compiler
 
   def test_cexts(*args)
+    all_tests = %w(tools openssl minimum method module globals backtraces xopenssl gems)
     no_openssl = args.delete('--no-openssl')
     no_gems = args.delete('--no-gems')
-    test_to_run = args
+    tests = args.empty? ? all_tests : all_tests & args
+    tests.delete 'openssl' if no_openssl
+    tests.delete 'gems' if no_gems
 
-    begin
-      all_tests = %w(tools openssl minimum method module globals backtraces xopenssl gems)
-      tests = test_to_run.empty? ? all_tests : all_tests & args
-      tests.delete 'openssl' if no_openssl
-      tests.delete 'gems' if no_gems
+    tests.each do |test_name|
+      case test_name
+      when 'tools'
+        # Test tools
+        sh RbConfig.ruby, 'test/truffle/cexts/test-preprocess.rb'
 
-      tests.each do |test_name|
-        case test_name
-        when 'tools'
-          # Test tools
-          sh RbConfig.ruby, 'test/truffle/cexts/test-preprocess.rb'
+      when 'openssl'
+        # Test that we can compile and run some basic C code that uses openssl
+        if ENV['OPENSSL_PREFIX']
+          openssl_cflags = ['-I', "#{ENV['OPENSSL_PREFIX']}/include"]
+          openssl_lib = "#{ENV['OPENSSL_PREFIX']}/lib/libssl.#{SO}"
+        else
+          openssl_cflags = []
+          openssl_lib = "libssl.#{SO}"
+        end
 
-        when 'openssl'
-          # Test that we can compile and run some basic C code that uses openssl
-          if ENV['OPENSSL_PREFIX']
-            openssl_cflags = ['-I', "#{ENV['OPENSSL_PREFIX']}/include"]
-            openssl_lib = "#{ENV['OPENSSL_PREFIX']}/lib/libssl.#{SO}"
-          else
-            openssl_cflags = []
-            openssl_lib = "libssl.#{SO}"
-          end
+        sh 'clang', '-c', '-emit-llvm', *openssl_cflags, 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
+        out, _ = mx_sulong('lli', "-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', capture: true)
+        raise out.inspect unless out == "5d41402abc4b2a76b9719d911017c592\n"
 
-          sh 'clang', '-c', '-emit-llvm', *openssl_cflags, 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
-          out, _ = mx_sulong('lli', "-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', capture: true)
-          raise out.inspect unless out == "5d41402abc4b2a76b9719d911017c592\n"
+      when 'minimum', 'method', 'module', 'globals', 'backtraces', 'xopenssl'
+        # Test that we can compile and run some very basic C extensions
 
-        when 'minimum', 'method', 'module', 'globals', 'backtraces', 'xopenssl'
-          # Test that we can compile and run some very basic C extensions
-
+        begin
+          output_file = 'cext-output.txt'
           gem_name = test_name
           next if gem_name == 'xopenssl' && no_openssl
-          output_file = 'cext-output.txt'
           dir = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
           ext_dir = "#{dir}/ext/#{gem_name}/"
           compile_cext gem_name, ext_dir, "#{dir}/lib/#{gem_name}/#{gem_name}.su"
@@ -1105,45 +1103,44 @@ module Commands
               abort "c extension #{dir} didn't work as expected"
             end
           end
-
-        when 'gems'
-          # Test that we can compile and run some real C extensions
-
-            gem_home = "#{gem_test_pack}/gems"
-
-            tests = [
-                ['oily_png', ['chunky_png-1.3.6', 'oily_png-1.2.0'], ['oily_png']],
-                ['psd_native', ['chunky_png-1.3.6', 'oily_png-1.2.0', 'bindata-2.3.1', 'hashie-3.4.4', 'psd-enginedata-1.1.1', 'psd-2.1.2', 'psd_native-1.1.3'], ['oily_png', 'psd_native']],
-                ['nokogiri', [], ['nokogiri']]
-            ]
-
-            tests.each do |gem_name, dependencies, libs|
-              puts "", gem_name
-              next if gem_name == 'nokogiri' # nokogiri totally excluded
-              gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
-              ext_dir = Dir.glob("#{gem_home}/gems/#{gem_name}*/")[0] + "ext/#{gem_name}"
-
-              compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", '-Werror=implicit-function-declaration'
-
-              next if gem_name == 'psd_native' # psd_native is excluded just for running
-              run_ruby *dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
-                       *libs.map { |l| "-I#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{l}/lib" },
-                       "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root
-            end
-
-            # Tests using gem install to compile the cexts
-            sh "test/truffle/cexts/puma/puma.sh"
-            sh "test/truffle/cexts/sqlite3/sqlite3.sh"
-            sh "test/truffle/cexts/unf_ext/unf_ext.sh"
-
-        else
-          raise "unknown test: #{test_name}"
+        ensure
+          File.delete output_file if File.exist? output_file
         end
-      end
-    ensure
-      File.delete output_file rescue nil
-    end
 
+      when 'gems'
+        # Test that we can compile and run some real C extensions
+
+          gem_home = "#{gem_test_pack}/gems"
+
+          tests = [
+              ['oily_png', ['chunky_png-1.3.6', 'oily_png-1.2.0'], ['oily_png']],
+              ['psd_native', ['chunky_png-1.3.6', 'oily_png-1.2.0', 'bindata-2.3.1', 'hashie-3.4.4', 'psd-enginedata-1.1.1', 'psd-2.1.2', 'psd_native-1.1.3'], ['oily_png', 'psd_native']],
+              ['nokogiri', [], ['nokogiri']]
+          ]
+
+          tests.each do |gem_name, dependencies, libs|
+            puts "", gem_name
+            next if gem_name == 'nokogiri' # nokogiri totally excluded
+            gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
+            ext_dir = Dir.glob("#{gem_home}/gems/#{gem_name}*/")[0] + "ext/#{gem_name}"
+
+            compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", '-Werror=implicit-function-declaration'
+
+            next if gem_name == 'psd_native' # psd_native is excluded just for running
+            run_ruby *dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
+                     *libs.map { |l| "-I#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{l}/lib" },
+                     "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root
+          end
+
+          # Tests using gem install to compile the cexts
+          sh "test/truffle/cexts/puma/puma.sh"
+          sh "test/truffle/cexts/sqlite3/sqlite3.sh"
+          sh "test/truffle/cexts/unf_ext/unf_ext.sh"
+
+      else
+        raise "unknown test: #{test_name}"
+      end
+    end
   end
   private :test_cexts
 
