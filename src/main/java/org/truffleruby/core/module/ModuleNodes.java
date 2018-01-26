@@ -51,7 +51,6 @@ import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
-import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
 import org.truffleruby.core.method.MethodFilter;
