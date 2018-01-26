@@ -2149,7 +2149,7 @@ class IO
 
   ##
   # Reads at most maxlen bytes from the I/O stream. It blocks
-  # only if ios has no data immediately available. It doesn‘t
+  # only if ios has no data immediately available. It doesn't
   # block if some data available. If the optional outbuf argument
   # is present, it must reference a String, which will receive the
   # data. It raises EOFError on end of file.
@@ -2165,7 +2165,7 @@ class IO
   # If some data is reached, readpartial returns with the data.
   # If EOF is reached, readpartial raises EOFError.
   #
-  # When readpartial doesn‘t blocks, it returns or raises immediately.
+  # When readpartial doesn't blocks, it returns or raises immediately.
   # If the buffer is not empty, it returns the data in the buffer.
   # Otherwise if the stream has some content, it returns the data in
   # the stream. Otherwise if the stream is reached to EOF, it raises EOFError.
@@ -2191,7 +2191,7 @@ class IO
   #
   # If the buffer is not empty, read from the buffer instead
   # of "sysread for buffered IO (IOError)".
-  # It doesn‘t cause Errno::EAGAIN and Errno::EINTR. When readpartial
+  # It doesn't cause Errno::EAGAIN and Errno::EINTR. When readpartial
   # meets EAGAIN and EINTR by read system call, readpartial retry the system call.
   # The later means that readpartial is nonblocking-flag insensitive. It
   # blocks on the situation IO#sysread causes Errno::EAGAIN as if the fd is blocking mode.

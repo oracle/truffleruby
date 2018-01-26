@@ -137,7 +137,7 @@ class File < IO
   ##
   # Returns the last component of the filename given
   # in file_name, which must be formed using forward
-  # slashes (``/’’) regardless of the separator used
+  # slashes ("/") regardless of the separator used
   # on the local file system. If suffix is given and
   # present at the end of file_name, it is removed.
   #
@@ -251,9 +251,9 @@ class File < IO
   ##
   # Changes the owner and group of the
   # named file(s) to the given numeric owner
-  # and group id‘s. Only a process with superuser
+  # and group id's. Only a process with superuser
   # privileges may change the owner of a file. The
-  # current owner of a file may change the file‘s
+  # current owner of a file may change the file's
   # group to any group to which the owner belongs.
   # A nil or -1 owner or group id is ignored.
   # Returns the number of files processed.
@@ -381,7 +381,7 @@ class File < IO
   ##
   # Returns all components of the filename given in
   # file_name except the last one. The filename must be
-  # formed using forward slashes (``/’’) regardless of
+  # formed using forward slashes ("/") regardless of
   # the separator used on the local file system.
   #
   #  File.dirname("/home/gumby/work/ruby.rb")   #=> "/home/gumby/work"
@@ -451,9 +451,9 @@ class File < IO
   # paths are referenced from the current working directory
   # of the process unless dir_string is given, in which case
   # it will be used as the starting point. The given pathname
-  # may start with a ``~’’, which expands to the process owner‘s
+  # may start with a "~", which expands to the process owner's
   # home directory (the environment variable HOME must be set
-  # correctly). "~user" expands to the named user‘s home directory.
+  # correctly). "~user" expands to the named user's home directory.
   #
   #  File.expand_path("~oracle/bin")           #=> "/home/oracle/bin"
   #  File.expand_path("../../bin", "/tmp/x")   #=> "/bin"
@@ -990,7 +990,7 @@ class File < IO
   end
 
   ##
-  # Returns nil if file_name doesn‘t exist or has zero size,
+  # Returns nil if file_name doesn't exist or has zero size,
   # the size of the file otherwise.
   def self.size?(io_or_path)
     s = 0
