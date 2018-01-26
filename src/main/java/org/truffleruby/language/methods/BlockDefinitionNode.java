@@ -79,7 +79,6 @@ public class BlockDefinitionNode extends RubyNode {
                 callTargetForLambdas,
                 frame.materialize(),
                 RubyArguments.getMethod(frame),
-                RubyArguments.getSelf(frame),
                 RubyArguments.getBlock(frame),
                 frameOnStackMarker,
                 withoutVisibilityNode.executeWithoutVisibility(RubyArguments.getDeclarationContext(frame)));

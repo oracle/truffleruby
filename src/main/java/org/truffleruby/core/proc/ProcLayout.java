@@ -42,7 +42,6 @@ public interface ProcLayout extends BasicObjectLayout {
             CallTarget callTargetForLambdas,
             MaterializedFrame declarationFrame,
             @Nullable InternalMethod method,
-            Object self,
             @Nullable DynamicObject block,
             @Nullable FrameOnStackMarker frameOnStackMarker,
             DeclarationContext declarationContext);
@@ -62,8 +61,6 @@ public interface ProcLayout extends BasicObjectLayout {
     MaterializedFrame getDeclarationFrame(DynamicObject object);
 
     InternalMethod getMethod(DynamicObject object);
-
-    Object getSelf(DynamicObject object);
 
     DynamicObject getBlock(DynamicObject object);
 

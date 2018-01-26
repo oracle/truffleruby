@@ -121,7 +121,6 @@ public abstract class TruffleGraalNodes {
                     callTargetForLambdas,
                     newDeclarationFrame,
                     Layouts.PROC.getMethod(proc),
-                    Layouts.PROC.getSelf(proc),
                     Layouts.PROC.getBlock(proc),
                     Layouts.PROC.getFrameOnStackMarker(proc),
                     Layouts.PROC.getDeclarationContext(proc)));
