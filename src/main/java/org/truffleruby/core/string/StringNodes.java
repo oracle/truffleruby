@@ -810,7 +810,7 @@ public abstract class StringNodes {
     @CoreMethod(names = "count", rest = true)
     public abstract static class CountNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ToStrNode toStr = ToStrNodeGen.create(null);
+        @Child private ToStrNode toStr = ToStrNode.create();
         @Child private CountRopesNode countRopesNode = CountRopesNode.create();
 
         @Specialization(guards = "args.length == size", limit = "getCacheLimit()")
@@ -952,7 +952,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class DeleteBangNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ToStrNode toStr = ToStrNodeGen.create(null);
+        @Child private ToStrNode toStr = ToStrNode.create();
         @Child private DeleteBangRopesNode deleteBangRopesNode = DeleteBangRopesNode.create();
 
         public static DeleteBangNode create() {
@@ -1211,7 +1211,6 @@ public abstract class StringNodes {
     public abstract static class ForceEncodingNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.WithEncodingNode withEncodingNode = RopeNodesFactory.WithEncodingNodeGen.create(null, null, null);
-        @Child private ToStrNode toStrNode;
         private final ConditionProfile differentEncodingProfile = ConditionProfile.createBinaryProfile();
 
         @Specialization(guards = "isRubyString(encodingName)")
@@ -1234,12 +1233,8 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!isRubyString(encoding)", "!isRubyEncoding(encoding)" })
-        public DynamicObject forceEncoding(VirtualFrame frame, DynamicObject string, Object encoding) {
-            if (toStrNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toStrNode = insert(ToStrNodeGen.create(null));
-            }
-
+        public DynamicObject forceEncoding(VirtualFrame frame, DynamicObject string, Object encoding,
+                @Cached("create()") ToStrNode toStrNode) {
             return forceEncodingString(string, toStrNode.executeToStr(frame, encoding));
         }
 
@@ -1283,8 +1278,6 @@ public abstract class StringNodes {
     @Primitive(name = "string_initialize")
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ToStrNode toStrNode;
-
         @Specialization(guards = "isRubyEncoding(encoding)")
         public DynamicObject initializeJavaString(DynamicObject self, String from, DynamicObject encoding) {
             StringOperations.setRope(self, StringOperations.encodeRope(from, EncodingOperations.getEncoding(encoding)));
@@ -1303,12 +1296,8 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = {"!isRubyString(from)", "!isString(from)"})
-        public DynamicObject initialize(VirtualFrame frame, DynamicObject self, Object from, DynamicObject encoding) {
-            if (toStrNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toStrNode = insert(ToStrNodeGen.create(null));
-            }
-
+        public DynamicObject initialize(VirtualFrame frame, DynamicObject self, Object from, DynamicObject encoding,
+                @Cached("create()") ToStrNode toStrNode) {
             StringOperations.setRope(self, rope(toStrNode.executeToStr(frame, from)));
             return self;
         }
@@ -2050,7 +2039,6 @@ public abstract class StringNodes {
     public abstract static class SqueezeBangNode extends CoreMethodArrayArgumentsNode {
 
         @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
-        @Child private ToStrNode toStrNode;
         private final ConditionProfile singleByteOptimizableProfile = ConditionProfile.createBinaryProfile();
 
         @Specialization(guards = "isEmpty(string)")
@@ -2089,13 +2077,9 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!isEmpty(string)", "!zeroArgs(args)" })
-        public Object squeezeBang(VirtualFrame frame, DynamicObject string, Object[] args) {
+        public Object squeezeBang(VirtualFrame frame, DynamicObject string, Object[] args,
+                @Cached("create()") ToStrNode toStrNode) {
             // Taken from org.jruby.RubyString#squeeze_bang19.
-
-            if (toStrNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toStrNode = insert(ToStrNodeGen.create(null));
-            }
 
             final DynamicObject[] otherStrings = new DynamicObject[args.length];
 

@@ -398,7 +398,7 @@ public abstract class RegexpNodes {
         public DynamicObject quote(VirtualFrame frame, Object raw) {
             if (toStrNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toStrNode = insert(ToStrNodeGen.create(null));
+                toStrNode = insert(ToStrNode.create());
             }
 
             return executeQuote(frame, toStrNode.executeToStr(frame, raw));
