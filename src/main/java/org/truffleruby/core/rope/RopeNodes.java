@@ -1342,10 +1342,6 @@ public abstract class RopeNodes {
         public byte getByteFromRope(ManagedRope rope, int index) {
             return rope.getByteSlow(index);
         }
-
-        protected static boolean isSubstring(ManagedRope rope) {
-            return rope instanceof SubstringRope;
-        }
     }
 
     @NodeChildren({
