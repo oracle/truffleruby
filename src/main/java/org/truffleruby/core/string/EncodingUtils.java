@@ -25,6 +25,9 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.string;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.ascii.AsciiTables;
@@ -33,27 +36,13 @@ import org.jcodings.specific.UTF16BEEncoding;
 import org.jcodings.specific.UTF16LEEncoding;
 import org.jcodings.specific.UTF32BEEncoding;
 import org.jcodings.specific.UTF32LEEncoding;
-import org.jcodings.transcode.EConv;
 import org.jcodings.transcode.EConvFlags;
 import org.jcodings.unicode.UnicodeEncoding;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.platform.Platform;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class EncodingUtils {
     public static final int ECONV_DEFAULT_NEWLINE_DECORATOR = Platform.IS_WINDOWS ? EConvFlags.UNIVERSAL_NEWLINE_DECORATOR : 0;
-
-    static final int VMODE = 0;
-    static final int PERM = 1;
-
-    public static int SET_UNIVERSAL_NEWLINE_DECORATOR_IF_ENC2(Encoding enc2, int ecflags) {
-        if (enc2 != null && (ecflags & ECONV_DEFAULT_NEWLINE_DECORATOR) != 0) {
-            return ecflags | EConvFlags.UNIVERSAL_NEWLINE_DECORATOR;
-        }
-        return ecflags;
-    }
 
     // rb_enc_asciicompat
     public static boolean encAsciicompat(Encoding enc) {
@@ -147,58 +136,6 @@ public class EncodingUtils {
         return names;
     }
 
-    public interface ResizeFunction {
-        /**
-         * Resize the destination, returning the new begin offset.
-         *
-         * @param destination
-         * @param len
-         * @param new_len
-         */
-        int resize(RopeBuilder destination, int len, int new_len);
-    }
-
-    /**
-     * Fallback function to provide replacements for characters that fail to transcode.
-     *
-     * @param <State> Runtime state necessary for the function to work
-     * @param <Data> Data needed for the function to execute
-     */
-    public interface TranscodeFallback<State, Data> {
-        /**
-         * Return a replacement character for the given byte range and encoding.
-         *
-         * @param context  runtime state for the function
-         * @param fallback data for the function
-         * @param ec the transcoder that stumbled over the character
-         * @return true if the character was successfully replaced; false otherwise
-         */
-        boolean call(State context, Data fallback, EConv ec);
-    }
-
-    public static void strBufCat(RopeBuilder str, byte[] ptrBytes, int ptr, int len) {
-        int total;
-
-        // termlen is not relevant since we have no termination sequence
-
-        // missing: if ptr string is inside str, off = ptr start minus str start
-
-//        str.modify();
-        if (len == 0) {
-            return;
-        }
-
-        // much logic is missing here, since we don't manually manage the rope builder buffer
-
-        total = str.getLength() + len;
-        str.unsafeEnsureSpace(total);
-        str.append(ptrBytes, ptr, len);
-    }
-
-    // MRI: get_encoding
-    public static Encoding getEncoding(RopeBuilder str) {
-        return getActualEncoding(str.getEncoding(), str);
-    }
 
     private static final Encoding UTF16Dummy = EncodingDB.getEncodings().get("UTF-16".getBytes()).getEncoding();
     private static final Encoding UTF32Dummy = EncodingDB.getEncodings().get("UTF-32".getBytes()).getEncoding();

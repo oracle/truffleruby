@@ -498,12 +498,6 @@ public class ParserSupport {
         }
     }
 
-    public void warningUnlessEOption(ParseNode node, String message) {
-        if (warnings.isVerbose() && !configuration.isInlineSource()) {
-            warnings.warning(file, node.getPosition().toSourceSection(lexer.getSource()).getStartLine(), message);
-        }
-    }
-
     // logical equivalent to value_expr in MRI
     public boolean checkExpression(ParseNode node) {
         boolean conditional = false;
@@ -1390,12 +1384,6 @@ public class ParserSupport {
 
     public void warn(SourceIndexLength position, String message) {
         warnings.warn(file, position.toSourceSection(lexer.getSource()).getStartLine(), message);
-    }
-
-    public void warning(SourceIndexLength position, String message) {
-        if (warnings.isVerbose()) {
-            warnings.warning(file, position.toSourceSection(lexer.getSource()).getStartLine(), message);
-        }
     }
 
     // ENEBO: Totally weird naming (in MRI is not allocated and is a local var name) [1.9]

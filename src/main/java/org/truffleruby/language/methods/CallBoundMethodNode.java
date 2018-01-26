@@ -50,8 +50,4 @@ public abstract class CallBoundMethodNode extends RubyNode {
                 block,
                 arguments);
     }
-
-    protected int getCacheLimit() {
-        return getContext().getOptions().DISPATCH_CACHE;
-    }
 }

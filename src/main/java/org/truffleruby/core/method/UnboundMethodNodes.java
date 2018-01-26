@@ -180,8 +180,6 @@ public abstract class UnboundMethodNodes {
     @CoreMethod(names = "super_method")
     public abstract static class SuperMethodNode extends CoreMethodArrayArgumentsNode {
 
-        @Child MetaClassNode metaClassNode = MetaClassNode.create();
-
         @Specialization
         public DynamicObject superMethod(DynamicObject unboundMethod) {
             InternalMethod internalMethod = Layouts.UNBOUND_METHOD.getMethod(unboundMethod);

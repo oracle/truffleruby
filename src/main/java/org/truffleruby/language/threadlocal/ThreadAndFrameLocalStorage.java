@@ -21,12 +21,6 @@ public class ThreadAndFrameLocalStorage {
     private Object originalThreadValue;
     private volatile ThreadLocal<Object> otherThreadValues = null;
 
-    public static ThreadAndFrameLocalStorage wrap(RubyContext context, Object value) {
-        final ThreadAndFrameLocalStorage storage = new ThreadAndFrameLocalStorage(context);
-        storage.set(value);
-        return storage;
-    }
-
     public ThreadAndFrameLocalStorage(RubyContext context) {
         this.context = context;
         originalThread = new WeakReference<>(Thread.currentThread());

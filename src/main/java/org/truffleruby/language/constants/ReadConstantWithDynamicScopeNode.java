@@ -37,10 +37,6 @@ public class ReadConstantWithDynamicScopeNode extends RubyNode {
         return getConstantNode.executeGetConstant(frame, module, name, constant, lookupConstantNode);
     }
 
-    public Object readConstant(VirtualFrame frame, Object module, String name) {
-        return execute(frame);
-    }
-
     @Override
     public Object isDefined(VirtualFrame frame) {
         final RubyConstant constant;

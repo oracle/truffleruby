@@ -1283,32 +1283,6 @@ public abstract class RopeNodes {
         }
     }
 
-    @NodeChild(type = RubyNode.class, value = "rope")
-    public abstract static class BytesSlowNode extends RubyNode {
-
-        public static BytesSlowNode create() {
-            return RopeNodesFactory.BytesSlowNodeGen.create(null);
-        }
-
-        public abstract byte[] execute(Rope rope);
-
-        @Specialization(guards = "rope.getClass() == cachedRopeClass", limit = "getCacheLimit()")
-        public byte[] getManagedBytesSlow(Rope rope,
-                @Cached("rope.getClass()") Class<? extends Rope> cachedRopeClass) {
-            return cachedRopeClass.cast(rope).getBytesSlow();
-        }
-
-        @TruffleBoundary
-        @Specialization
-        public byte[] getBytesFromRope(Rope rope) {
-            return rope.getBytesSlow();
-        }
-
-        protected int getCacheLimit() {
-            return getContext().getOptions().ROPE_CLASS_CACHE;
-        }
-    }
-
     @NodeChildren({
             @NodeChild(type = RubyNode.class, value = "rope"),
             @NodeChild(type = RubyNode.class, value = "index")
@@ -1341,10 +1315,6 @@ public abstract class RopeNodes {
         @Specialization(guards = "rope.getRawBytes() == null")
         public byte getByteFromRope(ManagedRope rope, int index) {
             return rope.getByteSlow(index);
-        }
-
-        protected static boolean isSubstring(ManagedRope rope) {
-            return rope instanceof SubstringRope;
         }
     }
 

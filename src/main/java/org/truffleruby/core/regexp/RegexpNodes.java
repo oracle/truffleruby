@@ -57,10 +57,8 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -71,7 +69,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -80,8 +77,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreClass("Regexp")
 public abstract class RegexpNodes {
-
-    public static final String LAST_MATCH_VARIABLE = "$~";
 
     @TruffleBoundary
     public static Matcher createMatcher(RubyContext context, DynamicObject regexp, Rope stringRope, byte[] stringBytes, boolean encodingConversion) {
@@ -335,15 +330,6 @@ public abstract class RegexpNodes {
         RegexpNodes.setOptions(regexp, options);
         RegexpNodes.initialize(regexp, regex, source);
         return regexp;
-    }
-
-    public static boolean isSuitableMatchDataType(RubyContext context, DynamicObject matchData) {
-        return matchData == context.getCoreLibrary().getNil() || RubyGuards.isRubyMatchData(matchData);
-    }
-
-    public static boolean frameIsNotSend(RubyContext context, Object callerFrame) {
-        InternalMethod method = RubyArguments.tryGetMethod((Frame) callerFrame);
-        return !context.getCoreLibrary().isSend(method);
     }
 
     @CoreMethod(names = "hash")

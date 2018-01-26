@@ -265,13 +265,6 @@ public class RubyLexer {
         reset();
     }
 
-    @Deprecated
-    public RubyLexer(ParserSupport support, LexerSource source) {
-        this.src = source;
-        this.parserSupport = support;
-        reset();
-    }
-
     public void reset() {
         superReset();
         lex_strterm = null;
@@ -3165,15 +3158,6 @@ public class RubyLexer {
         encoding.codeToMbc(codepoint, bytes, buffer.getLength());
         buffer.clear();
         buffer.append(bytes);
-    }
-
-    /**
-     * Last token read from the lexer at the end of a call to yylex()
-     *
-     * @return last token read
-     */
-    public int token() {
-        return token;
     }
 
     public boolean update_heredoc_indent(int c) {

@@ -9,11 +9,6 @@
  */
 package org.truffleruby.core.time;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.RubyContext;
-import org.truffleruby.core.string.StringOperations;
-
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -21,6 +16,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.TextStyle;
 import java.util.Locale;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public class TimeZoneAndName {
 
@@ -52,14 +49,6 @@ public class TimeZoneAndName {
             return name;
         } else {
             return dateTime.format(SHORT_ZONE_NAME_FORMATTER);
-        }
-    }
-
-    public DynamicObject getNameAsRubyObject(RubyContext context) {
-        if (name == null) {
-            return context.getCoreLibrary().getNil();
-        } else {
-            return StringOperations.createString(context, context.getRopeCache().getRope(name));
         }
     }
 }

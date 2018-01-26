@@ -15,7 +15,6 @@ import org.truffleruby.parser.ast.ArrayParseNode;
 import org.truffleruby.parser.ast.BlockArgParseNode;
 import org.truffleruby.parser.ast.BlockParseNode;
 import org.truffleruby.parser.ast.ClassVarAsgnParseNode;
-import org.truffleruby.parser.ast.ClassVarDeclParseNode;
 import org.truffleruby.parser.ast.DAsgnParseNode;
 import org.truffleruby.parser.ast.KeywordRestArgParseNode;
 import org.truffleruby.parser.ast.ListParseNode;
@@ -76,11 +75,6 @@ public class ParameterCollector extends AbstractNodeVisitor<Object> {
 
     @Override
     public Object visitClassVarAsgnNode(ClassVarAsgnParseNode node) {
-        throw new UnsupportedOperationException(node.toString());
-    }
-
-    @Override
-    public Object visitClassVarDeclNode(ClassVarDeclParseNode node) {
         throw new UnsupportedOperationException(node.toString());
     }
 

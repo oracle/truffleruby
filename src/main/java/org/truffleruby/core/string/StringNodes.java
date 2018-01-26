@@ -243,10 +243,6 @@ public abstract class StringNodes {
             return codeRange == CR_7BIT;
         }
 
-        protected static boolean isAsciiCompatible(Encoding encoding) {
-            return encoding.isAsciiCompatible();
-        }
-
     }
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
