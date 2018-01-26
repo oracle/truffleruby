@@ -392,11 +392,3 @@ module Truffle::POSIX
     end
   end
 end
-
-if Truffle::Boot.get_option 'platform.native'
-  # Initialize errno methods so they do not cause classloading when called later on.
-  # Classloading may change the value of errno as a side-effect.
-  Errno.errno
-  Errno.errno = 0
-  Errno.handle
-end
