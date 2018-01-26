@@ -666,7 +666,7 @@ class String
         until current == after_stop
           yield current
           current = StringValue(current.succ).force_encoding(enc)
-          break if current.size > stop.size || current.size == 0
+          break if current.size > stop.size || current.empty?
         end
       end
     end
@@ -848,7 +848,7 @@ class String
       else
         return
       end
-    elsif sep.size == 0
+    elsif sep.empty?
       return if empty?
       bytes = bytesize
 
@@ -1216,7 +1216,7 @@ class String
 
   def center(width, padding=' ')
     padding = StringValue(padding)
-    raise ArgumentError, 'zero width padding' if padding.size == 0
+    raise ArgumentError, 'zero width padding' if padding.empty?
 
     enc = Truffle::Type.compatible_encoding self, padding
 
@@ -1266,7 +1266,7 @@ class String
 
   def ljust(width, padding=' ')
     padding = StringValue(padding)
-    raise ArgumentError, 'zero width padding' if padding.size == 0
+    raise ArgumentError, 'zero width padding' if padding.empty?
 
     enc = Truffle::Type.compatible_encoding self, padding
 
@@ -1315,7 +1315,7 @@ class String
 
   def rjust(width, padding=' ')
     padding = StringValue(padding)
-    raise ArgumentError, 'zero width padding' if padding.size == 0
+    raise ArgumentError, 'zero width padding' if padding.empty?
 
     enc = Truffle::Type.compatible_encoding self, padding
 
@@ -1440,7 +1440,7 @@ class String
       return nil if size < needle_size
 
       # Boundary case
-      return finish if needle_size == 0
+      return finish if needle.empty?
 
       Truffle::Type.compatible_encoding self, needle
       if byte_index = find_string_reverse(needle, byte_finish)
