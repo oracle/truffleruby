@@ -33,7 +33,7 @@ public class RaiseIfFrozenNode extends RubyNode {
     public Object execute(VirtualFrame frame) {
         Object result = child.execute(frame);
 
-        if (getIsFrozen().executeIsFrozen(result)) {
+        if (executeIsFrozen(result)) {
             errorProfile.enter();
             throw new RaiseException(coreExceptions().frozenError(result, this));
         }
@@ -41,11 +41,11 @@ public class RaiseIfFrozenNode extends RubyNode {
         return result;
     }
 
-    private IsFrozenNode getIsFrozen() {
+    private boolean executeIsFrozen(Object value) {
         if (isFrozenNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             isFrozenNode = insert(IsFrozenNodeGen.create(null));
         }
-        return isFrozenNode;
+        return isFrozenNode.executeIsFrozen(value);
     }
 }

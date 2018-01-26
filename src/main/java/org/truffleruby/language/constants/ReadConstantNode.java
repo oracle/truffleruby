@@ -36,25 +36,29 @@ public class ReadConstantNode extends RubyNode {
     public Object execute(VirtualFrame frame) {
         final Object module = moduleNode.execute(frame);
 
-        final RubyConstant constant = getLookupConstantNode().lookupConstant(frame, module, name);
+        final RubyConstant constant = lookupConstant(frame, module);
 
-        return getGetConstantNode().executeGetConstant(frame, module, name, constant, getLookupConstantNode());
+        return executeGetConstant(frame, module, constant);
     }
 
-    private GetConstantNode getGetConstantNode() {
+    private Object executeGetConstant(VirtualFrame frame, Object module, RubyConstant constant) {
         if (getConstantNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             getConstantNode = insert(GetConstantNode.create());
         }
-        return getConstantNode;
-    }
-
-    private LookupConstantNode getLookupConstantNode() {
         if (lookupConstantNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             lookupConstantNode = insert(LookupConstantNodeGen.create(false, false));
         }
-        return lookupConstantNode;
+        return getConstantNode.executeGetConstant(frame, module, name, constant, lookupConstantNode);
+    }
+
+    private RubyConstant lookupConstant(VirtualFrame frame, Object module) {
+        if (lookupConstantNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            lookupConstantNode = insert(LookupConstantNodeGen.create(false, false));
+        }
+        return lookupConstantNode.lookupConstant(frame, module, name);
     }
 
     @Override
@@ -73,7 +77,7 @@ public class ReadConstantNode extends RubyNode {
 
         final RubyConstant constant;
         try {
-            constant = getLookupConstantNode().lookupConstant(frame, module, name);
+            constant = lookupConstant(frame, module);
         } catch (RaiseException e) {
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNameErrorClass()) {
                 // private constant

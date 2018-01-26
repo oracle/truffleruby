@@ -44,4 +44,8 @@ public abstract class RubyNode extends RubyBaseNode {
         return super.getEncapsulatingSourceSection();
     }
 
+    public static RubyNode[] createArray(int size) {
+        return size == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[size];
+    }
+
 }
