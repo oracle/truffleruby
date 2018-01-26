@@ -10,6 +10,7 @@
 
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -25,7 +26,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToStrNode extends RubyNode {
 
-    @Child private CallDispatchHeadNode toStrNode = CallDispatchHeadNode.create();
+    @Child private CallDispatchHeadNode toStrNode;
 
     public abstract DynamicObject executeToStr(VirtualFrame frame, Object object);
 
@@ -43,7 +44,7 @@ public abstract class ToStrNode extends RubyNode {
             @Cached("create()") BranchProfile errorProfile) {
         final Object coerced;
         try {
-            coerced = toStrNode.call(frame, object, "to_str");
+            coerced = getToStrNode().call(frame, object, "to_str");
         } catch (RaiseException e) {
             errorProfile.enter();
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {
@@ -59,6 +60,14 @@ public abstract class ToStrNode extends RubyNode {
             errorProfile.enter();
             throw new RaiseException(coreExceptions().typeErrorBadCoercion(object, "String", "to_str", coerced, this));
         }
+    }
+
+    private CallDispatchHeadNode getToStrNode() {
+        if (toStrNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            toStrNode = insert(CallDispatchHeadNode.create());
+        }
+        return toStrNode;
     }
 
 }

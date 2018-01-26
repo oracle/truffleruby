@@ -897,7 +897,6 @@ public abstract class StringNodes {
     }
 
     public abstract static class TrTableNode extends CoreMethodArrayArgumentsNode {
-        @Child protected ToStrNode toStr = ToStrNodeGen.create(null);
         @Child protected CheckRopeEncodingNode checkEncodingNode = CheckRopeEncodingNode.create();
         @Child protected RopeNodes.EqualNode ropeEqualNode = RopeNodes.EqualNode.create();
 
