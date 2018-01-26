@@ -569,7 +569,7 @@ public abstract class ModuleNodes {
         protected DynamicObject toStr(VirtualFrame frame, Object object) {
             if (toStrNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toStrNode = insert(ToStrNodeGen.create(null));
+                toStrNode = insert(ToStrNode.create());
             }
             return toStrNode.executeToStr(frame, object);
         }
