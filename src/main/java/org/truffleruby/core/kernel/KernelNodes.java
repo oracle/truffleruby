@@ -974,7 +974,6 @@ public abstract class KernelNodes {
                             Layouts.PROC.getCallTargetForLambdas(block),
                             Layouts.PROC.getDeclarationFrame(block),
                             Layouts.PROC.getMethod(block),
-                            Layouts.PROC.getSelf(block),
                             Layouts.PROC.getBlock(block),
                             null,
                             Layouts.PROC.getDeclarationContext(block));

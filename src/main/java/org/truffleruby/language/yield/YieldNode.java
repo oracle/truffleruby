@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
+import org.truffleruby.core.proc.ProcOperations;
 
 public class YieldNode extends Node {
 
@@ -22,7 +23,7 @@ public class YieldNode extends Node {
         return getCallBlockNode().executeCallBlock(
                 Layouts.PROC.getDeclarationContext(block),
                 block,
-                Layouts.PROC.getSelf(block),
+                ProcOperations.getSelf(block),
                 Layouts.PROC.getBlock(block),
                 argumentsObjects);
     }

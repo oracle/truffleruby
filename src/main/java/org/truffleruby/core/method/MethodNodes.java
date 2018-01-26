@@ -247,7 +247,6 @@ public abstract class MethodNodes {
                     callTarget,
                     declarationFrame,
                     method,
-                    receiver,
                     null,
                     null,
                     method.getDeclarationContext());

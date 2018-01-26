@@ -29,7 +29,7 @@ public abstract class ProcOperations {
                 null,
                 Layouts.PROC.getMethod(proc),
                 Layouts.PROC.getFrameOnStackMarker(proc),
-                Layouts.PROC.getSelf(proc),
+                getSelf(proc),
                 Layouts.PROC.getBlock(proc),
                 args);
     }
@@ -55,7 +55,7 @@ public abstract class ProcOperations {
             CallTarget callTargetForLambdas,
             MaterializedFrame declarationFrame,
             InternalMethod method,
-            Object self, DynamicObject block,
+            DynamicObject block,
             FrameOnStackMarker frameOnStackMarker,
             DeclarationContext declarationContext) {
         assert block == null || RubyGuards.isRubyProc(block);
@@ -80,10 +80,12 @@ public abstract class ProcOperations {
                 callTargetForLambdas,
                 declarationFrame,
                 method,
-                self,
                 block,
                 frameOnStackMarker,
                 declarationContext));
     }
 
+    public static Object getSelf(DynamicObject proc) {
+        return RubyArguments.getSelf(Layouts.PROC.getDeclarationFrame(proc));
+    }
 }

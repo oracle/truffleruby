@@ -122,7 +122,6 @@ public abstract class ProcNodes {
                     Layouts.PROC.getCallTargetForLambdas(block),
                     Layouts.PROC.getDeclarationFrame(block),
                     Layouts.PROC.getMethod(block),
-                    Layouts.PROC.getSelf(block),
                     Layouts.PROC.getBlock(block),
                     Layouts.PROC.getFrameOnStackMarker(block),
                     Layouts.PROC.getDeclarationContext(block)));
@@ -170,7 +169,6 @@ public abstract class ProcNodes {
                     Layouts.PROC.getCallTargetForLambdas(proc),
                     Layouts.PROC.getDeclarationFrame(proc),
                     Layouts.PROC.getMethod(proc),
-                    Layouts.PROC.getSelf(proc),
                     Layouts.PROC.getBlock(proc),
                     Layouts.PROC.getFrameOnStackMarker(proc),
                     Layouts.PROC.getDeclarationContext(proc)));
@@ -219,7 +217,7 @@ public abstract class ProcNodes {
             return callBlockNode.executeCallBlock(
                     Layouts.PROC.getDeclarationContext(proc),
                     proc,
-                    Layouts.PROC.getSelf(proc),
+                    ProcOperations.getSelf(proc),
                     Layouts.PROC.getBlock(proc),
                     args);
         }
@@ -229,7 +227,7 @@ public abstract class ProcNodes {
             return callBlockNode.executeCallBlock(
                     Layouts.PROC.getDeclarationContext(proc),
                     proc,
-                    Layouts.PROC.getSelf(proc),
+                    ProcOperations.getSelf(proc),
                     blockArgument,
                     args);
         }

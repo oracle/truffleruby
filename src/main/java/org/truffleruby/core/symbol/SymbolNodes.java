@@ -129,7 +129,6 @@ public abstract class SymbolNodes {
                     sharedMethodInfo,
                     callTarget, callTarget, declarationFrame,
                     method,
-                    nil(),
                     null,
                     null,
                     DeclarationContext.NONE);
