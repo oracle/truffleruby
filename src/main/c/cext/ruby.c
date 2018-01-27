@@ -4767,7 +4767,7 @@ VALUE rb_yield_values2(int argc, const VALUE *argv) {
 }
 
 int rb_isalnum(int c) {
-  return rb_isdigit(c) || rb_isalpha(c);
+  return rb_isalpha(c) || rb_isdigit(c);
 }
 
 int rb_isalpha(int c) {
