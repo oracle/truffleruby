@@ -124,7 +124,7 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeGuards;
 import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeNodes.MakeRepeatingNode;
+import org.truffleruby.core.rope.RopeNodes.RepeatNode;
 import org.truffleruby.core.rope.RopeNodesFactory;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.SubstringRope;
@@ -303,8 +303,8 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "times >= 0", "!isEmpty(string)" })
         public DynamicObject multiply(DynamicObject string, int times,
-                                      @Cached("create()") MakeRepeatingNode makeRepeatingNode) {
-            final Rope repeated = makeRepeatingNode.executeMake(rope(string), times);
+                                      @Cached("create()") RepeatNode repeatNode) {
+            final Rope repeated = repeatNode.executeRepeat(rope(string), times);
 
             return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, repeated, null));
         }
@@ -316,8 +316,8 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "times >= 0", "isEmpty(string)" })
         public DynamicObject multiplyEmpty(DynamicObject string, long times,
-                @Cached("create()") MakeRepeatingNode makeRepeatingNode) {
-            final Rope repeated = makeRepeatingNode.executeMake(rope(string), 0);
+                @Cached("create()") RopeNodes.RepeatNode repeatNode) {
+            final Rope repeated = repeatNode.executeRepeat(rope(string), 0);
 
             return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, repeated, null));
         }
@@ -3971,11 +3971,11 @@ public abstract class StringNodes {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
-        @Child private RopeNodes.MakeRepeatingNode makeRepeatingNode = RopeNodes.MakeRepeatingNode.create();
+        @Child private RopeNodes.RepeatNode repeatNode = RopeNodes.RepeatNode.create();
 
         @Specialization(guards = "value >= 0")
         public DynamicObject stringPatternZero(DynamicObject stringClass, int size, int value) {
-            final Rope repeatingRope = makeRepeatingNode.executeMake(RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[value], size);
+            final Rope repeatingRope = repeatNode.executeRepeat(RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[value], size);
 
             return allocateObjectNode.allocate(stringClass, Layouts.STRING.build(false, false, repeatingRope, null));
         }
@@ -3983,7 +3983,7 @@ public abstract class StringNodes {
         @Specialization(guards = { "isRubyString(string)", "patternFitsEvenly(string, size)" })
         public DynamicObject stringPatternFitsEvenly(DynamicObject stringClass, int size, DynamicObject string) {
             final Rope rope = rope(string);
-            final Rope repeatingRope = makeRepeatingNode.executeMake(rope, size / rope.byteLength());
+            final Rope repeatingRope = repeatNode.executeRepeat(rope, size / rope.byteLength());
 
             return allocateObjectNode.allocate(stringClass, Layouts.STRING.build(false, false, repeatingRope, null));
         }

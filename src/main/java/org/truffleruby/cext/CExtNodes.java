@@ -426,7 +426,7 @@ public class CExtNodes {
         public DynamicObject rbStrResizeGrow(DynamicObject string, int len,
                                              @Cached("create()") RopeNodes.SubstringNode substringNode,
                                              @Cached("create()") RopeNodes.ConcatNode concatNode,
-                                             @Cached("create()") RopeNodes.MakeRepeatingNode makeRepeatingNode) {
+                                             @Cached("create()") RopeNodes.RepeatNode repeatNode) {
             final Rope rope = rope(string);
 
             if (rope instanceof SubstringRope) {
@@ -445,12 +445,12 @@ public class CExtNodes {
                     if (withBase.byteLength() == len) {
                         StringOperations.setRope(string, withBase);
                     } else {
-                        final Rope filler = makeRepeatingNode.executeMake(RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], len - withBase.byteLength());
+                        final Rope filler = repeatNode.executeRepeat(RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], len - withBase.byteLength());
                         StringOperations.setRope(string, concatNode.executeConcat(withBase, filler, rope.getEncoding()));
                     }
                 }
             } else {
-                final Rope filler = makeRepeatingNode.executeMake(RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], len - rope.byteLength());
+                final Rope filler = repeatNode.executeRepeat(RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], len - rope.byteLength());
                 StringOperations.setRope(string, concatNode.executeConcat(rope, filler, rope.getEncoding()));
             }
 
