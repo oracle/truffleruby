@@ -416,15 +416,15 @@ public class CExtNodes {
 
         @Specialization(guards = "shouldShrink(string, len)")
         public DynamicObject rbStrResizeShrink(DynamicObject string, int len,
-                                               @Cached("create()") RopeNodes.MakeSubstringNode makeSubstringNode) {
-            StringOperations.setRope(string, makeSubstringNode.executeMake(rope(string), 0, len));
+                                               @Cached("create()") RopeNodes.SubstringNode substringNode) {
+            StringOperations.setRope(string, substringNode.executeSubstring(rope(string), 0, len));
             return string;
         }
 
         @TruffleBoundary
         @Specialization(guards = { "!shouldNoop(string, len)", "!shouldShrink(string, len)" })
         public DynamicObject rbStrResizeGrow(DynamicObject string, int len,
-                                             @Cached("create()") RopeNodes.MakeSubstringNode makeSubstringNode,
+                                             @Cached("create()") RopeNodes.SubstringNode substringNode,
                                              @Cached("create()") RopeNodes.MakeConcatNode makeConcatNode,
                                              @Cached("create()") RopeNodes.MakeRepeatingNode makeRepeatingNode) {
             final Rope rope = rope(string);
@@ -439,7 +439,7 @@ public class CExtNodes {
                     final Rope base = substringRope.getChild();
 
                     final int lenFromBase = base.byteLength() <= len ? len - base.byteLength() : len - nullAppended.byteLength();
-                    final Rope fromBase = makeSubstringNode.executeMake(base, nullAppended.byteLength(), lenFromBase);
+                    final Rope fromBase = substringNode.executeSubstring(base, nullAppended.byteLength(), lenFromBase);
                     final Rope withBase = makeConcatNode.executeMake(nullAppended, fromBase, nullAppended.getEncoding());
 
                     if (withBase.byteLength() == len) {

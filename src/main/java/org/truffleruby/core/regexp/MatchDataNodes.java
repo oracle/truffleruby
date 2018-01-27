@@ -174,7 +174,7 @@ public abstract class MatchDataNodes {
 
         @Child private ToIntNode toIntNode;
         @Child private ValuesNode getValuesNode = ValuesNode.create();
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         public static GetIndexNode create(RubyNode... nodes) {
@@ -199,7 +199,7 @@ public abstract class MatchDataNodes {
                 final int start = region.beg[normalizedIndex];
                 final int end = region.end[normalizedIndex];
                 if (hasValueProfile.profile(start > -1 && end > -1)) {
-                    Rope rope = makeSubstringNode.executeMake(sourceRope, start, end - start);
+                    Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
                     return allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope, null));
                 } else {
                     return nil();
@@ -357,7 +357,7 @@ public abstract class MatchDataNodes {
 
     public abstract static class ValuesNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
         @Child private IsTaintedNode isTaintedNode = IsTaintedNode.create();
 
@@ -381,7 +381,7 @@ public abstract class MatchDataNodes {
                 final int end = region.end[n];
 
                 if (start > -1 && end > -1) {
-                    Rope rope = makeSubstringNode.executeMake(sourceRope, start, end - start);
+                    Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
                     DynamicObject string = allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, isTainted, rope, null));
                     values[n] = string;
                 } else {
@@ -483,7 +483,7 @@ public abstract class MatchDataNodes {
     @CoreMethod(names = "pre_match", taintFrom = 0)
     public abstract static class PreMatchNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         public abstract DynamicObject execute(DynamicObject matchData);
@@ -495,7 +495,7 @@ public abstract class MatchDataNodes {
             Region region = Layouts.MATCH_DATA.getRegion(matchData);
             int start = 0;
             int length = region.beg[0];
-            Rope rope = makeSubstringNode.executeMake(sourceRope, start, length);
+            Rope rope = substringNode.executeSubstring(sourceRope, start, length);
             DynamicObject string = allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope, null));
             return string;
         }
@@ -504,7 +504,7 @@ public abstract class MatchDataNodes {
     @CoreMethod(names = "post_match", taintFrom = 0)
     public abstract static class PostMatchNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         public abstract DynamicObject execute(DynamicObject matchData);
@@ -516,7 +516,7 @@ public abstract class MatchDataNodes {
             Region region = Layouts.MATCH_DATA.getRegion(matchData);
             int start = region.end[0];
             int length = sourceRope.byteLength() - region.end[0];
-            Rope rope = makeSubstringNode.executeMake(sourceRope, start, length);
+            Rope rope = substringNode.executeSubstring(sourceRope, start, length);
             DynamicObject string = allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope, null));
             return string;
         }
