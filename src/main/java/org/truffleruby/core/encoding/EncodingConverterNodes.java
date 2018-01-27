@@ -191,7 +191,7 @@ public abstract class EncodingConverterNodes {
     @Primitive(name = "encoding_converter_primitive_convert", lowerFixnum = { 3, 4, 5 })
     public static abstract class PrimitiveConvertNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
         @Specialization(guards = {"isRubyString(source)", "isRubyString(target)", "isRubyHash(options)"})
         public Object encodingConverterPrimitiveConvert(DynamicObject encodingConverter, DynamicObject source,
@@ -273,7 +273,7 @@ public abstract class EncodingConverterNodes {
                 outBytes.setLength(outPtr.p);
 
                 if (nonNullSource) {
-                    sourceRope = makeSubstringNode.executeMake(sourceRope, inPtr.p, sourceRope.byteLength() - inPtr.p);
+                    sourceRope = substringNode.executeSubstring(sourceRope, inPtr.p, sourceRope.byteLength() - inPtr.p);
                     StringOperations.setRope(source, sourceRope);
                 }
 

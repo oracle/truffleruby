@@ -44,7 +44,7 @@ public class ParserRopeOperations {
 
             return RopeOperations.create(Arrays.copyOfRange(rope.getBytes(), sharedStart, sharedStart + sharedLength), rope.getEncoding(), rope.getCodeRange() == CR_7BIT ? CR_7BIT : CR_UNKNOWN);
         } else {
-            return ropeNode.getMakeSubstringNode().executeMake(rope, sharedStart, sharedLength);
+            return ropeNode.getSubstringNode().executeSubstring(rope, sharedStart, sharedLength);
         }
     }
 
@@ -57,16 +57,16 @@ public class ParserRopeOperations {
 
     private static class RopeNode extends RubyNode {
 
-        @Child RopeNodes.MakeSubstringNode makeSubstringNode;
+        @Child RopeNodes.SubstringNode substringNode;
         @Child RopeNodes.WithEncodingNode withEncodingNode;
 
-        public RopeNodes.MakeSubstringNode getMakeSubstringNode() {
-            if (makeSubstringNode == null) {
+        public RopeNodes.SubstringNode getSubstringNode() {
+            if (substringNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                makeSubstringNode = insert(RopeNodes.MakeSubstringNode.create());
+                substringNode = insert(RopeNodes.SubstringNode.create());
             }
 
-            return makeSubstringNode;
+            return substringNode;
         }
 
         public RopeNodes.WithEncodingNode getWithEncodingNode() {

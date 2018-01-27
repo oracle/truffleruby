@@ -53,15 +53,15 @@ public abstract class RopeNodes {
             @NodeChild(type = RubyNode.class, value = "byteOffset"),
             @NodeChild(type = RubyNode.class, value = "byteLength")
     })
-    public abstract static class MakeSubstringNode extends RubyNode {
+    public abstract static class SubstringNode extends RubyNode {
 
         @Child private MakeLeafRopeNode makeLeafRopeNode;
 
-        public static MakeSubstringNode create() {
-            return RopeNodesFactory.MakeSubstringNodeGen.create(null, null, null);
+        public static SubstringNode create() {
+            return RopeNodesFactory.SubstringNodeGen.create(null, null, null);
         }
 
-        public abstract Rope executeMake(Rope base, int byteOffset, int byteLength);
+        public abstract Rope executeSubstring(Rope base, int byteOffset, int byteLength);
 
         @Specialization(guards = "byteLength == 0")
         public Rope substringZeroBytes(Rope base, int byteOffset, int byteLength,

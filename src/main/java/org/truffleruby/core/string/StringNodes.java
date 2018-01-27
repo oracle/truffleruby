@@ -1134,7 +1134,7 @@ public abstract class StringNodes {
     public abstract static class EachCharNode extends YieldingCoreMethodNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private TaintResultNode taintResultNode;
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
@@ -1193,7 +1193,7 @@ public abstract class StringNodes {
 
             int end = Math.min(length, beg + len);
 
-            final Rope substringRope = makeSubstringNode.executeMake(rope, beg, end - beg);
+            final Rope substringRope = substringNode.executeSubstring(rope, beg, end - beg);
 
             if (taintResultNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -1382,7 +1382,7 @@ public abstract class StringNodes {
     public abstract static class LstripBangNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.GetCodePointNode getCodePointNode = RopeNodes.GetCodePointNode.create();
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
         @Specialization(guards = "isEmpty(string)")
         public DynamicObject lstripBangEmptyString(DynamicObject string) {
@@ -1413,7 +1413,7 @@ public abstract class StringNodes {
                 p++;
             }
 
-            StringOperations.setRope(string, makeSubstringNode.executeMake(rope, p, end - p));
+            StringOperations.setRope(string, substringNode.executeSubstring(rope, p, end - p));
 
             return string;
         }
@@ -1438,7 +1438,7 @@ public abstract class StringNodes {
             }
 
             if (p > s) {
-                StringOperations.setRope(string, makeSubstringNode.executeMake(rope, p - s, end - p));
+                StringOperations.setRope(string, substringNode.executeSubstring(rope, p - s, end - p));
 
                 return string;
             }
@@ -1495,7 +1495,7 @@ public abstract class StringNodes {
     public abstract static class RstripBangNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.GetCodePointNode getCodePointNode = RopeNodes.GetCodePointNode.create();
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
         @Specialization(guards = "isEmpty(string)")
         public DynamicObject rstripBangEmptyString(DynamicObject string) {
@@ -1527,7 +1527,7 @@ public abstract class StringNodes {
                 endp--;
             }
 
-            StringOperations.setRope(string, makeSubstringNode.executeMake(rope, 0, endp + 1));
+            StringOperations.setRope(string, substringNode.executeSubstring(rope, 0, endp + 1));
 
             return string;
         }
@@ -1560,7 +1560,7 @@ public abstract class StringNodes {
             }
 
             if (endp < end) {
-                StringOperations.setRope(string, makeSubstringNode.executeMake(rope, 0, endp - start));
+                StringOperations.setRope(string, substringNode.executeSubstring(rope, 0, endp - start));
 
                 return string;
             }
@@ -1579,7 +1579,7 @@ public abstract class StringNodes {
 
         @Child private YieldNode yieldNode = new YieldNode();
         @Child private RopeNodes.MakeConcatNode makeConcatNode = RopeNodes.MakeConcatNode.create();
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         private final RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
@@ -1610,7 +1610,7 @@ public abstract class StringNodes {
                     // p ~e: invalid bytes + unknown bytes
                     int clen = enc.maxLength();
                     if (p1 < p) {
-                        buf = makeConcatNode.executeMake(buf, makeSubstringNode.executeMake(rope, p1, p - p1), enc);
+                        buf = makeConcatNode.executeMake(buf, substringNode.executeSubstring(rope, p1, p - p1), enc);
                     }
 
                     if (e - p < clen) {
@@ -1630,7 +1630,7 @@ public abstract class StringNodes {
                             }
                         }
                     }
-                    DynamicObject repl = (DynamicObject) yield(block, makeStringNode.fromRope(makeSubstringNode.executeMake(rope, p, clen)));
+                    DynamicObject repl = (DynamicObject) yield(block, makeStringNode.fromRope(substringNode.executeSubstring(rope, p, clen)));
                     buf = makeConcatNode.executeMake(buf, rope(repl), enc);
                     p += clen;
                     p1 = p;
@@ -1642,10 +1642,10 @@ public abstract class StringNodes {
                 }
             }
             if (p1 < p) {
-                buf = makeConcatNode.executeMake(buf, makeSubstringNode.executeMake(rope, p1, p - p1), enc);
+                buf = makeConcatNode.executeMake(buf, substringNode.executeSubstring(rope, p1, p - p1), enc);
             }
             if (p < e) {
-                DynamicObject repl = (DynamicObject) yield(block, makeStringNode.fromRope(makeSubstringNode.executeMake(rope, p, e - p)));
+                DynamicObject repl = (DynamicObject) yield(block, makeStringNode.fromRope(substringNode.executeSubstring(rope, p, e - p)));
                 buf = makeConcatNode.executeMake(buf, rope(repl), enc);
             }
 
@@ -1676,7 +1676,7 @@ public abstract class StringNodes {
                     int clen = enc.maxLength();
 
                     if (p1 < p) {
-                        buf = makeConcatNode.executeMake(buf, makeSubstringNode.executeMake(rope, p1, p - p1), enc);
+                        buf = makeConcatNode.executeMake(buf, substringNode.executeSubstring(rope, p1, p - p1), enc);
                     }
 
                     if (e - p < clen) {
@@ -1694,17 +1694,17 @@ public abstract class StringNodes {
                         }
                     }
 
-                    DynamicObject repl = (DynamicObject) yield(block, makeStringNode.fromRope(makeSubstringNode.executeMake(rope, p, clen)));
+                    DynamicObject repl = (DynamicObject) yield(block, makeStringNode.fromRope(substringNode.executeSubstring(rope, p, clen)));
                     buf = makeConcatNode.executeMake(buf, rope(repl), enc);
                     p += clen;
                     p1 = p;
                 }
             }
             if (p1 < p) {
-                buf = makeConcatNode.executeMake(buf, makeSubstringNode.executeMake(rope, p1, p - p1), enc);
+                buf = makeConcatNode.executeMake(buf, substringNode.executeSubstring(rope, p1, p - p1), enc);
             }
             if (p < e) {
-                DynamicObject repl = (DynamicObject) yield(block, makeStringNode.fromRope(makeSubstringNode.executeMake(rope, p, e - p)));
+                DynamicObject repl = (DynamicObject) yield(block, makeStringNode.fromRope(substringNode.executeSubstring(rope, p, e - p)));
                 buf = makeConcatNode.executeMake(buf, rope(repl), enc);
             }
 
@@ -1956,8 +1956,8 @@ public abstract class StringNodes {
         @Child private RopeNodes.MakeConcatNode composedMakeConcatNode = RopeNodes.MakeConcatNode.create();
         @Child private RopeNodes.MakeConcatNode middleMakeConcatNode = RopeNodes.MakeConcatNode.create();
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
-        @Child private RopeNodes.MakeSubstringNode leftMakeSubstringNode = RopeNodes.MakeSubstringNode.create();
-        @Child private RopeNodes.MakeSubstringNode rightMakeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private RopeNodes.SubstringNode leftSubstringNode = RopeNodes.SubstringNode.create();
+        @Child private RopeNodes.SubstringNode rightSubstringNode = RopeNodes.SubstringNode.create();
 
         @CreateCast("index") public RubyNode coerceIndexToInt(RubyNode index) {
             return FixnumLowerNodeGen.create(ToIntNodeGen.create(index));
@@ -1974,8 +1974,8 @@ public abstract class StringNodes {
             final Rope rope = rope(string);
             final int normalizedIndex = checkIndexNode.executeCheck(index, rope.byteLength());
 
-            final Rope left = leftMakeSubstringNode.executeMake(rope, 0, normalizedIndex);
-            final Rope right = rightMakeSubstringNode.executeMake(rope, normalizedIndex + 1, rope.byteLength() - normalizedIndex - 1);
+            final Rope left = leftSubstringNode.executeSubstring(rope, 0, normalizedIndex);
+            final Rope right = rightSubstringNode.executeSubstring(rope, normalizedIndex + 1, rope.byteLength() - normalizedIndex - 1);
             final Rope middle = makeLeafRopeNode.executeMake(new byte[] { (byte) value }, rope.getEncoding(), CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
             final Rope composed = composedMakeConcatNode.executeMake(middleMakeConcatNode.executeMake(left, middle, rope.getEncoding()), right, rope.getEncoding());
 
@@ -2820,11 +2820,11 @@ public abstract class StringNodes {
     @CoreMethod(names = "clear", raiseIfFrozenSelf = true)
     public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
         @Specialization
         public DynamicObject clear(DynamicObject string) {
-            StringOperations.setRope(string, makeSubstringNode.executeMake(rope(string), 0, 0));
+            StringOperations.setRope(string, substringNode.executeSubstring(rope(string), 0, 0));
 
             return string;
         }
@@ -2905,7 +2905,7 @@ public abstract class StringNodes {
     public static abstract class StringAwkSplitPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private RopeNodes.GetCodePointNode getCodePointNode = RopeNodes.GetCodePointNode.create();
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
 
         @TruffleBoundary
@@ -2972,7 +2972,7 @@ public abstract class StringNodes {
         private DynamicObject makeString(DynamicObject source, int index, int length) {
             assert RubyGuards.isRubyString(source);
 
-            final Rope rope = makeSubstringNode.executeMake(rope(source), index, length);
+            final Rope rope = substringNode.executeSubstring(rope(source), index, length);
 
             final DynamicObject ret = Layouts.CLASS.getInstanceFactory(Layouts.BASIC_OBJECT.getLogicalClass(source)).newInstance(Layouts.STRING.build(false, false, rope, null));
             taintResultNode.maybeTaint(source, ret);
@@ -2991,7 +2991,7 @@ public abstract class StringNodes {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private NormalizeIndexNode normalizeIndexNode = StringNodesFactory.NormalizeIndexNodeGen.create(null, null);
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
 
         public static StringByteSubstringPrimitiveNode create() {
@@ -3043,7 +3043,7 @@ public abstract class StringNodes {
                 length = rope.byteLength() - normalizedIndex;
             }
 
-            final Rope substringRope = makeSubstringNode.executeMake(rope, normalizedIndex, length);
+            final Rope substringRope = substringNode.executeSubstring(rope, normalizedIndex, length);
             final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, substringRope, null));
 
             return taintResultNode.maybeTaint(string, result);
@@ -3313,7 +3313,7 @@ public abstract class StringNodes {
     public static abstract class StringFindCharacterNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private TaintResultNode taintResultNode;
 
         @Specialization(guards = "offset < 0")
@@ -3332,7 +3332,7 @@ public abstract class StringNodes {
 
             final Rope rope = rope(string);
 
-            final DynamicObject ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, makeSubstringNode.executeMake(rope, offset, 1), null));
+            final DynamicObject ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, substringNode.executeSubstring(rope, offset, 1), null));
 
             return propagate(string, ret);
         }
@@ -3349,9 +3349,9 @@ public abstract class StringNodes {
 
             final DynamicObject ret;
             if (StringSupport.MBCLEN_CHARFOUND_P(clen)) {
-                ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, makeSubstringNode.executeMake(rope, offset, clen), null));
+                ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, substringNode.executeSubstring(rope, offset, clen), null));
             } else {
-                ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, makeSubstringNode.executeMake(rope, offset, 1), null));
+                ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, substringNode.executeSubstring(rope, offset, 1), null));
             }
 
             return propagate(string, ret);
@@ -4051,13 +4051,13 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "indexAtStartBound(spliceByteIndex)", "isRubyString(other)", "isRubyEncoding(rubyEncoding)" })
         public Object splicePrepend(DynamicObject string, DynamicObject other, int spliceByteIndex, int byteCountToReplace, DynamicObject rubyEncoding,
-                @Cached("create()") RopeNodes.MakeSubstringNode prependMakeSubstringNode,
+                @Cached("create()") RopeNodes.SubstringNode prependSubstringNode,
                 @Cached("create()") RopeNodes.MakeConcatNode prependMakeConcatNode) {
 
             final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
             final Rope original = rope(string);
             final Rope left = rope(other);
-            final Rope right = prependMakeSubstringNode.executeMake(original, byteCountToReplace, original.byteLength() - byteCountToReplace);
+            final Rope right = prependSubstringNode.executeSubstring(original, byteCountToReplace, original.byteLength() - byteCountToReplace);
 
             StringOperations.setRope(string, prependMakeConcatNode.executeMake(left, right, encoding));
 
@@ -4080,8 +4080,8 @@ public abstract class StringNodes {
         public DynamicObject splice(DynamicObject string, DynamicObject other, int spliceByteIndex, int byteCountToReplace, DynamicObject rubyEncoding,
                 @Cached("createBinaryProfile()") ConditionProfile insertStringIsEmptyProfile,
                 @Cached("createBinaryProfile()") ConditionProfile splitRightIsEmptyProfile,
-                @Cached("create()") RopeNodes.MakeSubstringNode leftMakeSubstringNode,
-                @Cached("create()") RopeNodes.MakeSubstringNode rightMakeSubstringNode,
+                @Cached("create()") RopeNodes.SubstringNode leftSubstringNode,
+                @Cached("create()") RopeNodes.SubstringNode rightSubstringNode,
                 @Cached("create()") RopeNodes.MakeConcatNode leftMakeConcatNode,
                 @Cached("create()") RopeNodes.MakeConcatNode rightMakeConcatNode) {
 
@@ -4090,8 +4090,8 @@ public abstract class StringNodes {
             final Rope insert = rope(other);
             final int rightSideStartingIndex = spliceByteIndex + byteCountToReplace;
 
-            final Rope splitLeft = leftMakeSubstringNode.executeMake(source, 0, spliceByteIndex);
-            final Rope splitRight = rightMakeSubstringNode.executeMake(source, rightSideStartingIndex, source.byteLength() - rightSideStartingIndex);
+            final Rope splitLeft = leftSubstringNode.executeSubstring(source, 0, spliceByteIndex);
+            final Rope splitRight = rightSubstringNode.executeSubstring(source, rightSideStartingIndex, source.byteLength() - rightSideStartingIndex);
 
             final Rope joinedLeft;
             if (insertStringIsEmptyProfile.profile(insert.isEmpty())) {
@@ -4180,7 +4180,7 @@ public abstract class StringNodes {
 
         @Child private AllocateObjectNode allocateNode;
         @Child private NormalizeIndexNode normalizeIndexNode = StringNodesFactory.NormalizeIndexNodeGen.create(null, null);
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode;
+        @Child private RopeNodes.SubstringNode substringNode;
         @Child private TaintResultNode taintResultNode;
 
         public abstract Object execute(VirtualFrame frame, DynamicObject string, int index, int characterLength);
@@ -4352,9 +4352,9 @@ public abstract class StringNodes {
                 allocateNode = insert(AllocateObjectNode.create());
             }
 
-            if (makeSubstringNode == null) {
+            if (substringNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                makeSubstringNode = insert(RopeNodes.MakeSubstringNode.create());
+                substringNode = insert(RopeNodes.SubstringNode.create());
             }
 
             if (taintResultNode == null) {
@@ -4364,7 +4364,7 @@ public abstract class StringNodes {
 
             final DynamicObject ret = allocateNode.allocate(
                     Layouts.BASIC_OBJECT.getLogicalClass(string),
-                    Layouts.STRING.build(false, false, makeSubstringNode.executeMake(rope, beg, byteLength), null));
+                    Layouts.STRING.build(false, false, substringNode.executeSubstring(rope, beg, byteLength), null));
 
             taintResultNode.maybeTaint(string, ret);
 
