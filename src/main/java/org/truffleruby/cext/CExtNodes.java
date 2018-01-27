@@ -425,12 +425,12 @@ public class CExtNodes {
         @Specialization(guards = { "!shouldNoop(string, len)", "!shouldShrink(string, len)" })
         public DynamicObject rbStrResizeGrow(DynamicObject string, int len,
                                              @Cached("create()") RopeNodes.SubstringNode substringNode,
-                                             @Cached("create()") RopeNodes.MakeConcatNode makeConcatNode,
+                                             @Cached("create()") RopeNodes.ConcatNode concatNode,
                                              @Cached("create()") RopeNodes.MakeRepeatingNode makeRepeatingNode) {
             final Rope rope = rope(string);
 
             if (rope instanceof SubstringRope) {
-                final Rope nullAppended = makeConcatNode.executeMake(rope, RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], rope.getEncoding());
+                final Rope nullAppended = concatNode.executeConcat(rope, RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], rope.getEncoding());
 
                 if (nullAppended.byteLength() == len) {
                     StringOperations.setRope(string, nullAppended);
@@ -440,18 +440,18 @@ public class CExtNodes {
 
                     final int lenFromBase = base.byteLength() <= len ? len - base.byteLength() : len - nullAppended.byteLength();
                     final Rope fromBase = substringNode.executeSubstring(base, nullAppended.byteLength(), lenFromBase);
-                    final Rope withBase = makeConcatNode.executeMake(nullAppended, fromBase, nullAppended.getEncoding());
+                    final Rope withBase = concatNode.executeConcat(nullAppended, fromBase, nullAppended.getEncoding());
 
                     if (withBase.byteLength() == len) {
                         StringOperations.setRope(string, withBase);
                     } else {
                         final Rope filler = makeRepeatingNode.executeMake(RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], len - withBase.byteLength());
-                        StringOperations.setRope(string, makeConcatNode.executeMake(withBase, filler, rope.getEncoding()));
+                        StringOperations.setRope(string, concatNode.executeConcat(withBase, filler, rope.getEncoding()));
                     }
                 }
             } else {
                 final Rope filler = makeRepeatingNode.executeMake(RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], len - rope.byteLength());
-                StringOperations.setRope(string, makeConcatNode.executeMake(rope, filler, rope.getEncoding()));
+                StringOperations.setRope(string, concatNode.executeConcat(rope, filler, rope.getEncoding()));
             }
 
             return string;

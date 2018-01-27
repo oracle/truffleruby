@@ -246,26 +246,26 @@ public abstract class RopeNodes {
             @NodeChild(type = RubyNode.class, value = "right"),
             @NodeChild(type = RubyNode.class, value = "encoding")
     })
-    public abstract static class MakeConcatNode extends RubyNode {
+    public abstract static class ConcatNode extends RubyNode {
 
-        public static MakeConcatNode create() {
-            return RopeNodesFactory.MakeConcatNodeGen.create(null, null, null);
+        public static ConcatNode create() {
+            return RopeNodesFactory.ConcatNodeGen.create(null, null, null);
         }
 
         @Child private FlattenNode flattenNode;
 
-        public abstract Rope executeMake(Rope left, Rope right, Encoding encoding);
+        public abstract Rope executeConcat(Rope left, Rope right, Encoding encoding);
 
         @TruffleBoundary
         @Specialization
         public Rope concatNativeRopeLeft(NativeRope left, Rope right, Encoding encoding) {
-            return executeMake(left.toLeafRope(), right, encoding);
+            return executeConcat(left.toLeafRope(), right, encoding);
         }
 
         @TruffleBoundary
         @Specialization
         public Rope concatNativeRopeRight(Rope left, NativeRope right, Encoding encoding) {
-            return executeMake(left, right.toLeafRope(), encoding);
+            return executeConcat(left, right.toLeafRope(), encoding);
         }
 
         @Specialization(guards = { "!isNativeRope(left)", "!isNativeRope(right)", "!isCodeRangeBroken(left, right)" })
