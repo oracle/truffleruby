@@ -1578,7 +1578,7 @@ public abstract class StringNodes {
     public abstract static class ScrubNode extends PrimitiveArrayArgumentsNode {
 
         @Child private YieldNode yieldNode = new YieldNode();
-        @Child private RopeNodes.MakeConcatNode makeConcatNode = RopeNodes.MakeConcatNode.create();
+        @Child private RopeNodes.ConcatNode concatNode = RopeNodes.ConcatNode.create();
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         private final RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
@@ -1610,7 +1610,7 @@ public abstract class StringNodes {
                     // p ~e: invalid bytes + unknown bytes
                     int clen = enc.maxLength();
                     if (p1 < p) {
-                        buf = makeConcatNode.executeMake(buf, substringNode.executeSubstring(rope, p1, p - p1), enc);
+                        buf = concatNode.executeConcat(buf, substringNode.executeSubstring(rope, p1, p - p1), enc);
                     }
 
                     if (e - p < clen) {
@@ -1631,7 +1631,7 @@ public abstract class StringNodes {
                         }
                     }
                     DynamicObject repl = (DynamicObject) yield(block, makeStringNode.fromRope(substringNode.executeSubstring(rope, p, clen)));
-                    buf = makeConcatNode.executeMake(buf, rope(repl), enc);
+                    buf = concatNode.executeConcat(buf, rope(repl), enc);
                     p += clen;
                     p1 = p;
                     p = StringSupport.searchNonAscii(pBytes, p, e);
@@ -1642,11 +1642,11 @@ public abstract class StringNodes {
                 }
             }
             if (p1 < p) {
-                buf = makeConcatNode.executeMake(buf, substringNode.executeSubstring(rope, p1, p - p1), enc);
+                buf = concatNode.executeConcat(buf, substringNode.executeSubstring(rope, p1, p - p1), enc);
             }
             if (p < e) {
                 DynamicObject repl = (DynamicObject) yield(block, makeStringNode.fromRope(substringNode.executeSubstring(rope, p, e - p)));
-                buf = makeConcatNode.executeMake(buf, rope(repl), enc);
+                buf = concatNode.executeConcat(buf, rope(repl), enc);
             }
 
             return makeStringNode.fromRope(buf);
@@ -1676,7 +1676,7 @@ public abstract class StringNodes {
                     int clen = enc.maxLength();
 
                     if (p1 < p) {
-                        buf = makeConcatNode.executeMake(buf, substringNode.executeSubstring(rope, p1, p - p1), enc);
+                        buf = concatNode.executeConcat(buf, substringNode.executeSubstring(rope, p1, p - p1), enc);
                     }
 
                     if (e - p < clen) {
@@ -1695,17 +1695,17 @@ public abstract class StringNodes {
                     }
 
                     DynamicObject repl = (DynamicObject) yield(block, makeStringNode.fromRope(substringNode.executeSubstring(rope, p, clen)));
-                    buf = makeConcatNode.executeMake(buf, rope(repl), enc);
+                    buf = concatNode.executeConcat(buf, rope(repl), enc);
                     p += clen;
                     p1 = p;
                 }
             }
             if (p1 < p) {
-                buf = makeConcatNode.executeMake(buf, substringNode.executeSubstring(rope, p1, p - p1), enc);
+                buf = concatNode.executeConcat(buf, substringNode.executeSubstring(rope, p1, p - p1), enc);
             }
             if (p < e) {
                 DynamicObject repl = (DynamicObject) yield(block, makeStringNode.fromRope(substringNode.executeSubstring(rope, p, e - p)));
-                buf = makeConcatNode.executeMake(buf, rope(repl), enc);
+                buf = concatNode.executeConcat(buf, rope(repl), enc);
             }
 
             return makeStringNode.fromRope(buf);
@@ -1953,8 +1953,8 @@ public abstract class StringNodes {
     public abstract static class SetByteNode extends CoreMethodNode {
 
         @Child private CheckIndexNode checkIndexNode = StringNodesFactory.CheckIndexNodeGen.create(null, null);
-        @Child private RopeNodes.MakeConcatNode composedMakeConcatNode = RopeNodes.MakeConcatNode.create();
-        @Child private RopeNodes.MakeConcatNode middleMakeConcatNode = RopeNodes.MakeConcatNode.create();
+        @Child private RopeNodes.ConcatNode composedConcatNode = RopeNodes.ConcatNode.create();
+        @Child private RopeNodes.ConcatNode middleConcatNode = RopeNodes.ConcatNode.create();
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
         @Child private RopeNodes.SubstringNode leftSubstringNode = RopeNodes.SubstringNode.create();
         @Child private RopeNodes.SubstringNode rightSubstringNode = RopeNodes.SubstringNode.create();
@@ -1977,7 +1977,7 @@ public abstract class StringNodes {
             final Rope left = leftSubstringNode.executeSubstring(rope, 0, normalizedIndex);
             final Rope right = rightSubstringNode.executeSubstring(rope, normalizedIndex + 1, rope.byteLength() - normalizedIndex - 1);
             final Rope middle = makeLeafRopeNode.executeMake(new byte[] { (byte) value }, rope.getEncoding(), CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
-            final Rope composed = composedMakeConcatNode.executeMake(middleMakeConcatNode.executeMake(left, middle, rope.getEncoding()), right, rope.getEncoding());
+            final Rope composed = composedConcatNode.executeConcat(middleConcatNode.executeConcat(left, middle, rope.getEncoding()), right, rope.getEncoding());
 
             StringOperations.setRope(string, composed);
 
@@ -4052,26 +4052,26 @@ public abstract class StringNodes {
         @Specialization(guards = { "indexAtStartBound(spliceByteIndex)", "isRubyString(other)", "isRubyEncoding(rubyEncoding)" })
         public Object splicePrepend(DynamicObject string, DynamicObject other, int spliceByteIndex, int byteCountToReplace, DynamicObject rubyEncoding,
                 @Cached("create()") RopeNodes.SubstringNode prependSubstringNode,
-                @Cached("create()") RopeNodes.MakeConcatNode prependMakeConcatNode) {
+                @Cached("create()") RopeNodes.ConcatNode prependConcatNode) {
 
             final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
             final Rope original = rope(string);
             final Rope left = rope(other);
             final Rope right = prependSubstringNode.executeSubstring(original, byteCountToReplace, original.byteLength() - byteCountToReplace);
 
-            StringOperations.setRope(string, prependMakeConcatNode.executeMake(left, right, encoding));
+            StringOperations.setRope(string, prependConcatNode.executeConcat(left, right, encoding));
 
             return string;
         }
 
         @Specialization(guards = { "indexAtEndBound(string, spliceByteIndex)", "isRubyString(other)", "isRubyEncoding(rubyEncoding)" })
         public Object spliceAppend(DynamicObject string, DynamicObject other, int spliceByteIndex, int byteCountToReplace, DynamicObject rubyEncoding,
-                @Cached("create()") RopeNodes.MakeConcatNode appendMakeConcatNode) {
+                @Cached("create()") RopeNodes.ConcatNode appendConcatNode) {
             final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
             final Rope left = rope(string);
             final Rope right = rope(other);
 
-            StringOperations.setRope(string, appendMakeConcatNode.executeMake(left, right, encoding));
+            StringOperations.setRope(string, appendConcatNode.executeConcat(left, right, encoding));
 
             return string;
         }
@@ -4082,8 +4082,8 @@ public abstract class StringNodes {
                 @Cached("createBinaryProfile()") ConditionProfile splitRightIsEmptyProfile,
                 @Cached("create()") RopeNodes.SubstringNode leftSubstringNode,
                 @Cached("create()") RopeNodes.SubstringNode rightSubstringNode,
-                @Cached("create()") RopeNodes.MakeConcatNode leftMakeConcatNode,
-                @Cached("create()") RopeNodes.MakeConcatNode rightMakeConcatNode) {
+                @Cached("create()") RopeNodes.ConcatNode leftConcatNode,
+                @Cached("create()") RopeNodes.ConcatNode rightConcatNode) {
 
             final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
             final Rope source = rope(string);
@@ -4097,14 +4097,14 @@ public abstract class StringNodes {
             if (insertStringIsEmptyProfile.profile(insert.isEmpty())) {
                 joinedLeft = splitLeft;
             } else {
-                joinedLeft = leftMakeConcatNode.executeMake(splitLeft, insert, encoding);
+                joinedLeft = leftConcatNode.executeConcat(splitLeft, insert, encoding);
             }
 
             final Rope joinedRight;
             if (splitRightIsEmptyProfile.profile(splitRight.isEmpty())) {
                 joinedRight = joinedLeft;
             } else {
-                joinedRight = rightMakeConcatNode.executeMake(joinedLeft, splitRight, encoding);
+                joinedRight = rightConcatNode.executeConcat(joinedLeft, splitRight, encoding);
             }
 
             StringOperations.setRope(string, joinedRight);
@@ -4156,7 +4156,7 @@ public abstract class StringNodes {
     @CoreMethod(names = "byte_append", required = 1)
     public static abstract class StringByteAppendPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.MakeConcatNode makeConcatNode = RopeNodes.MakeConcatNode.create();
+        @Child private RopeNodes.ConcatNode concatNode = RopeNodes.ConcatNode.create();
 
         @Specialization(guards = "isRubyString(other)")
         public DynamicObject stringByteAppend(DynamicObject string, DynamicObject other) {
@@ -4166,7 +4166,7 @@ public abstract class StringNodes {
             // The semantics of this primitive are such that the original string's byte[] should be extended without
             // negotiating the encoding.
 
-            StringOperations.setRope(string, makeConcatNode.executeMake(left, right, left.getEncoding()));
+            StringOperations.setRope(string, concatNode.executeConcat(left, right, left.getEncoding()));
 
             return string;
         }
@@ -4403,7 +4403,7 @@ public abstract class StringNodes {
     public static abstract class StringAppendNode extends RubyNode {
 
         @Child private EncodingNodes.CheckEncodingNode checkEncodingNode = EncodingNodesFactory.CheckEncodingNodeGen.create(null, null);
-        @Child private RopeNodes.MakeConcatNode makeConcatNode = RopeNodes.MakeConcatNode.create();
+        @Child private RopeNodes.ConcatNode concatNode = RopeNodes.ConcatNode.create();
 
         public static StringAppendNode create() {
             return StringNodesFactory.StringAppendNodeGen.create(null, null);
@@ -4421,7 +4421,7 @@ public abstract class StringNodes {
 
             final Encoding compatibleEncoding = checkEncodingNode.executeCheckEncoding(string, other);
 
-            return makeConcatNode.executeMake(left, right, compatibleEncoding);
+            return concatNode.executeConcat(left, right, compatibleEncoding);
         }
 
     }
