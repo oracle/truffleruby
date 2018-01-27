@@ -702,13 +702,13 @@ public abstract class RopeNodes {
             @NodeChild(type = RubyNode.class, value = "times")
     })
     @ImportStatic(RopeGuards.class)
-    public abstract static class MakeRepeatingNode extends RubyNode {
+    public abstract static class RepeatNode extends RubyNode {
 
-        public static MakeRepeatingNode create() {
-            return RopeNodesFactory.MakeRepeatingNodeGen.create(null, null);
+        public static RepeatNode create() {
+            return RopeNodesFactory.RepeatNodeGen.create(null, null);
         }
 
-        public abstract Rope executeMake(Rope base, int times);
+        public abstract Rope executeRepeat(Rope base, int times);
 
         @Specialization(guards = "times == 0")
         public Rope repeatZero(Rope base, int times,
