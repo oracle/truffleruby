@@ -196,12 +196,7 @@ class String
     index = 0
 
     last_match = nil
-
-    if block_given?
-      ret = self
-    else
-      ret = []
-    end
+    ret = block_given? ? self : []
 
     while match = pattern.match_from(self, index)
       fin = match.byte_end(0)
