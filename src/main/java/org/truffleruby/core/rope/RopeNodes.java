@@ -214,12 +214,14 @@ public abstract class RopeNodes {
             }
         }
 
-        @TruffleBoundary
         @Specialization(guards = "!is7Bit(base.getCodeRange())")
-        protected Rope makeSubstringNon7Bit(Encoding encoding, Rope base, int byteOffset, int byteLength) {
-            final long packedLengthAndCodeRange = RopeOperations.calculateCodeRangeAndLength(encoding, base.getBytes(), byteOffset, byteOffset + byteLength);
-            final CodeRange codeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
-            final int characterLength = StringSupport.unpackResult(packedLengthAndCodeRange);
+        protected Rope makeSubstringNon7Bit(Encoding encoding, Rope base, int byteOffset, int byteLength,
+                                            @Cached("create()") CalculateAttributesNode calculateAttributesNode) {
+
+            final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(encoding, RopeOperations.extractRange(base, byteOffset, byteLength));
+
+            final CodeRange codeRange = attributes.codeRange;
+            final int characterLength = attributes.characterLength;
             final boolean singleByteOptimizable = base.isSingleByteOptimizable() || (codeRange == CR_7BIT);
 
             if (getContext().getOptions().ROPE_LAZY_SUBSTRINGS) {
@@ -238,6 +240,140 @@ public abstract class RopeNodes {
 
         protected static boolean is7Bit(CodeRange codeRange) {
             return codeRange == CR_7BIT;
+        }
+
+    }
+
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "encoding"),
+            @NodeChild(type = RubyNode.class, value = "bytes")
+    })
+    @ImportStatic(RopeGuards.class)
+    public abstract static class CalculateAttributesNode extends RubyNode {
+
+        public static CalculateAttributesNode create() {
+            return RopeNodesFactory.CalculateAttributesNodeGen.create(null, null);
+        }
+
+        abstract StringAttributes executeCalculateAttributes(Encoding encoding, byte[] bytes);
+
+        @Specialization(guards = "isEmpty(bytes)")
+        StringAttributes calculateAttributesEmpty(Encoding encoding, byte[] bytes,
+                                                  @Cached("createBinaryProfile()") ConditionProfile isAsciiCompatible) {
+            return new StringAttributes(0,
+                    isAsciiCompatible.profile(encoding.isAsciiCompatible()) ? CR_7BIT : CR_VALID);
+        }
+
+        @Specialization(guards = { "!isEmpty(bytes)", "isBinaryString(encoding)" })
+        StringAttributes calculateAttributesBinaryString(Encoding encoding, byte[] bytes,
+                                                         @Cached("create()") BranchProfile nonAsciiStringProfile) {
+            CodeRange codeRange = CR_7BIT;
+
+            for (int i = 0; i < bytes.length; i++) {
+                if (bytes[i] < 0) {
+                    nonAsciiStringProfile.enter();
+                    codeRange = CR_VALID;
+                    break;
+                }
+            }
+
+            return new StringAttributes(bytes.length, codeRange);
+        }
+
+        @Specialization(rewriteOn = NonAsciiCharException.class,
+                guards = { "!isEmpty(bytes)", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
+        StringAttributes calculateAttributesAsciiCompatible(Encoding encoding, byte[] bytes) throws NonAsciiCharException {
+            // Optimistically assume this string consists only of ASCII characters. If a non-ASCII character is found,
+            // fail over to a more generalized search.
+            for (int i = 0; i < bytes.length; i++) {
+                if (bytes[i] < 0) {
+                    throw new NonAsciiCharException();
+                }
+            }
+
+            return new StringAttributes(bytes.length, CR_7BIT);
+        }
+
+        @Specialization(replaces = "calculateAttributesAsciiCompatible",
+                guards = { "!isEmpty(bytes)", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
+        StringAttributes calculateAttributesAsciiCompatibleGeneric(Encoding encoding, byte[] bytes,
+                                                                   @Cached("create()") BranchProfile multiByteCharacterProfile,
+                                                                   @Cached("create()") BranchProfile brokenCodeRangeProfile) {
+            // Taken from StringSupport.strLengthWithCodeRangeAsciiCompatible.
+
+            CodeRange codeRange = CR_7BIT;
+            int characters = 0;
+            int p = 0;
+            final int end = bytes.length;
+
+            while (p < end) {
+                if (Encoding.isAscii(bytes[p])) {
+                    final int multiByteCharacterPosition = StringSupport.searchNonAscii(bytes, p, end);
+                    if (multiByteCharacterPosition == -1) {
+                        return new StringAttributes(characters + (end - p), codeRange);
+                    }
+
+                    characters += multiByteCharacterPosition - p;
+                    p = multiByteCharacterPosition;
+                }
+
+                final int lengthOfCurrentCharacter = StringSupport.preciseLength(encoding, bytes, p, end);
+
+                if (lengthOfCurrentCharacter > 0) {
+                    multiByteCharacterProfile.enter();
+
+                    if (codeRange != CR_BROKEN) {
+                        codeRange = CR_VALID;
+                    }
+
+                    p += lengthOfCurrentCharacter;
+                } else {
+                    brokenCodeRangeProfile.enter();
+                    codeRange = CR_BROKEN;
+                    p++;
+                }
+
+                characters++;
+            }
+
+            return new StringAttributes(characters, codeRange);
+        }
+
+        @Specialization(guards = { "!isEmpty(bytes)", "!isBinaryString(encoding)", "!isAsciiCompatible(encoding)" })
+        StringAttributes calculateAttributesGeneric(Encoding encoding, byte[] bytes,
+                                                    @Cached("createBinaryProfile()") ConditionProfile asciiCompatibleProfile,
+                                                    @Cached("create()") BranchProfile multiByteCharacterProfile,
+                                                    @Cached("create()") BranchProfile brokenCodeRangeProfile) {
+            // Taken from StringSupport.strLengthWithCodeRangeNonAsciiCompatible.
+
+            CodeRange codeRange = asciiCompatibleProfile.profile(encoding.isAsciiCompatible()) ? CR_7BIT : CR_VALID;
+            int characters;
+            int p = 0;
+            final int end = bytes.length;
+
+            for (characters = 0; p < end; characters++) {
+                final int lengthOfCurrentCharacter = StringSupport.preciseLength(encoding, bytes, p, end);
+
+                if (lengthOfCurrentCharacter > 0) {
+                    multiByteCharacterProfile.enter();
+
+                    if (codeRange != CR_BROKEN) {
+                        codeRange = CR_VALID;
+                    }
+
+                    p += lengthOfCurrentCharacter;
+                } else {
+                    brokenCodeRangeProfile.enter();
+                    codeRange = CR_BROKEN;
+                    p++;
+                }
+            }
+
+            return new StringAttributes(characters, codeRange);
+        }
+
+        protected static final class NonAsciiCharException extends SlowPathException {
+            private static final long serialVersionUID = 5550642254188358382L;
         }
 
     }
@@ -481,6 +617,7 @@ public abstract class RopeNodes {
             @NodeChild(type = RubyNode.class, value = "codeRange"),
             @NodeChild(type = RubyNode.class, value = "characterLength")
     })
+    @ImportStatic(RopeGuards.class)
     public abstract static class MakeLeafRopeNode extends RubyNode {
 
         public static MakeLeafRopeNode create() {
@@ -669,18 +806,6 @@ public abstract class RopeNodes {
 
         protected static boolean isUnknown(CodeRange codeRange) {
             return codeRange == CodeRange.CR_UNKNOWN;
-        }
-
-        protected static boolean isBinaryString(Encoding encoding) {
-            return encoding == ASCIIEncoding.INSTANCE;
-        }
-
-        protected static boolean isEmpty(byte[] bytes) {
-            return bytes.length == 0;
-        }
-
-        protected static boolean isAsciiCompatible(Encoding encoding) {
-            return encoding.isAsciiCompatible();
         }
 
         protected static boolean isFixedWidth(Encoding encoding) {
@@ -1321,4 +1446,15 @@ public abstract class RopeNodes {
             return rope.hashCode();
         }
     }
+
+    public static final class StringAttributes {
+        final int characterLength;
+        final CodeRange codeRange;
+
+        StringAttributes(int characterLength, CodeRange codeRange) {
+            this.characterLength = characterLength;
+            this.codeRange = codeRange;
+        }
+    }
+
 }
