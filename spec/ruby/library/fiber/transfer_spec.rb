@@ -65,5 +65,24 @@ with_feature :fiber_library do
         end.join
       end
     end
+
+    it "transfers control between a non-main thread's root fiber to a child fiber and back again" do
+      states = []
+      thread = Thread.new do
+        f1 = Fiber.new do |f0|
+          states << 0
+          value2 = f0.transfer(1)
+          states << value2
+          3
+        end
+
+        value1 = f1.transfer(Fiber.current)
+        states << value1
+        value3 = f1.transfer(2)
+        states << value3
+      end
+      thread.join
+      states.should == [0, 1, 2, 3]
+    end
   end
 end
