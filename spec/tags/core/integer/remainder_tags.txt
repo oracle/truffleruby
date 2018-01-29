@@ -1,0 +1,1 @@
+fails:Integer#remainder fixnum returns the remainder of dividing self by other

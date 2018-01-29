@@ -1,0 +1,1 @@
+fails:Integer#/ bignum returns result the same class as the argument

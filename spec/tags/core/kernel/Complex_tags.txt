@@ -1,0 +1,1 @@
+fails:Kernel.Complex() when passed nil raises TypeError

@@ -1,0 +1,1 @@
+fails:File.umask raises RangeError with too large values
