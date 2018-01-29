@@ -71,15 +71,6 @@ public class RubyConstant {
         }
     }
 
-    public RubyConstant withDeclaringModule(DynamicObject newDeclaringModule) {
-        assert RubyGuards.isRubyModule(newDeclaringModule);
-        if (newDeclaringModule == declaringModule) {
-            return this;
-        } else {
-            return new RubyConstant(newDeclaringModule, value, isPrivate, autoload, isDeprecated, sourceSection);
-        }
-    }
-
     public boolean isVisibleTo(RubyContext context, LexicalScope lexicalScope, DynamicObject module) {
         CompilerAsserts.neverPartOfCompilation();
 

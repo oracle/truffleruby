@@ -1415,11 +1415,6 @@ public abstract class FixnumNodes {
         }
 
         @TruffleBoundary
-        public BigInteger bigPow(long a, int b) {
-            return BigInteger.valueOf(a).pow(b);
-        }
-
-        @TruffleBoundary
         private boolean testBit(BigInteger bigInteger, int n) {
             return bigInteger.testBit(n);
         }

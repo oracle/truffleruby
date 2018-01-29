@@ -26,8 +26,6 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser;
 
-import java.math.BigDecimal;
-
 /**
  * A safer way to parse double values
  * <p>
@@ -68,14 +66,4 @@ final public class SafeDoubleParser extends SafeDecimalParser {
         return decimalValue(number);
     }
 
-    /**
-     * Safe way of getting the double value<br>
-     * Prevents BigDecimal from calling Double.parseDouble()
-     * 
-     * @param bigDecimal
-     * @return the double value
-     */
-    public static double doubleValue(BigDecimal bigDecimal) {
-        return decimalValue(bigDecimal);
-    }
 }

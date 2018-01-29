@@ -28,46 +28,23 @@ package org.truffleruby.parser;
 
 public enum ArgumentType {
 
-    key("key", 'k', false),
-    keyreq("keyreq", 'K', false),
-    keyrest("keyrest", 'e', false),
-    block("block", 'b', false),
-    opt("opt", 'o', false),
-    rest("rest", 'r', false),
-    req("req", 'q', false),
-    anonreq("req", 'n', true),
-    anonopt("opt", 'O', true),
-    anonrest("rest", 'R', true),
-    anonkeyrest("keyrest", 'N', true);
+    key("key", false),
+    keyreq("keyreq", false),
+    keyrest("keyrest", false),
+    block("block", false),
+    opt("opt", false),
+    rest("rest", false),
+    req("req", false),
+    anonreq("req", true),
+    anonopt("opt", true),
+    anonrest("rest", true),
+    anonkeyrest("keyrest", true);
 
-    ArgumentType(String symbolicName, char prefix, boolean anonymous) {
+    ArgumentType(String symbolicName, boolean anonymous) {
         this.symbolicName = symbolicName;
-        this.prefix = prefix;
         this.anonymous = anonymous;
     }
 
-    public static ArgumentType valueOf(char prefix) {
-        switch (prefix) {
-            case 'k': return key;
-            case 'K': return keyreq;
-            case 'e': return keyrest;
-            case 'b': return block;
-            case 'o': return opt;
-            case 'r': return rest;
-            case 'q': return req;
-            case 'n': return anonreq;
-            case 'O': return anonopt;
-            case 'R': return anonrest;
-            case 'N': return anonkeyrest;
-            default: return null;
-        }
-    }
-
-    public String renderPrefixForm(String name) {
-        return anonymous ? String.valueOf(prefix) : prefix + name;
-    }
-
     public final String symbolicName;
-    private final char prefix;
     public final boolean anonymous;
 }

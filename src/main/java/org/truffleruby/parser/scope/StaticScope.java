@@ -74,7 +74,8 @@ public class StaticScope {
     private long commandArgumentStack;
 
     public enum Type {
-        LOCAL, BLOCK, EVAL;
+        LOCAL,
+        BLOCK;
     }
 
     /**

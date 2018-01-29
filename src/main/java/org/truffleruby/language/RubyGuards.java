@@ -13,15 +13,10 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 
 public abstract class RubyGuards {
 
     // Basic Java types
-
-    public static boolean isBoolean(Object value) {
-        return value instanceof Boolean;
-    }
 
     public static boolean isByte(Object value) {
         return value instanceof Byte;
@@ -49,10 +44,6 @@ public abstract class RubyGuards {
 
     public static boolean isString(Object value) {
         return value instanceof String;
-    }
-
-    public static boolean isJavaCharSequence(Object value) {
-        return value instanceof CharSequence;
     }
 
     // Ruby types
@@ -135,10 +126,6 @@ public abstract class RubyGuards {
 
     public static boolean isRubyModule(DynamicObject value) {
         return Layouts.MODULE.isModule(value);
-    }
-
-    public static boolean isRubyMutex(DynamicObject value) {
-        return Layouts.MUTEX.isMutex(value);
     }
 
     public static boolean isRubyRegexp(Object value) {
@@ -229,10 +216,6 @@ public abstract class RubyGuards {
         return Layouts.THREAD.isThread(object);
     }
 
-    public static boolean isRubyMatchData(Object object) {
-        return Layouts.MATCH_DATA.isMatchData(object);
-    }
-
     public static boolean isRubyMatchData(DynamicObject object) {
         return Layouts.MATCH_DATA.isMatchData(object);
     }
@@ -245,19 +228,11 @@ public abstract class RubyGuards {
         return Layouts.TRACE_POINT.isTracePoint(object);
     }
 
-    public static boolean isRubyIO(DynamicObject object) {
-        return Layouts.IO.isIO(object);
-    }
-
     public static boolean isNullPointer(DynamicObject pointer) {
         return Layouts.POINTER.getPointer(pointer).getAddress() == 0;
     }
 
     // Internal types
-
-    public static boolean isThreadLocal(Object value) {
-        return value instanceof ThreadAndFrameLocalStorage;
-    }
 
     public static boolean isTruffleObject(Object object) {
         return object instanceof TruffleObject;

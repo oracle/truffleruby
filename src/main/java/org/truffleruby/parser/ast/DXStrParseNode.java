@@ -31,7 +31,6 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
-import org.jcodings.Encoding;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
@@ -46,10 +45,6 @@ public class DXStrParseNode extends DParseNode implements ILiteralNode {
         addAll(node);
     }
 
-    public DXStrParseNode(SourceIndexLength position, Encoding encoding) {
-        super(position, encoding);
-    }
-    
     public DXStrParseNode(SourceIndexLength position) {
         super(position);
     }
