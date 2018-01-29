@@ -721,75 +721,36 @@ public abstract class RopeNodes {
             return new ValidLeafRope(RopeConstants.EMPTY_BYTES, encoding, 0);
         }
 
-        @Specialization(guards = { "isUnknown(codeRange)", "!isEmpty(bytes)", "isBinaryString(encoding)" })
-        public LeafRope makeUnknownLeafRopeBinary(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength,
-                                            @Cached("createBinaryProfile()") ConditionProfile discovered7BitProfile) {
-            CodeRange newCodeRange = CR_7BIT;
-            for (int i = 0; i < bytes.length; i++) {
-                if (bytes[i] < 0) {
-                    newCodeRange = CR_VALID;
-                    break;
+        @Specialization(guards = { "isUnknown(codeRange)", "!isEmpty(bytes)" })
+        public LeafRope makeUnknownLeafRopeGeneric(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength,
+                                                   @Cached("create()") CalculateAttributesNode calculateAttributesNode,
+                                                   @Cached("create()") BranchProfile asciiOnlyProfile,
+                                                   @Cached("create()") BranchProfile validProfile,
+                                                   @Cached("create()") BranchProfile brokenProfile,
+                                                   @Cached("create()") BranchProfile errorProfile) {
+            final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(encoding, bytes);
+
+            switch(attributes.codeRange) {
+                case CR_7BIT: {
+                    asciiOnlyProfile.enter();
+                    return new AsciiOnlyLeafRope(bytes, encoding);
+                }
+
+                case CR_VALID: {
+                    validProfile.enter();
+                    return new ValidLeafRope(bytes, encoding, attributes.characterLength);
+                }
+
+                case CR_BROKEN: {
+                    brokenProfile.enter();
+                    return new InvalidLeafRope(bytes, encoding, attributes.characterLength);
+                }
+
+                default: {
+                    errorProfile.enter();
+                    throw new UnsupportedOperationException("CR_UNKNOWN encountered, but code range should have been calculated");
                 }
             }
-
-            if (discovered7BitProfile.profile(newCodeRange == CR_7BIT)) {
-                return new AsciiOnlyLeafRope(bytes, encoding);
-            }
-
-            return new ValidLeafRope(bytes, encoding, bytes.length);
-        }
-
-        @Specialization(rewriteOn = NonAsciiCharException.class,
-                guards = { "isUnknown(codeRange)", "!isEmpty(bytes)", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
-        public LeafRope makeUnknownLeafRopeAsciiCompatible(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength) throws NonAsciiCharException {
-            // Optimistically assume this string consists only of ASCII characters. If a non-ASCII character is found,
-            // fail over to a more generalized search.
-            for (int i = 0; i < bytes.length; i++) {
-                if (bytes[i] < 0) {
-                    throw new NonAsciiCharException();
-                }
-            }
-
-            return new AsciiOnlyLeafRope(bytes, encoding);
-        }
-
-        @Specialization(replaces = "makeUnknownLeafRopeAsciiCompatible",
-                guards = { "isUnknown(codeRange)", "!isEmpty(bytes)", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
-        public LeafRope makeUnknownLeafRopeAsciiCompatibleGeneric(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength,
-                                            @Cached("createBinaryProfile()") ConditionProfile discovered7BitProfile,
-                                            @Cached("createBinaryProfile()") ConditionProfile discoveredValidProfile) {
-            final long packedLengthAndCodeRange = StringSupport.strLengthWithCodeRangeAsciiCompatible(encoding, bytes, 0, bytes.length);
-            final CodeRange newCodeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
-            final int calculatedCharacterLength = StringSupport.unpackResult(packedLengthAndCodeRange);
-
-            if (discovered7BitProfile.profile(newCodeRange == CR_7BIT)) {
-                return new AsciiOnlyLeafRope(bytes, encoding);
-            }
-
-            if (discoveredValidProfile.profile(newCodeRange == CR_VALID)) {
-                return new ValidLeafRope(bytes, encoding, calculatedCharacterLength);
-            }
-
-            return new InvalidLeafRope(bytes, encoding, calculatedCharacterLength);
-        }
-
-        @Specialization(guards = { "isUnknown(codeRange)", "!isEmpty(bytes)", "!isBinaryString(encoding)", "!isAsciiCompatible(encoding)" })
-        public LeafRope makeUnknownLeafRope(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength,
-                                            @Cached("createBinaryProfile()") ConditionProfile discovered7BitProfile,
-                                            @Cached("createBinaryProfile()") ConditionProfile discoveredValidProfile) {
-            final long packedLengthAndCodeRange = StringSupport.strLengthWithCodeRangeNonAsciiCompatible(encoding, bytes, 0, bytes.length);
-            final CodeRange newCodeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
-            final int calculatedCharacterLength = StringSupport.unpackResult(packedLengthAndCodeRange);
-
-            if (discovered7BitProfile.profile(newCodeRange == CR_7BIT)) {
-                return new AsciiOnlyLeafRope(bytes, encoding);
-            }
-
-            if (discoveredValidProfile.profile(newCodeRange == CR_VALID)) {
-                return new ValidLeafRope(bytes, encoding, calculatedCharacterLength);
-            }
-
-            return new InvalidLeafRope(bytes, encoding, calculatedCharacterLength);
         }
 
         protected static boolean is7Bit(CodeRange codeRange) {
@@ -810,10 +771,6 @@ public abstract class RopeNodes {
 
         protected static boolean isFixedWidth(Encoding encoding) {
             return encoding.isFixedWidth();
-        }
-
-        protected static final class NonAsciiCharException extends SlowPathException {
-            private static final long serialVersionUID = 5550642254188358382L;
         }
 
         @TruffleBoundary
