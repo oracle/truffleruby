@@ -1,38 +1,36 @@
-# Executables in `bin` 
+# Executables in the `bin` directory 
 
 ## Requirements
 
-1.  [x] When TruffleRuby tar (GraalVM) is downloaded and unpacked, all files in `bin` and 
-    `jre/languages/ruby/bin` has to always run the TruffleRuby from the tar. 
-    -   Therefore `PATH` cannot be involved (`/usr/bin/env` cannot be used in shebang).
-    -   There cannot be absolute paths in `bin` executables.
-    -   All scripts in `bin` have to always resolve to `truffleruby` in the same dir.
-2.  [x] Newly installed gem executables has to always run the `truffleruby` from the same `bin`. 
-    -   By default RubyGems generate executables with absolute path.
-3.  [x] Behave as proper Ruby implementation when the `bin` is put on `PATH`.
-4.  [x] RubyMine requires `gem` in `bin` to work when executed with `truffleruby -x` option 
+1.  When TruffleRuby tar (GraalVM) is downloaded and unpacked, all files in `bin` and 
+    `jre/languages/ruby/bin` has to always run the TruffleRuby provided by the tar. 
+    -   Therefore `PATH` is not involved (`/usr/bin/env` cannot be used in shebang).
+    -   Therefore there are no absolute paths in `bin` executables.
+    -   Therefore all scripts in `bin` are always resolved to `truffleruby` in the same dir.
+2.  Newly installed gem executables has to always run the `truffleruby` from the same `bin`. 
+    -   RubyGems generate executables with absolute path by default.
+3.  Behave as proper Ruby implementation when the `bin` is put on `PATH`.
+    -   Works.
+4.  RubyMine requires `gem` in `bin` to work when executed with `truffleruby -x` option 
     (otherwise gems are not listed).
-    -   `-x` option has to be implemented
-5.  [x] `ruby -S irb` when executed in a `bin` directory has to work. (Applies to other 
+    -   Therefore `-x` option is implemented.
+5.  `ruby -S irb` when executed in a `bin` directory has to work. (Applies to other 
     executables in `bin` as well.)
-    -   In MRI: When a file starting with a shebang not containing `ruby` is loaded the lines at 
+    -   When a file starting with a shebang not containing `ruby` is loaded the lines at 
         the begging are skipped until a shebang containing `'ruby'` is found (it has `-x` 
-        option behaviour). We can implement it and reuse.
-6.  [x] Any executable has to work when pwd is `bin` directory.
-    -   Translates to `ruby -S executable` 
-7.  [x] Works on Linux, Solaris, macOS.
-    -   Currently works.
-8.  [ ] Works with Ruby managers. (Stacked shebangs cause problems, since the `execve` can 
+        option behaviour). This is the behaviour of MRI and Truffleruby implements it as well.
+6.  Any executable has to work when pwd is `bin` directory.
+    -   Works.
+7.  Works on Linux, Solaris, macOS.
+    -   Works.
+8.  Works with Ruby managers. (Stacked shebangs cause problems, since the `execve` can 
     resolve only one level)
-    -   `truffleruby` has to be binary executable.
-    -   Issues are observable with rbenv on macOS with fish shell.
+    -   Therefore `truffleruby` is a binary executable (at least on macOS).
+    -   Issues could otherwise be observed with rbenv on macOS with fish shell.
 
 ## Solution
 
--   [ ] Implement command line option `-x` (MRI compatible)
--   [ ] Implement the same behaviour for files starting with non-ruby shebang (MRI compatible)
-
-Then we can have a hybrid executables, an example of `gem` file follows:
+Truffleruby uses hybrid executables, an example of `gem` file follows:
 
 ```ruby
 #!/usr/bin/env bash
@@ -67,7 +65,5 @@ end
 
 If executed directly, bash interprets the file. It looks up correct ruby
 executable  (`truffleruby` in the same directory) and executes the same file
-with it. When Ruby  interpreter executes the file it ignores the first 2 lines
-running only the Ruby  portion of the file.
-
--   [ ] `lib/bin/*` files can be removed
+with it. When the Ruby interpreter executes the file it ignores the first 2 lines
+running only the Ruby portion of the file.
