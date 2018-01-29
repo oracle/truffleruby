@@ -31,71 +31,24 @@ package org.truffleruby.core.string;
 import org.jcodings.Encoding;
 
 public enum KCode {
-    NIL(null, "ASCII", 0),
-    NONE("NONE", "ASCII", 0),
-    UTF8("UTF8", "NonStrictUTF8", 64),
-    SJIS("SJIS", "NonStrictSJIS", 48),
-    EUC("EUC", "NonStrictEUCJP", 32);
+    NIL(null, "ASCII"),
+    NONE("NONE", "ASCII"),
+    UTF8("UTF8", "NonStrictUTF8"),
+    SJIS("SJIS", "NonStrictSJIS"),
+    EUC("EUC", "NonStrictEUCJP");
 
     private final String kcode;
     private final String encodingName;
-    private final int code;
 
     private volatile Encoding encoding;
 
-    private KCode(String kcode, String encodingName, int code) {
+    private KCode(String kcode, String encodingName) {
         this.kcode = kcode;
         this.encodingName = encodingName;
-        this.code = code;
-    }
-
-    public static KCode create(String lang) {
-        if (lang == null) {
-            return NIL;
-        }
-        if (lang.length() == 0) {
-            return NONE;
-        }
-
-        switch (lang.charAt(0)) {
-        case 'E':
-        case 'e':
-            return EUC;
-        case 'S':
-        case 's':
-            return SJIS;
-        case 'U':
-        case 'u':
-            return UTF8;
-        case 'N':
-        case 'n':
-        case 'A':
-        case 'a':
-            return NONE;
-        }
-        return NIL;
     }
 
     public String getKCode() {
         return kcode;
-    }
-
-    public int bits() {
-        return code;
-    }
-
-    public static KCode fromBits(int bits) {
-        if ((bits & 64) != 0) {
-            return UTF8;
-        }
-        if ((bits & 48) == 48) {
-            return SJIS;
-        }
-        if ((bits & 32) != 0) {
-            return EUC;
-        }
-
-        return NONE;
     }
 
     public Encoding getEncoding() {
