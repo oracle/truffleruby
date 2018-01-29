@@ -36,13 +36,10 @@ import org.jcodings.specific.UTF16BEEncoding;
 import org.jcodings.specific.UTF16LEEncoding;
 import org.jcodings.specific.UTF32BEEncoding;
 import org.jcodings.specific.UTF32LEEncoding;
-import org.jcodings.transcode.EConvFlags;
 import org.jcodings.unicode.UnicodeEncoding;
 import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.platform.Platform;
 
 public class EncodingUtils {
-    public static final int ECONV_DEFAULT_NEWLINE_DECORATOR = Platform.IS_WINDOWS ? EConvFlags.UNIVERSAL_NEWLINE_DECORATOR : 0;
 
     // rb_enc_asciicompat
     public static boolean encAsciicompat(Encoding enc) {

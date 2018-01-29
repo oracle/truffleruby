@@ -183,10 +183,6 @@ public abstract class StringNodes {
             return executeMake(rope, NotProvided.INSTANCE, NotProvided.INSTANCE);
         }
 
-        public DynamicObject fromBuilder(RopeBuilder builder, CodeRange codeRange) {
-            return executeMake(builder.getBytes(), builder.getEncoding(), codeRange);
-        }
-
         /**
          * All callers of this factory method must guarantee that the builder's byte array cannot change after this
          * call, otherwise the rope built from the builder will end up in an inconsistent state.
@@ -3771,10 +3767,6 @@ public abstract class StringNodes {
     @Primitive(name = "string_byte_index_from_char_index", needsSelf = false, lowerFixnum = 2)
     @ImportStatic(StringGuards.class)
     public static abstract class StringByteIndexFromCharIndexNode extends PrimitiveArrayArgumentsNode {
-
-        public static StringByteIndexFromCharIndexNode create() {
-            return StringNodesFactory.StringByteIndexFromCharIndexNodeFactory.create(null);
-        }
 
         public abstract Object executeFindByteIndex(DynamicObject string, int characterIndex);
 

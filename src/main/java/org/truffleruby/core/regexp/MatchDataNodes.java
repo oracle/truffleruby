@@ -29,8 +29,6 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToIntNode;
-import org.truffleruby.core.regexp.MatchDataNodesFactory.PostMatchNodeFactory;
-import org.truffleruby.core.regexp.MatchDataNodesFactory.PreMatchNodeFactory;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.ValuesNodeFactory;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -178,10 +176,6 @@ public abstract class MatchDataNodes {
         @Child private ValuesNode getValuesNode = ValuesNode.create();
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
-
-        public static GetIndexNode create() {
-            return MatchDataNodesFactory.GetIndexNodeFactory.create(null);
-        }
 
         public static GetIndexNode create(RubyNode... nodes) {
             return MatchDataNodesFactory.GetIndexNodeFactory.create(nodes);
@@ -492,10 +486,6 @@ public abstract class MatchDataNodes {
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
-        public static PreMatchNode create() {
-            return PreMatchNodeFactory.create(null);
-        }
-
         public abstract DynamicObject execute(DynamicObject matchData);
 
         @Specialization
@@ -516,10 +506,6 @@ public abstract class MatchDataNodes {
 
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
-
-        public static PostMatchNode create() {
-            return PostMatchNodeFactory.create(null);
-        }
 
         public abstract DynamicObject execute(DynamicObject matchData);
 

@@ -57,10 +57,6 @@ public abstract class BindingNodes {
         return Layouts.BINDING.createBinding(context.getCoreLibrary().getBindingFactory(), frame);
     }
 
-    public static DynamicObject createBinding(RubyContext context, MaterializedFrame frame, FrameDescriptor extrasDescriptor) {
-        return Layouts.BINDING.createBinding(context.getCoreLibrary().getBindingFactory(), newFrame(frame, extrasDescriptor));
-    }
-
     @TruffleBoundary
     public static FrameDescriptor newFrameDescriptor(RubyContext context) {
         return new FrameDescriptor(context.getCoreLibrary().getNil());

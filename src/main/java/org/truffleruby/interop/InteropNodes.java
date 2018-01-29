@@ -582,10 +582,6 @@ public abstract class InteropNodes {
             return foreignToRubyNode.executeConvert(foreign);
         }
 
-        protected int getCacheLimit() {
-            return getContext().getOptions().INTEROP_READ_CACHE;
-        }
-
     }
 
     @CoreMethod(names = "write", isModuleFunction = true, required = 3)
@@ -618,10 +614,6 @@ public abstract class InteropNodes {
             }
 
             return foreignToRubyNode.executeConvert(foreign);
-        }
-
-        protected int getCacheLimit() {
-            return getContext().getOptions().INTEROP_WRITE_CACHE;
         }
 
     }

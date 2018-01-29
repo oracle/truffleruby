@@ -17,7 +17,6 @@ public class CoreStrings {
     public final CoreString ASSIGNMENT;
     public final CoreString BACKTRACE_OMITTED_LIMIT;
     public final CoreString BACKTRACE_OMITTED_UNUSED;
-    public final CoreString BIND_ALL_IPV4_ADDR;
     public final CoreString CALL;
     public final CoreString CANT_COMPRESS_NEGATIVE;
     public final CoreString CHARACTER_INDEX_NEGATIVE;
@@ -54,8 +53,6 @@ public class CoreStrings {
     public final CoreString POWER;
     public final CoreString PROC_WITHOUT_BLOCK;
     public final CoreString REPLACEMENT_CHARACTER_SETUP_FAILED;
-    public final CoreString RESOURCE_TEMP_UNAVAIL_READ;
-    public final CoreString RESOURCE_TEMP_UNAVAIL_WRITE;
     public final CoreString UNKNOWN;
     public final CoreString SELF;
     public final CoreString SPACESHIP;
@@ -78,7 +75,6 @@ public class CoreStrings {
         ASSIGNMENT = new CoreString(context, "assignment");
         BACKTRACE_OMITTED_LIMIT = new CoreString(context, "(omitted due to -Xbacktraces.limit)");
         BACKTRACE_OMITTED_UNUSED = new CoreString(context, "(omitted as the rescue expression was pure; use -Xbacktraces.omit_unused=false to disable)");
-        BIND_ALL_IPV4_ADDR = new CoreString(context, "0.0.0.0");
         CALL = new CoreString(context, "call");
         CANT_COMPRESS_NEGATIVE = new CoreString(context, "can't compress negative numbers");
         CHARACTER_INDEX_NEGATIVE = new CoreString(context, "character index is negative");
@@ -115,8 +111,6 @@ public class CoreStrings {
         POWER = new CoreString(context, "**");
         PROC_WITHOUT_BLOCK = new CoreString(context, "tried to create Proc object without a block");
         REPLACEMENT_CHARACTER_SETUP_FAILED = new CoreString(context, "replacement character setup failed");
-        RESOURCE_TEMP_UNAVAIL_READ = new CoreString(context, "Resource temporarily unavailable - read would block");
-        RESOURCE_TEMP_UNAVAIL_WRITE = new CoreString(context, "Resource temporarily unavailable - write would block");
         UNKNOWN = new CoreString(context, "(unknown)");
         SELF = new CoreString(context, "self");
         SPACESHIP = new CoreString(context, "<=>");

@@ -120,8 +120,6 @@ import org.truffleruby.language.locals.FlipFlopNode;
 import org.truffleruby.language.locals.FlipFlopStateNode;
 import org.truffleruby.language.locals.InitFlipFlopSlotNode;
 import org.truffleruby.language.locals.LocalFlipFlopStateNode;
-import org.truffleruby.language.locals.LocalVariableType;
-import org.truffleruby.language.locals.ReadLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.CatchBreakNode;
@@ -3110,14 +3108,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitOther(ParseNode node) {
-        if (node instanceof ReadLocalDummyParseNode) {
-            final ReadLocalDummyParseNode readLocal = (ReadLocalDummyParseNode) node;
-            final RubyNode ret = new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, readLocal.getFrameSlot());
-            ret.unsafeSetSourceSection(readLocal.getPosition());
-            return addNewlineIfNeeded(node, ret);
-        } else {
-            throw new UnsupportedOperationException();
-        }
+        throw new UnsupportedOperationException();
     }
 
     private void copyNewline(ParseNode from, ParseNode to) {
