@@ -68,12 +68,11 @@ public final class StringSupport {
     }
 
     // rb_enc_precise_mbclen
-    @TruffleBoundary
     public static int preciseLength(Encoding enc, byte[]bytes, int p, int end) {
         if (p >= end) {
             return -1 - (1);
         }
-        int n = enc.length(bytes, p, end);
+        int n = encLength(enc, bytes, p, end);
         if (n > end - p) {
             return MBCLEN_NEEDMORE(n - (end - p));
         }
