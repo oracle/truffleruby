@@ -391,10 +391,11 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject rbEncCodePointLen(DynamicObject string, DynamicObject encoding,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.PreciseLengthNode preciseLengthNode) {
             final byte[] bytes = bytesNode.execute(StringOperations.rope(string));
             final Encoding enc = Layouts.ENCODING.getEncoding(encoding);
-            final int r = StringSupport.preciseLength(enc, bytes, 0, bytes.length);
+            final int r = preciseLengthNode.executeLength(enc, bytes, 0, bytes.length);
             if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
                 throw new RaiseException(coreExceptions().argumentError("invalid byte sequence in " + enc, this));
             }
@@ -1078,8 +1079,9 @@ public class CExtNodes {
     public abstract static class RbEncPreciseMbclenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
-        public Object rbEncPreciseMbclen(DynamicObject enc, DynamicObject str, int p, int end) {
-            return StringSupport.preciseLength(
+        public Object rbEncPreciseMbclen(DynamicObject enc, DynamicObject str, int p, int end,
+                @Cached("create()") RopeNodes.PreciseLengthNode preciseLengthNode) {
+            return preciseLengthNode.executeLength(
                     EncodingOperations.getEncoding(enc), StringOperations.rope(str).getBytes(), p, end);
         }
 

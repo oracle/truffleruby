@@ -297,6 +297,8 @@ public abstract class RopeNodes {
         @Specialization(replaces = "calculateAttributesAsciiCompatible",
                 guards = { "!isEmpty(bytes)", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
         StringAttributes calculateAttributesAsciiCompatibleGeneric(Encoding encoding, byte[] bytes,
+                                                                   @Cached("create()") PreciseLengthNode preciseLengthNode,
+                                                                   @Cached("createBinaryProfile()") ConditionProfile utf8Profile,
                                                                    @Cached("create()") BranchProfile multiByteCharacterProfile,
                                                                    @Cached("create()") BranchProfile brokenCodeRangeProfile) {
             // Taken from StringSupport.strLengthWithCodeRangeAsciiCompatible.
@@ -317,7 +319,7 @@ public abstract class RopeNodes {
                     p = multiByteCharacterPosition;
                 }
 
-                final int lengthOfCurrentCharacter = StringSupport.preciseLength(encoding, bytes, p, end);
+                final int lengthOfCurrentCharacter = preciseLengthNode.executeLength(encoding, bytes, p, end);
 
                 if (lengthOfCurrentCharacter > 0) {
                     multiByteCharacterProfile.enter();
@@ -341,6 +343,7 @@ public abstract class RopeNodes {
 
         @Specialization(guards = { "!isEmpty(bytes)", "!isBinaryString(encoding)", "!isAsciiCompatible(encoding)" })
         StringAttributes calculateAttributesGeneric(Encoding encoding, byte[] bytes,
+                                                    @Cached("create()") PreciseLengthNode preciseLengthNode,
                                                     @Cached("createBinaryProfile()") ConditionProfile asciiCompatibleProfile,
                                                     @Cached("create()") BranchProfile multiByteCharacterProfile,
                                                     @Cached("create()") BranchProfile brokenCodeRangeProfile) {
@@ -352,7 +355,7 @@ public abstract class RopeNodes {
             final int end = bytes.length;
 
             for (characters = 0; p < end; characters++) {
-                final int lengthOfCurrentCharacter = StringSupport.preciseLength(encoding, bytes, p, end);
+                final int lengthOfCurrentCharacter = preciseLengthNode.executeLength(encoding, bytes, p, end);
 
                 if (lengthOfCurrentCharacter > 0) {
                     multiByteCharacterProfile.enter();
@@ -645,7 +648,8 @@ public abstract class RopeNodes {
 
         @Specialization(guards = { "isValid(codeRange)", "!isFixedWidth(encoding)", "isAsciiCompatible(encoding)" })
         public LeafRope makeValidLeafRopeAsciiCompat(byte[] bytes, Encoding encoding, CodeRange codeRange, NotProvided characterLength,
-                                                     @Cached("create()") BranchProfile errorProfile) {
+                @Cached("create()") BranchProfile errorProfile,
+                @Cached("create()") EncodingLengthNode encodingLengthNode) {
             // Extracted from StringSupport.strLength.
 
             int calculatedCharacterLength = 0;
@@ -662,7 +666,7 @@ public abstract class RopeNodes {
                     calculatedCharacterLength += q - p;
                     p = q;
                 }
-                int delta = StringSupport.encLength(encoding, bytes, p, e);
+                int delta = encodingLengthNode.executeLength(encoding, bytes, p, e);
 
                 if (delta < 0) {
                     errorProfile.enter();
@@ -1112,6 +1116,8 @@ public abstract class RopeNodes {
     })
     public abstract static class GetCodePointNode extends RubyNode {
 
+        @Child private PreciseLengthNode preciseLengthNode;
+
         public static GetCodePointNode create() {
             return RopeNodesFactory.GetCodePointNodeGen.create(null, null);
         }
@@ -1126,10 +1132,10 @@ public abstract class RopeNodes {
 
         @Specialization(guards = { "!rope.isSingleByteOptimizable()", "rope.getEncoding().isUTF8()" })
         public int getCodePointUTF8(Rope rope, int index,
-                                    @Cached("create()") GetByteNode getByteNode,
-                                    @Cached("createBinaryProfile()") ConditionProfile singleByteCharProfile,
-                @Cached("create()") BranchProfile errorProfile,
-                @Cached("create()") BytesNode bytesNode) {
+                @Cached("create()") GetByteNode getByteNode,
+                @Cached("create()") BytesNode bytesNode,
+                @Cached("createBinaryProfile()") ConditionProfile singleByteCharProfile,
+                @Cached("create()") BranchProfile errorProfile) {
             final int firstByte = getByteNode.executeGetByte(rope, index);
             if (singleByteCharProfile.profile(firstByte < 128)) {
                 return firstByte;
@@ -1145,7 +1151,7 @@ public abstract class RopeNodes {
             final byte[] bytes = bytesNode.execute(rope);
             final Encoding encoding = rope.getEncoding();
 
-            final int characterLength = preciseCharacterLength(encoding, bytes, index, rope.byteLength());
+            final int characterLength = preciseLength(encoding, bytes, index, rope.byteLength());
             if (characterLength <= 0) {
                 errorProfile.enter();
                 throw new RaiseException(getContext().getCoreExceptions().argumentError("invalid byte sequence in " + encoding, null));
@@ -1155,13 +1161,17 @@ public abstract class RopeNodes {
         }
 
         @TruffleBoundary
-        private int preciseCharacterLength(Encoding encoding, byte[] bytes, int start, int end) {
-            return StringSupport.preciseLength(encoding, bytes, start, end);
-        }
-
-        @TruffleBoundary
         private int mbcToCode(Encoding encoding, byte[] bytes, int start, int end) {
             return encoding.mbcToCode(bytes, start, end);
+        }
+
+        private int preciseLength(Encoding encoding, byte[] bytes, int start, int end) {
+            if (preciseLengthNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                preciseLengthNode = insert(PreciseLengthNode.create());
+            }
+
+            return preciseLengthNode.executeLength(encoding, bytes, start, end);
         }
 
     }
@@ -1402,6 +1412,69 @@ public abstract class RopeNodes {
         public int executeHashNotCalculated(Rope rope) {
             return rope.hashCode();
         }
+    }
+
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "encoding"),
+            @NodeChild(type = RubyNode.class, value = "bytes"),
+            @NodeChild(type = RubyNode.class, value = "start"),
+            @NodeChild(type = RubyNode.class, value = "end")
+    })
+    public abstract static class EncodingLengthNode extends RubyNode {
+
+        public static EncodingLengthNode create() {
+            return RopeNodesFactory.EncodingLengthNodeGen.create(null, null, null, null);
+        }
+
+        public abstract int executeLength(Encoding encoding, byte[] bytes, int start, int end);
+
+        @Specialization(guards = "encoding.isUTF8()")
+        int utf8Length(Encoding encoding, byte[] bytes, int start, int end) {
+            return UTF8Encoding.class.cast(encoding).length(bytes, start, end);
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "!encoding.isUTF8()")
+        int genericLength(Encoding encoding, byte[] bytes, int start, int end) {
+            return encoding.length(bytes, start, end);
+        }
+
+    }
+
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "encoding"),
+            @NodeChild(type = RubyNode.class, value = "bytes"),
+            @NodeChild(type = RubyNode.class, value = "start"),
+            @NodeChild(type = RubyNode.class, value = "end")
+    })
+    public abstract static class PreciseLengthNode extends RubyNode {
+
+        public static PreciseLengthNode create() {
+            return RopeNodesFactory.PreciseLengthNodeGen.create(null, null, null, null);
+        }
+
+        public abstract int executeLength(Encoding encoding, byte[] bytes, int start, int end);
+
+        @Specialization
+        int preciseLength(Encoding encoding, byte[] bytes, int start, int end,
+                          @Cached("create()") EncodingLengthNode encodingLengthNode,
+                          @Cached("create()") BranchProfile startTooLargeProfile,
+                          @Cached("create()") BranchProfile characterTooLargeProfile) {
+            if (start >= end) {
+                startTooLargeProfile.enter();
+                return -1 - (1);
+            }
+
+            int n = encodingLengthNode.executeLength(encoding, bytes, start, end);
+
+            if (n > end - start) {
+                characterTooLargeProfile.enter();
+                return StringSupport.MBCLEN_NEEDMORE(n - (end - start));
+            }
+
+            return n;
+        }
+
     }
 
     public static final class StringAttributes {
