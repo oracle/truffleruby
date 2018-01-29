@@ -11,6 +11,9 @@
 
 package org.truffleruby.core.rope;
 
+import org.jcodings.Encoding;
+import org.jcodings.specific.ASCIIEncoding;
+
 public class RopeGuards {
 
     public static boolean isSingleByteString(Rope rope) {
@@ -19,6 +22,18 @@ public class RopeGuards {
 
     public static boolean isLeafRope(Rope rope) {
         return rope instanceof LeafRope;
+    }
+
+    public static boolean isEmpty(byte[] bytes) {
+        return bytes.length == 0;
+    }
+
+    public static boolean isBinaryString(Encoding encoding) {
+        return encoding == ASCIIEncoding.INSTANCE;
+    }
+
+    public static boolean isAsciiCompatible(Encoding encoding) {
+        return encoding.isAsciiCompatible();
     }
 
 }
