@@ -25,8 +25,6 @@ import org.truffleruby.language.objects.IsFrozenNodeGen;
 public abstract class HashLiteralNode extends RubyNode {
 
     @Children protected final RubyNode[] keyValues;
-    @Child protected CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
-    @Child protected CallDispatchHeadNode freezeNode = CallDispatchHeadNode.create();
 
     protected HashLiteralNode(RubyNode[] keyValues) {
         assert keyValues.length % 2 == 0;
@@ -72,6 +70,8 @@ public abstract class HashLiteralNode extends RubyNode {
         @Child private HashNode hashNode = new HashNode();
         @Child private CallDispatchHeadNode equalNode = CallDispatchHeadNode.create();
         @Child private IsFrozenNode isFrozenNode;
+        @Child protected CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
+        @Child protected CallDispatchHeadNode freezeNode = CallDispatchHeadNode.create();
 
         public SmallHashLiteralNode(RubyNode[] keyValues) {
             super(keyValues);
