@@ -50,8 +50,6 @@ public class TranslatorEnvironment {
     // TODO(CS): overflow? and it should be per-context, or even more local
     private static AtomicInteger tempIndex = new AtomicInteger();
 
-    public boolean hasRestParameter = false;
-
     public TranslatorEnvironment(TranslatorEnvironment parent, ParseEnvironment parseEnvironment,
                                  ReturnID returnID, boolean ownScopeForAssignments, boolean neverAssignInParentScope,
                                  boolean isModuleBody, SharedMethodInfo sharedMethodInfo, String namedMethodName, int blockDepth,

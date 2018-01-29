@@ -46,14 +46,4 @@ public abstract class HashGuards {
         return Layouts.HASH.getCompareByIdentity(hash);
     }
 
-    public static boolean hasDefaultValue(DynamicObject hash) {
-        assert RubyGuards.isRubyHash(hash);
-        return Layouts.HASH.getDefaultValue(hash) != null;
-    }
-
-    public static boolean hasDefaultBlock(DynamicObject hash) {
-        assert RubyGuards.isRubyHash(hash);
-        return Layouts.HASH.getDefaultBlock(hash) != null;
-    }
-
 }

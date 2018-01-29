@@ -170,7 +170,6 @@ public class LoadArgumentsTranslator extends Translator {
         }
 
         if (argsNode.getRestArgNode() != null) {
-            methodBodyTranslator.getEnvironment().hasRestParameter = true;
             sequence.add(argsNode.getRestArgNode().accept(this));
         }
 
