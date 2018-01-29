@@ -13,11 +13,21 @@ module Truffle
     end
 
     NO_METHOD_ERROR = Proc.new do |exception|
-      if exception.receiver.respond_to?(:inspect)
-        format('undefined method `%s\' for %s:%s', exception.name, exception.receiver.inspect, class_name(exception.receiver))
-      else
-        format('undefined method `%s\' for <#%s:%s>', exception.name, class_name(exception.receiver), exception.receiver.object_id)
+      receiver = exception.receiver
+      receiver_string = begin
+        if Truffle::Type.object_respond_to?(receiver, :inspect)
+          if class_name = class_name(receiver)
+            "#{receiver.inspect}:#{class_name}"
+          else
+            "#{receiver.inspect}"
+          end
+        else
+          Truffle::Type.rb_any_to_s(receiver)
+        end
+      rescue Exception # rubocop:disable Lint/RescueException
+        Truffle::Type.rb_any_to_s(receiver)
       end
+      format("undefined method `%s' for %s", exception.name, receiver_string)
     end
 
     PRIVATE_METHOD_ERROR = Proc.new do |exception|
