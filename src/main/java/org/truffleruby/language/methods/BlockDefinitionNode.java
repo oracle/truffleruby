@@ -10,6 +10,7 @@
 package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.proc.ProcOperations;
@@ -39,7 +40,7 @@ public class BlockDefinitionNode extends RubyNode {
     private final BreakID breakID;
 
     @Child private ReadFrameSlotNode readFrameOnStackMarkerNode;
-    @Child private WithoutVisibilityNode withoutVisibilityNode = WithoutVisibilityNodeGen.create();
+    @Child private WithoutVisibilityNode withoutVisibilityNode;
 
     public BlockDefinitionNode(ProcType type, SharedMethodInfo sharedMethodInfo,
                                CallTarget callTargetForProcs, CallTarget callTargetForLambdas, BreakID breakID, FrameSlot frameOnStackMarkerSlot) {
@@ -81,7 +82,15 @@ public class BlockDefinitionNode extends RubyNode {
                 RubyArguments.getMethod(frame),
                 RubyArguments.getBlock(frame),
                 frameOnStackMarker,
-                withoutVisibilityNode.executeWithoutVisibility(RubyArguments.getDeclarationContext(frame)));
+                executeWithoutVisibility(RubyArguments.getDeclarationContext(frame)));
+    }
+
+    private DeclarationContext executeWithoutVisibility(DeclarationContext ctxIn) {
+        if (withoutVisibilityNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            withoutVisibilityNode = insert(WithoutVisibilityNodeGen.create());
+        }
+        return withoutVisibilityNode.executeWithoutVisibility(ctxIn);
     }
 
 }
