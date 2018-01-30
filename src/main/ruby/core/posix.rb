@@ -7,20 +7,43 @@
 # GNU Lesser General Public License version 2.1
 
 module Truffle::POSIX
-  LIBC = Truffle::Interop.eval('application/x-native', 'default')
+  class LazyLibrary
+    def initialize(&block)
+      @block = block
+      @resolved = nil
+    end
 
-  home = Truffle::Boot.ruby_home
-  libtruffleposix = "#{home}/lib/cext/truffleposix.#{Truffle::Platform::NATIVE_DLEXT}" if home
-  if home
-    LIBTRUFFLEPOSIX = Truffle::Interop.eval('application/x-native', "load '#{libtruffleposix}'")
-  else
-    LIBTRUFFLEPOSIX = LIBC
+    def resolve
+      if resolved = @resolved
+        resolved
+      else
+        Truffle.synchronize(self) do
+          @resolved ||= @block.call
+        end
+      end
+    end
   end
 
-  if Truffle::Platform.linux?
-    LIBCRYPT = Truffle::Interop.eval('application/x-native', 'load libcrypt.so')
-  else
-    LIBCRYPT = LIBC
+  LIBC = LazyLibrary.new do
+    Truffle::Interop.eval('application/x-native', 'default')
+  end
+
+  LIBTRUFFLEPOSIX = LazyLibrary.new do
+    home = Truffle::Boot.ruby_home
+    libtruffleposix = "#{home}/lib/cext/truffleposix.#{Truffle::Platform::NATIVE_DLEXT}" if home
+    if home
+      Truffle::Interop.eval('application/x-native', "load '#{libtruffleposix}'")
+    else
+      LIBC.resolve
+    end
+  end
+
+  LIBCRYPT = LazyLibrary.new do
+    if Truffle::Platform.linux?
+      Truffle::Interop.eval('application/x-native', 'load libcrypt.so')
+    else
+      LIBC.resolve
+    end
   end
 
   TYPES = {
@@ -62,6 +85,7 @@ module Truffle::POSIX
 
     method_name = as
 
+    library = library.resolve
     begin
       func = library[native_name]
     rescue NameError # Missing function
