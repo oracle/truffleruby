@@ -20,20 +20,8 @@ module Truffle::CExt
   end
 
   class RData
-    DATA_FIELD_INDEX = 2
-
     def initialize(object)
       @object = object
-    end
-
-    def [](index)
-      raise "bad index: #{index}" unless index == DATA_FIELD_INDEX
-      data_holder.data
-    end
-
-    def []=(index, value)
-      raise "bad index: #{index}" unless index == DATA_FIELD_INDEX
-      data_holder.data = value
     end
 
     def data
@@ -53,8 +41,6 @@ module Truffle::CExt
     ENCODING_CACHE = {}
     ENCODING_CACHE_MUTEX = Mutex.new
 
-    NAME_FIELD_INDEX = 0
-
     private_class_method :new
 
     def self.get(encoding)
@@ -69,31 +55,14 @@ module Truffle::CExt
       @encoding = encoding
     end
 
-    def [](index)
-      raise unless index == NAME_FIELD_INDEX
-      @encoding.name
-    end
-
     def name
       @encoding.name
     end
   end
 
   class RbIO
-    MODE_FIELD_INDEX = 0
-    FD_FIELD_INDEX = 1
-
     def initialize(io)
       @io = io
-    end
-
-    def [](index)
-      if index == MODE_FIELD_INDEX
-        mode
-      else
-        raise unless index == FD_FIELD_INDEX
-        fd
-      end
     end
 
     def mode
