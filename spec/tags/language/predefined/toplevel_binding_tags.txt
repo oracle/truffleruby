@@ -1,0 +1,3 @@
+slow:The TOPLEVEL_BINDING constant only includes local variables defined in the main script, not in required files or eval
+slow:The TOPLEVEL_BINDING constant has no local variables in files required before the main script
+slow:The TOPLEVEL_BINDING constant is always the same object for all top levels
