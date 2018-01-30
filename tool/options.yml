@@ -83,8 +83,6 @@ THREAD_CACHE: [thread.cache, integer, DEFAULT_CACHE, Cache size of operations th
 ROPE_CLASS_CACHE: [rope_class.cache, integer, 8, Cache size for rope operations that depend on a concrete rope implementation to avoid virtual calls]
 INTEROP_CONVERT_CACHE: [interop.convert.cache, integer, DEFAULT_CACHE, Cache size for converting values for interop]
 INTEROP_EXECUTE_CACHE: [interop.execute.cache, integer, DEFAULT_CACHE, Cache size for interop EXECUTE messages]
-INTEROP_READ_CACHE: [interop.read.cache, integer, DEFAULT_CACHE, Cache size for interop READ messages]
-INTEROP_WRITE_CACHE: [interop.write.cache, integer, DEFAULT_CACHE, Cache size for interop WRITE messages]
 INTEROP_INVOKE_CACHE: [interop.invoke.cache, integer, DEFAULT_CACHE, Cache size for interop INVOKE messages]
 INTEROP_NEW_CACHE: [interop.new.cache, integer, DEFAULT_CACHE, Cache size for interop NEW messages]
 TIME_FORMAT_CACHE: [time.format.cache, integer, DEFAULT_CACHE, Cache size for parsed time format specifiers]

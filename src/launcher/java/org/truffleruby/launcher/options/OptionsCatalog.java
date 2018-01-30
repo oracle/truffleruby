@@ -381,16 +381,6 @@ public class OptionsCatalog {
             "Cache size for interop EXECUTE messages",
             null,
             DEFAULT_CACHE.getDefaultValue());
-    public static final IntegerOptionDescription INTEROP_READ_CACHE = new IntegerOptionDescription(
-            "ruby.interop.read.cache",
-            "Cache size for interop READ messages",
-            null,
-            DEFAULT_CACHE.getDefaultValue());
-    public static final IntegerOptionDescription INTEROP_WRITE_CACHE = new IntegerOptionDescription(
-            "ruby.interop.write.cache",
-            "Cache size for interop WRITE messages",
-            null,
-            DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription INTEROP_INVOKE_CACHE = new IntegerOptionDescription(
             "ruby.interop.invoke.cache",
             "Cache size for interop INVOKE messages",
@@ -760,10 +750,6 @@ public class OptionsCatalog {
                 return INTEROP_CONVERT_CACHE;
             case "ruby.interop.execute.cache":
                 return INTEROP_EXECUTE_CACHE;
-            case "ruby.interop.read.cache":
-                return INTEROP_READ_CACHE;
-            case "ruby.interop.write.cache":
-                return INTEROP_WRITE_CACHE;
             case "ruby.interop.invoke.cache":
                 return INTEROP_INVOKE_CACHE;
             case "ruby.interop.new.cache":
@@ -932,8 +918,6 @@ public class OptionsCatalog {
             ROPE_CLASS_CACHE,
             INTEROP_CONVERT_CACHE,
             INTEROP_EXECUTE_CACHE,
-            INTEROP_READ_CACHE,
-            INTEROP_WRITE_CACHE,
             INTEROP_INVOKE_CACHE,
             INTEROP_NEW_CACHE,
             TIME_FORMAT_CACHE,
