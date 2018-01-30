@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -19,11 +20,19 @@ import org.truffleruby.language.objects.SingletonClassNodeGen;
 
 public class GetDefaultDefineeNode extends RubyNode {
 
-    @Child private SingletonClassNode singletonClassNode = SingletonClassNodeGen.create(null);
+    @Child private SingletonClassNode singletonClassNode;
 
     @Override
     public DynamicObject execute(VirtualFrame frame) {
         final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
-        return declarationContext.getModuleToDefineMethods(singletonClassNode);
+        return declarationContext.getModuleToDefineMethods(getSingletonClassNode());
+    }
+
+    private SingletonClassNode getSingletonClassNode() {
+        if (singletonClassNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            singletonClassNode = insert(SingletonClassNodeGen.create(null));
+        }
+        return singletonClassNode;
     }
 }

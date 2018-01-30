@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.supercall;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.cast.ProcOrNullNode;
@@ -21,9 +22,9 @@ public class SuperCallNode extends RubyNode {
 
     @Child private RubyNode arguments;
     @Child private RubyNode block;
-    @Child private ProcOrNullNode procOrNullNode = ProcOrNullNodeGen.create(null);
-    @Child private LookupSuperMethodNode lookupSuperMethodNode = LookupSuperMethodNodeGen.create(null);
-    @Child private CallSuperMethodNode callSuperMethodNode = CallSuperMethodNodeGen.create(null, null, null);
+    @Child private ProcOrNullNode procOrNullNode;
+    @Child private LookupSuperMethodNode lookupSuperMethodNode;
+    @Child private CallSuperMethodNode callSuperMethodNode;
 
     public SuperCallNode(RubyNode arguments, RubyNode block) {
         this.arguments = arguments;
@@ -32,6 +33,7 @@ public class SuperCallNode extends RubyNode {
 
     @Override
     public final Object execute(VirtualFrame frame) {
+        initNodes();
         final Object self = RubyArguments.getSelf(frame);
 
         // Execute the arguments
@@ -40,7 +42,7 @@ public class SuperCallNode extends RubyNode {
         // Execute the block
         final DynamicObject blockObject = procOrNullNode.executeProcOrNull(block.execute(frame));
 
-        final InternalMethod superMethod = lookupSuperMethodNode.executeLookupSuperMethod(frame, self);
+        final InternalMethod superMethod = executeLookupSuperMethod(frame, self);
 
         return callSuperMethodNode.callSuperMethod(frame, superMethod, superArguments, blockObject);
     }
@@ -48,12 +50,31 @@ public class SuperCallNode extends RubyNode {
     @Override
     public Object isDefined(VirtualFrame frame) {
         final Object self = RubyArguments.getSelf(frame);
-        final InternalMethod superMethod = lookupSuperMethodNode.executeLookupSuperMethod(frame, self);
+        final InternalMethod superMethod = executeLookupSuperMethod(frame, self);
 
         if (superMethod == null) {
             return nil();
         } else {
             return coreStrings().SUPER.createInstance();
+        }
+    }
+
+    private InternalMethod executeLookupSuperMethod(VirtualFrame frame, Object self) {
+        if (lookupSuperMethodNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            lookupSuperMethodNode = insert(LookupSuperMethodNodeGen.create(null));
+        }
+        return lookupSuperMethodNode.executeLookupSuperMethod(frame, self);
+    }
+
+    private void initNodes() {
+        if (procOrNullNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            procOrNullNode = insert(ProcOrNullNodeGen.create(null));
+        }
+        if (callSuperMethodNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            callSuperMethodNode = insert(CallSuperMethodNodeGen.create(null, null, null));
         }
     }
 
