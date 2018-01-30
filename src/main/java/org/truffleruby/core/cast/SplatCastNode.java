@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -41,8 +42,8 @@ public abstract class SplatCastNode extends RubyNode {
     private final DynamicObject conversionMethod;
     @CompilationFinal private boolean copy = true;
 
-    @Child private ArrayDupNode dup = ArrayDupNodeGen.create(null);
-    @Child private CallDispatchHeadNode toA = CallDispatchHeadNode.createReturnMissing();
+    @Child private ArrayDupNode dup;
+    @Child private CallDispatchHeadNode toA;
 
     public SplatCastNode(NilBehavior nilBehavior, boolean useToAry) {
         this.nilBehavior = nilBehavior;
@@ -67,7 +68,7 @@ public abstract class SplatCastNode extends RubyNode {
                 return createArray(new Object[] { nil() }, 1);
 
             case CONVERT:
-                return toA.call(frame, nil, "to_a");
+                return callToA(frame, nil);
 
             case NIL:
                 return nil;
@@ -83,7 +84,7 @@ public abstract class SplatCastNode extends RubyNode {
         // TODO(cs): is it necessary to dup here in all cases?
         // It is needed at least for [*ary] (parsed as just a SplatParseNode) and b = *ary.
         if (copy) {
-            return dup.executeDup(frame, array);
+            return executeDup(frame, array);
         } else {
             return array;
         }
@@ -103,6 +104,22 @@ public abstract class SplatCastNode extends RubyNode {
             throw new RaiseException(coreExceptions().typeErrorCantConvertTo(object, "Array",
                 Layouts.SYMBOL.getString(conversionMethod), array, this));
         }
+    }
+
+    private Object callToA(VirtualFrame frame, Object nil) {
+        if (toA == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            toA = insert(CallDispatchHeadNode.createReturnMissing());
+        }
+        return toA.call(frame, nil, "to_a");
+    }
+
+    private DynamicObject executeDup(VirtualFrame frame, DynamicObject array) {
+        if (dup == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            dup = insert(ArrayDupNodeGen.create(null));
+        }
+        return dup.executeDup(frame, array);
     }
 
 }

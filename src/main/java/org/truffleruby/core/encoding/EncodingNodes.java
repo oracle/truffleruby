@@ -555,16 +555,12 @@ public abstract class EncodingNodes {
             return EncodingNodesFactory.CheckEncodingNodeGen.create(null, null);
         }
 
-        public CheckEncodingNode() {
-            negotiateCompatibleEncodingNode = EncodingNodesFactory.NegotiateCompatibleEncodingNodeGen.create(null, null);
-        }
-
         public abstract Encoding executeCheckEncoding(Object first, Object second);
 
         @Specialization
         public Encoding checkEncoding(Object first, Object second,
                                       @Cached("create()") BranchProfile errorProfile) {
-            final Encoding negotiatedEncoding = negotiateCompatibleEncodingNode.executeNegotiate(first, second);
+            final Encoding negotiatedEncoding = executeNegotiate(first, second);
 
             if (negotiatedEncoding == null) {
                 errorProfile.enter();
@@ -573,6 +569,14 @@ public abstract class EncodingNodes {
             }
 
             return negotiatedEncoding;
+        }
+
+        private Encoding executeNegotiate(Object first, Object second) {
+            if (negotiateCompatibleEncodingNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                negotiateCompatibleEncodingNode = insert(EncodingNodesFactory.NegotiateCompatibleEncodingNodeGen.create(null, null));
+            }
+            return negotiateCompatibleEncodingNode.executeNegotiate(first, second);
         }
 
         private void raiseException(Object first, Object second) {

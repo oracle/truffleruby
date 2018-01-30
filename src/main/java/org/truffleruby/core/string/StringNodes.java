@@ -4409,8 +4409,8 @@ public abstract class StringNodes {
     @NodeChildren({ @NodeChild("string"), @NodeChild("other") })
     public static abstract class StringAppendNode extends RubyNode {
 
-        @Child private EncodingNodes.CheckEncodingNode checkEncodingNode = EncodingNodesFactory.CheckEncodingNodeGen.create(null, null);
-        @Child private RopeNodes.ConcatNode concatNode = RopeNodes.ConcatNode.create();
+        @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
+        @Child private RopeNodes.ConcatNode concatNode;
 
         public static StringAppendNode create() {
             return StringNodesFactory.StringAppendNodeGen.create(null, null);
@@ -4426,9 +4426,25 @@ public abstract class StringNodes {
             final Rope left = rope(string);
             final Rope right = rope(other);
 
-            final Encoding compatibleEncoding = checkEncodingNode.executeCheckEncoding(string, other);
+            final Encoding compatibleEncoding = executeCheckEncoding(string, other);
 
+            return executeConcat(left, right, compatibleEncoding);
+        }
+
+        private Rope executeConcat(Rope left, Rope right, Encoding compatibleEncoding) {
+            if (concatNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                concatNode = insert(RopeNodes.ConcatNode.create());
+            }
             return concatNode.executeConcat(left, right, compatibleEncoding);
+        }
+
+        private Encoding executeCheckEncoding(DynamicObject string, DynamicObject other) {
+            if (checkEncodingNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                checkEncodingNode = insert(EncodingNodesFactory.CheckEncodingNodeGen.create(null, null));
+            }
+            return checkEncodingNode.executeCheckEncoding(string, other);
         }
 
     }

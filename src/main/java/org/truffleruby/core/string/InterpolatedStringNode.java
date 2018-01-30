@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.string;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -27,10 +28,10 @@ public final class InterpolatedStringNode extends RubyNode {
 
     @Children private final ToSNode[] children;
 
-    @Child private StringNodes.StringAppendPrimitiveNode appendNode = StringNodesFactory.StringAppendPrimitiveNodeFactory.create(null);
-    @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
-    @Child private IsTaintedNode isTaintedNode = IsTaintedNode.create();
-    @Child private TaintNode taintNode = TaintNode.create();
+    @Child private StringNodes.StringAppendPrimitiveNode appendNode;
+    @Child private CallDispatchHeadNode dupNode;
+    @Child private IsTaintedNode isTaintedNode;
+    @Child private TaintNode taintNode;
 
     private final ConditionProfile taintProfile = ConditionProfile.createCountingProfile();
 
@@ -48,13 +49,13 @@ public final class InterpolatedStringNode extends RubyNode {
         for (int n = 0; n < children.length; n++) {
             final Object toInterpolate = children[n].execute(frame);
             strings[n] = toInterpolate;
-            tainted |= isTaintedNode.executeIsTainted(toInterpolate);
+            tainted |= executeIsTainted(toInterpolate);
         }
 
         final Object string = concat(frame, strings);
 
         if (taintProfile.profile(tainted)) {
-            taintNode.executeTaint(string);
+            executeTaint(string);
         }
 
         return string;
@@ -70,13 +71,45 @@ public final class InterpolatedStringNode extends RubyNode {
             assert RubyGuards.isRubyString(string);
 
             if (builder == null) {
-                builder = (DynamicObject) dupNode.call(frame, string, "dup");
+                builder = (DynamicObject) callDup(frame, string);
             } else {
-                builder = appendNode.executeStringAppend(builder, (DynamicObject) string);
+                builder = executeStringAppend(builder, (DynamicObject) string);
             }
         }
 
         return builder;
+    }
+
+    private void executeTaint(Object obj) {
+        if (taintNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            taintNode = insert(TaintNode.create());
+        }
+        taintNode.executeTaint(obj);
+    }
+
+    private DynamicObject executeStringAppend(DynamicObject builder, DynamicObject string) {
+        if (appendNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            appendNode = insert(StringNodesFactory.StringAppendPrimitiveNodeFactory.create(null));
+        }
+        return appendNode.executeStringAppend(builder, string);
+    }
+
+    private Object callDup(VirtualFrame frame, Object string) {
+        if (dupNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            dupNode = insert(CallDispatchHeadNode.create());
+        }
+        return dupNode.call(frame, string, "dup");
+    }
+
+    private boolean executeIsTainted(Object object) {
+        if (isTaintedNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            isTaintedNode = insert(IsTaintedNode.create());
+        }
+        return isTaintedNode.executeIsTainted(object);
     }
 
 }
