@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "The TOPLEVEL_BINDING constant" do
-  before :all do
+  before :each do
     @binding_toplevel_variables = eval(ruby_exe(fixture(__FILE__, "toplevel_binding_variables.rb")))
     @binding_toplevel_id = eval(ruby_exe(fixture(__FILE__, "toplevel_binding_id.rb")))
   end
