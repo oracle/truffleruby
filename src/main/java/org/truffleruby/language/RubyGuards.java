@@ -278,4 +278,14 @@ public abstract class RubyGuards {
         return isRubyClass(value) && Layouts.CLASS.getIsSingleton(value);
     }
 
+    // Arguments
+
+    public static boolean noArguments(Object[] args) {
+        return args.length == 0;
+    }
+
+    public static boolean singleArgument(Object[] args) {
+        return args.length == 1;
+    }
+
 }

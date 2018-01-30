@@ -2052,7 +2052,7 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = { "!isEmpty(string)", "zeroArgs(args)" })
+        @Specialization(guards = { "!isEmpty(string)", "noArguments(args)" })
         @TruffleBoundary
         public Object squeezeBangZeroArgs(DynamicObject string, Object[] args) {
             // Taken from org.jruby.RubyString#squeeze_bang19.
@@ -2082,7 +2082,7 @@ public abstract class StringNodes {
             return string;
         }
 
-        @Specialization(guards = { "!isEmpty(string)", "!zeroArgs(args)" })
+        @Specialization(guards = { "!isEmpty(string)", "!noArguments(args)" })
         public Object squeezeBang(VirtualFrame frame, DynamicObject string, Object[] args,
                 @Cached("create()") ToStrNode toStrNode) {
             // Taken from org.jruby.RubyString#squeeze_bang19.
@@ -2140,9 +2140,6 @@ public abstract class StringNodes {
             return string;
         }
 
-        public static boolean zeroArgs(Object[] args) {
-            return args.length == 0;
-        }
     }
 
     @CoreMethod(names = "succ!", raiseIfFrozenSelf = true)
