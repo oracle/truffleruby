@@ -27,7 +27,7 @@ public abstract class ArrayLiteralNode extends RubyNode {
     }
 
     @Children protected final RubyNode[] values;
-    @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNodeGen.create(false, null, null);
+    @Child private AllocateObjectNode allocateObjectNode;
 
     public ArrayLiteralNode(RubyNode[] values) {
         this.values = values;
@@ -55,6 +55,10 @@ public abstract class ArrayLiteralNode extends RubyNode {
 
     @Override
     protected DynamicObject createArray(Object store, int size) {
+        if (allocateObjectNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            allocateObjectNode = insert(AllocateObjectNodeGen.create(false, null, null));
+        }
         return allocateObjectNode.allocate(coreLibrary().getArrayClass(), store, size);
     }
 

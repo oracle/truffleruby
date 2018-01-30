@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.array;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -26,7 +27,7 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayDupNode extends RubyNode {
 
-    @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
+    @Child private AllocateObjectNode allocateNode;
 
     public abstract DynamicObject executeDup(VirtualFrame frame, DynamicObject array);
 
@@ -47,7 +48,7 @@ public abstract class ArrayDupNode extends RubyNode {
         for (int i = 0; i < cachedSize; i++) {
             copy.set(i, mirror.get(i));
         }
-        return allocateNode.allocateArray(coreLibrary().getArrayClass(), copy.getArray(), cachedSize);
+        return allocateArray(coreLibrary().getArrayClass(), copy.getArray(), cachedSize);
     }
 
     @Specialization(guards = "strategy.matches(from)", replaces = "dupProfiledSize", limit = "ARRAY_STRATEGIES")
@@ -55,7 +56,15 @@ public abstract class ArrayDupNode extends RubyNode {
             @Cached("of(from)") ArrayStrategy strategy) {
         final int size = strategy.getSize(from);
         Object store = strategy.newMirror(from).copyArrayAndMirror().getArray();
-        return allocateNode.allocateArray(coreLibrary().getArrayClass(), store, size);
+        return allocateArray(coreLibrary().getArrayClass(), store, size);
+    }
+
+    private DynamicObject allocateArray(DynamicObject arrayClass, Object store, int size) {
+        if (allocateNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            allocateNode = insert(AllocateObjectNode.create());
+        }
+        return allocateNode.allocateArray(arrayClass, store, size);
     }
 
     protected int getCacheLimit() {

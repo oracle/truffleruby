@@ -175,7 +175,7 @@ public abstract class StringNodes {
     @NodeChildren({ @NodeChild("bytes"), @NodeChild("encoding"), @NodeChild("codeRange") })
     public abstract static class MakeStringNode extends RubyNode {
 
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        @Child private AllocateObjectNode allocateObjectNode;
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
 
         public abstract DynamicObject executeMake(Object payload, Object encoding, Object codeRange);
@@ -216,14 +216,22 @@ public abstract class StringNodes {
 
         @Specialization
         protected DynamicObject makeStringFromRope(Rope rope, NotProvided encoding, NotProvided codeRange) {
-            return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope, null));
+            return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope, null));
         }
 
         @Specialization
         protected DynamicObject makeStringFromBytes(byte[] bytes, Encoding encoding, CodeRange codeRange) {
             final LeafRope rope = makeLeafRopeNode.executeMake(bytes, encoding, codeRange, NotProvided.INSTANCE);
 
-            return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope, null));
+            return allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope, null));
+        }
+
+        private DynamicObject allocate(DynamicObject object, Object[] values) {
+            if (allocateObjectNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                allocateObjectNode = insert(AllocateObjectNode.create());
+            }
+            return allocateObjectNode.allocate(object, values);
         }
 
         @Specialization(guards = "is7Bit(codeRange)")
@@ -1568,7 +1576,7 @@ public abstract class StringNodes {
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private RopeNodes.EncodingLengthNode encodingLengthNode = RopeNodes.EncodingLengthNode.create();
-        private final RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
+        @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization(guards = { "isBrokenCodeRange(string)", "isAsciiCompatible(string)" })
         public DynamicObject scrubAsciiCompat(DynamicObject string, DynamicObject block) {
