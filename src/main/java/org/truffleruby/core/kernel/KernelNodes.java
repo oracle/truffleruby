@@ -429,7 +429,7 @@ public abstract class KernelNodes {
         @Child private IsFrozenNode isFrozenNode = IsFrozenNodeGen.create(null);
         @Child private FreezeNode freezeNode;
         @Child private PropagateTaintNode propagateTaintNode = PropagateTaintNode.create();
-        @Child private SingletonClassNode singletonClassNode = SingletonClassNodeGen.create(null);
+        @Child private SingletonClassNode singletonClassNode;
 
         @Specialization
         public DynamicObject clone(VirtualFrame frame, DynamicObject self,
@@ -441,7 +441,7 @@ public abstract class KernelNodes {
             // Copy the singleton class if any.
             final DynamicObject selfMetaClass = Layouts.BASIC_OBJECT.getMetaClass(self);
             if (isSingletonProfile.profile(Layouts.CLASS.getIsSingleton(selfMetaClass))) {
-                final DynamicObject newObjectMetaClass = singletonClassNode.executeSingletonClass(newObject);
+                final DynamicObject newObjectMetaClass = executeSingletonClass(newObject);
                 Layouts.MODULE.getFields(newObjectMetaClass).initCopy(selfMetaClass);
             }
 
@@ -463,6 +463,15 @@ public abstract class KernelNodes {
             }
 
             return newObject;
+        }
+
+        private DynamicObject executeSingletonClass(DynamicObject newObject) {
+            if (singletonClassNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                singletonClassNode = insert(SingletonClassNodeGen.create(null));
+            }
+
+            return singletonClassNode.executeSingletonClass(newObject);
         }
 
     }

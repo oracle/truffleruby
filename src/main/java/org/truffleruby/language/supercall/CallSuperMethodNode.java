@@ -33,7 +33,7 @@ public abstract class CallSuperMethodNode extends RubyNode {
 
     private final ConditionProfile missingProfile = ConditionProfile.createBinaryProfile();
 
-    @Child private CallInternalMethodNode callMethodNode = CallInternalMethodNodeGen.create(null, null);
+    @Child private CallInternalMethodNode callMethodNode;
     @Child private CallDispatchHeadNode callMethodMissingNode;
 
     @Specialization
@@ -48,6 +48,14 @@ public abstract class CallSuperMethodNode extends RubyNode {
 
         final Object[] frameArguments = RubyArguments.pack(null, null, superMethod, null, self, (DynamicObject) block, arguments);
 
+        return executeCallMethod(superMethod, frameArguments);
+    }
+
+    private Object executeCallMethod(InternalMethod superMethod, Object[] frameArguments) {
+        if (callMethodNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            callMethodNode = insert(CallInternalMethodNodeGen.create(null, null));
+        }
         return callMethodNode.executeCallMethod(superMethod, frameArguments);
     }
 

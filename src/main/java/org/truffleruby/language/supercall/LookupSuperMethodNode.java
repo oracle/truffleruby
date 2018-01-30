@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.supercall;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -31,7 +32,7 @@ import org.truffleruby.language.objects.MetaClassNodeGen;
 @NodeChild("self")
 public abstract class LookupSuperMethodNode extends RubyNode {
 
-    @Child private MetaClassNode metaClassNode = MetaClassNodeGen.create(null);
+    @Child private MetaClassNode metaClassNode;
 
     public abstract InternalMethod executeLookupSuperMethod(VirtualFrame frame, Object self);
 
@@ -66,6 +67,10 @@ public abstract class LookupSuperMethodNode extends RubyNode {
     }
 
     protected DynamicObject metaClass(Object object) {
+        if (metaClassNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            metaClassNode = insert(MetaClassNodeGen.create(null));
+        }
         return metaClassNode.executeMetaClass(object);
     }
 
