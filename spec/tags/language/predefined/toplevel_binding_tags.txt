@@ -1,2 +1,1 @@
-fails:The TOPLEVEL_BINDING constant does not include local variables defined in eval
 fails:The TOPLEVEL_BINDING constant is always the same object for all top levels

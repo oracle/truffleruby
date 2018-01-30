@@ -53,6 +53,7 @@ import org.truffleruby.language.DataNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.SetTopLevelBindingNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
@@ -213,6 +214,12 @@ public class TranslatorDriver {
         printParseTranslateExecuteMetric("before-translate", context, source);
         RubyNode truffleNode = translator.translateNodeOrNil(sourceIndexLength, node.getBodyNode());
         printParseTranslateExecuteMetric("after-translate", context, source);
+
+        // Set the top level binding
+
+        if (parserContext != ParserContext.EVAL) {
+            truffleNode = new SetTopLevelBindingNode(truffleNode);
+        }
 
         // Load arguments
 
