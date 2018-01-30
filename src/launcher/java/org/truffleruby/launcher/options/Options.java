@@ -89,8 +89,6 @@ public class Options {
     public final int ROPE_CLASS_CACHE;
     public final int INTEROP_CONVERT_CACHE;
     public final int INTEROP_EXECUTE_CACHE;
-    public final int INTEROP_READ_CACHE;
-    public final int INTEROP_WRITE_CACHE;
     public final int INTEROP_INVOKE_CACHE;
     public final int INTEROP_NEW_CACHE;
     public final int TIME_FORMAT_CACHE;
@@ -210,8 +208,6 @@ public class Options {
         ROPE_CLASS_CACHE = builder.getOrDefault(OptionsCatalog.ROPE_CLASS_CACHE);
         INTEROP_CONVERT_CACHE = builder.getOrDefault(OptionsCatalog.INTEROP_CONVERT_CACHE, DEFAULT_CACHE);
         INTEROP_EXECUTE_CACHE = builder.getOrDefault(OptionsCatalog.INTEROP_EXECUTE_CACHE, DEFAULT_CACHE);
-        INTEROP_READ_CACHE = builder.getOrDefault(OptionsCatalog.INTEROP_READ_CACHE, DEFAULT_CACHE);
-        INTEROP_WRITE_CACHE = builder.getOrDefault(OptionsCatalog.INTEROP_WRITE_CACHE, DEFAULT_CACHE);
         INTEROP_INVOKE_CACHE = builder.getOrDefault(OptionsCatalog.INTEROP_INVOKE_CACHE, DEFAULT_CACHE);
         INTEROP_NEW_CACHE = builder.getOrDefault(OptionsCatalog.INTEROP_NEW_CACHE, DEFAULT_CACHE);
         TIME_FORMAT_CACHE = builder.getOrDefault(OptionsCatalog.TIME_FORMAT_CACHE, DEFAULT_CACHE);
@@ -406,10 +402,6 @@ public class Options {
                 return INTEROP_CONVERT_CACHE;
             case "ruby.interop.execute.cache":
                 return INTEROP_EXECUTE_CACHE;
-            case "ruby.interop.read.cache":
-                return INTEROP_READ_CACHE;
-            case "ruby.interop.write.cache":
-                return INTEROP_WRITE_CACHE;
             case "ruby.interop.invoke.cache":
                 return INTEROP_INVOKE_CACHE;
             case "ruby.interop.new.cache":

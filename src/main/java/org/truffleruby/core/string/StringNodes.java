@@ -183,6 +183,10 @@ public abstract class StringNodes {
             return executeMake(rope, NotProvided.INSTANCE, NotProvided.INSTANCE);
         }
 
+        public DynamicObject fromBuilder(RopeBuilder builder, CodeRange codeRange) {
+            return executeMake(builder.getBytes(), builder.getEncoding(), codeRange);
+        }
+
         /**
          * All callers of this factory method must guarantee that the builder's byte array cannot change after this
          * call, otherwise the rope built from the builder will end up in an inconsistent state.
