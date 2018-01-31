@@ -499,6 +499,17 @@ public class RubyContext {
             return home.getCanonicalPath();
         }
 
+        // We need a home for context pre-initialization but the Context is built without arguments.
+        // Therefore we use a system property set in native-image.properties.
+        final String fromProperty = System.getProperty("polyglot.ruby.home");
+        if (fromProperty != null && !fromProperty.isEmpty()) {
+            final File home = new File(fromProperty);
+            if (!isRubyHome(home)) {
+                Log.LOGGER.warning(home + " does not look like truffleruby's home");
+            }
+            return home.getCanonicalPath();
+        }
+
         StringBuilder warning = new StringBuilder("TruffleRuby's home was not explicitly set.\n");
 
         if (!options.LAUNCHER.isEmpty()) {
