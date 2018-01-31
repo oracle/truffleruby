@@ -3542,7 +3542,7 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = { "isRubyString(pattern)", "!isBrokenCodeRange(pattern)", "isFallback(string, pattern)" })
+        @Specialization(guards = { "!isBrokenCodeRange(pattern)", "isFallback(string, pattern)" })
         public Object stringIndexGeneric(DynamicObject string, DynamicObject pattern, int start,
                 @Cached("create()") EncodingNodes.CheckEncodingNode checkEncodingNode,
                 @Cached("createBinaryProfile()") ConditionProfile badIndexProfile) {
@@ -3560,7 +3560,7 @@ public abstract class StringNodes {
             return index;
         }
 
-        @Specialization(guards = { "isRubyString(pattern)", "isBrokenCodeRange(pattern)" })
+        @Specialization(guards = { "isBrokenCodeRange(pattern)" })
         public DynamicObject stringIndexBrokenCodeRange(DynamicObject string, DynamicObject pattern, int start) {
             return nil();
         }
@@ -3655,13 +3655,9 @@ public abstract class StringNodes {
         }
 
         protected static boolean isSingleBytePattern(DynamicObject pattern) {
-            if (RubyGuards.isRubyString(pattern)) {
-                final Rope patternRope = rope(pattern);
+            final Rope patternRope = rope(pattern);
 
-                return patternRope.getCodeRange() != CR_BROKEN && patternRope.isSingleByteOptimizable() && RopeGuards.isSingleByteString(patternRope);
-            }
-
-            return false;
+            return patternRope.getCodeRange() != CR_BROKEN && patternRope.isSingleByteOptimizable() && RopeGuards.isSingleByteString(patternRope);
         }
 
         protected static boolean isFallback(DynamicObject source, DynamicObject pattern) {
