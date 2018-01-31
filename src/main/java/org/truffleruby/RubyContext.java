@@ -333,10 +333,6 @@ public class RubyContext {
             Log.LOGGER.fine(notReusingContext + "-Xplatform.native is " + newOptions.NATIVE_PLATFORM);
             return false;
         }
-        if (newOptions.POLYGLOT_STDIO != oldOptions.POLYGLOT_STDIO) {
-            Log.LOGGER.fine(notReusingContext + "-Xpolyglot.stdio is " + newOptions.POLYGLOT_STDIO);
-            return false;
-        }
         if (newOptions.VERBOSITY != oldOptions.VERBOSITY) {
             Log.LOGGER.fine(notReusingContext + "$VERBOSE is " + newOptions.VERBOSITY + " (was " + oldOptions.VERBOSITY + ")");
             return false;
