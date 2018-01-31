@@ -379,14 +379,13 @@ class MatchData
   end
 
   def inspect
-    capts = captures
-    if capts.empty?
-      "#<MatchData \"#{self[0]}\">"
-    else
-      idx = 0
-      capts.map! { |capture| "#{idx += 1}:#{capture.inspect}" }
-      "#<MatchData \"#{self[0]}\" #{capts.join(" ")}>"
+    str = "#<MatchData \"#{self[0]}\""
+    idx = 0
+    captures.zip(names) do |capture, name|
+      idx += 1
+      str << " #{name || idx}:#{capture.inspect}"
     end
+    "#{str}>"
   end
 
   def values_at(*indexes)
