@@ -486,7 +486,11 @@ public class ThreadManager {
 
     @TruffleBoundary
     public DynamicObject getCurrentThread() {
-        return currentThread.get();
+        final DynamicObject rubyThread = currentThread.get();
+        if (rubyThread == null) {
+            throw new UnsupportedOperationException("No Ruby Thread is associated with this Java Thread: " + Thread.currentThread());
+        }
+        return rubyThread;
     }
 
     @TruffleBoundary
