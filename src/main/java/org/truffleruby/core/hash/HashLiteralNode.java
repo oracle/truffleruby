@@ -72,8 +72,6 @@ public abstract class HashLiteralNode extends RubyNode {
         @Child protected CallDispatchHeadNode dupNode;
         @Child protected CallDispatchHeadNode freezeNode;
         @Child private IsFrozenNode isFrozenNode;
-        @Child protected CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
-        @Child protected CallDispatchHeadNode freezeNode = CallDispatchHeadNode.create();
 
         public SmallHashLiteralNode(RubyNode[] keyValues) {
             super(keyValues);
