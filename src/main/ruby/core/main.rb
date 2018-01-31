@@ -69,17 +69,19 @@ show_backtraces = -> {
   end
 }
 
-Signal.trap('INT') do
-  if Truffle::Boot.get_option('backtraces.on_interrupt')
-    puts 'Interrupting...'
-    show_backtraces.call
+Truffle::Boot.delay do
+  Signal.trap('INT') do
+    if Truffle::Boot.get_option('backtraces.on_interrupt')
+      puts 'Interrupting...'
+      show_backtraces.call
+    end
+
+    raise Interrupt
   end
 
-  raise Interrupt
-end
-
-if Truffle::Boot.get_option('backtraces.sigalrm')
-  Signal.trap('ALRM') do
-    show_backtraces.call
+  if Truffle::Boot.get_option('backtraces.sigalrm')
+    Signal.trap('ALRM') do
+      show_backtraces.call
+    end
   end
 end

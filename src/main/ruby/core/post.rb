@@ -32,35 +32,37 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Set up IO only now as it has lots of dependencies
-STDIN = File.new(0)
-STDOUT = File.new(1)
-STDERR = File.new(2)
+Truffle::Boot.delay do
+  # Set up IO only now as it has lots of dependencies
+  STDIN = File.new(0)
+  STDOUT = File.new(1)
+  STDERR = File.new(2)
 
-$stdin = STDIN
-$stdout = STDOUT
-$stderr = STDERR
+  $stdin = STDIN
+  $stdout = STDOUT
+  $stderr = STDERR
 
-class << STDIN
-  def external_encoding
-    super || Encoding.default_external
+  class << STDIN
+    def external_encoding
+      super || Encoding.default_external
+    end
   end
-end
 
-# stdout is line-buffered if it refers to a terminal
-if Truffle::Boot.get_option('sync.stdio') || STDOUT.tty?
-  STDOUT.sync = true
-end
+  # stdout is line-buffered if it refers to a terminal
+  if Truffle::Boot.get_option('sync.stdio') || STDOUT.tty?
+    STDOUT.sync = true
+  end
 
-# stderr is always unbuffered, see setvbuf(3)
-STDERR.sync = true
+  # stderr is always unbuffered, see setvbuf(3)
+  STDERR.sync = true
 
-# Always flush standard streams on exit
-Truffle::KernelOperations.at_exit true do
-  STDOUT.flush
-end
-Truffle::KernelOperations.at_exit true do
-  STDERR.flush
+  # Always flush standard streams on exit
+  Truffle::KernelOperations.at_exit true do
+    STDOUT.flush
+  end
+  Truffle::KernelOperations.at_exit true do
+    STDERR.flush
+  end
 end
 
 module Truffle
@@ -89,9 +91,11 @@ module Kernel
   module_function :p
 end
 
-$$ = Process.pid if Truffle::Boot.get_option 'platform.native'
+Truffle::Boot.delay do
+  $$ = Process.pid if Truffle::Boot.get_option 'platform.native'
 
-ARGV.concat(Truffle::Boot.original_argv)
+  ARGV.concat(Truffle::Boot.original_argv)
+end
 
 $LOAD_PATH.concat(Truffle::Boot.original_load_path)
 
