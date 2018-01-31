@@ -56,6 +56,7 @@ import org.truffleruby.launcher.options.OptionsCatalog;
 import java.io.File;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
@@ -72,6 +73,8 @@ public class Launcher {
 
     private static final String LIBSULONG_DIR = IS_NATIVE ? System.getProperty("truffleruby.native.libsulong_dir") : null;
 
+    private static final boolean DEBUG_PRE_INIT_CONTEXT = !IS_NATIVE && System.getProperty("polyglot.engine.PreinitializeContexts") != null;
+
     // These system properties are used before outside the SDK option system
 
     public static boolean METRICS_TIME;
@@ -85,6 +88,7 @@ public class Launcher {
         processArguments(config, Arrays.asList(args), true, true, IS_NATIVE);
         printPreRunInformation(isGraal, config);
         setRubyLauncherIfNative(config);
+        debugPreInitialization();
         final int exitCode = runRubyMain(Context.newBuilder(), config);
 
         metricsEnd();
@@ -119,6 +123,19 @@ public class Launcher {
     public static void metricsEnd() {
         printTruffleTimeMetric("after-main");
         printTruffleMemoryMetric();
+    }
+
+    private static void debugPreInitialization() {
+        if (DEBUG_PRE_INIT_CONTEXT) {
+            try {
+                final Class<?> holderClz = Class.forName("org.graalvm.polyglot.Engine$ImplHolder");
+                final Method preInitMethod = holderClz.getDeclaredMethod("preInitializeEngine");
+                preInitMethod.setAccessible(true);
+                preInitMethod.invoke(null);
+            } catch (ReflectiveOperationException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {
