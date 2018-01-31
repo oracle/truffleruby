@@ -41,7 +41,6 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
  * A string which contains some dynamic elements which needs to be evaluated (introduced by #).
  */
 public class DStrParseNode extends DParseNode implements ILiteralNode {
-    private boolean frozen;
 
     public DStrParseNode(SourceIndexLength position, Encoding encoding) {
         super(position, encoding);
@@ -59,13 +58,5 @@ public class DStrParseNode extends DParseNode implements ILiteralNode {
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitDStrNode(this);
-    }
-
-    public boolean isFrozen() {
-        return frozen;
-    }
-
-    public void setFrozen(boolean frozen) {
-        this.frozen = frozen;
     }
 }
