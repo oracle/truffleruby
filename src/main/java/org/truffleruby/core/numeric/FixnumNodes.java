@@ -34,6 +34,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.LazyIntRope;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -1308,6 +1309,8 @@ public abstract class FixnumNodes {
     @Primitive(name = "fixnum_pow", lowerFixnum = { 0, 1 })
     public abstract static class PowNode extends PrimitiveArrayArgumentsNode {
 
+        @Child private BignumNodes.BignumPowPrimitiveNode bignumPowNode;
+
         public abstract Object executePow(Object a, Object b);
 
         // Highest bit we can set is the 30th due to sign
@@ -1329,6 +1332,7 @@ public abstract class FixnumNodes {
         }, limit = "getLimit()")
         public Object powConstantExponent(Object base, int exponent,
                 @Cached("exponent") int cachedExponent,
+                @Cached("create()") BranchProfile overflowProfile,
                 @Cached("create()") IntegerMulNode mulNode) {
             Object result = 1;
             int exp = cachedExponent;
@@ -1336,6 +1340,12 @@ public abstract class FixnumNodes {
                 if ((exp & 1) == 0) {
                     base = mulNode.executeMul(base, base);
                     exp >>= 1;
+
+                    if (base instanceof DynamicObject) {
+                        overflowProfile.enter();
+                        final Object bignumResult = bignumPow(base, exp);
+                        return mulNode.executeMul(result, bignumResult);
+                    }
                 } else {
                     result = mulNode.executeMul(base, result);
                     exp--;
@@ -1346,6 +1356,7 @@ public abstract class FixnumNodes {
 
         @Specialization(guards = { "isIntOrLong(base)", "exponent >= 0" })
         public Object powLoop(Object base, long exponent,
+                @Cached("create()") BranchProfile overflowProfile,
                 @Cached("create()") IntegerMulNode mulNode) {
             Object result = 1;
             long exp = exponent;
@@ -1353,12 +1364,29 @@ public abstract class FixnumNodes {
                 if ((exp & 1) == 0) {
                     base = mulNode.executeMul(base, base);
                     exp >>= 1;
+
+                    if (base instanceof DynamicObject) {
+                        overflowProfile.enter();
+                        final Object bignumResult = bignumPow(base, exp);
+                        return mulNode.executeMul(result, bignumResult);
+                    }
                 } else {
                     result = mulNode.executeMul(base, result);
                     exp--;
                 }
             }
             return result;
+        }
+
+        private Object bignumPow(Object a, Object b) {
+            assert RubyGuards.isRubyBignum(a);
+
+            if (bignumPowNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                bignumPowNode = insert(BignumNodes.BignumPowPrimitiveNode.create());
+            }
+
+            return bignumPowNode.executePow(a, b);
         }
 
         @Specialization(guards = "exponent < 0")
