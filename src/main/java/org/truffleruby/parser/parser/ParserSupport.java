@@ -1078,11 +1078,7 @@ public class ParserSupport {
     }
 
     public DStrParseNode createDStrNode(SourceIndexLength position) {
-        DStrParseNode dstr = new DStrParseNode(position, lexer.getEncoding());
-        if (getConfiguration().isFrozenStringLiteral()) {
-            dstr.setFrozen(true);
-        }
-        return dstr;
+        return new DStrParseNode(position, lexer.getEncoding());
     }
 
     public ParseNodeTuple createKeyValue(ParseNode key, ParseNode value) {
@@ -1163,9 +1159,6 @@ public class ParserSupport {
                 DStrParseNode newDStr = new DStrParseNode(head.getPosition(), ((DStrParseNode) tail).getEncoding());
                 newDStr.add(head);
                 newDStr.add(tail);
-                if (getConfiguration().isFrozenStringLiteral()) {
-                    newDStr.setFrozen(true);
-                }
                 return newDStr;
             }
 
