@@ -56,6 +56,7 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.launcher.Launcher;
 import org.truffleruby.launcher.options.Options;
 import org.truffleruby.launcher.options.OptionsBuilder;
+import org.truffleruby.launcher.options.OptionsCatalog;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -297,7 +298,12 @@ public class RubyContext {
     protected boolean patch(Env newEnv) {
         this.env = newEnv;
 
-        this.options = createOptions(newEnv);
+        final Options oldOptions = this.options;
+        final Options newOptions = createOptions(newEnv);
+        if (!compatibleOptions(oldOptions, newOptions)) {
+            return false;
+        }
+        this.options = newOptions;
 
         reInitialize();
 
@@ -311,6 +317,31 @@ public class RubyContext {
         }
 
         initialized = true;
+        return true;
+    }
+
+    private boolean compatibleOptions(Options oldOptions, Options newOptions) {
+        final String notReusingContext = "not reusing pre-initialized context: ";
+
+        if (!newOptions.CORE_LOAD_PATH.equals(OptionsCatalog.CORE_LOAD_PATH.getDefaultValue())) {
+            Log.LOGGER.fine(notReusingContext + "-Xcore.load_path is set: " + newOptions.CORE_LOAD_PATH);
+            return false; // Should load the specified core files
+        }
+
+        // The core library captures the value of these options (via Truffle::Boot.get_option).
+        if (newOptions.NATIVE_PLATFORM != oldOptions.NATIVE_PLATFORM) {
+            Log.LOGGER.fine(notReusingContext + "-Xplatform.native is " + newOptions.NATIVE_PLATFORM);
+            return false;
+        }
+        if (newOptions.POLYGLOT_STDIO != oldOptions.POLYGLOT_STDIO) {
+            Log.LOGGER.fine(notReusingContext + "-Xpolyglot.stdio is " + newOptions.POLYGLOT_STDIO);
+            return false;
+        }
+        if (newOptions.VERBOSITY != oldOptions.VERBOSITY) {
+            Log.LOGGER.fine(notReusingContext + "$VERBOSE is " + newOptions.VERBOSITY + " (was " + oldOptions.VERBOSITY + ")");
+            return false;
+        }
+
         return true;
     }
 
