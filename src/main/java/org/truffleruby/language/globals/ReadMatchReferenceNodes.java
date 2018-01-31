@@ -12,6 +12,7 @@ package org.truffleruby.language.globals;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -21,7 +22,7 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
 
     public static class ReadNthMatchNode extends RubyNode {
         @Child private RubyNode readMatchNode;
-        @Child private CallDispatchHeadNode getIndexNode = CallDispatchHeadNode.create();
+        @Child private CallDispatchHeadNode getIndexNode;
         private final int index;
 
         protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
@@ -39,6 +40,14 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
                 return nil();
             }
 
+            return callGetIndex(frame, match, index);
+        }
+
+        private Object callGetIndex(VirtualFrame frame, Object match, int index) {
+            if (getIndexNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                getIndexNode = insert(CallDispatchHeadNode.create());
+            }
             return getIndexNode.call(frame, match, "[]", index);
         }
 
