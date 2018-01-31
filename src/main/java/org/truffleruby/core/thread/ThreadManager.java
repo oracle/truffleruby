@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.thread;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
@@ -55,7 +56,7 @@ public class ThreadManager {
     private final RubyContext context;
 
     private final DynamicObject rootThread;
-    private final Thread rootJavaThread;
+    @CompilationFinal private Thread rootJavaThread;
 
     private final Map<Thread, DynamicObject> foreignThreadMap = new ConcurrentHashMap<>();
     private final ThreadLocal<DynamicObject> currentThread = ThreadLocal.withInitial(() -> foreignThreadMap.get(Thread.currentThread()));
@@ -86,7 +87,7 @@ public class ThreadManager {
     }
 
     public void initialize(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
-        if (context.getOptions().NATIVE_INTERRUPT) {
+        if (context.getOptions().NATIVE_INTERRUPT && nfi != null) {
             setupSignalHandler(nfi, nativeConfiguration);
             setupNativeThreadSupport(nfi, nativeConfiguration);
         }
@@ -95,9 +96,32 @@ public class ThreadManager {
         start(rootThread, rootJavaThread);
     }
 
+    public void resetMainThread() {
+        cleanup(rootThread, rootJavaThread);
+        rubyManagedThreads.remove(rootJavaThread);
+
+        rootJavaThread = null;
+    }
+
+    public void restartMainThread(Thread mainJavaThread) {
+        rootJavaThread = mainJavaThread;
+
+        start(rootThread, mainJavaThread);
+        Layouts.THREAD.setStatus(rootThread, ThreadStatus.RUN);
+        Layouts.THREAD.setFinishedLatch(rootThread, new CountDownLatch(1));
+
+        final DynamicObject rootFiber = Layouts.THREAD.getFiberManager(rootThread).getRootFiber();
+        Layouts.FIBER.setAlive(rootFiber, true);
+        Layouts.FIBER.setFinishedLatch(rootFiber, new CountDownLatch(1));
+    }
+
     public Thread createJavaThread(Runnable runnable) {
         if (context.getLanguage().SINGLE_THREADED) {
             throw new RaiseException(context.getCoreExceptions().internalError("threads not allowed in single-threaded mode", null));
+        }
+
+        if (context.isPreInitializing()) {
+            throw new UnsupportedOperationException("threads should not be created while pre-initializing the context");
         }
 
         final Thread thread = context.getEnv().createThread(runnable);
@@ -442,7 +466,7 @@ public class ThreadManager {
             foreignThreadMap.put(thread, rubyThread);
         }
 
-        if (context.getOptions().NATIVE_INTERRUPT && isRubyManagedThread(thread)) {
+        if (pthread_self != null && isRubyManagedThread(thread)) {
             final Object pThreadID = pthread_self.call();
 
             blockingNativeCallUnblockingAction.set(() -> pthread_kill.call(pThreadID, SIGVTALRM));

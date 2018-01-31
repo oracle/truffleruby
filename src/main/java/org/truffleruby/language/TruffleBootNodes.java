@@ -86,6 +86,15 @@ public abstract class TruffleBootNodes {
         }
     }
 
+    @CoreMethod(names = "preinitializing?", onSingleton = true)
+    public abstract static class IsPreinitializingNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected boolean isPreinitializingContext() {
+            return getContext().isPreInitializing();
+        }
+    }
+
     @CoreMethod(names = "main", onSingleton = true)
     public abstract static class MainNode extends CoreMethodArrayArgumentsNode {
 

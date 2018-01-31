@@ -55,6 +55,7 @@ public interface ThreadLayout extends BasicObjectLayout {
     void setFiberManagerUnsafe(DynamicObject object, FiberManager value);
 
     CountDownLatch getFinishedLatch(DynamicObject object);
+    void setFinishedLatch(DynamicObject object, CountDownLatch value);
 
     DynamicObject getThreadLocals(DynamicObject object);
 

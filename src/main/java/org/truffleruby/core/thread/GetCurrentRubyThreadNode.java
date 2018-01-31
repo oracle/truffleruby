@@ -36,9 +36,11 @@ public abstract class GetCurrentRubyThreadNode extends RubyNode {
      */
     @Specialization(guards = {
             "getCurrentJavaThread(frame) == cachedJavaThread",
-            "hasThread(frame, cachedFiber)"
+            "hasThread(frame, cachedFiber)",
+            "!preInitializing" // Cannot cache a Thread instance when pre-initializing
     }, limit = "getCacheLimit()")
     protected DynamicObject getRubyThreadCached(VirtualFrame frame,
+            @Cached("isPreInitializing()") boolean preInitializing,
             @Cached("getCurrentJavaThread(frame)") Thread cachedJavaThread,
             @Cached("getCurrentRubyThread(frame)") DynamicObject cachedRubyThread,
             @Cached("getCurrentFiber(cachedRubyThread)") DynamicObject cachedFiber) {
@@ -64,6 +66,10 @@ public abstract class GetCurrentRubyThreadNode extends RubyNode {
 
     protected boolean hasThread(VirtualFrame frame, DynamicObject fiber) {
         return Layouts.FIBER.getThread(fiber) != null;
+    }
+
+    protected boolean isPreInitializing() {
+        return getContext().isPreInitializing();
     }
 
     protected int getCacheLimit() {

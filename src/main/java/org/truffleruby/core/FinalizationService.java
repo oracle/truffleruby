@@ -125,7 +125,7 @@ public class FinalizationService {
              * leaking a tiny number of bytes if it doesn't hold.
              */
 
-            if (finalizerThread == null && context.isInitialized() && !context.isFinalizing()) {
+            if (finalizerThread == null && !context.isPreInitializing() && context.isInitialized() && !context.isFinalizing()) {
                 createFinalizationThread();
             }
 
