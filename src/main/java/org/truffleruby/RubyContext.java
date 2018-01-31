@@ -125,7 +125,7 @@ public class RubyContext {
     private boolean initialized;
     private volatile boolean finalizing;
 
-    private static boolean preInitializeContexts = System.getProperty("polyglot.engine.PreinitializeContexts") != null;
+    private static boolean preInitializeContexts = Launcher.PRE_INITIALIZE_CONTEXTS;
 
     public boolean isPreInitializing() {
         return preInitializing;

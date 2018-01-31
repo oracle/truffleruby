@@ -71,9 +71,9 @@ public class Launcher {
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
     public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2017 Oracle and/or its affiliates";
 
+    // Properties set directly on the java command-line with -D for image building
     private static final String LIBSULONG_DIR = IS_NATIVE ? System.getProperty("truffleruby.native.libsulong_dir") : null;
-
-    private static final boolean DEBUG_PRE_INIT_CONTEXT = !IS_NATIVE && System.getProperty("polyglot.engine.PreinitializeContexts") != null;
+    public static final boolean PRE_INITIALIZE_CONTEXTS = System.getProperty("polyglot.engine.PreinitializeContexts") != null;
 
     // These system properties are used before outside the SDK option system
 
@@ -126,7 +126,7 @@ public class Launcher {
     }
 
     private static void debugPreInitialization() {
-        if (DEBUG_PRE_INIT_CONTEXT) {
+        if (!IS_NATIVE && PRE_INITIALIZE_CONTEXTS) {
             try {
                 final Class<?> holderClz = Class.forName("org.graalvm.polyglot.Engine$ImplHolder");
                 final Method preInitMethod = holderClz.getDeclaredMethod("preInitializeEngine");
