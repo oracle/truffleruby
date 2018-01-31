@@ -311,7 +311,9 @@ module Truffle
   end
 end
 
-ENV = Truffle::EnvironmentVariables.new
+Truffle::Boot.delay do
+  ENV = Truffle::EnvironmentVariables.new
+end
 
 # JRuby uses this for example to make proxy settings visible to stdlib/uri/common.rb
 

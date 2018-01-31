@@ -6,6 +6,9 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
+Truffle::Boot.delay do
+# rubocop:disable Style/IndentationWidth
+
 wd = Truffle::Boot.get_option('working_directory')
 Dir.chdir(wd) unless wd.empty?
 
@@ -81,4 +84,6 @@ if Truffle::Boot.get_option 'rubygems'
       end
     end
   end
+end
+
 end

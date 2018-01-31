@@ -17,6 +17,7 @@ module Truffle::POSIX
       if resolved = @resolved
         resolved
       else
+        raise 'loading library while pre-initializing' if Truffle::Boot.preinitializing?
         Truffle.synchronize(self) do
           @resolved ||= @block.call
         end
