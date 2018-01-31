@@ -93,17 +93,20 @@ module Truffle::POSIX
 
     if func
       string_args = []
+      nfi_args_types = []
       argument_types.each_with_index do |arg_type, i|
         if arg_type == :string
           string_args << i
-          argument_types[i] = '[sint8]'
+          nfi_args_types << '[sint8]'
+        else
+          nfi_args_types << to_nfi_type(arg_type)
         end
       end
       string_args.freeze
 
-      return_type = to_nfi_type(return_type)
-      argument_types = argument_types.map { |type| to_nfi_type(type) }
-      bound_func = func.bind("(#{argument_types.join(',')}):#{return_type}")
+      nfi_return_type = to_nfi_type(return_type)
+
+      bound_func = func.bind("(#{nfi_args_types.join(',')}):#{nfi_return_type}")
 
       on.define_singleton_method(method_name) do |*args|
         string_args.each do |i|
