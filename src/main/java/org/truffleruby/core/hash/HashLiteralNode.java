@@ -67,8 +67,10 @@ public abstract class HashLiteralNode extends RubyNode {
 
         private final ConditionProfile stringKeyProfile = ConditionProfile.createBinaryProfile();
 
-        @Child private HashNode hashNode = new HashNode();
-        @Child private CallDispatchHeadNode equalNode = CallDispatchHeadNode.create();
+        @Child private HashNode hashNode;
+        @Child private CallDispatchHeadNode equalNode;
+        @Child protected CallDispatchHeadNode dupNode;
+        @Child protected CallDispatchHeadNode freezeNode;
         @Child private IsFrozenNode isFrozenNode;
         @Child protected CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
         @Child protected CallDispatchHeadNode freezeNode = CallDispatchHeadNode.create();
@@ -80,6 +82,7 @@ public abstract class HashLiteralNode extends RubyNode {
         @ExplodeLoop
         @Override
         public Object execute(VirtualFrame frame) {
+
             final Object[] store = PackedArrayStrategy.createStore(getContext());
 
             int size = 0;
@@ -89,18 +92,18 @@ public abstract class HashLiteralNode extends RubyNode {
 
                 if (stringKeyProfile.profile(RubyGuards.isRubyString(key))) {
                     if (!isFrozen(key)) {
-                        key = freezeNode.call(frame, dupNode.call(frame, key, "dup"), "freeze");
+                        key = callFreeze(frame, callDup(frame, key));
                     }
                 }
 
-                final int hashed = hashNode.hash(frame, key, false);
+                final int hashed = hash(frame, key);
 
                 final Object value = keyValues[n * 2 + 1].execute(frame);
 
                 for (int i = 0; i < n; i++) {
                     if (i < size &&
                             hashed == PackedArrayStrategy.getHashed(store, i) &&
-                            equalNode.callBoolean(frame, key, "eql?", PackedArrayStrategy.getKey(store, i))) {
+                            callEqual(frame, key, PackedArrayStrategy.getKey(store, i))) {
                         PackedArrayStrategy.setKey(store, i, key);
                         PackedArrayStrategy.setValue(store, i, value);
                         continue initializers;
@@ -112,6 +115,38 @@ public abstract class HashLiteralNode extends RubyNode {
             }
 
             return Layouts.HASH.createHash(coreLibrary().getHashFactory(), store, size, null, null, null, null, false);
+        }
+
+        private int hash(VirtualFrame frame, Object key) {
+            if (hashNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                hashNode = insert(new HashNode());
+            }
+            return hashNode.hash(frame, key, false);
+        }
+
+        private boolean callEqual(VirtualFrame frame, Object receiver, Object key) {
+            if (equalNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                equalNode = insert(CallDispatchHeadNode.create());
+            }
+            return equalNode.callBoolean(frame, receiver, "eql?", key);
+        }
+
+        private Object callDup(VirtualFrame frame, Object receiver) {
+            if (dupNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                dupNode = insert(CallDispatchHeadNode.create());
+            }
+            return dupNode.call(frame, receiver, "dup");
+        }
+
+        private Object callFreeze(VirtualFrame frame, Object receiver) {
+            if (freezeNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                freezeNode = insert(CallDispatchHeadNode.create());
+            }
+            return freezeNode.call(frame, receiver, "freeze");
         }
 
         protected boolean isFrozen(Object object) {
