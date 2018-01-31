@@ -381,40 +381,42 @@ module Truffle::POSIX
     written
   end
 
-  if Truffle::Boot.get_option('polyglot.stdio')
-    class << self
-      alias_method :read_string_native, :read_string
-      alias_method :write_string_native, :write_string
-      alias_method :write_string_nonblock_native, :write_string_nonblock
-    end
-
-    def self.read_string(io, length)
-      fd = io.descriptor
-      if fd == 0
-        read = Truffle.invoke_primitive :io_read_polyglot, fd, length
-        [read, 0]
-      else
-        read_string_native(io, length)
+  Truffle::Boot.delay do
+    if Truffle::Boot.get_option('polyglot.stdio')
+      class << self
+        alias_method :read_string_native, :read_string
+        alias_method :write_string_native, :write_string
+        alias_method :write_string_nonblock_native, :write_string_nonblock
       end
-    end
 
-    def self.write_string(io, string, continue_on_eagain)
-      fd = io.descriptor
-      if fd == 1 || fd == 2
-        # Ignore continue_on_eagain for polyglot writes
-        Truffle.invoke_primitive :io_write_polyglot, fd, string
-      else
-        write_string_native(io, string, continue_on_eagain)
+      def self.read_string(io, length)
+        fd = io.descriptor
+        if fd == 0
+          read = Truffle.invoke_primitive :io_read_polyglot, fd, length
+          [read, 0]
+        else
+          read_string_native(io, length)
+        end
       end
-    end
 
-    def self.write_string_nonblock(io, string)
-      fd = io.descriptor
-      if fd == 1 || fd == 2
-        # Ignore non-blocking for polyglot writes
-        Truffle.invoke_primitive :io_write_polyglot, fd, string
-      else
-        write_string_nonblock_native(io, string)
+      def self.write_string(io, string, continue_on_eagain)
+        fd = io.descriptor
+        if fd == 1 || fd == 2
+          # Ignore continue_on_eagain for polyglot writes
+          Truffle.invoke_primitive :io_write_polyglot, fd, string
+        else
+          write_string_native(io, string, continue_on_eagain)
+        end
+      end
+
+      def self.write_string_nonblock(io, string)
+        fd = io.descriptor
+        if fd == 1 || fd == 2
+          # Ignore non-blocking for polyglot writes
+          Truffle.invoke_primitive :io_write_polyglot, fd, string
+        else
+          write_string_nonblock_native(io, string)
+        end
       end
     end
   end
