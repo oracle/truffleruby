@@ -46,6 +46,7 @@ public interface FiberLayout extends BasicObjectLayout {
     CountDownLatch getInitializedLatch(DynamicObject object);
 
     CountDownLatch getFinishedLatch(DynamicObject object);
+    void setFinishedLatch(DynamicObject object, CountDownLatch value);
 
     BlockingQueue<FiberManager.FiberMessage> getMessageQueue(DynamicObject object);
 

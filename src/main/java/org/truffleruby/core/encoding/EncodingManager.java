@@ -68,7 +68,7 @@ public class EncodingManager {
     // This must be run after the locale is set for native, see the setLocale() call above
     public void initializeLocaleEncoding(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
         final String localeEncodingName;
-        if (context.getOptions().NATIVE_PLATFORM) {
+        if (nfi != null) {
             final int codeset = (int) nativeConfiguration.get("platform.langinfo.CODESET");
 
             // char *nl_langinfo(nl_item item);

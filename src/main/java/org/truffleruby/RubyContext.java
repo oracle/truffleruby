@@ -13,11 +13,13 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.CompilerOptions;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
+import com.oracle.truffle.api.object.DynamicObject;
 
 import org.joni.Regex;
 import org.truffleruby.builtins.PrimitiveManager;
@@ -25,6 +27,7 @@ import org.truffleruby.collections.WeakValuedMap;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.FinalizationService;
 import org.truffleruby.core.Hashing;
+import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.inlined.CoreMethods;
@@ -32,6 +35,7 @@ import org.truffleruby.core.kernel.AtExitManager;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
+import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.RopeKey;
 import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.string.CoreStrings;
@@ -74,11 +78,11 @@ public class RubyContext {
     public static RubyContext FIRST_INSTANCE = null;
 
     private final RubyLanguage language;
-    private final TruffleLanguage.Env env;
+    @CompilationFinal private TruffleLanguage.Env env;
 
     private final AllocationReporter allocationReporter;
 
-    private final Options options;
+    @CompilationFinal private Options options;
     private final String rubyHome;
 
     private final PrimitiveManager primitiveManager = new PrimitiveManager();
@@ -103,10 +107,10 @@ public class RubyContext {
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
 
-    private final SecureRandom random;
+    @CompilationFinal private SecureRandom random;
     private final Hashing hashing;
     private final RopeCache ropeCache;
-    private final TruffleNFIPlatform truffleNFIPlatform;
+    @CompilationFinal private TruffleNFIPlatform truffleNFIPlatform;
     private final CoreLibrary coreLibrary;
     private CoreMethods coreMethods;
     private final ThreadManager threadManager;
@@ -116,8 +120,15 @@ public class RubyContext {
 
     private final Object classVariableDefinitionLock = new Object();
 
+    private boolean preInitializing;
     private boolean initialized;
     private volatile boolean finalizing;
+
+    private static boolean preInitializeContexts = System.getProperty("polyglot.engine.PreinitializeContexts") != null;
+
+    public boolean isPreInitializing() {
+        return preInitializing;
+    }
 
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
         Launcher.printTruffleTimeMetric("before-context-constructor");
@@ -126,17 +137,15 @@ public class RubyContext {
             FIRST_INSTANCE = this;
         }
 
+        this.preInitializing = preInitializeContexts;
+        RubyContext.preInitializeContexts = false; // Only the first context is pre-initialized
+
         this.language = language;
         this.env = env;
 
         allocationReporter = env.lookup(AllocationReporter.class);
 
-        Launcher.printTruffleTimeMetric("before-options");
-        final OptionsBuilder optionsBuilder = new OptionsBuilder();
-        optionsBuilder.set(env.getConfig());            // Legacy config - used by unit tests for example
-        optionsBuilder.set(env.getOptions());           // SDK options
-        options = optionsBuilder.build();
-        Launcher.printTruffleTimeMetric("after-options");
+        options = createOptions(env);
 
         if (!org.truffleruby.Main.isGraal() && options.GRAAL_WARNING_UNLESS) {
             Log.performanceOnce(
@@ -146,6 +155,7 @@ public class RubyContext {
         // We need to construct this at runtime
         random = new SecureRandom();
 
+        // TODO (eregon, 25 Jan. 2018): This seed is made constant by context pre-initialization.
         final long hashingSeed;
 
         if (options.HASHING_DETERMINISTIC) {
@@ -204,7 +214,7 @@ public class RubyContext {
 
         // Create objects that need core classes
 
-        truffleNFIPlatform = createNativePlatform();
+        truffleNFIPlatform = isPreInitializing() ? null : createNativePlatform();
 
         // The encoding manager relies on POSIX having been initialized, so we can't process it during
         // normal core library initialization.
@@ -255,7 +265,63 @@ public class RubyContext {
             sharedObjects.startSharing();
         }
 
+        if (isPreInitializing()) {
+            // Cannot save the FileDescriptor in the image, referenced by the SecureRandom instance
+            random = null;
+            // Cannot save native functions in the image
+            truffleNFIPlatform = null;
+            // Cannot save the root Java Thread instance in the image
+            threadManager.resetMainThread();
+        } else {
+            initialized = true;
+        }
+
+        this.preInitializing = false;
+    }
+
+    /** Re-initialize parts of the RubyContext depending on the current process */
+    private void reInitialize() {
+        if (random != null) {
+            throw new UnsupportedOperationException("re-initialization was already performed");
+        }
+
+        this.random = new SecureRandom();
+
+        this.truffleNFIPlatform = createNativePlatform();
+        coreLibrary.initializeDefaultEncodings(truffleNFIPlatform, nativeConfiguration);
+
+        threadManager.restartMainThread(Thread.currentThread());
+        threadManager.initialize(truffleNFIPlatform, nativeConfiguration);
+    }
+
+    protected boolean patch(Env newEnv) {
+        this.env = newEnv;
+
+        this.options = createOptions(newEnv);
+
+        reInitialize();
+
+        final Object toRunAtInit = Layouts.MODULE.getFields(coreLibrary.getTruffleBootModule()).getConstant("TO_RUN_AT_INIT").getValue();
+
+        for (Object proc : ArrayOperations.toIterable((DynamicObject) toRunAtInit)) {
+            String info = RubyLanguage.fileLine(language.findSourceLocation(this, proc));
+            Launcher.printTruffleTimeMetric("before-run-delayed-initialization-" + info);
+            ProcOperations.rootCall((DynamicObject) proc);
+            Launcher.printTruffleTimeMetric("after-run-delayed-initialization-" + info);
+        }
+
         initialized = true;
+        return true;
+    }
+
+    private Options createOptions(TruffleLanguage.Env env) {
+        Launcher.printTruffleTimeMetric("before-options");
+        final OptionsBuilder optionsBuilder = new OptionsBuilder();
+        optionsBuilder.set(env.getConfig()); // Legacy config - used by unit tests for example
+        optionsBuilder.set(env.getOptions()); // SDK options
+        final Options options = optionsBuilder.build();
+        Launcher.printTruffleTimeMetric("after-options");
+        return options;
     }
 
     private TruffleNFIPlatform createNativePlatform() {
@@ -300,6 +366,13 @@ public class RubyContext {
     }
 
     public void finalizeContext() {
+        if (!initialized) {
+            // The RubyContext will be finalized and disposed if patching fails (potentially for
+            // another language). In that case, we need to restore enough (e.g. the Java Thread
+            // instance) to perform finalization correctly.
+            reInitialize();
+        }
+
         finalizing = true;
 
         atExitManager.runSystemExitHooks();

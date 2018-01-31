@@ -125,6 +125,15 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     @Override
+    protected boolean patchContext(RubyContext context, Env newEnv) {
+        Log.LOGGER.fine("patchContext()");
+        Launcher.printTruffleTimeMetric("before-patch-context");
+        boolean patched = context.patch(newEnv);
+        Launcher.printTruffleTimeMetric("after-patch-context");
+        return patched;
+    }
+
+    @Override
     protected void finalizeContext(RubyContext context) {
         Log.LOGGER.fine("finalizeContext()");
         context.finalizeContext();
