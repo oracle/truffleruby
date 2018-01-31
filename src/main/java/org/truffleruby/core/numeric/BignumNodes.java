@@ -32,6 +32,7 @@ import org.truffleruby.core.numeric.BignumNodesFactory.MulNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
@@ -700,20 +701,37 @@ public abstract class BignumNodes {
     @Primitive(name = "bignum_pow")
     public static abstract class BignumPowPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        private final ConditionProfile negativeProfile = ConditionProfile.createBinaryProfile();
+        private static final int BIGLEN_LIMIT = 32 * 1024 * 1024;
+
+        public static BignumPowPrimitiveNode create() {
+            return BignumNodesFactory.BignumPowPrimitiveNodeFactory.create(null);
+        }
+
+        public abstract Object executePow(Object a, Object b);
 
         @Specialization
         public Object pow(DynamicObject a, int b) {
-            return pow(a, (long) b);
+            return executePow(a, (long) b);
         }
 
         @Specialization
-        public Object pow(DynamicObject a, long b) {
+        public Object pow(DynamicObject a, long b,
+                @Cached("createBinaryProfile()") ConditionProfile negativeProfile,
+                @Cached("createBinaryProfile()") ConditionProfile maybeTooBigProfile,
+                @Cached("new()") WarnNode warnNode) {
             if (negativeProfile.profile(b < 0)) {
                 return FAILURE;
             } else {
+                final BigInteger value = Layouts.BIGNUM.getValue(a);
+                final int xbits = value.bitLength();
+
+                if (maybeTooBigProfile.profile(xbits > BIGLEN_LIMIT || (xbits * b > BIGLEN_LIMIT))) {
+                    warnNode.warn("warn('in a**b, b may be too big')");
+                    return executePow(a, (double) b);
+                }
+
                 // TODO CS 15-Feb-15 what about this cast?
-                return createBignum(pow(Layouts.BIGNUM.getValue(a), (int) b));
+                return createBignum(pow(value, (int) b));
             }
         }
 
