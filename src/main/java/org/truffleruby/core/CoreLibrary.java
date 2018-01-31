@@ -815,12 +815,12 @@ public class CoreLibrary {
 
         eagainWaitWritable = (DynamicObject) Layouts.MODULE.getFields(ioClass).getConstant("EAGAINWaitWritable").getValue();
         assert Layouts.CLASS.isClass(eagainWaitWritable);
+
+        findGlobalVariableStorage();
     }
 
     public void initializePostBoot() {
         // Load code that can't be run until everything else is boostrapped, such as pre-loaded Ruby stdlib.
-
-        findGlobalVariableStorage();
 
         try {
             final RubyRootNode rootNode = context.getCodeLoader().parse(context.getSourceLoader().load(getCoreLoadPath() + "/post-boot/post-boot.rb"),
