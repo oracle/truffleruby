@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.array;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -24,7 +25,7 @@ public final class ArrayConcatNode extends RubyNode {
 
     @Children private final RubyNode[] children;
     // Use an arrayBuilderNode to stabilize the array type for a given location.
-    @Child private ArrayBuilderNode arrayBuilderNode = ArrayBuilderNode.create();
+    @Child private ArrayBuilderNode arrayBuilderNode;
 
     private final ConditionProfile isArrayProfile = ConditionProfile.createBinaryProfile();
 
@@ -35,6 +36,10 @@ public final class ArrayConcatNode extends RubyNode {
 
     @Override
     public DynamicObject execute(VirtualFrame frame) {
+        if (arrayBuilderNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            arrayBuilderNode = insert(ArrayBuilderNode.create());
+        }
         if (children.length == 1) {
             return executeSingle(frame);
         } else {
