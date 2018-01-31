@@ -701,6 +701,7 @@ public abstract class BignumNodes {
     @Primitive(name = "bignum_pow")
     public static abstract class BignumPowPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        // Value taken from MRI for determining when to promote integer exponentiation into doubles.
         private static final int BIGLEN_LIMIT = 32 * 1024 * 1024;
 
         public static BignumPowPrimitiveNode create() {
@@ -722,16 +723,18 @@ public abstract class BignumNodes {
             if (negativeProfile.profile(b < 0)) {
                 return FAILURE;
             } else {
-                final BigInteger value = Layouts.BIGNUM.getValue(a);
-                final int xbits = value.bitLength();
+                final BigInteger base = Layouts.BIGNUM.getValue(a);
+                final int baseBitLength = base.bitLength();
 
-                if (maybeTooBigProfile.profile(xbits > BIGLEN_LIMIT || (xbits * b > BIGLEN_LIMIT))) {
+                // Logic for promoting integer exponentiation into doubles taken from MRI.
+                // We replicate the logic exactly so we match MRI's ranges.
+                if (maybeTooBigProfile.profile(baseBitLength > BIGLEN_LIMIT || (baseBitLength * b > BIGLEN_LIMIT))) {
                     warnNode.warn("warn('in a**b, b may be too big')");
                     return executePow(a, (double) b);
                 }
 
                 // TODO CS 15-Feb-15 what about this cast?
-                return createBignum(pow(value, (int) b));
+                return createBignum(pow(base, (int) b));
             }
         }
 
