@@ -517,9 +517,9 @@ public class ThreadManager {
     private void checkCalledInMainThreadRootFiber() {
         final DynamicObject currentThread = getCurrentThread();
         if (currentThread != rootThread) {
-            throw new UnsupportedOperationException(
-                    "ThreadManager.shutdown() must be called on the root Ruby Thread (" +
-                            rootThread + ") but was called on " + currentThread);
+            throw new UnsupportedOperationException(String.format(
+                    "ThreadManager.shutdown() must be called on the root Ruby Thread (%s) but was called on %s",
+                    rootThread, currentThread));
         }
 
         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rootThread);
