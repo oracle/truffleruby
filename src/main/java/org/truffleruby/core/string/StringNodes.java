@@ -3509,7 +3509,12 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = { "!isSingleByteOptimizable(string)", "isAsciiCompatible(string)", "isSingleBytePattern(pattern)" })
+        @Specialization(guards = {
+                "!isSingleByteOptimizable(string)",
+                "isAsciiCompatible(string)",
+                "!isBrokenCodeRange(string)",
+                "isSingleBytePattern(pattern)"
+        })
         public Object stringIndexAsciiCompatible(DynamicObject string, DynamicObject pattern, int start,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") RopeNodes.EncodingLengthNode encodingLengthNode,
