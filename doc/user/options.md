@@ -75,11 +75,11 @@ As well as being set at the command line, options, except for `log` and
 For example `--ruby.inline_js=true`. They can also be set as JVM system
 properties, where they have a prefix `polyglot.ruby.`. For example
 `-J-Dpolyglot.ruby.inline_js=true`, or via any other way of setting JVM system
-properties. Finally, options can be set as `PolyglotEngine` or SDK configuration
+properties. Finally, options can be set as Graal-SDK polyglot API configuration
 options.
 
-The priority for options is the command line first, then the `PolyglotEngine`
-configuration, then the SDK configuration, then system properties last.
+The priority for options is the command line first, then the Graal-SDK polyglot
+API configuration, then system properties last.
 
 The logging level is not a TruffleRuby option like the others and so cannot be
 set with a JVM system property. This is because the logger is once per VM,

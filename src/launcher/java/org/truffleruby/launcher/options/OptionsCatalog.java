@@ -163,7 +163,7 @@ public class OptionsCatalog {
             "");
     public static final BooleanOptionDescription POLYGLOT_STDIO = new BooleanOptionDescription(
             "ruby.polyglot.stdio",
-            "Use standard IO streams from the PolyglotEngine",
+            "Use standard IO streams from the Graal-SDK polyglot API configuration",
             null,
             true);
     public static final BooleanOptionDescription SYNC_STDIO = new BooleanOptionDescription(
