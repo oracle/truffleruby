@@ -270,8 +270,6 @@ public class RubyContext {
         if (isPreInitializing()) {
             // Cannot save the FileDescriptor in the image, referenced by the SecureRandom instance
             random = null;
-            // Cannot save native functions in the image
-            truffleNFIPlatform = null;
             // Cannot save the root Java Thread instance in the image
             threadManager.resetMainThread();
         } else {
