@@ -79,11 +79,7 @@ the environment with one of the following commands:
 rvm use system
 rbenv system
 chruby system
-```
-
-Otherwise, unset the variables manually with:
-
-```bash
+# Or manually:
 unset GEM_HOME GEM_PATH GEM_ROOT
 ```
 
