@@ -614,7 +614,7 @@ public abstract class KernelNodes {
                 sourceString = RopeOperations.decodeRope(sourceText);
             }
             final Encoding encoding = sourceText.getEncoding();
-            final Source source = Source.newBuilder(sourceString).name(RopeOperations.decodeRope(file)).mimeType(RubyLanguage.MIME_TYPE).build();
+            final Source source = Source.newBuilder(sourceString).name(RopeOperations.decodeRope(file).intern()).mimeType(RubyLanguage.MIME_TYPE).build();
 
             final TranslatorDriver translator = new TranslatorDriver(getContext());
 

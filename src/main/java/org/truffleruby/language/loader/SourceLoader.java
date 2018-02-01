@@ -194,7 +194,7 @@ public class SourceLoader {
             }
 
             Source.Builder<IOException, RuntimeException, RuntimeException> builder =
-                    Source.newBuilder(file).name(name).mimeType(mimeType);
+                    Source.newBuilder(file).name(name.intern()).mimeType(mimeType);
 
             if (internal) {
                 builder = builder.internal();

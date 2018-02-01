@@ -65,7 +65,7 @@ public abstract class InteropNodes {
         @Specialization(guards = "isRubyString(fileName)")
         public Object importFile(DynamicObject fileName) {
             try {
-                final Source sourceObject = Source.newBuilder(new File(fileName.toString())).build();
+                final Source sourceObject = Source.newBuilder(new File(fileName.toString().intern())).build();
                 getContext().getEnv().parse(sourceObject).call();
             } catch (IOException e) {
                 throw new JavaException(e);

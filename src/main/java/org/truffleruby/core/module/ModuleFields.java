@@ -108,8 +108,8 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         this.sourceSection = sourceSection;
         this.lexicalParent = lexicalParent;
         this.givenBaseName = givenBaseName;
-        this.methodsUnmodifiedAssumption = new CyclicAssumption(String.valueOf(givenBaseName) + " methods are unmodified");
-        this.constantsUnmodifiedAssumption = new CyclicAssumption(String.valueOf(givenBaseName) + " constants are unmodified");
+        this.methodsUnmodifiedAssumption = new CyclicAssumption("methods are unmodified");
+        this.constantsUnmodifiedAssumption = new CyclicAssumption("constants are unmodified");
         start = new PrependMarker(this);
     }
 

@@ -80,11 +80,10 @@ public class LazyRubyNode extends RubyNode {
                 }
 
                 masterResolution = resolver.get();
+
                 // We no longer need the resolver, so let it be GC'd
                 resolver = null;
-
                 transferFlagsTo(masterResolution);
-
                 resolutionMaster.set(masterResolution);
             }
         } finally {
