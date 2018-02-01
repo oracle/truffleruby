@@ -64,8 +64,16 @@ environment variables `GEM_HOME`, `GEM_PATH`, and `GEM_ROOT`. The variables
 are picked up by truffleruby (as any other Ruby implementation would do)
 causing truffleruby to pickup the wrong gem-home directory instead of its own.
 
-It can be easily fixed by clearing the environment with one of the following 
-commands:
+One way to fix this for all sessions is to tell TruffleRuby to ignore `GEM_*`
+variables and always use its own Gem home under `truffleruby/lib/ruby/gems`:
+
+```bash
+# In ~/.bashrc or ~/.zshenv
+export TRUFFLERUBY_RESILIENT_GEM_HOME=true
+```
+
+It can also be fixed just for the current terminal by clearing
+the environment with one of the following commands:
 
 ```bash
 rvm use system
@@ -73,7 +81,7 @@ rbenv system
 chruby system
 ```
 
-Otherwise, unset the variables with:
+Otherwise, unset the variables manually with:
 
 ```bash
 unset GEM_HOME GEM_PATH GEM_ROOT
