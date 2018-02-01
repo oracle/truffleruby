@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2018 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -15,11 +15,13 @@ import com.oracle.truffle.api.debug.DebugValue;
 import com.oracle.truffle.api.debug.Debugger;
 import com.oracle.truffle.api.debug.DebuggerSession;
 import com.oracle.truffle.api.debug.SuspendedEvent;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.vm.PolyglotEngine;
-import com.oracle.truffle.api.vm.PolyglotEngine.Value;
-import org.truffleruby.RubyLanguage;
+import com.oracle.truffle.tck.DebuggerTester;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Instrument;
+import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.Value;
 import org.truffleruby.RubyTest;
+import org.truffleruby.launcher.Launcher;
 import org.truffleruby.launcher.options.OptionsCatalog;
 import org.junit.After;
 import org.junit.Assert;
@@ -50,7 +52,7 @@ public class RubyDebugTest {
     private SuspendedEvent suspendedEvent;
     private Breakpoint breakpoint;
     private Throwable ex;
-    private PolyglotEngine engine;
+    private Context context;
     private final ByteArrayOutputStream out = new ByteArrayOutputStream();
     private final ByteArrayOutputStream err = new ByteArrayOutputStream();
 
@@ -58,7 +60,7 @@ public class RubyDebugTest {
         InputStream stream = ClassLoader.getSystemResourceAsStream(path);
         Reader reader = new InputStreamReader(stream);
         try {
-            return Source.newBuilder(reader).name(new File(path).getName()).mimeType(RubyLanguage.MIME_TYPE).build();
+            return Source.newBuilder(Launcher.LANGUAGE_ID, reader, new File(path).getName()).build();
         } catch (IOException e) {
             throw new Error(e);
         }
@@ -68,18 +70,21 @@ public class RubyDebugTest {
     public void before() {
         suspendedEvent = null;
 
-        engine = RubyTest.setupConfig(PolyglotEngine.newBuilder())
+        context = RubyTest.setupContext(Context.newBuilder())
                 // We also want to test instrumentation works well with lazy nodes
-                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.LAZY_TRANSLATION_USER.getName(), true)
-                .setOut(out).setErr(err).build();
-        debugger = Debugger.find(engine);
+                .option(OptionsCatalog.LAZY_TRANSLATION_USER.getName(), Boolean.TRUE.toString())
+                .out(out).err(err).build();
+
+        Instrument debugInstrument = context.getEngine().getInstruments().get("debugger");
+        debugger = debugInstrument.lookup(Debugger.class);
+
         debuggerSession = debugger.startSession(event -> {
             suspendedEvent = event;
             performWork();
             suspendedEvent = null;
         });
 
-        engine.eval(getSource("src/test/ruby/init.rb"));
+        context.eval(getSource("src/test/ruby/init.rb"));
 
         run.clear();
     }
@@ -87,8 +92,8 @@ public class RubyDebugTest {
     @After
     public void dispose() {
         debuggerSession.close();
-        if (engine != null) {
-            engine.dispose();
+        if (context != null) {
+            context.close();
         }
     }
 
@@ -99,7 +104,7 @@ public class RubyDebugTest {
         run.addLast(() -> {
             assertNull(suspendedEvent);
             assertNotNull(debuggerSession);
-            breakpoint = Breakpoint.newBuilder(factorial).lineIs(BREAKPOINT_LINE).build();
+            breakpoint = Breakpoint.newBuilder(DebuggerTester.getSourceImpl(factorial)).lineIs(BREAKPOINT_LINE).build();
             debuggerSession.install(breakpoint);
         });
 
@@ -107,7 +112,7 @@ public class RubyDebugTest {
         performWork();
         Assert.assertFalse("factorial not yet loaded", breakpoint.isResolved());
 
-        engine.eval(factorial);
+        context.eval(factorial);
         assertExecutedOK("Algorithm loaded");
         Assert.assertFalse("all methods are lazily translated (by the option)", breakpoint.isResolved());
 
@@ -119,21 +124,21 @@ public class RubyDebugTest {
 
         continueExecution();
 
-        final Value main = engine.findGlobalSymbol("main");
+        final Value main = context.importSymbol("main");
         assertNotNull("main method found", main);
         Assert.assertFalse("not yet translated", breakpoint.isResolved());
+        assertTrue(main.canExecute());
         Value value = main.execute();
         Assert.assertTrue("breakpoint must have stopped first execution", breakpoint.isResolved());
-        Number n = value.as(Number.class);
-        assertNotNull(n);
-        assertEquals("Factorial computed OK", 2, n.intValue());
+        int n = value.asInt();
+        assertEquals("Factorial computed OK", 2, n);
         assertExecutedOK("Algorithm computed OK: " + n + "; Checking if it stopped at the breakpoint");
     }
 
     @Test
     public void stepInStepOver() throws Throwable {
         final Source factorial = createFactorial();
-        engine.eval(factorial);
+        context.eval(factorial);
         run.addLast(() -> {
             assertNull(suspendedEvent);
             assertNotNull(debuggerSession);
@@ -168,12 +173,10 @@ public class RubyDebugTest {
 
         // Init before eval:
         performWork();
-        Value value = engine.findGlobalSymbol("main").execute();
+        Value value = context.importSymbol("main").execute();
 
-        Number n = value.as(Number.class);
-
-        assertNotNull(n);
-        assertEquals("Factorial computed OK", 2, n.intValue());
+        int n = value.asInt();
+        assertEquals("Factorial computed OK", 2, n);
         assertExecutedOK("Stepping went OK");
     }
 
