@@ -330,10 +330,12 @@ public class RubyContext {
         }
 
         // The core library captures the value of these options (via Truffle::Boot.get_option).
+
         if (newOptions.NATIVE_PLATFORM != oldOptions.NATIVE_PLATFORM) {
             Log.LOGGER.fine(notReusingContext + "-Xplatform.native is " + newOptions.NATIVE_PLATFORM);
             return false;
         }
+
         if (newOptions.VERBOSITY != oldOptions.VERBOSITY) {
             Log.LOGGER.fine(notReusingContext + "$VERBOSE is " + newOptions.VERBOSITY + " (was " + oldOptions.VERBOSITY + ")");
             return false;
