@@ -13,8 +13,8 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 import com.oracle.truffle.tck.TruffleTCK;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.RubyTest;
 import org.junit.Test;
+import org.truffleruby.launcher.options.OptionsCatalog;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,7 +60,7 @@ public class RubyTckTest extends TruffleTCK {
     }
 
     private PolyglotEngine spawnNewEngine(PolyglotEngine.Builder preparedBuilder) {
-        final PolyglotEngine engine = RubyTest.setupConfig(preparedBuilder).build();
+        final PolyglotEngine engine = setupConfig(preparedBuilder).build();
         engine.eval(getSource("src/test/ruby/tck.rb"));
         return engine;
     }
@@ -271,7 +271,7 @@ public class RubyTckTest extends TruffleTCK {
     public void testMetaObject() throws Exception {
         // Skipped as it started to fail when context.getEnv().exportSymbol was added to InteropManager
     }
-    
+
     @Override
     public void testWriteToObjectWithValueProperty() throws Exception {
         // Skipped as it fails with "No current engine found."
@@ -290,6 +290,15 @@ public class RubyTckTest extends TruffleTCK {
     @Override
     public void testWriteToObjectWithElement() throws Exception {
         // Skipped as it fails with "No current engine found."
+    }
+
+    private static PolyglotEngine.Builder setupConfig(PolyglotEngine.Builder builder) {
+        final String cwd = System.getProperty("user.dir");
+
+        return builder
+                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), false)
+                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.HOME.getName(), cwd)
+                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.BASICOPS_INLINE.getName(), false);
     }
 
 }

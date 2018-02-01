@@ -9,9 +9,11 @@
  */
 package org.truffleruby;
 
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.vm.PolyglotEngine;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Source;
 import org.junit.Test;
+import org.truffleruby.launcher.Launcher;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
@@ -24,15 +26,8 @@ public class PolyglotIOTest extends RubyTest {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         final ByteArrayInputStream in = new ByteArrayInputStream("abc".getBytes());
 
-        final PolyglotEngine engine = RubyTest.setupConfig(PolyglotEngine.newBuilder())
-                .setOut(out)
-                .setIn(in)
-                .build();
-
-        try {
-            engine.eval(Source.newBuilder("puts STDIN.read(3)").name("test.rb").mimeType(RubyLanguage.MIME_TYPE).build());
-        } finally {
-            engine.dispose();
+        try (Context context = Context.newBuilder().out(out).in(in).build()) {
+            context.eval(Source.create(Launcher.LANGUAGE_ID, "puts STDIN.read(3)"));
         }
 
         assertEquals("abc\n", out.toString());
@@ -42,14 +37,8 @@ public class PolyglotIOTest extends RubyTest {
     public void testPolyglotOut() {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        final PolyglotEngine engine = RubyTest.setupConfig(PolyglotEngine.newBuilder())
-                .setOut(out)
-                .build();
-
-        try {
-            engine.eval(Source.newBuilder("puts 'abc'").name("test.rb").mimeType(RubyLanguage.MIME_TYPE).build());
-        } finally {
-            engine.dispose();
+        try (Context context = Context.newBuilder().out(out).build()) {
+            context.eval(Source.create(Launcher.LANGUAGE_ID, "puts 'abc'"));
         }
 
         assertEquals("abc\n", out.toString());
@@ -59,14 +48,8 @@ public class PolyglotIOTest extends RubyTest {
     public void testPolyglotErr() {
         final ByteArrayOutputStream err = new ByteArrayOutputStream();
 
-        final PolyglotEngine engine = RubyTest.setupConfig(PolyglotEngine.newBuilder())
-                .setErr(err)
-                .build();
-
-        try {
-            engine.eval(Source.newBuilder("STDERR.puts 'abc'").name("test.rb").mimeType(RubyLanguage.MIME_TYPE).build());
-        } finally {
-            engine.dispose();
+        try (Context context = Context.newBuilder().err(err).build()) {
+            context.eval(Source.create(Launcher.LANGUAGE_ID, "STDERR.puts 'abc'"));
         }
 
         assertEquals("abc\n", err.toString());
