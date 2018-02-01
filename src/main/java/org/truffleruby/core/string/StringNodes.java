@@ -2289,7 +2289,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isBrokenCodeRange(string)")
         public DynamicObject toSymBroken(DynamicObject string) {
-            throw new RaiseException(coreExceptions().encodingCompatibilityError("invalid encoding symbol", this));
+            throw new RaiseException(coreExceptions().encodingError("invalid encoding symbol", this));
         }
 
         protected int getLimit() {
