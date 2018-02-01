@@ -20,6 +20,7 @@ import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointManager;
@@ -517,7 +518,7 @@ public class ThreadManager {
     private void checkCalledInMainThreadRootFiber() {
         final DynamicObject currentThread = getCurrentThread();
         if (currentThread != rootThread) {
-            throw new UnsupportedOperationException(String.format(
+            throw new UnsupportedOperationException(StringUtils.format(
                     "ThreadManager.shutdown() must be called on the root Ruby Thread (%s) but was called on %s",
                     rootThread, currentThread));
         }
