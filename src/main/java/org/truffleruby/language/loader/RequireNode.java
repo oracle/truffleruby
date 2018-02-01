@@ -67,12 +67,13 @@ public abstract class RequireNode extends RubyNode {
             @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
 
-        final String expandedPath = featureLoader.findFeature(feature);
+        final String expandedPathRaw = featureLoader.findFeature(feature);
 
-        if (expandedPath == null) {
+        if (expandedPathRaw == null) {
             notFoundProfile.enter();
             throw new RaiseException(getContext().getCoreExceptions().loadErrorCannotLoad(feature, this));
         }
+        final String expandedPath = expandedPathRaw.intern();
 
         final DynamicObject pathString = makeStringNode.executeMake(expandedPath, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 

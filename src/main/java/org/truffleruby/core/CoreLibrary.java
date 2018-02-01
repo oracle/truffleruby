@@ -776,7 +776,7 @@ public class CoreLibrary {
 
             try {
                 for (int n = 0; n < CORE_FILES.length; n++) {
-                    final Source source = context.getSourceLoader().load(getCoreLoadPath() + CORE_FILES[n]);
+                    final Source source = context.getSourceLoader().load((getCoreLoadPath() + CORE_FILES[n]));
 
                     final RubyRootNode rootNode = context.getCodeLoader().parse(source,
                             UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);

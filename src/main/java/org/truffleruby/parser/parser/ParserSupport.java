@@ -168,7 +168,7 @@ public class ParserSupport {
 
     public ParserSupport(RubyContext context, String file) {
         this.context = context;
-        this.file = file;
+        this.file = file.intern();
     }
 
     public RubyContext getContext() {

@@ -178,7 +178,7 @@ public abstract class TruffleBootNodes {
             final Object dollarZeroValue;
 
             try {
-                final String to_execute = getContext().getOptions().TO_EXECUTE;
+                final String to_execute = getContext().getOptions().TO_EXECUTE.intern();
                 switch (getContext().getOptions().EXECUTION_ACTION) {
                     case UNSET:
                         throw new IllegalArgumentException("ExecutionAction.UNSET should never reach RubyContext");

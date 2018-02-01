@@ -36,7 +36,7 @@ public class ParserCache {
             final String defaultCoreLibraryPath = OptionsCatalog.CORE_LOAD_PATH.getDefaultValue();
 
             for (String coreFile : CoreLibrary.CORE_FILES) {
-                INSTANCE.add(defaultCoreLibraryPath + coreFile);
+                INSTANCE.add((defaultCoreLibraryPath + coreFile).intern());
             }
         } else {
             INSTANCE = null;

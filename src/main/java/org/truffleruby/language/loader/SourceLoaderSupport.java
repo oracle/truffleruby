@@ -60,7 +60,7 @@ public final class SourceLoaderSupport {
         RootedFileVisitor<Path> visitor = new SimpleRootedFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                String fileName = getRoot().relativize(file).toString();
+                String fileName = getRoot().relativize(file).toString().intern();
                 if (fileName.endsWith(".rb")) {
                     coreLibraryFiles.add(fileName);
                 }
