@@ -212,14 +212,8 @@ provide the same interface as JRuby does for this functionality.
 
 #### Java to Ruby interop
 
-Calling Ruby code from Java is supported by the `PolyglotEngine` API of Truffle.
-
-http://lafo.ssw.uni-linz.ac.at/javadoc/truffle/latest/com/oracle/truffle/api/vm/PolyglotEngine.html
-
-In the future we hope to also support the standard JSR 223, Scripting for the
-Java Platform, specification and the `ScriptEngineManager` class, which is also
-supported by JRuby. We are unlikely to ever implement JRuby's own scripting
-interface such as the `Ruby` and `RubyInstanceConfig` classes.
+Calling Ruby code from Java is supported by the
+[Graal-SDK polyglot API](http://www.graalvm.org/truffle/javadoc/org/graalvm/polyglot/package-summary.html).
 
 #### Java extensions
 

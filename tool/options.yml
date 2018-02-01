@@ -31,7 +31,7 @@ DID_YOU_MEAN: [did_you_mean, boolean, true, Use did_you_mean]
 INTERNAL_ENCODING: [[internal_encoding, -E, -U], string, '', Internal encoding]
 EXTERNAL_ENCODING: [[external_encoding, -E], string, '', External encoding]
 
-POLYGLOT_STDIO: [polyglot.stdio, boolean, true, Use standard IO streams from the PolyglotEngine]
+POLYGLOT_STDIO: [polyglot.stdio, boolean, true, Use standard IO streams from the Graal-SDK polyglot API configuration]
 SYNC_STDIO: [sync.stdio, boolean, true, Sync operations on standard IO streams]
 NATIVE_PLATFORM: [platform.native, boolean, true, Enables native calls via Truffle NFI]
 NATIVE_INTERRUPT: [platform.native_interrupt, boolean, NATIVE_PLATFORM, Use the SIGVTALRM signal to interrupt native blocking calls]
