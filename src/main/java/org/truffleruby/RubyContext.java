@@ -122,6 +122,7 @@ public class RubyContext {
     private final Object classVariableDefinitionLock = new Object();
 
     private boolean preInitializing;
+    private boolean reInitialized = false;
     private boolean initialized;
     private volatile boolean finalizing;
 
@@ -282,7 +283,7 @@ public class RubyContext {
 
     /** Re-initialize parts of the RubyContext depending on the current process */
     private void reInitialize() {
-        if (random != null) {
+        if (reInitialized) {
             throw new UnsupportedOperationException("re-initialization was already performed");
         }
 
@@ -293,6 +294,8 @@ public class RubyContext {
 
         threadManager.restartMainThread(Thread.currentThread());
         threadManager.initialize(truffleNFIPlatform, nativeConfiguration);
+
+        this.reInitialized = true;
     }
 
     protected boolean patch(Env newEnv) {
