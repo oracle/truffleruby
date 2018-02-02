@@ -28,3 +28,17 @@ end
 check('cext_funcallv.backtrace') do
   top
 end
+
+# Example with an internal error
+LOCK = Mutex.new
+RB_MUTEX_LOCK = Truffle::Interop.import('@rb_mutex_lock')
+
+LOCK.lock
+
+def double_lock
+  RB_MUTEX_LOCK.call(LOCK)
+end
+
+check('cext_double_lock.backtrace') do
+  double_lock
+end
