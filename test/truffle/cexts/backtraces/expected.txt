@@ -2,7 +2,7 @@
 	from /lib/truffle/truffle/cext.rb:n:in `call'
 	from /lib/truffle/truffle/cext.rb:n:in `__send__'
 	from /lib/truffle/truffle/cext.rb:n:in `rb_funcall'
-	from /test/truffle/cexts/backtraces/ext/backtraces/backtraces.c:4:in `baz'
+	from /test/truffle/cexts/backtraces/ext/backtraces/backtraces.c:5:in `baz'
 	from /lib/truffle/truffle/cext.rb:n:in `execute_without_conversion'
 	from /lib/truffle/truffle/cext.rb:n:in `execute_with_mutex'
 	from /lib/truffle/truffle/cext.rb:n:in `block in rb_proc_new'
@@ -10,8 +10,46 @@
 	from /test/truffle/cexts/backtraces/bin/backtraces:7:in `bar'
 	from /lib/truffle/truffle/cext.rb:n:in `__send__'
 	from /lib/truffle/truffle/cext.rb:n:in `rb_funcall'
-	from /test/truffle/cexts/backtraces/ext/backtraces/backtraces.c:8:in `foo'
+	from /test/truffle/cexts/backtraces/ext/backtraces/backtraces.c:9:in `foo'
 	from /lib/truffle/truffle/cext.rb:n:in `execute_without_conversion'
 	from /lib/truffle/truffle/cext.rb:n:in `execute_with_mutex'
 	from /lib/truffle/truffle/cext_ruby.rb:n:in `foo'
 	from /test/truffle/cexts/backtraces/bin/backtraces:12:in `<main>'
+
+[1, 2, 3, 4]
+
+/test/truffle/cexts/backtraces/bin/backtraces:25:in `lambda': error from Ruby called from instrinsified qsort() (RuntimeError)
+	from /lib/truffle/truffle/cext.rb:n:in `call'
+	from /lib/truffle/truffle/cext.rb:n:in `__send__'
+	from /lib/truffle/truffle/cext.rb:n:in `rb_funcall'
+	from /test/truffle/cexts/backtraces/ext/backtraces/backtraces.c:17:in `compare_function'
+	from libsulong.bc:@sulong_qsort:1:in `sulong_qsort'
+	from libsulong.bc:@qsort:1:in `qsort'
+	from /test/truffle/cexts/backtraces/ext/backtraces/backtraces.c:25:in `call_qsort'
+	from /lib/truffle/truffle/cext.rb:n:in `execute_without_conversion'
+	from /lib/truffle/truffle/cext.rb:n:in `execute_with_mutex'
+	from /lib/truffle/truffle/cext_ruby.rb:n:in `qsort'
+	from /test/truffle/cexts/backtraces/bin/backtraces:24:in `<main>'
+
+42
+
+/lib/truffle/truffle/cext.rb:n:in `execute_without_conversion': error in C extension
+	SulongRuntimeException com.oracle.truffle.llvm.nodes.base.LLVMBasicBlockNode.executeStatements(LLVMBasicBlockNode.java:113)
+	
+	C stack trace:
+	native_callback in backtraces.c:43:17 (LLVM IR Function native_callback in /test/truffle/cexts/backtraces/lib/backtraces/backtraces.su@99ad9fcf9c94a348ed7654b93b702bbf30a13cdd_backtraces.bc in Block {id: 0 name: implicit0})
+		caused by com.oracle.truffle.nfi.impl.LibFFIFunction@4407f129[function@1237 '@sulong_callback'] IllegalStateException com.oracle.truffle.llvm.nodes.func.LLVMNativeCallUtils.callNativeFunction(LLVMNativeCallUtils.java:72)
+	com.oracle.truffle.llvm.nodes.func.LLVMDispatchNode.doCachedNative(LLVMDispatchNode.java:154)
+	com.oracle.truffle.llvm.nodes.func.LLVMDispatchNodeGen.executeDispatch(LLVMDispatchNodeGen.java:78)
+	com.oracle.truffle.llvm.nodes.func.LLVMLookupDispatchNode.doDirectCached(LLVMLookupDispatchNode.java:70)
+	com.oracle.truffle.llvm.nodes.func.LLVMLookupDispatchNodeGen.executeDispatch(LLVMLookupDispatchNodeGen.java:51)
+	com.oracle.truffle.llvm.nodes.func.LLVMCallNode.executeGeneric(LLVMCallNode.java:73)
+	com.oracle.truffle.llvm.runtime.nodes.api.LLVMExpressionNode.executeI32(LLVMExpressionNode.java:103)
+	com.oracle.truffle.llvm.nodes.others.LLVMValueProfilingNodeFactory$LLVMI32ProfiledValueNodeGen.executeI32(LLVMValueProfilingNodeFactory.java:280)
+	com.oracle.truffle.llvm.nodes.vars.LLVMWriteNodeFactory$LLVMWriteI32NodeGen.executeGeneric(LLVMWriteNodeFactory.java:348)
+	com.oracle.truffle.llvm.nodes.base.LLVMBasicBlockNode.executeStatements(LLVMBasicBlockNode.java:98)
+	com.oracle.truffle.llvm.nodes.control.LLVMDispatchBasicBlockNode.executeGeneric(LLVMDispatchBasicBlockNode.java:92)
+		caused by error from Ruby called from Sulong called from native callback (RuntimeError) RaiseException (RubyTruffleError)
+	from /lib/truffle/truffle/cext.rb:n:in `execute_with_mutex'
+	from /lib/truffle/truffle/cext_ruby.rb:n:in `native_callback'
+	from /test/truffle/cexts/backtraces/bin/backtraces:42:in `<main>'

@@ -54,6 +54,9 @@ test/truffle/cexts/**/*.bc
 test/truffle/cexts/**/*.su
 test/truffle/cexts/**/extconf.h
 test/truffle/cexts/**/mkmf.log
+test/truffle/cexts/**/*.o
+test/truffle/cexts/**/*.so
+test/truffle/cexts/**/*.dylib
 
 test/mri/tests/cext-c/**/Makefile
 test/mri/tests/cext-c/**/*.bc
