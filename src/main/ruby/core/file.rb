@@ -480,7 +480,7 @@ class File < IO
 
         return home.dup
       else
-        unless length = path.find_string('/', 1)
+        unless length = Truffle.invoke_primitive(:find_string, path, '/', 1)
           length = path.bytesize
         end
 
@@ -513,7 +513,7 @@ class File < IO
     start = 0
     size = path.bytesize
 
-    while index = path.find_string('/', start) or (start < size and index = size)
+    while index = Truffle.invoke_primitive(:find_string, path, '/', start) or (start < size and index = size)
       length = index - start
 
       if length > 0
