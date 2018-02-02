@@ -1344,7 +1344,8 @@ module Commands
   private :test_specs
 
   def test_tck(*args)
-    mx 'rubytck', *args
+    debug = ['-d'] if args.delete '--jdebug'
+    mx *debug, 'rubytck', *args
   end
   private :test_tck
 
