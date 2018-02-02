@@ -63,9 +63,10 @@
  */
 package org.truffleruby.core.string;
 
-import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
+import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_VALID;
+import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
 import static org.truffleruby.core.rope.RopeConstants.EMPTY_ASCII_8BIT_ROPE;
 import static org.truffleruby.core.string.StringOperations.encoding;
 import static org.truffleruby.core.string.StringOperations.rope;
@@ -3482,7 +3483,7 @@ public abstract class StringNodes {
         @Child private StringByteCharacterIndexNode byteIndexToCharIndexNode = StringNodesFactory.StringByteCharacterIndexNodeFactory.create(null);
         @Child private NormalizeIndexNode normalizeIndexNode = StringNodesFactory.NormalizeIndexNodeGen.create(null, null);
 
-        @Specialization(guards = { "isRubyString(pattern)", "!isBrokenCodeRange(pattern)", "isSingleByteSearch(string, pattern)" })
+        @Specialization(guards = { "isSingleByteOptimizable(string)", "isSingleBytePattern(pattern)" })
         public Object stringIndex(DynamicObject string, DynamicObject pattern, int start,
                                   @Cached("create()") RopeNodes.BytesNode bytesNode,
                                   @Cached("createBinaryProfile()") ConditionProfile badStartProfile,
@@ -3508,10 +3509,48 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = { "isRubyString(pattern)", "!isBrokenCodeRange(pattern)", "!isSingleByteSearch(string, pattern)" })
+        @Specialization(guards = {
+                "!isSingleByteOptimizable(string)",
+                "isAsciiCompatible(string)",
+                "!isBrokenCodeRange(string)",
+                "isSingleBytePattern(pattern)"
+        })
+        public Object stringIndexAsciiCompatible(DynamicObject string, DynamicObject pattern, int start,
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.EncodingLengthNode encodingLengthNode,
+                @Cached("createBinaryProfile()") ConditionProfile badStartProfile,
+                @Cached("create()") BranchProfile matchFoundProfile,
+                @Cached("create()") BranchProfile noMatchProfile) {
+
+            final Rope sourceRope = rope(string);
+            final int end = sourceRope.byteLength();
+            final byte[] sourceBytes = bytesNode.execute(sourceRope);
+            final byte searchByte = bytesNode.execute(rope(pattern))[0];
+
+            if (badStartProfile.profile(start < 0 || start >= end)) {
+                return nil();
+            }
+
+            for (int i = start; i < end; i++) {
+                if (sourceBytes[i] == searchByte) {
+                    matchFoundProfile.enter();
+                    return i;
+                }
+
+                if (sourceBytes[i] < 0) {
+                    final int characterLength = encodingLengthNode.executeLength(sourceRope.getEncoding(), sourceBytes, i, sourceBytes.length);
+                    i += characterLength - 1; // Subtract one to account for the loop increment on the next iteration.
+                }
+            }
+
+            noMatchProfile.enter();
+            return nil();
+        }
+
+        @Specialization(guards = { "!isBrokenCodeRange(pattern)", "isFallback(string, pattern)" })
         public Object stringIndexGeneric(DynamicObject string, DynamicObject pattern, int start,
-                                  @Cached("create()") EncodingNodes.CheckEncodingNode checkEncodingNode,
-                                  @Cached("createBinaryProfile()") ConditionProfile badIndexProfile) {
+                @Cached("create()") EncodingNodes.CheckEncodingNode checkEncodingNode,
+                @Cached("createBinaryProfile()") ConditionProfile badIndexProfile) {
             checkEncodingNode.executeCheckEncoding(string, pattern);
 
             // Rubinius will pass in a byte index for the `start` value, but StringSupport.index requires a character index.
@@ -3526,7 +3565,7 @@ public abstract class StringNodes {
             return index;
         }
 
-        @Specialization(guards = { "isRubyString(pattern)", "isBrokenCodeRange(pattern)" })
+        @Specialization(guards = { "isBrokenCodeRange(pattern)" })
         public DynamicObject stringIndexBrokenCodeRange(DynamicObject string, DynamicObject pattern, int start) {
             return nil();
         }
@@ -3620,16 +3659,15 @@ public abstract class StringNodes {
             return -1;
         }
 
-        protected static boolean isSingleByteSearch(DynamicObject source, DynamicObject pattern) {
-            assert RubyGuards.isRubyString(source);
-            assert RubyGuards.isRubyString(pattern);
-
-            final Rope sourceRope = rope(source);
+        protected static boolean isSingleBytePattern(DynamicObject pattern) {
             final Rope patternRope = rope(pattern);
 
-            return sourceRope.isSingleByteOptimizable() && patternRope.isSingleByteOptimizable() && RopeGuards.isSingleByteString(patternRope);
+            return patternRope.getCodeRange() != CR_BROKEN && patternRope.isSingleByteOptimizable() && RopeGuards.isSingleByteString(patternRope);
         }
 
+        protected static boolean isFallback(DynamicObject source, DynamicObject pattern) {
+            return !isSingleBytePattern(pattern) || (!StringGuards.isSingleByteOptimizable(source) && !StringGuards.isAsciiCompatible(source));
+        }
     }
 
     @Primitive(name = "string_character_byte_index", needsSelf = false, lowerFixnum = 2)
