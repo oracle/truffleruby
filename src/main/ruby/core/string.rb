@@ -1416,7 +1416,7 @@ class String
         return nil
       end
 
-      if byte_index = find_string_reverse(str, byte_finish)
+      if byte_index = Truffle.invoke_primitive(:find_string_reverse, self, str, byte_finish)
         return m.byte_to_character_index byte_index
       end
 
@@ -1438,7 +1438,7 @@ class String
       return finish if needle.empty?
 
       Truffle::Type.compatible_encoding self, needle
-      if byte_index = find_string_reverse(needle, byte_finish)
+      if byte_index = Truffle.invoke_primitive(:find_string_reverse, self, needle, byte_finish)
         return m.byte_to_character_index byte_index
       end
     end
