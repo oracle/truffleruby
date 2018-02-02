@@ -1,4 +1,4 @@
-(eval):1:in `<top (required)>'
+(eval):1:in `<top (required)>': message (RuntimeError)
 /eval.rb:22:in `eval'
 /eval.rb:22:in `m3'
 a_m3_calling_source.rb:42:in `<top (required)>'

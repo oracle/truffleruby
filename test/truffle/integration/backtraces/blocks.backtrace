@@ -1,4 +1,4 @@
-/blocks.rb:20:in `block (5 levels) in <main>'
+/blocks.rb:20:in `block (5 levels) in <main>': message (RuntimeError)
 /blocks.rb:12:in `m'
 /blocks.rb:19:in `block (4 levels) in <main>'
 /blocks.rb:18:in `tap'
