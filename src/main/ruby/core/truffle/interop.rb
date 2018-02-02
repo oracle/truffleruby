@@ -63,7 +63,8 @@ module Truffle
     
     def self.object_key_info(object, name)
       readable, writable, invocable, internal = false, false, false, false
-      if name.to_s[0] == '@' && object.instance_variable_defined?(name)
+      string_like_name = name.is_a?(String) || name.is_a?(Symbol)
+      if string_like_name && name.to_s[0] == '@' && object.instance_variable_defined?(name)
         writable = true unless object.frozen?
         readable = true
         internal = true
@@ -72,7 +73,12 @@ module Truffle
           readable = true
           writable = true unless object.frozen?
         end
-      else
+      elsif name.is_a?(Integer) && object.is_a?(::Array)
+        if 0 <= name && name < object.size
+          readable = true
+          writable = true unless object.frozen?
+        end
+      elsif string_like_name
         name = name.to_sym
         readable = object.respond_to?(name)
         writable = object.respond_to?(:"#{name}=") && !object.frozen?
