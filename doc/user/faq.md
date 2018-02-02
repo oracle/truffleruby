@@ -60,7 +60,7 @@ uses this to provide dramatically simpler and faster implementations of Ruby.
 on Truffle and Graal as part of an internship at Oracle Labs in the first half
 of 2013. The code was merged into JRuby in early 2014. Benoit Daloze and Kevin
 Menard joined as researchers in the second half of 2014, then Petr Chalupa in
-2015, Bradon Fish in 2016 and Duncan MacGregor in 2017. Since then we have also
+2015, Brandon Fish in 2016 and Duncan MacGregor in 2017. Since then we have also
 accepted contributions from people outside Oracle Labs. In 2017 the code was
 forked back out of JRuby after it had matured.
 

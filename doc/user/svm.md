@@ -24,9 +24,9 @@ More information can be found in Kevin's [blog post](http://nirvdrum.com/2017/02
 To use the SVM you need a release of GraalVM, as described in
 [Using GraalVM](using-graalvm.md).
 
-Starting with GraalVM 0.28, GraalVM contains a native binary that implements
-Ruby, similar to the MRI or Rubinius executables. This binary is subject to the
-same OTN licence as the GraalVM distribution.
+GraalVM contains a native binary that implements Ruby, similar to the MRI or
+Rubinius executables. By default this binary just starts the JVM, but if you use
+the `--native` flag it runs without a JVM.
 
 The binary doesn't need a JVM:
 
@@ -39,7 +39,7 @@ jre/bin/ruby:
 	/usr/lib/libz.1.dylib (compatibility version 1.0.0, current version 1.2.8)
 
 $ du -h jre/bin/ruby
-111M	jre/bin/ruby
+200M	jre/bin/ruby
 ```
 
 The SVM version of TruffleRuby has better startup performance and lower memory
