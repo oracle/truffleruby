@@ -3089,7 +3089,7 @@ public class RubyLexer {
     }
 
     public void tokCopy(int length, RopeBuilder buffer) {
-        buffer.append(parserRopeOperations.makeShared(lexb, lex_p - length, length));
+        buffer.append(ArrayUtils.extractRange(lexb.getBytes(), lex_p - length, lex_p));
     }
 
     public boolean tokadd_ident(int c) {
