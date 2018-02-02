@@ -40,3 +40,37 @@ describe "Strings going through NFI" do
     end
   end
 end
+
+describe "NFI with callbacks to Ruby" do
+  before :all do
+    @libc = Module.new do
+      Truffle::POSIX.attach_function :qsort, [:pointer, :size_t, :size_t, '(POINTER,POINTER):sint32'], :void, on: self
+    end
+  end
+
+  it "sorts an array with qsort()" do
+    compare_function = -> a_ptr, b_ptr {
+      a = Truffle::FFI::Pointer.new(a_ptr).read_int32
+      b = Truffle::FFI::Pointer.new(b_ptr).read_int32
+      a <=> b
+    }
+
+    sorted = Truffle::FFI::MemoryPointer.new(:int, 4) do |array|
+      array.write_array_of_int32([1, 3, 4, 2])
+      @libc.qsort(array, 4, 32/8, compare_function)
+      array.read_array_of_int32(4)
+    end
+    sorted.should == [1, 2, 3, 4]
+  end
+
+  it "propagates exceptions from the callback" do
+    compare_function = -> a, b { raise "error in callback from native code!" }
+
+    Truffle::FFI::MemoryPointer.new(:int, 4) do |array|
+      array.write_array_of_int32([1, 3, 4, 2])
+      -> {
+        @libc.qsort(array, 4, 32/8, compare_function)
+      }.should raise_error(RuntimeError, "error in callback from native code!")
+    end
+  end
+end
