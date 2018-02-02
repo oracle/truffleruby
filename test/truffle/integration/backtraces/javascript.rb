@@ -15,7 +15,7 @@ unless defined?(Truffle) && Truffle::Interop.mime_type_supported?(js)
   exit
 end
 
-def foo(_)
+def foo
   raise 'foo-message'
 end
 
@@ -27,7 +27,7 @@ Truffle::Interop.eval js, "function bar() { foo(); }"
 Truffle::Interop.eval js, "Interop.export('bar', bar)"
 Truffle::Interop.import_method :bar
 
-def baz(_)
+def baz
   bar(self)
 end
 
