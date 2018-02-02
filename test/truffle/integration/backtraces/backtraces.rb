@@ -7,16 +7,16 @@
 # GNU Lesser General Public License version 2.1
 
 def check(file)
-  expected = nil
+  dir = 'test/truffle/integration/backtraces'
 
-  File.open('test/truffle/integration/backtraces/' + file) do |f|
-    expected = f.each_line.map(&:strip)
+  expected = File.open("#{dir}/#{file}") do |f|
+    f.lines.map(&:chomp)
   end
 
   begin
     yield
   rescue Exception => exception
-    actual = exception.backtrace
+    actual = exception.full_message.lines.map(&:chomp)
   end
 
   while actual.size < expected.size
@@ -29,9 +29,12 @@ def check(file)
 
   success = true
 
+  actual = actual.map { |line|
+    line.sub(/^.*#{Regexp.escape(dir)}/, '')
+  }
+
   print = []
   expected.zip(actual).each do |e, a|
-    a = a.sub(/^.*test\/truffle\/integration\/backtraces/, "")
     unless a.end_with?(e)
       print << "Actual:   #{a}"
       print << "Expected: #{e}"
@@ -42,6 +45,14 @@ def check(file)
   end
 
   unless success
+    puts 'Full actual backtrace:'
+    puts actual
+    puts
+
+    puts 'Full expected backtrace:'
+    puts expected
+    puts
+
     puts print.join("\n")
     exit 1
   end

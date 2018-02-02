@@ -1,4 +1,4 @@
-/simple.rb:13:in `m'
+/simple.rb:13:in `m': message (RuntimeError)
 /simple.rb:15:in `m'
 /simple.rb:15:in `m'
 /simple.rb:15:in `m'
