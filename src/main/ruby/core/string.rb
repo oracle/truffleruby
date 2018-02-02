@@ -109,7 +109,7 @@ class String
   end
 
   def include?(needle)
-    !!find_string(StringValue(needle), 0)
+    !!Truffle.invoke_primitive(:find_string, self, StringValue(needle), 0)
   end
 
   def lstrip
@@ -921,7 +921,7 @@ class String
       data = bytes
 
       while pos < size
-        nxt = find_string(sep, pos)
+        nxt = Truffle.invoke_primitive(:find_string, self, sep, pos)
         break unless nxt
 
         while data[nxt] == 10 and nxt < bytesize
@@ -955,7 +955,7 @@ class String
       unmodified_self = clone
 
       while pos < size
-        nxt = unmodified_self.find_string(sep, pos)
+        nxt = Truffle.invoke_primitive(:find_string, unmodified_self, sep, pos)
         break unless nxt
 
         match_size = nxt - pos
@@ -1128,7 +1128,7 @@ class String
 
       m.splice bi, bs, replacement, enc
     when String
-      unless start = find_string(index, 0)
+      unless start = Truffle.invoke_primitive(:find_string, self, index, 0)
         raise IndexError, 'string not matched'
       end
 

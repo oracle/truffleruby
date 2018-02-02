@@ -3477,8 +3477,7 @@ public abstract class StringNodes {
         }
     }
 
-    @NonStandard
-    @CoreMethod(names = "find_string", required = 2, lowerFixnum = 2)
+    @Primitive(name = "find_string", needsSelf = false, lowerFixnum = 3)
     @ImportStatic(StringGuards.class)
     public static abstract class StringIndexPrimitiveNode extends CoreMethodArrayArgumentsNode {
 

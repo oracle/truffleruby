@@ -166,7 +166,7 @@ module Truffle
       str_size = string.bytesize
 
       while pos < str_size
-        nxt = string.find_string(pattern, pos)
+        nxt = Truffle.invoke_primitive(:find_string, string, pattern, pos)
         break unless nxt
 
         match_size = nxt - pos

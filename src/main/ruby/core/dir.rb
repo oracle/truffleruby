@@ -219,7 +219,7 @@ class Dir
     def glob_split(pattern)
       result = []
       start = 0
-      while idx = pattern.find_string("\0", start)
+      while idx = Truffle.invoke_primitive(:find_string, pattern, "\0", start)
         result << pattern.byteslice(start, idx)
         start = idx + 1
       end
