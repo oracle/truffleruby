@@ -1086,21 +1086,14 @@ module Commands
           dir = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
           ext_dir = "#{dir}/ext/#{gem_name}/"
           compile_cext gem_name, ext_dir, "#{dir}/lib/#{gem_name}/#{gem_name}.su"
-          case gem_name
-          when 'backtraces'
-            run_ruby "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", err: output_file, continue_on_failure: true
-            actual = File.read(output_file).
-                gsub(TRUFFLERUBY_DIR, '').
-                gsub(/\/cext(_ruby)?\.rb:(\d+)/, '/cext\1.rb:n')
-            expected = File.read("#{dir}/expected.txt")
-            unless actual == expected
-              abort "C extension #{dir} didn't work as expected\nActual:\n#{actual}\nExpected:\n#{expected}"
-            end
-          else
-            run_ruby "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", out: output_file
-            unless File.read(output_file) == File.read("#{dir}/expected.txt")
-              abort "c extension #{dir} didn't work as expected"
-            end
+          run_ruby "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", out: output_file
+          actual = File.read(output_file)
+          if gem_name == 'backtraces'
+            actual = actual.gsub(TRUFFLERUBY_DIR, '').gsub(/\/cext(_ruby)?\.rb:(\d+)/, '/cext\1.rb:n')
+          end
+          expected = File.read("#{dir}/expected.txt")
+          unless actual == expected
+            abort "C extension #{dir} didn't work as expected\nActual:\n#{actual}Expected:\n#{expected}"
           end
         ensure
           File.delete output_file if File.exist? output_file

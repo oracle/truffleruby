@@ -3,11 +3,13 @@
 require 'backtraces'
 
 class Bar
-
   def bar(baz)
     baz.call(proc { raise 'error' })
   end
-
 end
 
-puts Backtraces.foo(Bar.new)
+begin
+  Backtraces.foo(Bar.new)
+rescue => e
+  puts e.full_message
+end
