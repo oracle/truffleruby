@@ -8,6 +8,8 @@
 
 require_relative 'backtraces'
 
+# See also test/truffle/cexts/backtraces for more tests
+
 # Require some C ext to load C ext support
 require 'syslog'
 

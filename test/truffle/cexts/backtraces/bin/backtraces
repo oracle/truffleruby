@@ -13,3 +13,35 @@ begin
 rescue => e
   puts e.full_message
 end
+
+puts
+
+p Backtraces.qsort(-> a, b { a <=> b })
+
+puts
+
+begin
+  Backtraces.qsort(-> a, b {
+    raise "error from Ruby called from instrinsified qsort()"
+  })
+rescue => e
+  puts e.full_message
+end
+
+puts
+
+p Backtraces.native_callback(-> { 6*7 })
+
+puts
+
+def error_helper
+  raise "error from Ruby called from Sulong called from native callback"
+end
+
+begin
+  p Backtraces.native_callback(-> {
+    error_helper
+  })
+rescue RubyTruffleError => e
+  puts e.full_message
+end
