@@ -1,4 +1,4 @@
-/test/truffle/cexts/backtraces/bin/backtraces:8:in `block in bar': error (RuntimeError)
+/test/truffle/cexts/backtraces/bin/backtraces:7:in `block in bar': error (RuntimeError)
 	from /lib/truffle/truffle/cext.rb:n:in `call'
 	from /lib/truffle/truffle/cext.rb:n:in `__send__'
 	from /lib/truffle/truffle/cext.rb:n:in `rb_funcall'
@@ -6,12 +6,12 @@
 	from /lib/truffle/truffle/cext.rb:n:in `execute_without_conversion'
 	from /lib/truffle/truffle/cext.rb:n:in `execute_with_mutex'
 	from /lib/truffle/truffle/cext.rb:n:in `block in rb_proc_new'
-	from /test/truffle/cexts/backtraces/bin/backtraces:8:in `call'
-	from /test/truffle/cexts/backtraces/bin/backtraces:8:in `bar'
+	from /test/truffle/cexts/backtraces/bin/backtraces:7:in `call'
+	from /test/truffle/cexts/backtraces/bin/backtraces:7:in `bar'
 	from /lib/truffle/truffle/cext.rb:n:in `__send__'
 	from /lib/truffle/truffle/cext.rb:n:in `rb_funcall'
 	from /test/truffle/cexts/backtraces/ext/backtraces/backtraces.c:8:in `foo'
 	from /lib/truffle/truffle/cext.rb:n:in `execute_without_conversion'
 	from /lib/truffle/truffle/cext.rb:n:in `execute_with_mutex'
 	from /lib/truffle/truffle/cext_ruby.rb:n:in `foo'
-	from /test/truffle/cexts/backtraces/bin/backtraces:13:in `<main>'
+	from /test/truffle/cexts/backtraces/bin/backtraces:12:in `<main>'
