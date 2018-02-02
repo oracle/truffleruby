@@ -123,7 +123,6 @@ import org.truffleruby.core.rope.RepeatingRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeGuards;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeNodes.RepeatNode;
 import org.truffleruby.core.rope.RopeNodesFactory;
@@ -2015,6 +2014,10 @@ public abstract class StringNodes {
 
         public abstract int executeNormalize(int index, int length);
 
+        public static NormalizeIndexNode create() {
+            return StringNodesFactory.NormalizeIndexNodeGen.create(null, null);
+        }
+
         @Specialization
         protected int normalizeIndex(int index, int length,
                                      @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile) {
@@ -3479,23 +3482,35 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public static abstract class StringIndexPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringByteCharacterIndexNode byteIndexToCharIndexNode = StringNodesFactory.StringByteCharacterIndexNodeFactory.create(null);
-        @Child private NormalizeIndexNode normalizeIndexNode = StringNodesFactory.NormalizeIndexNodeGen.create(null, null);
+        @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
 
-        @Specialization(guards = { "isRubyString(pattern)", "!isBrokenCodeRange(pattern)", "isSingleByteSearch(string, pattern)" })
-        public Object stringIndex(DynamicObject string, DynamicObject pattern, int start,
-                                  @Cached("create()") RopeNodes.BytesNode bytesNode,
-                                  @Cached("createBinaryProfile()") ConditionProfile badStartProfile,
-                                  @Cached("create()") BranchProfile matchFoundProfile,
-                                  @Cached("create()") BranchProfile noMatchProfile) {
+        @Specialization(guards = "start < 0")
+        public Object stringIndexBadStart(DynamicObject string, DynamicObject pattern, int start) {
+            throw new RaiseException(getContext().getCoreExceptions().argumentError("negative start given", this));
+        }
+
+        @Specialization(guards = { "start >= 0", "isEmpty(pattern)" })
+        public Object stringIndexEmptyPattern(DynamicObject string, DynamicObject pattern, int start) {
+            return start;
+        }
+
+        @Specialization(guards = {
+                "start >= 0",
+                "isSingleByteString(pattern)",
+                "!isBrokenCodeRange(pattern)",
+                "canMemcmp(string, pattern)"
+        })
+        public Object stringIndexSingleBytePattern(DynamicObject string, DynamicObject pattern, int start,
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") BranchProfile matchFoundProfile,
+                @Cached("create()") BranchProfile noMatchProfile) {
+
+            checkEncoding(string, pattern);
+
             final Rope sourceRope = rope(string);
             final int end = sourceRope.byteLength();
             final byte[] sourceBytes = bytesNode.execute(sourceRope);
             final byte searchByte = bytesNode.execute(rope(pattern))[0];
-
-            if (badStartProfile.profile(start < 0 || start >= end)) {
-                return nil();
-            }
 
             for (int i = start; i < end; i++) {
                 if (sourceBytes[i] == searchByte) {
@@ -3508,16 +3523,57 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = { "isRubyString(pattern)", "!isBrokenCodeRange(pattern)", "!isSingleByteSearch(string, pattern)" })
+        @Specialization(guards = {
+                "start >= 0",
+                "!isEmpty(pattern)",
+                "!isSingleByteString(pattern)",
+                "!isBrokenCodeRange(pattern)",
+                "canMemcmp(string, pattern)"
+        })
+        public Object stringIndexMultiBytePattern(DynamicObject string, DynamicObject pattern, int start,
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") BranchProfile matchFoundProfile,
+                @Cached("create()") BranchProfile noMatchProfile) {
+
+            checkEncoding(string, pattern);
+
+            final Rope sourceRope = rope(string);
+            final byte[] sourceBytes = bytesNode.execute(sourceRope);
+            final Rope searchRope = rope(pattern);
+            final byte[] searchBytes = bytesNode.execute(searchRope);
+
+            int end = sourceRope.byteLength() - searchRope.byteLength();
+
+            for (int i = start; i <= end; i++) {
+                if (sourceBytes[i] == searchBytes[0]) {
+                    if (ArrayUtils.memcmp(sourceBytes, i, searchBytes, 0, searchRope.byteLength()) == 0) {
+                        matchFoundProfile.enter();
+                        return i;
+                    }
+                }
+            }
+
+            noMatchProfile.enter();
+            return nil();
+        }
+
+        @Specialization(guards = { "start >= 0", "isBrokenCodeRange(pattern)" })
+        public Object stringIndexBrokenPattern(DynamicObject string, DynamicObject pattern, int start) {
+            return nil();
+        }
+
+        @Specialization(guards = { "start >= 0", "!isBrokenCodeRange(pattern)", "!canMemcmp(string, pattern)" })
         public Object stringIndexGeneric(DynamicObject string, DynamicObject pattern, int start,
-                                  @Cached("create()") EncodingNodes.CheckEncodingNode checkEncodingNode,
-                                  @Cached("createBinaryProfile()") ConditionProfile badIndexProfile) {
-            checkEncodingNode.executeCheckEncoding(string, pattern);
+                @Cached("create()") StringByteCharacterIndexNode byteIndexToCharIndexNode,
+                @Cached("create()") NormalizeIndexNode normalizeIndexNode,
+                @Cached("createBinaryProfile()") ConditionProfile badIndexProfile) {
+
+            checkEncoding(string, pattern);
 
             // Rubinius will pass in a byte index for the `start` value, but StringSupport.index requires a character index.
             final int charIndex = byteIndexToCharIndexNode.executeStringByteCharacterIndex(string, start);
 
-            final int index = index(rope(string), rope(pattern), charIndex, encoding(string));
+            final int index = index(rope(string), rope(pattern), charIndex, encoding(string), normalizeIndexNode);
 
             if (badIndexProfile.profile(index == -1)) {
                 return nil();
@@ -3526,13 +3582,8 @@ public abstract class StringNodes {
             return index;
         }
 
-        @Specialization(guards = { "isRubyString(pattern)", "isBrokenCodeRange(pattern)" })
-        public DynamicObject stringIndexBrokenCodeRange(DynamicObject string, DynamicObject pattern, int start) {
-            return nil();
-        }
-
         @TruffleBoundary
-        private int index(Rope source, Rope other, int offset, Encoding enc) {
+        private int index(Rope source, Rope other, int offset, Encoding enc, NormalizeIndexNode normalizeIndexNode) {
             // Taken from org.jruby.util.StringSupport.index.
 
             int sourceLen = source.characterLength();
@@ -3620,14 +3671,17 @@ public abstract class StringNodes {
             return -1;
         }
 
-        protected static boolean isSingleByteSearch(DynamicObject source, DynamicObject pattern) {
-            assert RubyGuards.isRubyString(source);
-            assert RubyGuards.isRubyString(pattern);
+        private void checkEncoding(DynamicObject string, DynamicObject pattern) {
+            if (checkEncodingNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                checkEncodingNode = insert(EncodingNodes.CheckEncodingNode.create());
+            }
 
-            final Rope sourceRope = rope(source);
-            final Rope patternRope = rope(pattern);
+            checkEncodingNode.executeCheckEncoding(string, pattern);
+        }
 
-            return sourceRope.isSingleByteOptimizable() && patternRope.isSingleByteOptimizable() && RopeGuards.isSingleByteString(patternRope);
+        protected boolean isSingleByteString(DynamicObject string) {
+            return rope(string).byteLength() == 1;
         }
 
     }
@@ -3673,6 +3727,10 @@ public abstract class StringNodes {
     public static abstract class StringByteCharacterIndexNode extends PrimitiveArrayArgumentsNode {
 
         public abstract int executeStringByteCharacterIndex(DynamicObject string, int byteIndex);
+
+        public static StringByteCharacterIndexNode create() {
+            return StringNodesFactory.StringByteCharacterIndexNodeFactory.create(null);
+        }
 
         @Specialization(guards = "isSingleByteOptimizable(string)")
         public int singleByte(DynamicObject string, int byteIndex) {

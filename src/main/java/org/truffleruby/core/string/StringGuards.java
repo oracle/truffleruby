@@ -13,6 +13,7 @@ package org.truffleruby.core.string;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.RubyGuards;
 
 public class StringGuards {
@@ -54,6 +55,18 @@ public class StringGuards {
 
     public static boolean isValidCodeRange(DynamicObject string) {
         return StringOperations.codeRange(string) == CodeRange.CR_VALID;
+    }
+
+    public static boolean isSingleByteString(DynamicObject string) {
+        return Layouts.STRING.getRope(string).byteLength() == 1;
+    }
+
+    public static boolean canMemcmp(DynamicObject first, DynamicObject second) {
+        final Rope sourceRope = Layouts.STRING.getRope(first);
+        final Rope patternRope = Layouts.STRING.getRope(second);
+
+        return (sourceRope.isSingleByteOptimizable() || sourceRope.getEncoding().isUTF8()) &&
+                (patternRope.isSingleByteOptimizable() || patternRope.getEncoding().isUTF8());
     }
 
 }
