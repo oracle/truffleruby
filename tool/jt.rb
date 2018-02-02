@@ -1082,13 +1082,12 @@ module Commands
 
         begin
           output_file = 'cext-output.txt'
-          gem_name = test_name
-          dir = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
-          ext_dir = "#{dir}/ext/#{gem_name}/"
-          compile_cext gem_name, ext_dir, "#{dir}/lib/#{gem_name}/#{gem_name}.su"
-          run_ruby "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", out: output_file
+          dir = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{test_name}"
+          ext_dir = "#{dir}/ext/#{test_name}/"
+          compile_cext test_name, ext_dir, "#{dir}/lib/#{test_name}/#{test_name}.su"
+          run_ruby "-I#{dir}/lib", "#{dir}/bin/#{test_name}", out: output_file
           actual = File.read(output_file)
-          if gem_name == 'backtraces'
+          if test_name == 'backtraces'
             actual = actual.gsub(TRUFFLERUBY_DIR, '').gsub(/\/cext(_ruby)?\.rb:(\d+)/, '/cext\1.rb:n')
           end
           expected = File.read("#{dir}/expected.txt")
