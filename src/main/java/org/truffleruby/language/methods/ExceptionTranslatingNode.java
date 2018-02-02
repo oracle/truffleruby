@@ -18,12 +18,14 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.TruffleFatalException;
 
 import java.util.Arrays;
-import java.util.stream.Stream;
+import java.util.EnumSet;
 
 public class ExceptionTranslatingNode extends RubyNode {
 
@@ -246,58 +248,99 @@ public class ExceptionTranslatingNode extends RubyNode {
             t = t.getCause();
         }
 
-        final StringBuilder messageBuilder = new StringBuilder();
-        int exceptionCount = 0;
+        // NOTE (eregon, 2 Feb. 2018): This could maybe be modeled as translating each exception to
+        // a Ruby one and linking them with Ruby Exception#cause.
+        // But currently we and MRI do not display the cause message or backtrace by default.
 
-        while (t != null) {
-            if (exceptionCount > 0) {
-                messageBuilder.append("\nCaused by:\n\t");
-            }
+        final StringBuilder builder = new StringBuilder();
+        boolean firstException = true;
 
-            final String message;
-            Stream<String> extraLines = Stream.empty();
-
-            if (t.getClass().getSimpleName().equals("SulongRuntimeException")) {
-                extraLines = Arrays.stream(t.getMessage().split("\n")).skip(1).map(String::trim);
-                message = "error in C extension";
-            } else if (t instanceof RaiseException) {
-                /*
-                 * If this is already a Ruby exception caused by a Java exception then the message will already include
-                 * multiple lines for each caused-by. However, we print the Java exception on the second line. That's
-                 * confusing here, as it breaks the first caused-by. Remove the line break.
-                 */
-                message = t.getMessage().replaceFirst("\n", "");
-            } else {
-                extraLines = Arrays.stream(t.getStackTrace()).map(StackTraceElement::toString).skip(1).limit(10);
-                message = t.getMessage();
-            }
-
-            if (message != null) {
-                messageBuilder.append(message);
-            } else {
-                messageBuilder.append("<no message>");
-            }
-
-            if (exceptionCount == 0) {
-                messageBuilder.append("\n\t");
-            } else {
-                messageBuilder.append(" ");
-            }
-
-            messageBuilder.append(t.getClass().getSimpleName());
-
-            if (t.getStackTrace().length > 0) {
-                messageBuilder.append(" ");
-                messageBuilder.append(t.getStackTrace()[0].toString());
-            }
-
-            extraLines.forEach(line -> messageBuilder.append("\n\t" + line));
-
-            t = t.getCause();
-            exceptionCount++;
+        if (t.getClass().getSimpleName().equals("SulongRuntimeException")) {
+            t = translateCExtException(t, builder);
+            firstException = false;
         }
 
-        return coreExceptions().internalErrorFullMessage(messageBuilder.toString(), this, throwable);
+        while (t != null) {
+            if (!firstException) {
+                builder.append("Caused by:\n");
+            }
+
+            if (t instanceof RaiseException) {
+                // A Ruby exception as a cause of a Java or C-ext exception
+                final DynamicObject rubyException = ((RaiseException) t).getException();
+
+                // Add the backtrace in the message as otherwise we would only see the
+                // internalError() backtrace.
+                final BacktraceFormatter formatter = new BacktraceFormatter(getContext(), EnumSet.noneOf(FormattingFlags.class));
+                final String[] formattedBacktrace = formatter.formatBacktrace(getContext(), rubyException, Layouts.EXCEPTION.getBacktrace(rubyException));
+                for (String line : formattedBacktrace) {
+                    builder.append(line).append('\n');
+                }
+            } else {
+                // Java exception, print it formatted like a Ruby exception
+                final String message = t.getMessage();
+                builder.append(message != null ? message : "<no message>");
+
+                builder.append(" (").append(t.getClass().getSimpleName()).append(")\n");
+
+                // Print the first 10 lines of backtrace
+                final StackTraceElement[] stackTrace = t.getStackTrace();
+                for (int i = 0; i < Math.min(stackTrace.length, 10); i++) {
+                    stackTraceElementToRuby(builder, stackTrace[i]);
+                }
+            }
+
+            t = t.getCause();
+            firstException = false;
+        }
+
+        // When printing the backtrace of the RubyTruffleError, make it clear it's not a cause
+        builder.append("Translated to internal error");
+
+        return coreExceptions().internalErrorFullMessage(builder.toString(), this, throwable);
+    }
+
+    private Throwable translateCExtException(Throwable t, StringBuilder builder) {
+        builder.append("Error in C extension code (SulongRuntimeException):\n");
+
+        final String[] lines = Arrays.stream(t.getMessage().split("\n"))
+                .map(String::trim)
+                .filter(line -> !line.isEmpty()) // Empty lines
+                .toArray(String[]::new);
+
+        // The first line is the exception message + class
+        // Print the exception class Ruby-style
+        if (lines[0].startsWith("IllegalStateException ")) {
+            lines[0] = lines[0].substring("IllegalStateException ".length()) + " (IllegalStateException)";
+        }
+        builder.append(lines[0]).append('\n');
+
+        // Make the C stacktrace look Ruby-like
+        if (lines[1].equals("C stack trace:")) {
+            lines[1] = null;
+            for (int i = 2; i < lines.length; i++) {
+                lines[i] = "from " + lines[i];
+            }
+        }
+
+        Arrays.stream(lines, 1, lines.length)
+                .filter(line -> line != null) // Lines we removed
+                .forEach(line -> builder.append('\t').append(line).append('\n'));
+
+        // Add the first line of the wrapped exception,
+        // the rest is the Sulong interpreter which is not relevant.
+        final Throwable cause = t.getCause();
+        final StackTraceElement[] stackTrace = cause.getStackTrace();
+        if (stackTrace.length > 0) {
+            stackTraceElementToRuby(builder, stackTrace[0]);
+        }
+
+        // We already printed the message and backtrace of the wrapped exception, skip it
+        return cause.getCause();
+    }
+
+    private void stackTraceElementToRuby(StringBuilder builder, StackTraceElement stackTraceElement) {
+        builder.append('\t').append("from ").append(stackTraceElement).append('\n');
     }
 
 }
