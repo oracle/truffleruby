@@ -1054,7 +1054,7 @@ module Commands
     no_openssl = args.delete('--no-openssl')
     no_gems = args.delete('--no-gems')
     tests = args.empty? ? all_tests : all_tests & args
-    tests.delete 'openssl' if no_openssl
+    tests -= %w[openssl xopenssl] if no_openssl
     tests.delete 'gems' if no_gems
 
     tests.each do |test_name|
@@ -1083,7 +1083,6 @@ module Commands
         begin
           output_file = 'cext-output.txt'
           gem_name = test_name
-          next if gem_name == 'xopenssl' && no_openssl
           dir = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
           ext_dir = "#{dir}/ext/#{gem_name}/"
           compile_cext gem_name, ext_dir, "#{dir}/lib/#{gem_name}/#{gem_name}.su"
