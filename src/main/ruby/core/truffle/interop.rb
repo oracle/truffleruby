@@ -14,7 +14,7 @@ module Truffle
       method = import(name.to_s)
 
       Object.send(:define_method, name.to_sym) do |*args|
-        Truffle::Interop.from_java_string Truffle::Interop.execute(method, *args)
+        Truffle::Interop.execute(method, *args)
       end
     end
 
