@@ -82,5 +82,3 @@ chruby system
 # Or manually:
 unset GEM_HOME GEM_PATH GEM_ROOT
 ```
-
-Next step: [Installing gems](installing-gems.md).

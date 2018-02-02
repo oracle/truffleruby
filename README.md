@@ -3,6 +3,23 @@
 A high performance implementation of the Ruby programming language. Built on the
 GraalVM by [Oracle Labs](https://labs.oracle.com).
 
+## Getting Started
+
+The best way to get started with TruffleRuby is via the GraalVM, which includes
+compatible versions of everything you need as well as TruffleRuby.
+
+http://www.oracle.com/technetwork/oracle-labs/program-languages/
+
+Inside the GraalVM is a `bin/ruby` command that runs TruffleRuby.
+See [Using TruffleRuby with GraalVM](doc/user/using-graalvm.md)
+instructions.
+
+You can use `gem` to install Gems as normal. We recommend that Bundler `1.14.6`
+is best to use for now.
+
+You can also build TruffleRuby from source, see the
+[Building Instructions](doc/contributor/workflow.md).
+
 ## Aim
 
 TruffleRuby aims to:
@@ -75,8 +92,7 @@ a recent LLVM.
 ## Current Status
 
 TruffleRuby is progressing fast but is currently probably not ready for you to
-try running your full Ruby application on. Support for critical C extensions
-such as OpenSSL and Nokogiri is missing.
+try running your full Ruby application on.
 
 TruffleRuby is ready for experimentation and curious end-users to try on their
 gems and smaller applications.
@@ -105,26 +121,6 @@ for using it as part of GraalVM.
 
 It is possible to [run on an unmodified JDK 9](doc/user/using-java9.md) but you
 will have to build Graal yourself and we recommend using GraalVM instead.
-
-#### How do I install gems?
-
-TruffleRuby cannot install gems out of the box yet, however there are 
-[temporary workarounds](doc/user/installing-gems.md) 
-which can be used to get it working. 
-
-## Getting Started
-
-The best way to get started with TruffleRuby is via the GraalVM, which includes
-compatible versions of everything you need as well as TruffleRuby.
-
-http://www.oracle.com/technetwork/oracle-labs/program-languages/
-
-Inside the GraalVM is a `bin/ruby` command that runs TruffleRuby.
-See [Using TruffleRuby with GraalVM](doc/user/using-graalvm.md)
-instructions.
-
-You can also build TruffleRuby from source, see the
-[Building Instructions](doc/contributor/workflow.md).
 
 ## Documentation
 
