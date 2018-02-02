@@ -251,7 +251,7 @@ public class ExceptionTranslatingNode extends RubyNode {
 
         while (t != null) {
             if (exceptionCount > 0) {
-                messageBuilder.append("\n\t\tcaused by ");
+                messageBuilder.append("\nCaused by:\n\t");
             }
 
             String message = t.getMessage();
