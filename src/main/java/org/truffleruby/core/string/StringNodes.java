@@ -3484,18 +3484,14 @@ public abstract class StringNodes {
 
         @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
 
-        @Specialization(guards = "start < 0")
-        public Object stringIndexBadStart(DynamicObject string, DynamicObject pattern, int start) {
-            throw new RaiseException(getContext().getCoreExceptions().argumentError("negative start given", this));
-        }
-
-        @Specialization(guards = { "start >= 0", "isEmpty(pattern)" })
+        @Specialization(guards = "isEmpty(pattern)")
         public Object stringIndexEmptyPattern(DynamicObject string, DynamicObject pattern, int start) {
+            assert start >= 0;
+
             return start;
         }
 
         @Specialization(guards = {
-                "start >= 0",
                 "isSingleByteString(pattern)",
                 "!isBrokenCodeRange(pattern)",
                 "canMemcmp(string, pattern)"
@@ -3504,6 +3500,7 @@ public abstract class StringNodes {
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") BranchProfile matchFoundProfile,
                 @Cached("create()") BranchProfile noMatchProfile) {
+            assert start >= 0;
 
             checkEncoding(string, pattern);
 
@@ -3524,7 +3521,6 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = {
-                "start >= 0",
                 "!isEmpty(pattern)",
                 "!isSingleByteString(pattern)",
                 "!isBrokenCodeRange(pattern)",
@@ -3534,6 +3530,7 @@ public abstract class StringNodes {
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") BranchProfile matchFoundProfile,
                 @Cached("create()") BranchProfile noMatchProfile) {
+            assert start >= 0;
 
             checkEncoding(string, pattern);
 
@@ -3557,16 +3554,19 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = { "start >= 0", "isBrokenCodeRange(pattern)" })
+        @Specialization(guards = "isBrokenCodeRange(pattern)")
         public Object stringIndexBrokenPattern(DynamicObject string, DynamicObject pattern, int start) {
+            assert start >= 0;
+
             return nil();
         }
 
-        @Specialization(guards = { "start >= 0", "!isBrokenCodeRange(pattern)", "!canMemcmp(string, pattern)" })
+        @Specialization(guards = { "!isBrokenCodeRange(pattern)", "!canMemcmp(string, pattern)" })
         public Object stringIndexGeneric(DynamicObject string, DynamicObject pattern, int start,
                 @Cached("create()") StringByteCharacterIndexNode byteIndexToCharIndexNode,
                 @Cached("create()") NormalizeIndexNode normalizeIndexNode,
                 @Cached("createBinaryProfile()") ConditionProfile badIndexProfile) {
+            assert start >= 0;
 
             checkEncoding(string, pattern);
 
@@ -3583,30 +3583,27 @@ public abstract class StringNodes {
         }
 
         @TruffleBoundary
-        private int index(Rope source, Rope other, int offset, Encoding enc, NormalizeIndexNode normalizeIndexNode) {
+        private int index(Rope source, Rope other, int start, Encoding enc, NormalizeIndexNode normalizeIndexNode) {
             // Taken from org.jruby.util.StringSupport.index.
+            assert start >= 0;
 
             int sourceLen = source.characterLength();
             int otherLen = other.characterLength();
 
-            offset = normalizeIndexNode.executeNormalize(offset, sourceLen);
+            start = normalizeIndexNode.executeNormalize(start, sourceLen);
 
-            if (offset < 0) {
-                return -1;
-            }
-
-            if (sourceLen - offset < otherLen) {
+            if (sourceLen - start < otherLen) {
                 return -1;
             }
             byte[]bytes = source.getBytes();
             int p = 0;
             int end = p + source.byteLength();
-            if (offset != 0) {
-                offset = source.isSingleByteOptimizable() ? offset : StringSupport.offset(enc, bytes, p, end, offset);
-                p += offset;
+            if (start != 0) {
+                start = source.isSingleByteOptimizable() ? start : StringSupport.offset(enc, bytes, p, end, start);
+                p += start;
             }
             if (otherLen == 0) {
-                return offset;
+                return start;
             }
 
             while (true) {
@@ -3617,12 +3614,12 @@ public abstract class StringNodes {
                 pos -= p;
                 int t = enc.rightAdjustCharHead(bytes, p, p + pos, end);
                 if (t == p + pos) {
-                    return pos + offset;
+                    return pos + start;
                 }
                 if ((sourceLen -= t - p) <= 0) {
                     return -1;
                 }
-                offset += t - p;
+                start += t - p;
                 p = t;
             }
         }
@@ -3963,18 +3960,14 @@ public abstract class StringNodes {
 
         @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
 
-        @Specialization(guards = "start < 0")
-        public Object stringRindexBadStart(DynamicObject string, DynamicObject pattern, int start) {
-            throw new RaiseException(getContext().getCoreExceptions().argumentError("negative start given", this));
-        }
-
-        @Specialization(guards = { "start >= 0", "isEmpty(pattern)" })
+        @Specialization(guards = "isEmpty(pattern)")
         public Object stringRindexEmptyPattern(DynamicObject string, DynamicObject pattern, int start) {
+            assert start >= 0;
+
             return start;
         }
 
         @Specialization(guards = {
-                "start >= 0",
                 "isSingleByteString(pattern)",
                 "!isBrokenCodeRange(pattern)",
                 "canMemcmp(string, pattern)"
@@ -3984,6 +3977,7 @@ public abstract class StringNodes {
                 @Cached("create()") BranchProfile startTooLargeProfile,
                 @Cached("create()") BranchProfile matchFoundProfile,
                 @Cached("create()") BranchProfile noMatchProfile) {
+            assert start >= 0;
 
             checkEncoding(string, pattern);
 
@@ -4010,7 +4004,6 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = {
-                "start >= 0",
                 "!isEmpty(pattern)",
                 "!isSingleByteString(pattern)",
                 "!isBrokenCodeRange(pattern)",
@@ -4022,6 +4015,7 @@ public abstract class StringNodes {
                 @Cached("create()") BranchProfile startTooCloseToEndProfile,
                 @Cached("create()") BranchProfile matchFoundProfile,
                 @Cached("create()") BranchProfile noMatchProfile) {
+            assert start >= 0;
 
             checkEncoding(string, pattern);
 
@@ -4056,26 +4050,23 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = { "start >= 0", "isBrokenCodeRange(pattern)" })
+        @Specialization(guards = "isBrokenCodeRange(pattern)")
         public Object stringRindexBrokenPattern(DynamicObject string, DynamicObject pattern, int start) {
+            assert start >= 0;
+
             return nil();
         }
 
-        @Specialization(guards = { "start >= 0", "!isBrokenCodeRange(pattern)", "!canMemcmp(string, pattern)" })
+        @Specialization(guards = { "!isBrokenCodeRange(pattern)", "!canMemcmp(string, pattern)" })
         public Object stringRindex(DynamicObject string, DynamicObject pattern, int start,
-                @Cached("create()") BranchProfile errorProfile,
                 @Cached("create()") RopeNodes.BytesNode stringBytes,
                 @Cached("create()") RopeNodes.BytesNode patternBytes,
                 @Cached("create()") RopeNodes.GetByteNode patternGetByteNode,
                 @Cached("create()") RopeNodes.GetByteNode stringGetByteNode) {
             // Taken from Rubinius's String::rindex.
+            assert start >= 0;
 
             int pos = start;
-
-            if (pos < 0) {
-                errorProfile.enter();
-                throw new RaiseException(coreExceptions().argumentError("negative start given", this));
-            }
 
             final Rope stringRope = rope(string);
             final Rope patternRope = rope(pattern);
