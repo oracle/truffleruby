@@ -3680,10 +3680,6 @@ public abstract class StringNodes {
             checkEncodingNode.executeCheckEncoding(string, pattern);
         }
 
-        protected boolean isSingleByteString(DynamicObject string) {
-            return rope(string).byteLength() == 1;
-        }
-
     }
 
     @Primitive(name = "string_character_byte_index", needsSelf = false, lowerFixnum = 2)
@@ -3962,16 +3958,116 @@ public abstract class StringNodes {
 
     @NonStandard
     @CoreMethod(names = "find_string_reverse", required = 2, lowerFixnum = 2)
+    @ImportStatic(StringGuards.class)
     public static abstract class StringRindexPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.GetByteNode patternGetByteNode = RopeNodes.GetByteNode.create();
-        @Child private RopeNodes.GetByteNode stringGetByteNode = RopeNodes.GetByteNode.create();
+        @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
 
-        @Specialization(guards = "isRubyString(pattern)")
+        @Specialization(guards = "start < 0")
+        public Object stringRindexBadStart(DynamicObject string, DynamicObject pattern, int start) {
+            throw new RaiseException(getContext().getCoreExceptions().argumentError("negative start given", this));
+        }
+
+        @Specialization(guards = { "start >= 0", "isEmpty(pattern)" })
+        public Object stringRindexEmptyPattern(DynamicObject string, DynamicObject pattern, int start) {
+            return start;
+        }
+
+        @Specialization(guards = {
+                "start >= 0",
+                "isSingleByteString(pattern)",
+                "!isBrokenCodeRange(pattern)",
+                "canMemcmp(string, pattern)"
+        })
+        public Object stringRindexSingleBytePattern(DynamicObject string, DynamicObject pattern, int start,
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") BranchProfile startTooLargeProfile,
+                @Cached("create()") BranchProfile matchFoundProfile,
+                @Cached("create()") BranchProfile noMatchProfile) {
+
+            checkEncoding(string, pattern);
+
+            final Rope sourceRope = rope(string);
+            final int end = sourceRope.byteLength();
+            final byte[] sourceBytes = bytesNode.execute(sourceRope);
+            final byte searchByte = bytesNode.execute(rope(pattern))[0];
+            int normalizedStart = start;
+
+            if (normalizedStart >= end) {
+                startTooLargeProfile.enter();
+                normalizedStart = end - 1;
+            }
+
+            for (int i = normalizedStart; i >= 0; i--) {
+                if (sourceBytes[i] == searchByte) {
+                    matchFoundProfile.enter();
+                    return i;
+                }
+            }
+
+            noMatchProfile.enter();
+            return nil();
+        }
+
+        @Specialization(guards = {
+                "start >= 0",
+                "!isEmpty(pattern)",
+                "!isSingleByteString(pattern)",
+                "!isBrokenCodeRange(pattern)",
+                "canMemcmp(string, pattern)"
+        })
+        public Object stringRindexMultiBytePattern(DynamicObject string, DynamicObject pattern, int start,
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") BranchProfile startOutOfBoundsProfile,
+                @Cached("create()") BranchProfile startTooCloseToEndProfile,
+                @Cached("create()") BranchProfile matchFoundProfile,
+                @Cached("create()") BranchProfile noMatchProfile) {
+
+            checkEncoding(string, pattern);
+
+            final Rope sourceRope = rope(string);
+            final int end = sourceRope.byteLength();
+            final byte[] sourceBytes = bytesNode.execute(sourceRope);
+            final Rope searchRope = rope(pattern);
+            final int matchSize = searchRope.byteLength();
+            final byte[] searchBytes = bytesNode.execute(searchRope);
+            int normalizedStart = start;
+
+            if (normalizedStart >= end) {
+                startOutOfBoundsProfile.enter();
+                normalizedStart = end - 1;
+            }
+
+            if (end - normalizedStart < matchSize) {
+                startTooCloseToEndProfile.enter();
+                normalizedStart = end - matchSize;
+            }
+
+            for (int i = normalizedStart; i >= 0; i--) {
+                if (sourceBytes[i] == searchBytes[0]) {
+                    if (ArrayUtils.memcmp(sourceBytes, i, searchBytes, 0, matchSize) == 0) {
+                        matchFoundProfile.enter();
+                        return i;
+                    }
+                }
+            }
+
+            noMatchProfile.enter();
+            return nil();
+        }
+
+        @Specialization(guards = { "start >= 0", "isBrokenCodeRange(pattern)" })
+        public Object stringRindexBrokenPattern(DynamicObject string, DynamicObject pattern, int start) {
+            return nil();
+        }
+
+        @Specialization(guards = { "start >= 0", "!isBrokenCodeRange(pattern)", "!canMemcmp(string, pattern)" })
         public Object stringRindex(DynamicObject string, DynamicObject pattern, int start,
                 @Cached("create()") BranchProfile errorProfile,
                 @Cached("create()") RopeNodes.BytesNode stringBytes,
-                @Cached("create()") RopeNodes.BytesNode patternBytes) {
+                @Cached("create()") RopeNodes.BytesNode patternBytes,
+                @Cached("create()") RopeNodes.GetByteNode patternGetByteNode,
+                @Cached("create()") RopeNodes.GetByteNode stringGetByteNode) {
             // Taken from Rubinius's String::rindex.
 
             int pos = start;
@@ -4028,6 +4124,15 @@ public abstract class StringNodes {
             }
 
             return nil();
+        }
+
+        private void checkEncoding(DynamicObject string, DynamicObject pattern) {
+            if (checkEncodingNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                checkEncodingNode = insert(EncodingNodes.CheckEncodingNode.create());
+            }
+
+            checkEncodingNode.executeCheckEncoding(string, pattern);
         }
 
     }
