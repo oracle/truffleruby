@@ -3952,8 +3952,7 @@ public abstract class StringNodes {
 
     }
 
-    @NonStandard
-    @CoreMethod(names = "find_string_reverse", required = 2, lowerFixnum = 2)
+    @Primitive(name = "find_string_reverse", needsSelf = false, lowerFixnum = 3)
     @ImportStatic(StringGuards.class)
     public static abstract class StringRindexPrimitiveNode extends CoreMethodArrayArgumentsNode {
 

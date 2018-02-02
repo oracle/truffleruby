@@ -150,7 +150,7 @@ class File < IO
 
     ext_not_present = undefined.equal?(ext)
 
-    if pos = path.find_string_reverse(slash, path.bytesize)
+    if pos = Truffle.invoke_primitive(:find_string_reverse, path, slash, path.bytesize)
       # special case. If the string ends with a /, ignore it.
       if pos == path.bytesize - 1
 
@@ -169,7 +169,7 @@ class File < IO
         return slash unless found
 
         # Now that we've trimmed the /'s at the end, search again
-        pos = path.find_string_reverse(slash, path.bytesize)
+        pos = Truffle.invoke_primitive(:find_string_reverse, path, slash, path.bytesize)
         if ext_not_present and !pos
           # No /'s found and ext not present, return path.
           return path
@@ -186,10 +186,10 @@ class File < IO
     ext = StringValue(ext)
 
     if ext == '.*'
-      if pos = path.find_string_reverse('.', path.bytesize)
+      if pos = Truffle.invoke_primitive(:find_string_reverse, path, '.', path.bytesize)
         return path.byteslice(0, pos)
       end
-    elsif pos = path.find_string_reverse(ext, path.bytesize)
+    elsif pos = Truffle.invoke_primitive(:find_string_reverse, path, ext, path.bytesize)
       # Check that ext is the last thing in the string
       if pos == path.bytesize - ext.size
         return path.byteslice(0, pos)
@@ -397,7 +397,7 @@ class File < IO
     chunk_size = last_nonslash(path)
     return '/' unless chunk_size
 
-    if pos = path.find_string_reverse(slash, chunk_size)
+    if pos = Truffle.invoke_primitive(:find_string_reverse, path, slash, chunk_size)
       return '/' if pos == 0
 
       path = path.byteslice(0, pos)
@@ -550,12 +550,12 @@ class File < IO
     path = Truffle::Type.coerce_to_path(path)
     path_size = path.bytesize
 
-    dot_idx = path.find_string_reverse('.', path_size)
+    dot_idx = Truffle.invoke_primitive(:find_string_reverse, path, '.', path_size)
 
     # No dots at all
     return '' unless dot_idx
 
-    slash_idx = path.find_string_reverse('/', path_size)
+    slash_idx = Truffle.invoke_primitive(:find_string_reverse, path, '/', path_size)
 
     # pretend there is / just to the left of the start of the string
     slash_idx ||= -1
