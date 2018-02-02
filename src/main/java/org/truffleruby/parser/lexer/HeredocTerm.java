@@ -30,10 +30,10 @@
 package org.truffleruby.parser.lexer;
 
 import org.jcodings.Encoding;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.parser.parser.ParserRopeOperations;
 import org.truffleruby.parser.parser.Tokens;
 
 import java.nio.charset.StandardCharsets;
@@ -69,8 +69,6 @@ public class HeredocTerm extends StrTerm {
 
     // Portion of line right after beginning marker
     protected final Rope lastLine;
-
-    private final ParserRopeOperations parserRopeOperations = new ParserRopeOperations();
 
     public HeredocTerm(Rope marker, int func, int nth, int line, Rope lastLine) {
         this.nd_lit = marker;
@@ -141,10 +139,10 @@ public class HeredocTerm extends StrTerm {
                 }
 
                 if (str != null) {
-                    str.append(parserRopeOperations.makeShared(lbuf, p, pend - p));
+                    str.append(ArrayUtils.extractRange(lbuf.getBytes(), p, pend));
                 } else {
                     final RopeBuilder builder = new RopeBuilder();
-                    builder.append(parserRopeOperations.makeShared(lbuf, p, pend - p));
+                    builder.append(ArrayUtils.extractRange(lbuf.getBytes(), p, pend));
                     str = builder;
                 }
 
