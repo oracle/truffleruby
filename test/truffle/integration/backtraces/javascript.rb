@@ -39,18 +39,6 @@ Truffle::Interop.eval js, "function bob() { baz(); }"
 Truffle::Interop.eval js, "Interop.export('bob', bob)"
 Truffle::Interop.import_method :bob
 
-expected = [
-  "/backtraces.rb:96:in `foo'",
-  "(eval):1",
-  "/backtraces.rb:108:in `bar'",
-  "/backtraces.rb:108:in `baz'",
-  "(eval):1",
-  "/backtraces.rb:132:in `bob'",
-  "/backtraces.rb:132:in `block in <main>'",
-  "/backtraces.rb:11:in `check'",
-  "/backtraces.rb:131:in `<main>'"
-]
-
 check('javascript.backtrace') do
   bob(self)
 end
