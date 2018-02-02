@@ -106,6 +106,12 @@ Keys are returned as a Ruby `Array` containing Ruby `String` objects.
 
 ### `KEY_INFO`
 
+If the object is a Ruby `Array` and the key is an integer:
+
+`READABLE` will be set if the index is in bounds (0 <= index < array.size)
+
+`WRITABLE` will be set if the index is in bound and the array is not frozen.
+
 If the object is a Ruby `Hash`:
 
 `READABLE` will be set if the key is found.
@@ -114,7 +120,7 @@ If the object is a Ruby `Hash`:
 
 `INTERNAL` will never be set.
 
-If the object is not a Ruby `Hash`:
+Otherwise:
 
 `READABLE` will be set if the object responds to a method of the same name.
 

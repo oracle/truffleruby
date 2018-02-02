@@ -281,8 +281,9 @@ public class RubyMessageResolution {
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
         @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
 
-        protected Object access(VirtualFrame frame, DynamicObject object, String name) {
-            return dispatchNode.call(frame, getContext().getCoreLibrary().getTruffleInteropModule(), "object_key_info", object, foreignToRubyNode.executeConvert(name));
+        protected Object access(VirtualFrame frame, DynamicObject object, Object name) {
+            final Object convertedName = foreignToRubyNode.executeConvert(name);
+            return dispatchNode.call(frame, getContext().getCoreLibrary().getTruffleInteropModule(), "object_key_info", object, convertedName);
         }
 
         private RubyContext getContext() {
