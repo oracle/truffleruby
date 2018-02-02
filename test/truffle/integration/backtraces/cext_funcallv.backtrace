@@ -1,0 +1,10 @@
+/cext.rb:17:in `callback': Ruby callback error (RuntimeError)
+	from PWD/lib/truffle/truffle/cext.rb:LINE:in `__send__'
+	from PWD/lib/truffle/truffle/cext.rb:LINE:in `rb_funcall'
+	from PWD/lib/truffle/truffle/cext.rb:LINE:in `rb_funcallv'
+	from PWD/src/main/c/cext/ruby.c:LINE:in `rb_funcallv'
+/cext.rb:21:in `ruby_call'
+/cext.rb:25:in `top'
+/cext.rb:29:in `block in <main>'
+/backtraces.rb:17:in `check'
+/cext.rb:28:in `<main>'
