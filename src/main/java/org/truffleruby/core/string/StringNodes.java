@@ -3485,10 +3485,10 @@ public abstract class StringNodes {
         @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
 
         @Specialization(guards = "isEmpty(pattern)")
-        public Object stringIndexEmptyPattern(DynamicObject string, DynamicObject pattern, int start) {
-            assert start >= 0;
+        public Object stringIndexEmptyPattern(DynamicObject string, DynamicObject pattern, int byteOffset) {
+            assert byteOffset >= 0;
 
-            return start;
+            return byteOffset;
         }
 
         @Specialization(guards = {
@@ -3496,11 +3496,11 @@ public abstract class StringNodes {
                 "!isBrokenCodeRange(pattern)",
                 "canMemcmp(string, pattern)"
         })
-        public Object stringIndexSingleBytePattern(DynamicObject string, DynamicObject pattern, int start,
+        public Object stringIndexSingleBytePattern(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") BranchProfile matchFoundProfile,
                 @Cached("create()") BranchProfile noMatchProfile) {
-            assert start >= 0;
+            assert byteOffset >= 0;
 
             checkEncoding(string, pattern);
 
@@ -3509,7 +3509,7 @@ public abstract class StringNodes {
             final byte[] sourceBytes = bytesNode.execute(sourceRope);
             final byte searchByte = bytesNode.execute(rope(pattern))[0];
 
-            for (int i = start; i < end; i++) {
+            for (int i = byteOffset; i < end; i++) {
                 if (sourceBytes[i] == searchByte) {
                     matchFoundProfile.enter();
                     return i;
@@ -3526,11 +3526,11 @@ public abstract class StringNodes {
                 "!isBrokenCodeRange(pattern)",
                 "canMemcmp(string, pattern)"
         })
-        public Object stringIndexMultiBytePattern(DynamicObject string, DynamicObject pattern, int start,
+        public Object stringIndexMultiBytePattern(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") BranchProfile matchFoundProfile,
                 @Cached("create()") BranchProfile noMatchProfile) {
-            assert start >= 0;
+            assert byteOffset >= 0;
 
             checkEncoding(string, pattern);
 
@@ -3541,7 +3541,7 @@ public abstract class StringNodes {
 
             int end = sourceRope.byteLength() - searchRope.byteLength();
 
-            for (int i = start; i <= end; i++) {
+            for (int i = byteOffset; i <= end; i++) {
                 if (sourceBytes[i] == searchBytes[0]) {
                     if (ArrayUtils.memcmp(sourceBytes, i, searchBytes, 0, searchRope.byteLength()) == 0) {
                         matchFoundProfile.enter();
@@ -3555,23 +3555,23 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isBrokenCodeRange(pattern)")
-        public Object stringIndexBrokenPattern(DynamicObject string, DynamicObject pattern, int start) {
-            assert start >= 0;
+        public Object stringIndexBrokenPattern(DynamicObject string, DynamicObject pattern, int byteOffset) {
+            assert byteOffset >= 0;
 
             return nil();
         }
 
         @Specialization(guards = { "!isBrokenCodeRange(pattern)", "!canMemcmp(string, pattern)" })
-        public Object stringIndexGeneric(DynamicObject string, DynamicObject pattern, int start,
+        public Object stringIndexGeneric(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached("create()") StringByteCharacterIndexNode byteIndexToCharIndexNode,
                 @Cached("create()") NormalizeIndexNode normalizeIndexNode,
                 @Cached("createBinaryProfile()") ConditionProfile badIndexProfile) {
-            assert start >= 0;
+            assert byteOffset >= 0;
 
             checkEncoding(string, pattern);
 
             // Rubinius will pass in a byte index for the `start` value, but StringSupport.index requires a character index.
-            final int charIndex = byteIndexToCharIndexNode.executeStringByteCharacterIndex(string, start);
+            final int charIndex = byteIndexToCharIndexNode.executeStringByteCharacterIndex(string, byteOffset);
 
             final int index = index(rope(string), rope(pattern), charIndex, encoding(string), normalizeIndexNode);
 
@@ -3583,27 +3583,27 @@ public abstract class StringNodes {
         }
 
         @TruffleBoundary
-        private int index(Rope source, Rope other, int start, Encoding enc, NormalizeIndexNode normalizeIndexNode) {
+        private int index(Rope source, Rope other, int byteOffset, Encoding enc, NormalizeIndexNode normalizeIndexNode) {
             // Taken from org.jruby.util.StringSupport.index.
-            assert start >= 0;
+            assert byteOffset >= 0;
 
             int sourceLen = source.characterLength();
             int otherLen = other.characterLength();
 
-            start = normalizeIndexNode.executeNormalize(start, sourceLen);
+            byteOffset = normalizeIndexNode.executeNormalize(byteOffset, sourceLen);
 
-            if (sourceLen - start < otherLen) {
+            if (sourceLen - byteOffset < otherLen) {
                 return -1;
             }
             byte[]bytes = source.getBytes();
             int p = 0;
             int end = p + source.byteLength();
-            if (start != 0) {
-                start = source.isSingleByteOptimizable() ? start : StringSupport.offset(enc, bytes, p, end, start);
-                p += start;
+            if (byteOffset != 0) {
+                byteOffset = source.isSingleByteOptimizable() ? byteOffset : StringSupport.offset(enc, bytes, p, end, byteOffset);
+                p += byteOffset;
             }
             if (otherLen == 0) {
-                return start;
+                return byteOffset;
             }
 
             while (true) {
@@ -3614,12 +3614,12 @@ public abstract class StringNodes {
                 pos -= p;
                 int t = enc.rightAdjustCharHead(bytes, p, p + pos, end);
                 if (t == p + pos) {
-                    return pos + start;
+                    return pos + byteOffset;
                 }
                 if ((sourceLen -= t - p) <= 0) {
                     return -1;
                 }
-                start += t - p;
+                byteOffset += t - p;
                 p = t;
             }
         }
@@ -3961,10 +3961,10 @@ public abstract class StringNodes {
         @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
 
         @Specialization(guards = "isEmpty(pattern)")
-        public Object stringRindexEmptyPattern(DynamicObject string, DynamicObject pattern, int start) {
-            assert start >= 0;
+        public Object stringRindexEmptyPattern(DynamicObject string, DynamicObject pattern, int byteOffset) {
+            assert byteOffset >= 0;
 
-            return start;
+            return byteOffset;
         }
 
         @Specialization(guards = {
@@ -3972,12 +3972,12 @@ public abstract class StringNodes {
                 "!isBrokenCodeRange(pattern)",
                 "canMemcmp(string, pattern)"
         })
-        public Object stringRindexSingleBytePattern(DynamicObject string, DynamicObject pattern, int start,
+        public Object stringRindexSingleBytePattern(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") BranchProfile startTooLargeProfile,
                 @Cached("create()") BranchProfile matchFoundProfile,
                 @Cached("create()") BranchProfile noMatchProfile) {
-            assert start >= 0;
+            assert byteOffset >= 0;
 
             checkEncoding(string, pattern);
 
@@ -3985,7 +3985,7 @@ public abstract class StringNodes {
             final int end = sourceRope.byteLength();
             final byte[] sourceBytes = bytesNode.execute(sourceRope);
             final byte searchByte = bytesNode.execute(rope(pattern))[0];
-            int normalizedStart = start;
+            int normalizedStart = byteOffset;
 
             if (normalizedStart >= end) {
                 startTooLargeProfile.enter();
@@ -4009,13 +4009,13 @@ public abstract class StringNodes {
                 "!isBrokenCodeRange(pattern)",
                 "canMemcmp(string, pattern)"
         })
-        public Object stringRindexMultiBytePattern(DynamicObject string, DynamicObject pattern, int start,
+        public Object stringRindexMultiBytePattern(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") BranchProfile startOutOfBoundsProfile,
                 @Cached("create()") BranchProfile startTooCloseToEndProfile,
                 @Cached("create()") BranchProfile matchFoundProfile,
                 @Cached("create()") BranchProfile noMatchProfile) {
-            assert start >= 0;
+            assert byteOffset >= 0;
 
             checkEncoding(string, pattern);
 
@@ -4025,7 +4025,7 @@ public abstract class StringNodes {
             final Rope searchRope = rope(pattern);
             final int matchSize = searchRope.byteLength();
             final byte[] searchBytes = bytesNode.execute(searchRope);
-            int normalizedStart = start;
+            int normalizedStart = byteOffset;
 
             if (normalizedStart >= end) {
                 startOutOfBoundsProfile.enter();
@@ -4051,22 +4051,22 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isBrokenCodeRange(pattern)")
-        public Object stringRindexBrokenPattern(DynamicObject string, DynamicObject pattern, int start) {
-            assert start >= 0;
+        public Object stringRindexBrokenPattern(DynamicObject string, DynamicObject pattern, int byteOffset) {
+            assert byteOffset >= 0;
 
             return nil();
         }
 
         @Specialization(guards = { "!isBrokenCodeRange(pattern)", "!canMemcmp(string, pattern)" })
-        public Object stringRindex(DynamicObject string, DynamicObject pattern, int start,
+        public Object stringRindex(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached("create()") RopeNodes.BytesNode stringBytes,
                 @Cached("create()") RopeNodes.BytesNode patternBytes,
                 @Cached("create()") RopeNodes.GetByteNode patternGetByteNode,
                 @Cached("create()") RopeNodes.GetByteNode stringGetByteNode) {
             // Taken from Rubinius's String::rindex.
-            assert start >= 0;
+            assert byteOffset >= 0;
 
-            int pos = start;
+            int pos = byteOffset;
 
             final Rope stringRope = rope(string);
             final Rope patternRope = rope(pattern);
@@ -4079,7 +4079,7 @@ public abstract class StringNodes {
 
             switch(matchSize) {
                 case 0: {
-                    return start;
+                    return byteOffset;
                 }
 
                 case 1: {
