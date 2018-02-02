@@ -1083,8 +1083,7 @@ module Commands
         begin
           output_file = 'cext-output.txt'
           dir = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{test_name}"
-          ext_dir = "#{dir}/ext/#{test_name}"
-          compile_cext test_name, ext_dir, "#{dir}/lib/#{test_name}/#{test_name}.su"
+          cextc(dir)
           run_ruby "-I#{dir}/lib", "#{dir}/bin/#{test_name}", out: output_file
           actual = File.read(output_file)
           if test_name == 'backtraces'
