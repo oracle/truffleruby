@@ -33,25 +33,23 @@
 
 42
 
-/lib/truffle/truffle/cext.rb:n:in `execute_without_conversion': error in C extension
-	SulongRuntimeException com.oracle.truffle.llvm.nodes.base.LLVMBasicBlockNode.executeStatements(LLVMBasicBlockNode.java:113)
-	
-	C stack trace:
-	native_callback in backtraces.c:43:17 (LLVM IR Function native_callback in /test/truffle/cexts/backtraces/lib/backtraces/backtraces.su@99ad9fcf9c94a348ed7654b93b702bbf30a13cdd_backtraces.bc in Block {id: 0 name: implicit0})
+/lib/truffle/truffle/cext.rb:n:in `execute_without_conversion': Error in C extension code (SulongRuntimeException):
+com.oracle.truffle.nfi.impl.LibFFIFunction@4407f129[function@1237 '@sulong_callback'] (IllegalStateException)
+	from native_callback in backtraces.c:43:17 (LLVM IR Function native_callback in /test/truffle/cexts/backtraces/lib/backtraces/backtraces.su@99ad9fcf9c94a348ed7654b93b702bbf30a13cdd_backtraces.bc in Block {id: 0 name: implicit0})
+	from com.oracle.truffle.llvm.nodes.func.LLVMNativeCallUtils.callNativeFunction(LLVMNativeCallUtils.java:72)
 Caused by:
-	com.oracle.truffle.nfi.impl.LibFFIFunction@4407f129[function@1237 '@sulong_callback'] IllegalStateException com.oracle.truffle.llvm.nodes.func.LLVMNativeCallUtils.callNativeFunction(LLVMNativeCallUtils.java:72)
-	com.oracle.truffle.llvm.nodes.func.LLVMDispatchNode.doCachedNative(LLVMDispatchNode.java:154)
-	com.oracle.truffle.llvm.nodes.func.LLVMDispatchNodeGen.executeDispatch(LLVMDispatchNodeGen.java:78)
-	com.oracle.truffle.llvm.nodes.func.LLVMLookupDispatchNode.doDirectCached(LLVMLookupDispatchNode.java:70)
-	com.oracle.truffle.llvm.nodes.func.LLVMLookupDispatchNodeGen.executeDispatch(LLVMLookupDispatchNodeGen.java:51)
-	com.oracle.truffle.llvm.nodes.func.LLVMCallNode.executeGeneric(LLVMCallNode.java:73)
-	com.oracle.truffle.llvm.runtime.nodes.api.LLVMExpressionNode.executeI32(LLVMExpressionNode.java:103)
-	com.oracle.truffle.llvm.nodes.others.LLVMValueProfilingNodeFactory$LLVMI32ProfiledValueNodeGen.executeI32(LLVMValueProfilingNodeFactory.java:280)
-	com.oracle.truffle.llvm.nodes.vars.LLVMWriteNodeFactory$LLVMWriteI32NodeGen.executeGeneric(LLVMWriteNodeFactory.java:348)
-	com.oracle.truffle.llvm.nodes.base.LLVMBasicBlockNode.executeStatements(LLVMBasicBlockNode.java:98)
-	com.oracle.truffle.llvm.nodes.control.LLVMDispatchBasicBlockNode.executeGeneric(LLVMDispatchBasicBlockNode.java:92)
-Caused by:
-	error from Ruby called from Sulong called from native callback (RuntimeError) RaiseException (RubyTruffleError)
+/test/truffle/cexts/backtraces/bin/backtraces:38:in `error_helper': error from Ruby called from Sulong called from native callback (RuntimeError)
+	from /test/truffle/cexts/backtraces/bin/backtraces:43:in `lambda'
+	from /lib/truffle/truffle/cext.rb:n:in `call'
+	from /lib/truffle/truffle/cext.rb:n:in `__send__'
+	from /lib/truffle/truffle/cext.rb:n:in `rb_funcall'
+	from /test/truffle/cexts/backtraces/ext/backtraces/backtraces.c:38:in `sulong_callback'
+	from /test/truffle/cexts/backtraces/ext/backtraces/backtraces.c:44:in `native_callback'
+	from /lib/truffle/truffle/cext.rb:n:in `execute_without_conversion'
+	from /lib/truffle/truffle/cext.rb:n:in `execute_with_mutex'
+	from /lib/truffle/truffle/cext_ruby.rb:n:in `native_callback'
+	from /test/truffle/cexts/backtraces/bin/backtraces:42:in `<main>'
+Translated to internal error (RubyTruffleError)
 	from /lib/truffle/truffle/cext.rb:n:in `execute_with_mutex'
 	from /lib/truffle/truffle/cext_ruby.rb:n:in `native_callback'
 	from /test/truffle/cexts/backtraces/bin/backtraces:42:in `<main>'
