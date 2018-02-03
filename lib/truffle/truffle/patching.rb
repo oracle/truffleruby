@@ -33,6 +33,7 @@ module Truffle::Patching
       insertion_point = paths.
           map { |gem_require_path| $LOAD_PATH.index gem_require_path }.
           min
+      raise "Could not find paths #{paths} in $LOAD_PATH (#{$LOAD_PATH})" unless insertion_point
       ORIGINALS[name] = paths
       Truffle::Patching.log(name, path)
       $LOAD_PATH.insert insertion_point, path if $LOAD_PATH[insertion_point-1] != path
