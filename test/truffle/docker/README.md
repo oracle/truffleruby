@@ -16,14 +16,17 @@ Dockerfile, and update the Dockerfile for the version.
 $ docker build -t truffleruby-test-ubuntu . --build-arg GRAALVM_VERSION=n.n
 ```
 
-Also set `--build-arg TEST_BRANCH=master` to pick a branch to test against
-if you are testing a pre-release.
-
 You need to specify `GRAALVM_VERSION` as the version of GraalVM that you are
 using.
 
+Also set `--build-arg TEST_BRANCH=master` to pick a branch to test against
+if you are testing a pre-release.
+
 Docker will need to run the container with at least 8 GB of RAM if you are using
 virtualisation, to give enough space for the native image to build.
+
+Note that the Oracle Linux Dockerfile takes much longer to run, as it builds
+LLVM from source.
 
 ## Ruby Managers
 

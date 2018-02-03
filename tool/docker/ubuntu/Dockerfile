@@ -35,13 +35,14 @@ RUN git clone https://github.com/graalvm/mx.git
 ENV PATH=$PATH:/build/mx
 
 # Build a JDK with JVMCI
-RUN hg clone http://hg.openjdk.java.net/graal/graal-jvmci-8
+RUN git clone https://github.com/graalvm/graal-jvmci-8.git
 RUN cd graal-jvmci-8 && mx build
-ENV JAVA_HOME=/build/graal-jvmci-8/openjdk1.8.0_131/product
+ENV JAVA_HOME=/build/graal-jvmci-8/openjdk1.8.0_151/linux-amd64/product
+ENV JVMCI_VERSION_CHECK=ignore
 RUN $JAVA_HOME/bin/java -version
 
 # Build the Graal compiler
-RUN git clone https://github.com/graalvm/graal.git
+RUN git clone https://github.com/oracle/graal.git
 RUN cd graal/compiler && mx build
 ENV GRAAL_HOME=/build/graal/compiler
 
@@ -50,12 +51,12 @@ RUN git clone https://github.com/graalvm/sulong.git
 RUN cd sulong && mx build
 
 # Build TruffleRuby
-RUN git clone https://github.com/graalvm/truffleruby.git
+RUN git clone https://github.com/oracle/truffleruby.git
 RUN cd truffleruby && mx build
 
 # Run a basic set of tests
 RUN cd truffleruby && ruby tool/jt.rb test fast :language
-RUN cd truffleruby && ruby tool/jt.rb test :openssl
+RUN cd truffleruby && ruby tool/jt.rb test :library_cext
 RUN cd truffleruby && ruby tool/jt.rb test compiler
 
 # Check we can make a real-world openssl request, testing quite a few things end-to-end

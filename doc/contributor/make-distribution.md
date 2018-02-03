@@ -10,7 +10,7 @@ This is necessary as otherwise extra gems and build artifacts might be included.
 ```bash
 $ mkdir truffleruby-dist-ws
 $ cd truffleruby-dist-ws
-$ git clone https://github.com/graalvm/truffleruby.git
+$ git clone https://github.com/oracle/truffleruby.git
 $ cd truffleruby
 ```
 

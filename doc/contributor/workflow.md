@@ -26,7 +26,7 @@ $ cd truffleruby-ws
 We then use a Ruby script to run most commands.
 
 ```bash
-$ git clone https://github.com/graalvm/truffleruby.git
+$ git clone https://github.com/oracle/truffleruby.git
 $ cd truffleruby
 $ ruby tool/jt.rb --help
 ```

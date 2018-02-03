@@ -6,6 +6,12 @@ library that the module uses. TruffleRuby requires version 1.0.2.
 Version 1.1.0 or more recent is incompatible, so you might need to install a
 compatibility version of `libssl`.
 
+## Oracle Linux
+
+```
+sudo yum install openssl-devel
+```
+
 ## Ubuntu
 
 ```
@@ -50,7 +56,8 @@ brew install openssl
 ## Remapping
 
 If `libssl` is in a non-standard location for your system, you can use the
-option
+option:
+
 ```
 -Xcexts.remap=libssl.so:path/to/libssl.so
 ```

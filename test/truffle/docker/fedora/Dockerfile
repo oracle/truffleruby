@@ -42,7 +42,7 @@ RUN ruby --native --version
 RUN native-ruby -Xhome=$RUBY_HOME --version
 
 # Clone the TruffleRuby source code to get tests
-RUN git clone --branch $TEST_BRANCH --depth 1 https://github.com/graalvm/truffleruby.git
+RUN git clone --branch $TEST_BRANCH --depth 1 https://github.com/oracle/truffleruby.git
 
 # We just want specs and tests - we don't want to accidentally use anything else so we're actually going to delete the rest
 RUN cp -r truffleruby/spec .
