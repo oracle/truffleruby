@@ -1090,7 +1090,7 @@ module Commands
             actual = actual.gsub(TRUFFLERUBY_DIR, '')
                            .gsub(/\/cext(_ruby)?\.rb:(\d+)/, '/cext\1.rb:n')
                            .gsub(/\h{8,}/, 'HEXA')
-                           .gsub(/\{id: \d+ name: implicit\d+}/, 'BLOCKINFO')
+                           .gsub(/\{id: \d+ name: [^}]+}/, 'BLOCKINFO')
           end
           expected = File.read("#{dir}/expected.txt")
           unless actual == expected
