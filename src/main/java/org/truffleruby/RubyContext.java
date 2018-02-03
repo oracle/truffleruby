@@ -30,6 +30,7 @@ import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.exception.CoreExceptions;
+import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.inlined.CoreMethods;
 import org.truffleruby.core.kernel.AtExitManager;
 import org.truffleruby.core.kernel.TraceManager;
@@ -48,6 +49,7 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.loader.SourceLoader;
@@ -314,6 +316,20 @@ public class RubyContext {
 
         initialized = true;
         return true;
+    }
+
+    protected boolean patchContext(Env newEnv) {
+        try {
+            return patch(newEnv);
+        } catch (RaiseException e) {
+            System.err.println("Exception during RubyContext.patch():");
+            ExceptionOperations.printRubyExceptionOnEnvStderr(this, e);
+            throw e;
+        } catch (Throwable e) {
+            System.err.println("Exception during RubyContext.patch():");
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     private boolean compatibleOptions(Options oldOptions, Options newOptions) {
