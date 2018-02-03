@@ -36,7 +36,9 @@ TruffleRuby aims to:
 
 ## Documentation
 
-Documentation is in [`doc`](doc).
+Extensive documentation is available in [`doc`](doc).
+[`doc/user`](doc/user) documents how to use TruffleRuby and
+[`doc/contributor`](doc/contributor) documents how to develop TruffleRuby.
 
 ## System Compatibility
 
