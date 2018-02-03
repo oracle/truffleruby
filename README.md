@@ -16,8 +16,8 @@ Inside the GraalVM is a `bin/ruby` command that runs TruffleRuby. See
 We recommend that you use a [Ruby version manager](doc/user/ruby-managers.md)
 to use TruffleRuby.
 
-You can use `gem` to install Gems as normal. We recommend that Bundler `1.14.6`
-is best to use for now.
+You can use `gem` to install Gems as normal.
+TruffleRuby currently requires Bundler version `1.14.6`.
 
 You can also build TruffleRuby from source, see the
 [Building Instructions](doc/contributor/workflow.md).
