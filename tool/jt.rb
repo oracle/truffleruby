@@ -1087,7 +1087,10 @@ module Commands
           run_ruby "-I#{dir}/lib", "#{dir}/bin/#{test_name}", out: output_file
           actual = File.read(output_file)
           if test_name == 'backtraces'
-            actual = actual.gsub(TRUFFLERUBY_DIR, '').gsub(/\/cext(_ruby)?\.rb:(\d+)/, '/cext\1.rb:n')
+            actual = actual.gsub(TRUFFLERUBY_DIR, '')
+                           .gsub(/\/cext(_ruby)?\.rb:(\d+)/, '/cext\1.rb:n')
+                           .gsub(/\h{8,}/, 'HEXA')
+                           .gsub(/\{id: \d+ name: implicit\d+}/, 'BLOCKINFO')
           end
           expected = File.read("#{dir}/expected.txt")
           unless actual == expected

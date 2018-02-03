@@ -34,8 +34,8 @@
 42
 
 /lib/truffle/truffle/cext.rb:n:in `execute_without_conversion': Error in C extension code (SulongRuntimeException):
-com.oracle.truffle.nfi.impl.LibFFIFunction@4407f129[function@1237 '@sulong_callback'] (IllegalStateException)
-	from native_callback in backtraces.c:43:17 (LLVM IR Function native_callback in /test/truffle/cexts/backtraces/lib/backtraces/backtraces.su@99ad9fcf9c94a348ed7654b93b702bbf30a13cdd_backtraces.bc in Block {id: 0 name: implicit0})
+com.oracle.truffle.nfi.impl.LibFFIFunction@HEXA[function@1237 '@sulong_callback'] (IllegalStateException)
+	from native_callback in backtraces.c:43:17 (LLVM IR Function native_callback in /test/truffle/cexts/backtraces/lib/backtraces/backtraces.su@HEXA_backtraces.bc in Block BLOCKINFO)
 	from com.oracle.truffle.llvm.nodes.func.LLVMNativeCallUtils.callNativeFunction(LLVMNativeCallUtils.java:72)
 Caused by:
 /test/truffle/cexts/backtraces/bin/backtraces:38:in `error_helper': error from Ruby called from Sulong called from native callback (RuntimeError)
