@@ -124,7 +124,6 @@ public class RubyContext {
     private final Object classVariableDefinitionLock = new Object();
 
     private boolean preInitializing;
-    private boolean reInitialized = false;
     private boolean initialized;
     private volatile boolean finalizing;
 
@@ -274,23 +273,11 @@ public class RubyContext {
         this.preInitializing = false;
     }
 
-    /** Re-initialize parts of the RubyContext depending on the current process */
-    private void reInitialize() {
-        if (reInitialized) {
-            throw new UnsupportedOperationException("re-initialization was already performed");
-        }
-
-        this.random = new SecureRandom();
-
-        this.truffleNFIPlatform = createNativePlatform();
-        coreLibrary.initializeDefaultEncodings(truffleNFIPlatform, nativeConfiguration);
-
-        threadManager.restartMainThread(Thread.currentThread());
-        threadManager.initialize(truffleNFIPlatform, nativeConfiguration);
-
-        this.reInitialized = true;
-    }
-
+    /**
+     * Re-initialize parts of the RubyContext depending on the running process. This is a small
+     * subset of the full initialization which needs to be performed to adapt to the new process and
+     * external environment. Calls are kept in the same order as during normal initialization.
+     */
     protected boolean patch(Env newEnv) {
         this.env = newEnv;
 
@@ -301,9 +288,15 @@ public class RubyContext {
         }
         this.options = newOptions;
 
+        this.random = new SecureRandom();
+
         this.rubyHome = findRubyHome(newOptions);
 
-        reInitialize();
+        this.truffleNFIPlatform = createNativePlatform();
+        coreLibrary.initializeDefaultEncodings(truffleNFIPlatform, nativeConfiguration);
+
+        threadManager.restartMainThread(Thread.currentThread());
+        threadManager.initialize(truffleNFIPlatform, nativeConfiguration);
 
         final Object toRunAtInit = Layouts.MODULE.getFields(coreLibrary.getTruffleBootModule()).getConstant("TO_RUN_AT_INIT").getValue();
 
@@ -409,9 +402,8 @@ public class RubyContext {
     public void finalizeContext() {
         if (!initialized) {
             // The RubyContext will be finalized and disposed if patching fails (potentially for
-            // another language). In that case, we need to restore enough (e.g. the Java Thread
-            // instance) to perform finalization correctly.
-            reInitialize();
+            // another language). In that case, there is nothing to clean or execute.
+            return;
         }
 
         finalizing = true;
@@ -436,6 +428,12 @@ public class RubyContext {
     }
 
     private void dispose() {
+        if (!initialized) {
+            // The RubyContext will be finalized and disposed if patching fails (potentially for
+            // another language). In that case, there is nothing to clean or execute.
+            return;
+        }
+
         threadManager.cleanupMainThread();
         safepointManager.checkNoRunningThreads();
 
