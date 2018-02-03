@@ -14,7 +14,6 @@ import com.oracle.truffle.api.interop.ForeignAccess;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
 import org.truffleruby.Layouts;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.RubyMessageResolutionForeign;
@@ -25,7 +24,7 @@ public class RubyObjectType extends ObjectType {
     @TruffleBoundary
     public String toString(DynamicObject object) {
         if (RubyGuards.isRubyString(object)) {
-            return RopeOperations.decodeRope(StringOperations.rope(object));
+            return StringOperations.getString(object);
         } else if (RubyGuards.isRubySymbol(object)) {
             return Layouts.SYMBOL.getString(object);
         } else if (RubyGuards.isRubyException(object)) {
