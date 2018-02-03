@@ -95,19 +95,19 @@ Truffle::Boot.delay do
   $$ = Process.pid if Truffle::Boot.get_option 'platform.native'
 
   ARGV.concat(Truffle::Boot.original_argv)
-end
 
-$LOAD_PATH.concat(Truffle::Boot.original_load_path)
+  $LOAD_PATH.concat(Truffle::Boot.original_load_path)
 
-ruby_home = Truffle::Boot.ruby_home
-if ruby_home
-  # Does not exist but it's used by rubygems to determine index where to insert gem lib directories, as a result
-  # paths supplied by -I will stay before gem lib directories.
-  $LOAD_PATH.push "#{ruby_home}/lib/ruby/site_ruby/2.3.0"
+  ruby_home = Truffle::Boot.ruby_home
+  if ruby_home
+    # Does not exist but it's used by rubygems to determine index where to insert gem lib directories, as a result
+    # paths supplied by -I will stay before gem lib directories.
+    $LOAD_PATH.push "#{ruby_home}/lib/ruby/site_ruby/2.3.0"
 
-  $LOAD_PATH.push "#{ruby_home}/lib/truffle"
-  $LOAD_PATH.push "#{ruby_home}/lib/mri"
-  $LOAD_PATH.push "#{ruby_home}/lib/json/lib"
+    $LOAD_PATH.push "#{ruby_home}/lib/truffle"
+    $LOAD_PATH.push "#{ruby_home}/lib/mri"
+    $LOAD_PATH.push "#{ruby_home}/lib/json/lib"
+  end
 end
 
 # We defined Psych at the top level because several things depend on its name.
