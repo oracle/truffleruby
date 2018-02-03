@@ -11,7 +11,7 @@ directory of rbenv:
 
 ```bash
 ln -s path/to/graalvm/jre/languages/ruby "$RBENV_ROOT/versions/truffleruby"
-rbenv global truffleruby
+rbenv shell truffleruby
 ruby --version
 ```
 

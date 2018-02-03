@@ -39,4 +39,4 @@ RUN ln -s /test/graalvm-$GRAALVM_VERSION/jre/languages/ruby /home/test/.rbenv/ve
 RUN eval "$(rbenv init -)" && rbenv versions
 
 # Select and run TruffleRuby
-RUN eval "$(rbenv init -)" && rbenv global truffleruby && ruby --version
+RUN eval "$(rbenv init -)" && rbenv shell truffleruby && ruby --version
