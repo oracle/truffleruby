@@ -84,7 +84,7 @@ public class RubyContext {
     private final AllocationReporter allocationReporter;
 
     @CompilationFinal private Options options;
-    private final String rubyHome;
+    @CompilationFinal private String rubyHome;
 
     private final PrimitiveManager primitiveManager = new PrimitiveManager();
     private final SafepointManager safepointManager = new SafepointManager(this);
@@ -170,14 +170,7 @@ public class RubyContext {
         hashing = new Hashing(hashingSeed);
         ropeCache = new RopeCache(hashing);
 
-        try {
-            rubyHome = findRubyHome();
-        } catch (IOException e) {
-            throw new JavaException(e);
-        }
-        if (Log.LOGGER.isLoggable(Level.CONFIG)) {
-            Log.LOGGER.config("ruby home: " + rubyHome);
-        }
+        rubyHome = findRubyHome(options);
 
         // Stuff that needs to be loaded before we load any code
 
@@ -305,6 +298,8 @@ public class RubyContext {
             return false;
         }
         this.options = newOptions;
+
+        this.rubyHome = findRubyHome(newOptions);
 
         reInitialize();
 
@@ -589,9 +584,22 @@ public class RubyContext {
         return finalizing;
     }
 
+    private String findRubyHome(Options options) {
+        final String home;
+        try {
+            home = searchRubyHome(options);
+        } catch (IOException e) {
+            throw new JavaException(e);
+        }
+        if (Log.LOGGER.isLoggable(Level.CONFIG)) {
+            Log.LOGGER.config("ruby home: " + home);
+        }
+        return home;
+    }
+
     // Returns a canonical path to the home
     @TruffleBoundary
-    private String findRubyHome() throws IOException {
+    private String searchRubyHome(Options options) throws IOException {
         // Use the option if it was set
 
         if (!options.HOME.isEmpty()) {
