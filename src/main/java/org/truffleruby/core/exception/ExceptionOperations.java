@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.exception;
 
+import java.io.PrintWriter;
 import java.util.EnumSet;
 
 import org.jcodings.specific.UTF8Encoding;
@@ -60,6 +61,26 @@ public abstract class ExceptionOperations {
             // Fall back to the internal message field
         }
         return messageFieldToString(context, exception);
+    }
+
+    @TruffleBoundary
+    public static void printRubyExceptionOnEnvStderr(RubyContext context, RaiseException raiseException) {
+        final DynamicObject rubyException = raiseException.getException();
+        // can be null, if @custom_backtrace is used
+        final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(rubyException);
+        if (backtrace != null) {
+            BacktraceFormatter.createDefaultFormatter(context).printBacktrace(context, rubyException, backtrace);
+        } else {
+            final PrintWriter printer = new PrintWriter(context.getEnv().err(), true);
+            final Object fullMessage = context.send(rubyException, "full_message");
+            final Object fullMessageString;
+            if (RubyGuards.isRubyString(fullMessage)) {
+                fullMessageString = StringOperations.getString((DynamicObject) fullMessage);
+            } else {
+                fullMessageString = fullMessage.toString();
+            }
+            printer.println(fullMessageString);
+        }
     }
 
     @TruffleBoundary

@@ -119,7 +119,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     protected boolean patchContext(RubyContext context, Env newEnv) {
         Log.LOGGER.fine("patchContext()");
         Launcher.printTruffleTimeMetric("before-patch-context");
-        boolean patched = context.patch(newEnv);
+        boolean patched = context.patchContext(newEnv);
         Launcher.printTruffleTimeMetric("after-patch-context");
         return patched;
     }
