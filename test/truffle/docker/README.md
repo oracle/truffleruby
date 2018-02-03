@@ -24,3 +24,12 @@ using.
 
 Docker will need to run the container with at least 8 GB of RAM if you are using
 virtualisation, to give enough space for the native image to build.
+
+## Ruby Managers
+
+Ruby Managers are also tested by Dockerfiles. These all run on Ubuntu. We test
+rbenv, chruby, and RVM.
+
+```
+$ docker build -t truffleruby-test-rbenv . --build-arg GRAALVM_VERSION=n.n
+```
