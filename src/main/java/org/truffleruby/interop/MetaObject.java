@@ -9,9 +9,6 @@
  */
 package org.truffleruby.interop;
 
-import java.util.Map;
-
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.ForeignAccess;
 import com.oracle.truffle.api.interop.KeyInfo;
 import com.oracle.truffle.api.interop.MessageResolution;
@@ -19,14 +16,32 @@ import com.oracle.truffle.api.interop.Resolve;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.java.JavaInterop;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 
 @MessageResolution(receiverType = MetaObject.class)
 public final class MetaObject implements TruffleObject {
-    final Map<String, ? extends Object> properties;
 
-    public MetaObject(Map<String, ? extends Object> properties) {
-        this.properties = properties;
+    private static final String[] KEYS = { "type", "className", "description" };
+
+    private final String type;
+    private final String className;
+    private final String description;
+
+    public MetaObject(String type, String className, String description) {
+        this.type = type;
+        this.className = className;
+        this.description = description;
+    }
+
+    @ExplodeLoop
+    private static boolean hasKey(String key) {
+        for (String known : KEYS) {
+            if (key.equals(known)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static boolean isInstance(TruffleObject object) {
@@ -35,33 +50,39 @@ public final class MetaObject implements TruffleObject {
 
     @Resolve(message = "READ")
     abstract static class ReadNode extends Node {
-        @TruffleBoundary
         Object access(MetaObject obj, String name) {
-            Object value = obj.properties.get(name);
-            if (value == null) {
-                throw UnknownIdentifierException.raise(name);
+            switch (name) {
+                case "type":
+                    return obj.type;
+                case "className":
+                    return obj.className;
+                case "description":
+                    return obj.description;
+                default:
+                    throw UnknownIdentifierException.raise(name);
             }
-            return value;
         }
     }
 
     @Resolve(message = "KEYS")
     abstract static class KeysNode extends Node {
-        @TruffleBoundary
         TruffleObject access(MetaObject obj) {
-            return JavaInterop.asTruffleObject(obj.properties.keySet().toArray(new String[0]));
+            return JavaInterop.asTruffleObject(KEYS);
         }
     }
 
     @Resolve(message = "KEY_INFO")
     abstract static class KeyInfoNode extends Node {
-        @TruffleBoundary
+
+        private static final int READABLE = KeyInfo.newBuilder().setReadable(true).setWritable(false).build();
+
         int access(MetaObject obj, String name) {
-            if (!obj.properties.containsKey(name)) {
+            if (!hasKey(name)) {
                 return 0;
             }
-            return KeyInfo.newBuilder().setReadable(true).setWritable(false).build();
+            return READABLE;
         }
+
     }
 
     @Override

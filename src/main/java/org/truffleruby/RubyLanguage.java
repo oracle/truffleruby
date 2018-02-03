@@ -33,9 +33,7 @@ import org.truffleruby.platform.Platform;
 import org.truffleruby.stdlib.CoverageManager;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @TruffleLanguage.Registration(
         name = "Ruby",
@@ -187,13 +185,9 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     public Object findMetaObject(RubyContext context, Object value) {
-        final Map<String, String> properties = new HashMap<>();
         final DynamicObject rubyClass = context.getCoreLibrary().getLogicalClass(value);
         final ModuleFields rubyClassFields = Layouts.CLASS.getFields(rubyClass);
-        properties.put("type", rubyClassFields.getName());
-        properties.put("className", rubyClassFields.getName());
-        properties.put("description", toString(context, value));
-        return new MetaObject(properties);
+        return new MetaObject(rubyClassFields.getName(), rubyClassFields.getName(), toString(context, value));
     }
 
     @Override
