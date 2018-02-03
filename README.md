@@ -34,47 +34,9 @@ TruffleRuby aims to:
 * Add fast and low-overhead interopability with languages like JavaScript, Python and R
 * All while maintaining very high compatibility with the standard implementation of Ruby
 
-## Authors
+## Documentation
 
-The main authors of TruffleRuby in order of joining the project are:
-
-* Chris Seaton
-* Benoit Daloze
-* Kevin Menard
-* Petr Chalupa
-* Brandon Fish
-* Duncan MacGregor
-
-Additionally:
-
-* Thomas Würthinger
-* Matthias Grimmer
-* Josef Haider
-* Fabio Niephaus
-* Matthias Springer
-* Lucas Allan Amorim
-* Aditya Bhardwaj
-
-Collaborations with:
-
-* [Institut für Systemsoftware at Johannes Kepler University
-   Linz](http://ssw.jku.at)
-
-And others.
-
-The best way to get in touch with us is to join us in
-https://gitter.im/graalvm/truffleruby, but you can also Tweet to
-[@TruffleRuby](https://twitter.com/truffleruby), or email
-chris.seaton@oracle.com.
-
-## Mailing list
-
-Announcements about GraalVM, including TruffleRuby, are made on the
-[graalvm-dev](https://oss.oracle.com/mailman/listinfo/graalvm-dev) mailing list.
-
-## Security
-
-See the [security documentation](doc/user/security.md).
+Documentation is in [`doc`](doc).
 
 ## System Compatibility
 
@@ -124,9 +86,49 @@ for using it as part of GraalVM.
 It is possible to [run on an unmodified JDK 9](doc/user/using-java9.md) but you
 will have to build Graal yourself and we recommend using GraalVM instead.
 
-## Documentation
+## Contact
 
-Documentation is in [`doc`](doc).
+The best way to get in touch with us is to join us in
+https://gitter.im/graalvm/truffleruby, but you can also Tweet to
+[@TruffleRuby](https://twitter.com/truffleruby), or email
+chris.seaton@oracle.com.
+
+## Mailing list
+
+Announcements about GraalVM, including TruffleRuby, are made on the
+[graalvm-dev](https://oss.oracle.com/mailman/listinfo/graalvm-dev) mailing list.
+
+## Authors
+
+The main authors of TruffleRuby in order of joining the project are:
+
+* Chris Seaton
+* Benoit Daloze
+* Kevin Menard
+* Petr Chalupa
+* Brandon Fish
+* Duncan MacGregor
+
+Additionally:
+
+* Thomas Würthinger
+* Matthias Grimmer
+* Josef Haider
+* Fabio Niephaus
+* Matthias Springer
+* Lucas Allan Amorim
+* Aditya Bhardwaj
+
+Collaborations with:
+
+* [Institut für Systemsoftware at Johannes Kepler University
+   Linz](http://ssw.jku.at)
+
+And others.
+
+## Security
+
+See the [security documentation](doc/user/security.md).
 
 ## Licence
 
