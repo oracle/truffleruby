@@ -1094,7 +1094,7 @@ module Commands
           end
           expected = File.read("#{dir}/expected.txt")
           unless actual == expected
-            abort "C extension #{dir} didn't work as expected\nActual:\n#{actual}Expected:\n#{expected}"
+            abort "C extension #{dir} didn't work as expected\nActual:\n#{actual}\nExpected:\n#{expected}"
           end
         ensure
           File.delete output_file if File.exist? output_file
