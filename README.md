@@ -11,7 +11,7 @@ compatible versions of everything you need as well as TruffleRuby.
 http://www.oracle.com/technetwork/oracle-labs/program-languages/
 
 Inside the GraalVM is a `bin/ruby` command that runs TruffleRuby. See
-[Using TruffleRuby with GraalVM](doc/user/using-graalvm.md) instructions.
+[Using TruffleRuby with GraalVM](doc/user/using-graalvm.md).
 
 We recommend that you use a [Ruby version manager](doc/user/ruby-managers.md)
 to use TruffleRuby.
