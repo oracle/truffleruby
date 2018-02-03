@@ -10,9 +10,11 @@ compatible versions of everything you need as well as TruffleRuby.
 
 http://www.oracle.com/technetwork/oracle-labs/program-languages/
 
-Inside the GraalVM is a `bin/ruby` command that runs TruffleRuby.
-See [Using TruffleRuby with GraalVM](doc/user/using-graalvm.md)
-instructions.
+Inside the GraalVM is a `bin/ruby` command that runs TruffleRuby. See
+[Using TruffleRuby with GraalVM](doc/user/using-graalvm.md) instructions.
+
+We recommend that you use a [Ruby version manager](doc/user/ruby-managers.md)
+to use TruffleRuby.
 
 You can use `gem` to install Gems as normal. We recommend that Bundler `1.14.6`
 is best to use for now.
