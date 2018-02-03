@@ -175,7 +175,7 @@ module Utilities
   def self.find_graal_js
     jar = ENV['GRAAL_JS_JAR']
     return jar if jar
-    raise "couldn't find trufflejs.jar - download GraalVM as described in https://github.com/graalvm/truffleruby/blob/master/doc/user/using-graalvm.md and find it in there"
+    raise "couldn't find trufflejs.jar - download GraalVM as described in https://github.com/oracle/truffleruby/blob/master/doc/user/using-graalvm.md and find it in there"
   end
 
   def self.find_sl

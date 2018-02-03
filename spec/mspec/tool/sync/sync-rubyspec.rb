@@ -1,6 +1,6 @@
 IMPLS = {
   truffleruby: {
-    git: "https://github.com/graalvm/truffleruby.git",
+    git: "https://github.com/oracle/truffleruby.git",
     from_commit: "f10ab6988d",
   },
   jruby: {
