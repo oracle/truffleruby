@@ -207,9 +207,10 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected OptionDescriptors getOptionDescriptors() {
-        final List<OptionDescriptor> options = new ArrayList<>();
+        final OptionDescription<?>[] allDescriptions = OptionsCatalog.allDescriptions();
+        final List<OptionDescriptor> options = new ArrayList<>(allDescriptions.length);
 
-        for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
+        for (OptionDescription<?> option : allDescriptions) {
             options.add(option.toDescriptor());
         }
 
