@@ -60,14 +60,6 @@ wrote about this issue in [more technical
 depth](https://github.com/evanphx/benchmark-ips/pull/58) if you want to know
 more details.
 
-I usually install `benchmark-ips` using another Ruby and then just point the
-include path at this version when running with TruffleRuby, since we don't
-support much of RubyGems yet.
-
-```
-$ bin/ruby -I~/.rbenv/versions/2.3.3/lib/ruby/gems/2.3.0/gems/benchmark-ips-2.7.2/lib benchmark.rb
-```
-
 You'll see something like this:
 
 ```
