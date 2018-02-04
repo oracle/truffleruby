@@ -10,6 +10,10 @@ with the following command.
 
     path/to/graalvm-0.nn/bin/ruby bin/optcarrot --sdl2 --audio=none examples/Lan_Master.nes
 
+On macOS, you might need an extra flag for the GUI to appear:
+
+    path/to/graalvm-0.nn/bin/ruby -J-XstartOnFirstThread bin/optcarrot --sdl2 --audio=none examples/Lan_Master.nes
+
 If you have a local checkout of TruffleRuby, you can also use the version of OptCarrot
 under `bench/optcarrot`. See `bench/optcarrot/README.md` for details.
 
