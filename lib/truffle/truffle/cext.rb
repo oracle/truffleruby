@@ -120,8 +120,12 @@ module Truffle::CExt
       Truffle::CExt.string_pointer_size(@string)
     end
 
-    def to_native
-      Truffle::FFI::Pointer.new(Truffle::CExt.string_pointer_to_native(@string))
+    def pointer?
+      true
+    end
+
+    def address
+      @address ||= Truffle::CExt.string_pointer_to_native(@string)
     end
 
     def [](index)
@@ -136,7 +140,7 @@ module Truffle::CExt
     alias_method :to_s, :string
   end
 
-  class RStringPtrEnd
+  class RStringEndPtr
     def initialize(string)
       @string = string
     end
@@ -145,8 +149,12 @@ module Truffle::CExt
       0
     end
 
-    def to_native
-      Truffle::FFI::Pointer.new(Truffle::CExt.string_pointer_to_native(@string) + @string.bytesize)
+    def pointer?
+      true
+    end
+
+    def address
+      @address ||= Truffle::CExt.string_pointer_to_native(@string) + @string.bytesize
     end
   end
 
@@ -1931,7 +1939,7 @@ module Truffle::CExt
   end
 
   def RSTRING_END(string)
-    RStringPtrEnd.new(string)
+    RStringEndPtr.new(string)
   end
 
   def rb_tr_obj_id(object)

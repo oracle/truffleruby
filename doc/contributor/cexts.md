@@ -82,14 +82,22 @@ that.
 Some functions are re-implemented as macros, and some macros are re-implemented
 as functions, where this makes sense.
 
-### Array and string pointers
+### String pointers
 
-When a pointer to the storage for an array of a string is taken using
-`RARRAY_PTR` or `RSTRING_PTR` a proxy object is created that pretends to be a C
-pointer but really redirects interop reads and writes from C back to the
-original object. The array pointer cannot be passed to native, but the string
-pointer can be, by permanently converting the rope implementing the string to
-native memory and returning the pointer to this memory.
+We implement Ruby strings with Truffle's `DynamicObject` and back the data with
+one of the TruffleRuby `Rope` subclasses. This is a much richer representation
+than what C extension API expects.
+
+In order to work with the C extension API, TruffleRuby uses a set of proxy
+objects. `RSTRING_PTR` will return an instance of `Truffle::CExt::RStringPtr`
+and `RSTRING_END` will return an instance of `Truffle::CExt::RStringEndPtr`.
+These proxy objects are transparent to C extension API calls, delegating
+to appropriate interop calls as necessary. When direct access to the backing
+string data is called for (i.e., when the proxy is expected to work like a
+`char *`), the rope representing the string is permanently converted to one
+that stores its data in native memory, rather than the Java heap, and the
+pointer to this native allocation is used.
+
 
 ### Data and typed data
 

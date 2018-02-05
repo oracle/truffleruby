@@ -67,7 +67,7 @@ produces the address as a `long`. For all other objects calls `unbox`.
 
 ### `IS_POINTER`
 
-Returns true only for `FFI::Pointer`.
+Calls `pointer?` if the object responds to it, otherwise returns `false`.
 
 ### `AS_POINTER`
 
