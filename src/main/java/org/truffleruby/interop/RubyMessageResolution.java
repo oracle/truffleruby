@@ -144,8 +144,15 @@ public class RubyMessageResolution {
     @Resolve(message = "IS_POINTER")
     public static abstract class ForeignIsPointerNode extends Node {
 
-        protected Object access(DynamicObject object) {
-            return Layouts.POINTER.isPointer(object);
+        @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
+
+        protected Object access(VirtualFrame frame, DynamicObject object) {
+            if (doesRespond.doesRespondTo(frame, "pointer?", object)) {
+                return dispatchNode.call(frame, object, "pointer?");
+            } else {
+                return false;
+            }
         }
 
     }

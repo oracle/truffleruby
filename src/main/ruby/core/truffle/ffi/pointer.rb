@@ -98,6 +98,10 @@ module Truffle::FFI
 
     alias_method :to_i, :address
 
+    def pointer?
+      true
+    end
+
     # Set the address pointed to from an Integer
     def address=(address)
       Truffle.primitive :pointer_set_address
