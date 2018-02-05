@@ -887,7 +887,7 @@ public class CExtNodes {
         private DynamicObject callToS(Object object) {
             if (toSCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toSCall = CallDispatchHeadNode.createOnSelf();
+                toSCall = insert(CallDispatchHeadNode.createOnSelf());
             }
 
             return (DynamicObject) toSCall.call(null, object, "to_s");
