@@ -106,12 +106,8 @@ module Truffle::CExt
   end
 
   class RStringPtr
-    private_class_method :new
-
     attr_reader :string
 
-    # If you're looking to create an RStringPtr object, you should probably be using
-    # `string_get_rstring_ptr` primitive instead.
     def initialize(string)
       @string = string
     end
@@ -1928,14 +1924,7 @@ module Truffle::CExt
   end
 
   def RSTRING_PTR(string)
-    ptr = Truffle.invoke_primitive(:string_get_rstring_ptr, string)
-    unless ptr
-      Truffle.privately do
-        ptr = RStringPtr.new(string)
-        Truffle.invoke_primitive(:string_set_rstring_ptr, string, ptr)
-      end
-    end
-    ptr
+    RStringPtr.new(string)
   end
 
   def RSTRING_END(string)
