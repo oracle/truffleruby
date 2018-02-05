@@ -44,3 +44,11 @@ aot:The launcher '-J:cp ' adds the jar
 aot:The launcher '--jvm.classpath=' adds the jar
 aot:The launcher '--jvm.cp=' adds the jar
 slow:The launcher enables deterministic hashing if -Xhashing.deterministic is set
+slow:The launcher 'gem' runs when symlinked
+slow:The launcher 'irb' runs when symlinked
+slow:The launcher 'rake' runs when symlinked
+slow:The launcher 'rdoc' runs when symlinked
+slow:The launcher 'ri' runs when symlinked
+slow:The launcher 'ruby' runs when symlinked
+slow:The launcher 'testrb' runs when symlinked
+slow:The launcher 'truffleruby' runs when symlinked
