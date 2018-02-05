@@ -12,7 +12,7 @@ while [ -h "$SELF_PATH" ]; do
   SYM=$(readlink "$SELF_PATH")
   SELF_PATH=$(cd "$DIR" && cd "$(dirname "$SYM")" && pwd)/$(basename "$SYM")
 done
-exec "$(dirname $SELF_PATH)/truffleruby" "$SELF_PATH" "$@"
+exec "$(dirname $SELF_PATH)/ruby" "$SELF_PATH" "$@"
 
 #!ruby
 # ^ marks start of Ruby interpretation
