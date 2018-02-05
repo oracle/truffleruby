@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2018 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -14,7 +14,6 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.HiddenKey;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.dsl.Layout;
-import com.oracle.truffle.api.object.dsl.Nullable;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.rope.Rope;
@@ -28,7 +27,7 @@ public interface StringLayout extends BasicObjectLayout {
     DynamicObjectFactory createStringShape(DynamicObject logicalClass,
                                            DynamicObject metaClass);
 
-    Object[] build(boolean frozen, boolean tainted, Rope rope, @Nullable DynamicObject rstringPtr);
+    Object[] build(boolean frozen, boolean tainted, Rope rope);
 
     boolean isString(ObjectType objectType);
     boolean isString(DynamicObject object);
@@ -42,8 +41,5 @@ public interface StringLayout extends BasicObjectLayout {
 
     Rope getRope(DynamicObject object);
     void setRope(DynamicObject object, Rope value);
-
-    DynamicObject getRstringPtr(DynamicObject object);
-    void setRstringPtr(DynamicObject object, DynamicObject value);
 
 }

@@ -200,7 +200,7 @@ public abstract class MatchDataNodes {
                 final int end = region.end[normalizedIndex];
                 if (hasValueProfile.profile(start > -1 && end > -1)) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    return allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope, null));
+                    return allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope));
                 } else {
                     return nil();
                 }
@@ -382,7 +382,7 @@ public abstract class MatchDataNodes {
 
                 if (start > -1 && end > -1) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    DynamicObject string = allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, isTainted, rope, null));
+                    DynamicObject string = allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, isTainted, rope));
                     values[n] = string;
                 } else {
                     values[n] = nil();
@@ -496,7 +496,7 @@ public abstract class MatchDataNodes {
             int start = 0;
             int length = region.beg[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
-            DynamicObject string = allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope, null));
+            DynamicObject string = allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope));
             return string;
         }
     }
@@ -517,7 +517,7 @@ public abstract class MatchDataNodes {
             int start = region.end[0];
             int length = sourceRope.byteLength() - region.end[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
-            DynamicObject string = allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope, null));
+            DynamicObject string = allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope));
             return string;
         }
     }

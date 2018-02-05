@@ -52,11 +52,11 @@ import java.nio.charset.StandardCharsets;
 public abstract class StringOperations {
 
     public static DynamicObject createString(RubyContext context, Rope rope) {
-        return context.getCoreLibrary().getStringFactory().newInstance(Layouts.STRING.build(false, false, rope, null));
+        return context.getCoreLibrary().getStringFactory().newInstance(Layouts.STRING.build(false, false, rope));
     }
 
     public static DynamicObject createFrozenString(RubyContext context, Rope rope) {
-        return context.getCoreLibrary().getStringFactory().newInstance(Layouts.STRING.build(true, false, rope, null));
+        return context.getCoreLibrary().getStringFactory().newInstance(Layouts.STRING.build(true, false, rope));
     }
 
     public static String getString(DynamicObject string) {
@@ -111,7 +111,6 @@ public abstract class StringOperations {
     public static void setRope(DynamicObject string, Rope rope) {
         assert RubyGuards.isRubyString(string);
 
-        Layouts.STRING.setRstringPtr(string, null);
         Layouts.STRING.setRope(string, rope);
     }
 
