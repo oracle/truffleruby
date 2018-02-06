@@ -572,7 +572,9 @@ class Encoding
     find name
   end
 
-  FILESYSTEM = Encoding.find('filesystem')
+  Truffle::Boot.delay do
+    FILESYSTEM = Encoding.find('filesystem')
+  end
 end
 
 Encoding::TranscodingMap[:'UTF-16BE'] = {}
