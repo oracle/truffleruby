@@ -57,16 +57,15 @@ public class EncodingManager {
 
     public EncodingManager(RubyContext context) {
         this.context = context;
+    }
 
+    public void initializeLocaleEncoding(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
         if (TruffleOptions.AOT) {
             // Call setlocale(LC_ALL, "") to ensure the locale is set to the environment's locale
             // rather than the default "C" locale.
             Compiler.command(new Object[]{ "com.oracle.svm.core.posix.PosixUtils.setLocale(String, String)String", "LC_ALL", "" });
         }
-    }
 
-    // This must be run after the locale is set for native, see the setLocale() call above
-    public void initializeLocaleEncoding(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
         final String localeEncodingName;
         if (nfi != null) {
             final int codeset = (int) nativeConfiguration.get("platform.langinfo.CODESET");
