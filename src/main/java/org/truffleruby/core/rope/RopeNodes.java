@@ -812,7 +812,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "!isSingleByteString(base)", "times > 1" })
-        public Rope repeat(Rope base, int times) {
+        public Rope repeatManaged(ManagedRope base, int times) {
             try {
                 Math.multiplyExact(base.byteLength(), times);
             } catch (ArithmeticException e) {
@@ -820,6 +820,11 @@ public abstract class RopeNodes {
             }
 
             return new RepeatingRope(base, times);
+        }
+
+        @Specialization(guards = { "!isSingleByteString(base)", "times > 1" })
+        public Rope repeatNative(NativeRope base, int times) {
+            return executeRepeat(base.toLeafRope(), times);
         }
 
     }
