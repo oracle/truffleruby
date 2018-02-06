@@ -62,6 +62,8 @@ class Encoding
         map[key] = [alias_name, index]
       end
 
+      # Note the locale Encoding is patched below,
+      # so modify that code too if you change the code here.
       %w[internal external locale filesystem].each do |name|
         key = name.upcase.to_sym
         enc = Truffle::EncodingOperations.get_default_encoding(name)
@@ -88,6 +90,16 @@ class Encoding
 
   TranscodingMap = build_transcoding_map
   EncodingMap = build_encoding_map
+
+  if Truffle::Boot.preinitializing?
+    # Update for the new locale Encoding
+    Truffle::Boot.delay do
+      enc = Truffle::EncodingOperations.get_default_encoding('locale')
+      enc_name = enc == Encoding::UTF_8 ? :'UTF-8' : enc.name.upcase.to_sym
+      index = EncodingMap[enc_name].last
+      EncodingMap[:LOCALE] = ['locale', index]
+    end
+  end
 
   @default_external = Truffle::EncodingOperations.get_default_encoding('external')
   @default_internal = Truffle::EncodingOperations.get_default_encoding('internal')
