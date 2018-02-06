@@ -19,13 +19,27 @@ describe "The launcher" do
     ENV["JAVA_OPTS"] = @java_opts
   end
 
-  it "runs when symlinked" do
-    require "tmpdir"
-    Dir.mktmpdir do |path|
-      Dir.chdir(path) do
-        `ln -s #{RbConfig.ruby} linktoruby`
-        `./linktoruby --version 2>&1`.should include("truffleruby")
-        $?.success?.should == true
+  require "tmpdir"
+
+  launchers = { gem:         /^2\.5\.2\.1$/,
+                irb:         /^irb 0\.9\.6/,
+                rake:        /^rake, version [0-9.]+/,
+                rdoc:        /^4\.2\.1$/,
+                ri:          /^ri 4\.2\.1$/,
+                ruby:        /truffleruby .* like ruby 2\.3\.5/,
+                testrb:      [/^testrb: version unknown$/, true],
+                truffleruby: /truffleruby .* like ruby 2\.3\.5/ }
+
+  launchers.each do |launcher, (test, skip_success)|
+    it "'#{launcher}' runs when symlinked" do
+      Dir.mktmpdir do |path|
+        Dir.chdir(path) do
+          linkname = "linkto#{launcher}"
+          `ln -s #{File.join RbConfig::CONFIG['bindir'], launcher.to_s} #{linkname}`
+          out = `./#{linkname} --version 2>&1`
+          out.should =~ test
+          $?.success?.should == true unless skip_success
+        end
       end
     end
   end
