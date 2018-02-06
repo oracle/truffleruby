@@ -107,17 +107,15 @@ module Truffle::CExt
 
   class RStringPtr
     attr_reader :string
+    attr_accessor :act_like_pointer
 
     def initialize(string)
       @string = string
+      @act_like_pointer = false
     end
 
     def size
       Truffle::CExt.string_pointer_size(@string)
-    end
-
-    def pointer?
-      true
     end
 
     def address
@@ -134,24 +132,26 @@ module Truffle::CExt
 
     alias_method :to_str, :string
     alias_method :to_s, :string
+    alias_method :pointer?, :act_like_pointer
   end
 
   class RStringEndPtr
+    attr_accessor :act_like_pointer
+
     def initialize(string)
       @string = string
+      @act_like_pointer = false
     end
 
     def size
       0
     end
 
-    def pointer?
-      true
-    end
-
     def address
       @address ||= Truffle::CExt.string_pointer_to_native(@string) + @string.bytesize
     end
+
+    alias_method :pointer?, :act_like_pointer
   end
 
   T_NONE     = 0x00
