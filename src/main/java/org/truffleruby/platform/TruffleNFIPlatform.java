@@ -55,7 +55,7 @@ public class TruffleNFIPlatform {
         }
     }
 
-    public Object execute(Node executeNode, TruffleObject function, Object... args) {
+    private static Object execute(Node executeNode, TruffleObject function, Object... args) {
         try {
             return ForeignAccess.sendExecute(executeNode, function, args);
         } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException e) {
@@ -63,7 +63,7 @@ public class TruffleNFIPlatform {
         }
     }
 
-    public Object invoke(Node invokeNode, TruffleObject receiver, String identifier, Object... args) {
+    private static Object invoke(Node invokeNode, TruffleObject receiver, String identifier, Object... args) {
         try {
             return ForeignAccess.sendInvoke(invokeNode, receiver, identifier, args);
         } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException | UnknownIdentifierException e) {
@@ -121,7 +121,7 @@ public class TruffleNFIPlatform {
         return strlen;
     }
 
-    public class NativeFunction {
+    public static class NativeFunction {
 
         private final TruffleObject function;
         private final Node executeNode;
