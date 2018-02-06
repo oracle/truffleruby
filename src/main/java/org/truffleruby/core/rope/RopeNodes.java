@@ -795,8 +795,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = "times == 1")
-        public Rope repeatOne(Rope base, int times,
-                              @Cached("create()") WithEncodingNode withEncodingNode) {
+        public Rope repeatOne(Rope base, int times) {
             return base;
         }
 
