@@ -1597,6 +1597,7 @@ module Commands
       Utilities.log '.', "sampling\n"
       start = Time.now
       out, err = run_ruby metrics_time_option, '--no-core-load-path', *args, capture: true, no_print_cmd: true
+      $stdout.puts out unless out.empty?
       finish = Time.now
       samples.push get_times(err, finish - start)
     end
@@ -1658,6 +1659,8 @@ module Commands
           depth -= 1
           times[key] = elapsed
         end
+      else
+        $stderr.puts line
       end
     end
     if main = times["#{indent}main"]
