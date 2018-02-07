@@ -191,7 +191,7 @@
     }
   },
 
-  local gem_test_pack = jt(["gem-test-pack"]),
+  local download_gem_test_pack = jt(["gem-test-pack"]),
 
   jruby_benchmark: {
     setup: common.prelude,
@@ -409,7 +409,7 @@
       TRUFFLERUBYOPT: "-Xcexts.log.load=true",
       USE_CEXTS: "true"
     },
-    setup+: gem_test_pack +
+    setup+: download_gem_test_pack +
       jt(["cextc", "bench/chunky_png/oily_png"]) +
       jt(["cextc", "bench/psd.rb/psd_native"]),
     run: benchmark(["chunky"]),
@@ -418,12 +418,12 @@
 
   # Tests
   test_gems: {
-    setup: common.setup + gem_test_pack,
+    setup: common.setup + download_gem_test_pack,
     run: jt(["test", "gems"])
   },
 
   test_ecosystem: $.sulong {
-    setup: common.setup + $.sulong.setup + gem_test_pack,
+    setup: common.setup + $.sulong.setup + download_gem_test_pack,
     run: jt(["test", "ecosystem"])
   },
 
@@ -431,7 +431,7 @@
     environment+: {
       JAVA_OPTS: java_opts + " -Dgraal.TruffleCompileOnly=nothing",
     },
-    setup: common.setup + $.sulong.setup + gem_test_pack,
+    setup: common.setup + $.sulong.setup + download_gem_test_pack,
     run: [
       ["mx", "--dynamicimports", "sulong", "ruby_testdownstream_sulong"]
     ]
