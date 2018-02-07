@@ -52,3 +52,11 @@ slow:The launcher 'ri' runs when symlinked
 slow:The launcher 'ruby' runs when symlinked
 slow:The launcher 'testrb' runs when symlinked
 slow:The launcher 'truffleruby' runs when symlinked
+aot:The launcher 'gem' runs when symlinked
+aot:The launcher 'irb' runs when symlinked
+aot:The launcher 'rake' runs when symlinked
+aot:The launcher 'rdoc' runs when symlinked
+aot:The launcher 'ri' runs when symlinked
+aot:The launcher 'ruby' runs when symlinked
+aot:The launcher 'testrb' runs when symlinked
+aot:The launcher 'truffleruby' runs when symlinked
