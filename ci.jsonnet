@@ -430,11 +430,6 @@
     ]
   },
 
-  test_integration: $.sulong {
-    setup: common.setup + $.sulong.setup,
-    run: jt(["test", "integration"])
-  },
-
   local test_compilation_flags = {
     environment+: {
       JAVA_OPTS: java_opts + " -Dgraal.TraceTruffleCompilation=true -Dgraal.TruffleCompilationExceptionsAreFatal=true"
@@ -530,7 +525,7 @@
     {name: "ruby-test-tck"} + linux_gate + {run: [["mx", "rubytck"]]},
     # OpenSSL is required to run RubyGems tests
     {name: "ruby-test-mri"} + linux_gate + $.sulong + $.fast_cpu_caps + {run: jt(["test", "mri"])},
-    {name: "ruby-test-integration"} + linux_gate + $.test_integration,
+    {name: "ruby-test-integration"} + linux_gate + $.sulong + {run: jt(["test", "integration"])},
     {name: "ruby-test-cexts"} + linux_gate + $.test_cexts,
     {name: "ruby-test-gems"} + linux_gate + gem_test_pack + {run: jt(["test", "gems"])},
     {name: "ruby-test-ecosystem"} + linux_gate + $.sulong + gem_test_pack + {run: jt(["test", "ecosystem"])},
