@@ -146,7 +146,7 @@
   },
 
   graal_enterprise_no_om: $.graal_enterprise + {
-    environment+: truffleruby.environment + {
+    environment+: {
       HOST_VM_CONFIG: "graal-enterprise-no-om",
       JAVA_OPTS: java_opts + " -Dtruffle.object.LayoutFactory=com.oracle.truffle.object.basic.DefaultLayoutFactory"
     }
