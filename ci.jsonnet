@@ -420,11 +420,6 @@
   },
 
   # Tests
-  test_ecosystem: $.sulong {
-    setup: common.setup + $.sulong.setup + download_gem_test_pack,
-    run: jt(["test", "ecosystem"])
-  },
-
   test_cexts: $.sulong {
     environment+: {
       JAVA_OPTS: java_opts + " -Dgraal.TruffleCompileOnly=nothing",
@@ -538,7 +533,7 @@
     {name: "ruby-test-integration"} + linux_gate + $.test_integration,
     {name: "ruby-test-cexts"} + linux_gate + $.test_cexts,
     {name: "ruby-test-gems"} + linux_gate + gem_test_pack + {run: jt(["test", "gems"])},
-    {name: "ruby-test-ecosystem"} + linux_gate + $.test_ecosystem,
+    {name: "ruby-test-ecosystem"} + linux_gate + $.sulong + gem_test_pack + {run: jt(["test", "ecosystem"])},
 
     {name: "ruby-test-compiler-graal-core"} + linux_gate + $.graal_core + {run: jt(["test", "compiler"])},
     # {name: "ruby-test-compiler-graal-enterprise"} + linux_gate + $.graal_enterprise + {run: jt(["test", "compiler"])},
