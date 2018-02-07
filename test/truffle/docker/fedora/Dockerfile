@@ -81,7 +81,7 @@ spec/mspec/bin/mspec \
 -T -Xhome=$RUBY_HOME \
 :language
 
-# Check we can make a real-world openssl request, testing quite a few things end-to-end
+# Check we can make a real-world openssl request
 RUN ruby \
 -ropen-uri \
 -e 'open("https://rubygems.org/") { |f| raise unless f.read.include?("Find, install, and publish RubyGems") }'
@@ -91,3 +91,7 @@ RUN ruby \
 --native \
 -ropen-uri \
 -e 'open("https://rubygems.org/") { |f| raise unless f.read.include?("Find, install, and publish RubyGems") }'
+
+# Check we can install a gem
+RUN mkdir /test/gems
+RUN GEM_HOME=/test/gems gem install color
