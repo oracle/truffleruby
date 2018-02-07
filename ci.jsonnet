@@ -128,7 +128,7 @@
   graal_enterprise: {
     downloads+: labsjdk8.downloads,
 
-    setup: common.setup + [
+    setup+: [
       ["git", "clone", ["mx", "urlrewrite", "https://github.com/graalvm/graal-enterprise.git"], "../graal-enterprise"],
       ["cd", "../graal-enterprise/graal-enterprise"],
       ["mx", "sforceimports"],
