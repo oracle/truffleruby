@@ -177,7 +177,7 @@ public class RopeOperations {
     }
 
     @TruffleBoundary
-    private static String decodeNonAscii(Rope value, int byteOffset, int byteLength) {
+    public static String decodeNonAscii(Rope value, int byteOffset, int byteLength) {
         final Charset charset = EncodingManager.charsetForEncoding(value.getEncoding());
 
         return decode(charset, value.getBytes(), byteOffset, byteLength);
