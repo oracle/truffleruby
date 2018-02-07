@@ -9,7 +9,6 @@
  */
 package org.truffleruby.interop;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -17,15 +16,12 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
-import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
-
-import java.nio.charset.Charset;
 
 @ImportStatic({ StringCachingGuards.class, StringOperations.class })
 @NodeChild(value = "value", type = RubyNode.class)
@@ -55,15 +51,8 @@ public abstract class ToJavaStringNode extends RubyNode {
         if (asciiOnlyProfile.profile(rope.isAsciiOnly())) {
             return RopeOperations.decodeAscii(bytes, 0, bytes.length);
         } else {
-            return decodeNonAscii(rope, bytes);
+            return RopeOperations.decodeNonAscii(rope, 0, bytes.length);
         }
-    }
-
-    @TruffleBoundary
-    private String decodeNonAscii(Rope rope, byte[] bytes) {
-        final Charset charset = EncodingManager.charsetForEncoding(rope.getEncoding());
-
-        return RopeOperations.decode(charset, bytes, 0, bytes.length);
     }
 
     @Specialization(guards = { "symbol == cachedSymbol", "isRubySymbol(cachedSymbol)" }, limit = "getLimit()")
