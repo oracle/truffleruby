@@ -111,7 +111,7 @@
   graal_core: {
     downloads+: labsjdk8.downloads,
 
-    setup: common.setup + [
+    setup+: [
       ["cd", "../graal/compiler"],
       ["mx", "sversions"],
       ["mx", "build"],
@@ -404,12 +404,12 @@
     run: benchmark([["server", "--", "--native"]])
   },
 
-  cext_benchmarks: $.sulong + $.graal_core + {
+  cext_benchmarks: {
     environment+: {
       TRUFFLERUBYOPT: "-Xcexts.log.load=true",
       USE_CEXTS: "true"
     },
-    setup: $.graal_core.setup + $.sulong.setup + gem_test_pack +
+    setup+: gem_test_pack +
       jt(["cextc", "bench/chunky_png/oily_png"]) +
       jt(["cextc", "bench/psd.rb/psd_native"]),
     run: benchmark(["chunky"]),
@@ -619,7 +619,7 @@
       # {name: "ruby-benchmarks-server-" + config.name} + $.common_linux + config.caps + config.setup + $.svm_server_benchmarks,
       # for config in svm_configs
     ] + [
-      {name: "ruby-benchmarks-cext"} + $.common_linux + $.daily_bench_caps + $.cext_benchmarks + truffleruby_cexts,
+      {name: "ruby-benchmarks-cext"} + $.common_linux + $.sulong + $.graal_core + $.daily_bench_caps + $.cext_benchmarks + truffleruby_cexts,
       # {name: "ruby-benchmarks-cext-mri"} + $.common_linux + $.weekly_bench_caps + $.cext_benchmarks + $.mri_benchmark,
     ];
     if debug then [] else metrics_jobs + benchmarks_jobs,
