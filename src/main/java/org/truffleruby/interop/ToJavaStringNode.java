@@ -9,17 +9,23 @@
  */
 package org.truffleruby.interop;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
+import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
+
+import java.nio.charset.Charset;
 
 @ImportStatic({ StringCachingGuards.class, StringOperations.class })
 @NodeChild(value = "value", type = RubyNode.class)
@@ -40,8 +46,24 @@ public abstract class ToJavaStringNode extends RubyNode {
     }
 
     @Specialization(guards = "isRubyString(value)", replaces = "stringCached")
-    public String stringUncached(DynamicObject value) {
-        return StringOperations.getString(value);
+    public String stringUncached(DynamicObject value,
+            @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile,
+            @Cached("create()") RopeNodes.BytesNode bytesNode) {
+        final Rope rope = StringOperations.rope(value);
+        final byte[] bytes = bytesNode.execute(rope);
+
+        if (asciiOnlyProfile.profile(rope.isAsciiOnly())) {
+            return RopeOperations.decodeAscii(bytes, 0, bytes.length);
+        } else {
+            return decodeNonAscii(rope, bytes);
+        }
+    }
+
+    @TruffleBoundary
+    private String decodeNonAscii(Rope rope, byte[] bytes) {
+        final Charset charset = EncodingManager.charsetForEncoding(rope.getEncoding());
+
+        return RopeOperations.decode(charset, bytes, 0, bytes.length);
     }
 
     @Specialization(guards = { "symbol == cachedSymbol", "isRubySymbol(cachedSymbol)" }, limit = "getLimit()")
