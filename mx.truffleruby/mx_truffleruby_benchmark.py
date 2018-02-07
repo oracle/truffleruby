@@ -225,7 +225,13 @@ class TimeBenchmarkSuite(MetricsBenchmarkSuite):
 
         jt(['metrics', 'time', '--json'] + metrics_benchmarks[benchmark] + bmSuiteArgs, out=out)
 
-        data = json.loads(out.data)
+        lines = [line for line in out.data.split('\n') if len(line) > 0]
+        print('\n'.join(lines[0:-1]))
+
+        json_data = lines[-1]
+        print('JSON:')
+        print(json_data)
+        data = json.loads(json_data)
 
         return [{
             'benchmark': benchmark,
