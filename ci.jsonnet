@@ -192,6 +192,9 @@
   },
 
   local download_gem_test_pack = jt(["gem-test-pack"]),
+  local gem_test_pack = {
+    setup+: download_gem_test_pack
+  },
 
   jruby_benchmark: {
     setup: common.prelude,
@@ -417,11 +420,6 @@
   },
 
   # Tests
-  test_gems: {
-    setup: common.setup + download_gem_test_pack,
-    run: jt(["test", "gems"])
-  },
-
   test_ecosystem: $.sulong {
     setup: common.setup + $.sulong.setup + download_gem_test_pack,
     run: jt(["test", "ecosystem"])
@@ -539,7 +537,7 @@
     {name: "ruby-test-mri"} + linux_gate + $.sulong + $.fast_cpu_caps + {run: jt(["test", "mri"])},
     {name: "ruby-test-integration"} + linux_gate + $.test_integration,
     {name: "ruby-test-cexts"} + linux_gate + $.test_cexts,
-    {name: "ruby-test-gems"} + linux_gate + $.test_gems,
+    {name: "ruby-test-gems"} + linux_gate + gem_test_pack + {run: jt(["test", "gems"])},
     {name: "ruby-test-ecosystem"} + linux_gate + $.test_ecosystem,
 
     {name: "ruby-test-compiler-graal-core"} + linux_gate + $.graal_core + {run: jt(["test", "compiler"])},
