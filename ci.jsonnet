@@ -166,7 +166,7 @@
       LD_LIBRARY_PATH: "$LIBGMP/lib:$LLVM/lib:$LD_LIBRARY_PATH",
     },
 
-    setup: [
+    setup+: [
       ["git", "clone", ["mx", "urlrewrite", "https://github.com/graalvm/sulong.git"], "../sulong"],
       ["cd", "../sulong"],
       ["mx", "sversions"],
