@@ -177,10 +177,10 @@ public class RopeOperations {
     }
 
     @TruffleBoundary
-    public static String decodeNonAscii(Rope value, int byteOffset, int byteLength) {
-        final Charset charset = EncodingManager.charsetForEncoding(value.getEncoding());
+    public static String decodeNonAscii(Encoding encoding, byte[] bytes, int byteOffset, int byteLength) {
+        final Charset charset = EncodingManager.charsetForEncoding(encoding);
 
-        return decode(charset, value.getBytes(), byteOffset, byteLength);
+        return decode(charset, bytes, byteOffset, byteLength);
     }
 
     public static String decodeRope(Rope value) {
@@ -192,7 +192,7 @@ public class RopeOperations {
             return decodeAscii(value.getBytes(), byteOffset, byteLength);
         }
 
-        return decodeNonAscii(value, byteOffset, byteLength);
+        return decodeNonAscii(value.getEncoding(), value.getBytes(), byteOffset, byteLength);
     }
 
     @TruffleBoundary
