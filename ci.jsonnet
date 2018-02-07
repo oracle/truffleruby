@@ -576,7 +576,6 @@
   ],
 
   local benchmark_sets = [
-    { name: "chunky",       job: $.chunky_benchmarks },
     { name: "psd",          job: $.psd_benchmarks },
     { name: "asciidoctor",  job: $.asciidoctor_benchmarks },
     { name: "other",        job: $.other_benchmarks, svm: $.other_benchmarks_svm },
@@ -603,6 +602,9 @@
     ] + [
       {name: "ruby-benchmarks-classic-" + config.name} + $.common_solaris + config.caps + config.setup + $.classic_benchmarks_solaris,
       for config in solaris_bench_configs
+    ] + [
+      {name: "ruby-benchmarks-chunky-" + config.name} + $.common_linux + config.caps + config.setup + $.chunky_benchmarks,
+      for config in bench_configs_no_svm # No SVM because Ruby SVM images currently do not include Sulong by default
     ] + [
       {name: "ruby-benchmarks-" + bench.name + "-" + config.name} + $.common_linux + config.caps + config.setup +
         (if std.objectHas(bench, "svm") && config.kind == "svm" then bench.svm else bench.job),
