@@ -110,7 +110,7 @@ public abstract class ArrayStrategy {
             ObjectArrayStrategy.INSTANCE
     };
 
-    private static ArrayStrategy ofStore(Object store) {
+    public static ArrayStrategy ofStore(Object store) {
         CompilerAsserts.neverPartOfCompilation();
 
         if (store == null) {
