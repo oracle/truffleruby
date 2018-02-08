@@ -81,7 +81,7 @@ public class Launcher {
     private static final boolean METRICS_MEMORY_USED_ON_EXIT =
             Boolean.getBoolean("truffleruby.metrics.memory_used_on_exit");
 
-    public static void main(boolean isGraal, String[] args) throws Exception {
+    public static void launch(boolean isGraal, String[] args) throws Exception {
         metricsBegin();
 
         final CommandLineOptions config = new CommandLineOptions();
