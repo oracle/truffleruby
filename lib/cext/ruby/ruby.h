@@ -1192,8 +1192,8 @@ struct RStruct {
 #define RSTRUCT_CONST_PTR(st) rb_struct_const_ptr(st)
 #define RSTRUCT_PTR(st) ((VALUE *)RSTRUCT_CONST_PTR(RB_OBJ_WB_UNPROTECT_FOR(STRUCT, st)))
 
-#define RSTRUCT_SET(st, idx, v) RB_OBJ_WRITE(st, &RSTRUCT_CONST_PTR(st)[idx], (v))
-#define RSTRUCT_GET(st, idx)    (RSTRUCT_CONST_PTR(st)[idx])
+#define RSTRUCT_SET(st, idx, v) rb_struct_aset(st, INT2FIX(idx), (v))
+#define RSTRUCT_GET(st, idx) rb_struct_aref(st, INT2FIX(idx))
 
 #define RBIGNUM_SIGN(b) (FIX2LONG(rb_big_cmp((b), INT2FIX(0))) >= 0)
 #define RBIGNUM_POSITIVE_P(b) (FIX2LONG(rb_big_cmp((b), INT2FIX(0))) >= 0)
