@@ -699,7 +699,7 @@ public abstract class HashNodes {
 
             try {
                 for (KeyValue keyValue : BucketsStrategy.iterableKeyValues(Layouts.HASH.getFirstInSequence(hash))) {
-                    arrayBuilderNode.appendValue(store, index, yieldPair(block, keyValue.getKey(), keyValue.getValue()));
+                    store = arrayBuilderNode.appendValue(store, index, yieldPair(block, keyValue.getKey(), keyValue.getValue()));
                     index++;
                 }
             } finally {
