@@ -228,7 +228,7 @@ char* rb_enc_left_char_head(char *start, char *p, char *end, rb_encoding *enc);
 #define rb_enc_isspace(c,enc) ONIGENC_IS_CODE_SPACE((enc),(c))
 #define rb_enc_isdigit(c,enc) ONIGENC_IS_CODE_DIGIT((enc),(c))
 
-
+int rb_enc_asciicompat(rb_encoding *enc);
 
 int rb_enc_casefold(char *to, const char *p, const char *e, rb_encoding *enc);
 int rb_enc_toupper(int c, rb_encoding *enc);
