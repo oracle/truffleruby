@@ -18,8 +18,11 @@ public class ArrayGuards {
     // Partial Escape Analysis only considers < 32 elements
     public static final int ARRAY_MAX_EXPLODE_SIZE = 16;
 
-    // Enough to handle (all types + null) * (all types + null).
-    public static final int ARRAY_STRATEGIES = 25;
+    // Enough to handle all array strategies (all types, plus null and Object[] without longs).
+    public static final int STORAGE_STRATEGIES = 6;
+
+    // Enough to handle all combinations of two strategies.
+    public static final int ARRAY_STRATEGIES = STORAGE_STRATEGIES * STORAGE_STRATEGIES;
 
     // Storage strategies
 
