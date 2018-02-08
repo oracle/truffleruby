@@ -54,12 +54,17 @@ public class ParserCache {
         final StaticScope staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
         final DynamicScope dynamicScope = new DynamicScope(staticScope);
         final ParserConfiguration parserConfiguration = new ParserConfiguration(null, 0, false, true, false);
+
         final Source source;
+        if (!canonicalPath.startsWith(SourceLoader.RESOURCE_SCHEME)) {
+            throw new UnsupportedOperationException("Not a resource path: " + canonicalPath);
+        }
         try {
             source = SourceLoader.loadResource(canonicalPath);
         } catch (IOException e) {
             throw new JavaException(e);
         }
+
         return driver.parseToJRubyAST(source, dynamicScope, parserConfiguration);
     }
 

@@ -165,13 +165,8 @@ public class SourceLoader {
     @TruffleBoundary
     public static Source loadResource(String path) throws IOException {
         if (TruffleOptions.AOT) {
-            if (!path.startsWith(SourceLoader.RESOURCE_SCHEME)) {
-                throw new UnsupportedOperationException();
-            }
-
             final String canonicalPath = SourceLoaderSupport.canonicalizeResourcePath(path);
-            final SourceLoaderSupport.CoreLibraryFile coreFile = SourceLoaderSupport.allCoreLibraryFiles.get(
-                    canonicalPath);
+            final SourceLoaderSupport.CoreLibraryFile coreFile = SourceLoaderSupport.allCoreLibraryFiles.get(canonicalPath);
             if (coreFile == null) {
                 throw new FileNotFoundException(path);
             }
@@ -182,15 +177,8 @@ public class SourceLoader {
                 throw new FileNotFoundException(path);
             }
 
-            final Class<?> relativeClass;
-            final Path relativePath;
-
-            if (path.startsWith(RESOURCE_SCHEME)) {
-                relativeClass = RubyContext.class;
-                relativePath = FileSystems.getDefault().getPath(path.substring(RESOURCE_SCHEME.length()));
-            } else {
-                throw new UnsupportedOperationException();
-            }
+            final Class<?> relativeClass = RubyContext.class;
+            final Path relativePath = FileSystems.getDefault().getPath(path.substring(RESOURCE_SCHEME.length()));
 
             final Path normalizedPath = relativePath.normalize();
             final InputStream stream = relativeClass.getResourceAsStream(
