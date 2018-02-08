@@ -53,7 +53,7 @@ import org.truffleruby.launcher.Launcher;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        Launcher.main(isGraal(), args);
+        Launcher.launch(isGraal(), args);
     }
 
     @TruffleBoundary
