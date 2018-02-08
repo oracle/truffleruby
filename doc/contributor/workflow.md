@@ -95,7 +95,7 @@ Finally, we have tests of our own. The integration tests test more macro use of
 Ruby. The ecosystem tests test commands related to Ruby. The gems tests test a
 small number of key Ruby 3rd party modules.
 
-The basic test to run every time you make changes is a subset of specs which
+The basic test to run every time you make changes is the "fast specs", a subset of specs which
 runs in reasonable time. If you are running a Ruby environment manager like
 `rvm`, `rbenv`, or `chruby` please run `rvm use system`, `rbenv system`,
 or `chruby system` to clear their environment variables.
@@ -104,14 +104,8 @@ or `chruby system` to clear their environment variables.
 $ jt test fast
 ```
 
-You may also want to regularly run the integration tests.
-
-```bash
-$ jt test integration
-```
-
-Other tests can be hard to set up and can require other repositories, so we
-don't normally run them locally unless we're working on that functionality.
+Other tests take longer and require more setup, so we don't normally run them
+locally unless we're working on that functionality (instead, the CI runs them).
 
 If you'd like to run tests with the native TruffleRuby binary, you can do so
 by providing the `--native` argument to the test command. Please note that
@@ -119,7 +113,7 @@ you must follow the steps to build the native image before it can be used
 for tests.
 
 ```bash
-$ jt test --native fast
+$ jt test fast --native
 ```
 
 ## Running
