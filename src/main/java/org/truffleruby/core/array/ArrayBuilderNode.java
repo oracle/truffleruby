@@ -12,7 +12,6 @@ package org.truffleruby.core.array;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendArrayNodeGen;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendOneNodeGen;
-import org.truffleruby.core.array.ArrayBuilderNodeFactory.EnsureCapacityNodeGen;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -36,7 +35,6 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
     public abstract Object start();
     public abstract Object start(int length);
-    public abstract Object ensure(Object store, int length);
     public abstract Object appendArray(Object store, int index, DynamicObject array);
     public abstract Object appendValue(Object store, int index, Object value);
     public abstract Object finish(Object store, int length);
@@ -44,7 +42,6 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
     private static class ArrayBuilderProxyNode extends ArrayBuilderNode {
 
         @Child StartNode startNode = new StartNode(ArrayStrategy.forValue(0), 0);
-        @Child EnsureCapacityNode ensureNode = EnsureCapacityNode.create();
         @Child AppendArrayNode appendArrayNode = AppendArrayNode.create();
         @Child AppendOneNode appendOneNode = AppendOneNode.create();
 
@@ -56,11 +53,6 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         @Override
         public Object start(int length) {
             return startNode.start(length);
-        }
-
-        @Override
-        public Object ensure(Object store, int length) {
-            return ensureNode.executeEnsure(store, length);
         }
 
         @Override
@@ -80,7 +72,6 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
         public void updateStrategy(ArrayStrategy strategy, int size) {
             if (startNode.replacement(strategy, size)) {
-                ensureNode.replace(EnsureCapacityNode.create());
                 appendArrayNode.replace(AppendArrayNode.create());
                 appendOneNode.replace(AppendOneNode.create());
             }
@@ -241,29 +232,6 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             mirror.copyTo(newMirror, 0, 0, index);
             otherMirror.copyTo(newMirror, 0, index, otherSize);
             return newMirror.getArray();
-        }
-
-    }
-
-    @ImportStatic(ArrayGuards.class)
-    public abstract static class EnsureCapacityNode extends ArrayBuilderBaseNode {
-
-        public static EnsureCapacityNode create() {
-            return EnsureCapacityNodeGen.create();
-        }
-
-        public abstract Object executeEnsure(Object array, int index);
-
-        @Specialization(guards = { "strategy.matchesStore(array)" })
-        public Object ensure(Object array, int size,
-                @Cached("ofStore(array)") ArrayStrategy strategy,
-                @Cached("createBinaryProfile()") ConditionProfile expandProfile) {
-            final ArrayMirror mirror = strategy.newMirrorFromStore(array);
-            if (expandProfile.profile(mirror.getLength() < size)) {
-                replaceNodes(strategy, size);
-                return mirror.copyArrayAndMirror(size).getArray();
-            }
-            return array;
         }
 
     }
