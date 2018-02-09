@@ -166,26 +166,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
         public abstract Object executeAppend(Object array, int index, DynamicObject value);
 
-        @Specialization(guards = { "strategy.matchesStore(array)", "strategy.matches(other)" }, limit = "1")
-        public Object appendCompatibleType(Object array, int index, DynamicObject other,
-                @Cached("ofStore(array)") ArrayStrategy strategy,
-                @Cached("createBinaryProfile()") ConditionProfile expandProfile) {
-            ArrayMirror mirror = strategy.newMirrorFromStore(array);
-            final ArrayMirror otherMirror = strategy.newMirror(other);
-            final int otherSize = Layouts.ARRAY.getSize(other);
-            final int neededSize = index + otherSize;
-
-            if (expandProfile.profile(neededSize > mirror.getLength())) {
-                replaceNodes(strategy, index);
-                final int capacity = Math.max(mirror.getLength(), neededSize);
-                mirror = mirror.copyArrayAndMirror(capacity);
-            }
-            otherMirror.copyTo(mirror, 0, index, otherSize);
-            return mirror.getArray();
-        }
-
-        @Specialization(guards = { "arrayStrategy != otherStrategy", "arrayStrategy == generalized",
-                                   "arrayStrategy.matchesStore(array)", "otherStrategy.matches(other)" },
+        @Specialization(guards = { "generalized.matchesStore(array)", "otherStrategy.matches(other)" },
                         limit = "STORAGE_STRATEGIES")
         public Object appendNewStrategy(Object array, int index, DynamicObject other,
                 @Cached("ofStore(array)") ArrayStrategy arrayStrategy,
