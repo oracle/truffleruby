@@ -76,7 +76,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         }
     }
 
-    public abstract static class ArrayBuilderSubNode extends Node {
+    public abstract static class ArrayBuilderBaseNode extends Node {
 
         protected void replaceNodes(ArrayStrategy strategy, int size) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -85,7 +85,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         }
     }
 
-    public static class StartNode extends ArrayBuilderSubNode {
+    public static class StartNode extends ArrayBuilderBaseNode {
 
         private final ConditionProfile lengthProfile = ConditionProfile.createBinaryProfile();
 
@@ -117,7 +117,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
     }
 
     @ImportStatic(ArrayGuards.class)
-    public abstract static class AppendOneNode extends ArrayBuilderSubNode {
+    public abstract static class AppendOneNode extends ArrayBuilderBaseNode {
 
         public static AppendOneNode create() {
             return AppendOneNodeGen.create();
@@ -158,7 +158,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
     }
 
     @ImportStatic(ArrayGuards.class)
-    public abstract static class AppendArrayNode extends ArrayBuilderSubNode {
+    public abstract static class AppendArrayNode extends ArrayBuilderBaseNode {
 
         public static AppendArrayNode create() {
             return AppendArrayNodeGen.create();
@@ -232,7 +232,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
     }
 
     @ImportStatic(ArrayGuards.class)
-    public abstract static class EnsureCapacityNode extends ArrayBuilderSubNode {
+    public abstract static class EnsureCapacityNode extends ArrayBuilderBaseNode {
         public static EnsureCapacityNode create() {
             return EnsureCapacityNodeGen.create();
         }
