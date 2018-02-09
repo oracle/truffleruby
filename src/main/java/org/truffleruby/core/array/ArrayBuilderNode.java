@@ -87,8 +87,6 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
     public static class StartNode extends ArrayBuilderBaseNode {
 
-        private final ConditionProfile lengthProfile = ConditionProfile.createBinaryProfile();
-
         private final ArrayStrategy strategy;
         private final int expectedLength;
 
@@ -102,7 +100,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         }
 
         public Object start(int length) {
-            if (lengthProfile.profile(length > expectedLength)) {
+            if (length > expectedLength) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 replaceNodes(strategy, length);
             }
