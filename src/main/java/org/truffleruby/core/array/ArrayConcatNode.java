@@ -55,11 +55,9 @@ public final class ArrayConcatNode extends RubyNode {
         if (isArrayProfile.profile(RubyGuards.isRubyArray(childObject))) {
             final DynamicObject childArray = (DynamicObject) childObject;
             size = Layouts.ARRAY.getSize(childArray);
-            store = arrayBuilderNode.ensure(store, size);
             store = arrayBuilderNode.appendArray(store, 0, childArray);
         } else {
             size = 1;
-            store = arrayBuilderNode.ensure(store, 1);
             store = arrayBuilderNode.appendValue(store, 0, childObject);
         }
         return createArray(arrayBuilderNode.finish(store, size), size);
@@ -76,11 +74,9 @@ public final class ArrayConcatNode extends RubyNode {
             if (isArrayProfile.profile(RubyGuards.isRubyArray(childObject))) {
                 final DynamicObject childArray = (DynamicObject) childObject;
                 final int size = Layouts.ARRAY.getSize(childArray);
-                store = arrayBuilderNode.ensure(store, length + size);
                 store = arrayBuilderNode.appendArray(store, length, childArray);
                 length += size;
             } else {
-                store = arrayBuilderNode.ensure(store, length + 1);
                 store = arrayBuilderNode.appendValue(store, length, childObject);
                 length++;
             }
