@@ -348,6 +348,28 @@ public class RubyContext {
             return false;
         }
 
+        // Libraries loaded during pre-initialization
+
+        if (newOptions.PATCHING != oldOptions.PATCHING) {
+            Log.LOGGER.fine(notReusingContext + "loading patching is " + newOptions.PATCHING);
+            return false;
+        }
+
+        if (newOptions.RUBYGEMS != oldOptions.RUBYGEMS) {
+            Log.LOGGER.fine(notReusingContext + "loading RubyGems is " + newOptions.RUBYGEMS);
+            return false;
+        }
+
+        if (newOptions.LAZY_RUBYGEMS != oldOptions.LAZY_RUBYGEMS) {
+            Log.LOGGER.fine(notReusingContext + "loading lazy-rubygems is " + newOptions.LAZY_RUBYGEMS);
+            return false;
+        }
+
+        if (newOptions.DID_YOU_MEAN != oldOptions.DID_YOU_MEAN) {
+            Log.LOGGER.fine(notReusingContext + "loading did_you_mean is " + newOptions.DID_YOU_MEAN);
+            return false;
+        }
+
         return true;
     }
 
