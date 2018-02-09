@@ -563,7 +563,6 @@ public abstract class InteropNodes {
                 @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("create()") RubyToForeignNode rubyToForeignNode,
                 @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
-
             final Object name = rubyToForeignNode.executeConvert(identifier);
             final Object foreign;
             try {
@@ -596,7 +595,6 @@ public abstract class InteropNodes {
                 @Cached("create()") BranchProfile unknownIdentifierProfile,
                 @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
-
             final Object name = identifierToForeignNode.executeConvert(identifier);
             final Object foreign;
             try {
@@ -614,6 +612,33 @@ public abstract class InteropNodes {
             }
 
             return foreignToRubyNode.executeConvert(foreign);
+        }
+
+    }
+
+    @CoreMethod(names = "remove", isModuleFunction = true, required = 2)
+    @ImportStatic(Message.class)
+    public abstract static class RemoveNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean remove(TruffleObject receiver, Object identifier,
+                @Cached("create()") RubyToForeignNode identifierToForeignNode,
+                @Cached("REMOVE.createNode()") Node removeNode,
+                @Cached("create()") BranchProfile unknownIdentifierProfile,
+                @Cached("create()") BranchProfile exceptionProfile) {
+            final Object name = identifierToForeignNode.executeConvert(identifier);
+            final boolean foreign;
+            try {
+                foreign = ForeignAccess.sendRemove(removeNode, receiver, name);
+            } catch (UnknownIdentifierException e) {
+                unknownIdentifierProfile.enter();
+                throw new RaiseException(coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+            } catch (UnsupportedMessageException e) {
+                exceptionProfile.enter();
+                throw new JavaException(e);
+            }
+
+            return foreign;
         }
 
     }
