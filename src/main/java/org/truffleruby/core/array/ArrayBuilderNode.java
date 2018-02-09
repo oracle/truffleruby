@@ -31,6 +31,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public abstract class ArrayBuilderNode extends RubyBaseNode {
 
     private static class ArrayBuilderProxyNode extends ArrayBuilderNode {
+
         @Child StartNode startNode = new StartNode(ArrayStrategy.forValue(0), 0);
         @Child EnsureCapacityNode ensureNode = EnsureCapacityNode.create();
         @Child AppendArrayNode appendArrayNode = AppendArrayNode.create();
@@ -79,7 +80,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
         protected void replaceNodes(ArrayStrategy strategy, int size) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            ArrayBuilderProxyNode parent = (ArrayBuilderProxyNode) getParent();
+            final ArrayBuilderProxyNode parent = (ArrayBuilderProxyNode) getParent();
             parent.updateStrategy(strategy, size);
         }
     }
@@ -109,7 +110,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         }
 
         public boolean replacement(ArrayStrategy strategy, int newLength) {
-            StartNode newNode = new StartNode(strategy, Math.max(expectedLength, newLength));
+            final StartNode newNode = new StartNode(strategy, Math.max(expectedLength, newLength));
             this.replace(newNode);
             return (strategy != this.strategy);
         }
@@ -242,7 +243,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         public Object ensure(Object array, int size,
                 @Cached("ofStore(array)") ArrayStrategy strategy,
                 @Cached("createBinaryProfile()") ConditionProfile expandProfile) {
-            ArrayMirror mirror = strategy.newMirrorFromStore(array);
+            final ArrayMirror mirror = strategy.newMirrorFromStore(array);
             if (expandProfile.profile(mirror.getLength() < size)) {
                 replaceNodes(strategy, size);
                 return mirror.copyArrayAndMirror(size).getArray();
