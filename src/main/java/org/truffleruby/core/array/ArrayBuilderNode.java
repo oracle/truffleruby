@@ -172,6 +172,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             final ArrayMirror otherMirror = strategy.newMirror(other);
             final int otherSize = Layouts.ARRAY.getSize(other);
             final int neededSize = index + otherSize;
+
             if (expandProfile.profile(neededSize > mirror.getLength())) {
                 replaceNodes(strategy, index);
                 final int capacity = Math.max(mirror.getLength(), neededSize);
@@ -193,11 +194,13 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             final ArrayMirror otherMirror = otherStrategy.newMirror(other);
             final int otherSize = Layouts.ARRAY.getSize(other);
             final int neededSize = index + otherSize;
+
             if (expandProfile.profile(neededSize > mirror.getLength())) {
                 replaceNodes(arrayStrategy, neededSize);
                 final int capacity = Math.max(mirror.getLength(), neededSize);
                 mirror = mirror.copyArrayAndMirror(capacity);
             }
+
             otherMirror.copyTo(mirror, 0, index, otherSize);
             return mirror.getArray();
         }
@@ -214,6 +217,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             final int otherSize = Layouts.ARRAY.getSize(other);
             final int neededSize = index + otherSize;
             final ArrayMirror newMirror;
+
             if (neededSize > mirror.getLength()) {
                 replaceNodes(generalized, neededSize);
                 final int capacity = Math.max(mirror.getLength(), neededSize);
@@ -222,6 +226,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 replaceNodes(generalized, mirror.getLength());
                 newMirror = generalized.newArray(mirror.getLength());
             }
+
             mirror.copyTo(newMirror, 0, 0, index);
             otherMirror.copyTo(newMirror, 0, index, otherSize);
             return newMirror.getArray();
@@ -231,6 +236,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
     @ImportStatic(ArrayGuards.class)
     public abstract static class EnsureCapacityNode extends ArrayBuilderBaseNode {
+
         public static EnsureCapacityNode create() {
             return EnsureCapacityNodeGen.create();
         }
