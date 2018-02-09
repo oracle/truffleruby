@@ -30,6 +30,17 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class ArrayBuilderNode extends RubyBaseNode {
 
+    public static ArrayBuilderNode create() {
+        return new ArrayBuilderProxyNode();
+    }
+
+    public abstract Object start();
+    public abstract Object start(int length);
+    public abstract Object ensure(Object store, int length);
+    public abstract Object appendArray(Object store, int index, DynamicObject array);
+    public abstract Object appendValue(Object store, int index, Object value);
+    public abstract Object finish(Object store, int length);
+
     private static class ArrayBuilderProxyNode extends ArrayBuilderNode {
 
         @Child StartNode startNode = new StartNode(ArrayStrategy.forValue(0), 0);
@@ -257,14 +268,4 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
     }
 
-    public static ArrayBuilderNode create() {
-        return new ArrayBuilderProxyNode();
-    }
-
-    public abstract Object start();
-    public abstract Object start(int length);
-    public abstract Object ensure(Object store, int length);
-    public abstract Object appendArray(Object store, int index, DynamicObject array);
-    public abstract Object appendValue(Object store, int index, Object value);
-    public abstract Object finish(Object store, int length);
 }
