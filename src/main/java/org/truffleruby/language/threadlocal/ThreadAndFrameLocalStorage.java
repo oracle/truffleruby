@@ -23,7 +23,8 @@ public class ThreadAndFrameLocalStorage {
 
     public ThreadAndFrameLocalStorage(RubyContext context) {
         this.context = context;
-        originalThread = new WeakReference<>(Thread.currentThread());
+        // Cannot store a Thread instance while pre-initializing
+        originalThread = new WeakReference<>(context.isPreInitializing() ? null : Thread.currentThread());
         originalThreadValue = initialValue();
     }
 
