@@ -43,8 +43,8 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
     private static class ArrayBuilderProxyNode extends ArrayBuilderNode {
 
         @Child StartNode startNode = new StartNode(ArrayStrategy.forValue(0), 0);
-        @Child AppendArrayNode appendArrayNode = AppendArrayNode.create(getContext());
-        @Child AppendOneNode appendOneNode = AppendOneNode.create(getContext());
+        @Child AppendArrayNode appendArrayNode = null;
+        @Child AppendOneNode appendOneNode = null;
 
         @Override
         public Object start() {
@@ -58,12 +58,12 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
         @Override
         public Object appendArray(Object store, int index, DynamicObject array) {
-            return appendArrayNode.executeAppend(store, index, array);
+            return getAppendArrayNode().executeAppend(store, index, array);
         }
 
         @Override
         public Object appendValue(Object store, int index, Object value) {
-            return appendOneNode.executeAppend(store, index, value);
+            return getAppendOneNode().executeAppend(store, index, value);
         }
 
         @Override
@@ -71,10 +71,30 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             return store;
         }
 
+        private AppendArrayNode getAppendArrayNode() {
+            if (appendArrayNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                appendArrayNode = insert(AppendArrayNode.create(getContext()));
+            }
+            return appendArrayNode;
+        }
+
+        private AppendOneNode getAppendOneNode() {
+            if (appendOneNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                appendOneNode = insert(AppendOneNode.create(getContext()));
+            }
+            return appendOneNode;
+        }
+
         public void updateStrategy(ArrayStrategy strategy, int size) {
             if (startNode.replacement(strategy, size)) {
-                appendArrayNode.replace(AppendArrayNode.create(getContext()));
-                appendOneNode.replace(AppendOneNode.create(getContext()));
+                if (appendArrayNode != null) {
+                    appendArrayNode.replace(AppendArrayNode.create(getContext()));
+                }
+                if (appendOneNode != null) {
+                    appendOneNode.replace(AppendOneNode.create(getContext()));
+                }
             }
         }
     }
