@@ -200,6 +200,23 @@ Otherwise throws `UnknownIdentifierException`.
 
 In all cases where a call is made no block is passed.
 
+### `REMOVE`
+
+The name must be an `int` (small Ruby `Fixnum`), or a Ruby `String` or `Symbol`,
+or a Java `String`.
+
+If the receiver is a Ruby `Array` and the name is an integer, delete the element
+at the index indicated by the name value. If the index is out of bounds then, in
+keeping with Ruby semantics, no-op. If the name value is not an integer, then
+`UnknownIdentifierException` is thrown.
+
+If the receiver is a Ruby `Hash`, delete the key indicated by the name value.
+If no such key exists then, in keeping with Ruby semantics, no-op.
+
+Any exception thrown during a `REMOVE` operation will be converted to `UnknownIdentifierException`.
+
+If the receiver is any other type, then `UnsupportedMessageException` is thrown.
+
 ## How to explicitly send messages from Ruby
 
 ### `IS_EXECUTABLE`
@@ -287,6 +304,10 @@ order.
 
 `Truffle::Interop.read(object, name, value)`
 
+### `REMOVE`
+
+`Truffle::Interop.remove(object, name)`
+
 ## How to send messages using idiomatic Ruby
 
 ### `IS_EXECUTABLE`
@@ -360,6 +381,10 @@ integer, or anything else
 
 `object[name] = value`, where name is a `String` or `Symbol` in most cases, or
 an integer, or anything else
+
+### `REMOVE`
+
+Not supported.
 
 ## What messages are sent for Ruby syntax on foreign objects
 

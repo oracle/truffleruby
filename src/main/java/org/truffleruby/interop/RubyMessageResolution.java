@@ -236,6 +236,46 @@ public class RubyMessageResolution {
 
     }
 
+    @Resolve(message = "REMOVE")
+    public static abstract class ForeignRemoveNode extends Node {
+
+        private final BranchProfile arrayReceiverProfile = BranchProfile.create();
+        private final BranchProfile hashReceiverProfile = BranchProfile.create();
+        private final BranchProfile errorProfile = BranchProfile.create();
+        private final ConditionProfile validArrayIndexProfile = ConditionProfile.createBinaryProfile();
+
+        @Child private CallDispatchHeadNode arrayDeleteAtNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode hashDeleteNode = CallDispatchHeadNode.createOnSelf();
+        @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
+
+        protected boolean access(VirtualFrame frame, DynamicObject object, Object name) {
+            if (RubyGuards.isRubyArray(object)) {
+                arrayReceiverProfile.enter();
+
+                if (validArrayIndexProfile.profile(name instanceof Integer ||
+                        (name instanceof Long && RubyGuards.fitsInInteger((long) name)))) {
+                    arrayDeleteAtNode.call(frame, object, "delete_at", name);
+                } else {
+                    throw UnknownIdentifierException.raise(toString(name));
+                }
+            } else if (RubyGuards.isRubyHash(object)) {
+                hashReceiverProfile.enter();
+                hashDeleteNode.call(frame, object, "delete", foreignToRubyNode.executeConvert(name));
+            } else {
+                errorProfile.enter();
+                throw UnsupportedMessageException.raise(Message.REMOVE);
+            }
+
+            return true;
+        }
+
+        @TruffleBoundary
+        private String toString(Object name) {
+            return name.toString();
+        }
+
+    }
+
     @Resolve(message = "HAS_KEYS")
     public static abstract class ForeignHasKeysNode extends Node {
 
