@@ -71,11 +71,11 @@ public class FeatureLoader {
     }
 
     private String getWorkingDirectory() {
-        if (!context.getOptions().NATIVE_PLATFORM) {
+        final TruffleNFIPlatform nfi = context.getTruffleNFI();
+        if (nfi == null) {
             // The current working cannot change if there are no native calls
             return System.getProperty("user.dir");
         }
-        final TruffleNFIPlatform nfi = context.getTruffleNFI();
         final int bufferSize = PATH_MAX;
         final Pointer buffer = GetThreadBufferNode.getBuffer(context, bufferSize);
         final long address = nfi.asPointer((TruffleObject) getcwd.call(buffer.getAddress(), bufferSize));
