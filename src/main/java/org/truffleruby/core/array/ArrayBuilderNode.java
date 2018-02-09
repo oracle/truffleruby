@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendArrayNodeGen;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendOneNodeGen;
 import org.truffleruby.language.RubyBaseNode;
@@ -42,8 +43,8 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
     private static class ArrayBuilderProxyNode extends ArrayBuilderNode {
 
         @Child StartNode startNode = new StartNode(ArrayStrategy.forValue(0), 0);
-        @Child AppendArrayNode appendArrayNode = AppendArrayNode.create();
-        @Child AppendOneNode appendOneNode = AppendOneNode.create();
+        @Child AppendArrayNode appendArrayNode = AppendArrayNode.create(getContext());
+        @Child AppendOneNode appendOneNode = AppendOneNode.create(getContext());
 
         @Override
         public Object start() {
@@ -72,8 +73,8 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
         public void updateStrategy(ArrayStrategy strategy, int size) {
             if (startNode.replacement(strategy, size)) {
-                appendArrayNode.replace(AppendArrayNode.create());
-                appendOneNode.replace(AppendOneNode.create());
+                appendArrayNode.replace(AppendArrayNode.create(getContext()));
+                appendOneNode.replace(AppendOneNode.create(getContext()));
             }
         }
     }
@@ -119,8 +120,14 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
     @ImportStatic(ArrayGuards.class)
     public abstract static class AppendOneNode extends ArrayBuilderBaseNode {
 
-        public static AppendOneNode create() {
-            return AppendOneNodeGen.create();
+        public static AppendOneNode create(RubyContext context) {
+            return AppendOneNodeGen.create(context);
+        }
+
+        private final RubyContext context;
+
+        public AppendOneNode(RubyContext context) {
+            this.context = context;
         }
 
         public abstract Object executeAppend(Object array, int index, Object value);
@@ -132,7 +139,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 @Cached("createBinaryProfile()") ConditionProfile expandProfile) {
             ArrayMirror mirror = strategy.newMirrorFromStore(array);
             if (expandProfile.profile(index >= mirror.getLength())) {
-                final int capacity = Math.max(mirror.getLength(), index + 1);
+                final int capacity = ArrayUtils.capacityForOneMore(context, mirror.getLength());
                 replaceNodes(strategy, capacity);
                 mirror = mirror.copyArrayAndMirror(capacity);
             }
@@ -147,7 +154,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 @Cached("forValue(value)") ArrayStrategy valueStrategy,
                 @Cached("arrayStrategy.generalize(valueStrategy)") ArrayStrategy generalized) {
             final ArrayMirror mirror = arrayStrategy.newMirrorFromStore(array);
-            final int neededCapacity = Math.max(mirror.getLength(), index + 1);
+            final int neededCapacity = ArrayUtils.capacityForOneMore(context, mirror.getLength());
             replaceNodes(generalized, neededCapacity);
             final ArrayMirror newMirror = generalized.newArray(neededCapacity);
             mirror.copyTo(newMirror, 0, 0, index);
@@ -160,8 +167,14 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
     @ImportStatic(ArrayGuards.class)
     public abstract static class AppendArrayNode extends ArrayBuilderBaseNode {
 
-        public static AppendArrayNode create() {
-            return AppendArrayNodeGen.create();
+        public static AppendArrayNode create(RubyContext context) {
+            return AppendArrayNodeGen.create(context);
+        }
+
+        private final RubyContext context;
+
+        public AppendArrayNode(RubyContext context) {
+            this.context = context;
         }
 
         public abstract Object executeAppend(Object array, int index, DynamicObject value);
@@ -180,7 +193,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
             if (expandProfile.profile(neededSize > mirror.getLength())) {
                 replaceNodes(arrayStrategy, neededSize);
-                final int capacity = Math.max(mirror.getLength(), neededSize);
+                final int capacity = ArrayUtils.capacity(context, mirror.getLength(), neededSize);
                 mirror = mirror.copyArrayAndMirror(capacity);
             }
 
@@ -203,7 +216,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
             if (neededSize > mirror.getLength()) {
                 replaceNodes(generalized, neededSize);
-                final int capacity = Math.max(mirror.getLength(), neededSize);
+                final int capacity = ArrayUtils.capacity(context, mirror.getLength(), neededSize);
                 newMirror = generalized.newArray(capacity);
             } else {
                 replaceNodes(generalized, mirror.getLength());
