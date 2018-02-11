@@ -156,7 +156,8 @@ suite = {
             "sourceDirs": ["java"],
             "dependencies": [
                 "truffleruby-annotations",
-                "sdk:GRAAL_SDK"
+                "sdk:GRAAL_SDK",
+                "sdk:LAUNCHER_COMMON"
             ],
             "annotationProcessors": [
                 "TRUFFLERUBY-PROCESSOR",
@@ -300,6 +301,7 @@ suite = {
             ],
             "distDependencies": [
                 "sdk:GRAAL_SDK",
+                "sdk:LAUNCHER_COMMON"
             ],
             "description": "TruffleRuby Launcher",
             "license": [

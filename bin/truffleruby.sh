@@ -92,14 +92,16 @@ source_truffle="$root_parent/graal/truffle/mxbuild"
 if [ -f "$binary_truffle/dists/truffle-api.jar" ]; then # Binary Truffle suite
     truffle="$binary_truffle"
     graal_sdk="$(dirname "$binary_truffle")/mx.imports/binary/sdk/mxbuild/dists/graal-sdk.jar"
+    launcher_common="$(dirname "$binary_truffle")/mx.imports/binary/sdk/mxbuild/dists/launcher-common.jar"
 elif [ -f "$source_truffle/dists/truffle-api.jar" ]; then # Source Truffle suite
     truffle="$source_truffle"
     graal_sdk="$root_parent/graal/sdk/mxbuild/dists/graal-sdk.jar"
+    launcher_common="$root_parent/graal/sdk/mxbuild/dists/launcher-common.jar"
 else
     echo "Could not find Truffle jars" 1>&2
     exit 1
 fi
-java_args+=("-Xbootclasspath/a:$truffle/dists/truffle-api.jar:$graal_sdk")
+java_args+=("-Xbootclasspath/a:$truffle/dists/truffle-api.jar:$graal_sdk:$launcher_common")
 CP="$CP:$truffle/dists/truffle-nfi.jar"
 CP="$CP:$root/mxbuild/dists/truffleruby-launcher.jar"
 CP="$CP:$root/mxbuild/dists/truffleruby.jar"
