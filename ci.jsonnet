@@ -551,7 +551,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
       local ruby_deploy_and_spec = $.use.maven + $.jdk.labsjdk8 +
                                    $.use.common + $.use.build +
                                    $.cap.deploy + $.cap.gate +
-                                   $.run.deploy_and_spec,
+                                   $.run.deploy_and_spec +
+                                   { timelimit: '30:00' },
 
       'ruby-deploy-and-specs-linux':
         $.platform.linux + ruby_deploy_and_spec,
@@ -565,16 +566,18 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
       'ruby-test-fast-java9-linux':
         $.platform.linux + $.jdk.labsjdk9 +
         $.use.common + $.use.build +
-        $.cap.gate +
+        $.cap.gate + { timelimit: '30:00' } +
         $.run.test_fast,
     } +
 
     {
       local linux_gate = $.platform.linux + $.cap.gate + $.use.maven + $.jdk.labsjdk8 +
-                         $.use.common,
+                         $.use.common +
+                         { timelimit: '01:00:00' },
 
       'ruby-lint':
-        linux_gate + $.run.lint,
+        linux_gate + $.run.lint +
+        { timelimit: '30:00' },  // override
       'ruby-test-tck':
         linux_gate + $.use.build + { run+: [['mx', 'rubytck']] },
       'ruby-test-mri':
@@ -610,7 +613,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
     {
       local shared = $.platform.linux + $.cap.gate + $.jdk.labsjdk9 +
                      $.use.common + $.use.build +
-                     $.use.truffleruby + $.graal.core,
+                     $.use.truffleruby + $.graal.core +
+                     { timelimit: '01:00:00' },
       'ruby-test-compiler-graal-core-java9': shared + $.run.test_compiler,
       'ruby-test-compiler-standalone-java9': shared + $.run.compiler_standalone,
     } +
@@ -628,7 +632,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
         { '$.run.svm_gate':: { tags: 'build,darwin_ruby' } },
     };
     {
-      local shared = $.use.build + $.svm.core,
+      local shared = $.use.build + $.svm.core + { timelimit: '01:00:00' },
       local tag_override = { '$.run.svm_gate':: { tags: 'build,ruby' } },
 
       'ruby-test-svm-graal-core-linux':
@@ -636,7 +640,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
       'ruby-test-svm-graal-core-darwin':
         shared + svm_test_platforms.darwin + tag_override,
     } + {
-      local shared = $.use.build + $.svm.enterprise,
+      local shared = $.use.build + $.svm.enterprise + { timelimit: '01:00:00' },
 
       'ruby-test-svm-graal-enterprise-linux': shared + svm_test_platforms.linux,
       'ruby-test-svm-graal-enterprise-darwin': shared + svm_test_platforms.darwin,
@@ -668,7 +672,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
   bench_builds:
     {
       local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-                     $.benchmark.runner + $.benchmark.compiler_metrics,
+                     $.benchmark.runner + $.benchmark.compiler_metrics +
+                     { timelimit: '00:50:00' },
 
       'ruby-metrics-compiler-graal-core':
         shared + graal_configurations['graal-core'],
@@ -680,7 +685,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
 
     {
       local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-                     $.benchmark.runner + $.benchmark.svm_build_stats,
+                     $.benchmark.runner + $.benchmark.svm_build_stats +
+                     { timelimit: '02:00:00' },
       // TODO this 2 jobs have GUEST_VM_CONFIG: 'default' instead of 'truffle', why?
       local guest_vm_override = { environment+: { GUEST_VM_CONFIG: 'default' } },
 
@@ -692,7 +698,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
 
     {
       local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-                     $.benchmark.run_svm_metrics,
+                     $.benchmark.run_svm_metrics + { timelimit: '30:00' },
 
       'ruby-metrics-svm-graal-core':
         shared + svm_configurations['svm-graal-core'] + $.cap.x52_18_override,
@@ -705,19 +711,19 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
                      $.benchmark.runner + $.benchmark.classic,
 
       'ruby-benchmarks-classic-mri':
-        shared + other_rubies.mri,
+        shared + other_rubies.mri + { timelimit: '35:00' },
       'ruby-benchmarks-classic-jruby':
-        shared + other_rubies.jruby,
+        shared + other_rubies.jruby + { timelimit: '35:00' },
       'ruby-benchmarks-classic-graal-core':
-        shared + graal_configurations['graal-core'],
+        shared + graal_configurations['graal-core'] + { timelimit: '35:00' },
       'ruby-benchmarks-classic-graal-enterprise':
-        shared + graal_configurations['graal-enterprise'],
+        shared + graal_configurations['graal-enterprise'] + { timelimit: '35:00' },
       'ruby-benchmarks-classic-graal-enterprise-no-om':
-        shared + graal_configurations['graal-enterprise-no-om'],
+        shared + graal_configurations['graal-enterprise-no-om'] + { timelimit: '35:00' },
       'ruby-benchmarks-classic-svm-graal-core':
-        shared + svm_configurations['svm-graal-core'],
+        shared + svm_configurations['svm-graal-core'] + { timelimit: '01:10:00' },
       'ruby-benchmarks-classic-svm-graal-enterprise':
-        shared + svm_configurations['svm-graal-enterprise'],
+        shared + svm_configurations['svm-graal-enterprise'] + { timelimit: '01:10:00' },
     } +
 
     local benchmark_names = [
@@ -751,9 +757,9 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
       'ruby-benchmarks-other-svm-graal-enterprise',
     ];
     local benchmarks = {
-      'chunky-': $.benchmark.runner + $.benchmark.chunky,
-      'psd-': $.benchmark.runner + $.benchmark.psd,
-      'asciidoctor-': $.benchmark.runner + $.benchmark.asciidoctor,
+      'chunky-': $.benchmark.runner + $.benchmark.chunky + { timelimit: '01:00:00' },
+      'psd-': $.benchmark.runner + $.benchmark.psd + { timelimit: '02:00:00' },
+      'asciidoctor-': $.benchmark.runner + $.benchmark.asciidoctor + { timelimit: '00:35:00' },
       'other-': $.benchmark.runner + $.benchmark.other,
     };
     local benchmark_builds = {
@@ -763,7 +769,9 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
         $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
         benchmarks[benchmark_name] +
         (other_rubies + graal_configurations + svm_configurations)[configuration_name] +
-        (if other_bench && !svm_build then $.benchmark.other_extra else {})
+        (if other_bench && !svm_build
+         then $.benchmark.other_extra { timelimit: '40:00' }
+         else { timelimit: '01:00:00' })
       for benchmark_name in std.objectFields(benchmarks)
       for configuration_name in std.objectFields(other_rubies + graal_configurations + svm_configurations)
     };
@@ -774,7 +782,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
 
     {
       local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-                     $.benchmark.runner + $.benchmark.server,
+                     $.benchmark.runner + $.benchmark.server +
+                     { timelimit: '00:20:00' },
 
       'ruby-benchmarks-server-mri':
         shared + other_rubies.mri,
@@ -793,7 +802,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
         $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.build +
         $.use.truffleruby + $.graal.none +
         $.cap.bench + $.cap.daily +
-        $.benchmark.runner + $.benchmark.metrics,
+        $.benchmark.runner + $.benchmark.metrics +
+        { timelimit: '00:25:00' },
     } +
 
     {
@@ -804,7 +814,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
         // wrong, was there a reason?
         $.graal.core + $.use.sulong + $.use.gem_test_pack + $.use.build +
         $.cap.bench + $.cap.daily +
-        $.benchmark.runner + $.benchmark.cext_chunky,
+        $.benchmark.runner + $.benchmark.cext_chunky +
+        { timelimit: '02:00:00' },
     } +
 
     local solaris_benchmarks = {
@@ -816,94 +827,27 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
       'graal-enterprise-solaris': shared + $.graal.enterprise,
     };
     {
-      local shared = $.benchmark.runner + $.benchmark.classic,
+      local shared = $.benchmark.runner + $.benchmark.classic +
+                     { timelimit: '01:10:00' },
       'ruby-benchmarks-classic-graal-core-solaris':
         shared + solaris_benchmarks['graal-core-solaris'],
       'ruby-benchmarks-classic-graal-enterprise-solaris':
         shared + solaris_benchmarks['graal-enterprise-solaris'],
     },
 
-  timelimits: {
-    'ruby-deploy-and-specs-darwin': '30:00',
-    'ruby-deploy-and-specs-linux': '30:00',
-    'ruby-deploy-and-specs-solaris': '30:00',
-    'ruby-test-fast-java9-linux': '30:00',
-    'ruby-lint': '30:00',
-    'ruby-test-tck': '01:00:00',
-    'ruby-test-mri': '01:00:00',
-    'ruby-test-integration': '01:00:00',
-    'ruby-test-cexts': '01:00:00',
-    'ruby-test-gems': '01:00:00',
-    'ruby-test-bundle-no-sulong': '01:00:00',
-    'ruby-test-ecosystem': '01:00:00',
-    'ruby-test-compiler-graal-core': '01:00:00',
-    'ruby-test-compiler-graal-core-java9': '01:00:00',
-    'ruby-test-compiler-standalone-java9': '01:00:00',
-    'ruby-metrics-truffle': '00:25:00',
-    'ruby-metrics-compiler-graal-core': '00:50:00',
-    'ruby-metrics-compiler-graal-enterprise': '00:50:00',
-    'ruby-metrics-compiler-graal-enterprise-no-om': '00:50:00',
-    'ruby-build-stats-svm-graal-core': '02:00:00',
-    'ruby-build-stats-svm-graal-enterprise': '02:00:00',
-    'ruby-metrics-svm-graal-core': '00:30:00',
-    'ruby-metrics-svm-graal-enterprise': '00:30:00',
-    'ruby-benchmarks-classic-mri': '00:35:00',
-    'ruby-benchmarks-classic-jruby': '00:35:00',
-    'ruby-benchmarks-classic-graal-core': '00:35:00',
-    'ruby-benchmarks-classic-graal-enterprise': '00:35:00',
-    'ruby-benchmarks-classic-graal-enterprise-no-om': '00:35:00',
-    'ruby-benchmarks-classic-svm-graal-core': '01:10:00',
-    'ruby-benchmarks-classic-svm-graal-enterprise': '01:10:00',
-    'ruby-benchmarks-classic-graal-core-solaris': '01:10:00',
-    'ruby-benchmarks-classic-graal-enterprise-solaris': '01:10:00',
-    'ruby-benchmarks-chunky-mri': '01:00:00',
-    'ruby-benchmarks-chunky-jruby': '01:00:00',
-    'ruby-benchmarks-chunky-graal-core': '01:00:00',
-    'ruby-benchmarks-chunky-graal-enterprise': '01:00:00',
-    'ruby-benchmarks-chunky-graal-enterprise-no-om': '01:00:00',
-    'ruby-benchmarks-chunky-svm-graal-core': '01:00:00',
-    'ruby-benchmarks-chunky-svm-graal-enterprise': '01:00:00',
-    'ruby-benchmarks-psd-mri': '02:00:00',
-    'ruby-benchmarks-psd-jruby': '02:00:00',
-    'ruby-benchmarks-psd-graal-core': '02:00:00',
-    'ruby-benchmarks-psd-graal-enterprise': '02:00:00',
-    'ruby-benchmarks-psd-graal-enterprise-no-om': '02:00:00',
-    'ruby-benchmarks-psd-svm-graal-core': '02:00:00',
-    'ruby-benchmarks-psd-svm-graal-enterprise': '02:00:00',
-    'ruby-benchmarks-asciidoctor-mri': '00:35:00',
-    'ruby-benchmarks-asciidoctor-jruby': '00:35:00',
-    'ruby-benchmarks-asciidoctor-graal-core': '00:35:00',
-    'ruby-benchmarks-asciidoctor-graal-enterprise': '00:35:00',
-    'ruby-benchmarks-asciidoctor-graal-enterprise-no-om': '00:35:00',
-    'ruby-benchmarks-asciidoctor-svm-graal-core': '00:35:00',
-    'ruby-benchmarks-asciidoctor-svm-graal-enterprise': '00:35:00',
-    'ruby-benchmarks-other-mri': '00:40:00',
-    'ruby-benchmarks-other-jruby': '00:40:00',
-    'ruby-benchmarks-other-graal-core': '00:40:00',
-    'ruby-benchmarks-other-graal-enterprise': '00:40:00',
-    'ruby-benchmarks-other-graal-enterprise-no-om': '00:40:00',
-    'ruby-benchmarks-other-svm-graal-core': '01:00:00',
-    'ruby-benchmarks-other-svm-graal-enterprise': '01:00:00',
-    'ruby-benchmarks-server-mri': '00:20:00',
-    'ruby-benchmarks-server-jruby': '00:20:00',
-    'ruby-benchmarks-server-graal-core': '00:20:00',
-    'ruby-benchmarks-server-graal-enterprise': '00:20:00',
-    'ruby-benchmarks-server-graal-enterprise-no-om': '00:20:00',
-    'ruby-benchmarks-cext': '02:00:00',
-    'ruby-test-svm-graal-core-linux': '01:00:00',
-    'ruby-test-svm-graal-core-darwin': '01:00:00',
-    'ruby-test-svm-graal-enterprise-linux': '01:00:00',
-    'ruby-test-svm-graal-enterprise-darwin': '01:00:00',
-  },
-
   builds:
     local all_builds = $.test_builds + $.bench_builds;
     utils.check_builds(
       restrict_builds_to,
       // Move name inside into `name` field
-      // and add timelimit
+      // and ensure timelimit is present
       [
-        all_builds[k] { name: k, timelimit: $.timelimits[k] }
+        all_builds[k] {
+          name: k,
+          timelimit: if std.objectHas(all_builds[k], 'timelimit')
+          then all_builds[k].timelimit
+          else error 'Missing timelimit in ' + k + ' build.',
+        }
         for k in std.objectFields(all_builds)
       ]
     ),
