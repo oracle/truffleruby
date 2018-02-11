@@ -30,6 +30,18 @@ public class CompareHashKeysNode extends RubyBaseNode {
         }
     }
 
+    /**
+     * Checks if the two keys are the same object, which is used by both modes (by identity or not)
+     * of lookup. Enables to check if the two keys are the same without a method call.
+     */
+    public boolean referenceEqualKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
+        if (compareByIdentity) {
+            return equal(key, otherKey);
+        } else {
+            return hashed == otherHashed && equal(key, otherKey);
+        }
+    }
+
     private boolean sameOrEql(VirtualFrame frame, Object key1, Object key2) {
         if (sameOrEqlNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

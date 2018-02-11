@@ -50,16 +50,16 @@ public abstract class LookupPackedEntryNode extends RubyNode {
             "isCompareByIdentity(hash) == cachedByIdentity",
             "cachedIndex >= 0",
             "cachedIndex < getSize(hash)",
-            "compareKeysAtIndex(frame, hash, key, hashed, cachedIndex, cachedByIdentity)"
+            "sameKeysAtIndex(hash, key, hashed, cachedIndex, cachedByIdentity)"
     }, limit = "1")
-    public Object getConstantIndexPackedArray(VirtualFrame frame, DynamicObject hash, Object key, int hashed,
-            @Cached("index(frame, hash, key, hashed)") int cachedIndex,
+    public Object getConstantIndexPackedArray(DynamicObject hash, Object key, int hashed,
+            @Cached("index(hash, key, hashed)") int cachedIndex,
             @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity) {
         final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
         return PackedArrayStrategy.getValue(store, cachedIndex);
     }
 
-    protected int index(VirtualFrame frame, DynamicObject hash, Object key, int hashed) {
+    protected int index(DynamicObject hash, Object key, int hashed) {
         if (!HashGuards.isPackedHash(hash)) {
             return -1;
         }
@@ -72,7 +72,7 @@ public abstract class LookupPackedEntryNode extends RubyNode {
         for (int n = 0; n < size; n++) {
             final int otherHashed = PackedArrayStrategy.getHashed(store, n);
             final Object otherKey = PackedArrayStrategy.getKey(store, n);
-            if (equalKeys(frame, compareByIdentity, key, hashed, otherKey, otherHashed)) {
+            if (sameKeys(compareByIdentity, key, hashed, otherKey, otherHashed)) {
                 return n;
             }
         }
@@ -80,19 +80,20 @@ public abstract class LookupPackedEntryNode extends RubyNode {
         return -1;
     }
 
-    protected boolean compareKeysAtIndex(VirtualFrame frame, DynamicObject hash, Object key, int hashed, int cachedIndex, boolean cachedByIdentity) {
+    protected boolean sameKeysAtIndex(DynamicObject hash, Object key, int hashed, int cachedIndex, boolean cachedByIdentity) {
         final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
-        Object other = PackedArrayStrategy.getKey(store, cachedIndex);
-        int otherHashed = PackedArrayStrategy.getHashed(store, cachedIndex);
-        return equalKeys(frame, cachedByIdentity, key, hashed, other, otherHashed);
+        final Object otherKey = PackedArrayStrategy.getKey(store, cachedIndex);
+        final int otherHashed = PackedArrayStrategy.getHashed(store, cachedIndex);
+
+        return sameKeys(cachedByIdentity, key, hashed, otherKey, otherHashed);
+    }
+
+    private boolean sameKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
+        return compareHashKeysNode.referenceEqualKeys(compareByIdentity, key, hashed, otherKey, otherHashed);
     }
 
     protected int getSize(DynamicObject hash) {
         return Layouts.HASH.getSize(hash);
-    }
-
-    protected boolean equalKeys(VirtualFrame frame, boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
-        return compareHashKeysNode.equalKeys(frame, compareByIdentity, key, hashed, otherKey, otherHashed);
     }
 
     @ExplodeLoop
@@ -125,6 +126,10 @@ public abstract class LookupPackedEntryNode extends RubyNode {
         useDefaultProfile.enter();
         return callDefaultNode.call(frame, hash, "default", key);
 
+    }
+
+    protected boolean equalKeys(VirtualFrame frame, boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
+        return compareHashKeysNode.equalKeys(frame, compareByIdentity, key, hashed, otherKey, otherHashed);
     }
 
 }
