@@ -78,7 +78,7 @@ local part_definitions = {
 
       setup+: [
         ['git', 'clone', ['mx', 'urlrewrite', 'https://github.com/graalvm/sulong.git'], '../sulong'],
-        ['mx', 'sforceimports'], // ensure versions declared in TruffleRuby
+        ['mx', 'sforceimports'],  // ensure versions declared in TruffleRuby
         ['cd', '../sulong'],
         ['mx', 'build'],
         ['mx', 'sversions'],
@@ -628,16 +628,18 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
         { '$.run.svm_gate':: { tags: 'build,darwin_ruby' } },
     };
     {
-      ['ruby-test-svm-graal-core-' + k]:
-        $.use.build + $.svm.core +
-        svm_test_platforms[k] +
-        { '$.run.svm_gate':: { tags: 'build,ruby' } }
-      for k in std.objectFields(svm_test_platforms)
+      local shared = $.use.build + $.svm.core,
+      local tag_override = { '$.run.svm_gate':: { tags: 'build,ruby' } },
+
+      'ruby-test-svm-graal-core-linux':
+        shared + svm_test_platforms.linux + tag_override,
+      'ruby-test-svm-graal-core-darwin':
+        shared + svm_test_platforms.darwin + tag_override,
     } + {
-      ['ruby-test-svm-graal-enterprise-' + k]:
-        $.use.build + $.svm.enterprise +
-        svm_test_platforms[k]
-      for k in std.objectFields(svm_test_platforms)
+      local shared = $.use.build + $.svm.enterprise,
+
+      'ruby-test-svm-graal-enterprise-linux': shared + svm_test_platforms.linux,
+      'ruby-test-svm-graal-enterprise-darwin': shared + svm_test_platforms.darwin,
     },
 
   local other_rubies = {
@@ -665,47 +667,96 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
 
   bench_builds:
     {
-      ['ruby-metrics-compiler-' + k]:
-        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-        $.benchmark.runner + $.benchmark.compiler_metrics +
-        graal_configurations[k]
-      for k in std.objectFields(graal_configurations)
+      local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
+                     $.benchmark.runner + $.benchmark.compiler_metrics,
+
+      'ruby-metrics-compiler-graal-core':
+        shared + graal_configurations['graal-core'],
+      'ruby-metrics-compiler-graal-enterprise':
+        shared + graal_configurations['graal-enterprise'],
+      'ruby-metrics-compiler-graal-enterprise-no-om':
+        shared + graal_configurations['graal-enterprise-no-om'],
     } +
 
     {
-      ['ruby-build-stats-' + k]:
-        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-        $.benchmark.runner + $.benchmark.svm_build_stats +
-        svm_configurations[k] +
-        // TODO this 2 jobs have GUEST_VM_CONFIG: 'default' instead of 'truffle', why?
-        { environment+: { GUEST_VM_CONFIG: 'default' } }
-      for k in std.objectFields(svm_configurations)
+      local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
+                     $.benchmark.runner + $.benchmark.svm_build_stats,
+      // TODO this 2 jobs have GUEST_VM_CONFIG: 'default' instead of 'truffle', why?
+      local guest_vm_override = { environment+: { GUEST_VM_CONFIG: 'default' } },
+
+      'ruby-build-stats-svm-graal-core':
+        shared + svm_configurations['svm-graal-core'] + guest_vm_override,
+      'ruby-build-stats-svm-graal-enterprise':
+        shared + svm_configurations['svm-graal-enterprise'] + guest_vm_override,
     } +
 
     {
-      ['ruby-metrics-' + k]:
-        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-        $.benchmark.run_svm_metrics +
-        svm_configurations[k] +
-        $.cap.x52_18_override
-      for k in std.objectFields(svm_configurations)
+      local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
+                     $.benchmark.run_svm_metrics,
+
+      'ruby-metrics-svm-graal-core':
+        shared + svm_configurations['svm-graal-core'] + $.cap.x52_18_override,
+      'ruby-metrics-svm-graal-enterprise':
+        shared + svm_configurations['svm-graal-enterprise'] + $.cap.x52_18_override,
     } +
 
     {
-      ['ruby-benchmarks-classic-' + k]:
-        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-        $.benchmark.runner + $.benchmark.classic +
-        (other_rubies + graal_configurations + svm_configurations)[k]
-      for k in std.objectFields(other_rubies + graal_configurations + svm_configurations)
+      local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
+                     $.benchmark.runner + $.benchmark.classic,
+
+      'ruby-benchmarks-classic-mri':
+        shared + other_rubies.mri,
+      'ruby-benchmarks-classic-jruby':
+        shared + other_rubies.jruby,
+      'ruby-benchmarks-classic-graal-core':
+        shared + graal_configurations['graal-core'],
+      'ruby-benchmarks-classic-graal-enterprise':
+        shared + graal_configurations['graal-enterprise'],
+      'ruby-benchmarks-classic-graal-enterprise-no-om':
+        shared + graal_configurations['graal-enterprise-no-om'],
+      'ruby-benchmarks-classic-svm-graal-core':
+        shared + svm_configurations['svm-graal-core'],
+      'ruby-benchmarks-classic-svm-graal-enterprise':
+        shared + svm_configurations['svm-graal-enterprise'],
     } +
 
+    local benchmark_names = [
+      'ruby-benchmarks-chunky-mri',
+      'ruby-benchmarks-chunky-jruby',
+      'ruby-benchmarks-chunky-graal-core',
+      'ruby-benchmarks-chunky-graal-enterprise',
+      'ruby-benchmarks-chunky-graal-enterprise-no-om',
+      'ruby-benchmarks-chunky-svm-graal-core',
+      'ruby-benchmarks-chunky-svm-graal-enterprise',
+      'ruby-benchmarks-psd-mri',
+      'ruby-benchmarks-psd-jruby',
+      'ruby-benchmarks-psd-graal-core',
+      'ruby-benchmarks-psd-graal-enterprise',
+      'ruby-benchmarks-psd-graal-enterprise-no-om',
+      'ruby-benchmarks-psd-svm-graal-core',
+      'ruby-benchmarks-psd-svm-graal-enterprise',
+      'ruby-benchmarks-asciidoctor-mri',
+      'ruby-benchmarks-asciidoctor-jruby',
+      'ruby-benchmarks-asciidoctor-graal-core',
+      'ruby-benchmarks-asciidoctor-graal-enterprise',
+      'ruby-benchmarks-asciidoctor-graal-enterprise-no-om',
+      'ruby-benchmarks-asciidoctor-svm-graal-core',
+      'ruby-benchmarks-asciidoctor-svm-graal-enterprise',
+      'ruby-benchmarks-other-mri',
+      'ruby-benchmarks-other-jruby',
+      'ruby-benchmarks-other-graal-core',
+      'ruby-benchmarks-other-graal-enterprise',
+      'ruby-benchmarks-other-graal-enterprise-no-om',
+      'ruby-benchmarks-other-svm-graal-core',
+      'ruby-benchmarks-other-svm-graal-enterprise',
+    ];
     local benchmarks = {
       'chunky-': $.benchmark.runner + $.benchmark.chunky,
       'psd-': $.benchmark.runner + $.benchmark.psd,
       'asciidoctor-': $.benchmark.runner + $.benchmark.asciidoctor,
       'other-': $.benchmark.runner + $.benchmark.other,
     };
-    {
+    local benchmark_builds = {
       local svm_build = std.objectHas(svm_configurations, configuration_name),
       local other_bench = benchmark_name == 'other-',
       ['ruby-benchmarks-' + benchmark_name + configuration_name]:
@@ -715,14 +766,26 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
         (if other_bench && !svm_build then $.benchmark.other_extra else {})
       for benchmark_name in std.objectFields(benchmarks)
       for configuration_name in std.objectFields(other_rubies + graal_configurations + svm_configurations)
+    };
+    {
+      [k]: benchmark_builds[k]
+      for k in benchmark_names
     } +
 
     {
-      ['ruby-benchmarks-server-' + k]:
-        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-        $.benchmark.runner + $.benchmark.server +
-        (other_rubies + graal_configurations)[k]
-      for k in std.objectFields(other_rubies + graal_configurations)
+      local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
+                     $.benchmark.runner + $.benchmark.server,
+
+      'ruby-benchmarks-server-mri':
+        shared + other_rubies.mri,
+      'ruby-benchmarks-server-jruby':
+        shared + other_rubies.jruby,
+      'ruby-benchmarks-server-graal-core':
+        shared + graal_configurations['graal-core'],
+      'ruby-benchmarks-server-graal-enterprise':
+        shared + graal_configurations['graal-enterprise'],
+      'ruby-benchmarks-server-graal-enterprise-no-om':
+        shared + graal_configurations['graal-enterprise-no-om'],
     } +
 
     {
@@ -748,14 +811,16 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
       local shared = $.platform.solaris + $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.build +
                      $.use.truffleruby +
                      $.cap.bench + $.cap.daily,
+
       'graal-core-solaris': shared + $.graal.core,
       'graal-enterprise-solaris': shared + $.graal.enterprise,
     };
     {
-      ['ruby-benchmarks-classic-' + k]:
-        $.benchmark.runner + $.benchmark.classic +
-        solaris_benchmarks[k]
-      for k in std.objectFields(solaris_benchmarks)
+      local shared = $.benchmark.runner + $.benchmark.classic,
+      'ruby-benchmarks-classic-graal-core-solaris':
+        shared + solaris_benchmarks['graal-core-solaris'],
+      'ruby-benchmarks-classic-graal-enterprise-solaris':
+        shared + solaris_benchmarks['graal-enterprise-solaris'],
     },
 
   timelimits: {
