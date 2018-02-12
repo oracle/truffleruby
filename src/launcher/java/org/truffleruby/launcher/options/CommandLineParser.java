@@ -39,7 +39,6 @@ import org.truffleruby.launcher.RubyLogger;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -76,30 +75,6 @@ public class CommandLineParser {
         this.parseVersionAndHelp = parseHelpEtc;
         this.arguments = Objects.requireNonNull(arguments);
         this.jvmArguments = new ArrayList<>();
-    }
-
-    public static void processEnvironmentVariable(
-            String name,
-            CommandLineOptions commandLineOptions,
-            boolean rubyOpts) throws CommandLineException {
-
-        String value = System.getenv(name);
-        if (value != null) {
-            value = value.trim();
-            if (value.length() != 0) {
-                List<String> args = Arrays.asList(value.split("\\s+"));
-
-                if (args.size() != 0) {
-                    new CommandLineParser(
-                            args,
-                            commandLineOptions,
-                            false,
-                            rubyOpts,
-                            true // let it parse and fail
-                    ).processArguments();
-                }
-            }
-        }
     }
 
     public void processArguments() throws CommandLineException {
