@@ -385,6 +385,16 @@ public abstract class ArrayStrategy {
         }
 
         @Override
+        public ArrayStrategy generalize(ArrayStrategy other) {
+            CompilerAsserts.neverPartOfCompilation();
+            if (other == LongArrayStrategy.INSTANCE) {
+                return ObjectArrayStrategy.INSTANCE;
+            } else {
+                return this;
+            }
+        }
+
+        @Override
         public ArrayMirror newArray(int size) {
             return new ObjectArrayMirror(new Object[size]);
         }
