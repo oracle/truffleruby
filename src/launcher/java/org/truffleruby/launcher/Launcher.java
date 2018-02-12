@@ -58,6 +58,7 @@ import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class Launcher {
@@ -214,8 +215,10 @@ public class Launcher {
             }
 
             if (config.getOption(OptionsCatalog.READ_RUBYOPT)) {
-                CommandLineParser.processEnvironmentVariable("RUBYOPT", config, true);
-                CommandLineParser.processEnvironmentVariable("TRUFFLERUBYOPT", config, false);
+                new CommandLineParser(getArgsFromEnvVariable("RUBYOPT"),
+                        config, false, true, true).processArguments();
+                new CommandLineParser(getArgsFromEnvVariable("TRUFFLERUBYOPT"),
+                        config, false, false, true).processArguments();
             }
 
             if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
@@ -232,6 +235,17 @@ public class Launcher {
             }
             System.exit(1);
         }
+    }
+
+    private static List<String> getArgsFromEnvVariable(String name) {
+        String value = System.getenv(name);
+        if (value != null) {
+            value = value.trim();
+            if (value.length() != 0) {
+                return Arrays.asList(value.split("\\s+"));
+            }
+        }
+        return Collections.emptyList();
     }
 
     public static void printTruffleTimeMetric(String id) {
