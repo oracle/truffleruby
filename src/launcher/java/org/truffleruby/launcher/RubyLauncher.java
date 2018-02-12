@@ -76,11 +76,18 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             }
 
             // Put java options to polyglot options
-            for (Map.Entry<String, String> jvmOptionEntry : config.getJVMOptions().entrySet()) {
-                polyglotOptions.put(
-                                // ignore dash at the beginning
-                                "jvm." + jvmOptionEntry.getKey().substring(1),
-                                jvmOptionEntry.getValue());
+            for (String jvmOption : config.getJVMOptions()) {
+                final int eqIdx = jvmOption.indexOf('=');
+                final String key;
+                final String value;
+                if (eqIdx < 0) {
+                    key = jvmOption.substring(2);
+                    value = null;
+                } else {
+                    key = jvmOption.substring(2, eqIdx);
+                    value = jvmOption.substring(eqIdx + 1);
+                }
+                polyglotOptions.put(key,value);
             }
         }
 

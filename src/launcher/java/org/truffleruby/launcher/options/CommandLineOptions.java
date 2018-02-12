@@ -38,7 +38,7 @@ public class CommandLineOptions {
     private Map<String, String> options = new HashMap<>();
     private String[] arguments = new String[]{};
     private final List<String> unknownArguments = new ArrayList<>(0);
-    private final Map<String, String> jvmOptions = new HashMap<>();
+    private final List<String> jvmOptions = new ArrayList<>();
 
     private boolean irbInsteadOfInputUsed = false;
 
@@ -82,7 +82,8 @@ public class CommandLineOptions {
         return unknownArguments;
     }
 
-    public Map<String, String> getJVMOptions() {
+    // JVM options in polyglot format
+    public List<String> getJVMOptions() {
         return jvmOptions;
     }
 
