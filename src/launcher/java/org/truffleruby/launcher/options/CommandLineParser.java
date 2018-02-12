@@ -50,7 +50,7 @@ import java.util.logging.Level;
 public class CommandLineParser {
 
     private final List<String> arguments;
-    private final List<String> jvmArguments;
+    private final List<String> argumentsToBeRemoved;
     private int argumentIndex;
     private boolean processArgv;
     private final boolean rubyOpts;
@@ -74,7 +74,7 @@ public class CommandLineParser {
         this.rubyOpts = rubyOpts;
         this.parseVersionAndHelp = parseHelpEtc;
         this.arguments = Objects.requireNonNull(arguments);
-        this.jvmArguments = new ArrayList<>();
+        this.argumentsToBeRemoved = new ArrayList<>();
     }
 
     public void processArguments() throws CommandLineException {
@@ -96,7 +96,7 @@ public class CommandLineParser {
             processArgv();
         }
 
-        arguments.removeAll(jvmArguments);
+        arguments.removeAll(argumentsToBeRemoved);
     }
 
     private void processArgv() {
@@ -243,14 +243,14 @@ public class CommandLineParser {
                     break FOR;
                 case 'J':
                     String javaOption = grabOptionalValue();
-                    jvmArguments.add(argument);
+                    argumentsToBeRemoved.add(argument);
                     final boolean isClasspath = javaOption.equals("-cp") || javaOption.equals("-classpath");
 
                     String javaOptionValue;
                     if (isClasspath) {
                         argumentIndex++;
                         javaOptionValue = getCurrentArgument();
-                        jvmArguments.add(javaOptionValue);
+                        argumentsToBeRemoved.add(javaOptionValue);
                     } else {
                         javaOptionValue = "";
                     }
