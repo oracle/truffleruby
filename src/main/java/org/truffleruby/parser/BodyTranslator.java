@@ -194,6 +194,7 @@ import org.truffleruby.parser.ast.ForParseNode;
 import org.truffleruby.parser.ast.GlobalAsgnParseNode;
 import org.truffleruby.parser.ast.GlobalVarParseNode;
 import org.truffleruby.parser.ast.HashParseNode;
+import org.truffleruby.parser.ast.IArgumentNode;
 import org.truffleruby.parser.ast.IfParseNode;
 import org.truffleruby.parser.ast.InstAsgnParseNode;
 import org.truffleruby.parser.ast.InstVarParseNode;
@@ -212,6 +213,7 @@ import org.truffleruby.parser.ast.MultipleAsgnParseNode;
 import org.truffleruby.parser.ast.NextParseNode;
 import org.truffleruby.parser.ast.NilImplicitParseNode;
 import org.truffleruby.parser.ast.NilParseNode;
+import org.truffleruby.parser.ast.NodeType;
 import org.truffleruby.parser.ast.NthRefParseNode;
 import org.truffleruby.parser.ast.OpAsgnAndParseNode;
 import org.truffleruby.parser.ast.OpAsgnConstDeclParseNode;
@@ -259,14 +261,14 @@ import org.truffleruby.platform.graal.AssertNotCompiledNodeGen;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
 /**
- * A JRuby parser node visitor which translates JRuby AST nodes into truffle Nodes. Therefore there is some namespace
- * contention here! We make all references to JRuby explicit.
+ * A JRuby parser node visitor which translates JRuby AST nodes into truffle Nodes.
  */
 public class BodyTranslator extends Translator {
 
@@ -280,7 +282,7 @@ public class BodyTranslator extends Translator {
 
     private boolean privately = false;
 
-    public BodyTranslator(com.oracle.truffle.api.nodes.Node currentNode, RubyContext context, BodyTranslator parent, TranslatorEnvironment environment, Source source, ParserContext parserContext, boolean topLevel) {
+    public BodyTranslator(Node currentNode, RubyContext context, BodyTranslator parent, TranslatorEnvironment environment, Source source, ParserContext parserContext, boolean topLevel) {
         super(currentNode, context, source, parserContext);
         parserSupport = new ParserSupport(context, source.getName());
         this.parent = parent;
@@ -1533,7 +1535,7 @@ public class BodyTranslator extends Translator {
     private final ParserSupport parserSupport;
 
     private ParseNode setRHS(ParseNode node, ParseNode rhs) {
-        if (node instanceof AssignableParseNode || node instanceof org.truffleruby.parser.ast.IArgumentNode) {
+        if (node instanceof AssignableParseNode || node instanceof IArgumentNode) {
             return parserSupport.node_assign(node, rhs);
         } else {
             throw new UnsupportedOperationException("Don't know how to set the RHS of a " + node.getClass().getName());
@@ -1547,7 +1549,7 @@ public class BodyTranslator extends Translator {
         if (dummyAssignment instanceof StarParseNode) {
             // Nothing to assign to, just execute the RHS
             return rhs;
-        } else if (dummyAssignment instanceof AssignableParseNode || dummyAssignment instanceof org.truffleruby.parser.ast.IArgumentNode) {
+        } else if (dummyAssignment instanceof AssignableParseNode || dummyAssignment instanceof IArgumentNode) {
             final ParseNode wrappedRHS = new ParseNode(dummyAssignment.getPosition()) {
                 @SuppressWarnings("unchecked")
                 @Override
@@ -1561,8 +1563,8 @@ public class BodyTranslator extends Translator {
                 }
 
                 @Override
-                public org.truffleruby.parser.ast.NodeType getNodeType() {
-                    return org.truffleruby.parser.ast.NodeType.FIXNUMNODE; // since we behave like a value
+                public NodeType getNodeType() {
+                    return NodeType.FIXNUMNODE; // since we behave like a value
                 }
             };
 
