@@ -21,7 +21,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /*
  * TODO(CS): how does this work when when multithreaded? Could a node get replaced by someone else and
@@ -74,7 +73,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         private AppendArrayNode getAppendArrayNode() {
             if (appendArrayNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                appendArrayNode = insert(AppendArrayNode.create(getContext()));
+                appendArrayNode = insert(AppendArrayNode.create(getContext(), startNode.strategy));
             }
             return appendArrayNode;
         }
@@ -82,7 +81,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         private AppendOneNode getAppendOneNode() {
             if (appendOneNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                appendOneNode = insert(AppendOneNode.create(getContext()));
+                appendOneNode = insert(AppendOneNode.create(getContext(), startNode.strategy));
             }
             return appendOneNode;
         }
@@ -90,10 +89,10 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         public void updateStrategy(ArrayStrategy strategy, int size) {
             if (startNode.replacement(strategy, size)) {
                 if (appendArrayNode != null) {
-                    appendArrayNode.replace(AppendArrayNode.create(getContext()));
+                    appendArrayNode.replace(AppendArrayNode.create(getContext(), strategy));
                 }
                 if (appendOneNode != null) {
-                    appendOneNode.replace(AppendOneNode.create(getContext()));
+                    appendOneNode.replace(AppendOneNode.create(getContext(), strategy));
                 }
             }
         }
@@ -102,7 +101,6 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
     public abstract static class ArrayBuilderBaseNode extends Node {
 
         protected void replaceNodes(ArrayStrategy strategy, int size) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
             final ArrayBuilderProxyNode parent = (ArrayBuilderProxyNode) getParent();
             parent.updateStrategy(strategy, size);
         }
@@ -110,8 +108,8 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
     public static class StartNode extends ArrayBuilderBaseNode {
 
-        private final ArrayStrategy strategy;
-        private final int expectedLength;
+        final ArrayStrategy strategy;
+        final int expectedLength;
 
         public StartNode(ArrayStrategy strategy, int expectedLength) {
             this.strategy = strategy;
@@ -140,27 +138,27 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
     @ImportStatic(ArrayGuards.class)
     public abstract static class AppendOneNode extends ArrayBuilderBaseNode {
 
-        public static AppendOneNode create(RubyContext context) {
-            return AppendOneNodeGen.create(context);
+        public static AppendOneNode create(RubyContext context, ArrayStrategy arrayStrategy) {
+            return AppendOneNodeGen.create(context, arrayStrategy);
         }
 
         private final RubyContext context;
+        protected final ArrayStrategy arrayStrategy;
 
-        public AppendOneNode(RubyContext context) {
+        public AppendOneNode(RubyContext context, ArrayStrategy arrayStrategy) {
             this.context = context;
+            this.arrayStrategy = arrayStrategy;
         }
 
         public abstract Object executeAppend(Object array, int index, Object value);
 
-        @Specialization(guards = { "strategy.matchesStore(array)", "strategy.accepts(value)" },
-                        limit = "1")
-        public Object appendCompatibleType(Object array, int index, Object value,
-                @Cached("ofStore(array)") ArrayStrategy strategy,
-                @Cached("createBinaryProfile()") ConditionProfile expandProfile) {
-            ArrayMirror mirror = strategy.newMirrorFromStore(array);
-            if (expandProfile.profile(index >= mirror.getLength())) {
+        @Specialization(guards = { "arrayStrategy.matchesStore(array)", "arrayStrategy.accepts(value)" })
+        public Object appendCompatibleType(Object array, int index, Object value) {
+            ArrayMirror mirror = arrayStrategy.newMirrorFromStore(array);
+            if (index >= mirror.getLength()) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
                 final int capacity = ArrayUtils.capacityForOneMore(context, mirror.getLength());
-                replaceNodes(strategy, capacity);
+                replaceNodes(arrayStrategy, capacity);
                 mirror = mirror.copyArrayAndMirror(capacity);
             }
             mirror.set(index, value);
@@ -170,11 +168,11 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         @Specialization(guards = { "arrayStrategy.matchesStore(array)", "!arrayStrategy.accepts(value)", "valueStrategy.specializesFor(value)" },
                         limit = "STORAGE_STRATEGIES")
         public Object appendNewStrategy(Object array, int index, Object value,
-                @Cached("ofStore(array)") ArrayStrategy arrayStrategy,
                 @Cached("forValue(value)") ArrayStrategy valueStrategy,
                 @Cached("arrayStrategy.generalize(valueStrategy)") ArrayStrategy generalized) {
             final ArrayMirror mirror = arrayStrategy.newMirrorFromStore(array);
             final int neededCapacity = ArrayUtils.capacityForOneMore(context, mirror.getLength());
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             replaceNodes(generalized, neededCapacity);
             final ArrayMirror newMirror = generalized.newArray(neededCapacity);
             mirror.copyTo(newMirror, 0, 0, index);
@@ -187,31 +185,33 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
     @ImportStatic(ArrayGuards.class)
     public abstract static class AppendArrayNode extends ArrayBuilderBaseNode {
 
-        public static AppendArrayNode create(RubyContext context) {
-            return AppendArrayNodeGen.create(context);
+        public static AppendArrayNode create(RubyContext context, ArrayStrategy arrayStrategy) {
+            return AppendArrayNodeGen.create(context, arrayStrategy);
         }
 
         private final RubyContext context;
+        protected final ArrayStrategy arrayStrategy;
 
-        public AppendArrayNode(RubyContext context) {
+        public AppendArrayNode(RubyContext context, ArrayStrategy arrayStrategy) {
             this.context = context;
+            this.arrayStrategy = arrayStrategy;
         }
 
         public abstract Object executeAppend(Object array, int index, DynamicObject value);
 
-        @Specialization(guards = { "generalized.matchesStore(array)", "otherStrategy.matches(other)" },
+        @Specialization(guards = { "arrayStrategy.matchesStore(array)", "otherStrategy.matches(other)",
+                                   "arrayStrategy == generalized" },
                         limit = "STORAGE_STRATEGIES")
-        public Object appendNewStrategy(Object array, int index, DynamicObject other,
-                @Cached("ofStore(array)") ArrayStrategy arrayStrategy,
+        public Object appendSameStrategy(Object array, int index, DynamicObject other,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
-                @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized,
-                @Cached("createBinaryProfile()") ConditionProfile expandProfile) {
+                @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized) {
             ArrayMirror mirror = arrayStrategy.newMirrorFromStore(array);
             final ArrayMirror otherMirror = otherStrategy.newMirror(other);
             final int otherSize = Layouts.ARRAY.getSize(other);
             final int neededSize = index + otherSize;
 
-            if (expandProfile.profile(neededSize > mirror.getLength())) {
+            if (neededSize > mirror.getLength()) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
                 replaceNodes(arrayStrategy, neededSize);
                 final int capacity = ArrayUtils.capacity(context, mirror.getLength(), neededSize);
                 mirror = mirror.copyArrayAndMirror(capacity);
@@ -225,7 +225,6 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                                    "arrayStrategy.matchesStore(array)", "otherStrategy.matches(other)" },
                         limit = "STORAGE_STRATEGIES")
         public Object appendNewStrategy(Object array, int index, DynamicObject other,
-                @Cached("ofStore(array)") ArrayStrategy arrayStrategy,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized) {
             final ArrayMirror mirror = arrayStrategy.newMirrorFromStore(array);
@@ -235,10 +234,12 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             final ArrayMirror newMirror;
 
             if (neededSize > mirror.getLength()) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
                 replaceNodes(generalized, neededSize);
                 final int capacity = ArrayUtils.capacity(context, mirror.getLength(), neededSize);
                 newMirror = generalized.newArray(capacity);
             } else {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
                 replaceNodes(generalized, mirror.getLength());
                 newMirror = generalized.newArray(mirror.getLength());
             }
