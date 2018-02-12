@@ -249,13 +249,14 @@ public class CommandLineParser {
                     String javaOptionValue;
                     if (isClasspath) {
                         argumentIndex++;
-                        javaOptionValue = getCurrentArgument();
-                        argumentsToBeRemoved.add(javaOptionValue);
+                        final String currentArgument = getCurrentArgument();
+                        argumentsToBeRemoved.add(currentArgument);
+                        javaOptionValue = "=" + currentArgument;
                     } else {
                         javaOptionValue = "";
                     }
 
-                    config.getJVMOptions().put(javaOption, javaOptionValue);
+                    config.getJVMOptions().add("--jvm." + javaOption.substring(1) + javaOptionValue);
                     break FOR;
                 case 'K':
                     throw notImplemented("-K");
