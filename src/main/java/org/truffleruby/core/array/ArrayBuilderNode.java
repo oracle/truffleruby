@@ -43,8 +43,8 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
     private static class ArrayBuilderProxyNode extends ArrayBuilderNode {
 
         @Child StartNode startNode = new StartNode(ArrayStrategy.forValue(0), 0);
-        @Child AppendArrayNode appendArrayNode = null;
-        @Child AppendOneNode appendOneNode = null;
+        @Child AppendArrayNode appendArrayNode;
+        @Child AppendOneNode appendOneNode;
 
         @Override
         public Object start() {
