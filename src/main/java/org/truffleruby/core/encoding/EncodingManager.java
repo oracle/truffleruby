@@ -74,11 +74,9 @@ public class EncodingManager {
         while (hei.hasNext()) {
             final CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
             final EncodingDB.Entry encodingEntry = e.value;
-
-            defineEncoding(encodingEntry, e.bytes, e.p, e.end);
+            final DynamicObject rubyEncoding = defineEncoding(encodingEntry, e.bytes, e.p, e.end);
 
             for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
-                final DynamicObject rubyEncoding = getRubyEncoding(encodingEntry.getIndex());
                 Layouts.MODULE.getFields(encodingClass).setConstant(context, null, constName, rubyEncoding);
             }
         }
@@ -92,11 +90,10 @@ public class EncodingManager {
             final EncodingDB.Entry encodingEntry = e.value;
 
             // The alias name should be exactly the one in the encodings DB.
-            defineAlias(encodingEntry.getIndex(), new String(e.bytes, e.p, e.end));
+            final DynamicObject rubyEncoding = defineAlias(encodingEntry.getIndex(), new String(e.bytes, e.p, e.end));
 
             // The constant names must be treated by the the <code>encodingNames</code> helper.
             for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
-                final DynamicObject rubyEncoding = getRubyEncoding(encodingEntry.getIndex());
                 Layouts.MODULE.getFields(encodingClass).setConstant(context, null, constName, rubyEncoding);
             }
         }
@@ -243,10 +240,10 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    public void defineAlias(int encodingListIndex, String name) {
+    public DynamicObject defineAlias(int encodingListIndex, String name) {
         final DynamicObject rubyEncoding = getRubyEncoding(encodingListIndex);
-
         LOOKUP.put(name.toLowerCase(Locale.ENGLISH), rubyEncoding);
+        return rubyEncoding;
     }
 
     @TruffleBoundary
