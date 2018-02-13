@@ -19,7 +19,6 @@ import org.jcodings.EncodingDB;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.jcodings.util.Hash;
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -110,18 +109,6 @@ public abstract class TruffleEncodingNodes {
                     throw new UnsupportedOperationException();
             }
         }
-    }
-
-    @CoreMethod(names = "unicode?", onSingleton = true, required = 1)
-    public abstract static class IsUnicodeNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "isRubyEncoding(encoding)")
-        public boolean isUnicode(DynamicObject encoding) {
-            final Encoding enc = Layouts.ENCODING.getEncoding(encoding);
-
-            return enc.isUnicode();
-        }
-
     }
 
 }

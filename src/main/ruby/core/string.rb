@@ -503,7 +503,7 @@ class String
 
     enc = encoding
     ascii = enc.ascii_compatible?
-    unicode = Truffle::EncodingOperations.unicode?(enc)
+    unicode = Truffle.invoke_primitive :encoding_is_unicode, enc
 
     if unicode
       if enc.equal? Encoding::UTF_16
