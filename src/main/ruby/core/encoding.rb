@@ -113,8 +113,8 @@ class Encoding
   end
   private_class_method :set_alias_index
 
-  def self.default_external
-    @default_external
+  class << self
+    attr_reader :default_external, :default_internal
   end
 
   def self.default_external=(enc)
@@ -125,10 +125,6 @@ class Encoding
     set_alias_index 'filesystem', enc
     @default_external = enc
     Truffle::EncodingOperations.default_external = enc
-  end
-
-  def self.default_internal
-    @default_internal
   end
 
   def self.default_internal=(enc)
