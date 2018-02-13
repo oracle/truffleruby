@@ -74,6 +74,10 @@ class Encoding
   @default_external = Truffle::EncodingOperations.get_default_encoding('external')
   @default_internal = Truffle::EncodingOperations.get_default_encoding('internal')
 
+  Truffle::Boot.delay do
+    FILESYSTEM = Truffle::EncodingOperations.get_default_encoding('filesystem')
+  end
+
   def self.aliases
     aliases = {}
     EncodingMap.each do |_n, r|
@@ -195,9 +199,5 @@ class Encoding
 
   def self._load(name)
     find name
-  end
-
-  Truffle::Boot.delay do
-    FILESYSTEM = Encoding.find('filesystem')
   end
 end
