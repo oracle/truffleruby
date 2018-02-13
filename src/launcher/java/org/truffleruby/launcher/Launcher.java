@@ -57,6 +57,7 @@ import java.io.File;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -242,7 +243,7 @@ public class Launcher {
         if (value != null) {
             value = value.trim();
             if (value.length() != 0) {
-                return Arrays.asList(value.split("\\s+"));
+                return new ArrayList<>(Arrays.asList(value.split("\\s+")));
             }
         }
         return Collections.emptyList();
