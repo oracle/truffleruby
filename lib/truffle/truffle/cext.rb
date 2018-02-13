@@ -915,27 +915,27 @@ module Truffle::CExt
   def rb_to_encoding_index(enc)
     enc = Truffle::Type.coerce_to_encoding(enc)
     return -1 if enc == false
-    rb_enc_find_index(enc.name)
+    rb_enc_to_index(enc)
   end
 
   def rb_locale_encindex
-    rb_enc_find_index Encoding::LOCALE.name
+    rb_enc_to_index Encoding::LOCALE
   end
 
   def rb_filesystem_encindex
-    rb_enc_find_index Encoding::FILESYSTEM.name
+    rb_enc_to_index Encoding::FILESYSTEM
   end
 
   def rb_ascii8bit_encindex
-    rb_enc_find_index Encoding::ASCII_8BIT.name
+    rb_enc_to_index Encoding::ASCII_8BIT
   end
 
   def rb_usascii_encindex
-    rb_enc_find_index Encoding::US_ASCII.name
+    rb_enc_to_index Encoding::US_ASCII
   end
 
   def rb_utf8_encindex
-    rb_enc_find_index Encoding::UTF_8.name
+    rb_enc_to_index Encoding::UTF_8
   end
 
   def rb_enc_from_index(index)
@@ -1083,7 +1083,7 @@ module Truffle::CExt
           else
             0
           end
-    enc = rb_enc_find_index(enc.name) if enc.is_a?(Encoding)
+    enc = rb_enc_to_index(enc) if enc.is_a?(Encoding)
     enc
   end
 
