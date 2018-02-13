@@ -502,27 +502,6 @@ module Truffle
       end
     end
 
-    def self.try_convert_to_encoding(obj)
-      case obj
-      when Encoding
-        return obj
-      when String
-        str = obj
-      else
-        str = StringValue obj
-      end
-
-      key = str.upcase.to_sym
-
-      pair = Encoding::EncodingMap[key]
-      if pair
-        index = pair.last
-        return index && Truffle.invoke_primitive(:encoding_get_encoding_by_index, index)
-      end
-
-      false
-    end
-
     def self.coerce_to_path(obj, check_null = true)
       if object_kind_of?(obj, String)
         path = obj

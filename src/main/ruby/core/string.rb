@@ -401,7 +401,7 @@ class String
           options = opts
           to_enc = Encoding.default_internal
         else
-          to_enc = Truffle::Type.try_convert_to_encoding to
+          to_enc = Encoding.try_convert(to)
         end
       end
     end
