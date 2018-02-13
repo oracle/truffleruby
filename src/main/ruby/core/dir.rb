@@ -49,7 +49,7 @@ class Dir
       enc = Truffle::Type.coerce_to_encoding enc if enc
     end
 
-    @encoding = enc || Encoding::FILESYSTEM
+    @encoding = enc || Encoding.filesystem
 
     @ptr = Truffle::POSIX.opendir(@path)
     Errno.handle if @ptr.null?
