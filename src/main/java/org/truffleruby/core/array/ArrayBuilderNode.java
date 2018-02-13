@@ -17,6 +17,7 @@ import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
@@ -87,13 +88,14 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         }
 
         public void updateStrategy(ArrayStrategy strategy, int size) {
-            if (startNode.replacement(strategy, size)) {
-                if (appendArrayNode != null) {
-                    appendArrayNode.replace(AppendArrayNode.create(getContext(), strategy));
-                }
-                if (appendOneNode != null) {
-                    appendOneNode.replace(AppendOneNode.create(getContext(), strategy));
-                }
+            final ArrayStrategy oldStrategy = startNode.strategy;
+            final ArrayStrategy newStrategy = oldStrategy.generalize(strategy);
+            startNode.replacement(strategy, size);
+            if (appendArrayNode != null) {
+                appendArrayNode.replace(AppendArrayNode.create(getContext(), newStrategy));
+            }
+            if (appendOneNode != null) {
+                appendOneNode.replace(AppendOneNode.create(getContext(), newStrategy));
             }
         }
     }
@@ -128,10 +130,12 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             return strategy.newArray(length).getArray();
         }
 
-        public boolean replacement(ArrayStrategy strategy, int newLength) {
-            final StartNode newNode = new StartNode(strategy, Math.max(expectedLength, newLength));
-            this.replace(newNode);
-            return (strategy != this.strategy);
+        public void replacement(ArrayStrategy strategy, int newLength) {
+            final int newExpectedLength = Math.max(expectedLength, newLength);
+            if (expectedLength != newExpectedLength) {
+                final StartNode newNode = new StartNode(strategy, newExpectedLength);
+                this.replace(newNode);
+            }
         }
     }
 
@@ -165,14 +169,14 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             return mirror.getArray();
         }
 
-        @Specialization(guards = { "arrayStrategy.matchesStore(array)", "!arrayStrategy.accepts(value)", "valueStrategy.specializesFor(value)" },
-                        limit = "STORAGE_STRATEGIES")
-        public Object appendNewStrategy(Object array, int index, Object value,
-                @Cached("forValue(value)") ArrayStrategy valueStrategy,
-                @Cached("arrayStrategy.generalize(valueStrategy)") ArrayStrategy generalized) {
-            final ArrayMirror mirror = arrayStrategy.newMirrorFromStore(array);
-            final int neededCapacity = ArrayUtils.capacityForOneMore(context, mirror.getLength());
+        @Fallback
+        public Object appendNewStrategy(Object array, int index, Object value) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
+            ArrayStrategy currentStrategy = ArrayStrategy.ofStore(array);
+            ArrayStrategy valueStrategy = ArrayStrategy.forValue(value);
+            ArrayStrategy generalized = currentStrategy.generalize(valueStrategy);
+            final ArrayMirror mirror = currentStrategy.newMirrorFromStore(array);
+            final int neededCapacity = ArrayUtils.capacityForOneMore(context, mirror.getLength());
             replaceNodes(generalized, neededCapacity);
             final ArrayMirror newMirror = generalized.newArray(neededCapacity);
             mirror.copyTo(newMirror, 0, 0, index);
@@ -228,6 +232,38 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized) {
             final ArrayMirror mirror = arrayStrategy.newMirrorFromStore(array);
+            final ArrayMirror otherMirror = otherStrategy.newMirror(other);
+            final int otherSize = Layouts.ARRAY.getSize(other);
+            final int neededSize = index + otherSize;
+            final ArrayMirror newMirror;
+
+            if (neededSize > mirror.getLength()) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                replaceNodes(generalized, neededSize);
+                final int capacity = ArrayUtils.capacity(context, mirror.getLength(), neededSize);
+                newMirror = generalized.newArray(capacity);
+            } else {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                replaceNodes(generalized, mirror.getLength());
+                newMirror = generalized.newArray(mirror.getLength());
+            }
+
+            mirror.copyTo(newMirror, 0, 0, index);
+            otherMirror.copyTo(newMirror, 0, index, otherSize);
+            return newMirror.getArray();
+        }
+
+        /*
+         * This is a corner case which can occur with recursion. If a recursive call changes the storage
+         * strategy then we handle that here.
+         */
+        @Specialization(guards = "!arrayStrategy.matchesStore(array)")
+        public Object appendNewStrategy(Object array, int index, DynamicObject other) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            ArrayStrategy currentStrategy = ArrayStrategy.ofStore(array);
+            ArrayStrategy otherStrategy = ArrayStrategy.of(other);
+            ArrayStrategy generalized = currentStrategy.generalize(otherStrategy);
+            final ArrayMirror mirror = currentStrategy.newMirrorFromStore(array);
             final ArrayMirror otherMirror = otherStrategy.newMirror(other);
             final int otherSize = Layouts.ARRAY.getSize(other);
             final int neededSize = index + otherSize;

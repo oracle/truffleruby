@@ -389,6 +389,8 @@ public abstract class ArrayStrategy {
             CompilerAsserts.neverPartOfCompilation();
             if (other == LongArrayStrategy.INSTANCE) {
                 return ObjectArrayStrategy.INSTANCE;
+            } else if (other == ObjectArrayStrategy.INSTANCE) {
+                return other;
             } else {
                 return this;
             }
