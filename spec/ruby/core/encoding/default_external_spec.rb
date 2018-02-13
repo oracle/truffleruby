@@ -18,23 +18,6 @@ with_feature :encoding do
       Encoding.default_external = Encoding::SHIFT_JIS
       Encoding.default_external.should == Encoding::SHIFT_JIS
     end
-
-    describe "with command line options" do
-      it "is not changed by the -U option" do
-        result = ruby_exe("print Encoding.default_external", options: '-U')
-        result.should == Encoding.default_external.name
-      end
-
-      it "returns the encoding specified by '-E external'" do
-        result = ruby_exe("print Encoding.default_external", options: '-E euc-jp')
-        result.should == "EUC-JP"
-      end
-
-      it "returns the encoding specified by '-E external:'" do
-        result = ruby_exe("print Encoding.default_external", options: '-E Shift_JIS:')
-        result.should == "Shift_JIS"
-      end
-    end
   end
 
   describe "Encoding.default_external=" do
