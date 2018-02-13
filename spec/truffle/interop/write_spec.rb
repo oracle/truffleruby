@@ -11,7 +11,6 @@ require_relative '../../ruby/spec_helper'
 describe "Truffle::Interop.write" do
   
   class HasMethod
-    
     def foo=(value)
       @called = true
     end
@@ -19,19 +18,19 @@ describe "Truffle::Interop.write" do
     def called?
       @called
     end
-    
   end
   
   class HasIndexSet
-    
+    attr_reader :key
+
     def []=(n, value)
+      @key = n
       @called = true
     end
     
     def called?
       @called
     end
-    
   end
 
   describe "writes an instance variable if given an @name" do
@@ -53,12 +52,21 @@ describe "Truffle::Interop.write" do
       object = HasIndexSet.new
       Truffle::Interop.write object, :foo, 14
       object.called?.should be_true
+      object.key.should == "foo"
     end
     
     it "as a string" do
       object = HasIndexSet.new
       Truffle::Interop.write object, 'foo', 14
       object.called?.should be_true
+      object.key.should == "foo"
+    end
+
+    it "and converts the name to a Ruby String" do
+      object = HasIndexSet.new
+      Truffle::Interop.write object, Truffle::Interop.to_java_string('foo'), 14
+      object.called?.should be_true
+      object.key.should == "foo"
     end
   end
   
@@ -84,8 +92,15 @@ describe "Truffle::Interop.write" do
 
   it "can be used to assign a hash" do
     hash = {1 => 2, 3 => 4, 5 => 6}
+
     Truffle::Interop.write hash, 3, 14
     hash[3].should == 14
+
+    Truffle::Interop.write hash, "foo", "bar"
+    hash["foo"].should == "bar"
+
+    Truffle::Interop.write hash, :I, "am"
+    hash["I"].should == "am"
   end
 
   it "raises a NameError when the identifier is not found on a Ruby object" do
