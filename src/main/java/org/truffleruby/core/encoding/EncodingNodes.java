@@ -21,7 +21,10 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
+import org.jcodings.EncodingDB;
 import org.jcodings.specific.USASCIIEncoding;
+import org.jcodings.util.CaseInsensitiveBytesHash;
+import org.jcodings.util.Hash;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -29,14 +32,17 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToEncodingNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.yield.YieldNode;
 
 @CoreClass("Encoding")
 public abstract class EncodingNodes {
@@ -428,6 +434,24 @@ public abstract class EncodingNodes {
             throw new RaiseException(coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 
+    }
+
+    @Primitive(name = "encoding_each_alias", needsSelf = false)
+    public abstract static class EachAliasNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private YieldNode yieldNode = new YieldNode();
+        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject eachAlias(DynamicObject block) {
+            for (Hash.HashEntry<EncodingDB.Entry> entry : EncodingDB.getAliases().entryIterator()) {
+                final CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = (CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry>) entry;
+                final DynamicObject aliasName = makeStringNode.executeMake(ArrayUtils.extractRange(e.bytes, e.p, e.end), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+                yieldNode.dispatch(block, aliasName, entry.value.getIndex());
+            }
+            return nil();
+        }
     }
 
     @Primitive(name = "encoding_is_unicode", needsSelf = false)

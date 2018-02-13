@@ -41,7 +41,7 @@ class Encoding
         map[key] = [nil, index]
       end
 
-      Truffle::EncodingOperations.each_alias do |alias_name, index|
+      Truffle.invoke_primitive :encoding_each_alias, -> alias_name, index do
         key = alias_name.upcase.to_sym
         map[key] = [alias_name, index]
       end
