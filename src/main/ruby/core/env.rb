@@ -298,11 +298,10 @@ module Truffle
 
     def set_encoding(value)
       return unless value.kind_of? String
-      locale = Encoding.find('locale')
       if Encoding.default_internal && value.ascii_only?
-        value = value.encode Encoding.default_internal, locale
-      elsif value.encoding != locale
-        value = value.dup.force_encoding(locale)
+        value = value.encode Encoding.default_internal, Encoding::LOCALE
+      elsif value.encoding != Encoding::LOCALE
+        value = value.dup.force_encoding(Encoding::LOCALE)
       end
       value.taint unless value.tainted?
       value.freeze

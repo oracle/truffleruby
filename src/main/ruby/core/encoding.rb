@@ -75,6 +75,7 @@ class Encoding
   @default_internal = Truffle::EncodingOperations.get_default_encoding('internal')
 
   Truffle::Boot.delay do
+    LOCALE = Truffle::EncodingOperations.get_default_encoding('locale')
     FILESYSTEM = Truffle::EncodingOperations.get_default_encoding('filesystem')
   end
 
