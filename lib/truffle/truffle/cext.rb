@@ -909,7 +909,7 @@ module Truffle::CExt
   end
 
   def rb_filesystem_encoding
-    Encoding::FILESYSTEM
+    Encoding.filesystem
   end
 
   def rb_to_encoding_index(enc)
@@ -923,7 +923,7 @@ module Truffle::CExt
   end
 
   def rb_filesystem_encindex
-    rb_enc_to_index Encoding::FILESYSTEM
+    rb_enc_to_index Encoding.filesystem
   end
 
   def rb_ascii8bit_encindex

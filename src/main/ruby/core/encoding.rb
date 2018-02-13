@@ -78,7 +78,6 @@ class Encoding
 
   Truffle::Boot.delay do
     LOCALE = Truffle::EncodingOperations.get_default_encoding('locale')
-    FILESYSTEM = Truffle::EncodingOperations.get_default_encoding('filesystem')
   end
 
   def self.aliases
@@ -117,6 +116,10 @@ class Encoding
 
   class << self
     attr_reader :default_external, :default_internal
+
+    # The filesystem Encoding is always the same as the external encoding,
+    # except on Windows (see Init_enc_set_filesystem_encoding() in MRI).
+    alias_method :filesystem, :default_external
   end
 
   def self.default_external=(enc)
