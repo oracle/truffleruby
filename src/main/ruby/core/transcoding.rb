@@ -44,10 +44,8 @@ class Encoding
     def inspect
       "#<#{super} #{source} to #{target}"
     end
-  end
 
-  class << self
-    def build_transcoding_map
+    def self.build_transcoding_map
       map = {}
       Encoding::Converter.each_transcoder do |source, destinations|
         h = {}
@@ -58,10 +56,9 @@ class Encoding
       end
       map
     end
-    private :build_transcoding_map
   end
 
-  TranscodingMap = build_transcoding_map
+  TranscodingMap = Transcoding.build_transcoding_map
 
   class UndefinedConversionError < EncodingError
     attr_accessor :source_encoding_name
