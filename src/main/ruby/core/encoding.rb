@@ -48,33 +48,33 @@ class Encoding
       map
     end
 
-    private def setup_default_encodings
-      # Note the locale Encoding is patched below,
-      # so modify that code too if you change the code here.
-      %w[internal external locale filesystem].each do |name|
-        key = name.upcase.to_sym
-        enc = Truffle::EncodingOperations.get_default_encoding(name)
-        index = enc ? EncodingMap[enc.name.upcase.to_sym].last : nil
-        EncodingMap[key] = [name, index]
-      end
+    private def setup_default_encoding(name, key)
+      enc = Truffle::EncodingOperations.get_default_encoding(name)
+      index = if enc
+                # UTF-8 is the default value for those, so optimize for that
+                enc_name = enc == Encoding::UTF_8 ? :'UTF-8' : enc.name.upcase.to_sym
+                EncodingMap[enc_name].last
+              else
+                nil
+              end
+      EncodingMap[key] = [name, index]
+      enc
     end
   end
 
   EncodingMap = build_encoding_map
-  setup_default_encodings
+
+  @default_internal = setup_default_encoding('internal', :INTERNAL)
+  @default_external = setup_default_encoding('external', :EXTERNAL)
+  setup_default_encoding('locale', :LOCALE)
+  setup_default_encoding('filesystem', :FILESYSTEM)
 
   if Truffle::Boot.preinitializing?
     # Update for the new locale Encoding
     Truffle::Boot.delay do
-      enc = Truffle::EncodingOperations.get_default_encoding('locale')
-      enc_name = enc == Encoding::UTF_8 ? :'UTF-8' : enc.name.upcase.to_sym
-      index = EncodingMap[enc_name].last
-      EncodingMap[:LOCALE] = ['locale', index]
+      setup_default_encoding('locale', :LOCALE)
     end
   end
-
-  @default_external = Truffle::EncodingOperations.get_default_encoding('external')
-  @default_internal = Truffle::EncodingOperations.get_default_encoding('internal')
 
   Truffle::Boot.delay do
     LOCALE = Truffle::EncodingOperations.get_default_encoding('locale')
