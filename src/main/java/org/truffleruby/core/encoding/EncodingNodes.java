@@ -494,6 +494,39 @@ public abstract class EncodingNodes {
         }
     }
 
+    @Primitive(name = "encoding_set_default_external", needsSelf = false)
+    public abstract static class SetDefaultExternalNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyEncoding(encoding)")
+        public DynamicObject defaultExternalEncoding(DynamicObject encoding) {
+            getContext().getEncodingManager().setDefaultExternalEncoding(EncodingOperations.getEncoding(encoding));
+            return encoding;
+        }
+
+        @Specialization(guards = "isNil(nil)")
+        public DynamicObject defaultExternal(Object nil) {
+            throw new RaiseException(coreExceptions().argumentError("default external can not be nil", this));
+        }
+
+    }
+
+    @Primitive(name = "encoding_set_default_internal", needsSelf = false)
+    public abstract static class SetDefaultInternalNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyEncoding(encoding)")
+        public DynamicObject defaultInternal(DynamicObject encoding) {
+            getContext().getEncodingManager().setDefaultInternalEncoding(EncodingOperations.getEncoding(encoding));
+            return encoding;
+        }
+
+        @Specialization(guards = "isNil(encoding)")
+        public DynamicObject defaultInternal(Object encoding) {
+            getContext().getEncodingManager().setDefaultInternalEncoding(null);
+            return nil();
+        }
+
+    }
+
     @Primitive(name = "encoding_enc_find_index", needsSelf = false)
     public static abstract class EncodingFindIndexNode extends PrimitiveArrayArgumentsNode {
 

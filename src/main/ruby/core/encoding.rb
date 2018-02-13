@@ -129,14 +129,14 @@ class Encoding
     set_alias_index 'external', enc
     set_alias_index 'filesystem', enc
     @default_external = enc
-    Truffle::EncodingOperations.default_external = enc
+    Truffle.invoke_primitive :encoding_set_default_external, enc
   end
 
   def self.default_internal=(enc)
     enc = find(enc) unless enc.nil?
     set_alias_index 'internal', enc
     @default_internal = enc
-    Truffle::EncodingOperations.default_internal = enc
+    Truffle.invoke_primitive :encoding_set_default_internal, enc
   end
 
   def self.try_convert(obj)
