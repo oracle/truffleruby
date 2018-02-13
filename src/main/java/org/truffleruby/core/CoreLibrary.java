@@ -1506,6 +1506,7 @@ public class CoreLibrary {
             "/core/fixnum.rb",
             "/core/bignum.rb",
             "/core/regexp.rb",
+            "/core/transcoding.rb",
             "/core/encoding.rb",
             "/core/env.rb",
             "/core/errno.rb",
