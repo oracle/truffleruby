@@ -9,19 +9,11 @@
  */
 package org.truffleruby.core.encoding;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jcodings.EncodingDB;
-import org.jcodings.specific.USASCIIEncoding;
-import org.jcodings.util.CaseInsensitiveBytesHash;
-import org.jcodings.util.Hash;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
-import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.language.control.RaiseException;
 
 @CoreClass("Truffle::EncodingOperations")
@@ -58,23 +50,6 @@ public abstract class TruffleEncodingNodes {
             return nil();
         }
 
-    }
-
-    @CoreMethod(names = "each_alias", onSingleton = true, needsBlock = true)
-    public abstract static class EachAliasNode extends YieldingCoreMethodNode {
-
-        @Child private org.truffleruby.core.string.StringNodes.MakeStringNode makeStringNode = org.truffleruby.core.string.StringNodes.MakeStringNode.create();
-
-        @Specialization
-        public DynamicObject eachAlias(DynamicObject block) {
-            CompilerAsserts.neverPartOfCompilation();
-            for (Hash.HashEntry<EncodingDB.Entry> entry : EncodingDB.getAliases().entryIterator()) {
-                final CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = (CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry>) entry;
-                final DynamicObject aliasName = makeStringNode.executeMake(ArrayUtils.extractRange(e.bytes, e.p, e.end), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-                yield(block, aliasName, entry.value.getIndex());
-            }
-            return nil();
-        }
     }
 
 }
