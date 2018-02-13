@@ -215,7 +215,7 @@ public class RubyContext {
         // The encoding manager relies on POSIX having been initialized, so we can't process it during
         // normal core library initialization.
         Launcher.printTruffleTimeMetric("before-initialize-encodings");
-        coreLibrary.defineEncodings();
+        encodingManager.defineEncodings();
         encodingManager.initializeDefaultEncodings(truffleNFIPlatform, nativeConfiguration);
         Launcher.printTruffleTimeMetric("after-initialize-encodings");
 

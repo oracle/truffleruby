@@ -21,11 +21,14 @@ import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.EncodingDB.Entry;
 import org.jcodings.specific.USASCIIEncoding;
+import org.jcodings.util.CaseInsensitiveBytesHash;
+import org.jcodings.util.CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.NativeConfiguration;
@@ -57,6 +60,46 @@ public class EncodingManager {
 
     public EncodingManager(RubyContext context) {
         this.context = context;
+    }
+
+    public void defineEncodings() {
+        final DynamicObject encodingClass = context.getCoreLibrary().getEncodingClass();
+        initializeEncodings(encodingClass);
+        initializeEncodingAliases(encodingClass);
+    }
+
+    private void initializeEncodings(DynamicObject encodingClass) {
+        final CaseInsensitiveBytesHash<EncodingDB.Entry>.CaseInsensitiveBytesHashEntryIterator hei = EncodingDB.getEncodings().entryIterator();
+
+        while (hei.hasNext()) {
+            final CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
+            final EncodingDB.Entry encodingEntry = e.value;
+
+            defineEncoding(encodingEntry, e.bytes, e.p, e.end);
+
+            for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
+                final DynamicObject rubyEncoding = getRubyEncoding(encodingEntry.getIndex());
+                Layouts.MODULE.getFields(encodingClass).setConstant(context, null, constName, rubyEncoding);
+            }
+        }
+    }
+
+    private void initializeEncodingAliases(DynamicObject encodingClass) {
+        final CaseInsensitiveBytesHash<EncodingDB.Entry>.CaseInsensitiveBytesHashEntryIterator hei = EncodingDB.getAliases().entryIterator();
+
+        while (hei.hasNext()) {
+            final CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
+            final EncodingDB.Entry encodingEntry = e.value;
+
+            // The alias name should be exactly the one in the encodings DB.
+            defineAlias(encodingEntry.getIndex(), new String(e.bytes, e.p, e.end));
+
+            // The constant names must be treated by the the <code>encodingNames</code> helper.
+            for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
+                final DynamicObject rubyEncoding = getRubyEncoding(encodingEntry.getIndex());
+                Layouts.MODULE.getFields(encodingClass).setConstant(context, null, constName, rubyEncoding);
+            }
+        }
     }
 
     public void initializeDefaultEncodings(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
