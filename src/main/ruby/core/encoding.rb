@@ -34,7 +34,7 @@
 
 class Encoding
   class << self
-    def build_encoding_map
+    private def build_encoding_map
       map = {}
       Encoding.list.each_with_index do |encoding, index|
         key = encoding.name.upcase.to_sym
@@ -45,21 +45,23 @@ class Encoding
         key = alias_name.upcase.to_sym
         map[key] = [alias_name, index]
       end
+      map
+    end
 
+    private def setup_default_encodings
       # Note the locale Encoding is patched below,
       # so modify that code too if you change the code here.
       %w[internal external locale filesystem].each do |name|
         key = name.upcase.to_sym
         enc = Truffle::EncodingOperations.get_default_encoding(name)
-        index = enc ? map[enc.name.upcase.to_sym].last : nil
-        map[key] = [name, index]
+        index = enc ? EncodingMap[enc.name.upcase.to_sym].last : nil
+        EncodingMap[key] = [name, index]
       end
-      map
     end
-    private :build_encoding_map
   end
 
   EncodingMap = build_encoding_map
+  setup_default_encodings
 
   if Truffle::Boot.preinitializing?
     # Update for the new locale Encoding
