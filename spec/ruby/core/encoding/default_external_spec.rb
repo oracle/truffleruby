@@ -49,6 +49,12 @@ with_feature :encoding do
     it "sets the default external encoding" do
       Encoding.default_external = Encoding::SHIFT_JIS
       Encoding.default_external.should == Encoding::SHIFT_JIS
+      Encoding.find('external').should == Encoding::SHIFT_JIS
+    end
+
+    it "also sets the filesystem encoding" do
+      Encoding.default_external = Encoding::SHIFT_JIS
+      Encoding.find('filesystem').should == Encoding::SHIFT_JIS
     end
 
     it "can accept a name of an encoding as a String" do
