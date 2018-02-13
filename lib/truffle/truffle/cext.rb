@@ -905,11 +905,11 @@ module Truffle::CExt
   end
 
   def rb_locale_encoding
-    Encoding.find('locale')
+    Encoding::LOCALE
   end
 
   def rb_filesystem_encoding
-    Encoding.find('filesystem')
+    Encoding::FILESYSTEM
   end
 
   def rb_to_encoding_index(enc)
@@ -919,11 +919,11 @@ module Truffle::CExt
   end
 
   def rb_locale_encindex
-    rb_enc_find_index Encoding.find('locale').name
+    rb_enc_find_index Encoding::LOCALE.name
   end
 
   def rb_filesystem_encindex
-    rb_enc_find_index Encoding.find('filesystem').name
+    rb_enc_find_index Encoding::FILESYSTEM.name
   end
 
   def rb_ascii8bit_encindex
