@@ -10,11 +10,8 @@
 package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.util.CaseInsensitiveBytesHash;
@@ -25,7 +22,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
 
 @CoreClass("Truffle::EncodingOperations")
@@ -78,36 +74,6 @@ public abstract class TruffleEncodingNodes {
                 yield(block, aliasName, entry.value.getIndex());
             }
             return nil();
-        }
-    }
-
-    @CoreMethod(names = "get_default_encoding", onSingleton = true, required = 1)
-    public abstract static class GetDefaultEncodingNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "isRubyString(name)")
-        public DynamicObject getDefaultEncoding(DynamicObject name,
-                                                @Cached("create()")EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
-            final Encoding encoding = getEncoding(StringOperations.getString(name));
-            if (encoding == null) {
-                return nil();
-            } else {
-                return getRubyEncodingNode.executeGetRubyEncoding(encoding);
-            }
-        }
-
-        @TruffleBoundary
-        private Encoding getEncoding(String name) {
-            switch (name) {
-                case "internal":
-                    return getContext().getEncodingManager().getDefaultInternalEncoding();
-                case "external":
-                case "filesystem":
-                    return getContext().getEncodingManager().getDefaultExternalEncoding();
-                case "locale":
-                    return getContext().getEncodingManager().getLocaleEncoding();
-                default:
-                    throw new UnsupportedOperationException();
-            }
         }
     }
 

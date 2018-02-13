@@ -49,7 +49,7 @@ class Encoding
     end
 
     private def setup_default_encoding(name, key)
-      enc = Truffle::EncodingOperations.get_default_encoding(name)
+      enc = Truffle.invoke_primitive :encoding_get_default_encoding, name
       index = if enc
                 # UTF-8 is the default value for those, so optimize for that
                 enc_name = enc == Encoding::UTF_8 ? :'UTF-8' : enc.name.upcase.to_sym
@@ -77,7 +77,7 @@ class Encoding
   end
 
   Truffle::Boot.delay do
-    LOCALE = Truffle::EncodingOperations.get_default_encoding('locale')
+    LOCALE = Truffle.invoke_primitive :encoding_get_default_encoding, 'locale'
   end
 
   def self.aliases
