@@ -7,25 +7,17 @@
 # GNU Lesser General Public License version 2.1
 
 require_relative '../../ruby/spec_helper'
+require_relative 'fixtures/classes'
 
 describe "Truffle::Interop.new" do
   
-  class NewTestClass
-    
-    attr_reader :x
-    
-    def initialize(a, b)
-      @x = a + b
-    end
-    
-  end
-  
   it "creates new instances of objects" do
-    Truffle::Interop.new(NewTestClass, 14, 2).should be_an_instance_of NewTestClass
+    obj = Truffle::Interop.new(TruffleInteropSpecs::NewTestClass, 14, 2)
+    obj.should be_an_instance_of(TruffleInteropSpecs::NewTestClass)
   end
   
   it "calls initialize" do
-    Truffle::Interop.new(NewTestClass, 14, 2).x.should == 16
+    Truffle::Interop.new(TruffleInteropSpecs::NewTestClass, 14, 2).x.should == 16
   end
 
 end

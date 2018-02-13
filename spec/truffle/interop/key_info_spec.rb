@@ -7,18 +7,7 @@
 # GNU Lesser General Public License version 2.1
 
 require_relative '../../ruby/spec_helper'
-
-class KeyInfoFixture
-  
-  def initialize
-    @exists = 14
-  end
-
-  attr_reader :ro
-  attr_accessor :rw
-  attr_writer :wo
-
-end
+require_relative 'fixtures/classes'
 
 describe "Truffle::Interop.key_info" do
   describe "for a Hash with String keys" do
@@ -104,7 +93,7 @@ describe "Truffle::Interop.key_info" do
   describe "for a general object" do
     
     before :each do
-      @object = KeyInfoFixture.new
+      @object = TruffleInteropSpecs::KeyInfoFixture.new
     end
 
     it "returns :existing for all methods" do

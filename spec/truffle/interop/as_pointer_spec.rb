@@ -7,16 +7,9 @@
 # GNU Lesser General Public License version 2.1
 
 require_relative '../../ruby/spec_helper'
+require_relative 'fixtures/classes'
 
 describe "Truffle::Interop.as_pointer" do
-  
-  class InteropAsPointerClass
-    
-    def address
-      0x123
-    end
-    
-  end
   
   it "is not supported for nil" do
     lambda { Truffle::Interop.as_pointer(nil) }.should raise_error(ArgumentError)
@@ -31,7 +24,7 @@ describe "Truffle::Interop.as_pointer" do
   end
 
   it "calls #address" do
-    Truffle::Interop.as_pointer(InteropAsPointerClass.new).should == 0x123
+    Truffle::Interop.as_pointer(TruffleInteropSpecs::AsPointerClass.new).should == 0x123
   end
 
 end
