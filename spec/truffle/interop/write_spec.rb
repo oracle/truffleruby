@@ -7,31 +7,9 @@
 # GNU Lesser General Public License version 2.1
 
 require_relative '../../ruby/spec_helper'
+require_relative 'fixtures/classes'
 
 describe "Truffle::Interop.write" do
-  
-  class HasMethod
-    def foo=(value)
-      @called = true
-    end
-    
-    def called?
-      @called
-    end
-  end
-  
-  class HasIndexSet
-    attr_reader :key
-
-    def []=(n, value)
-      @key = n
-      @called = true
-    end
-    
-    def called?
-      @called
-    end
-  end
 
   describe "writes an instance variable if given an @name" do
     it "as a symbol" do
@@ -49,21 +27,21 @@ describe "Truffle::Interop.write" do
   
   describe "calls #[]= if there isn't a method with the same name" do
     it "as a symbol" do
-      object = HasIndexSet.new
+      object = TruffleInteropSpecs::WriteHasIndexSet.new
       Truffle::Interop.write object, :foo, 14
       object.called?.should be_true
       object.key.should == "foo"
     end
     
     it "as a string" do
-      object = HasIndexSet.new
+      object = TruffleInteropSpecs::WriteHasIndexSet.new
       Truffle::Interop.write object, 'foo', 14
       object.called?.should be_true
       object.key.should == "foo"
     end
 
     it "and converts the name to a Ruby String" do
-      object = HasIndexSet.new
+      object = TruffleInteropSpecs::WriteHasIndexSet.new
       Truffle::Interop.write object, Truffle::Interop.to_java_string('foo'), 14
       object.called?.should be_true
       object.key.should == "foo"
@@ -72,13 +50,13 @@ describe "Truffle::Interop.write" do
   
   describe "calls a method if there is a method with the same name plus =" do
     it "as a symbol" do
-      object = HasMethod.new
+      object = TruffleInteropSpecs::WriteHasMethod.new
       Truffle::Interop.write object, :foo, 14
       object.called?.should be_true
     end
     
     it "as a string" do
-      object = HasMethod.new
+      object = TruffleInteropSpecs::WriteHasMethod.new
       Truffle::Interop.write object, 'foo', 14
       object.called?.should be_true
     end

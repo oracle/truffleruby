@@ -7,25 +7,16 @@
 # GNU Lesser General Public License version 2.1
 
 require_relative '../../ruby/spec_helper'
+require_relative 'fixtures/classes'
 
 describe "Truffle::Interop.keys" do
-  
-  class InteropKeysClass
-    
-    def initialize
-      @a = 1
-      @b = 2
-      @c = 3
-    end
-    
-  end
   
   it "returns the keys of a hash" do
     Truffle::Interop.keys({a: 1, b: 2, c: 3}).should == ['a', 'b', 'c']
   end
   
   it "returns the instance variables of something that isn't a hash" do
-    Truffle::Interop.keys(InteropKeysClass.new).sort.should == ['a', 'b', 'c']
+    Truffle::Interop.keys(TruffleInteropSpecs::InteropKeysClass.new).sort.should == ['a', 'b', 'c']
   end
   
   describe "with internal set" do
@@ -37,7 +28,7 @@ describe "Truffle::Interop.keys" do
     end
     
     it "returns instance variables of something that isn't a hash" do
-      Truffle::Interop.keys(InteropKeysClass.new, true).should include('@a', '@b', '@c')
+      Truffle::Interop.keys(TruffleInteropSpecs::InteropKeysClass.new, true).should include('@a', '@b', '@c')
     end
     
   end

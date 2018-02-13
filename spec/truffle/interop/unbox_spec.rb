@@ -10,14 +10,6 @@ require_relative '../../ruby/spec_helper'
 
 describe "Truffle::Interop.unbox" do
   
-  class InteropUnboxClass
-    
-    def unbox
-      14
-    end
-    
-  end
-  
   it "passes through fixnums" do
     Truffle::Interop.unbox(14).should == 14
   end
@@ -59,7 +51,11 @@ describe "Truffle::Interop.unbox" do
   end
 
   it "calls #unbox" do
-    Truffle::Interop.unbox(InteropUnboxClass.new).should == 14
+    obj = Object.new
+    def obj.unbox
+      14
+    end
+    Truffle::Interop.unbox(obj).should == 14
   end
 
 end

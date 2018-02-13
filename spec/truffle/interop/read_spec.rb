@@ -7,32 +7,9 @@
 # GNU Lesser General Public License version 2.1
 
 require_relative '../../ruby/spec_helper'
+require_relative 'fixtures/classes'
 
 describe "Truffle::Interop.read" do
-  
-  class ReadInstanceVariable
-    
-    def initialize
-      @foo = 14
-    end
-    
-  end
-  
-  class HasMethod
-    
-    def foo
-      14
-    end
-    
-  end
-  
-  class HasIndex
-    
-    def [](n)
-      14
-    end
-    
-  end
 
   it "reads a byte from a string" do
     Truffle::Interop.read('123', 1).should == '2'.ord
@@ -40,31 +17,31 @@ describe "Truffle::Interop.read" do
   
   describe "reads an instance variable if given an @name" do
     it "as a symbol" do
-      Truffle::Interop.read(ReadInstanceVariable.new, :@foo).should == 14
+      Truffle::Interop.read(TruffleInteropSpecs::ReadInstanceVariable.new, :@foo).should == 14
     end
     
     it "as a string" do
-      Truffle::Interop.read(ReadInstanceVariable.new, '@foo').should == 14
+      Truffle::Interop.read(TruffleInteropSpecs::ReadInstanceVariable.new, '@foo').should == 14
     end
   end
   
   describe "calls #[] if there isn't a method with the same name" do
     it "as a symbol" do
-      Truffle::Interop.read(HasIndex.new, :foo).should == 14
+      Truffle::Interop.read(TruffleInteropSpecs::ReadHasIndex.new, :foo).should == 14
     end
     
     it "as a string" do
-      Truffle::Interop.read(HasIndex.new, 'foo').should == 14
+      Truffle::Interop.read(TruffleInteropSpecs::ReadHasIndex.new, 'foo').should == 14
     end
   end
   
   describe "calls a method if there is a method with the same name" do
     it "as a symbol" do
-      Truffle::Interop.read(HasMethod.new, :foo).should == 14
+      Truffle::Interop.read(TruffleInteropSpecs::ReadHasMethod.new, :foo).should == 14
     end
     
     it "as a string" do
-      Truffle::Interop.read(HasMethod.new, 'foo').should == 14
+      Truffle::Interop.read(TruffleInteropSpecs::ReadHasMethod.new, 'foo').should == 14
     end
   end
 

@@ -10,14 +10,6 @@ require_relative '../../ruby/spec_helper'
 
 describe "Truffle::Interop.to_native" do
   
-  class InteropToNativeClass
-    
-    def to_native
-      Truffle::FFI::Pointer.new(0x123)
-    end
-    
-  end
-  
   it "is not supported for nil" do
     lambda { Truffle::Interop.to_native(nil) }.should raise_error(ArgumentError)
   end
@@ -27,7 +19,11 @@ describe "Truffle::Interop.to_native" do
   end
 
   it "calls #to_native" do
-    Truffle::Interop.to_native(InteropToNativeClass.new).should == Truffle::FFI::Pointer.new(0x123)
+    obj = Object.new
+    def obj.to_native
+      Truffle::FFI::Pointer.new(0x123)
+    end
+    Truffle::Interop.to_native(obj).should == Truffle::FFI::Pointer.new(0x123)
   end
 
 end

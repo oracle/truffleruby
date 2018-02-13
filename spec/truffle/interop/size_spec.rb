@@ -10,14 +10,6 @@ require_relative '../../ruby/spec_helper'
 
 describe "Truffle::Interop.size" do
   
-  class InteropSizeClass
-    
-    def size
-      14
-    end
-    
-  end
-  
   it "returns the size of an array" do
     Truffle::Interop.size([1, 2, 3]).should == 3
   end
@@ -31,7 +23,11 @@ describe "Truffle::Interop.size" do
   end
   
   it "returns the size of any object with a size method" do
-    Truffle::Interop.size(InteropSizeClass.new).should == 14
+    obj = Object.new
+    def obj.size
+      14
+    end
+    Truffle::Interop.size(obj).should == 14
   end
 
 end
