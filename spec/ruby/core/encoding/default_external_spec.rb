@@ -15,8 +15,8 @@ with_feature :encoding do
     end
 
     it "returns the default external encoding" do
-      Encoding.default_external = Encoding::UTF_8
-      Encoding.default_external.should == Encoding::UTF_8
+      Encoding.default_external = Encoding::SHIFT_JIS
+      Encoding.default_external.should == Encoding::SHIFT_JIS
     end
 
     describe "with command line options" do
@@ -47,8 +47,8 @@ with_feature :encoding do
     end
 
     it "sets the default external encoding" do
-      Encoding.default_external = Encoding::UTF_8
-      Encoding.default_external.should == Encoding::UTF_8
+      Encoding.default_external = Encoding::SHIFT_JIS
+      Encoding.default_external.should == Encoding::SHIFT_JIS
     end
 
     it "can accept a name of an encoding as a String" do
