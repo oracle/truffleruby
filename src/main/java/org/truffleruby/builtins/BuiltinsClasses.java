@@ -46,8 +46,6 @@ import org.truffleruby.core.encoding.EncodingConverterNodesBuiltins;
 import org.truffleruby.core.encoding.EncodingConverterNodesFactory;
 import org.truffleruby.core.encoding.EncodingNodesBuiltins;
 import org.truffleruby.core.encoding.EncodingNodesFactory;
-import org.truffleruby.core.encoding.TruffleEncodingNodesBuiltins;
-import org.truffleruby.core.encoding.TruffleEncodingNodesFactory;
 import org.truffleruby.core.exception.ExceptionNodesBuiltins;
 import org.truffleruby.core.exception.ExceptionNodesFactory;
 import org.truffleruby.core.exception.NameErrorNodesBuiltins;
@@ -237,7 +235,6 @@ public abstract class BuiltinsClasses {
         TruffleBindingNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleBootNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleDebugNodesBuiltins.setup(coreManager, primitiveManager);
-        TruffleEncodingNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleFixnumNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleGCNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleNodesBuiltins.setup(coreManager, primitiveManager);
@@ -319,7 +316,6 @@ public abstract class BuiltinsClasses {
             TruffleBindingNodesFactory.getFactories(),
             TruffleBootNodesFactory.getFactories(),
             TruffleDebugNodesFactory.getFactories(),
-            TruffleEncodingNodesFactory.getFactories(),
             TruffleFixnumNodesFactory.getFactories(),
             TruffleGCNodesFactory.getFactories(),
             TruffleNodesFactory.getFactories(),
