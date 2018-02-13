@@ -440,6 +440,36 @@ public abstract class EncodingNodes {
 
     }
 
+    @Primitive(name = "encoding_get_default_encoding", needsSelf = false)
+    public abstract static class GetDefaultEncodingNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(name)")
+        public DynamicObject getDefaultEncoding(DynamicObject name,
+                @Cached("create()") EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
+            final Encoding encoding = getEncoding(StringOperations.getString(name));
+            if (encoding == null) {
+                return nil();
+            } else {
+                return getRubyEncodingNode.executeGetRubyEncoding(encoding);
+            }
+        }
+
+        @TruffleBoundary
+        private Encoding getEncoding(String name) {
+            switch (name) {
+                case "internal":
+                    return getContext().getEncodingManager().getDefaultInternalEncoding();
+                case "external":
+                case "filesystem":
+                    return getContext().getEncodingManager().getDefaultExternalEncoding();
+                case "locale":
+                    return getContext().getEncodingManager().getLocaleEncoding();
+                default:
+                    throw new UnsupportedOperationException();
+            }
+        }
+    }
+
     @Primitive(name = "encoding_enc_find_index", needsSelf = false)
     public static abstract class EncodingFindIndexNode extends PrimitiveArrayArgumentsNode {
 
