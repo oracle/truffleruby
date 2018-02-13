@@ -559,7 +559,7 @@ public class CommandLineParser {
         }
 
         if (encodings.size() >= 1) {
-            config.setOption(OptionsCatalog.EXTERNAL_ENCODING, encodings.get(1));
+            config.setOption(OptionsCatalog.EXTERNAL_ENCODING, encodings.get(0));
         }
     }
 
