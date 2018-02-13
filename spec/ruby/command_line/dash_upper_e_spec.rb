@@ -4,6 +4,11 @@ describe "ruby -E" do
     result.should == "EUC-JP"
   end
 
+  it "also sets the filesystem encoding with '-E external'" do
+    result = ruby_exe("print Encoding.find('filesystem')", options: '-E euc-jp')
+    result.should == "EUC-JP"
+  end
+
   it "sets the external encoding with '-E external:'" do
     result = ruby_exe("print Encoding.default_external", options: '-E Shift_JIS:')
     result.should == "Shift_JIS"
