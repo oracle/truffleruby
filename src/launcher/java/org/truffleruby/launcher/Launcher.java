@@ -87,7 +87,7 @@ public class Launcher {
         metricsBegin();
 
         final CommandLineOptions config = new CommandLineOptions();
-        processArguments(config, Arrays.asList(args), true, true, IS_NATIVE);
+        processArguments(config, new ArrayList<>(Arrays.asList(args)), true, true, IS_NATIVE);
         printPreRunInformation(isGraal, config);
         setRubyLauncherIfNative(config);
         debugPreInitialization();
@@ -204,29 +204,43 @@ public class Launcher {
             List<String> args,
             boolean parseHelpEtc,
             boolean unknownOptionFails,
-            boolean allowedJVMOptions) {
+            boolean isNative) {
 
         try {
             config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.UNSET);
 
-            new CommandLineParser(args, config, true, false, parseHelpEtc).processArguments();
+            final CommandLineParser argumentCommandLineParser = new CommandLineParser(args, config, true, false, parseHelpEtc);
+            argumentCommandLineParser.processArguments();
 
             if (unknownOptionFails && !config.getUnknownArguments().isEmpty()) {
                 throw new CommandLineException("unknown option " + config.getUnknownArguments().get(0));
             }
 
             if (config.getOption(OptionsCatalog.READ_RUBYOPT)) {
-                new CommandLineParser(getArgsFromEnvVariable("RUBYOPT"),
-                        config, false, true, true).processArguments();
-                new CommandLineParser(getArgsFromEnvVariable("TRUFFLERUBYOPT"),
-                        config, false, false, true).processArguments();
+                final List<String> rubyoptArgs = getArgsFromEnvVariable("RUBYOPT");
+                final List<String> trufflerubyoptArgs = getArgsFromEnvVariable("TRUFFLERUBYOPT");
+                new CommandLineParser(rubyoptArgs, config, false, true, true).processArguments();
+                new CommandLineParser(trufflerubyoptArgs, config, false, false, true).processArguments();
+
+                if (isNative) {
+                    // Append options from ENV variables to args after last interpreter option, which makes sure that
+                    // maybeExec processes --(native|jvm)* options. The options are removed and are not passed to the
+                    // new process if exec is being called.
+                    // The new process gets all arguments and options including those from ENV variables.
+                    // To avoid processing options from ENV variables twice READ_RUBYOPT option is set to false.
+                    // Only native launcher can apply native and jvm options, therefore this is not done on JVM.
+                    final int index = argumentCommandLineParser.getLastInterpreterArgumentIndex();
+                    args.add(index, "-Xread_rubyopt=false");
+                    args.addAll(index + 1, rubyoptArgs);
+                    args.addAll(index + 1 + rubyoptArgs.size(), trufflerubyoptArgs);
+                }
             }
 
             if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
                 config.getOption(OptionsCatalog.DEFAULT_EXECUTION_ACTION).applyTo(config);
             }
 
-            if (!config.getJVMOptions().isEmpty() && !allowedJVMOptions) {
+            if (!config.getJVMOptions().isEmpty() && !isNative) {
                 throw new CommandLineException("cannot apply JVM options " + config.getJVMOptions());
             }
         } catch (CommandLineException commandLineException) {
