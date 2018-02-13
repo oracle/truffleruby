@@ -133,8 +133,29 @@ class Encoding
     Truffle::EncodingOperations.default_internal = enc
   end
 
+  def self.try_convert(obj)
+    case obj
+    when Encoding
+      return obj
+    when String
+      str = obj
+    else
+      str = StringValue obj
+    end
+
+    key = str.upcase.to_sym
+
+    pair = EncodingMap[key]
+    if pair
+      index = pair.last
+      return index && Truffle.invoke_primitive(:encoding_get_encoding_by_index, index)
+    end
+
+    false
+  end
+
   def self.find(name)
-    enc = Truffle::Type.try_convert_to_encoding name
+    enc = try_convert(name)
     return enc unless false == enc
 
     raise ArgumentError, "unknown encoding name - #{name}"

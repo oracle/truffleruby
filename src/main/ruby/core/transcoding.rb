@@ -114,7 +114,7 @@ class Encoding
     attr_reader :options
 
     def self.asciicompat_encoding(string_or_encoding)
-      encoding = Truffle::Type.try_convert_to_encoding string_or_encoding
+      encoding = Encoding.try_convert(string_or_encoding)
 
       return unless encoding
       return if encoding.ascii_compatible?
@@ -326,11 +326,11 @@ class Encoding
 
       Truffle.privately do
         exc.source_encoding_name = source_encoding_name
-        src = Truffle::Type.try_convert_to_encoding source_encoding_name
+        src = Encoding.try_convert(source_encoding_name)
         exc.source_encoding = src unless false == src
 
         exc.destination_encoding_name = destination_encoding_name
-        dst = Truffle::Type.try_convert_to_encoding destination_encoding_name
+        dst = Encoding.try_convert(destination_encoding_name)
         exc.destination_encoding = dst unless false == dst
 
         if error_char
