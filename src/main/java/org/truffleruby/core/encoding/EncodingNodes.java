@@ -430,6 +430,16 @@ public abstract class EncodingNodes {
 
     }
 
+    @Primitive(name = "encoding_is_unicode", needsSelf = false)
+    public abstract static class IsUnicodeNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyEncoding(encoding)")
+        public boolean isUnicode(DynamicObject encoding) {
+            return Layouts.ENCODING.getEncoding(encoding).isUnicode();
+        }
+
+    }
+
     @Primitive(name = "encoding_enc_find_index", needsSelf = false)
     public static abstract class EncodingFindIndexNode extends PrimitiveArrayArgumentsNode {
 
