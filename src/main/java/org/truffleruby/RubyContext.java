@@ -216,7 +216,7 @@ public class RubyContext {
         // normal core library initialization.
         Launcher.printTruffleTimeMetric("before-initialize-encodings");
         coreLibrary.defineEncodings();
-        coreLibrary.initializeDefaultEncodings(truffleNFIPlatform, nativeConfiguration);
+        encodingManager.initializeDefaultEncodings(truffleNFIPlatform, nativeConfiguration);
         Launcher.printTruffleTimeMetric("after-initialize-encodings");
 
         Launcher.printTruffleTimeMetric("before-thread-manager");
@@ -293,7 +293,7 @@ public class RubyContext {
         this.rubyHome = findRubyHome(newOptions);
 
         this.truffleNFIPlatform = createNativePlatform();
-        coreLibrary.initializeDefaultEncodings(truffleNFIPlatform, nativeConfiguration);
+        encodingManager.initializeDefaultEncodings(truffleNFIPlatform, nativeConfiguration);
 
         threadManager.restartMainThread(Thread.currentThread());
         threadManager.initialize(truffleNFIPlatform, nativeConfiguration);

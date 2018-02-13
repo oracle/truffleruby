@@ -28,7 +28,6 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethodNodeManager;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.encoding.EncodingManager;
-import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.rope.Rope;
@@ -60,7 +59,6 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.platform.NativeTypes;
 import org.truffleruby.platform.Platform;
-import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.stdlib.psych.YAMLEncoding;
 
@@ -876,37 +874,6 @@ public class CoreLibrary {
     public void defineEncodings() {
         initializeEncodings();
         initializeEncodingAliases();
-    }
-
-    public void initializeDefaultEncodings(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
-        final EncodingManager encodingManager = getContext().getEncodingManager();
-
-        encodingManager.initializeLocaleEncoding(nfi, nativeConfiguration);
-
-        // External should always have a value, but Encoding.external_encoding{,=} will lazily setup
-        final String externalEncodingName = getContext().getOptions().EXTERNAL_ENCODING;
-        if (!externalEncodingName.isEmpty()) {
-            final DynamicObject loadedEncoding = encodingManager.getRubyEncoding(externalEncodingName);
-            if (loadedEncoding == null) {
-                // TODO (nirvdrum 28-Oct-16): This should just print a nice error message and exit with a status code of 1 -- it's essentially an input validation error -- no need to show the user a full trace.
-                throw new RuntimeException("unknown encoding name - " + externalEncodingName);
-            } else {
-                encodingManager.setDefaultExternalEncoding(EncodingOperations.getEncoding(loadedEncoding));
-            }
-        } else {
-            encodingManager.setDefaultExternalEncoding(encodingManager.getLocaleEncoding());
-        }
-
-        final String internalEncodingName = getContext().getOptions().INTERNAL_ENCODING;
-        if (!internalEncodingName.isEmpty()) {
-            final DynamicObject rubyEncoding = encodingManager.getRubyEncoding(internalEncodingName);
-            if (rubyEncoding == null) {
-                // TODO (nirvdrum 28-Oct-16): This should just print a nice error message and exit with a status code of 1 -- it's essentially an input validation error -- no need to show the user a full trace.
-                throw new RuntimeException("unknown encoding name - " + internalEncodingName);
-            } else {
-                encodingManager.setDefaultInternalEncoding(EncodingOperations.getEncoding(rubyEncoding));
-            }
-        }
     }
 
     @TruffleBoundary

@@ -59,7 +59,41 @@ public class EncodingManager {
         this.context = context;
     }
 
-    public void initializeLocaleEncoding(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
+    public void initializeDefaultEncodings(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
+        initializeLocaleEncoding(nfi, nativeConfiguration);
+
+        // External should always have a value, but Encoding.external_encoding{,=} will lazily setup
+        final String externalEncodingName = context.getOptions().EXTERNAL_ENCODING;
+        if (!externalEncodingName.isEmpty()) {
+            final DynamicObject loadedEncoding = getRubyEncoding(externalEncodingName);
+            if (loadedEncoding == null) {
+                // TODO (nirvdrum 28-Oct-16): This should just print a nice error message and exit
+                // with a status code of 1 -- it's essentially an input validation error -- no need
+                // to show the user a full trace.
+                throw new RuntimeException("unknown encoding name - " + externalEncodingName);
+            } else {
+                setDefaultExternalEncoding(EncodingOperations.getEncoding(loadedEncoding));
+            }
+        } else {
+            setDefaultExternalEncoding(getLocaleEncoding());
+        }
+
+        // The internal encoding is nil by default
+        final String internalEncodingName = context.getOptions().INTERNAL_ENCODING;
+        if (!internalEncodingName.isEmpty()) {
+            final DynamicObject rubyEncoding = getRubyEncoding(internalEncodingName);
+            if (rubyEncoding == null) {
+                // TODO (nirvdrum 28-Oct-16): This should just print a nice error message and exit
+                // with a status code of 1 -- it's essentially an input validation error -- no need
+                // to show the user a full trace.
+                throw new RuntimeException("unknown encoding name - " + internalEncodingName);
+            } else {
+                setDefaultInternalEncoding(EncodingOperations.getEncoding(rubyEncoding));
+            }
+        }
+    }
+
+    private void initializeLocaleEncoding(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
         if (TruffleOptions.AOT) {
             // Call setlocale(LC_ALL, "") to ensure the locale is set to the environment's locale
             // rather than the default "C" locale.
