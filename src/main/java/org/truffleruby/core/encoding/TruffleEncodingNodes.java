@@ -9,47 +9,10 @@
  */
 package org.truffleruby.core.encoding;
 
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.builtins.CoreClass;
-import org.truffleruby.builtins.CoreMethod;
-import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.language.control.RaiseException;
 
 @CoreClass("Truffle::EncodingOperations")
 public abstract class TruffleEncodingNodes {
 
-    @CoreMethod(names = "default_external=", onSingleton = true, required = 1)
-    public abstract static class SetDefaultExternalNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "isRubyEncoding(encoding)")
-        public DynamicObject defaultExternalEncoding(DynamicObject encoding) {
-            getContext().getEncodingManager().setDefaultExternalEncoding(EncodingOperations.getEncoding(encoding));
-            return encoding;
-        }
-
-        @Specialization(guards = "isNil(nil)")
-        public DynamicObject defaultExternal(Object nil) {
-            throw new RaiseException(coreExceptions().argumentError("default external can not be nil", this));
-        }
-
-    }
-
-    @CoreMethod(names = "default_internal=", onSingleton = true, required = 1)
-    public abstract static class SetDefaultInternalNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "isRubyEncoding(encoding)")
-        public DynamicObject defaultInternal(DynamicObject encoding) {
-            getContext().getEncodingManager().setDefaultInternalEncoding(EncodingOperations.getEncoding(encoding));
-            return encoding;
-        }
-
-        @Specialization(guards = "isNil(encoding)")
-        public DynamicObject defaultInternal(Object encoding) {
-            getContext().getEncodingManager().setDefaultInternalEncoding(null);
-            return nil();
-        }
-
-    }
 
 }
