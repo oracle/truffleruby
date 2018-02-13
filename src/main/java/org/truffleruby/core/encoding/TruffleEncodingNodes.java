@@ -102,9 +102,9 @@ public abstract class TruffleEncodingNodes {
                 case "internal":
                     return getContext().getEncodingManager().getDefaultInternalEncoding();
                 case "external":
+                case "filesystem":
                     return getContext().getEncodingManager().getDefaultExternalEncoding();
                 case "locale":
-                case "filesystem":
                     return getContext().getEncodingManager().getLocaleEncoding();
                 default:
                     throw new UnsupportedOperationException();
