@@ -243,19 +243,18 @@ class Range
 
   def step_internal(step_size=1) # :yields: object
     return to_enum(:step, step_size) do
-      m = Truffle::Mirror::Range.reflect(self)
-      m.step_iterations_size(*m.validate_step_size(self.begin, self.end, step_size))
+      validated_step_args = Truffle::RangeOperations.validate_step_size(self.begin, self.end, step_size)
+      Truffle::RangeOperations.step_iterations_size(self, *validated_step_args)
     end unless block_given?
 
-    m = Truffle::Mirror::Range.reflect(self)
-    values = m.validate_step_size(self.begin, self.end, step_size)
+    values = Truffle::RangeOperations.validate_step_size(self.begin, self.end, step_size)
     first = values[0]
     last = values[1]
     step_size = values[2]
 
     case first
     when Float
-      iterations = m.step_float_iterations_size(first, last, step_size)
+      iterations = Truffle::RangeOperations.step_float_iterations_size(self, first, last, step_size)
 
       i = 0
       while i < iterations

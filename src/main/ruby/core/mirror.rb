@@ -42,7 +42,7 @@ module Truffle
       case obj
       when ::Numeric then raise 'Numeric mirror is no longer supported'
       when ::String then raise 'String mirror is no longer supported'
-      when ::Range then Truffle::Mirror::Range
+      when ::Range then 'Range mirror is no longer supported'
       when ::Process then Truffle::Mirror::Process
       when ::Proc then Truffle::Mirror::Proc
       else
