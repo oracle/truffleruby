@@ -43,7 +43,7 @@ module Truffle
       when ::Numeric then raise 'Numeric mirror is no longer supported'
       when ::String then raise 'String mirror is no longer supported'
       when ::Range then 'Range mirror is no longer supported'
-      when ::Process then Truffle::Mirror::Process
+      when ::Process then 'Process mirror is no longer supported'
       when ::Proc then Truffle::Mirror::Proc
       else
         begin

@@ -616,11 +616,11 @@ module Process
   end
 
   def self.exec(*args)
-    Truffle::Mirror::Process.exec(*args)
+    Truffle::ProcessOperations.exec(*args)
   end
 
   def self.spawn(*args)
-    Truffle::Mirror::Process.spawn(*args)
+    Truffle::ProcessOperations.spawn(*args)
   end
 
   # TODO: Should an error be raised on ECHILD? --rue
