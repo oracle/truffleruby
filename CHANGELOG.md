@@ -16,3 +16,6 @@ Internal changes:
 
 * The launcher is now part of the TruffleRuby repository, rather than part of
 the GraalVM repository.
+
+* ArrayBuilderNode now uses ArrayStrategies and ArrayMirrors to remove
+direct knowledge of array storage.
