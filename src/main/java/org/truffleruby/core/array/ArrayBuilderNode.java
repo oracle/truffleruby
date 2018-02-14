@@ -238,18 +238,17 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         public Object appendNewStrategy(Object array, int index, DynamicObject other,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             final ArrayMirror mirror = arrayStrategy.newMirrorFromStore(array);
             final int otherSize = Layouts.ARRAY.getSize(other);
             final int neededSize = index + otherSize;
             final ArrayMirror newMirror;
 
             if (neededSize > mirror.getLength()) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
                 replaceNodes(generalized, neededSize);
                 final int capacity = ArrayUtils.capacity(context, mirror.getLength(), neededSize);
                 newMirror = generalized.newArray(capacity);
             } else {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
                 replaceNodes(generalized, mirror.getLength());
                 newMirror = generalized.newArray(mirror.getLength());
             }
@@ -278,12 +277,10 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             final ArrayMirror newMirror;
 
             if (neededSize > mirror.getLength()) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
                 replaceNodes(generalized, neededSize);
                 final int capacity = ArrayUtils.capacity(context, mirror.getLength(), neededSize);
                 newMirror = generalized.newArray(capacity);
             } else {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
                 replaceNodes(generalized, mirror.getLength());
                 newMirror = generalized.newArray(mirror.getLength());
             }
