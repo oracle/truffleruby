@@ -90,12 +90,16 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         public void updateStrategy(ArrayStrategy strategy, int size) {
             final ArrayStrategy oldStrategy = startNode.strategy;
             final ArrayStrategy newStrategy = oldStrategy.generalize(strategy);
+
             startNode.replacement(strategy, size);
-            if (appendArrayNode != null) {
-                appendArrayNode.replace(AppendArrayNode.create(getContext(), newStrategy));
-            }
-            if (appendOneNode != null) {
-                appendOneNode.replace(AppendOneNode.create(getContext(), newStrategy));
+
+            if (oldStrategy != newStrategy) {
+                if (appendArrayNode != null) {
+                    appendArrayNode.replace(AppendArrayNode.create(getContext(), newStrategy));
+                }
+                if (appendOneNode != null) {
+                    appendOneNode.replace(AppendOneNode.create(getContext(), newStrategy));
+                }
             }
         }
     }
