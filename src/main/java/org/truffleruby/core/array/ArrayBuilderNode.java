@@ -28,6 +28,17 @@ import com.oracle.truffle.api.object.DynamicObject;
  * then suddenly you're passing it a store type it doesn't expect?
  */
 
+/**
+ * Builds a new Array and learns its storage strategy and its expected length. The storage strategy
+ * is generalized as needed and the expected length is increased until all elements fit.
+ * <p>
+ * Append nodes handle only one strategy, but must still return a valid storage when:
+ * <ul>
+ * <li>The element(s) added do not match the strategy.</li>
+ * <li>The being-built storage no longer matches the strategy, due to the node having been replaced
+ * by another thread or by another usage (e.g. recursive) of this ArrayBuilderNode.</li>
+ * </ul>
+ */
 public abstract class ArrayBuilderNode extends RubyBaseNode {
 
     public static ArrayBuilderNode create() {
@@ -239,10 +250,6 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             return fallback(array, index, other, arrayStrategy, otherStrategy, generalized);
         }
 
-        /*
-         * This is a corner case which can occur with recursion. If a recursive call changes the
-         * storage strategy then we handle that here.
-         */
         @Specialization(guards = "!arrayStrategy.matchesStore(array)")
         public Object appendNewStrategy(Object array, int index, DynamicObject other) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
