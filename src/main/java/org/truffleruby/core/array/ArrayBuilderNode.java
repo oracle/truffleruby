@@ -129,8 +129,8 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
     public static class StartNode extends ArrayBuilderBaseNode {
 
-        final ArrayStrategy strategy;
-        final int expectedLength;
+        private final ArrayStrategy strategy;
+        private final int expectedLength;
 
         public StartNode(ArrayStrategy strategy, int expectedLength) {
             this.strategy = strategy;
