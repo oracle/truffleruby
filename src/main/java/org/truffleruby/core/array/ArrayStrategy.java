@@ -28,6 +28,8 @@ public abstract class ArrayStrategy {
 
     public abstract boolean accepts(Object value);
 
+    public abstract boolean isPrimitive();
+
     public boolean specializesFor(Object value) {
         throw unsupported();
     }
@@ -173,6 +175,11 @@ public abstract class ArrayStrategy {
         }
 
         @Override
+        public boolean isPrimitive() {
+            return true;
+        }
+
+        @Override
         public boolean specializesFor(Object value) {
             return value instanceof Integer;
         }
@@ -236,6 +243,11 @@ public abstract class ArrayStrategy {
         }
 
         @Override
+        public boolean isPrimitive() {
+            return true;
+        }
+
+        @Override
         public boolean specializesFor(Object value) {
             return value instanceof Long;
         }
@@ -284,6 +296,11 @@ public abstract class ArrayStrategy {
         @Override
         public boolean accepts(Object value) {
             return value instanceof Double;
+        }
+
+        @Override
+        public boolean isPrimitive() {
+            return true;
         }
 
         @Override
@@ -338,6 +355,11 @@ public abstract class ArrayStrategy {
         }
 
         @Override
+        public boolean isPrimitive() {
+            return false;
+        }
+
+        @Override
         public boolean specializesFor(Object value) {
             return !(value instanceof Integer) && !(value instanceof Long) && !(value instanceof Double);
         }
@@ -377,6 +399,11 @@ public abstract class ArrayStrategy {
         @Override
         public boolean accepts(Object value) {
             return !(value instanceof Long);
+        }
+
+        @Override
+        public boolean isPrimitive() {
+            return false;
         }
 
         @Override
@@ -435,6 +462,11 @@ public abstract class ArrayStrategy {
         }
 
         @Override
+        public boolean isPrimitive() {
+            return false;
+        }
+
+        @Override
         public boolean matchesStore(Object store) {
             return store == null;
         }
@@ -470,6 +502,11 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean accepts(Object value) {
+            return false;
+        }
+
+        @Override
+        public boolean isPrimitive() {
             return false;
         }
 

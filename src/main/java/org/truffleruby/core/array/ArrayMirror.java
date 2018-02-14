@@ -25,6 +25,8 @@ public interface ArrayMirror {
 
     ArrayMirror extractRange(int start, int end);
 
+    void sort(int size);
+
     Object getArray();
 
     ArrayMirror copyArrayAndMirror();

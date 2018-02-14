@@ -9,6 +9,10 @@
  */
 package org.truffleruby.core.array;
 
+import java.util.Arrays;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+
 class LongArrayMirror extends BasicArrayMirror {
 
     private final long[] array;
@@ -48,8 +52,12 @@ class LongArrayMirror extends BasicArrayMirror {
 
     @Override
     public void copyTo(ArrayMirror destination, int sourceStart, int destinationStart, int count) {
-        for (int i = 0; i < count; i++) {
-            destination.set(destinationStart + i, array[sourceStart + i]);
+        if (destination instanceof LongArrayMirror) {
+            System.arraycopy(array, sourceStart, destination.getArray(), destinationStart, count);
+        } else {
+            for (int i = 0; i < count; i++) {
+                destination.set(destinationStart + i, array[sourceStart + i]);
+            }
         }
     }
 
@@ -63,6 +71,11 @@ class LongArrayMirror extends BasicArrayMirror {
     @Override
     public ArrayMirror extractRange(int start, int end) {
         return new LongArrayMirror(ArrayUtils.extractRange(array, start, end));
+    }
+
+    @TruffleBoundary
+    public void sort(int size) {
+        Arrays.sort(array, 0, size);
     }
 
     @Override

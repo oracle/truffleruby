@@ -44,8 +44,12 @@ class ObjectArrayMirror extends BasicArrayMirror {
 
     @Override
     public void copyTo(ArrayMirror destination, int sourceStart, int destinationStart, int count) {
-        for (int i = 0; i < count; i++) {
-            destination.set(destinationStart + i, array[sourceStart + i]);
+        if (destination instanceof ObjectArrayMirror) {
+            System.arraycopy(array, sourceStart, destination.getArray(), destinationStart, count);
+        } else {
+            for (int i = 0; i < count; i++) {
+                destination.set(destinationStart + i, array[sourceStart + i]);
+            }
         }
     }
 
@@ -57,6 +61,11 @@ class ObjectArrayMirror extends BasicArrayMirror {
     @Override
     public ArrayMirror extractRange(int start, int end) {
         return new ObjectArrayMirror(ArrayUtils.extractRange(array, start, end));
+    }
+
+    @Override
+    public void sort(int size) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

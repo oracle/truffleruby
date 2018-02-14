@@ -54,6 +54,10 @@ public class EmptyArrayMirror extends BasicArrayMirror {
         return INSTANCE;
     }
 
+    public void sort(int size) {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public Object getArray() {
         return null;
