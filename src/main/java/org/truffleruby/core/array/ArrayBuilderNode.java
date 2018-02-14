@@ -239,41 +239,28 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            final ArrayMirror mirror = arrayStrategy.newMirrorFromStore(array);
-            final int otherSize = Layouts.ARRAY.getSize(other);
-            final int neededSize = index + otherSize;
-            final ArrayMirror newMirror;
-
-            if (neededSize > mirror.getLength()) {
-                replaceNodes(generalized, neededSize);
-                final int capacity = ArrayUtils.capacity(context, mirror.getLength(), neededSize);
-                newMirror = generalized.newArray(capacity);
-            } else {
-                replaceNodes(generalized, mirror.getLength());
-                newMirror = generalized.newArray(mirror.getLength());
-            }
-
-            mirror.copyTo(newMirror, 0, 0, index);
-
-            final ArrayMirror otherMirror = otherStrategy.newMirror(other);
-            otherMirror.copyTo(newMirror, 0, index, otherSize);
-
-            return newMirror.getArray();
+            return fallback(array, index, other, arrayStrategy, otherStrategy, generalized);
         }
 
         /*
-         * This is a corner case which can occur with recursion. If a recursive call changes the storage
-         * strategy then we handle that here.
+         * This is a corner case which can occur with recursion. If a recursive call changes the
+         * storage strategy then we handle that here.
          */
         @Specialization(guards = "!arrayStrategy.matchesStore(array)")
         public Object appendNewStrategy(Object array, int index, DynamicObject other) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            ArrayStrategy currentStrategy = ArrayStrategy.ofStore(array);
-            ArrayStrategy otherStrategy = ArrayStrategy.of(other);
-            ArrayStrategy generalized = currentStrategy.generalize(otherStrategy);
-            final ArrayMirror mirror = currentStrategy.newMirrorFromStore(array);
+            final ArrayStrategy currentStrategy = ArrayStrategy.ofStore(array);
+            final ArrayStrategy otherStrategy = ArrayStrategy.of(other);
+            final ArrayStrategy generalized = currentStrategy.generalize(otherStrategy);
+
+            return fallback(array, index, other, currentStrategy, otherStrategy, generalized);
+        }
+
+        private Object fallback(Object array, int index, DynamicObject other, ArrayStrategy currentStrategy, ArrayStrategy otherStrategy, ArrayStrategy generalized) {
             final int otherSize = Layouts.ARRAY.getSize(other);
             final int neededSize = index + otherSize;
+
+            final ArrayMirror mirror = currentStrategy.newMirrorFromStore(array);
             final ArrayMirror newMirror;
 
             if (neededSize > mirror.getLength()) {
