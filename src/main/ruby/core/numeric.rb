@@ -79,12 +79,11 @@ class Numeric
 
     unless block_given?
       return to_enum(:step, limit, step) do
-        Truffle::Mirror::Numeric.reflect(self).step_size(limit, step, by)
+        Truffle::NumericOperations.step_size(self, limit, step, by)
       end
     end
 
-    m = Truffle::Mirror::Numeric.reflect(self)
-    values = m.step_fetch_args(limit, step, by)
+    values = Truffle::NumericOperations.step_fetch_args(self, limit, step, by)
     value = values[0]
     limit = values[1]
     step = values[2]
@@ -92,7 +91,7 @@ class Numeric
     is_float = values[4]
 
     if is_float
-      n = m.step_float_size(value, limit, step, asc)
+      n = Truffle::NumericOperations.step_float_size(value, limit, step, asc)
 
       if n > 0
         if step.infinite?

@@ -1,4 +1,4 @@
-# Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -33,58 +33,68 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module Truffle
-  class Mirror
-    def self.subject=(klass)
-      @subject = klass
-    end
+  module NumericOperations
 
-    def self.module_mirror(obj)
-      case obj
-      when ::Numeric then raise 'Numeric mirror is no longer supported'
-      when ::String then raise 'String mirror is no longer supported'
-      when ::Range then Truffle::Mirror::Range
-      when ::Process then Truffle::Mirror::Process
-      when ::Proc then Truffle::Mirror::Proc
+    def self.step_float_size(value, limit, step, asc)
+      if (asc && value > limit) || (!asc && value < limit)
+        return 0
+      end
+
+      if step.infinite?
+        1
       else
-        begin
-          Truffle::Mirror.const_get(obj.class.name.to_sym, false)
-        rescue NameError
-          ancestor = obj.class.superclass
-
-          until ancestor.nil?
-            begin
-              return Truffle::Mirror.const_get(ancestor.name.to_sym, false)
-            rescue NameError
-              ancestor = ancestor.superclass
-            end
-          end
-
-          nil
+        err = (value.abs + limit.abs + (limit - value).abs) / step.abs * Float::EPSILON
+        if err.finite?
+          err = 0.5 if err > 0.5
+          ((limit - value) / step + err).floor + 1
+        else
+          0
         end
       end
     end
 
-    def self.subject
-      @subject
+    def self.step_size(value, limit, step, by)
+      values = step_fetch_args(value, limit, step, by)
+      value = values[0]
+      limit = values[1]
+      step = values[2]
+      asc = values[3]
+      is_float = values[4]
+
+      if stepping_forever?(limit, step, asc)
+        Float::INFINITY
+      elsif is_float
+        # Ported from MRI
+        step_float_size(value, limit, step, asc)
+      else
+        if (asc && value > limit) || (!asc && value < limit)
+          0
+        else
+          ((value - limit).abs + 1).fdiv(step.abs).ceil
+        end
+      end
     end
 
-    def self.reflect(obj)
-      klass = module_mirror(obj)
-      klass.new obj if klass
+    def self.stepping_forever?(limit, step, asc)
+      return true if limit.nil? || step.zero?
+      if asc
+        limit == Float::INFINITY  && step != Float::INFINITY
+      else
+        limit == -Float::INFINITY && step != -Float::INFINITY
+      end
     end
 
-    attr_reader :object
+    def self.step_fetch_args(value, limit, step, by)
+      raise ArgumentError, 'step cannot be 0' if undefined.equal?(by) && step == 0
 
-    def initialize(obj)
-      @object = obj
+      asc = step > 0
+      if value.kind_of? Float or limit.kind_of? Float or step.kind_of? Float
+        [Truffle::Type.rb_num2dbl(value), Truffle::Type.rb_num2dbl(limit),
+         Truffle::Type.rb_num2dbl(step), asc, true]
+      else
+        [value, limit, step, asc, false]
+      end
     end
-
-    class Object < Mirror
-      self.subject = ::Object
-    end
-
-    def inspect
-      "#<#{self.class.name}:0x#{self.object_id.to_s(16)} object=#{@object.inspect}>"
-    end
+    
   end
 end
