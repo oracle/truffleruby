@@ -467,14 +467,14 @@ public abstract class EncodingNodes {
     @Primitive(name = "encoding_get_default_encoding", needsSelf = false)
     public abstract static class GetDefaultEncodingNode extends PrimitiveArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization(guards = "isRubyString(name)")
-        public DynamicObject getDefaultEncoding(DynamicObject name,
-                @Cached("create()") EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
+        public DynamicObject getDefaultEncoding(DynamicObject name) {
             final Encoding encoding = getEncoding(StringOperations.getString(name));
             if (encoding == null) {
                 return nil();
             } else {
-                return getRubyEncodingNode.executeGetRubyEncoding(encoding);
+                return getContext().getEncodingManager().getRubyEncoding(encoding);
             }
         }
 
