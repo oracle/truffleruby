@@ -498,13 +498,13 @@ public abstract class EncodingNodes {
     public abstract static class SetDefaultExternalNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyEncoding(encoding)")
-        public DynamicObject defaultExternalEncoding(DynamicObject encoding) {
+        public DynamicObject setDefaultExternal(DynamicObject encoding) {
             getContext().getEncodingManager().setDefaultExternalEncoding(EncodingOperations.getEncoding(encoding));
             return encoding;
         }
 
         @Specialization(guards = "isNil(nil)")
-        public DynamicObject defaultExternal(Object nil) {
+        public DynamicObject noDefaultExternal(DynamicObject nil) {
             throw new RaiseException(coreExceptions().argumentError("default external can not be nil", this));
         }
 
@@ -514,13 +514,13 @@ public abstract class EncodingNodes {
     public abstract static class SetDefaultInternalNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyEncoding(encoding)")
-        public DynamicObject defaultInternal(DynamicObject encoding) {
+        public DynamicObject setDefaultInternal(DynamicObject encoding) {
             getContext().getEncodingManager().setDefaultInternalEncoding(EncodingOperations.getEncoding(encoding));
             return encoding;
         }
 
         @Specialization(guards = "isNil(encoding)")
-        public DynamicObject defaultInternal(Object encoding) {
+        public DynamicObject noDefaultInternal(DynamicObject encoding) {
             getContext().getEncodingManager().setDefaultInternalEncoding(null);
             return nil();
         }
