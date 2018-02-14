@@ -232,8 +232,8 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             return mirror.getArray();
         }
 
-        @Specialization(guards = { "arrayStrategy != generalized",
-                                   "arrayStrategy.matchesStore(array)", "otherStrategy.matches(other)" },
+        @Specialization(guards = { "arrayStrategy.matchesStore(array)", "otherStrategy.matches(other)",
+                                   "arrayStrategy != generalized" },
                         limit = "STORAGE_STRATEGIES")
         public Object appendNewStrategy(Object array, int index, DynamicObject other,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
