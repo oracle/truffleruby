@@ -928,7 +928,7 @@ class IO
         options.merge! exec_options
       end
 
-      pid = Truffle::Mirror::Process.spawn(env || {}, *cmd, options)
+      pid = Truffle::ProcessOperations.spawn(env || {}, *cmd, options)
     end
 
     pipe.pid = pid

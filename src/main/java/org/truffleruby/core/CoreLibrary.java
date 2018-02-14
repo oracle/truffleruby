@@ -1445,7 +1445,7 @@ public class CoreLibrary {
             "/core/struct.rb",
             "/core/tms.rb",
             "/core/process.rb",
-            "/core/process_mirror.rb",
+            "/core/truffle/process_operations.rb", // Must load after /core/regexp.rb
             "/core/signal.rb",
             "/core/symbol.rb",
             "/core/mutex.rb",
