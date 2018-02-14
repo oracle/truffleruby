@@ -41,7 +41,7 @@ module Truffle
     def self.module_mirror(obj)
       case obj
       when ::Numeric then Truffle::Mirror::Numeric
-      when ::String then Truffle::Mirror::String
+      when ::String then raise 'String mirror is no longer supported'
       when ::Range then Truffle::Mirror::Range
       when ::Process then Truffle::Mirror::Process
       when ::Proc then Truffle::Mirror::Proc

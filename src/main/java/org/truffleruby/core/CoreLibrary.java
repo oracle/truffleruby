@@ -1412,7 +1412,6 @@ public class CoreLibrary {
             "/core/stat.rb",
             "/core/io.rb",
             "/core/immediate.rb",
-            "/core/string_mirror.rb",
             "/core/module.rb",
             "/core/proc.rb",
             "/core/proc_mirror.rb",

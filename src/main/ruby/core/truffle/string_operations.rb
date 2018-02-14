@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2017, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -101,6 +101,19 @@ module Truffle
       ret.untrust if untrusted
 
       [ret, last_match]
+    end
+
+    def self.copy_from(string, other, other_offset, byte_count_to_copy, dest_offset)
+      sz = string.bytesize
+      osz = other.bytesize
+
+      other_offset = 0 if other_offset < 0
+      dest_offset = 0 if dest_offset < 0
+      byte_count_to_copy = osz - other_offset if byte_count_to_copy > osz - other_offset
+      byte_count_to_copy = sz - dest_offset if byte_count_to_copy > sz - dest_offset
+
+      replacement = other.byteslice(other_offset, byte_count_to_copy)
+      Truffle.invoke_primitive(:string_splice, string, replacement, dest_offset, byte_count_to_copy, string.encoding)
     end
   end
 end
