@@ -217,7 +217,6 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized) {
             ArrayMirror mirror = arrayStrategy.newMirrorFromStore(array);
-            final ArrayMirror otherMirror = otherStrategy.newMirror(other);
             final int otherSize = Layouts.ARRAY.getSize(other);
             final int neededSize = index + otherSize;
 
@@ -228,6 +227,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 mirror = mirror.copyArrayAndMirror(capacity);
             }
 
+            final ArrayMirror otherMirror = otherStrategy.newMirror(other);
             otherMirror.copyTo(mirror, 0, index, otherSize);
             return mirror.getArray();
         }
@@ -239,7 +239,6 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized) {
             final ArrayMirror mirror = arrayStrategy.newMirrorFromStore(array);
-            final ArrayMirror otherMirror = otherStrategy.newMirror(other);
             final int otherSize = Layouts.ARRAY.getSize(other);
             final int neededSize = index + otherSize;
             final ArrayMirror newMirror;
@@ -256,7 +255,10 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             }
 
             mirror.copyTo(newMirror, 0, 0, index);
+
+            final ArrayMirror otherMirror = otherStrategy.newMirror(other);
             otherMirror.copyTo(newMirror, 0, index, otherSize);
+
             return newMirror.getArray();
         }
 
@@ -271,7 +273,6 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             ArrayStrategy otherStrategy = ArrayStrategy.of(other);
             ArrayStrategy generalized = currentStrategy.generalize(otherStrategy);
             final ArrayMirror mirror = currentStrategy.newMirrorFromStore(array);
-            final ArrayMirror otherMirror = otherStrategy.newMirror(other);
             final int otherSize = Layouts.ARRAY.getSize(other);
             final int neededSize = index + otherSize;
             final ArrayMirror newMirror;
@@ -288,7 +289,10 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             }
 
             mirror.copyTo(newMirror, 0, 0, index);
+
+            final ArrayMirror otherMirror = otherStrategy.newMirror(other);
             otherMirror.copyTo(newMirror, 0, index, otherSize);
+
             return newMirror.getArray();
         }
 
