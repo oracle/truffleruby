@@ -173,5 +173,4 @@
 
 :run:
   :require:
-    - openssl-stubs
     - stubs

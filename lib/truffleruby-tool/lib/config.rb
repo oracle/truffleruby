@@ -458,8 +458,7 @@ begin # not tested in CI
                          deep_merge(use_bundler_environment,
                                     stubs.fetch(:concurrent_ruby),
                                     stubs.fetch(:html_sanitizer),
-                                    stubs.fetch(:activesupport_isolation),
-                                    run: { require: %w(openssl-stubs) })
+                                    stubs.fetch(:activesupport_isolation))
   TruffleTool.add_ci_definition :'sprockets-rails' do
     declare_options debug: ['-d', '--[no-]debug', 'Run tests with remote debugging enabled.', STORE_NEW_VALUE, false]
     has_to_succeed setup

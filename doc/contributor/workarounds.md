@@ -21,10 +21,6 @@ and applied immediately before compiling the extension's C source files.
 
 They should all be eventually removed, no new usages should be added.
 
-## OpenSSL Stubs
-
-Is a legacy patch from time when openssl was not working.
-
 ## TruffleRuby tool
 
 Is a legacy tool to setup patches to run gem tests. 
