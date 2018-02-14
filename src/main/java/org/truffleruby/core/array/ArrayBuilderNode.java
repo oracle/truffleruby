@@ -93,7 +93,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
             final int oldLength = startNode.expectedLength;
             final int newExpectedLength = Math.max(oldLength, newLength);
-            if (newExpectedLength != oldLength) {
+            if (newStrategy != oldStrategy || newExpectedLength != oldLength) {
                 startNode.replace(new StartNode(strategy, newExpectedLength));
             }
 
