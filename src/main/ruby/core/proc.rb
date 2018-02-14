@@ -71,8 +71,7 @@ class Proc
       end
     end
 
-    m = Truffle::Mirror.reflect self
-    f = m.curry self, [], arity
+    f = Truffle::ProcOperations.curry self, [], arity
 
     def f.binding
       raise ArgumentError, 'cannot create binding from curried proc'
