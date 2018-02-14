@@ -221,8 +221,8 @@ class StringIO
       string.byte_append str
       d.pos = string.bytesize
     elsif pos > string.bytesize
-      m = Truffle::Mirror.reflect string
-      m.splice string.bytesize, 0, "\000" * (pos - string.bytesize)
+      replacement = "\000" * (pos - string.bytesize)
+      Truffle.invoke_primitive(:string_splice, string, replacement, string.bytesize, 0, string.encoding)
       string.byte_append str
       d.pos = string.bytesize
     else
@@ -230,8 +230,7 @@ class StringIO
       if str.bytesize < stop
         stop = str.bytesize
       end
-      m = Truffle::Mirror.reflect string
-      m.splice pos, stop, str
+      Truffle.invoke_primitive(:string_splice, string, str, pos, stop, string.encoding)
       d.pos += str.bytesize
       string.taint if str.tainted?
     end
@@ -383,13 +382,12 @@ class StringIO
       string.byte_append char
       d.pos = string.bytesize
     elsif pos > string.bytesize
-      m = Truffle::Mirror.reflect string
-      m.splice string.bytesize, 0, "\000" * (pos - string.bytesize)
+      replacement = "\000" * (pos - string.bytesize)
+      Truffle.invoke_primitive(:string_splice, string, replacement, string.bytesize, 0, string.encoding)
       string.byte_append char
       d.pos = string.bytesize
     else
-      m = Truffle::Mirror.reflect string
-      m.splice pos, char.bytesize, char
+      Truffle.invoke_primitive(:string_splice, string, char, pos, char.bytesize, string.encoding)
       d.pos += char.bytesize
     end
 

@@ -14,9 +14,8 @@ module Truffle
       str = str.to_s if str.is_a?(Symbol)
       str = StringValue(str)
 
-      m = Truffle::Mirror.reflect str
       pos = pos < 0 ? pos + str.size : pos
-      pos = m.character_to_byte_index pos
+      pos = Truffle.invoke_primitive(:string_character_byte_index, str, pos)
       re.search_region(str, pos, str.bytesize, true)
     end
 

@@ -614,11 +614,10 @@ class String
 
     size = array.inject(0) { |s, chr| s + chr.bytesize }
     result = String.pattern size + 2, ?".ord
-    m = Truffle::Mirror.reflect result
 
     index = 1
     array.each do |chr|
-      m.copy_from chr, 0, chr.bytesize, index
+      Truffle::StringOperations.copy_from(result, chr, 0, chr.bytesize, index)
       index += chr.bytesize
     end
 
@@ -792,14 +791,12 @@ class String
   def chop!
     Truffle.check_frozen
 
-    m = Truffle::Mirror.reflect self
-
-    bytes = m.previous_byte_index bytesize
+    bytes = Truffle.invoke_primitive(:string_previous_byte_index, self, bytesize)
     return unless bytes
 
     chr = chr_at bytes
     if chr.ord == 10
-      if i = m.previous_byte_index(bytes)
+      if i = Truffle.invoke_primitive(:string_previous_byte_index, self, bytes)
         chr = chr_at i
 
         bytes = i if chr.ord == 13
@@ -822,10 +819,8 @@ class String
 
     return if sep.nil?
 
-    m = Truffle::Mirror.reflect self
-
     if sep == DEFAULT_RECORD_SEPARATOR
-      return unless bytes = m.previous_byte_index(bytesize)
+      return unless bytes = Truffle.invoke_primitive(:string_previous_byte_index, self, bytesize)
 
       chr = chr_at bytes
 
@@ -833,7 +828,7 @@ class String
       when 13
         # do nothing
       when 10
-        if j = m.previous_byte_index(bytes)
+        if j = Truffle.invoke_primitive(:string_previous_byte_index, self, bytes)
           chr = chr_at j
 
           if chr.ord == 13
@@ -847,13 +842,13 @@ class String
       return if empty?
       bytes = bytesize
 
-      while i = m.previous_byte_index(bytes)
+      while i = Truffle.invoke_primitive(:string_previous_byte_index, self, bytes)
         chr = chr_at i
         break unless chr.ord == 10
 
         bytes = i
 
-        if j = m.previous_byte_index(i)
+        if j = Truffle.invoke_primitive(:string_previous_byte_index, self, i)
           chr = chr_at j
           if chr.ord == 13
             bytes = j
@@ -1092,8 +1087,6 @@ class String
       count = count_or_replacement
     end
 
-    m = Truffle::Mirror.reflect self
-
     case index
     when Fixnum
       index += size if index < 0
@@ -1102,7 +1095,7 @@ class String
         raise IndexError, "index #{index} out of string"
       end
 
-      unless bi = m.string_byte_index_from_char_index(index)
+      unless bi = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, index)
         raise IndexError, "unable to find character at: #{index}"
       end
 
@@ -1117,16 +1110,16 @@ class String
         if total >= size
           bs = bytesize - bi
         else
-          bs = m.string_byte_index_from_char_index(total) - bi
+          bs = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, total) - bi
         end
       else
-        bs = index == size ? 0 : m.string_byte_index_from_char_index(index + 1) - bi
+        bs = index == size ? 0 : Truffle.invoke_primitive(:string_byte_index_from_char_index, self, index + 1) - bi
       end
 
       replacement = StringValue replacement
       enc = Truffle::Type.compatible_encoding self, replacement
 
-      m.splice bi, bs, replacement, enc
+      Truffle.invoke_primitive(:string_splice, self, replacement, bi, bs, enc)
     when String
       unless start = Truffle.invoke_primitive(:find_string, self, index, 0)
         raise IndexError, 'string not matched'
@@ -1135,7 +1128,7 @@ class String
       replacement = StringValue replacement
       enc = Truffle::Type.compatible_encoding self, replacement
 
-      m.splice start, index.bytesize, replacement, enc
+      Truffle.invoke_primitive(:string_splice, self, replacement, start, index.bytesize, enc)
     when Range
       start = Truffle::Type.coerce_to index.first, Fixnum, :to_int
 
@@ -1145,7 +1138,7 @@ class String
         raise RangeError, "#{index.first} is out of range"
       end
 
-      unless bi = m.string_byte_index_from_char_index(start)
+      unless bi = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, start)
         raise IndexError, "unable to find character at: #{start}"
       end
 
@@ -1158,13 +1151,13 @@ class String
       elsif stop >= size
         bs = bytesize - bi
       else
-        bs = m.string_byte_index_from_char_index(stop + 1) - bi
+        bs = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, stop + 1) - bi
       end
 
       replacement = StringValue replacement
       enc = Truffle::Type.compatible_encoding self, replacement
 
-      m.splice bi, bs, replacement, enc
+      Truffle.invoke_primitive(:string_splice, self, replacement, bi, bs, enc)
     when Regexp
       if count
         count = Truffle::Type.coerce_to count, Fixnum, :to_int
@@ -1190,10 +1183,10 @@ class String
       replacement = StringValue replacement
       enc = Truffle::Type.compatible_encoding self, replacement
 
-      bi = m.string_byte_index_from_char_index match.begin(count)
-      bs = m.string_byte_index_from_char_index(match.end(count)) - bi
+      bi = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, match.begin(count))
+      bs = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, match.end(count)) - bi
 
-      m.splice bi, bs, replacement, enc
+      Truffle.invoke_primitive(:string_splice, self, replacement, bi, bs, enc)
     else
       index = Truffle::Type.coerce_to index, Fixnum, :to_int
 
@@ -1226,33 +1219,28 @@ class String
 
     if pbs > 1
       ps = padding.size
-      pm = Truffle::Mirror.reflect padding
-
       x = left / ps
       y = left % ps
 
-      lpbi = pm.string_byte_index_from_char_index(y)
+      lpbi = Truffle.invoke_primitive(:string_byte_index_from_char_index, padding, y)
       lbytes = x * pbs + lpbi
 
       right = left + (width & 0x1)
-
       x = right / ps
       y = right % ps
 
-      rpbi = pm.string_byte_index_from_char_index(y)
+      rpbi = Truffle.invoke_primitive(:string_byte_index_from_char_index, padding, y)
       rbytes = x * pbs + rpbi
 
       pad = self.class.pattern rbytes, padding
       str = self.class.pattern lbytes + bs + rbytes, ''
-      m = Truffle::Mirror.reflect str
 
-      m.copy_from self, 0, bs, lbytes
-      m.copy_from pad, 0, lbytes, 0
-      m.copy_from pad, 0, rbytes, lbytes + bs
+      Truffle::StringOperations.copy_from(str, self, 0, bs, lbytes)
+      Truffle::StringOperations.copy_from(str, pad, 0, lbytes, 0)
+      Truffle::StringOperations.copy_from(str, pad, 0, rbytes, lbytes + bs)
     else
       str = self.class.pattern width + bs, padding
-      m = Truffle::Mirror.reflect str
-      m.copy_from self, 0, bs, left
+      Truffle::StringOperations.copy_from(str, self, 0, bs, left)
     end
 
     str.taint if tainted? or padding.tainted?
@@ -1275,33 +1263,28 @@ class String
 
     if pbs > 1
       ps = padding.size
-      pm = Truffle::Mirror.reflect padding
-
       x = width / ps
       y = width % ps
 
-      pbi = pm.string_byte_index_from_char_index(y)
+      pbi = Truffle.invoke_primitive(:string_byte_index_from_char_index, padding, y)
       bytes = x * pbs + pbi
 
       str = self.class.pattern bytes + bs, self
-      m = Truffle::Mirror.reflect str
 
       i = 0
       bi = bs
 
       while i < x
-        m.copy_from padding, 0, pbs, bi
+        Truffle::StringOperations.copy_from(str, padding, 0, pbs, bi)
 
         bi += pbs
         i += 1
       end
 
-      m.copy_from padding, 0, pbi, bi
+      Truffle::StringOperations.copy_from(str, padding, 0, pbi, bi)
     else
       str = self.class.pattern width + bs, padding
-      m = Truffle::Mirror.reflect str
-
-      m.copy_from self, 0, bs, 0
+      Truffle::StringOperations.copy_from(str, self, 0, bs, 0)
     end
 
     str.taint if tainted? or padding.tainted?
@@ -1324,20 +1307,17 @@ class String
 
     if pbs > 1
       ps = padding.size
-      pm = Truffle::Mirror.reflect padding
-
       x = width / ps
       y = width % ps
 
-      bytes = x * pbs + pm.string_byte_index_from_char_index(y)
+      bytes = x * pbs + Truffle.invoke_primitive(:string_byte_index_from_char_index, padding, y)
     else
       bytes = width
     end
 
     str = self.class.pattern bytes + bs, padding
-    m = Truffle::Mirror.reflect str
 
-    m.copy_from self, 0, bs, bytes
+    Truffle::StringOperations.copy_from(str, self, 0, bs, bytes)
 
     str.taint if tainted? or padding.tainted?
     str.force_encoding enc
@@ -1359,8 +1339,7 @@ class String
     if str.kind_of? Regexp
       Truffle::Type.compatible_encoding self, str
 
-      m = Truffle::Mirror.reflect self
-      start = m.character_to_byte_index start
+      start = Truffle.invoke_primitive(:string_character_byte_index, self, start)
       if match = str.match_from(self, start)
         Truffle::RegexpOperations.set_last_match(match, Truffle.invoke_primitive(:caller_binding))
         return match.begin(0)
@@ -1377,8 +1356,7 @@ class String
 
     return if str.size > size
 
-    m = Truffle::Mirror.reflect self
-    m.character_index str, start
+    Truffle.invoke_primitive(:string_character_index, self, str, start)
   end
 
   def initialize(other = undefined, encoding: nil)
@@ -1401,8 +1379,7 @@ class String
       finish = size if finish >= size
     end
 
-    m = Truffle::Mirror.reflect self
-    byte_finish = m.character_to_byte_index finish
+    byte_finish = Truffle.invoke_primitive(:string_character_byte_index, self, finish)
 
     case sub
     when Fixnum
@@ -1417,7 +1394,7 @@ class String
       end
 
       if byte_index = Truffle.invoke_primitive(:find_string_reverse, self, str, byte_finish)
-        return m.byte_to_character_index byte_index
+        return Truffle.invoke_primitive(:string_byte_character_index, self, byte_index)
       end
 
     when Regexp
@@ -1439,7 +1416,7 @@ class String
 
       Truffle::Type.compatible_encoding self, needle
       if byte_index = Truffle.invoke_primitive(:find_string_reverse, self, needle, byte_finish)
-        return m.byte_to_character_index byte_index
+        return Truffle.invoke_primitive(:string_byte_character_index, self, byte_index)
       end
     end
 
