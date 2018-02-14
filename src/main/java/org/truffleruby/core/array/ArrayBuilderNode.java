@@ -176,12 +176,15 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         @Fallback
         public Object appendNewStrategy(Object array, int index, Object value) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            ArrayStrategy currentStrategy = ArrayStrategy.ofStore(array);
-            ArrayStrategy valueStrategy = ArrayStrategy.forValue(value);
-            ArrayStrategy generalized = currentStrategy.generalize(valueStrategy);
+            final ArrayStrategy currentStrategy = ArrayStrategy.ofStore(array);
+            final ArrayStrategy valueStrategy = ArrayStrategy.forValue(value);
+            final ArrayStrategy generalized = currentStrategy.generalize(valueStrategy);
+
             final ArrayMirror mirror = currentStrategy.newMirrorFromStore(array);
             final int neededCapacity = ArrayUtils.capacityForOneMore(context, mirror.getLength());
+
             replaceNodes(generalized, neededCapacity);
+
             final ArrayMirror newMirror = generalized.newArray(neededCapacity);
             mirror.copyTo(newMirror, 0, 0, index);
             newMirror.set(index, value);
