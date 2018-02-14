@@ -1,3 +1,11 @@
+# Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved. This
+# code is released under a tri EPL/GPL/LGPL license. You can use it,
+# redistribute it and/or modify it under the terms of the:
+#
+# Eclipse Public License version 1.0
+# GNU General Public License version 2
+# GNU Lesser General Public License version 2.1
+
 # Copyright (c) 2007-2015, Evan Phoenix and contributors
 # All rights reserved.
 #
@@ -25,22 +33,22 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module Truffle
-  class Mirror
-    class Proc < Mirror
-      def curry(executable, args, arity)
-        args.freeze
+  module ProcOperations
 
-        name = executable.lambda? ? :lambda : :proc
+    def self.curry(executable, args, arity)
+      args.freeze
 
-        Proc.__send__(name) do |*a|
-          all_args = args + a
-          if all_args.size < arity
-            curry executable, all_args, arity
-          else
-            executable[*all_args]
-          end
+      name = executable.lambda? ? :lambda : :proc
+
+      Proc.__send__(name) do |*a|
+        all_args = args + a
+        if all_args.size < arity
+          curry executable, all_args, arity
+        else
+          executable[*all_args]
         end
       end
     end
+    
   end
 end

@@ -44,7 +44,7 @@ module Truffle
       when ::String then raise 'String mirror is no longer supported'
       when ::Range then 'Range mirror is no longer supported'
       when ::Process then 'Process mirror is no longer supported'
-      when ::Proc then Truffle::Mirror::Proc
+      when ::Proc then 'Proc mirror is no longer supported'
       else
         begin
           Truffle::Mirror.const_get(obj.class.name.to_sym, false)
