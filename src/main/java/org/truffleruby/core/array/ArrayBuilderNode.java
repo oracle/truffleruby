@@ -87,11 +87,15 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             return appendOneNode;
         }
 
-        public void updateStrategy(ArrayStrategy strategy, int size) {
+        public void updateStrategy(ArrayStrategy strategy, int newLength) {
             final ArrayStrategy oldStrategy = startNode.strategy;
             final ArrayStrategy newStrategy = oldStrategy.generalize(strategy);
 
-            startNode.replacement(strategy, size);
+            final int oldLength = startNode.expectedLength;
+            final int newExpectedLength = Math.max(oldLength, newLength);
+            if (oldLength != newExpectedLength) {
+                startNode.replace(new StartNode(strategy, newExpectedLength));
+            }
 
             if (oldStrategy != newStrategy) {
                 if (appendArrayNode != null) {
@@ -134,13 +138,6 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
             return strategy.newArray(length).getArray();
         }
 
-        public void replacement(ArrayStrategy strategy, int newLength) {
-            final int newExpectedLength = Math.max(expectedLength, newLength);
-            if (expectedLength != newExpectedLength) {
-                final StartNode newNode = new StartNode(strategy, newExpectedLength);
-                this.replace(newNode);
-            }
-        }
     }
 
     @ImportStatic(ArrayGuards.class)
