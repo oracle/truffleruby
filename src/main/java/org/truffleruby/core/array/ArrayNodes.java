@@ -1888,7 +1888,7 @@ public abstract class ArrayNodes {
         }
 
         @ExplodeLoop
-        @Specialization(guards = { "!isEmptyArray(array)", "isSmall(array)", "strategy.matches(array)" }, limit = "ARRAY_STRATEGIES")
+        @Specialization(guards = { "!isEmptyArray(array)", "isSmall(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public DynamicObject sortVeryShort(VirtualFrame frame, DynamicObject array, NotProvided block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("create()") CallDispatchHeadNode compareDispatchNode,
@@ -1927,42 +1927,22 @@ public abstract class ArrayNodes {
             return createArray(store.getArray(), size);
         }
 
-        @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "isIntArray(array)" },
-                        assumptions = "getContext().getCoreMethods().fixnumCmpAssumption")
-        public Object sortIntArray(DynamicObject array, NotProvided block) {
+        @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "strategy.matches(array)", "strategy.isPrimitive()" },
+                assumptions = { "getContext().getCoreMethods().fixnumCmpAssumption", "getContext().getCoreMethods().floatCmpAssumption" })
+        public Object sortPrimitiveArrayNoBlock(DynamicObject array, NotProvided block,
+                @Cached("of(array)") ArrayStrategy strategy) {
             final int size = getSize(array);
-            int[] copy = ((int[]) getStore(array)).clone();
-            doSort(copy, size);
-            return createArray(copy, size);
+            ArrayMirror oldMirror = strategy.newMirror(array);
+            ArrayMirror newMirror = strategy.newArray(size);
+            oldMirror.copyTo(newMirror, 0, 0, size);
+            newMirror.sort(size);
+            return createArray(newMirror.getArray(), size);
         }
 
-        @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "isLongArray(array)" },
-                        assumptions = "getContext().getCoreMethods().fixnumCmpAssumption")
-        public Object sortLongArray(DynamicObject array, NotProvided block) {
-            final int size = getSize(array);
-            long[] copy = ((long[]) getStore(array)).clone();
-            doSort(copy, size);
-            return createArray(copy, size);
-        }
-
-        @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "isDoubleArray(array)" },
-                        assumptions = "getContext().getCoreMethods().floatCmpAssumption")
-        public Object sortDoubleArray(DynamicObject array, NotProvided block) {
-            final int size = getSize(array);
-            double[] copy = ((double[]) getStore(array)).clone();
-            doSort(copy, size);
-            return createArray(copy, size);
-        }
-
-        @Specialization(guards = { "!isEmptyArray(array)", "!isObjectArray(array)" })
-        public Object sortPrimitiveArrayFallback(DynamicObject array, NotProvided block,
-                @Cached("createOnSelf()") CallDispatchHeadNode fallbackNode) {
-            return fallbackNode.call(null, array, "sort_fallback");
-        }
-
-        @Specialization(guards = { "!isEmptyArray(array)", "isObjectArray(array)" })
-        public Object sortObjectArrayWithoutBlock(DynamicObject array, NotProvided block,
-                @Cached("createOnSelf()") CallDispatchHeadNode fallbackNode) {
+        @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
+        public Object sortArrayWithoutBlock(DynamicObject array, NotProvided block,
+                @Cached("createOnSelf()") CallDispatchHeadNode fallbackNode,
+                @Cached("of(array)") ArrayStrategy strategy) {
             return fallbackNode.call(null, array, "sort_fallback");
         }
 
@@ -1970,21 +1950,6 @@ public abstract class ArrayNodes {
         public Object sortGenericWithBlock(DynamicObject array, DynamicObject block,
                 @Cached("createOnSelf()") CallDispatchHeadNode fallbackNode) {
             return fallbackNode.callWithBlock(null, array, "sort_fallback", block);
-        }
-
-        @TruffleBoundary
-        private void doSort(int[] array, int size) {
-            Arrays.sort(array, 0, size);
-        }
-
-        @TruffleBoundary
-        private void doSort(long[] array, int size) {
-            Arrays.sort(array, 0, size);
-        }
-
-        @TruffleBoundary
-        private void doSort(double[] array, int size) {
-            Arrays.sort(array, 0, size);
         }
 
         private int castSortValue(Object value, BranchProfile errorProfile, FixnumLowerNode fixnumLowerNode) {
