@@ -541,7 +541,6 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(truffleFFIPointerClass, Layouts.POINTER.createPointerShape(truffleFFIPointerClass, truffleFFIPointerClass));
         truffleFFINullPointerErrorClass = defineClass(truffleFFIModule, runtimeErrorClass, "NullPointerError");
 
-        defineClass(truffleModule, objectClass, "Mirror");
         truffleTypeModule = defineModule(truffleModule, "Type");
 
         byteArrayClass = defineClass(truffleModule, objectClass, "ByteArray");
@@ -1383,7 +1382,6 @@ public class CoreLibrary {
             "/core/pre.rb",
             "/core/basic_object.rb",
             "/core/array.rb",
-            "/core/mirror.rb",
             "/core/channel.rb",
             "/core/configuration.rb",
             "/core/false.rb",
