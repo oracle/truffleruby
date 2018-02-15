@@ -163,12 +163,9 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         @Specialization(guards = { "isRubySymbol(source)", "isRubySymbol(destination)" })
         public DynamicObject search(DynamicObject source, DynamicObject destination) {
-            final Rope sourceRope = Layouts.SYMBOL.getRope(source);
-            final Rope destinationRope = Layouts.SYMBOL.getRope(destination);
-
             final List<String> path = TranscodingManager.bfs(
-                    RopeOperations.decodeRope(sourceRope),
-                    RopeOperations.decodeRope(destinationRope));
+                    Layouts.SYMBOL.getString(source),
+                    Layouts.SYMBOL.getString(destination));
 
             if (path.isEmpty()) {
                 return nil();
