@@ -22,8 +22,7 @@ public interface HashLayout extends BasicObjectLayout {
     DynamicObjectFactory createHashShape(DynamicObject logicalClass,
                                          DynamicObject metaClass);
 
-    DynamicObject createHash(
-            DynamicObjectFactory factory,
+    Object[] build(
             @Nullable Object store,
             int size,
             @Nullable Entry firstInSequence,

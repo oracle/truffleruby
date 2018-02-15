@@ -115,7 +115,7 @@ public abstract class BucketsStrategy {
             lastInSequence = newEntry;
         }
 
-        return Layouts.HASH.createHash(context.getCoreLibrary().getHashFactory(), newEntries, actualSize, firstInSequence, lastInSequence, null, null, false);
+        return context.getCoreLibrary().getHashFactory().newInstance(Layouts.HASH.build(newEntries, actualSize, firstInSequence, lastInSequence, null, null, false));
     }
 
     public static int capacityGreaterThan(int size) {
