@@ -119,10 +119,12 @@ class Encoding
       return unless encoding
       return if encoding.ascii_compatible?
 
-      transcoding = TranscodingMap[encoding.name.upcase.to_sym]
-      return unless transcoding and transcoding.size == 1
+      name = encoding.name.upcase.to_sym
+      transcoders = Truffle.invoke_primitive :encoding_transcoders_from_encoding, name
 
-      Encoding.find transcoding.keys.first.to_s
+      return unless transcoders and transcoders.size == 1
+
+      Encoding.find transcoders[0].to_s
     end
 
     def self.search_convpath(from, to, options=0)
