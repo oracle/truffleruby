@@ -57,6 +57,7 @@ import org.truffleruby.core.regexp.InterpolatedRegexpNode;
 import org.truffleruby.core.regexp.MatchDataNodes.GetIndexNode;
 import org.truffleruby.core.regexp.RegexpNodes;
 import org.truffleruby.core.regexp.RegexpOptions;
+import org.truffleruby.core.regexp.TruffleRegexpNodes;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
@@ -2646,7 +2647,7 @@ public class BodyTranslator extends Translator {
         final Rope rope = node.getValue();
         final RegexpOptions options = node.getOptions();
         options.setLiteral(true);
-        Regex regex = RegexpNodes.compile(currentNode, context, rope, options);
+        Regex regex = TruffleRegexpNodes.compile(currentNode, context, rope, options);
 
         // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
         // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when

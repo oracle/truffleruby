@@ -22,17 +22,11 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.Matcher;
 import org.joni.NameEntry;
-import org.joni.Option;
 import org.joni.Regex;
-import org.joni.Region;
-import org.joni.Syntax;
-import org.joni.exception.SyntaxException;
-import org.joni.exception.ValueException;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreClass;
@@ -41,9 +35,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToStrNode;
-import org.truffleruby.core.regexp.RegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.regexp.RegexpNodesFactory.ToSNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -54,10 +46,8 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -65,14 +55,11 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreClass("Regexp")
 public abstract class RegexpNodes {
@@ -99,76 +86,6 @@ public abstract class RegexpNodes {
         regex = new Regex(preprocessed.getUnsafeBytes(), 0, preprocessed.getLength(),
                 options.toJoniOptions(), enc);
         return regex;
-    }
-
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "regexp"),
-            @NodeChild(type = RubyNode.class, value = "source"),
-            @NodeChild(type = RubyNode.class, value = "matcher"),
-            @NodeChild(type = RubyNode.class, value = "startPos"),
-            @NodeChild(type = RubyNode.class, value = "range"),
-            @NodeChild(type = RubyNode.class, value = "onlyAtStart")
-    })
-    public static abstract class MatchNode extends RubyNode {
-        @Child private TaintResultNode taintResultNode = new TaintResultNode();
-        @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
-        @Child CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
-
-        public static MatchNode create() {
-            return MatchNodeGen.create(null, null, null, null, null, null);
-        }
-
-        public abstract DynamicObject execute(DynamicObject regexp, DynamicObject string, Matcher matcher,
-                int startPos, int range, boolean onlyMatchAtStart);
-
-        // Creating a MatchData will store a copy of the source string. It's tempting to use a rope here, but a bit
-        // inconvenient because we can't work with ropes directly in Ruby and some MatchData methods are nicely
-        // implemented using the source string data. Likewise, we need to taint objects based on the source string's
-        // taint state. We mustn't allow the source string's contents to change, however, so we must ensure that we have
-        // a private copy of that string. Since the source string would otherwise be a reference to string held outside
-        // the MatchData object, it would be possible for the source string to be modified externally.
-        //
-        // Ex. x = "abc"; x =~ /(.*)/; x.upcase!
-        //
-        // Without a private copy, the MatchData's source could be modified to be upcased when it should remain the
-        // same as when the MatchData was created.
-        @Specialization
-        protected DynamicObject executeMatch(DynamicObject regexp, DynamicObject string, Matcher matcher,
-                int startPos, int range, boolean onlyMatchAtStart,
-                @Cached("createBinaryProfile()") ConditionProfile matchesProfile) {
-            assert RubyGuards.isRubyRegexp(regexp);
-            assert RubyGuards.isRubyString(string);
-
-            int match = runMatch(matcher, startPos, range, onlyMatchAtStart);
-
-            if (matchesProfile.profile(match == -1)) {
-                return nil();
-            }
-
-            assert match >= 0;
-
-            final Region region = matcher.getEagerRegion();
-            final DynamicObject dupedString = (DynamicObject) dupNode.call(null, string, "dup");
-            DynamicObject result = allocateNode.allocate(matchDataClass(), Layouts.MATCH_DATA.build(dupedString,
-                    regexp, region, null));
-            return (DynamicObject) taintResultNode.maybeTaint(string, result);
-        }
-
-        @TruffleBoundary
-        private int runMatch(Matcher matcher, int startPos, int range, boolean onlyMatchAtStart) {
-            // Keep status as RUN because MRI has an uninterruptible Regexp engine
-            if (onlyMatchAtStart) {
-                return getContext().getThreadManager().runUntilResultKeepStatus(this,
-                        () -> matcher.matchInterruptible(startPos, range, Option.DEFAULT));
-            } else {
-                return getContext().getThreadManager().runUntilResultKeepStatus(this,
-                        () -> matcher.searchInterruptible(startPos, range, Option.DEFAULT));
-            }
-        }
-
-        protected DynamicObject matchDataClass() {
-            return getContext().getCoreLibrary().getMatchDataClass();
-        }
     }
 
     public static Rope shimModifiers(Rope bytes) {
@@ -201,43 +118,6 @@ public abstract class RegexpNodes {
         }
 
         return bytes;
-    }
-
-    @TruffleBoundary
-    public static Regex compile(Node currentNode, RubyContext context, Rope bytes, RegexpOptions options) {
-        bytes = shimModifiers(bytes);
-
-        try {
-            Encoding enc = bytes.getEncoding();
-            Encoding[] fixedEnc = new Encoding[]{null};
-            RopeBuilder unescaped = ClassicRegexp.preprocess(context, bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
-            if (fixedEnc[0] != null) {
-                if ((fixedEnc[0] != enc && options.isFixed()) ||
-                        (fixedEnc[0] != ASCIIEncoding.INSTANCE && options.isEncodingNone())) {
-                    throw new RaiseException(context.getCoreExceptions().regexpError("incompatible character encoding", null));
-                }
-                if (fixedEnc[0] != ASCIIEncoding.INSTANCE) {
-                    options.setFixed(true);
-                    enc = fixedEnc[0];
-                }
-            } else if (!options.isFixed()) {
-                enc = USASCIIEncoding.INSTANCE;
-            }
-
-            if (fixedEnc[0] != null) {
-                options.setFixed(true);
-            }
-            //if (regexpOptions.isEncodingNone()) setEncodingNone();
-
-            Regex regexp = new Regex(unescaped.getUnsafeBytes(), 0, unescaped.getLength(), options.toJoniOptions(), enc, Syntax.RUBY);
-            regexp.setUserObject(RopeOperations.withEncodingVerySlow(bytes, enc));
-
-            return regexp;
-        } catch (ValueException e) {
-            throw new RaiseException(context.getCoreExceptions().runtimeError("error compiling regex", currentNode));
-        } catch (SyntaxException e) {
-            throw new RaiseException(context.getCoreExceptions().regexpError(e.getMessage(), currentNode));
-        }
     }
 
     public static void setRegex(DynamicObject regexp, Regex regex) {
@@ -298,7 +178,7 @@ public abstract class RegexpNodes {
     public static void initialize(RubyContext context, DynamicObject regexp, Node currentNode, Rope setSource, int options) {
         assert RubyGuards.isRubyRegexp(regexp);
         final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(options);
-        final Regex regex = compile(currentNode, context, setSource, regexpOptions);
+        final Regex regex = TruffleRegexpNodes.compile(currentNode, context, setSource, regexpOptions);
 
         // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
         // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
@@ -315,7 +195,7 @@ public abstract class RegexpNodes {
     }
 
     public static DynamicObject createRubyRegexp(RubyContext context, Node currentNode, DynamicObjectFactory factory, Rope source, RegexpOptions options) {
-        final Regex regexp = RegexpNodes.compile(currentNode, context, source, options);
+        final Regex regexp = TruffleRegexpNodes.compile(currentNode, context, source, options);
 
         // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
         // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
@@ -346,7 +226,7 @@ public abstract class RegexpNodes {
     @CoreMethod(names = "match_start", required = 2, lowerFixnum = 2)
     public abstract static class MatchStartNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private MatchNode matchNode = MatchNode.create();
+        @Child private TruffleRegexpNodes.MatchNode matchNode = TruffleRegexpNodes.MatchNode.create();
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization(guards = "isRubyString(string)")
@@ -403,7 +283,7 @@ public abstract class RegexpNodes {
     @CoreMethod(names = "search_from", required = 2, lowerFixnum = 2)
     public abstract static class SearchFromNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private MatchNode matchNode = MatchNode.create();
+        @Child private TruffleRegexpNodes.MatchNode matchNode = TruffleRegexpNodes.MatchNode.create();
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization(guards = "isRubyString(string)")
@@ -419,7 +299,7 @@ public abstract class RegexpNodes {
     @Primitive(name = "regexp_search_from_binary", lowerFixnum = 2)
     public abstract static class SearchFromBinaryNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private MatchNode matchNode = MatchNode.create();
+        @Child private TruffleRegexpNodes.MatchNode matchNode = TruffleRegexpNodes.MatchNode.create();
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization(guards = "isRubyString(string)")
@@ -608,7 +488,7 @@ public abstract class RegexpNodes {
         @Specialization(guards = { "isInitialized(regexp)", "isRubyString(string)", "isValidEncoding(string)" })
         public Object searchRegion(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int start, int end, boolean forward,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("create()") MatchNode matchNode) {
+                @Cached("create()") TruffleRegexpNodes.MatchNode matchNode) {
             final Rope rope = StringOperations.rope(string);
             final Matcher matcher = RegexpNodes.createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true);
 
