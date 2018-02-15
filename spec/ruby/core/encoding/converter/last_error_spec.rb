@@ -55,14 +55,11 @@ with_feature :encoding do
     it "returns an Encoding::InvalidByteSequenceError when the last call to #convert produced one" do
       ec = Encoding::Converter.new("utf-8", "iso-8859-1")
       exception = nil
-      lambda do
-        begin
-          ec.convert("\xf1abcd")
-        rescue Encoding::InvalidByteSequenceError => e
-          exception = e
-          raise e
-        end
-      end.should raise_error(Encoding::InvalidByteSequenceError)
+      -> {
+        ec.convert("\xf1abcd")
+      }.should raise_error(Encoding::InvalidByteSequenceError) { |e|
+        exception = e
+      }
       ec.last_error.should be_an_instance_of(Encoding::InvalidByteSequenceError)
       ec.last_error.message.should == exception.message
     end
@@ -70,14 +67,11 @@ with_feature :encoding do
     it "returns an Encoding::UndefinedConversionError when the last call to #convert produced one" do
       ec = Encoding::Converter.new("utf-8", "iso-8859-1")
       exception = nil
-      lambda do
-        begin
-          ec.convert("\u{9899}")
-        rescue Encoding::UndefinedConversionError => e
-          exception = e
-          raise e
-        end
-      end.should raise_error(Encoding::UndefinedConversionError)
+      -> {
+        ec.convert("\u{9899}")
+      }.should raise_error(Encoding::UndefinedConversionError) { |e|
+        exception = e
+      }
       ec.last_error.should be_an_instance_of(Encoding::UndefinedConversionError)
       ec.last_error.message.should == exception.message
     end
