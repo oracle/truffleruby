@@ -160,6 +160,29 @@ public abstract class EncodingConverterNodes {
 
     }
 
+    @Primitive(name = "encoding_transcoders_from_encoding", needsSelf = false)
+    public static abstract class TranscodersFromEncodingNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubySymbol(source)")
+        public DynamicObject search(DynamicObject source) {
+            final Map<String, TranscoderReference> transcoders = TranscodingManager.allTranscoders.get(Layouts.SYMBOL.getString(source));
+            if (transcoders == null) {
+                return nil();
+            }
+
+            final Object[] destinations = new Object[transcoders.size()];
+            int i = 0;
+
+            for (String transcoder : transcoders.keySet()) {
+                destinations[i++] = getSymbol(transcoder);
+            }
+
+            return createArray(destinations, destinations.length);
+        }
+
+    }
+
     @Primitive(name = "encoding_transcoder_search", needsSelf = false)
     public static abstract class PrimitiveTranscoderSearch extends PrimitiveArrayArgumentsNode {
 
