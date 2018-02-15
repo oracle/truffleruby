@@ -74,6 +74,20 @@ with_feature :encoding do
       }
       ec.last_error.should be_an_instance_of(Encoding::UndefinedConversionError)
       ec.last_error.message.should == exception.message
+      ec.last_error.message.should include "from UTF-8 to ISO-8859-1"
+    end
+
+    it "returns the last error of #convert with a message showing the transcoding path" do
+      ec = Encoding::Converter.new("iso-8859-1", "Big5")
+      exception = nil
+      -> {
+        ec.convert("\xE9") # é in ISO-8859-1
+      }.should raise_error(Encoding::UndefinedConversionError) { |e|
+        exception = e
+      }
+      ec.last_error.should be_an_instance_of(Encoding::UndefinedConversionError)
+      ec.last_error.message.should == exception.message
+      ec.last_error.message.should include "from ISO-8859-1 to UTF-8 to Big5"
     end
   end
 end
