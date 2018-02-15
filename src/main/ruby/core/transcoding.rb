@@ -177,17 +177,6 @@ class Encoding
         unless new_replacement.nil?
           new_replacement = Truffle::Type.coerce_to new_replacement, String, :to_str
           self.replacement = new_replacement # We can only call `self.replacement=` after the converter has been initialized.
-
-          replacement_encoding_name = new_replacement.encoding.name.upcase
-          @replacement_converters = []
-
-          @convpath.each do |enc|
-            name = enc.to_s.upcase
-            next if name == replacement_encoding_name
-
-            _, converters = TranscodingPath[replacement_encoding_name.to_sym, enc]
-            @replacement_converters << name << converters
-          end
         end
       end
     end
