@@ -25,7 +25,6 @@ FROZEN_STRING_LITERALS: [frozen_string_literals, boolean, false, Use frozen stri
 RUBYGEMS: [rubygems, boolean, true, Use RubyGems]
 LAZY_RUBYGEMS: [rubygems.lazy, boolean, DEFAULT_LAZY, Load RubyGems lazily on first failing require]
 PATCHING: [patching, boolean, true, Use patching]
-PATCHING_OPENSSL: [patching_openssl, boolean, false, Use openssl patching]
 DID_YOU_MEAN: [did_you_mean, boolean, true, Use did_you_mean]
 
 INTERNAL_ENCODING: [[internal_encoding, -E, -U], string, '', Internal encoding]

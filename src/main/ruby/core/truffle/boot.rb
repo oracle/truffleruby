@@ -10,13 +10,7 @@ TOPLEVEL_BINDING = binding
 
 module Truffle::Boot
 
-  PATCHING_OPENSSL = Truffle::Boot.get_option 'patching_openssl'
   PATCHING = Truffle::Boot.get_option 'patching'
-  raise 'Cannot patch openssl without patching enabled' if PATCHING_OPENSSL and !PATCHING
-
-  def self.patching_openssl_enabled?
-    PATCHING_OPENSSL
-  end
 
   def self.check_syntax(source_or_file)
     inner_check_syntax source_or_file

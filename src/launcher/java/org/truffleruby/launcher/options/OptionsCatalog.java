@@ -141,11 +141,6 @@ public class OptionsCatalog {
             "Use patching",
             null,
             true);
-    public static final BooleanOptionDescription PATCHING_OPENSSL = new BooleanOptionDescription(
-            "ruby.patching_openssl",
-            "Use openssl patching",
-            null,
-            false);
     public static final BooleanOptionDescription DID_YOU_MEAN = new BooleanOptionDescription(
             "ruby.did_you_mean",
             "Use did_you_mean",
@@ -654,8 +649,6 @@ public class OptionsCatalog {
                 return LAZY_RUBYGEMS;
             case "ruby.patching":
                 return PATCHING;
-            case "ruby.patching_openssl":
-                return PATCHING_OPENSSL;
             case "ruby.did_you_mean":
                 return DID_YOU_MEAN;
             case "ruby.internal_encoding":
@@ -870,7 +863,6 @@ public class OptionsCatalog {
             RUBYGEMS,
             LAZY_RUBYGEMS,
             PATCHING,
-            PATCHING_OPENSSL,
             DID_YOU_MEAN,
             INTERNAL_ENCODING,
             EXTERNAL_ENCODING,
