@@ -333,6 +333,11 @@ public class RubyContext {
             return false; // Should load the specified core files
         }
 
+        if (newOptions.HASHING_DETERMINISTIC != oldOptions.HASHING_DETERMINISTIC) {
+            Log.LOGGER.fine(notReusingContext + "-Xhashing.deterministic is " + newOptions.HASHING_DETERMINISTIC);
+            return false;
+        }
+
         // The core library captures the value of these options (via Truffle::Boot.get_option).
 
         if (newOptions.NATIVE_PLATFORM != oldOptions.NATIVE_PLATFORM) {
