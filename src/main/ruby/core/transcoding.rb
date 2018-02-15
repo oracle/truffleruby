@@ -370,46 +370,6 @@ class Encoding
     def inspect
       "#<Encoding::Converter: #{source_encoding.name} to #{destination_encoding.name}>"
     end
-
-    class TranscodingPath
-      @paths = {}
-
-      def self.[](source, target)
-        key = "[#{source}, #{target}]"
-
-        path, converters = @paths[key]
-
-        unless path
-          return unless path = search(source, target)
-          @paths[key] = [path]
-        end
-
-        unless converters
-          converters = get_converters path
-          @paths[key][1] = converters
-        end
-
-        [path, converters]
-      end
-
-      def self.search(source, target)
-        Truffle.invoke_primitive :encoding_transcoder_search, source, target
-      end
-
-      def self.get_converters(path)
-        converters = []
-        total = path.size - 1
-        i = 0
-
-        while i < total
-          entry = TranscodingMap[path[i]][path[i + 1]]
-          converters << entry
-          i += 1
-        end
-
-        converters
-      end
-    end
   end
 end
 
