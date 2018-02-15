@@ -64,16 +64,11 @@ class Encoding
 
   EncodingMap = build_encoding_map
 
-  @default_internal = setup_default_encoding('internal', :INTERNAL)
-  @default_external = setup_default_encoding('external', :EXTERNAL)
-  setup_default_encoding('locale', :LOCALE)
-  setup_default_encoding('filesystem', :FILESYSTEM)
-
-  if Truffle::Boot.preinitializing?
-    # Update for the new locale Encoding
-    Truffle::Boot.delay do
-      setup_default_encoding('locale', :LOCALE)
-    end
+  Truffle::Boot.redo do
+    @default_internal = setup_default_encoding('internal', :INTERNAL)
+    @default_external = setup_default_encoding('external', :EXTERNAL)
+    setup_default_encoding('locale', :LOCALE)
+    setup_default_encoding('filesystem', :FILESYSTEM)
   end
 
   Truffle::Boot.delay do
