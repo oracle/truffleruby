@@ -69,8 +69,8 @@ if [ "$sulong" = true ]; then
   export TRUFFLERUBY_CEXT_ENABLED=true
   export TRUFFLERUBYOPT="-Xgraal.warn_unless=$graal"
 else
-  export TRUFFLERUBY_CEXT_ENABLED=false
-  export TRUFFLERUBYOPT="-Xgraal.warn_unless=$graal -Xpatching_openssl=true"
+  echo "distribution without sulong is no longer supported"
+  exit 1
 fi
 
 if [ "$graal" = true ]; then

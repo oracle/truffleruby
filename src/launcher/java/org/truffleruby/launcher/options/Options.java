@@ -41,7 +41,6 @@ public class Options {
     public final boolean RUBYGEMS;
     public final boolean LAZY_RUBYGEMS;
     public final boolean PATCHING;
-    public final boolean PATCHING_OPENSSL;
     public final boolean DID_YOU_MEAN;
     public final String INTERNAL_ENCODING;
     public final String EXTERNAL_ENCODING;
@@ -160,7 +159,6 @@ public class Options {
         RUBYGEMS = builder.getOrDefault(OptionsCatalog.RUBYGEMS);
         LAZY_RUBYGEMS = builder.getOrDefault(OptionsCatalog.LAZY_RUBYGEMS, DEFAULT_LAZY);
         PATCHING = builder.getOrDefault(OptionsCatalog.PATCHING);
-        PATCHING_OPENSSL = builder.getOrDefault(OptionsCatalog.PATCHING_OPENSSL);
         DID_YOU_MEAN = builder.getOrDefault(OptionsCatalog.DID_YOU_MEAN);
         INTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.INTERNAL_ENCODING);
         EXTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.EXTERNAL_ENCODING);
@@ -306,8 +304,6 @@ public class Options {
                 return LAZY_RUBYGEMS;
             case "ruby.patching":
                 return PATCHING;
-            case "ruby.patching_openssl":
-                return PATCHING_OPENSSL;
             case "ruby.did_you_mean":
                 return DID_YOU_MEAN;
             case "ruby.internal_encoding":
