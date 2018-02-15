@@ -29,7 +29,7 @@ module Truffle
     module Foreign
       def self.attach_function(method_name, native_name = method_name, args_types, return_type, blocking: false)
         Truffle::POSIX.attach_function(native_name, args_types, return_type,
-                                       on: self, as: method_name, blocking: blocking)
+                                       Truffle::POSIX::LIBC, blocking, method_name, self)
       end
 
       SIZEOF_INT = Truffle::FFI.type_size(:int)
