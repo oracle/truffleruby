@@ -71,19 +71,17 @@ module Truffle::POSIX
 
   # the actual function is looked up and attached on its fist call
   def self.attach_function(native_name, argument_types, return_type,
-                           on: Truffle::POSIX, as: native_name, library: LIBC, blocking: false)
+                           library = LIBC, blocking = false, method_name = native_name, on = self)
 
-    on.define_singleton_method(as) do |*args|
+    on.define_singleton_method(method_name) do |*args|
       Truffle::POSIX.attach_function_eagerly native_name, argument_types, return_type,
-                                             on: on, as: as, library: library, blocking: blocking
-      __send__ as, *args
+                                             library, blocking, method_name, on
+      __send__ method_name, *args
     end
   end
 
   def self.attach_function_eagerly(native_name, argument_types, return_type,
-                                   on: Truffle::POSIX, as: native_name, library: LIBC, blocking: false)
-
-    method_name = as
+                                   library, blocking, method_name, on)
 
     library = library.resolve
     begin
@@ -156,7 +154,7 @@ module Truffle::POSIX
   attach_function :chmod, [:string, :mode_t], :int
   attach_function :chown, [:string, :uid_t, :gid_t], :int
   attach_function :chroot, [:string], :int
-  attach_function :truffleposix_clock_gettime, [:int], :int64_t, library: LIBTRUFFLEPOSIX
+  attach_function :truffleposix_clock_gettime, [:int], :int64_t, LIBTRUFFLEPOSIX
   attach_function :close, [:int], :int
   attach_function :closedir, [:pointer], :int
   attach_function :dirfd, [:pointer], :int
@@ -165,8 +163,8 @@ module Truffle::POSIX
   attach_function :fchmod, [:int, :mode_t], :int
   attach_function :fchown, [:int, :uid_t, :gid_t], :int
   attach_function :fcntl, [:int, :int, :int], :int
-  attach_function :truffleposix_flock, [:int, :int], :int, library: LIBTRUFFLEPOSIX, blocking: true
-  attach_function :truffleposix_fstat, [:int, :pointer], :int, library: LIBTRUFFLEPOSIX
+  attach_function :truffleposix_flock, [:int, :int], :int, LIBTRUFFLEPOSIX, true
+  attach_function :truffleposix_fstat, [:int, :pointer], :int, LIBTRUFFLEPOSIX
   attach_function :fsync, [:int], :int
   attach_function :ftruncate, [:int, :off_t], :int
   attach_function :getcwd, [:pointer, :size_t], :string
@@ -175,30 +173,30 @@ module Truffle::POSIX
   attach_function :lchown, [:string, :uid_t, :gid_t], :int
   attach_function :link, [:string, :string], :int
   attach_function :lseek, [:int, :off_t, :int], :off_t
-  attach_function :truffleposix_lstat, [:string, :pointer], :int, library: LIBTRUFFLEPOSIX
-  attach_function :truffleposix_major, [:dev_t], :uint, library: LIBTRUFFLEPOSIX
-  attach_function :truffleposix_minor, [:dev_t], :uint, library: LIBTRUFFLEPOSIX
+  attach_function :truffleposix_lstat, [:string, :pointer], :int, LIBTRUFFLEPOSIX
+  attach_function :truffleposix_major, [:dev_t], :uint, LIBTRUFFLEPOSIX
+  attach_function :truffleposix_minor, [:dev_t], :uint, LIBTRUFFLEPOSIX
   attach_function :mkdir, [:string, :mode_t], :int
   attach_function :mkfifo, [:string, :mode_t], :int
   attach_function :open, [:string, :int, :mode_t], :int
   attach_function :opendir, [:string], :pointer
   attach_function :pipe, [:pointer], :int
-  attach_function :read, [:int, :pointer, :size_t], :ssize_t, blocking: true
+  attach_function :read, [:int, :pointer, :size_t], :ssize_t, LIBC, true
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
-  attach_function :truffleposix_readdir, [:pointer], :string, library: LIBTRUFFLEPOSIX
+  attach_function :truffleposix_readdir, [:pointer], :string, LIBTRUFFLEPOSIX
   attach_function :rename, [:string, :string], :int
-  attach_function :truffleposix_rewinddir, [:pointer], :void, library: LIBTRUFFLEPOSIX
+  attach_function :truffleposix_rewinddir, [:pointer], :void, LIBTRUFFLEPOSIX
   attach_function :rmdir, [:string], :int
   attach_function :seekdir, [:pointer, :long], :void
-  attach_function :truffleposix_select, [:int, :pointer, :int, :pointer, :int, :pointer, :long], :int, library: LIBTRUFFLEPOSIX
-  attach_function :truffleposix_stat, [:string, :pointer], :int, library: LIBTRUFFLEPOSIX
+  attach_function :truffleposix_select, [:int, :pointer, :int, :pointer, :int, :pointer, :long], :int, LIBTRUFFLEPOSIX
+  attach_function :truffleposix_stat, [:string, :pointer], :int, LIBTRUFFLEPOSIX
   attach_function :symlink, [:string, :string], :int
   attach_function :telldir, [:pointer], :long
   attach_function :truncate, [:string, :off_t], :int
   attach_function :umask, [:mode_t], :mode_t
   attach_function :unlink, [:string], :int
-  attach_function :truffleposix_utimes, [:string, :long, :int, :long, :int], :int, library: LIBTRUFFLEPOSIX
-  attach_function :write, [:int, :pointer, :size_t], :ssize_t, blocking: true
+  attach_function :truffleposix_utimes, [:string, :long, :int, :long, :int], :int, LIBTRUFFLEPOSIX
+  attach_function :write, [:int, :pointer, :size_t], :ssize_t, LIBC, true
 
   # Process-related
   attach_function :getegid, [], :gid_t
@@ -229,41 +227,41 @@ module Truffle::POSIX
 
   attach_function :getrlimit, [:int, :pointer], :int
   attach_function :setrlimit, [:int, :pointer], :int
-  attach_function :truffleposix_getrusage, [:pointer], :int, library: LIBTRUFFLEPOSIX
+  attach_function :truffleposix_getrusage, [:pointer], :int, LIBTRUFFLEPOSIX
 
-  attach_function :truffleposix_getpriority, [:int, :id_t], :int, library: LIBTRUFFLEPOSIX
+  attach_function :truffleposix_getpriority, [:int, :id_t], :int, LIBTRUFFLEPOSIX
   attach_function :setpriority, [:int, :id_t, :int], :int
 
   attach_function :execve, [:string, :pointer, :pointer], :int
-  attach_function :truffleposix_posix_spawnp, [:string, :pointer, :pointer, :int, :pointer, :int], :pid_t, library: LIBTRUFFLEPOSIX
-  attach_function :truffleposix_waitpid, [:pid_t, :int, :pointer], :pid_t, library: LIBTRUFFLEPOSIX, blocking: true
+  attach_function :truffleposix_posix_spawnp, [:string, :pointer, :pointer, :int, :pointer, :int], :pid_t, LIBTRUFFLEPOSIX
+  attach_function :truffleposix_waitpid, [:pid_t, :int, :pointer], :pid_t, LIBTRUFFLEPOSIX, true
 
   # ENV-related
   attach_function :getenv, [:string], :string
 
-  attach_function :setenv, [:string, :string, :int], :int, as: :setenv_native
+  attach_function :setenv, [:string, :string, :int], :int, LIBC, false, :setenv_native
   def self.setenv(name, value, overwrite)
     Truffle.invoke_primitive :posix_invalidate_env, name
     setenv_native(name, value, overwrite)
   end
 
-  attach_function :unsetenv, [:string], :int, as: :unsetenv_native
+  attach_function :unsetenv, [:string], :int, LIBC, false, :unsetenv_native
   def self.unsetenv(name)
     Truffle.invoke_primitive :posix_invalidate_env, name
     unsetenv_native(name)
   end
 
   # Other routines
-  attach_function :crypt, [:string, :string], :string, library: LIBCRYPT
-  attach_function :truffleposix_get_user_home, [:string], :pointer, library: LIBTRUFFLEPOSIX
+  attach_function :crypt, [:string, :string], :string, LIBCRYPT
+  attach_function :truffleposix_get_user_home, [:string], :pointer, LIBTRUFFLEPOSIX
 
   # Errno-related
   if Truffle::Platform.linux?
-    attach_function :__errno_location, [], :pointer, as: :errno_address
+    attach_function :__errno_location, [], :pointer, LIBC, false, :errno_address
   elsif Truffle::Platform.darwin?
-    attach_function :__error, [], :pointer, as: :errno_address
+    attach_function :__error, [], :pointer, LIBC, false, :errno_address
   elsif Truffle::Platform.solaris?
-    attach_function :___errno, [], :pointer, as: :errno_address
+    attach_function :___errno, [], :pointer, LIBC, false, :errno_address
   else
     raise 'Unsupported platform'
   end

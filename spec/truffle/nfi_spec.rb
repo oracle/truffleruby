@@ -44,7 +44,8 @@ end
 describe "NFI with callbacks to Ruby" do
   before :all do
     @libc = Module.new do
-      Truffle::POSIX.attach_function :qsort, [:pointer, :size_t, :size_t, '(POINTER,POINTER):sint32'], :void, on: self
+      Truffle::POSIX.attach_function :qsort, [:pointer, :size_t, :size_t, '(POINTER,POINTER):sint32'], :void,
+                                     Truffle::POSIX::LIBC, false, :qsort, self
     end
   end
 
