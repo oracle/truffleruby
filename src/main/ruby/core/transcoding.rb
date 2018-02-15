@@ -173,8 +173,6 @@ class Encoding
         raise ConverterNotFoundError, msg
       end
 
-      @converters = TranscodingPath.get_converters(@convpath)
-
       if (@options & (INVALID_REPLACE | UNDEF_REPLACE | UNDEF_HEX_CHARREF))
         unless new_replacement.nil?
           new_replacement = Truffle::Type.coerce_to new_replacement, String, :to_str
