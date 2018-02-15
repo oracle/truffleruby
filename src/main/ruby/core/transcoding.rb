@@ -316,9 +316,8 @@ class Encoding
            destination_encoding_name.to_sym == @destination_encoding.name
           msg = "#{error_bytes_msg} from #{source_encoding_name} to #{destination_encoding_name}"
         else
-          msg = "#{error_bytes_msg} to #{destination_encoding_name} in conversion from #{source_encoding_name}"
-          transcoder = @converters.first
-          msg << " to #{transcoder.target}"
+          convpath = @convpath.map { |upcase_name| Encoding.find(upcase_name.to_s).name }
+          msg = "#{error_bytes_msg} to #{destination_encoding_name} in conversion from #{convpath.join(' to ')}"
         end
 
         exc = UndefinedConversionError.new msg
