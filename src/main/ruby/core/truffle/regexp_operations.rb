@@ -32,5 +32,13 @@ module Truffle
       Truffle::KernelOperations.frame_local_variable_set(:$~, a_binding, value)
     end
     Truffle::Graal.always_split(method(:set_last_match))
+
+    def self.compilation_stats
+      Hash[*compilation_stats_array]
+    end
+
+    def self.match_stats
+      Hash[*match_stats_array]
+    end
   end
 end

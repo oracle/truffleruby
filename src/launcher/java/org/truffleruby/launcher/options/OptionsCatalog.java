@@ -531,6 +531,16 @@ public class OptionsCatalog {
             "Inline basic operations (like Fixnum operators) in the AST without a call",
             null,
             true);
+    public static final BooleanOptionDescription REGEXP_INSTRUMENT_CREATION = new BooleanOptionDescription(
+            "ruby.regexp.instrument-creation",
+            "Enable instrumentation to gather stats on regexp creation.",
+            null,
+            false);
+    public static final BooleanOptionDescription REGEXP_INSTRUMENT_MATCH = new BooleanOptionDescription(
+            "ruby.regexp.instrument-match",
+            "Enable instrumentation to gather stats on regexp matching.",
+            null,
+            false);
     public static final BooleanOptionDescription GRAAL_WARNING_UNLESS = new BooleanOptionDescription(
             "ruby.graal.warn_unless",
             "Warn unless the JVM has the Graal compiler",
@@ -805,6 +815,10 @@ public class OptionsCatalog {
                 return BACKTRACE_ON_SIGALRM;
             case "ruby.basic_ops.inline":
                 return BASICOPS_INLINE;
+            case "ruby.regexp.instrument-creation":
+                return REGEXP_INSTRUMENT_CREATION;
+            case "ruby.regexp.instrument-match":
+                return REGEXP_INSTRUMENT_MATCH;
             case "ruby.graal.warn_unless":
                 return GRAAL_WARNING_UNLESS;
             case "ruby.shared.objects":
@@ -941,6 +955,8 @@ public class OptionsCatalog {
             BACKTRACE_ON_INTERRUPT,
             BACKTRACE_ON_SIGALRM,
             BASICOPS_INLINE,
+            REGEXP_INSTRUMENT_CREATION,
+            REGEXP_INSTRUMENT_MATCH,
             GRAAL_WARNING_UNLESS,
             SHARED_OBJECTS_ENABLED,
             SHARED_OBJECTS_DEBUG,

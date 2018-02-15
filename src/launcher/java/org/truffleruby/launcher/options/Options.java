@@ -119,6 +119,8 @@ public class Options {
     public final boolean BACKTRACE_ON_INTERRUPT;
     public final boolean BACKTRACE_ON_SIGALRM;
     public final boolean BASICOPS_INLINE;
+    public final boolean REGEXP_INSTRUMENT_CREATION;
+    public final boolean REGEXP_INSTRUMENT_MATCH;
     public final boolean GRAAL_WARNING_UNLESS;
     public final boolean SHARED_OBJECTS_ENABLED;
     public final boolean SHARED_OBJECTS_DEBUG;
@@ -237,6 +239,8 @@ public class Options {
         BACKTRACE_ON_INTERRUPT = builder.getOrDefault(OptionsCatalog.BACKTRACE_ON_INTERRUPT);
         BACKTRACE_ON_SIGALRM = builder.getOrDefault(OptionsCatalog.BACKTRACE_ON_SIGALRM);
         BASICOPS_INLINE = builder.getOrDefault(OptionsCatalog.BASICOPS_INLINE);
+        REGEXP_INSTRUMENT_CREATION = builder.getOrDefault(OptionsCatalog.REGEXP_INSTRUMENT_CREATION);
+        REGEXP_INSTRUMENT_MATCH = builder.getOrDefault(OptionsCatalog.REGEXP_INSTRUMENT_MATCH);
         GRAAL_WARNING_UNLESS = builder.getOrDefault(OptionsCatalog.GRAAL_WARNING_UNLESS);
         SHARED_OBJECTS_ENABLED = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_ENABLED);
         SHARED_OBJECTS_DEBUG = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_DEBUG);
@@ -460,6 +464,10 @@ public class Options {
                 return BACKTRACE_ON_SIGALRM;
             case "ruby.basic_ops.inline":
                 return BASICOPS_INLINE;
+            case "ruby.regexp.instrument-creation":
+                return REGEXP_INSTRUMENT_CREATION;
+            case "ruby.regexp.instrument-match":
+                return REGEXP_INSTRUMENT_MATCH;
             case "ruby.graal.warn_unless":
                 return GRAAL_WARNING_UNLESS;
             case "ruby.shared.objects":
