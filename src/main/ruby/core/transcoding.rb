@@ -97,7 +97,8 @@ class Encoding
 
       return unless transcoders and transcoders.size == 1
 
-      Encoding.find transcoders[0].to_s
+      enc = Encoding.find transcoders[0].to_s
+      enc if enc.ascii_compatible?
     end
 
     def self.search_convpath(from, to, options=0)
