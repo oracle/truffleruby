@@ -33,33 +33,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class Encoding
-  class Transcoding
-    attr_reader :source, :target
-
-    def initialize(source, target)
-      @source = source
-      @target = target
-    end
-
-    def inspect
-      "#<#{super} #{source} to #{target}"
-    end
-
-    def self.build_transcoding_map
-      map = {}
-      Encoding::Converter.each_transcoder do |source, destinations|
-        h = {}
-        destinations.each do |dest|
-          h[dest] = Transcoding.new(source, dest)
-        end
-        map[source] = h
-      end
-      map
-    end
-  end
-
-  TranscodingMap = Transcoding.build_transcoding_map
-
   class UndefinedConversionError < EncodingError
     attr_accessor :source_encoding_name
     attr_accessor :destination_encoding_name
@@ -374,18 +347,3 @@ class Encoding
     end
   end
 end
-
-Encoding::TranscodingMap[:'UTF-16BE'] = {}
-Encoding::TranscodingMap[:'UTF-16BE'][:'UTF-8'] = nil
-
-Encoding::TranscodingMap[:'UTF-16LE'] = {}
-Encoding::TranscodingMap[:'UTF-16LE'][:'UTF-8'] = nil
-
-Encoding::TranscodingMap[:'UTF-32BE'] = {}
-Encoding::TranscodingMap[:'UTF-32BE'][:'UTF-8'] = nil
-
-Encoding::TranscodingMap[:'UTF-32LE'] = {}
-Encoding::TranscodingMap[:'UTF-32LE'][:'UTF-8'] = nil
-
-Encoding::TranscodingMap[:'ISO-2022-JP'] = {}
-Encoding::TranscodingMap[:'ISO-2022-JP'][:'STATELESS-ISO-2022-JP'] = nil

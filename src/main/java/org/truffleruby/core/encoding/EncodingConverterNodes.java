@@ -35,7 +35,6 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.rope.CodeRange;
@@ -58,7 +57,6 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.string.StringOperations.rope;
@@ -121,30 +119,6 @@ public abstract class EncodingConverterNodes {
             return createArray(ret, ret.length);
         }
 
-    }
-
-    @NonStandard
-    @CoreMethod(names = "each_transcoder", onSingleton = true, needsBlock = true)
-    public abstract static class EachTranscoderNode extends YieldingCoreMethodNode {
-
-        @TruffleBoundary // Only called once, during startup
-        @Specialization
-        public Object transcodingMap(DynamicObject block) {
-            for (Entry<String, Map<String, TranscoderReference>> sourceEntry : TranscodingManager.allTranscoders.entrySet()) {
-                final DynamicObject source = getContext().getSymbolTable().getSymbol(sourceEntry.getKey());
-                final int size = sourceEntry.getValue().size();
-                final Object[] destinations = new Object[size];
-
-                int i = 0;
-                for (Entry<String, TranscoderReference> destinationEntry : sourceEntry.getValue().entrySet()) {
-                    destinations[i++] = getContext().getSymbolTable().getSymbol(destinationEntry.getKey());
-                }
-
-                yield(block, source, createArray(destinations, size));
-            }
-
-            return nil();
-        }
     }
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
