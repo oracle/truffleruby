@@ -26,7 +26,6 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.core.hash.Entry;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyNode;
@@ -63,26 +62,6 @@ public abstract class AllocateObjectNode extends RubyNode {
             Object store,
             int size) {
         return allocate(classToAllocate, store, size);
-    }
-
-    public DynamicObject allocateHash(
-            DynamicObject classToAllocate,
-            Object store,
-            int size,
-            Entry firstInSequence,
-            Entry lastInSequence,
-            DynamicObject defaultBlock,
-            Object defaultValue,
-            boolean compareByIdentity) {
-        return allocate(
-                classToAllocate,
-                store,
-                size,
-                firstInSequence,
-                lastInSequence,
-                defaultBlock,
-                defaultValue,
-                compareByIdentity);
     }
 
     protected abstract DynamicObject executeAllocate(DynamicObject classToAllocate, Object[] values);

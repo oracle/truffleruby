@@ -57,7 +57,7 @@ public abstract class HashNodes {
 
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateObjectNode.allocateHash(rubyClass, null, 0, null, null, null, null, false);
+            return allocateObjectNode.allocate(rubyClass, Layouts.HASH.build(null, 0, null, null, null, null, false));
         }
 
     }
@@ -110,7 +110,7 @@ public abstract class HashNodes {
                 }
             }
 
-            return allocateObjectNode.allocateHash(hashClass, newStore, size, null, null, null, null, false);
+            return allocateObjectNode.allocate(hashClass, Layouts.HASH.build(newStore, size, null, null, null, null, false));
         }
 
         @Specialization(guards = "!isSmallArrayOfPairs(args)")
@@ -993,13 +993,8 @@ public abstract class HashNodes {
         }
 
         private DynamicObject newHash(DynamicObject hash, Object[] store, int size, boolean compareByIdentity) {
-            return allocateObjectNode.allocateHash(
-                            Layouts.BASIC_OBJECT.getLogicalClass(hash),
-                            store, size,
-                            null, null,
-                            Layouts.HASH.getDefaultBlock(hash),
-                            Layouts.HASH.getDefaultValue(hash),
-                            compareByIdentity);
+            return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(hash),
+                    Layouts.HASH.build(store, size, null, null, Layouts.HASH.getDefaultBlock(hash), Layouts.HASH.getDefaultValue(hash), compareByIdentity));
         }
 
         protected boolean equalKeys(VirtualFrame frame, boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
