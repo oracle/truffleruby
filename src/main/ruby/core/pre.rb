@@ -61,11 +61,21 @@ end
 module Truffle::Boot
   if preinitializing?
     TO_RUN_AT_INIT = []
+
     def self.delay(&block)
+      TO_RUN_AT_INIT << block
+    end
+
+    def self.redo(&block)
+      yield
       TO_RUN_AT_INIT << block
     end
   else
     def self.delay
+      yield
+    end
+
+    def self.redo
       yield
     end
   end
