@@ -124,15 +124,12 @@ public class RubyContext {
 
     private final Object classVariableDefinitionLock = new Object();
 
+    private final boolean preInitialized;
     private boolean preInitializing;
     private boolean initialized;
     private volatile boolean finalizing;
 
     private static boolean preInitializeContexts = Launcher.PRE_INITIALIZE_CONTEXTS;
-
-    public boolean isPreInitializing() {
-        return preInitializing;
-    }
 
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
         Launcher.printTruffleTimeMetric("before-context-constructor");
@@ -143,6 +140,7 @@ public class RubyContext {
 
         this.preInitializing = preInitializeContexts;
         RubyContext.preInitializeContexts = false; // Only the first context is pre-initialized
+        this.preInitialized = preInitializing;
 
         this.language = language;
         this.env = env;
@@ -454,6 +452,14 @@ public class RubyContext {
         if (options.COVERAGE_GLOBAL) {
             coverageManager.print(System.out);
         }
+    }
+
+    public boolean isPreInitializing() {
+        return preInitializing;
+    }
+
+    public boolean wasPreInitialized() {
+        return preInitialized;
     }
 
     public RubyLanguage getLanguage() {
