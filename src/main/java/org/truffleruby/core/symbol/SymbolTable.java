@@ -28,7 +28,6 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.Identifiers;
 
-import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,13 +45,13 @@ public class SymbolTable {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     // Cache searches based on String
-    private final Map<StringKey, Reference<DynamicObject>> stringSymbolMap = new WeakHashMap<>();
+    private final Map<StringKey, WeakReference<DynamicObject>> stringSymbolMap = new WeakHashMap<>();
     // Cache searches based on Rope
-    private final Map<RopeKey, Reference<DynamicObject>> ropeSymbolMap = new WeakHashMap<>();
+    private final Map<RopeKey, WeakReference<DynamicObject>> ropeSymbolMap = new WeakHashMap<>();
 
     // Weak map of RopeKey to Symbol to keep Symbols unique.
     // The Symbol refers to the RopeKey, so as long as the Symbol is referenced, the entry will stay in the Map.
-    private final Map<RopeKey, Reference<DynamicObject>> symbolSet = new WeakHashMap<>();
+    private final Map<RopeKey, WeakReference<DynamicObject>> symbolSet = new WeakHashMap<>();
 
     public SymbolTable(RopeCache ropeCache, DynamicObjectFactory symbolFactory, Hashing hashing) {
         this.ropeCache = ropeCache;
@@ -163,14 +162,14 @@ public class SymbolTable {
                 ropeKey);
     }
 
-    private <K, V> V readRef(Map<K, Reference<V>> map, K key) {
-        Reference<V> reference = map.get(key);
+    private <K, V> V readRef(Map<K, WeakReference<V>> map, K key) {
+        final WeakReference<V> reference = map.get(key);
         return reference == null ? null : reference.get();
     }
 
     @TruffleBoundary
     public Collection<DynamicObject> allSymbols() {
-        final Collection<Reference<DynamicObject>> symbolReferences;
+        final Collection<WeakReference<DynamicObject>> symbolReferences;
 
         lock.readLock().lock();
         try {
@@ -181,7 +180,7 @@ public class SymbolTable {
 
         final Collection<DynamicObject> symbols = new ArrayList<>(symbolReferences.size());
 
-        for (Reference<DynamicObject> reference : symbolReferences) {
+        for (WeakReference<DynamicObject> reference : symbolReferences) {
             final DynamicObject symbol = reference.get();
 
             if (symbol != null) {
