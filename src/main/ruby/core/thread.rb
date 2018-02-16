@@ -264,25 +264,22 @@ class Thread
   end
 
   # Java goes from 1 to 10 (default 5), Ruby from -3 to 3 (default 0)
-  PRIORITIES_RUBY_TO_JAVA = {
-    -3 => 1, -2 => 2, -1 => 4, 0 => 5,
-     1 => 7,  2 => 8,  3 => 10
-  }.freeze
-  PRIORITIES_JAVA_TO_RUBY = {
-    1 => -3, 2 => -2, 3 => -1, 4 => -1, 5 => 0,
-    6 =>  1, 7 =>  1, 8 =>  2, 9 => 2, 10 => 3
-  }.freeze
+  # Use Array instead of Hash as Hash needs re-hashing with context pre-initialization.
+  #                         -3 -2 -1  0  1  2   3
+  PRIORITIES_RUBY_TO_JAVA = [1, 2, 4, 5, 7, 8, 10]
+  #                           1   2   3   4  5  6  7  8  9 10
+  PRIORITIES_JAVA_TO_RUBY = [-3, -2, -1, -1, 0, 1, 1, 2, 2, 3]
 
   def priority
     java_priority = Truffle.invoke_primitive :thread_get_priority, self
-    PRIORITIES_JAVA_TO_RUBY[java_priority]
+    PRIORITIES_JAVA_TO_RUBY[java_priority-1]
   end
 
   def priority=(priority)
     Kernel.raise TypeError, 'priority must be a Fixnum' unless priority.kind_of? Fixnum
     priority = -3 if priority < -3
     priority = 3 if priority > 3
-    java_priority = PRIORITIES_RUBY_TO_JAVA[priority]
+    java_priority = PRIORITIES_RUBY_TO_JAVA[priority+3]
     Truffle.invoke_primitive :thread_set_priority, self, java_priority
     priority
   end
