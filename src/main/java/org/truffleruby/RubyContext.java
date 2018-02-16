@@ -160,16 +160,8 @@ public class RubyContext {
         random = new SecureRandom();
 
         // TODO (eregon, 25 Jan. 2018): This seed is made constant by context pre-initialization.
-        final long hashingSeed;
+        hashing = new Hashing(generateHashingSeed(random));
 
-        if (options.HASHING_DETERMINISTIC) {
-            Log.LOGGER.severe("deterministic hashing is enabled - this may make you vulnerable to denial of service attacks");
-            hashingSeed = 7114160726623585955L;
-        } else {
-            hashingSeed = random.nextLong();
-        }
-
-        hashing = new Hashing(hashingSeed);
         ropeCache = new RopeCache(hashing);
 
         rubyHome = findRubyHome(options);
@@ -362,6 +354,15 @@ public class RubyContext {
         final Options options = optionsBuilder.build();
         Launcher.printTruffleTimeMetric("after-options");
         return options;
+    }
+
+    private long generateHashingSeed(SecureRandom random) {
+        if (options.HASHING_DETERMINISTIC) {
+            Log.LOGGER.severe("deterministic hashing is enabled - this may make you vulnerable to denial of service attacks");
+            return 7114160726623585955L;
+        } else {
+            return random.nextLong();
+        }
     }
 
     private TruffleNFIPlatform createNativePlatform() {
