@@ -14,7 +14,7 @@ import org.truffleruby.core.Hashing;
 public class StringKey {
 
     private final String key;
-    private Hashing hashing;
+    private final Hashing hashing;
 
     public StringKey(String key, Hashing hashing) {
         this.key = key;
