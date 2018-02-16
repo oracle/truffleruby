@@ -9,7 +9,8 @@
 
 require_relative '../ruby/spec_helper'
 
-guard -> { Truffle.native? } do
+# GraalVM does not use the pre-initialized context yet
+guard -> { Truffle.native? and !Truffle::System.get_java_property("org.graalvm.version") } do
   describe "The pre-initialized context" do
     it "can be used to run specs, as otherwise this spec run is meaningless" do
       Truffle::Boot.was_preinitialized?.should == true
