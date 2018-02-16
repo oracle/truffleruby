@@ -40,6 +40,8 @@ public class CoreString {
 
             rope = context.getRopeCache().getRope(
                     literal.getBytes(StandardCharsets.US_ASCII),
+                    // Binary because error message Strings have a ASCII-8BIT encoding on MRI.
+                    // When used for creating a Symbol, the encoding is adapted as needed.
                     ASCIIEncoding.INSTANCE,
                     CodeRange.CR_7BIT);
         }
