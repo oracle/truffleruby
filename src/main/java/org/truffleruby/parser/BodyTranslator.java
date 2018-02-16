@@ -493,8 +493,7 @@ public class BodyTranslator extends Translator {
             final CodeRange codeRange = strNode.getCodeRange();
 
             final Rope rope = context.getRopeCache().getRope(nodeRope, codeRange);
-
-            final DynamicObject frozenString = context.getFrozenStrings().getFrozenString(rope);
+            final DynamicObject frozenString = context.getFrozenStringLiteral(rope);
 
             return addNewlineIfNeeded(node, Translator.withSourceSection(sourceSection, new DefinedWrapperNode(context.getCoreStrings().METHOD, new ObjectLiteralNode(frozenString))));
         }
@@ -2903,7 +2902,7 @@ public class BodyTranslator extends Translator {
         final RubyNode ret;
 
         if (node.isFrozen() && !getSourcePath(sourceSection).startsWith(context.getCoreLibrary().getCoreLoadPath() + "/core/")) {
-            final DynamicObject frozenString = context.getFrozenStrings().getFrozenString(rope);
+            final DynamicObject frozenString = context.getFrozenStringLiteral(rope);
 
             ret = new DefinedWrapperNode(context.getCoreStrings().METHOD,
                     new ObjectLiteralNode(frozenString));
