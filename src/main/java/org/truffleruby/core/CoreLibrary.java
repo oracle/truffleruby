@@ -415,7 +415,12 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(fiberClass, fiberFactory);
         defineModule("FileTest");
         hashClass = defineClass("Hash");
-        hashFactory = Layouts.HASH.createHashShape(hashClass, hashClass);
+        final DynamicObjectFactory originalHashFactory = Layouts.HASH.createHashShape(hashClass, hashClass);
+        if (context.isPreInitializing()) {
+            hashFactory = context.getPreInitializationManager().hookIntoHashFactory(originalHashFactory);
+        } else {
+            hashFactory = originalHashFactory;
+        }
         Layouts.CLASS.setInstanceFactoryUnsafe(hashClass, hashFactory);
         matchDataClass = defineClass("MatchData");
         matchDataFactory = Layouts.MATCH_DATA.createMatchDataShape(matchDataClass, matchDataClass);
