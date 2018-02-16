@@ -337,7 +337,7 @@ class Regexp
   #     #=> []
   #
   def names
-    named_captures.keys.map(&:dup)
+    Truffle.invoke_primitive(:regexp_names, self).map(&:first)
   end
 
 end
