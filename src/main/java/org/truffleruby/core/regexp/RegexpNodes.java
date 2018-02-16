@@ -491,7 +491,7 @@ public abstract class RegexpNodes {
                 final NameEntry e = iter.next();
                 final byte[] bytes = Arrays.copyOfRange(e.name, e.nameP, e.nameEnd);
                 final Rope rope = getContext().getRopeCache().getRope(bytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-                final DynamicObject name = getContext().getFrozenStrings().getFrozenString(rope);
+                final DynamicObject name = StringOperations.createString(getContext(), rope);
 
                 final int[] backrefs = e.getBackRefs();
                 final DynamicObject backrefsRubyArray = createArray(backrefs, backrefs.length);
