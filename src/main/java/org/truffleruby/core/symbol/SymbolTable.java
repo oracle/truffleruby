@@ -49,9 +49,10 @@ public class SymbolTable {
     private final Map<StringKey, Reference<DynamicObject>> stringSymbolMap = new WeakHashMap<>();
     // Cache searches based on Rope
     private final Map<RopeKey, Reference<DynamicObject>> ropeSymbolMap = new WeakHashMap<>();
-    // Weak set of Symbols, SymbolEquality implements equality based on inner rope, to be able to
-    // deduplicate symbols
-    private final Map<SymbolEquality, Reference<DynamicObject>> symbolSet = new WeakHashMap<>();
+
+    // Weak map of RopeKey to Symbol to keep Symbols unique.
+    // The Symbol refers to the RopeKey, so as long as the Symbol is referenced, the entry will stay in the Map.
+    private final Map<RopeKey, Reference<DynamicObject>> symbolSet = new WeakHashMap<>();
 
     public SymbolTable(RopeCache ropeCache, DynamicObjectFactory symbolFactory, Hashing hashing) {
         this.ropeCache = ropeCache;
@@ -134,12 +135,13 @@ public class SymbolTable {
     }
 
     private DynamicObject getDeduplicatedSymbol(Rope rope) {
-        final DynamicObject newSymbol = createSymbol(rope);
-        final SymbolEquality newKey = Layouts.SYMBOL.getEqualityWrapper(newSymbol);
-        final DynamicObject currentSymbol = readRef(symbolSet, newKey);
+        final DynamicObject currentSymbol = readRef(symbolSet, new RopeKey(rope, hashing));
 
         if (currentSymbol == null) {
-            symbolSet.put(newKey, new WeakReference<>(newSymbol));
+            final DynamicObject newSymbol = createSymbol(rope);
+            // We must use the Symbol's RopeKey, so as long as the Symbol lives it stays in the Map.
+            final RopeKey symbolRopeKey = Layouts.SYMBOL.getRopeKey(newSymbol);
+            symbolSet.put(symbolRopeKey, new WeakReference<>(newSymbol));
             return newSymbol;
         } else {
             return currentSymbol;
@@ -151,16 +153,14 @@ public class SymbolTable {
     private DynamicObject createSymbol(Rope rope) {
         final String string = RopeOperations.decodeRope(rope);
         // Symbol has to have reference to its SymbolEquality otherwise it would be GCed.
-        final SymbolEquality equalityWrapper = new SymbolEquality();
-        final DynamicObject symbol = Layouts.SYMBOL.createSymbol(
+        final Rope cachedRope = ropeCache.getRope(rope);
+        final RopeKey ropeKey = new RopeKey(rope, hashing);
+        return Layouts.SYMBOL.createSymbol(
                 symbolFactory,
                 string,
-                ropeCache.getRope(rope),
+                cachedRope,
                 hashing.hash(CLASS_SALT, string.hashCode()),
-                equalityWrapper);
-
-        equalityWrapper.setSymbol(symbol);
-        return symbol;
+                ropeKey);
     }
 
     private <K, V> V readRef(Map<K, Reference<V>> map, K key) {
