@@ -337,7 +337,7 @@ class Regexp
   #     #=> []
   #
   def names
-    named_captures.keys.dup
+    named_captures.keys.map(&:dup)
   end
 
 end
