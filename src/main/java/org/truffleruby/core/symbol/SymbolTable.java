@@ -44,10 +44,9 @@ public class SymbolTable {
 
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    // Cache searches based on String
+    // A cache for j.l.String to Symbols. Entries might get GC'd quickly as nothing references the
+    // StringKey. However, this doesn't matter as the cache entries will be re-created when used.
     private final Map<StringKey, WeakReference<DynamicObject>> stringSymbolMap = new WeakHashMap<>();
-    // Cache searches based on Rope
-    private final Map<RopeKey, WeakReference<DynamicObject>> ropeSymbolMap = new WeakHashMap<>();
 
     // Weak map of RopeKey to Symbol to keep Symbols unique.
     // The Symbol refers to the RopeKey, so as long as the Symbol is referenced, the entry will stay in the Map.
@@ -62,8 +61,9 @@ public class SymbolTable {
     @TruffleBoundary
     public DynamicObject getSymbol(String string) {
         final StringKey stringKey = new StringKey(string, hashing);
-        lock.readLock().lock();
         DynamicObject symbol;
+
+        lock.readLock().lock();
         try {
             symbol = readRef(stringSymbolMap, stringKey);
             if (symbol != null) {
@@ -73,23 +73,20 @@ public class SymbolTable {
             lock.readLock().unlock();
         }
 
+        final Rope rope;
+        if (StringOperations.isASCIIOnly(string)) {
+            rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
+        } else {
+            rope = StringOperations.encodeRope(string, UTF8Encoding.INSTANCE);
+        }
+        symbol = getSymbol(rope);
+
+        // Add it to the direct j.l.String to Symbol cache
         lock.writeLock().lock();
         try {
-            symbol = readRef(stringSymbolMap, stringKey);
-            if (symbol != null) {
-                return symbol;
+            if (readRef(stringSymbolMap, stringKey) == null) {
+                stringSymbolMap.put(stringKey, new WeakReference<>(symbol));
             }
-
-            final Rope rope;
-            if (StringOperations.isASCIIOnly(string)) {
-                rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
-            } else {
-                rope = StringOperations.encodeRope(string, UTF8Encoding.INSTANCE);
-            }
-
-            symbol = getDeduplicatedSymbol(rope);
-
-            stringSymbolMap.put(stringKey, new WeakReference<>(symbol));
         } finally {
             lock.writeLock().unlock();
         }
@@ -104,10 +101,10 @@ public class SymbolTable {
         }
 
         final RopeKey ropeKey = new RopeKey(rope, hashing);
+
         lock.readLock().lock();
-        DynamicObject symbol;
         try {
-            symbol = readRef(ropeSymbolMap, ropeKey);
+            final DynamicObject symbol = readRef(symbolMap, ropeKey);
             if (symbol != null) {
                 return symbol;
             }
@@ -117,27 +114,17 @@ public class SymbolTable {
 
         lock.writeLock().lock();
         try {
-            symbol = readRef(ropeSymbolMap, ropeKey);
-            if (symbol != null) {
-                return symbol;
-            }
-
-            final Rope flatRope = RopeOperations.flatten(rope);
-            symbol = getDeduplicatedSymbol(flatRope);
-
-            ropeSymbolMap.put(new RopeKey(flatRope, hashing), new WeakReference<>(symbol));
+            return getDeduplicatedSymbol(ropeKey);
         } finally {
             lock.writeLock().unlock();
         }
-
-        return symbol;
     }
 
-    private DynamicObject getDeduplicatedSymbol(Rope rope) {
-        final DynamicObject currentSymbol = readRef(symbolMap, new RopeKey(rope, hashing));
+    private DynamicObject getDeduplicatedSymbol(RopeKey ropeKey) {
+        final DynamicObject currentSymbol = readRef(symbolMap, ropeKey);
 
         if (currentSymbol == null) {
-            final DynamicObject newSymbol = createSymbol(rope);
+            final DynamicObject newSymbol = createSymbol(ropeKey.getRope());
             // We must use the Symbol's RopeKey, so as long as the Symbol lives it stays in the Map.
             final RopeKey symbolRopeKey = Layouts.SYMBOL.getRopeKey(newSymbol);
             symbolMap.put(symbolRopeKey, new WeakReference<>(newSymbol));
