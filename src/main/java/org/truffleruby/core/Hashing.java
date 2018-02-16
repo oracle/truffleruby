@@ -31,11 +31,17 @@
  */
 package org.truffleruby.core;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+
 public final class Hashing {
 
-    private final long seed;
+    @CompilationFinal private long seed;
 
     public Hashing(long seed) {
+        this.seed = seed;
+    }
+
+    public void patchSeed(long seed) {
         this.seed = seed;
     }
 

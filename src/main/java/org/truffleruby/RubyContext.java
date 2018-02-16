@@ -282,6 +282,7 @@ public class RubyContext {
         this.options = newOptions;
 
         this.random = new SecureRandom();
+        hashing.patchSeed(generateHashingSeed(random));
 
         this.rubyHome = findRubyHome(newOptions);
 
@@ -324,11 +325,6 @@ public class RubyContext {
         if (!newOptions.CORE_LOAD_PATH.equals(OptionsCatalog.CORE_LOAD_PATH.getDefaultValue())) {
             Log.LOGGER.fine(notReusingContext + "-Xcore.load_path is set: " + newOptions.CORE_LOAD_PATH);
             return false; // Should load the specified core files
-        }
-
-        if (newOptions.HASHING_DETERMINISTIC != oldOptions.HASHING_DETERMINISTIC) {
-            Log.LOGGER.fine(notReusingContext + "-Xhashing.deterministic is " + newOptions.HASHING_DETERMINISTIC);
-            return false;
         }
 
         // The core library captures the value of these options (via Truffle::Boot.get_option).
