@@ -170,7 +170,7 @@ public class EncodingManager {
 
         final Rope rope = RopeOperations.create(name, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         final Rope cachedRope = context.getRopeCache().getRope(rope.getBytes(), rope.getEncoding(), rope.getCodeRange());
-        final DynamicObject string = context.getFrozenStrings().getFrozenString(cachedRope);
+        final DynamicObject string = StringOperations.createFrozenString(context, cachedRope);
 
         return Layouts.ENCODING.createEncoding(context.getCoreLibrary().getEncodingFactory(), encoding, string, dummy);
     }
