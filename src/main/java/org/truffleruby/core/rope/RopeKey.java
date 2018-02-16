@@ -17,6 +17,8 @@ public class RopeKey {
     private final Hashing hashing;
 
     public RopeKey(Rope key, Hashing hashing) {
+        assert !(key instanceof NativeRope);
+
         this.key = key;
         this.hashing = hashing;
     }

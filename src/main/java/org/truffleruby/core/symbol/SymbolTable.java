@@ -19,6 +19,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeKey;
 import org.truffleruby.core.rope.RopeOperations;
@@ -96,6 +97,10 @@ public class SymbolTable {
 
     @TruffleBoundary
     public DynamicObject getSymbol(Rope rope) {
+        if (rope instanceof NativeRope) {
+            rope = ((NativeRope) rope).toLeafRope();
+        }
+
         if (rope.isAsciiOnly() && rope.getEncoding() != USASCIIEncoding.INSTANCE) {
             rope = rope.withEncoding(USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }
