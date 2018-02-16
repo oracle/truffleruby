@@ -42,7 +42,6 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.FrozenStringLiterals;
-import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.interop.InteropManager;
@@ -104,7 +103,6 @@ public class RubyContext {
     private final SourceLoader sourceLoader = new SourceLoader(this);
     private final CallStackManager callStack = new CallStackManager(this);
     private final CoreStrings coreStrings = new CoreStrings(this);
-    private final FrozenStrings frozenStrings = new FrozenStrings(this);
     private final FrozenStringLiterals frozenStringLiterals = new FrozenStringLiterals(this);
     private final CoreExceptions coreExceptions = new CoreExceptions(this);
     private final EncodingManager encodingManager = new EncodingManager(this);
@@ -559,10 +557,6 @@ public class RubyContext {
 
     public CoreStrings getCoreStrings() {
         return coreStrings;
-    }
-
-    public FrozenStrings getFrozenStrings() {
-        return frozenStrings;
     }
 
     public DynamicObject getFrozenStringLiteral(Rope rope) {
