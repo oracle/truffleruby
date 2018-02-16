@@ -145,7 +145,7 @@ public class SymbolTable {
         final String string = RopeOperations.decodeRope(rope);
         // Symbol has to have reference to its SymbolEquality otherwise it would be GCed.
         final Rope cachedRope = ropeCache.getRope(rope);
-        final RopeKey ropeKey = new RopeKey(rope, hashing);
+        final RopeKey ropeKey = new RopeKey(cachedRope, hashing);
         return Layouts.SYMBOL.createSymbol(
                 symbolFactory,
                 string,
