@@ -51,7 +51,7 @@ public class SymbolTable {
 
     // Weak map of RopeKey to Symbol to keep Symbols unique.
     // The Symbol refers to the RopeKey, so as long as the Symbol is referenced, the entry will stay in the Map.
-    private final Map<RopeKey, WeakReference<DynamicObject>> symbolSet = new WeakHashMap<>();
+    private final Map<RopeKey, WeakReference<DynamicObject>> symbolMap = new WeakHashMap<>();
 
     public SymbolTable(RopeCache ropeCache, DynamicObjectFactory symbolFactory, Hashing hashing) {
         this.ropeCache = ropeCache;
@@ -134,13 +134,13 @@ public class SymbolTable {
     }
 
     private DynamicObject getDeduplicatedSymbol(Rope rope) {
-        final DynamicObject currentSymbol = readRef(symbolSet, new RopeKey(rope, hashing));
+        final DynamicObject currentSymbol = readRef(symbolMap, new RopeKey(rope, hashing));
 
         if (currentSymbol == null) {
             final DynamicObject newSymbol = createSymbol(rope);
             // We must use the Symbol's RopeKey, so as long as the Symbol lives it stays in the Map.
             final RopeKey symbolRopeKey = Layouts.SYMBOL.getRopeKey(newSymbol);
-            symbolSet.put(symbolRopeKey, new WeakReference<>(newSymbol));
+            symbolMap.put(symbolRopeKey, new WeakReference<>(newSymbol));
             return newSymbol;
         } else {
             return currentSymbol;
@@ -173,7 +173,7 @@ public class SymbolTable {
 
         lock.readLock().lock();
         try {
-            symbolReferences = symbolSet.values();
+            symbolReferences = symbolMap.values();
         } finally {
             lock.readLock().unlock();
         }
