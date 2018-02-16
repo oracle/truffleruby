@@ -82,7 +82,7 @@ public class CommandLineOptions {
         return unknownArguments;
     }
 
-    // JVM options in polyglot format
+    /** JVM options in polyglot format */
     public List<String> getJVMOptions() {
         return jvmOptions;
     }
