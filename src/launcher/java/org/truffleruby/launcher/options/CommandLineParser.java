@@ -50,7 +50,6 @@ import java.util.logging.Level;
 public class CommandLineParser {
 
     private final List<String> arguments;
-    private final List<String> argumentsToBeRemoved;
     private int argumentIndex;
     private boolean processArgv;
     private final boolean rubyOpts;
@@ -76,7 +75,6 @@ public class CommandLineParser {
         this.rubyOpts = rubyOpts;
         this.parseVersionAndHelp = parseHelpEtc;
         this.arguments = Objects.requireNonNull(arguments);
-        this.argumentsToBeRemoved = new ArrayList<>();
     }
 
     public void processArguments() throws CommandLineException {
@@ -88,7 +86,6 @@ public class CommandLineParser {
         if (!endOfInterpreterArguments) {
             lastInterpreterArgumentIndex = argumentIndex;
         }
-        lastInterpreterArgumentIndex -= argumentsToBeRemoved.size();
         assert lastInterpreterArgumentIndex >= 0;
 
         if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
@@ -103,8 +100,6 @@ public class CommandLineParser {
         if (processArgv) {
             processArgv();
         }
-
-        arguments.removeAll(argumentsToBeRemoved);
     }
 
     public int getLastInterpreterArgumentIndex() {
@@ -256,20 +251,22 @@ public class CommandLineParser {
                     break FOR;
                 case 'J':
                     String javaOption = grabOptionalValue();
-                    argumentsToBeRemoved.add(argument);
                     final boolean isClasspath = javaOption.equals("-cp") || javaOption.equals("-classpath");
 
                     String javaOptionValue;
                     if (isClasspath) {
                         argumentIndex++;
                         final String currentArgument = getCurrentArgument();
-                        argumentsToBeRemoved.add(currentArgument);
                         javaOptionValue = "=" + currentArgument;
                     } else {
                         javaOptionValue = "";
                     }
 
-                    config.getJVMOptions().add("--jvm." + javaOption.substring(1) + javaOptionValue);
+                    arguments.set(argumentIndex - (isClasspath ? 1 : 0), "--jvm." + javaOption.substring(1) + javaOptionValue);
+                    if (isClasspath) {
+                        arguments.remove(argumentIndex);
+                        argumentIndex--;
+                    }
                     break FOR;
                 case 'K':
                     throw notImplemented("-K");

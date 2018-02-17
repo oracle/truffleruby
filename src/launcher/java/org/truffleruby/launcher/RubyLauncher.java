@@ -74,9 +74,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             if (launcher != null) {
                 polyglotOptions.put(OptionsCatalog.LAUNCHER.getName(), launcher);
             }
-
-            // Put java options at the beginning of arguments
-            args.addAll(0, config.getJVMOptions());
         }
 
         return config.getUnknownArguments();
