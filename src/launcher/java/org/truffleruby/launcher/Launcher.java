@@ -239,10 +239,6 @@ public class Launcher {
             if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
                 config.getOption(OptionsCatalog.DEFAULT_EXECUTION_ACTION).applyTo(config);
             }
-
-            if (!config.getJVMOptions().isEmpty() && !isNative) {
-                throw new CommandLineException("cannot apply JVM options " + config.getJVMOptions());
-            }
         } catch (CommandLineException commandLineException) {
             System.err.println("truffleruby: " + commandLineException.getMessage());
             if (commandLineException.isUsageError()) {
