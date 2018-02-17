@@ -54,7 +54,6 @@ public class CommandLineParser {
     private boolean processArgv;
     private final boolean rubyOpts;
     final CommandLineOptions config;
-    private boolean endOfInterpreterArguments;
     private int lastInterpreterArgumentIndex;
     private int characterIndex;
     private final boolean parseVersionAndHelp;
@@ -68,7 +67,6 @@ public class CommandLineParser {
 
         this.argumentIndex = 0;
         this.characterIndex = 0;
-        this.endOfInterpreterArguments = false;
         this.lastInterpreterArgumentIndex = -1;
         this.config = config;
         this.processArgv = processArgv;
@@ -83,7 +81,7 @@ public class CommandLineParser {
             argumentIndex++;
         }
 
-        if (!endOfInterpreterArguments) {
+        if (!endOfInterpreterArguments()) {
             lastInterpreterArgumentIndex = argumentIndex;
         }
         assert lastInterpreterArgumentIndex >= 0;
@@ -104,6 +102,10 @@ public class CommandLineParser {
 
     public int getLastInterpreterArgumentIndex() {
         return lastInterpreterArgumentIndex;
+    }
+
+    private boolean endOfInterpreterArguments() {
+        return lastInterpreterArgumentIndex != -1;
     }
 
     private void processArgv() {
@@ -143,7 +145,7 @@ public class CommandLineParser {
     }
 
     private boolean isInterpreterArgument(String argument) {
-        return argument.length() > 0 && (argument.charAt(0) == '-' || argument.charAt(0) == '+') && !endOfInterpreterArguments;
+        return argument.length() > 0 && (argument.charAt(0) == '-' || argument.charAt(0) == '+') && !endOfInterpreterArguments();
     }
 
     private String getArgumentError(String additionalError) {
@@ -155,7 +157,6 @@ public class CommandLineParser {
 
         if (argument.length() == 1) {
             // sole "-" means read from stdin and pass remaining args as ARGV
-            endOfInterpreterArguments = true;
             lastInterpreterArgumentIndex = argumentIndex;
 
             if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
@@ -292,7 +293,6 @@ public class CommandLineParser {
                 case 'S':
                     disallowedInRubyOpts(argument);
                     lastInterpreterArgumentIndex = argumentIndex; // set before grabValue increments index
-                    endOfInterpreterArguments = true;
 
                     String scriptName = grabValue("provide a bin script to execute");
 
@@ -461,7 +461,6 @@ public class CommandLineParser {
                         if (argument.equals("--")) {
                             // ruby interpreter compatibilty
                             // Usage: ruby [switches] [--] [programfile] [arguments])
-                            endOfInterpreterArguments = true;
                             lastInterpreterArgumentIndex = argumentIndex;
                             break;
                         }
