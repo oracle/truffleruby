@@ -29,6 +29,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.Identifiers;
 
+import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,7 +48,7 @@ public class SymbolTable {
 
     // A cache for j.l.String to Symbols. Entries might get GC'd quickly as nothing references the
     // StringKey. However, this doesn't matter as the cache entries will be re-created when used.
-    private final Map<StringKey, WeakReference<DynamicObject>> stringSymbolMap = new WeakHashMap<>();
+    private final Map<StringKey, SoftReference<DynamicObject>> stringToSymbolCache = new WeakHashMap<>();
 
     // Weak map of RopeKey to Symbol to keep Symbols unique.
     // The Symbol refers to the RopeKey, so as long as the Symbol is referenced, the entry will stay in the Map.
@@ -66,7 +67,7 @@ public class SymbolTable {
 
         lock.readLock().lock();
         try {
-            symbol = readRef(stringSymbolMap, stringKey);
+            symbol = lookupCache(stringToSymbolCache, stringKey);
             if (symbol != null) {
                 return symbol;
             }
@@ -85,8 +86,8 @@ public class SymbolTable {
         // Add it to the direct j.l.String to Symbol cache
         lock.writeLock().lock();
         try {
-            if (readRef(stringSymbolMap, stringKey) == null) {
-                stringSymbolMap.put(stringKey, new WeakReference<>(symbol));
+            if (lookupCache(stringToSymbolCache, stringKey) == null) {
+                stringToSymbolCache.put(stringKey, new SoftReference<>(symbol));
             }
         } finally {
             lock.writeLock().unlock();
@@ -152,6 +153,11 @@ public class SymbolTable {
                 cachedRope,
                 hashing.hash(CLASS_SALT, string.hashCode()),
                 ropeKey);
+    }
+
+    private DynamicObject lookupCache(Map<StringKey, SoftReference<DynamicObject>> cache, StringKey key) {
+        final SoftReference<DynamicObject> reference = cache.get(key);
+        return reference == null ? null : reference.get();
     }
 
     private <K, V> V readRef(Map<K, WeakReference<V>> map, K key) {
