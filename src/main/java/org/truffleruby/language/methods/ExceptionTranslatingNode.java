@@ -261,6 +261,11 @@ public class ExceptionTranslatingNode extends RubyNode {
         }
 
         while (t != null) {
+            if (t.getClass().getSimpleName().equals("LazyStackTrace")) {
+                // Truffle's lazy stracktrace support, not a real exception
+                break;
+            }
+
             if (!firstException) {
                 builder.append("Caused by:\n");
             }
