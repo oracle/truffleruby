@@ -247,11 +247,6 @@ public class BacktraceFormatter {
             return true;
         }
 
-        final String path = source.getPath();
-        if (path != null) {
-            return path.startsWith(SourceLoader.RESOURCE_SCHEME);
-        }
-
         final String name = source.getName();
         if (name != null) {
             return name.startsWith(SourceLoader.RESOURCE_SCHEME);
@@ -266,7 +261,7 @@ public class BacktraceFormatter {
             return false;
         }
 
-        final String path = sourceSection.getSource().getPath();
+        final String path = sourceSection.getSource().getName();
         if (path.startsWith(context.getCoreLibrary().getCoreLoadPath())) {
             return false;
         }

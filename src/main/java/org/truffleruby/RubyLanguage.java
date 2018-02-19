@@ -87,8 +87,8 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
             return "no source section";
         } else {
             final Source source = section.getSource();
+            final String path = source.getName();
 
-            final String path = source.getPath() != null ? source.getPath() : source.getName();
             if (section.isAvailable()) {
                 return path + ":" + section.getStartLine();
             } else {

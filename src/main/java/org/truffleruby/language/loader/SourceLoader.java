@@ -49,7 +49,7 @@ public class SourceLoader {
         if (source == mainSource) {
             return mainSourceAbsolutePath;
         } else {
-            return source.getPath();
+            return source.getName();
         }
     }
 

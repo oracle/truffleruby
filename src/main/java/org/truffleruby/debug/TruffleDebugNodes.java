@@ -61,12 +61,12 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(file)")
-        public DynamicObject setBreak(DynamicObject file, int line, final DynamicObject block) {
+        public DynamicObject setBreak(DynamicObject file, int line, DynamicObject block) {
             final String fileString = StringOperations.getString(file);
 
             final SourceSectionFilter filter = SourceSectionFilter.newBuilder()
                     .mimeTypeIs(RubyLanguage.MIME_TYPE)
-                    .sourceIs(source -> source != null && source.getPath() != null && source.getPath().equals(fileString))
+                    .sourceIs(source -> source != null && source.getName().equals(fileString))
                     .lineIs(line)
                     .tagIs(StandardTags.StatementTag.class)
                     .build();

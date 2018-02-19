@@ -588,7 +588,7 @@ public class CExtNodes {
         @Specialization
         public DynamicObject sourceFile() {
             final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile", "execute_with_mutex");
-            final String file = sourceSection.getSource().getPath();
+            final String file = sourceSection.getSource().getName();
 
             return makeStringNode.executeMake(file, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
