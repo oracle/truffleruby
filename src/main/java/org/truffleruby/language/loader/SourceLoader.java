@@ -68,6 +68,10 @@ public class SourceLoader {
 
     @TruffleBoundary
     public Source loadMainFile(RubyNode currentNode, String path) throws IOException {
+        if (mainSourceAbsolutePath != null) {
+            throw new UnsupportedOperationException("main file already loaded: " + mainSourceAbsolutePath);
+        }
+
         final File file = new File(path).getCanonicalFile();
         ensureReadable(path, file);
 
