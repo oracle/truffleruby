@@ -53,7 +53,7 @@ public class DataNode extends RubyNode {
 
     @TruffleBoundary
     private String getPath() {
-        return getEncapsulatingSourceSection().getSource().getPath();
+        return getContext().getSourceLoader().getAbsolutePath(getEncapsulatingSourceSection().getSource());
     }
 
 }
