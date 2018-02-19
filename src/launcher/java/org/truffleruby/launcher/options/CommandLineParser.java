@@ -254,20 +254,17 @@ public class CommandLineParser {
                     String javaOption = grabOptionalValue();
                     final boolean isClasspath = javaOption.equals("-cp") || javaOption.equals("-classpath");
 
-                    String javaOptionValue;
+                    final String jvmOption = "--jvm." + javaOption.substring(1);
                     if (isClasspath) {
                         argumentIndex++;
-                        final String currentArgument = getCurrentArgument();
-                        javaOptionValue = "=" + currentArgument;
-                    } else {
-                        javaOptionValue = "";
-                    }
-
-                    arguments.set(argumentIndex - (isClasspath ? 1 : 0), "--jvm." + javaOption.substring(1) + javaOptionValue);
-                    if (isClasspath) {
+                        final String cpValue = getCurrentArgument();
                         arguments.remove(argumentIndex);
                         argumentIndex--;
+                        arguments.set(argumentIndex, jvmOption + "=" + cpValue);
+                    } else {
+                        arguments.set(argumentIndex, jvmOption);
                     }
+
                     break FOR;
                 case 'K':
                     throw notImplemented("-K");
