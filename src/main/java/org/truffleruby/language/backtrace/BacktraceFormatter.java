@@ -17,7 +17,6 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyRootNode;
@@ -275,9 +274,13 @@ public class BacktraceFormatter {
         final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
 
         if (sourceSection != null) {
-            final String shortDescription = RubyLanguage.fileLine(sourceSection);
+            final Source source = sourceSection.getSource();
+            final String path = source.getPath() != null ? source.getPath() : source.getName();
 
-            builder.append(shortDescription);
+            builder.append(path);
+            if (sourceSection.isAvailable()) {
+                builder.append(":").append(sourceSection.getStartLine());
+            }
 
             final RootNode rootNode = callNode.getRootNode();
 
