@@ -43,8 +43,7 @@ public class ThreadBacktraceLocationNodes {
             final SourceSection sourceSection = activation.getCallNode().getEncapsulatingSourceSection();
             final Source source = sourceSection.getSource();
 
-            // Get absolute path
-            final String path = source.getPath();
+            final String path = getContext().getSourceLoader().getAbsolutePath(source);
 
             if (path == null) {
                 return coreStrings().UNKNOWN.createInstance();

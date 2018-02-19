@@ -38,8 +38,19 @@ public class SourceLoader {
 
     private final RubyContext context;
 
+    private Source mainSource = null;
+    private String mainSourceAbsolutePath = null;
+
     public SourceLoader(RubyContext context) {
         this.context = context;
+    }
+
+    public String getAbsolutePath(Source source) {
+        if (source == mainSource) {
+            return mainSourceAbsolutePath;
+        } else {
+            return source.getPath();
+        }
     }
 
     @TruffleBoundary
@@ -60,9 +71,11 @@ public class SourceLoader {
         final File file = new File(path).getCanonicalFile();
         ensureReadable(path, file);
 
-        return Source.newBuilder(file).name(path).content(xOptionStrip(
+        mainSource = Source.newBuilder(file).name(path).content(xOptionStrip(
                 currentNode,
                 new FileReader(file))).mimeType(RubyLanguage.MIME_TYPE).build();
+        mainSourceAbsolutePath = file.getPath();
+        return mainSource;
     }
 
     private String xOptionStrip(RubyNode currentNode, Reader reader) throws IOException {
