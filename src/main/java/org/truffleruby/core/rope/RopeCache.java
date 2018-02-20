@@ -80,6 +80,8 @@ public class RopeCache {
 
     @TruffleBoundary
     public Rope getRope(byte[] bytes, Encoding encoding, CodeRange codeRange) {
+        assert encoding != null;
+
         final BytesKey key = new BytesKey(bytes, encoding, hashing);
 
         lock.readLock().lock();
@@ -95,13 +97,6 @@ public class RopeCache {
             lock.readLock().unlock();
         }
 
-        // The only time we should have a null encoding is if we want to find a rope with the same logical byte[] as
-        // the one supplied to this method. If we've made it this far, no such rope exists, so return null immediately
-        // to back out of the recursive call.
-        if (encoding == null) {
-            return null;
-        }
-
         lock.writeLock().lock();
         try {
             final Rope ropeInCache = readRef(bytesToRope, key);
@@ -114,7 +109,7 @@ public class RopeCache {
             // reference equality optimizations. So, do another search but with a marker encoding. The only guarantee
             // we can make about the resulting rope is that it would have the same logical byte[], but that's good enough
             // for our purposes.
-            final Rope ropeWithSameBytesButDifferentEncoding = getRope(bytes, null, codeRange);
+            final Rope ropeWithSameBytesButDifferentEncoding = readRef(bytesToRope, new BytesKey(bytes, null, hashing));
 
             final Rope rope;
             if (ropeWithSameBytesButDifferentEncoding != null) {
