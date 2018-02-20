@@ -41,10 +41,6 @@ public class RopeCache {
         this.hashing = hashing;
     }
 
-    public Rope getRopeUTF8(String string) {
-        return getRope(string);
-    }
-
     public Rope getRope(Rope string) {
         return getRope(string.getBytes(), string.getEncoding(), string.getCodeRange());
     }
