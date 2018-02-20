@@ -299,16 +299,23 @@ module Truffle::POSIX
 
   TRY_AGAIN_ERRNOS = [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno]
 
-  def self.read_string_blocking(io, count)
+  def self.read_blocking(io, count)
     while true # rubocop:disable Lint/LiteralInCondition
-      string, errno = read_string(io, count)
-      return string if errno == 0
+      buffer, bytes_read, errno = read_bytes(io, count)
+      return [buffer, bytes_read] if errno == 0
       if TRY_AGAIN_ERRNOS.include? errno
         IO.select([io])
       else
         Errno.handle
       end
     end
+  end
+
+  def self.read_string_blocking(io, count)
+    buffer, bytes_read = read_blocking(io, count)
+
+    # Negative bytes_read is an error and is handled by the `read_blocking' call.
+    bytes_read == 0 ? nil : buffer.read_string(bytes_read)
   end
 
   def self.read_string_nonblock(io, count)
@@ -322,12 +329,24 @@ module Truffle::POSIX
     end
   end
 
-  def self.read_string(io, length)
+  def self.read_bytes(io, length)
     fd = io.descriptor
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
     bytes_read = Truffle::POSIX.read(fd, buffer, length)
     if bytes_read < 0
-      [nil, Errno.errno]
+      [nil, bytes_read, Errno.errno]
+    elsif bytes_read == 0 # EOF
+      [nil, 0, 0]
+    else
+      [buffer, bytes_read, 0]
+    end
+  end
+
+  def self.read_string(io, length)
+    buffer, bytes_read, errno = read_bytes(io, length)
+
+    if bytes_read < 0
+      [nil, errno]
     elsif bytes_read == 0 # EOF
       [nil, 0]
     else
