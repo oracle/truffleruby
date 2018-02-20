@@ -327,8 +327,8 @@ public class Launcher {
                         "java.runtime.version",
                         System.getProperty("java.version", "unknown runtime version")),
                 isGraal ? "with Graal" : "without Graal",
-                BasicPlatform.getOSName(),
-                BasicPlatform.getArchitecture()
+                BasicPlatform.getArchitecture(),
+                BasicPlatform.getOSName()
         );
     }
 
