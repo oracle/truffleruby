@@ -42,7 +42,7 @@ public abstract class ArrayStrategy {
         return matchesStore(Layouts.ARRAY.getStore(array));
     }
 
-    protected abstract boolean matchesStore(Object store);
+    public abstract boolean matchesStore(Object store);
 
     public int getSize(DynamicObject array) {
         return Layouts.ARRAY.getSize(array);
@@ -54,7 +54,7 @@ public abstract class ArrayStrategy {
         return newMirrorFromStore(Layouts.ARRAY.getStore(array));
     }
 
-    protected ArrayMirror newMirrorFromStore(Object store) {
+    public ArrayMirror newMirrorFromStore(Object store) {
         throw unsupported();
     }
 
@@ -212,7 +212,7 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        protected ArrayMirror newMirrorFromStore(Object store) {
+        public ArrayMirror newMirrorFromStore(Object store) {
             return new IntegerArrayMirror((int[]) store);
         }
 
@@ -483,7 +483,7 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        protected ArrayMirror newMirrorFromStore(Object store) {
+        public ArrayMirror newMirrorFromStore(Object store) {
             return EmptyArrayMirror.INSTANCE;
         }
 
