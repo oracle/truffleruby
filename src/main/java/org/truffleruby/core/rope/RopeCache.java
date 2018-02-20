@@ -28,7 +28,7 @@ public class RopeCache {
 
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    private final WeakHashMap<StringKey, BytesKey> javaStringToBytes = new WeakHashMap<>();
+    private final WeakHashMap<String, Rope> javaStringToRope = new WeakHashMap<>();
     private final WeakHashMap<BytesKey, WeakReference<Rope>> bytesToRope = new WeakHashMap<>();
 
     private final Set<BytesKey> keys = new HashSet<>();
@@ -49,53 +49,32 @@ public class RopeCache {
         return getRope(string.getBytes(), string.getEncoding(), codeRange);
     }
 
+    /**
+     * This should only be used for trusted input, as there is no random seed involved for hashing.
+     * We need to use the String as key to make Source.getName() keep the corresponding Rope alive.
+     */
     @TruffleBoundary
     public Rope getCachedPath(String string) {
-        final StringKey stringKey = new StringKey(string, hashing);
-
         lock.readLock().lock();
-
         try {
-            final BytesKey key = javaStringToBytes.get(stringKey);
-
-            if (key != null) {
-                final WeakReference<Rope> ropeReference = bytesToRope.get(key);
-
-                if (ropeReference != null) {
-                    final Rope rope = ropeReference.get();
-
-                    if (rope != null) {
-                        return rope;
-                    }
-                }
+            final Rope rope = javaStringToRope.get(string);
+            if (rope != null) {
+                return rope;
             }
         } finally {
             lock.readLock().unlock();
         }
 
+        final Rope cachedRope = getRope(StringOperations.encodeRope(string, UTF8Encoding.INSTANCE));
+
         lock.writeLock().lock();
-
         try {
-            final Rope rope = StringOperations.encodeRope(string, UTF8Encoding.INSTANCE);
-
-            BytesKey key = javaStringToBytes.get(stringKey);
-
-            if (key == null) {
-                key = new BytesKey(rope.getBytes(), UTF8Encoding.INSTANCE, hashing);
-                javaStringToBytes.put(stringKey, key);
-            }
-
-            WeakReference<Rope> ropeReference = bytesToRope.get(key);
-
-            if (ropeReference == null || ropeReference.get() == null) {
-                ropeReference = new WeakReference<>(rope);
-                bytesToRope.put(key, ropeReference);
-            }
-
-            return rope;
+            javaStringToRope.putIfAbsent(string, cachedRope);
         } finally {
             lock.writeLock().unlock();
         }
+
+        return cachedRope;
     }
 
     @TruffleBoundary
