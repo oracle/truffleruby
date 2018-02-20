@@ -17,6 +17,7 @@ import org.truffleruby.core.string.StringOperations;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -82,19 +83,13 @@ public class RopeCache {
         final BytesKey key = new BytesKey(bytes, encoding, hashing);
 
         lock.readLock().lock();
-
         try {
-            final WeakReference<Rope> ropeReference = bytesToRope.get(key);
+            final Rope rope = readRef(bytesToRope, key);
+            if (rope != null) {
+                ++ropesReusedCount;
+                ropeBytesSaved += rope.byteLength();
 
-            if (ropeReference != null) {
-                final Rope rope = ropeReference.get();
-
-                if (rope != null) {
-                    ++ropesReusedCount;
-                    ropeBytesSaved += rope.byteLength();
-
-                    return rope;
-                }
+                return rope;
             }
         } finally {
             lock.readLock().unlock();
@@ -108,16 +103,10 @@ public class RopeCache {
         }
 
         lock.writeLock().lock();
-
         try {
-            final WeakReference<Rope> ropeReference = bytesToRope.get(key);
-
-            if (ropeReference != null) {
-                final Rope rope = ropeReference.get();
-
-                if (rope != null) {
-                    return rope;
-                }
+            final Rope ropeInCache = readRef(bytesToRope, key);
+            if (ropeInCache != null) {
+                return ropeInCache;
             }
 
             // At this point, we were unable to find a rope with the same bytes and encoding (i.e., a direct match).
@@ -158,6 +147,11 @@ public class RopeCache {
         } finally {
             lock.readLock().unlock();
         }
+    }
+
+    private <K, V> V readRef(Map<K, WeakReference<V>> map, K key) {
+        final WeakReference<V> reference = map.get(key);
+        return reference == null ? null : reference.get();
     }
 
     public int getByteArrayReusedCount() {
