@@ -1,38 +1,38 @@
-// File is formatted with
-// `jsonnet fmt --indent 2 --max-blank-lines 2 --sort-imports --string-style s --comment-style s`
+# File is formatted with
+# `jsonnet fmt --indent 2 --max-blank-lines 2 --sort-imports --string-style d --comment-style h -i ci.jsonnet`
 
-// VSCODE is recommended for editing it has 'jsonnet' and 'jsonnet Formatter'
-// plugins which makes it a functioning IDE for jsonnet.
+# VSCODE is recommended for editing it has 'jsonnet' and 'jsonnet Formatter'
+# plugins which makes it a functioning IDE for jsonnet.
 
-local overlay = 'be5262d04726cbb2bf50fc08b32257692b40a046';
+local overlay = "be5262d04726cbb2bf50fc08b32257692b40a046";
 
-// For debugging: generated builds will be restricted to those listed in
-// the array. No restriction is applied when it is empty.
+# For debugging: generated builds will be restricted to those listed in
+# the array. No restriction is applied when it is empty.
 local restrict_builds_to = [],
       debug = std.length(restrict_builds_to) > 0;
-// Set to false to disable overlay application
+# Set to false to disable overlay application
 local use_overlay = true;
 
-// Support functions
-local utils = import 'utils.libsonnet';
+# Support functions
+local utils = import "utils.libsonnet";
 
-// All builds are composed **directly** from **independent disjunct composable**
-// jsonnet objects defined in here.
-// All used objects used to compose a build are listed
-// where build is defined, there are no other objects in the middle.
+# All builds are composed **directly** from **independent disjunct composable**
+# jsonnet objects defined in here.
+# All used objects used to compose a build are listed
+# where build is defined, there are no other objects in the middle.
 local part_definitions = {
-  local jt = function(args) [['ruby', 'tool/jt.rb'] + args],
+  local jt = function(args) [["ruby", "tool/jt.rb"] + args],
 
   use: {
     common: {
       local build = self,
       environment+: {
-        path+:: ['$JAVA_HOME/bin', '$MAVEN_HOME/bin', '$PATH'],
-        java_opts+:: ['-Xmx2G'],
-        CI: 'true',
-        RUBY_BENCHMARKS: 'true',
-        JAVA_OPTS: std.join(' ', self.java_opts),
-        PATH: std.join(':', self.path),
+        path+:: ["$JAVA_HOME/bin", "$MAVEN_HOME/bin", "$PATH"],
+        java_opts+:: ["-Xmx2G"],
+        CI: "true",
+        RUBY_BENCHMARKS: "true",
+        JAVA_OPTS: std.join(" ", self.java_opts),
+        PATH: std.join(":", self.path),
       },
 
       setup+: [],
@@ -40,103 +40,103 @@ local part_definitions = {
 
     svm: {
       downloads+: {
-        GDB: { name: 'gdb', version: '7.11.1', platformspecific: true },
+        GDB: { name: "gdb", version: "7.11.1", platformspecific: true },
       },
 
       environment+: {
-        GDB_BIN: '$GDB/bin/gdb',
-        HOST_VM: 'svm',
+        GDB_BIN: "$GDB/bin/gdb",
+        HOST_VM: "svm",
       },
     },
 
     maven: {
       downloads+: {
-        MAVEN_HOME: { name: 'maven', version: '3.3.9' },
+        MAVEN_HOME: { name: "maven", version: "3.3.9" },
       },
     },
 
     build: {
       setup+: [
-        ['mx', 'build', '--force-javac', '--warning-as-error'],
-        ['mx', 'sversions'],
+        ["mx", "build", "--force-javac", "--warning-as-error"],
+        ["mx", "sversions"],
       ],
     },
 
     sulong: {
       downloads+: {
         LIBGMP: {
-          name: 'libgmp',
-          version: '6.1.0',
+          name: "libgmp",
+          version: "6.1.0",
           platformspecific: true,
         },
       },
 
       environment+: {
-        CPPFLAGS: '-I$LIBGMP/include',
-        LD_LIBRARY_PATH: '$LIBGMP/lib:$LLVM/lib:$LD_LIBRARY_PATH',
+        CPPFLAGS: "-I$LIBGMP/include",
+        LD_LIBRARY_PATH: "$LIBGMP/lib:$LLVM/lib:$LD_LIBRARY_PATH",
       },
 
       setup+: [
-        ['git', 'clone', ['mx', 'urlrewrite', 'https://github.com/graalvm/sulong.git'], '../sulong'],
-        ['mx', 'sforceimports'],  // ensure versions declared in TruffleRuby
-        ['cd', '../sulong'],
-        ['mx', 'build'],
-        ['mx', 'sversions'],
-        ['cd', '../main'],
+        ["git", "clone", ["mx", "urlrewrite", "https://github.com/graalvm/sulong.git"], "../sulong"],
+        ["mx", "sforceimports"],  # ensure versions declared in TruffleRuby
+        ["cd", "../sulong"],
+        ["mx", "build"],
+        ["mx", "sversions"],
+        ["cd", "../main"],
       ],
     },
 
     truffleruby: {
-      '$.benchmark.server':: { options: [] },
+      "$.benchmark.server":: { options: [] },
       environment+: {
-        // Using jruby for compatibility with existing benchmark results.
-        GUEST_VM: 'jruby',
-        GUEST_VM_CONFIG: 'truffle',
+        # Using jruby for compatibility with existing benchmark results.
+        GUEST_VM: "jruby",
+        GUEST_VM_CONFIG: "truffle",
       },
     },
 
     truffleruby_cexts: {
-      is_after+:: ['$.use.truffleruby'],
+      is_after+:: ["$.use.truffleruby"],
       environment+: {
-        // to differentiate running without (chunky_png) and with cexts (oily_png).
-        GUEST_VM_CONFIG+: '-cexts',
+        # to differentiate running without (chunky_png) and with cexts (oily_png).
+        GUEST_VM_CONFIG+: "-cexts",
       },
     },
 
     gem_test_pack: {
-      setup+: jt(['gem-test-pack']),
+      setup+: jt(["gem-test-pack"]),
     },
 
     mri: {
-      '$.benchmark.server':: { options: ['--', '--no-core-load-path'] },
+      "$.benchmark.server":: { options: ["--", "--no-core-load-path"] },
       downloads+: {
-        MRI_HOME: { name: 'ruby', version: '2.3.3' },
+        MRI_HOME: { name: "ruby", version: "2.3.3" },
       },
 
       environment+: {
-        HOST_VM: 'mri',
-        HOST_VM_CONFIG: 'default',
-        GUEST_VM: 'mri',
-        GUEST_VM_CONFIG: 'default',
-        RUBY_BIN: '$MRI_HOME/bin/ruby',
-        JT_BENCHMARK_RUBY: '$MRI_HOME/bin/ruby',
+        HOST_VM: "mri",
+        HOST_VM_CONFIG: "default",
+        GUEST_VM: "mri",
+        GUEST_VM_CONFIG: "default",
+        RUBY_BIN: "$MRI_HOME/bin/ruby",
+        JT_BENCHMARK_RUBY: "$MRI_HOME/bin/ruby",
       },
     },
 
     jruby: {
-      '$.benchmark.server':: { options: ['--', '--no-core-load-path'] },
+      "$.benchmark.server":: { options: ["--", "--no-core-load-path"] },
       downloads+: {
-        JRUBY_HOME: { name: 'jruby', version: '9.1.12.0' },
+        JRUBY_HOME: { name: "jruby", version: "9.1.12.0" },
       },
 
       environment+: {
-        HOST_VM: 'server',
-        HOST_VM_CONFIG: 'default',
-        GUEST_VM: 'jruby',
-        GUEST_VM_CONFIG: 'indy',
-        RUBY_BIN: '$JRUBY_HOME/bin/jruby',
-        JT_BENCHMARK_RUBY: '$JRUBY_HOME/bin/jruby',
-        JRUBY_OPTS: '-Xcompile.invokedynamic=true',
+        HOST_VM: "server",
+        HOST_VM_CONFIG: "default",
+        GUEST_VM: "jruby",
+        GUEST_VM_CONFIG: "indy",
+        RUBY_BIN: "$JRUBY_HOME/bin/jruby",
+        JT_BENCHMARK_RUBY: "$JRUBY_HOME/bin/jruby",
+        JRUBY_OPTS: "-Xcompile.invokedynamic=true",
       },
     },
   },
@@ -144,126 +144,126 @@ local part_definitions = {
   graal: {
     core: {
       setup+: [
-        ['cd', '../graal/compiler'],
-        ['mx', 'sversions'],
-        ['mx', 'build'],
-        ['cd', '../../main'],
+        ["cd", "../graal/compiler"],
+        ["mx", "sversions"],
+        ["mx", "build"],
+        ["cd", "../../main"],
       ],
 
       environment+: {
-        GRAAL_HOME: '../graal/compiler',
-        HOST_VM: 'server',
-        HOST_VM_CONFIG: 'graal-core',
+        GRAAL_HOME: "../graal/compiler",
+        HOST_VM: "server",
+        HOST_VM_CONFIG: "graal-core",
       },
     },
 
     none: {
       environment+: {
-        HOST_VM: 'server',
-        HOST_VM_CONFIG: 'default',
-        MX_NO_GRAAL: 'true',
+        HOST_VM: "server",
+        HOST_VM_CONFIG: "default",
+        MX_NO_GRAAL: "true",
       },
     },
 
     enterprise: {
       setup+: [
         [
-          'git',
-          'clone',
-          ['mx', 'urlrewrite', 'https://github.com/graalvm/graal-enterprise.git'],
-          '../graal-enterprise',
+          "git",
+          "clone",
+          ["mx", "urlrewrite", "https://github.com/graalvm/graal-enterprise.git"],
+          "../graal-enterprise",
         ],
-        ['cd', '../graal-enterprise/graal-enterprise'],
-        ['mx', 'sforceimports'],
-        ['mx', 'sversions'],
-        ['mx', 'clean'],  // Workaround for NFI
-        ['mx', 'build'],
-        ['cd', '../../main'],
+        ["cd", "../graal-enterprise/graal-enterprise"],
+        ["mx", "sforceimports"],
+        ["mx", "sversions"],
+        ["mx", "clean"],  # Workaround for NFI
+        ["mx", "build"],
+        ["cd", "../../main"],
       ],
 
       environment+: {
-        GRAAL_HOME: '$PWD/../graal-enterprise/graal-enterprise',
-        HOST_VM: 'server',
-        HOST_VM_CONFIG: 'graal-enterprise',
+        GRAAL_HOME: "$PWD/../graal-enterprise/graal-enterprise",
+        HOST_VM: "server",
+        HOST_VM_CONFIG: "graal-enterprise",
       },
     },
 
     without_om: {
-      is_after+:: ['$.graal.enterprise', '$.use.common'],
+      is_after+:: ["$.graal.enterprise", "$.use.common"],
       environment+: {
-        HOST_VM_CONFIG+: '-no-om',
+        HOST_VM_CONFIG+: "-no-om",
         java_opts+::
-          ['-Dtruffle.object.LayoutFactory=com.oracle.truffle.object.basic.DefaultLayoutFactory'],
+          ["-Dtruffle.object.LayoutFactory=com.oracle.truffle.object.basic.DefaultLayoutFactory"],
       },
     },
   },
 
   svm: {
     core: {
-      is_after+:: ['$.use.build'],
+      is_after+:: ["$.use.build"],
 
       setup+: [
-        ['cd', '../graal/substratevm'],
-        ['mx', 'sforceimports'],
-        ['mx', 'sversions'],
-        ['cd', '../../main'],
+        ["cd", "../graal/substratevm"],
+        ["mx", "sforceimports"],
+        ["mx", "sversions"],
+        ["cd", "../../main"],
       ],
 
-      '$.svm.build_image':: {
-        aot_bin: '$GRAAL_HOME/../substratevm/svmbuild/ruby',
+      "$.svm.build_image":: {
+        aot_bin: "$GRAAL_HOME/../substratevm/svmbuild/ruby",
       },
 
       environment+: {
-        HOST_VM_CONFIG: 'graal-core',
-        GRAAL_HOME: '$PWD/../graal/compiler',
-        SVM_HOME: '$PWD/../graal/substratevm',
+        HOST_VM_CONFIG: "graal-core",
+        GRAAL_HOME: "$PWD/../graal/compiler",
+        SVM_HOME: "$PWD/../graal/substratevm",
       },
     },
 
     enterprise: {
-      is_after+:: ['$.use.build'],
+      is_after+:: ["$.use.build"],
 
       setup+: [
         [
-          'git',
-          'clone',
-          ['mx', 'urlrewrite', 'https://github.com/graalvm/graal-enterprise.git'],
-          '../graal-enterprise',
+          "git",
+          "clone",
+          ["mx", "urlrewrite", "https://github.com/graalvm/graal-enterprise.git"],
+          "../graal-enterprise",
         ],
-        ['cd', '../graal-enterprise/substratevm-enterprise'],
-        ['mx', 'sforceimports'],
-        ['mx', 'sversions'],
-        ['cd', '../../main'],
+        ["cd", "../graal-enterprise/substratevm-enterprise"],
+        ["mx", "sforceimports"],
+        ["mx", "sversions"],
+        ["cd", "../../main"],
       ],
 
-      '$.svm.build_image':: {
-        aot_bin: '$GRAAL_HOME/../substratevm-enterprise/svmbuild/ruby',
+      "$.svm.build_image":: {
+        aot_bin: "$GRAAL_HOME/../substratevm-enterprise/svmbuild/ruby",
       },
 
       environment+: {
-        HOST_VM_CONFIG: 'graal-enterprise',
-        GRAAL_HOME: '$PWD/../graal-enterprise/graal-enterprise',
-        SVM_HOME: '$PWD/../graal-enterprise/substratevm-enterprise',
+        HOST_VM_CONFIG: "graal-enterprise",
+        GRAAL_HOME: "$PWD/../graal-enterprise/graal-enterprise",
+        SVM_HOME: "$PWD/../graal-enterprise/substratevm-enterprise",
       },
     },
 
     build_image: {
       setup+: [
-        ['cd', '$SVM_HOME'],
-        // Workaround for NFI when building with different Truffle versions
-        ['mx', 'clean'],
-        ['mx', 'build'],
-        ['mx', 'image', '--', '-ruby', '>../../main/aot-build.log'],
-        ['cd', '../../main'],
-        ['cat', 'aot-build.log'],
+        ["cd", "$SVM_HOME"],
+        # Workaround for NFI when building with different Truffle versions
+        ["mx", "clean"],
+        ["mx", "build"],
+        ["mx", "image", "--", "-ruby", ">../../main/aot-build.log"],
+        ["cd", "../../main"],
+        ["cat", "aot-build.log"],
       ],
 
       local build = self,
       environment+: {
-        JT_BENCHMARK_RUBY: '$AOT_BIN',
-        AOT_BIN: build['$.svm.build_image'].aot_bin,
-        // so far there is no conflict buy it may become cumulative later
-        TRUFFLERUBYOPT: '-Xhome=$PWD',
+        JT_BENCHMARK_RUBY: "$AOT_BIN",
+        AOT_BIN: build["$.svm.build_image"].aot_bin,
+        # so far there is no conflict buy it may become cumulative later
+        TRUFFLERUBYOPT: "-Xhome=$PWD",
       },
     },
   },
@@ -272,8 +272,8 @@ local part_definitions = {
     labsjdk8: {
       downloads+: {
         JAVA_HOME: {
-          name: 'labsjdk',
-          version: '8u151-jvmci-0.39',
+          name: "labsjdk",
+          version: "8u151-jvmci-0.39",
           platformspecific: true,
         },
       },
@@ -282,8 +282,8 @@ local part_definitions = {
     labsjdk9: {
       downloads+: {
         JAVA_HOME: {
-          name: 'labsjdk',
-          version: '9+181',
+          name: "labsjdk",
+          version: "9+181",
           platformspecific: true,
         },
       },
@@ -293,144 +293,144 @@ local part_definitions = {
   platform: {
     linux: {
       local build = self,
-      '$.run.deploy_and_spec':: { test_spec_options: ['-Gci'] },
-      '$.cap':: {
-        normal_machine: ['linux', 'amd64'],
-        bench_machine: ['x52'] + self.normal_machine + ['no_frequency_scaling'],
+      "$.run.deploy_and_spec":: { test_spec_options: ["-Gci"] },
+      "$.cap":: {
+        normal_machine: ["linux", "amd64"],
+        bench_machine: ["x52"] + self.normal_machine + ["no_frequency_scaling"],
       },
       packages+: {
-        git: '>=1.8.3',
-        mercurial: '>=3.2.4',
-        ruby: '>=2.0.0',
-        llvm: '==3.8',
+        git: ">=1.8.3",
+        mercurial: ">=3.2.4",
+        ruby: ">=2.0.0",
+        llvm: "==3.8",
       },
     },
     darwin: {
-      '$.run.deploy_and_spec':: { test_spec_options: ['-GdarwinCI'] },
-      '$.cap':: {
-        normal_machine: ['darwin_sierra', 'amd64'],
+      "$.run.deploy_and_spec":: { test_spec_options: ["-GdarwinCI"] },
+      "$.cap":: {
+        normal_machine: ["darwin_sierra", "amd64"],
       },
       environment+: {
-        path+:: ['/usr/local/opt/llvm/bin'],
-        LANG: 'en_US.UTF-8',
-        // Homebrew does not put llvm on the PATH by default
-        OPENSSL_PREFIX: '/usr/local/opt/openssl',
+        path+:: ["/usr/local/opt/llvm/bin"],
+        LANG: "en_US.UTF-8",
+        # Homebrew does not put llvm on the PATH by default
+        OPENSSL_PREFIX: "/usr/local/opt/openssl",
       },
     },
     solaris: {
-      '$.run.deploy_and_spec':: { test_spec_options: [] },
-      '$.cap':: {
-        normal_machine: ['solaris', 'sparcv9'],
-        bench_machine: ['m7_eighth', 'solaris'],
+      "$.run.deploy_and_spec":: { test_spec_options: [] },
+      "$.cap":: {
+        normal_machine: ["solaris", "sparcv9"],
+        bench_machine: ["m7_eighth", "solaris"],
       },
       environment+: {
-        // LLVM is currently not available on Solaris
-        TRUFFLERUBY_CEXT_ENABLED: 'false',
+        # LLVM is currently not available on Solaris
+        TRUFFLERUBY_CEXT_ENABLED: "false",
       },
     },
   },
 
   cap: {
     gate: {
-      capabilities+: self['$.cap'].normal_machine,
-      targets+: ['gate', 'post-push'],
+      capabilities+: self["$.cap"].normal_machine,
+      targets+: ["gate", "post-push"],
       environment+: {
-        REPORT_GITHUB_STATUS: 'true',
+        REPORT_GITHUB_STATUS: "true",
       },
     },
-    deploy: { targets+: ['deploy'] },
-    fast_cpu: { capabilities+: ['x62'] },
-    bench: { capabilities+: self['$.cap'].bench_machine },
+    deploy: { targets+: ["deploy"] },
+    fast_cpu: { capabilities+: ["x62"] },
+    bench: { capabilities+: self["$.cap"].bench_machine },
     x52_18_override: {
-      is_after+:: ['$.cap.bench'],
-      capabilities: if std.count(super.capabilities, 'x52') > 0
-      then std.map(function(c) if c == 'x52' then 'x52_18' else c,
+      is_after+:: ["$.cap.bench"],
+      capabilities: if std.count(super.capabilities, "x52") > 0
+      then std.map(function(c) if c == "x52" then "x52_18" else c,
                    super.capabilities)
-      else error 'trying to override x52 but it is missing',
+      else error "trying to override x52 but it is missing",
     },
-    daily: { targets+: ['bench', 'daily'] },
-    weekly: { targets+: ['weekly'] },
+    daily: { targets+: ["bench", "daily"] },
+    weekly: { targets+: ["weekly"] },
   },
 
   run: {
     deploy_and_spec: {
       local without_rewrites = function(commands)
         [
-          ['export', 'PREV_MX_URLREWRITES=$MX_URLREWRITES'],
-          ['unset', 'MX_URLREWRITES'],
+          ["export", "PREV_MX_URLREWRITES=$MX_URLREWRITES"],
+          ["unset", "MX_URLREWRITES"],
         ] + commands + [
-          ['export', 'MX_URLREWRITES=$PREV_MX_URLREWRITES'],
+          ["export", "MX_URLREWRITES=$PREV_MX_URLREWRITES"],
         ],
       local deploy_binaries_commands = [
-        ['mx', 'deploy-binary-if-master-or-release'],
+        ["mx", "deploy-binary-if-master-or-release"],
       ],
       local deploy_binaries_no_rewrites = without_rewrites(deploy_binaries_commands),
       local deploy_binaries = deploy_binaries_commands + deploy_binaries_no_rewrites,
 
       run+: deploy_binaries +
-            jt(['test', 'specs'] + self['$.run.deploy_and_spec'].test_spec_options) +
-            jt(['test', 'specs', ':ruby24']) +
-            jt(['test', 'specs', ':ruby25']),
+            jt(["test", "specs"] + self["$.run.deploy_and_spec"].test_spec_options) +
+            jt(["test", "specs", ":ruby24"]) +
+            jt(["test", "specs", ":ruby25"]),
     },
 
     test_fast: {
-      run+: jt(['test', 'fast']),
+      run+: jt(["test", "fast"]),
     },
 
     lint: {
       downloads+: {
-        JDT: { name: 'ecj', version: '4.5.1', platformspecific: false },
+        JDT: { name: "ecj", version: "4.5.1", platformspecific: false },
       },
       packages+: {
-        ruby: '>=2.1.0',
+        ruby: ">=2.1.0",
       },
       environment+: {
-        // Truffle compiles with ECJ but does not run (GR-4720)
-        TRUFFLERUBY_CEXT_ENABLED: 'false',
+        # Truffle compiles with ECJ but does not run (GR-4720)
+        TRUFFLERUBY_CEXT_ENABLED: "false",
       },
       run+: [
-        // Build with ECJ to get warnings
-        ['mx', 'build', '--jdt', '$JDT', '--warning-as-error'],
-      ] + jt(['lint']) + [
-        ['mx', 'findbugs'],
+        # Build with ECJ to get warnings
+        ["mx", "build", "--jdt", "$JDT", "--warning-as-error"],
+      ] + jt(["lint"]) + [
+        ["mx", "findbugs"],
       ],
     },
 
-    test_mri: { run+: jt(['test', 'mri']) },
-    test_integration: { run+: jt(['test', 'integration']) },
-    test_gems: { run+: jt(['test', 'gems']) },
-    test_ecosystem: { run+: jt(['test', 'ecosystem']) },
-    test_bundle: { run+: jt(['test', 'bundle', '--no-sulong']) },
-    test_compiler: { run+: jt(['test', 'compiler']) },
+    test_mri: { run+: jt(["test", "mri"]) },
+    test_integration: { run+: jt(["test", "integration"]) },
+    test_gems: { run+: jt(["test", "gems"]) },
+    test_ecosystem: { run+: jt(["test", "ecosystem"]) },
+    test_bundle: { run+: jt(["test", "bundle", "--no-sulong"]) },
+    test_compiler: { run+: jt(["test", "compiler"]) },
 
     test_cexts: {
-      is_after+:: ['$.use.common'],
+      is_after+:: ["$.use.common"],
       environment+: {
-        // TODO why is this option applied?
-        java_opts+:: ['-Dgraal.TruffleCompileOnly=nothing'],
+        # TODO why is this option applied?
+        java_opts+:: ["-Dgraal.TruffleCompileOnly=nothing"],
       },
       run+: [
-        ['mx', '--dynamicimports', 'sulong', 'ruby_testdownstream_sulong'],
+        ["mx", "--dynamicimports", "sulong", "ruby_testdownstream_sulong"],
       ],
     },
 
-    // It tests that the locally-built Graal on Java 9 works fine.
+    # It tests that the locally-built Graal on Java 9 works fine.
     compiler_standalone: {
-      is_after+:: ['$.jdk.labsjdk9'],
+      is_after+:: ["$.jdk.labsjdk9"],
       run+: [
         [
-          'bin/truffleruby',
-          '-J-XX:+UnlockExperimentalVMOptions',
-          '-J-XX:+EnableJVMCI',
-          '-J--module-path=' + std.join(
-            ':',
+          "bin/truffleruby",
+          "-J-XX:+UnlockExperimentalVMOptions",
+          "-J-XX:+EnableJVMCI",
+          "-J--module-path=" + std.join(
+            ":",
             [
-              '../graal/sdk/mxbuild/modules/org.graalvm.graal_sdk.jar',
-              '../graal/truffle/mxbuild/modules/com.oracle.truffle.truffle_api.jar',
+              "../graal/sdk/mxbuild/modules/org.graalvm.graal_sdk.jar",
+              "../graal/truffle/mxbuild/modules/com.oracle.truffle.truffle_api.jar",
             ]
           ),
-          '-J--upgrade-module-path=../graal/compiler/mxbuild/modules/jdk.internal.vm.compiler.jar',
-          '-e',
+          "-J--upgrade-module-path=../graal/compiler/mxbuild/modules/jdk.internal.vm.compiler.jar",
+          "-e",
           "raise 'no graal' unless Truffle.graal?",
         ],
       ],
@@ -439,15 +439,15 @@ local part_definitions = {
     svm_gate: {
       local build = self,
       run+: [
-        ['cd', '$SVM_HOME'],
+        ["cd", "$SVM_HOME"],
         [
-          'mx',
-          '--strict-compliance',
-          'gate',
-          '-B--force-deprecation-as-warning',
-          '--strict-mode',
-          '--tags',
-          build['$.run.svm_gate'].tags,
+          "mx",
+          "--strict-compliance",
+          "gate",
+          "-B--force-deprecation-as-warning",
+          "--strict-mode",
+          "--tags",
+          build["$.run.svm_gate"].tags,
         ],
       ],
     },
@@ -455,22 +455,22 @@ local part_definitions = {
 
   benchmark: {
     local post_process = [
-      ['tool/post-process-results-json.rb', 'bench-results.json', 'bench-results-processed.json'],
-    ] + if debug then [['cat', 'bench-results-processed.json']] else [],
+      ["tool/post-process-results-json.rb", "bench-results.json", "bench-results-processed.json"],
+    ] + if debug then [["cat", "bench-results-processed.json"]] else [],
     local upload_results =
-      [['bench-uploader.py', 'bench-results-processed.json']],
+      [["bench-uploader.py", "bench-results-processed.json"]],
     local post_process_and_upload_results =
       post_process + upload_results +
-      [['tool/fail-if-any-failed.rb', 'bench-results-processed.json']],
+      [["tool/fail-if-any-failed.rb", "bench-results-processed.json"]],
     local post_process_and_upload_results_wait =
       post_process + upload_results +
-      [['tool/fail-if-any-failed.rb', 'bench-results-processed.json', '--wait']],
+      [["tool/fail-if-any-failed.rb", "bench-results-processed.json", "--wait"]],
     local mx_benchmark = function(bench)
-      [['mx', 'benchmark'] + if std.type(bench) == 'string' then [bench] else bench],
+      [["mx", "benchmark"] + if std.type(bench) == "string" then [bench] else bench],
 
     local benchmark = function(benchs)
-      if std.type(benchs) == 'string' then
-        error 'benchs must be an array'
+      if std.type(benchs) == "string" then
+        error "benchs must be an array"
       else
         std.join(post_process_and_upload_results_wait, std.map(mx_benchmark, benchs)) +
         post_process_and_upload_results,
@@ -485,129 +485,129 @@ local part_definitions = {
     },
 
     metrics: {
-      benchmarks+:: ['allocation', 'minheap', 'time'],
+      benchmarks+:: ["allocation", "minheap", "time"],
     },
 
     compiler_metrics: {
       benchmarks+:: [
-        'allocation:compile-mandelbrot',
-        'minheap:compile-mandelbrot',
-        'time:compile-mandelbrot',
+        "allocation:compile-mandelbrot",
+        "minheap:compile-mandelbrot",
+        "time:compile-mandelbrot",
       ],
     },
 
-    classic: { benchmarks+:: ['classic'] },
-    chunky: { benchmarks+:: ['chunky'] },
-    psd: { benchmarks+:: ['psd'] },
-    asciidoctor: { benchmarks+:: ['asciidoctor'] },
-    other_extra: { benchmarks+:: ['savina', 'micro'] },
-    other: { benchmarks+:: ['image-demo', 'optcarrot', 'synthetic'] },
+    classic: { benchmarks+:: ["classic"] },
+    chunky: { benchmarks+:: ["chunky"] },
+    psd: { benchmarks+:: ["psd"] },
+    asciidoctor: { benchmarks+:: ["asciidoctor"] },
+    other_extra: { benchmarks+:: ["savina", "micro"] },
+    other: { benchmarks+:: ["image-demo", "optcarrot", "synthetic"] },
 
     server: {
       local build = self,
       packages+: {
-        'apache/ab': '>=2.3',
+        "apache/ab": ">=2.3",
       },
-      benchmarks+:: [['server'] + build['$.benchmark.server'].options],
+      benchmarks+:: [["server"] + build["$.benchmark.server"].options],
     },
 
     cext_chunky: {
       environment+: {
-        TRUFFLERUBYOPT: '-Xcexts.log.load=true',
-        USE_CEXTS: 'true',
+        TRUFFLERUBYOPT: "-Xcexts.log.load=true",
+        USE_CEXTS: "true",
       },
       setup+:
-        jt(['cextc', 'bench/chunky_png/oily_png']) + jt(['cextc', 'bench/psd.rb/psd_native']),
-      benchmarks+:: ['chunky'],
+        jt(["cextc", "bench/chunky_png/oily_png"]) + jt(["cextc", "bench/psd.rb/psd_native"]),
+      benchmarks+:: ["chunky"],
     },
 
-    svm_build_stats: { benchmarks+:: ['build-stats'] },
+    svm_build_stats: { benchmarks+:: ["build-stats"] },
 
-    // TODO not compose-able, it would had be broken up to 2 builds
+    # TODO not compose-able, it would had be broken up to 2 builds
     run_svm_metrics: {
       local run_benchs = benchmark([
-        'instructions',
-        ['time', '--', '--native'],
-        'maxrss',
+        "instructions",
+        ["time", "--", "--native"],
+        "maxrss",
       ]),
 
       run: [
-        ['export', 'GUEST_VM_CONFIG=default'],
+        ["export", "GUEST_VM_CONFIG=default"],
       ] + run_benchs + [
-        ['export', 'GUEST_VM_CONFIG=no-rubygems'],
-        ['export', 'TRUFFLERUBYOPT=--disable-gems'],
+        ["export", "GUEST_VM_CONFIG=no-rubygems"],
+        ["export", "TRUFFLERUBYOPT=--disable-gems"],
       ] + run_benchs,
     },
 
   },
 };
 
-// composition_environment inherits from part_definitions all building blocks
-// (parts) can be addressed using jsonnet root syntax e.g. $.use.maven
-local composition_environment = utils.add_inclusion_tracking(part_definitions, '$', false) {
+# composition_environment inherits from part_definitions all building blocks
+# (parts) can be addressed using jsonnet root syntax e.g. $.use.maven
+local composition_environment = utils.add_inclusion_tracking(part_definitions, "$", false) {
 
   test_builds:
     {
       local ruby_deploy_and_spec = $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.build + $.cap.deploy +
-                                   $.cap.gate + $.run.deploy_and_spec + { timelimit: '30:00' },
+                                   $.cap.gate + $.run.deploy_and_spec + { timelimit: "30:00" },
 
-      'ruby-deploy-and-specs-linux': $.platform.linux + ruby_deploy_and_spec,
-      'ruby-deploy-and-specs-darwin': $.platform.darwin + ruby_deploy_and_spec,
-      'ruby-deploy-and-specs-solaris': $.platform.solaris + ruby_deploy_and_spec,
+      "ruby-deploy-and-specs-linux": $.platform.linux + ruby_deploy_and_spec,
+      "ruby-deploy-and-specs-darwin": $.platform.darwin + ruby_deploy_and_spec,
+      "ruby-deploy-and-specs-solaris": $.platform.solaris + ruby_deploy_and_spec,
     } +
 
     {
-      'ruby-test-fast-java9-linux': $.platform.linux + $.jdk.labsjdk9 + $.use.common + $.use.build + $.cap.gate +
-                                    $.run.test_fast + { timelimit: '30:00' },
+      "ruby-test-fast-java9-linux": $.platform.linux + $.jdk.labsjdk9 + $.use.common + $.use.build + $.cap.gate +
+                                    $.run.test_fast + { timelimit: "30:00" },
     } +
 
     {
       local linux_gate = $.platform.linux + $.cap.gate + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-                         { timelimit: '01:00:00' },
+                         { timelimit: "01:00:00" },
 
-      'ruby-lint': linux_gate + $.run.lint + { timelimit: '30:00' },  // timilimit override
-      'ruby-test-tck': linux_gate + $.use.build + { run+: [['mx', 'rubytck']] },
-      'ruby-test-mri': $.cap.fast_cpu + linux_gate +
-                       $.use.sulong +  // OpenSSL is required to run RubyGems tests
+      "ruby-lint": linux_gate + $.run.lint + { timelimit: "30:00" },  # timilimit override
+      "ruby-test-tck": linux_gate + $.use.build + { run+: [["mx", "rubytck"]] },
+      "ruby-test-mri": $.cap.fast_cpu + linux_gate +
+                       $.use.sulong +  # OpenSSL is required to run RubyGems tests
                        $.use.build + $.run.test_mri,
-      'ruby-test-integration': linux_gate + $.use.sulong + $.use.build + $.run.test_integration,
-      'ruby-test-cexts': linux_gate + $.use.sulong + $.use.build + $.use.gem_test_pack + $.run.test_cexts,
-      'ruby-test-gems': linux_gate + $.use.build + $.use.gem_test_pack + $.run.test_gems,
-      'ruby-test-bundle-no-sulong': linux_gate + $.use.build + $.run.test_bundle,
-      'ruby-test-ecosystem': linux_gate + $.use.sulong + $.use.build + $.use.gem_test_pack + $.run.test_ecosystem,
+      "ruby-test-integration": linux_gate + $.use.sulong + $.use.build + $.run.test_integration,
+      "ruby-test-cexts": linux_gate + $.use.sulong + $.use.build + $.use.gem_test_pack + $.run.test_cexts,
+      "ruby-test-gems": linux_gate + $.use.build + $.use.gem_test_pack + $.run.test_gems,
+      "ruby-test-bundle-no-sulong": linux_gate + $.use.build + $.run.test_bundle,
+      "ruby-test-ecosystem": linux_gate + $.use.sulong + $.use.build + $.use.gem_test_pack + $.run.test_ecosystem,
 
-      'ruby-test-compiler-graal-core': linux_gate + $.use.build + $.use.truffleruby + $.graal.core +
+      "ruby-test-compiler-graal-core": linux_gate + $.use.build + $.use.truffleruby + $.graal.core +
                                        $.run.test_compiler,
-      // TODO was commented out, needs to be rewritten?
-      // {name: "ruby-test-compiler-graal-enterprise"} + linux_gate + $.graal_enterprise + {run: jt(["test", "compiler"])},
-      // {name: "ruby-test-compiler-graal-vm-snapshot"} + linux_gate + $.graal_vm_snapshot + {run: jt(["test", "compiler"])},
+      # TODO was commented out, needs to be rewritten?
+      # {name: "ruby-test-compiler-graal-enterprise"} + linux_gate + $.graal_enterprise + {run: jt(["test", "compiler"])},
+      # {name: "ruby-test-compiler-graal-vm-snapshot"} + linux_gate + $.graal_vm_snapshot + {run: jt(["test", "compiler"])},
     } +
 
     {
       local shared = $.platform.linux + $.cap.gate + $.jdk.labsjdk9 + $.use.common + $.use.build +
-                     $.use.truffleruby + $.graal.core + { timelimit: '01:00:00' },
+                     $.use.truffleruby + $.graal.core + { timelimit: "01:00:00" },
 
-      'ruby-test-compiler-graal-core-java9': shared + $.run.test_compiler,
-      'ruby-test-compiler-standalone-java9': shared + $.run.compiler_standalone,
+      "ruby-test-compiler-graal-core-java9": shared + $.run.test_compiler,
+      "ruby-test-compiler-standalone-java9": shared + $.run.compiler_standalone,
     } +
 
     local svm_test_platforms = {
       local shared = $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.svm + $.cap.gate + $.run.svm_gate,
 
-      linux: $.platform.linux + shared + { '$.run.svm_gate':: { tags: 'build,ruby_debug,ruby_product' } },
-      darwin: $.platform.darwin + shared + { '$.run.svm_gate':: { tags: 'build,darwin_ruby' } },
+      linux: $.platform.linux + shared + { "$.run.svm_gate":: { tags: "build,ruby_debug,ruby_product" } },
+      darwin: $.platform.darwin + shared + { "$.run.svm_gate":: { tags: "build,darwin_ruby" } },
     };
     {
-      local shared = $.use.build + $.svm.core + { timelimit: '01:00:00' },
-      local tag_override = { '$.run.svm_gate':: { tags: 'build,ruby' } },
+      local shared = $.use.build + $.svm.core + { timelimit: "01:00:00" },
+      local tag_override = { "$.run.svm_gate":: { tags: "build,ruby" } },
 
-      'ruby-test-svm-graal-core-linux': shared + svm_test_platforms.linux + tag_override,
-      'ruby-test-svm-graal-core-darwin': shared + svm_test_platforms.darwin + tag_override,
+      "ruby-test-svm-graal-core-linux": shared + svm_test_platforms.linux + tag_override,
+      "ruby-test-svm-graal-core-darwin": shared + svm_test_platforms.darwin + tag_override,
     } + {
-      local shared = $.use.build + $.svm.enterprise + { timelimit: '01:00:00' },
+      local shared = $.use.build + $.svm.enterprise + { timelimit: "01:00:00" },
 
-      'ruby-test-svm-graal-enterprise-linux': shared + svm_test_platforms.linux,
-      'ruby-test-svm-graal-enterprise-darwin': shared + svm_test_platforms.darwin,
+      "ruby-test-svm-graal-enterprise-linux": shared + svm_test_platforms.linux,
+      "ruby-test-svm-graal-enterprise-darwin": shared + svm_test_platforms.darwin,
     },
 
   local other_rubies = {
@@ -616,108 +616,108 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
   },
   local graal_configurations = {
     local shared = $.use.truffleruby + $.use.build + $.cap.daily + $.cap.bench,
-    // TODO was commented out, needs to be rewritten?
-    // { name: "no-graal",               caps: $.weekly_bench_caps, setup: $.no_graal,               kind: "graal"  },
-    // { name: "graal-vm-snapshot",      caps: $.bench_caps,        setup: $.graal_vm_snapshot,      kind: "graal" },
+    # TODO was commented out, needs to be rewritten?
+    # { name: "no-graal",               caps: $.weekly_bench_caps, setup: $.no_graal,               kind: "graal"  },
+    # { name: "graal-vm-snapshot",      caps: $.bench_caps,        setup: $.graal_vm_snapshot,      kind: "graal" },
 
-    'graal-core': shared + $.graal.core,
-    'graal-enterprise': shared + $.graal.enterprise,
-    'graal-enterprise-no-om': shared + $.graal.enterprise + $.graal.without_om,
+    "graal-core": shared + $.graal.core,
+    "graal-enterprise": shared + $.graal.enterprise,
+    "graal-enterprise-no-om": shared + $.graal.enterprise + $.graal.without_om,
   },
   local svm_configurations = {
     local shared = $.cap.bench + $.cap.daily + $.use.truffleruby + $.use.build + $.use.svm,
 
-    'svm-graal-core': shared + $.svm.core + $.svm.build_image,
-    'svm-graal-enterprise': shared + $.svm.enterprise + $.svm.build_image,
+    "svm-graal-core": shared + $.svm.core + $.svm.build_image,
+    "svm-graal-enterprise": shared + $.svm.enterprise + $.svm.build_image,
   },
 
   bench_builds:
     {
       local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-                     $.benchmark.runner + $.benchmark.compiler_metrics + { timelimit: '00:50:00' },
+                     $.benchmark.runner + $.benchmark.compiler_metrics + { timelimit: "00:50:00" },
 
-      'ruby-metrics-compiler-graal-core': shared + graal_configurations['graal-core'],
-      'ruby-metrics-compiler-graal-enterprise': shared + graal_configurations['graal-enterprise'],
-      'ruby-metrics-compiler-graal-enterprise-no-om': shared + graal_configurations['graal-enterprise-no-om'],
+      "ruby-metrics-compiler-graal-core": shared + graal_configurations["graal-core"],
+      "ruby-metrics-compiler-graal-enterprise": shared + graal_configurations["graal-enterprise"],
+      "ruby-metrics-compiler-graal-enterprise-no-om": shared + graal_configurations["graal-enterprise-no-om"],
     } +
 
     {
       local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-                     $.benchmark.runner + $.benchmark.svm_build_stats + { timelimit: '02:00:00' },
-      // TODO this 2 jobs have GUEST_VM_CONFIG: 'default' instead of 'truffle', why?
-      local guest_vm_override = { environment+: { GUEST_VM_CONFIG: 'default' } },
+                     $.benchmark.runner + $.benchmark.svm_build_stats + { timelimit: "02:00:00" },
+      # TODO this 2 jobs have GUEST_VM_CONFIG: 'default' instead of 'truffle', why?
+      local guest_vm_override = { environment+: { GUEST_VM_CONFIG: "default" } },
 
-      'ruby-build-stats-svm-graal-core': shared + svm_configurations['svm-graal-core'] + guest_vm_override,
-      'ruby-build-stats-svm-graal-enterprise': shared + svm_configurations['svm-graal-enterprise'] + guest_vm_override,
+      "ruby-build-stats-svm-graal-core": shared + svm_configurations["svm-graal-core"] + guest_vm_override,
+      "ruby-build-stats-svm-graal-enterprise": shared + svm_configurations["svm-graal-enterprise"] + guest_vm_override,
     } +
 
     {
       local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-                     $.benchmark.run_svm_metrics + { timelimit: '30:00' },
+                     $.benchmark.run_svm_metrics + { timelimit: "30:00" },
 
-      'ruby-metrics-svm-graal-core': shared + svm_configurations['svm-graal-core'] + $.cap.x52_18_override,
-      'ruby-metrics-svm-graal-enterprise': shared + svm_configurations['svm-graal-enterprise'] + $.cap.x52_18_override,
+      "ruby-metrics-svm-graal-core": shared + svm_configurations["svm-graal-core"] + $.cap.x52_18_override,
+      "ruby-metrics-svm-graal-enterprise": shared + svm_configurations["svm-graal-enterprise"] + $.cap.x52_18_override,
     } +
 
     {
       local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
                      $.benchmark.runner + $.benchmark.classic,
 
-      'ruby-benchmarks-classic-mri': shared + other_rubies.mri + { timelimit: '35:00' },
-      'ruby-benchmarks-classic-jruby': shared + other_rubies.jruby + { timelimit: '35:00' },
-      'ruby-benchmarks-classic-graal-core': shared + graal_configurations['graal-core'] + { timelimit: '35:00' },
-      'ruby-benchmarks-classic-graal-enterprise': shared + graal_configurations['graal-enterprise'] + { timelimit: '35:00' },
-      'ruby-benchmarks-classic-graal-enterprise-no-om': shared + graal_configurations['graal-enterprise-no-om'] + { timelimit: '35:00' },
-      'ruby-benchmarks-classic-svm-graal-core': shared + svm_configurations['svm-graal-core'] + { timelimit: '01:10:00' },
-      'ruby-benchmarks-classic-svm-graal-enterprise': shared + svm_configurations['svm-graal-enterprise'] + { timelimit: '01:10:00' },
+      "ruby-benchmarks-classic-mri": shared + other_rubies.mri + { timelimit: "35:00" },
+      "ruby-benchmarks-classic-jruby": shared + other_rubies.jruby + { timelimit: "35:00" },
+      "ruby-benchmarks-classic-graal-core": shared + graal_configurations["graal-core"] + { timelimit: "35:00" },
+      "ruby-benchmarks-classic-graal-enterprise": shared + graal_configurations["graal-enterprise"] + { timelimit: "35:00" },
+      "ruby-benchmarks-classic-graal-enterprise-no-om": shared + graal_configurations["graal-enterprise-no-om"] + { timelimit: "35:00" },
+      "ruby-benchmarks-classic-svm-graal-core": shared + svm_configurations["svm-graal-core"] + { timelimit: "01:10:00" },
+      "ruby-benchmarks-classic-svm-graal-enterprise": shared + svm_configurations["svm-graal-enterprise"] + { timelimit: "01:10:00" },
     } +
 
     local benchmark_names = [
-      'ruby-benchmarks-chunky-mri',
-      'ruby-benchmarks-chunky-jruby',
-      'ruby-benchmarks-chunky-graal-core',
-      'ruby-benchmarks-chunky-graal-enterprise',
-      'ruby-benchmarks-chunky-graal-enterprise-no-om',
-      'ruby-benchmarks-chunky-svm-graal-core',
-      'ruby-benchmarks-chunky-svm-graal-enterprise',
-      'ruby-benchmarks-psd-mri',
-      'ruby-benchmarks-psd-jruby',
-      'ruby-benchmarks-psd-graal-core',
-      'ruby-benchmarks-psd-graal-enterprise',
-      'ruby-benchmarks-psd-graal-enterprise-no-om',
-      'ruby-benchmarks-psd-svm-graal-core',
-      'ruby-benchmarks-psd-svm-graal-enterprise',
-      'ruby-benchmarks-asciidoctor-mri',
-      'ruby-benchmarks-asciidoctor-jruby',
-      'ruby-benchmarks-asciidoctor-graal-core',
-      'ruby-benchmarks-asciidoctor-graal-enterprise',
-      'ruby-benchmarks-asciidoctor-graal-enterprise-no-om',
-      'ruby-benchmarks-asciidoctor-svm-graal-core',
-      'ruby-benchmarks-asciidoctor-svm-graal-enterprise',
-      'ruby-benchmarks-other-mri',
-      'ruby-benchmarks-other-jruby',
-      'ruby-benchmarks-other-graal-core',
-      'ruby-benchmarks-other-graal-enterprise',
-      'ruby-benchmarks-other-graal-enterprise-no-om',
-      'ruby-benchmarks-other-svm-graal-core',
-      'ruby-benchmarks-other-svm-graal-enterprise',
+      "ruby-benchmarks-chunky-mri",
+      "ruby-benchmarks-chunky-jruby",
+      "ruby-benchmarks-chunky-graal-core",
+      "ruby-benchmarks-chunky-graal-enterprise",
+      "ruby-benchmarks-chunky-graal-enterprise-no-om",
+      "ruby-benchmarks-chunky-svm-graal-core",
+      "ruby-benchmarks-chunky-svm-graal-enterprise",
+      "ruby-benchmarks-psd-mri",
+      "ruby-benchmarks-psd-jruby",
+      "ruby-benchmarks-psd-graal-core",
+      "ruby-benchmarks-psd-graal-enterprise",
+      "ruby-benchmarks-psd-graal-enterprise-no-om",
+      "ruby-benchmarks-psd-svm-graal-core",
+      "ruby-benchmarks-psd-svm-graal-enterprise",
+      "ruby-benchmarks-asciidoctor-mri",
+      "ruby-benchmarks-asciidoctor-jruby",
+      "ruby-benchmarks-asciidoctor-graal-core",
+      "ruby-benchmarks-asciidoctor-graal-enterprise",
+      "ruby-benchmarks-asciidoctor-graal-enterprise-no-om",
+      "ruby-benchmarks-asciidoctor-svm-graal-core",
+      "ruby-benchmarks-asciidoctor-svm-graal-enterprise",
+      "ruby-benchmarks-other-mri",
+      "ruby-benchmarks-other-jruby",
+      "ruby-benchmarks-other-graal-core",
+      "ruby-benchmarks-other-graal-enterprise",
+      "ruby-benchmarks-other-graal-enterprise-no-om",
+      "ruby-benchmarks-other-svm-graal-core",
+      "ruby-benchmarks-other-svm-graal-enterprise",
     ];
     local benchmarks = {
-      'chunky-': $.benchmark.runner + $.benchmark.chunky + { timelimit: '01:00:00' },
-      'psd-': $.benchmark.runner + $.benchmark.psd + { timelimit: '02:00:00' },
-      'asciidoctor-': $.benchmark.runner + $.benchmark.asciidoctor + { timelimit: '00:35:00' },
-      'other-': $.benchmark.runner + $.benchmark.other,
+      "chunky-": $.benchmark.runner + $.benchmark.chunky + { timelimit: "01:00:00" },
+      "psd-": $.benchmark.runner + $.benchmark.psd + { timelimit: "02:00:00" },
+      "asciidoctor-": $.benchmark.runner + $.benchmark.asciidoctor + { timelimit: "00:35:00" },
+      "other-": $.benchmark.runner + $.benchmark.other,
     };
     local benchmark_builds = {
       local svm_build = std.objectHas(svm_configurations, configuration_name),
-      local other_bench = benchmark_name == 'other-',
-      ['ruby-benchmarks-' + benchmark_name + configuration_name]:
+      local other_bench = benchmark_name == "other-",
+      ["ruby-benchmarks-" + benchmark_name + configuration_name]:
         $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
         benchmarks[benchmark_name] +
         (other_rubies + graal_configurations + svm_configurations)[configuration_name] +
         (if other_bench && !svm_build
-         then $.benchmark.other_extra { timelimit: '40:00' }
-         else { timelimit: '01:00:00' })
+         then $.benchmark.other_extra { timelimit: "40:00" }
+         else { timelimit: "01:00:00" })
       for benchmark_name in std.objectFields(benchmarks)
       for configuration_name in std.objectFields(other_rubies + graal_configurations + svm_configurations)
     };
@@ -729,62 +729,62 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
     {
       local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
                      $.benchmark.runner + $.benchmark.server +
-                     { timelimit: '00:20:00' },
+                     { timelimit: "00:20:00" },
 
-      'ruby-benchmarks-server-mri': shared + other_rubies.mri,
-      'ruby-benchmarks-server-jruby': shared + other_rubies.jruby,
-      'ruby-benchmarks-server-graal-core': shared + graal_configurations['graal-core'],
-      'ruby-benchmarks-server-graal-enterprise': shared + graal_configurations['graal-enterprise'],
-      'ruby-benchmarks-server-graal-enterprise-no-om': shared + graal_configurations['graal-enterprise-no-om'],
+      "ruby-benchmarks-server-mri": shared + other_rubies.mri,
+      "ruby-benchmarks-server-jruby": shared + other_rubies.jruby,
+      "ruby-benchmarks-server-graal-core": shared + graal_configurations["graal-core"],
+      "ruby-benchmarks-server-graal-enterprise": shared + graal_configurations["graal-enterprise"],
+      "ruby-benchmarks-server-graal-enterprise-no-om": shared + graal_configurations["graal-enterprise-no-om"],
     } +
 
     {
-      'ruby-metrics-truffle':
+      "ruby-metrics-truffle":
         $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.build +
         $.use.truffleruby + $.graal.none +
         $.cap.bench + $.cap.daily +
         $.benchmark.runner + $.benchmark.metrics +
-        { timelimit: '00:25:00' },
+        { timelimit: "00:25:00" },
     } +
 
     {
-      'ruby-benchmarks-cext':
+      "ruby-benchmarks-cext":
         $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
         $.use.truffleruby + $.use.truffleruby_cexts +
-        // TODO build was previously called before sulong setup, which seems
-        // wrong, was there a reason?
+        # TODO build was previously called before sulong setup, which seems
+        # wrong, was there a reason?
         $.graal.core + $.use.sulong + $.use.gem_test_pack + $.use.build +
         $.cap.bench + $.cap.daily +
         $.benchmark.runner + $.benchmark.cext_chunky +
-        { timelimit: '02:00:00' },
+        { timelimit: "02:00:00" },
     } +
 
     local solaris_benchmarks = {
       local shared = $.platform.solaris + $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.build +
                      $.use.truffleruby + $.cap.bench + $.cap.daily,
 
-      'graal-core-solaris': shared + $.graal.core,
-      'graal-enterprise-solaris': shared + $.graal.enterprise,
+      "graal-core-solaris": shared + $.graal.core,
+      "graal-enterprise-solaris": shared + $.graal.enterprise,
     };
     {
-      local shared = $.benchmark.runner + $.benchmark.classic + { timelimit: '01:10:00' },
-      
-      'ruby-benchmarks-classic-graal-core-solaris': shared + solaris_benchmarks['graal-core-solaris'],
-      'ruby-benchmarks-classic-graal-enterprise-solaris': shared + solaris_benchmarks['graal-enterprise-solaris'],
+      local shared = $.benchmark.runner + $.benchmark.classic + { timelimit: "01:10:00" },
+
+      "ruby-benchmarks-classic-graal-core-solaris": shared + solaris_benchmarks["graal-core-solaris"],
+      "ruby-benchmarks-classic-graal-enterprise-solaris": shared + solaris_benchmarks["graal-enterprise-solaris"],
     },
 
   builds:
     local all_builds = $.test_builds + $.bench_builds;
     utils.check_builds(
       restrict_builds_to,
-      // Move name inside into `name` field
-      // and ensure timelimit is present
+      # Move name inside into `name` field
+      # and ensure timelimit is present
       [
         all_builds[k] {
           name: k,
-          timelimit: if std.objectHas(all_builds[k], 'timelimit')
+          timelimit: if std.objectHas(all_builds[k], "timelimit")
           then all_builds[k].timelimit
-          else error 'Missing timelimit in ' + k + ' build.',
+          else error "Missing timelimit in " + k + " build.",
         }
         for k in std.objectFields(all_builds)
       ]
@@ -792,7 +792,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
 };
 
 {
-  local no_overlay = '6f4eafb4da3b14be3593b07ed562d12caad9b64b',
+  local no_overlay = "6f4eafb4da3b14be3593b07ed562d12caad9b64b",
   overlay: if use_overlay then overlay else no_overlay,
 
   builds: composition_environment.builds,
@@ -854,6 +854,3 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, '
   using its full name (e.g. $.run.deploy_and_spec). It's used nowhere else.
 
  */
-
-
-
