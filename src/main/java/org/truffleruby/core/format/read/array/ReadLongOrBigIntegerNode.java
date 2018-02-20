@@ -10,11 +10,16 @@
 package org.truffleruby.core.format.read.array;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+
+import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.format.FormatGuards;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.convert.ToLongNode;
@@ -24,6 +29,7 @@ import org.truffleruby.core.format.read.SourceNode;
 @NodeChildren({
         @NodeChild(value = "source", type = SourceNode.class),
 })
+@ImportStatic(ArrayGuards.class)
 public abstract class ReadLongOrBigIntegerNode extends FormatNode {
 
     @Child private ToLongNode toLongNode;
@@ -46,9 +52,10 @@ public abstract class ReadLongOrBigIntegerNode extends FormatNode {
         return source[advanceSourcePosition(frame)];
     }
 
-    @Specialization
-    public Object read(VirtualFrame frame, Object[] source) {
-        final Object value = source[advanceSourcePosition(frame)];
+    @Specialization(guards = "strategy.matchesStore(source)", limit = "STORAGE_STRATEGIES")
+    public Object read(VirtualFrame frame, Object source,
+            @Cached("ofStore(source)") ArrayStrategy strategy) {
+        final Object value = strategy.newMirrorFromStore(source).get(advanceSourcePosition(frame));
 
         if (bignumProfile.profile(FormatGuards.isRubyBignum(value))) {
             return value;
