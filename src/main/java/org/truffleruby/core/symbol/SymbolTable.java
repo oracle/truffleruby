@@ -144,7 +144,7 @@ public class SymbolTable {
 
     private DynamicObject createSymbol(Rope rope) {
         final String string = RopeOperations.decodeRope(rope);
-        // Symbol has to have reference to its SymbolEquality otherwise it would be GCed.
+        // Symbol has to have reference to its RopeKey otherwise it would be GCed.
         final Rope cachedRope = ropeCache.getRope(rope);
         final RopeKey ropeKey = new RopeKey(cachedRope, hashing);
         return Layouts.SYMBOL.createSymbol(
