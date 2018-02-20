@@ -141,9 +141,8 @@ public class RopeCache {
         final BytesKey key = new BytesKey(rope.getBytes(), rope.getEncoding(), hashing);
 
         lock.readLock().lock();
-
         try {
-            return bytesToRope.get(key) != null;
+            return bytesToRope.containsKey(key);
         } finally {
             lock.readLock().unlock();
         }
