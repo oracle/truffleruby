@@ -31,6 +31,7 @@ import org.truffleruby.core.format.read.array.ReadValueNodeGen;
 import org.truffleruby.core.format.write.bytes.WriteBytesNodeGen;
 import org.truffleruby.core.format.write.bytes.WritePaddedBytesNodeGen;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.RopeOperations;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +60,7 @@ public class PrintfSimpleTreeBuilder {
                 final FormatNode valueNode;
 
                 if (config.getNamesBytes() != null) {
-                    final DynamicObject key = context.getSymbolTable().getSymbol(context.getRopeCache().getRope(config.getNamesBytes(), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
+                    final DynamicObject key = context.getSymbolTable().getSymbol(RopeOperations.create(config.getNamesBytes(), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
                     valueNode = ReadHashValueNodeGen.create(key, new SourceNode());
                 } else if (config.getAbsoluteArgumentIndex() != null) {
                     valueNode = ReadArgumentIndexValueNodeGen.create(config.getAbsoluteArgumentIndex(), new SourceNode());
