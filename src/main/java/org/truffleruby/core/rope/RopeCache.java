@@ -50,7 +50,7 @@ public class RopeCache {
     }
 
     @TruffleBoundary
-    public Rope getRope(String string) {
+    public Rope getCachedPath(String string) {
         final StringKey stringKey = new StringKey(string, hashing);
 
         lock.readLock().lock();
