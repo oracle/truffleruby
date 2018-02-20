@@ -25,6 +25,8 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeGuards;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.extra.ffi.PointerNodes;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -123,13 +125,27 @@ public abstract class ByteArrayNodes {
     public abstract static class FillNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public Object fill(DynamicObject byteArray, int dstStart, DynamicObject string, int srcStart, int length,
+        public Object fillFromString(DynamicObject byteArray, int dstStart, DynamicObject string, int srcStart, int length,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = StringOperations.rope(string);
             final ByteArrayBuilder bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
 
             System.arraycopy(bytesNode.execute(rope), srcStart, bytes.getUnsafeBytes(), dstStart, length);
             return string;
+        }
+
+        @Specialization(guards = "isRubyPointer(pointer)")
+        public Object fillFromPointer(DynamicObject byteArray, int dstStart, DynamicObject pointer, int srcStart, int length,
+                @Cached("create()") PointerNodes.CheckNullPointerNode checkNullPointerNode) {
+            assert length > 0;
+
+            final Pointer ptr = Layouts.POINTER.getPointer(pointer);
+            final ByteArrayBuilder bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
+
+            checkNullPointerNode.executeCheck(ptr);
+
+            ptr.readBytes(srcStart, bytes.getUnsafeBytes(), dstStart, length);
+            return pointer;
         }
 
     }
