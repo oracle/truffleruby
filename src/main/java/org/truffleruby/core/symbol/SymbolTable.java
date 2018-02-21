@@ -17,6 +17,7 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.NativeRope;
@@ -30,8 +31,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.Identifiers;
 
 import java.lang.ref.SoftReference;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -51,8 +50,8 @@ public class SymbolTable {
     private final Map<StringKey, SoftReference<DynamicObject>> stringToSymbolCache = new WeakHashMap<>();
 
     // Weak map of RopeKey to Symbol to keep Symbols unique.
-    // The Symbol refers to the RopeKey, so as long as the Symbol is referenced, the entry will stay in the Map.
-    private final Map<RopeKey, WeakReference<DynamicObject>> symbolMap = new WeakHashMap<>();
+    // As long as the Symbol is referenced, the entry will stay in the symbolMap.
+    private final WeakValueCache<RopeKey, DynamicObject> symbolMap = new WeakValueCache<>();
 
     public SymbolTable(RopeCache ropeCache, DynamicObjectFactory symbolFactory, Hashing hashing) {
         this.ropeCache = ropeCache;
@@ -110,7 +109,7 @@ public class SymbolTable {
 
         lock.readLock().lock();
         try {
-            final DynamicObject symbol = readRef(symbolMap, ropeKey);
+            final DynamicObject symbol = symbolMap.get(ropeKey);
             if (symbol != null) {
                 return symbol;
             }
@@ -127,13 +126,13 @@ public class SymbolTable {
     }
 
     private DynamicObject getDeduplicatedSymbol(RopeKey ropeKey) {
-        final DynamicObject currentSymbol = readRef(symbolMap, ropeKey);
+        final DynamicObject currentSymbol = symbolMap.get(ropeKey);
 
         if (currentSymbol == null) {
             final DynamicObject newSymbol = createSymbol(ropeKey.getRope());
             // We must use the Symbol's RopeKey, so as long as the Symbol lives it stays in the Map.
             final RopeKey symbolRopeKey = Layouts.SYMBOL.getRopeKey(newSymbol);
-            symbolMap.put(symbolRopeKey, new WeakReference<>(newSymbol));
+            symbolMap.put(symbolRopeKey, newSymbol);
             return newSymbol;
         } else {
             return currentSymbol;
@@ -160,33 +159,9 @@ public class SymbolTable {
         return reference == null ? null : reference.get();
     }
 
-    private <K, V> V readRef(Map<K, WeakReference<V>> map, K key) {
-        final WeakReference<V> reference = map.get(key);
-        return reference == null ? null : reference.get();
-    }
-
     @TruffleBoundary
     public Collection<DynamicObject> allSymbols() {
-        final Collection<WeakReference<DynamicObject>> symbolReferences;
-
-        lock.readLock().lock();
-        try {
-            symbolReferences = symbolMap.values();
-        } finally {
-            lock.readLock().unlock();
-        }
-
-        final Collection<DynamicObject> symbols = new ArrayList<>(symbolReferences.size());
-
-        for (WeakReference<DynamicObject> reference : symbolReferences) {
-            final DynamicObject symbol = reference.get();
-
-            if (symbol != null) {
-                symbols.add(symbol);
-            }
-        }
-
-        return symbols;
+        return symbolMap.values();
     }
 
     // TODO (eregon, 10/10/2015): this check could be done when a Symbol is created to be much cheaper
