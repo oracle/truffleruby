@@ -14,14 +14,9 @@ import org.jcodings.Encoding;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.Hashing;
 
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 public class RopeCache {
 
     private final Hashing hashing;
-
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     private final WeakValueCache<BytesKey, Rope> bytesToRope = new WeakValueCache<>();
 
@@ -47,60 +42,38 @@ public class RopeCache {
 
         final BytesKey key = new BytesKey(bytes, encoding, hashing);
 
-        lock.readLock().lock();
-        try {
-            final Rope rope = bytesToRope.get(key);
-            if (rope != null) {
-                ++ropesReusedCount;
-                ropeBytesSaved += rope.byteLength();
-
-                return rope;
-            }
-        } finally {
-            lock.readLock().unlock();
-        }
-
-        lock.writeLock().lock();
-        try {
-            final Rope ropeInCache = bytesToRope.get(key);
-            if (ropeInCache != null) {
-                return ropeInCache;
-            }
-
-            // At this point, we were unable to find a rope with the same bytes and encoding (i.e., a direct match).
-            // However, there may still be a rope with the same byte[] and sharing a direct byte[] can still allow some
-            // reference equality optimizations. So, do another search but with a marker encoding. The only guarantee
-            // we can make about the resulting rope is that it would have the same logical byte[], but that's good enough
-            // for our purposes.
-            final Rope ropeWithSameBytesButDifferentEncoding = bytesToRope.get(new BytesKey(bytes, null, hashing));
-
-            final Rope rope;
-            if (ropeWithSameBytesButDifferentEncoding != null) {
-                rope = RopeOperations.create(ropeWithSameBytesButDifferentEncoding.getBytes(), encoding, codeRange);
-
-                ++byteArrayReusedCount;
-                ropeBytesSaved += rope.byteLength();
-            } else {
-                rope = RopeOperations.create(bytes, encoding, codeRange);
-            }
-
-            bytesToRope.put(key, rope);
+        final Rope rope = bytesToRope.get(key);
+        if (rope != null) {
+            ++ropesReusedCount;
+            ropeBytesSaved += rope.byteLength();
 
             return rope;
-        } finally {
-            lock.writeLock().unlock();
         }
+
+        // At this point, we were unable to find a rope with the same bytes and encoding (i.e., a direct match).
+        // However, there may still be a rope with the same byte[] and sharing a direct byte[] can still allow some
+        // reference equality optimizations. So, do another search but with a marker encoding. The only guarantee
+        // we can make about the resulting rope is that it would have the same logical byte[], but that's good enough
+        // for our purposes.
+        final Rope ropeWithSameBytesButDifferentEncoding = bytesToRope.get(new BytesKey(bytes, null, hashing));
+
+        final Rope newRope;
+        if (ropeWithSameBytesButDifferentEncoding != null) {
+            newRope = RopeOperations.create(ropeWithSameBytesButDifferentEncoding.getBytes(), encoding, codeRange);
+
+            ++byteArrayReusedCount;
+            ropeBytesSaved += newRope.byteLength();
+        } else {
+            newRope = RopeOperations.create(bytes, encoding, codeRange);
+        }
+
+        return bytesToRope.addInCacheIfAbsent(key, newRope);
     }
 
     public boolean contains(Rope rope) {
         final BytesKey key = new BytesKey(rope.getBytes(), rope.getEncoding(), hashing);
 
-        lock.readLock().lock();
-        try {
-            return bytesToRope.get(key) != null;
-        } finally {
-            lock.readLock().unlock();
-        }
+        return bytesToRope.get(key) != null;
     }
 
     public int getByteArrayReusedCount() {
