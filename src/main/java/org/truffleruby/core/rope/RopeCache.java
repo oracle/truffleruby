@@ -11,13 +11,9 @@ package org.truffleruby.core.rope;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.Encoding;
+import org.truffleruby.collections.WeakValuedMap;
 import org.truffleruby.core.Hashing;
 
-import java.lang.ref.WeakReference;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -27,9 +23,7 @@ public class RopeCache {
 
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    private final WeakHashMap<BytesKey, WeakReference<Rope>> bytesToRope = new WeakHashMap<>();
-
-    private final Set<BytesKey> keys = new HashSet<>();
+    private final WeakValuedMap<BytesKey, Rope> bytesToRope = new WeakValuedMap<>();
 
     private int byteArrayReusedCount;
     private int ropesReusedCount;
@@ -55,7 +49,7 @@ public class RopeCache {
 
         lock.readLock().lock();
         try {
-            final Rope rope = readRef(bytesToRope, key);
+            final Rope rope = bytesToRope.get(key);
             if (rope != null) {
                 ++ropesReusedCount;
                 ropeBytesSaved += rope.byteLength();
@@ -68,7 +62,7 @@ public class RopeCache {
 
         lock.writeLock().lock();
         try {
-            final Rope ropeInCache = readRef(bytesToRope, key);
+            final Rope ropeInCache = bytesToRope.get(key);
             if (ropeInCache != null) {
                 return ropeInCache;
             }
@@ -78,7 +72,7 @@ public class RopeCache {
             // reference equality optimizations. So, do another search but with a marker encoding. The only guarantee
             // we can make about the resulting rope is that it would have the same logical byte[], but that's good enough
             // for our purposes.
-            final Rope ropeWithSameBytesButDifferentEncoding = readRef(bytesToRope, new BytesKey(bytes, null, hashing));
+            final Rope ropeWithSameBytesButDifferentEncoding = bytesToRope.get(new BytesKey(bytes, null, hashing));
 
             final Rope rope;
             if (ropeWithSameBytesButDifferentEncoding != null) {
@@ -90,10 +84,7 @@ public class RopeCache {
                 rope = RopeOperations.create(bytes, encoding, codeRange);
             }
 
-            bytesToRope.put(key, new WeakReference<>(rope));
-
-            // TODO (nirvdrum 30-Mar-16): Revisit this. The purpose is to keep all keys live so the weak rope table never expunges results. We don't want that -- we want something that naturally ties to lifetime. Unfortunately, the old approach expunged live values because the key is synthetic. See also FrozenStrings
-            keys.add(key);
+            bytesToRope.put(key, rope);
 
             return rope;
         } finally {
@@ -106,15 +97,10 @@ public class RopeCache {
 
         lock.readLock().lock();
         try {
-            return bytesToRope.containsKey(key);
+            return bytesToRope.get(key) != null;
         } finally {
             lock.readLock().unlock();
         }
-    }
-
-    private <K, V> V readRef(Map<K, WeakReference<V>> map, K key) {
-        final WeakReference<V> reference = map.get(key);
-        return reference == null ? null : reference.get();
     }
 
     public int getByteArrayReusedCount() {
