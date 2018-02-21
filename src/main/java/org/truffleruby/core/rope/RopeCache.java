@@ -11,7 +11,7 @@ package org.truffleruby.core.rope;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.Encoding;
-import org.truffleruby.collections.WeakValuedMap;
+import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.Hashing;
 
 import java.util.concurrent.locks.ReadWriteLock;
@@ -23,7 +23,7 @@ public class RopeCache {
 
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    private final WeakValuedMap<BytesKey, Rope> bytesToRope = new WeakValuedMap<>();
+    private final WeakValueCache<BytesKey, Rope> bytesToRope = new WeakValueCache<>();
 
     private int byteArrayReusedCount;
     private int ropesReusedCount;

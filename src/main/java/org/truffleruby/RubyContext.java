@@ -23,7 +23,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 import org.joni.Regex;
 import org.truffleruby.builtins.PrimitiveManager;
-import org.truffleruby.collections.WeakValuedMap;
+import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.FinalizationService;
 import org.truffleruby.core.Hashing;
@@ -107,7 +107,7 @@ public class RubyContext {
     private final FrozenStringLiterals frozenStringLiterals = new FrozenStringLiterals(this);
     private final CoreExceptions coreExceptions = new CoreExceptions(this);
     private final EncodingManager encodingManager = new EncodingManager(this);
-    private final WeakValuedMap<RopeKey, Regex> regexpCache = new WeakValuedMap<>();
+    private final WeakValueCache<RopeKey, Regex> regexpCache = new WeakValueCache<>();
     private final NativeConfiguration nativeConfiguration;
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
@@ -715,7 +715,7 @@ public class RubyContext {
         return bytes;
     }
 
-    public WeakValuedMap<RopeKey, Regex> getRegexpCache() {
+    public WeakValueCache<RopeKey, Regex> getRegexpCache() {
         return regexpCache;
     }
 
