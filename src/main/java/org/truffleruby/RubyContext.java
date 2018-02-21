@@ -38,6 +38,7 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.RopeKey;
+import org.truffleruby.core.rope.PathToRopeCache;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.string.CoreStrings;
@@ -114,6 +115,7 @@ public class RubyContext {
     @CompilationFinal private SecureRandom random;
     private final Hashing hashing;
     private final RopeCache ropeCache;
+    private final PathToRopeCache pathToRopeCache = new PathToRopeCache(this);
     @CompilationFinal private TruffleNFIPlatform truffleNFIPlatform;
     private final CoreLibrary coreLibrary;
     private CoreMethods coreMethods;
@@ -544,6 +546,10 @@ public class RubyContext {
 
     public RopeCache getRopeCache() {
         return ropeCache;
+    }
+
+    public PathToRopeCache getPathToRopeCache() {
+        return pathToRopeCache;
     }
 
     public SymbolTable getSymbolTable() {

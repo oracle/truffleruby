@@ -207,7 +207,7 @@ public class TraceManager {
 
         @TruffleBoundary
         private DynamicObject getFile(String file) {
-            return StringOperations.createString(context, context.getRopeCache().getCachedPath(file));
+            return StringOperations.createString(context, context.getPathToRopeCache().getCachedPath(file));
         }
 
         private DynamicObject getLogicalClass(Object object) {
