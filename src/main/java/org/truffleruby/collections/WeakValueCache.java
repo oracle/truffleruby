@@ -32,6 +32,8 @@ package org.truffleruby.collections;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -69,6 +71,20 @@ public class WeakValueCache<Key, Value> {
     public int size() {
         removeStaleEntries();
         return map.size();
+    }
+
+    public Collection<Value> values() {
+        removeStaleEntries();
+        final Collection<Value> values = new ArrayList<>(map.size());
+
+        for (WeakReference<Value> reference : map.values()) {
+            final Value value = reference.get();
+            if (value != null) {
+                values.add(value);
+            }
+        }
+
+        return values;
     }
 
     protected static class KeyedReference<Key, Value> extends WeakReference<Value> {
