@@ -48,7 +48,7 @@ public class WeakValueCache<Key, Value> {
     private final Map<Key, KeyedReference<Key, Value>> map = new ConcurrentHashMap<>();
     private final ReferenceQueue<Value> deadRefs = new ReferenceQueue<>();
 
-    public final Value get(Key key) {
+    public Value get(Key key) {
         removeStaleEntries();
         final KeyedReference<Key, Value> reference = map.get(key);
         if (reference == null) {
@@ -58,9 +58,35 @@ public class WeakValueCache<Key, Value> {
         return reference.get();
     }
 
-    public final void put(Key key, Value value) {
+    public void put(Key key, Value value) {
         removeStaleEntries();
         map.put(key, new KeyedReference<>(value, key, deadRefs));
+    }
+
+    /** Returns the value in the cache (existing or added) */
+    public Value addInCacheIfAbsent(Key key, Value newValue) {
+        removeStaleEntries();
+
+        final KeyedReference<Key, Value> newRef = new KeyedReference<>(newValue, key, deadRefs);
+
+        while (true) {
+            final KeyedReference<Key, Value> oldRef = map.putIfAbsent(key, newRef);
+            if (oldRef == null) {
+                return newValue;
+            } else {
+                final Value oldValue = oldRef.get();
+                if (oldValue != null) {
+                    return oldValue;
+                } else {
+                    // A stale entry, replace it with a new one
+                    if (map.replace(key, oldRef, newRef)) {
+                        return newValue;
+                    } else {
+                        continue; // retry
+                    }
+                }
+            }
+        }
     }
 
     public void clear() {
