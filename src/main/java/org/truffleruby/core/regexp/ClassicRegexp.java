@@ -48,7 +48,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeKey;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.control.RaiseException;
@@ -97,25 +96,25 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    static Regex getRegexpFromCache(RubyContext context, RopeBuilder bytes, Encoding enc, RegexpOptions options) {
+    static Regex getRegexpFromCache(RubyContext context, RopeBuilder bytes, Encoding encoding, RegexpOptions options) {
         if (context == null) {
-            final Regex regex = makeRegexp(context, bytes, options, enc);
+            final Regex regex = makeRegexp(context, bytes, options, encoding);
             regex.setUserObject(bytes);
             return regex;
         }
 
-        final Rope key = RopeOperations.ropeFromRopeBuilder(bytes);
-        final RopeKey ropeKey = new RopeKey(key, context.getHashing());
+        final Rope rope = RopeOperations.ropeFromRopeBuilder(bytes);
+        final int joniOptions = options.toJoniOptions();
+        final RegexpCacheKey cacheKey = new RegexpCacheKey(rope, encoding, joniOptions, context.getHashing());
 
-        final Regex regex = context.getRegexpCache().get(ropeKey);
-        if (regex != null && regex.getEncoding() == enc && regex.getOptions() == options.toJoniOptions()) {
+        final Regex regex = context.getRegexpCache().get(cacheKey);
+        if (regex != null) {
             return regex;
+        } else {
+            final Regex newRegex = makeRegexp(context, bytes, options, encoding);
+            newRegex.setUserObject(bytes);
+            return context.getRegexpCache().addInCacheIfAbsent(cacheKey, newRegex);
         }
-
-        final Regex newRegex = makeRegexp(context, bytes, options, enc);
-        newRegex.setUserObject(bytes);
-        context.getRegexpCache().put(ropeKey, newRegex);
-        return newRegex;
     }
 
     /** default constructor
