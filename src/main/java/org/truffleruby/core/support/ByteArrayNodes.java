@@ -136,13 +136,13 @@ public abstract class ByteArrayNodes {
 
         @Specialization(guards = "isRubyPointer(pointer)")
         public Object fillFromPointer(DynamicObject byteArray, int dstStart, DynamicObject pointer, int srcStart, int length,
-                @Cached("create()") PointerNodes.CheckNullPointerNode checkNullPointerNode) {
+                @Cached("create()") BranchProfile nullPointerProfile) {
             assert length > 0;
 
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             final ByteArrayBuilder bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
 
-            checkNullPointerNode.executeCheck(ptr);
+            PointerNodes.checkNull(ptr, this, nullPointerProfile);
 
             ptr.readBytes(srcStart, bytes.getUnsafeBytes(), dstStart, length);
             return pointer;
