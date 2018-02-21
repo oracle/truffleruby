@@ -107,36 +107,15 @@ public class SymbolTable {
 
         final RopeKey ropeKey = new RopeKey(rope, hashing);
 
-        lock.readLock().lock();
-        try {
-            final DynamicObject symbol = symbolMap.get(ropeKey);
-            if (symbol != null) {
-                return symbol;
-            }
-        } finally {
-            lock.readLock().unlock();
+        final DynamicObject symbol = symbolMap.get(ropeKey);
+        if (symbol != null) {
+            return symbol;
         }
 
-        lock.writeLock().lock();
-        try {
-            return getDeduplicatedSymbol(ropeKey);
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-
-    private DynamicObject getDeduplicatedSymbol(RopeKey ropeKey) {
-        final DynamicObject currentSymbol = symbolMap.get(ropeKey);
-
-        if (currentSymbol == null) {
-            final DynamicObject newSymbol = createSymbol(ropeKey.getRope());
-            // We must use the Symbol's RopeKey, so as long as the Symbol lives it stays in the Map.
-            final RopeKey symbolRopeKey = Layouts.SYMBOL.getRopeKey(newSymbol);
-            symbolMap.put(symbolRopeKey, newSymbol);
-            return newSymbol;
-        } else {
-            return currentSymbol;
-        }
+        final DynamicObject newSymbol = createSymbol(ropeKey.getRope());
+        // Use the Symbol's RopeKey, since the Symbol refers to it and so we do not leak ropeKey.
+        final RopeKey symbolRopeKey = Layouts.SYMBOL.getRopeKey(newSymbol);
+        return symbolMap.addInCacheIfAbsent(symbolRopeKey, newSymbol);
     }
 
     private static final int CLASS_SALT = 92021474; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
