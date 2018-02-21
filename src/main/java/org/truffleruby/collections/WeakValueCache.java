@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Callers must hold to the returned value. The entry will stay in the map as long as the value is
  * referenced.
  */
-public class WeakValuedMap<Key, Value> {
+public class WeakValueCache<Key, Value> {
 
     private final Map<Key, KeyedReference<Key, Value>> map = new ConcurrentHashMap<>();
     private final ReferenceQueue<Value> deadRefs = new ReferenceQueue<>();
