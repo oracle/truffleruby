@@ -9,12 +9,9 @@
  */
 package org.truffleruby.extra.ffi;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -49,39 +46,19 @@ public abstract class PointerNodes {
 
     public static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);
 
-    private static abstract class PointerPrimitiveArrayArgumentsNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private CheckNullPointerNode checkNullPointerNode;
-
-        protected void checkNull(Pointer ptr) {
-            if (checkNullPointerNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkNullPointerNode = insert(CheckNullPointerNode.create());
-            }
-
-            checkNullPointerNode.executeCheck(ptr);
+    public static void checkNull(Pointer ptr, RubyNode node, BranchProfile nullPointerProfile) {
+        if (ptr.isNull()) {
+            nullPointerProfile.enter();
+            throw new RaiseException(node.getContext().getCoreExceptions().ffiNullPointerError("invalid memory access at address=0x0", node));
         }
-
     }
 
-    @NodeChildren({ @NodeChild("pointer") })
-    public abstract static class CheckNullPointerNode extends RubyNode {
+    private static abstract class PointerPrimitiveArrayArgumentsNode extends PrimitiveArrayArgumentsNode {
 
-        public static CheckNullPointerNode create() {
-            return PointerNodesFactory.CheckNullPointerNodeGen.create(null);
-        }
+        private final BranchProfile nullPointerProfile = BranchProfile.create();
 
-        public abstract Pointer executeCheck(Pointer pointer);
-
-        @Specialization
-        protected Pointer checkNull(Pointer pointer,
-                @Cached("create()") BranchProfile nullPointerProfile) {
-            if (pointer.isNull()) {
-                nullPointerProfile.enter();
-                throw new RaiseException(coreExceptions().ffiNullPointerError("invalid memory access at address=0x0", this));
-            }
-
-            return pointer;
+        protected void checkNull(Pointer ptr) {
+            PointerNodes.checkNull(ptr, this, nullPointerProfile);
         }
 
     }
