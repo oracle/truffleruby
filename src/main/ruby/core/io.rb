@@ -184,14 +184,14 @@ class IO
       left = unused
       count = left < max ? left : max
 
-      pointer, bytes_read = Truffle::POSIX.read_blocking(io, count)
+      buffer, bytes_read = fill_read(io, count)
       if bytes_read > 0
         # Detect if another thread has updated the buffer
         # and now there isn't enough room for this data.
         if bytes_read > unused
           raise RubyTruffleError, 'internal implementation error - IO buffer overrun'
         end
-        @storage.fill(@used, pointer, 0, bytes_read)
+        @storage.fill(@used, buffer, 0, bytes_read)
         @storage.length = @used + bytes_read
         @used += bytes_read
       end
@@ -218,6 +218,10 @@ class IO
 
         size
       end
+    end
+
+    def fill_read(io, count)
+      Truffle::POSIX.read_blocking(io, count)
     end
 
     def empty_to(io)
@@ -351,6 +355,17 @@ class IO
       content = (@start..@used).map { |i| @storage[i].chr }.join.inspect
       format '#<IO::InternalBuffer:0x%x total=%p start=%p used=%p data=%p %s>',
              object_id, @total, @start, @used, @storage, content
+    end
+
+    Truffle::Boot.delay do
+      if Truffle::Boot.get_option('polyglot.stdio')
+        def fill_read(io, count)
+          buffer = Truffle::POSIX.read_string_blocking(io, count)
+          bytes_read = buffer ? buffer.bytesize : 0
+
+          [buffer, bytes_read]
+        end
+      end
     end
   end
 

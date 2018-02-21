@@ -313,13 +313,20 @@ module Truffle::POSIX
     end
   end
 
+  # This method must call `read_string' in order to properly support polyglot STDIO.
   def self.read_string_blocking(io, count)
-    buffer, bytes_read = read_blocking(io, count)
-
-    # Negative bytes_read is an error and is handled by the `read_blocking' call.
-    bytes_read == 0 ? nil : buffer.read_string(bytes_read)
+    while true # rubocop:disable Lint/LiteralInCondition
+      string, errno = read_string(io, count)
+      return string if errno == 0
+      if TRY_AGAIN_ERRNOS.include? errno
+        IO.select([io])
+      else
+        Errno.handle
+      end
+    end
   end
 
+  # This method must call `read_string' in order to properly support polyglot STDIO.
   def self.read_string_nonblock(io, count)
     string, errno = read_string(io, count)
     if errno == 0
