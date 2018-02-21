@@ -14,7 +14,6 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeKey;
 
 @Layout
 public interface SymbolLayout extends BasicObjectLayout {
@@ -27,8 +26,7 @@ public interface SymbolLayout extends BasicObjectLayout {
             DynamicObjectFactory factory,
             String string,
             Rope rope,
-            long hashCode,
-            RopeKey ropeKey);
+            long hashCode);
 
     boolean isSymbol(Object object);
     boolean isSymbol(DynamicObject object);
@@ -38,7 +36,5 @@ public interface SymbolLayout extends BasicObjectLayout {
     Rope getRope(DynamicObject object);
 
     long getHashCode(DynamicObject object);
-
-    RopeKey getRopeKey(DynamicObject object);
 
 }
