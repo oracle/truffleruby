@@ -97,22 +97,25 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    static Regex getRegexpFromCache(RubyContext runtime, RopeBuilder bytes, Encoding enc, RegexpOptions options) {
-        if (runtime == null) {
-            Regex regex = makeRegexp(runtime, bytes, options, enc);
+    static Regex getRegexpFromCache(RubyContext context, RopeBuilder bytes, Encoding enc, RegexpOptions options) {
+        if (context == null) {
+            final Regex regex = makeRegexp(context, bytes, options, enc);
             regex.setUserObject(bytes);
             return regex;
         }
-        Rope key = RopeOperations.ropeFromRopeBuilder(bytes);
-        RopeKey ropeKey = new RopeKey(key, runtime.getHashing());
-        Regex regex = runtime.getRegexpCache().get(ropeKey);
+
+        final Rope key = RopeOperations.ropeFromRopeBuilder(bytes);
+        final RopeKey ropeKey = new RopeKey(key, context.getHashing());
+
+        final Regex regex = context.getRegexpCache().get(ropeKey);
         if (regex != null && regex.getEncoding() == enc && regex.getOptions() == options.toJoniOptions()) {
             return regex;
         }
-        regex = makeRegexp(runtime, bytes, options, enc);
-        regex.setUserObject(bytes);
-        runtime.getRegexpCache().put(ropeKey, regex);
-        return regex;
+
+        final Regex newRegex = makeRegexp(context, bytes, options, enc);
+        newRegex.setUserObject(bytes);
+        context.getRegexpCache().put(ropeKey, newRegex);
+        return newRegex;
     }
 
     /** default constructor
