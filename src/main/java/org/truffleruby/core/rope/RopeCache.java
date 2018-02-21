@@ -11,9 +11,7 @@ package org.truffleruby.core.rope;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.Encoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.Hashing;
-import org.truffleruby.core.string.StringOperations;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
@@ -29,7 +27,6 @@ public class RopeCache {
 
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    private final WeakHashMap<String, Rope> javaStringToRope = new WeakHashMap<>();
     private final WeakHashMap<BytesKey, WeakReference<Rope>> bytesToRope = new WeakHashMap<>();
 
     private final Set<BytesKey> keys = new HashSet<>();
@@ -48,34 +45,6 @@ public class RopeCache {
 
     public Rope getRope(Rope string, CodeRange codeRange) {
         return getRope(string.getBytes(), string.getEncoding(), codeRange);
-    }
-
-    /**
-     * This should only be used for trusted input, as there is no random seed involved for hashing.
-     * We need to use the String as key to make Source.getName() keep the corresponding Rope alive.
-     */
-    @TruffleBoundary
-    public Rope getCachedPath(String string) {
-        lock.readLock().lock();
-        try {
-            final Rope rope = javaStringToRope.get(string);
-            if (rope != null) {
-                return rope;
-            }
-        } finally {
-            lock.readLock().unlock();
-        }
-
-        final Rope cachedRope = getRope(StringOperations.encodeRope(string, UTF8Encoding.INSTANCE));
-
-        lock.writeLock().lock();
-        try {
-            javaStringToRope.putIfAbsent(string, cachedRope);
-        } finally {
-            lock.writeLock().unlock();
-        }
-
-        return cachedRope;
     }
 
     @TruffleBoundary
