@@ -67,7 +67,9 @@ public class RopeCache {
             newRope = RopeOperations.create(bytes, encoding, codeRange);
         }
 
-        return bytesToRope.addInCacheIfAbsent(key, newRope);
+        // Use the new Rope bytes in the cache, so we do not keep bytes alive unnecessarily.
+        final BytesKey newKey = new BytesKey(newRope.getBytes(), newRope.getEncoding(), hashing);
+        return bytesToRope.addInCacheIfAbsent(newKey, newRope);
     }
 
     public boolean contains(Rope rope) {
