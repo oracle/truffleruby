@@ -37,7 +37,7 @@ import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.proc.ProcOperations;
-import org.truffleruby.core.rope.RopeKey;
+import org.truffleruby.core.regexp.RegexpCacheKey;
 import org.truffleruby.core.rope.PathToRopeCache;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
@@ -107,7 +107,7 @@ public class RubyContext {
     private final FrozenStringLiterals frozenStringLiterals = new FrozenStringLiterals(this);
     private final CoreExceptions coreExceptions = new CoreExceptions(this);
     private final EncodingManager encodingManager = new EncodingManager(this);
-    private final WeakValueCache<RopeKey, Regex> regexpCache = new WeakValueCache<>();
+    private final WeakValueCache<RegexpCacheKey, Regex> regexpCache = new WeakValueCache<>();
     private final NativeConfiguration nativeConfiguration;
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
@@ -715,7 +715,7 @@ public class RubyContext {
         return bytes;
     }
 
-    public WeakValueCache<RopeKey, Regex> getRegexpCache() {
+    public WeakValueCache<RegexpCacheKey, Regex> getRegexpCache() {
         return regexpCache;
     }
 

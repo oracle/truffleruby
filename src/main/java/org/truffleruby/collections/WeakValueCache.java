@@ -58,11 +58,6 @@ public class WeakValueCache<Key, Value> {
         return reference.get();
     }
 
-    public void put(Key key, Value value) {
-        removeStaleEntries();
-        map.put(key, new KeyedReference<>(value, key, deadRefs));
-    }
-
     /** Returns the value in the cache (existing or added) */
     public Value addInCacheIfAbsent(Key key, Value newValue) {
         removeStaleEntries();
