@@ -224,6 +224,17 @@ class IO
       Truffle::POSIX.read_blocking(io, count)
     end
 
+    Truffle::Boot.delay do
+      if Truffle::Boot.get_option('polyglot.stdio')
+        def fill_read(io, count)
+          buffer = Truffle::POSIX.read_string_blocking(io, count)
+          bytes_read = buffer ? buffer.bytesize : 0
+
+          [buffer, bytes_read]
+        end
+      end
+    end
+
     def empty_to(io)
       return 0 if @write_synced or empty?
       @write_synced = true
@@ -355,17 +366,6 @@ class IO
       content = (@start..@used).map { |i| @storage[i].chr }.join.inspect
       format '#<IO::InternalBuffer:0x%x total=%p start=%p used=%p data=%p %s>',
              object_id, @total, @start, @used, @storage, content
-    end
-
-    Truffle::Boot.delay do
-      if Truffle::Boot.get_option('polyglot.stdio')
-        def fill_read(io, count)
-          buffer = Truffle::POSIX.read_string_blocking(io, count)
-          bytes_read = buffer ? buffer.bytesize : 0
-
-          [buffer, bytes_read]
-        end
-      end
     end
   end
 
