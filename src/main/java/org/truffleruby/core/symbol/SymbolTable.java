@@ -112,25 +112,23 @@ public class SymbolTable {
             return symbol;
         }
 
-        final DynamicObject newSymbol = createSymbol(ropeKey.getRope());
-        // Use the Symbol's RopeKey, since the Symbol refers to it and so we do not leak ropeKey.
-        final RopeKey symbolRopeKey = Layouts.SYMBOL.getRopeKey(newSymbol);
-        return symbolMap.addInCacheIfAbsent(symbolRopeKey, newSymbol);
+        final Rope cachedRope = ropeCache.getRope(rope);
+        final DynamicObject newSymbol = createSymbol(cachedRope);
+        // Use a RopeKey with the cached Rope in symbolMap, since the Symbol refers to it and so we
+        // do not keep rope alive unnecessarily.
+        final RopeKey cachedRopeKey = new RopeKey(cachedRope, hashing);
+        return symbolMap.addInCacheIfAbsent(cachedRopeKey, newSymbol);
     }
 
     private static final int CLASS_SALT = 92021474; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
-    private DynamicObject createSymbol(Rope rope) {
-        final String string = RopeOperations.decodeRope(rope);
-        // Symbol has to have reference to its RopeKey otherwise it would be GCed.
-        final Rope cachedRope = ropeCache.getRope(rope);
-        final RopeKey ropeKey = new RopeKey(cachedRope, hashing);
+    private DynamicObject createSymbol(Rope cachedRope) {
+        final String string = RopeOperations.decodeRope(cachedRope);
         return Layouts.SYMBOL.createSymbol(
                 symbolFactory,
                 string,
                 cachedRope,
-                hashing.hash(CLASS_SALT, string.hashCode()),
-                ropeKey);
+                hashing.hash(CLASS_SALT, string.hashCode()));
     }
 
     private DynamicObject lookupCache(Map<StringKey, SoftReference<DynamicObject>> cache, StringKey key) {
