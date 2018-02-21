@@ -1,8 +1,11 @@
 # File is formatted with
 # `jsonnet fmt --indent 2 --max-blank-lines 2 --sort-imports --string-style d --comment-style h -i ci.jsonnet`
 
-# VSCODE is recommended for editing it has 'jsonnet' and 'jsonnet Formatter'
-# plugins which makes it a functioning IDE for jsonnet.
+# Visual Sturio Code is recommended for editing jsonnet files.
+# It has 'jsonnet' and 'jsonnet Formatter'
+# plugins which makes it a functioning IDE for jsonnet. The default configuration
+# of jsonnet Formatter has to be changed to use double quotes and hash comments.
+# Alternartivelly Atom ca be used, it has syntax hightliting but no formatter.
 
 local overlay = "be5262d04726cbb2bf50fc08b32257692b40a046";
 
