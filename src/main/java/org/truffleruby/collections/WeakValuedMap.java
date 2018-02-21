@@ -36,40 +36,44 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Map-like that holds its values weakly (backed by a concurrent hash map).
+ * A cache removing entries when the value is no longer in use.
+ *
+ * Callers must hold to the returned value. The entry will stay in the map as long as the value is
+ * referenced.
  */
 public class WeakValuedMap<Key, Value> {
 
     private final Map<Key, KeyedReference<Key, Value>> map = new ConcurrentHashMap<>();
     private final ReferenceQueue<Value> deadRefs = new ReferenceQueue<>();
 
-    public final void put(Key key, Value value) {
-        cleanReferences();
-        map.put(key, new KeyedReference<>(value, key, deadRefs));
-    }
-
     public final Value get(Key key) {
-        cleanReferences();
-        KeyedReference<Key, Value> reference = map.get(key);
+        removeStaleEntries();
+        final KeyedReference<Key, Value> reference = map.get(key);
         if (reference == null) {
             return null;
         }
+
         return reference.get();
     }
 
+    public final void put(Key key, Value value) {
+        removeStaleEntries();
+        map.put(key, new KeyedReference<>(value, key, deadRefs));
+    }
+
     public void clear() {
-        cleanReferences();
+        removeStaleEntries();
         map.clear();
     }
 
     public int size() {
-        cleanReferences();
+        removeStaleEntries();
         return map.size();
     }
 
     protected static class KeyedReference<Key, Value> extends WeakReference<Value> {
 
-        protected final Key key;
+        private final Key key;
 
         public KeyedReference(Value object, Key key, ReferenceQueue<? super Value> queue) {
             super(object, queue);
@@ -78,10 +82,9 @@ public class WeakValuedMap<Key, Value> {
 
     }
 
-    @SuppressWarnings("unchecked")
-    private void cleanReferences() {
-        KeyedReference<Key, Value> ref;
-        while ((ref = (KeyedReference<Key, Value>) deadRefs.poll()) != null) {
+    private void removeStaleEntries() {
+        KeyedReference<?, ?> ref;
+        while ((ref = (KeyedReference<?, ?>) deadRefs.poll()) != null) {
             map.remove(ref.key);
         }
     }
