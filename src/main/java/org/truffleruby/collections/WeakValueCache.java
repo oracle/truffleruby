@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * A cache removing entries when the value is no longer in use.
+ * A thread-safe cache removing entries when the value is no longer in use.
  *
  * Callers must hold to the returned value. The entry will stay in the map as long as the value is
  * referenced.
@@ -58,26 +58,33 @@ public class WeakValueCache<Key, Value> {
         return reference.get();
     }
 
-    /** Returns the value in the cache (existing or added) */
+    /**
+     * Returns the value in the cache (existing or added).
+     * Similar to a putIfAbsent() but always return the value in the cache.
+     */
     public Value addInCacheIfAbsent(Key key, Value newValue) {
         removeStaleEntries();
 
         final KeyedReference<Key, Value> newRef = new KeyedReference<>(newValue, key, deadRefs);
 
+        // Insert the newValue in the cache, only if there isn't an existing mapping for key with a non-stale value
         while (true) {
             final KeyedReference<Key, Value> oldRef = map.putIfAbsent(key, newRef);
             if (oldRef == null) {
+                // We added an entry and there was none in the cache
                 return newValue;
             } else {
                 final Value oldValue = oldRef.get();
                 if (oldValue != null) {
+                    // A concurrent putIfAbsent() won the race, use the value in the cache
                     return oldValue;
                 } else {
-                    // A stale entry, replace it with a new one
+                    // A stale entry, replace it with a new entry
                     if (map.replace(key, oldRef, newRef)) {
                         return newValue;
                     } else {
-                        continue; // retry
+                        // Some other thread replaced or removed the stale entry, try again from the start.
+                        continue;
                     }
                 }
             }
