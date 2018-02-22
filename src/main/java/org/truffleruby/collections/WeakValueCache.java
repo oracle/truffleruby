@@ -129,7 +129,9 @@ public class WeakValueCache<Key, Value> {
     private void removeStaleEntries() {
         KeyedReference<?, ?> ref;
         while ((ref = (KeyedReference<?, ?>) deadRefs.poll()) != null) {
-            map.remove(ref.key);
+            // Remove key, but only if the entry is still referencing the GC'd value.
+            // Another valid entry for key could have been added since the old value was GC'd.
+            map.remove(ref.key, ref);
         }
     }
 }
