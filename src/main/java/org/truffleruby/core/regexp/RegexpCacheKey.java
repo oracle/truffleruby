@@ -36,8 +36,12 @@ public class RegexpCacheKey {
 
     @Override
     public boolean equals(Object o) {
-        final RegexpCacheKey other = (RegexpCacheKey) o;
-        return rope.equals(other.rope) && encoding == other.encoding && options == other.options;
+        if (o instanceof RegexpCacheKey) {
+            final RegexpCacheKey other = (RegexpCacheKey) o;
+            return rope.equals(other.rope) && encoding == other.encoding && options == other.options;
+        } else {
+            return false;
+        }
     }
 
     @Override
