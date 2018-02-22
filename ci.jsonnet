@@ -366,7 +366,7 @@
 
   asciidoctor_benchmarks: {
     run: benchmark(["asciidoctor"]),
-    timelimit: "00:35:00"
+    timelimit: "00:55:00" # svm-core needs more time, others need <35min
   },
 
   other_benchmarks: {
