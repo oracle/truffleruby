@@ -34,7 +34,7 @@
  */
 package org.truffleruby.launcher.options;
 
-import org.truffleruby.launcher.Launcher;
+import org.truffleruby.launcher.RubyLauncher;
 import org.truffleruby.launcher.RubyLogger;
 
 import java.io.File;
@@ -350,8 +350,8 @@ public class CommandLineParser {
                     if (extendedOption.equals("options")) {
                         System.out.println("TruffleRuby options and their default values:");
                         for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
-                            assert option.getName().startsWith(Launcher.LANGUAGE_ID);
-                            final String xName = option.getName().substring(Launcher.LANGUAGE_ID.length() + 1);
+                            assert option.getName().startsWith(RubyLauncher.LANGUAGE_ID);
+                            final String xName = option.getName().substring(RubyLauncher.LANGUAGE_ID.length() + 1);
                             final String nameValue = String.format("-X%s=%s", xName, option.valueToString(option.getDefaultValue()));
                             System.out.printf("  %s%" + (50 - nameValue.length()) + "s# %s%n", nameValue, "", option.getDescription());
                         }
@@ -380,7 +380,7 @@ public class CommandLineParser {
                             extendedOption = extendedOption.substring(0, equals);
                         }
 
-                        final String fullName = Launcher.LANGUAGE_ID + "." + extendedOption;
+                        final String fullName = RubyLauncher.LANGUAGE_ID + "." + extendedOption;
 
                         if (OptionsCatalog.fromName(fullName) == null) {
                             config.getUnknownArguments().add(extendedOption);

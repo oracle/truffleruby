@@ -9,8 +9,15 @@
  */
 package org.truffleruby.language;
 
-import java.util.ArrayList;
-
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.FrameInstance;
+import com.oracle.truffle.api.frame.FrameInstanceVisitor;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.RootNode;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.array.ArrayUtils;
@@ -23,18 +30,10 @@ import org.truffleruby.language.backtrace.InternalRootNode;
 import org.truffleruby.language.exceptions.DisablingBacktracesNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.launcher.Launcher;
+import org.truffleruby.launcher.RubyLauncher;
 import org.truffleruby.parser.parser.SuppressFBWarnings;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.FrameInstance;
-import com.oracle.truffle.api.frame.FrameInstanceVisitor;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.SourceSection;
+import java.util.ArrayList;
 
 public class CallStackManager {
 
@@ -345,7 +344,7 @@ public class CallStackManager {
                 return true;
             }
             final SourceSection sourceSection = sharedMethodInfo.getSourceSection();
-            if (sourceSection != null && sourceSection.getSource().getName() == Launcher.BOOT_SOURCE_NAME) {
+            if (sourceSection != null && sourceSection.getSource().getName() == RubyLauncher.BOOT_SOURCE_NAME) {
                 return true;
             }
         }

@@ -23,7 +23,7 @@ import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.interop.MetaObject;
 import org.truffleruby.language.LazyRubyRootNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.launcher.Launcher;
+import org.truffleruby.launcher.RubyLauncher;
 import org.truffleruby.launcher.options.OptionDescription;
 import org.truffleruby.launcher.options.OptionsCatalog;
 import org.truffleruby.platform.Platform;
@@ -34,8 +34,8 @@ import java.util.List;
 
 @TruffleLanguage.Registration(
         name = "Ruby",
-        id = Launcher.LANGUAGE_ID,
-        version = Launcher.LANGUAGE_VERSION,
+        id = RubyLauncher.LANGUAGE_ID,
+        version = RubyLauncher.LANGUAGE_VERSION,
         mimeType = RubyLanguage.MIME_TYPE,
         dependentLanguages = "llvm")
 @ProvidedTags({
@@ -62,27 +62,27 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     public RubyContext createContext(Env env) {
         Log.LOGGER.fine("createContext()");
-        Launcher.printTruffleTimeMetric("before-create-context");
+        RubyLauncher.printTruffleTimeMetric("before-create-context");
         // TODO CS 3-Dec-16 need to parse RUBYOPT here if it hasn't been already?
         final RubyContext context = new RubyContext(this, env);
-        Launcher.printTruffleTimeMetric("after-create-context");
+        RubyLauncher.printTruffleTimeMetric("after-create-context");
         return context;
     }
 
     @Override
     protected void initializeContext(RubyContext context) throws Exception {
         Log.LOGGER.fine("initializeContext()");
-        Launcher.printTruffleTimeMetric("before-initialize-context");
+        RubyLauncher.printTruffleTimeMetric("before-initialize-context");
         context.initialize();
-        Launcher.printTruffleTimeMetric("after-initialize-context");
+        RubyLauncher.printTruffleTimeMetric("after-initialize-context");
     }
 
     @Override
     protected boolean patchContext(RubyContext context, Env newEnv) {
         Log.LOGGER.fine("patchContext()");
-        Launcher.printTruffleTimeMetric("before-patch-context");
+        RubyLauncher.printTruffleTimeMetric("before-patch-context");
         boolean patched = context.patchContext(newEnv);
-        Launcher.printTruffleTimeMetric("after-patch-context");
+        RubyLauncher.printTruffleTimeMetric("after-patch-context");
         return patched;
     }
 

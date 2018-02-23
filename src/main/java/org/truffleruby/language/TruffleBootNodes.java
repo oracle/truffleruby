@@ -32,7 +32,7 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
-import org.truffleruby.launcher.Launcher;
+import org.truffleruby.launcher.RubyLauncher;
 import org.truffleruby.launcher.options.OptionDescription;
 import org.truffleruby.launcher.options.OptionsCatalog;
 import org.truffleruby.parser.ParserContext;
@@ -365,7 +365,7 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubySymbol(name)")
         public Object printTimeMetric(DynamicObject name) {
-            Launcher.printTruffleTimeMetric(Layouts.SYMBOL.getString(name));
+            RubyLauncher.printTruffleTimeMetric(Layouts.SYMBOL.getString(name));
             return nil();
         }
 

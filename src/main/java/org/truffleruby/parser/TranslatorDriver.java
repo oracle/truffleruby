@@ -69,7 +69,7 @@ import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
-import org.truffleruby.launcher.Launcher;
+import org.truffleruby.launcher.RubyLauncher;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.parser.lexer.LexerSource;
 import org.truffleruby.parser.lexer.SyntaxException;
@@ -359,7 +359,7 @@ public class TranslatorDriver {
     }
 
     public static void printParseTranslateExecuteMetric(String id, RubyContext context, Source source) {
-        if (Launcher.METRICS_TIME) {
+        if (RubyLauncher.METRICS_TIME) {
             if (context.getOptions().METRICS_TIME_PARSING_FILE) {
                 String name = source.getName();
                 int lastSlash = name.lastIndexOf('/');
@@ -367,11 +367,11 @@ public class TranslatorDriver {
                 if (lastSlash >= 0 && lastDot >= 0) {
                     name = name.substring(lastSlash + 1, lastDot);
                 }
-                Launcher.printTruffleTimeMetric(id + "-" + name);
+                RubyLauncher.printTruffleTimeMetric(id + "-" + name);
             } else if (context.getCoreLibrary().isLoadingRubyCore()) {
                 // Only show times for core (the biggest contributor) to avoid multiple metrics with
                 // the same name, which is not supported in mx_truffleruby_benchmark.py.
-                Launcher.printTruffleTimeMetric(id + "-core");
+                RubyLauncher.printTruffleTimeMetric(id + "-core");
             }
         }
     }

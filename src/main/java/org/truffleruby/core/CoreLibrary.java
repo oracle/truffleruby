@@ -55,7 +55,7 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.launcher.BuildInformationImpl;
-import org.truffleruby.launcher.Launcher;
+import org.truffleruby.launcher.RubyLauncher;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.platform.NativeConfiguration;
@@ -681,17 +681,16 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_ENUM", NativeTypes.TYPE_ENUM);
         Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_VARARGS", NativeTypes.TYPE_VARARGS);
 
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_VERSION", frozenUSASCIIString(Launcher.LANGUAGE_VERSION));
-        Layouts.MODULE.getFields(truffleModule).setConstant(context, node, "RUBY_BASE_VERSION", frozenUSASCIIString(Launcher.LANGUAGE_BASE_VERSION));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_VERSION", frozenUSASCIIString(RubyLauncher.LANGUAGE_VERSION));
+        Layouts.MODULE.getFields(truffleModule).setConstant(context, node, "RUBY_BASE_VERSION", frozenUSASCIIString(RubyLauncher.LANGUAGE_BASE_VERSION));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PATCHLEVEL", 0);
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_REVISION", Launcher.LANGUAGE_REVISION);
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE", frozenUSASCIIString(Launcher.ENGINE_ID));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE_VERSION", frozenUSASCIIString(Launcher.getEngineVersion()));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_REVISION", RubyLauncher.LANGUAGE_REVISION);
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE", frozenUSASCIIString(RubyLauncher.ENGINE_ID));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE_VERSION", frozenUSASCIIString(RubyLauncher.getEngineVersion()));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PLATFORM", frozenUSASCIIString(RubyLanguage.PLATFORM));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_RELEASE_DATE", frozenUSASCIIString(BuildInformationImpl.INSTANCE.getCompileDate()));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_DESCRIPTION", frozenUSASCIIString(
-                Launcher.getVersionString(TruffleNodes.GraalNode.isGraal())));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_COPYRIGHT", frozenUSASCIIString(Launcher.RUBY_COPYRIGHT));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_DESCRIPTION", frozenUSASCIIString(RubyLauncher.getVersionString(TruffleNodes.GraalNode.isGraal())));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_COPYRIGHT", frozenUSASCIIString(RubyLauncher.RUBY_COPYRIGHT));
 
         // BasicObject knows itself
         Layouts.MODULE.getFields(basicObjectClass).setConstant(context, node, "BasicObject", basicObjectClass);
