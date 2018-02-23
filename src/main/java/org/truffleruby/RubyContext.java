@@ -63,6 +63,7 @@ import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.loader.SourceLoader;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
+import org.truffleruby.launcher.Metrics;
 import org.truffleruby.launcher.RubyLauncher;
 import org.truffleruby.launcher.options.Options;
 import org.truffleruby.launcher.options.OptionsBuilder;
@@ -142,7 +143,7 @@ public class RubyContext {
     private static boolean preInitializeContexts = RubyLauncher.PRE_INITIALIZE_CONTEXTS;
 
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
-        RubyLauncher.printTruffleTimeMetric("before-context-constructor");
+        Metrics.printTruffleTime("before-context-constructor");
 
         if (FIRST_INSTANCE == null) {
             FIRST_INSTANCE = this;
@@ -201,11 +202,11 @@ public class RubyContext {
 
         // Load the core library classes
 
-        RubyLauncher.printTruffleTimeMetric("before-create-core-library");
+        Metrics.printTruffleTime("before-create-core-library");
         coreLibrary = new CoreLibrary(this);
         nativeConfiguration = loadNativeConfiguration();
         coreLibrary.initialize();
-        RubyLauncher.printTruffleTimeMetric("after-create-core-library");
+        Metrics.printTruffleTime("after-create-core-library");
 
         symbolTable = new SymbolTable(ropeCache, coreLibrary.getSymbolFactory(), this);
         rootLexicalScope = new LexicalScope(null, coreLibrary.getObjectClass());
@@ -216,31 +217,31 @@ public class RubyContext {
 
         // The encoding manager relies on POSIX having been initialized, so we can't process it during
         // normal core library initialization.
-        RubyLauncher.printTruffleTimeMetric("before-initialize-encodings");
+        Metrics.printTruffleTime("before-initialize-encodings");
         encodingManager.defineEncodings();
         encodingManager.initializeDefaultEncodings(truffleNFIPlatform, nativeConfiguration);
-        RubyLauncher.printTruffleTimeMetric("after-initialize-encodings");
+        Metrics.printTruffleTime("after-initialize-encodings");
 
-        RubyLauncher.printTruffleTimeMetric("before-thread-manager");
+        Metrics.printTruffleTime("before-thread-manager");
         threadManager = new ThreadManager(this);
         threadManager.initialize(truffleNFIPlatform, nativeConfiguration);
-        RubyLauncher.printTruffleTimeMetric("after-thread-manager");
+        Metrics.printTruffleTime("after-thread-manager");
 
-        RubyLauncher.printTruffleTimeMetric("before-instruments");
+        Metrics.printTruffleTime("before-instruments");
         final Instrumenter instrumenter = env.lookup(Instrumenter.class);
         traceManager = new TraceManager(this, instrumenter);
         coverageManager = new CoverageManager(this, instrumenter);
-        RubyLauncher.printTruffleTimeMetric("after-instruments");
+        Metrics.printTruffleTime("after-instruments");
 
-        RubyLauncher.printTruffleTimeMetric("after-context-constructor");
+        Metrics.printTruffleTime("after-context-constructor");
     }
 
     public void initialize() {
         // Load the nodes
 
-        RubyLauncher.printTruffleTimeMetric("before-load-nodes");
+        Metrics.printTruffleTime("before-load-nodes");
         coreLibrary.loadCoreNodes(primitiveManager);
-        RubyLauncher.printTruffleTimeMetric("after-load-nodes");
+        Metrics.printTruffleTime("after-load-nodes");
 
         // Capture known builtin methods
 
@@ -248,16 +249,16 @@ public class RubyContext {
 
         // Load the part of the core library defined in Ruby
 
-        RubyLauncher.printTruffleTimeMetric("before-load-core");
+        Metrics.printTruffleTime("before-load-core");
         coreLibrary.loadRubyCore();
-        RubyLauncher.printTruffleTimeMetric("after-load-core");
+        Metrics.printTruffleTime("after-load-core");
 
         // Load other subsystems
 
         if (options.POST_BOOT) {
-            RubyLauncher.printTruffleTimeMetric("before-post-boot");
+            Metrics.printTruffleTime("before-post-boot");
             coreLibrary.initializePostBoot();
-            RubyLauncher.printTruffleTimeMetric("after-post-boot");
+            Metrics.printTruffleTime("after-post-boot");
         }
 
         // Share once everything is loaded
@@ -307,11 +308,11 @@ public class RubyContext {
         threadManager.restartMainThread(Thread.currentThread());
         threadManager.initialize(truffleNFIPlatform, nativeConfiguration);
 
-        RubyLauncher.printTruffleTimeMetric("before-rehash");
+        Metrics.printTruffleTime("before-rehash");
         preInitializationManager.rehash();
-        RubyLauncher.printTruffleTimeMetric("after-rehash");
+        Metrics.printTruffleTime("after-rehash");
 
-        RubyLauncher.printTruffleTimeMetric("before-run-delayed-initialization");
+        Metrics.printTruffleTime("before-run-delayed-initialization");
         final Object toRunAtInit = Layouts.MODULE.getFields(coreLibrary.getTruffleBootModule()).getConstant("TO_RUN_AT_INIT").getValue();
         for (Object proc : ArrayOperations.toIterable((DynamicObject) toRunAtInit)) {
             final Source source = Layouts.PROC.getMethod((DynamicObject) proc).getSharedMethodInfo().getSourceSection().getSource();
@@ -319,7 +320,7 @@ public class RubyContext {
             ProcOperations.rootCall((DynamicObject) proc);
             TranslatorDriver.printParseTranslateExecuteMetric("after-run-delayed-initialization", this, source);
         }
-        RubyLauncher.printTruffleTimeMetric("after-run-delayed-initialization");
+        Metrics.printTruffleTime("after-run-delayed-initialization");
 
         initialized = true;
         return true;
@@ -385,12 +386,12 @@ public class RubyContext {
     }
 
     private Options createOptions(TruffleLanguage.Env env) {
-        RubyLauncher.printTruffleTimeMetric("before-options");
+        Metrics.printTruffleTime("before-options");
         final OptionsBuilder optionsBuilder = new OptionsBuilder();
         optionsBuilder.set(env.getConfig()); // Legacy config - used by unit tests for example
         optionsBuilder.set(env.getOptions()); // SDK options
         final Options options = optionsBuilder.build();
-        RubyLauncher.printTruffleTimeMetric("after-options");
+        Metrics.printTruffleTime("after-options");
         return options;
     }
 
@@ -404,10 +405,10 @@ public class RubyContext {
     }
 
     private TruffleNFIPlatform createNativePlatform() {
-        RubyLauncher.printTruffleTimeMetric("before-create-native-platform");
+        Metrics.printTruffleTime("before-create-native-platform");
         final TruffleNFIPlatform truffleNFIPlatform = options.NATIVE_PLATFORM ? new TruffleNFIPlatform(this) : null;
         featureLoader.initialize(nativeConfiguration, truffleNFIPlatform);
-        RubyLauncher.printTruffleTimeMetric("after-create-native-platform");
+        Metrics.printTruffleTime("after-create-native-platform");
         return truffleNFIPlatform;
     }
 
