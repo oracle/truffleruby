@@ -19,7 +19,7 @@ public class ArrayGuards {
     public static final int ARRAY_MAX_EXPLODE_SIZE = 16;
 
     // Enough to handle all array strategies (all types, plus null and Object[] without longs).
-    public static final int STORAGE_STRATEGIES = 6;
+    public static final int STORAGE_STRATEGIES = 11;
 
     // Enough to handle all combinations of two strategies.
     public static final int ARRAY_STRATEGIES = STORAGE_STRATEGIES * STORAGE_STRATEGIES;

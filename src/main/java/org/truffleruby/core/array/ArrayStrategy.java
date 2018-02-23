@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyGuards;
@@ -29,6 +30,8 @@ public abstract class ArrayStrategy {
     public abstract boolean accepts(Object value);
 
     public abstract boolean isPrimitive();
+
+    public abstract boolean isMutable();
 
     public boolean specializesFor(Object value) {
         throw unsupported();
@@ -78,9 +81,9 @@ public abstract class ArrayStrategy {
         }
 
         if (other instanceof NullArrayStrategy) {
-            return this;
+            return this.generalizeForMutation();
         } else if (this instanceof NullArrayStrategy) {
-            return other;
+            return other.generalizeForMutation();
         }
 
         for (ArrayStrategy generalized : TYPE_STRATEGIES) {
@@ -93,6 +96,10 @@ public abstract class ArrayStrategy {
 
     public ArrayStrategy generalizeNew(ArrayStrategy other) {
         return generalize(other);
+    }
+
+    public ArrayStrategy generalizeForMutation() {
+        return this;
     }
 
     public ArrayStrategy generalizeFor(Object value) {
@@ -125,6 +132,25 @@ public abstract class ArrayStrategy {
             return DoubleArrayStrategy.INSTANCE;
         } else if (store.getClass() == Object[].class) {
             return ObjectArrayStrategy.INSTANCE;
+        } else if (store instanceof DelegatedArrayStorage) {
+            return ofDelegatedStore((DelegatedArrayStorage) store);
+        } else {
+            throw new UnsupportedOperationException(store.getClass().getName());
+        }
+    }
+
+    private static ArrayStrategy ofDelegatedStore(DelegatedArrayStorage delegatedArrayStorage) {
+        Object store = delegatedArrayStorage.storage;
+        if (store == null) {
+            return NullArrayStrategy.DELEGATED_INSTANCE;
+        } else if (store instanceof int[]) {
+            return IntArrayStrategy.DELEGATED_INSTANCE;
+        } else if (store instanceof long[]) {
+            return LongArrayStrategy.DELEGATED_INSTANCE;
+        } else if (store instanceof double[]) {
+            return DoubleArrayStrategy.DELEGATED_INSTANCE;
+        } else if (store.getClass() == Object[].class) {
+            return ObjectArrayStrategy.DELEGATED_INSTANCE;
         } else {
             throw new UnsupportedOperationException(store.getClass().getName());
         }
@@ -158,6 +184,7 @@ public abstract class ArrayStrategy {
     private static class IntArrayStrategy extends ArrayStrategy {
 
         static final ArrayStrategy INSTANCE = new IntArrayStrategy();
+        static final ArrayStrategy DELEGATED_INSTANCE = new DelegatedArrayStrategy(INSTANCE);
 
         @Override
         public Class<?> type() {
@@ -176,6 +203,11 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean isPrimitive() {
+            return true;
+        }
+
+        @Override
+        public boolean isMutable() {
             return true;
         }
 
@@ -226,6 +258,7 @@ public abstract class ArrayStrategy {
     private static class LongArrayStrategy extends ArrayStrategy {
 
         static final ArrayStrategy INSTANCE = new LongArrayStrategy();
+        static final ArrayStrategy DELEGATED_INSTANCE = new DelegatedArrayStrategy(INSTANCE);
 
         @Override
         public Class<?> type() {
@@ -244,6 +277,11 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean isPrimitive() {
+            return true;
+        }
+
+        @Override
+        public boolean isMutable() {
             return true;
         }
 
@@ -282,6 +320,7 @@ public abstract class ArrayStrategy {
     private static class DoubleArrayStrategy extends ArrayStrategy {
 
         static final ArrayStrategy INSTANCE = new DoubleArrayStrategy();
+        static final ArrayStrategy DELEGATED_INSTANCE = new DelegatedArrayStrategy(INSTANCE);
 
         @Override
         public Class<?> type() {
@@ -300,6 +339,11 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean isPrimitive() {
+            return true;
+        }
+
+        @Override
+        public boolean isMutable() {
             return true;
         }
 
@@ -338,6 +382,7 @@ public abstract class ArrayStrategy {
     private static class ObjectArrayStrategy extends ArrayStrategy {
 
         static final ArrayStrategy INSTANCE = new ObjectArrayStrategy();
+        static final ArrayStrategy DELEGATED_INSTANCE = new DelegatedArrayStrategy(INSTANCE);
 
         @Override
         public Class<?> type() {
@@ -357,6 +402,11 @@ public abstract class ArrayStrategy {
         @Override
         public boolean isPrimitive() {
             return false;
+        }
+
+        @Override
+        public boolean isMutable() {
+            return true;
         }
 
         @Override
@@ -407,6 +457,11 @@ public abstract class ArrayStrategy {
         }
 
         @Override
+        public boolean isMutable() {
+            return true;
+        }
+
+        @Override
         public boolean matchesStore(Object store) {
             return store != null && store.getClass() == Object[].class;
         }
@@ -445,6 +500,7 @@ public abstract class ArrayStrategy {
     private static class NullArrayStrategy extends ArrayStrategy {
 
         static final ArrayStrategy INSTANCE = new NullArrayStrategy();
+        static final ArrayStrategy DELEGATED_INSTANCE = new DelegatedArrayStrategy(INSTANCE);
 
         @Override
         public Class<?> type() {
@@ -464,6 +520,11 @@ public abstract class ArrayStrategy {
         @Override
         public boolean isPrimitive() {
             return false;
+        }
+
+        @Override
+        public boolean isMutable() {
+            return true;
         }
 
         @Override
@@ -511,6 +572,11 @@ public abstract class ArrayStrategy {
         }
 
         @Override
+        public boolean isMutable() {
+            return false;
+        }
+
+        @Override
         public boolean matchesStore(Object store) {
             return false;
         }
@@ -537,4 +603,66 @@ public abstract class ArrayStrategy {
 
     }
 
+    private static class DelegatedArrayStrategy extends ArrayStrategy {
+
+        private final ArrayStrategy typeStrategy;
+
+        @Override
+        protected Class<?> type() {
+                return typeStrategy.type();
+        }
+
+        public DelegatedArrayStrategy(ArrayStrategy typeStrategy) {
+            this.typeStrategy = typeStrategy;
+        }
+
+        @Override
+        public boolean accepts(Object value) {
+            return false;
+        }
+
+        @Override
+        public boolean isPrimitive() {
+            return typeStrategy.isPrimitive();
+        }
+
+        @Override
+        public boolean isMutable() {
+            return false;
+        }
+
+        @Override
+        public ArrayStrategy generalize(ArrayStrategy other) {
+            return typeStrategy.generalize(other);
+        }
+
+        @Override
+        public ArrayStrategy generalizeForMutation() {
+            return typeStrategy;
+        }
+
+        @Override
+        public boolean matchesStore(Object store) {
+            return store instanceof DelegatedArrayStorage && typeStrategy.matchesStore(((DelegatedArrayStorage) store).storage);
+        }
+
+        @Override
+        public ArrayMirror newArray(int size) {
+            Object rawStorage = typeStrategy.newArray(size).getArray();
+            DelegatedArrayStorage storage = new DelegatedArrayStorage(rawStorage, 0, size);
+            return new DelegatedArrayMirror(storage, typeStrategy);
+        }
+
+        @Override
+        public ArrayMirror newMirrorFromStore(Object store) {
+            return new DelegatedArrayMirror((DelegatedArrayStorage) store, typeStrategy);
+        }
+
+        @TruffleBoundary
+        @Override
+        public String toString() {
+            return String.format("Delegate of (%s)", typeStrategy);
+        }
+
+    }
 }

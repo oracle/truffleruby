@@ -27,6 +27,10 @@ public abstract class ArrayReflector {
         return new ObjectArrayMirror(array);
     }
 
+    public static DelegatedArrayMirror reflect(DelegatedArrayStorage array) {
+        return new DelegatedArrayMirror(array, reflect(array.storage));
+    }
+
     public static ArrayMirror reflect(Object array) {
         if (array == null) {
             return EmptyArrayMirror.INSTANCE;
@@ -36,6 +40,8 @@ public abstract class ArrayReflector {
             return reflect((long[]) array);
         } else if (array instanceof double[]) {
             return reflect((double[]) array);
+        } else if (array instanceof DelegatedArrayStorage) {
+            return reflect((DelegatedArrayStorage) array);
         } else if (array.getClass() == Object[].class) {
             return reflect((Object[]) array);
         } else {

@@ -49,7 +49,7 @@ public class EmptyArrayMirror extends BasicArrayMirror {
     }
 
     @Override
-    public ArrayMirror extractRange(int start, int end) {
+    public ArrayMirror copyRange(int start, int end) {
         assert start == 0 && end == 0;
         return INSTANCE;
     }

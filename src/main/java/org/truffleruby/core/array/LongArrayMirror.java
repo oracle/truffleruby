@@ -69,8 +69,12 @@ class LongArrayMirror extends BasicArrayMirror {
     }
 
     @Override
-    public ArrayMirror extractRange(int start, int end) {
-        return new LongArrayMirror(ArrayUtils.extractRange(array, start, end));
+    public ArrayMirror copyRange(int start, int end) {
+        if (end <= array.length) {
+            return new LongArrayMirror(ArrayUtils.extractRange(array, start, end));
+        } else {
+            return new LongArrayMirror(ArrayUtils.copyRange(array, start, end));
+        }
     }
 
     @TruffleBoundary
