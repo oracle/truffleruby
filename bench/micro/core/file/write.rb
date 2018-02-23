@@ -6,11 +6,6 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
-benchmark 'core-open-close-file' do
-  f = File.open('/dev/null')
-  f.close()
-end
-
 null = File.open('/dev/null', 'w')
 
 kilobyte = 'x' * 1024
@@ -59,14 +54,4 @@ benchmark 'core-big-join-and-write' do
   strings.push '</ul>'
   strings.push '</html>'
   null.write strings.join
-end
-
-zero = File.open('/dev/zero')
-
-benchmark 'core-read-kilobyte' do
-  zero.read 1024
-end
-
-benchmark 'core-read-gigabyte' do
-  zero.read 1024 * 1024 * 1024
 end
