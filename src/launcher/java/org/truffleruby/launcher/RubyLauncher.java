@@ -60,7 +60,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     @Override
     protected List<String> preprocessArguments(List<String> args, Map<String, String> polyglotOptions) {
         Launcher.metricsBegin();
-        Launcher.processArguments(config, args, false, isAOT());
+        Launcher.processArguments(config, args, isAOT());
 
         if (isAOT()) {
             // if applied store the options in polyglotOptions otherwise it would be lost when
