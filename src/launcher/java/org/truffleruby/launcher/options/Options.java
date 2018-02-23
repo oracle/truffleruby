@@ -18,6 +18,7 @@ public class Options {
 
     public final String HOME;
     public final String LAUNCHER;
+    public final boolean EMBEDDED;
     public final String[] LOAD_PATHS;
     public final String[] REQUIRED_LIBRARIES;
     public final boolean READ_RUBYOPT;
@@ -49,6 +50,7 @@ public class Options {
     public final boolean SYNC_STDIO;
     public final boolean NATIVE_PLATFORM;
     public final boolean NATIVE_INTERRUPT;
+    public final boolean HANDLE_INTERRUPT;
     public final boolean CEXT_LOCK;
     public final boolean TRACE_CALLS;
     public final boolean COVERAGE_GLOBAL;
@@ -137,6 +139,7 @@ public class Options {
     Options(OptionsBuilder builder) {
         HOME = builder.getOrDefault(OptionsCatalog.HOME);
         LAUNCHER = builder.getOrDefault(OptionsCatalog.LAUNCHER);
+        EMBEDDED = builder.getOrDefault(OptionsCatalog.EMBEDDED);
         LOAD_PATHS = builder.getOrDefault(OptionsCatalog.LOAD_PATHS);
         REQUIRED_LIBRARIES = builder.getOrDefault(OptionsCatalog.REQUIRED_LIBRARIES);
         READ_RUBYOPT = builder.getOrDefault(OptionsCatalog.READ_RUBYOPT);
@@ -164,10 +167,11 @@ public class Options {
         DID_YOU_MEAN = builder.getOrDefault(OptionsCatalog.DID_YOU_MEAN);
         INTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.INTERNAL_ENCODING);
         EXTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.EXTERNAL_ENCODING);
-        POLYGLOT_STDIO = builder.getOrDefault(OptionsCatalog.POLYGLOT_STDIO);
-        SYNC_STDIO = builder.getOrDefault(OptionsCatalog.SYNC_STDIO);
+        POLYGLOT_STDIO = builder.getOrDefault(OptionsCatalog.POLYGLOT_STDIO, EMBEDDED);
+        SYNC_STDIO = builder.getOrDefault(OptionsCatalog.SYNC_STDIO, EMBEDDED);
         NATIVE_PLATFORM = builder.getOrDefault(OptionsCatalog.NATIVE_PLATFORM);
         NATIVE_INTERRUPT = builder.getOrDefault(OptionsCatalog.NATIVE_INTERRUPT, NATIVE_PLATFORM);
+        HANDLE_INTERRUPT = builder.getOrDefault(OptionsCatalog.HANDLE_INTERRUPT, !EMBEDDED);
         CEXT_LOCK = builder.getOrDefault(OptionsCatalog.CEXT_LOCK);
         TRACE_CALLS = builder.getOrDefault(OptionsCatalog.TRACE_CALLS);
         COVERAGE_GLOBAL = builder.getOrDefault(OptionsCatalog.COVERAGE_GLOBAL);
@@ -260,6 +264,8 @@ public class Options {
                 return HOME;
             case "ruby.launcher":
                 return LAUNCHER;
+            case "ruby.embedded":
+                return EMBEDDED;
             case "ruby.load_paths":
                 return LOAD_PATHS;
             case "ruby.required_libraries":
@@ -322,6 +328,8 @@ public class Options {
                 return NATIVE_PLATFORM;
             case "ruby.platform.native_interrupt":
                 return NATIVE_INTERRUPT;
+            case "ruby.platform.handle_interrupt":
+                return HANDLE_INTERRUPT;
             case "ruby.cexts.lock":
                 return CEXT_LOCK;
             case "ruby.trace.calls":

@@ -26,6 +26,11 @@ public class OptionsCatalog {
             "The location of the TruffleRuby launcher program",
             null,
             "");
+    public static final BooleanOptionDescription EMBEDDED = new BooleanOptionDescription(
+            "ruby.embedded",
+            "Set default options for an embedded use of TruffleRuby, rather than top-level use",
+            null,
+            true);
     public static final StringArrayOptionDescription LOAD_PATHS = new StringArrayOptionDescription(
             "ruby.load_paths",
             "Load paths (configured by -I Ruby options)",
@@ -165,12 +170,12 @@ public class OptionsCatalog {
             "ruby.polyglot.stdio",
             "Use standard IO streams from the Graal-SDK polyglot API configuration",
             null,
-            true);
+            EMBEDDED.getDefaultValue());
     public static final BooleanOptionDescription SYNC_STDIO = new BooleanOptionDescription(
             "ruby.sync.stdio",
             "Sync operations on standard IO streams",
             null,
-            true);
+            EMBEDDED.getDefaultValue());
     public static final BooleanOptionDescription NATIVE_PLATFORM = new BooleanOptionDescription(
             "ruby.platform.native",
             "Enables native calls via Truffle NFI",
@@ -181,6 +186,11 @@ public class OptionsCatalog {
             "Use the SIGVTALRM signal to interrupt native blocking calls",
             null,
             NATIVE_PLATFORM.getDefaultValue());
+    public static final BooleanOptionDescription HANDLE_INTERRUPT = new BooleanOptionDescription(
+            "ruby.platform.handle_interrupt",
+            "Handle the interrupt signal and raise an Interrupt exception",
+            null,
+            !EMBEDDED.getDefaultValue());
     public static final BooleanOptionDescription CEXT_LOCK = new BooleanOptionDescription(
             "ruby.cexts.lock",
             "Use a Global Lock when running C extensions",
@@ -608,6 +618,8 @@ public class OptionsCatalog {
                 return HOME;
             case "ruby.launcher":
                 return LAUNCHER;
+            case "ruby.embedded":
+                return EMBEDDED;
             case "ruby.load_paths":
                 return LOAD_PATHS;
             case "ruby.required_libraries":
@@ -670,6 +682,8 @@ public class OptionsCatalog {
                 return NATIVE_PLATFORM;
             case "ruby.platform.native_interrupt":
                 return NATIVE_INTERRUPT;
+            case "ruby.platform.handle_interrupt":
+                return HANDLE_INTERRUPT;
             case "ruby.cexts.lock":
                 return CEXT_LOCK;
             case "ruby.trace.calls":
@@ -847,6 +861,7 @@ public class OptionsCatalog {
         return new OptionDescription<?>[] {
             HOME,
             LAUNCHER,
+            EMBEDDED,
             LOAD_PATHS,
             REQUIRED_LIBRARIES,
             READ_RUBYOPT,
@@ -878,6 +893,7 @@ public class OptionsCatalog {
             SYNC_STDIO,
             NATIVE_PLATFORM,
             NATIVE_INTERRUPT,
+            HANDLE_INTERRUPT,
             CEXT_LOCK,
             TRACE_CALLS,
             COVERAGE_GLOBAL,

@@ -244,14 +244,7 @@ public class Launcher {
     private static Context createContext(Context.Builder builder, CommandLineOptions config) {
         builder.allowCreateThread(true);
 
-        /*
-         * We turn off using the polyglot IO streams when running from our launcher, because they don't act like
-         * normal file descriptors and this can cause problems in some advanced IO functionality, such as pipes and
-         * blocking behaviour. We also turn off sync on stdio and so revert to Ruby's default logic for looking
-         * at whether a file descriptor looks like a TTY for deciding whether to make it synchronous or not.
-         */
-        builder.option(OptionsCatalog.POLYGLOT_STDIO.getName(), Boolean.FALSE.toString());
-        builder.option(OptionsCatalog.SYNC_STDIO.getName(), Boolean.FALSE.toString());
+        builder.option(OptionsCatalog.EMBEDDED.getName(), Boolean.FALSE.toString());
 
         // When building a native image outside of GraalVM, we need to give the path to libsulong
         if (LIBSULONG_DIR != null) {
