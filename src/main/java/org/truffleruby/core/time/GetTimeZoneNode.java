@@ -52,8 +52,8 @@ public abstract class GetTimeZoneNode extends RubyNode {
             tzString = StringOperations.getString((DynamicObject) tz);
         }
 
-        // TODO CS 4-May-15 not sure how TZ ends up being nil
         if (tz == nil()) {
+            // $TZ is not set, use the system timezone
             return new TimeZoneAndName(ZoneId.systemDefault(), null);
         } else if (tzString.equalsIgnoreCase("localtime")) {
             // On Solaris, $TZ is "localtime", so get it from Java
