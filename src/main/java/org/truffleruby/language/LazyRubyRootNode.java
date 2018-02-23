@@ -29,7 +29,7 @@ import org.truffleruby.language.backtrace.InternalRootNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.launcher.Launcher;
+import org.truffleruby.launcher.RubyLauncher;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 
@@ -106,7 +106,7 @@ public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNo
 
     @TruffleBoundary
     private void printTimeMetric(String id) {
-        Launcher.printTruffleTimeMetric(id);
+        RubyLauncher.printTruffleTimeMetric(id);
     }
 
     @Override

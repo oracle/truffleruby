@@ -18,7 +18,7 @@ import com.oracle.truffle.api.source.Source;
 import org.graalvm.polyglot.Context;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.launcher.Launcher;
+import org.truffleruby.launcher.RubyLauncher;
 import org.truffleruby.launcher.options.OptionsCatalog;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
@@ -54,7 +54,7 @@ public abstract class RubyTest {
         final TruffleObject testTruffleObject = JavaInterop.asTruffleFunction(Runnable.class, test);
 
         try (Context context = setupContext(Context.newBuilder()).build()) {
-            context.eval(org.graalvm.polyglot.Source.create(Launcher.LANGUAGE_ID, "-> test { test.call }"))
+            context.eval(org.graalvm.polyglot.Source.create(RubyLauncher.LANGUAGE_ID, "-> test { test.call }"))
                     .execute(testTruffleObject);
         }
     }
