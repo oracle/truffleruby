@@ -84,20 +84,6 @@ public class Launcher {
     private static final boolean METRICS_MEMORY_USED_ON_EXIT =
             Boolean.getBoolean("truffleruby.metrics.memory_used_on_exit");
 
-    public static void launch(boolean isGraal, String[] args) throws Exception {
-        metricsBegin();
-
-        final CommandLineOptions config = new CommandLineOptions();
-        processArguments(config, new ArrayList<>(Arrays.asList(args)), true, true, IS_NATIVE);
-        printPreRunInformation(isGraal, config);
-        setRubyLauncherIfNative(config);
-        debugPreInitialization();
-        final int exitCode = runRubyMain(Context.newBuilder(), config);
-
-        metricsEnd();
-        System.exit(exitCode);
-    }
-
     public static String getEngineVersion() {
         // The property cannot be read in a static initializer, it's set later
         final String systemVersion = System.getProperty("org.graalvm.version");
@@ -203,8 +189,7 @@ public class Launcher {
     public static void processArguments(
             CommandLineOptions config,
             List<String> args,
-            boolean parseHelpEtc,
-            boolean unknownOptionFails,
+            boolean parseHelpEtc, // TODO (pitr-ch 22-Feb-2018): remove, always false
             boolean isNative) {
 
         try {
@@ -212,10 +197,6 @@ public class Launcher {
 
             final CommandLineParser argumentCommandLineParser = new CommandLineParser(args, config, true, false, parseHelpEtc);
             argumentCommandLineParser.processArguments();
-
-            if (unknownOptionFails && !config.getUnknownArguments().isEmpty()) {
-                throw new CommandLineException("unknown option " + config.getUnknownArguments().get(0));
-            }
 
             if (config.getOption(OptionsCatalog.READ_RUBYOPT)) {
                 final List<String> rubyoptArgs = getArgsFromEnvVariable("RUBYOPT");
@@ -308,6 +289,27 @@ public class Launcher {
             }
 
             System.err.printf("allocated %d%n", ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed());
+        }
+    }
+
+    // TODO (pitr-ch 22-Feb-2018): replace with a call to sdk API when available
+    static boolean isGraal() {
+        final CommandLineOptions config = new CommandLineOptions();
+        config.setOption(OptionsCatalog.GRAAL_WARNING_UNLESS, false);
+        config.setOption(OptionsCatalog.POST_BOOT, false);
+        config.setOption(OptionsCatalog.NO_HOME_PROVIDED, true);
+
+        try (Context context = createContext(Context.newBuilder(), config)) {
+            final Source source = Source.newBuilder(
+                    LANGUAGE_ID,
+                    // language=ruby
+                    "Truffle.graal?",
+                    BOOT_SOURCE_NAME).internal(true).buildLiteral();
+            return context.eval(source).asBoolean();
+        } catch (PolyglotException e) {
+            System.err.println("truffleruby: " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
     }
 

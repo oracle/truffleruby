@@ -49,6 +49,7 @@ import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.time.GetTimeZoneNode;
+import org.truffleruby.extra.TruffleNodes;
 import org.truffleruby.interop.InteropManager;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.LexicalScope;
@@ -160,7 +161,7 @@ public class RubyContext {
 
         options = createOptions(env);
 
-        if (!org.truffleruby.Main.isGraal() && options.GRAAL_WARNING_UNLESS) {
+        if (!TruffleNodes.GraalNode.isGraal() && options.GRAAL_WARNING_UNLESS) {
             Log.performanceOnce(
                     "this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md");
         }
@@ -253,9 +254,11 @@ public class RubyContext {
 
         // Load other subsystems
 
-        Launcher.printTruffleTimeMetric("before-post-boot");
-        coreLibrary.initializePostBoot();
-        Launcher.printTruffleTimeMetric("after-post-boot");
+        if (options.POST_BOOT) {
+            Launcher.printTruffleTimeMetric("before-post-boot");
+            coreLibrary.initializePostBoot();
+            Launcher.printTruffleTimeMetric("after-post-boot");
+        }
 
         // Share once everything is loaded
         if (options.SHARED_OBJECTS_ENABLED && options.SHARED_OBJECTS_FORCE) {
@@ -685,6 +688,10 @@ public class RubyContext {
     // Returns a canonical path to the home
     @TruffleBoundary
     private String searchRubyHome(Options options) throws IOException {
+        if (options.NO_HOME_PROVIDED) {
+            return null;
+        }
+
         // Use the option if it was set
 
         if (!options.HOME.isEmpty()) {

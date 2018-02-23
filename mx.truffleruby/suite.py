@@ -14,6 +14,15 @@ suite = {
                 ]
             },
             {
+                "name": "tools",
+                "subdir": True,
+                "version": "dc33b5df22c06ce60b4a5cf482aae4a966767260",
+                "urls": [
+                    {"url": "https://github.com/graalvm/graal.git", "kind": "git"},
+                    {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
+                ]
+            },
+            {
                 "name": "sulong",
                 "version": "4409ba7fac845ea2e98db391d8a5c0ca5d5dc11d",
                 "urls": [
@@ -165,7 +174,9 @@ suite = {
             "dependencies": [
                 "truffleruby-annotations",
                 "sdk:GRAAL_SDK",
-                "sdk:LAUNCHER_COMMON"
+                "sdk:LAUNCHER_COMMON",
+                "tools:CHROMEINSPECTOR",
+                "tools:TRUFFLE_PROFILER",
             ],
             "annotationProcessors": [
                 "TRUFFLERUBY-PROCESSOR",
@@ -301,7 +312,7 @@ suite = {
         },
 
         "TRUFFLERUBY": {
-            "mainClass": "org.truffleruby.Main",
+            "mainClass": "org.truffleruby.launcher.RubyLauncher",
             "dependencies": [
                 "truffleruby",
                 "truffleruby-core",
@@ -327,7 +338,9 @@ suite = {
             ],
             "distDependencies": [
                 "sdk:GRAAL_SDK",
-                "sdk:LAUNCHER_COMMON"
+                "sdk:LAUNCHER_COMMON",
+                "tools:CHROMEINSPECTOR",
+                "tools:TRUFFLE_PROFILER",
             ],
             "description": "TruffleRuby Launcher",
             "license": [

@@ -10,16 +10,17 @@
 package org.truffleruby.extra;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.USASCIIEncoding;
-import org.truffleruby.Main;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.launcher.BuildInformationImpl;
 
 @CoreClass("Truffle")
@@ -28,9 +29,14 @@ public abstract class TruffleNodes {
     @CoreMethod(names = "graal?", onSingleton = true)
     public abstract static class GraalNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
+        public static boolean isGraal() {
+            return StringUtils.toLowerCase(Truffle.getRuntime().getName()).contains("graal");
+        }
+
         @Specialization
         public boolean graal() {
-            return Main.isGraal();
+            return isGraal();
         }
 
     }

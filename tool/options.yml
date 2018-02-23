@@ -1,4 +1,5 @@
 HOME: [home, string, '', The location of the TruffleRuby installation files]
+NO_HOME_PROVIDED: [no_home_provided, boolean, false, set to true to explicitly state that no home is provided (silences the warnings)]
 LAUNCHER: [launcher, string, '', The location of the TruffleRuby launcher program]
 EMBEDDED: [embedded, boolean, true, 'Set default options for an embedded use of TruffleRuby, rather than top-level use']
 
@@ -25,6 +26,7 @@ HASHING_DETERMINISTIC: [hashing.deterministic, boolean, false, Produce determini
 FROZEN_STRING_LITERALS: [frozen_string_literals, boolean, false, Use frozen string literals]
 RUBYGEMS: [rubygems, boolean, true, Use RubyGems]
 LAZY_RUBYGEMS: [rubygems.lazy, boolean, DEFAULT_LAZY, Load RubyGems lazily on first failing require]
+POST_BOOT: [post_boot, boolean, true, Load post-boot.rb]
 PATCHING: [patching, boolean, true, Use patching]
 DID_YOU_MEAN: [did_you_mean, boolean, true, Use did_you_mean]
 

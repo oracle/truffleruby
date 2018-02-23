@@ -21,6 +21,11 @@ public class OptionsCatalog {
             "The location of the TruffleRuby installation files",
             null,
             "");
+    public static final BooleanOptionDescription NO_HOME_PROVIDED = new BooleanOptionDescription(
+            "ruby.no_home_provided",
+            "set to true to explicitly state that no home is provided (silences the warnings)",
+            null,
+            false);
     public static final StringOptionDescription LAUNCHER = new StringOptionDescription(
             "ruby.launcher",
             "The location of the TruffleRuby launcher program",
@@ -141,6 +146,11 @@ public class OptionsCatalog {
             "Load RubyGems lazily on first failing require",
             null,
             DEFAULT_LAZY.getDefaultValue());
+    public static final BooleanOptionDescription POST_BOOT = new BooleanOptionDescription(
+            "ruby.post_boot",
+            "Load post-boot.rb",
+            null,
+            true);
     public static final BooleanOptionDescription PATCHING = new BooleanOptionDescription(
             "ruby.patching",
             "Use patching",
@@ -631,6 +641,8 @@ public class OptionsCatalog {
         switch (name) {
             case "ruby.home":
                 return HOME;
+            case "ruby.no_home_provided":
+                return NO_HOME_PROVIDED;
             case "ruby.launcher":
                 return LAUNCHER;
             case "ruby.embedded":
@@ -679,6 +691,8 @@ public class OptionsCatalog {
                 return RUBYGEMS;
             case "ruby.rubygems.lazy":
                 return LAZY_RUBYGEMS;
+            case "ruby.post_boot":
+                return POST_BOOT;
             case "ruby.patching":
                 return PATCHING;
             case "ruby.did_you_mean":
@@ -881,6 +895,7 @@ public class OptionsCatalog {
     public static OptionDescription<?>[] allDescriptions() {
         return new OptionDescription<?>[] {
             HOME,
+            NO_HOME_PROVIDED,
             LAUNCHER,
             EMBEDDED,
             LOAD_PATHS,
@@ -905,6 +920,7 @@ public class OptionsCatalog {
             FROZEN_STRING_LITERALS,
             RUBYGEMS,
             LAZY_RUBYGEMS,
+            POST_BOOT,
             PATCHING,
             DID_YOU_MEAN,
             INTERNAL_ENCODING,
