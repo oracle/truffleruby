@@ -189,20 +189,19 @@ public class Launcher {
     public static void processArguments(
             CommandLineOptions config,
             List<String> args,
-            boolean parseHelpEtc, // TODO (pitr-ch 22-Feb-2018): remove, always false
             boolean isNative) {
 
         try {
             config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.UNSET);
 
-            final CommandLineParser argumentCommandLineParser = new CommandLineParser(args, config, true, false, parseHelpEtc);
+            final CommandLineParser argumentCommandLineParser = new CommandLineParser(args, config, true, false);
             argumentCommandLineParser.processArguments();
 
             if (config.getOption(OptionsCatalog.READ_RUBYOPT)) {
                 final List<String> rubyoptArgs = getArgsFromEnvVariable("RUBYOPT");
                 final List<String> trufflerubyoptArgs = getArgsFromEnvVariable("TRUFFLERUBYOPT");
-                new CommandLineParser(rubyoptArgs, config, false, true, true).processArguments();
-                new CommandLineParser(trufflerubyoptArgs, config, false, false, true).processArguments();
+                new CommandLineParser(rubyoptArgs, config, false, true).processArguments();
+                new CommandLineParser(trufflerubyoptArgs, config, false, false).processArguments();
 
                 if (isNative) {
                     // Append options from ENV variables to args after last interpreter option, which makes sure that

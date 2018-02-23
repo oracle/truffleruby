@@ -56,14 +56,12 @@ public class CommandLineParser {
     final CommandLineOptions config;
     private int lastInterpreterArgumentIndex;
     private int characterIndex;
-    private final boolean parseHelp;
 
     public CommandLineParser(
             List<String> arguments,
             CommandLineOptions config,
             boolean processArgv,
-            boolean rubyOpts,
-            boolean parseHelpEtc) {
+            boolean rubyOpts) {
 
         this.argumentIndex = 0;
         this.characterIndex = 0;
@@ -71,7 +69,6 @@ public class CommandLineParser {
         this.config = config;
         this.processArgv = processArgv;
         this.rubyOpts = rubyOpts;
-        this.parseHelp = parseHelpEtc;
         this.arguments = Objects.requireNonNull(arguments);
     }
 
@@ -405,18 +402,6 @@ public class CommandLineParser {
                     } else if (argument.equals("--yydebug")) {
                         disallowedInRubyOpts(argument);
                         RubyLogger.LOGGER.warning("the --yydebug switch is silently ignored as it is an internal development tool");
-                        break FOR;
-                    } else if (parseHelp && argument.equals("--help")) {
-                        disallowedInRubyOpts(argument);
-                        config.setOption(OptionsCatalog.SHOW_HELP, ShowHelp.LONG);
-                        // cancel other execution actions
-                        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
-                        break FOR;
-                    } else if (argument.equals("--version")) {
-                        disallowedInRubyOpts(argument);
-                        config.setOption(OptionsCatalog.SHOW_VERSION, true);
-                        // cancel other execution actions
-                        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                         break FOR;
                     } else if (argument.startsWith("--profile")) {
                         throw notImplemented("--profile");
