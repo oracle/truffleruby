@@ -23,7 +23,6 @@ import org.truffleruby.launcher.options.OptionsCatalog;
 
 import java.io.File;
 import java.io.PrintStream;
-import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,11 +46,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     // Properties set directly on the java command-line with -D for image building
     public static final String LIBSULONG_DIR = isAOT() ? System.getProperty("truffleruby.native.libsulong_dir") : null;
     public static final boolean PRE_INITIALIZE_CONTEXTS = System.getProperty("polyglot.engine.PreinitializeContexts") != null;
-
-    // These system properties are used before outside the SDK option system
-    public static boolean METRICS_TIME;
-    public static final boolean METRICS_MEMORY_USED_ON_EXIT =
-            Boolean.getBoolean("truffleruby.metrics.memory_used_on_exit");
 
     private final CommandLineOptions config = new CommandLineOptions();
 
@@ -122,14 +116,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         return systemVersion;
     }
 
-    // TODO (pitr-ch 23-Feb-2018): extract to a class
-    public static void printTruffleTimeMetric(String id) {
-        if (METRICS_TIME) {
-            final long millis = System.currentTimeMillis();
-            System.err.printf("%s %d.%03d%n", id, millis / 1000, millis % 1000);
-        }
-    }
-
     @Override
     protected String getLanguageId() {
         return LANGUAGE_ID;
@@ -153,7 +139,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected List<String> preprocessArguments(List<String> args, Map<String, String> polyglotOptions) {
-        metricsBegin();
+        Metrics.begin();
 
         try {
             config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.UNSET);
@@ -214,7 +200,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         printPreRunInformation(config);
         debugPreInitialization();
         final int exitValue = runRubyMain(contextBuilder, config);
-        metricsEnd();
+        Metrics.end();
         System.exit(exitValue);
     }
 
@@ -267,14 +253,14 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         }
 
         try (Context context = createContext(contextBuilder, config)) {
-            printTruffleTimeMetric("before-run");
+            Metrics.printTruffleTime("before-run");
             final Source source = Source.newBuilder(
                     LANGUAGE_ID,
                     // language=ruby
                     "Truffle::Boot.main",
                     BOOT_SOURCE_NAME).internal(true).buildLiteral();
             final int exitCode = context.eval(source).asInt();
-            printTruffleTimeMetric("after-run");
+            Metrics.printTruffleTime("after-run");
             return exitCode;
         } catch (PolyglotException e) {
             System.err.print("truffleruby: ");
@@ -293,23 +279,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             } catch (ReflectiveOperationException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    private static void printTruffleMemoryMetric() {
-        // Memory stats aren't available in native.
-        if (!isAOT() && METRICS_MEMORY_USED_ON_EXIT) {
-            for (int n = 0; n < 10; n++) {
-                System.gc();
-            }
-
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-
-            System.err.printf("allocated %d%n", ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed());
         }
     }
 
@@ -349,18 +318,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             }
         }
         return Collections.emptyList();
-    }
-
-    private static void metricsEnd() {
-        printTruffleTimeMetric("after-main");
-        printTruffleMemoryMetric();
-    }
-
-    private static void metricsBegin() {
-        // Assigned here so it's available on SVM as well
-        METRICS_TIME = Boolean.getBoolean("truffleruby.metrics.time");
-
-        printTruffleTimeMetric("before-main");
     }
 
     private String setRubyLauncherIfNative() {

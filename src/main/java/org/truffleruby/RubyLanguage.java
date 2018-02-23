@@ -23,6 +23,7 @@ import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.interop.MetaObject;
 import org.truffleruby.language.LazyRubyRootNode;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.launcher.Metrics;
 import org.truffleruby.launcher.RubyLauncher;
 import org.truffleruby.launcher.options.OptionDescription;
 import org.truffleruby.launcher.options.OptionsCatalog;
@@ -62,27 +63,27 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     public RubyContext createContext(Env env) {
         Log.LOGGER.fine("createContext()");
-        RubyLauncher.printTruffleTimeMetric("before-create-context");
+        Metrics.printTruffleTime("before-create-context");
         // TODO CS 3-Dec-16 need to parse RUBYOPT here if it hasn't been already?
         final RubyContext context = new RubyContext(this, env);
-        RubyLauncher.printTruffleTimeMetric("after-create-context");
+        Metrics.printTruffleTime("after-create-context");
         return context;
     }
 
     @Override
     protected void initializeContext(RubyContext context) throws Exception {
         Log.LOGGER.fine("initializeContext()");
-        RubyLauncher.printTruffleTimeMetric("before-initialize-context");
+        Metrics.printTruffleTime("before-initialize-context");
         context.initialize();
-        RubyLauncher.printTruffleTimeMetric("after-initialize-context");
+        Metrics.printTruffleTime("after-initialize-context");
     }
 
     @Override
     protected boolean patchContext(RubyContext context, Env newEnv) {
         Log.LOGGER.fine("patchContext()");
-        RubyLauncher.printTruffleTimeMetric("before-patch-context");
+        Metrics.printTruffleTime("before-patch-context");
         boolean patched = context.patchContext(newEnv);
-        RubyLauncher.printTruffleTimeMetric("after-patch-context");
+        Metrics.printTruffleTime("after-patch-context");
         return patched;
     }
 
