@@ -74,8 +74,12 @@ class IntegerArrayMirror extends BasicArrayMirror {
     }
 
     @Override
-    public ArrayMirror extractRange(int start, int end) {
-        return new IntegerArrayMirror(ArrayUtils.extractRange(array, start, end));
+    public ArrayMirror copyRange(int start, int end) {
+        if (end <= array.length) {
+            return new IntegerArrayMirror(ArrayUtils.extractRange(array, start, end));
+        } else {
+            return new IntegerArrayMirror(ArrayUtils.copyRange(array, start, end));
+        }
     }
 
     @TruffleBoundary

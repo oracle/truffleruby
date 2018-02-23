@@ -66,7 +66,12 @@ public abstract class ArrayOperations {
         if (store == null) {
             return 0;
         } else {
-            return Array.getLength(store);
+            if (store instanceof DelegatedArrayStorage) {
+                DelegatedArrayStorage delegate = (DelegatedArrayStorage) store;
+                return Array.getLength(delegate.storage) - delegate.offset;
+            } else {
+                return Array.getLength(store);
+            }
         }
     }
 
