@@ -140,7 +140,7 @@ fi
 full_command=(
     "$JAVACMD"
     "${java_args[@]}"
-    org.truffleruby.Main
+    org.truffleruby.launcher.RubyLauncher
     "-Xhome=$root"
     "-Xlauncher=$root/bin/truffleruby"
     "${ruby_args[@]}"
