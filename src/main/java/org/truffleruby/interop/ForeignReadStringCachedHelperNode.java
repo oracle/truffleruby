@@ -18,6 +18,9 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
@@ -93,8 +96,19 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
             Object name,
             Object stringName,
             boolean isIVar,
-            @Cached("create()") ForeignToRubyNode nameToRubyNode) {
-        return getCallNode().call(frame, receiver, "[]", nameToRubyNode.executeConvert(name));
+            @Cached("create()") ForeignToRubyNode nameToRubyNode,
+            @Cached("createBinaryProfile()") ConditionProfile arrayProfile,
+            @Cached("createBinaryProfile()") ConditionProfile validArrayIndexProfile) {
+        if (arrayProfile.profile(RubyGuards.isRubyArray(receiver))) {
+            if (validArrayIndexProfile.profile(name instanceof Integer ||
+                    (name instanceof Long && RubyGuards.fitsInInteger((long) name)))) {
+                return getCallNode().call(frame, receiver, "[]", name);
+            } else {
+                throw UnknownIdentifierException.raise(toString(name));
+            }
+        } else {
+            return getCallNode().call(frame, receiver, "[]", nameToRubyNode.executeConvert(name));
+        }
     }
 
     @Specialization(guards = {

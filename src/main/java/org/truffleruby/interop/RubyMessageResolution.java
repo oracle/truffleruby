@@ -30,7 +30,6 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyObjectType;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
@@ -202,15 +201,8 @@ public class RubyMessageResolution {
 
         @Child private ForeignReadStringCachingHelperNode helperNode = ForeignReadStringCachingHelperNodeGen.create(null, null);
 
-        private final BranchProfile exceptionProfile = BranchProfile.create();
-
         protected Object access(VirtualFrame frame, DynamicObject object, Object name) {
-            try {
-                return helperNode.executeStringCachingHelper(frame, object, name);
-            } catch (RaiseException e) {
-                exceptionProfile.enter();
-                throw UnknownIdentifierException.raise(toString(name));
-            }
+            return helperNode.executeStringCachingHelper(frame, object, name);
         }
 
         @TruffleBoundary
