@@ -99,7 +99,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     public RubyContext createContext(Env env) {
-        Log.LOGGER.fine("createContext()");
+        Log.LOGGER.fine("create context");
         Launcher.printTruffleTimeMetric("before-create-context");
         // TODO CS 3-Dec-16 need to parse RUBYOPT here if it hasn't been already?
         final RubyContext context = new RubyContext(this, env);
@@ -109,7 +109,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected void initializeContext(RubyContext context) throws Exception {
-        Log.LOGGER.fine("initializeContext()");
+        Log.LOGGER.fine("initialize context");
         Launcher.printTruffleTimeMetric("before-initialize-context");
         context.initialize();
         Launcher.printTruffleTimeMetric("after-initialize-context");
@@ -117,7 +117,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected boolean patchContext(RubyContext context, Env newEnv) {
-        Log.LOGGER.fine("patchContext()");
+        Log.LOGGER.fine("patch context");
         Launcher.printTruffleTimeMetric("before-patch-context");
         boolean patched = context.patchContext(newEnv);
         Launcher.printTruffleTimeMetric("after-patch-context");
@@ -126,13 +126,13 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected void finalizeContext(RubyContext context) {
-        Log.LOGGER.fine("finalizeContext()");
+        Log.LOGGER.fine("finalize context");
         context.finalizeContext();
     }
 
     @Override
     protected void disposeContext(RubyContext context) {
-        Log.LOGGER.fine("disposeContext()");
+        Log.LOGGER.fine("dispose context");
         context.disposeContext();
     }
 
