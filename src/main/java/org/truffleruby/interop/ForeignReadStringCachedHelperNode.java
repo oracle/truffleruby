@@ -92,8 +92,9 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
             DynamicObject receiver,
             Object name,
             Object stringName,
-            boolean isIVar) {
-        return getCallNode().call(frame, receiver, "[]", name);
+            boolean isIVar,
+            @Cached("create()") ForeignToRubyNode nameToRubyNode) {
+        return getCallNode().call(frame, receiver, "[]", nameToRubyNode.executeConvert(name));
     }
 
     @Specialization(guards = {
