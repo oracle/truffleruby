@@ -63,7 +63,7 @@ describe "Truffle::Interop.read" do
     Truffle::Interop.read({"foo" => 42}, Truffle::Interop.to_java_string('foo')).should == 42
   end
 
-  it "raises a NameError when the identifier is not found on a Ruby object" do
+  it "raises a NameError when trying to access an Array with a String name" do
     ary = []
     lambda {
       Truffle::Interop.read(ary, Truffle::Interop.to_java_string('foo'))
@@ -71,7 +71,7 @@ describe "Truffle::Interop.read" do
       e.receiver.should equal ary
       e.name.should == :foo
     }
-    end
+  end
 
   it "raises a NameError when the identifier is not found on a foreign object" do
     foreign = Truffle::Interop.java_array(1, 2, 3)
@@ -83,6 +83,21 @@ describe "Truffle::Interop.read" do
 
   it "raises a NameError when the name is not a supported type" do
     lambda { Truffle::Interop.read(Math, Truffle::Debug.foreign_object) }.should raise_error(NameError, /Unknown identifier: /)
+  end
+
+  it "lets exceptions from #[] go through" do
+    obj = Object.new
+    def obj.[](n)
+      7 / n
+    end
+
+    Truffle::Interop.read(obj, 2).should == 3
+    -> {
+      Truffle::Interop.read(obj, 0)
+    }.should raise_error(ZeroDivisionError, "divided by 0")
+    -> {
+      Truffle::Interop.read(obj, "string")
+    }.should raise_error(TypeError, "String can't be coerced into Fixnum")
   end
 
 end
