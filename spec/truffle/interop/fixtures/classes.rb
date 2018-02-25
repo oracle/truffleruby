@@ -51,7 +51,10 @@ module TruffleInteropSpecs
   end
 
   class ReadHasIndex
+    attr_reader :key
+
     def [](n)
+      @key = n
       14
     end
   end

@@ -33,6 +33,13 @@ describe "Truffle::Interop.read" do
     it "as a string" do
       Truffle::Interop.read(TruffleInteropSpecs::ReadHasIndex.new, 'foo').should == 14
     end
+
+    it "and converts the name to a Ruby String" do
+      object = TruffleInteropSpecs::ReadHasIndex.new
+      result = Truffle::Interop.read object, Truffle::Interop.to_java_string('foo')
+      result.should == 14
+      object.key.should == "foo"
+    end
   end
   
   describe "calls a method if there is a method with the same name" do
@@ -47,6 +54,13 @@ describe "Truffle::Interop.read" do
 
   it "can be used to index an array" do
     Truffle::Interop.read([1, 2, 3], 1).should == 2
+  end
+
+  it "can be used to index a hash" do
+    Truffle::Interop.read({1 => 2, 3 => 4, 5 => 6}, 3).should == 4
+
+    Truffle::Interop.read({"foo" => 42}, 'foo').should == 42
+    Truffle::Interop.read({"foo" => 42}, Truffle::Interop.to_java_string('foo')).should == 42
   end
 
   it "raises a NameError when the identifier is not found on a Ruby object" do
@@ -69,10 +83,6 @@ describe "Truffle::Interop.read" do
 
   it "raises a NameError when the name is not a supported type" do
     lambda { Truffle::Interop.read(Math, Truffle::Debug.foreign_object) }.should raise_error(NameError, /Unknown identifier: /)
-  end
-
-  it "can be used to index a hash" do
-    Truffle::Interop.read({1 => 2, 3 => 4, 5 => 6}, 3).should == 4
   end
 
 end
