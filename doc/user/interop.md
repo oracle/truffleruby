@@ -21,6 +21,7 @@ themselves are explained in the
 * [Additional methods](#additional-methods)
 * [Notes on method resolution](#notes-on-method-resolution)
 * [Threading and interop](#threading-and-interop)
+* [Embedded configuration](#embedded-configuration)
 
 ## How Ruby responds to messages
 
@@ -486,12 +487,30 @@ special-form, not a method.
 
 ## Threading and interop
 
-TruffleRuby is by default a multi-threaded language. This may be incompatible
-with other Truffle languages, so you can disable the creation of multiple
-threads with the option `-Xsingle_threaded`, or
-`-Dtruffleruby.single_threaded=true` from another launcher.
+Ruby is designed to be a multi-threaded language and much of the ecosystem
+expects threads to be available. This may be incompatible with other Truffle
+languages which do not support threading, so you can disable the creation of
+multiple threads with the option `-Xsingle_threaded`. This option is set by
+default unless the Ruby launcher is used.
+
+It's separate from normal Ruby options and the
+[embedded configuration](#embedded-configuration) due technical details in the
+design of the Graal SDK.
 
 When this option is enabled, the `timeout` module will warn that the timeouts
 are being ignored, and signal handlers will warn that a signal has been caught
 but will not run the handler, as both of these features would require starting
 new threads.
+
+## Embedded configuration
+
+When used outside of the Ruby launcher, such as from another language's launcher
+via interop, embedded using the native polyglot library, or embedded via the
+Graal SDK, TruffleRuby will be automatically configured to work more
+cooperatively within another application. This includes options such as not
+installing an interrupt signal handler, and using the IO streams from the Graal
+SDK.
+
+This can be turned off even when embedded, with the `embedded` option
+(`--ruby.embedded=false` from another launcher, or
+`-Dpolyglot.ruby.embedded=false` from a normal Java application).

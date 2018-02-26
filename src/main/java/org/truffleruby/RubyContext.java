@@ -606,7 +606,7 @@ public class RubyContext {
             throw new JavaException(e);
         }
         if (Log.LOGGER.isLoggable(Level.CONFIG)) {
-            Log.LOGGER.config("ruby home: " + home);
+            Log.LOGGER.config("home: " + home);
         }
         return home;
     }
@@ -619,7 +619,7 @@ public class RubyContext {
         if (!options.HOME.isEmpty()) {
             final File home = new File(options.HOME);
             if (!isRubyHome(home)) {
-                Log.LOGGER.warning(home + " does not look like truffleruby's home");
+                Log.LOGGER.warning(home + " does not look like TruffleRuby's home");
             }
             return home.getCanonicalPath();
         }
@@ -630,12 +630,12 @@ public class RubyContext {
         if (fromProperty != null && !fromProperty.isEmpty()) {
             final File home = new File(fromProperty);
             if (!isRubyHome(home)) {
-                Log.LOGGER.warning(home + " does not look like truffleruby's home");
+                Log.LOGGER.warning(home + " does not look like TruffleRuby's home");
             }
             return home.getCanonicalPath();
         }
 
-        StringBuilder warning = new StringBuilder("TruffleRuby's home was not explicitly set.\n");
+        StringBuilder warning = new StringBuilder("home locations tried:\n");
 
         if (!options.LAUNCHER.isEmpty()) {
             final Path canonicalLauncherPath = Paths.get(new File(options.LAUNCHER).getCanonicalPath());
@@ -643,14 +643,14 @@ public class RubyContext {
             if (isRubyHome(candidate)) {
                 return candidate.getCanonicalPath();
             } else {
-                warning.append("* Default path '").
+                warning.append("* default path '").
                         append(candidate).
                         append("' derived from executable '").
                         append(options.LAUNCHER).
-                        append("' does not appear to be TruffleRuby's home.\n");
+                        append("' does not look like TruffleRuby's home\n");
             }
         } else {
-            warning.append("* Launcher not set, home path could not be derived.\n");
+            warning.append("* launcher not set, home path could not be derived\n");
         }
 
         final String graalVMHome = System.getProperty("graalvm.home");
@@ -659,19 +659,27 @@ public class RubyContext {
             if (isRubyHome(candidate)) {
                 return candidate.getCanonicalPath();
             } else {
-                warning.append("* Path '").
+                warning.append("* path '").
                         append(candidate).
                         append("' derived from GraalVM home '").
                         append(graalVMHome).
-                        append("' does not appear to be TruffleRuby's home.\n");
+                        append("' does not look like TruffleRuby's home\n");
 
             }
         } else {
             warning.append("* GraalVM home not found.\n");
         }
 
-        warning.append("* Try to set home using -Xhome=PATH option.");
-        Log.LOGGER.warning(warning.toString());
+        warning.append("* try to set home using -Xhome=PATH option");
+
+        Log.LOGGER.warning("could not determine TruffleRuby's home - the standard library will not be available");
+
+        if (options.EMBEDDED) {
+            Log.LOGGER.config(warning.toString());
+        } else {
+            // This information is more immediately needed in a non-embedded configuration
+            Log.LOGGER.warning(warning.toString());
+        }
 
         return null;
     }
