@@ -22,7 +22,7 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 
 public class LazyRubyNode extends RubyNode {
 
-    private final Supplier<RubyNode> resolver;
+    private Supplier<RubyNode> resolver;
     private final ReentrantLock lock;
     /**
      * Not a direct RubyNode field as we want to share the resolution between split LazyRubyNodes.
@@ -36,7 +36,7 @@ public class LazyRubyNode extends RubyNode {
     public LazyRubyNode(Supplier<RubyNode> resolver) {
         this.resolver = resolver;
         this.lock = new ReentrantLock();
-        resolutionMaster = new AtomicReference<>();
+        this.resolutionMaster = new AtomicReference<>();
     }
 
     @Override
@@ -82,6 +82,9 @@ public class LazyRubyNode extends RubyNode {
                 }
 
                 masterResolution = resolver.get();
+                // We no longer need the resolver, so let it be GC'd
+                resolver = null;
+
                 transferFlagsTo(masterResolution);
 
                 resolutionMaster.set(masterResolution);
