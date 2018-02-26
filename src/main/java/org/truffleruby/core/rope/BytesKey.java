@@ -19,17 +19,19 @@ public class BytesKey {
 
     private final byte[] bytes;
     private final Encoding encoding;
-    private int hashCode;
+    private final int bytesHashCode;
+    private final Hashing hashing;
 
     public BytesKey(byte[] bytes, Encoding encoding, Hashing hashing) {
         this.bytes = bytes;
         this.encoding = encoding;
-        this.hashCode = hashing.hash(Arrays.hashCode(bytes));
+        this.bytesHashCode = Arrays.hashCode(bytes);
+        this.hashing = hashing;
     }
 
     @Override
     public int hashCode() {
-        return hashCode;
+        return hashing.hash(bytesHashCode);
     }
 
     @Override

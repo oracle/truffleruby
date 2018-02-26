@@ -19,19 +19,19 @@ public class RegexpCacheKey {
     private final Rope rope;
     private final Encoding encoding;
     private final int options;
-    private final int hashCode;
+    private final Hashing hashing;
 
     public RegexpCacheKey(Rope rope, Encoding encoding, int options, Hashing hashing) {
         assert !(rope instanceof NativeRope);
         this.rope = rope;
         this.encoding = encoding;
         this.options = options;
-        this.hashCode = hashing.hash(rope.hashCode());
+        this.hashing = hashing;
     }
 
     @Override
     public int hashCode() {
-        return hashCode;
+        return hashing.hash(rope.hashCode());
     }
 
     @Override
