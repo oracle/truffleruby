@@ -146,7 +146,7 @@ public class SymbolTable {
     }
 
     public void rehash() {
-        // Just a cache, so we can empty and it will be repopulated as needed
+        // Just a cache, so we can empty it and it will be repopulated as needed
         stringToSymbolCache.clear();
 
         symbolMap.rehash();
