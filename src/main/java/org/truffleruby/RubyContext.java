@@ -163,7 +163,6 @@ public class RubyContext {
         // We need to construct this at runtime
         random = new SecureRandom();
 
-        // TODO (eregon, 25 Jan. 2018): This seed is made constant by context pre-initialization.
         hashing = new Hashing(generateHashingSeed(random));
 
         ropeCache = new RopeCache(hashing);
