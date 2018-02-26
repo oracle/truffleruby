@@ -53,6 +53,7 @@ import org.truffleruby.launcher.Launcher;
 public class Main {
 
     public static void main(String[] args) throws Exception {
+        System.setProperty("truffleruby.single_threaded", Boolean.FALSE.toString());
         Launcher.launch(isGraal(), args);
     }
 

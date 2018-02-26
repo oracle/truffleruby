@@ -58,7 +58,7 @@ options = options_data.map do |constant, values|
       type_description:  type_description || "#{boxed_type}OptionDescription",
       boxed_type:        boxed_type,
       default:           default,
-      reference_default: /^[A-Z_]+$/.match(default),
+      reference_default: /^!?[A-Z_]+$/.match(default),
       description:       description + (mri_names.empty? ?
                                             '' : " (configured by #{mri_names.join(', ')} Ruby options)")
   )
