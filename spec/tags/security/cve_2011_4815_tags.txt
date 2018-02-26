@@ -8,12 +8,3 @@ slow:Array#hash resists CVE-2011-4815 by having different hash codes in differen
 slow:Hash#hash resists CVE-2011-4815 by having different hash codes in different processes
 slow:Rational#hash resists CVE-2011-4815 by having different hash codes in different processes
 slow:Complex#hash resists CVE-2011-4815 by having different hash codes in different processes
-aot(pre-init):Integer#hash with a small value resists CVE-2011-4815 by having different hash codes in different processes
-aot(pre-init):Integer#hash with a large value resists CVE-2011-4815 by having different hash codes in different processes
-aot(pre-init):Float#hash resists CVE-2011-4815 by having different hash codes in different processes
-aot(pre-init):Rational#hash resists CVE-2011-4815 by having different hash codes in different processes
-aot(pre-init):Complex#hash resists CVE-2011-4815 by having different hash codes in different processes
-aot(pre-init):String#hash resists CVE-2011-4815 by having different hash codes in different processes
-aot(pre-init):Symbol#hash resists CVE-2011-4815 by having different hash codes in different processes
-aot(pre-init):Array#hash resists CVE-2011-4815 by having different hash codes in different processes
-aot(pre-init):Hash#hash resists CVE-2011-4815 by having different hash codes in different processes
