@@ -825,7 +825,7 @@ public abstract class InteropNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class InteropToJavaArrayNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = {"isRubyArray(array)", "strategy.matches(array)"}, limit = "ARRAY_STRATEGIES")
+        @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public Object toJavaArray(DynamicObject interopModule, DynamicObject array,
                                   @Cached("of(array)") ArrayStrategy strategy) {
             return JavaInterop.asTruffleObject(strategy.newMirror(array).copyArrayAndMirror().getArray());

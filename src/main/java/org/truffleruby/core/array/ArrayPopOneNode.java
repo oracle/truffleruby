@@ -37,7 +37,7 @@ public abstract class ArrayPopOneNode extends RubyNode {
 
     // Pop from a non-empty array
 
-    @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)" }, limit = "ARRAY_STRATEGIES")
+    @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)" }, limit = "STORAGE_STRATEGIES")
     public Object popOne(DynamicObject array,
             @Cached("of(array)") ArrayStrategy strategy) {
         final int size = Layouts.ARRAY.getSize(array);

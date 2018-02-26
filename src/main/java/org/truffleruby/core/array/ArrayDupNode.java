@@ -51,7 +51,7 @@ public abstract class ArrayDupNode extends RubyNode {
         return allocateArray(coreLibrary().getArrayClass(), copy.getArray(), cachedSize);
     }
 
-    @Specialization(guards = "strategy.matches(from)", replaces = "dupProfiledSize", limit = "ARRAY_STRATEGIES")
+    @Specialization(guards = "strategy.matches(from)", replaces = "dupProfiledSize", limit = "STORAGE_STRATEGIES")
     public DynamicObject dup(DynamicObject from,
             @Cached("of(from)") ArrayStrategy strategy) {
         final int size = strategy.getSize(from);
