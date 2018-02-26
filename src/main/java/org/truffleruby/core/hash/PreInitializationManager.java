@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.regexp.TruffleRegexpNodes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -43,6 +44,7 @@ public final class PreInitializationManager {
         context.getRopeCache().rehash();
         context.getSymbolTable().rehash();
         context.getRegexpCache().rehash();
+        TruffleRegexpNodes.rehash();
         rehashRubyHashes();
     }
 

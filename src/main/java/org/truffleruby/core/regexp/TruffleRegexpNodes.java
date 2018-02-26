@@ -298,8 +298,13 @@ public class TruffleRegexpNodes {
 
     }
 
-    private static final ConcurrentHashMap<RegexpCacheKey, AtomicInteger> compiledRegexps = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<MatchInfo, AtomicInteger> matchedRegexps = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<RegexpCacheKey, AtomicInteger> compiledRegexps = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<MatchInfo, AtomicInteger> matchedRegexps = new ConcurrentHashMap<>();
+
+    public static void rehash() {
+        compiledRegexps = new ConcurrentHashMap<>(compiledRegexps);
+        matchedRegexps = new ConcurrentHashMap<>(matchedRegexps);
+    }
 
     @TruffleBoundary
     public static Regex compile(Node currentNode, RubyContext context, Rope bytes, RegexpOptions options) {
