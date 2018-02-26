@@ -59,6 +59,9 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected List<String> preprocessArguments(List<String> args, Map<String, String> polyglotOptions) {
+        // This is the last place we can set a system property before the Ruby language is created
+        System.setProperty("truffleruby.single_threaded", Boolean.FALSE.toString());
+
         Launcher.metricsBegin();
         Launcher.processArguments(config, args, false, false, isAOT());
 
