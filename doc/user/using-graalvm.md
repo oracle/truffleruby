@@ -15,7 +15,7 @@ a Ruby manager, see [Configuring Ruby managers](ruby-managers.md) for more
 information.
 
 By default, GraalVM runs TruffleRuby on a JVM, but it can also run it on top
-of the [svm.md](SubstrateVM) for faster startup-time but slower peak-performance.
+of the [SubstrateVM](svm.md) for faster startup-time but slower peak-performance.
 This is enabled with the `--native` option.
 
 You can also use GraalVM to run a different version of TruffleRuby than the one
