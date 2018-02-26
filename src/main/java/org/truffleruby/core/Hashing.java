@@ -49,10 +49,6 @@ public final class Hashing {
         return value + (int) seed;
     }
 
-    public long hash(long value) {
-        return value + seed;
-    }
-
     public long hash(long salt, long value) {
         return end(update(start(salt), value));
     }
