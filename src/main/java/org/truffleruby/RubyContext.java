@@ -674,7 +674,12 @@ public class RubyContext {
 
         Log.LOGGER.warning("could not determine TruffleRuby's home - the standard library will not be available");
 
-        Log.LOGGER.config(warning.toString());
+        if (options.EMBEDDED) {
+            Log.LOGGER.config(warning.toString());
+        } else {
+            // This information is more immediately needed in a non-embedded configuration
+            Log.LOGGER.warning(warning.toString());
+        }
 
         return null;
     }
