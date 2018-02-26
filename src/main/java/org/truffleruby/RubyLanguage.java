@@ -62,7 +62,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final String CEXT_MIME_TYPE = "application/x-ruby-cext-library";
     public static final String CEXT_EXTENSION = ".su";
 
-    public final boolean SINGLE_THREADED = Boolean.getBoolean("truffleruby.single_threaded");
+    public final boolean SINGLE_THREADED = Boolean.parseBoolean(System.getProperty("truffleruby.single_threaded", Boolean.TRUE.toString()));
 
     @TruffleBoundary
     public static String fileLine(FrameInstance frameInstance) {
