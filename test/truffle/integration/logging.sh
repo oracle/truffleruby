@@ -13,7 +13,7 @@ then
     exit 1
 fi
 
-if ! grep 'ruby home' ruby.log > /dev/null
+if ! grep 'home' ruby.log > /dev/null
 then
     rm -f ruby.log
     echo Log not as expected
