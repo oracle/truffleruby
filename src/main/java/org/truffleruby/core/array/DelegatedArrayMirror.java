@@ -1,16 +1,22 @@
+/*
+ * Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved. This
+ * code is released under a tri EPL/GPL/LGPL license. You can use it,
+ * redistribute it and/or modify it under the terms of the:
+ *
+ * Eclipse Public License version 1.0
+ * GNU General Public License version 2
+ * GNU Lesser General Public License version 2.1
+ */
 package org.truffleruby.core.array;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+public class DelegatedArrayMirror extends AbstractArrayMirror {
 
-public class DelegatedArrayMirror implements ArrayMirror {
-
-    private DelegatedArrayStorage storage;
-    private ArrayMirror storageMirror;
+    private final DelegatedArrayStorage storage;
+    private final ArrayMirror storageMirror;
 
     public DelegatedArrayMirror(DelegatedArrayStorage storage, ArrayStrategy typeStrategy) {
         this.storage = storage;
-        storageMirror = typeStrategy.newMirrorFromStore(storage.storage);
+        this.storageMirror = typeStrategy.newMirrorFromStore(storage.storage);
     }
 
     public DelegatedArrayMirror(DelegatedArrayStorage storage, ArrayMirror storageMirror) {
@@ -65,53 +71,6 @@ public class DelegatedArrayMirror implements ArrayMirror {
 
     public ArrayMirror copyArrayAndMirror() {
         return new DelegatedArrayMirror(storage, storageMirror);
-    }
-
-    public Object[] getBoxedCopy() {
-        Object[] destination = new Object[storage.length];
-        copyTo(destination, 0, 0, storage.length);
-        return destination;
-    }
-
-    public Object[] getBoxedCopy(int newLength) {
-        Object[] destination = new Object[newLength];
-        copyTo(destination, 0, 0, Math.min(newLength, storage.length));
-        return destination;
-    }
-
-    public Iterable<Object> iterableUntil(int length) {
-        return new Iterable<Object>() {
-
-            private int n = 0;
-
-            @Override
-            public Iterator<Object> iterator() {
-                return new Iterator<Object>() {
-
-                    @Override
-                    public boolean hasNext() {
-                        return n < length;
-                    }
-
-                    @Override
-                    public Object next() throws NoSuchElementException {
-                        if (n >= length) {
-                            throw new NoSuchElementException();
-                        }
-
-                        final Object object = get(n);
-                        n++;
-                        return object;
-                    }
-
-                    @Override
-                    public void remove() {
-                        throw new UnsupportedOperationException("remove");
-                    }
-
-                };
-            }
-        };
     }
 
 }

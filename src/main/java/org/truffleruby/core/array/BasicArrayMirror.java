@@ -9,63 +9,13 @@
  */
 package org.truffleruby.core.array;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 
-public abstract class BasicArrayMirror implements ArrayMirror {
+
+public abstract class BasicArrayMirror extends AbstractArrayMirror {
 
     @Override
     public ArrayMirror extractRange(int start, int end) {
         return copyRange(start, end);
-    }
-
-    @Override
-    public Object[] getBoxedCopy() {
-        return getBoxedCopy(getLength());
-    }
-
-    @Override
-    public Object[] getBoxedCopy(int newLength) {
-        final Object[] boxed = new Object[newLength];
-        copyTo(boxed, 0, 0, Math.min(getLength(), newLength));
-        return boxed;
-    }
-
-    @Override
-    public Iterable<Object> iterableUntil(final int length) {
-        return new Iterable<Object>() {
-
-            private int n = 0;
-
-            @Override
-            public Iterator<Object> iterator() {
-                return new Iterator<Object>() {
-
-                    @Override
-                    public boolean hasNext() {
-                        return n < length;
-                    }
-
-                    @Override
-                    public Object next() throws NoSuchElementException {
-                        if (n >= length) {
-                            throw new NoSuchElementException();
-                        }
-
-                        final Object object = get(n);
-                        n++;
-                        return object;
-                    }
-
-                    @Override
-                    public void remove() {
-                        throw new UnsupportedOperationException("remove");
-                    }
-
-                };
-            }
-
-        };
     }
 
 }
