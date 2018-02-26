@@ -1,12 +1,11 @@
-# 0.32 (in development)
+# 0.32, end of February 2018
 
 New features:
 
-* ...
-
-Bug fixes:
-
-* ...
+* A new embedded configuration is used when TruffleRuby is used from another
+language or application. This disables features like signals which may conflict
+with the embedding application, and enables features like the use of polyglot IO
+streams.
 
 Performance:
 
@@ -17,5 +16,5 @@ Internal changes:
 * The launcher is now part of the TruffleRuby repository, rather than part of
 the GraalVM repository.
 
-* ArrayBuilderNode now uses ArrayStrategies and ArrayMirrors to remove
+* `ArrayBuilderNode` now uses `ArrayStrategies` and `ArrayMirrors` to remove
 direct knowledge of array storage.
