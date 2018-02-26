@@ -296,7 +296,9 @@ public class RubyContext {
         threadManager.restartMainThread(Thread.currentThread());
         threadManager.initialize(truffleNFIPlatform, nativeConfiguration);
 
+        Launcher.printTruffleTimeMetric("before-rehash");
         preInitializationManager.rehash();
+        Launcher.printTruffleTimeMetric("after-rehash");
 
         final Object toRunAtInit = Layouts.MODULE.getFields(coreLibrary.getTruffleBootModule()).getConstant("TO_RUN_AT_INIT").getValue();
 
