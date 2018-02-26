@@ -32,7 +32,7 @@ public abstract class ArraySliceNode extends RubyNode {
         this.to = to;
     }
 
-    @Specialization(guards = { "strategy.matches(array)" }, limit = "ARRAY_STRATEGIES")
+    @Specialization(guards = { "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
     public DynamicObject readInBounds(DynamicObject array,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("createBinaryProfile()") ConditionProfile emptyArray) {

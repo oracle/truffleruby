@@ -50,7 +50,7 @@ public abstract class ArrayReadSliceNormalizedNode extends RubyNode {
     @Specialization(guards = {
             "indexInBounds(array, index)", "lengthPositive(length)", "endInBounds(array, index, length)",
             "strategy.matches(array)"
-    }, limit = "ARRAY_STRATEGIES")
+    }, limit = "STORAGE_STRATEGIES")
     public DynamicObject readInBounds(DynamicObject array, int index, int length,
             @Cached("of(array)") ArrayStrategy strategy) {
         final Object store = strategy.newMirror(array).extractRange(index, index + length).getArray();
@@ -62,7 +62,7 @@ public abstract class ArrayReadSliceNormalizedNode extends RubyNode {
     @Specialization(guards = {
             "indexInBounds(array, index)", "lengthPositive(length)", "!endInBounds(array, index, length)",
             "strategy.matches(array)"
-    }, limit = "ARRAY_STRATEGIES")
+    }, limit = "STORAGE_STRATEGIES")
     public DynamicObject readOutOfBounds(DynamicObject array, int index, int length,
             @Cached("of(array)") ArrayStrategy strategy) {
         final int end = strategy.getSize(array);

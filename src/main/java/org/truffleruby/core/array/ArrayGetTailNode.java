@@ -28,7 +28,7 @@ public abstract class ArrayGetTailNode extends RubyNode {
         this.index = index;
     }
 
-    @Specialization(guards = "strategy.matches(array)", limit = "ARRAY_STRATEGIES")
+    @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
     public DynamicObject getTail(DynamicObject array,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("createBinaryProfile()") ConditionProfile indexLargerThanSize) {

@@ -31,7 +31,7 @@ public abstract class ArrayEnsureCapacityNode extends RubyNode {
 
     public abstract Object executeEnsureCapacity(DynamicObject array, int requiredCapacity);
 
-    @Specialization(guards = "strategy.matches(array)", limit = "ARRAY_STRATEGIES")
+    @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
     public boolean ensureCapacity(DynamicObject array, int requiredCapacity,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {

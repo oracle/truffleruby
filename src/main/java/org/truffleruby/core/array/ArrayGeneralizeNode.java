@@ -31,7 +31,7 @@ public abstract class ArrayGeneralizeNode extends RubyNode {
 
     public abstract Object[] executeGeneralize(DynamicObject array, int requiredCapacity);
 
-    @Specialization(guards = "strategy.matches(array)", limit = "ARRAY_STRATEGIES")
+    @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
     public Object[] generalize(DynamicObject array, int requiredCapacity,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
