@@ -31,7 +31,7 @@ TruffleRuby aims to:
 * Boot Ruby applications in less time
 * Execute C extensions in a managed environment
 * Provide new tooling such as debuggers and monitoring
-* Add fast and low-overhead interopability with languages like JavaScript, Python and R
+* Add fast and low-overhead interoperability with languages like JavaScript, Python and R
 * All while maintaining very high compatibility with the standard implementation of Ruby
 
 ## Documentation
