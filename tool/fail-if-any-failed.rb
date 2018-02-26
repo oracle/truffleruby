@@ -16,9 +16,9 @@ failures = []
 
 known_failures = [
   # OOM in flattenBytes
-  ["server", "graal-core", "jruby", "truffle", "micro", "micro/core/file.rb:core-read-gigabyte"],
-  ["server", "graal-enterprise", "jruby", "truffle", "micro", "micro/core/file.rb:core-read-gigabyte"],
-  ["server", "graal-enterprise-no-om", "jruby", "truffle", "micro", "micro/core/file.rb:core-read-gigabyte"],
+  ["server", "graal-core", "jruby", "truffle", "micro", "micro/file/read.rb:core-read-gigabyte"],
+  ["server", "graal-enterprise", "jruby", "truffle", "micro", "micro/file/read.rb:core-read-gigabyte"],
+  ["server", "graal-enterprise-no-om", "jruby", "truffle", "micro", "micro/file/read.rb:core-read-gigabyte"],
 
   # C-exts
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-color-r"],
@@ -36,7 +36,7 @@ known_failures = [
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-operations-replace"],
 
   # JRuby
-  ["server", "default", "jruby", "indy", "micro", "micro/core/file.rb:core-read-gigabyte"]
+  ["server", "default", "jruby", "indy", "micro", "micro/file/read.rb:core-read-gigabyte"]
 ]
 
 if File.exist?('failures')
