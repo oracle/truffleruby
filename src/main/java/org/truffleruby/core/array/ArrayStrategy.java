@@ -31,7 +31,7 @@ public abstract class ArrayStrategy {
 
     public abstract boolean isPrimitive();
 
-    public abstract boolean isMutable();
+    public abstract boolean isStorageMutable();
 
     public boolean specializesFor(Object value) {
         throw unsupported();
@@ -207,7 +207,7 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public boolean isMutable() {
+        public boolean isStorageMutable() {
             return true;
         }
 
@@ -281,7 +281,7 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public boolean isMutable() {
+        public boolean isStorageMutable() {
             return true;
         }
 
@@ -343,7 +343,7 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public boolean isMutable() {
+        public boolean isStorageMutable() {
             return true;
         }
 
@@ -405,7 +405,7 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public boolean isMutable() {
+        public boolean isStorageMutable() {
             return true;
         }
 
@@ -457,7 +457,7 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public boolean isMutable() {
+        public boolean isStorageMutable() {
             return true;
         }
 
@@ -523,7 +523,7 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public boolean isMutable() {
+        public boolean isStorageMutable() {
             return true;
         }
 
@@ -555,61 +555,13 @@ public abstract class ArrayStrategy {
 
     }
 
-    // Fallback strategy
-
-    private static class FallbackArrayStrategy extends ArrayStrategy {
-
-        static final ArrayStrategy INSTANCE = new FallbackArrayStrategy();
-
-        @Override
-        public boolean accepts(Object value) {
-            return false;
-        }
-
-        @Override
-        public boolean isPrimitive() {
-            return false;
-        }
-
-        @Override
-        public boolean isMutable() {
-            return false;
-        }
-
-        @Override
-        public boolean matchesStore(Object store) {
-            return false;
-        }
-
-        @Override
-        public ArrayStrategy generalize(ArrayStrategy other) {
-            return other;
-        }
-
-        @Override
-        public ArrayMirror newArray(int size) {
-            throw unsupported();
-        }
-
-        @Override
-        public ArrayMirror newMirrorFromStore(Object store) {
-            throw unsupported();
-        }
-
-        @Override
-        public String toString() {
-            return "fallback";
-        }
-
-    }
-
     private static class DelegatedArrayStrategy extends ArrayStrategy {
 
         private final ArrayStrategy typeStrategy;
 
         @Override
         protected Class<?> type() {
-                return typeStrategy.type();
+            return typeStrategy.type();
         }
 
         public DelegatedArrayStrategy(ArrayStrategy typeStrategy) {
@@ -618,7 +570,7 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean accepts(Object value) {
-            return false;
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -627,7 +579,7 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public boolean isMutable() {
+        public boolean isStorageMutable() {
             return false;
         }
 
@@ -662,6 +614,54 @@ public abstract class ArrayStrategy {
         @Override
         public String toString() {
             return String.format("Delegate of (%s)", typeStrategy);
+        }
+
+    }
+
+    // Fallback strategy
+
+    private static class FallbackArrayStrategy extends ArrayStrategy {
+
+        static final ArrayStrategy INSTANCE = new FallbackArrayStrategy();
+
+        @Override
+        public boolean accepts(Object value) {
+            return false;
+        }
+
+        @Override
+        public boolean isPrimitive() {
+            return false;
+        }
+
+        @Override
+        public boolean isStorageMutable() {
+            return false;
+        }
+
+        @Override
+        public boolean matchesStore(Object store) {
+            return false;
+        }
+
+        @Override
+        public ArrayStrategy generalize(ArrayStrategy other) {
+            return other;
+        }
+
+        @Override
+        public ArrayMirror newArray(int size) {
+            throw unsupported();
+        }
+
+        @Override
+        public ArrayMirror newMirrorFromStore(Object store) {
+            throw unsupported();
+        }
+
+        @Override
+        public String toString() {
+            return "fallback";
         }
 
     }
