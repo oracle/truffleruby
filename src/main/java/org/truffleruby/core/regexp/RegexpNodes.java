@@ -486,7 +486,7 @@ public abstract class RegexpNodes {
         }
 
         @Specialization(guards = { "isInitialized(regexp)", "isRubyString(string)", "isValidEncoding(string)" })
-        public Object searchRegion(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int start, int end, boolean forward,
+        public Object searchRegion(DynamicObject regexp, DynamicObject string, int start, int end, boolean forward,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") TruffleRegexpNodes.MatchNode matchNode) {
             final Rope rope = StringOperations.rope(string);
