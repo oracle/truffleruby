@@ -24,6 +24,11 @@ public class LazyRubyNode extends RubyNode {
 
     private final Supplier<RubyNode> resolver;
     private final ReentrantLock lock;
+    /**
+     * Not a direct RubyNode field as we want to share the resolution between split LazyRubyNodes.
+     * We use AtomicReference as a box here so all copies share the same AtomicReference and resolve
+     * only once.
+     */
     private final AtomicReference<RubyNode> resolutionMaster;
 
     @Child volatile RubyNode resolved;
