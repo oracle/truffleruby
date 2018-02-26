@@ -35,6 +35,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -45,7 +46,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class WeakValueCache<Key, Value> {
 
-    private final Map<Key, KeyedReference<Key, Value>> map = new ConcurrentHashMap<>();
+    private Map<Key, KeyedReference<Key, Value>> map = new ConcurrentHashMap<>();
     private final ReferenceQueue<Value> deadRefs = new ReferenceQueue<>();
 
     public Value get(Key key) {
@@ -113,6 +114,18 @@ public class WeakValueCache<Key, Value> {
         }
 
         return values;
+    }
+
+    public void rehash() {
+        final Map<Key, KeyedReference<Key, Value>> oldMap = this.map;
+        this.map = new ConcurrentHashMap<>(oldMap.size());
+        for (Entry<Key, KeyedReference<Key, Value>> entry : oldMap.entrySet()) {
+            final Value value = entry.getValue().get();
+            if (value != null) {
+                final Key key = entry.getKey();
+                map.put(key, new KeyedReference<>(value, key, deadRefs));
+            }
+        }
     }
 
     protected static class KeyedReference<Key, Value> extends WeakReference<Value> {

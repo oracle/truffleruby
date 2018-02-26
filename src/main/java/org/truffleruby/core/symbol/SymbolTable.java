@@ -120,15 +120,19 @@ public class SymbolTable {
         return symbolMap.addInCacheIfAbsent(cachedRopeKey, newSymbol);
     }
 
-    private static final int CLASS_SALT = 92021474; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
-
     private DynamicObject createSymbol(Rope cachedRope) {
         final String string = RopeOperations.decodeRope(cachedRope);
         return Layouts.SYMBOL.createSymbol(
                 symbolFactory,
                 string,
                 cachedRope,
-                hashing.hash(CLASS_SALT, string.hashCode()));
+                computeSymbolHashCode(string));
+    }
+
+    private static final int CLASS_SALT = 92021474; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
+
+    private long computeSymbolHashCode(final String string) {
+        return hashing.hash(CLASS_SALT, string.hashCode());
     }
 
     private DynamicObject lookupCache(Map<StringKey, SoftReference<DynamicObject>> cache, StringKey key) {
@@ -139,6 +143,18 @@ public class SymbolTable {
     @TruffleBoundary
     public Collection<DynamicObject> allSymbols() {
         return symbolMap.values();
+    }
+
+    public void rehash() {
+        // Just a cache, so we can empty and it will be repopulated as needed
+        stringToSymbolCache.clear();
+
+        symbolMap.rehash();
+
+        // Recompute all Symbols's cached hashCode
+        for (DynamicObject symbol : symbolMap.values()) {
+            Layouts.SYMBOL.setHashCode(symbol, computeSymbolHashCode(Layouts.SYMBOL.getString(symbol)));
+        }
     }
 
     // TODO (eregon, 10/10/2015): this check could be done when a Symbol is created to be much cheaper
