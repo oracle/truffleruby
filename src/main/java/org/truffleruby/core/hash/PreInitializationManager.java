@@ -40,6 +40,13 @@ public final class PreInitializationManager {
     }
 
     public void rehash() {
+        context.getRopeCache().rehash();
+        context.getSymbolTable().rehash();
+        context.getRegexpCache().rehash();
+        rehashRubyHashes();
+    }
+
+    private void rehashRubyHashes() {
         for (DynamicObject hash : hashesCreatedDuringPreInit) {
             if (!HashGuards.isCompareByIdentity(hash)) {
                 context.send(hash, "rehash");

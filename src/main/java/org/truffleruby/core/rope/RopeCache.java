@@ -78,6 +78,10 @@ public class RopeCache {
         return bytesToRope.get(key) != null;
     }
 
+    public void rehash() {
+        bytesToRope.rehash();
+    }
+
     public int getByteArrayReusedCount() {
         return byteArrayReusedCount;
     }

@@ -36,5 +36,6 @@ public interface SymbolLayout extends BasicObjectLayout {
     Rope getRope(DynamicObject object);
 
     long getHashCode(DynamicObject object);
+    void setHashCode(DynamicObject object, long value);
 
 }
