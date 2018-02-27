@@ -32,11 +32,13 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Locale;
 
 public class SourceLoader {
 
     public static final String RESOURCE_SCHEME = "resource:";
+    public static final String RUBY_HOME_SCHEME = "rubyHome:";
 
     private final RubyContext context;
 
@@ -48,7 +50,12 @@ public class SourceLoader {
     }
 
     public String getPath(Source source) {
-        return source.getName();
+        final String name = source.getName();
+        if (context.wasPreInitialized() && name.startsWith(RUBY_HOME_SCHEME)) {
+            return context.getRubyHome() + "/" + name.substring(RUBY_HOME_SCHEME.length());
+        } else {
+            return name;
+        }
     }
 
     public String getAbsolutePath(Source source) {
@@ -181,8 +188,13 @@ public class SourceLoader {
                 mimeType = RubyLanguage.MIME_TYPE;
             }
 
+            String name = file.getPath();
+            if (context != null && context.isPreInitializing()) {
+                name = RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(file.getPath()));
+            }
+
             Source.Builder<IOException, RuntimeException, RuntimeException> builder =
-                    Source.newBuilder(file).name(file.getPath()).mimeType(mimeType);
+                    Source.newBuilder(file).name(name).mimeType(mimeType);
 
             if (internal) {
                 builder = builder.internal();
