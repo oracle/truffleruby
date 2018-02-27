@@ -1,11 +1,11 @@
-# 0.32, end of February 2018
+# 0.32, March 2018
 
 New features:
 
 * A new embedded configuration is used when TruffleRuby is used from another
-language or application. This disables features like signals which may conflict
-with the embedding application, and enables features like the use of polyglot IO
-streams.
+  language or application. This disables features like signals which may
+  conflict with the embedding application, and threads which may conflict with
+  other languages, and enables features such as the use of polyglot IO streams.
 
 Performance:
 
@@ -13,7 +13,7 @@ Performance:
 
 Bug fixes:
 
-* Launcher accepts `--native` and similar options in  the `TRUFFLERUBYOPT` 
+* The launcher accepts `--native` and similar options in  the `TRUFFLERUBYOPT` 
 environment variable.
 
 Internal changes:
