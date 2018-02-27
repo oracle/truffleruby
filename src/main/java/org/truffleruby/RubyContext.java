@@ -304,7 +304,7 @@ public class RubyContext {
         final Object toRunAtInit = Layouts.MODULE.getFields(coreLibrary.getTruffleBootModule()).getConstant("TO_RUN_AT_INIT").getValue();
 
         for (Object proc : ArrayOperations.toIterable((DynamicObject) toRunAtInit)) {
-            String info = RubyLanguage.fileLine(language.findSourceLocation(this, proc));
+            String info = sourceLoader.fileLine(language.findSourceLocation(this, proc));
             Launcher.printTruffleTimeMetric("before-run-delayed-initialization-" + info);
             ProcOperations.rootCall((DynamicObject) proc);
             Launcher.printTruffleTimeMetric("after-run-delayed-initialization-" + info);
@@ -457,7 +457,7 @@ public class RubyContext {
         }
 
         if (options.COVERAGE_GLOBAL) {
-            coverageManager.print(System.out);
+            coverageManager.print(System.out, sourceLoader);
         }
     }
 

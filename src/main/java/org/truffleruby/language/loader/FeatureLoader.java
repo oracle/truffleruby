@@ -106,7 +106,7 @@ public class FeatureLoader {
                     sourceSection = callerNode.getEncapsulatingSourceSection();
                 }
 
-                return String.format("starting search from %s for feature %s...", RubyLanguage.fileLine(sourceSection), originalFeature);
+                return String.format("starting search from %s for feature %s...", context.getSourceLoader().fileLine(sourceSection), originalFeature);
             });
         }
 

@@ -22,6 +22,7 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.language.loader.SourceLoader;
 
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -161,7 +162,7 @@ public class CoverageManager {
         return counts;
     }
 
-    public synchronized void print(PrintStream out) {
+    public synchronized void print(PrintStream out, SourceLoader sourceLoader) {
         final int maxCountDigits = Long.toString(getMaxCount()).length();
 
         final String countFormat = "%" + maxCountDigits + "d";
@@ -172,7 +173,7 @@ public class CoverageManager {
         final String noCodeString = new String(noCodeChars);
 
         for (Map.Entry<Source, AtomicLongArray> entry : counters.entrySet()) {
-            out.println(entry.getKey().getName());
+            out.println(sourceLoader.getPath(entry.getKey()));
 
             for (int n = 0; n < entry.getValue().length(); n++) {
                 // TODO CS 5-Sep-17 can we keep the line as a CharSequence rather than using toString?

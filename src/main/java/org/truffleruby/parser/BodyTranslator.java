@@ -24,7 +24,6 @@ import org.joni.Regex;
 import org.joni.Syntax;
 import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.PrimitiveNodeConstructor;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.IsNilNode;
@@ -285,7 +284,7 @@ public class BodyTranslator extends Translator {
 
     public BodyTranslator(Node currentNode, RubyContext context, BodyTranslator parent, TranslatorEnvironment environment, Source source, ParserContext parserContext, boolean topLevel) {
         super(currentNode, context, source, parserContext);
-        parserSupport = new ParserSupport(context, source.getName());
+        parserSupport = new ParserSupport(context, context.getSourceLoader().getPath(source));
         this.parent = parent;
         this.environment = environment;
     }
@@ -505,7 +504,7 @@ public class BodyTranslator extends Translator {
 
             switch (methodName) {
                 case "primitive":
-                    throw new AssertionError("Invalid usage of Truffle.primitive at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
+                    throw new AssertionError("Invalid usage of Truffle.primitive at " + context.getSourceLoader().fileLine(sourceSection.toSourceSection(source)));
                 case "invoke_primitive": {
                     final RubyNode ret = translateInvokePrimitive(sourceSection, node);
                     return addNewlineIfNeeded(node, ret);
@@ -1103,7 +1102,7 @@ public class BodyTranslator extends Translator {
     private RubyNode getLexicalScopeModuleNode(String kind, SourceIndexLength sourceSection) {
         if (environment.isDynamicConstantLookup()) {
             if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                Log.LOGGER.info(() -> kind + " at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
+                Log.LOGGER.info(() -> kind + " at " + context.getSourceLoader().fileLine(sourceSection.toSourceSection(source)));
             }
             return new DynamicLexicalScopeNode();
         } else {
@@ -1114,7 +1113,7 @@ public class BodyTranslator extends Translator {
     private RubyNode getLexicalScopeNode(String kind, SourceIndexLength sourceSection) {
         if (environment.isDynamicConstantLookup()) {
             if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                Log.LOGGER.info(() -> kind + " at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
+                Log.LOGGER.info(() -> kind + " at " + context.getSourceLoader().fileLine(sourceSection.toSourceSection(source)));
             }
             return new GetDynamicLexicalScopeNode();
         } else {
@@ -1131,7 +1130,7 @@ public class BodyTranslator extends Translator {
             return "(unknown)";
         }
 
-        return source.getName();
+        return context.getSourceLoader().getPath(source);
     }
 
     private String corePath() {
@@ -1148,7 +1147,7 @@ public class BodyTranslator extends Translator {
         final RubyNode ret;
         if (environment.isDynamicConstantLookup()) {
             if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                Log.LOGGER.info(() -> "dynamic constant lookup at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
+                Log.LOGGER.info(() -> "dynamic constant lookup at " + context.getSourceLoader().fileLine(sourceSection.toSourceSection(source)));
             }
             ret = new ReadConstantWithDynamicScopeNode(name);
         } else {
@@ -2850,7 +2849,7 @@ public class BodyTranslator extends Translator {
                 // Switch to dynamic constant lookup
                 environment.getParseEnvironment().setDynamicConstantLookup(true);
                 if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                    Log.LOGGER.info(() -> "start dynamic constant lookup at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
+                    Log.LOGGER.info(() -> "start dynamic constant lookup at " + context.getSourceLoader().fileLine(sourceSection.toSourceSection(source)));
                 }
             }
         }
