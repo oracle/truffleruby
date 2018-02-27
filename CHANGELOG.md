@@ -10,6 +10,8 @@ New features:
 Performance:
 
 * Conversion of ASCII-only Ruby strings to Java strings is now faster.
+* Several operations on multi-byte character strings are now faster.
+* Native I/O reads are ~22% faster.
 
 Bug fixes:
 
@@ -23,3 +25,6 @@ the GraalVM repository.
 
 * `ArrayBuilderNode` now uses `ArrayStrategies` and `ArrayMirrors` to remove
 direct knowledge of array storage.
+
+* `RStringPtr` and `RStringPtrEnd` now report as pointers for interop purposes,
+fixing several issues with `char *` usage in C extensions.
