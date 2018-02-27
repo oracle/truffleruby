@@ -31,6 +31,7 @@ DID_YOU_MEAN: [did_you_mean, boolean, true, Use did_you_mean]
 INTERNAL_ENCODING: [[internal_encoding, -E, -U], string, '', Internal encoding]
 EXTERNAL_ENCODING: [[external_encoding, -E], string, '', External encoding]
 
+SINGLE_THREADED: [single_threaded, boolean, EMBEDDED, Use only a single thread to be compatible with languages not supporting multithreading]
 POLYGLOT_STDIO: [polyglot.stdio, boolean, EMBEDDED, Use standard IO streams from the Graal-SDK polyglot API configuration]
 SYNC_STDIO: [sync.stdio, boolean, EMBEDDED, Sync operations on standard IO streams]
 NATIVE_PLATFORM: [platform.native, boolean, true, Enables native calls via Truffle NFI]

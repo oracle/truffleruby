@@ -45,6 +45,7 @@ public class Options {
     public final boolean DID_YOU_MEAN;
     public final String INTERNAL_ENCODING;
     public final String EXTERNAL_ENCODING;
+    public final boolean SINGLE_THREADED;
     public final boolean POLYGLOT_STDIO;
     public final boolean SYNC_STDIO;
     public final boolean NATIVE_PLATFORM;
@@ -167,6 +168,7 @@ public class Options {
         DID_YOU_MEAN = builder.getOrDefault(OptionsCatalog.DID_YOU_MEAN);
         INTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.INTERNAL_ENCODING);
         EXTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.EXTERNAL_ENCODING);
+        SINGLE_THREADED = builder.getOrDefault(OptionsCatalog.SINGLE_THREADED, EMBEDDED);
         POLYGLOT_STDIO = builder.getOrDefault(OptionsCatalog.POLYGLOT_STDIO, EMBEDDED);
         SYNC_STDIO = builder.getOrDefault(OptionsCatalog.SYNC_STDIO, EMBEDDED);
         NATIVE_PLATFORM = builder.getOrDefault(OptionsCatalog.NATIVE_PLATFORM);
@@ -320,6 +322,8 @@ public class Options {
                 return INTERNAL_ENCODING;
             case "ruby.external_encoding":
                 return EXTERNAL_ENCODING;
+            case "ruby.single_threaded":
+                return SINGLE_THREADED;
             case "ruby.polyglot.stdio":
                 return POLYGLOT_STDIO;
             case "ruby.sync.stdio":

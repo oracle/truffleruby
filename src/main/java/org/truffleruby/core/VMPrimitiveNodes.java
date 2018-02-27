@@ -277,7 +277,7 @@ public abstract class VMPrimitiveNodes {
             final RubyContext context = getContext();
 
             return handle(signalName, () -> {
-                if (context.getLanguage().SINGLE_THREADED) {
+                if (context.getOptions().SINGLE_THREADED) {
                     Log.LOGGER.severe("signal " + signalName + " caught but can't create a thread to handle it so ignoring");
                     return;
                 }

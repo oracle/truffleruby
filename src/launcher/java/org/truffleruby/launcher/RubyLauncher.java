@@ -28,7 +28,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     private final CommandLineOptions config = new CommandLineOptions();
 
     public static void main(String[] args) {
-        System.setProperty("truffleruby.single_threaded", Boolean.FALSE.toString());
         new RubyLauncher().launch(args);
     }
 

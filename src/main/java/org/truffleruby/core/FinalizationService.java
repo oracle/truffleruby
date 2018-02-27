@@ -109,7 +109,7 @@ public class FinalizationService {
 
         finalizerReference.addFinalizer(owner, action, root);
 
-        if (context.getLanguage().SINGLE_THREADED) {
+        if (context.getOptions().SINGLE_THREADED) {
 
             drainFinalizationQueue();
 
