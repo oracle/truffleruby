@@ -219,11 +219,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected boolean isThreadAccessAllowed(Thread thread, boolean singleThreaded) {
-        if (SINGLE_THREADED) {
-            return singleThreaded;
-        } else {
-            return true;
-        }
+        return true;
     }
 
     @Override
