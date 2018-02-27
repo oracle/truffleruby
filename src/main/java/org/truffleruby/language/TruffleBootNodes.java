@@ -376,7 +376,7 @@ public abstract class TruffleBootNodes {
 
         @Specialization
         public boolean singleThreaded() {
-            return getContext().getLanguage().SINGLE_THREADED;
+            return getContext().getOptions().SINGLE_THREADED;
         }
 
     }

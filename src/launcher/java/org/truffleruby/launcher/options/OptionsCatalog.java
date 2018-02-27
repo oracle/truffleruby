@@ -161,6 +161,11 @@ public class OptionsCatalog {
             "External encoding (configured by -E Ruby options)",
             new String[]{"-E"},
             "");
+    public static final BooleanOptionDescription SINGLE_THREADED = new BooleanOptionDescription(
+            "ruby.single_threaded",
+            "Use only a single thread to be compatible with languages not supporting multithreading",
+            null,
+            EMBEDDED.getDefaultValue());
     public static final BooleanOptionDescription POLYGLOT_STDIO = new BooleanOptionDescription(
             "ruby.polyglot.stdio",
             "Use standard IO streams from the Graal-SDK polyglot API configuration",
@@ -677,6 +682,8 @@ public class OptionsCatalog {
                 return INTERNAL_ENCODING;
             case "ruby.external_encoding":
                 return EXTERNAL_ENCODING;
+            case "ruby.single_threaded":
+                return SINGLE_THREADED;
             case "ruby.polyglot.stdio":
                 return POLYGLOT_STDIO;
             case "ruby.sync.stdio":
@@ -895,6 +902,7 @@ public class OptionsCatalog {
             DID_YOU_MEAN,
             INTERNAL_ENCODING,
             EXTERNAL_ENCODING,
+            SINGLE_THREADED,
             POLYGLOT_STDIO,
             SYNC_STDIO,
             NATIVE_PLATFORM,

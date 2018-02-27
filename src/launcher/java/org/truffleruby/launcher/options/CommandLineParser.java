@@ -372,8 +372,6 @@ public class CommandLineParser {
                         }
 
                         RubyLogger.LOGGER.setLevel(level);
-                    } else if (extendedOption.equals("single_threaded")) {
-                        System.setProperty("truffleruby.single_threaded", "true");
                     } else {
                         final String value;
 
