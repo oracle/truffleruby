@@ -509,12 +509,12 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean canStore(Class<?> type) {
-            return type == null;
+            throw unsupported();
         }
 
         @Override
         public boolean accepts(Object value) {
-            return false;
+            throw unsupported();
         }
 
         @Override
@@ -524,7 +524,12 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean isStorageMutable() {
-            return true;
+            return false;
+        }
+
+        @Override
+        public ArrayStrategy generalizeForMutation() {
+            return IntArrayStrategy.INSTANCE;
         }
 
         @Override
@@ -570,7 +575,7 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean accepts(Object value) {
-            throw new UnsupportedOperationException();
+            throw unsupported();
         }
 
         @Override

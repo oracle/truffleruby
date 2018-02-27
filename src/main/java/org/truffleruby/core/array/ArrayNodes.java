@@ -560,20 +560,10 @@ public abstract class ArrayNodes {
             return createArray(store, size);
         }
 
-        @Specialization(guards = { "strategy.isStorageMutable()", "strategy.matches(array)", "!strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
-        public Object compactObjects(DynamicObject array,
-                @Cached("of(array)") ArrayStrategy strategy) {
-            return compactElement(array, strategy, strategy);
-        }
-
-        @Specialization(guards = { "!strategy.isStorageMutable()", "strategy.matches(array)", "!strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = { "strategy.matches(array)", "!strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
         public Object compactObjectsNonMutable(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy) {
-            return compactElement(array, strategy, mutableStrategy);
-        }
-
-        private Object compactElement(DynamicObject array, ArrayStrategy strategy, ArrayStrategy mutableStrategy) {
             // TODO CS 9-Feb-15 by removing nil we could make this array suitable for a primitive array storage
             // class
 
@@ -604,20 +594,10 @@ public abstract class ArrayNodes {
             return nil();
         }
 
-        @Specialization(guards = { "strategy.isStorageMutable()", "strategy.matches(array)", "!strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
-        public Object compactObjects(DynamicObject array,
-                @Cached("of(array)") ArrayStrategy strategy) {
-            return compactElements(array, strategy, strategy);
-        }
-
-        @Specialization(guards = { "!strategy.isStorageMutable()", "strategy.matches(array)", "!strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = { "strategy.matches(array)", "!strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
         public Object compactObjectsNonMutable(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy) {
-            return compactElements(array, strategy, mutableStrategy);
-        }
-
-        private Object compactElements(DynamicObject array, ArrayStrategy strategy, ArrayStrategy mutableStrategy) {
             final int size = strategy.getSize(array);
             final ArrayMirror oldStore = strategy.newMirror(array);
             final ArrayMirror newStore;
@@ -946,7 +926,7 @@ public abstract class ArrayNodes {
     @CoreMethod(names = "fill", rest = true, needsBlock = true, raiseIfFrozenSelf = true)
     public abstract static class FillNode extends ArrayCoreMethodNode {
 
-        @Specialization(guards = { "args.length == 1", "strategy.matches(array)", "strategy.accepts(value(args))" }, limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = { "strategy.isStorageMutable()", "args.length == 1", "strategy.matches(array)", "strategy.accepts(value(args))" }, limit = "STORAGE_STRATEGIES")
         protected DynamicObject fill(DynamicObject array, Object[] args, NotProvided block,
                 @Cached("of(array)") ArrayStrategy strategy) {
             final Object value = args[0];
