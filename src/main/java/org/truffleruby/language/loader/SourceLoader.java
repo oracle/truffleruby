@@ -73,7 +73,7 @@ public class SourceLoader {
         }
 
         final File file = new File(path).getCanonicalFile();
-        ensureReadable(path, file);
+        ensureReadable(context, path, file);
 
         mainSource = Source.newBuilder(file).name(path).content(xOptionStrip(
                 currentNode,
@@ -140,11 +140,15 @@ public class SourceLoader {
             Log.LOGGER.info("loading " + canonicalPath);
         }
 
+        return loadNoLogging(context, canonicalPath, isInternal(canonicalPath));
+    }
+
+    public static Source loadNoLogging(RubyContext context, String canonicalPath, boolean internal) throws IOException {
         if (canonicalPath.startsWith(RESOURCE_SCHEME)) {
             return loadResource(canonicalPath);
         } else {
             final File file = new File(canonicalPath).getCanonicalFile();
-            ensureReadable(canonicalPath, file);
+            ensureReadable(context, canonicalPath, file);
 
             final String mimeType;
 
@@ -159,7 +163,7 @@ public class SourceLoader {
             Source.Builder<IOException, RuntimeException, RuntimeException> builder =
                     Source.newBuilder(file).name(file.getPath()).mimeType(mimeType);
 
-            if (isInternal(canonicalPath)) {
+            if (internal) {
                 builder = builder.internal();
             }
 
@@ -179,8 +183,7 @@ public class SourceLoader {
         return false;
     }
 
-    @TruffleBoundary
-    public static Source loadResource(String path) throws IOException {
+    private static Source loadResource(String path) throws IOException {
         if (TruffleOptions.AOT) {
             final String canonicalPath = SourceLoaderSupport.canonicalizeResourcePath(path);
             final SourceLoaderSupport.CoreLibraryFile coreFile = SourceLoaderSupport.allCoreLibraryFiles.get(canonicalPath);
@@ -210,13 +213,15 @@ public class SourceLoader {
         }
     }
 
-    private void ensureReadable(String path, File file) {
-        if (!file.exists()) {
-            throw new RaiseException(context.getCoreExceptions().loadError("No such file or directory -- " + path, path, null));
-        }
+    private static void ensureReadable(RubyContext context, String path, File file) {
+        if (context != null) {
+            if (!file.exists()) {
+                throw new RaiseException(context.getCoreExceptions().loadError("No such file or directory -- " + path, path, null));
+            }
 
-        if (!file.canRead()) {
-            throw new RaiseException(context.getCoreExceptions().loadError("Permission denied -- " + path, path, null));
+            if (!file.canRead()) {
+                throw new RaiseException(context.getCoreExceptions().loadError("Permission denied -- " + path, path, null));
+            }
         }
     }
 

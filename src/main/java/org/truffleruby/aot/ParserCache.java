@@ -56,11 +56,8 @@ public class ParserCache {
         final ParserConfiguration parserConfiguration = new ParserConfiguration(null, 0, false, true, false);
 
         final Source source;
-        if (!canonicalPath.startsWith(SourceLoader.RESOURCE_SCHEME)) {
-            throw new UnsupportedOperationException("Not a resource path: " + canonicalPath);
-        }
         try {
-            source = SourceLoader.loadResource(canonicalPath);
+            source = SourceLoader.loadNoLogging(null, canonicalPath, true);
         } catch (IOException e) {
             throw new JavaException(e);
         }
