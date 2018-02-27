@@ -24,7 +24,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-class Struct
+module Process
   # Manually do the setup of
   # Struct.new 'Tms', :utime, :stime, :cutime, :cstime
   # to avoid executing too much code at startup
@@ -47,4 +47,8 @@ class Struct
       @cstime = cstime
     end
   end
+end
+
+class Struct
+  Tms = Process::Tms
 end
