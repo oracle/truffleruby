@@ -122,10 +122,7 @@ public class WeakValueCache<Key, Value> implements ReHashable {
         final Map<Key, KeyedReference<Key, Value>> oldMap = this.map;
         this.map = new ConcurrentHashMap<>(oldMap.size());
         for (Entry<Key, KeyedReference<Key, Value>> entry : oldMap.entrySet()) {
-            final Value value = entry.getValue().get();
-            if (value != null) {
-                map.put(entry.getKey(), entry.getValue());
-            }
+            map.put(entry.getKey(), entry.getValue());
         }
     }
 
