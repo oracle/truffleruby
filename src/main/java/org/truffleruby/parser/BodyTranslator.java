@@ -1131,13 +1131,7 @@ public class BodyTranslator extends Translator {
             return "(unknown)";
         }
 
-        final String path = source.getName();
-
-        if (path == null) {
-            return source.getName();
-        }
-
-        return path;
+        return source.getName();
     }
 
     private String corePath() {
