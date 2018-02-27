@@ -97,7 +97,7 @@ chris.seaton@oracle.com.
 ## Mailing list
 
 Announcements about GraalVM, including TruffleRuby, are made on the
-[graalvm-dev](https://oss.oracle.com/mailman/listinfo/graalvm-dev) mailing list.
+[graal-dev](http://mail.openjdk.java.net/mailman/listinfo/graal-dev) mailing list.
 
 ## Authors
 
