@@ -17,7 +17,6 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Layouts;
 import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.objects.ObjectGraph;
 
 import java.util.ArrayDeque;
@@ -75,7 +74,7 @@ public class SharedObjects {
 
         if (context.getOptions().SHARED_OBJECTS_DEBUG) {
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
-            Log.LOGGER.info("sharing decl frame of " + RubyLanguage.fileLine(sourceSection));
+            Log.LOGGER.info("sharing decl frame of " + context.getSourceLoader().fileLine(sourceSection));
         }
 
         final MaterializedFrame declarationFrame = Layouts.PROC.getDeclarationFrame(block);

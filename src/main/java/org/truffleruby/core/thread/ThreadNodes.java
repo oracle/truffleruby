@@ -47,7 +47,6 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -267,7 +266,7 @@ public abstract class ThreadNodes {
 
             final Object[] args = ArrayOperations.toObjectArray(arguments);
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
-            final String info = RubyLanguage.fileLine(sourceSection);
+            final String info = getContext().getSourceLoader().fileLine(sourceSection);
             getContext().getThreadManager().initialize(thread, this, info,
                     () -> ProcOperations.rootCall(block, args));
             return nil();

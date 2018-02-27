@@ -12,6 +12,8 @@ package org.truffleruby.language.loader;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+
 import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -45,11 +47,30 @@ public class SourceLoader {
         this.context = context;
     }
 
+    public String getPath(Source source) {
+        return source.getName();
+    }
+
     public String getAbsolutePath(Source source) {
         if (source == mainSource) {
             return mainSourceAbsolutePath;
         } else {
-            return source.getName();
+            return getPath(source);
+        }
+    }
+
+    @TruffleBoundary
+    public String fileLine(SourceSection section) {
+        if (section == null) {
+            return "no source section";
+        } else {
+            final String path = getPath(section.getSource());
+
+            if (section.isAvailable()) {
+                return path + ":" + section.getStartLine();
+            } else {
+                return path;
+            }
         }
     }
 

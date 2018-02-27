@@ -71,7 +71,7 @@ public class ThreadBacktraceLocationNodes {
             final Source source = sourceSection.getSource();
 
             // Get file path except for the main script
-            final String path = source.getName();
+            final String path = getContext().getSourceLoader().getPath(source);
 
             if (path == null) {
                 return coreStrings().UNKNOWN.createInstance();

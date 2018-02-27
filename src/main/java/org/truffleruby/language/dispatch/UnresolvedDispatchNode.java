@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.language.NotProvided;
@@ -54,7 +53,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             final Object[] argumentsObjects) {
         CompilerDirectives.transferToInterpreterAndInvalidate();
         // Useful debug aid to catch a running-away NotProvided or undefined
-        assert !(receiverObject instanceof NotProvided) : RubyLanguage.fileLine(getEncapsulatingSourceSection());
+        assert !(receiverObject instanceof NotProvided) : getContext().getSourceLoader().fileLine(getEncapsulatingSourceSection());
 
         // Make sure to have an up-to-date Shape.
         if (receiverObject instanceof DynamicObject) {

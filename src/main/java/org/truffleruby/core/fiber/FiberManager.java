@@ -18,7 +18,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.thread.ThreadManager;
@@ -146,7 +145,7 @@ public class FiberManager {
         final Thread thread = Thread.currentThread();
         final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
         final String oldName = thread.getName();
-        thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + RubyLanguage.fileLine(sourceSection));
+        thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + context.getSourceLoader().fileLine(sourceSection));
 
         start(fiber, thread);
         try {
