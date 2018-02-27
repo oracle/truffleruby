@@ -700,22 +700,22 @@ public abstract class KernelNodes {
 
         @Specialization
         public long hash(int value) {
-            return getContext().getHashing().hash(CLASS_SALT, value);
+            return getContext().getHashing(this).hash(CLASS_SALT, value);
         }
 
         @Specialization
         public long hash(long value) {
-            return getContext().getHashing().hash(CLASS_SALT, value);
+            return getContext().getHashing(this).hash(CLASS_SALT, value);
         }
 
         @Specialization
         public long hash(double value) {
-            return getContext().getHashing().hash(CLASS_SALT, Double.doubleToRawLongBits(value));
+            return getContext().getHashing(this).hash(CLASS_SALT, Double.doubleToRawLongBits(value));
         }
 
         @Specialization
         public long hash(boolean value) {
-            return getContext().getHashing().hash(CLASS_SALT, Boolean.valueOf(value).hashCode());
+            return getContext().getHashing(this).hash(CLASS_SALT, Boolean.valueOf(value).hashCode());
         }
 
         @TruffleBoundary

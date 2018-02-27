@@ -605,7 +605,7 @@ public abstract class BignumNodes {
 
         @Specialization
         public long hash(DynamicObject value) {
-            return getContext().getHashing().hash(CLASS_SALT, Layouts.BIGNUM.getValue(value).hashCode());
+            return getContext().getHashing(this).hash(CLASS_SALT, Layouts.BIGNUM.getValue(value).hashCode());
         }
 
     }

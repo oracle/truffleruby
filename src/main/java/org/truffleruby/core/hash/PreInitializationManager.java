@@ -9,13 +9,14 @@
  */
 package org.truffleruby.core.hash;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.regexp.TruffleRegexpNodes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -26,11 +27,24 @@ public final class PreInitializationManager {
 
     private final RubyContext context;
 
+    private final List<ReHashable> reHashables = new ArrayList<>();
+
     private TrackingHashFactory trackingHashFactory;
     private final Set<DynamicObject> hashesCreatedDuringPreInit = Collections.newSetFromMap(new WeakHashMap<>());
 
     public PreInitializationManager(RubyContext context) {
         this.context = context;
+    }
+
+    public void addReHashable(ReHashable reHashable) {
+        // This might get called multiple times for the same ReHashable,
+        // so only add it if it is not already in the List.
+        for (ReHashable existing : reHashables) {
+            if (reHashable == existing) {
+                return;
+            }
+        }
+        reHashables.add(reHashable);
     }
 
     @TruffleBoundary
@@ -48,10 +62,11 @@ public final class PreInitializationManager {
     }
 
     public void rehash() {
-        context.getRopeCache().rehash();
-        context.getSymbolTable().rehash();
-        context.getRegexpCache().rehash();
-        TruffleRegexpNodes.rehash();
+        for (ReHashable reHashable : reHashables) {
+            reHashable.rehash();
+        }
+        reHashables.clear();
+
         rehashRubyHashes();
     }
 

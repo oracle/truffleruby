@@ -11,6 +11,7 @@ package org.truffleruby.core.rope;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.Encoding;
+import org.truffleruby.RubyContext;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.Hashing;
 
@@ -24,8 +25,8 @@ public class RopeCache {
     private int ropesReusedCount;
     private int ropeBytesSaved;
 
-    public RopeCache(Hashing hashing) {
-        this.hashing = hashing;
+    public RopeCache(RubyContext context) {
+        this.hashing = context.getHashing(bytesToRope);
     }
 
     public Rope getRope(Rope string) {
@@ -76,10 +77,6 @@ public class RopeCache {
         final BytesKey key = new BytesKey(rope.getBytes(), rope.getEncoding(), hashing);
 
         return bytesToRope.get(key) != null;
-    }
-
-    public void rehash() {
-        bytesToRope.rehash();
     }
 
     public int getByteArrayReusedCount() {

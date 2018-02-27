@@ -1194,7 +1194,7 @@ public abstract class FixnumNodes {
 
         @Specialization
         public long memhashLongLong(long a, long b) {
-            long h = getContext().getHashing().start(CLASS_SALT);
+            long h = getContext().getHashing(this).start(CLASS_SALT);
             h = Hashing.update(h, a);
             h = Hashing.update(h, b);
             return Hashing.end(h);

@@ -104,7 +104,7 @@ public abstract class UnboundMethodNodes {
         @Specialization
         public long hash(DynamicObject rubyMethod) {
             final InternalMethod method = Layouts.UNBOUND_METHOD.getMethod(rubyMethod);
-            long h = getContext().getHashing().start(method.getDeclaringModule().hashCode());
+            long h = getContext().getHashing(this).start(method.getDeclaringModule().hashCode());
             h = Hashing.update(h, Layouts.UNBOUND_METHOD.getOrigin(rubyMethod).hashCode());
             h = Hashing.update(h, method.getSharedMethodInfo().hashCode());
             return Hashing.end(h);
