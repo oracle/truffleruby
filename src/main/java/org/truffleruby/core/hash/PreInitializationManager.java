@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.regexp.TruffleRegexpNodes;
 
@@ -25,6 +26,7 @@ public final class PreInitializationManager {
 
     private final RubyContext context;
 
+    private TrackingHashFactory trackingHashFactory;
     private final Set<DynamicObject> hashesCreatedDuringPreInit = Collections.newSetFromMap(new WeakHashMap<>());
 
     public PreInitializationManager(RubyContext context) {
@@ -37,7 +39,12 @@ public final class PreInitializationManager {
     }
 
     public DynamicObjectFactory hookIntoHashFactory(DynamicObjectFactory originalHashFactory) {
-        return new TrackingHashFactory(context, this, originalHashFactory);
+        trackingHashFactory = new TrackingHashFactory(context, this, originalHashFactory);
+        return trackingHashFactory;
+    }
+
+    private void restoreOriginalHashFactory() {
+        Layouts.CLASS.setInstanceFactoryUnsafe(context.getCoreLibrary().getHashClass(), trackingHashFactory.originalHashFactory);
     }
 
     public void rehash() {
@@ -55,6 +62,8 @@ public final class PreInitializationManager {
             }
         }
         hashesCreatedDuringPreInit.clear();
+
+        restoreOriginalHashFactory();
     }
 
     private static final class TrackingHashFactory implements DynamicObjectFactory {
