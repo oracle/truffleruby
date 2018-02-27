@@ -275,7 +275,7 @@ module Process
     Truffle::FFI::MemoryPointer.new(:double, 4) do |ptr|
       ret = Truffle::POSIX.truffleposix_getrusage(ptr)
       Errno.handle if ret == -1
-      Struct::Tms.new(*ptr.read_array_of_double(4))
+      Process::Tms.new(*ptr.read_array_of_double(4))
     end
   end
 
