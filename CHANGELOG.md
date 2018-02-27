@@ -11,11 +11,15 @@ Performance:
 
 * Conversion of ASCII-only Ruby strings to Java strings is now faster.
 
+Bug fixes:
+
+* Launcher accepts `--native` and similar options in  the `TRUFFLERUBYOPT` 
+environment variable.
+
 Internal changes:
 
 * The launcher is now part of the TruffleRuby repository, rather than part of
-the GraalVM repository and it accepts `--native` and similar options in 
-`TRUFFLERUBYOPT` environment variable.
+the GraalVM repository.
 
 * `ArrayBuilderNode` now uses `ArrayStrategies` and `ArrayMirrors` to remove
 direct knowledge of array storage.
