@@ -14,7 +14,8 @@ Performance:
 Internal changes:
 
 * The launcher is now part of the TruffleRuby repository, rather than part of
-the GraalVM repository.
+the GraalVM repository and it accepts `--native` and similar options in 
+`TRUFFLERUBYOPT` environment variable.
 
 * `ArrayBuilderNode` now uses `ArrayStrategies` and `ArrayMirrors` to remove
 direct knowledge of array storage.
