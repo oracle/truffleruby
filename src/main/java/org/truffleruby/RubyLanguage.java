@@ -63,23 +63,6 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final String CEXT_EXTENSION = ".su";
 
     @TruffleBoundary
-    public static String fileLine(FrameInstance frameInstance) {
-        if (frameInstance == null) {
-            return "no frame";
-        } else if (frameInstance.getCallNode() == null) {
-            return "no call node";
-        } else {
-            final SourceSection sourceSection = frameInstance.getCallNode().getEncapsulatingSourceSection();
-
-            if (sourceSection == null) {
-                return "no source section (" + frameInstance.getCallNode().getRootNode().getClass() + ")";
-            } else {
-                return fileLine(sourceSection);
-            }
-        }
-    }
-
-    @TruffleBoundary
     public static String fileLine(SourceSection section) {
         if (section == null) {
             return "no source section";
