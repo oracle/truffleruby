@@ -2890,12 +2890,11 @@ public class BodyTranslator extends Translator {
     public RubyNode visitStrNode(StrParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
-        final Rope nodeRope = node.getValue();
-        final CodeRange codeRange = node.getCodeRange();
-        final Rope rope = context.getRopeCache().getRope(nodeRope, codeRange);
-
+        final Rope rope = context.getRopeCache().getRope(node.getValue(), node.getCodeRange());
         final RubyNode ret;
 
+        // isFrozen() is set with the magic frozen_string_literal comment or the command line flag.
+        // For the command line flag, we do not want to apply it to the core library files.
         if (node.isFrozen() && !getSourcePath(sourceSection).startsWith(corePath())) {
             final DynamicObject frozenString = context.getFrozenStringLiteral(rope);
 
