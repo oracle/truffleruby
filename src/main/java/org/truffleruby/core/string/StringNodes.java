@@ -1273,7 +1273,7 @@ public abstract class StringNodes {
         @Specialization
         public long hash(DynamicObject string,
                 @Cached("create()") RopeNodes.HashNode hashNode) {
-            return getContext().getHashing().hash(CLASS_SALT, hashNode.execute(rope(string)));
+            return getContext().getHashing(this).hash(CLASS_SALT, hashNode.execute(rope(string)));
         }
 
     }

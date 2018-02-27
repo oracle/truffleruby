@@ -958,7 +958,7 @@ public abstract class ArrayNodes {
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("create()") CallDispatchHeadNode toHashNode) {
             final int size = strategy.getSize(array);
-            long h = getContext().getHashing().start(size);
+            long h = getContext().getHashing(this).start(size);
             h = Hashing.update(h, CLASS_SALT);
             final ArrayMirror store = strategy.newMirror(array);
 

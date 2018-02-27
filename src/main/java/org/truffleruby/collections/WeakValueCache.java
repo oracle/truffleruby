@@ -38,13 +38,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.truffleruby.core.hash.ReHashable;
+
 /**
  * A thread-safe cache removing entries when the value is no longer in use.
  *
  * Callers must hold to the returned value. The entry will stay in the map as long as the value is
  * referenced.
  */
-public class WeakValueCache<Key, Value> {
+public class WeakValueCache<Key, Value> implements ReHashable {
 
     private Map<Key, KeyedReference<Key, Value>> map = new ConcurrentHashMap<>();
     private final ReferenceQueue<Value> deadRefs = new ReferenceQueue<>();

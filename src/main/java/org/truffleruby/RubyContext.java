@@ -32,6 +32,7 @@ import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.hash.PreInitializationManager;
+import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.inlined.CoreMethods;
 import org.truffleruby.core.kernel.AtExitManager;
 import org.truffleruby.core.kernel.TraceManager;
@@ -49,6 +50,7 @@ import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.interop.InteropManager;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.JavaException;
@@ -165,7 +167,7 @@ public class RubyContext {
 
         hashing = new Hashing(generateHashingSeed(random));
 
-        ropeCache = new RopeCache(hashing);
+        ropeCache = new RopeCache(this);
 
         rubyHome = findRubyHome(options);
 
@@ -201,7 +203,7 @@ public class RubyContext {
         coreLibrary.initialize();
         Launcher.printTruffleTimeMetric("after-create-core-library");
 
-        symbolTable = new SymbolTable(ropeCache, coreLibrary.getSymbolFactory(), hashing);
+        symbolTable = new SymbolTable(ropeCache, coreLibrary.getSymbolFactory(), this);
         rootLexicalScope = new LexicalScope(null, coreLibrary.getObjectClass());
 
         // Create objects that need core classes
@@ -479,7 +481,20 @@ public class RubyContext {
         return env;
     }
 
-    public Hashing getHashing() {
+    /** Hashing for a RubyNode, the seed should only be used for a Ruby-level #hash method */
+    public Hashing getHashing(RubyNode node) {
+        return hashing;
+    }
+
+    /**
+     * With context pre-initialization, the random seed must be reset at runtime. So every use of
+     * the random seed through Hashing should provide a way to rehash to take the new random seed in
+     * account.
+     */
+    public Hashing getHashing(ReHashable reHashable) {
+        if (preInitializing) {
+            preInitializationManager.addReHashable(reHashable);
+        }
         return hashing;
     }
 

@@ -116,7 +116,7 @@ public abstract class MethodNodes {
         @Specialization
         public long hash(DynamicObject rubyMethod) {
             final InternalMethod method = Layouts.METHOD.getMethod(rubyMethod);
-            long h = getContext().getHashing().start(method.getDeclaringModule().hashCode());
+            long h = getContext().getHashing(this).start(method.getDeclaringModule().hashCode());
             h = Hashing.update(h, Layouts.METHOD.getReceiver(rubyMethod).hashCode());
             h = Hashing.update(h, method.getSharedMethodInfo().hashCode());
             return Hashing.end(h);

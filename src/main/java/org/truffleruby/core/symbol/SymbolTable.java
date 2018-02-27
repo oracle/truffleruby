@@ -19,6 +19,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.Hashing;
+import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
@@ -37,7 +38,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class SymbolTable {
+public class SymbolTable implements ReHashable {
 
     private final RopeCache ropeCache;
     private final DynamicObjectFactory symbolFactory;
@@ -53,10 +54,10 @@ public class SymbolTable {
     // As long as the Symbol is referenced, the entry will stay in the symbolMap.
     private final WeakValueCache<RopeKey, DynamicObject> symbolMap = new WeakValueCache<>();
 
-    public SymbolTable(RopeCache ropeCache, DynamicObjectFactory symbolFactory, Hashing hashing) {
+    public SymbolTable(RopeCache ropeCache, DynamicObjectFactory symbolFactory, RubyContext context) {
         this.ropeCache = ropeCache;
         this.symbolFactory = symbolFactory;
-        this.hashing = hashing;
+        this.hashing = context.getHashing(this);
     }
 
     @TruffleBoundary

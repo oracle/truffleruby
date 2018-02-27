@@ -33,6 +33,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.cast.TaintResultNode;
+import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.kernel.KernelNodes.ObjectSameOrEqualNode;
 import org.truffleruby.core.kernel.KernelNodesFactory.ObjectSameOrEqualNodeFactory;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
@@ -245,7 +246,7 @@ public class TruffleRegexpNodes {
             Rope source = Layouts.REGEXP.getSource(regexp);
             Encoding enc = Layouts.STRING.getRope(string).getEncoding();
             RegexpOptions options = Layouts.REGEXP.getOptions(regexp);
-            MatchInfo matchInfo = new MatchInfo(new RegexpCacheKey(source, enc, options.toJoniOptions(), getContext().getHashing()), fromStart);
+            MatchInfo matchInfo = new MatchInfo(new RegexpCacheKey(source, enc, options.toJoniOptions(), getContext().getHashing(REHASH_MATCHED_REGEXPS)), fromStart);
             ConcurrentOperations.getOrCompute(matchedRegexps, matchInfo, x -> new AtomicInteger()).incrementAndGet();
         }
 
@@ -299,12 +300,14 @@ public class TruffleRegexpNodes {
     }
 
     private static ConcurrentHashMap<RegexpCacheKey, AtomicInteger> compiledRegexps = new ConcurrentHashMap<>();
-    private static ConcurrentHashMap<MatchInfo, AtomicInteger> matchedRegexps = new ConcurrentHashMap<>();
-
-    public static void rehash() {
+    private static final ReHashable REHASH_COMPILED_REGEXPS = () -> {
         compiledRegexps = new ConcurrentHashMap<>(compiledRegexps);
+    };
+
+    private static ConcurrentHashMap<MatchInfo, AtomicInteger> matchedRegexps = new ConcurrentHashMap<>();
+    private static final ReHashable REHASH_MATCHED_REGEXPS = () -> {
         matchedRegexps = new ConcurrentHashMap<>(matchedRegexps);
-    }
+    };
 
     @TruffleBoundary
     public static Regex compile(Node currentNode, RubyContext context, Rope bytes, RegexpOptions options) {
@@ -336,7 +339,7 @@ public class TruffleRegexpNodes {
             regexp.setUserObject(RopeOperations.withEncodingVerySlow(bytes, enc));
 
             if (context.getOptions().REGEXP_INSTRUMENT_CREATION) {
-                final RegexpCacheKey key = new RegexpCacheKey(bytes, enc, options.toJoniOptions(), context.getHashing());
+                final RegexpCacheKey key = new RegexpCacheKey(bytes, enc, options.toJoniOptions(), context.getHashing(REHASH_COMPILED_REGEXPS));
                 ConcurrentOperations.getOrCompute(compiledRegexps, key, x -> new AtomicInteger()).incrementAndGet();
             }
 
