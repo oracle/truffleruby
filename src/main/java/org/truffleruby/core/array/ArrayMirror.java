@@ -17,6 +17,8 @@ public interface ArrayMirror {
 
     void set(int index, Object value);
 
+    ArrayMirror newMirror(int newLength);
+
     ArrayMirror copyArrayAndMirror(int newLength);
 
     void copyTo(ArrayMirror destination, int sourceStart, int destinationStart, int count);
@@ -24,8 +26,6 @@ public interface ArrayMirror {
     void copyTo(Object[] destination, int sourceStart, int destinationStart, int count);
 
     ArrayMirror extractRange(int start, int end);
-
-    ArrayMirror copyRange(int start, int end);
 
     void sort(int size);
 

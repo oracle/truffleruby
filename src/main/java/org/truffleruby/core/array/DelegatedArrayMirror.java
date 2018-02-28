@@ -36,8 +36,17 @@ public class DelegatedArrayMirror extends AbstractArrayMirror {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public ArrayMirror newMirror(int newLength) {
+        ArrayMirror newMirror = storageMirror.newMirror(newLength);
+        DelegatedArrayStorage newStorage = new DelegatedArrayStorage(newMirror.getArray(), 0, newLength);
+        return new DelegatedArrayMirror(newStorage, newMirror);
+    }
+
     public ArrayMirror copyArrayAndMirror(int newLength) {
-        return storageMirror.copyRange(storage.offset, storage.offset + newLength);
+        ArrayMirror newMirror = storageMirror.newMirror(newLength);
+        storageMirror.copyTo(newMirror, storage.offset, 0, newLength);
+        return newMirror;
     }
 
     public void copyTo(ArrayMirror destination, int sourceStart, int destinationStart, int count) {
@@ -51,14 +60,6 @@ public class DelegatedArrayMirror extends AbstractArrayMirror {
     public ArrayMirror extractRange(int start, int end) {
         DelegatedArrayStorage newStorage = new DelegatedArrayStorage(storage.storage, storage.offset + start, end - start);
         return new DelegatedArrayMirror(newStorage, storageMirror);
-    }
-
-    public ArrayMirror copyRange(int start, int end) {
-        if (storage.offset + end <= storageMirror.getLength()) {
-            return extractRange(start, end);
-        } else {
-            return storageMirror.copyRange(storage.offset + start, storage.offset + end);
-        }
     }
 
     public void sort(int size) {

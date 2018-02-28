@@ -37,6 +37,11 @@ class DoubleArrayMirror extends BasicArrayMirror {
     }
 
     @Override
+    public ArrayMirror newMirror(int newLength) {
+        return new DoubleArrayMirror(new double[newLength]);
+    }
+
+    @Override
     public ArrayMirror copyArrayAndMirror() {
         return new DoubleArrayMirror(array.clone());
     }
@@ -61,15 +66,6 @@ class DoubleArrayMirror extends BasicArrayMirror {
     public void copyTo(Object[] destination, int sourceStart, int destinationStart, int count) {
         for (int n = 0; n < count; n++) {
             destination[destinationStart + n] = array[sourceStart + n];
-        }
-    }
-
-    @Override
-    public ArrayMirror copyRange(int start, int end) {
-        if (end <= array.length) {
-            return new DoubleArrayMirror(ArrayUtils.extractRange(array, start, end));
-        } else {
-            return new DoubleArrayMirror(ArrayUtils.copyRange(array, start, end));
         }
     }
 

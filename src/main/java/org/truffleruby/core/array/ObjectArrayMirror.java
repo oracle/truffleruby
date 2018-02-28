@@ -33,6 +33,11 @@ class ObjectArrayMirror extends BasicArrayMirror {
     }
 
     @Override
+    public ArrayMirror newMirror(int newLength) {
+        return new ObjectArrayMirror(new Object[newLength]);
+    }
+
+    @Override
     public ArrayMirror copyArrayAndMirror() {
         return new ObjectArrayMirror(array.clone());
     }
@@ -56,11 +61,6 @@ class ObjectArrayMirror extends BasicArrayMirror {
     @Override
     public void copyTo(Object[] destination, int sourceStart, int destinationStart, int count) {
         System.arraycopy(array, sourceStart, destination, destinationStart, count);
-    }
-
-    @Override
-    public ArrayMirror copyRange(int start, int end) {
-        return new ObjectArrayMirror(ArrayUtils.extractRange(array, start, end));
     }
 
     @Override
