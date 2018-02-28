@@ -537,7 +537,7 @@ public class BodyTranslator extends Translator {
             }
         } else if (receiver instanceof VCallParseNode // undefined.equal?(obj)
                 && ((VCallParseNode) receiver).getName().equals("undefined")
-                && getSourcePath(sourceSection).startsWith(corePath())
+                && inCore()
                 && methodName.equals("equal?")) {
             RubyNode argument = translateArgumentsAndBlock(sourceSection, null, node.getArgsNode(), methodName).getArguments()[0];
             final RubyNode ret = new IsUndefinedNode(argument);
@@ -1121,20 +1121,9 @@ public class BodyTranslator extends Translator {
         }
     }
 
-    private String getSourcePath(SourceIndexLength sourceSection) {
-        if (sourceSection == null) {
-            return "(unknown)";
-        }
-
-        if (source == null) {
-            return "(unknown)";
-        }
-
-        return context.getSourceLoader().getPath(source);
-    }
-
-    private String corePath() {
-        return environment.getParseEnvironment().getCorePath();
+    private boolean inCore() {
+        final String path = context.getSourceLoader().getPath(source);
+        return path.startsWith(environment.getParseEnvironment().getCorePath());
     }
 
     @Override
@@ -2887,14 +2876,12 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitStrNode(StrParseNode node) {
-        final SourceIndexLength sourceSection = node.getPosition();
-
         final Rope rope = context.getRopeCache().getRope(node.getValue(), node.getCodeRange());
         final RubyNode ret;
 
         // isFrozen() is set with the magic frozen_string_literal comment or the command line flag.
         // For the command line flag, we do not want to apply it to the core library files.
-        if (node.isFrozen() && !getSourcePath(sourceSection).startsWith(corePath())) {
+        if (node.isFrozen() && !inCore()) {
             final DynamicObject frozenString = context.getFrozenStringLiteral(rope);
 
             ret = new DefinedWrapperNode(context.getCoreStrings().METHOD,
@@ -2949,8 +2936,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitVCallNode(VCallParseNode node) {
-        final SourceIndexLength sourceSection = node.getPosition();
-        if (node.getName().equals("undefined") && getSourcePath(sourceSection).startsWith(corePath())) { // translate undefined
+        if (node.getName().equals("undefined") && inCore()) { // translate undefined
             final RubyNode ret = new ObjectLiteralNode(NotProvided.INSTANCE);
             ret.unsafeSetSourceSection(node.getPosition());
             return addNewlineIfNeeded(node, ret);
