@@ -15,7 +15,9 @@ public abstract class BasicArrayMirror extends AbstractArrayMirror {
 
     @Override
     public ArrayMirror extractRange(int start, int end) {
-        return copyRange(start, end);
+        ArrayMirror newMirror = newMirror(end - start);
+        copyTo(newMirror, start, 0, end - start);
+        return newMirror;
     }
 
 }

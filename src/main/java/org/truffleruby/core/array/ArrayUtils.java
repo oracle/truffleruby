@@ -95,111 +95,12 @@ public abstract class ArrayUtils {
         return result;
     }
 
-    /**
-     * Extracts part of an array into a newly allocated byte[] array. Does not perform safety checks on
-     * parameters.
-     * 
-     * @param source the source array whose values should be extracted
-     * @param start the start index, must be >= 0 and <= source.length
-     * @param end the end index (exclusive), must be >= 0 and > source.length and >= start
-     * @return a newly allocated array with the extracted elements and length (end - start)
-     */
-    public static byte[] copyRange(byte[] source, int start, int end) {
-        assert assertCopyRangeArgs(source, start, end);
-        int length = end - start;
-        int copyLength = source.length - start;
-        byte[] result = new byte[length];
-        System.arraycopy(source, start, result, 0, copyLength);
-        return result;
-    }
-
-    /**
-     * Extracts part of an array into a newly allocated int[] array. Does not perform safety checks on
-     * parameters.
-     * 
-     * @param source the source array whose values should be extracted
-     * @param start the start index, must be >= 0 and <= source.length
-     * @param end the end index (exclusive), must be >= 0 and > source.length and >= start
-     * @return a newly allocated array with the extracted elements and length (end - start)
-     */
-    public static int[] copyRange(int[] source, int start, int end) {
-        assert assertCopyRangeArgs(source, start, end);
-        int length = end - start;
-        int copyLength = source.length - start;
-        int[] result = new int[length];
-        System.arraycopy(source, start, result, 0, copyLength);
-        return result;
-    }
-
-    /**
-     * Extracts part of an array into a newly allocated long[] array. Does not perform safety checks on
-     * parameters.
-     * 
-     * @param source the source array whose values should be extracted
-     * @param start the start index, must be >= 0 and <= source.length
-     * @param end the end index (exclusive), must be >= 0 and > source.length and >= start
-     * @return a newly allocated array with the extracted elements and length (end - start)
-     */
-    public static long[] copyRange(long[] source, int start, int end) {
-        assert assertCopyRangeArgs(source, start, end);
-        int length = end - start;
-        int copyLength = source.length - start;
-        long[] result = new long[length];
-        System.arraycopy(source, start, result, 0, copyLength);
-        return result;
-    }
-
-    /**
-     * Extracts part of an array into a newly allocated double[] array. Does not perform safety checks
-     * on parameters.
-     * 
-     * @param source the source array whose values should be extracted
-     * @param start the start index, must be >= 0 and <= source.length
-     * @param end the end index (exclusive), must be >= 0 and > source.length and >= start
-     * @return a newly allocated array with the extracted elements and length (end - start)
-     */
-    public static double[] copyRange(double[] source, int start, int end) {
-        assert assertCopyRangeArgs(source, start, end);
-        int length = end - start;
-        int copyLength = source.length - start;
-        double[] result = new double[length];
-        System.arraycopy(source, start, result, 0, copyLength);
-        return result;
-    }
-
-    /**
-     * Extracts part of an array into a newly allocated Object[] array. Does not perform safety checks
-     * on parameters.
-     * 
-     * @param source the source array whose values should be extracted
-     * @param start the start index, must be >= 0 and <= source.length
-     * @param end the end index (exclusive), must be >= 0 and > source.length and >= start
-     * @return a newly allocated array with the extracted elements and length (end - start)
-     */
-    public static Object[] copyRange(Object[] source, int start, int end) {
-        assert assertCopyRangeArgs(source, start, end);
-        int length = end - start;
-        int copyLength = source.length - start;
-        Object[] result = new Object[length];
-        System.arraycopy(source, start, result, 0, copyLength);
-        return result;
-    }
-
     private static boolean assertExtractRangeArgs(Object source, int start, int end) {
         assert source != null;
         assert start >= 0;
         assert start <= Array.getLength(source);
         assert end >= start;
         assert end <= Array.getLength(source);
-        return true;
-    }
-
-    private static boolean assertCopyRangeArgs(Object source, int start, int end) {
-        assert source != null;
-        assert start >= 0;
-        assert start <= Array.getLength(source);
-        assert end >= start;
-        assert end > Array.getLength(source);
         return true;
     }
 

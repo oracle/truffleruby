@@ -29,6 +29,11 @@ public class EmptyArrayMirror extends BasicArrayMirror {
     }
 
     @Override
+    public ArrayMirror newMirror(int newLength) {
+        return INSTANCE;
+    }
+
+    @Override
     public ArrayMirror copyArrayAndMirror() {
         return INSTANCE;
     }
@@ -49,7 +54,7 @@ public class EmptyArrayMirror extends BasicArrayMirror {
     }
 
     @Override
-    public ArrayMirror copyRange(int start, int end) {
+    public ArrayMirror extractRange(int start, int end) {
         assert start == 0 && end == 0;
         return INSTANCE;
     }
