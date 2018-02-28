@@ -2881,6 +2881,7 @@ public class BodyTranslator extends Translator {
 
         // isFrozen() is set with the magic frozen_string_literal comment or the command line flag.
         // For the command line flag, we do not want to apply it to the core library files.
+        // TODO (eregon, 28 Feb 2018): we should respect the magic comment in core (although not used currently).
         if (node.isFrozen() && !inCore()) {
             final DynamicObject frozenString = context.getFrozenStringLiteral(rope);
 
