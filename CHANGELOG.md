@@ -1,3 +1,10 @@
+# 0.33, April 2018
+
+New features:
+
+* Context pre-initialization with TruffleRuby `--native`, which significantly
+  improves startup time.
+
 # 0.32, March 2018
 
 New features:
