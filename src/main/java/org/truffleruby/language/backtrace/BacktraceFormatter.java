@@ -237,12 +237,12 @@ public class BacktraceFormatter {
     }
 
     public static boolean isCore(RubyContext context, SourceSection sourceSection) {
-        if (sourceSection == null) {
+        if (sourceSection == null || sourceSection == context.getCoreLibrary().getSourceSection()) {
             return true;
         }
 
         final Source source = sourceSection.getSource();
-        if (source == null || source == context.getCoreLibrary().getSource()) {
+        if (source == null) {
             return true;
         }
 
