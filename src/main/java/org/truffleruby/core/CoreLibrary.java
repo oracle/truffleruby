@@ -78,8 +78,7 @@ public class CoreLibrary {
 
     private final RubyContext context;
 
-    private final Source source = initCoreSource();
-    private final SourceSection sourceSection = source.createUnavailableSection();
+    private final SourceSection sourceSection = initCoreSource().createUnavailableSection();
 
     private final DynamicObject argumentErrorClass;
     private final DynamicObject arrayClass;
@@ -912,10 +911,6 @@ public class CoreLibrary {
 
     public RubyContext getContext() {
         return context;
-    }
-
-    public Source getSource() {
-        return source;
     }
 
     public SourceSection getSourceSection() {
