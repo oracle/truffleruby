@@ -63,7 +63,6 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.language.LazyRubyNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
@@ -1567,14 +1566,7 @@ public class BodyTranslator extends Translator {
         return addNewlineIfNeeded(node, withSourceSection(sourceSection, writeGlobalVariableNode));
     }
 
-    @Override
-    public RubyNode visitGlobalVarNode(GlobalVarParseNode node) {
-        final String variableName = node.getName();
-
-        return new LazyRubyNode(() -> readGlobal(node, variableName));
-    }
-
-    private boolean isLastMatchVariable(String name) {
+    private static boolean isCaptureVariable(String name) {
         // $0 is always the program name and never refers to a variable match.
         if (name.equals("$0")) {
             return false;
@@ -1591,29 +1583,15 @@ public class BodyTranslator extends Translator {
         return true;
     }
 
-    private RubyNode readGlobal(ParseNode node, String variableName) {
+    @Override
+    public RubyNode visitGlobalVarNode(GlobalVarParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        String name = variableName;
 
-        if (context != null) {
-            name = context.getCoreLibrary().getGlobalVariables().getOriginalName(name);
-        }
+        assert !isCaptureVariable(node.getName());
+        final RubyNode readGlobal = ReadGlobalVariableNodeGen.create(node.getName());
 
-
-        final RubyNode ret;
-        if (isLastMatchVariable(name)) {
-            final RubyNode readMatchNode = ReadGlobalVariableNodeGen.create("$~");
-            final char type = name.charAt(1);
-            switch (type) {
-                default:
-                    ret = new ReadMatchReferenceNodes.ReadNthMatchNode(readMatchNode, Integer.parseInt(name.substring(1)));
-            }
-        } else {
-            ret = ReadGlobalVariableNodeGen.create(name);
-        }
-
-        ret.unsafeSetSourceSection(sourceSection);
-        return addNewlineIfNeeded(node, ret);
+        readGlobal.unsafeSetSourceSection(sourceSection);
+        return addNewlineIfNeeded(node, readGlobal);
     }
 
     @Override
@@ -2305,7 +2283,13 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitNthRefNode(NthRefParseNode node) {
-        return readGlobal(node, "$" + node.getMatchNumber());
+        final SourceIndexLength sourceSection = node.getPosition();
+
+        final RubyNode readMatchNode = ReadGlobalVariableNodeGen.create("$~");
+        final RubyNode readGlobal = new ReadMatchReferenceNodes.ReadNthMatchNode(readMatchNode, node.getMatchNumber());
+
+        readGlobal.unsafeSetSourceSection(sourceSection);
+        return addNewlineIfNeeded(node, readGlobal);
     }
 
     @Override
@@ -3026,7 +3010,12 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitBackRefNode(BackRefParseNode node) {
-        return readGlobal(node, "$" + node.getType());
+        final SourceIndexLength sourceSection = node.getPosition();
+
+        final RubyNode readGlobal = ReadGlobalVariableNodeGen.create("$" + node.getType());
+
+        readGlobal.unsafeSetSourceSection(sourceSection);
+        return addNewlineIfNeeded(node, readGlobal);
     }
 
     @Override
