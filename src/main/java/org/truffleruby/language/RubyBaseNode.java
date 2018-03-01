@@ -126,7 +126,7 @@ public abstract class RubyBaseNode extends Node {
 
         final SourceSection sourceSection = rootNode.getSourceSection();
 
-        if (sourceSection == null) {
+        if (sourceSection == null || !sourceSection.isAvailable()) {
             return null;
         }
 
