@@ -36,7 +36,8 @@ public class GlobalVariables {
 
     @TruffleBoundary
     public GlobalVariableStorage getStorage(String name) {
-        return ConcurrentOperations.getOrCompute(variables, name,
+        final String originalName = getOriginalName(name);
+        return ConcurrentOperations.getOrCompute(variables, originalName,
                 k -> new GlobalVariableStorage(defaultValue, null, null, null));
     }
 
