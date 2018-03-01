@@ -1558,22 +1558,11 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitGlobalAsgnNode(GlobalAsgnParseNode node) {
-        final RubyNode translatedValue = node.getValueNode().accept(this);
-        final String variableName = node.getName();
-
-        return new LazyRubyNode(() -> writeGlobal(node, variableName, translatedValue));
-    }
-
-    private RubyNode writeGlobal(GlobalAsgnParseNode node, String variableName, RubyNode translatedValue) {
         final SourceIndexLength sourceSection = node.getPosition();
-        RubyNode rhs = translatedValue;
-        String name = variableName;
 
-        if (context != null) {
-            name = context.getCoreLibrary().getGlobalVariables().getOriginalName(name);
-        }
+        final RubyNode translatedValue = node.getValueNode().accept(this);
 
-        final RubyNode writeGlobalVariableNode = WriteGlobalVariableNodeGen.create(name, rhs);
+        final RubyNode writeGlobalVariableNode = WriteGlobalVariableNodeGen.create(node.getName(), translatedValue);
 
         return addNewlineIfNeeded(node, withSourceSection(sourceSection, writeGlobalVariableNode));
     }
