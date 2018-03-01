@@ -78,7 +78,7 @@ public class CoreLibrary {
 
     private final RubyContext context;
 
-    private final SourceSection sourceSection = initCoreSource().createUnavailableSection();
+    private final SourceSection sourceSection = initCoreSourceSection();
 
     private final DynamicObject argumentErrorClass;
     private final DynamicObject arrayClass;
@@ -222,8 +222,9 @@ public class CoreLibrary {
     private final String coreLoadPath;
 
     @TruffleBoundary
-    private static Source initCoreSource() {
-        return Source.newBuilder("").name("(core)").mimeType(RubyLanguage.MIME_TYPE).build();
+    private static SourceSection initCoreSourceSection() {
+        final Source source = Source.newBuilder("").name("(core)").mimeType(RubyLanguage.MIME_TYPE).build();
+        return source.createUnavailableSection();
     }
 
     private String buildCoreLoadPath() {
