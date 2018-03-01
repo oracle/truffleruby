@@ -283,7 +283,7 @@ public class CoreMethodNodeManager {
         final RubyNode checkArity = Translator.createCheckArityNode(sharedMethodInfo.getArity());
 
         node = transformResult(context, method, node);
-        node = Translator.sequence(context.getCoreLibrary().getSourceIndexLength(), Arrays.asList(checkArity, node));
+        node = Translator.sequence(null, Arrays.asList(checkArity, node));
 
         return new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
     }
