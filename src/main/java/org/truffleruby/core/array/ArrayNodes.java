@@ -555,9 +555,8 @@ public abstract class ArrayNodes {
         public DynamicObject compactPrimitive(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy) {
             final int size = strategy.getSize(array);
-            Object store = strategy.newMirror(array).extractRange(0, size).getArray();
-            strategy.setStore(array, strategy.newMirror(array).extractRange(0, size).getArray());
-            return createArray(store, size);
+            ArrayMirror compactMirror = strategy.makeStorageShared(array).extractRange(0, size);
+            return createArray(compactMirror.getArray(), size);
         }
 
         @Specialization(guards = { "strategy.matches(array)", "!strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")

@@ -66,6 +66,7 @@ public abstract class ArrayAppendOneNode extends RubyNode {
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("forValue(value)") ArrayStrategy valueStrategy,
             @Cached("strategy.generalize(valueStrategy)") ArrayStrategy generalizedStrategy) {
+        assert strategy != valueStrategy;
         final int oldSize = strategy.getSize(array);
         final int newSize = oldSize + 1;
         final ArrayMirror currentMirror = strategy.newMirror(array);
