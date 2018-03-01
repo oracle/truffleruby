@@ -36,9 +36,9 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 import java.util.List;
 
-/** 
- * Represents a $number ($0..$9) variable.
-  */
+/**
+ * Represents a capture global variable ($1..$N).
+ */
 public class NthRefParseNode extends ParseNode {
     private final int matchNumber;
 
@@ -52,19 +52,11 @@ public class NthRefParseNode extends ParseNode {
         return NodeType.NTHREFNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitNthRefNode(this);
     }
 
-    /**
-     * Gets the matchNumber.
-     * @return Returns a int
-     */
     public int getMatchNumber() {
         return matchNumber;
     }
