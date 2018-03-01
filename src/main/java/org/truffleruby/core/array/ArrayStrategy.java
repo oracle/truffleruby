@@ -51,13 +51,15 @@ public abstract class ArrayStrategy {
         return Layouts.ARRAY.getSize(array);
     }
 
-    public void makeStorageMutable(DynamicObject array) {
-        // Do nothing for mutable storage.
+    public ArrayMirror makeStorageUnshared(DynamicObject array) {
+        return newMirror(array);
     }
 
-    public void makeStorageImmutable(DynamicObject array) {
-        ArrayMirror currentMirror = newMirror(array);
-        setStore(array, currentMirror.extractRange(0, getSize(array)).getArray());
+    public ArrayMirror makeStorageShared(DynamicObject array) {
+        final ArrayMirror currentMirror = newMirror(array);
+        final ArrayMirror newMirror = currentMirror.extractRange(0, getSize(array));
+        setStore(array, newMirror.getArray());
+        return newMirror;
     }
 
     public abstract ArrayMirror newArray(int size);
@@ -613,16 +615,16 @@ public abstract class ArrayStrategy {
         }
 
         @Override
-        public void makeStorageImmutable(DynamicObject array) {
-            // Do nothing, as storage already is immutable.
+        public ArrayMirror makeStorageUnshared(DynamicObject array) {
+            ArrayMirror oldMirror = newMirror(array);
+            ArrayMirror newMirror = oldMirror.copyArrayAndMirror(oldMirror.getLength());
+            setStore(array, newMirror.getArray());
+            return newMirror;
         }
 
         @Override
-        public void makeStorageMutable(DynamicObject array) {
-            ArrayMirror oldMirror = newMirror(array);
-            ArrayMirror newMirror = typeStrategy.newArray(oldMirror.getLength());
-            oldMirror.copyTo(newMirror, 0, 0, oldMirror.getLength());
-            setStore(array, newMirror.getArray());
+        public ArrayMirror makeStorageShared(DynamicObject array) {
+            return newMirror(array);
         }
 
         @Override

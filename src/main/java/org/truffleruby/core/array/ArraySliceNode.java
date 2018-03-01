@@ -41,9 +41,7 @@ public abstract class ArraySliceNode extends RubyNode {
         if (emptyArray.profile(from >= to)) {
             return createArray(null, 0);
         } else {
-            final ArrayMirror arrayMirror = strategy.newMirror(array);
-            final Object slice = arrayMirror.extractRange(from, to).getArray();
-            strategy.makeStorageImmutable(array);
+            final Object slice = strategy.makeStorageShared(array).extractRange(from, to).getArray();
             return createArray(slice, to - from);
         }
 

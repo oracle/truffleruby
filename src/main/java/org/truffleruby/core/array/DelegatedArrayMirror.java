@@ -38,9 +38,7 @@ public class DelegatedArrayMirror extends AbstractArrayMirror {
 
     @Override
     public ArrayMirror newMirror(int newLength) {
-        ArrayMirror newMirror = storageMirror.newMirror(newLength);
-        DelegatedArrayStorage newStorage = new DelegatedArrayStorage(newMirror.getArray(), 0, newLength);
-        return new DelegatedArrayMirror(newStorage, newMirror);
+        return storageMirror.newMirror(newLength);
     }
 
     public ArrayMirror copyArrayAndMirror(int newLength) {
