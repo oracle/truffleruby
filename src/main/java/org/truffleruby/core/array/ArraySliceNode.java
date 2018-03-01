@@ -42,9 +42,9 @@ public abstract class ArraySliceNode extends RubyNode {
             return createArray(null, 0);
         } else {
             final ArrayMirror arrayMirror = strategy.newMirror(array);
-            final Object store = arrayMirror.extractRange(from, to).getArray();
-            strategy.setStore(array, arrayMirror.extractRange(0, strategy.getSize(array)).getArray());
-            return createArray(store, to - from);
+            final Object slice = arrayMirror.extractRange(from, to).getArray();
+            strategy.makeStorageImmutable(array);
+            return createArray(slice, to - from);
         }
 
     }
