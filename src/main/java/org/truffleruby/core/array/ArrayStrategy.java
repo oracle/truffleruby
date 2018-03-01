@@ -51,6 +51,15 @@ public abstract class ArrayStrategy {
         return Layouts.ARRAY.getSize(array);
     }
 
+    public void makeStorageMutable(DynamicObject array) {
+        // Do nothing for mutable storage.
+    }
+
+    public void makeStorageImmutable(DynamicObject array) {
+        ArrayMirror currentMirror = newMirror(array);
+        setStore(array, currentMirror.extractRange(0, getSize(array)).getArray());
+    }
+
     public abstract ArrayMirror newArray(int size);
 
     public final ArrayMirror newMirror(DynamicObject array) {
@@ -601,6 +610,19 @@ public abstract class ArrayStrategy {
         @Override
         public boolean matchesStore(Object store) {
             return store instanceof DelegatedArrayStorage && typeStrategy.matchesStore(((DelegatedArrayStorage) store).storage);
+        }
+
+        @Override
+        public void makeStorageImmutable(DynamicObject array) {
+            // Do nothing, as storage already is immutable.
+        }
+
+        @Override
+        public void makeStorageMutable(DynamicObject array) {
+            ArrayMirror oldMirror = newMirror(array);
+            ArrayMirror newMirror = typeStrategy.newArray(oldMirror.getLength());
+            oldMirror.copyTo(newMirror, 0, 0, oldMirror.getLength());
+            setStore(array, newMirror.getArray());
         }
 
         @Override
