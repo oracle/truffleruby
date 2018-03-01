@@ -109,13 +109,18 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "strategy.matches(a)", "strategy.matches(b)" }, limit = "STORAGE_STRATEGIES")
         public DynamicObject addSameType(DynamicObject a, DynamicObject b,
-                @Cached("of(a)") ArrayStrategy strategy) {
-            final int aSize = strategy.getSize(a);
-            final int bSize = strategy.getSize(b);
+                @Cached("of(a)") ArrayStrategy strategy,
+                @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy) {
+            return addInternal(a, b, strategy, strategy, mutableStrategy);
+        }
+
+        private DynamicObject addInternal(DynamicObject a, DynamicObject b, ArrayStrategy strategyA, ArrayStrategy strategyB, ArrayStrategy generalizedStrategy) {
+            final int aSize = strategyA.getSize(a);
+            final int bSize = strategyB.getSize(b);
             final int combinedSize = aSize + bSize;
-            final ArrayMirror mirror = strategy.newArray(combinedSize);
-            strategy.newMirror(a).copyTo(mirror, 0, 0, aSize);
-            strategy.newMirror(b).copyTo(mirror, 0, aSize, bSize);
+            final ArrayMirror mirror = generalizedStrategy.newArray(combinedSize);
+            strategyA.newMirror(a).copyTo(mirror, 0, 0, aSize);
+            strategyB.newMirror(b).copyTo(mirror, 0, aSize, bSize);
             return createArray(mirror.getArray(), combinedSize);
         }
 
@@ -126,13 +131,7 @@ public abstract class ArrayNodes {
                 @Cached("of(a)") ArrayStrategy aStrategy,
                 @Cached("of(b)") ArrayStrategy bStrategy,
                 @Cached("aStrategy.generalizeNew(bStrategy)") ArrayStrategy generalized) {
-            final int aSize = aStrategy.getSize(a);
-            final int bSize = bStrategy.getSize(b);
-            final int combinedSize = aSize + bSize;
-            final ArrayMirror mirror = generalized.newArray(combinedSize);
-            aStrategy.newMirror(a).copyTo(mirror, 0, 0, aSize);
-            bStrategy.newMirror(b).copyTo(mirror, 0, aSize, bSize);
-            return createArray(mirror.getArray(), combinedSize);
+            return addInternal(a, b, aStrategy, bStrategy, generalized);
         }
 
     }
@@ -146,7 +145,8 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "!isEmptyArray(array)", "strategy.matches(array)", "count >= 0" }, limit = "STORAGE_STRATEGIES")
         public DynamicObject mulOther(DynamicObject array, int count,
-                @Cached("of(array)") ArrayStrategy strategy) {
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy) {
 
             final int size = strategy.getSize(array);
             final int newSize;
@@ -156,7 +156,7 @@ public abstract class ArrayNodes {
                 throw new RaiseException(coreExceptions().rangeError("new array size too large", this));
             }
             final ArrayMirror store = strategy.newMirror(array);
-            final ArrayMirror newStore = strategy.newArray(newSize);
+            final ArrayMirror newStore = mutableStrategy.newArray(newSize);
             for (int n = 0; n < count; n++) {
                 store.copyTo(newStore, 0, n * size, size);
             }
@@ -332,6 +332,7 @@ public abstract class ArrayNodes {
         }, limit = "STORAGE_STRATEGIES")
         public Object setOtherArray(DynamicObject array, int rawStart, int length, DynamicObject replacement,
                 @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
                 @Cached("create()") ArrayEnsureCapacityNode ensureCapacityNode,
                 @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
                 @Cached("createBinaryProfile()") ConditionProfile recursiveProfile,
@@ -367,7 +368,7 @@ public abstract class ArrayNodes {
                     // Move tail
                     final int tailSize = arraySize - (start + length);
                     if (tailProfile.profile(tailSize > 0)) {
-                        final ArrayMirror mirror = strategy.newMirror(array);
+                        final ArrayMirror mirror = mutableStrategy.newMirror(array);
 
                         if (moveLeftProfile.profile(replacementSize < length)) {
                             // Moving elements left
@@ -656,7 +657,7 @@ public abstract class ArrayNodes {
         @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
         @Child private IsFrozenNode isFrozenNode;
 
-        @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = { "strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public Object delete(VirtualFrame frame, DynamicObject array, Object value, Object maybeBlock,
                 @Cached("of(array)") ArrayStrategy strategy) {
             final ArrayMirror store = strategy.newMirror(array);
@@ -694,6 +695,45 @@ public abstract class ArrayNodes {
             }
         }
 
+        @Specialization(guards = { "!strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
+        public Object delete(VirtualFrame frame, DynamicObject array, Object value, Object maybeBlock,
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy) {
+            final int size = strategy.getSize(array);
+            final ArrayMirror oldStore = strategy.newMirror(array);
+            final ArrayMirror newStore = mutableStrategy.newArray(size);
+
+            Object found = nil();
+
+            int i = 0;
+            int n = 0;
+            while (n < size) {
+                final Object stored = oldStore.get(n);
+
+                if (sameOrEqualNode.executeObjectSameOrEqual(frame, stored, value)) {
+                    checkFrozen(array);
+                    found = stored;
+                    n++;
+                } else {
+                    newStore.set(i, oldStore.get(n));
+
+                    i++;
+                    n++;
+                }
+            }
+
+            if (i != n) {
+                strategy.setStoreAndSize(array, newStore.getArray(), i);
+                return found;
+            } else {
+                if (maybeBlock == NotProvided.INSTANCE) {
+                    return nil();
+                } else {
+                    return yield((DynamicObject) maybeBlock, value);
+                }
+            }
+        }
+
         public void checkFrozen(Object object) {
             if (isFrozenNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -717,7 +757,7 @@ public abstract class ArrayNodes {
             return ToIntNodeGen.create(index);
         }
 
-        @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = { "strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public Object deleteAt(DynamicObject array, int index,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
@@ -732,6 +772,28 @@ public abstract class ArrayNodes {
                 final Object value = store.get(i);
                 store.copyTo(store, i + 1, i, size - i - 1);
                 strategy.setStoreAndSize(array, store.getArray(), size - 1);
+                return value;
+            }
+        }
+
+        @Specialization(guards = { "strategy != mutableStrategy", "strategy.matches(array)" }, limit = "ARRAY_STRATEGIES")
+        public Object deleteAtCopying(DynamicObject array, int index,
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
+                @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
+                @Cached("createBinaryProfile()") ConditionProfile notInBoundsProfile) {
+            final int size = strategy.getSize(array);
+            final int i = ArrayOperations.normalizeIndex(size, index, negativeIndexProfile);
+
+            if (notInBoundsProfile.profile(i < 0 || i >= size)) {
+                return nil();
+            } else {
+                final ArrayMirror store = strategy.newMirror(array);
+                final ArrayMirror mutableStore = mutableStrategy.newArray(size);
+                store.copyTo(mutableStore, 0, 0, i);
+                final Object value = store.get(i);
+                store.copyTo(mutableStore, i + 1, i, size - i - 1);
+                strategy.setStoreAndSize(array, mutableStore.getArray(), size - 1);
                 return value;
             }
         }
@@ -1489,15 +1551,13 @@ public abstract class ArrayNodes {
                 @Cached("createBinaryProfile()") ConditionProfile minProfile) {
             final int size = strategy.getSize(array);
             final int numPop = minProfile.profile(size < n) ? size : n;
-            final ArrayMirror store = strategy.newMirror(array);
+            final ArrayMirror store = strategy.makeStorageShared(array);
 
             // Extract values in a new array
             final ArrayMirror popped = store.extractRange(size - numPop, size);
 
-            // Null out the popped values from the store
-            final ArrayMirror filler = strategy.newArray(numPop);
-            filler.copyTo(store, 0, size - numPop, numPop);
-            setSize(array, size - numPop);
+            // Remove the end from the original array.
+            setStoreAndSize(array, store.extractRange(0, size - numPop).getArray(), size - numPop);
 
             return createArray(popped.getArray(), numPop);
         }
@@ -1595,11 +1655,15 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class RejectInPlaceNode extends YieldingCoreMethodNode {
 
-        @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
-        public Object rejectInPlaceOther(DynamicObject array, DynamicObject block,
-                @Cached("of(array)") ArrayStrategy strategy) {
-            final ArrayMirror store = strategy.newMirror(array);
+        @Specialization(guards = { "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
+        public Object rejectInPlace(DynamicObject array, DynamicObject block,
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy) {
+            final ArrayMirror mutableStore = strategy.makeStorageUnshared(array);
+            return rejectInPlaceInternal(array, block, mutableStrategy, mutableStore);
+        }
 
+        private Object rejectInPlaceInternal(DynamicObject array, DynamicObject block, ArrayStrategy strategy, final ArrayMirror store) {
             int i = 0;
             int n = 0;
             try {
@@ -1655,7 +1719,8 @@ public abstract class ArrayNodes {
                         @Cached("of(array)") ArrayStrategy arrayStrategy,
                         @Cached("of(other)") ArrayStrategy otherStrategy) {
             final int size = getSize(other);
-            final ArrayMirror copy = otherStrategy.newMirror(other).copyArrayAndMirror();
+            final ArrayMirror otherMirror = otherStrategy.makeStorageShared(other);
+            final ArrayMirror copy = otherMirror.extractRange(0, size);
             arrayStrategy.setStoreAndSize(array, copy.getArray(), size);
             return array;
         }
@@ -1666,33 +1731,39 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class RotateNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
-        public DynamicObject rotate(DynamicObject array, int rotation,
+        @Specialization(guards = { "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
+        public DynamicObject rotateImmutable(DynamicObject array, int rotation,
                 @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
                 @Cached("createIdentityProfile()") IntValueProfile rotationProfile) {
+            return rotateInternal(array, rotation, strategy, sizeProfile, rotationProfile, mutableStrategy);
+        }
+
+        private DynamicObject rotateInternal(DynamicObject array, int rotation, ArrayStrategy strategy, IntValueProfile sizeProfile, IntValueProfile rotationProfile, ArrayStrategy mutableStrategy) {
             final int size = sizeProfile.profile(strategy.getSize(array));
             rotation = rotationProfile.profile(rotation);
             assert 0 < rotation && rotation < size;
 
             final ArrayMirror mirror = strategy.newMirror(array);
-            final ArrayMirror rotated = strategy.newArray(size);
+            final ArrayMirror rotated = mutableStrategy.newArray(size);
             rotateArrayCopy(rotation, size, mirror, rotated);
             return createArray(rotated.getArray(), size);
         }
 
-        protected void rotateArrayCopy(int rotation, int size, ArrayMirror mirror, ArrayMirror rotated) {
-            System.arraycopy(mirror.getArray(), rotation, rotated.getArray(), 0, size - rotation);
-            System.arraycopy(mirror.getArray(), 0, rotated.getArray(), size - rotation, rotation);
-        }
-
     }
+
+    protected static void rotateArrayCopy(int rotation, int size, ArrayMirror mirror, ArrayMirror rotated) {
+        mirror.copyTo(rotated, rotation, 0, size - rotation);
+        mirror.copyTo(rotated, 0, size - rotation, rotation);
+    }
+
 
     @Primitive(name = "array_rotate_inplace", needsSelf = false, lowerFixnum = 2)
     @ImportStatic(ArrayGuards.class)
     public abstract static class RotateInplaceNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = { "strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public DynamicObject rotate(DynamicObject array, int rotation,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
@@ -1710,6 +1781,23 @@ public abstract class ArrayNodes {
                 rotateReverse(rotation, size, mirror);
             }
 
+            return array;
+        }
+
+        @Specialization(guards = { "!strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
+        public DynamicObject rotateImmutable(DynamicObject array, int rotation,
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
+                @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
+                @Cached("createIdentityProfile()") IntValueProfile rotationProfile) {
+            final int size = sizeProfile.profile(strategy.getSize(array));
+            rotation = rotationProfile.profile(rotation);
+            assert 0 < rotation && rotation < size;
+
+            final ArrayMirror mirror = strategy.newMirror(array);
+            final ArrayMirror rotated = mutableStrategy.newArray(size);
+            rotateArrayCopy(rotation, size, mirror, rotated);
+            setStoreAndSize(array, rotated.getArray(), size);
             return array;
         }
 
@@ -1813,11 +1901,7 @@ public abstract class ArrayNodes {
             final ArrayMirror store = strategy.newMirror(array);
             final int size = strategy.getSize(array);
             final Object value = store.get(0);
-            store.copyTo(store, 1, 0, size - 1);
-
-            // Null out the element behind the size
-            final ArrayMirror filler = strategy.newArray(1);
-            filler.copyTo(store, 0, size - 1, 1);
+            strategy.setStore(array, store.extractRange(1, size).getArray());
             setSize(array, size - 1);
 
             return value;
@@ -1851,12 +1935,7 @@ public abstract class ArrayNodes {
             // Extract values in a new array
             final ArrayMirror result = store.extractRange(0, numShift);
 
-            // Move elements
-            store.copyTo(store, numShift, 0, size - numShift);
-
-            // Null out the element behind the size
-            final ArrayMirror filler = strategy.newArray(numShift);
-            filler.copyTo(store, 0, size - numShift, numShift);
+            strategy.setStore(array, store.extractRange(numShift, size).getArray());
             setSize(array, size - numShift);
 
             return createArray(result.getArray(), numShift);
@@ -1900,11 +1979,12 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "!isEmptyArray(array)", "isSmall(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public DynamicObject sortVeryShort(VirtualFrame frame, DynamicObject array, NotProvided block,
                 @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
                 @Cached("create()") CallDispatchHeadNode compareDispatchNode,
                 @Cached("create()") FixnumLowerNode fixnumLowerNode,
                 @Cached("create()") BranchProfile errorProfile) {
             final ArrayMirror originalStore = strategy.newMirror(array);
-            final ArrayMirror store = strategy.newArray(getContext().getOptions().ARRAY_SMALL);
+            final ArrayMirror store = mutableStrategy.newArray(getContext().getOptions().ARRAY_SMALL);
             final int size = strategy.getSize(array);
 
             // Copy with a exploded loop for PE
@@ -1939,10 +2019,11 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "strategy.matches(array)", "strategy.isPrimitive()" },
                 assumptions = { "getContext().getCoreMethods().fixnumCmpAssumption", "getContext().getCoreMethods().floatCmpAssumption" })
         public Object sortPrimitiveArrayNoBlock(DynamicObject array, NotProvided block,
-                @Cached("of(array)") ArrayStrategy strategy) {
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy) {
             final int size = getSize(array);
             ArrayMirror oldMirror = strategy.newMirror(array);
-            ArrayMirror newMirror = strategy.newArray(size);
+            ArrayMirror newMirror = mutableStrategy.newArray(size);
             oldMirror.copyTo(newMirror, 0, 0, size);
             newMirror.sort(size);
             return createArray(newMirror.getArray(), size);

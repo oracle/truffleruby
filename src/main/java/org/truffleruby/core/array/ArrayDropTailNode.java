@@ -37,8 +37,8 @@ public abstract class ArrayDropTailNode extends RubyNode {
             return createArray(null, 0);
         } else {
             final int newSize = size - index;
-            final Object newStore = strategy.newMirror(array).extractRange(0, newSize).getArray();
-            return createArray(newStore, newSize);
+            final ArrayMirror withoutTail = strategy.makeStorageShared(array).extractRange(0, newSize);
+            return createArray(withoutTail.getArray(), newSize);
         }
     }
 

@@ -36,8 +36,8 @@ public abstract class ArrayGetTailNode extends RubyNode {
         if (indexLargerThanSize.profile(index >= size)) {
             return createArray(null, 0);
         } else {
-            final Object newStore = strategy.newMirror(array).extractRange(index, size).getArray();
-            return createArray(newStore, size - index);
+            final ArrayMirror newStore = strategy.makeStorageShared(array).extractRange(index, size);
+            return createArray(newStore.getArray(), size - index);
         }
     }
 

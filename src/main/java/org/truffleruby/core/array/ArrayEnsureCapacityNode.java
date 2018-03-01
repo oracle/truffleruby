@@ -31,7 +31,28 @@ public abstract class ArrayEnsureCapacityNode extends RubyNode {
 
     public abstract Object executeEnsureCapacity(DynamicObject array, int requiredCapacity);
 
-    @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
+    @Specialization(guards = { "!strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "ARRAY_STRATEGIES")
+    public boolean ensureCapacityAndMakeMutable(DynamicObject array, int requiredCapacity,
+            @Cached("of(array)") ArrayStrategy strategy,
+            @Cached("strategy.generalizeForMutation()") ArrayStrategy mutationStrategy,
+            @Cached("createCountingProfile()") ConditionProfile extendProfile) {
+        final ArrayMirror mirror = strategy.newMirror(array);
+
+        final int currentCapacity = mirror.getLength();
+        final int capacity;
+        if (extendProfile.profile(currentCapacity < requiredCapacity)) {
+            capacity = ArrayUtils.capacity(getContext(), currentCapacity, requiredCapacity);
+        } else {
+            capacity = currentCapacity;
+        }
+
+        final ArrayMirror newMirror = mutationStrategy.newArray(capacity);
+        mirror.copyTo(newMirror, 0, 0, currentCapacity);
+        mutationStrategy.setStore(array, newMirror.getArray());
+        return true;
+    }
+
+    @Specialization(guards = { "strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
     public boolean ensureCapacity(DynamicObject array, int requiredCapacity,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {

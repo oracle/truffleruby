@@ -37,26 +37,31 @@ public abstract class ArrayDupNode extends RubyNode {
     }, limit = "getCacheLimit()")
     public DynamicObject dupProfiledSize(DynamicObject from,
             @Cached("of(from)") ArrayStrategy strategy,
+            @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
             @Cached("strategy.getSize(from)") int cachedSize) {
-        return copyExplode(from, strategy, cachedSize);
+        return copyArraySmall(from, strategy, mutableStrategy, cachedSize);
     }
 
     @ExplodeLoop
-    private DynamicObject copyExplode(DynamicObject from, ArrayStrategy strategy, int cachedSize) {
+    private DynamicObject copyArraySmall(DynamicObject from, ArrayStrategy strategy, ArrayStrategy mutableStrategy, int size) {
         final ArrayMirror mirror = strategy.newMirror(from);
-        final ArrayMirror copy = strategy.newArray(cachedSize);
-        for (int i = 0; i < cachedSize; i++) {
+        final ArrayMirror copy = mutableStrategy.newArray(size);
+        for (int i = 0; i < size; i++) {
             copy.set(i, mirror.get(i));
         }
-        return allocateArray(coreLibrary().getArrayClass(), copy.getArray(), cachedSize);
+        return allocateArray(coreLibrary().getArrayClass(), copy.getArray(), size);
+    }
+
+    private DynamicObject copyArray(DynamicObject from, ArrayStrategy strategy, int Size) {
+        final ArrayMirror copy = strategy.makeStorageShared(from).extractRange(0, Size);
+        return allocateArray(coreLibrary().getArrayClass(), copy.getArray(), Size);
     }
 
     @Specialization(guards = "strategy.matches(from)", replaces = "dupProfiledSize", limit = "STORAGE_STRATEGIES")
     public DynamicObject dup(DynamicObject from,
             @Cached("of(from)") ArrayStrategy strategy) {
         final int size = strategy.getSize(from);
-        Object store = strategy.newMirror(from).copyArrayAndMirror().getArray();
-        return allocateArray(coreLibrary().getArrayClass(), store, size);
+        return copyArray(from, strategy, size);
     }
 
     private DynamicObject allocateArray(DynamicObject arrayClass, Object store, int size) {
