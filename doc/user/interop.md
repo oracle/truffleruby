@@ -23,6 +23,8 @@ themselves are explained in the
 * [Threading and interop](#threading-and-interop)
 * [Embedded configuration](#embedded-configuration)
 
+Also see the separate document on [JRuby-compatible Java interop](jruby-java-interop.md).
+
 ## How Ruby responds to messages
 
 ### `IS_EXECUTABLE`
