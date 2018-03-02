@@ -59,7 +59,7 @@ RUN cd truffleruby && ruby tool/jt.rb test fast :language
 RUN cd truffleruby && ruby tool/jt.rb test :library_cext
 RUN cd truffleruby && ruby tool/jt.rb test compiler
 
-# Check we can make a real-world openssl request, testing quite a few things end-to-end
+# Check we can make a real-world openssl request
 RUN cd truffleruby && ruby tool/jt.rb run \
 -ropen-uri \
 -e 'open("https://rubygems.org/") { |f| raise unless f.read.include?("Find, install, and publish RubyGems") }'
