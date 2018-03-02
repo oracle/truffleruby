@@ -21,7 +21,6 @@ I save this image to a local file so it's not just part of my cache, since it
 takes so long to build.
 
 ```
-$ 
 $ docker save -o oraclelinux-llvm.tar oraclelinux-llvm
 $ docker load -i oraclelinux-llvm.tar
 ```
