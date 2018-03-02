@@ -22,6 +22,15 @@ module Truffle::Patching
     'thread_safe' => "#{DIR}/thread_safe",
   }
 
+  def self.paths_depending_on_home
+    raise 'patching: should only have the stdlib path' unless ORIGINALS.size == 1
+    [
+      DIR,
+      *PATCHES.values,
+      *ORIGINALS.values[0]
+    ]
+  end
+
   def log(name, path)
     Truffle::System.log :PATCH,
                         "patching '#{name}' by inserting directory '#{path}' in LOAD_PATH before the original paths"
