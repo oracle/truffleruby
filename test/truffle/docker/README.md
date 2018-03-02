@@ -25,8 +25,8 @@ if you are testing a pre-release.
 Docker will need to run the container with at least 8 GB of RAM if you are using
 virtualisation, to give enough space for the native image to build.
 
-Note that the Oracle Linux Dockerfile takes much longer to run, as it builds
-LLVM from source.
+Note that the Oracle Linux Dockerfile needs the `oraclelinux-llvm` image from
+`tool/docker/oraclelinux-llvm`.
 
 ## Ruby Managers
 
