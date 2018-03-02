@@ -69,6 +69,7 @@ public class Launcher {
     public static final String LANGUAGE_ID = "ruby";
     public static final String ENGINE_ID = "truffleruby";
     public static final String LANGUAGE_VERSION = "2.3.5";
+    public static final String LANGUAGE_BASE_VERSION = "2.3.0";
     public static final int LANGUAGE_REVISION = 59905;
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
     public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2017 Oracle and/or its affiliates";

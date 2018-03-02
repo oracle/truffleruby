@@ -684,6 +684,7 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_VARARGS", NativeTypes.TYPE_VARARGS);
 
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_VERSION", frozenUSASCIIString(Launcher.LANGUAGE_VERSION));
+        Layouts.MODULE.getFields(truffleModule).setConstant(context, node, "RUBY_BASE_VERSION", frozenUSASCIIString(Launcher.LANGUAGE_BASE_VERSION));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PATCHLEVEL", 0);
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_REVISION", Launcher.LANGUAGE_REVISION);
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE", frozenUSASCIIString(Launcher.ENGINE_ID));

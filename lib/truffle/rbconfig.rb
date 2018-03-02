@@ -48,12 +48,8 @@ module RbConfig
 
   ruby_install_name = 'truffleruby'
 
-  ruby_api_version = RUBY_VERSION.dup
-  raise ruby_api_version unless ruby_api_version[-2] == '.'
-  ruby_api_version[-1] = '0'
-
   ruby_base_name = 'ruby'
-  ruby_version   = ruby_api_version
+  ruby_version   = Truffle::RUBY_BASE_VERSION
 
   arch         = "#{host_cpu}-#{host_os}"
   cppflags     = ''
@@ -100,7 +96,7 @@ module RbConfig
     'RUBY_BASE_NAME'    => ruby_base_name,
     'ruby_install_name' => ruby_install_name,
     'RUBY_INSTALL_NAME' => ruby_install_name,
-    'ruby_version'      => ruby_api_version,
+    'ruby_version'      => ruby_version,
     'target_cpu'        => host_cpu,
     'target_os'         => host_os,
   }

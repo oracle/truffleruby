@@ -102,7 +102,7 @@ Truffle::Boot.delay do
   if ruby_home
     # Does not exist but it's used by rubygems to determine index where to insert gem lib directories, as a result
     # paths supplied by -I will stay before gem lib directories.
-    $LOAD_PATH.push "#{ruby_home}/lib/ruby/site_ruby/2.3.0"
+    $LOAD_PATH.push "#{ruby_home}/lib/ruby/site_ruby/#{Truffle::RUBY_BASE_VERSION}"
 
     $LOAD_PATH.push "#{ruby_home}/lib/truffle"
     $LOAD_PATH.push "#{ruby_home}/lib/mri"
