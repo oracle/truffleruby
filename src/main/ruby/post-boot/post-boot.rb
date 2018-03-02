@@ -22,7 +22,6 @@ unless Truffle::Boot.ruby_home.nil?
     if Truffle::Boot.get_option('patching')
       Truffle::Boot.print_time_metric :'before-patching'
       require 'truffle/patching'
-      # TODO
       Truffle::Patching.insert_patching_dir 'stdlib', "#{Truffle::Boot.ruby_home}/lib/mri"
       Truffle::Boot.print_time_metric :'after-patching'
     end
@@ -95,9 +94,10 @@ unless Truffle::Boot.ruby_home.nil?
 
   if Truffle::Boot.preinitializing?
     old_home = Truffle::Boot.ruby_home
+    patching_paths = Truffle::Patching.paths_depending_on_home
     Truffle::Boot.delay do
       new_home = Truffle::Boot.ruby_home
-      [$LOAD_PATH, $LOADED_FEATURES].each do |array|
+      [$LOAD_PATH, $LOADED_FEATURES, patching_paths].each do |array|
         array.each do |path|
           if path.start_with?(old_home)
             path.replace(new_home + path[old_home.size..-1])
