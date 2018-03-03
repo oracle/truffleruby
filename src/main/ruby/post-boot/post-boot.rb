@@ -11,7 +11,7 @@ Truffle::Boot.delay do
   Dir.chdir(wd) unless wd.empty?
 end
 
-unless Truffle::Boot.ruby_home.nil?
+if Truffle::Boot.ruby_home
   # Always provided features: ruby --disable-gems -e 'puts $"'
   begin
     require 'enumerator'
