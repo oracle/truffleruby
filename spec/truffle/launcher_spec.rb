@@ -182,26 +182,20 @@ describe "The launcher" do
     it 'appends multiple options' do
       out = ruby_exe("p $LOAD_PATH", options: "-I a -I b")
       $?.success?.should == true
-      line = out.lines.find { |l| /^\[.*\]$/ =~ l }
-      load_path = eval line
-      load_path.should include(*%w[a b])
+      out.should include('["a", "b", ')
     end
 
     it 'parses ,' do
       out = ruby_exe("p $LOAD_PATH", options: "-Xload_paths=a,b")
       $?.success?.should == true
-      line = out.lines.find { |l| /^\[.*\]$/ =~ l }
-      load_path = eval line
-      load_path.should include(*%w[a b])
+      out.should include('["a", "b", ')
     end
 
     it 'parses , respecting escaping' do
       # \\\\ translates to one \
       out = ruby_exe("p $LOAD_PATH", options: "-Xload_paths=a\\\\,b,,\\\\c")
       $?.success?.should == true
-      line = out.lines.find { |l| /^\[.*\]$/ =~ l }
-      load_path = eval line
-      load_path.should include('a,b', '', '\c')
+      out.should include('["a,b", "", "\\\\c", ')
     end
   end
 
