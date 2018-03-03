@@ -180,7 +180,7 @@ describe "The launcher" do
 
   describe 'StringArray option' do
     it 'appends multiple options' do
-      out = ruby_exe("p $LOAD_PATH", options: "-I a -I b", args: "2>&1")
+      out = ruby_exe("p $LOAD_PATH", options: "-I a -I b")
       $?.success?.should == true
       line = out.lines.find { |l| /^\[.*\]$/ =~ l }
       load_path = eval line
@@ -188,7 +188,7 @@ describe "The launcher" do
     end
 
     it 'parses ,' do
-      out = ruby_exe("p $LOAD_PATH", options: "-Xload_paths=a,b", args: "2>&1")
+      out = ruby_exe("p $LOAD_PATH", options: "-Xload_paths=a,b")
       $?.success?.should == true
       line = out.lines.find { |l| /^\[.*\]$/ =~ l }
       load_path = eval line
@@ -197,7 +197,7 @@ describe "The launcher" do
 
     it 'parses , respecting escaping' do
       # \\\\ translates to one \
-      out = ruby_exe("p $LOAD_PATH", options: "-Xload_paths=a\\\\,b,,\\\\c", args: "2>&1")
+      out = ruby_exe("p $LOAD_PATH", options: "-Xload_paths=a\\\\,b,,\\\\c")
       $?.success?.should == true
       line = out.lines.find { |l| /^\[.*\]$/ =~ l }
       load_path = eval line
