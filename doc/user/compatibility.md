@@ -94,8 +94,8 @@ your `-X` options looks like it was actually intended to be as in MRI.
 
 #### Setting the process title doesn't always work
 
-Setting the process title is done as best-effort. It may not work, or the title
-you try to set may be truncated.
+Setting the process title (via `$0` or `Process.setproctitle` in Ruby) is done
+as best-effort. It may not work, or the title you try to set may be truncated.
 
 ## Features with very low performance
 
