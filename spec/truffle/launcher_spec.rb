@@ -29,7 +29,7 @@ describe "The launcher" do
       Dir.mktmpdir do |path|
         Dir.chdir(path) do
           linkname = "linkto#{launcher}"
-          `ln -s #{bindir}/#{launcher} #{linkname}`
+          File.symlink("#{bindir}/#{launcher}", linkname)
           out = `./#{linkname} --version 2>&1`
           out.should =~ test
           $?.success?.should == true unless skip_success
