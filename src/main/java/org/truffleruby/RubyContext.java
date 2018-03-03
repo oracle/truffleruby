@@ -281,15 +281,16 @@ public class RubyContext {
 
         final Options oldOptions = this.options;
         final Options newOptions = createOptions(newEnv);
-        if (!compatibleOptions(oldOptions, newOptions)) {
+        final String oldHome = this.rubyHome;
+        final String newHome = findRubyHome(newOptions);
+        if (!compatibleOptions(oldOptions, newOptions, oldHome, newHome)) {
             return false;
         }
         this.options = newOptions;
+        this.rubyHome = newHome;
 
         this.random = new SecureRandom();
         hashing.patchSeed(generateHashingSeed(random));
-
-        this.rubyHome = findRubyHome(newOptions);
 
         this.truffleNFIPlatform = createNativePlatform();
         encodingManager.initializeDefaultEncodings(truffleNFIPlatform, nativeConfiguration);
@@ -328,12 +329,17 @@ public class RubyContext {
         }
     }
 
-    private boolean compatibleOptions(Options oldOptions, Options newOptions) {
+    private boolean compatibleOptions(Options oldOptions, Options newOptions, String oldHome, String newHome) {
         final String notReusingContext = "not reusing pre-initialized context: ";
 
         if (!newOptions.CORE_LOAD_PATH.equals(OptionsCatalog.CORE_LOAD_PATH.getDefaultValue())) {
             Log.LOGGER.fine(notReusingContext + "-Xcore.load_path is set: " + newOptions.CORE_LOAD_PATH);
             return false; // Should load the specified core files
+        }
+
+        if ((oldHome != null) != (newHome != null)) {
+            Log.LOGGER.fine(notReusingContext + "Ruby home is " + (newHome != null ? "set (" + newHome + ")" : "unset"));
+            return false;
         }
 
         // The core library captures the value of these options (via Truffle::Boot.get_option).
