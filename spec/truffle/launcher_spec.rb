@@ -24,10 +24,12 @@ describe "The launcher" do
 
   launchers.each do |launcher, (test, skip_success)|
     it "'#{launcher}' runs when symlinked" do
+      bindir = RbConfig::CONFIG['bindir']
+      # Use the system tmp dir to not be under the Ruby home dir
       Dir.mktmpdir do |path|
         Dir.chdir(path) do
           linkname = "linkto#{launcher}"
-          `ln -s #{File.join RbConfig::CONFIG['bindir'], launcher.to_s} #{linkname}`
+          `ln -s #{bindir}/#{launcher} #{linkname}`
           out = `./#{linkname} --version 2>&1`
           out.should =~ test
           $?.success?.should == true unless skip_success
