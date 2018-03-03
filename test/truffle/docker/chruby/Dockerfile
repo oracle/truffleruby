@@ -39,3 +39,7 @@ RUN bash -c "source /test/chruby/share/chruby/chruby.sh && chruby"
 
 # Select and run TruffleRuby
 RUN bash -c "source /test/chruby/share/chruby/chruby.sh && chruby truffleruby && ruby --version"
+
+# Check we can install a gem
+RUN mkdir /test/gems
+RUN bash -c "source /test/chruby/share/chruby/chruby.sh && chruby truffleruby && GEM_HOME=/test/gems gem install color && ruby -v -rcolor"

@@ -40,3 +40,7 @@ RUN eval "$(rbenv init -)" && rbenv versions
 
 # Select and run TruffleRuby
 RUN eval "$(rbenv init -)" && rbenv shell truffleruby && ruby --version
+
+# Check we can install a gem
+RUN mkdir /test/gems
+RUN eval "$(rbenv init -)" && rbenv shell truffleruby && GEM_HOME=/test/gems gem install color && ruby -v -rcolor

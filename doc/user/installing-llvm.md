@@ -9,8 +9,8 @@ LLVM 5.0 should also work but is not actively tested.
 Oracle Linux does not include recent-enough LLVM packages, so you will have to
 [build LLVM from scratch](https://llvm.org/docs/CMake.html). You'll need to
 include at least the `libcxx` and `libcxxabi` packages for running, and `clang`
-for building. One way to build is documented in the test Dockerfiles in the
-TruffleRuby source repository.
+for building. One way to build it is documented in the
+`tool/docker/oraclelinux-llvm` Dockerfile in the TruffleRuby source repository.
 
 ## Ubuntu
 

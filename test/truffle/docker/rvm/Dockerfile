@@ -38,3 +38,7 @@ RUN bash -c "source /test/rvm/scripts/rvm && rvm list"
 
 # Select and run TruffleRuby
 RUN bash -c "source /test/rvm/scripts/rvm && rvm use ext-truffleruby && ruby --version"
+
+# Check we can install a gem
+RUN mkdir /test/gems
+RUN bash -c "source /test/rvm/scripts/rvm && rvm use ext-truffleruby && GEM_HOME=/test/gems gem install color && ruby -v -rcolor"
