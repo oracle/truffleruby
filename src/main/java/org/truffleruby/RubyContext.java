@@ -520,7 +520,7 @@ public class RubyContext {
      * account.
      */
     public Hashing getHashing(ReHashable reHashable) {
-        if (preInitializing) {
+        if (isPreInitializing()) {
             preInitializationManager.addReHashable(reHashable);
         }
         return hashing;
