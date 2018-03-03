@@ -44,8 +44,8 @@ describe "The launcher" do
     end
   end
 
-  def should_print_full_java_command(cmd)
-    out   = `#{cmd}`
+  def should_print_full_java_command(options, env: {})
+    out = ruby_exe(nil, options: options, env: env)
     parts = out.split(' ')
     parts[0].should == "$"
     parts[1].should =~ /(java|graalvm)$/
@@ -53,35 +53,37 @@ describe "The launcher" do
   end
 
   it "prints the full java command with -J-cmd" do
-    should_print_full_java_command "#{RbConfig.ruby} -J-cmd --version"
+    should_print_full_java_command "-J-cmd --version"
   end
 
   it "prints the full java command with --jvm.cmd" do
-    should_print_full_java_command "#{RbConfig.ruby} --jvm.cmd --version"
+    should_print_full_java_command "--jvm.cmd --version"
   end
 
   it "prints the full java command with -cmd in JAVA_OPTS" do
-    should_print_full_java_command "JAVA_OPTS=-cmd #{RbConfig.ruby} --version"
+    should_print_full_java_command "--version", env: { "JAVA_OPTS" => "-cmd" }
   end
 
   it "adds options from $JAVA_OPTS to the command" do
     option = '-Dfoo.bar=baz'
     ENV["JAVA_OPTS"] = option
-    out = `#{RbConfig.ruby} -J-cmd --version`
+    out = ruby_exe(nil, options: "-J-cmd --version")
     parts = out.lines[0].split(' ')
     parts.find { |part| part =~ /^(-J:)?#{option}$/ }.should_not be_nil
     $?.success?.should == true
   end
 
   it "preserve spaces in options" do
-    out = `#{RbConfig.ruby} -Xgraal.warn_unless=false -J-Dfoo="value with spaces" -e "print Truffle::System.get_java_property('foo')"`
+    out = ruby_exe("print Truffle::System.get_java_property('foo')", options: '-J-Dfoo="value with spaces"')
     $?.success?.should == true
     out.should == "value with spaces"
   end
 
   it "warns when not using Graal" do
-    out                 = `#{RbConfig.ruby} -e 'p graal: Truffle.graal?' 2>&1`
-    on_graal            = out.lines.include? "{:graal=>true}\n"
+    launcher, *flags = *ruby_exe
+    flags.delete_if { |flag| flag.start_with? "-Xgraal.warn_unless=" }
+    out = `#{launcher} #{flags.join(' ')} -e 'p graal: Truffle.graal?' 2>&1`
+    on_graal = out.lines.include? "{:graal=>true}\n"
     performance_warning = "[ruby] PERFORMANCE this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md\n"
     if on_graal
       out.lines.should_not include performance_warning
@@ -91,62 +93,62 @@ describe "The launcher" do
   end
 
   it "takes options from TRUFFLERUBYOPT" do
-    out = `TRUFFLERUBYOPT=-W2 #{RbConfig.ruby} -e 'puts $VERBOSE'`
+    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "-W2" })
     $?.success?.should == true
     out.should == "true\n"
   end
 
   it "takes options from RUBYOPT" do
-    out = `RUBYOPT=-W2 #{RbConfig.ruby} -e 'puts $VERBOSE'`
+    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "-W2" })
     $?.success?.should == true
     out.should == "true\n"
   end
 
   it "takes options from system properties set in JAVA_OPTS" do
-    out = `JAVA_OPTS=-Dpolyglot.ruby.verbosity=true #{RbConfig.ruby} -e 'puts $VERBOSE'`
+    out = ruby_exe("puts $VERBOSE", env: { "JAVA_OPTS" => "-Dpolyglot.ruby.verbosity=true" })
     $?.success?.should == true
     out.should == "true\n"
   end
 
   it "takes options from system properties set on the command line using -J" do
-    out = `#{RbConfig.ruby} -J-Dpolyglot.ruby.verbosity=true -e 'puts $VERBOSE'`
+    out = ruby_exe("puts $VERBOSE", options: "-J-Dpolyglot.ruby.verbosity=true")
     $?.success?.should == true
     out.should == "true\n"
   end
 
  it "takes options from system properties set on the command line using --jvm" do
-    out = `#{RbConfig.ruby} --jvm.Dpolyglot.ruby.verbosity=true -e 'puts $VERBOSE'`
+    out = ruby_exe("puts $VERBOSE", options: "--jvm.Dpolyglot.ruby.verbosity=true")
     $?.success?.should == true
     out.should == "true\n"
   end
 
   it "takes options from system properties set on the command line using -X" do
-    out = `#{RbConfig.ruby} -Xverbosity=true -e 'puts $VERBOSE'`
+    out = ruby_exe("puts $VERBOSE", options: "-Xverbosity=true")
     $?.success?.should == true
     out.should == "true\n"
   end
 
   it "prioritises options on the command line over system properties" do
-    out = `JAVA_OPTS=-Dpolyglot.ruby.verbosity=nil #{RbConfig.ruby} -W2 -e 'puts $VERBOSE'`
+    out = ruby_exe("puts $VERBOSE", options: "-W2", env: { "JAVA_OPTS" => "-Dpolyglot.ruby.verbosity=nil" })
     $?.success?.should == true
     out.should == "true\n"
   end
 
   it "prioritises options on the command line using -X over system properties" do
-    out = `JAVA_OPTS=-Dpolyglot.ruby.verbosity=nil #{RbConfig.ruby} -Xverbosity=true -e 'puts $VERBOSE'`
+    out = ruby_exe("puts $VERBOSE", options: "-Xverbosity=true", env: { "JAVA_OPTS" => "-Dpolyglot.ruby.verbosity=nil" })
     $?.success?.should == true
     out.should == "true\n"
   end
 
   it "allows -cp in JAVA_OPTS" do
-    out = `JAVA_OPTS='-cp does-not-exist.jar' #{RbConfig.ruby} -J-cmd -e 'puts 14'`
+    out = ruby_exe("puts 14", options: "-J-cmd", env: { "JAVA_OPTS" => "-cp does-not-exist.jar" })
     $?.success?.should == true
     out.lines[0].should include(":does-not-exist.jar")
     out.lines[1].should == "14\n"
   end
 
   it "allows -classpath in JAVA_OPTS" do
-    out = `JAVA_OPTS='-classpath does-not-exist.jar' #{RbConfig.ruby} -J-cmd -e 'puts 14'`
+    out = ruby_exe("puts 14", options: "-J-cmd", env: { "JAVA_OPTS" => "-classpath does-not-exist.jar" })
     $?.success?.should == true
     out.lines[0].should include(":does-not-exist.jar")
     out.lines[1].should == "14\n"
@@ -160,7 +162,7 @@ describe "The launcher" do
    '--jvm.cp='
   ].each do |option|
     it "'#{option}' adds the jar" do
-      out = `#{RbConfig.ruby} #{option}does-not-exist.jar -J-cmd -e 'puts 14'`
+      out = ruby_exe("puts 14", options: "#{option}does-not-exist.jar -J-cmd")
       $?.success?.should == true
       out.lines[0].should include(":does-not-exist.jar")
       out.lines[1].should == "14\n"
@@ -168,26 +170,26 @@ describe "The launcher" do
   end
 
   it "prints available options for -Xoptions" do
-    out = `#{RbConfig.ruby} -Xoptions`
+    out = ruby_exe(nil, options: "-Xoptions")
     $?.success?.should == true
     out.should include("-Xverbosity=")
   end
 
   it "logs options if -Xoptions.log is set" do
-    out = `#{RbConfig.ruby} -Xoptions.log -Xlog=config -e 14 2>&1`
+    out = ruby_exe("14", options: "-Xoptions.log -Xlog=config", args: "2>&1")
     $?.success?.should == true
     out.should include("CONFIG option home=")
   end
 
   it "prints an error for an unknown option" do
-    out = `#{RbConfig.ruby} -Xunknown 2>&1`
+    out = ruby_exe(nil, options: "-Xunknown", args: "2>&1")
     $?.success?.should == false
     out.should include("unknown option")
   end
 
   describe 'StringArray option' do
     it 'appends multiple options' do
-      out       = `#{RbConfig.ruby} -I a -I b -e 'p $LOAD_PATH' 2>&1`
+      out = ruby_exe("p $LOAD_PATH", options: "-I a -I b", args: "2>&1")
       $?.success?.should == true
       line = out.lines.find { |l| /^\[.*\]$/ =~ l }
       load_path = eval line
@@ -195,7 +197,7 @@ describe "The launcher" do
     end
 
     it 'parses ,' do
-      out       = `#{RbConfig.ruby} -Xload_paths=a,b -e 'p $LOAD_PATH' 2>&1`
+      out = ruby_exe("p $LOAD_PATH", options: "-Xload_paths=a,b", args: "2>&1")
       $?.success?.should == true
       line = out.lines.find { |l| /^\[.*\]$/ =~ l }
       load_path = eval line
@@ -204,7 +206,7 @@ describe "The launcher" do
 
     it 'parses , respecting escaping' do
       # \\\\ translates to one \
-      out       = `#{RbConfig.ruby} -Xload_paths=a\\\\,b,,\\\\c -e 'p $LOAD_PATH' 2>&1`
+      out = ruby_exe("p $LOAD_PATH", options: "-Xload_paths=a\\\\,b,,\\\\c", args: "2>&1")
       $?.success?.should == true
       line = out.lines.find { |l| /^\[.*\]$/ =~ l }
       load_path = eval line
@@ -213,7 +215,7 @@ describe "The launcher" do
   end
 
   it "enables deterministic hashing if -Xhashing.deterministic is set" do
-    out = `#{RbConfig.ruby} -Xhashing.deterministic -e 'puts 14.hash' 2>&1`
+    out = ruby_exe("puts 14.hash", options: "-Xhashing.deterministic", args: "2>&1")
     $?.success?.should == true
     out.should include("SEVERE deterministic hashing is enabled - this may make you vulnerable to denial of service attacks")
     out.should include("7141275149799654099")
