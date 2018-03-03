@@ -91,9 +91,14 @@ if Truffle::Boot.ruby_home
       end
     end
   end
+end
 
-  if Truffle::Boot.preinitializing?
-    old_home = Truffle::Boot.ruby_home
+# Post-boot patching when using context pre-initialization
+if Truffle::Boot.preinitializing?
+  old_home = Truffle::Boot.ruby_home
+  if old_home
+    # We need to fix all paths which capture the image build-time home to point
+    # to the runtime home.
     patching_paths = Truffle::Patching.paths_depending_on_home
     Truffle::Boot.delay do
       new_home = Truffle::Boot.ruby_home
