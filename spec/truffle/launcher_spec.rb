@@ -11,14 +11,6 @@ require_relative '../ruby/spec_helper'
 
 describe "The launcher" do
 
-  before :each do
-    @java_opts = ENV["JAVA_OPTS"]
-  end
-
-  after :each do
-    ENV["JAVA_OPTS"] = @java_opts
-  end
-
   require "tmpdir"
 
   launchers = { gem:         /^2\.5\.2\.1$/,
@@ -66,8 +58,7 @@ describe "The launcher" do
 
   it "adds options from $JAVA_OPTS to the command" do
     option = '-Dfoo.bar=baz'
-    ENV["JAVA_OPTS"] = option
-    out = ruby_exe(nil, options: "-J-cmd --version")
+    out = ruby_exe(nil, options: "-J-cmd --version", env: { "JAVA_OPTS" => option })
     parts = out.lines[0].split(' ')
     parts.find { |part| part =~ /^(-J:)?#{option}$/ }.should_not be_nil
     $?.success?.should == true
