@@ -22,7 +22,6 @@ require 'rbconfig'
 require 'pathname'
 
 TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
-M2_REPO         = File.expand_path('~/.m2/repository')
 MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 
@@ -679,12 +678,6 @@ module Commands
 
     if args.delete('--server')
       vm_args += %w[-Xinstrumentation_server_port=8080]
-    end
-
-    if args.delete('--profile')
-      v = Utilities.truffle_version
-      vm_args << "-J-Xbootclasspath/a:#{M2_REPO}/com/oracle/truffle/truffle-debug/#{v}/truffle-debug-#{v}.jar"
-      vm_args << "-J-Dtruffle.profiling.enabled=true"
     end
 
     if args.delete('--igv')
