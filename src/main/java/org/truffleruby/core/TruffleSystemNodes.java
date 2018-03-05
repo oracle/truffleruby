@@ -148,11 +148,7 @@ public abstract class TruffleSystemNodes {
 
         @Specialization
         public Object fullMemoryBarrier() {
-            if (TruffleOptions.AOT) {
-                throw new UnsupportedOperationException();
-            } else {
-                U.fullFence();
-            }
+            U.fullFence();
 
             return nil();
         }
@@ -160,17 +156,13 @@ public abstract class TruffleSystemNodes {
         private static final sun.misc.Unsafe U = loadUnsafe();
 
         private static sun.misc.Unsafe loadUnsafe() {
-            if (TruffleOptions.AOT) {
-                return null;
-            } else {
-                try {
-                    Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
-                    Field f = unsafeClass.getDeclaredField("theUnsafe");
-                    f.setAccessible(true);
-                    return (sun.misc.Unsafe) f.get(null);
-                } catch (Throwable e) {
-                    throw new UnsupportedOperationException(e);
-                }
+            try {
+                Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
+                Field f = unsafeClass.getDeclaredField("theUnsafe");
+                f.setAccessible(true);
+                return (sun.misc.Unsafe) f.get(null);
+            } catch (Throwable e) {
+                throw new UnsupportedOperationException(e);
             }
         }
     }
