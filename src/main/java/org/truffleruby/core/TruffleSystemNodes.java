@@ -56,11 +56,11 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.SymbolTable;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.Platform;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.logging.Level;
@@ -148,23 +148,11 @@ public abstract class TruffleSystemNodes {
 
         @Specialization
         public Object fullMemoryBarrier() {
-            U.fullFence();
+            Pointer.UNSAFE.fullFence();
 
             return nil();
         }
 
-        private static final sun.misc.Unsafe U = loadUnsafe();
-
-        private static sun.misc.Unsafe loadUnsafe() {
-            try {
-                Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
-                Field f = unsafeClass.getDeclaredField("theUnsafe");
-                f.setAccessible(true);
-                return (sun.misc.Unsafe) f.get(null);
-            } catch (Throwable e) {
-                throw new UnsupportedOperationException(e);
-            }
-        }
     }
 
     @CoreMethod(names = "log", isModuleFunction = true, required = 2)
