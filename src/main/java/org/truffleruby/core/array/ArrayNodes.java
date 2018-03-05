@@ -1545,19 +1545,39 @@ public abstract class ArrayNodes {
             return createArray(null, 0);
         }
 
-        @Specialization(guards = { "n > 0", "!isEmptyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
-        public Object popNotEmpty(DynamicObject array, int n,
+        @Specialization(guards = { "n > 0", "!isEmptyArray(array)", "!strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
+        public Object popNotEmptySharedStorage(DynamicObject array, int n,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("createBinaryProfile()") ConditionProfile minProfile) {
             final int size = strategy.getSize(array);
             final int numPop = minProfile.profile(size < n) ? size : n;
-            final ArrayMirror store = strategy.makeStorageShared(array);
+            final ArrayMirror store = strategy.newMirror(array);
 
             // Extract values in a new array
             final ArrayMirror popped = store.extractRange(size - numPop, size);
 
             // Remove the end from the original array.
             setStoreAndSize(array, store.extractRange(0, size - numPop).getArray(), size - numPop);
+
+            return createArray(popped.getArray(), numPop);
+        }
+
+        @Specialization(guards = { "n > 0", "!isEmptyArray(array)", "strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
+        public Object popNotEmptyUnsharedStorage(DynamicObject array, int n,
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("createBinaryProfile()") ConditionProfile minProfile) {
+            final int size = strategy.getSize(array);
+            final int numPop = minProfile.profile(size < n) ? size : n;
+            final ArrayMirror store = strategy.newMirror(array);
+
+            // Extract values in a new array
+            final ArrayMirror popped = strategy.newArray(numPop);
+            store.copyTo(popped, size - numPop, 0, numPop);
+
+            // Remove the end from the original array.
+            final ArrayMirror filler = strategy.newArray(numPop);
+            filler.copyTo(store, 0, size - numPop, numPop);
+            setSize(array, size - numPop);
 
             return createArray(popped.getArray(), numPop);
         }
