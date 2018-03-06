@@ -52,6 +52,7 @@ public class Options {
     public final boolean NATIVE_INTERRUPT;
     public final boolean HANDLE_INTERRUPT;
     public final boolean CEXT_LOCK;
+    public final boolean PREINITIALIZATION;
     public final boolean TRACE_CALLS;
     public final boolean COVERAGE_GLOBAL;
     public final boolean INLINE_JS;
@@ -175,6 +176,7 @@ public class Options {
         NATIVE_INTERRUPT = builder.getOrDefault(OptionsCatalog.NATIVE_INTERRUPT, NATIVE_PLATFORM);
         HANDLE_INTERRUPT = builder.getOrDefault(OptionsCatalog.HANDLE_INTERRUPT, !EMBEDDED);
         CEXT_LOCK = builder.getOrDefault(OptionsCatalog.CEXT_LOCK);
+        PREINITIALIZATION = builder.getOrDefault(OptionsCatalog.PREINITIALIZATION);
         TRACE_CALLS = builder.getOrDefault(OptionsCatalog.TRACE_CALLS);
         COVERAGE_GLOBAL = builder.getOrDefault(OptionsCatalog.COVERAGE_GLOBAL);
         INLINE_JS = builder.getOrDefault(OptionsCatalog.INLINE_JS);
@@ -336,6 +338,8 @@ public class Options {
                 return HANDLE_INTERRUPT;
             case "ruby.cexts.lock":
                 return CEXT_LOCK;
+            case "ruby.preinit":
+                return PREINITIALIZATION;
             case "ruby.trace.calls":
                 return TRACE_CALLS;
             case "ruby.coverage.global":

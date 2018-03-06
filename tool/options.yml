@@ -38,6 +38,7 @@ NATIVE_PLATFORM: [platform.native, boolean, true, Enables native calls via Truff
 NATIVE_INTERRUPT: [platform.native_interrupt, boolean, NATIVE_PLATFORM, Use the SIGVTALRM signal to interrupt native blocking calls]
 HANDLE_INTERRUPT: [platform.handle_interrupt, boolean, '!EMBEDDED', Handle the interrupt signal and raise an Interrupt exception]
 CEXT_LOCK: [cexts.lock, boolean, true, Use a Global Lock when running C extensions]
+PREINITIALIZATION: [preinit, boolean, true, Use the pre-initialized context when available]
 
 TRACE_CALLS: [trace.calls, boolean, true, 'Support tracing (set_trace_func, TracePoint) of method calls']
 COVERAGE_GLOBAL: [coverage.global, boolean, false, Run coverage for all code and print results on exit]
