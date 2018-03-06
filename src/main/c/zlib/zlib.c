@@ -1587,24 +1587,25 @@ deflate_run(VALUE args)
 static VALUE
 rb_deflate_s_deflate(int argc, VALUE *argv, VALUE klass)
 {
-    struct zstream z;
+    struct zstream *z;
     VALUE src, level, dst, args[2];
     int err, lev;
 
     rb_scan_args(argc, argv, "11", &src, &level);
 
+    z = malloc(sizeof(struct zstream));
     lev = ARG_LEVEL(level);
     StringValue(src);
-    zstream_init_deflate(&z);
-    err = deflateInit(&z.stream, lev);
+    zstream_init_deflate(z);
+    err = deflateInit(&z->stream, lev);
     if (err != Z_OK) {
-	raise_zlib_error(err, z.stream.msg);
+	raise_zlib_error(err, z->stream.msg);
     }
-    ZSTREAM_READY(&z);
+    ZSTREAM_READY(z);
 
-    args[0] = (VALUE)&z;
+    args[0] = (VALUE)z;
     args[1] = src;
-    dst = rb_ensure(deflate_run, (VALUE)args, zstream_end, (VALUE)&z);
+    dst = rb_ensure(deflate_run, (VALUE)args, zstream_end, (VALUE)z);
 
     OBJ_INFECT(dst, src);
     return dst;
@@ -1905,21 +1906,22 @@ inflate_run(VALUE args)
 static VALUE
 rb_inflate_s_inflate(VALUE obj, VALUE src)
 {
-    struct zstream z;
+    struct zstream *z;
     VALUE dst, args[2];
     int err;
 
     StringValue(src);
-    zstream_init_inflate(&z);
-    err = inflateInit(&z.stream);
+    z = malloc(sizeof(struct zstream));
+    zstream_init_inflate(z);
+    err = inflateInit(&z->stream);
     if (err != Z_OK) {
-	raise_zlib_error(err, z.stream.msg);
+	raise_zlib_error(err, z->stream.msg);
     }
-    ZSTREAM_READY(&z);
+    ZSTREAM_READY(z);
 
-    args[0] = (VALUE)&z;
+    args[0] = (VALUE)z;
     args[1] = src;
-    dst = rb_ensure(inflate_run, (VALUE)args, zstream_end, (VALUE)&z);
+    dst = rb_ensure(inflate_run, (VALUE)args, zstream_end, (VALUE)z);
 
     OBJ_INFECT(dst, src);
     return dst;
