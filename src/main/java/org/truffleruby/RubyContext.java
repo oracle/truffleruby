@@ -332,6 +332,11 @@ public class RubyContext {
     private boolean compatibleOptions(Options oldOptions, Options newOptions, String oldHome, String newHome) {
         final String notReusingContext = "not reusing pre-initialized context: ";
 
+        if (!newOptions.PREINITIALIZATION) {
+            Log.LOGGER.fine(notReusingContext + "-Xpreinit is false");
+            return false;
+        }
+
         if (!newOptions.CORE_LOAD_PATH.equals(OptionsCatalog.CORE_LOAD_PATH.getDefaultValue())) {
             Log.LOGGER.fine(notReusingContext + "-Xcore.load_path is set: " + newOptions.CORE_LOAD_PATH);
             return false; // Should load the specified core files

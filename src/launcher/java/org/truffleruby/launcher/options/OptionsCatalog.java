@@ -196,6 +196,11 @@ public class OptionsCatalog {
             "Use a Global Lock when running C extensions",
             null,
             true);
+    public static final BooleanOptionDescription PREINITIALIZATION = new BooleanOptionDescription(
+            "ruby.preinit",
+            "Use the pre-initialized context when available",
+            null,
+            true);
     public static final BooleanOptionDescription TRACE_CALLS = new BooleanOptionDescription(
             "ruby.trace.calls",
             "Support tracing (set_trace_func, TracePoint) of method calls",
@@ -696,6 +701,8 @@ public class OptionsCatalog {
                 return HANDLE_INTERRUPT;
             case "ruby.cexts.lock":
                 return CEXT_LOCK;
+            case "ruby.preinit":
+                return PREINITIALIZATION;
             case "ruby.trace.calls":
                 return TRACE_CALLS;
             case "ruby.coverage.global":
@@ -909,6 +916,7 @@ public class OptionsCatalog {
             NATIVE_INTERRUPT,
             HANDLE_INTERRUPT,
             CEXT_LOCK,
+            PREINITIALIZATION,
             TRACE_CALLS,
             COVERAGE_GLOBAL,
             INLINE_JS,
