@@ -7,7 +7,7 @@
 # of jsonnet Formatter has to be changed to use double quotes and hash comments.
 # Alternartivelly Atom ca be used, it has syntax hightliting but no formatter.
 
-local overlay = "be5262d04726cbb2bf50fc08b32257692b40a046";
+local overlay = "52e658eb49e83e3f4976e40ffcbe58ef7b60bfc1";
 
 # For debugging: generated builds will be restricted to those listed in
 # the array. No restriction is applied when it is empty.
@@ -213,7 +213,7 @@ local part_definitions = {
       ],
 
       "$.svm.build_image":: {
-        aot_bin: "$GRAAL_HOME/../substratevm/svmbuild/ruby",
+        aot_bin: "$GRAAL_HOME/../substratevm/ruby",
       },
 
       environment+: {
@@ -240,7 +240,7 @@ local part_definitions = {
       ],
 
       "$.svm.build_image":: {
-        aot_bin: "$GRAAL_HOME/../substratevm-enterprise/svmbuild/ruby",
+        aot_bin: "$GRAAL_HOME/../substratevm-enterprise/ruby",
       },
 
       environment+: {
@@ -256,9 +256,10 @@ local part_definitions = {
         # Workaround for NFI when building with different Truffle versions
         ["mx", "clean"],
         ["mx", "build"],
-        ["mx", "image", "--", "-ruby", ">../../main/aot-build.log"],
+        ["mx", "fetch-languages", "--ruby"],
+        # aot-build.log is used for the build-stats metrics
+        ["./native-image", "-no-server", "--ruby", "|", "tee", "../../main/aot-build.log"],
         ["cd", "../../main"],
-        ["cat", "aot-build.log"],
       ],
 
       local build = self,
