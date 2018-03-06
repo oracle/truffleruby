@@ -695,7 +695,7 @@ public class RubyContext {
 
         // We need a home for context pre-initialization but the Context is built without arguments.
         // Therefore we use a system property set in native-image.properties.
-        final String fromProperty = System.getProperty("polyglot.ruby.home");
+        final String fromProperty = System.getProperty("truffleruby.preinitialization.home");
         if (fromProperty != null && !fromProperty.isEmpty()) {
             final File home = new File(fromProperty);
             if (!isRubyHome(home)) {
