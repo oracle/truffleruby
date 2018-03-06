@@ -15,6 +15,11 @@ guard -> { Truffle.native? } do
       Truffle::Boot.was_preinitialized?.should == true
     end
 
+    it "is not used if -Xpreinit=false is passed" do
+      out = ruby_exe("p Truffle::Boot.was_preinitialized?", options: "-Xpreinit=false")
+      out.should == "false\n"
+    end
+
     it "is used when passing no incompatible options" do
       out = ruby_exe("p Truffle::Boot.was_preinitialized?", options: "-Xlog=fine", args: "2>&1")
       out.should include("patchContext()")
