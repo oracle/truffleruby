@@ -679,63 +679,40 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-classic-svm-graal-enterprise": shared + svm_configurations["svm-graal-enterprise"] + { timelimit: "01:10:00" },
     } +
 
-    local benchmark_names = [
-      "ruby-benchmarks-chunky-mri",
-      "ruby-benchmarks-chunky-jruby",
-      "ruby-benchmarks-chunky-graal-core",
-      "ruby-benchmarks-chunky-graal-enterprise",
-      "ruby-benchmarks-chunky-graal-enterprise-no-om",
-      # "ruby-benchmarks-chunky-svm-graal-core",
-      # "ruby-benchmarks-chunky-svm-graal-enterprise",
-      "ruby-benchmarks-psd-mri",
-      "ruby-benchmarks-psd-jruby",
-      "ruby-benchmarks-psd-graal-core",
-      "ruby-benchmarks-psd-graal-enterprise",
-      "ruby-benchmarks-psd-graal-enterprise-no-om",
-      "ruby-benchmarks-psd-svm-graal-core",
-      "ruby-benchmarks-psd-svm-graal-enterprise",
-      "ruby-benchmarks-asciidoctor-mri",
-      "ruby-benchmarks-asciidoctor-jruby",
-      "ruby-benchmarks-asciidoctor-graal-core",
-      "ruby-benchmarks-asciidoctor-graal-enterprise",
-      "ruby-benchmarks-asciidoctor-graal-enterprise-no-om",
-      "ruby-benchmarks-asciidoctor-svm-graal-core",
-      "ruby-benchmarks-asciidoctor-svm-graal-enterprise",
-      "ruby-benchmarks-other-mri",
-      "ruby-benchmarks-other-jruby",
-      "ruby-benchmarks-other-graal-core",
-      "ruby-benchmarks-other-graal-enterprise",
-      "ruby-benchmarks-other-graal-enterprise-no-om",
-      "ruby-benchmarks-other-svm-graal-core",
-      "ruby-benchmarks-other-svm-graal-enterprise",
-    ];
-    local benchmarks = {
-      "chunky-": $.benchmark.runner + $.benchmark.chunky + { timelimit: "01:00:00" },
-      "psd-": $.benchmark.runner + $.benchmark.psd + { timelimit: "02:00:00" },
-      "asciidoctor-": $.benchmark.runner + $.benchmark.asciidoctor + { timelimit: "00:55:00" },
-      "other-": $.benchmark.runner + $.benchmark.other,
-    };
-    local benchmark_builds = {
-      local svm_build = std.objectHas(svm_configurations, configuration_name),
-      local other_bench = benchmark_name == "other-",
-      local graal = std.startsWith(configuration_name, "graal-"),
-      local chunky = benchmark_name == "chunky-",
-      ["ruby-benchmarks-" + benchmark_name + configuration_name]:
-        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-        benchmarks[benchmark_name] +
-        (if graal && chunky then $.use.sulong else {}) +
-        (other_rubies + graal_configurations + svm_configurations)[configuration_name] +
-        (if other_bench then
-           if !svm_build
-           then $.benchmark.other_extra { timelimit: "00:40:00" }
-           else { timelimit: "01:00:00" }
-         else {})
-      for benchmark_name in std.objectFields(benchmarks)
-      for configuration_name in std.objectFields(other_rubies + graal_configurations + svm_configurations)
-    };
     {
-      [k]: benchmark_builds[k]
-      for k in benchmark_names
+      local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common,
+
+      local chunky = $.benchmark.runner + $.benchmark.chunky + { timelimit: "01:00:00" },
+      "ruby-benchmarks-chunky-mri": shared + chunky + other_rubies.mri,
+      "ruby-benchmarks-chunky-jruby": shared + chunky + other_rubies.jruby,
+      "ruby-benchmarks-chunky-graal-core": shared + chunky + $.use.sulong + graal_configurations["graal-core"],
+      "ruby-benchmarks-chunky-graal-enterprise": shared + chunky + $.use.sulong + graal_configurations["graal-enterprise"],
+      "ruby-benchmarks-chunky-graal-enterprise-no-om": shared + chunky + $.use.sulong + graal_configurations["graal-enterprise-no-om"],
+      local psd = $.benchmark.runner + $.benchmark.psd + { timelimit: "02:00:00" },
+      "ruby-benchmarks-psd-mri": shared + psd + other_rubies.mri,
+      "ruby-benchmarks-psd-jruby": shared + psd + other_rubies.jruby,
+      "ruby-benchmarks-psd-graal-core": shared + psd + graal_configurations["graal-core"],
+      "ruby-benchmarks-psd-graal-enterprise": shared + psd + graal_configurations["graal-enterprise"],
+      "ruby-benchmarks-psd-graal-enterprise-no-om": shared + psd + graal_configurations["graal-enterprise-no-om"],
+      "ruby-benchmarks-psd-svm-graal-core": shared + psd + svm_configurations["svm-graal-core"],
+      "ruby-benchmarks-psd-svm-graal-enterprise": shared + psd + svm_configurations["svm-graal-enterprise"],
+      local asciidoctor = $.benchmark.runner + $.benchmark.asciidoctor + { timelimit: "00:55:00" },
+      "ruby-benchmarks-asciidoctor-mri": shared + asciidoctor + other_rubies.mri,
+      "ruby-benchmarks-asciidoctor-jruby": shared + asciidoctor + other_rubies.jruby,
+      "ruby-benchmarks-asciidoctor-graal-core": shared + asciidoctor + graal_configurations["graal-core"],
+      "ruby-benchmarks-asciidoctor-graal-enterprise": shared + asciidoctor + graal_configurations["graal-enterprise"],
+      "ruby-benchmarks-asciidoctor-graal-enterprise-no-om": shared + asciidoctor + graal_configurations["graal-enterprise-no-om"],
+      "ruby-benchmarks-asciidoctor-svm-graal-core": shared + asciidoctor + svm_configurations["svm-graal-core"],
+      "ruby-benchmarks-asciidoctor-svm-graal-enterprise": shared + asciidoctor + svm_configurations["svm-graal-enterprise"],
+      local other = $.benchmark.runner + $.benchmark.other + $.benchmark.other_extra + { timelimit: "00:40:00" },
+      local svm_other = $.benchmark.runner + $.benchmark.other + { timelimit: "01:00:00" },
+      "ruby-benchmarks-other-mri": shared + other + other_rubies.mri,
+      "ruby-benchmarks-other-jruby": shared + other + other_rubies.jruby,
+      "ruby-benchmarks-other-graal-core": shared + other + graal_configurations["graal-core"],
+      "ruby-benchmarks-other-graal-enterprise": shared + other + graal_configurations["graal-enterprise"],
+      "ruby-benchmarks-other-graal-enterprise-no-om": shared + other + graal_configurations["graal-enterprise-no-om"],
+      "ruby-benchmarks-other-svm-graal-core": shared + svm_other + svm_configurations["svm-graal-core"],
+      "ruby-benchmarks-other-svm-graal-enterprise": shared + svm_other + svm_configurations["svm-graal-enterprise"],
     } +
 
     {
@@ -866,3 +843,4 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   using its full name (e.g. $.run.deploy_and_spec). It's used nowhere else.
 
  */
+
