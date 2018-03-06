@@ -1,12 +1,14 @@
 # File is formatted with
 # `jsonnet fmt --indent 2 --max-blank-lines 2 --sort-imports --string-style d --comment-style h -i ci.jsonnet`
 
-# Visual Sturio Code is recommended for editing jsonnet files.
-# It has 'jsonnet' and 'jsonnet Formatter'
-# plugins which makes it a functioning IDE for jsonnet. The default configuration
-# of jsonnet Formatter has to be changed to use double quotes and hash comments.
-# Alternartivelly Atom ca be used, it has syntax hightliting but no formatter.
+# The Visual Sturio Code is recommended for editing jsonnet files.
+# It has a 'jsonnet' with a output preview. Alternartivelly Atom can be used.
+#
+# Formatter is part of `jsonnet` command, it can be installed with
+# `brew install jsonnet` on mac or with http://linuxbrew.sh/ on a Linux machine
+# with the same command.
 
+# CONFIGURATION
 local overlay = "52e658eb49e83e3f4976e40ffcbe58ef7b60bfc1";
 
 # For debugging: generated builds will be restricted to those listed in
@@ -16,11 +18,13 @@ local restrict_builds_to = [],
 # Set to false to disable overlay application
 local use_overlay = true;
 
-# Support functions
+# Import support functions, they can be replaced with identity functions
+# and it would still work.
 local utils = import "utils.libsonnet";
 
 # All builds are composed **directly** from **independent disjunct composable**
-# jsonnet objects defined in here.
+# jsonnet objects defined in here. Use `+:` to make the objects or arrays
+# stored in fields composable, see http://jsonnet.org/docs/tutorial.html#oo.
 # All used objects used to compose a build are listed
 # where build is defined, there are no other objects in the middle.
 local part_definitions = {
@@ -858,3 +862,4 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   using its full name (e.g. $.run.deploy_and_spec). It's used nowhere else.
 
  */
+
