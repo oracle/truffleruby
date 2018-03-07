@@ -88,8 +88,8 @@ local part_definitions = {
         ["git", "clone", ["mx", "urlrewrite", "https://github.com/graalvm/sulong.git"], "../sulong"],
         ["mx", "sforceimports"],  # ensure versions declared in TruffleRuby
         ["cd", "../sulong"],
-        ["mx", "build"],
         ["mx", "sversions"],
+        ["mx", "build"],
         ["cd", "../main"],
       ],
     },
@@ -741,9 +741,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-cext":
         $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
         $.use.truffleruby + $.use.truffleruby_cexts +
-        # TODO build was previously called before sulong setup, which seems
-        # wrong, was there a reason?
-        $.graal.core + $.use.sulong + $.use.gem_test_pack + $.use.build +
+        $.use.build + $.use.sulong + $.graal.core + $.use.gem_test_pack +
         $.cap.bench + $.cap.daily +
         $.benchmark.runner + $.benchmark.cext_chunky +
         { timelimit: "02:00:00" },
