@@ -59,6 +59,14 @@ guard -> { Truffle.native? } do
       out.should include("not reusing pre-initialized context: Ruby home is unset")
     end
 
+    it "is used when $VERBOSE changes" do
+      code = "p [$VERBOSE, Truffle::Boot.was_preinitialized?]"
+      ruby_exe(code).should == "[false, true]\n"
+      ruby_exe(code, options: "-w").should == "[true, true]\n"
+      ruby_exe(code, options: "-W0").should == "[nil, true]\n"
+      ruby_exe(code, options: "-v").should include "[true, true]\n"
+    end
+
     it "picks up new environment variables" do
       var = "TR_PRE_INIT_NEW_VAR"
       ENV[var] = "true"

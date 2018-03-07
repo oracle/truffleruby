@@ -78,14 +78,16 @@ module Truffle
                  end
              global_variable_set(:$VERBOSE, v) })
 
-    $VERBOSE = case Truffle::Boot.get_option 'verbosity'
-               when :TRUE
-                 true
-               when :FALSE
-                 false
-               when :NIL
-                 nil
-               end
+    Truffle::Boot.redo do
+      $VERBOSE = case Truffle::Boot.get_option 'verbosity'
+                 when :TRUE
+                   true
+                 when :FALSE
+                   false
+                 when :NIL
+                   nil
+                 end
+    end
 
     alias $-v $VERBOSE
     alias $-w $VERBOSE
