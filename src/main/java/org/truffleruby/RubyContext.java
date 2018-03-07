@@ -354,11 +354,6 @@ public class RubyContext {
             return false;
         }
 
-        if (newOptions.VERBOSITY != oldOptions.VERBOSITY) {
-            Log.LOGGER.fine(notReusingContext + "$VERBOSE is " + newOptions.VERBOSITY + " (was " + oldOptions.VERBOSITY + ")");
-            return false;
-        }
-
         // Libraries loaded during pre-initialization
 
         if (newOptions.PATCHING != oldOptions.PATCHING) {
