@@ -6,7 +6,8 @@
 #
 # Formatter is part of `jsonnet` command, it can be installed with
 # `brew install jsonnet` on mac or with http://linuxbrew.sh/ on a Linux machine
-# with the same command.
+# with the same command. Or it can be downloaded from 
+# https://github.com/google/jsonnet/releases and compile.
 
 # CONFIGURATION
 local overlay = "52e658eb49e83e3f4976e40ffcbe58ef7b60bfc1";
