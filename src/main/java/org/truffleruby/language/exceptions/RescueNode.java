@@ -11,7 +11,7 @@ package org.truffleruby.language.exceptions;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.Instrumentable;
+import com.oracle.truffle.api.instrumentation.ProbeNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -21,7 +21,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
-@Instrumentable(factory = RescueNodeWrapper.class)
 public abstract class RescueNode extends RubyNode {
 
     @Child private RubyNode rescueBody;
@@ -59,6 +58,11 @@ public abstract class RescueNode extends RubyNode {
 
         final Object matches = callTripleEqualsNode.call(frame, handlingClass, "===", exception);
         return booleanCastNode.executeToBoolean(matches);
+    }
+
+    @Override
+    public WrapperNode createWrapper(ProbeNode probe) {
+        return new RescueNodeWrapper(this, probe);
     }
 
 }

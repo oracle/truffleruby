@@ -19,7 +19,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
-import com.oracle.truffle.api.instrumentation.Instrumentable;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
@@ -36,7 +35,6 @@ import org.truffleruby.language.control.RaiseException;
         @NodeChild("classToAllocate"),
         @NodeChild("values")
 })
-@Instrumentable(factory = AllocateObjectNodeWrapper.class)
 public abstract class AllocateObjectNode extends RubyNode {
 
     public static AllocateObjectNode create() {

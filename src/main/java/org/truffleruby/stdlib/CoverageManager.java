@@ -17,6 +17,7 @@ import com.oracle.truffle.api.instrumentation.EventBinding;
 import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
+import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
@@ -35,7 +36,7 @@ import java.util.concurrent.atomic.AtomicLongArray;
 
 public class CoverageManager {
 
-    public static class LineTag {
+    public static class LineTag extends Tag {
     }
 
     public static final long NO_CODE = -1;
@@ -83,7 +84,7 @@ public class CoverageManager {
             return;
         }
 
-        binding = instrumenter.attachFactory(SourceSectionFilter.newBuilder()
+        binding = instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder()
                 .mimeTypeIs(RubyLanguage.MIME_TYPE)
                 .sourceIs(coveredSources::contains)
                 .tagIs(LineTag.class)

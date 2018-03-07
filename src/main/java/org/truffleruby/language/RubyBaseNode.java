@@ -17,18 +17,15 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.exception.CoreExceptions;
-import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.CoreStrings;
-import org.truffleruby.stdlib.CoverageManager;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
-import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -44,9 +41,11 @@ public abstract class RubyBaseNode extends Node {
     private static final int FLAG_CALL = 2;
     private static final int FLAG_ROOT = 3;
 
+    private static final int NO_SOURCE = -1;
+
     @CompilationFinal private RubyContext context;
 
-    private int sourceCharIndex = -1;
+    private int sourceCharIndex = NO_SOURCE;
     private int sourceLength;
 
     protected int flags;
@@ -109,12 +108,16 @@ public abstract class RubyBaseNode extends Node {
     // Source section
 
     public void unsafeSetSourceSection(SourceIndexLength sourceSection) {
-        assert sourceCharIndex == -1;
+        assert sourceCharIndex == NO_SOURCE;
         
         if (sourceSection != null) {
             sourceCharIndex = sourceSection.getCharIndex();
             sourceLength = sourceSection.getLength();
         }
+    }
+
+    protected boolean hasSource() {
+        return sourceCharIndex != NO_SOURCE;
     }
 
     protected Source getSource() {
@@ -134,7 +137,7 @@ public abstract class RubyBaseNode extends Node {
     }
 
     public SourceIndexLength getSourceIndexLength() {
-        if (sourceCharIndex == -1) {
+        if (sourceCharIndex == NO_SOURCE) {
             return null;
         } else {
             return new SourceIndexLength(sourceCharIndex, sourceLength);
@@ -145,7 +148,7 @@ public abstract class RubyBaseNode extends Node {
         Node node = this;
 
         while (node != null) {
-            if (node instanceof RubyBaseNode && ((RubyBaseNode) node).sourceCharIndex != -1) {
+            if (node instanceof RubyBaseNode && ((RubyBaseNode) node).sourceCharIndex != NO_SOURCE) {
                 return ((RubyBaseNode) node).getSourceIndexLength();
             }
 
@@ -162,7 +165,7 @@ public abstract class RubyBaseNode extends Node {
     @TruffleBoundary
     @Override
     public SourceSection getSourceSection() {
-        if (sourceCharIndex == -1) {
+        if (sourceCharIndex == NO_SOURCE) {
             return null;
         } else {
             final Source source = getSource();
@@ -193,45 +196,23 @@ public abstract class RubyBaseNode extends Node {
         flags |= 1 << FLAG_ROOT;
     }
 
-    private boolean isNewLine() {
+    protected boolean isNewLine() {
         return ((flags >> FLAG_NEWLINE) & 1) == 1;
     }
 
-    private boolean isCoverageLine() {
+    protected boolean isCoverageLine() {
         return ((flags >> FLAG_COVERAGE_LINE) & 1) == 1;
     }
 
-    private boolean isCall() {
+    protected boolean isCall() {
         return ((flags >> FLAG_CALL) & 1) == 1;
     }
 
-    private boolean isRoot() {
+    protected boolean isRoot() {
         return ((flags >> FLAG_ROOT) & 1) == 1;
     }
 
     protected void transferFlagsTo(RubyBaseNode to) {
         to.flags = flags;
     }
-
-    @Override
-    protected boolean isTaggedWith(Class<?> tag) {
-        if (tag == TraceManager.CallTag.class || tag == StandardTags.CallTag.class) {
-            return isCall();
-        }
-
-        if (tag == TraceManager.LineTag.class || tag == StandardTags.StatementTag.class) {
-            return isNewLine();
-        }
-
-        if (tag == CoverageManager.LineTag.class) {
-            return isCoverageLine();
-        }
-
-        if (tag == StandardTags.RootTag.class) {
-            return isRoot();
-        }
-
-        return false;
-    }
-
 }

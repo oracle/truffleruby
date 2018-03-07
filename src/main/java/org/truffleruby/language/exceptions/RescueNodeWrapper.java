@@ -11,77 +11,64 @@
 package org.truffleruby.language.exceptions;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.InstrumentableFactory;
+import com.oracle.truffle.api.instrumentation.InstrumentableNode.WrapperNode;
 import com.oracle.truffle.api.instrumentation.ProbeNode;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public class RescueNodeWrapper implements InstrumentableFactory<RescueNode> {
+public class RescueNodeWrapper extends RescueNode implements WrapperNode {
+
+    @Child private RescueNode delegateNode;
+    @Child private ProbeNode probeNode;
+
+    RescueNodeWrapper(RescueNode delegateNode, ProbeNode probeNode) {
+        super(null);
+        this.delegateNode = delegateNode;
+        this.probeNode = probeNode;
+    }
 
     @Override
-    public WrapperNode createWrapper(RescueNode delegateNode, ProbeNode probeNode) {
-        return new RescueNodeWrapper0(delegateNode, probeNode);
+    public RescueNode getDelegateNode() {
+        return delegateNode;
     }
 
-    private static final class RescueNodeWrapper0 extends RescueNode implements WrapperNode {
+    @Override
+    public ProbeNode getProbeNode() {
+        return probeNode;
+    }
 
-        @Child private RescueNode delegateNode;
-        @Child private ProbeNode probeNode;
+    @Override
+    public NodeCost getCost() {
+        return NodeCost.NONE;
+    }
 
-        private RescueNodeWrapper0(RescueNode delegateNode, ProbeNode probeNode) {
-            super(null);
-            this.delegateNode = delegateNode;
-            this.probeNode = probeNode;
-        }
-
-        @Override
-        public Node getDelegateNode() {
-            return delegateNode;
-        }
-
-        @Override
-        public ProbeNode getProbeNode() {
-            return probeNode;
-        }
-
-        @Override
-        public NodeCost getCost() {
-            return NodeCost.NONE;
-        }
-
-        @SuppressWarnings("deprecation")
-        @Override
-        public Object execute(VirtualFrame frame) {
+    @Override
+    public Object execute(VirtualFrame frame) {
+        Object returnValue;
+        for (;;) {
+            boolean wasOnReturnExecuted = false;
             try {
                 probeNode.onEnter(frame);
-                Object returnValue = delegateNode.execute(frame);
+                returnValue = delegateNode.execute(frame);
+                wasOnReturnExecuted = true;
                 probeNode.onReturnValue(frame, returnValue);
-                return returnValue;
+                break;
             } catch (Throwable t) {
-                probeNode.onReturnExceptional(frame, t);
+                Object result = probeNode.onReturnExceptionalOrUnwind(frame, t, wasOnReturnExecuted);
+                if (result == ProbeNode.UNWIND_ACTION_REENTER) {
+                    continue;
+                } else if (result != null) {
+                    returnValue = result;
+                    break;
+                }
                 throw t;
             }
         }
-
-        @SuppressWarnings("deprecation")
-        @Override
-        public void doExecuteVoid(VirtualFrame frame) {
-            try {
-                probeNode.onEnter(frame);
-                delegateNode.doExecuteVoid(frame);
-                probeNode.onReturnValue(frame, null);
-            } catch (Throwable t) {
-                probeNode.onReturnExceptional(frame, t);
-                throw t;
-            }
-        }
-
-        @Override
-        public boolean canHandle(VirtualFrame frame, DynamicObject exception) {
-            return delegateNode.canHandle(frame, exception);
-        }
-
+        return returnValue;
     }
 
+    @Override
+    public boolean canHandle(VirtualFrame frame, DynamicObject exception) {
+        return delegateNode.canHandle(frame, exception);
+    }
 }

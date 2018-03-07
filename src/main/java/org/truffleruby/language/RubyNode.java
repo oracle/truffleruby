@@ -9,13 +9,20 @@
  */
 package org.truffleruby.language;
 
+import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.stdlib.CoverageManager;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.Instrumentable;
+import com.oracle.truffle.api.instrumentation.GenerateWrapper;
+import com.oracle.truffle.api.instrumentation.InstrumentableNode;
+import com.oracle.truffle.api.instrumentation.ProbeNode;
+import com.oracle.truffle.api.instrumentation.StandardTags;
+import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.source.SourceSection;
 
-@Instrumentable(factory = RubyNodeWrapper.class)
-public abstract class RubyNode extends RubyBaseNode {
+@GenerateWrapper
+public abstract class RubyNode extends RubyBaseNode implements InstrumentableNode {
 
     public static final RubyNode[] EMPTY_ARRAY = new RubyNode[]{};
     public static final Object[] EMPTY_ARGUMENTS = new Object[]{};
@@ -36,7 +43,37 @@ public abstract class RubyNode extends RubyBaseNode {
         return coreStrings().EXPRESSION.createInstance();
     }
 
+    // Instrumentation
+
+    public WrapperNode createWrapper(ProbeNode probe) {
+        return new RubyNodeWrapper(this, probe);
+    }
+
+    public boolean isInstrumentable() {
+        return hasSource();
+    }
+
     // Boundaries
+
+    public boolean hasTag(Class<? extends Tag> tag) {
+        if (tag == TraceManager.CallTag.class || tag == StandardTags.CallTag.class) {
+            return isCall();
+        }
+
+        if (tag == TraceManager.LineTag.class || tag == StandardTags.StatementTag.class) {
+            return isNewLine();
+        }
+
+        if (tag == CoverageManager.LineTag.class) {
+            return isCoverageLine();
+        }
+
+        if (tag == StandardTags.RootTag.class) {
+            return isRoot();
+        }
+
+        return false;
+    }
 
     @TruffleBoundary
     @Override

@@ -83,7 +83,7 @@ public abstract class TruffleDebugNodes {
                     .tagIs(StandardTags.StatementTag.class)
                     .build();
 
-            final EventBinding<?> breakpoint = getContext().getInstrumenter().attachFactory(filter,
+            final EventBinding<?> breakpoint = getContext().getInstrumenter().attachExecutionEventFactory(filter,
                     eventContext -> new ExecutionEventNode() {
 
                         @Child private YieldNode yieldNode = new YieldNode();

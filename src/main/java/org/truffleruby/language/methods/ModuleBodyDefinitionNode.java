@@ -12,7 +12,9 @@ package org.truffleruby.language.methods;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.Instrumentable;
+import com.oracle.truffle.api.instrumentation.GenerateWrapper;
+import com.oracle.truffle.api.instrumentation.ProbeNode;
+import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import org.truffleruby.collections.ConcurrentOperations;
@@ -28,9 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Define a method from a module body (module/class/class << self ... end).
  */
-// This is @Instrumentable because the class event for set_trace_func must fire after
-// Class#inherited in RunModuleDefinitionNode.
-@Instrumentable(factory = ModuleBodyDefinitionNodeWrapper.class)
+@GenerateWrapper
 public class ModuleBodyDefinitionNode extends RubyNode {
 
     private final String name;
@@ -52,6 +52,11 @@ public class ModuleBodyDefinitionNode extends RubyNode {
 
     public ModuleBodyDefinitionNode(ModuleBodyDefinitionNode node) {
         this(node.name, node.sharedMethodInfo, node.callTarget, node.captureBlock, node.dynamicLexicalScope);
+    }
+
+    @Override
+    public WrapperNode createWrapper(ProbeNode probe) {
+        return new ModuleBodyDefinitionNodeWrapper(this, this, probe);
     }
 
     public InternalMethod createMethod(VirtualFrame frame, LexicalScope staticLexicalScope, DynamicObject module) {
@@ -91,13 +96,12 @@ public class ModuleBodyDefinitionNode extends RubyNode {
         return nil();
     }
 
+
     @Override
-    protected boolean isTaggedWith(Class<?> tag) {
+    public boolean hasTag(Class<? extends Tag> tag) {
         if (tag == TraceManager.ClassTag.class) {
             return true;
         }
-
-        return super.isTaggedWith(tag);
+        return super.hasTag(tag);
     }
-
 }
