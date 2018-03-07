@@ -79,6 +79,7 @@ module Truffle
              global_variable_set(:$VERBOSE, v) })
 
     Truffle::Boot.redo do
+      $DEBUG = Truffle::Boot.get_option 'debug'
       $VERBOSE = case Truffle::Boot.get_option 'verbosity'
                  when :TRUE
                    true
@@ -89,6 +90,7 @@ module Truffle
                  end
     end
 
+    alias $-d $DEBUG
     alias $-v $VERBOSE
     alias $-w $VERBOSE
 
