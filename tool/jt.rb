@@ -821,7 +821,13 @@ module Commands
         pr_number = github_pr_branch.split('/').last
       end
 
-      sh 'git', 'push', '--force', '--no-verify', bb, "#{github_pr_branch}:refs/heads/github/pr/#{pr_number}"
+      target_branch = if Utilities.git_branch.start_with?('release')
+        Utilities.git_branch
+      else
+        "github/pr/#{pr_number}"
+      end
+
+      sh 'git', 'push', '--force', '--no-verify', bb, "#{github_pr_branch}:refs/heads/#{target_branch}"
     end
 
     def pr_update_master(skip_upstream_fetch: false)
