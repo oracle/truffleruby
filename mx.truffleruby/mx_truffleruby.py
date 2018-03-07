@@ -205,6 +205,7 @@ def ruby_testdownstream_sulong(args):
     jt('test', 'mri', '--cext')
     jt('test', 'mri', '--openssl')
     jt('test', 'mri', '--syslog')
+    jt('test', 'mri', 'zlib')
     jt('test', 'bundle')
 
 mx.update_commands(_suite, {

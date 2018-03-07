@@ -245,7 +245,7 @@ ruby/test_file.rb
 ruby/test_extlibs.rb
 erb/test_erb_command.rb
 
-# C extension tests need Sulong and run separately
+# C extension tests which are run separately in mx ruby_testdownstream_sulong
 
 # openssl tests run separately with --openssl
 
@@ -282,6 +282,10 @@ openssl/test_x509store.rb
 
 test_syslog.rb
 syslog/test_syslog_logger.rb
+
+# zlib tests run separately with "jt test mri zlib"
+
+zlib/test_zlib.rb
 
 # C-ext tests run separately with --cext
 
