@@ -530,6 +530,11 @@ class Array
   end
 
   def hash
+    unless Truffle.invoke_primitive(:object_can_contain_object, self)
+      # Primitive arrays do not need the recursion check
+      return hash_internal
+    end
+
     hash_val = size
 
     # This is duplicated and manually inlined code from Thread for performance
@@ -578,6 +583,7 @@ class Array
 
     hash_val
   end
+  Truffle::Graal.always_split instance_method(:hash)
 
   def find_index(obj=undefined)
     super
