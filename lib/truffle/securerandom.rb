@@ -33,11 +33,6 @@
 # p SecureRandom.random_bytes(10) #=> "\323U\030TO\234\357\020\a\337"
 # ...
 
-begin
-  require 'openssl'
-rescue LoadError # rubocop:disable Lint/HandleExceptions
-end
-
 module SecureRandom
   # SecureRandom.random_bytes generates a random binary string.
   #
@@ -55,6 +50,14 @@ module SecureRandom
   # NotImplementedError is raised.
   def self.random_bytes(n=nil)
     n ||= 16
+
+    # Defer loading of OpenSSL until we actually need it. Requiring 'openssl' triggers a full initialization
+    # of OpenSSL, which is quite costly. We don't want to pay that expense if we never end up using anything
+    # from OpenSSL.
+    begin
+      require 'openssl'
+    rescue LoadError # rubocop:disable Lint/HandleExceptions
+    end
 
     if defined? OpenSSL::Random
       @pid = 0 if !defined?(@pid)
