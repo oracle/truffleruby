@@ -25,18 +25,6 @@ import org.truffleruby.language.NotProvided;
 @CoreClass("Truffle::Ropes")
 public abstract class TruffleRopesNodes {
 
-    @CoreMethod(names = "debug_print", onSingleton = true, required = 1)
-    public abstract static class DebugPrintNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(string)")
-        public DynamicObject debugPrint(DynamicObject string) {
-            System.err.println(StringOperations.getString(string));
-            return nil();
-        }
-
-    }
-
     @CoreMethod(names = "dump_string", onSingleton = true, required = 1)
     public abstract static class DumpStringNode extends CoreMethodArrayArgumentsNode {
 

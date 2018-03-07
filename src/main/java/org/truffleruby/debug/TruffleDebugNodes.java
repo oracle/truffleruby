@@ -56,6 +56,18 @@ import com.oracle.truffle.api.object.Shape;
 @CoreClass("Truffle::Debug")
 public abstract class TruffleDebugNodes {
 
+    @CoreMethod(names = "print", onSingleton = true, required = 1)
+    public abstract static class DebugPrintNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyString(string)")
+        public DynamicObject debugPrint(DynamicObject string) {
+            System.err.println(StringOperations.getString(string));
+            return nil();
+        }
+
+    }
+
     @CoreMethod(names = "break_handle", onSingleton = true, required = 2, needsBlock = true, lowerFixnum = 2)
     public abstract static class BreakNode extends CoreMethodArrayArgumentsNode {
 
