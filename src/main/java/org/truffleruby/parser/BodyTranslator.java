@@ -62,7 +62,6 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
@@ -3051,9 +3050,9 @@ public class BodyTranslator extends Translator {
             }
 
             if (environment.getBlockDepth() + 1 > 1) {
-                return StringUtils.format("block (%d levels) in %s", environment.getBlockDepth() + 1, methodParent.getNamedMethodName());
+                return "block (" + (environment.getBlockDepth() + 1) + " levels) in " + methodParent.getNamedMethodName();
             } else {
-                return StringUtils.format("block in %s", methodParent.getNamedMethodName());
+                return "block in " + methodParent.getNamedMethodName();
             }
         } else {
             return namedMethodName;
