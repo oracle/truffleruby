@@ -620,9 +620,9 @@ public abstract class ModuleNodes {
             Encoding encoding = Layouts.STRING.getRope(rubySource).getEncoding();
 
             // TODO (pitr 15-Oct-2015): fix this ugly hack, required for AS, copy-paste
-            final String s = new String(new char[Math.max(line - 1, 0)]);
-            final String space = StringUtils.replace(s, "\0", "\n");
-            Source source = Source.newBuilder(space + code).name(file).mimeType(RubyLanguage.MIME_TYPE).build();
+            final char[] emptyLines = new char[Math.max(line - 1, 0)];
+            Arrays.fill(emptyLines, '\n');
+            Source source = Source.newBuilder(new String(emptyLines) + code).name(file).mimeType(RubyLanguage.MIME_TYPE).build();
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, encoding, ParserContext.MODULE, callerFrame, true, this);
             final DeclarationContext declarationContext = new DeclarationContext(Visibility.PUBLIC, new FixedDefaultDefinee(module));
