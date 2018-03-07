@@ -19,6 +19,7 @@ import com.oracle.truffle.api.instrumentation.EventBinding;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
+import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -38,11 +39,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class TraceManager {
-    public static @interface LineTag {
+    public static class LineTag extends Tag {
     }
-    public static @interface CallTag {
+
+    public static class CallTag extends Tag {
     }
-    public static @interface ClassTag {
+
+    public static class ClassTag extends Tag {
     }
     
     private final RubyContext context;
@@ -84,20 +87,20 @@ public class TraceManager {
 
         instruments = new ArrayList<>();
 
-        instruments.add(instrumenter.attachFactory(SourceSectionFilter.newBuilder()
+        instruments.add(instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder()
                         .mimeTypeIs(RubyLanguage.MIME_TYPE)
                         .tagIs(LineTag.class)
                         .build(),
                 eventContext -> new BaseEventEventNode(context, eventContext, traceFunc, context.getCoreStrings().LINE.createInstance())));
 
-        instruments.add(instrumenter.attachFactory(SourceSectionFilter.newBuilder()
+        instruments.add(instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder()
                         .mimeTypeIs(RubyLanguage.MIME_TYPE)
                         .tagIs(ClassTag.class)
                         .build(),
                 eventContext -> new BaseEventEventNode(context, eventContext, traceFunc, context.getCoreStrings().CLASS.createInstance())));
 
         if (context.getOptions().TRACE_CALLS) {
-            instruments.add(instrumenter.attachFactory(SourceSectionFilter.newBuilder()
+            instruments.add(instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder()
                             .mimeTypeIs(RubyLanguage.MIME_TYPE)
                             .tagIs(CallTag.class)
                             .build(),
