@@ -65,7 +65,6 @@ import org.yaml.snakeyaml.events.Event.ID;
 import org.yaml.snakeyaml.events.MappingStartEvent;
 import org.yaml.snakeyaml.events.ScalarEvent;
 import org.yaml.snakeyaml.events.SequenceStartEvent;
-import org.yaml.snakeyaml.parser.Parser;
 import org.yaml.snakeyaml.parser.ParserException;
 import org.yaml.snakeyaml.parser.ParserImpl;
 import org.yaml.snakeyaml.reader.ReaderException;
@@ -133,21 +132,21 @@ public abstract class PsychParserNodes {
         return StringOperations.createString(context, StringOperations.encodeRope(value, encoding));
     }
 
-    @Primitive(name = "pysch_create_parser", needsSelf = false)
+    @Primitive(name = "psych_create_parser", needsSelf = false)
     public abstract static class CreateParserNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(input)")
-        protected Parser createParserString(DynamicObject input) {
+        protected DynamicObject createParserString(DynamicObject input) {
             final StreamReader reader = newStringReader(StringOperations.rope(input));
-            return new ParserImpl(reader);
+            return Layouts.PSYCH_YAML_PARSER.createPsychParser(coreLibrary().getPsychYAMLParserFactory(), new ParserImpl(reader));
         }
 
         @TruffleBoundary
         @Specialization(guards = "!isRubyString(input)")
-        protected Parser createParserIO(DynamicObject input) {
+        protected DynamicObject createParserIO(DynamicObject input) {
             final StreamReader reader = newStreamReader(input);
-            return new ParserImpl(reader);
+            return Layouts.PSYCH_YAML_PARSER.createPsychParser(coreLibrary().getPsychYAMLParserFactory(), new ParserImpl(reader));
         }
 
         private StreamReader newStringReader(Rope rope) {
@@ -166,28 +165,38 @@ public abstract class PsychParserNodes {
     @CoreMethod(names = "get_event", needsSelf = false, required = 1)
     public abstract static class GetEventNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
-        @Specialization
-        protected Event getEvent(Parser parser) {
-            return parser.getEvent();
+        @Specialization(guards = "isParser(parser)")
+        protected DynamicObject getEvent(DynamicObject parser) {
+            final Event event = Layouts.PSYCH_YAML_PARSER.getParser(parser).getEvent();
+            return Layouts.PSYCH_EVENT.createPsychEvent(coreLibrary().getPsychYAMLEventFactory(), event);
+        }
+
+        protected boolean isParser(DynamicObject object) {
+            return Layouts.PSYCH_YAML_PARSER.isPsychParser(object);
         }
     }
 
     @CoreMethod(names = "event?", needsSelf = false, required = 2)
     public abstract static class IsEventNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
-        @Specialization(guards = "isRubySymbol(eventName)")
-        protected boolean isEvent(Event event, DynamicObject eventName) {
+        @Specialization(guards = { "isEventObject(event)", "isRubySymbol(eventName)" })
+        protected boolean isEvent(DynamicObject event, DynamicObject eventName) {
             final ID eventID = Event.ID.valueOf(Layouts.SYMBOL.getString(eventName));
-            return event.is(eventID);
+            return Layouts.PSYCH_EVENT.getEvent(event).is(eventID);
+        }
+
+        protected boolean isEventObject(DynamicObject object) {
+            return Layouts.PSYCH_EVENT.isPsychEvent(object);
         }
     }
 
     @CoreMethod(names = "doc_start_info", needsSelf = false, required = 1, needsBlock = true)
     public abstract static class DocStartInfoNode extends YieldingCoreMethodNode {
         @TruffleBoundary
-        @Specialization
-        protected DynamicObject docStartInfo(DocumentStartEvent startEvent, DynamicObject block) {
+        @Specialization(guards = "isDocumentStartEvent(event)")
+        protected DynamicObject docStartInfo(DynamicObject event, DynamicObject block) {
             final DynamicObject versionArray;
+            final DocumentStartEvent startEvent = (DocumentStartEvent) Layouts.PSYCH_EVENT.getEvent(event);
 
             if (startEvent.getVersion() == null) {
                 versionArray = createArray(null, 0);
@@ -207,29 +216,47 @@ public abstract class PsychParserNodes {
             boolean explicit = startEvent.getExplicit();
             return createArray(new Object[]{ versionArray, explicit }, 2);
         }
+
+        protected boolean isDocumentStartEvent(DynamicObject object) {
+            return Layouts.PSYCH_EVENT.isPsychEvent(object) && Layouts.PSYCH_EVENT.getEvent(object) instanceof DocumentStartEvent;
+
+        }
     }
 
     @CoreMethod(names = "doc_end_explicit?", needsSelf = false, required = 1)
     public abstract static class DocEndExplicitNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        protected boolean docEndExplicit(DocumentEndEvent event) {
-            return event.getExplicit();
+        @Specialization(guards = "isDocumentEndEvent(event)")
+        protected boolean docEndExplicit(DynamicObject event) {
+            DocumentEndEvent documentEndEvent = (DocumentEndEvent) Layouts.PSYCH_EVENT.getEvent(event);
+            return documentEndEvent.getExplicit();
+        }
+
+        protected boolean isDocumentEndEvent(DynamicObject object) {
+            return Layouts.PSYCH_EVENT.isPsychEvent(object) && Layouts.PSYCH_EVENT.getEvent(object) instanceof DocumentEndEvent;
+
         }
     }
 
     @CoreMethod(names = "alias_anchor", needsSelf = false, required = 1)
     public abstract static class AliasAnchorNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        protected DynamicObject aliasAnchor(AliasEvent event) {
-            return stringOrNilFor(getContext(), event.getAnchor());
+        @Specialization(guards = "isAliasEvent(event)")
+        protected DynamicObject aliasAnchor(DynamicObject event) {
+            AliasEvent aliasEvent = (AliasEvent) Layouts.PSYCH_EVENT.getEvent(event);
+            return stringOrNilFor(getContext(), aliasEvent.getAnchor());
+        }
+
+        protected boolean isAliasEvent(DynamicObject object) {
+            return Layouts.PSYCH_EVENT.isPsychEvent(object) && Layouts.PSYCH_EVENT.getEvent(object) instanceof AliasEvent;
+
         }
     }
 
     @CoreMethod(names = "scalar_info", needsSelf = false, required = 1)
     public abstract static class ScalarInfoNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
-        @Specialization
-        protected DynamicObject scalarInfo(ScalarEvent scalarEvent) {
+        @Specialization(guards = "isScalarEvent(event)")
+        protected DynamicObject scalarInfo(DynamicObject event) {
+            ScalarEvent scalarEvent = (ScalarEvent) Layouts.PSYCH_EVENT.getEvent(event);
             final Object anchor = stringOrNilFor(getContext(), scalarEvent.getAnchor());
             final Object tag = stringOrNilFor(getContext(), scalarEvent.getTag());
             final Object plain_implicit = scalarEvent.getImplicit().canOmitTagInPlainScalar();
@@ -240,13 +267,19 @@ public abstract class PsychParserNodes {
             final Object[] store = new Object[]{ value, anchor, tag, plain_implicit, quoted_implicit, style };
             return createArray(store, store.length);
         }
+
+        protected boolean isScalarEvent(DynamicObject object) {
+            return Layouts.PSYCH_EVENT.isPsychEvent(object) && Layouts.PSYCH_EVENT.getEvent(object) instanceof ScalarEvent;
+
+        }
     }
 
     @CoreMethod(names = "seq_start_info", needsSelf = false, required = 1)
     public abstract static class SeqStartInfoNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
-        @Specialization
-        protected DynamicObject seqStartInfo(SequenceStartEvent sequenceStartEvent) {
+        @Specialization(guards = "isSequenceStartEvent(event)")
+        protected DynamicObject seqStartInfo(DynamicObject event) {
+            final SequenceStartEvent sequenceStartEvent = (SequenceStartEvent) Layouts.PSYCH_EVENT.getEvent(event);
             final Object anchor = stringOrNilFor(getContext(), sequenceStartEvent.getAnchor());
             final Object tag = stringOrNilFor(getContext(), sequenceStartEvent.getTag());
             final Object implicit = sequenceStartEvent.getImplicit();
@@ -255,13 +288,19 @@ public abstract class PsychParserNodes {
             final Object[] store = new Object[]{ anchor, tag, implicit, style };
             return createArray(store, store.length);
         }
+
+        protected boolean isSequenceStartEvent(DynamicObject object) {
+            return Layouts.PSYCH_EVENT.isPsychEvent(object) && Layouts.PSYCH_EVENT.getEvent(object) instanceof SequenceStartEvent;
+
+        }
     }
 
     @CoreMethod(names = "mapping_start_info", needsSelf = false, required = 1)
     public abstract static class MappingStartInfoNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
-        @Specialization
-        protected DynamicObject mappingStartInfo(MappingStartEvent mappingStartEvent) {
+        @Specialization(guards = "isMappingStartEvent(event)")
+        protected DynamicObject mappingStartInfo(DynamicObject event) {
+            final MappingStartEvent mappingStartEvent = (MappingStartEvent) Layouts.PSYCH_EVENT.getEvent(event);
             final Object anchor = stringOrNilFor(getContext(), mappingStartEvent.getAnchor());
             final Object tag = stringOrNilFor(getContext(), mappingStartEvent.getTag());
             final Object implicit = mappingStartEvent.getImplicit();
@@ -269,6 +308,11 @@ public abstract class PsychParserNodes {
 
             final Object[] store = new Object[]{ anchor, tag, implicit, style };
             return createArray(store, store.length);
+        }
+
+        protected boolean isMappingStartEvent(DynamicObject object) {
+            return Layouts.PSYCH_EVENT.isPsychEvent(object) && Layouts.PSYCH_EVENT.getEvent(object) instanceof MappingStartEvent;
+
         }
     }
 

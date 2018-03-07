@@ -92,6 +92,10 @@ import org.truffleruby.stdlib.digest.DigestLayout;
 import org.truffleruby.stdlib.digest.DigestLayoutImpl;
 import org.truffleruby.stdlib.psych.EmitterLayout;
 import org.truffleruby.stdlib.psych.EmitterLayoutImpl;
+import org.truffleruby.stdlib.psych.PsychEventLayout;
+import org.truffleruby.stdlib.psych.PsychEventLayoutImpl;
+import org.truffleruby.stdlib.psych.PsychParserLayout;
+import org.truffleruby.stdlib.psych.PsychParserLayoutImpl;
 
 public abstract class Layouts {
 
@@ -140,6 +144,8 @@ public abstract class Layouts {
     public static final UnboundMethodLayout UNBOUND_METHOD = UnboundMethodLayoutImpl.INSTANCE;
     public static final WeakRefLayout WEAK_REF_LAYOUT = WeakRefLayoutImpl.INSTANCE;
     public static final EmitterLayout PSYCH_EMITTER = EmitterLayoutImpl.INSTANCE;
+    public static final PsychEventLayout PSYCH_EVENT = PsychEventLayoutImpl.INSTANCE;
+    public static final PsychParserLayout PSYCH_YAML_PARSER = PsychParserLayoutImpl.INSTANCE;
     public static final RandomizerLayout RANDOMIZER = RandomizerLayoutImpl.INSTANCE;
     public static final AtomicReferenceLayout ATOMIC_REFERENCE = AtomicReferenceLayoutImpl.INSTANCE;
     public static final HandleLayout HANDLE = HandleLayoutImpl.INSTANCE;

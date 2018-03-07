@@ -51,7 +51,7 @@ module Psych
         path = yaml.path
       end
 
-      parser = Truffle.invoke_primitive(:pysch_create_parser, yaml)
+      parser = Truffle.invoke_primitive(:psych_create_parser, yaml)
 
       loop do
         begin
