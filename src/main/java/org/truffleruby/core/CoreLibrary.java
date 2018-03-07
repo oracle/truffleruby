@@ -606,7 +606,6 @@ public class CoreLibrary {
     }
 
     public void initialize() {
-        initializeGlobalVariables();
         initializeConstants();
     }
 
@@ -630,14 +629,6 @@ public class CoreLibrary {
         return method;
     }
 
-    private void initializeGlobalVariables() {
-        GlobalVariables globals = globalVariables;
-
-        debugStorage = globals.put("$DEBUG", context.getOptions().DEBUG);
-        globals.alias("$DEBUG", "$-d");
-
-    }
-
     private Object verbosityOption() {
         switch (context.getOptions().VERBOSITY) {
             case NIL:
@@ -655,6 +646,7 @@ public class CoreLibrary {
         GlobalVariables globals = globalVariables;
         loadPathStorage = globals.getStorage("$LOAD_PATH");
         loadedFeaturesStorage = globals.getStorage("$LOADED_FEATURES");
+        debugStorage = globals.getStorage("$DEBUG");
         verboseStorage = globals.getStorage("$VERBOSE");
         stderrStorage = globals.getStorage("$stderr");
     }
@@ -1092,7 +1084,11 @@ public class CoreLibrary {
     }
 
     public Object getDebug() {
-        return debugStorage.getValue();
+        if (debugStorage != null) {
+            return debugStorage.getValue();
+        } else {
+            return context.getOptions().DEBUG;
+        }
     }
 
     private Object verbosity() {
