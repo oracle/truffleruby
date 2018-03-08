@@ -1,13 +1,13 @@
 # File is formatted with
 # `jsonnet fmt --indent 2 --max-blank-lines 2 --sort-imports --string-style d --comment-style h -i ci.jsonnet`
 
-# The Visual Sturio Code is recommended for editing jsonnet files.
-# It has a 'jsonnet' with a output preview. Alternartivelly Atom can be used.
+# The Visual Studio Code is recommended for editing jsonnet files.
+# It has a 'jsonnet' plugin with a output preview. Alternatively Atom can be used.
 #
 # Formatter is part of `jsonnet` command, it can be installed with
 # `brew install jsonnet` on mac or with http://linuxbrew.sh/ on a Linux machine
 # with the same command. Or it can be downloaded from 
-# https://github.com/google/jsonnet/releases and compile.
+# https://github.com/google/jsonnet/releases and compiled.
 
 # CONFIGURATION
 local overlay = "a14b1782d00bf46901b920761900bde71f49f8aa";
