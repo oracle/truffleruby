@@ -530,9 +530,9 @@ public class CoreLibrary {
         defineModule(truffleModule, "ThreadOperations");
         psychModule = defineModule("Psych");
         publicPsychParserClass = defineClass(psychModule, objectClass, "Parser");
-        psychYAMLParserClass = defineClass(psychModule, objectClass, "YAMLParser");
+        psychYAMLParserClass = defineClass(publicPsychParserClass, objectClass, "YAMLParser");
         psychYAMLParserFactory = Layouts.PSYCH_YAML_PARSER.createPsychParserShape(psychYAMLParserClass, psychYAMLParserClass);
-        psychYAMLEventClass = defineClass(psychModule, objectClass, "YAMLEvent");
+        psychYAMLEventClass = defineClass(publicPsychParserClass, objectClass, "YAMLEvent");
         psychYAMLEventFactory = Layouts.PSYCH_EVENT.createPsychEventShape(psychYAMLEventClass, psychYAMLEventClass);
         final DynamicObject psychHandlerClass = defineClass(psychModule, objectClass, "Handler");
         final DynamicObject psychEmitterClass = defineClass(psychModule, psychHandlerClass, "Emitter");
