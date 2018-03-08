@@ -43,25 +43,21 @@ public abstract class ArrayDupNode extends RubyNode {
     }
 
     @ExplodeLoop
-    private DynamicObject copyArraySmall(DynamicObject from, ArrayStrategy strategy, ArrayStrategy mutableStrategy, int size) {
+    private DynamicObject copyArraySmall(DynamicObject from, ArrayStrategy strategy, ArrayStrategy mutableStrategy, int cachedSize) {
         final ArrayMirror mirror = strategy.newMirror(from);
-        final ArrayMirror copy = mutableStrategy.newArray(size);
-        for (int i = 0; i < size; i++) {
+        final ArrayMirror copy = mutableStrategy.newArray(cachedSize);
+        for (int i = 0; i < cachedSize; i++) {
             copy.set(i, mirror.get(i));
         }
-        return allocateArray(coreLibrary().getArrayClass(), copy.getArray(), size);
-    }
-
-    private DynamicObject copyArray(DynamicObject from, ArrayStrategy strategy, int Size) {
-        final ArrayMirror copy = strategy.makeStorageShared(from).extractRange(0, Size);
-        return allocateArray(coreLibrary().getArrayClass(), copy.getArray(), Size);
+        return allocateArray(coreLibrary().getArrayClass(), copy.getArray(), cachedSize);
     }
 
     @Specialization(guards = "strategy.matches(from)", replaces = "dupProfiledSize", limit = "STORAGE_STRATEGIES")
     public DynamicObject dup(DynamicObject from,
             @Cached("of(from)") ArrayStrategy strategy) {
         final int size = strategy.getSize(from);
-        return copyArray(from, strategy, size);
+        final ArrayMirror copy = strategy.makeStorageShared(from).extractRange(0, size);
+        return allocateArray(coreLibrary().getArrayClass(), copy.getArray(), size);
     }
 
     private DynamicObject allocateArray(DynamicObject arrayClass, Object store, int size) {

@@ -776,7 +776,7 @@ public abstract class ArrayNodes {
             }
         }
 
-        @Specialization(guards = { "strategy != mutableStrategy", "strategy.matches(array)" }, limit = "ARRAY_STRATEGIES")
+        @Specialization(guards = { "!strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "ARRAY_STRATEGIES")
         public Object deleteAtCopying(DynamicObject array, int index,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
@@ -1683,7 +1683,7 @@ public abstract class ArrayNodes {
             return rejectInPlaceInternal(array, block, mutableStrategy, mutableStore);
         }
 
-        private Object rejectInPlaceInternal(DynamicObject array, DynamicObject block, ArrayStrategy strategy, final ArrayMirror store) {
+        private Object rejectInPlaceInternal(DynamicObject array, DynamicObject block, ArrayStrategy strategy, ArrayMirror store) {
             int i = 0;
             int n = 0;
             try {
@@ -1752,15 +1752,11 @@ public abstract class ArrayNodes {
     public abstract static class RotateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
-        public DynamicObject rotateImmutable(DynamicObject array, int rotation,
+        public DynamicObject rotate(DynamicObject array, int rotation,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
                 @Cached("createIdentityProfile()") IntValueProfile rotationProfile) {
-            return rotateInternal(array, rotation, strategy, sizeProfile, rotationProfile, mutableStrategy);
-        }
-
-        private DynamicObject rotateInternal(DynamicObject array, int rotation, ArrayStrategy strategy, IntValueProfile sizeProfile, IntValueProfile rotationProfile, ArrayStrategy mutableStrategy) {
             final int size = sizeProfile.profile(strategy.getSize(array));
             rotation = rotationProfile.profile(rotation);
             assert 0 < rotation && rotation < size;
@@ -1805,7 +1801,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "!strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
-        public DynamicObject rotateImmutable(DynamicObject array, int rotation,
+        public DynamicObject rotateStorageNotMutable(DynamicObject array, int rotation,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
@@ -1918,7 +1914,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)" }, limit = "STORAGE_STRATEGIES")
         public Object shiftOther(DynamicObject array, NotProvided n,
                 @Cached("of(array)") ArrayStrategy strategy) {
-            final ArrayMirror store = strategy.newMirror(array);
+            final ArrayMirror store = strategy.makeStorageShared(array);
             final int size = strategy.getSize(array);
             final Object value = store.get(0);
             strategy.setStore(array, store.extractRange(1, size).getArray());
@@ -1950,7 +1946,7 @@ public abstract class ArrayNodes {
                 @Cached("createBinaryProfile()") ConditionProfile minProfile) {
             final int size = strategy.getSize(array);
             final int numShift = minProfile.profile(size < n) ? size : n;
-            final ArrayMirror store = strategy.newMirror(array);
+            final ArrayMirror store = strategy.makeStorageShared(array);
 
             // Extract values in a new array
             final ArrayMirror result = store.extractRange(0, numShift);
