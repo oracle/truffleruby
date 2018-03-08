@@ -65,8 +65,8 @@ local part_definitions = {
 
     build: {
       setup+: [
-        ["mx", "build", "--force-javac", "--warning-as-error"],
         ["mx", "sversions"],
+        ["mx", "build", "--force-javac", "--warning-as-error"],
       ],
     },
 
