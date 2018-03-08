@@ -57,9 +57,9 @@ public abstract class ArrayStrategy {
 
     public ArrayMirror makeStorageShared(DynamicObject array) {
         final ArrayMirror currentMirror = newMirror(array);
-        final ArrayMirror newMirror = currentMirror.extractRange(0, getSize(array));
-        setStore(array, newMirror.getArray());
-        return newMirror;
+        DelegatedArrayStorage newStore = new DelegatedArrayStorage(currentMirror.getArray(), 0, getSize(array));
+        setStore(array, newStore);
+        return new DelegatedArrayMirror(newStore, this);
     }
 
     public abstract ArrayMirror newArray(int size);
@@ -541,6 +541,11 @@ public abstract class ArrayStrategy {
         @Override
         public ArrayStrategy generalizeForMutation() {
             return IntArrayStrategy.INSTANCE;
+        }
+
+        @Override
+        public ArrayMirror makeStorageShared(DynamicObject array) {
+            return EmptyArrayMirror.INSTANCE;
         }
 
         @Override
