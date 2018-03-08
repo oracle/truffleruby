@@ -174,8 +174,10 @@ local part_definitions = {
     },
 
     enterprise: {
+      # Otherwise sulong will change runtime truffle version
+      is_after_optional+:: ["$.use.sulong"],
       setup+: [
-        [
+        [          
           "git",
           "clone",
           ["mx", "urlrewrite", "https://github.com/graalvm/graal-enterprise.git"],
@@ -207,8 +209,10 @@ local part_definitions = {
   },
 
   svm: {
-    core: {
+    core: {      
       is_after+:: ["$.use.build"],
+      # Otherwise sulong will change runtime truffle version
+      is_after_optional+:: ["$.use.sulong"],
 
       setup+: [
         ["cd", "../graal/substratevm"],
@@ -230,6 +234,8 @@ local part_definitions = {
 
     enterprise: {
       is_after+:: ["$.use.build"],
+      # Otherwise sulong will change runtime truffle version
+      is_after_optional+:: ["$.use.sulong"],
 
       setup+: [
         [
@@ -687,9 +693,9 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local chunky = $.benchmark.runner + $.benchmark.chunky + { timelimit: "01:00:00" },
       "ruby-benchmarks-chunky-mri": shared + chunky + other_rubies.mri,
       "ruby-benchmarks-chunky-jruby": shared + chunky + other_rubies.jruby,
-      "ruby-benchmarks-chunky-graal-core": shared + chunky + graal_configurations["graal-core"] + $.use.sulong,
-      "ruby-benchmarks-chunky-graal-enterprise": shared + chunky + graal_configurations["graal-enterprise"] + $.use.sulong,
-      "ruby-benchmarks-chunky-graal-enterprise-no-om": shared + chunky + graal_configurations["graal-enterprise-no-om"] + $.use.sulong,
+      "ruby-benchmarks-chunky-graal-core": shared + chunky + $.use.sulong + graal_configurations["graal-core"],
+      "ruby-benchmarks-chunky-graal-enterprise": shared + chunky + $.use.sulong + graal_configurations["graal-enterprise"],
+      "ruby-benchmarks-chunky-graal-enterprise-no-om": shared + chunky + $.use.sulong + graal_configurations["graal-enterprise-no-om"],
       local psd = $.benchmark.runner + $.benchmark.psd + { timelimit: "02:00:00" },
       "ruby-benchmarks-psd-mri": shared + psd + other_rubies.mri,
       "ruby-benchmarks-psd-jruby": shared + psd + other_rubies.jruby,
@@ -821,8 +827,9 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     which inter dependency is broken.
 - Few parts depend on othering with other parts, in this case
   they have `is_after+:: ['$.a_group.a_name']` (or `is_before`) which ensures
-  the required part are included in correct order.
-  See $.use.truffleruby_cexts
+  the required part are included in correct order. If the dependecy can be
+  omitted use `is_after_optional+::` instead.
+  See $.use.truffleruby_cexts, $.graal.enterprise
 
 ## How to edit
 

@@ -26,11 +26,19 @@
               [new_prefix],
           } + (
             if std.objectHasAll(content, "is_before")
-            then { is_before:: [[new_prefix, b] for b in content.is_before] }
+            then { is_before:: [[new_prefix, t] for t in content.is_before] }
+            else {}
+          ) + (
+            if std.objectHasAll(content, "is_before_optional")
+            then { is_before_optional:: [[new_prefix, t] for t in content.is_before_optional] }
             else {}
           ) + (
             if std.objectHasAll(content, "is_after")
-            then { is_after:: [[new_prefix, a] for a in content.is_after] }
+            then { is_after:: [[new_prefix, t] for t in content.is_after] }
+            else {}
+          ) + (
+            if std.objectHasAll(content, "is_after_optional")
+            then { is_after_optional:: [[new_prefix, t] for t in content.is_after_optional] }
             else {}
           )
         else
@@ -47,42 +55,39 @@
       for k in std.objectFields(part_definitions)
     },
 
+  check_order_inner:: function(build, where, optional)
+    local field_name = "is_" + where + if optional then "_optional" else "";
+    if std.objectHasAll(build, field_name)
+    then
+      std.foldl(
+        function(r, specifee_target)
+          local specifee = specifee_target[0],
+                target = specifee_target[1],
+                specifee_index = $.index(build.included_parts, specifee),
+                target_index = $.index(build.included_parts, target),
+                check = ((optional && target_index == "none") ||
+                         (target_index != "none" &&
+                          if where == "before"
+                          then specifee_index < target_index
+                          else if where == "after"
+                          then specifee_index > target_index
+                          else error "bad where argument: " + where));
+          (r && check) ||
+          error specifee + " has to be " + where + " " + target +
+                "\nfound in " + build.name + "\nhaving " + build.included_parts,
+        build[field_name],
+        true
+      )
+    else true,
+
   # checks order of parts in included_parts optionally
   # specified in is_after and is_before
   check_order:: function(build)
-    local before_check =
-      (if std.objectHasAll(build, "is_before")
-       then
-         std.foldl(
-           function(r, specifee_before)
-             local specifee = specifee_before[0],
-                   before = specifee_before[1],
-                   specifee_index = $.index(build.included_parts, specifee)[0],
-                   before_index = $.index(build.included_parts, before)[0];
-             (r && specifee_index < before_index) ||
-             error specifee + " has to be before " + before +
-                   "\nfound in " + build.name + "\nhaving " + build.included_parts,
-           build.is_before,
-           true
-         )
-       else true);
-    local after_check =
-      (if std.objectHasAll(build, "is_after")
-       then
-         std.foldl(
-           function(r, specifee_after)
-             local specifee = specifee_after[0],
-                   after = specifee_after[1],
-                   specifee_index = $.index(build.included_parts, specifee)[0],
-                   after_index = $.index(build.included_parts, after)[0];
-             (r && specifee_index > after_index) ||
-             error specifee + " has to be after " + after +
-                   "\nfound in " + build.name + "\nhaving " + build.included_parts,
-           build.is_after,
-           true
-         )
-       else true);
-    if before_check && after_check then build,
+    local before_check = $.check_order_inner(build, "before", false);
+    local before_optional_check = $.check_order_inner(build, "before", true);
+    local after_check = $.check_order_inner(build, "after", false);
+    local after_optional_check = $.check_order_inner(build, "after", true);
+    if before_check && before_optional_check && after_check && after_optional_check then build,
 
   # Ensures that no part is included twice using `included_parts` field.
   included_once_check:: function(build)
@@ -136,6 +141,8 @@
     else error "missing field: " + field + " in " + obj.name,
 
   index:: function(arr, obj)
-    std.filter(function(i) obj == arr[i],
-               std.range(0, std.length(arr) - 1)),
+    local indexes = std.filter(function(i) obj == arr[i], std.range(0, std.length(arr) - 1));
+    if std.length(indexes) == 0
+    then "none"
+    else indexes[0],
 }
