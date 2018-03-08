@@ -399,6 +399,7 @@ local part_definitions = {
       },
       run+: [
         # Build with ECJ to get warnings
+        ["mx", "sversions"],
         ["mx", "build", "--jdt", "$JDT", "--warning-as-error"],
       ] + jt(["lint"]) + [
         ["mx", "findbugs"],
