@@ -35,12 +35,12 @@ local part_definitions = {
     common: {
       local build = self,
       environment+: {
-        path+:: ["$JAVA_HOME/bin", "$MAVEN_HOME/bin", "$PATH"],
+        path+:: [],
         java_opts+:: ["-Xmx2G"],
         CI: "true",
         RUBY_BENCHMARKS: "true",
         JAVA_OPTS: std.join(" ", self.java_opts),
-        PATH: std.join(":", self.path),
+        PATH: std.join(":", self.path + ["$PATH"]),
       },
 
       setup+: [],
@@ -60,6 +60,10 @@ local part_definitions = {
     maven: {
       downloads+: {
         MAVEN_HOME: { name: "maven", version: "3.3.9" },
+      },
+
+      environment+: {
+        path+:: ["$MAVEN_HOME/bin"],
       },
     },
 
@@ -292,6 +296,10 @@ local part_definitions = {
           platformspecific: true,
         },
       },
+
+      environment+: {
+        path+:: ["$JAVA_HOME/bin"],
+      },
     },
 
     labsjdk9: {
@@ -301,6 +309,10 @@ local part_definitions = {
           version: "9+181",
           platformspecific: true,
         },
+      },
+
+      environment+: {
+        path+:: ["$JAVA_HOME/bin"],
       },
     },
   },
