@@ -1,6 +1,18 @@
 #!/usr/bin/env bash
 
-source test/truffle/common.sh.inc
+# get the absolute path of the executable and resolve symlinks
+SELF_PATH=$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")
+while [ -h "$SELF_PATH" ]; do
+    # 1) cd to directory of the symlink
+    # 2) cd to the directory of where the symlink points
+    # 3) get the pwd
+    # 4) append the basename
+    DIR=$(dirname "$SELF_PATH")
+    SYM=$(readlink "$SELF_PATH")
+    SELF_PATH=$(cd "$DIR" && cd "$(dirname "$SYM")" && pwd)/$(basename "$SYM")
+done
+
+source "$(dirname $SELF_PATH)/../common.sh.inc"
 
 function check_launchers() {
     if [ -n "$2" ]
@@ -11,21 +23,58 @@ function check_launchers() {
     [[ "$(${1}gem --version)" =~ ^2.5.2.1$ ]]
     [[ "$(${1}irb --version)" =~ ^irb\ 0.9.6 ]]
     [[ "$(${1}rake --version)" =~ ^rake,\ version\ [0-9.]+ ]]
-    # [[ "$(${1}rdoc --version)" =~ ^4.2.1$ ]] # TODO (pitr-ch 30-Apr-2017): reports 4.3.0 on CI
-    # [[ "$(${1}ri --version)" =~ ^ri\ 4.2.1$ ]] # TODO (pitr-ch 30-Apr-2017): reports 4.3.0 on CI
+    [[ "$(${1}rdoc --version)" =~ ^4.2.1$ ]]
+    [[ "$(${1}ri --version)" =~ ^ri\ 4.2.1$ ]]
 }
+
+function check_in_dir() {
+    cd $1
+    pwd
+    echo "** Check all launchers work in $1 dir"
+    check_launchers "./" true
+    echo "** Check all launchers work in $1 dir using -S option"
+    check_launchers "./truffleruby -S "
+    cd -
+}
+
 
 echo '** Check all launchers work'
 check_launchers bin/ true
+check_in_dir bin
 
-cd bin
+if [[ "$(bin/ruby -Xgraal.warn_unless=false -e "p Truffle.graalvm?")" =~ true ]]
+then
+    check_in_dir ../../bin      # graalvm/jre/bin
+    check_in_dir ../../../bin   # graalvm/bin
+fi
 
-echo '** Check all launchers work from bin dir'
-check_launchers "./" true
 
+echo '** Check gem executables are installed in all bin dirs'
 
-echo '** Check all launchers work from bin dir'
-check_launchers "./truffleruby -S "
+home=$(pwd)
+
+cd "$(dirname $SELF_PATH)/hello-world"
+"$home/bin/gem" build hello-world.gemspec
+"$home/bin/gem" install hello-world-0.0.1.gem
+cd -
+
+version="$(bin/ruby -Xgraal.warn_unless=false -v)"
+test "$(bin/hello-world.rb)" = "Hello world! from $version"
+if [[ "$(bin/ruby -Xgraal.warn_unless=false -e "p Truffle.graalvm?")" =~ true ]]
+then
+    test "$(../../bin/hello-world.rb)" = "Hello world! from $version"
+    test "$(../../../bin/hello-world.rb)" = "Hello world! from $version"
+fi
+
+bin/gem uninstall hello-world -x
+
+test ! -f "bin/hello-world.rb"
+if [[ "$(bin/ruby -Xgraal.warn_unless=false -e "p Truffle.graalvm?")" =~ true ]]
+then
+    test ! -f "../../bin/hello-world.rb"
+    test ! -f "../../../bin/hello-world.rb"
+fi
+
 
 echo '** Check bundled gems'
 
@@ -38,7 +87,7 @@ bundled_gems=(
     "net-telnet 0.1.1"
     "did_you_mean 1.0.0"
 )
-gem_list=$(./gem list)
+gem_list=$(bin/gem list)
 
 for bundled_gem in "${bundled_gems[@]}"
 do
