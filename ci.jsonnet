@@ -421,10 +421,6 @@ local part_definitions = {
 
     test_cexts: {
       is_after+:: ["$.use.common"],
-      environment+: {
-        # TODO why is this option applied?
-        java_opts+:: ["-Dgraal.TruffleCompileOnly=nothing"],
-      },
       run+: [
         ["mx", "--dynamicimports", "sulong", "ruby_testdownstream_sulong"],
       ],
