@@ -8,11 +8,12 @@
 
 import glob
 import os
-from os.path import exists, join
+from os.path import exists, join, dirname
 import shutil
 import sys
 
 import mx
+import mx_subst
 import mx_unittest
 
 if 'RUBY_BENCHMARKS' in os.environ:
@@ -57,16 +58,38 @@ class TruffleRubyLauncherProject(ArchiveProject):
 class TruffleRubyLauncherBuildTask(mx.ArchivableBuildTask):
     def __init__(self, *args):
         mx.ArchivableBuildTask.__init__(self, *args)
+
+        self.jvm_args_file = join(root, 'tool', 'jvm_args')
+        self.mx_env = join(_suite.mxDir, 'env')
+        self.suite_py = _suite.suite_py()
+        self.mx_truffleruby = join(_suite.mxDir, 'mx_truffleruby.py')
+
         self.launcher = join(root, 'bin', 'truffleruby')
         self.binary = join(root, 'tool', 'native_launcher_darwin')
 
     def needsBuild(self, newestInput):
+        if not exists(self.jvm_args_file):
+            return (True, self.jvm_args_file + " does not exist")
+
+        jvm_args = mx.TimeStampFile(self.jvm_args_file)
+        # Depends on mx.truffleruby/env which can change which suites are binary
+        if exists(self.mx_env) and jvm_args.isOlderThan(self.mx_env):
+            return (True, self.jvm_args_file + " is older than " + self.mx_env)
+        # and on suite.py which can change dependencies and the classpath
+        if jvm_args.isOlderThan(self.suite_py):
+            return (True, self.jvm_args_file + " is older than " + self.suite_py)
+        # and on this file which can change the list of distributions for the classpath
+        if jvm_args.isOlderThan(self.mx_truffleruby):
+            return (True, self.jvm_args_file + " is older than " + self.mx_truffleruby)
+
         if sys.platform.startswith('darwin'):
             return (mx.TimeStampFile(self.launcher).isOlderThan(self.binary), self.launcher)
         else:
             return (not exists(self.launcher), self.launcher)
 
     def build(self):
+        self.store_jvm_args()
+
         if sys.platform.startswith('darwin'):
             shutil.copy(self.binary, self.launcher)
         else:
@@ -75,6 +98,32 @@ class TruffleRubyLauncherBuildTask(mx.ArchivableBuildTask):
     def clean(self, forBuild=False):
         if exists(self.launcher):
             os.remove(self.launcher)
+
+    def store_jvm_args(self):
+        jvm_args = mx.get_runtime_jvm_args(['TRUFFLERUBY', 'TRUFFLERUBY-LAUNCHER', 'SULONG'])
+        properties = []
+        while jvm_args:
+            arg = jvm_args.pop(0)
+            if arg == '-cp':
+                classpath = self.relativize(jvm_args.pop(0)).split(':')
+            else:
+                properties.append(self.relativize(arg))
+
+        sulong_libs = mx_subst.path_substitutions.substitute('-Dpolyglot.llvm.libraryPath=<path:SULONG_LIBS>')
+        properties.append(self.relativize(sulong_libs))
+
+        boot_dists = ['GRAAL_SDK', 'TRUFFLE_API', 'LAUNCHER_COMMON']
+        bootclasspath = self.relativize(mx.classpath(boot_dists)).split(':')
+        for jar in bootclasspath:
+            classpath.remove(jar)
+
+        with open(self.jvm_args_file, 'w') as f:
+            f.write('bootclasspath=' + ':'.join(bootclasspath) + '\n')
+            f.write('classpath=' + ':'.join(classpath) + '\n')
+            f.write('properties=("' + '" "'.join(properties) + '")\n')
+
+    def relativize(self, path):
+        return path.replace(_suite.dir, "$root").replace(dirname(_suite.dir), "$root_parent")
 
 # Utilities
 

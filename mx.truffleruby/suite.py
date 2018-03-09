@@ -244,6 +244,11 @@ suite = {
 
         "truffleruby-bin": {
             "class": "TruffleRubyLauncherProject",
+            "buildDependencies": [
+                "TRUFFLERUBY",
+                "TRUFFLERUBY-LAUNCHER",
+                "sulong:SULONG",
+            ],
             "outputDir": "bin",
             "prefix": "bin",
             "license": [
