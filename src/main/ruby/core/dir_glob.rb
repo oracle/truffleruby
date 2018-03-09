@@ -335,7 +335,7 @@ class Dir
       # extensions. So we went ahead and sped up that specific case.
 
       if flags == 0 and
-             m = /^([a-zA-Z0-9_.\/\s]*[a-zA-Z0-9_.])(?:\{([^{}\/\*\?]*)\})?$/.match(pattern)
+             m = /^([a-zA-Z0-9_.\-\/\s]*[a-zA-Z0-9_.])(?:\{([^{}\/\*\?]*)\})?$/.match(pattern)
         # no meta characters, so this is a glorified
         # File.exist? check. We allow for a brace expansion
         # only as a suffix.
