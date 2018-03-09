@@ -594,7 +594,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
                                        $.run.test_compiler,
       # TODO was commented out, needs to be rewritten?
       # {name: "ruby-test-compiler-graal-enterprise"} + linux_gate + $.graal_enterprise + {run: jt(["test", "compiler"])},
-      # {name: "ruby-test-compiler-graal-vm-snapshot"} + linux_gate + $.graal_vm_snapshot + {run: jt(["test", "compiler"])},
     } +
 
     {
@@ -632,7 +631,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     local shared = $.use.truffleruby + $.use.build + $.cap.daily + $.cap.bench,
     # TODO was commented out, needs to be rewritten?
     # { name: "no-graal",               caps: $.weekly_bench_caps, setup: $.no_graal,               kind: "graal"  },
-    # { name: "graal-vm-snapshot",      caps: $.bench_caps,        setup: $.graal_vm_snapshot,      kind: "graal" },
 
     "graal-core": shared + $.graal.core,
     "graal-enterprise": shared + $.graal.enterprise,
