@@ -629,8 +629,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   },
   local graal_configurations = {
     local shared = $.use.truffleruby + $.use.build + $.cap.daily + $.cap.bench,
-    # TODO was commented out, needs to be rewritten?
-    # { name: "no-graal",               caps: $.weekly_bench_caps, setup: $.no_graal,               kind: "graal"  },
 
     "graal-core": shared + $.graal.core,
     "graal-enterprise": shared + $.graal.enterprise,
