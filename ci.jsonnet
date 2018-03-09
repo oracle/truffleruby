@@ -74,12 +74,6 @@ local part_definitions = {
       ],
     },
 
-    sulong: {
-      environment+: {
-        LD_LIBRARY_PATH: "$LLVM/lib:$LD_LIBRARY_PATH",
-      },
-    },
-
     truffleruby: {
       "$.benchmark.server":: { options: [] },
       environment+: {
@@ -575,13 +569,11 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
       "ruby-lint": linux_gate + $.run.lint + { timelimit: "30:00" },  # timilimit override
       "ruby-test-tck": linux_gate + $.use.build + { run+: [["mx", "rubytck"]] },
-      "ruby-test-mri": $.cap.fast_cpu + linux_gate +
-                       $.use.build + $.use.sulong + # OpenSSL is required to run RubyGems tests
-                       $.run.test_mri,
-      "ruby-test-integration": linux_gate + $.use.build + $.use.sulong + $.run.test_integration,
-      "ruby-test-cexts": linux_gate + $.use.build + $.use.sulong + $.use.gem_test_pack + $.run.test_cexts,
+      "ruby-test-mri": $.cap.fast_cpu + linux_gate + $.use.build + $.run.test_mri,
+      "ruby-test-integration": linux_gate + $.use.build + $.run.test_integration,
+      "ruby-test-cexts": linux_gate + $.use.build + $.use.gem_test_pack + $.run.test_cexts,
       "ruby-test-gems": linux_gate + $.use.build + $.use.gem_test_pack + $.run.test_gems,
-      "ruby-test-ecosystem": linux_gate + $.use.build + $.use.sulong + $.use.gem_test_pack + $.run.test_ecosystem,
+      "ruby-test-ecosystem": linux_gate + $.use.build + $.use.gem_test_pack + $.run.test_ecosystem,
 
       "ruby-test-compiler-graal-core": linux_gate + $.use.build + $.use.truffleruby + $.graal.core +
                                        $.run.test_compiler,
@@ -681,9 +673,9 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local chunky = $.benchmark.runner + $.benchmark.chunky + { timelimit: "01:00:00" },
       "ruby-benchmarks-chunky-mri": shared + chunky + other_rubies.mri,
       "ruby-benchmarks-chunky-jruby": shared + chunky + other_rubies.jruby,
-      "ruby-benchmarks-chunky-graal-core": shared + chunky + $.use.sulong + graal_configurations["graal-core"],
-      "ruby-benchmarks-chunky-graal-enterprise": shared + chunky + $.use.sulong + graal_configurations["graal-enterprise"],
-      "ruby-benchmarks-chunky-graal-enterprise-no-om": shared + chunky + $.use.sulong + graal_configurations["graal-enterprise-no-om"],
+      "ruby-benchmarks-chunky-graal-core": shared + chunky + graal_configurations["graal-core"],
+      "ruby-benchmarks-chunky-graal-enterprise": shared + chunky + graal_configurations["graal-enterprise"],
+      "ruby-benchmarks-chunky-graal-enterprise-no-om": shared + chunky + graal_configurations["graal-enterprise-no-om"],
       local psd = $.benchmark.runner + $.benchmark.psd + { timelimit: "02:00:00" },
       "ruby-benchmarks-psd-mri": shared + psd + other_rubies.mri,
       "ruby-benchmarks-psd-jruby": shared + psd + other_rubies.jruby,
@@ -736,7 +728,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-cext":
         $.platform.linux + $.jdk.labsjdk8 + $.use.common +
         $.use.truffleruby + $.use.truffleruby_cexts +
-        $.use.build + $.use.sulong + $.graal.core + $.use.gem_test_pack +
+        $.use.build + $.graal.core + $.use.gem_test_pack +
         $.cap.bench + $.cap.daily +
         $.benchmark.runner + $.benchmark.cext_chunky +
         { timelimit: "02:00:00" },
