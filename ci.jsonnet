@@ -70,7 +70,7 @@ local part_definitions = {
     build: {
       setup+: [
         ["mx", "sversions"],
-        ["mx", "build", "--force-javac", "--warning-as-error"],
+        ["mx", "build", "--force-javac", "--warning-as-error"] + self["$.use.build"].extra_args,
       ],
     },
 
@@ -311,6 +311,7 @@ local part_definitions = {
   platform: {
     linux: {
       local build = self,
+      "$.use.build":: { extra_args: [] },
       "$.run.deploy_and_spec":: { test_spec_options: ["-Gci"] },
       "$.cap":: {
         normal_machine: ["linux", "amd64"],
@@ -324,6 +325,7 @@ local part_definitions = {
       },
     },
     darwin: {
+      "$.use.build":: { extra_args: [] },
       "$.run.deploy_and_spec":: { test_spec_options: ["-GdarwinCI"] },
       "$.cap":: {
         normal_machine: ["darwin_sierra", "amd64"],
@@ -336,6 +338,10 @@ local part_definitions = {
       },
     },
     solaris: {
+      "$.use.build":: {
+        # Sulong cannot be built on Solaris, so only build the TruffleRuby distributions
+        extra_args: ["--dependencies", "TRUFFLERUBY,TRUFFLERUBY-LAUNCHER,TRUFFLERUBY-ZIP,TRUFFLERUBY-TEST,TRUFFLERUBY-SPECS"]
+      },
       "$.run.deploy_and_spec":: { test_spec_options: [] },
       "$.cap":: {
         normal_machine: ["solaris", "sparcv9"],
