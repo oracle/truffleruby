@@ -10,7 +10,7 @@
 # https://github.com/google/jsonnet/releases and compiled.
 
 # CONFIGURATION
-local overlay = "a14b1782d00bf46901b920761900bde71f49f8aa";
+local overlay = "7ddf6eb3821b9e8ebac09b3f53d289626f4eb9bb";
 
 # For debugging: generated builds will be restricted to those listed in
 # the array. No restriction is applied when it is empty.
@@ -357,6 +357,10 @@ local part_definitions = {
     },
     daily: { targets+: ["bench", "daily"] },
     weekly: { targets+: ["weekly"] },
+    manual: {
+      capabilities+: self["$.cap"].normal_machine,
+      targets: [],
+    },
   },
 
   run: {
@@ -748,8 +752,16 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-classic-graal-enterprise-solaris": shared + solaris_benchmarks["graal-enterprise-solaris"],
     },
 
+  release_builds:
+    {
+      "ruby-native-distribution-linux": $.platform.linux + $.cap.manual + $.jdk.labsjdk8 + $.use.common +
+                                        { run+: [["tool/make-native-distribution.sh"]], timelimit: "30:00" },
+      "ruby-native-distribution-darwin": $.platform.darwin + $.cap.manual + $.jdk.labsjdk8 + $.use.common +
+                                         { run+: [["tool/make-native-distribution.sh"]], timelimit: "30:00" },
+    },
+
   builds:
-    local all_builds = $.test_builds + $.bench_builds;
+    local all_builds = $.test_builds + $.bench_builds + $.release_builds;
     utils.check_builds(
       restrict_builds_to,
       # Move name inside into `name` field
