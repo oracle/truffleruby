@@ -6,7 +6,7 @@
 #
 # Formatter is part of `jsonnet` command, it can be installed with
 # `brew install jsonnet` on mac or with http://linuxbrew.sh/ on a Linux machine
-# with the same command. Or it can be downloaded from 
+# with the same command. Or it can be downloaded from
 # https://github.com/google/jsonnet/releases and compiled.
 
 # CONFIGURATION
@@ -177,7 +177,7 @@ local part_definitions = {
       # Otherwise sulong will change runtime truffle version
       is_after_optional+:: ["$.use.sulong"],
       setup+: [
-        [          
+        [
           "git",
           "clone",
           ["mx", "urlrewrite", "https://github.com/graalvm/graal-enterprise.git"],
@@ -209,7 +209,7 @@ local part_definitions = {
   },
 
   svm: {
-    core: {      
+    core: {
       is_after+:: ["$.use.build"],
       # Otherwise sulong will change runtime truffle version
       is_after_optional+:: ["$.use.sulong"],
@@ -583,7 +583,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
       "ruby-lint": linux_gate + $.run.lint + { timelimit: "30:00" },  # timilimit override
       "ruby-test-tck": linux_gate + $.use.build + { run+: [["mx", "rubytck"]] },
-      "ruby-test-mri": $.cap.fast_cpu + linux_gate +                       
+      "ruby-test-mri": $.cap.fast_cpu + linux_gate +
                        $.use.build + $.use.sulong + # OpenSSL is required to run RubyGems tests
                        $.run.test_mri,
       "ruby-test-integration": linux_gate + $.use.build + $.use.sulong + $.run.test_integration,
@@ -850,4 +850,3 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   using its full name (e.g. $.run.deploy_and_spec). It's used nowhere else.
 
  */
-
