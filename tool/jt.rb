@@ -435,7 +435,6 @@ module Commands
           parser                                     build the parser
           options                                    build the options
           cexts                                      build only the C extensions (part of "jt build")
-          sulong                                     update to latest Sulong and build it
           native [sulong] [extra mx image options]   build a native image of TruffleRuby, optionally with Sulong
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt clean                                       clean
@@ -542,18 +541,6 @@ module Commands
       File.write(yytables, File.read(yytables).gsub('package org.jruby.parser;', 'package org.truffleruby.parser.parser;'))
     when 'options'
       sh 'tool/generate-options.rb'
-    when 'sulong'
-      sulong = Utilities.find_or_clone_repo('https://github.com/graalvm/sulong.git')
-      chdir(sulong) do
-        raw_sh 'git', 'pull'
-        # Only update the Truffle import if not shared with TruffleRuby as a source suite
-        if SULONG.binary_suite?('truffle') || TRUFFLERUBY.binary_suite?('truffle')
-          mx 'sforceimports'
-        end
-        mx 'sversions'
-        # SULONG_DOC needed for mx fetch-languages --sulong with SVM
-        mx 'build', '--dependencies', 'SULONG,SULONG_DOC'
-      end
     when "cexts" # Included in 'mx build' but useful to recompile just that part
       require 'etc'
       cores = Etc.respond_to?(:nprocessors) ? Etc.nprocessors : 4
@@ -1817,12 +1804,6 @@ module Commands
     sulong = options.delete "sulong"
 
     build
-    if sulong
-      build('sulong')
-      FileUtils::Verbose.cp_r "#{SULONG.dir}/mxbuild/sulong-libs", "#{TRUFFLERUBY_DIR}/lib/cext"
-      # Repack TRUFFLERUBY-ZIP to include the sulong-libs
-      mx 'build', '--dependencies', 'TRUFFLERUBY-ZIP'
-    end
 
     java_home = install_jvmci
     graal = checkout_or_update_graal_repo
