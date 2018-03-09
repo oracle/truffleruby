@@ -87,15 +87,6 @@ local part_definitions = {
         CPPFLAGS: "-I$LIBGMP/include",
         LD_LIBRARY_PATH: "$LIBGMP/lib:$LLVM/lib:$LD_LIBRARY_PATH",
       },
-
-      setup+: [
-        ["git", "clone", ["mx", "urlrewrite", "https://github.com/graalvm/sulong.git"], "../sulong"],
-        ["mx", "sforceimports"],  # ensure versions declared in TruffleRuby
-        ["cd", "../sulong"],
-        ["mx", "sversions"],
-        ["mx", "build"],
-        ["cd", "../main"],
-      ],
     },
 
     truffleruby: {
