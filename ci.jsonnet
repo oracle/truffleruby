@@ -75,17 +75,8 @@ local part_definitions = {
     },
 
     sulong: {
-      downloads+: {
-        LIBGMP: {
-          name: "libgmp",
-          version: "6.1.0",
-          platformspecific: true,
-        },
-      },
-
       environment+: {
-        CPPFLAGS: "-I$LIBGMP/include",
-        LD_LIBRARY_PATH: "$LIBGMP/lib:$LLVM/lib:$LD_LIBRARY_PATH",
+        LD_LIBRARY_PATH: "$LLVM/lib:$LD_LIBRARY_PATH",
       },
     },
 
