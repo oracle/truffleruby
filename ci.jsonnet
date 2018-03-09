@@ -416,7 +416,7 @@ local part_definitions = {
     test_integration: { run+: jt(["test", "integration"]) },
     test_gems: { run+: jt(["test", "gems"]) },
     test_ecosystem: { run+: jt(["test", "ecosystem"]) },
-    test_bundle: { run+: jt(["test", "bundle", "--no-sulong"]) },
+    test_bundle: { run+: jt(["test", "bundle"]) },
     test_compiler: { run+: jt(["test", "compiler"]) },
 
     test_cexts: {
