@@ -398,10 +398,6 @@ module ShellUtils
     raw_sh Utilities.find_mx, *args
   end
 
-  def mx_sulong(*args)
-    mx '--dynamicimports', 'sulong', *args
-  end
-
   def mspec(command, *args)
     env_vars = {}
     if command.is_a?(Hash)
@@ -1060,7 +1056,7 @@ module Commands
         end
 
         sh 'clang', '-c', '-emit-llvm', *openssl_cflags, 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
-        out, _ = mx_sulong('lli', "-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', capture: true)
+        out, _ = mx('lli', "-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', capture: true)
         raise out.inspect unless out == "5d41402abc4b2a76b9719d911017c592\n"
 
       when 'minimum', 'method', 'module', 'globals', 'backtraces', 'xopenssl'
