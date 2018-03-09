@@ -361,8 +361,9 @@ class Dir
         return matches
       end
 
-      if pattern.include? '{'
-        patterns = compile(pattern, flags)
+      left_brace_index = pattern.index('{')
+      if left_brace_index
+        patterns = compile(pattern, left_brace_index, flags)
 
         patterns.each do |node|
           run node, matches
@@ -374,14 +375,13 @@ class Dir
       end
     end
 
-    def self.compile(pattern, flags=0, patterns=[])
+    def self.compile(pattern, left_brace_index, flags=0, patterns=[])
       escape = (flags & File::FNM_NOESCAPE) == 0
 
+      lbrace = left_brace_index
       rbrace = nil
-      lbrace = nil
 
-      # Do a quick search for a { to start the search better
-      i = pattern.index('{')
+      i = left_brace_index
 
       # If there was a { found, then search
       if i
@@ -391,20 +391,15 @@ class Dir
           char = pattern[i]
 
           if char == '{'
-            lbrace = i if nest == 0
             nest += 1
-          end
-
-          if char == '}'
+          elsif char == '}'
             nest -= 1
-          end
 
-          if nest == 0
-            rbrace = i
-            break
-          end
-
-          if char == '\\' and escape
+            if nest == 0
+              rbrace = i
+              break
+            end
+          elsif char == '\\' and escape
             i += 1
           end
 
@@ -425,10 +420,11 @@ class Dir
           last = pos
 
           while pos < rbrace and not (pattern[pos] == ',' and nest == 0)
-            nest += 1 if pattern[pos] == '{'
-            nest -= 1 if pattern[pos] == '}'
-
-            if pattern[pos] == '\\' and escape
+            if pattern[pos] == '{'
+              nest += 1
+            elsif pattern[pos] == '}'
+              nest -= 1
+            elsif pattern[pos] == '\\' and escape
               pos += 1
               break if pos == rbrace
             end
@@ -436,9 +432,23 @@ class Dir
             pos += 1
           end
 
-          brace_pattern = "#{front}#{pattern[last...pos]}#{back}"
+          middle = pattern[last...pos]
+          brace_pattern = "#{front}#{middle}#{back}"
 
-          compile brace_pattern, flags, patterns
+          # The front part of the constructed string can't possibly have a '{' character, but the other parts might.
+          # By searching each part rather than the constructed string, we can reduce the number of characters that
+          # need to be checked.
+          next_left_brace = middle.index('{')
+          if next_left_brace
+            next_left_brace += front.size
+          else
+            next_left_brace = back.index('{')
+            if next_left_brace
+              next_left_brace += front.size + middle.size
+            end
+          end
+
+          compile brace_pattern, next_left_brace, flags, patterns
         end
 
         # No braces found, match the pattern normally
