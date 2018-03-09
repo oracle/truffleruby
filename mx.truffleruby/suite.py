@@ -13,6 +13,14 @@ suite = {
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
                 ]
             },
+            {
+                "name": "sulong",
+                "version": "f997ffd41955ac79efaa140639bd8ff310d651aa",
+                "urls": [
+                    {"url": "https://github.com/graalvm/sulong.git", "kind": "git"},
+                    {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
+                ]
+            },
         ],
     },
 
