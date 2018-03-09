@@ -56,33 +56,6 @@ end
 # wait for sub-processes to handle the interrupt
 trap(:INT) {}
 
-class MxSuite
-  attr_reader :name, :dir
-  def initialize(name, dir)
-    @name = name
-    @dir = dir
-    @mx_dir = "#{dir}/mx.#{name}"
-  end
-
-  def env_file
-    "#{@mx_dir}/env"
-  end
-
-  def binary_suites
-    return [] unless File.exist?(env_file)
-    line = File.readlines(env_file).find { |line| line.start_with? 'MX_BINARY_SUITES=' }
-    return [] unless line
-    line[/^MX_BINARY_SUITES=(.+)/, 1].split(',')
-  end
-
-  def binary_suite?(suite)
-    binary_suites.include?(suite)
-  end
-end
-
-TRUFFLERUBY = MxSuite.new('truffleruby', TRUFFLERUBY_DIR)
-SULONG = MxSuite.new('sulong', File.expand_path('../sulong', TRUFFLERUBY_DIR))
-
 module Utilities
   def self.truffle_version
     suite = File.read("#{TRUFFLERUBY_DIR}/mx.truffleruby/suite.py")
