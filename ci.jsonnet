@@ -146,6 +146,7 @@ local part_definitions = {
 
   graal: {
     core: {
+      is_after+:: ["$.use.build"],
       setup+: [
         ["cd", "../graal/compiler"],
         ["mx", "sversions"],
@@ -169,8 +170,8 @@ local part_definitions = {
     },
 
     enterprise: {
-      # Otherwise sulong will change runtime truffle version
-      is_after_optional+:: ["$.use.sulong"],
+      # Otherwise the TruffleRuby build will change the runtime Truffle version
+      is_after+:: ["$.use.build"],
       setup+: [
         [
           "git",
@@ -206,8 +207,6 @@ local part_definitions = {
   svm: {
     core: {
       is_after+:: ["$.use.build"],
-      # Otherwise sulong will change runtime truffle version
-      is_after_optional+:: ["$.use.sulong"],
 
       setup+: [
         ["cd", "../graal/substratevm"],
@@ -228,9 +227,8 @@ local part_definitions = {
     },
 
     enterprise: {
+      # Otherwise the TruffleRuby build will change the runtime Truffle version
       is_after+:: ["$.use.build"],
-      # Otherwise sulong will change runtime truffle version
-      is_after_optional+:: ["$.use.sulong"],
 
       setup+: [
         [
