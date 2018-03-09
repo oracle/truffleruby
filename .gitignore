@@ -57,6 +57,7 @@ test/truffle/cexts/**/mkmf.log
 test/truffle/cexts/**/*.o
 test/truffle/cexts/**/*.so
 test/truffle/cexts/**/*.dylib
+test/truffle/ecosystem/hello-world/*.gem
 
 test/mri/tests/cext-c/**/Makefile
 test/mri/tests/cext-c/**/*.bc

@@ -23,16 +23,26 @@ describe "The launcher" do
                 truffleruby: /truffleruby .* like ruby 2\.3\.5/ }
 
   launchers.each do |launcher, (test, skip_success)|
-    it "'#{launcher}' runs when symlinked" do
-      bindir = RbConfig::CONFIG['bindir']
-      # Use the system tmp dir to not be under the Ruby home dir
-      Dir.mktmpdir do |path|
-        Dir.chdir(path) do
-          linkname = "linkto#{launcher}"
-          File.symlink("#{bindir}/#{launcher}", linkname)
-          out = `./#{linkname} --version 2>&1`
-          out.should =~ test
-          $?.success?.should == true unless skip_success
+    bin_dirs = if Truffle.graalvm?
+                graalvm_home = Truffle::System.get_java_property 'org.graalvm.home'
+                %w[bin jre/bin jre/languages/ruby/bin].map do |b|
+                  File.join graalvm_home, b
+                end
+              else
+                [RbConfig::CONFIG['bindir']]
+              end
+
+    bin_dirs.each do |bin_dir|
+      it "'#{launcher}' in '#{bin_dir}' runs when symlinked" do
+        # Use the system tmp dir to not be under the Ruby home dir
+        Dir.mktmpdir do |path|
+          Dir.chdir(path) do
+            linkname = "linkto#{launcher}"
+            File.symlink("#{bin_dir}/#{launcher}", linkname)
+            out = `./#{linkname} --version 2>&1`
+            out.should =~ test
+            $?.success?.should == true unless skip_success
+          end
         end
       end
     end
