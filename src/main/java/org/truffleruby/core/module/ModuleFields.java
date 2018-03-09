@@ -581,7 +581,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     }
 
     private void newConstantsVersion() {
-        constantsUnmodifiedAssumption.invalidate();
+        constantsUnmodifiedAssumption.invalidate(givenBaseName);
     }
 
     public void newHierarchyVersion() {
@@ -590,7 +590,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     }
 
     public void newMethodsVersion() {
-        methodsUnmodifiedAssumption.invalidate();
+        methodsUnmodifiedAssumption.invalidate(givenBaseName);
     }
 
     public Assumption getConstantsUnmodifiedAssumption() {
