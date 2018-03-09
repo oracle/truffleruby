@@ -1261,3 +1261,13 @@ require 'rubygems/core_ext/kernel_gem'
 require 'rubygems/core_ext/kernel_require'
 
 Gem.use_gemdeps
+
+# Add TruffleRuby rubygems hooks to install and uninstall executables from additional
+# GraalVM bin directories (./bin, ./jre/bin)
+if Truffle.graalvm?
+  require 'rubygems/installing_extra_executables'
+  graalvm_home = Truffle::System.get_java_property 'org.graalvm.home'
+  Gem::InstallingExtraExecutables.
+      install_hooks_for File.expand_path(File.join(graalvm_home, 'bin')),
+                        File.expand_path(File.join(graalvm_home, 'jre', 'bin'))
+end
