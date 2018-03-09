@@ -578,8 +578,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local linux_gate = $.platform.linux + $.cap.gate + $.use.maven + $.jdk.labsjdk8 + $.use.common +
-                         { timelimit: "01:00:00" },
+      local linux_gate = $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + { timelimit: "01:00:00" },
 
       "ruby-lint": linux_gate + $.run.lint + { timelimit: "30:00" },  # timilimit override
       "ruby-test-tck": linux_gate + $.use.build + { run+: [["mx", "rubytck"]] },
@@ -607,7 +606,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     local svm_test_platforms = {
-      local shared = $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.svm + $.cap.gate + $.run.svm_gate,
+      local shared = $.jdk.labsjdk8 + $.use.common + $.use.svm + $.cap.gate + $.run.svm_gate,
 
       linux: $.platform.linux + shared + { "$.run.svm_gate":: { tags: "build,ruby_debug,ruby_product" } },
       darwin: $.platform.darwin + shared + { "$.run.svm_gate":: { tags: "build,darwin_ruby" } },
@@ -648,7 +647,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   bench_builds:
     {
-      local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
+      local shared = $.platform.linux + $.jdk.labsjdk8 + $.use.common +
                      $.benchmark.runner + $.benchmark.compiler_metrics + { timelimit: "00:50:00" },
 
       "ruby-metrics-compiler-graal-core": shared + graal_configurations["graal-core"],
@@ -657,7 +656,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
+      local shared = $.platform.linux + $.jdk.labsjdk8 + $.use.common +
                      $.benchmark.runner + $.benchmark.svm_build_stats + { timelimit: "02:00:00" },
       # TODO this 2 jobs have GUEST_VM_CONFIG: 'default' instead of 'truffle', why?
       local guest_vm_override = { environment+: { GUEST_VM_CONFIG: "default" } },
@@ -667,7 +666,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
+      local shared = $.platform.linux + $.jdk.labsjdk8 + $.use.common +
                      $.benchmark.run_svm_metrics + { timelimit: "00:30:00" },
 
       "ruby-metrics-svm-graal-core": shared + svm_configurations["svm-graal-core"] + $.cap.x52_18_override,
@@ -675,7 +674,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
+      local shared = $.platform.linux + $.jdk.labsjdk8 + $.use.common +
                      $.benchmark.runner + $.benchmark.classic,
 
       "ruby-benchmarks-classic-mri": shared + other_rubies.mri + { timelimit: "00:35:00" },
@@ -688,7 +687,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common,
+      local shared = $.platform.linux + $.jdk.labsjdk8 + $.use.common,
 
       local chunky = $.benchmark.runner + $.benchmark.chunky + { timelimit: "01:00:00" },
       "ruby-benchmarks-chunky-mri": shared + chunky + other_rubies.mri,
@@ -724,7 +723,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      local shared = $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
+      local shared = $.platform.linux + $.jdk.labsjdk8 + $.use.common +
                      $.benchmark.runner + $.benchmark.server +
                      { timelimit: "00:20:00" },
 
@@ -737,7 +736,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
     {
       "ruby-metrics-truffle":
-        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.build +
+        $.platform.linux + $.jdk.labsjdk8 + $.use.common + $.use.build +
         $.use.truffleruby + $.graal.none +
         $.cap.bench + $.cap.daily +
         $.benchmark.runner + $.benchmark.metrics +
@@ -746,7 +745,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
     {
       "ruby-benchmarks-cext":
-        $.platform.linux + $.use.maven + $.jdk.labsjdk8 + $.use.common +
+        $.platform.linux + $.jdk.labsjdk8 + $.use.common +
         $.use.truffleruby + $.use.truffleruby_cexts +
         $.use.build + $.use.sulong + $.graal.core + $.use.gem_test_pack +
         $.cap.bench + $.cap.daily +
@@ -755,7 +754,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     local solaris_benchmarks = {
-      local shared = $.platform.solaris + $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.build +
+      local shared = $.platform.solaris + $.jdk.labsjdk8 + $.use.common + $.use.build +
                      $.use.truffleruby + $.cap.bench + $.cap.daily,
 
       "graal-core-solaris": shared + $.graal.core,
