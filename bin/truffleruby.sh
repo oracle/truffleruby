@@ -12,40 +12,6 @@
 
 set -e
 
-# Check platform
-case $(uname) in
-  Linux)
-    os=linux
-    libext=so
-    ;;
-  Darwin)
-    os=darwin
-    libext=dylib
-    ;;
-  SunOS|Solaris)
-    os=solaris
-    libext=so
-    ;;
-  *)
-    echo "unknown platform $(uname)" 1>&2
-    exit 1
-    ;;
-esac
-
-# Check architecture
-case $(uname -m) in
-  x86_64)
-    arch=amd64
-    ;;
-  sun4v)
-    arch=sparcv9
-    ;;
-  *)
-    echo "unknown architecture $(uname -m)" 1>&2
-    exit 1
-    ;;
-esac
-
 # get the absolute path of the executable and resolve symlinks
 SELF_PATH=$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")
 while [ -h "$SELF_PATH" ]; do
@@ -59,12 +25,16 @@ while [ -h "$SELF_PATH" ]; do
 done
 
 root=$(dirname "$(dirname "$SELF_PATH")")
+# Used by jvm_args
 root_parent=$(dirname "$root")
 
 # TODO (pitr-ch 01-Mar-2017): investigate if we still need it
 if [ -n "$RUBY_BIN" ]; then
     exec "$RUBY_BIN" "$@"
 fi
+
+# Source values provided by mx at build time
+source "$root/tool/jvm_args"
 
 # Source truffleruby_env generated for the distribution
 if [ -f "$root/truffleruby_env" ]; then
@@ -86,54 +56,10 @@ CP=""
 # triggered by the default MetaspaceSize (~20MB).
 java_args+=("-XX:MetaspaceSize=25M")
 
-# Truffle
-binary_truffle="$root/mx.imports/binary/truffle/mxbuild"
-source_truffle="$root_parent/graal/truffle/mxbuild"
-if [ -f "$binary_truffle/dists/truffle-api.jar" ]; then # Binary Truffle suite
-    truffle="$binary_truffle"
-    graal_sdk="$(dirname "$binary_truffle")/mx.imports/binary/sdk/mxbuild/dists/graal-sdk.jar"
-    launcher_common="$(dirname "$binary_truffle")/mx.imports/binary/sdk/mxbuild/dists/launcher-common.jar"
-elif [ -f "$source_truffle/dists/truffle-api.jar" ]; then # Source Truffle suite
-    truffle="$source_truffle"
-    graal_sdk="$root_parent/graal/sdk/mxbuild/dists/graal-sdk.jar"
-    launcher_common="$root_parent/graal/sdk/mxbuild/dists/launcher-common.jar"
-else
-    echo "Could not find Truffle jars" 1>&2
-    exit 1
-fi
-java_args+=("-Xbootclasspath/a:$truffle/dists/truffle-api.jar:$graal_sdk:$launcher_common")
-CP="$CP:$truffle/dists/truffle-nfi.jar"
-CP="$CP:$root/mxbuild/dists/truffleruby-launcher.jar"
-CP="$CP:$root/mxbuild/dists/truffleruby.jar"
-
-libtrufflenfi_os_arch="$truffle/$os-$arch/truffle-nfi-native/bin/libtrufflenfi.$libext"
-libtrufflenfi_no_arch="$truffle/truffle-nfi-native/bin/libtrufflenfi.$libext"
-if [ -f "$libtrufflenfi_os_arch" ]; then
-  libtrufflenfi="$libtrufflenfi_os_arch"
-elif [ -f "$libtrufflenfi_no_arch" ]; then
-  # TODO (eregon, 08-Nov-2017): remove fallback
-  libtrufflenfi="$libtrufflenfi_no_arch"
-else
-  echo "libtrufflenfi.$libext found in neither $libtrufflenfi_os_arch nor $libtrufflenfi_no_arch" 1>&2
-  exit 1
-fi
-java_args+=("-Dtruffle.nfi.library=$libtrufflenfi")
-
-# Sulong
-binary_sulong="$root/mx.imports/binary/sulong"
-source_sulong="$root_parent/sulong"
-if [ -f "$binary_sulong/build/sulong.jar" ]; then
-  sulong_root="$binary_sulong"
-elif [ -f "$source_sulong/build/sulong.jar" ]; then
-  sulong_root="$source_sulong"
-else
-  sulong_root=""
-fi
-if [ -n "$sulong_root" ]; then
-  sulong_jar="$sulong_root/build/sulong.jar"
-  CP="$CP:$sulong_jar"
-  java_args+=("-Dpolyglot.llvm.libraryPath=$sulong_root/mxbuild/sulong-libs")
-fi
+# Append values from jvm_args
+java_args+=("-Xbootclasspath/a:$bootclasspath")
+CP="$CP:$classpath"
+java_args+=(${properties[@]})
 
 # no " to split $JAVA_OPTS into array elements
 java_opts=($JAVA_OPTS)
