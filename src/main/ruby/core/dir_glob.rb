@@ -29,6 +29,8 @@
 
 class Dir
   module Glob
+    NO_GLOB_META_CHARS = /^[^*?\[\]{}\\]+$/
+
     class Node
       def initialize(nxt, flags)
         @flags = flags
@@ -285,7 +287,7 @@ class Dir
         last = DirectoriesOnly.new nil, flags
       else
         file = parts.pop
-        if /^[a-zA-Z0-9._]+$/.match(file)
+        if NO_GLOB_META_CHARS.match?(file)
           last = ConstantEntry.new nil, flags, file
         else
           last = EntryMatch.new nil, flags, file
@@ -302,8 +304,8 @@ class Dir
           else
             last = RecursiveDirectories.new last, flags
           end
-        elsif /^[^\*\?\]]+$/.match(dir)
-          while /^[^\*\?\]]+$/.match(parts[-2])
+        elsif NO_GLOB_META_CHARS.match?(dir)
+          while NO_GLOB_META_CHARS.match?(parts[-2])
             next_sep = parts.pop
             next_sect = parts.pop
 
