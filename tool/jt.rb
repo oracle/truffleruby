@@ -518,9 +518,15 @@ module Commands
       build_native_image(*options)
     when nil
       mx 'sforceimports'
+
+      # Do not build Sulong if TRUFFLERUBY_CEXT_ENABLED is "false"
+      if ENV["TRUFFLERUBY_CEXT_ENABLED"] == "false"
+        extra_args = %w[--dependencies TRUFFLERUBY,TRUFFLERUBY-LAUNCHER,TRUFFLERUBY-ZIP,TRUFFLERUBY-TEST,TRUFFLERUBY-SPECS]
+      end
+
       mx 'build', '--force-javac', '--warning-as-error',
          # show more than default 100 errors not to hide actual errors under pile of missing symbols
-         '-A-Xmaxerrs', '-A1000'
+         '-A-Xmaxerrs', '-A1000', *extra_args
     else
       raise ArgumentError, project
     end
