@@ -322,12 +322,16 @@ class Dir
     end
 
     def self.run(node, all_matches=[])
-      matches = []
-      node.call matches, nil
-      # Truffle: ensure glob'd files are always sorted in consistent order,
-      # it avoids headaches due to platform differences (OS X is sorted, Linux not).
-      matches.sort!
-      all_matches.concat(matches)
+      if ConstantEntry === node
+        node.call all_matches, nil
+      else
+        matches = []
+        node.call matches, nil
+        # Truffle: ensure glob'd files are always sorted in consistent order,
+        # it avoids headaches due to platform differences (OS X is sorted, Linux not).
+        matches.sort!
+        all_matches.concat(matches)
+      end
     end
 
     def self.glob(pattern, flags, matches=[])
