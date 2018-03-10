@@ -43,10 +43,6 @@ RUN git clone --depth 1 https://github.com/oracle/graal.git
 RUN cd graal/compiler && mx build
 ENV GRAAL_HOME=/build/graal/compiler
 
-# Build Sulong
-RUN git clone https://github.com/graalvm/sulong.git
-RUN cd sulong && mx build
-
 # Build TruffleRuby
 RUN git clone https://github.com/oracle/truffleruby.git
 RUN cd truffleruby && mx build
