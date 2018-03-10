@@ -41,9 +41,7 @@ When asked which Java to use by `mx`, select the system OpenJDK.
 
 ```bash
 $ ./tool/make-distribution.sh ../../truffleruby-releases minimal
-$ ./tool/make-distribution.sh ../../truffleruby-releases graal
-$ ./tool/make-distribution.sh ../../truffleruby-releases sulong
-# full is Graal + Sulong
+# full is Graal + JVM
 $ ./tool/make-distribution.sh ../../truffleruby-releases full
 ```
 

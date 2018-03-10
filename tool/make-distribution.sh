@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This script creates a distribution of TruffleRuby
-# with/without Sulong and with/without Graal.
+# with or without Graal and a JVM.
 
 set -e
 
@@ -11,28 +11,20 @@ PLATFORM=linux-amd64
 
 if [ -z "$KIND" ]; then
   echo "usage: $0 PREFIX KIND"
-  echo "KIND is 'minimal' or 'sulong' or 'graal' or 'full'"
+  echo "KIND is 'minimal' or 'full'"
   exit 1
 fi
 
-sulong=false
 graal=false
 
 case "$KIND" in
   minimal)
     ;;
-  sulong)
-    sulong=true
-    ;;
-  graal)
-    graal=true
-    ;;
   full)
-    sulong=true
     graal=true
     ;;
   *)
-    echo "KIND is 'minimal' or 'sulong' or 'graal' or 'full'"
+    echo "KIND is 'minimal' or 'full'"
     exit 1
     ;;
 esac
@@ -60,18 +52,13 @@ revision=$(git rev-parse --short HEAD)
 grep MX_BINARY_SUITES mx.truffleruby/env 2>/dev/null || echo MX_BINARY_SUITES=truffle,sdk >> mx.truffleruby/env
 
 # Setup binary suites
-if [ "$sulong" = true ]; then
-  if [ -z "${SULONG_REVISION+x}" ]; then
-    echo "You need to set SULONG_REVISION (can be '' for latest uploaded)"
-    exit 1
-  fi
-  mx ruby_download_binary_suite sulong "$SULONG_REVISION"
-  export TRUFFLERUBY_CEXT_ENABLED=true
-  export TRUFFLERUBYOPT="-Xgraal.warn_unless=$graal"
-else
-  echo "distribution without sulong is no longer supported"
+if [ -z "${SULONG_REVISION+x}" ]; then
+  echo "You need to set SULONG_REVISION (can be '' for latest uploaded)"
   exit 1
 fi
+mx ruby_download_binary_suite sulong "$SULONG_REVISION"
+export TRUFFLERUBY_CEXT_ENABLED=true
+export TRUFFLERUBYOPT="-Xgraal.warn_unless=$graal"
 
 if [ "$graal" = true ]; then
   mx ruby_download_binary_suite compiler truffle
@@ -92,11 +79,9 @@ copy mx.imports/binary/truffle/mxbuild/$PLATFORM/truffle-nfi-native/bin/libtruff
 copy mx.imports/binary/truffle/mx.imports/binary/sdk/mxbuild/dists/graal-sdk.jar
 
 # Sulong
-if [ "$sulong" = true ]; then
-  copy mx.imports/binary/sulong/build/sulong.jar
-  copy mx.imports/binary/sulong/mxbuild/sulong-libs/libsulong.bc
-  copy mx.imports/binary/sulong/mxbuild/sulong-libs/libsulong.so
-fi
+copy mx.imports/binary/sulong/build/sulong.jar
+copy mx.imports/binary/sulong/mxbuild/sulong-libs/libsulong.bc
+copy mx.imports/binary/sulong/mxbuild/sulong-libs/libsulong.so
 
 # Graal
 if [ "$graal" = true ]; then
