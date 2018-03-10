@@ -5,6 +5,11 @@ New features:
 * Context pre-initialization with TruffleRuby `--native`, which significantly
   improves startup time and loads the did_you_mean gem ahead of time.
 
+Performance:
+
+* Dir.glob is much faster and more memory efficient in cases that can reduce
+  to direct filename lookups.
+
 # 0.32, March 2018
 
 New features:
