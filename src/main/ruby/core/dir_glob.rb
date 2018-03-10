@@ -60,12 +60,12 @@ class Dir
         @dir = dir
       end
 
-      def call(env, path)
+      def call(matches, path)
         full = path_join(path, @dir)
 
         # Don't check if full exists. It just costs us time
         # and the downstream node will be able to check properly.
-        @next.call env, full
+        @next.call matches, full
       end
     end
 
@@ -75,23 +75,23 @@ class Dir
         @name = name
       end
 
-      def call(env, parent)
+      def call(matches, parent)
         path = path_join(parent, @name)
 
         if File.exist? path
-          env.matches << path
+          matches << path
         end
       end
     end
 
     class RootDirectory < Node
-      def call(env, path)
-        @next.call env, '/'
+      def call(matches, path)
+        @next.call matches, '/'
       end
     end
 
     class RecursiveDirectories < Node
-      def call(env, start)
+      def call(matches, start)
         return if !start || !File.exist?(start)
 
         # Even though the recursive entry is zero width
@@ -99,7 +99,7 @@ class Dir
         # dominant one, so we fix things up to use it.
         switched = @next.dup
         switched.separator = @separator
-        switched.call env, start
+        switched.call matches, start
 
         stack = [start]
 
@@ -120,7 +120,7 @@ class Dir
 
             if stat.directory? and (allow_dots or ent.getbyte(0) != 46) # ?.
               stack << full
-              @next.call env, full
+              @next.call matches, full
             end
           end
           dir.close
@@ -129,7 +129,7 @@ class Dir
     end
 
     class StartRecursiveDirectories < Node
-      def call(env, start)
+      def call(matches, start)
         raise 'invalid usage' if start
 
         # Even though the recursive entry is zero width
@@ -138,9 +138,9 @@ class Dir
         if @separator
           switched = @next.dup
           switched.separator = @separator
-          switched.call env, start
+          switched.call matches, start
         else
-          @next.call env, start
+          @next.call matches, start
         end
 
         stack = []
@@ -154,7 +154,7 @@ class Dir
 
           if stat.directory? and (allow_dots or ent.getbyte(0) != 46) # ?.
             stack << ent
-            @next.call env, ent
+            @next.call matches, ent
           end
         end
         dir.close
@@ -169,7 +169,7 @@ class Dir
 
             if stat.directory? and ent.getbyte(0) != 46  # ?.
               stack << full
-              @next.call env, full
+              @next.call matches, full
             end
           end
           dir.close
@@ -195,7 +195,7 @@ class Dir
         @glob.gsub! '**', '*'
       end
 
-      def call(env, path)
+      def call(matches, path)
         return if path and !File.exist?("#{path}/.")
 
         dir = Dir.new(path ? path : '.')
@@ -204,7 +204,7 @@ class Dir
             full = path_join(path, ent)
 
             if File.directory? full
-              @next.call env, full
+              @next.call matches, full
             end
           end
         end
@@ -213,7 +213,7 @@ class Dir
     end
 
     class EntryMatch < Match
-      def call(env, path)
+      def call(matches, path)
         return if path and !File.exist?("#{path}/.")
 
         begin
@@ -224,7 +224,7 @@ class Dir
 
         while ent = dir.read
           if match? ent
-            env.matches << path_join(path, ent)
+            matches << path_join(path, ent)
           end
         end
         dir.close
@@ -232,18 +232,10 @@ class Dir
     end
 
     class DirectoriesOnly < Node
-      def call(env, path)
+      def call(matches, path)
         if path and File.exist?("#{path}/.")
-          env.matches << "#{path}/"
+          matches << "#{path}/"
         end
-      end
-    end
-
-    class Environment
-      attr_reader :matches
-
-      def initialize(matches=[])
-        @matches = matches
       end
     end
 
@@ -331,8 +323,7 @@ class Dir
 
     def self.run(node, all_matches=[])
       matches = []
-      env = Environment.new(matches)
-      node.call env, nil
+      node.call matches, nil
       # Truffle: ensure glob'd files are always sorted in consistent order,
       # it avoids headaches due to platform differences (OS X is sorted, Linux not).
       matches.sort!
