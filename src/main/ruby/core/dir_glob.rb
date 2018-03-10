@@ -1,3 +1,6 @@
+# frozen_string_literal: true
+# TODO (nirvdrum 11-Mar-18): The above pragma currently does nothing for 'core' files. We need to fix this limitation in BodyTranslator.
+
 # Copyright (c) 2007-2015, Evan Phoenix and contributors
 # All rights reserved.
 #
@@ -175,7 +178,7 @@ class Dir
     class Match < Node
       def initialize(nxt, flags, glob)
         super nxt, flags
-        @glob = glob || ''
+        @glob = glob || +''
       end
 
       def match?(str)
