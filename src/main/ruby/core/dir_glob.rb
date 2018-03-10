@@ -425,11 +425,13 @@ class Dir
           last = pos
 
           while pos < rbrace and not (pattern[pos] == ',' and nest == 0)
-            if pattern[pos] == '{'
+            char = pattern[pos]
+
+            if char == '{'
               nest += 1
-            elsif pattern[pos] == '}'
+            elsif char == '}'
               nest -= 1
-            elsif pattern[pos] == '\\' and escape
+            elsif char == '\\' and escape
               pos += 1
               break if pos == rbrace
             end
