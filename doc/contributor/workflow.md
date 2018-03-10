@@ -77,15 +77,6 @@ Note that build information such as the date and Git revision hash will not be
 updated when you build for a second time. Releases should always be built from
 scratch.
 
-## Sulong
-
-TruffleRuby runs C extension using Sulong. You should build Sulong from source.
-You can clone Sulong and build it with:
-
-```bash
-jt build sulong
-```
-
 ## Testing
 
 We have 'specs' which come from the Ruby Spec Suite. These are usually high
