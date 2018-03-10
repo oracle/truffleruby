@@ -5,8 +5,7 @@ for running TruffleRuby. GraalVM also includes other languages like JavaScript,
 R and Python. However, GraalVM currently requires a click-through license and
 is distributed under the OTN license.
 
-Distributions of TruffleRuby with or without Sulong
-and with or without Graal are also made available on the
+Distributions of TruffleRuby *for testing* are made available on the
 [Releases page](https://github.com/oracle/truffleruby/releases).
 
 Currently, these distributions are limited to Linux as we do not know a way to
@@ -31,4 +30,5 @@ $ ruby -v
 # => truffleruby
 ```
 
-The minimal distribution only needs JRE 8, curl and bash.
+The minimal distribution needs JRE 8, [LLVM](installing-llvm.md),
+[libssl](installing-libssl.md), curl and bash.
