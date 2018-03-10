@@ -281,6 +281,10 @@ class Dir
     end
 
     def self.single_compile(glob, flags=0)
+      if NO_GLOB_META_CHARS.match?(glob)
+        return ConstantEntry.new nil, flags, glob
+      end
+
       parts = path_split(glob)
 
       if glob.getbyte(-1) == 47 # ?/
