@@ -29,7 +29,9 @@
 
 class Dir
   module Glob
-    NO_GLOB_META_CHARS = /^[^*?\[\]{}\\]+$/
+    no_meta_chars = '[^*?\\[\\]{}\\\\]'
+    NO_GLOB_META_CHARS = /^#{no_meta_chars}+$/
+    TRAILING_BRACES = /^(#{no_meta_chars}+)(?:\{(#{no_meta_chars}*)\})?$/
 
     class Node
       def initialize(nxt, flags)
@@ -338,8 +340,7 @@ class Dir
       # Rubygems uses Dir[] as a glorified File.exist?  to check for multiple
       # extensions. So we went ahead and sped up that specific case.
 
-      if flags == 0 and
-             m = /^([a-zA-Z0-9_.\-\/\s]*[a-zA-Z0-9_.])(?:\{([^{}\/\*\?]*)\})?$/.match(pattern)
+      if flags == 0 and m = TRAILING_BRACES.match(pattern)
         # no meta characters, so this is a glorified
         # File.exist? check. We allow for a brace expansion
         # only as a suffix.
