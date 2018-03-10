@@ -384,7 +384,7 @@ class Dir
       end
     end
 
-    def self.compile(pattern, left_brace_index, flags=0, patterns=[])
+    def self.compile(pattern, left_brace_index, flags, patterns=[])
       escape = (flags & File::FNM_NOESCAPE) == 0
 
       lbrace = left_brace_index
