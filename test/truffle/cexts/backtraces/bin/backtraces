@@ -2,6 +2,7 @@
 
 require 'backtraces'
 
+puts "Test error in Ruby => C ext => Ruby"
 class Bar
   def bar(baz)
     baz.call(proc { raise 'error' })
@@ -14,11 +15,10 @@ rescue => e
   puts e.full_message
 end
 
-puts
 
+puts
+puts "Test error in the callback to the Sulong-instrinsified qsort()"
 p Backtraces.qsort(-> a, b { a <=> b })
-
-puts
 
 begin
   Backtraces.qsort(-> a, b {
@@ -28,11 +28,10 @@ rescue => e
   puts e.full_message
 end
 
-puts
 
+puts
+puts "Test error in callback from a native function"
 p Backtraces.native_callback(-> { 6*7 })
-
-puts
 
 def error_helper
   raise "error from Ruby called from Sulong called from native callback"
