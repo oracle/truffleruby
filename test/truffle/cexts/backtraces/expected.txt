@@ -3,7 +3,7 @@ Test error in Ruby => C ext support => Ruby
 	from /lib/truffle/truffle/cext.rb:n:in `__send__'
 	from /lib/truffle/truffle/cext.rb:n:in `rb_funcall'
 	from /lib/truffle/truffle/cext.rb:n:in `rb_funcallv'
-	from /src/main/c/cext/ruby.c:1994:in `rb_funcallv'
+	from /src/main/c/cext/ruby.c:n:in `rb_funcallv'
 	from /test/truffle/cexts/backtraces/bin/backtraces:20:in `ruby_call'
 	from /test/truffle/cexts/backtraces/bin/backtraces:24:in `top'
 	from /test/truffle/cexts/backtraces/bin/backtraces:28:in `<main>'
@@ -11,7 +11,7 @@ Test error in Ruby => C ext support => Ruby
 Test with an internal error from rb_mutex_lock()
 /lib/truffle/truffle/cext.rb:n:in `lock': deadlock; recursive locking (ThreadError)
 	from /lib/truffle/truffle/cext.rb:n:in `rb_mutex_lock'
-	from /src/main/c/cext/ruby.c:2593:in `rb_mutex_lock'
+	from /src/main/c/cext/ruby.c:n:in `rb_mutex_lock'
 	from /test/truffle/cexts/backtraces/bin/backtraces:42:in `double_lock'
 	from /test/truffle/cexts/backtraces/bin/backtraces:46:in `<main>'
 
