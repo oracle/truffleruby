@@ -121,11 +121,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     @Override
-    protected VMType getDefaultVMType() {
-        return VMType.JVM;
-    }
-
-    @Override
     protected String[] getDefaultLanguages() {
         return new String[]{getLanguageId(), "llvm"};
     }
