@@ -112,12 +112,21 @@ module RbConfig
   ruby_home = Truffle::Boot.ruby_home
 
   if ruby_home
-    prefix = ruby_home
-    bindir = "#{prefix}/bin"
+    prefix        = ruby_home
+    bindir        = "#{prefix}/bin"
+    extra_bindirs = if Truffle.graalvm?
+                      graalvm_home = Truffle::System.get_java_property 'org.graalvm.home'
+                      [File.expand_path(File.join(graalvm_home, 'bin')),
+                       File.expand_path(File.join(graalvm_home, 'jre', 'bin'))]
+                    else
+                      []
+                    end
+
 
     common = {
       'prefix' => prefix,
       'bindir' => bindir,
+      'extra_bindirs' => extra_bindirs,
       'hdrdir' => "#{prefix}/lib/cext",
       'rubyhdrdir' => "#{prefix}/lib/cext",
       'rubyarchhdrdir' => "#{prefix}/lib/cext",
