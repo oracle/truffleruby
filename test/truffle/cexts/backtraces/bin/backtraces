@@ -2,6 +2,12 @@
 
 require 'backtraces'
 
+def puts_backtrace(backtrace)
+  puts backtrace.gsub(Truffle::Boot.ruby_home, '')
+                .gsub(/\/cext(_ruby)?\.rb:(\d+)/, '/cext\1.rb:n')
+                .gsub(/@\h+/, '@HEXA')
+                .gsub(/\{id: \d+ name: [^}]+}/, 'BLOCKINFO')
+end
 
 puts "Test error in Ruby => C ext support => Ruby"
 RB_FUNCALLV = Truffle::Interop.import('@rb_funcallv')
@@ -21,7 +27,7 @@ end
 begin
   top
 rescue => e
-  puts e.full_message
+  puts_backtrace e.full_message
 end
 
 
@@ -39,7 +45,7 @@ end
 begin
   double_lock
 rescue => e
-  puts e.full_message
+  puts_backtrace e.full_message
 end
 
 
@@ -54,7 +60,7 @@ end
 begin
   Backtraces.foo(Bar.new)
 rescue => e
-  puts e.full_message
+  puts_backtrace e.full_message
 end
 
 
@@ -67,7 +73,7 @@ begin
     raise "error from Ruby called from instrinsified qsort()"
   })
 rescue => e
-  puts e.full_message
+  puts_backtrace e.full_message
 end
 
 
@@ -84,5 +90,5 @@ begin
     error_helper
   })
 rescue RubyTruffleError => e
-  puts e.full_message
+  puts_backtrace e.full_message
 end

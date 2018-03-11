@@ -1085,12 +1085,6 @@ module Commands
           cextc(dir)
           run_ruby "-I#{dir}/lib", "#{dir}/bin/#{test_name}", out: output_file
           actual = File.read(output_file)
-          if test_name == 'backtraces'
-            actual = actual.gsub(TRUFFLERUBY_DIR, '')
-                           .gsub(/\/cext(_ruby)?\.rb:(\d+)/, '/cext\1.rb:n')
-                           .gsub(/@\h+/, '@HEXA')
-                           .gsub(/\{id: \d+ name: [^}]+}/, 'BLOCKINFO')
-          end
           expected = File.read("#{dir}/expected.txt")
           unless actual == expected
             abort "C extension #{dir} didn't work as expected\nActual:\n#{actual}\nExpected:\n#{expected}"
