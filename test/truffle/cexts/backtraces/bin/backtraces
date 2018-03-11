@@ -4,7 +4,7 @@ require 'backtraces'
 
 def puts_backtrace(backtrace)
   puts backtrace.gsub(Truffle::Boot.ruby_home, '')
-                .gsub(/\/cext(_ruby)?\.rb:(\d+)/, '/cext\1.rb:n')
+                .gsub(/\/(cext\.rb|cext_ruby\.rb|ruby\.c):(\d+)/, '/\1:n')
                 .gsub(/@\h+/, '@HEXA')
                 .gsub(/\{id: \d+ name: [^}]+}/, 'BLOCKINFO')
 end
