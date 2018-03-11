@@ -1,7 +1,0 @@
-PWD/lib/truffle/truffle/cext.rb:LINE:in `lock': deadlock; recursive locking (ThreadError)
-	from PWD/lib/truffle/truffle/cext.rb:LINE:in `rb_mutex_lock'
-	from PWD/src/main/c/cext/ruby.c:LINE:in `rb_mutex_lock'
-/cext.rb:41:in `double_lock'
-/cext.rb:45:in `block in <main>'
-/backtraces.rb:17:in `check'
-/cext.rb:44:in `<main>'
