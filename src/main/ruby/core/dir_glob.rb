@@ -30,8 +30,8 @@
 class Dir
   module Glob
     no_meta_chars = '[^*?\\[\\]{}\\\\]'
-    NO_GLOB_META_CHARS = /^#{no_meta_chars}+$/
-    TRAILING_BRACES = /^(#{no_meta_chars}+)(?:\{(#{no_meta_chars}*)\})?$/
+    NO_GLOB_META_CHARS = /\A#{no_meta_chars}+\z/
+    TRAILING_BRACES = /\A(#{no_meta_chars}+)(?:\{(#{no_meta_chars}*)\})?\z/
 
     class Node
       def initialize(nxt, flags)
