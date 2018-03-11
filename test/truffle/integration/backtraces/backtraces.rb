@@ -31,8 +31,6 @@ def check(file)
 
   actual = actual.map { |line|
     line.sub(/^.*#{Regexp.escape(dir)}/, '')
-        .sub(Dir.pwd, 'PWD')
-        .sub(/\b(truffle\/cext\.rb|cext\/ruby\.c):\d+/, '\1:LINE')
   }
 
   print = []
