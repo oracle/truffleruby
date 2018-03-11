@@ -30,12 +30,13 @@ def check(file)
   success = true
 
   actual = actual.map { |line|
-    line.sub(/^.*#{Regexp.escape(dir)}/, '')
+    line.sub(File.expand_path(dir), '')
+        .sub(dir, '')
   }
 
   print = []
   expected.zip(actual).each do |e, a|
-    unless a.end_with?(e)
+    unless a == e
       print << "Actual:   #{a}"
       print << "Expected: #{e}"
       success = false
