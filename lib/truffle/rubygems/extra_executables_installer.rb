@@ -1,8 +1,8 @@
 module Gem
-  module InstallingExtraExecutables
+  module ExtraExecutablesInstaller
     extend self
 
-    def install_hooks_for(*extra_bin_dirs)
+    def install_hooks_for(extra_bin_dirs)
       install_hook   = -> tool { hook(extra_bin_dirs, tool, :generate_bin) }
       uninstall_hook = -> tool { hook(extra_bin_dirs, tool, :remove_executables, tool.spec) }
       Gem.post_install_hooks.push(install_hook)
