@@ -322,6 +322,14 @@ Style/CaseIndentation:
   Enabled: true
   EnforcedStyle: 'end'
 
+# Supports --auto-correct
+Style/ExtraSpacing:
+  Description: 'Disallow extra horizontal spacing, e.g., around = and before comments.
+    Avoids changing unrelated lines and making lines longer than needed.'
+  Enabled: true
+  AllowForAlignment: false
+  ForceEqualSignAlignment: false
+
 Style/IndentationConsistency:
   Enabled: true
 
