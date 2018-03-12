@@ -14,10 +14,10 @@ module FFI
   Platform = Truffle::FFI::Platform
 
   class DynamicLibrary
-    RTLD_LAZY   = Truffle::Config['platform.dlopen.RTLD_LAZY']
-    RTLD_NOW    = Truffle::Config['platform.dlopen.RTLD_NOW']
+    RTLD_LAZY = Truffle::Config['platform.dlopen.RTLD_LAZY']
+    RTLD_NOW = Truffle::Config['platform.dlopen.RTLD_NOW']
     RTLD_GLOBAL = Truffle::Config['platform.dlopen.RTLD_GLOBAL']
-    RTLD_LOCAL  = Truffle::Config['platform.dlopen.RTLD_LOCAL']
+    RTLD_LOCAL = Truffle::Config['platform.dlopen.RTLD_LOCAL']
 
     attr_reader :name
 
@@ -58,9 +58,9 @@ module FFI
 
     # Indicies are based on the NativeTypes enum
     TO_NFI_TYPE = [
-      'SINT8',  # char
-      'UINT8',  # uchar
-      'UINT8',  # bool
+      'SINT8', # char
+      'UINT8', # uchar
+      'UINT8', # bool
       'SINT16', # short
       'UINT16', # ushort
       'SINT32', # int
@@ -69,10 +69,10 @@ module FFI
       'UINT64', # ulong
       'SINT64', # ll
       'UINT64', # ull
-      'FLOAT',  # float
+      'FLOAT', # float
       'DOUBLE', # double
       'POINTER',# ptr
-      'VOID',   # void
+      'VOID', # void
       'STRING', # string
       # strptr
       # chararr

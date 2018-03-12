@@ -35,12 +35,12 @@ end
 class TruffleTool
   module CmdUtils
     def execute_cmd(cmd, dir: nil, raise: true, print: false)
-      result      = nil
+      result = nil
       system_call = proc do
         begin
-          pid       = Process.spawn(*print_cmd(cmd, dir, print))
+          pid = Process.spawn(*print_cmd(cmd, dir, print))
           _, status = Process.waitpid2 pid
-          result    = status.success?
+          result = status.success?
         rescue SignalException => e
           # terminate the child process on signal received
           Process.kill 'TERM', pid
@@ -197,7 +197,7 @@ class TruffleTool
 
     def search_up(*names)
       previous = nil
-      current  = File.expand_path(Pathname.pwd).untaint
+      current = File.expand_path(Pathname.pwd).untaint
 
       until !File.directory?(current) || current == previous
         if ENV['BUNDLE_SPEC_RUN']
@@ -210,7 +210,7 @@ class TruffleTool
           yield filename
         end
         previous = current
-        current  = File.expand_path('..', current)
+        current = File.expand_path('..', current)
       end
     end
 
@@ -223,24 +223,24 @@ class TruffleTool
 
   attr_reader :options
 
-  EXECUTABLE        = File.basename($PROGRAM_NAME)
-  BRANDING          = 'TruffleRuby'
+  EXECUTABLE = File.basename($PROGRAM_NAME)
+  BRANDING = 'TruffleRuby'
   LOCAL_CONFIG_FILE = '.truffleruby-tool.yaml'
-  ROOT              = Pathname(__FILE__).dirname.parent.expand_path
-  TRUFFLERUBY_PATH  = ROOT.join('../..').expand_path
-  TRUFFLERUBY_BIN   = TRUFFLERUBY_PATH.join('bin', 'truffleruby')
+  ROOT = Pathname(__FILE__).dirname.parent.expand_path
+  TRUFFLERUBY_PATH = ROOT.join('../..').expand_path
+  TRUFFLERUBY_BIN = TRUFFLERUBY_PATH.join('bin', 'truffleruby')
 
   module OptionBlocks
-    STORE_NEW_VALUE         = -> (new, _old, _) { new }
+    STORE_NEW_VALUE = -> (new, _old, _) { new }
     STORE_NEW_NEGATED_VALUE = -> (new, _old, _) { !new }
-    ADD_TO_ARRAY            = -> (new, old, _) { old << new }
-    MERGE_TO_HASH           = -> ((k, v), old, _) { old.merge k => v }
+    ADD_TO_ARRAY = -> (new, old, _) { old << new }
+    MERGE_TO_HASH = -> ((k, v), old, _) { old.merge k => v }
   end
 
   include OptionBlocks
 
   begin
-    apply_pattern          = -> (pattern, old, options) do
+    apply_pattern = -> (pattern, old, options) do
       Dir.glob(pattern).sort.each do |file|
         if options[:exclude_pattern].any? { |p| /#{p}/ =~ file }
           puts "skipped: #{file}"
@@ -264,7 +264,7 @@ class TruffleTool
     #                                                     -> (new_value, old_value, options) { result_of_this_block_is_stored },
     #                                                     default_value]
     #   }
-    OPTION_DEFINITIONS     = {
+    OPTION_DEFINITIONS = {
         global: { verbose:             ['-v', '--verbose', 'Run verbosely (prints options)', STORE_NEW_VALUE, false],
                   help:                ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false],
                   debug_port:          ['--debug-port PORT', 'Debug port', STORE_NEW_VALUE, '51819'],
@@ -398,12 +398,12 @@ class TruffleTool
   attr_reader :options, :config
 
   def initialize(argv, options = {})
-    @options        = deep_merge construct_default_options, options
+    @options = deep_merge construct_default_options, options
     @option_parsers = build_option_parsers
 
     @subcommand, *argv_after_global = @option_parsers[:global].order argv
-    @called_from_dir                = Dir.pwd
-    @options[:global][:dir]         = File.expand_path(@options[:global][:dir] || @called_from_dir)
+    @called_from_dir = Dir.pwd
+    @options[:global][:dir] = File.expand_path(@options[:global][:dir] || @called_from_dir)
 
     log({ argv: argv, options: options }.pretty_inspect) if verbose?
 
@@ -436,7 +436,7 @@ class TruffleTool
       @subcommand = @subcommand.to_sym
 
       subcommand_option_parser = @option_parsers[@subcommand] || raise("unknown subcommand: #{@subcommand}")
-      @argv_after_subcommand   = subcommand_option_parser.order argv_after_global
+      @argv_after_subcommand = subcommand_option_parser.order argv_after_global
 
       print_options
       help @subcommand if @options[@subcommand][:help] && @subcommand != :readme
@@ -461,7 +461,7 @@ class TruffleTool
       *args, description, block, default = data
 
       option_parser.on(*args, description + " (default: #{default.inspect})") do |new_value|
-        old_value            = options_hash[option]
+        old_value = options_hash[option]
         options_hash[option] = instance_exec new_value, old_value, options_hash, &block
       end
     end
@@ -564,11 +564,11 @@ class TruffleTool
 
     new_lines = File.read(gemfile).lines.map do |line|
       if line =~ /^( +)gem.*git:/
-        space               = $1
-        gem_name, options   = parse_gemfile_line(line)
-        repo_name           = options[:git].split('/').last
-        repo_match          = "#{gems_path}/bundler/gems/#{repo_name}-*"
-        repo_path           = Dir[repo_match].sort.first
+        space = $1
+        gem_name, options = parse_gemfile_line(line)
+        repo_name = options[:git].split('/').last
+        repo_match = "#{gems_path}/bundler/gems/#{repo_name}-*"
+        repo_path = Dir[repo_match].sort.first
         options_without_git = options.merge(path: repo_path).tap do |h|
           h.delete(:git)
           h.delete(:branch)
@@ -594,8 +594,8 @@ class TruffleTool
 
   def subcommand_setup(rest)
     bundle_options = @options[:global][:bundle_options].split(' ')
-    offline        = @options[:setup][:offline]
-    execute_all    = lambda do |cmd|
+    offline = @options[:setup][:offline]
+    execute_all = lambda do |cmd|
       case cmd
       when Proc
         cmd.call
@@ -731,14 +731,14 @@ class TruffleTool
                           File.read(Pathname(@called_from_dir).join(path))
                         end
                       end
-      cis_to_run    = YAML.load(batch_content)
+      cis_to_run = YAML.load(batch_content)
 
       results = cis_to_run.map do |ci|
         # ci is just a name or a array of name and options
 
-        options       = {}
+        options = {}
         option_parser = build_option_parser OPTION_DEFINITIONS[:ci], options
-        rest          = option_parser.order Array(ci)
+        rest = option_parser.order Array(ci)
 
         gem_name = rest.first
         CIEnvironment.new(@options[:global][:dir], gem_name, self, rest[1..-1]).success?
@@ -747,7 +747,7 @@ class TruffleTool
       results.all?
     else
       gem_name = rest.first
-      ci       = CIEnvironment.new @options[:global][:dir], gem_name, self, rest[1..-1], definition: options[:ci][:definition]
+      ci = CIEnvironment.new @options[:global][:dir], gem_name, self, rest[1..-1], definition: options[:ci][:definition]
 
       case ci.result
       when nil # error, setup failed
@@ -814,19 +814,19 @@ class TruffleTool
     attr_reader :gem_name, :result
 
     def initialize(working_dir, gem_name, runner, rest, definition: nil)
-      @runner   = runner
-      @options  = {}
+      @runner = runner
+      @options = {}
       @gem_name = gem_name
-      @rest     = rest
+      @rest = rest
 
-      @working_dir     = Pathname(working_dir)
+      @working_dir = Pathname(working_dir)
       @repository_name = gem_name
-      @subdir          = '.'
-      @result          = nil
+      @subdir = '.'
+      @result = nil
 
-      option_parser         = @option_parser = OptionParser.new
+      option_parser = @option_parser = OptionParser.new
       @option_parser.banner = "\nUsage: #{EXECUTABLE} [options] ci [subcommand-options] #{gem_name} [options-declared-in-CI-definition]\n\n"
-      @option_parsed        = false
+      @option_parsed = false
 
       declare_options parse_options: false, help: ['-h', '--help', 'Show this message', -> (_new, _old, _) { puts option_parser; exit }, false]
 

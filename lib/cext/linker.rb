@@ -33,7 +33,7 @@ module Truffle::CExt
           raise '-L needs to be followed by a directory name' if argv.empty?
           search_paths << argv.shift
         when /\A-L(.+)\z/ # -L/libdir as a single argument
-          search_paths <<  $1
+          search_paths << $1
         else
           if arg.start_with?('-')
             raise "Unknown argument: #{arg}"

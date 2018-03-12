@@ -78,7 +78,7 @@ module Truffle
     def self.stepping_forever?(limit, step, asc)
       return true if limit.nil? || step.zero?
       if asc
-        limit == Float::INFINITY  && step != Float::INFINITY
+        limit == Float::INFINITY && step != Float::INFINITY
       else
         limit == -Float::INFINITY && step != -Float::INFINITY
       end

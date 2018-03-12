@@ -298,34 +298,34 @@ class Date
 
   # The Julian Day Number of the Day of Calendar Reform for Italy
   # and the Catholic countries.
-  ITALY     = 2299161 # 1582-10-15
+  ITALY = 2299161 # 1582-10-15
 
   # The Julian Day Number of the Day of Calendar Reform for England
   # and her Colonies.
-  ENGLAND   = 2361222 # 1752-09-14
+  ENGLAND = 2361222 # 1752-09-14
 
   # A constant used to indicate that a Date should always use the
   # Julian calendar.
-  JULIAN    =  Infinity.new
+  JULIAN = Infinity.new
 
   # A constant used to indicate that a Date should always use the
   # Gregorian calendar.
   GREGORIAN = -Infinity.new
 
-  HALF_DAYS_IN_DAY       = Rational(1, 2) # :nodoc:
-  HOURS_IN_DAY           = Rational(1, 24) # :nodoc:
-  MINUTES_IN_DAY         = Rational(1, 1440) # :nodoc:
-  SECONDS_IN_DAY         = Rational(1, 86400) # :nodoc:
-  MILLISECONDS_IN_DAY    = Rational(1, 86400*10**3) # :nodoc:
-  NANOSECONDS_IN_DAY     = Rational(1, 86400*10**9) # :nodoc:
+  HALF_DAYS_IN_DAY = Rational(1, 2) # :nodoc:
+  HOURS_IN_DAY = Rational(1, 24) # :nodoc:
+  MINUTES_IN_DAY = Rational(1, 1440) # :nodoc:
+  SECONDS_IN_DAY = Rational(1, 86400) # :nodoc:
+  MILLISECONDS_IN_DAY = Rational(1, 86400*10**3) # :nodoc:
+  NANOSECONDS_IN_DAY = Rational(1, 86400*10**9) # :nodoc:
   MILLISECONDS_IN_SECOND = Rational(1, 10**3) # :nodoc:
-  NANOSECONDS_IN_SECOND  = Rational(1, 10**9) # :nodoc:
+  NANOSECONDS_IN_SECOND = Rational(1, 10**9) # :nodoc:
 
-  MJD_EPOCH_IN_AJD       = Rational(4800001, 2) # 1858-11-17 # :nodoc:
-  UNIX_EPOCH_IN_AJD      = Rational(4881175, 2) # 1970-01-01 # :nodoc:
-  MJD_EPOCH_IN_CJD       = 2400001 # :nodoc:
-  UNIX_EPOCH_IN_CJD      = 2440588 # :nodoc:
-  LD_EPOCH_IN_CJD        = 2299160 # :nodoc:
+  MJD_EPOCH_IN_AJD = Rational(4800001, 2) # 1858-11-17 # :nodoc:
+  UNIX_EPOCH_IN_AJD = Rational(4881175, 2) # 1970-01-01 # :nodoc:
+  MJD_EPOCH_IN_CJD = 2400001 # :nodoc:
+  UNIX_EPOCH_IN_CJD = 2440588 # :nodoc:
+  LD_EPOCH_IN_CJD = 2299160 # :nodoc:
 
   t = Module.new do
 
@@ -515,9 +515,9 @@ class Date
     # Convert a fractional day +fr+ to [hours, minutes, seconds,
     # fraction_of_a_second]
     def day_fraction_to_time(fr) # :nodoc:
-      ss,  fr = fr.divmod(SECONDS_IN_DAY) # 4p
-      h,   ss = ss.divmod(3600)
-      min, s  = ss.divmod(60)
+      ss, fr = fr.divmod(SECONDS_IN_DAY) # 4p
+      h, ss = ss.divmod(3600)
+      min, s = ss.divmod(60)
       [h, min, s, fr * 86400]
     end
 
@@ -557,11 +557,11 @@ class Date
 
     # Convert a count of the number of days since the adoption
     # of the Gregorian Calendar (in Italy) to a Julian Day Number.
-    def ld_to_jd(ld) ld +  LD_EPOCH_IN_CJD end # :nodoc:
+    def ld_to_jd(ld) ld + LD_EPOCH_IN_CJD end # :nodoc:
 
     # Convert a Julian Day Number to the number of days since
     # the adoption of the Gregorian Calendar (in Italy).
-    def jd_to_ld(jd) jd -  LD_EPOCH_IN_CJD end # :nodoc:
+    def jd_to_ld(jd) jd - LD_EPOCH_IN_CJD end # :nodoc:
 
     # Convert a Julian Day Number to the day of the week.
     #
@@ -677,7 +677,7 @@ class Date
       end
       if n < 0
         ny, nm = (y * 12 + m).divmod(12)
-        nm,    = (nm + 1)    .divmod(1)
+        nm, = (nm + 1) .divmod(1)
         ny, nm, nn, _ =
           jd_to_nth_kday(nth_kday_to_jd(ny, nm, 1, k, sg) + n * 7, sg)
         return unless [ny, nm] == [y, m]
@@ -699,9 +699,9 @@ class Date
     # wraparound is performed.
     def _valid_time? (h, min, s) # :nodoc:
       return unless h.is_a?(Integer) && min.is_a?(Integer)
-      h   += 24 if h   < 0
+      h += 24 if h < 0
       min += 60 if min < 0
-      s   += 60 if s   < 0
+      s += 60 if s < 0
       return unless ((0...24) === h &&
                      (0...60) === min &&
                      (0...60) === s) ||
@@ -713,7 +713,7 @@ class Date
 
   end
 
-  extend  t
+  extend t
   include t
 
   # Is a year a leap year in the Julian calendar?
@@ -859,10 +859,10 @@ class Date
     elem ||= {}
     if seconds = elem[:seconds]
       seconds += elem[:offset] if elem[:offset]
-      d,   fr = seconds.divmod(86400)
-      h,   fr = fr.divmod(3600)
+      d, fr = seconds.divmod(86400)
+      h, fr = fr.divmod(3600)
       min, fr = fr.divmod(60)
-      s,   fr = fr.divmod(1)
+      s, fr = fr.divmod(1)
       elem[:jd] = UNIX_EPOCH_IN_CJD + d
       elem[:hour] = h
       elem[:min] = min
@@ -906,7 +906,7 @@ class Date
           break if elem[e]
           elem[e] = d.__send__(e)
         end
-        elem[:mon]  ||= 1
+        elem[:mon] ||= 1
         elem[:mday] ||= 1
       when :commercial
         g[1].each do |e|
@@ -923,14 +923,14 @@ class Date
           elem[e] = d.__send__(e)
         end
         elem[:wnum0] ||= 0
-        elem[:wday]  ||= 0
+        elem[:wday] ||= 0
       when :wnum1
         g[1].each do |e|
           break if elem[e]
           elem[e] = d.__send__(e)
         end
         elem[:wnum1] ||= 0
-        elem[:wday]  ||= 1
+        elem[:wday] ||= 1
       end
     end
 
@@ -942,8 +942,8 @@ class Date
     end
 
     elem[:hour] ||= 0
-    elem[:min]  ||= 0
-    elem[:sec]  ||= 0
+    elem[:min] ||= 0
+    elem[:sec] ||= 0
     elem[:sec] = elem[:sec] == 60 ? 59 : elem[:sec]
 
     elem
@@ -1356,7 +1356,7 @@ class Date
   def - (x)
     case x
     when Numeric; return self.class.new!(@ajd - x, @of, @sg)
-    when Date;    return @ajd - x.ajd
+    when Date; return @ajd - x.ajd
     end
     raise TypeError, 'expected numeric or date'
   end
@@ -1375,7 +1375,7 @@ class Date
   def <=> (other)
     case other
     when Numeric; return @ajd <=> other
-    when Date;    return @ajd <=> other.ajd
+    when Date; return @ajd <=> other.ajd
     else
       begin
         l, r = other.coerce(self)
@@ -1395,7 +1395,7 @@ class Date
   def === (other)
     case other
     when Numeric; return jd == other
-    when Date;    return jd == other.jd
+    when Date; return jd == other.jd
     else
       begin
         l, r = other.coerce(self)
@@ -1422,7 +1422,7 @@ class Date
   # of the returned Date will be the last day of the target month.
   def >> (n)
     y, m = (year * 12 + (mon - 1) + n).divmod(12)
-    m,   = (m + 1)                    .divmod(1)
+    m, = (m + 1) .divmod(1)
     d = mday
     until jd2 = _valid_civil?(y, m, d, @sg)
       d -= 1
@@ -1849,6 +1849,6 @@ class DateTime < Date
   def to_datetime() self end
 
   private_class_method :today
-  public_class_method  :now
+  public_class_method :now
 
 end

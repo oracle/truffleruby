@@ -41,12 +41,12 @@ module Truffle
         end
 
         def address=(address)
-          self[:msg_name]    = address.pointer
+          self[:msg_name] = address.pointer
           self[:msg_namelen] = address.pointer.total
         end
 
         def message=(vec)
-          self[:msg_iov]    = vec.pointer
+          self[:msg_iov] = vec.pointer
           self[:msg_iovlen] = 1
         end
 

@@ -297,7 +297,7 @@ class Thread
 
     if undefined.equal? exc
       no_argument = true
-      exc         = nil
+      exc = nil
     end
 
     if exc.respond_to? :exception

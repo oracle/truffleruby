@@ -109,80 +109,80 @@ module Truffle::FFI
   end
 
   # Converts a char
-  add_typedef TYPE_CHAR,    :char
+  add_typedef TYPE_CHAR, :char
 
   # Converts an unsigned char
-  add_typedef TYPE_UCHAR,   :uchar
+  add_typedef TYPE_UCHAR, :uchar
 
   # The C++ boolean type
-  add_typedef TYPE_BOOL,    :bool
+  add_typedef TYPE_BOOL, :bool
 
   # Converts a short
-  add_typedef TYPE_SHORT,   :short
+  add_typedef TYPE_SHORT, :short
 
   # Converts an unsigned short
-  add_typedef TYPE_USHORT,  :ushort
+  add_typedef TYPE_USHORT, :ushort
 
   # Converts an int
-  add_typedef TYPE_INT,     :int
+  add_typedef TYPE_INT, :int
 
   # Converts an unsigned int
-  add_typedef TYPE_UINT,    :uint
+  add_typedef TYPE_UINT, :uint
 
   # Converts a long
-  add_typedef TYPE_LONG,    :long
+  add_typedef TYPE_LONG, :long
 
   # Converts an unsigned long
-  add_typedef TYPE_ULONG,   :ulong
+  add_typedef TYPE_ULONG, :ulong
 
   # Converts a size_t
-  add_typedef TYPE_ULONG,   :size_t
+  add_typedef TYPE_ULONG, :size_t
 
   # Converts a long long
-  add_typedef TYPE_LL,      :long_long
+  add_typedef TYPE_LL, :long_long
 
   # Converts an unsigned long long
-  add_typedef TYPE_ULL,     :ulong_long
+  add_typedef TYPE_ULL, :ulong_long
 
   # Converts a float
-  add_typedef TYPE_FLOAT,   :float
+  add_typedef TYPE_FLOAT, :float
 
   # Converts a double
-  add_typedef TYPE_DOUBLE,  :double
+  add_typedef TYPE_DOUBLE, :double
 
   # Converts a pointer to opaque data
-  add_typedef TYPE_PTR,     :pointer
+  add_typedef TYPE_PTR, :pointer
 
   # For when a function has no return value
-  add_typedef TYPE_VOID,    :void
+  add_typedef TYPE_VOID, :void
 
   # Converts NULL-terminated C strings
-  add_typedef TYPE_STRING,  :string
+  add_typedef TYPE_STRING, :string
 
   # Use strptr when you need to free the result of some operation.
-  add_typedef TYPE_STRPTR,  :strptr
-  add_typedef TYPE_STRPTR,  :string_and_pointer
+  add_typedef TYPE_STRPTR, :strptr
+  add_typedef TYPE_STRPTR, :string_and_pointer
 
   # Use for a C struct with a char [] embedded inside.
   add_typedef TYPE_CHARARR, :char_array
 
   # A set of unambiguous integer types
-  add_typedef TYPE_CHAR,   :int8
-  add_typedef TYPE_UCHAR,  :uint8
-  add_typedef TYPE_SHORT,  :int16
+  add_typedef TYPE_CHAR, :int8
+  add_typedef TYPE_UCHAR, :uint8
+  add_typedef TYPE_SHORT, :int16
   add_typedef TYPE_USHORT, :uint16
-  add_typedef TYPE_INT,    :int32
-  add_typedef TYPE_UINT,   :uint32
+  add_typedef TYPE_INT, :int32
+  add_typedef TYPE_UINT, :uint32
 
   # Converts a varargs argument
   add_typedef TYPE_VARARGS, :varargs
 
   if Truffle::Platform::L64
-    add_typedef TYPE_LONG,  :int64
+    add_typedef TYPE_LONG, :int64
     add_typedef TYPE_ULONG, :uint64
   else
-    add_typedef TYPE_LL,    :int64
-    add_typedef TYPE_ULL,   :uint64
+    add_typedef TYPE_LL, :int64
+    add_typedef TYPE_ULL, :uint64
   end
 
   TypeSizes = {}
@@ -221,25 +221,25 @@ module Truffle::FFI
 
     Struct = StructByValue
 
-    CHAR    = TYPE_CHAR
-    UCHAR   = TYPE_UCHAR
-    BOOL    = TYPE_BOOL
-    SHORT   = TYPE_SHORT
-    USHORT  = TYPE_USHORT
-    INT     = TYPE_INT
-    UINT    = TYPE_UINT
-    LONG    = TYPE_LONG
-    ULONG   = TYPE_ULONG
-    LL      = TYPE_LL
-    ULL     = TYPE_ULL
-    FLOAT   = TYPE_FLOAT
-    DOUBLE  = TYPE_DOUBLE
-    PTR     = TYPE_PTR
-    VOID    = TYPE_VOID
-    STRING  = TYPE_STRING
-    STRPTR  = TYPE_STRPTR
+    CHAR = TYPE_CHAR
+    UCHAR = TYPE_UCHAR
+    BOOL = TYPE_BOOL
+    SHORT = TYPE_SHORT
+    USHORT = TYPE_USHORT
+    INT = TYPE_INT
+    UINT = TYPE_UINT
+    LONG = TYPE_LONG
+    ULONG = TYPE_ULONG
+    LL = TYPE_LL
+    ULL = TYPE_ULL
+    FLOAT = TYPE_FLOAT
+    DOUBLE = TYPE_DOUBLE
+    PTR = TYPE_PTR
+    VOID = TYPE_VOID
+    STRING = TYPE_STRING
+    STRPTR = TYPE_STRPTR
     CHARARR = TYPE_CHARARR
-    ENUM    = TYPE_ENUM
+    ENUM = TYPE_ENUM
     VARARGS = TYPE_VARARGS
   end
 end

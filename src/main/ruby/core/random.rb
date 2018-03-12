@@ -41,7 +41,7 @@ class Truffle::Randomizer
   end
 
   def swap_seed(new_seed)
-    old_seed  = self.seed
+    old_seed = self.seed
     self.seed = new_seed
     old_seed
   end
@@ -106,8 +106,8 @@ class Truffle::Randomizer
   # @return [Time|Date|DateTime]
   #
   def random_time_range(range)
-    min  = time_to_float(range.min)
-    max  = time_to_float(range.max)
+    min = time_to_float(range.min)
+    max = time_to_float(range.max)
     time = Time.at(random(min..max))
 
     if Object.const_defined?(:DateTime) && range.min.is_a?(DateTime)

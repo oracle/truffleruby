@@ -91,7 +91,7 @@ module GC
 
   module Profiler
     @enabled = true
-    @since   = 0
+    @since = 0
 
     def self.clear
       @since = GC.time

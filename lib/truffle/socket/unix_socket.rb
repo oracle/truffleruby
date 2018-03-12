@@ -29,7 +29,7 @@ class UNIXSocket < BasicSocket
 
   def self.socketpair(type = Socket::SOCK_STREAM, protocol = 0)
     family = Socket::AF_UNIX
-    type   = Truffle::Socket.socket_type(type)
+    type = Truffle::Socket.socket_type(type)
 
     fd0, fd1 = Truffle::Socket::Foreign.socketpair(family, type, protocol)
 
@@ -42,7 +42,7 @@ class UNIXSocket < BasicSocket
 
   def initialize(path)
     @no_reverse_lookup = self.class.do_not_reverse_lookup
-    @path              = '' # empty for client sockets
+    @path = '' # empty for client sockets
 
     fd = Truffle::Socket::Foreign.socket(Socket::AF_UNIX, Socket::SOCK_STREAM, 0)
 
@@ -52,7 +52,7 @@ class UNIXSocket < BasicSocket
     binmode
 
     sockaddr = Socket.sockaddr_un(path)
-    status   = Truffle::Socket::Foreign.connect(descriptor, sockaddr)
+    status = Truffle::Socket::Foreign.connect(descriptor, sockaddr)
 
     Errno.handle('connect(2)') if status < 0
   end

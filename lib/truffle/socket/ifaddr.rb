@@ -29,13 +29,13 @@ class Socket < BasicSocket
     attr_reader :addr, :broadaddr, :dstaddr, :flags, :ifindex, :name, :netmask
 
     def initialize(addr: nil, broadaddr: nil, dstaddr: nil, flags: nil, ifindex: nil, name: nil, netmask: nil)
-      @addr      = addr
+      @addr = addr
       @broadaddr = broadaddr
-      @dstaddr   = dstaddr
-      @flags     = flags
-      @ifindex   = ifindex
-      @name      = name
-      @netmask   = netmask
+      @dstaddr = dstaddr
+      @flags = flags
+      @ifindex = ifindex
+      @name = name
+      @netmask = netmask
     end
 
     def inspect

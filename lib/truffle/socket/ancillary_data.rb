@@ -77,14 +77,14 @@ class Socket < BasicSocket
 
     def initialize(family, level, type, data)
       @family = Truffle::Socket.address_family(family)
-      @data   = Truffle::Socket.coerce_to_string(data)
-      @level  = Truffle::Socket::AncillaryData.level(level)
-      @type   = Truffle::Socket::AncillaryData.type(@family, @level, type)
+      @data = Truffle::Socket.coerce_to_string(data)
+      @level = Truffle::Socket::AncillaryData.level(level)
+      @type = Truffle::Socket::AncillaryData.type(@family, @level, type)
     end
 
     def cmsg_is?(level, type)
       level = Truffle::Socket::AncillaryData.level(level)
-      type  = Truffle::Socket::AncillaryData.type(@family, level, type)
+      type = Truffle::Socket::AncillaryData.type(@family, level, type)
 
       @level == level && @type == type
     end

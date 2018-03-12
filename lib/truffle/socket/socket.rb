@@ -53,8 +53,8 @@ class Socket < BasicSocket
       service = Truffle::Socket.coerce_to_string(service)
     end
 
-    family    = Truffle::Socket.address_family(family)
-    socktype  = Truffle::Socket.socket_type(socktype)
+    family = Truffle::Socket.address_family(family)
+    socktype = Truffle::Socket.socket_type(socktype)
     addrinfos = Truffle::Socket::Foreign
       .getaddrinfo(host, service, family, socktype, protocol, flags)
 
@@ -87,15 +87,15 @@ class Socket < BasicSocket
   end
 
   def self.getnameinfo(sockaddr, flags = 0)
-    port   = nil
-    host   = nil
+    port = nil
+    host = nil
     family = Socket::AF_UNSPEC
 
     if sockaddr.is_a?(Array)
       if sockaddr.size == 3
         af, port, host = sockaddr
       elsif sockaddr.size == 4
-        af   = sockaddr[0]
+        af = sockaddr[0]
         port = sockaddr[1]
         host = sockaddr[3] || sockaddr[2]
       else
@@ -130,9 +130,9 @@ class Socket < BasicSocket
     addrinfos = Socket
       .getaddrinfo(hostname, nil, nil, :STREAM, nil, Socket::AI_CANONNAME)
 
-    hostname     = addrinfos[0][2]
-    family       = addrinfos[0][4]
-    addresses    = []
+    hostname = addrinfos[0][2]
+    family = addrinfos[0][4]
+    addresses = []
     alternatives = Truffle::Socket.aliases_for_hostname(hostname)
 
     addrinfos.each do |a|
@@ -141,11 +141,11 @@ class Socket < BasicSocket
 
       if a[4] == AF_INET
         offset, type = Truffle::Socket::Foreign::SockaddrIn.layout[:sin_addr]
-        size = FFI.type_size(type)  # TODO BJF 30-Apr-2017 This appears to be a bug in rubysl-socket?
+        size = FFI.type_size(type) # TODO BJF 30-Apr-2017 This appears to be a bug in rubysl-socket?
         addresses << sockaddr.byteslice(offset, size)
       elsif a[4] == AF_INET6
         offset, type = Truffle::Socket::Foreign::SockaddrIn6.layout[:sin6_addr]
-        size = FFI.type_size(type)  # TODO BJF 30-Apr-2017 This appears to be a bug in rubysl-socket?
+        size = FFI.type_size(type) # TODO BJF 30-Apr-2017 This appears to be a bug in rubysl-socket?
         addresses << sockaddr.byteslice(offset, size)
       end
     end
@@ -201,9 +201,9 @@ class Socket < BasicSocket
 
   def self.getifaddrs
     initial = Truffle::Socket::Foreign::Ifaddrs.new
-    status  = Truffle::Socket::Foreign.getifaddrs(initial.pointer)
+    status = Truffle::Socket::Foreign.getifaddrs(initial.pointer)
     ifaddrs = []
-    index   = 1
+    index = 1
 
     Errno.handle('getifaddrs()') if status < 0
 
@@ -247,7 +247,7 @@ class Socket < BasicSocket
 
   def self.socketpair(family, type, protocol = 0)
     family = Truffle::Socket.address_family(family)
-    type   = Truffle::Socket.socket_type(type)
+    type = Truffle::Socket.socket_type(type)
 
     fd0, fd1 = Truffle::Socket::Foreign.socketpair(family, type, protocol)
 
@@ -261,7 +261,7 @@ class Socket < BasicSocket
 
   if Truffle::Socket.unix_socket_support?
     def self.pack_sockaddr_un(file)
-      max_path_size =  Truffle::Config['platform.sockaddr_un.sun_path.size'] - 1
+      max_path_size = Truffle::Config['platform.sockaddr_un.sun_path.size'] - 1
       if file.bytesize > max_path_size
         raise ArgumentError, "too long unix socket path (#{file.bytesize} bytes given but #{max_path_size} bytes max)"
       end
@@ -295,7 +295,7 @@ class Socket < BasicSocket
   def initialize(family, socket_type, protocol = 0)
     @no_reverse_lookup = self.class.do_not_reverse_lookup
 
-    @family      = Truffle::Socket.protocol_family(family)
+    @family = Truffle::Socket.protocol_family(family)
     @socket_type = Truffle::Socket.socket_type(socket_type)
 
     descriptor = Truffle::Socket::Foreign.socket(@family, @socket_type, protocol)

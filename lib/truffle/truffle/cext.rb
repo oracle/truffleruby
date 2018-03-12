@@ -154,37 +154,37 @@ module Truffle::CExt
     alias_method :pointer?, :act_like_pointer
   end
 
-  T_NONE     = 0x00
+  T_NONE = 0x00
 
-  T_OBJECT   = 0x01
-  T_CLASS    = 0x02
-  T_MODULE   = 0x03
-  T_FLOAT    = 0x04
-  T_STRING   = 0x05
-  T_REGEXP   = 0x06
-  T_ARRAY    = 0x07
-  T_HASH     = 0x08
-  T_STRUCT   = 0x09
-  T_BIGNUM   = 0x0a
-  T_FILE     = 0x0b
-  T_DATA     = 0x0c
-  T_MATCH    = 0x0d
-  T_COMPLEX  = 0x0e
+  T_OBJECT = 0x01
+  T_CLASS = 0x02
+  T_MODULE = 0x03
+  T_FLOAT = 0x04
+  T_STRING = 0x05
+  T_REGEXP = 0x06
+  T_ARRAY = 0x07
+  T_HASH = 0x08
+  T_STRUCT = 0x09
+  T_BIGNUM = 0x0a
+  T_FILE = 0x0b
+  T_DATA = 0x0c
+  T_MATCH = 0x0d
+  T_COMPLEX = 0x0e
   T_RATIONAL = 0x0f
 
-  T_NIL      = 0x11
-  T_TRUE     = 0x12
-  T_FALSE    = 0x13
-  T_SYMBOL   = 0x14
-  T_FIXNUM   = 0x15
-  T_UNDEF    = 0x16
+  T_NIL = 0x11
+  T_TRUE = 0x12
+  T_FALSE = 0x13
+  T_SYMBOL = 0x14
+  T_FIXNUM = 0x15
+  T_UNDEF = 0x16
 
-  T_IMEMO    = 0x1a
-  T_NODE     = 0x1b
-  T_ICLASS   = 0x1c
-  T_ZOMBIE   = 0x1d
+  T_IMEMO = 0x1a
+  T_NODE = 0x1b
+  T_ICLASS = 0x1c
+  T_ZOMBIE = 0x1d
 
-  T_MASK     = 0x1f
+  T_MASK = 0x1f
 
   RUBY_ENC_CODERANGE_UNKNOWN = 0
   RUBY_ENC_CODERANGE_7BIT = 1
@@ -1159,7 +1159,7 @@ module Truffle::CExt
 
   def rb_funcall(recv, meth, n, *args)
     # see #call_with_thread_locally_stored_block
-    thread_local_block           = Thread.current[:__C_BLOCK__]
+    thread_local_block = Thread.current[:__C_BLOCK__]
     Thread.current[:__C_BLOCK__] = nil
     recv.__send__(meth, *args, &thread_local_block)
   ensure

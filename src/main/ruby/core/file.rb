@@ -46,36 +46,36 @@ class File < IO
   FNM_SYSCASE = CASEFOLD_FILESYSTEM ? FNM_CASEFOLD : 0
 
   module Constants
-    F_GETFL  = Truffle::Config['platform.fcntl.F_GETFL']
-    F_SETFL  = Truffle::Config['platform.fcntl.F_SETFL']
+    F_GETFL = Truffle::Config['platform.fcntl.F_GETFL']
+    F_SETFL = Truffle::Config['platform.fcntl.F_SETFL']
 
-    F_GETFD  = Truffle::Config['platform.fcntl.F_GETFD']
-    F_SETFD  = Truffle::Config['platform.fcntl.F_SETFD']
+    F_GETFD = Truffle::Config['platform.fcntl.F_GETFD']
+    F_SETFD = Truffle::Config['platform.fcntl.F_SETFD']
     FD_CLOEXEC = Truffle::Config['platform.fcntl.FD_CLOEXEC']
 
-    RDONLY   = Truffle::Config['platform.file.O_RDONLY']
-    WRONLY   = Truffle::Config['platform.file.O_WRONLY']
-    RDWR     = Truffle::Config['platform.file.O_RDWR']
-    ACCMODE  = Truffle::Config['platform.file.O_ACCMODE']
+    RDONLY = Truffle::Config['platform.file.O_RDONLY']
+    WRONLY = Truffle::Config['platform.file.O_WRONLY']
+    RDWR = Truffle::Config['platform.file.O_RDWR']
+    ACCMODE = Truffle::Config['platform.file.O_ACCMODE']
 
-    CREAT    = Truffle::Config['platform.file.O_CREAT']
-    EXCL     = Truffle::Config['platform.file.O_EXCL']
-    NOCTTY   = Truffle::Config['platform.file.O_NOCTTY']
-    TRUNC    = Truffle::Config['platform.file.O_TRUNC']
-    APPEND   = Truffle::Config['platform.file.O_APPEND']
+    CREAT = Truffle::Config['platform.file.O_CREAT']
+    EXCL = Truffle::Config['platform.file.O_EXCL']
+    NOCTTY = Truffle::Config['platform.file.O_NOCTTY']
+    TRUNC = Truffle::Config['platform.file.O_TRUNC']
+    APPEND = Truffle::Config['platform.file.O_APPEND']
     NONBLOCK = Truffle::Config['platform.file.O_NONBLOCK']
-    SYNC     = Truffle::Config['platform.file.O_SYNC']
+    SYNC = Truffle::Config['platform.file.O_SYNC']
 
     if value = Truffle::Config.lookup('platform.file.O_TMPFILE')
       TMPFILE = value
     end
 
     # TODO: these flags should probably be imported from Platform
-    LOCK_SH  = 0x01
-    LOCK_EX  = 0x02
-    LOCK_NB  = 0x04
-    LOCK_UN  = 0x08
-    BINARY   = 0x04
+    LOCK_SH = 0x01
+    LOCK_EX = 0x02
+    LOCK_NB = 0x04
+    LOCK_UN = 0x08
+    BINARY = 0x04
 
     # TODO: "OK" constants aren't in File::Constants in MRI
     F_OK = 0 # test for existence of file
@@ -87,7 +87,7 @@ class File < IO
     FNM_PATHNAME = 0x02
     FNM_DOTMATCH = 0x04
     FNM_CASEFOLD = 0x08
-    FNM_EXTGLOB  = 0x10
+    FNM_EXTGLOB = 0x10
 
     if Truffle::Platform.windows?
       NULL = 'NUL'
@@ -158,7 +158,7 @@ class File < IO
         data = path.bytes
         found = false
         pos.downto(0) do |i|
-          if data[i] != 47  # ?/
+          if data[i] != 47 # ?/
             path = path.byteslice(0, i+1)
             found = true
             break
@@ -371,7 +371,7 @@ class File < IO
     start ||= (path.size - 1)
 
     start.downto(0) do |i|
-      if data[i] != 47  # ?/
+      if data[i] != 47 # ?/
         return i
       end
     end
@@ -712,8 +712,8 @@ class File < IO
 
   def self.fnmatch(pattern, path, flags=0)
     pattern = StringValue(pattern)
-    path    = Truffle::Type.coerce_to_path(path)
-    flags   = Truffle::Type.coerce_to(flags, Fixnum, :to_int)
+    path = Truffle::Type.coerce_to_path(path)
+    flags = Truffle::Type.coerce_to(flags, Fixnum, :to_int)
     brace_match = false
 
     if (flags & FNM_EXTGLOB) != 0
@@ -1219,9 +1219,9 @@ class File < IO
   end
 
   class << self
-    alias_method :delete,   :unlink
-    alias_method :empty?,   :zero?
-    alias_method :exists?,  :exist?
+    alias_method :delete, :unlink
+    alias_method :empty?, :zero?
+    alias_method :exists?, :exist?
     alias_method :fnmatch?, :fnmatch
   end
 
@@ -1332,7 +1332,7 @@ class File < IO
     raise IOError, 'closed stream' if closed?
     stat.size
   end
-end     # File
+end # File
 
 # Inject the constants into IO
 class IO

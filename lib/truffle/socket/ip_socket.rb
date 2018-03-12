@@ -44,7 +44,7 @@ class IPSocket < BasicSocket
 
     message, addr = recvmsg(maxlen, flags)
 
-    aname    = Truffle::Socket.address_family_name(addr.afamily)
+    aname = Truffle::Socket.address_family_name(addr.afamily)
     hostname = addr.ip_address
 
     # We're re-using recvmsg which doesn't return the reverse hostname, thus

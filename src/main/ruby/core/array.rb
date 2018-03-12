@@ -452,7 +452,7 @@ class Array
       right = Truffle::Type.coerce_to_collection_length one.end
       right += size if right < 0
       right += 1 unless one.exclude_end?
-      return self if right <= left           # Nothing to modify
+      return self if right <= left # Nothing to modify
 
     elsif one
       left = Truffle::Type.coerce_to_collection_length one
@@ -597,10 +597,10 @@ class Array
 
     # Adjust the index for correct insertion
     idx = Truffle::Type.coerce_to_collection_index idx
-    idx += (size + 1) if idx < 0    # Negatives add AFTER the element
+    idx += (size + 1) if idx < 0 # Negatives add AFTER the element
     raise IndexError, "#{idx} out of bounds" if idx < 0
 
-    self[idx, 0] = items   # Cheat
+    self[idx, 0] = items # Cheat
     self
   end
   Truffle::Graal.always_split instance_method(:insert)
@@ -1559,7 +1559,7 @@ class Array
 
         range_length = range_end - range_start
         range_length += 1 unless range.exclude_end?
-        range_end    -= 1 if     range.exclude_end?
+        range_end -= 1 if range.exclude_end?
 
         if range_start < size && range_start >= 0 && range_end < size && range_end >= 0 && range_length > 0
           delete_range(range_start, range_length)
