@@ -51,9 +51,9 @@ module RbConfig
   ruby_base_name = 'ruby'
   ruby_version   = Truffle::RUBY_BASE_VERSION
 
-  arch         = "#{host_cpu}-#{host_os}"
-  cppflags     = ''
-  libs         = ''
+  arch     = "#{host_cpu}-#{host_os}"
+  cppflags = ''
+  libs     = ''
 
   # Sorted alphabetically using sort(1)
   CONFIG = {
