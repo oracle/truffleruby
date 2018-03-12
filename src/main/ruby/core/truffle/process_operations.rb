@@ -61,29 +61,29 @@ module Truffle
   module ProcessOperations
 
     SHELL_META_CHARS = [
-      '*',  # Pathname Expansion
-      '?',  # Pathname Expansion
-      '{',  # Grouping Commands
-      '}',  # Grouping Commands
-      '[',  # Pathname Expansion
-      ']',  # Pathname Expansion
-      '<',  # Redirection
-      '>',  # Redirection
-      '(',  # Grouping Commands
-      ')',  # Grouping Commands
-      '~',  # Tilde Expansion
-      '&',  # AND Lists, Asynchronous Lists
-      '|',  # OR Lists, Pipelines
+      '*', # Pathname Expansion
+      '?', # Pathname Expansion
+      '{', # Grouping Commands
+      '}', # Grouping Commands
+      '[', # Pathname Expansion
+      ']', # Pathname Expansion
+      '<', # Redirection
+      '>', # Redirection
+      '(', # Grouping Commands
+      ')', # Grouping Commands
+      '~', # Tilde Expansion
+      '&', # AND Lists, Asynchronous Lists
+      '|', # OR Lists, Pipelines
       '\\', # Escape Character
-      '$',  # Parameter Expansion
-      ';',  # Sequential Lists
+      '$', # Parameter Expansion
+      ';', # Sequential Lists
       '\'', # Single-Quotes
-      '`',  # Command Substitution
-      '"',  # Double-Quotes
+      '`', # Command Substitution
+      '"', # Double-Quotes
       "\n", # Lists
-      '#',  # Comment
-      '=',  # Assignment preceding command name
-      '%'   # (used in Parameter Expansion)
+      '#', # Comment
+      '=', # Assignment preceding command name
+      '%' # (used in Parameter Expansion)
     ]
     SHELL_META_CHAR_PATTERN = Regexp.new("[#{SHELL_META_CHARS.map(&Regexp.method(:escape)).join}]")
 
@@ -301,7 +301,7 @@ module Truffle
           when 2
             if obj[0] == :child
               fd = convert_to_fd obj[1], target
-              fd.kind_of?(::Fixnum) ?  -(fd + 1) : fd
+              fd.kind_of?(::Fixnum) ? -(fd + 1) : fd
             else
               open_file_for_child(obj[0], convert_file_mode(obj[1]), 0644)
             end
@@ -358,11 +358,11 @@ module Truffle
       # Mapping of string open modes to integer oflag versions.
       OFLAGS = {
         'r'  => ::File::RDONLY,
-        'r+' => ::File::RDWR   | ::File::CREAT,
-        'w'  => ::File::WRONLY | ::File::CREAT  | ::File::TRUNC,
-        'w+' => ::File::RDWR   | ::File::CREAT  | ::File::TRUNC,
+        'r+' => ::File::RDWR | ::File::CREAT,
+        'w'  => ::File::WRONLY | ::File::CREAT | ::File::TRUNC,
+        'w+' => ::File::RDWR | ::File::CREAT | ::File::TRUNC,
         'a'  => ::File::WRONLY | ::File::APPEND | ::File::CREAT,
-        'a+' => ::File::RDWR   | ::File::APPEND | ::File::CREAT
+        'a+' => ::File::RDWR | ::File::APPEND | ::File::CREAT
       }
 
       def spawn_setup(alter_process)

@@ -132,13 +132,13 @@ module Truffle
                            protocol = nil, flags = nil)
         hints = Addrinfo.new
 
-        hints[:ai_family]   = family || 0
+        hints[:ai_family] = family || 0
         hints[:ai_socktype] = socktype || 0
         hints[:ai_protocol] = protocol || 0
-        hints[:ai_flags]    = flags || 0
+        hints[:ai_flags] = flags || 0
 
         res_p = memory_pointer(:pointer)
-        err   = _getaddrinfo(host, service, hints.pointer, res_p)
+        err = _getaddrinfo(host, service, hints.pointer, res_p)
 
         raise SocketError, gai_strerror(err) unless err == 0
 
@@ -264,9 +264,9 @@ module Truffle
 
         hints = Addrinfo.new
 
-        hints[:ai_family]   = family
+        hints[:ai_family] = family
         hints[:ai_socktype] = type
-        hints[:ai_flags]    = flags
+        hints[:ai_flags] = flags
 
         if host and host.empty?
           host = '0.0.0.0'
@@ -334,8 +334,8 @@ module Truffle
 
       def self.pointers_of_type(current, type)
         pointers = []
-        size     = Truffle::FFI.type_size(type)
-        pointer  = current.read_pointer
+        size = Truffle::FFI.type_size(type)
+        pointer = current.read_pointer
 
         until pointer.null?
           pointers << pointer

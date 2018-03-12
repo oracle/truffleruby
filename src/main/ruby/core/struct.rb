@@ -228,7 +228,7 @@ class Struct
 
     Thread.detect_recursion self, other do
       _attrs.each do |var|
-        mine =   instance_variable_get(:"@#{var}")
+        mine = instance_variable_get(:"@#{var}")
         theirs = other.instance_variable_get(:"@#{var}")
 
         return false unless mine.eql? theirs
@@ -333,13 +333,13 @@ class Struct
 
       if name =~ /^@[a-z_]\w*$/i
         assigns << "#{name} = a#{i}"
-        vars    << name
+        vars << name
       else
         assigns << "instance_variable_set(:#{name.inspect}, a#{i})"
-        vars    << "instance_variable_get(:#{name.inspect})"
+        vars << "instance_variable_get(:#{name.inspect})"
       end
 
-      args   << "a#{i} = nil"
+      args << "a#{i} = nil"
       hashes << "#{vars[-1]}.hash"
     end
 

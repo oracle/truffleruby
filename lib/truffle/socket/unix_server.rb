@@ -27,7 +27,7 @@
 class UNIXServer < UNIXSocket
   def initialize(path)
     @no_reverse_lookup = self.class.do_not_reverse_lookup
-    @path              = path
+    @path = path
 
     fd = Truffle::Socket::Foreign.socket(Socket::AF_UNIX, Socket::SOCK_STREAM, 0)
 
@@ -37,7 +37,7 @@ class UNIXServer < UNIXSocket
     binmode
 
     sockaddr = Socket.sockaddr_un(@path)
-    status   = Truffle::Socket::Foreign.bind(descriptor, sockaddr)
+    status = Truffle::Socket::Foreign.bind(descriptor, sockaddr)
 
     Errno.handle('bind(2)') if status < 0
 

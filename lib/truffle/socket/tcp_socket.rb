@@ -29,9 +29,9 @@ class TCPSocket < IPSocket
     addrinfos = Socket
       .getaddrinfo(hostname, nil, nil, :STREAM, nil, Socket::AI_CANONNAME)
 
-    hostname     = addrinfos[0][2]
-    family       = addrinfos[0][4]
-    addresses    = addrinfos.map { |a| a[3] }
+    hostname = addrinfos[0][2]
+    family = addrinfos[0][4]
+    addresses = addrinfos.map { |a| a[3] }
     alternatives = []
 
     Truffle::Socket.aliases_for_hostname(hostname).each do |name|
@@ -73,7 +73,7 @@ class TCPSocket < IPSocket
         .getaddrinfo(local_host, local_service, :UNSPEC, :STREAM)
     end
 
-    descriptor     = nil
+    descriptor = nil
     connect_status = 0
 
     # Because we don't know exactly what address family to bind to we'll just
@@ -121,14 +121,14 @@ class TCPSocket < IPSocket
   end
 
   def local_address
-    address  = addr
+    address = addr
     sockaddr = Socket.pack_sockaddr_in(address[1], address[3])
 
     Addrinfo.new(sockaddr, address[0], :STREAM)
   end
 
   def remote_address
-    address  = peeraddr
+    address = peeraddr
     sockaddr = Socket.pack_sockaddr_in(address[1], address[3])
 
     Addrinfo.new(sockaddr, address[0], :STREAM)

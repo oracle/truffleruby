@@ -269,7 +269,7 @@ module JavaUtilities
       wide_type = temp_hash[w]
       widening_type = WideningType.new(prim_type, java_type, wide_type)
       temp_hash[t] = widening_type
-      WideningType::PrimitiveTypes.put_if_absent(prim_type,  widening_type)
+      WideningType::PrimitiveTypes.put_if_absent(prim_type, widening_type)
     end
   end
 
@@ -397,7 +397,7 @@ module JavaUtilities
       @callables = methods.map { |m| Callable.new(m) }
     end
 
-    def find_callable_candidates(args)  # list of arguments
+    def find_callable_candidates(args) # list of arguments
       methods = self.callables
       retained = methods # Need to handle the case where there are no arguments.
       (0...args.size).each do |i|

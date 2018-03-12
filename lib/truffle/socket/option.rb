@@ -50,10 +50,10 @@ class Socket < BasicSocket
     end
 
     def initialize(family, level, optname, data)
-      @family  = Truffle::Socket.address_family(family)
-      @level   = Truffle::Socket::SocketOptions.socket_level(level, @family)
+      @family = Truffle::Socket.address_family(family)
+      @level = Truffle::Socket::SocketOptions.socket_level(level, @family)
       @optname = Truffle::Socket::SocketOptions.socket_option(@level, optname)
-      @data    = data
+      @data = data
     end
 
     def unpack(template)
@@ -103,7 +103,7 @@ class Socket < BasicSocket
       end
 
       linger = Truffle::Socket::Foreign::Linger.from_string(@data)
-      onoff  = nil
+      onoff = nil
 
       case linger.on_off
       when 0

@@ -289,7 +289,7 @@ end
 
 class String
   private def __marshal__(ms)
-    out =  ms.serialize_instance_variables_prefix(self)
+    out = ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, String)
     out << ms.serialize_string(self)
@@ -313,7 +313,7 @@ end
 class Regexp
   private def __marshal__(ms)
     str = self.source
-    out =  ms.serialize_instance_variables_prefix(self)
+    out = ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Regexp)
     out << '/'
@@ -329,7 +329,7 @@ class Struct
   private def __marshal__(ms)
     exclude = _attrs.map { |a| :"@#{a}" }
 
-    out =  ms.serialize_instance_variables_prefix(self, exclude)
+    out = ms.serialize_instance_variables_prefix(self, exclude)
     out << ms.serialize_extended_object(self)
 
     out << 'S'
@@ -350,7 +350,7 @@ end
 
 class Array
   private def __marshal__(ms)
-    out =  ms.serialize_instance_variables_prefix(self)
+    out = ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Array)
     out << '['
@@ -370,7 +370,7 @@ class Hash
   private def __marshal__(ms)
     raise TypeError, "can't dump hash with default proc" if default_proc
 
-    out =  ms.serialize_instance_variables_prefix(self)
+    out = ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Hash)
     out << (self.default ? '}' : '{')
@@ -447,7 +447,7 @@ module Marshal
   TYPE_EXTENDED = ?e
   TYPE_UCLASS = ?C
   TYPE_OBJECT = ?o
-  TYPE_DATA = ?d  # no specs
+  TYPE_DATA = ?d # no specs
   TYPE_USERDEF = ?u
   TYPE_USRMARSHAL = ?U
   TYPE_FLOAT = ?f
@@ -458,7 +458,7 @@ module Marshal
   TYPE_HASH = ?{
   TYPE_HASH_DEF = ?}
   TYPE_STRUCT = ?S
-  TYPE_MODULE_OLD = ?M  # no specs
+  TYPE_MODULE_OLD = ?M # no specs
   TYPE_CLASS = ?c
   TYPE_MODULE = ?m
 
@@ -546,47 +546,47 @@ module Marshal
     def construct(ivar_index = nil, call_proc = true)
       type = consume_byte()
       obj = case type
-            when 48   # ?0
+            when 48 # ?0
               nil
-            when 84   # ?T
+            when 84 # ?T
               true
-            when 70   # ?F
+            when 70 # ?F
               false
-            when 99   # ?c
+            when 99 # ?c
               construct_class
-            when 109  # ?m
+            when 109 # ?m
               construct_module
-            when 77   # ?M
+            when 77 # ?M
               construct_old_module
-            when 105  # ?i
+            when 105 # ?i
               construct_integer
-            when 108  # ?l
+            when 108 # ?l
               construct_bignum
-            when 102  # ?f
+            when 102 # ?f
               construct_float
-            when 58   # ?:
+            when 58 # ?:
               construct_symbol
-            when 34   # ?"
+            when 34 # ?"
               construct_string
-            when 47   # ?/
+            when 47 # ?/
               construct_regexp
-            when 91   # ?[
+            when 91 # ?[
               construct_array
-            when 123  # ?{
+            when 123 # ?{
               construct_hash
-            when 125  # ?}
+            when 125 # ?}
               construct_hash_def
-            when 83   # ?S
+            when 83 # ?S
               construct_struct
-            when 111  # ?o
+            when 111 # ?o
               construct_object
-            when 117  # ?u
+            when 117 # ?u
               construct_user_defined ivar_index
-            when 85   # ?U
+            when 85 # ?U
               construct_user_marshal
-            when 100  # ?d
+            when 100 # ?d
               construct_data
-            when 64   # ?@
+            when 64 # ?@
               num = construct_integer
 
               begin
@@ -596,14 +596,14 @@ module Marshal
                 raise ArgumentError, 'dump format error (unlinked)'
               end
 
-            when 59   # ?;
+            when 59 # ?;
               num = construct_integer
               sym = @symbols[num]
 
               raise ArgumentError, 'bad symbol' unless sym
 
               return sym
-            when 101  # ?e
+            when 101 # ?e
               @modules ||= []
 
               name = get_symbol
@@ -614,13 +614,13 @@ module Marshal
               extend_object obj
 
               obj
-            when 67   # ?C
+            when 67 # ?C
               name = get_symbol
               @user_class = name
 
               construct nil, false
 
-            when 73   # ?I
+            when 73 # ?I
               ivar_index = @has_ivar.length
               @has_ivar.push true
 
@@ -680,7 +680,7 @@ module Marshal
     end
 
     def construct_bignum
-      sign = consume_byte() == 45 ? -1 : 1  # ?-
+      sign = consume_byte() == 45 ? -1 : 1 # ?-
       size = construct_integer * 2
 
       result = 0

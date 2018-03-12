@@ -769,7 +769,7 @@ class Pathname
   end
 end
 
-class Pathname    # * IO *
+class Pathname # * IO *
   #
   # #each_line iterates over the line in the file.  It yields a String object
   # for each line.
@@ -802,7 +802,7 @@ class Pathname    # * IO *
 end
 
 
-class Pathname    # * File *
+class Pathname # * File *
 
   # See <tt>File.atime</tt>.  Returns last access time.
   def atime() File.atime(@path) end
@@ -883,7 +883,7 @@ class Pathname    # * File *
 end
 
 
-class Pathname    # * FileTest *
+class Pathname # * FileTest *
 
   # See <tt>FileTest.blockdev?</tt>.
   def blockdev?() FileTest.blockdev?(@path) end
@@ -959,7 +959,7 @@ class Pathname    # * FileTest *
 end
 
 
-class Pathname    # * Dir *
+class Pathname # * Dir *
   # See <tt>Dir.glob</tt>.  Returns or yields Pathname objects.
   def Pathname.glob(*args) # :yield: pathname
     if block_given?
@@ -998,7 +998,7 @@ class Pathname    # * Dir *
 end
 
 
-class Pathname    # * Find *
+class Pathname # * Find *
   #
   # Pathname#find is an iterator to traverse a directory tree in a depth first
   # manner.  It yields a Pathname for each file under "this" directory.
@@ -1020,7 +1020,7 @@ class Pathname    # * Find *
 end
 
 
-class Pathname    # * FileUtils *
+class Pathname # * FileUtils *
   # See <tt>FileUtils.mkpath</tt>.  Creates a full path, including any
   # intermediate directories that don't yet exist.
   def mkpath
@@ -1040,7 +1040,7 @@ class Pathname    # * FileUtils *
 end
 
 
-class Pathname    # * mixed *
+class Pathname # * mixed *
   # Removes a file or directory, using <tt>File.unlink</tt> or
   # <tt>Dir.unlink</tt> as necessary.
   def unlink()

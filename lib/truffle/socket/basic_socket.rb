@@ -56,10 +56,10 @@ class BasicSocket < IO
 
   def getsockopt(level, optname)
     sockname = Truffle::Socket::Foreign.getsockname(descriptor)
-    family   = Truffle::Socket.family_for_sockaddr_in(sockname)
-    level    = Truffle::Socket::SocketOptions.socket_level(level, family)
-    optname  = Truffle::Socket::SocketOptions.socket_option(level, optname)
-    data     = Truffle::Socket::Foreign.getsockopt(descriptor, level, optname)
+    family = Truffle::Socket.family_for_sockaddr_in(sockname)
+    level = Truffle::Socket::SocketOptions.socket_level(level, family)
+    optname = Truffle::Socket::SocketOptions.socket_option(level, optname)
+    data = Truffle::Socket::Foreign.getsockopt(descriptor, level, optname)
 
     Socket::Option.new(family, level, optname, data)
   end
@@ -75,9 +75,9 @@ class BasicSocket < IO
     elsif level_or_option.is_a?(Socket::Option)
       raise(ArgumentError, 'given 2, expected 1') if optname
 
-      level   = level_or_option.level
+      level = level_or_option.level
       optname = level_or_option.optname
-      optval  = level_or_option.data
+      optval = level_or_option.data
     else
       raise TypeError,
         'expected the first argument to be a Fixnum, Symbol, String, or Socket::Option'
@@ -87,10 +87,10 @@ class BasicSocket < IO
     optval = 0 if optval == false
 
     sockname = Truffle::Socket::Foreign.getsockname(descriptor)
-    family   = Truffle::Socket.family_for_sockaddr_in(sockname)
-    level    = Truffle::Socket::SocketOptions.socket_level(level, family)
-    optname  = Truffle::Socket::SocketOptions.socket_option(level, optname)
-    error    = 0
+    family = Truffle::Socket.family_for_sockaddr_in(sockname)
+    level = Truffle::Socket::SocketOptions.socket_level(level, family)
+    optname = Truffle::Socket::SocketOptions.socket_option(level, optname)
+    error = 0
 
     if optval.is_a?(Fixnum)
       Truffle::Socket::Foreign.memory_pointer(:socklen_t) do |pointer|
@@ -124,7 +124,7 @@ class BasicSocket < IO
   end
 
   def send(message, flags, dest_sockaddr = nil)
-    bytes      = message.bytesize
+    bytes = message.bytesize
     bytes_sent = 0
 
     if dest_sockaddr.is_a?(Addrinfo)
@@ -178,9 +178,9 @@ class BasicSocket < IO
 
     loop do
       msg_buffer = Truffle::Socket::Foreign.char_pointer(msg_len)
-      address    = Truffle::Socket.sockaddr_class_for_socket(self).new
-      io_vec     = Truffle::Socket::Foreign::Iovec.with_buffer(msg_buffer)
-      header     = Truffle::Socket::Foreign::Msghdr.with_buffers(address, io_vec)
+      address = Truffle::Socket.sockaddr_class_for_socket(self).new
+      io_vec = Truffle::Socket::Foreign::Iovec.with_buffer(msg_buffer)
+      header = Truffle::Socket::Foreign::Msghdr.with_buffers(address, io_vec)
 
       begin
         need_more = false
@@ -224,9 +224,9 @@ class BasicSocket < IO
 
   def sendmsg(message, flags = 0, dest_sockaddr = nil, *_)
     msg_buffer = Truffle::Socket::Foreign.char_pointer(message.bytesize)
-    io_vec     = Truffle::Socket::Foreign::Iovec.with_buffer(msg_buffer)
-    header     = Truffle::Socket::Foreign::Msghdr.new
-    address    = nil
+    io_vec = Truffle::Socket::Foreign::Iovec.with_buffer(msg_buffer)
+    header = Truffle::Socket::Foreign::Msghdr.new
+    address = nil
 
     begin
       msg_buffer.write_string(message)

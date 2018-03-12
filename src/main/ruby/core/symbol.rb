@@ -54,9 +54,9 @@ class Symbol
     str = to_s
 
     case str
-    when /\A(\$|@@?)[a-z_][a-z_\d]*\z/i,                      # Variable names
-         /\A[a-z_][a-z_\d]*[=?!]?\z/i,                        # Method names
-         /\A\$(-[a-z_\d]|[+~:?<_\/'"$.,`!;\\=*>&@]|\d+)\z/i,  # Special global variables
+    when /\A(\$|@@?)[a-z_][a-z_\d]*\z/i, # Variable names
+         /\A[a-z_][a-z_\d]*[=?!]?\z/i, # Method names
+         /\A\$(-[a-z_\d]|[+~:?<_\/'"$.,`!;\\=*>&@]|\d+)\z/i, # Special global variables
          /\A([|^&\/%~`!]|!=|!~|<<|>>|<=>|===?|=~|[<>]=?|[+-]@?|\*\*?|\[\]=?)\z/ # Operators
       ":#{str}"
     else

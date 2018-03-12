@@ -89,11 +89,11 @@ module Truffle
     
     def self.key_info_flags_from_bits(bits)
       flags = []
-      flags << :existing  if existing_bit?(bits)
-      flags << :readable  if readable_bit?(bits)
-      flags << :writable  if writable_bit?(bits)
+      flags << :existing if existing_bit?(bits)
+      flags << :readable if readable_bit?(bits)
+      flags << :writable if writable_bit?(bits)
       flags << :invocable if invocable_bit?(bits)
-      flags << :internal  if internal_bit?(bits)
+      flags << :internal if internal_bit?(bits)
       flags
     end
     

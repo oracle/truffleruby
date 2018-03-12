@@ -34,7 +34,7 @@ module Truffle
           vec = new
 
           vec[:iov_base] = buffer
-          vec[:iov_len]  = buffer.total
+          vec[:iov_len] = buffer.total
 
           vec
         end

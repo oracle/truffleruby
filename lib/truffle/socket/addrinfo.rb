@@ -39,7 +39,7 @@ class Addrinfo
       lfamily, lport, lhost, laddress, _, lsocktype, lprotocol = pair
 
       sockaddr = Socket.pack_sockaddr_in(lport, laddress)
-      addr     = Addrinfo.new(sockaddr, lfamily, lsocktype, lprotocol)
+      addr = Addrinfo.new(sockaddr, lfamily, lsocktype, lprotocol)
 
       if flags and flags | Socket::AI_CANONNAME
         addr.instance_variable_set(:@canonname, lhost)
@@ -51,21 +51,21 @@ class Addrinfo
 
   def self.ip(ip)
     sockaddr = Socket.sockaddr_in(0, ip)
-    family   = Truffle::Socket.family_for_sockaddr_in(sockaddr)
+    family = Truffle::Socket.family_for_sockaddr_in(sockaddr)
 
     new(sockaddr, family)
   end
 
   def self.tcp(ip, port)
     sockaddr = Socket.sockaddr_in(port, ip)
-    pfamily  = Truffle::Socket.family_for_sockaddr_in(sockaddr)
+    pfamily = Truffle::Socket.family_for_sockaddr_in(sockaddr)
 
     new(sockaddr, pfamily, Socket::SOCK_STREAM, Socket::IPPROTO_TCP)
   end
 
   def self.udp(ip, port)
     sockaddr = Socket.sockaddr_in(port, ip)
-    pfamily  = Truffle::Socket.family_for_sockaddr_in(sockaddr)
+    pfamily = Truffle::Socket.family_for_sockaddr_in(sockaddr)
 
     new(sockaddr, pfamily, Socket::SOCK_DGRAM, Socket::IPPROTO_UDP)
   end
@@ -97,8 +97,8 @@ class Addrinfo
 
   def initialize(sockaddr, pfamily = nil, socktype = 0, protocol = 0)
     if sockaddr.kind_of?(Array)
-      @afamily    = Truffle::Socket.address_family(sockaddr[0])
-      @ip_port    = sockaddr[1]
+      @afamily = Truffle::Socket.address_family(sockaddr[0])
+      @ip_port = sockaddr[1]
       @ip_address = sockaddr[3]
 
       # When using AF_INET6 the protocol family can only be PF_INET6
@@ -108,7 +108,7 @@ class Addrinfo
     else
       if sockaddr.bytesize == Truffle::Socket::Foreign::SockaddrUn.size
         @unix_path = Socket.unpack_sockaddr_un(sockaddr)
-        @afamily   = Socket::AF_UNIX
+        @afamily = Socket::AF_UNIX
       else
         @ip_port, @ip_address = Socket.unpack_sockaddr_in(sockaddr)
 
@@ -458,8 +458,8 @@ class Addrinfo
   def marshal_load(array)
     afamily, address, pfamily, socktype, protocol, canonname = array
 
-    @afamily  = Truffle::Socket.address_family(afamily)
-    @pfamily  = Truffle::Socket.protocol_family(pfamily)
+    @afamily = Truffle::Socket.address_family(afamily)
+    @pfamily = Truffle::Socket.protocol_family(pfamily)
     @socktype = Truffle::Socket.socket_type(socktype)
 
     if protocol and protocol != 0
@@ -472,8 +472,8 @@ class Addrinfo
       @unix_path = address
     else
       @ip_address = address[0]
-      @ip_port    = address[1].to_i
-      @canonname  = canonname
+      @ip_port = address[1].to_i
+      @canonname = canonname
     end
   end
 end

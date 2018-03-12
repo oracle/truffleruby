@@ -103,7 +103,7 @@ module Truffle
 
     def self.listen(source, backlog)
       backlog = Truffle::Type.coerce_to(backlog, Fixnum, :to_int)
-      err     = Foreign.listen(source.descriptor, backlog)
+      err = Foreign.listen(source.descriptor, backlog)
 
       Error.read_error('listen(2)', source) if err < 0
 

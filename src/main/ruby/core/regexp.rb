@@ -33,16 +33,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class Regexp
-  IGNORECASE         = 1
-  EXTENDED           = 2
-  MULTILINE          = 4
-  FIXEDENCODING      = 16
-  NOENCODING         = 32
+  IGNORECASE = 1
+  EXTENDED = 2
+  MULTILINE = 4
+  FIXEDENCODING = 16
+  NOENCODING = 32
   DONT_CAPTURE_GROUP = 128
-  CAPTURE_GROUP      = 256
+  CAPTURE_GROUP = 256
 
   KCODE_NONE = (1 << 9)
-  KCODE_EUC  = (2 << 9)
+  KCODE_EUC = (2 << 9)
   KCODE_SJIS = (3 << 9)
   KCODE_UTF8 = (4 << 9)
   KCODE_MASK = KCODE_NONE | KCODE_EUC | KCODE_SJIS | KCODE_UTF8
@@ -60,25 +60,25 @@ class Regexp
 
   # The character literals (?x) are Fixnums in 1.8 and Strings in 1.9
   # so we use literal values instead so this is 1.8/1.9 compatible.
-  ESCAPE_TABLE[9]   = '\\t'
-  ESCAPE_TABLE[10]  = '\\n'
-  ESCAPE_TABLE[11]  = '\\v'
-  ESCAPE_TABLE[12]  = '\\f'
-  ESCAPE_TABLE[13]  = '\\r'
-  ESCAPE_TABLE[32]  = '\\ '
-  ESCAPE_TABLE[35]  = '\\#'
-  ESCAPE_TABLE[36]  = '\\$'
-  ESCAPE_TABLE[40]  = '\\('
-  ESCAPE_TABLE[41]  = '\\)'
-  ESCAPE_TABLE[42]  = '\\*'
-  ESCAPE_TABLE[43]  = '\\+'
-  ESCAPE_TABLE[45]  = '\\-'
-  ESCAPE_TABLE[46]  = '\\.'
-  ESCAPE_TABLE[63]  = '\\?'
-  ESCAPE_TABLE[91]  = '\\['
-  ESCAPE_TABLE[92]  = '\\\\'
-  ESCAPE_TABLE[93]  = '\\]'
-  ESCAPE_TABLE[94]  = '\\^'
+  ESCAPE_TABLE[9] = '\\t'
+  ESCAPE_TABLE[10] = '\\n'
+  ESCAPE_TABLE[11] = '\\v'
+  ESCAPE_TABLE[12] = '\\f'
+  ESCAPE_TABLE[13] = '\\r'
+  ESCAPE_TABLE[32] = '\\ '
+  ESCAPE_TABLE[35] = '\\#'
+  ESCAPE_TABLE[36] = '\\$'
+  ESCAPE_TABLE[40] = '\\('
+  ESCAPE_TABLE[41] = '\\)'
+  ESCAPE_TABLE[42] = '\\*'
+  ESCAPE_TABLE[43] = '\\+'
+  ESCAPE_TABLE[45] = '\\-'
+  ESCAPE_TABLE[46] = '\\.'
+  ESCAPE_TABLE[63] = '\\?'
+  ESCAPE_TABLE[91] = '\\['
+  ESCAPE_TABLE[92] = '\\\\'
+  ESCAPE_TABLE[93] = '\\]'
+  ESCAPE_TABLE[94] = '\\^'
   ESCAPE_TABLE[123] = '\\{'
   ESCAPE_TABLE[124] = '\\|'
   ESCAPE_TABLE[125] = '\\}'
@@ -353,8 +353,8 @@ class MatchData
 
   def ==(other)
     other.kind_of?(MatchData) &&
-      string == other.string  &&
-      regexp == other.regexp  &&
+      string == other.string &&
+      regexp == other.regexp &&
       captures == other.captures
   end
   alias_method :eql?, :==

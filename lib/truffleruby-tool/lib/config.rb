@@ -233,8 +233,8 @@ class TruffleTool::CIEnvironment
   end
 
   def rails_ci_setup(has_exclusions: false)
-    options           = {}
-    options[:debug]   = ['-d', '--[no-]debug', 'Run tests with remote debugging enabled.', STORE_NEW_VALUE, false]
+    options = {}
+    options[:debug] = ['-d', '--[no-]debug', 'Run tests with remote debugging enabled.', STORE_NEW_VALUE, false]
     options[:exclude] = ['--[no-]exclusion', 'Exclude known failing tests', STORE_NEW_VALUE, true] if has_exclusions
 
     declare_options options
@@ -447,7 +447,7 @@ begin # not tested in CI
     rails_ci_setup
 
     adapters = %w[inline delayed_job qu que queue_classic resque sidekiq sneakers sucker_punch backburner test]
-    results  = adapters.map do |adapter|
+    results = adapters.map do |adapter|
       rails_ci_run(environment:     { 'AJ_ADAPTER' => adapter },
                    require_pattern: 'test/cases/**/*_test.rb')
     end

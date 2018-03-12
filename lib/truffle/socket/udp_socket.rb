@@ -27,7 +27,7 @@
 class UDPSocket < IPSocket
   def initialize(family = Socket::AF_INET)
     @no_reverse_lookup = self.class.do_not_reverse_lookup
-    @family            = Truffle::Socket.address_family(family)
+    @family = Truffle::Socket.address_family(family)
 
     descriptor = Truffle::Socket::Foreign
       .socket(@family, Socket::SOCK_DGRAM, Socket::IPPROTO_UDP)
@@ -39,7 +39,7 @@ class UDPSocket < IPSocket
   end
 
   def bind(host, port)
-    addr   = Socket.sockaddr_in(port.to_i, host)
+    addr = Socket.sockaddr_in(port.to_i, host)
     status = Truffle::Socket::Foreign.bind(descriptor, addr)
 
     Errno.handle('bind(2)') if status < 0
@@ -85,14 +85,14 @@ class UDPSocket < IPSocket
   end
 
   def local_address
-    address  = addr
+    address = addr
     sockaddr = Socket.pack_sockaddr_in(address[1], address[3])
 
     Addrinfo.new(sockaddr, address[0], :DGRAM)
   end
 
   def remote_address
-    address  = peeraddr
+    address = peeraddr
     sockaddr = Socket.pack_sockaddr_in(address[1], address[3])
 
     Addrinfo.new(sockaddr, address[0], :DGRAM)

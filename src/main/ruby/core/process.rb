@@ -37,21 +37,21 @@ module Process
     EXIT_SUCCESS = Truffle::Config['platform.process.EXIT_SUCCESS'] || 0
     EXIT_FAILURE = Truffle::Config['platform.process.EXIT_FAILURE'] || 1
 
-    PRIO_PGRP    = Truffle::Config['platform.process.PRIO_PGRP']
+    PRIO_PGRP = Truffle::Config['platform.process.PRIO_PGRP']
     PRIO_PROCESS = Truffle::Config['platform.process.PRIO_PROCESS']
-    PRIO_USER    = Truffle::Config['platform.process.PRIO_USER']
+    PRIO_USER = Truffle::Config['platform.process.PRIO_USER']
 
-    RLIM_INFINITY  = Truffle::Config['platform.process.RLIM_INFINITY']
+    RLIM_INFINITY = Truffle::Config['platform.process.RLIM_INFINITY']
     RLIM_SAVED_MAX = Truffle::Config['platform.process.RLIM_SAVED_MAX']
     RLIM_SAVED_CUR = Truffle::Config['platform.process.RLIM_SAVED_CUR']
 
-    RLIMIT_AS      = Truffle::Config['platform.process.RLIMIT_AS']
-    RLIMIT_CORE    = Truffle::Config['platform.process.RLIMIT_CORE']
-    RLIMIT_CPU     = Truffle::Config['platform.process.RLIMIT_CPU']
-    RLIMIT_DATA    = Truffle::Config['platform.process.RLIMIT_DATA']
-    RLIMIT_FSIZE   = Truffle::Config['platform.process.RLIMIT_FSIZE']
-    RLIMIT_NOFILE  = Truffle::Config['platform.process.RLIMIT_NOFILE']
-    RLIMIT_STACK   = Truffle::Config['platform.process.RLIMIT_STACK']
+    RLIMIT_AS = Truffle::Config['platform.process.RLIMIT_AS']
+    RLIMIT_CORE = Truffle::Config['platform.process.RLIMIT_CORE']
+    RLIMIT_CPU = Truffle::Config['platform.process.RLIMIT_CPU']
+    RLIMIT_DATA = Truffle::Config['platform.process.RLIMIT_DATA']
+    RLIMIT_FSIZE = Truffle::Config['platform.process.RLIMIT_FSIZE']
+    RLIMIT_NOFILE = Truffle::Config['platform.process.RLIMIT_NOFILE']
+    RLIMIT_STACK = Truffle::Config['platform.process.RLIMIT_STACK']
 
     %i[RLIMIT_MEMLOCK RLIMIT_NPROC RLIMIT_RSS RLIMIT_SBSIZE].each do |limit|
       if value = Truffle::Config.lookup("platform.process.#{limit}")
@@ -60,14 +60,14 @@ module Process
     end
 
     if Truffle::Config.lookup('platform.process.RLIMIT_RTPRIO')
-      RLIMIT_RTPRIO     = Truffle::Config['platform.process.RLIMIT_RTPRIO']
-      RLIMIT_RTTIME     = Truffle::Config['platform.process.RLIMIT_RTTIME']
+      RLIMIT_RTPRIO = Truffle::Config['platform.process.RLIMIT_RTPRIO']
+      RLIMIT_RTTIME = Truffle::Config['platform.process.RLIMIT_RTTIME']
       RLIMIT_SIGPENDING = Truffle::Config['platform.process.RLIMIT_SIGPENDING']
-      RLIMIT_MSGQUEUE   = Truffle::Config['platform.process.RLIMIT_MSGQUEUE']
-      RLIMIT_NICE       = Truffle::Config['platform.process.RLIMIT_NICE']
+      RLIMIT_MSGQUEUE = Truffle::Config['platform.process.RLIMIT_MSGQUEUE']
+      RLIMIT_NICE = Truffle::Config['platform.process.RLIMIT_NICE']
     end
 
-    WNOHANG =   Truffle::Config['platform.process.WNOHANG']
+    WNOHANG = Truffle::Config['platform.process.WNOHANG']
     WUNTRACED = Truffle::Config['platform.process.WUNTRACED']
   end
   include Constants
@@ -108,10 +108,10 @@ module Process
     raise PrimitiveFailure, 'Process.time primitive failed'
   end
 
-  CLOCK_MONOTONIC         = 1
-  CLOCK_REALTIME          = 2
+  CLOCK_MONOTONIC = 1
+  CLOCK_REALTIME = 2
   CLOCK_THREAD_CPUTIME_ID = 3
-  CLOCK_MONOTONIC_RAW_ID  = 4
+  CLOCK_MONOTONIC_RAW_ID = 4
   
   def self.clock_gettime(id, unit=:float_second)
     case id
@@ -224,7 +224,7 @@ module Process
   private_class_method :setproctitle_linux_from_proc_maps
 
   def self.setrlimit(resource, cur_limit, max_limit=undefined)
-    resource =  coerce_rlimit_resource(resource)
+    resource = coerce_rlimit_resource(resource)
     cur_limit = Truffle::Type.coerce_to cur_limit, Integer, :to_int
 
     if undefined.equal? max_limit
@@ -452,7 +452,7 @@ module Process
 
   def self.getpriority(kind, id)
     kind = Truffle::Type.coerce_to kind, Integer, :to_int
-    id =   Truffle::Type.coerce_to id, Integer, :to_int
+    id = Truffle::Type.coerce_to id, Integer, :to_int
 
     ret = Truffle::POSIX.truffleposix_getpriority(kind, id)
     if ret <= -100
@@ -463,7 +463,7 @@ module Process
 
   def self.setpriority(kind, id, priority)
     kind = Truffle::Type.coerce_to kind, Integer, :to_int
-    id =   Truffle::Type.coerce_to id, Integer, :to_int
+    id = Truffle::Type.coerce_to id, Integer, :to_int
     priority = Truffle::Type.coerce_to priority, Integer, :to_int
 
     ret = Truffle::POSIX.setpriority(kind, id, priority)

@@ -162,7 +162,7 @@ class Dir
             full = path_join(path, ent)
             stat = File::Stat.lstat full
 
-            if stat.directory? and ent.getbyte(0) != 46  # ?.
+            if stat.directory? and ent.getbyte(0) != 46 # ?.
               stack << full
               @next.call env, full
             end
@@ -313,7 +313,7 @@ class Dir
         end
       end
 
-      if glob.getbyte(0) == 47  # ?/
+      if glob.getbyte(0) == 47 # ?/
         last = RootDirectory.new last, flags
       end
 

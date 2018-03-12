@@ -110,8 +110,8 @@ class Date
 
     def self.delta_to_dhms(delta)
       fr = delta.imag.abs
-      y,   fr = fr.divmod(12)
-      m,   _ = fr.divmod(1)
+      y, fr = fr.divmod(12)
+      m, _ = fr.divmod(1)
 
       if delta.imag < 0
         y = -y
@@ -119,10 +119,10 @@ class Date
       end
 
       fr = delta.real.abs
-      ss,  fr = fr.divmod(SECONDS_IN_DAY) # 4p
-      d,   ss = ss.divmod(86400)
-      h,   ss = ss.divmod(3600)
-      min, s  = ss.divmod(60)
+      ss, fr = fr.divmod(SECONDS_IN_DAY) # 4p
+      d, ss = ss.divmod(86400)
+      h, ss = ss.divmod(3600)
+      min, s = ss.divmod(60)
 
       if delta.real < 0
         d = -d
@@ -320,7 +320,7 @@ class Date
       end
       case other
       when Numeric; return @delta.real <=> other
-      when Delta;   return @delta.real <=> other.delta.real
+      when Delta; return @delta.real <=> other.delta.real
       else
         begin
           l, r = other.coerce(self)
@@ -334,7 +334,7 @@ class Date
     def == (other)
       case other
       when Numeric; return @delta == other
-      when Delta;   return @delta == other
+      when Delta; return @delta == other
       else
         begin
           l, r = other.coerce(self)
@@ -418,7 +418,7 @@ class Date
   def - (x)
     case x
     when Numeric; return self.class.new!(@ajd - x, @of, @sg)
-    when Date;    return @ajd - x.ajd
+    when Date; return @ajd - x.ajd
     when Delta
       d = x.__send__(:delta)
       return (self << d.imag) - d.real

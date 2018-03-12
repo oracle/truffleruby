@@ -30,7 +30,7 @@ class TCPServer < TCPSocket
 
     if host.is_a?(Fixnum) and service.nil?
       service = host
-      host    = nil
+      host = nil
     end
 
     if host.is_a?(String) and service.nil?

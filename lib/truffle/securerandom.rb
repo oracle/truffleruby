@@ -255,7 +255,7 @@ module SecureRandom
     get_last_error = Win32API.new('kernel32', 'GetLastError', '', 'L')
     format_message = Win32API.new('kernel32', 'FormatMessageA', 'LPLLPLPPPPPPPP', 'L')
     format_message_ignore_inserts = 0x00000200
-    format_message_from_system    = 0x00001000
+    format_message_from_system = 0x00001000
 
     code = get_last_error.call
     msg = "\0" * 1024

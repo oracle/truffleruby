@@ -711,10 +711,10 @@ class IO
       mode, external, internal = mode.split(':')
       raise ArgumentError, 'invalid access mode' unless mode
 
-      binary = true  if mode[1] === ?b
+      binary = true if mode[1] === ?b
       binary = false if mode[1] === ?t
     elsif mode
-      binary = true  if (mode & BINARY) != 0
+      binary = true if (mode & BINARY) != 0
     end
 
     if options
@@ -948,7 +948,7 @@ class IO
     pipe.pid = pid
 
     ch_write.close if readable
-    ch_read.close  if writable
+    ch_read.close if writable
 
     return pipe unless block_given?
 
@@ -1155,9 +1155,9 @@ class IO
     io.close if io.descriptor
 
     io.descriptor = fd
-    io.mode       = mode || cur_mode
-    io.sync       = !!sync
-    io.autoclose  = true
+    io.mode = mode || cur_mode
+    io.sync = !!sync
+    io.autoclose = true
     io.instance_variable_set :@ibuffer, IO::InternalBuffer.new
     io.instance_variable_set :@lineno, 0
 

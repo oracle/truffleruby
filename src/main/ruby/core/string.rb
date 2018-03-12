@@ -282,7 +282,7 @@ class String
     index = 0
     while index < bytesize
       current = index
-      while current < bytesize && data[current] != 92  # ?\\
+      while current < bytesize && data[current] != 92 # ?\\
         current += 1
       end
       result.append(byteslice(index, current - index))
@@ -298,15 +298,15 @@ class String
       cap = data[index]
 
       additional = case cap
-                   when 38   # ?&
+                   when 38 # ?&
                      match[0]
-                   when 96   # ?`
+                   when 96 # ?`
                      match.pre_match
-                   when 39   # ?'
+                   when 39 # ?'
                      match.post_match
-                   when 43   # ?+
+                   when 43 # ?+
                      match.captures.compact[-1].to_s
-                   when 48..57   # ?0..?9
+                   when 48..57 # ?0..?9
                      match[cap - 48].to_s
                    when 92 # ?\\ escaped backslash
                      '\\'
@@ -329,7 +329,7 @@ class String
                      else
                        '\\'.append(cap.chr)
                      end
-                   else     # unknown escape
+                   else # unknown escape
                      '\\'.append(cap.chr)
                    end
       result.append(additional)
@@ -541,11 +541,11 @@ class String
           byte = getbyte(index)
           if byte >= 7 and byte <= 92
             case byte
-            when 7  # \a
+            when 7 # \a
               escaped = '\a'
-            when 8  # \b
+            when 8 # \b
               escaped = '\b'
-            when 9  # \t
+            when 9 # \t
               escaped = '\t'
             when 10 # \n
               escaped = '\n'
@@ -561,11 +561,11 @@ class String
               escaped = '\"'
             when 35 # #
               case getbyte(index += 1)
-              when 36   # $
+              when 36 # $
                 escaped = '\#$'
-              when 64   # @
+              when 64 # @
                 escaped = '\#@'
-              when 123  # {
+              when 123 # {
                 escaped = '\#{'
               else
                 index -= 1
@@ -1519,7 +1519,7 @@ class String
       # Normalize the results to be in {-1, 0, 1}. Also, since at this point we've inverted the objects being compared,
       # we must now invert the results.
       return -1 if tmp > 0
-      return 1  if tmp < 0
+      return 1 if tmp < 0
       return 0
     end
 

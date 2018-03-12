@@ -12,27 +12,27 @@ class Truffle::BigDecimal < Numeric
   BASE = 10_000
 
   SIGN_NEGATIVE_INFINITE = -3
-  SIGN_NEGATIVE_FINITE   = -2
-  SIGN_NEGATIVE_ZERO     = -1
-  SIGN_NaN               = 0
-  SIGN_POSITIVE_ZERO     = 1
-  SIGN_POSITIVE_FINITE   = 2
+  SIGN_NEGATIVE_FINITE = -2
+  SIGN_NEGATIVE_ZERO = -1
+  SIGN_NaN = 0
+  SIGN_POSITIVE_ZERO = 1
+  SIGN_POSITIVE_FINITE = 2
   SIGN_POSITIVE_INFINITE = 3
 
-  EXCEPTION_INFINITY   = 1
-  EXCEPTION_OVERFLOW   = 1
-  EXCEPTION_NaN        = 2
-  EXCEPTION_UNDERFLOW  = 4
+  EXCEPTION_INFINITY = 1
+  EXCEPTION_OVERFLOW = 1
+  EXCEPTION_NaN = 2
+  EXCEPTION_UNDERFLOW = 4
   EXCEPTION_ZERODIVIDE = 16
-  EXCEPTION_ALL        = 255
-  ROUND_MODE           = 256
+  EXCEPTION_ALL = 255
+  ROUND_MODE = 256
 
-  ROUND_UP        = 1
-  ROUND_DOWN      = 2
-  ROUND_HALF_UP   = 3
+  ROUND_UP = 1
+  ROUND_DOWN = 2
+  ROUND_HALF_UP = 3
   ROUND_HALF_DOWN = 4
-  ROUND_CEILING   = 5
-  ROUND_FLOOR     = 6
+  ROUND_CEILING = 5
+  ROUND_FLOOR = 6
   ROUND_HALF_EVEN = 7
 
   def self.mode(key, value = nil)
@@ -65,7 +65,7 @@ class Truffle::BigDecimal < Numeric
     Thread.current[:'BigDecimal.precision_limit'] ||= 0
     if limit
       raise ArgumentError, 'requires key to be Fixnum' unless limit.is_a? Fixnum
-      old                                           = Thread.current[:'BigDecimal.precision_limit']
+      old = Thread.current[:'BigDecimal.precision_limit']
       Thread.current[:'BigDecimal.precision_limit'] = limit
       old
     else
@@ -201,30 +201,30 @@ class Truffle::BigDecimal < Numeric
 
   def to_s(format = 'E')
     if finite?
-      float_format    = format[-1] == 'F'
+      float_format = format[-1] == 'F'
       space_frequency = format.to_i
-      prefix          = if self > 0 && [' ', '+'].include?(format[0])
-                          format[0]
-                        elsif self < 0
-                          '-'
-                        else
-                          ''
-                        end
-      unscaled_value  = unscaled
-      exponent_value  = exponent
+      prefix = if self > 0 && [' ', '+'].include?(format[0])
+                 format[0]
+               elsif self < 0
+                 '-'
+               else
+                 ''
+               end
+      unscaled_value = unscaled
+      exponent_value = exponent
 
       if float_format
         case
         when exponent_value > unscaled_value.size
           before_dot = unscaled_value + '0' * (exponent_value - unscaled_value.size)
-          after_dot  = '0'
+          after_dot = '0'
         when exponent_value <= 0
           before_dot = '0'
-          after_dot  = '0' * exponent_value.abs + unscaled_value
+          after_dot = '0' * exponent_value.abs + unscaled_value
         else
           before_dot = unscaled_value[0...exponent_value]
-          rest       = unscaled_value[exponent_value..-1]
-          after_dot  = rest.empty? ? '0' : rest
+          rest = unscaled_value[exponent_value..-1]
+          after_dot = rest.empty? ? '0' : rest
         end
 
         format '%s%s.%s',
@@ -269,8 +269,8 @@ class Truffle::BigDecimal < Numeric
     return string if space_frequency == 0
 
     remainder = string.size % space_frequency
-    shift     = reverse ? remainder : 0
-    pieces    = (string.size / space_frequency).times.map { |i| string[space_frequency*i + shift, space_frequency] }
+    shift = reverse ? remainder : 0
+    pieces = (string.size / space_frequency).times.map { |i| string[space_frequency*i + shift, space_frequency] }
 
     if remainder > 0
       if reverse

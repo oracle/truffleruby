@@ -41,7 +41,7 @@
 class Fixnum < Integer
 
   MIN = -9223372036854775808
-  MAX =  9223372036854775807
+  MAX = 9223372036854775807
 
   def [](index)
     index = Truffle::Type.coerce_to(index, Integer, :to_int)

@@ -195,11 +195,11 @@ module Truffle::FFI
       cspec = {}
 
       fields.each do |field|
-        field  = field.to_sym
+        field = field.to_sym
         offset = Truffle::Config["#{base}.#{field}.offset"]
-        size   = Truffle::Config["#{base}.#{field}.size"]
-        type   = Truffle::Config.lookup("#{base}.#{field}.type")
-        type   = type ? type.to_sym : FFI.size_to_type(size)
+        size = Truffle::Config["#{base}.#{field}.size"]
+        type = Truffle::Config.lookup("#{base}.#{field}.type")
+        type = type ? type.to_sym : FFI.size_to_type(size)
 
         code = FFI.find_type type
         cspec[field] = [offset, code]

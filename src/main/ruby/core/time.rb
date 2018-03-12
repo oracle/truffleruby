@@ -125,7 +125,7 @@ class Time
       r = (other <=> self)
       return nil if r == nil
       return -1 if r > 0
-      return  1 if r < 0
+      return 1 if r < 0
       0
     end
   end
@@ -217,14 +217,14 @@ class Time
     else
       major &= ~(1 << 31)
 
-      is_gmt =  (major >> 30) & 0x1
-      year   = ((major >> 14) & 0xffff) + 1900
-      mon    = ((major >> 10) & 0xf) + 1
-      mday   =  (major >>  5) & 0x1f
-      hour   =  major         & 0x1f
+      is_gmt = (major >> 30) & 0x1
+      year = ((major >> 14) & 0xffff) + 1900
+      mon = ((major >> 10) & 0xf) + 1
+      mday = (major >> 5) & 0x1f
+      hour = major & 0x1f
 
-      min   =  (minor >> 26) & 0x3f
-      sec   =  (minor >> 20) & 0x3f
+      min = (minor >> 26) & 0x3f
+      sec = (minor >> 20) & 0x3f
 
       usec = minor & 0xfffff
 
@@ -245,14 +245,14 @@ class Time
 
     gmt = gmt? ? 1 : 0
 
-    major =  1             << 31 | # 1 bit
-             gmt           << 30 | # 1 bit
+    major = 1 << 31 | # 1 bit
+             gmt << 30 | # 1 bit
             (tm[5] - 1900) << 14 | # 16 bits
-            (tm[4] - 1)    << 10 | # 4 bits
-             tm[3]         <<  5 | # 5 bits
-             tm[2]                 # 5 bits
-    minor =  tm[1]   << 26 | # 6 bits
-             tm[0]   << 20 | # 6 bits
+            (tm[4] - 1) << 10 | # 4 bits
+             tm[3] << 5 | # 5 bits
+             tm[2] # 5 bits
+    minor = tm[1] << 26 | # 6 bits
+             tm[0] << 20 | # 6 bits
              usec # 20 bits
 
     [major, minor].pack 'VV'
@@ -280,7 +280,7 @@ class Time
       s = Truffle::Type.coerce_to_exact_num(sec)
       u = Truffle::Type.coerce_to_exact_num(usec)
 
-      sec       = s.to_i
+      sec = s.to_i
       nsec_frac = s % 1.0
 
       sec -= 1 if s < 0 && nsec_frac > 0
@@ -302,7 +302,7 @@ class Time
       else
         s = Truffle::Type.coerce_to_exact_num(sec || 0)
 
-        sec       = s.to_i
+        sec = s.to_i
         nsec_frac = s % 1.0
 
         if s < 0 && nsec_frac > 0
@@ -355,9 +355,9 @@ class Time
         m = Truffle::Type.coerce_to(m || 1, Integer, :to_int)
       end
 
-      y   = y.kind_of?(String)   ? y.to_i   : Truffle::Type.coerce_to(y,        Integer, :to_int)
-      d   = d.kind_of?(String)   ? d.to_i   : Truffle::Type.coerce_to(d   || 1, Integer, :to_int)
-      hr  = hr.kind_of?(String)  ? hr.to_i  : Truffle::Type.coerce_to(hr  || 0, Integer, :to_int)
+      y = y.kind_of?(String) ? y.to_i : Truffle::Type.coerce_to(y, Integer, :to_int)
+      d = d.kind_of?(String) ? d.to_i : Truffle::Type.coerce_to(d || 1, Integer, :to_int)
+      hr = hr.kind_of?(String) ? hr.to_i : Truffle::Type.coerce_to(hr || 0, Integer, :to_int)
       min = min.kind_of?(String) ? min.to_i : Truffle::Type.coerce_to(min || 0, Integer, :to_int)
 
       nsec = nil

@@ -39,12 +39,12 @@ end
 
 opt_passes = ['-always-inline', '-mem2reg', '-constprop'].join(' ')
 linkflags = [
-  '-g',                              # Show debug information such as line numbers in backtrace
+  '-g', # Show debug information such as line numbers in backtrace
   '-Wimplicit-function-declaration', # To make missing C ext functions clear
-  '-Wno-unknown-warning-option',     # If we're on an earlier version of clang without a warning option, ignore it
-  '-Wno-int-conversion',             # MRI has VALUE defined as long while we have it as void*
-  '-Wno-int-to-pointer-cast',        # Same as above
-  '-Wno-unused-value',               # RB_GC_GUARD leaves
+  '-Wno-unknown-warning-option', # If we're on an earlier version of clang without a warning option, ignore it
+  '-Wno-int-conversion', # MRI has VALUE defined as long while we have it as void*
+  '-Wno-int-to-pointer-cast', # Same as above
+  '-Wno-unused-value', # RB_GC_GUARD leaves
   '-Wno-incompatible-pointer-types', # Fix byebug 8.2.1 compile (st_data_t error)
   '-ferror-limit=500'
 ].join(' ')
@@ -71,10 +71,10 @@ common = {
 expanded.merge!(common)
 mkconfig.merge!(common)
 
-mkconfig['COMPILE_C']   = "ruby #{cext_dir}/preprocess.rb $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@"
+mkconfig['COMPILE_C'] = "ruby #{cext_dir}/preprocess.rb $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@"
 mkconfig['COMPILE_CXX'] = "ruby #{cext_dir}/preprocess.rb $< | $(CXX) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ - -o $@ && #{opt} #{opt_passes} $@ -o $@"
-mkconfig['LINK_SO']     = "#{RbConfig.ruby} -Xgraal.warn_unless=false #{cext_dir}/linker.rb -o $@ $(OBJS) $(LIBS)"
-mkconfig['TRY_LINK']    = "#{cc} -o conftest $(CPPFLAGS) #{cext_dir}/ruby.bc #{cext_dir}/trufflemock.bc $(src) $(INCFLAGS) #{linkflags} $(LIBS)"
+mkconfig['LINK_SO'] = "#{RbConfig.ruby} -Xgraal.warn_unless=false #{cext_dir}/linker.rb -o $@ $(OBJS) $(LIBS)"
+mkconfig['TRY_LINK'] = "#{cc} -o conftest $(CPPFLAGS) #{cext_dir}/ruby.bc #{cext_dir}/trufflemock.bc $(src) $(INCFLAGS) #{linkflags} $(LIBS)"
 
 %w[COMPILE_C COMPILE_CXX LINK_SO TRY_LINK].each do |key|
   expanded[key] = mkconfig[key].gsub(/\$\((\w+)\)/) { expanded.fetch($1, $&) }
