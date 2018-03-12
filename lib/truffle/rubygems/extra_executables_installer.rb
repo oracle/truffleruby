@@ -10,6 +10,7 @@ module Gem
       [install_hook, uninstall_hook]
     end
 
+    # Currently unused, documents how to remove the hooks if necessary for testing or other cases.
     def remove_hooks(install_hook, uninstall_hook)
       [Gem.post_install_hooks.delete(install_hook),
        Gem.pre_uninstall_hooks.delete(uninstall_hook)]
