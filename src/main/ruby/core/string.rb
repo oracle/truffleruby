@@ -1339,7 +1339,7 @@ class String
     if str.kind_of? Regexp
       Truffle::Type.compatible_encoding self, str
 
-      start = Truffle.invoke_primitive(:string_character_byte_index, self, start)
+      start = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, start)
       if match = str.match_from(self, start)
         Truffle::RegexpOperations.set_last_match(match, Truffle.invoke_primitive(:caller_binding))
         return match.begin(0)
@@ -1379,7 +1379,7 @@ class String
       finish = size if finish >= size
     end
 
-    byte_finish = Truffle.invoke_primitive(:string_character_byte_index, self, finish)
+    byte_finish = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, finish)
 
     case sub
     when Fixnum
