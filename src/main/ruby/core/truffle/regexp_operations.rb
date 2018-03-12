@@ -15,7 +15,7 @@ module Truffle
       str = StringValue(str)
 
       pos = pos < 0 ? pos + str.size : pos
-      pos = Truffle.invoke_primitive(:string_character_byte_index, str, pos)
+      pos = Truffle.invoke_primitive(:string_byte_index_from_char_index, str, pos)
       re.search_region(str, pos, str.bytesize, true)
     end
 

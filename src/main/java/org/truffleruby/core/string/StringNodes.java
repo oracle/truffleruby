@@ -3652,42 +3652,6 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_character_byte_index", needsSelf = false, lowerFixnum = 2)
-    @ImportStatic({ StringGuards.class, StringOperations.class })
-    public static abstract class CharacterByteIndexNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization(guards = "isSingleByteOptimizable(string)")
-        int singleByteOptimizable(DynamicObject string, int charIndex) {
-            return charIndex;
-        }
-
-        @Specialization(guards = { "!isSingleByteOptimizable(string)", "isFixedWidthEncoding(string)" })
-        int fixedWidthEncoding(DynamicObject string, int charIndex) {
-            final Encoding encoding = encoding(string);
-            return charIndex * encoding.minLength();
-        }
-
-        @Specialization(guards = { "!isSingleByteOptimizable(string)", "!isFixedWidthEncoding(string)",
-                "charIndex == 0" })
-        int multiByteZeroIndex(DynamicObject string, int charIndex) {
-            return 0;
-        }
-
-        @Specialization(guards = { "!isSingleByteOptimizable(string)", "!isFixedWidthEncoding(string)",
-                "charIndex == rope(string).characterLength()" })
-        int multiByteEndIndex(DynamicObject string, int charIndex) {
-            return rope(string).byteLength();
-        }
-
-        @Specialization(guards = {
-                "!isSingleByteOptimizable(string)", "!isFixedWidthEncoding(string)",
-                "charIndex != 0", "charIndex != rope(string).characterLength()" })
-        int multiByteEncoding(DynamicObject string, int charIndex) {
-            final Rope rope = rope(string);
-            return StringSupport.nth(rope.getEncoding(), rope.getBytes(), 0, rope.byteLength(), charIndex);
-        }
-    }
-
     @Primitive(name = "string_byte_character_index", needsSelf = false, lowerFixnum = 2)
     @ImportStatic(StringGuards.class)
     public static abstract class StringByteCharacterIndexNode extends PrimitiveArrayArgumentsNode {
@@ -3800,30 +3764,61 @@ public abstract class StringNodes {
         }
     }
 
+    // Named 'string_byte_index' in Rubinius.
     @Primitive(name = "string_byte_index_from_char_index", needsSelf = false, lowerFixnum = 2)
-    @ImportStatic(StringGuards.class)
+    @ImportStatic({ StringGuards.class, StringOperations.class })
     public static abstract class StringByteIndexFromCharIndexNode extends PrimitiveArrayArgumentsNode {
 
         public abstract Object executeFindByteIndex(DynamicObject string, int characterIndex);
 
-        @Specialization(guards = "characterIndex < 0")
-        protected Object byteIndexNegativeIndex(DynamicObject string, int characterIndex) {
-            throw new RaiseException(
-                    getContext().getCoreExceptions().argumentError(
-                            coreStrings().CHARACTER_INDEX_NEGATIVE.getRope(), this));
-        }
-
-        @Specialization(guards = "characterIndexTooLarge(string, characterIndex)")
-        protected Object byteIndexTooLarge(DynamicObject string, int characterIndex) {
-            return nil();
+        @Specialization(guards = "!characterIndexInBounds(string, characterIndex)")
+        protected Object indexOutOfBounds(DynamicObject string, int characterIndex,
+                @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile) {
+            if (negativeIndexProfile.profile(characterIndex < 0)) {
+                throw new RaiseException(
+                        getContext().getCoreExceptions().argumentError(
+                                coreStrings().CHARACTER_INDEX_NEGATIVE.getRope(), this));
+            } else {
+                return nil();
+            }
         }
 
         @Specialization(guards = { "characterIndexInBounds(string, characterIndex)", "isSingleByteOptimizable(string)" })
-        protected Object singleByte(DynamicObject string, int characterIndex) {
+        protected Object singleByteOptimizable(DynamicObject string, int characterIndex) {
             return characterIndex;
         }
 
-        @Specialization(guards = { "characterIndexInBounds(string, characterIndex)", "!isSingleByteOptimizable(string)" })
+        @Specialization(guards = {
+                "characterIndexInBounds(string, characterIndex)",
+                "!isSingleByteOptimizable(string)",
+                "isFixedWidthEncoding(string)" })
+        Object fixedWidthEncoding(DynamicObject string, int characterIndex) {
+            final Encoding encoding = encoding(string);
+            return characterIndex * encoding.minLength();
+        }
+
+        @Specialization(guards = {
+                "characterIndexInBounds(string, characterIndex)",
+                "!isSingleByteOptimizable(string)",
+                "!isFixedWidthEncoding(string)",
+                "characterIndex == 0" })
+        Object multiByteZeroIndex(DynamicObject string, int characterIndex) {
+            return 0;
+        }
+
+        @Specialization(guards = {
+                "characterIndexInBounds(string, characterIndex)",
+                "!isSingleByteOptimizable(string)",
+                "!isFixedWidthEncoding(string)",
+                "characterIndex == rope(string).characterLength()" })
+        Object multiByteEndIndex(DynamicObject string, int characterIndex) {
+            return rope(string).byteLength();
+        }
+
+        @Specialization(guards = {
+                "characterIndexInBounds(string, characterIndex)",
+                "!isSingleByteOptimizable(string)",
+                "!isFixedWidthEncoding(string)" })
         protected Object multiBytes(DynamicObject string, int characterIndex,
                 @Cached("createBinaryProfile()") ConditionProfile indexTooLargeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile invalidByteProfile,
