@@ -14,6 +14,9 @@ done
 
 source "$(dirname $SELF_PATH)/../common.sh.inc"
 
+# Use homedir of the RUBY_BIN executable if provided
+cd "$(jt ruby -e 'puts Truffle::Boot.ruby_home')"
+
 function check_launchers() {
     if [ -n "$2" ]
     then
