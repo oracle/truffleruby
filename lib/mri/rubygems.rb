@@ -1265,6 +1265,6 @@ Gem.use_gemdeps
 # Add TruffleRuby rubygems hooks to install and uninstall executables from additional
 # GraalVM bin directories (./bin, ./jre/bin)
 unless RbConfig::CONFIG['extra_bindirs'].empty?
-  require 'rubygems/installing_extra_executables'
-  Gem::InstallingExtraExecutables.install_hooks_for RbConfig::CONFIG['extra_bindirs']
+  require 'rubygems/extra_executables_installer'
+  Gem::ExtraExecutablesInstaller.install_hooks_for RbConfig::CONFIG['extra_bindirs']
 end
