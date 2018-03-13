@@ -11,14 +11,14 @@ public class Metrics {
     private static final boolean METRICS_MEMORY_USED_ON_EXIT =
             Boolean.getBoolean("truffleruby.metrics.memory_used_on_exit");
 
-    public static void printTruffleTime(String id) {
+    public static void printTime(String id) {
         if (METRICS_TIME) {
             final long millis = System.currentTimeMillis();
             System.err.printf("%s %d.%03d%n", id, millis / 1000, millis % 1000);
         }
     }
 
-    private static void printTruffleMemory() {
+    private static void printMemory() {
         // Memory stats aren't available in native.
         if (!Launcher.isAOT() && METRICS_MEMORY_USED_ON_EXIT) {
             for (int n = 0; n < 10; n++) {
@@ -36,14 +36,14 @@ public class Metrics {
     }
 
     static void end() {
-        printTruffleTime("after-main");
-        printTruffleMemory();
+        printTime("after-main");
+        printMemory();
     }
 
     static void begin() {
         // Assigned here so it's available on SVM as well
         METRICS_TIME = Boolean.getBoolean("truffleruby.metrics.time");
 
-        printTruffleTime("before-main");
+        printTime("before-main");
     }
 }

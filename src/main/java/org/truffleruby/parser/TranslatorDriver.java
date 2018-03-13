@@ -367,11 +367,11 @@ public class TranslatorDriver {
                 if (lastSlash >= 0 && lastDot >= 0) {
                     name = name.substring(lastSlash + 1, lastDot);
                 }
-                Metrics.printTruffleTime(id + "-" + name);
+                Metrics.printTime(id + "-" + name);
             } else if (context.getCoreLibrary().isLoadingRubyCore()) {
                 // Only show times for core (the biggest contributor) to avoid multiple metrics with
                 // the same name, which is not supported in mx_truffleruby_benchmark.py.
-                Metrics.printTruffleTime(id + "-core");
+                Metrics.printTime(id + "-core");
             }
         }
     }
