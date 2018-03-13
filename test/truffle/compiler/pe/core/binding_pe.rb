@@ -26,7 +26,7 @@ example "b = binding.dup; b.local_variable_set(:x, 14); b.local_variable_get(:x)
 example "x = 14; y = nil; 1.times { y = binding.local_variable_get(:x) }; y", 14
 
 # set (2 levels)
-example "x = 14; 1.times { binding.local_variable_set(:x, 15) }; x", 15
+example "x = nil; 1.times { binding.local_variable_set(:x, 15) }; x", 15
 
 # get + set (2 levels)
 example "x = 14; y = nil; 1.times { binding.local_variable_set(:x, 15); y = binding.local_variable_get(:x) }; y", 15
