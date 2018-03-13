@@ -335,6 +335,10 @@ public final class StringSupport {
         return pp == -1 ? end - p : pp - p;
     }
 
+    public static int offset(int start, int end, int charEnd) {
+        return charEnd == -1 ? end - start : charEnd - start;
+    }
+
     public static int toLower(Encoding enc, int c) {
         return Encoding.isAscii(c) ? AsciiTables.ToLowerCaseTable[c] : c;
     }

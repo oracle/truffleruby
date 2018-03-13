@@ -65,7 +65,6 @@ package org.truffleruby.core.string;
 
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 import static org.truffleruby.core.rope.RopeConstants.EMPTY_ASCII_8BIT_ROPE;
 import static org.truffleruby.core.string.StringOperations.encoding;
 import static org.truffleruby.core.string.StringOperations.rope;
@@ -123,6 +122,7 @@ import org.truffleruby.core.rope.RepeatingRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.rope.RopeGuards;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeNodes.RepeatNode;
 import org.truffleruby.core.rope.RopeNodesFactory;
@@ -3536,6 +3536,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "!isBrokenCodeRange(pattern)", "!canMemcmp(string, pattern)" })
         public Object stringIndexGeneric(DynamicObject string, DynamicObject pattern, int byteOffset,
+                @Cached("create()") ByteIndexFromCharIndexNode byteIndexFromCharIndexNode,
                 @Cached("create()") StringByteCharacterIndexNode byteIndexToCharIndexNode,
                 @Cached("create()") NormalizeIndexNode normalizeIndexNode,
                 @Cached("createBinaryProfile()") ConditionProfile badIndexProfile) {
@@ -3546,7 +3547,7 @@ public abstract class StringNodes {
             // Rubinius will pass in a byte index for the `start` value, but StringSupport.index requires a character index.
             final int charIndex = byteIndexToCharIndexNode.executeStringByteCharacterIndex(string, byteOffset);
 
-            final int index = index(rope(string), rope(pattern), charIndex, encoding(string), normalizeIndexNode);
+            final int index = index(rope(string), rope(pattern), charIndex, encoding(string), normalizeIndexNode, byteIndexFromCharIndexNode);
 
             if (badIndexProfile.profile(index == -1)) {
                 return nil();
@@ -3556,7 +3557,7 @@ public abstract class StringNodes {
         }
 
         @TruffleBoundary
-        private int index(Rope source, Rope other, int byteOffset, Encoding enc, NormalizeIndexNode normalizeIndexNode) {
+        private int index(Rope source, Rope other, int byteOffset, Encoding enc, NormalizeIndexNode normalizeIndexNode, ByteIndexFromCharIndexNode byteIndexFromCharIndexNode) {
             // Taken from org.jruby.util.StringSupport.index.
             assert byteOffset >= 0;
 
@@ -3572,7 +3573,10 @@ public abstract class StringNodes {
             int p = 0;
             int end = p + source.byteLength();
             if (byteOffset != 0) {
-                byteOffset = source.isSingleByteOptimizable() ? byteOffset : StringSupport.offset(enc, bytes, p, end, byteOffset);
+                if (!source.isSingleByteOptimizable()) {
+                    final int pp = byteIndexFromCharIndexNode.execute(source, p, byteOffset);
+                    byteOffset = StringSupport.offset(p, end, pp);
+                }
                 p += byteOffset;
             }
             if (otherLen == 0) {
@@ -3764,10 +3768,99 @@ public abstract class StringNodes {
         }
     }
 
+    @NodeChildren({
+            @NodeChild("rope"),
+            @NodeChild("startByteOffset"),
+            @NodeChild("characterIndex")
+    })
+    @ImportStatic({ RopeGuards.class, StringGuards.class, StringOperations.class })
+    public static abstract class ByteIndexFromCharIndexNode extends RubyNode {
+
+        public static ByteIndexFromCharIndexNode create() {
+            return StringNodesFactory.ByteIndexFromCharIndexNodeGen.create(null, null, null);
+        }
+
+        public abstract int execute(Rope rope, int startByteOffset, int characterIndex);
+
+        @Specialization(guards = { "characterIndexInBounds(rope, characterIndex)", "rope.isSingleByteOptimizable()" })
+        protected int singleByteOptimizable(Rope rope, int startByteOffset, int characterIndex) {
+            return startByteOffset + characterIndex;
+        }
+
+        @Specialization(guards = {
+                "characterIndexInBounds(rope, characterIndex)",
+                "!rope.isSingleByteOptimizable()",
+                "isFixedWidthEncoding(rope)" })
+        protected int fixedWidthEncoding(Rope rope, int startByteOffset, int characterIndex) {
+            final Encoding encoding = rope.getEncoding();
+            return startByteOffset + characterIndex * encoding.minLength();
+        }
+
+        @Specialization(guards = {
+                "characterIndexInBounds(rope, characterIndex)",
+                "!rope.isSingleByteOptimizable()",
+                "!isFixedWidthEncoding(rope)",
+                "characterIndex == 0" })
+        protected int multiByteZeroIndex(Rope rope, int startByteOffset, int characterIndex) {
+            return startByteOffset;
+        }
+
+        @Specialization(guards = {
+                "characterIndexInBounds(rope, characterIndex)",
+                "!rope.isSingleByteOptimizable()",
+                "!isFixedWidthEncoding(rope)" })
+        protected int multiBytes(Rope rope, int startByteOffset, int characterIndex,
+                @Cached("createBinaryProfile()") ConditionProfile indexTooLargeProfile,
+                @Cached("createBinaryProfile()") ConditionProfile invalidByteProfile,
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.PreciseLengthNode preciseLengthNode) {
+            // Taken from Rubinius's String::byte_index.
+
+            final Encoding enc = rope.getEncoding();
+            final byte[] bytes = bytesNode.execute(rope);
+            final int e = rope.byteLength();
+            int p = startByteOffset;
+
+            int i, k = characterIndex;
+
+            for (i = 0; i < k && p < e; i++) {
+                final int c = preciseLengthNode.executeLength(enc, bytes, p, e);
+
+                // TODO (nirvdrum 22-Dec-16): Consider having a specialized version for CR_BROKEN strings to avoid these checks.
+                // If it's an invalid byte, just treat it as a single byte
+                if (invalidByteProfile.profile(!StringSupport.MBCLEN_CHARFOUND_P(c))) {
+                    ++p;
+                } else {
+                    p += StringSupport.MBCLEN_CHARFOUND_LEN(c);
+                }
+            }
+
+            // TODO (nirvdrum 22-Dec-16): Since we specialize elsewhere on index being too large, do we need this? Can character boundary search in a CR_BROKEN string cause us to encounter this case?
+            if (indexTooLargeProfile.profile(i < k)) {
+                return -1;
+            } else {
+                return p;
+            }
+        }
+
+        protected boolean characterIndexTooLarge(Rope rope, int characterIndex) {
+            return characterIndex > rope.characterLength();
+        }
+
+        protected boolean characterIndexInBounds(Rope rope, int characterIndex) {
+            return characterIndex >= 0 && !characterIndexTooLarge(rope, characterIndex);
+        }
+
+    }
+
     // Named 'string_byte_index' in Rubinius.
     @Primitive(name = "string_byte_index_from_char_index", needsSelf = false, lowerFixnum = 2)
     @ImportStatic({ StringGuards.class, StringOperations.class })
     public static abstract class StringByteIndexFromCharIndexNode extends PrimitiveArrayArgumentsNode {
+
+        public static StringByteIndexFromCharIndexNode create() {
+            return StringNodesFactory.StringByteIndexFromCharIndexNodeFactory.create(null);
+        }
 
         public abstract Object executeFindByteIndex(DynamicObject string, int characterIndex);
 
@@ -3783,74 +3876,10 @@ public abstract class StringNodes {
             }
         }
 
-        @Specialization(guards = { "characterIndexInBounds(string, characterIndex)", "isSingleByteOptimizable(string)" })
-        protected Object singleByteOptimizable(DynamicObject string, int characterIndex) {
-            return characterIndex;
-        }
-
-        @Specialization(guards = {
-                "characterIndexInBounds(string, characterIndex)",
-                "!isSingleByteOptimizable(string)",
-                "isFixedWidthEncoding(string)" })
-        Object fixedWidthEncoding(DynamicObject string, int characterIndex) {
-            final Encoding encoding = encoding(string);
-            return characterIndex * encoding.minLength();
-        }
-
-        @Specialization(guards = {
-                "characterIndexInBounds(string, characterIndex)",
-                "!isSingleByteOptimizable(string)",
-                "!isFixedWidthEncoding(string)",
-                "characterIndex == 0" })
-        Object multiByteZeroIndex(DynamicObject string, int characterIndex) {
-            return 0;
-        }
-
-        @Specialization(guards = {
-                "characterIndexInBounds(string, characterIndex)",
-                "!isSingleByteOptimizable(string)",
-                "!isFixedWidthEncoding(string)",
-                "characterIndex == rope(string).characterLength()" })
-        Object multiByteEndIndex(DynamicObject string, int characterIndex) {
-            return rope(string).byteLength();
-        }
-
-        @Specialization(guards = {
-                "characterIndexInBounds(string, characterIndex)",
-                "!isSingleByteOptimizable(string)",
-                "!isFixedWidthEncoding(string)" })
-        protected Object multiBytes(DynamicObject string, int characterIndex,
-                @Cached("createBinaryProfile()") ConditionProfile indexTooLargeProfile,
-                @Cached("createBinaryProfile()") ConditionProfile invalidByteProfile,
-                @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("create()") RopeNodes.PreciseLengthNode preciseLengthNode) {
-            // Taken from Rubinius's String::byte_index.
-
-            final Rope rope = rope(string);
-            final Encoding enc = rope.getEncoding();
-            int p = 0;
-            final int e = p + rope.byteLength();
-
-            int i, k = characterIndex;
-
-            for (i = 0; i < k && p < e; i++) {
-                final int c = preciseLengthNode.executeLength(enc, bytesNode.execute(rope), p, e);
-
-                // TODO (nirvdrum 22-Dec-16): Consider having a specialized version for CR_BROKEN strings to avoid these checks.
-                // If it's an invalid byte, just treat it as a single byte
-                if (invalidByteProfile.profile(!StringSupport.MBCLEN_CHARFOUND_P(c))) {
-                    ++p;
-                } else {
-                    p += StringSupport.MBCLEN_CHARFOUND_LEN(c);
-                }
-            }
-
-            // TODO (nirvdrum 22-Dec-16): Since we specialize elsewhere on index being too large, do we need this? Can character boundary search in a CR_BROKEN string cause us to encounter this case?
-            if (indexTooLargeProfile.profile(i < k)) {
-                return nil();
-            } else {
-                return p;
-            }
+        @Specialization(guards = "characterIndexInBounds(string, characterIndex)")
+        protected Object singleByteOptimizable(DynamicObject string, int characterIndex,
+                @Cached("create()") ByteIndexFromCharIndexNode byteIndexFromCharIndexNode) {
+            return byteIndexFromCharIndexNode.execute(rope(string), 0, characterIndex);
         }
 
         protected boolean characterIndexTooLarge(DynamicObject string, int characterIndex) {
@@ -4317,10 +4346,7 @@ public abstract class StringNodes {
                 @Cached("create()") BranchProfile singleByteOptimizableBaseProfile,
                 @Cached("create()") BranchProfile leafBaseProfile,
                 @Cached("create()") BranchProfile slowSearchProfile,
-                @Cached("create()") BranchProfile utf8Profile,
-                @Cached("create()") BranchProfile fixedWidthProfile,
-                @Cached("create()") BranchProfile fallbackProfile,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+                @Cached("create()") ByteIndexFromCharIndexNode byteIndexFromCharIndexNode) {
             final Rope rope = rope(string);
             final int index = normalizeIndexNode.executeNormalize(beg, rope.characterLength());
             int characterLength = characterLen;
@@ -4340,7 +4366,7 @@ public abstract class StringNodes {
                 return makeRope(string, searchResult.rope, searchResult.index, characterLength);
             }
 
-            return stringSubstringMultiByte(string, index, characterLength, bytesNode, utf8Profile, fixedWidthProfile, fallbackProfile);
+            return stringSubstringMultiByte(string, index, characterLength, byteIndexFromCharIndexNode);
         }
 
         @Specialization(guards = "indexTriviallyOutOfBounds(string, beg, len)")
@@ -4414,48 +4440,23 @@ public abstract class StringNodes {
         }
 
         private Object stringSubstringMultiByte(DynamicObject string, int beg, int characterLen,
-                RopeNodes.BytesNode bytesNode,
-                BranchProfile utf8Profile,
-                BranchProfile fixedWidthProfile,
-                BranchProfile fallbackProfile) {
+                ByteIndexFromCharIndexNode byteIndexFromCharIndexNode) {
             // Taken from org.jruby.RubyString#substr19 & org.jruby.RubyString#multibyteSubstr19.
 
             final Rope rope = rope(string);
             final int length = rope.byteLength();
 
-            final Encoding enc = rope.getEncoding();
             int p;
             int s = 0;
             int end = s + length;
-            byte[] bytes = bytesNode.execute(rope);
-            int substringByteLength = characterLen;
+            int substringByteLength;
 
-            if (rope.getCodeRange() == CR_VALID && enc.isUTF8()) {
-                utf8Profile.enter();
-
-                p = StringSupport.utf8Nth(bytes, s, end, beg);
-                substringByteLength = StringSupport.utf8Offset(bytes, p, end, characterLen);
-            } else if (enc.isFixedWidth()) {
-                fixedWidthProfile.enter();
-
-                int w = enc.maxLength();
-                p = s + beg * w;
-                if (p > end) {
-                    p = end;
-                    substringByteLength = 0;
-                } else if (characterLen * w > end - p) {
-                    substringByteLength = end - p;
-                } else {
-                    substringByteLength *= w;
-                }
+            p = byteIndexFromCharIndexNode.execute(rope, s, beg);
+            if (p == end) {
+                substringByteLength = 0;
             } else {
-                fallbackProfile.enter();
-
-                if ((p = StringSupport.nth(enc, bytes, s, end, beg)) == end) {
-                    substringByteLength = 0;
-                } else {
-                    substringByteLength = StringSupport.offset(enc, bytes, p, end, characterLen);
-                }
+                int pp = byteIndexFromCharIndexNode.execute(rope, p, characterLen);
+                substringByteLength = StringSupport.offset(p, end, pp);
             }
 
             return makeRope(string, rope, p - s, substringByteLength);
