@@ -253,14 +253,14 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         }
 
         try (Context context = createContext(contextBuilder, config)) {
-            Metrics.printTruffleTime("before-run");
+            Metrics.printTime("before-run");
             final Source source = Source.newBuilder(
                     LANGUAGE_ID,
                     // language=ruby
                     "Truffle::Boot.main",
                     BOOT_SOURCE_NAME).internal(true).buildLiteral();
             final int exitCode = context.eval(source).asInt();
-            Metrics.printTruffleTime("after-run");
+            Metrics.printTime("after-run");
             return exitCode;
         } catch (PolyglotException e) {
             System.err.print("truffleruby: ");
