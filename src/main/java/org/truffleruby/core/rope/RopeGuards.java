@@ -36,4 +36,8 @@ public class RopeGuards {
         return encoding.isAsciiCompatible();
     }
 
+    public static boolean isFixedWidthEncoding(Rope rope) {
+        return rope.getEncoding().isFixedWidth();
+    }
+
 }
