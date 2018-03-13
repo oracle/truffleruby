@@ -305,7 +305,7 @@ order.
 
 ### `WRITE`
 
-`Truffle::Interop.read(object, name, value)`
+`Truffle::Interop.write(object, name, value)`
 
 ### `REMOVE`
 
