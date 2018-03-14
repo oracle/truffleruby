@@ -100,7 +100,8 @@ class TruffleRubyLauncherBuildTask(mx.ArchivableBuildTask):
             os.remove(self.launcher)
 
     def store_jvm_args(self):
-        jvm_args = mx.get_runtime_jvm_args(['TRUFFLERUBY', 'TRUFFLERUBY-LAUNCHER', 'SULONG'])
+        distributions = [dep.name for dep in self.subject.buildDependencies]
+        jvm_args = mx.get_runtime_jvm_args(distributions)
         properties = []
         while jvm_args:
             arg = jvm_args.pop(0)
