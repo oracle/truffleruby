@@ -320,21 +320,6 @@ local part_definitions = {
         OPENSSL_PREFIX: "/usr/local/opt/openssl",
       },
     },
-    solaris: {
-      "$.use.build":: {
-        # Sulong cannot be built on Solaris, so only build the TruffleRuby distributions
-        extra_args: ["--dependencies", "TRUFFLERUBY,TRUFFLERUBY-LAUNCHER,TRUFFLERUBY-ZIP,TRUFFLERUBY-TEST,TRUFFLERUBY-SPECS"]
-      },
-      "$.run.deploy_and_spec":: { test_spec_options: [] },
-      "$.cap":: {
-        normal_machine: ["solaris", "sparcv9"],
-        bench_machine: ["m7_eighth", "solaris"],
-      },
-      environment+: {
-        # LLVM is currently not available on Solaris
-        TRUFFLERUBY_CEXT_ENABLED: "false",
-      },
-    },
   },
 
   cap: {
@@ -560,7 +545,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
       "ruby-deploy-and-specs-linux": $.platform.linux + ruby_deploy_and_spec,
       "ruby-deploy-and-specs-darwin": $.platform.darwin + ruby_deploy_and_spec,
-      "ruby-deploy-and-specs-solaris": $.platform.solaris + ruby_deploy_and_spec,
     } +
 
     {
@@ -736,20 +720,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
         $.cap.bench + $.cap.daily +
         $.benchmark.runner + $.benchmark.cext_chunky +
         { timelimit: "02:00:00" },
-    } +
-
-    local solaris_benchmarks = {
-      local shared = $.platform.solaris + $.jdk.labsjdk8 + $.use.common + $.use.build +
-                     $.use.truffleruby + $.cap.bench + $.cap.daily,
-
-      "graal-core-solaris": shared + $.graal.core,
-      "graal-enterprise-solaris": shared + $.graal.enterprise,
-    };
-    {
-      local shared = $.benchmark.runner + $.benchmark.classic + { timelimit: "01:10:00" },
-
-      "ruby-benchmarks-classic-graal-core-solaris": shared + solaris_benchmarks["graal-core-solaris"],
-      "ruby-benchmarks-classic-graal-enterprise-solaris": shared + solaris_benchmarks["graal-enterprise-solaris"],
     },
 
   release_builds:
