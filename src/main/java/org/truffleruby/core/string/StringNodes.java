@@ -3571,10 +3571,10 @@ public abstract class StringNodes {
             }
             byte[]bytes = source.getBytes();
             int p = 0;
-            int end = p + source.byteLength();
+            final int end = source.byteLength();
             if (byteOffset != 0) {
                 if (!source.isSingleByteOptimizable()) {
-                    final int pp = byteIndexFromCharIndexNode.execute(source, p, byteOffset);
+                    final int pp = byteIndexFromCharIndexNode.execute(source, 0, byteOffset);
                     byteOffset = StringSupport.offset(p, end, pp);
                 }
                 p += byteOffset;
@@ -4446,10 +4446,10 @@ public abstract class StringNodes {
 
             int p;
             int s = 0;
-            int end = s + length;
+            final int end = length;
             int substringByteLength;
 
-            p = byteIndexFromCharIndexNode.execute(rope, s, beg);
+            p = byteIndexFromCharIndexNode.execute(rope, 0, beg);
             if (p == end) {
                 substringByteLength = 0;
             } else {
