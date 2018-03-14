@@ -517,14 +517,18 @@ module Commands
     when 'native'
       build_native_image(*options)
     when nil
-      mx 'sforceimports'
-
-      mx 'build', '--force-javac', '--warning-as-error',
-         # show more than default 100 errors not to hide actual errors under pile of missing symbols
-         '-A-Xmaxerrs', '-A1000'
+      build_truffleruby
     else
       raise ArgumentError, project
     end
+  end
+
+  def build_truffleruby(*options)
+    mx 'sforceimports'
+
+    mx 'build', '--force-javac', '--warning-as-error',
+       # show more than default 100 errors not to hide actual errors under pile of missing symbols
+       '-A-Xmaxerrs', '-A1000', *options
   end
 
   def clean
@@ -1806,7 +1810,7 @@ module Commands
   def check_dsl_usage
     mx 'clean'
     # We need to build with -parameters to get parameter names
-    mx 'build', '--force-javac', '-A-parameters'
+    build_truffleruby('-A-parameters')
     run_ruby({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '-Xlazy.default=false', '-e', 'exit')
   end
 
