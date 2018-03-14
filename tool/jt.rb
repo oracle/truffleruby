@@ -521,7 +521,7 @@ module Commands
 
       mx 'build', '--force-javac', '--warning-as-error',
          # show more than default 100 errors not to hide actual errors under pile of missing symbols
-         '-A-Xmaxerrs', '-A1000', *extra_args
+         '-A-Xmaxerrs', '-A1000'
     else
       raise ArgumentError, project
     end
