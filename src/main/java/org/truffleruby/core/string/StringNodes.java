@@ -3864,16 +3864,14 @@ public abstract class StringNodes {
 
         public abstract Object executeFindByteIndex(DynamicObject string, int characterIndex);
 
-        @Specialization(guards = "!characterIndexInBounds(string, characterIndex)")
-        protected Object indexOutOfBounds(DynamicObject string, int characterIndex,
-                @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile) {
-            if (negativeIndexProfile.profile(characterIndex < 0)) {
-                throw new RaiseException(
-                        getContext().getCoreExceptions().argumentError(
-                                coreStrings().CHARACTER_INDEX_NEGATIVE.getRope(), this));
-            } else {
-                return nil();
-            }
+        @Specialization(guards = "characterIndex < 0")
+        protected Object negativeIndex(DynamicObject string, int characterIndex) {
+            throw new RaiseException(coreExceptions().argumentError(coreStrings().CHARACTER_INDEX_NEGATIVE.getRope(), this));
+        }
+
+        @Specialization(guards = "characterIndexTooLarge(string, characterIndex)")
+        protected Object indexTooLarge(DynamicObject string, int characterIndex) {
+            return nil();
         }
 
         @Specialization(guards = "characterIndexInBounds(string, characterIndex)")
