@@ -3792,13 +3792,12 @@ public abstract class StringNodes {
 
         public abstract int execute(Rope rope, int startByteOffset, int characterIndex);
 
-        @Specialization(guards = { "characterIndexInBounds(rope, characterIndex)", "rope.isSingleByteOptimizable()" })
+        @Specialization(guards = "rope.isSingleByteOptimizable()")
         protected int singleByteOptimizable(Rope rope, int startByteOffset, int characterIndex) {
             return startByteOffset + characterIndex;
         }
 
         @Specialization(guards = {
-                "characterIndexInBounds(rope, characterIndex)",
                 "!rope.isSingleByteOptimizable()",
                 "isFixedWidthEncoding(rope)" })
         protected int fixedWidthEncoding(Rope rope, int startByteOffset, int characterIndex) {
@@ -3807,7 +3806,6 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = {
-                "characterIndexInBounds(rope, characterIndex)",
                 "!rope.isSingleByteOptimizable()",
                 "!isFixedWidthEncoding(rope)",
                 "characterIndex == 0" })
@@ -3816,7 +3814,6 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = {
-                "characterIndexInBounds(rope, characterIndex)",
                 "!rope.isSingleByteOptimizable()",
                 "!isFixedWidthEncoding(rope)" })
         protected int multiBytes(Rope rope, int startByteOffset, int characterIndex,
@@ -3870,28 +3867,10 @@ public abstract class StringNodes {
 
         public abstract Object executeFindByteIndex(DynamicObject string, int characterIndex);
 
-        @Specialization(guards = "characterIndex < 0")
-        protected Object negativeIndex(DynamicObject string, int characterIndex) {
-            throw new RaiseException(coreExceptions().argumentError(coreStrings().CHARACTER_INDEX_NEGATIVE.getRope(), this));
-        }
-
-        @Specialization(guards = "characterIndexTooLarge(string, characterIndex)")
-        protected Object indexTooLarge(DynamicObject string, int characterIndex) {
-            return nil();
-        }
-
-        @Specialization(guards = "characterIndexInBounds(string, characterIndex)")
+        @Specialization
         protected Object singleByteOptimizable(DynamicObject string, int characterIndex,
                 @Cached("create()") ByteIndexFromCharIndexNode byteIndexFromCharIndexNode) {
             return byteIndexFromCharIndexNode.execute(rope(string), 0, characterIndex);
-        }
-
-        protected boolean characterIndexTooLarge(DynamicObject string, int characterIndex) {
-            return characterIndex > rope(string).characterLength();
-        }
-
-        protected boolean characterIndexInBounds(DynamicObject string, int characterIndex) {
-            return characterIndex >= 0 && !characterIndexTooLarge(string, characterIndex);
         }
 
     }
