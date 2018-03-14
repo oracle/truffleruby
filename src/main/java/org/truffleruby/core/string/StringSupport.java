@@ -252,7 +252,7 @@ public final class StringSupport {
     }
 
     public static int offset(int start, int end, int charEnd) {
-        return charEnd == -1 ? end - start : charEnd - start;
+        return charEnd == -1 ? end - start : Math.min(end, charEnd) - start;
     }
 
     public static int toLower(Encoding enc, int c) {
