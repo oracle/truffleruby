@@ -45,7 +45,14 @@ module Truffle::CExt
       libraries = libraries.uniq
       libraries = resolve_libraries(libraries, search_paths)
       files = files.uniq
+      files = link_bitcode(files)
       Truffle::CExt.linker(output, libraries, files)
+    end
+
+    def self.link_bitcode(files)
+      output = 'out.bc'
+      raise 'Linker failed' unless system('llvm-link', '-o', output, *files)
+      [output]
     end
 
     def self.resolve_libraries(libraries, search_paths)
