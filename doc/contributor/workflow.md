@@ -9,7 +9,7 @@ You will need:
 * [LLVM](../user/installing-llvm.md)
 * [`libssl`](../user/installing-libssl.md)
 
-You can remove the dependencies on LLVM and `libssl` by setting
+You can remove the dependencies on `libssl` by setting
 `export TRUFFLERUBY_CEXT_ENABLED=false`.
 
 ## Workspace directory
