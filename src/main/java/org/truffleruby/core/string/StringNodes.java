@@ -3575,7 +3575,7 @@ public abstract class StringNodes {
             if (byteOffset != 0) {
                 if (!source.isSingleByteOptimizable()) {
                     final int pp = byteIndexFromCharIndexNode.execute(source, 0, byteOffset);
-                    byteOffset = StringSupport.offset(p, end, pp);
+                    byteOffset = StringSupport.offset(0, end, pp);
                 }
                 p += byteOffset;
             }
@@ -3853,12 +3853,8 @@ public abstract class StringNodes {
             }
         }
 
-        protected boolean characterIndexTooLarge(Rope rope, int characterIndex) {
-            return characterIndex > rope.characterLength();
-        }
-
         protected boolean characterIndexInBounds(Rope rope, int characterIndex) {
-            return characterIndex >= 0 && !characterIndexTooLarge(rope, characterIndex);
+            return characterIndex >= 0 && characterIndex <= rope.characterLength();
         }
 
     }
@@ -4455,7 +4451,6 @@ public abstract class StringNodes {
             final int length = rope.byteLength();
 
             int p;
-            int s = 0;
             final int end = length;
             int substringByteLength;
 
@@ -4467,7 +4462,7 @@ public abstract class StringNodes {
                 substringByteLength = StringSupport.offset(p, end, pp);
             }
 
-            return makeRope(string, rope, p - s, substringByteLength);
+            return makeRope(string, rope, p, substringByteLength);
         }
 
         private DynamicObject makeRope(DynamicObject string, Rope rope, int beg, int byteLength) {
