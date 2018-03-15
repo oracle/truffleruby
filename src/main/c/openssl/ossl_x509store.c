@@ -130,7 +130,7 @@ ossl_x509store_set_vfy_cb(VALUE self, VALUE cb)
     X509_STORE *store;
 
     GetX509Store(self, store);
-    X509_STORE_set_ex_data(store, ossl_store_ex_verify_cb_idx, rb_tr_handle_for_managed_leaking(cb));
+    X509_STORE_set_ex_data(store, ossl_store_ex_verify_cb_idx, (void *)cb);
     rb_iv_set(self, "@verify_callback", cb);
 
     return cb;
@@ -150,7 +150,7 @@ ossl_x509store_initialize(int argc, VALUE *argv, VALUE self)
 /* BUG: This method takes any number of arguments but appears to ignore them. */
     GetX509Store(self, store);
     store->ex_data.sk = NULL;
-    X509_STORE_set_verify_cb_func(store, truffle_sulong_function_to_native_pointer(ossl_verify_cb, "(SINT32,POINTER):SINT32"));
+    X509_STORE_set_verify_cb_func(store, ossl_verify_cb);
     ossl_x509store_set_vfy_cb(self, Qnil);
 
 #if (OPENSSL_VERSION_NUMBER < 0x00907000L)
@@ -475,9 +475,7 @@ ossl_x509stctx_verify(VALUE self)
 
     GetX509StCtx(self, ctx);
     X509_STORE_CTX_set_ex_data(ctx, ossl_store_ctx_ex_verify_cb_idx,
-                               rb_tr_handle_for_managed_leaking(rb_iv_get(self, "@verify_callback")));
-
-
+                               (void*)rb_iv_get(self, "@verify_callback"));
     result = X509_verify_cert(ctx);
 
     return result ? Qtrue : Qfalse;

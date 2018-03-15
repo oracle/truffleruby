@@ -10,7 +10,7 @@ require 'rbconfig'
 require 'thread'
 
 module Gem
-  VERSION = '2.5.2.1'
+  VERSION = '2.5.2.2'
 end
 
 # Must be first since it unloads the prelude from 1.9.2
@@ -602,7 +602,7 @@ module Gem
 
     unless test_syck
       begin
-        gem 'psych', '>= 1.2.1'
+        gem 'psych', '>= 2.0.0'
       rescue Gem::LoadError
         # It's OK if the user does not have the psych gem installed.  We will
         # attempt to require the stdlib version
@@ -626,6 +626,7 @@ module Gem
     end
 
     require 'yaml'
+    require 'rubygems/safe_yaml'
 
     # If we're supposed to be using syck, then we may have to force
     # activate it via the YAML::ENGINE API.
@@ -1261,10 +1262,3 @@ require 'rubygems/core_ext/kernel_gem'
 require 'rubygems/core_ext/kernel_require'
 
 Gem.use_gemdeps
-
-# Add TruffleRuby rubygems hooks to install and uninstall executables from additional
-# GraalVM bin directories (./bin, ./jre/bin)
-unless RbConfig::CONFIG['extra_bindirs'].empty?
-  require 'rubygems/extra_executables_installer'
-  Gem::ExtraExecutablesInstaller.install_hooks_for RbConfig::CONFIG['extra_bindirs']
-end
