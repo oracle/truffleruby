@@ -260,6 +260,14 @@ public class ParserSupport {
         return currentScope.assign(lexer.getPosition(), name.intern(), makeNullNil(value));
     }
 
+    // We know it has to be tLABEL or tIDENTIFIER so none of the other assignable logic is needed
+    public AssignableParseNode assignableKeyword(String name, ParseNode value) {
+        // JRuby does some extra kwarg tracking when it sees an assignable keyword. We track kwargs in a different
+        // manner and thus don't require a special method for it. However, keeping this method in ParserSupport helps
+        // reduce the differences with the JRuby grammar.
+        return assignableLabelOrIdentifier(name, value);
+    }
+
     protected void getterIdentifierError(SourceIndexLength position, String identifier) {
         lexer.compile_error(PID.BAD_IDENTIFIER, "identifier " + identifier + " is not valid to get");
     }
