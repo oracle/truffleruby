@@ -1772,6 +1772,11 @@ module Commands
     sulong = options.delete "sulong"
 
     build
+    if sulong
+      FileUtils::Verbose.cp_r "#{SULONG.dir}/mxbuild/sulong-libs", "#{TRUFFLERUBY_DIR}/lib/cext"
+      # Repack TRUFFLERUBY-ZIP to include the sulong-libs
+      mx 'build', '--dependencies', 'TRUFFLERUBY-ZIP'
+    end
 
     java_home = install_jvmci
     graal = checkout_or_update_graal_repo
