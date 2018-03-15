@@ -1790,7 +1790,7 @@ module Commands
         ] + options
       end
 
-      mx 'fetch-languages', *languages
+      mx 'fetch-languages', '--llvm', '--ruby'
 
       env = { "JAVA_HOME" => java_home }
       output_options = "-H:Path=#{TRUFFLERUBY_DIR}/bin", '-H:Name=native-ruby'
