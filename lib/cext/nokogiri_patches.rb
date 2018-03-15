@@ -80,9 +80,9 @@ EOF
   end
 
   PATCHES = {
-    'xml_node_set.c' => {
-      gem: 'nokogiri',
-      patches: [
+    gem: 'nokogiri',
+    patches: {
+      'xml_node_set.c' => [
         {
           match: /[[:blank:]]*?switch\s*?\(.*?Qnil:/m,
           replacement: XML_NODE_SET_PATCH
@@ -94,17 +94,11 @@ EOF
           replacement: 'static VALUE to_array(VALUE self)'
         },
         cast_value_for_native('io')
-      ]
-    },
-    'xml_io.c' => {
-      gem: 'nokogiri',
-      patches: [
+      ],
+      'xml_io.c' => [
         cast_native_for_value('ctx', ';')
-      ]
-    },
-    'xslt_stylesheet.c' => {
-      gem: 'nokogiri',
-      patches: [
+      ],
+      'xslt_stylesheet.c' => [
         {
           match: 'rb_ary_new()',
           replacement: 'rb_tr_handle_for_managed(rb_ary_new())'
@@ -123,31 +117,19 @@ EOF
           match: 'va_list args;',
           replacement: 'va_list args; rb_str_cat2(rb_tr_managed_from_handle_or_null(ctx), "Generic error"); return;'
         }
-      ]
-    },
-    'html_document.c' => {
-      gem: 'nokogiri',
-      patches: [
+      ],
+      'html_document.c' => [
         cast_value_for_native('error_list'),
         cast_value_for_native('io')
 
-      ]
-    },
-    'html_sax_push_parser.c' => {
-      gem: 'nokogiri',
-      patches: [
+      ],
+      'html_sax_push_parser.c' => [
         tuple_new_patch('ctx', 'self')
-      ]
-    },
-    'xml_sax_push_parser.c' => {
-      gem: 'nokogiri',
-      patches: [
+      ],
+      'xml_sax_push_parser.c' => [
         tuple_new_patch('ctx', 'self')
-      ]
-    },
-    'xml_document.c' => {
-      gem: 'nokogiri',
-      patches: [
+      ],
+      'xml_document.c' => [
         cast_value_for_native('error_list'),
         cast_value_for_native('io'),
         cast_native_for_value('ctx'),
@@ -166,19 +148,13 @@ EOF
           match: NOKOGIRI_DOC_NODE_CACHE_ORIG,
           replacement: NOKOGIRI_DOC_NODE_CACHE_NEW
         }
-      ]
-    },
-    'xml_dtd.c' => {
-      gem: 'nokogiri',
-      patches: [
+      ],
+      'xml_dtd.c' => [
         cast_value_for_native('error_list'),
         cast_native_for_value('data', ';'),
         cast_value_for_native('hash')
-      ]
-    },
-    'xml_node.c' => {
-      gem: 'nokogiri',
-      patches: [
+      ],
+      'xml_node.c' => [
         cast_value_for_native('err', ','),
         cast_value_for_native('error_list'),
         cast_value_for_native('io'),
@@ -192,30 +168,21 @@ EOF
         },
         cast_native_for_value('node->_private', ';'),
         cast_value_for_native('rb_node'),
-      ]
-    },
-    'xml_namespace.c' => {
-      gem: 'nokogiri',
-      patches: [
+      ],
+      'xml_namespace.c' => [
         {
           match: NOKOGIRI_DOC_RUBY_OBJECT_ORIG,
           replacement: NOKOGIRI_DOC_RUBY_OBJECT_NEW
         },
         cast_value_for_native('ns'),
         cast_native_for_value('node->_private', ';')
-      ]
-    },
-    'xml_reader.c' => {
-      gem: 'nokogiri',
-      patches: [
+      ],
+      'xml_reader.c' => [
         cast_value_for_native('error_list'),
         cast_value_for_native('io'),
         cast_value_for_native('rb_io')
-      ]
-    },
-    'xml_sax_parser.c' => {
-      gem: 'nokogiri',
-      patches: [
+      ],
+      'xml_sax_parser.c' => [
         {
           match: 'NOKOGIRI_SAX_SELF(ctx)',
           replacement: 'rb_tr_managed_from_handle_or_null(NOKOGIRI_SAX_SELF(ctx))'
@@ -230,25 +197,16 @@ EOF
           match: /va_list args;[^}]*id_error, 1, ruby_message\);/,
           replacement: 'rb_funcall(doc, id_error, 1, NOKOGIRI_STR_NEW2("Warning."));'
         }
-      ]
-    },
-    'xml_sax_parser_context.c' => {
-      gem: 'nokogiri',
-      patches: [
+      ],
+      'xml_sax_parser_context.c' => [
         cast_value_for_native('error_list'),
         cast_value_for_native('io'),
         tuple_new_patch('ctxt', 'sax_handler')
-      ]
-    },
-    'html_sax_parser_context.c' => {
-      gem: 'nokogiri',
-      patches: [
+      ],
+      'html_sax_parser_context.c' => [
         tuple_new_patch('ctxt', 'sax_handler')
-      ]
-    },
-    'xml_syntax_error.c' => {
-      gem: 'nokogiri',
-      patches: [
+      ],
+      'xml_syntax_error.c' => [
         cast_native_for_value('ctx'),
         { # rb_class_new_instance takes a pointer to an array of arguments, and forcing it to inlined simply pushes the issue to 
           match: 'VALUE msg',
@@ -262,11 +220,8 @@ EOF
           match: '&msg',
           replacement: 'msg'
         },
-      ]
-    },
-    'xml_xpath_context.c' => {
-      gem: 'nokogiri',
-      patches: [
+      ],
+      'xml_xpath_context.c' => [
         cast_native_for_value('ctx'),
         {
           match: NOKOGIRI_DOC_RUBY_OBJECT_ORIG,
@@ -324,19 +279,13 @@ EOF
           match: 'free(argv)',
           replacement: ''
         },
-      ]
-    },
-    'xml_schema.c' => {
-      gem: 'nokogiri',
-      patches: [
+      ],
+      'xml_schema.c' => [
+        cast_value_for_native('errors')
+      ],
+      'xml_relax_ng.c' => [
         cast_value_for_native('errors')
       ]
-    },
-    'xml_relax_ng.c' => {
-      gem: 'nokogiri',
-      patches: [
-        cast_value_for_native('errors')
-      ]
-    },
+    }
   }
 end

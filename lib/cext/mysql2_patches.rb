@@ -20,9 +20,9 @@ if (stmt_wrapper->refcount == 0) {
 EOF
 
   PATCHES = {
-    'client.c' => {
-      gem: 'mysql2',
-      patches: [
+    gem: 'mysql2',
+    patches: {
+      'client.c' => [
         *read_write_field('wrapper','active_thread', false),
         *read_write_field('wrapper','encoding', false),
         *read_write_field('async_args','self', true),
@@ -31,11 +31,8 @@ EOF
           match: /nogvl_close\(wrapper\);/,
           replacement: MYSQL2_FREE_WRAPPER
         }
-      ]
-    },
-    'result.c' => {
-      gem: 'mysql2',
-      patches: [
+      ],
+      'result.c' => [
         *read_write_field('wrapper','statement', true),
         *read_write_field('wrapper','client', false),
         *read_write_field('wrapper','encoding', false),
@@ -48,11 +45,8 @@ EOF
           match: /xfree\(wrapper\);/,
           replacement: MYSQL2_FREE_RESULT_WRAPPER
         }
-      ]
-    },
-    'statement.c' => {
-      gem: 'mysql2',
-      patches: [
+      ],
+      'statement.c' => [
         read_field('wrapper','encoding'),
         write_field('wrapper','active_thread', false),
         *read_write_field('stmt_wrapper','client', false),

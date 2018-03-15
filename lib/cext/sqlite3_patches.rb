@@ -1,8 +1,8 @@
 class SQLite3Patches < CommonPatches
   PATCHES = {
-    'database.c' => {
-      gem: 'sqlite3',
-      patches: [
+    gem: 'sqlite3',
+    patches: {
+      'database.c' => [
         { # tracefunc
           match: 'VALUE self = (VALUE)data;',
           replacement: 'VALUE self = rb_tr_managed_from_handle(data);'

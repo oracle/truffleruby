@@ -21,9 +21,9 @@ Init_threads_table(VALUE mByebug)
 EOF
 
   PATCHES = {
-    'byebug.c' => {
-      gem: 'byebug',
-      patches: [
+    gem: 'byebug',
+    patches: {
+      'byebug.c' => [
         {
           match: /\b(static VALUE \w+) = (?:Qfalse|Qnil);/,
           replacement: '\1;'
@@ -36,11 +36,8 @@ EOF
           match: /Init_byebug\(\)\n{/,
           replacement: BYEBUG_BYEBUG_INIT
         }
-      ]
-    },
-    'threads.c' => {
-      gem: 'byebug',
-      patches: [
+      ],
+      'threads.c' => [
         {
           match: /^((?:static )?VALUE \w+) = (?:Qfalse|Qnil);/,
           replacement: '\1;'
@@ -54,6 +51,6 @@ EOF
           replacement: BYEBUG_THREADS_INIT
         }
       ]
-    },
+    }
   }
 end
