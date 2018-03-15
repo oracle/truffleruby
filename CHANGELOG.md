@@ -13,6 +13,9 @@ Performance:
 * SecureRandom now defers loading OpenSSL until it's needed, reducing time to
   load SecureRandom.
 
+* `Array#dup` and `Array#shift` have been made constant-time operations by
+  sharing the array storage and keeping a starting index.
+
 Internal changes:
 
 * Changes to the lexer and translator to reduce regular expression calls.
