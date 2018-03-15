@@ -130,21 +130,13 @@ ossl_str_new(int size)
     return rb_str_new(0, size);
 }
 
-// Workaround for Sulong not accepting the undefined behaviour of casting a function pointer type like this
-
-static VALUE
-ossl_str_new_x(VALUE size)
-{
-    return ossl_str_new((int) size);
-}
-
 VALUE
 ossl_buf2str(char *buf, int len)
 {
     VALUE str;
     int status = 0;
 
-    str = rb_protect(ossl_str_new_x, len, &status);
+    str = rb_protect((VALUE(*)_((VALUE)))ossl_str_new, len, &status);
     if(!NIL_P(str)) memcpy(RSTRING_PTR(str), buf, len);
     OPENSSL_free(buf);
     if(status) rb_jump_tag(status);
@@ -212,8 +204,8 @@ int ossl_store_ex_verify_cb_idx;
 VALUE
 ossl_call_verify_cb_proc(struct ossl_verify_cb_args *args)
 {
-    return rb_funcall(rb_tr_managed_from_handle(args->proc), rb_intern("call"), 2,
-                      args->preverify_ok ? Qtrue : Qfalse, args->store_ctx);
+    return rb_funcall(args->proc, rb_intern("call"), 2,
+                      args->preverify_ok, args->store_ctx);
 }
 
 int
@@ -223,9 +215,9 @@ ossl_verify_cb(int ok, X509_STORE_CTX *ctx)
     struct ossl_verify_cb_args args;
     int state = 0;
 
-    proc = rb_tr_managed_from_handle_or_null(X509_STORE_CTX_get_ex_data(ctx, ossl_store_ctx_ex_verify_cb_idx));
+    proc = (VALUE)X509_STORE_CTX_get_ex_data(ctx, ossl_store_ctx_ex_verify_cb_idx);
     if (!proc)
-	proc = rb_tr_managed_from_handle_or_null(X509_STORE_get_ex_data(ctx->ctx, ossl_store_ex_verify_cb_idx));
+	proc = (VALUE)X509_STORE_get_ex_data(ctx->ctx, ossl_store_ex_verify_cb_idx);
     if (!proc)
 	return ok;
     if (!NIL_P(proc)) {
@@ -237,9 +229,9 @@ ossl_verify_cb(int ok, X509_STORE_CTX *ctx)
 	    rb_warn("StoreContext initialization failure");
 	}
 	else {
-	    args.proc = rb_tr_handle_for_managed_leaking(proc);
-	    args.preverify_ok = ok; // TruffleRuby
-	    args.store_ctx = rb_tr_handle_for_managed_leaking(rctx);
+	    args.proc = proc;
+	    args.preverify_ok = ok ? Qtrue : Qfalse;
+	    args.store_ctx = rctx;
 	    ret = rb_protect((VALUE(*)(VALUE))ossl_call_verify_cb_proc, (VALUE)&args, &state);
 	    if (state) {
 		rb_set_errinfo(Qnil);
@@ -529,7 +521,7 @@ static void ossl_threadid_func(CRYPTO_THREADID *id)
 static unsigned long ossl_thread_id(void)
 {
     /* before OpenSSL 1.0, this is 'unsigned long' */
-    return rb_tr_obj_id(rb_nativethread_self());
+    return (unsigned long)rb_nativethread_self();
 }
 #endif
 
@@ -541,9 +533,7 @@ static void Init_ossl_locks(void)
     if ((unsigned)num_locks >= INT_MAX / (int)sizeof(VALUE)) {
 	rb_raise(rb_eRuntimeError, "CRYPTO_num_locks() is too big: %d", num_locks);
     }
-    // Modified for TruffleRuby
-    //ossl_locks = (rb_nativethread_lock_t *) OPENSSL_malloc(num_locks * (int)sizeof(rb_nativethread_lock_t));
-    ossl_locks = (rb_nativethread_lock_t *) truffle_managed_malloc(num_locks * (int)sizeof(rb_nativethread_lock_t));
+    ossl_locks = (rb_nativethread_lock_t *) OPENSSL_malloc(num_locks * (int)sizeof(rb_nativethread_lock_t));
     if (!ossl_locks) {
 	rb_raise(rb_eNoMemError, "CRYPTO_num_locks() is too big: %d", num_locks);
     }
