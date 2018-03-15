@@ -50,9 +50,6 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.joni.Matcher;
-import org.joni.Option;
-import org.joni.Regex;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.array.ArrayUtils;
@@ -62,7 +59,6 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringSupport;
-import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubyWarnings;
@@ -841,7 +837,7 @@ public class RubyLexer {
                 // no point in looking for them. However, if warnings are enabled, we do need to scan for the magic comment
                 // so we can report that it will be ignored.
                 if (!tokenSeen || (!TruffleOptions.AOT && parserSupport.getContext().getCoreLibrary().warningsEnabled())) {
-                    if (!parseMagicComment(lexb, lex_p, lex_pend - lex_p)) {
+                    if (!parser_magic_comment(lexb, lex_p, lex_pend - lex_p)) {
                             if (comment_at_top()) {
                                 set_file_encoding(lex_p, lex_pend);
                             }
@@ -1096,58 +1092,130 @@ public class RubyLexer {
     }
 
     // MRI: parser_magic_comment
-    public boolean parseMagicComment(Rope magicLine, int magicLineOffset, int magicLineLength) {
+    public boolean parser_magic_comment(Rope magicLine, int magicLineOffset, int magicLineLength) {
+        boolean indicator = false;
+        int vbeg, vend;
         int length = magicLineLength;
+        int str = magicLineOffset;
+        int end;
 
         if (length <= 7) {
             return false;
         }
-        int beg = magicCommentMarker(magicLine, magicLineOffset);
+        int beg = magicCommentMarker(magicLine, 0);
         if (beg >= 0) {
-            int end = magicCommentMarker(magicLine, beg);
+            end = magicCommentMarker(magicLine, beg);
             if (end < 0) {
                 return false;
             }
+            indicator = true;
+            str = beg;
             length = end - beg - 3; // -3 is to backup over end just found
-        } else {
-            beg = magicLineOffset;
         }
 
-        int begin = beg;
-        Matcher matcher = magicRegexp.matcher(magicLine.getBytes(), begin, begin + length);
+        /* %r"([^\\s\'\":;]+)\\s*:\\s*(\"(?:\\\\.|[^\"])*\"|[^\"\\s;]+)[\\s;]*" */
+        while (length > 0) {
+            for (; length > 0; str++, --length) {
+                byte c = magicLine.get(str);
 
-        final int end = begin + length;
-        final RubyContext context = parserSupport.getContext();
-        final int result;
-        if (context != null) {
-            result = context.getThreadManager().runUntilResultKeepStatus(null,
-                    () -> matcher.searchInterruptible(begin, end, Option.NONE));
-        } else {
-            result = ThreadManager.retryWhileInterrupted(
-                    () -> matcher.searchInterruptible(begin, end, Option.NONE));
-        }
+                switch (c) {
+                    case '\'': case '"': case ':': case ';': continue;
+                }
+                if (!Character.isWhitespace(c)) {
+                    break;
+                }
+            }
 
-        if (result < 0) {
-            return false;
-        }
+            for (beg = str; length > 0; str++, --length) {
+                byte c = magicLine.get(str);
 
-        // Regexp is guaranteed to have three matches
-        int begs[] = matcher.getRegion().beg;
-        int ends[] = matcher.getRegion().end;
-        String name = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, magicLine).subSequence(beg + begs[1], beg + ends[1]).toString().replace('-', '_');
-        Rope value = parserRopeOperations.makeShared(magicLine, beg + begs[2], ends[2] - begs[2]);
+                switch (c) {
+                    case '\'': case '"': case ':': case ';': break;
+                    default:
+                        if (Character.isWhitespace(c)) {
+                            break;
+                        }
+                        continue;
+                }
+                break;
+            }
 
-        if ("coding".equalsIgnoreCase(name) || "encoding".equalsIgnoreCase(name)) {
-            magicCommentEncoding(value);
-        } else if ("frozen_string_literal".equalsIgnoreCase(name)) {
-            setCompileOptionFlag(name, value);
-        } else if ("warn_indent".equalsIgnoreCase(name)) {
-            setTokenInfo(name, value);
-        } else {
-            return false;
+            for (end = str; length > 0 && Character.isWhitespace(magicLine.get(str)); str++, --length) { }
+            if (length == 0) {
+                break;
+            }
+
+            byte c = magicLine.get(str);
+            if (c != ':') {
+                if (!indicator) {
+                    return false;
+                }
+                continue;
+            }
+
+            do {
+                str++;
+            } while (--length > 0 && Character.isWhitespace(magicLine.get(str)));
+
+            if (length == 0) {
+                break;
+            }
+
+            if (magicLine.get(str) == '"') {
+                for (vbeg = ++str; --length > 0 && str < length && magicLine.get(str) != '"'; str++) {
+                    if (magicLine.get(str) == '\\') {
+                        --length;
+                        ++str;
+                    }
+                }
+                vend = str;
+                if (length > 0) {
+                    --length;
+                    ++str;
+                }
+            } else {
+                for (vbeg = str; length > 0 && magicLine.get(str) != '"' && magicLine.get(str) != ';' && !Character.isWhitespace(magicLine.get(str)); --length, str++) { }
+                vend = str;
+            }
+
+            if (indicator) {
+                while (length > 0 && (magicLine.get(str) == ';' || Character.isWhitespace(magicLine.get(str)))) {
+                    --length;
+                    str++;
+                }
+            } else {
+                while (length > 0 && Character.isWhitespace(magicLine.get(str))) {
+                    --length;
+                    str++;
+                }
+                if (length > 0) {
+                    return false;
+                }
+            }
+
+            String name = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, magicLine).subSequence(beg, end).toString().replace('-', '_');
+            Rope value = parserRopeOperations.makeShared(magicLine, vbeg, vend - vbeg);
+
+            if (!onMagicComment(name, value)) {
+                return false;
+            }
         }
 
         return true;
+    }
+
+    protected boolean onMagicComment(String name, Rope value) {
+        if ("coding".equalsIgnoreCase(name) || "encoding".equalsIgnoreCase(name)) {
+            magicCommentEncoding(value);
+            return true;
+        } else if ("frozen_string_literal".equalsIgnoreCase(name)) {
+            setCompileOptionFlag(name, value);
+            return true;
+        } else if ("warn_indent".equalsIgnoreCase(name)) {
+            setTokenInfo(name, value);
+            return true;
+        }
+        return false;
     }
 
     private int at() {
@@ -2593,6 +2661,7 @@ public class RubyLexer {
     public static final int EXPR_CLASS = 1 << 9;
     public static final int EXPR_LABEL = 1 << 10;
     public static final int EXPR_LABELED = 1 << 11;
+    public static final int EXPR_FITEM = 1 << 12;
     public static final int EXPR_VALUE = EXPR_BEG;
     public static final int EXPR_BEG_ANY = EXPR_BEG | EXPR_MID | EXPR_CLASS;
     public static final int EXPR_ARG_ANY = EXPR_ARG | EXPR_CMDARG;
@@ -3390,9 +3459,5 @@ public class RubyLexer {
         }
         return -1;
     }
-
-    public static final String magicString = "^[^\\S]*([^\\s\'\":;]+)\\s*:\\s*(\"(?:\\\\.|[^\"])*\"|[^\"\\s;]+)[\\s;]*[^\\S]*$";
-    public static final Regex magicRegexp = new Regex(magicString.getBytes(), 0, magicString.length(), 0, Encoding.load("ASCII"));
-
 
 }
