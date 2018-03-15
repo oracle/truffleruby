@@ -56,7 +56,7 @@ public class CommandLineParser {
     final CommandLineOptions config;
     private int lastInterpreterArgumentIndex;
     private int characterIndex;
-    private final boolean parseVersionAndHelp;
+    private final boolean parseHelp;
 
     public CommandLineParser(
             List<String> arguments,
@@ -71,7 +71,7 @@ public class CommandLineParser {
         this.config = config;
         this.processArgv = processArgv;
         this.rubyOpts = rubyOpts;
-        this.parseVersionAndHelp = parseHelpEtc;
+        this.parseHelp = parseHelpEtc;
         this.arguments = Objects.requireNonNull(arguments);
     }
 
@@ -406,13 +406,13 @@ public class CommandLineParser {
                         disallowedInRubyOpts(argument);
                         RubyLogger.LOGGER.warning("the --yydebug switch is silently ignored as it is an internal development tool");
                         break FOR;
-                    } else if (parseVersionAndHelp && argument.equals("--help")) {
+                    } else if (parseHelp && argument.equals("--help")) {
                         disallowedInRubyOpts(argument);
                         config.setOption(OptionsCatalog.SHOW_HELP, ShowHelp.LONG);
                         // cancel other execution actions
                         config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                         break FOR;
-                    } else if (parseVersionAndHelp && argument.equals("--version")) {
+                    } else if (argument.equals("--version")) {
                         disallowedInRubyOpts(argument);
                         config.setOption(OptionsCatalog.SHOW_VERSION, true);
                         // cancel other execution actions
