@@ -122,8 +122,5 @@ bin/*
 !bin/truffleruby.sh
 !bin/testrb
 
-# For the Bash launcher
-tool/jvm_args.sh
-
 # Diagnostic output directory
 dumps/
