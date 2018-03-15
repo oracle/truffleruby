@@ -34,7 +34,7 @@ if [ -n "$RUBY_BIN" ]; then
 fi
 
 # Source values provided by mx at build time
-source "$root/tool/jvm_args.sh"
+source "$root/mxbuild/jvm_args.sh"
 
 # Source truffleruby_env generated for the distribution
 if [ -f "$root/truffleruby_env" ]; then
