@@ -37,11 +37,17 @@ git commit -am 'Restore MRI modifications'
 
 ## Make other changes
 
-* Copy and paste `-h` and `--help` output to `CommandLineParser`
+* Copy and paste `-h` and `--help` output to `Launcher`
 * Update version information (version, base version, and revision) in `Launcher`
 * Update `doc/user/compatibility.md`
-* Update `doc/user/legal.md`
-* Search for other instances of the old version number (there are a couple in tests)
+* Update `doc/legal/legal.md`
+* Search for other instances of the old version number (there are a
+  couple in tests). The version numbers may use `.` or `_` depending
+  on context, and may be escapped as regular expressions so when
+  searching it is best to use a regexp like `a\\*[._]b\\*[._]c` to try
+  and find as many cases as possible.
+* The version numbers of commands like `gem` may also have changed, so
+  perform similar searches for those.
 
 ## Update libraries from third-party repos
 
