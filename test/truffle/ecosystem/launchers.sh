@@ -20,10 +20,10 @@ cd "$(jt ruby -e 'puts Truffle::Boot.ruby_home')"
 function check_launchers() {
     if [ -n "$2" ]
     then
-        [[ "$(${1}truffleruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.3.5 ]]
-        [[ "$(${1}ruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.3.5 ]]
+        [[ "$(${1}truffleruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.3.6 ]]
+        [[ "$(${1}ruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.3.6 ]]
     fi
-    [[ "$(${1}gem --version)" =~ ^2.5.2.1$ ]]
+    [[ "$(${1}gem --version)" =~ ^2.5.2.2$ ]]
     [[ "$(${1}irb --version)" =~ ^irb\ 0.9.6 ]]
     [[ "$(${1}rake --version)" =~ ^rake,\ version\ [0-9.]+ ]]
     [[ "$(${1}rdoc --version)" =~ ^4.2.1$ ]]

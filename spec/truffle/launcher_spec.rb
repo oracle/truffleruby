@@ -14,14 +14,14 @@ describe "The launcher" do
   require "tmpdir"
   require "pathname"
 
-  launchers = { gem:         /^2\.5\.2\.1$/,
+  launchers = { gem:         /^2\.5\.2\.2$/,
                 irb:         /^irb 0\.9\.6/,
                 rake:        /^rake, version [0-9.]+/,
                 rdoc:        /^4\.2\.1$/,
                 ri:          /^ri 4\.2\.1$/,
-                ruby:        /truffleruby .* like ruby 2\.3\.5/,
+                ruby:        /truffleruby .* like ruby 2\.3\.6/,
                 testrb:      [/^testrb: version unknown$/, true],
-                truffleruby: /truffleruby .* like ruby 2\.3\.5/ }
+                truffleruby: /truffleruby .* like ruby 2\.3\.6/ }
 
   launchers.each do |launcher, (test, skip_success)|
     bin_dirs = [RbConfig::CONFIG['bindir'], *RbConfig::CONFIG['extra_bindirs']]
