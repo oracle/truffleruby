@@ -9,12 +9,12 @@
 require_relative '../../../lib/cext/preprocess'
 
 def test(input, expected=input)
-  got = preprocess(input)
+  got = Preprocessor.preprocess(input)
   raise "expected #{expected.inspect}, got #{got.inspect}" unless got == expected
 end
 
 def test_patch(file, directory, input, expected)
-  got = patch(file, input, directory)
+  got = Preprocessor.patch(file, input, directory)
   raise "expected #{expected.inspect}, got #{got.inspect}" unless got == expected
 end
 
