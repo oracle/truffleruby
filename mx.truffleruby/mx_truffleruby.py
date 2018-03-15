@@ -119,9 +119,9 @@ class TruffleRubyLauncherBuildTask(mx.ArchivableBuildTask):
             classpath.remove(jar)
 
         with open(self.jvm_args_file, 'w') as f:
-            f.write('bootclasspath=' + ':'.join(bootclasspath) + '\n')
-            f.write('classpath=' + ':'.join(classpath) + '\n')
-            f.write('properties=("' + '" "'.join(properties) + '")\n')
+            f.write('bootclasspath=\\\n' + ':\\\n'.join(bootclasspath) + '\n\n')
+            f.write('classpath=\\\n' + ':\\\n'.join(classpath) + '\n\n')
+            f.write('properties=(\n"' + '"\n"'.join(properties) + '"\n)\n')
 
     def relativize(self, path):
         return path.replace(_suite.dir, "$root").replace(dirname(_suite.dir), "$root_parent")
