@@ -39,6 +39,7 @@ class ArchiveProject(mx.ArchivableProject):
     def getResults(self):
         return mx.ArchivableProject.walk(self.output_dir())
 
+
 class TruffleRubyDocsProject(ArchiveProject):
     doc_files = (glob.glob(join(root, 'doc', 'legal', '*')) +
         glob.glob(join(root, 'doc', 'user', '*')) +
@@ -47,13 +48,39 @@ class TruffleRubyDocsProject(ArchiveProject):
     def getResults(self):
         return [join(root, f) for f in self.doc_files]
 
+
+class TruffleRubySulongLibsProject(ArchiveProject):
+    def getBuildTask(self, args):
+        return TruffleRubySulongLibsBuildTask(self, args, 1)
+
+    def getResults(self):
+        # Empty results as they overlap with truffleruby-lib
+        return []
+
+class TruffleRubySulongLibsBuildTask(mx.ArchivableBuildTask):
+    def __init__(self, *args):
+        mx.ArchivableBuildTask.__init__(self, *args)
+        self.sulong_libs_under_home = join(root, self.subject.outputDir)
+
+    def needsBuild(self, newestInput):
+        if not exists(self.sulong_libs_under_home):
+            return (True, self.sulong_libs_under_home + " does not exist")
+        return mx.ArchivableBuildTask.needsBuild(self, newestInput)
+
+    def build(self):
+        sulong_libs = mx_subst.path_substitutions.substitute('<path:SULONG_LIBS>')
+        shutil.copytree(sulong_libs, self.sulong_libs_under_home)
+
+    def clean(self, forBuild=False):
+        if exists(self.sulong_libs_under_home):
+            shutil.rmtree(self.sulong_libs_under_home)
+
 class TruffleRubyLauncherProject(ArchiveProject):
     def getBuildTask(self, args):
         return TruffleRubyLauncherBuildTask(self, args, 1)
 
     def getResults(self):
         return ArchiveProject.getResults(self)
-
 
 class TruffleRubyLauncherBuildTask(mx.ArchivableBuildTask):
     def __init__(self, *args):
