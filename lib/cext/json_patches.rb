@@ -1,9 +1,8 @@
 class JsonPatches < CommonPatches
   PATCHES = {
-    'parser.c' => {
-      gem: 'json',
-      ext_dir: 'parser',
-      patches: [
+    gem: 'json',
+    patches: {
+      ['parser', 'parser.c'] => [
         *read_write_field('json','Vsource', false),
         *read_write_field('json','create_id', false),
         *read_write_field('json','object_class', false),
@@ -89,12 +88,8 @@ class JsonPatches < CommonPatches
           match: /char \*np = JSON_parse_value\(json, p, pe, &result\);/,
           replacement: 'char *np = JSON_parse_value(json, p, pe, result_array_for_address);'
         }
-      ]
-    },
-    'generator.c' => {
-      gem: 'json',
-      ext_dir: 'generator',
-      patches: [
+      ],
+      ['generator', 'generator.c'] => [
         { # generate_json
           match: /if \(obj == Qnil\)/,
           replacement: 'if (NIL_P(obj))'

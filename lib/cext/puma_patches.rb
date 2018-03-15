@@ -13,18 +13,15 @@ void HttpParser_free(puma_parser* hp) {
 EOF
 
   PATCHES = {
-    'http11_parser.c' => {
-      gem: 'puma_http11',
-      patches: [
+    gem: 'puma_http11',
+    patches: {
+      'http11_parser.c' => [
         {
           match: /parser->(\w+) = Qnil;/,
           replacement: 'parser->\1 = rb_tr_handle_for_managed(Qnil);'
         }
-      ]
-    },
-    'puma_http11.c' => {
-      gem: 'puma_http11',
-      patches: [
+      ],
+      'puma_http11.c' => [
         # Handles for VALUEs in a static global struct array
         {
           match: /(define\b.*?), Qnil \}/,
@@ -64,6 +61,6 @@ EOF
           replacement: '\1->body = rb_tr_handle_for_managed(\2);'
         }
       ]
-    },
+    }
   }
 end

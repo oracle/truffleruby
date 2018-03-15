@@ -21,34 +21,25 @@ pgconn_gc_free( t_pg_connection *this )
 EOF
 
   PATCHES = {
-    'pg_binary_encoder.c' => {
-      gem: 'pg',
-      patches: [
+    gem: 'pg',
+    patches: {
+      'pg_binary_encoder.c' => [
         {
           match: /[[:blank:]]*?switch\s*?\(.*?Qfalse\s*?:.*?break;/m,
           replacement: PG_BINARY_ENCODER_PATCH
         }
-      ]
-    },
-    'pg_type_map_by_class.c' => {
-      gem: 'pg',
-      patches: [
+      ],
+      'pg_type_map_by_class.c' => [
         {
           match: /#define CACHE_LOOKUP\(this, klass\) \( &this->cache_row\[\(klass >> 8\) & 0xff\] \)/,
           replacement: '#define CACHE_LOOKUP(this, klass) ( &this->cache_row[FIX2INT(rb_obj_id(klass)) & 0xff] )'
         }
-      ]
-    },
-    'pg_coder.c' => {
-      gem: 'pg',
-      patches: [
+      ],
+      'pg_coder.c' => [
         *read_write_field('conv','coder_obj', true),
         *read_write_field('this','coder_obj', true)
-      ]
-    },
-    'pg_connection.c' => {
-      gem: 'pg',
-      patches: [
+      ],
+      'pg_connection.c' => [
         *read_write_field('this','socket_io', false),
         *read_write_field('this','notice_receiver', false),
         *read_write_field('this','notice_processor', false),
@@ -63,6 +54,6 @@ EOF
           replacement: PG_CONNECTION_FREE
         }
       ]
-    },
+    }
   }
 end

@@ -1,9 +1,9 @@
 class WebsocketDriverPatches < CommonPatches
 
   PATCHES = {
-    'websocket_mask.c' => {
-      gem: 'websocket-driver',
-      patches: [
+    gem: 'websocket-driver',
+    patches: {
+      'websocket_mask.c' => [
         {
           match: /(VALUE .*?)\s+= Qnil;/,
           replacement: '\1;'
@@ -11,5 +11,4 @@ class WebsocketDriverPatches < CommonPatches
       ]
     },
   }
-  
 end

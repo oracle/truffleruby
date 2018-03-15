@@ -27,15 +27,34 @@ class Preprocessor < CommonPatches
 
   PATCHED_FILES = {}
 
-  PATCHED_FILES.merge!(::NokogiriPatches::PATCHES)
-  PATCHED_FILES.merge!(::PgPatches::PATCHES)
-  PATCHED_FILES.merge!(::Nio4RPatches::PATCHES)
-  PATCHED_FILES.merge!(::JsonPatches::PATCHES)  
-  PATCHED_FILES.merge!(::MySQL2Patches::PATCHES)  
-  PATCHED_FILES.merge!(::ByeBugPatches::PATCHES)  
-  PATCHED_FILES.merge!(::PumaPatches::PATCHES)  
-  PATCHED_FILES.merge!(::SQLite3Patches::PATCHES)  
-  PATCHED_FILES.merge!(::WebsocketDriverPatches::PATCHES)  
+  def self.add_gem_patches(patch_hash, gem_patches)
+    gem = gem_patches[:gem]
+    patch_list = gem_patches[:patches]
+    patch_list.each do |path_parts, patch|
+      processed_patch = {}
+      if path_parts.kind_of?(String)
+        key = path_parts
+      else
+        key = path_parts.last
+        processed_patch[:ext_dir] = path_parts.first if path_parts.size > 1
+      end
+      processed_patch[:patches] = patch
+      processed_patch[:gem] = gem
+      raise "Duplicate patch file #{key}." if patch_hash.include?(key)
+      patch_hash[key] = processed_patch
+    end
+  end
+
+
+  add_gem_patches(PATCHED_FILES, ::JsonPatches::PATCHES)
+  add_gem_patches(PATCHED_FILES, ::NokogiriPatches::PATCHES)
+  add_gem_patches(PATCHED_FILES, ::PgPatches::PATCHES)
+  add_gem_patches(PATCHED_FILES, ::Nio4RPatches::PATCHES)
+  add_gem_patches(PATCHED_FILES, ::MySQL2Patches::PATCHES)
+  add_gem_patches(PATCHED_FILES, ::ByeBugPatches::PATCHES)
+  add_gem_patches(PATCHED_FILES, ::PumaPatches::PATCHES)
+  add_gem_patches(PATCHED_FILES, ::SQLite3Patches::PATCHES)
+  add_gem_patches(PATCHED_FILES, ::WebsocketDriverPatches::PATCHES)
 
   def self.preprocess(line)
     if line =~ VALUE_LOCALS
@@ -105,4 +124,3 @@ class Preprocessor < CommonPatches
     end
   end
 end
-
