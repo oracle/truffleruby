@@ -6,19 +6,19 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
-require_relative 'common_patches'
+require_relative 'patches/common_patches'
 
-require_relative 'byebug_patches'
-require_relative 'json_patches'
-require_relative 'mysql2_patches'
-require_relative 'nio4r_patches'
-require_relative 'nokogiri_patches'
-require_relative 'pg_patches'
-require_relative 'puma_patches'
-require_relative 'sqlite3_patches'
-require_relative 'websocket_driver_patches'
+require_relative 'patches/byebug_patches'
+require_relative 'patches/json_patches'
+require_relative 'patches/mysql2_patches'
+require_relative 'patches/nio4r_patches'
+require_relative 'patches/nokogiri_patches'
+require_relative 'patches/pg_patches'
+require_relative 'patches/puma_patches'
+require_relative 'patches/sqlite3_patches'
+require_relative 'patches/websocket_driver_patches'
 
-class Preprocessor < CommonPatches
+class Preprocessor
 
   LOCAL = /\w+\s*(\[\s*\d+\s*\])?/
   VALUE_LOCALS = /^(\s+)VALUE\s+(#{LOCAL}(\s*,\s*#{LOCAL})*);\s*$/
@@ -44,7 +44,6 @@ class Preprocessor < CommonPatches
       patch_hash[key] = processed_patch
     end
   end
-
 
   add_gem_patches(PATCHED_FILES, ::JsonPatches::PATCHES)
   add_gem_patches(PATCHED_FILES, ::NokogiriPatches::PATCHES)
