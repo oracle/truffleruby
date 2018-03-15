@@ -408,11 +408,12 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
         if (isAOT()) {
             out.println("Native switches:");
-            out.println("  -XX:arg         pass arg to the SVM");
-            out.println("  -Dname=value    set a system property");
+            out.println("  --native.XX:arg       pass arg to the SVM");
+            out.println("  --native.Dname=value  set a system property");
         } else {
             out.println("JVM switches:");
-            out.println("  -J-arg, -J:arg, --jvm.arg      pass arg to the JVM");
+            out.println("  --jvm.arg,         -J-arg           pass arg to the JVM");
+            out.println("  --jvm.Dname=value, -J-Dname=value   set a system property");
         }
     }
 

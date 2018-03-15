@@ -93,7 +93,7 @@ do
     -J-cmd|--jvm.cmd)
         print_command="true"
         ;;
-    -J-cp|-J-classpath|-J:cp|-J:classpath)
+    -J-cp|-J-classpath)
         CP="$CP:$2"
         shift
         ;;
@@ -102,9 +102,6 @@ do
         ;;
     --jvm.classpath=*)
         CP="$CP:${1:16}"
-        ;;
-    -J:)
-        val=-${val:3}
         ;;
     -J*)
         java_args+=("${1:2}")
