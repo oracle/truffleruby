@@ -227,10 +227,23 @@ suite = {
             ],
         },
 
+        # Copy the files from SULONG_LIBS to lib/cext/sulong-libs.
+        # Used by native images, which need a relative path from the Ruby home
+        # to these libraries to pass to Sulong so it can find them.
+        "truffleruby-sulong-libs": {
+            "class": "TruffleRubySulongLibsProject",
+            "outputDir": "lib/cext/sulong-libs",
+            "prefix": "lib/cext/sulong-libs",
+            "buildDependencies": [
+                "sulong:SULONG_LIBS",
+            ],
+        },
+
         "truffleruby-lib": {
             "class": "ArchiveProject",
             "dependencies": [
                 "truffleruby-cext",
+                "truffleruby-sulong-libs",
             ],
             "outputDir": "lib",
             "prefix": "lib",
