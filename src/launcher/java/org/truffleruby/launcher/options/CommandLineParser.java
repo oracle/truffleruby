@@ -403,6 +403,15 @@ public class CommandLineParser {
                         disallowedInRubyOpts(argument);
                         RubyLogger.LOGGER.warning("the --yydebug switch is silently ignored as it is an internal development tool");
                         break FOR;
+                    } else if (rubyOpts && argument.equals("--help")) {
+                        disallowedInRubyOpts(argument);
+                        break FOR;
+                    } else if (argument.equals("--version")) {
+                        disallowedInRubyOpts(argument);
+                        config.setOption(OptionsCatalog.SHOW_VERSION, true);
+                        // cancel other execution actions
+                        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
+                        break FOR;
                     } else if (argument.startsWith("--profile")) {
                         throw notImplemented("--profile");
                     } else if (argument.equals("--debug-frozen-string-literal")) {
