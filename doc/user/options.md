@@ -93,15 +93,16 @@ arguments in the same way it stops processing of Ruby arguments.
 ## JVM- and SVM-specific switches
 
 If you are running TruffleRuby on a JVM or the GraalVM, we additionally support
-passing options to the JVM using either a `-J-`, `-J:`, or `--jvm.` prefix.
-For example `-J-ea` or `-J:ea`. `-J-classpath` and `-J-cp` (or the `-J:`
-variants) also implicitly take the following argument to be passed to the JVM.
-`-J-cmd` or `-J:cmd` print the Java command that will be executed, for
+passing options to the JVM using either a `-J-` or `--jvm.` prefix.
+For example `-J-ea`. `-J-classpath` and `-J-cp` 
+also implicitly take the following argument to be passed to the JVM.
+`-J-cmd` print the Java command that will be executed, for
 debugging.
 
 ```
 JVM switches:
-  -J-arg, -J:arg, --jvm.arg      pass arg to the JVM
+  --jvm.arg,         -J-arg           pass arg to the JVM
+  --jvm.Dname=value, -J-Dname=value   set a system property
 ```
 
 `--` or the first non-option argument both stop processing of JVM-specific
@@ -112,14 +113,13 @@ variables when running on a JVM (except for `JAVACMD` on the GraalVM).
 
 ## SVM-specific switches
 
-The SVM supports `-D` for setting system properties and `-XX:arg` for SVM
-options. Unlike with the standard Ruby command-line, these options are always
-taken by the SVM, wherever they appear in the arguments (such as after a `--`).
+The SVM supports `--native.D` for setting system properties and 
+`--native.XX:arg` for SVM options. 
 
 ```
-SVM switches:
-  -Dname=value     set a system property
-  -XX:arg          pass arg to the SVM
+Native switches:
+  --native.XX:arg       pass arg to the SVM
+  --native.Dname=value  set a system property
 ```
 
 ## Determining the TruffleRuby home

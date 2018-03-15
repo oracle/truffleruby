@@ -66,7 +66,7 @@ describe "The launcher" do
     option = '-Dfoo.bar=baz'
     out = ruby_exe(nil, options: "-J-cmd --version", env: { "JAVA_OPTS" => option })
     parts = out.lines[0].split(' ')
-    parts.find { |part| part =~ /^(-J:)?#{option}$/ }.should_not be_nil
+    parts.find { |part| part =~ /^#{option}$/ }.should_not be_nil
     $?.success?.should == true
   end
 
@@ -153,8 +153,6 @@ describe "The launcher" do
 
   ['-J-classpath ',
    '-J-cp ',
-   '-J:classpath ',
-   '-J:cp ',
    '--jvm.classpath=',
    '--jvm.cp='
   ].each do |option|
