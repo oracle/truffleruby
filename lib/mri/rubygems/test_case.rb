@@ -85,6 +85,9 @@ end
 
 class Gem::TestCase < MiniTest::Unit::TestCase
 
+  # Truffle: added to avoid hardcoded paths
+  TEST_DIR = File.expand_path("../../../../test/mri/tests", __FILE__)
+
   attr_accessor :fetcher # :nodoc:
 
   attr_accessor :gem_repo # :nodoc:
@@ -1231,8 +1234,9 @@ Also, a list:
   end
 
   @@ruby = rubybin
-  @@good_rake = "#{rubybin} \"#{File.expand_path('../../../test/rubygems/good_rake.rb', __FILE__)}\""
-  @@bad_rake = "#{rubybin} \"#{File.expand_path('../../../test/rubygems/bad_rake.rb', __FILE__)}\""
+  # Truffle: use TEST_DIR
+  @@good_rake = "#{rubybin} \"#{TEST_DIR}/rubygems/good_rake.rb\""
+  @@bad_rake = "#{rubybin} \"#{TEST_DIR}/rubygems/bad_rake.rb\""
 
   ##
   # Construct a new Gem::Dependency.
@@ -1421,13 +1425,14 @@ Also, a list:
   def self.cert_path cert_name
     if 32 == (Time.at(2**32) rescue 32) then
       cert_file =
-        File.expand_path "../../../test/rubygems/#{cert_name}_cert_32.pem",
-                         __FILE__
+        # Truffle: use TEST_DIR
+        "#{TEST_DIR}/rubygems/#{cert_name}_cert_32.pem"
 
       return cert_file if File.exist? cert_file
     end
 
-    File.expand_path "../../../test/rubygems/#{cert_name}_cert.pem", __FILE__
+    # Truffle: use TEST_DIR
+    "#{TEST_DIR}/rubygems/#{cert_name}_cert.pem"
   end
 
   ##
@@ -1445,7 +1450,8 @@ Also, a list:
   # Returns the path to the key named +key_name+ from <tt>test/rubygems</tt>
 
   def self.key_path key_name
-    File.expand_path "../../../test/rubygems/#{key_name}_key.pem", __FILE__
+    # Truffle: use TEST_DIR
+    "#{TEST_DIR}/rubygems/#{key_name}_key.pem"
   end
 
   # :stopdoc:
@@ -1504,4 +1510,3 @@ tmpdirs << (ENV['GEM_PATH'] = Dir.mktmpdir("path"))
 pid = $$
 END {tmpdirs.each {|dir| Dir.rmdir(dir)} if $$ == pid}
 Gem.clear_paths
-
