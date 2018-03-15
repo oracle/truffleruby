@@ -123,7 +123,7 @@ bin/*
 !bin/testrb
 
 # For the Bash launcher
-tool/jvm_args
+tool/jvm_args.sh
 
 # Diagnostic output directory
 dumps/
