@@ -1784,7 +1784,7 @@ module Commands
       languages = %w[--ruby]
       extra = []
       if sulong
-        languages.unshift '--sulong'
+        languages.unshift '--llvm'
         options = %w[
           -Dtruffleruby.native.libsulong_dir=lib/cext/sulong-libs
         ] + options
