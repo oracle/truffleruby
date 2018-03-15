@@ -93,8 +93,8 @@ class TCPServer < TCPSocket
     socket
   end
 
-  def accept_nonblock
-    socket, _ = Truffle::Socket.accept_nonblock(self, TCPSocket)
+  def accept_nonblock(exception: true)
+    socket, _ = Truffle::Socket.accept_nonblock(self, TCPSocket, exception)
 
     socket
   end

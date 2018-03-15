@@ -382,8 +382,8 @@ class Socket < BasicSocket
     Truffle::Socket.accept(self, Socket)
   end
 
-  def accept_nonblock
-    Truffle::Socket.accept_nonblock(self, Socket)
+  def accept_nonblock(exception: true)
+    Truffle::Socket.accept_nonblock(self, Socket, exception)
   end
 
   def sysaccept

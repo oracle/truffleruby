@@ -95,10 +95,18 @@ module Truffle
       end
     end
 
-    def self.accept_nonblock(source, new_class)
+    def self.accept_nonblock(source, new_class, exception)
       source.fcntl(::Fcntl::F_SETFL, ::Fcntl::O_NONBLOCK)
 
-      accept(source, new_class)
+      begin
+        accept(source, new_class)
+      rescue Errno::EAGAIN
+        if exception
+          raise ::IO::EAGAINWaitReadable
+        else
+          return :wait_readable
+        end
+      end
     end
 
     def self.listen(source, backlog)
