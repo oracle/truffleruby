@@ -59,7 +59,7 @@ class TruffleRubyLauncherBuildTask(mx.ArchivableBuildTask):
     def __init__(self, *args):
         mx.ArchivableBuildTask.__init__(self, *args)
 
-        self.jvm_args_file = join(self.subject.suite.get_output_root(), 'jvm_args.sh')
+        self.jvm_args_file = join(root, 'mxbuild', 'jvm_args.sh')
         self.mx_env = join(_suite.mxDir, 'env')
         self.suite_py = _suite.suite_py()
         self.mx_truffleruby = join(_suite.mxDir, 'mx_truffleruby.py')
