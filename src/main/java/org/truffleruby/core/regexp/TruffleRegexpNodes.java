@@ -311,8 +311,6 @@ public class TruffleRegexpNodes {
 
     @TruffleBoundary
     public static Regex compile(Node currentNode, RubyContext context, Rope bytes, RegexpOptions options) {
-        bytes = RegexpNodes.shimModifiers(bytes);
-
         try {
             Encoding enc = bytes.getEncoding();
             Encoding[] fixedEnc = new Encoding[]{null};
