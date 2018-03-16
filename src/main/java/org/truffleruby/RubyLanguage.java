@@ -107,6 +107,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         return Truffle.getRuntime().createCallTarget(new LazyRubyRootNode(this, null, null, request.getSource(), request.getArgumentNames()));
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected Object findExportedSymbol(RubyContext context, String symbolName, boolean onlyExplicit) {
         final Object explicit = context.getInteropManager().findExportedObject(symbolName);
@@ -122,6 +123,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         return context.send(context.getCoreLibrary().getTruffleInteropModule(), "lookup_symbol", context.getSymbolTable().getSymbol(symbolName));
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected Object getLanguageGlobal(RubyContext context) {
         return context.getCoreLibrary().getObjectClass();

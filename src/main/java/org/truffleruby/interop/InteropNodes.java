@@ -685,7 +685,7 @@ public abstract class InteropNodes {
     public abstract static class KeyInfoBitsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int keyInfo(VirtualFrame frame, TruffleObject receiver, DynamicObject name,
+        public int keyInfo(VirtualFrame frame, TruffleObject receiver, Object name,
                               @Cached("create()") RubyToForeignNode rubyToForeignNode,
                               @Cached("KEY_INFO.createNode()") Node keyInfoNode) {
             return ForeignAccess.sendKeyInfo(keyInfoNode, receiver, rubyToForeignNode.executeConvert(name));
@@ -933,30 +933,69 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "key_info_flags_to_bits", isModuleFunction = true, required = 5)
+    @CoreMethod(names = "removable_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
+    public abstract static class HasRemovableBitNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean removableBit(int bits) {
+            return KeyInfo.isRemovable(bits);
+        }
+
+    }
+
+    @CoreMethod(names = "modifiable_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
+    public abstract static class HasModifiableBitNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean modifiableBit(int bits) {
+            return KeyInfo.isModifiable(bits);
+        }
+
+    }
+
+    @CoreMethod(names = "insertable_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
+    public abstract static class HasInsertableBitNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean insertableBit(int bits) {
+            return KeyInfo.isInsertable(bits);
+        }
+
+    }
+
+    @CoreMethod(names = "key_info_flags_to_bits", isModuleFunction = true, required = 6)
     public abstract static class KeyInfoFlagsToBitsNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "existing")
-        public int keyInfoFlagsToBitsNode(boolean existing, boolean readable, boolean writable,
-                                          boolean invocable, boolean internal) {
-            return KeyInfo.newBuilder()
-                    .setReadable(readable)
-                    .setWritable(writable)
-                    .setInvocable(invocable)
-                    .setInternal(internal).build();
-        }
+        @Specialization
+        public int keyInfoFlagsToBitsNode(boolean readable, boolean invocable, boolean internal,
+                                          boolean insertable, boolean modifiable, boolean removable) {
+            int keyInfo = KeyInfo.NONE;
 
-        @Specialization(guards = {"!existing", "!readable", "!writable", "!invocable", "!internal"})
-        public int keyInfoFlagsToBitsNodeZero(boolean existing, boolean readable, boolean writable,
-                                              boolean invocable, boolean internal) {
-            return 0;
-        }
+            if (readable) {
+                keyInfo |= KeyInfo.READABLE;
+            }
 
-        @TruffleBoundary
-        @Specialization(guards = {"!existing", "((readable || writable) || invocable) || internal"})
-        public int keyInfoFlagsToBitsNodeNotExisting(boolean existing, boolean readable, boolean writable,
-                                                     boolean invocable, boolean internal) {
-            throw new RaiseException(getContext().getCoreExceptions().internalError("incompatible key info flags", this));
+            if (invocable) {
+                keyInfo |= KeyInfo.INVOCABLE;
+            }
+
+            if (internal) {
+                keyInfo |= KeyInfo.INTERNAL;
+            }
+
+            if (insertable) {
+                keyInfo |= KeyInfo.INSERTABLE;
+            }
+
+            if (modifiable) {
+                keyInfo |= KeyInfo.MODIFIABLE;
+            }
+
+            if (removable) {
+                keyInfo |= KeyInfo.REMOVABLE;
+            }
+
+            return keyInfo;
         }
 
     }

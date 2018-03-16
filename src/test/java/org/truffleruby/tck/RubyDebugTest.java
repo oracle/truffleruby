@@ -124,7 +124,7 @@ public class RubyDebugTest {
 
         continueExecution();
 
-        final Value main = context.importSymbol("main");
+        final Value main = context.getPolyglotBindings().getMember("main");
         assertNotNull("main method found", main);
         Assert.assertFalse("not yet translated", breakpoint.isResolved());
         assertTrue(main.canExecute());
@@ -173,7 +173,7 @@ public class RubyDebugTest {
 
         // Init before eval:
         performWork();
-        Value value = context.importSymbol("main").execute();
+        Value value = context.getPolyglotBindings().getMember("main").execute();
 
         int n = value.asInt();
         assertEquals("Factorial computed OK", 2, n);
