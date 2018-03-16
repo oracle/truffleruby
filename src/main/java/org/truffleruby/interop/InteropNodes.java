@@ -939,11 +939,25 @@ public abstract class InteropNodes {
         @Specialization(guards = "existing")
         public int keyInfoFlagsToBitsNode(boolean existing, boolean readable, boolean writable,
                                           boolean invocable, boolean internal) {
-            return KeyInfo.newBuilder()
-                    .setReadable(readable)
-                    .setWritable(writable)
-                    .setInvocable(invocable)
-                    .setInternal(internal).build();
+            int keyInfo = 0;
+
+            if (readable) {
+                keyInfo |= KeyInfo.READABLE;
+            }
+
+            if (writable) {
+                keyInfo |= KeyInfo.MODIFIABLE;
+            }
+
+            if (invocable) {
+                keyInfo |= KeyInfo.INVOCABLE;
+            }
+
+            if (internal) {
+                keyInfo |= KeyInfo.INTERNAL;
+            }
+
+            return keyInfo;
         }
 
         @Specialization(guards = {"!existing", "!readable", "!writable", "!invocable", "!internal"})
