@@ -218,6 +218,7 @@ webrick/test_httpserver.rb
 webrick/test_httputils.rb
 webrick/test_httpversion.rb
 webrick/test_server.rb
+webrick/test_ssl_server.rb
 webrick/test_do_not_reverse_lookup.rb
 win32ole/test_err_in_callback.rb
 win32ole/test_folderitem2_invokeverb.rb
