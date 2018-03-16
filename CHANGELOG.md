@@ -11,6 +11,8 @@ New features:
 * The `REMOVABLE`, `MODIFIABLE` and `INSERTABLE` Truffle interop key info flags
   have been implemented.
 
+* MRI sources have been updated to version 2.3.6.
+
 Performance:
 
 * `Dir.glob` is much faster and more memory efficient in cases that can reduce
@@ -47,7 +49,7 @@ Performance:
 
 Bug fixes:
 
-* The launcher accepts `--native` and similar options in  the `TRUFFLERUBYOPT` 
+* The launcher accepts `--native` and similar options in  the `TRUFFLERUBYOPT`
 environment variable.
 
 Internal changes:
