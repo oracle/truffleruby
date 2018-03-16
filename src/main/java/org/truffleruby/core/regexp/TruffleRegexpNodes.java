@@ -335,7 +335,8 @@ public class TruffleRegexpNodes {
             }
             //if (regexpOptions.isEncodingNone()) setEncodingNone();
 
-            Regex regexp = new Regex(unescaped.getUnsafeBytes(), 0, unescaped.getLength(), options.toJoniOptions(), enc, Syntax.RUBY);
+            Regex regexp = new Regex(unescaped.getUnsafeBytes(), 0, unescaped.getLength(), options.toJoniOptions(),
+                    enc, Syntax.RUBY, new RegexWarnCallback(context));
             regexp.setUserObject(RopeOperations.withEncodingVerySlow(bytes, enc));
 
             if (context.getOptions().REGEXP_INSTRUMENT_CREATION) {

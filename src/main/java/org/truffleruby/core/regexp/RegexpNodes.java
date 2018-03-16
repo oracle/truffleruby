@@ -84,7 +84,7 @@ public abstract class RegexpNodes {
         final RopeBuilder preprocessed = ClassicRegexp.preprocess(context, sourceRope, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
         final RegexpOptions options = Layouts.REGEXP.getOptions(regexp);
         regex = new Regex(preprocessed.getUnsafeBytes(), 0, preprocessed.getLength(),
-                options.toJoniOptions(), enc);
+                options.toJoniOptions(), enc, new RegexWarnCallback(context));
         return regex;
     }
 

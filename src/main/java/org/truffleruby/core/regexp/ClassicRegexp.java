@@ -88,11 +88,11 @@ public class ClassicRegexp implements ReOptions {
         // FIXME: transcode?
     }
 
-    private static Regex makeRegexp(RubyContext runtime, RopeBuilder bytes, RegexpOptions options, Encoding enc) {
+    private static Regex makeRegexp(RubyContext context, RopeBuilder bytes, RegexpOptions options, Encoding enc) {
         try {
-            return new Regex(bytes.getUnsafeBytes(), 0, bytes.getLength(), options.toJoniOptions(), enc, Syntax.DEFAULT, s -> { });
+            return new Regex(bytes.getUnsafeBytes(), 0, bytes.getLength(), options.toJoniOptions(), enc, Syntax.DEFAULT, new RegexWarnCallback(context));
         } catch (Exception e) {
-            throw new RaiseException(runtime.getCoreExceptions().regexpError(e.getMessage(), null));
+            throw new RaiseException(context.getCoreExceptions().regexpError(e.getMessage(), null));
         }
     }
 
@@ -822,7 +822,7 @@ public class ClassicRegexp implements ReOptions {
 
                 if (bytes[p] == ':' && bytes[p + len - 1] == ')') {
                     try {
-                        new Regex(bytes, ++p, p + (len -= 2), Option.DEFAULT, str.getEncoding(), Syntax.DEFAULT);
+                        new Regex(bytes, ++p, p + (len -= 2), Option.DEFAULT, str.getEncoding(), Syntax.DEFAULT, new RegexWarnCallback(context));
                         err = false;
                     } catch (JOniException e) {
                         err = true;
