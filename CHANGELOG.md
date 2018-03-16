@@ -4,6 +4,9 @@ New features:
 
 * Context pre-initialization with TruffleRuby `--native`, which significantly
   improves startup time and loads the did_you_mean gem ahead of time.
+  
+* The default VM is changed to SubstrateVM, where the startup is significantly 
+  better. Use `--jvm` option for full JVM VM.
 
 Performance:
 
