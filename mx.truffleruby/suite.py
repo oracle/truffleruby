@@ -77,10 +77,10 @@ suite = {
             "maven": {
                 "groupId": "org.jruby.joni",
                 "artifactId": "joni",
-                "version": "2.1.12"
+                "version": "2.1.16"
             },
-            "sha1": "3ba3cb50e9a0b87b645cd412a8f7b7296c314aa1",
-            "sourceSha1": "2fdcca5bd2c629c8c120d46cc1ed325c994ea3eb",
+            "sha1": "b5c07f6aa52f93fe592dd9545b6b528e1a52c54d",
+            "sourceSha1": "ab3c291fa9aa4caee512b6624b4d2302d91a7230",
             "license": [
                 "MIT",              # Joni
             ],
@@ -90,10 +90,10 @@ suite = {
             "maven": {
                 "groupId": "org.jruby.jcodings",
                 "artifactId": "jcodings",
-                "version": "1.0.26"
+                "version": "1.0.28"
             },
-            "sha1": "179d05303c51e1e2b87c643147fac56c8437ccbb",
-            "sourceSha1": "6b2043ee228ec5e2964d1cc5ada11d3ddbf8e9ff",
+            "sha1": "18a508a3f7dd40af0cb3595be8df27e1f71c9927",
+            "sourceSha1": "77984e5ee6c2373f16f7cfd4673c5e1012e1e674",
             "license": [
                 "MIT",              # JCodings
             ],
