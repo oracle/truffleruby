@@ -1740,7 +1740,7 @@ module Commands
     graal = Utilities.find_or_clone_repo('https://github.com/graalvm/graal.git')
 
     chdir(graal) do
-      raw_sh "git", "fetch"
+      raw_sh "git", "fetch", continue_on_failure: true
       raw_sh "git", "checkout", Utilities.truffle_version
     end
 
