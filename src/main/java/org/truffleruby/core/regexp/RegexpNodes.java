@@ -41,7 +41,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -86,38 +85,6 @@ public abstract class RegexpNodes {
         regex = new Regex(preprocessed.getUnsafeBytes(), 0, preprocessed.getLength(),
                 options.toJoniOptions(), enc, new RegexWarnCallback(context));
         return regex;
-    }
-
-    public static Rope shimModifiers(Rope bytes) {
-        // Joni doesn't support (?u) etc but we can shim some common cases
-
-        String bytesString = RopeOperations.decodeRope(bytes);
-
-        if (bytesString.startsWith("(?u)") || bytesString.startsWith("(?d)") || bytesString.startsWith("(?a)")) {
-            final char modifier = (char) bytes.get(2);
-            bytesString = bytesString.substring(4);
-
-            switch (modifier) {
-                case 'u': {
-                    bytesString = StringUtils.replace(bytesString, "\\w", "[[:alpha:]]");
-                } break;
-
-                case 'd': {
-
-                } break;
-
-                case 'a': {
-                    bytesString = StringUtils.replace(bytesString, "[[:alpha:]]", "[a-zA-Z]");
-                } break;
-
-                default:
-                    throw new UnsupportedOperationException();
-            }
-
-            bytes = StringOperations.encodeRope(bytesString, bytes.getEncoding());
-        }
-
-        return bytes;
     }
 
     public static void setRegex(DynamicObject regexp, Regex regex) {
