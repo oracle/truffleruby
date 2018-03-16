@@ -113,29 +113,34 @@ If the object is a Ruby `Array` and the key is an integer:
 
 `READABLE` will be set if the index is in bounds (0 <= index < array.size)
 
-`WRITABLE` will be set if the index is in bound and the array is not frozen.
+`INSERTABLE` and `MODIFIABLE` will be set if the index is in bound and the array
+is not frozen.
 
 If the object is a Ruby `Hash`:
 
 `READABLE` will be set if the key is found.
 
-`WRITABLE` will be set if the key is found and the hash is not frozen.
+`INSERTABLE` will be set if the hash is not frozen.
 
-`INTERNAL` will never be set.
+`MODIFIABLE` will be set if the key is found and the hash is not frozen.
 
 Otherwise:
 
 `READABLE` will be set if the object responds to a method of the same name.
 
-`WRITABLE` will be set if the object responds to a method of the same name
+`MODIFIABLE` will be set if the object responds to a method of the same name
 appended with `=` and the object is not frozen.
+
+`INSERTABLE` will be false.
 
 If they key has a leading `@`:
 
 `READABLE` will be set if there is an instance variable of that name.
 
-`WRITABLE` will be set if there is an instance variable of that name and the
+`MODIFIABLE` will be set if there is an instance variable of that name and the
 object is not frozen.
+
+`INSERTABLE` will be set if the object is not frozen.
 
 `INTERNAL` will be set if there is an instance variable of that name.
 
@@ -143,11 +148,10 @@ For all objects and keys:
 
 `INVOCABLE` is never set, because currently `KEYS` does not include methods.
 
-`EXISTING` is set if any other flags are set.
+`EXISTING` is set if `READABLE`, `MODIFIABLE`, `INVOCABLE`, `INTERNAL` or
+`REMOVABLE` are set.
 
 `REMOVABLE` is always set to false.
-
-`INSERTABLE` and `MODIFIABLE` are set to `WRITABLE`.
 
 ### `READ`
 

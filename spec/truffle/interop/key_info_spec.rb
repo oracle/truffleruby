@@ -54,8 +54,17 @@ describe "Truffle::Interop.key_info" do
       end
     end
     
-    it "returns nothing for a missing key" do
-      Truffle::Interop.key_info(@hash, :key_not_in_key_info_hash).should be_empty
+    it "returns :insertable for a missing key" do
+      Truffle::Interop.key_info(@hash, :key_not_in_key_info_hash).should include(:insertable)
+    end
+    
+    it "returns :writable for a missing key" do
+      Truffle::Interop.key_info(@hash, :key_not_in_key_info_hash).should include(:writable)
+    end
+    
+    it "does not return :writable for a missing key if the hash is frozen" do
+      @hash.freeze
+      Truffle::Interop.key_info(@hash, :key_not_in_key_info_hash).should_not include(:writable)
     end
     
     it "returns :existing for an instance variable" do
@@ -84,8 +93,22 @@ describe "Truffle::Interop.key_info" do
       Truffle::Interop.key_info(@hash, :@exists).should include(:internal)
     end
 
-    it "returns nothing for an instance variable that does not exist" do
-      Truffle::Interop.key_info(@hash, :@does_not_exist).should be_empty
+    it "returns :insertable for an instance variable that does not exist" do
+      Truffle::Interop.key_info(@hash, :@does_not_exist).should include(:insertable)
+    end
+
+    it "returns :writable for an instance variable that does not exist" do
+      Truffle::Interop.key_info(@hash, :@does_not_exist).should include(:writable)
+    end
+
+    it "does not return :insertable for an instance variable that does not exist if the hash is frozen" do
+      @hash.freeze
+      Truffle::Interop.key_info(@hash, :@does_not_exist).should_not include(:insertable)
+    end
+
+    it "does not return :writable for an instance variable that does not exist if the hash is frozen" do
+      @hash.freeze
+      Truffle::Interop.key_info(@hash, :@does_not_exist).should_not include(:writable)
     end
   
   end
@@ -168,8 +191,22 @@ describe "Truffle::Interop.key_info" do
       Truffle::Interop.key_info(@object, :@exists).should include(:internal)
     end
     
-    it "returns nothing for an instance variable that does not exist" do
-      Truffle::Interop.key_info(@object, :@does_not_exist).should be_empty
+    it "returns :insertable for an instance variable that does not exist" do
+      Truffle::Interop.key_info(@object, :@does_not_exist).should include(:insertable)
+    end
+
+    it "returns :writable for an instance variable that does not exist" do
+      Truffle::Interop.key_info(@object, :@does_not_exist).should include(:writable)
+    end
+
+    it "does not return :insertable for an instance variable that does not exist if the object is frozen" do
+      @object.freeze
+      Truffle::Interop.key_info(@object, :@does_not_exist).should_not include(:insertable)
+    end
+
+    it "does not return :writable for an instance variable that does not exist if the object is frozen" do
+      @object.freeze
+      Truffle::Interop.key_info(@object, :@does_not_exist).should_not include(:writable)
     end
 
   end
