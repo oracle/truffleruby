@@ -16,6 +16,38 @@ describe "Truffle::Interop.key_info" do
       @array = [1, 2, 3]
     end
     
+    it "returns :readable for indicies in bounds" do
+      [0, 1, 2].each do |n|
+        Truffle::Interop.key_info(@array, n).should include(:readable)
+      end
+    end
+    
+    it "returns :modifiable for indicies in bounds" do
+      [0, 1, 2].each do |n|
+        Truffle::Interop.key_info(@array, n).should include(:modifiable)
+      end
+    end
+    
+    it "returns :insertable for indicies in bounds" do
+      [0, 1, 2].each do |n|
+        Truffle::Interop.key_info(@array, n).should include(:insertable)
+      end
+    end
+    
+    it "does not return :modifiable for indicies in bounds if the array is frozen" do
+      @array.freeze
+      [0, 1, 2].each do |n|
+        Truffle::Interop.key_info(@array, n).should_not include(:modifiable)
+      end
+    end
+    
+    it "does not return :insertable for indicies in bounds if the array is frozen" do
+      @array.freeze
+      [0, 1, 2].each do |n|
+        Truffle::Interop.key_info(@array, n).should_not include(:insertable)
+      end
+    end
+    
     it "returns :removable for indicies in bounds" do
       [0, 1, 2].each do |n|
         Truffle::Interop.key_info(@array, n).should include(:removable)
@@ -26,6 +58,24 @@ describe "Truffle::Interop.key_info" do
       @array.freeze
       [0, 1, 2].each do |n|
         Truffle::Interop.key_info(@array, n).should_not include(:removable)
+      end
+    end
+    
+    it "does not return :readable for indicies out of bounds" do
+      [-1, 3].each do |n|
+        Truffle::Interop.key_info(@array, n).should_not include(:readable)
+      end
+    end
+    
+    it "does not return :modifiable for indicies out of bounds" do
+      [-1, 3].each do |n|
+        Truffle::Interop.key_info(@array, n).should_not include(:modifiable)
+      end
+    end
+    
+    it "does not return :insertable for indicies out of bounds" do
+      [-1, 3].each do |n|
+        Truffle::Interop.key_info(@array, n).should_not include(:insertable)
       end
     end
     
