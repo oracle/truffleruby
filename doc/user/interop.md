@@ -18,6 +18,7 @@ themselves are explained in the
 * [String conversion](#string-conversion)
 * [Import and export](#import-and-export)
 * [Interop eval](#interop-eval)
+* [Java interop](#java-interop)
 * [Additional methods](#additional-methods)
 * [Notes on method resolution](#notes-on-method-resolution)
 * [Threading and interop](#threading-and-interop)
@@ -427,7 +428,9 @@ which supports `to_a`, `to_ary`, `new`, returning `false` for everything else.
 
 `object.to_a` and `object.to_ary` calls `Truffle::Interop.to_array(object)`
 
-`object.equal?(other)` returns whether `object` is the same as `other` using reference equality, like `BasicObject#equal?`
+`object.equal?(other)` returns whether `object` is the same as `other` using
+reference equality, like `BasicObject#equal?`. For Java interop objects it
+looks at the underlying Java object.
 
 `object.inspect` produces a simple string of the format
 `#<Truffle::Interop::Foreign:system-identity-hash-code>`
@@ -475,6 +478,25 @@ Ruby string at that point, but this is not implemented yet.
 
 `Truffle::Interop.import_file(path)` evals an entire file, guessing the correct
 language MIME type.
+
+## Java interop
+
+TruffleRuby's Java interop interface is similar to the interface from the
+Nashorn JavaScript implementation, as also implemented by Graal.js. It's only
+available in JVM mode (`--jvm`).
+
+`Truffle::Interop.java_type(name)` returns a Java class object, given a name
+such as `java.lang.Integer` or `int[]`.
+
+`java_class.new(*args)` creates a new instance of a Java class object.
+
+`Truffle::Interop.java_type_name(java_class)` gives the Java class name for a
+Java class object, or `nil` if the object is not a Java class object.
+
+`Truffle::Interop.from_java_array(array)` creates a shallow copy of a Java
+array as a Ruby array.
+
+Also see the separate document on [JRuby-compatible Java interop](jruby-java-interop.md).
 
 ## Additional methods
 
