@@ -130,12 +130,6 @@ Otherwise:
 `WRITABLE` will be set if the object responds to a method of the same name
 appended with `=` and the object is not frozen.
 
-For all objects:
-
-`INVOCABLE` is never set, because currently `KEYS` does not include methods.
-
-`EXISTING` is set if any other flags are set.
-
 If they key has a leading `@`:
 
 `READABLE` will be set if there is an instance variable of that name.
@@ -144,6 +138,16 @@ If they key has a leading `@`:
 object is not frozen.
 
 `INTERNAL` will be set if there is an instance variable of that name.
+
+For all objects and keys:
+
+`INVOCABLE` is never set, because currently `KEYS` does not include methods.
+
+`EXISTING` is set if any other flags are set.
+
+`REMOVABLE` is always set to false.
+
+`INSERTABLE` and `MODIFIABLE` are set to `WRITABLE`.
 
 ### `READ`
 
@@ -216,7 +220,8 @@ keeping with Ruby semantics, no-op. If the name value is not an integer, then
 If the receiver is a Ruby `Hash`, delete the key indicated by the name value.
 If no such key exists then, in keeping with Ruby semantics, no-op.
 
-Any exception thrown during a `REMOVE` operation will be converted to `UnknownIdentifierException`.
+Any exception thrown during a `REMOVE` operation will be converted to
+`UnknownIdentifierException`.
 
 If the receiver is any other type, then `UnsupportedMessageException` is thrown.
 
@@ -296,8 +301,8 @@ TruffleRuby will convert the returned value from a foreign object of Java
 `Truffle::Interop.key_info(object, name)`
 
 Returns an array containing zero or more of the symbols
-`[:existing, :readable, :writable, :invocable, :internal]` in an undefined
-order.
+`[:existing, :readable, :writable, :invocable, :internal, :removable, :modifiable, :insertable]`
+in an undefined order.
 
 ### `READ`
 

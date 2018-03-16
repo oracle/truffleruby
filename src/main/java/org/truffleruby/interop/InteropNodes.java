@@ -933,20 +933,46 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "key_info_flags_to_bits", isModuleFunction = true, required = 5)
+    @CoreMethod(names = "removable_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
+    public abstract static class HasRemovableBitNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean removableBit(int bits) {
+            return KeyInfo.isRemovable(bits);
+        }
+
+    }
+
+    @CoreMethod(names = "modifiable_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
+    public abstract static class HasModifiableBitNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean modifiableBit(int bits) {
+            return KeyInfo.isModifiable(bits);
+        }
+
+    }
+
+    @CoreMethod(names = "insertable_bit?", isModuleFunction = true, required = 1, lowerFixnum = 1)
+    public abstract static class HasInsertableBitNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean insertableBit(int bits) {
+            return KeyInfo.isInsertable(bits);
+        }
+
+    }
+
+    @CoreMethod(names = "key_info_flags_to_bits", isModuleFunction = true, required = 6)
     public abstract static class KeyInfoFlagsToBitsNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "existing")
-        public int keyInfoFlagsToBitsNode(boolean existing, boolean readable, boolean writable,
-                                          boolean invocable, boolean internal) {
-            int keyInfo = 0;
+        @Specialization
+        public int keyInfoFlagsToBitsNode(boolean readable, boolean invocable, boolean internal,
+                                          boolean insertable, boolean modifiable, boolean removable) {
+            int keyInfo = KeyInfo.NONE;
 
             if (readable) {
                 keyInfo |= KeyInfo.READABLE;
-            }
-
-            if (writable) {
-                keyInfo |= KeyInfo.MODIFIABLE;
             }
 
             if (invocable) {
@@ -957,20 +983,19 @@ public abstract class InteropNodes {
                 keyInfo |= KeyInfo.INTERNAL;
             }
 
+            if (insertable) {
+                keyInfo |= KeyInfo.INSERTABLE;
+            }
+
+            if (modifiable) {
+                keyInfo |= KeyInfo.MODIFIABLE;
+            }
+
+            if (removable) {
+                keyInfo |= KeyInfo.REMOVABLE;
+            }
+
             return keyInfo;
-        }
-
-        @Specialization(guards = {"!existing", "!readable", "!writable", "!invocable", "!internal"})
-        public int keyInfoFlagsToBitsNodeZero(boolean existing, boolean readable, boolean writable,
-                                              boolean invocable, boolean internal) {
-            return 0;
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = {"!existing", "((readable || writable) || invocable) || internal"})
-        public int keyInfoFlagsToBitsNodeNotExisting(boolean existing, boolean readable, boolean writable,
-                                                     boolean invocable, boolean internal) {
-            throw new RaiseException(getContext().getCoreExceptions().internalError("incompatible key info flags", this));
         }
 
     }

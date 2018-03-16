@@ -74,13 +74,12 @@ public final class MetaObject implements TruffleObject {
     @Resolve(message = "KEY_INFO")
     abstract static class KeyInfoNode extends Node {
 
-        private static final int READABLE = KeyInfo.READABLE;
-
         int access(MetaObject obj, String name) {
-            if (!hasKey(name)) {
-                return 0;
+            if (hasKey(name)) {
+                return KeyInfo.READABLE;
+            } else {
+                return KeyInfo.NONE;
             }
-            return READABLE;
         }
 
     }
