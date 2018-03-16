@@ -116,6 +116,8 @@ If the object is a Ruby `Array` and the key is an integer:
 `INSERTABLE` and `MODIFIABLE` will be set if the index is in bound and the array
 is not frozen.
 
+`REMOVABLE` will be set if the array is not frozen.
+
 If the object is a Ruby `Hash`:
 
 `READABLE` will be set if the key is found.
@@ -123,6 +125,8 @@ If the object is a Ruby `Hash`:
 `INSERTABLE` will be set if the hash is not frozen.
 
 `MODIFIABLE` will be set if the key is found and the hash is not frozen.
+
+`REMOVABLE` will be set if the array is not frozen.
 
 Otherwise:
 

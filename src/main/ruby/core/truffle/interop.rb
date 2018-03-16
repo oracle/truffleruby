@@ -58,7 +58,7 @@ module Truffle
     end
     
     def self.key_info(object, name)
-      key_info_flags_from_bits(key_info_bits(object, name.to_sym))
+      key_info_flags_from_bits(key_info_bits(object, name))
     end
     
     def self.object_key_info(object, name)
@@ -79,12 +79,15 @@ module Truffle
           modifiable = true unless frozen
         end
         insertable = true unless frozen
+        removable = true unless frozen
       elsif name.is_a?(Integer) && object.is_a?(::Array)
+        frozen = object.frozen?
         if 0 <= name && name < object.size
           readable = true
-          writable = true unless object.frozen?
+          writable = !frozen
           modifiable, insertable = writable, writable
         end
+        removable = true unless frozen
       elsif string_like_name
         name = name.to_sym
         readable = object.respond_to?(name)

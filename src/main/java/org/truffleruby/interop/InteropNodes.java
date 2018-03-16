@@ -685,7 +685,7 @@ public abstract class InteropNodes {
     public abstract static class KeyInfoBitsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int keyInfo(VirtualFrame frame, TruffleObject receiver, DynamicObject name,
+        public int keyInfo(VirtualFrame frame, TruffleObject receiver, Object name,
                               @Cached("create()") RubyToForeignNode rubyToForeignNode,
                               @Cached("KEY_INFO.createNode()") Node keyInfoNode) {
             return ForeignAccess.sendKeyInfo(keyInfoNode, receiver, rubyToForeignNode.executeConvert(name));

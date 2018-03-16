@@ -10,6 +10,40 @@ require_relative '../../ruby/spec_helper'
 require_relative 'fixtures/classes'
 
 describe "Truffle::Interop.key_info" do
+  describe "for an Array" do
+    
+    before :each do
+      @array = [1, 2, 3]
+    end
+    
+    it "returns :removable for indicies in bounds" do
+      [0, 1, 2].each do |n|
+        Truffle::Interop.key_info(@array, n).should include(:removable)
+      end
+    end
+    
+    it "does not return :removable for indicies in bounds if the array is frozen" do
+      @array.freeze
+      [0, 1, 2].each do |n|
+        Truffle::Interop.key_info(@array, n).should_not include(:removable)
+      end
+    end
+    
+    it "returns :removable for indicies out of bounds" do
+      [-1, 3].each do |n|
+        Truffle::Interop.key_info(@array, n).should include(:removable)
+      end
+    end
+    
+    it "returns :removable for indicies out of bounds if the array is frozen" do
+      @array.freeze
+      [-1, 3].each do |n|
+        Truffle::Interop.key_info(@array, n).should_not include(:removable)
+      end
+    end
+  
+  end
+  
   describe "for a Hash with String keys" do
     
     before :each do
@@ -35,6 +69,28 @@ describe "Truffle::Interop.key_info" do
       end
     end
     
+    it "returns :removable for all keys" do
+      @hash.keys.each do |k|
+        Truffle::Interop.key_info(@hash, k).should include(:removable)
+      end
+    end
+    
+    it "does not return :removable for all keys if the hash is frozen" do
+      @hash.freeze
+      @hash.keys.each do |k|
+        Truffle::Interop.key_info(@hash, k).should_not include(:removable)
+      end
+    end
+    
+    it "returns :removable for keys they don't exist" do
+      Truffle::Interop.key_info(@hash, :key_not_in_key_info_hash).should include(:removable)
+    end
+    
+    it "does not return :removable for keys they don't exist if the hash is frozen" do
+      @hash.freeze
+      Truffle::Interop.key_info(@hash, :key_not_in_key_info_hash).should_not include(:removable)
+    end
+    
     it "does not return :writable for all keys if the hash is frozen" do
       @hash.freeze
       @hash.keys.each do |k|
@@ -54,12 +110,22 @@ describe "Truffle::Interop.key_info" do
       end
     end
     
+    it "returns :removable for all keys" do
+      @hash.keys.each do |k|
+        Truffle::Interop.key_info(@hash, k).should include(:removable)
+      end
+    end
+    
     it "returns :insertable for a missing key" do
       Truffle::Interop.key_info(@hash, :key_not_in_key_info_hash).should include(:insertable)
     end
     
     it "returns :writable for a missing key" do
       Truffle::Interop.key_info(@hash, :key_not_in_key_info_hash).should include(:writable)
+    end
+    
+    it "returns :removable for a missing key" do
+      Truffle::Interop.key_info(@hash, :key_not_in_key_info_hash).should include(:removable)
     end
     
     it "does not return :writable for a missing key if the hash is frozen" do
