@@ -25,8 +25,8 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.transcode.EConv;
 import org.jcodings.transcode.EConvResult;
 import org.jcodings.transcode.Transcoder;
-import org.jcodings.transcode.TranscodingManager;
-import org.jcodings.transcode.TranscodingManager.TranscoderReference;
+import org.jcodings.transcode.TranscoderDB;
+import org.truffleruby.core.encoding.TranscodingManager.TranscoderReference;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -80,7 +80,8 @@ public abstract class EncodingConverterNodes {
             Encoding sourceEncoding = Layouts.ENCODING.getEncoding(source);
             Encoding destinationEncoding = Layouts.ENCODING.getEncoding(destination);
 
-            final EConv econv = TranscodingManager.create(sourceEncoding, destinationEncoding, options);
+            final EConv econv = TranscoderDB.open(sourceEncoding.getName(), destinationEncoding.getName(), TranscodingManager.toJCodingFlags(options));
+
             if (econv == null) {
                 return nil();
             }
@@ -262,7 +263,7 @@ public abstract class EncodingConverterNodes {
                 inPtr.p = 0;
                 outPtr.p = offset;
                 int os = outPtr.p + size;
-                EConvResult res = TranscodingManager.convert(ec, sourceRope.getBytes(), inPtr, sourceRope.byteLength() + inPtr.p, outBytes.getUnsafeBytes(), outPtr, os, options);
+                EConvResult res = convert(ec, sourceRope.getBytes(), inPtr, sourceRope.byteLength() + inPtr.p, outBytes.getUnsafeBytes(), outPtr, os, options);
 
                 outBytes.setLength(outPtr.p);
 
@@ -289,6 +290,11 @@ public abstract class EncodingConverterNodes {
 
                 return getSymbol(res.symbolicName());
             }
+        }
+
+        @TruffleBoundary
+        private EConvResult convert(EConv ec, byte[] in, Ptr inPtr, int inStop, byte[] out, Ptr outPtr, int outStop, int flags) {
+            return ec.convert(in, inPtr, inStop, out, outPtr, outStop, flags);
         }
 
     }
@@ -457,7 +463,7 @@ public abstract class EncodingConverterNodes {
             final Rope rope = StringOperations.rope(replacement);
             final Encoding encoding = rope.getEncoding();
 
-            final int ret = TranscodingManager.setReplacement(ec, bytesNode.execute(rope), 0, rope.byteLength(), encoding.getName());
+            final int ret = setReplacement(ec, bytesNode.execute(rope), rope.byteLength(), encoding.getName());
 
             if (ret == -1) {
                 errorProfile.enter();
@@ -465,6 +471,11 @@ public abstract class EncodingConverterNodes {
             }
 
             return replacement;
+        }
+
+        @TruffleBoundary
+        private int setReplacement(EConv ec, byte[] string, int len, byte[] encodingName) {
+            return ec.setReplacement(string, 0, len, encodingName);
         }
 
     }
