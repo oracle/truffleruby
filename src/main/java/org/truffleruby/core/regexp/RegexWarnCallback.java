@@ -11,20 +11,20 @@ package org.truffleruby.core.regexp;
 
 import org.joni.WarnCallback;
 import org.truffleruby.RubyContext;
-import org.truffleruby.launcher.RubyLogger;
+import org.truffleruby.parser.RubyWarnings;
 
 public class RegexWarnCallback implements WarnCallback {
 
-    private final RubyContext context;
+    private final RubyWarnings warnings;
 
     public RegexWarnCallback(RubyContext context) {
-        this.context = context;
+        this.warnings = new RubyWarnings(context);
     }
 
     @Override
     public void warn(String message) {
-        if (context.getCoreLibrary().isVerbose()) {
-            RubyLogger.LOGGER.warning(message);
+        if (warnings.isVerbose()) {
+            warnings.warn(message);
         }
     }
 
