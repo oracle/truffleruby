@@ -5,6 +5,8 @@ New features:
 * Context pre-initialization with TruffleRuby `--native`, which significantly
   improves startup time and loads the did_you_mean gem ahead of time.
 
+* MRI sources have been updated to version 2.3.6.
+
 Performance:
 
 * Dir.glob is much faster and more memory efficient in cases that can reduce
@@ -34,7 +36,7 @@ Performance:
 
 Bug fixes:
 
-* The launcher accepts `--native` and similar options in  the `TRUFFLERUBYOPT` 
+* The launcher accepts `--native` and similar options in  the `TRUFFLERUBYOPT`
 environment variable.
 
 Internal changes:
