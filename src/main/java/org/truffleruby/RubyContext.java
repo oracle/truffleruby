@@ -47,6 +47,7 @@ import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.ThreadManager;
+import org.truffleruby.core.time.GetTimeZoneNode;
 import org.truffleruby.interop.InteropManager;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.LexicalScope;
@@ -288,6 +289,9 @@ public class RubyContext {
         }
         this.options = newOptions;
         this.rubyHome = newHome;
+
+        // Re-read the value of $TZ as it can be different in the new process
+        GetTimeZoneNode.invalidateTZ();
 
         this.random = new SecureRandom();
         hashing.patchSeed(generateHashingSeed(random));
