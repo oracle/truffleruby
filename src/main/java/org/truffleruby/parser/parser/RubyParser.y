@@ -2,18 +2,18 @@
 /***** BEGIN LICENSE BLOCK *****
  * Version: EPL 1.0/GPL 2.0/LGPL 2.1
  *
- * The contents of this file are subject to the Common Public
+ * The contents of this file are subject to the Eclipse Public
  * License Version 1.0 (the "License"); you may not use this file
  * except in compliance with the License. You may obtain a copy of
- * the License at http://www.eclipse.org/legal/cpl-v10.html
+ * the License at http://www.eclipse.org/legal/epl-v10.html
  *
  * Software distributed under the License is distributed on an "AS
  * IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
  * implied. See the License for the specific language governing
  * rights and limitations under the License.
  *
- * Copyright (C) 2008-2009 Thomas E Enebo <enebo@acm.org>
- * 
+ * Copyright (C) 2008-2017 Thomas E Enebo <enebo@acm.org>
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -136,6 +136,7 @@ import static org.truffleruby.parser.lexer.RubyLexer.EXPR_BEG;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_END;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDARG;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDFN;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_FITEM;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_FNAME;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_LABEL;
 
@@ -377,8 +378,7 @@ bodystmt      : compstmt opt_rescue opt_else opt_ensure {
                       node = support.appendToBlock($1, $3);
                   }
                   if ($4 != null) {
-                      if (node == null) node = NilImplicitParseNode.NIL;
-                      node = new EnsureParseNode(support.getPosition($1), node, $4);
+                      node = new EnsureParseNode(support.getPosition($1), support.makeNullNil(node), $4);
                   }
 
                   support.fixpos(node, $1);
@@ -410,11 +410,11 @@ stmt_or_begin   : stmt {
                 | kBEGIN {
                    support.yyerror("BEGIN is permitted only at toplevel");
                 } tLCURLY top_compstmt tRCURLY {
-                    $$ = new BeginParseNode($1, $2 == null ? NilImplicitParseNode.NIL : $2);
+                    $$ = new BeginParseNode($1, support.makeNullNil($2));
                 }
 
 stmt            : kALIAS fitem {
-                    lexer.setState(EXPR_FNAME);
+                    lexer.setState(EXPR_FNAME|EXPR_FITEM);
                 } fitem {
                     $$ = support.newAlias($1, $2, $4);
                 }
@@ -877,7 +877,7 @@ undef_list      : fitem {
                     $$ = support.newUndef($1.getPosition(), $1);
                 }
                 | undef_list ',' {
-                    lexer.setState(EXPR_FNAME);
+                    lexer.setState(EXPR_FNAME|EXPR_FITEM);
                 } fitem {
                     $$ = support.appendToBlock($1, support.newUndef($1.getPosition(), $4));
                 }
@@ -1089,14 +1089,14 @@ arg             : lhs '=' arg {
                     support.checkExpression($3);
     
                     boolean isLiteral = $1 instanceof FixnumParseNode && $3 instanceof FixnumParseNode;
-                    $$ = new DotParseNode(support.getPosition($1), $1, $3, false, isLiteral);
+                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), support.makeNullNil($3), false, isLiteral);
                 }
                 | arg tDOT3 arg {
                     support.checkExpression($1);
                     support.checkExpression($3);
 
                     boolean isLiteral = $1 instanceof FixnumParseNode && $3 instanceof FixnumParseNode;
-                    $$ = new DotParseNode(support.getPosition($1), $1, $3, true, isLiteral);
+                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), support.makeNullNil($3), true, isLiteral);
                 }
                 | arg tPLUS arg {
                     $$ = support.getOperatorCallNode($1, "+", $3, lexer.getPosition());
@@ -1200,7 +1200,7 @@ arg             : lhs '=' arg {
 
 arg_value       : arg {
                     support.checkExpression($1);
-                    $$ = $1 != null ? $1 : NilImplicitParseNode.NIL;
+                    $$ = support.makeNullNil($1);
                 }
 
 aref_args       : none
@@ -1234,7 +1234,7 @@ opt_call_args   : none
                 }
    
 
-// [!null]
+// [!null] - ArgsCatNode, SplatNode, ArrayNode, HashNode, BlockPassNode
 call_args       : command {
                     $$ = support.newArrayNode(support.getPosition($1), $1);
                 }
@@ -1252,6 +1252,7 @@ call_args       : command {
                 | block_arg {
                 }
 
+// [!null] - ArgsCatNode, SplatNode, ArrayNode, HashNode, BlockPassNode
 command_args    : /* none */ {
                     $$ = lexer.getCmdArgumentState().getStack();
                     lexer.getCmdArgumentState().begin();
@@ -1351,7 +1352,7 @@ primary         : literal
                     lexer.getCmdArgumentState().reset();
                 } bodystmt kEND {
                     lexer.getCmdArgumentState().reset($<Long>2.longValue());
-                    $$ = new BeginParseNode($1, $3 == null ? NilImplicitParseNode.NIL : $3);
+                    $$ = new BeginParseNode($1, support.makeNullNil($3));
                 }
                 | tLPAREN_ARG {
                     lexer.setState(EXPR_ENDARG);
@@ -1441,7 +1442,7 @@ primary         : literal
                 } expr_value do {
                     lexer.getConditionState().end();
                 } compstmt kEND {
-                    ParseNode body = $6 == null ? NilImplicitParseNode.NIL : $6;
+                    ParseNode body = support.makeNullNil($6);
                     $$ = new WhileParseNode($1, support.getConditionNode($3), body);
                 }
                 | kUNTIL {
@@ -1449,7 +1450,7 @@ primary         : literal
                 } expr_value do {
                   lexer.getConditionState().end();
                 } compstmt kEND {
-                    ParseNode body = $6 == null ? NilImplicitParseNode.NIL : $6;
+                    ParseNode body = support.makeNullNil($6);
                     $$ = new UntilParseNode($1, support.getConditionNode($3), body);
                 }
                 | kCASE expr_value opt_terms case_body kEND {
@@ -1472,7 +1473,7 @@ primary         : literal
                     }
                     support.pushLocalScope();
                 } bodystmt kEND {
-                    ParseNode body = $5 == null ? NilImplicitParseNode.NIL : $5;
+                    ParseNode body = support.makeNullNil($5);
 
                     $$ = new ClassParseNode($1, $<Colon3ParseNode>2, support.getCurrentScope(), body, $3);
                     support.popCurrentScope();
@@ -1485,7 +1486,7 @@ primary         : literal
                     support.setInSingle(0);
                     support.pushLocalScope();
                 } bodystmt kEND {
-                    ParseNode body = $7 == null ? NilImplicitParseNode.NIL : $7;
+                    ParseNode body = support.makeNullNil($7);
 
                     $$ = new SClassParseNode($1, $3, support.getCurrentScope(), body);
                     support.popCurrentScope();
@@ -1498,7 +1499,7 @@ primary         : literal
                     }
                     support.pushLocalScope();
                 } bodystmt kEND {
-                    ParseNode body = $4 == null ? NilImplicitParseNode.NIL : $4;
+                    ParseNode body = support.makeNullNil($4);
 
                     $$ = new ModuleParseNode($1, $<Colon3ParseNode>2, support.getCurrentScope(), body);
                     support.popCurrentScope();
@@ -1509,8 +1510,7 @@ primary         : literal
                     $$ = lexer.getCurrentArg();
                     lexer.setCurrentArg(null);
                 } f_arglist bodystmt kEND {
-                    ParseNode body = $5;
-                    if (body == null) body = NilImplicitParseNode.NIL;
+                    ParseNode body = support.makeNullNil($5);
 
                     $$ = new DefnParseNode(support.extendedUntil($1, $6), $2, (ArgsParseNode) $4, support.getCurrentScope(), body);
                     support.popCurrentScope();
@@ -1733,10 +1733,14 @@ lambda          : /* none */  {
                     support.pushBlockScope();
                     $$ = lexer.getLeftParenBegin();
                     lexer.setLeftParenBegin(lexer.incrementParenNest());
+                } {
+                    $$ = lexer.getCmdArgumentState().getStack();
+                    lexer.getCmdArgumentState().reset();
                 } f_larglist lambda_body {
-                    $$ = new LambdaParseNode($2.getPosition(), $2, $3, support.getCurrentScope());
+                    $$ = new LambdaParseNode($3.getPosition(), $3, $4, support.getCurrentScope());
                     support.popCurrentScope();
                     lexer.setLeftParenBegin($<Integer>1);
+                    lexer.getCmdArgumentState().reset($<Long>2.longValue());
                 }
 
 f_larglist      : tLPAREN2 f_args opt_bv_decl tRPAREN {
@@ -1854,7 +1858,7 @@ opt_rescue      : kRESCUE exc_list exc_var then compstmt opt_rescue {
                     } else {
                         node = $5;
                     }
-                    ParseNode body = node == null ? NilImplicitParseNode.NIL : node;
+                    ParseNode body = support.makeNullNil(node);
                     $$ = new RescueBodyParseNode($1, $2, body, $6);
                 }
                 | { 
@@ -2374,18 +2378,18 @@ f_label         : tLABEL {
 
 f_kw            : f_label arg_value {
                     lexer.setCurrentArg(null);
-                    $$ = support.keyword_arg($2.getPosition(), support.assignableLabelOrIdentifier($1, $2));
+                    $$ = support.keyword_arg($2.getPosition(), support.assignableKeyword($1, $2));
                 }
                 | f_label {
                     lexer.setCurrentArg(null);
-                    $$ = support.keyword_arg(lexer.getPosition(), support.assignableLabelOrIdentifier($1, new RequiredKeywordArgumentValueParseNode()));
+                    $$ = support.keyword_arg(lexer.getPosition(), support.assignableKeyword($1, new RequiredKeywordArgumentValueParseNode()));
                 }
 
 f_block_kw      : f_label primary_value {
-                    $$ = support.keyword_arg(support.getPosition($2), support.assignableLabelOrIdentifier($1, $2));
+                    $$ = support.keyword_arg(support.getPosition($2), support.assignableKeyword($1, $2));
                 }
                 | f_label {
-                    $$ = support.keyword_arg(lexer.getPosition(), support.assignableLabelOrIdentifier($1, new RequiredKeywordArgumentValueParseNode()));
+                    $$ = support.keyword_arg(lexer.getPosition(), support.assignableKeyword($1, new RequiredKeywordArgumentValueParseNode()));
                 }
              
 

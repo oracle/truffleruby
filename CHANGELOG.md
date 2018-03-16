@@ -3,21 +3,28 @@
 New features:
 
 * Context pre-initialization with TruffleRuby `--native`, which significantly
-  improves startup time and loads the did_you_mean gem ahead of time.
+  improves startup time and loads the `did_you_mean` gem ahead of time.
   
 * The default VM is changed to SubstrateVM, where the startup is significantly 
   better. Use `--jvm` option for full JVM VM.
+  
+* The `REMOVABLE`, `MODIFIABLE` and `INSERTABLE` Truffle interop key info flags
+  have been implemented.
 
 Performance:
 
-* Dir.glob is much faster and more memory efficient in cases that can reduce
+* `Dir.glob` is much faster and more memory efficient in cases that can reduce
   to direct filename lookups.
 
-* SecureRandom now defers loading OpenSSL until it's needed, reducing time to
-  load SecureRandom.
+* `SecureRandom` now defers loading OpenSSL until it's needed, reducing time to
+  load `SecureRandom`.
 
 * `Array#dup` and `Array#shift` have been made constant-time operations by
   sharing the array storage and keeping a starting index.
+
+Bug fixes:
+
+* `Truffle::Interop.key_info` works with non-string-like names.
 
 Internal changes:
 

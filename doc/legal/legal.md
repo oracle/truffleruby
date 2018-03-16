@@ -5,7 +5,7 @@ GraalVM, which is the only supported way to use TruffleRuby.
 
 ## TruffleRuby
 
-TruffleRuby is copyright (c) 2013-2017 Oracle and/or its
+TruffleRuby is copyright (c) 2013-2018 Oracle and/or its
 affiliates, and is made available to you under the terms of three licenses:
 
 * Eclipse Public License version 1.0
@@ -28,7 +28,7 @@ MRI is copyright Yukihiro Matsumoto. It is made available under the terms of the
 
 ## JRuby
 
-TruffleRuby contains code from JRuby 9.1.7.0, including Java implementation
+TruffleRuby contains code from JRuby 9.1.13.0, including Java implementation
 code, build system, shell script launchers, standard library modified from MRI,
 and so on.
 
@@ -38,15 +38,8 @@ general this code is available under these licences:
 * Eclipse Public License version 1.0, or
 * GNU General Public License version 2, or
 * GNU Lesser General Public License version 2.1, or
-* Common Public License 1.0 (only for the parser)
 
-See `epl-1.0.txt`, `gpl-2.txt`, `lgpl-2.1.txt`, `cpl-1.0.txt`.
-
-Note that the JRuby project object model file declares the licenses as GPL 3 and
-LGPL 3. This is an error, documented in
-https://github.com/jruby/jruby/issues/4454 and fixed by the maintainers in
-https://github.com/jruby/jruby/commit/cb165f2a903158a11e015ddaeb500fb95cb017b2
-after the release of 9.1.7.0.
+See `epl-1.0.txt`, `gpl-2.txt`, `lgpl-2.1.txt`.
 
 Some libraries that were spun out of JRuby, such as ByteList, have been
 incorporated into our source code. These were under the same copyright and

@@ -58,42 +58,54 @@ module Truffle
     end
     
     def self.key_info(object, name)
-      key_info_flags_from_bits(key_info_bits(object, name.to_sym))
+      key_info_flags_from_bits(key_info_bits(object, name))
     end
     
     def self.object_key_info(object, name)
-      readable, writable, invocable, internal = false, false, false, false
+      readable, invocable, internal, insertable, modifiable, removable = false, false, false, false, false, false
       string_like_name = name.is_a?(String) || name.is_a?(Symbol)
-      if string_like_name && name.to_s[0] == '@' && object.instance_variable_defined?(name)
-        writable = true unless object.frozen?
-        readable = true
-        internal = true
+      if string_like_name && name.to_s[0] == '@'
+        frozen = object.frozen?
+        if object.instance_variable_defined?(name)
+          modifiable = true unless frozen
+          readable = true
+          internal = true
+        end
+        insertable = true unless frozen
       elsif object.is_a?(Hash)
+        frozen = object.frozen?
         if object.key?(name)
           readable = true
-          writable = true unless object.frozen?
+          modifiable = true unless frozen
         end
+        insertable = true unless frozen
+        removable = true unless frozen
       elsif name.is_a?(Integer) && object.is_a?(::Array)
+        frozen = object.frozen?
         if 0 <= name && name < object.size
           readable = true
-          writable = true unless object.frozen?
+          writable = !frozen
+          modifiable, insertable = writable, writable
         end
+        removable = true unless frozen
       elsif string_like_name
         name = name.to_sym
         readable = object.respond_to?(name)
-        writable = object.respond_to?(:"#{name}=") && !object.frozen?
+        modifiable = object.respond_to?(:"#{name}=") && !object.frozen?
       end
-      existing = readable || writable || invocable || internal
-      key_info_flags_to_bits(existing, readable, writable, invocable, internal)
+      key_info_flags_to_bits(readable, invocable, internal, insertable, modifiable, removable)
     end
     
     def self.key_info_flags_from_bits(bits)
       flags = []
-      flags << :existing  if existing_bit?(bits)
-      flags << :readable  if readable_bit?(bits)
-      flags << :writable  if writable_bit?(bits)
-      flags << :invocable if invocable_bit?(bits)
-      flags << :internal  if internal_bit?(bits)
+      flags << :existing    if existing_bit?(bits)
+      flags << :readable    if readable_bit?(bits)
+      flags << :writable    if writable_bit?(bits)
+      flags << :invocable   if invocable_bit?(bits)
+      flags << :internal    if internal_bit?(bits)
+      flags << :removable   if removable_bit?(bits)
+      flags << :modifiable  if modifiable_bit?(bits)
+      flags << :insertable  if insertable_bit?(bits)
       flags
     end
     
