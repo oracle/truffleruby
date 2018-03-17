@@ -137,7 +137,7 @@ appended with `=` and the object is not frozen.
 
 `INSERTABLE` will be false.
 
-If they key has a leading `@`:
+If the key has a leading `@`:
 
 `READABLE` will be set if there is an instance variable of that name.
 
