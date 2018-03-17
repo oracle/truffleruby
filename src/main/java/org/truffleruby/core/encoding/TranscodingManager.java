@@ -33,19 +33,12 @@
 package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.TruffleOptions;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.jcodings.transcode.EConvFlags;
 import org.jcodings.transcode.Transcoder;
 import org.jcodings.transcode.TranscoderDB;
 import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.jcodings.util.Hash;
 
-import java.util.ArrayDeque;
-import java.util.Collections;
-import java.util.Deque;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 public class TranscodingManager {
@@ -75,46 +68,6 @@ public class TranscodingManager {
                 fromSource.put(destinationName, transcoder);
             }
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    @TruffleBoundary
-    public static List<String> bfs(String sourceEncodingName, String destinationEncodingName) {
-        final Deque<String> queue = new ArrayDeque<>();
-        final HashMap<String, String> invertedList = new HashMap<>();
-
-        invertedList.put(sourceEncodingName, null);
-
-        queue.add(sourceEncodingName);
-        while (!queue.isEmpty()) {
-            String current = queue.pop();
-
-            for (String child : allTranscoders.get(current).keySet()) {
-                if (invertedList.containsKey(child)) {
-                    // We've already visited this path or are scheduled to.
-                    continue;
-                }
-
-                if (child.equals(destinationEncodingName)) {
-                    // Search finished.
-                    final LinkedList<String> ret = new LinkedList<>();
-                    ret.add(child);
-
-                    String next = current;
-                    while (next != null) {
-                        ret.addFirst(next);
-                        next = invertedList.get(next);
-                    }
-
-                    return ret;
-                }
-
-                invertedList.put(child, current);
-                queue.add(child);
-            }
-        }
-
-        return Collections.emptyList();
     }
 
 }
