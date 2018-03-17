@@ -85,7 +85,7 @@ describe "Truffle::Interop.key_info" do
       end
     end
     
-    it "returns :removable for indices out of bounds if the array is frozen" do
+    it "does not return :removable for indices out of bounds if the array is frozen" do
       @array.freeze
       [-1, 3].each do |n|
         Truffle::Interop.key_info(@array, n).should_not include(:removable)
@@ -160,9 +160,9 @@ describe "Truffle::Interop.key_info" do
       end
     end
     
-    it "returns :removable for all keys" do
+    it "returns :insertable for all keys" do
       @hash.keys.each do |k|
-        Truffle::Interop.key_info(@hash, k).should include(:removable)
+        Truffle::Interop.key_info(@hash, k).should include(:insertable)
       end
     end
     
