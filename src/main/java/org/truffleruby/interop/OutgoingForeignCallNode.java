@@ -11,6 +11,7 @@ package org.truffleruby.interop;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.interop.java.JavaInterop;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Log;
 import org.truffleruby.core.rope.CodeRange;
@@ -444,7 +445,20 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             assert args.length == 1;
-            return receiver == args[0];
+
+            final TruffleObject a = receiver;
+
+            if (!(args[0] instanceof TruffleObject)) {
+                return false;
+            }
+
+            final TruffleObject b = (TruffleObject) args[0];
+
+            if (JavaInterop.isJavaObject(a) && JavaInterop.isJavaObject(b)) {
+                return JavaInterop.asJavaObject(a) == JavaInterop.asJavaObject(b);
+            } else {
+                return a == b;
+            }
         }
 
     }

@@ -11,6 +11,7 @@ package org.truffleruby.interop;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
@@ -33,6 +34,8 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.Source;
+import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
 import org.truffleruby.Log;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -42,9 +45,11 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -996,6 +1001,52 @@ public abstract class InteropNodes {
             }
 
             return keyInfo;
+        }
+
+    }
+
+    @CoreMethod(names = "java_type", isModuleFunction = true, required = 1)
+    public abstract static class JavaTypeNode extends CoreMethodArrayArgumentsNode {
+
+        // TODO CS 17-Mar-18 we should cache this in the future
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubySymbol(name)")
+        public Object javaTypeSymbol(DynamicObject name) {
+            return javaType(Layouts.SYMBOL.getString(name));
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyString(name)")
+        public Object javaTypeString(DynamicObject name) {
+            return javaType(StringOperations.getString(name));
+        }
+
+        private Object javaType(String name) {
+            final TruffleLanguage.Env env = getContext().getEnv();
+
+            if (!env.isHostLookupAllowed()) {
+                throw new RaiseException(getContext().getCoreExceptions().internalError("host access is not allowed", this));
+            }
+
+            return env.lookupHostSymbol(name);
+        }
+
+    }
+
+    @CoreMethod(names = "java_type_name", onSingleton = true, required = 1)
+    public abstract static class JavaTypeNameNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isJavaInteropClass(object)")
+        public DynamicObject javaTypeName(Object object,
+                                          @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+            final String name = ((Class<?>) JavaInterop.asJavaObject((TruffleObject) object)).getName();
+            return makeStringNode.executeMake(name, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+
+        protected static boolean isJavaInteropClass(Object obj) {
+            return JavaInterop.isJavaObject(obj) && JavaInterop.asJavaObject((TruffleObject) obj) instanceof Class<?>;
         }
 
     }

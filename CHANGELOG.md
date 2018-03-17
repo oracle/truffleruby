@@ -13,6 +13,14 @@ New features:
 
 * MRI sources have been updated to version 2.3.6.
 
+* `equal?` on foreign objects will check if the underlying objects are equal
+  if both are Java interop objects.
+
+* Added a new Java-interop API similar to the one in the Nashorn JavaScript
+  implementation, as also implemented by Graal.js. Includes
+  `Truffle::Interop.java_type` and other methods. Needs the `--jvm` flag to be
+  used.
+
 Performance:
 
 * `Dir.glob` is much faster and more memory efficient in cases that can reduce

@@ -219,6 +219,10 @@ module Truffle
       end
     end
     
+    def self.from_java_array(array)
+      to_array(array)
+    end
+    
   end
 
 end
