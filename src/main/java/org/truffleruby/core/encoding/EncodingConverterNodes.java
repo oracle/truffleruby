@@ -23,6 +23,7 @@ import org.jcodings.Encoding;
 import org.jcodings.Ptr;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.transcode.EConv;
+import org.jcodings.transcode.EConvFlags;
 import org.jcodings.transcode.EConvResult;
 import org.jcodings.transcode.Transcoder;
 import org.jcodings.transcode.TranscoderDB;
@@ -80,7 +81,7 @@ public abstract class EncodingConverterNodes {
             Encoding sourceEncoding = Layouts.ENCODING.getEncoding(source);
             Encoding destinationEncoding = Layouts.ENCODING.getEncoding(destination);
 
-            final EConv econv = TranscoderDB.open(sourceEncoding.getName(), destinationEncoding.getName(), TranscodingManager.toJCodingFlags(options));
+            final EConv econv = TranscoderDB.open(sourceEncoding.getName(), destinationEncoding.getName(), toJCodingFlags(options));
 
             if (econv == null) {
                 return nil();
@@ -118,6 +119,23 @@ public abstract class EncodingConverterNodes {
             ret[retIndex] = getSymbol(RopeOperations.decodeAscii(destinationName, 0, destinationName.length).toUpperCase());
 
             return createArray(ret, ret.length);
+        }
+
+        /**
+         * We and JCodings process Encoding::Converter options flags differently.  We split the processing
+         * between initial setup and the replacement value setup, whereas JCodings handles them all during initial setup.
+         * We figure out what flags JCodings additionally expects to be set and set them to satisfy EConv.
+         */
+        private int toJCodingFlags(int flags) {
+            if ((flags & EConvFlags.XML_TEXT_DECORATOR) != 0) {
+                flags |= EConvFlags.UNDEF_HEX_CHARREF;
+            }
+
+            if ((flags & EConvFlags.XML_ATTR_CONTENT_DECORATOR) != 0) {
+                flags |= EConvFlags.UNDEF_HEX_CHARREF;
+            }
+
+            return flags;
         }
 
     }
