@@ -22,7 +22,7 @@ describe "Calling #equal? on a foreign object" do
       big_integer = Truffle::Interop.java_type("java.math.BigInteger")
       a = big_integer.ONE
       b = big_integer.ONE
-      c = big_integer.TWO
+      c = big_integer.TEN
       a.equal?(a).should be_true
       a.equal?(b).should be_true
       a.equal?(c).should be_false
