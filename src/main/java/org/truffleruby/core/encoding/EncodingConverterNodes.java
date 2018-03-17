@@ -55,6 +55,11 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -181,9 +186,7 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         @Specialization(guards = { "isRubySymbol(source)", "isRubySymbol(destination)" })
         public DynamicObject search(DynamicObject source, DynamicObject destination) {
-            final List<String> path = TranscodingManager.bfs(
-                    Layouts.SYMBOL.getString(source),
-                    Layouts.SYMBOL.getString(destination));
+            final List<String> path = bfs(Layouts.SYMBOL.getString(source), Layouts.SYMBOL.getString(destination));
 
             if (path.isEmpty()) {
                 return nil();
@@ -196,6 +199,46 @@ public abstract class EncodingConverterNodes {
             }
 
             return createArray(ret, ret.length);
+        }
+
+        @SuppressWarnings("unchecked")
+        @TruffleBoundary
+        private List<String> bfs(String sourceEncodingName, String destinationEncodingName) {
+            final Deque<String> queue = new ArrayDeque<>();
+            final HashMap<String, String> invertedList = new HashMap<>();
+
+            invertedList.put(sourceEncodingName, null);
+
+            queue.add(sourceEncodingName);
+            while (!queue.isEmpty()) {
+                String current = queue.pop();
+
+                for (String child : TranscodingManager.allTranscoders.get(current).keySet()) {
+                    if (invertedList.containsKey(child)) {
+                        // We've already visited this path or are scheduled to.
+                        continue;
+                    }
+
+                    if (child.equals(destinationEncodingName)) {
+                        // Search finished.
+                        final LinkedList<String> ret = new LinkedList<>();
+                        ret.add(child);
+
+                        String next = current;
+                        while (next != null) {
+                            ret.addFirst(next);
+                            next = invertedList.get(next);
+                        }
+
+                        return ret;
+                    }
+
+                    invertedList.put(child, current);
+                    queue.add(child);
+                }
+            }
+
+            return Collections.emptyList();
         }
 
     }
