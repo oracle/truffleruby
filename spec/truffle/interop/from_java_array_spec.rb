@@ -17,10 +17,7 @@ guard -> { !Truffle.native? } do
       array[1] = 2
       array[2] = 3
       array = Truffle::Interop.from_java_array(array)
-      array[0].should == 1
-      array[1].should == 2
-      array[2].should == 3
-      array.size.should == 3
+      array.should == [1, 2, 3]
     end
 
     it "converts a short[]" do
@@ -29,10 +26,7 @@ guard -> { !Truffle.native? } do
       array[1] = 2
       array[2] = 3
       array = Truffle::Interop.from_java_array(array)
-      array[0].should == 1
-      array[1].should == 2
-      array[2].should == 3
-      array.size.should == 3
+      array.should == [1, 2, 3]
     end
 
     it "converts a int[]" do
@@ -41,10 +35,7 @@ guard -> { !Truffle.native? } do
       array[1] = 2
       array[2] = 3
       array = Truffle::Interop.from_java_array(array)
-      array[0].should == 1
-      array[1].should == 2
-      array[2].should == 3
-      array.size.should == 3
+      array.should == [1, 2, 3]
     end
 
     it "converts a long[]" do
@@ -53,10 +44,7 @@ guard -> { !Truffle.native? } do
       array[1] = 2
       array[2] = 3
       array = Truffle::Interop.from_java_array(array)
-      array[0].should == 1
-      array[1].should == 2
-      array[2].should == 3
-      array.size.should == 3
+      array.should == [1, 2, 3]
     end
 
     it "converts a float[]" do
@@ -65,10 +53,7 @@ guard -> { !Truffle.native? } do
       array[1] = 2.0
       array[2] = 3.0
       array = Truffle::Interop.from_java_array(array)
-      array[0].should == 1.0
-      array[1].should == 2.0
-      array[2].should == 3.0
-      array.size.should == 3
+      array.should == [1.0, 2.0, 3.0]
     end
 
     it "converts a double[]" do
@@ -77,10 +62,7 @@ guard -> { !Truffle.native? } do
       array[1] = 2.0
       array[2] = 3.0
       array = Truffle::Interop.from_java_array(array)
-      array[0].should == 1.0
-      array[1].should == 2.0
-      array[2].should == 3.0
-      array.size.should == 3
+      array.should == [1.0, 2.0, 3.0]
     end
 
     it "converts an array of objects" do
@@ -102,10 +84,7 @@ guard -> { !Truffle.native? } do
       array[1] = 2
       array[2] = 3
       array = Truffle::Interop.from_java_array(array)
-      array[0].should == 1
-      array[1].should == 2
-      array[2].should == 3
-      array.size.should == 3
+      array.should == [1, 2, 3]
     end
 
   end
