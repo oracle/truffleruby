@@ -50,27 +50,7 @@ import java.util.Map;
 
 public class TranscodingManager {
 
-    public static final class TranscoderReference {
-
-        private final Transcoder transcoder;
-        private final TranscoderDB.Entry entry;
-
-        public TranscoderReference(Transcoder transcoder, TranscoderDB.Entry entry) {
-            this.transcoder = transcoder;
-            this.entry = entry;
-        }
-
-        public Transcoder getTranscoder() {
-            if (TruffleOptions.AOT) {
-                return transcoder;
-            } else {
-                return entry.getTranscoder();
-            }
-        }
-
-    }
-
-    public static final Map<String, Map<String, TranscoderReference>> allTranscoders;
+    public static final Map<String, Map<String, Transcoder>> allTranscoders;
 
     static {
         allTranscoders = new HashMap<>();
@@ -82,16 +62,16 @@ public class TranscodingManager {
                 final String sourceName = new String(e.getSource()).toUpperCase();
                 final String destinationName = new String(e.getDestination()).toUpperCase();
 
-                final TranscoderReference transcoder;
+                final Transcoder transcoder;
                 if (TruffleOptions.AOT) {
                     // Load the classes eagerly
-                    transcoder = new TranscoderReference(e.getTranscoder(), null);
+                    transcoder = e.getTranscoder();
                 } else {
-                    transcoder = new TranscoderReference(null, e);
+                    transcoder = null;
                 }
 
                 allTranscoders.putIfAbsent(sourceName, new HashMap<>());
-                final Map<String, TranscoderReference> fromSource = allTranscoders.get(sourceName);
+                final Map<String, Transcoder> fromSource = allTranscoders.get(sourceName);
                 fromSource.put(destinationName, transcoder);
             }
         }

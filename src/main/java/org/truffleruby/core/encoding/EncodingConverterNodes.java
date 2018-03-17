@@ -27,7 +27,6 @@ import org.jcodings.transcode.EConvFlags;
 import org.jcodings.transcode.EConvResult;
 import org.jcodings.transcode.Transcoder;
 import org.jcodings.transcode.TranscoderDB;
-import org.truffleruby.core.encoding.TranscodingManager.TranscoderReference;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -159,7 +158,7 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubySymbol(source)")
         public DynamicObject search(DynamicObject source) {
-            final Map<String, TranscoderReference> transcoders = TranscodingManager.allTranscoders.get(Layouts.SYMBOL.getString(source));
+            final Map<String, Transcoder> transcoders = TranscodingManager.allTranscoders.get(Layouts.SYMBOL.getString(source));
             if (transcoders == null) {
                 return nil();
             }
