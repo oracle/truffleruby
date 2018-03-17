@@ -15,7 +15,6 @@ describe "Calling #equal? on a foreign object" do
     a.equal?(a).should be_true
     b = Truffle::Debug.foreign_object
     a.equal?(b).should be_false
-    other = Object.new
   end
 
   it "looks at the underlying object for Java interop" do
