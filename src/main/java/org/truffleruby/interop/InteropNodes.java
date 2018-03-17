@@ -36,6 +36,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
 import org.truffleruby.Log;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -1008,16 +1009,18 @@ public abstract class InteropNodes {
     @CoreMethod(names = "java_type", isModuleFunction = true, required = 1)
     public abstract static class JavaTypeNode extends CoreMethodArrayArgumentsNode {
 
+        // TODO CS 17-Mar-18 we should cache this in the future
+
         @TruffleBoundary
         @Specialization(guards = "isRubySymbol(name)")
         public Object javaTypeSymbol(DynamicObject name) {
-            return javaType(name.toString());
+            return javaType(Layouts.SYMBOL.getString(name));
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(name)")
         public Object javaTypeString(DynamicObject name) {
-            return javaType(name.toString());
+            return javaType(StringOperations.getString(name));
         }
 
         private Object javaType(String name) {
