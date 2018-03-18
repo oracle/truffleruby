@@ -38,16 +38,19 @@ import org.jcodings.transcode.TranscoderDB;
 import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.jcodings.util.Hash;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class TranscodingManager {
 
-    public static final Map<String, Map<String, Transcoder>> allTranscoders;
+    private static final List<Transcoder> allTranscoders = new ArrayList<>();
+    public static final Map<String, Set<String>> allDirectTranscoderPaths = new HashMap<>();
 
     static {
-        allTranscoders = new HashMap<>();
-
         for (CaseInsensitiveBytesHash<TranscoderDB.Entry> sourceEntry : TranscoderDB.transcoders) {
             for (Hash.HashEntry<TranscoderDB.Entry> destinationEntry : sourceEntry.entryIterator()) {
                 final TranscoderDB.Entry e = destinationEntry.value;
@@ -55,17 +58,14 @@ public class TranscodingManager {
                 final String sourceName = new String(e.getSource()).toUpperCase();
                 final String destinationName = new String(e.getDestination()).toUpperCase();
 
-                final Transcoder transcoder;
                 if (TruffleOptions.AOT) {
                     // Load the classes eagerly
-                    transcoder = e.getTranscoder();
-                } else {
-                    transcoder = null;
+                    allTranscoders.add(e.getTranscoder());
                 }
 
-                allTranscoders.putIfAbsent(sourceName, new HashMap<>());
-                final Map<String, Transcoder> fromSource = allTranscoders.get(sourceName);
-                fromSource.put(destinationName, transcoder);
+                allDirectTranscoderPaths.putIfAbsent(sourceName, new HashSet<>());
+                final Set<String> fromSource = allDirectTranscoderPaths.get(sourceName);
+                fromSource.add(destinationName);
             }
         }
     }

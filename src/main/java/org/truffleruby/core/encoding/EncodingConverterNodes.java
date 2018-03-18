@@ -61,7 +61,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.string.StringOperations.rope;
@@ -163,7 +163,7 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubySymbol(source)")
         public DynamicObject search(DynamicObject source) {
-            final Map<String, Transcoder> transcoders = TranscodingManager.allTranscoders.get(Layouts.SYMBOL.getString(source));
+            final Set<String> transcoders = TranscodingManager.allDirectTranscoderPaths.get(Layouts.SYMBOL.getString(source));
             if (transcoders == null) {
                 return nil();
             }
@@ -171,7 +171,7 @@ public abstract class EncodingConverterNodes {
             final Object[] destinations = new Object[transcoders.size()];
             int i = 0;
 
-            for (String transcoder : transcoders.keySet()) {
+            for (String transcoder : transcoders) {
                 destinations[i++] = getSymbol(transcoder);
             }
 
@@ -213,7 +213,7 @@ public abstract class EncodingConverterNodes {
             while (!queue.isEmpty()) {
                 String current = queue.pop();
 
-                for (String child : TranscodingManager.allTranscoders.get(current).keySet()) {
+                for (String child : TranscodingManager.allDirectTranscoderPaths.get(current)) {
                     if (invertedList.containsKey(child)) {
                         // We've already visited this path or are scheduled to.
                         continue;
