@@ -146,11 +146,6 @@ public class OptionsCatalog {
             "Load RubyGems lazily on first failing require",
             null,
             DEFAULT_LAZY.getDefaultValue());
-    public static final BooleanOptionDescription POST_BOOT = new BooleanOptionDescription(
-            "ruby.post_boot",
-            "Load post-boot.rb",
-            null,
-            true);
     public static final BooleanOptionDescription PATCHING = new BooleanOptionDescription(
             "ruby.patching",
             "Use patching",
@@ -691,8 +686,6 @@ public class OptionsCatalog {
                 return RUBYGEMS;
             case "ruby.rubygems.lazy":
                 return LAZY_RUBYGEMS;
-            case "ruby.post_boot":
-                return POST_BOOT;
             case "ruby.patching":
                 return PATCHING;
             case "ruby.did_you_mean":
@@ -920,7 +913,6 @@ public class OptionsCatalog {
             FROZEN_STRING_LITERALS,
             RUBYGEMS,
             LAZY_RUBYGEMS,
-            POST_BOOT,
             PATCHING,
             DID_YOU_MEAN,
             INTERNAL_ENCODING,

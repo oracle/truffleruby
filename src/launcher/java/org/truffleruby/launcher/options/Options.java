@@ -42,7 +42,6 @@ public class Options {
     public final boolean FROZEN_STRING_LITERALS;
     public final boolean RUBYGEMS;
     public final boolean LAZY_RUBYGEMS;
-    public final boolean POST_BOOT;
     public final boolean PATCHING;
     public final boolean DID_YOU_MEAN;
     public final String INTERNAL_ENCODING;
@@ -168,7 +167,6 @@ public class Options {
         FROZEN_STRING_LITERALS = builder.getOrDefault(OptionsCatalog.FROZEN_STRING_LITERALS);
         RUBYGEMS = builder.getOrDefault(OptionsCatalog.RUBYGEMS);
         LAZY_RUBYGEMS = builder.getOrDefault(OptionsCatalog.LAZY_RUBYGEMS, DEFAULT_LAZY);
-        POST_BOOT = builder.getOrDefault(OptionsCatalog.POST_BOOT);
         PATCHING = builder.getOrDefault(OptionsCatalog.PATCHING);
         DID_YOU_MEAN = builder.getOrDefault(OptionsCatalog.DID_YOU_MEAN);
         INTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.INTERNAL_ENCODING);
@@ -322,8 +320,6 @@ public class Options {
                 return RUBYGEMS;
             case "ruby.rubygems.lazy":
                 return LAZY_RUBYGEMS;
-            case "ruby.post_boot":
-                return POST_BOOT;
             case "ruby.patching":
                 return PATCHING;
             case "ruby.did_you_mean":
