@@ -255,11 +255,9 @@ public class RubyContext {
 
         // Load other subsystems
 
-        if (options.POST_BOOT) {
-            Metrics.printTime("before-post-boot");
-            coreLibrary.initializePostBoot();
-            Metrics.printTime("after-post-boot");
-        }
+        Metrics.printTime("before-post-boot");
+        coreLibrary.initializePostBoot();
+        Metrics.printTime("after-post-boot");
 
         // Share once everything is loaded
         if (options.SHARED_OBJECTS_ENABLED && options.SHARED_OBJECTS_FORCE) {
