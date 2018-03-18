@@ -207,11 +207,11 @@ public abstract class RequireNode extends RubyNode {
         }
 
         if (initObject == null) {
-            throw new RaiseException(coreExceptions().loadError(functionName + "() not found", path, null));
+            throw new RaiseException(coreExceptions().loadError(String.format("%s() not found", functionName), path, null));
         }
 
         if (!(initObject instanceof TruffleObject)) {
-            throw new RaiseException(coreExceptions().loadError(functionName + "() isn't an object", path, null));
+            throw new RaiseException(coreExceptions().loadError(String.format("%s() was a %s rather than a TruffleObject", functionName, initObject.getClass().getSimpleName()), path, null));
         }
 
         return (TruffleObject) initObject;

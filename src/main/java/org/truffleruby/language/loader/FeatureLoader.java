@@ -282,7 +282,7 @@ public class FeatureLoader {
                 }
 
                 if (!(result instanceof TruffleObject)) {
-                    throw new RaiseException(context.getCoreExceptions().loadError(file + " returned something that isn't an object", path, null));
+                    throw new RaiseException(context.getCoreExceptions().loadError(String.format("%s returned a %s rather than a TruffleObject", file, result.getClass().getSimpleName()), path, null));
                 }
 
                 libraries.add((TruffleObject) result);
