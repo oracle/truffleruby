@@ -2,6 +2,8 @@
 
 New features:
 
+* The Ruby version has been updated to version 2.3.6.
+
 * Context pre-initialization with TruffleRuby `--native`, which significantly
   improves startup time and loads the `did_you_mean` gem ahead of time.
   
@@ -10,8 +12,6 @@ New features:
   
 * The `REMOVABLE`, `MODIFIABLE` and `INSERTABLE` Truffle interop key info flags
   have been implemented.
-
-* MRI sources have been updated to version 2.3.6.
 
 * `equal?` on foreign objects will check if the underlying objects are equal
   if both are Java interop objects.
