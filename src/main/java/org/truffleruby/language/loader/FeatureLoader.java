@@ -275,8 +275,7 @@ public class FeatureLoader {
         }
 
         try {
-            Linker.loadLibrary(file,
-                    library -> loadNativeLibrary(path, library), this::parseSource);
+            Linker.loadLibrary(file, this::loadNativeLibrary, this::parseSource);
         } catch (IOException e) {
             throw new JavaException(e);
         }
@@ -284,7 +283,7 @@ public class FeatureLoader {
 
     private final Node executeSulongLoadLibraryNode = Message.createExecute(1).createNode();
 
-    private void loadNativeLibrary(String path, String library) {
+    private void loadNativeLibrary(String library) {
         assert sulongLoadLibraryFunction != null;
 
         final String remapped = remapNativeLibrary(library);
