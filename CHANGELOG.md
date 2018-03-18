@@ -40,6 +40,8 @@ Internal changes:
 
 * Changes to the lexer and translator to reduce regular expression calls.
 
+* Some JRuby sources have been updated to 9.1.13.0.
+
 # 0.32, March 2018
 
 New features:
