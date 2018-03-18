@@ -157,8 +157,8 @@ public class Launcher {
             printTruffleTimeMetric("after-run");
             return exitCode;
         } catch (PolyglotException e) {
-            System.err.println("truffleruby: " + e.getMessage());
-            e.printStackTrace();
+            System.err.print("truffleruby: ");
+            e.printStackTrace(System.err);
             return 1;
         }
     }
