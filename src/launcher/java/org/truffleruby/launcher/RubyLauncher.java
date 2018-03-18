@@ -13,6 +13,7 @@ package org.truffleruby.launcher;
 import org.graalvm.launcher.AbstractLanguageLauncher;
 import org.graalvm.options.OptionCategory;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
 import org.truffleruby.launcher.options.CommandLineException;
@@ -53,33 +54,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         new RubyLauncher().launch(args);
     }
 
-    public static boolean isGraalVM() {
-        return System.getProperty("org.graalvm.home") != null;
-    }
-
-    // TODO (pitr-ch 22-Feb-2018): replace with a call to sdk API when available
     static boolean isGraal() {
-        if (isGraalVM() || isAOT()) {
-            return true;
-        }
-
-        final CommandLineOptions config = new CommandLineOptions();
-        config.setOption(OptionsCatalog.GRAAL_WARNING_UNLESS, false);
-        config.setOption(OptionsCatalog.POST_BOOT, false);
-        config.setOption(OptionsCatalog.NO_HOME_PROVIDED, true);
-
-        try (Context context = RubyLauncher.createContext(Context.newBuilder(), config)) {
-            final Source source = Source.newBuilder(
-                    LANGUAGE_ID,
-                    // language=ruby
-                    "Truffle.graal?",
-                    BOOT_SOURCE_NAME).internal(true).buildLiteral();
-            return context.eval(source).asBoolean();
-        } catch (PolyglotException e) {
-            System.err.println("truffleruby: " + e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
+        return Engine.create().getImplementationName().contains("Graal");
     }
 
     public static String getVersionString(boolean isGraal) {
