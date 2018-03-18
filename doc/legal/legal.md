@@ -130,14 +130,22 @@ SnakeYAML is copyright the SnakeYAML authors and is licensed under Apache 2.0
 
 #### JONI
 
-TruffleRuby uses JONI (version as described in `mx.truffleruby/suite.py`). JONI is
-copyright its authors and is released under an MIT licence (see `mit.txt`).
+TruffleRuby uses JONI (version as described in `mx.truffleruby/suite.py`). JONI
+is copyright its authors and is released under an MIT licence (see `mit.txt`).
 
 #### JCodings
 
 TruffleRuby uses JCodings (version as described in `mx.truffleruby/suite.py`).
 JCodings is copyright its authors and is released under an MIT licence (see
 `mit.txt`).
+
+# Patches
+
+`lib/patches` contains patches to gems that are automatically applied when the
+gems are loaded, and contain third party code from those gems, with permissive
+licenses. We've added the licenses to the individual files.
+
+`lib/patches/stdlib` patches code in the standard library.
 
 # Ruby Specs
 
