@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.loader;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.ForeignAccess;
@@ -19,7 +18,6 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
 import org.jcodings.Encoding;
@@ -42,8 +40,10 @@ import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class FeatureLoader {
@@ -238,53 +238,65 @@ public class FeatureLoader {
                 throw new RaiseException(context.getCoreExceptions().loadError("Sulong is required to support C extensions, and it doesn't appear to be available", feature, null));
             }
 
-            final String cextRBpath = context.getRubyHome() + "/lib/truffle/truffle/cext.rb";
-            requireNode.executeRequire(cextRBpath);
+            requireNode.executeRequire(context.getRubyHome() + "/lib/truffle/truffle/cext.rb");
 
-            String rubySUpath = loadCExtLibRuby(feature);
+            final String rubySUpath = context.getRubyHome() + "/lib/cext/ruby.su";
+            final List<TruffleObject> libraries = loadCExtLibRuby(rubySUpath, feature);
 
-            sulongLoadLibraryFunction = getCExtFunction("rb_tr_load_library", rubySUpath);
+            sulongLoadLibraryFunction = RequireNode.create().findFunctionInLibraries(libraries, "rb_tr_load_library", rubySUpath);
 
             cextImplementationLoaded = true;
         }
     }
 
-    @TruffleBoundary
-    private String loadCExtLibRuby(String feature) {
-        String rubySUpath = context.getRubyHome() + "/lib/cext/ruby.su";
-
+    private List<TruffleObject> loadCExtLibRuby(String rubySUpath, String feature) {
         if (context.getOptions().CEXTS_LOG_LOAD) {
             Log.LOGGER.info(() -> String.format("loading cext implementation %s", rubySUpath));
         }
 
         if (!new File(rubySUpath).exists()) {
-            throw new RaiseException(context.getCoreExceptions().loadError("This TruffleRuby distribution does not have the C extension implementation file ruby.su", feature, null));
+            throw new RaiseException(context.getCoreExceptions().loadError("this TruffleRuby distribution does not have the C extension implementation file ruby.su", feature, null));
         }
 
-        loadCExtLibrary(rubySUpath);
-
-        return rubySUpath;
+        return loadCExtLibrary(rubySUpath);
     }
 
     @TruffleBoundary
-    public void loadCExtLibrary(String path) {
+    public List<TruffleObject> loadCExtLibrary(String path) {
         File file = new File(path);
 
         if (!new File(path).exists()) {
             throw new RaiseException(context.getCoreExceptions().loadError(path + " does not exists", path, null));
         }
 
+        final List<TruffleObject> libraries = new ArrayList<>();
+
         try {
-            Linker.loadLibrary(file,
-                    library -> loadNativeLibrary(path, library), this::parseSource);
+            Linker.loadLibrary(file, this::loadNativeLibrary, source -> {
+                final Object result;
+
+                try {
+                    result = context.getEnv().parse(source).call();
+                } catch (Exception e) {
+                    throw new JavaException(e);
+                }
+
+                if (!(result instanceof TruffleObject)) {
+                    throw new RaiseException(context.getCoreExceptions().loadError(String.format("%s returned a %s rather than a TruffleObject", file, result.getClass().getSimpleName()), path, null));
+                }
+
+                libraries.add((TruffleObject) result);
+            });
         } catch (IOException e) {
             throw new JavaException(e);
         }
+
+        return libraries;
     }
 
     private final Node executeSulongLoadLibraryNode = Message.createExecute(1).createNode();
 
-    private void loadNativeLibrary(String path, String library) {
+    private void loadNativeLibrary(String library) {
         assert sulongLoadLibraryFunction != null;
 
         final String remapped = remapNativeLibrary(library);
@@ -333,36 +345,6 @@ public class FeatureLoader {
         }
 
         return nativeLibraryMap;
-    }
-
-    @TruffleBoundary
-    public CallTarget parseSource(Source source) {
-        try {
-            return context.getEnv().parse(source);
-        } catch (Exception e) {
-            throw new JavaException(e);
-        }
-    }
-
-    @TruffleBoundary
-    public TruffleObject getCExtFunction(String functionName, String feature) {
-        final String name = "@" + functionName;
-
-        final Object function = context.getEnv().importSymbol(name);
-
-        if (!(function instanceof TruffleObject)) {
-            if (function == null) {
-                throw new RaiseException(context.getCoreExceptions().internalError(
-                        String.format("Couldn't find the cext function %s in %s", name, feature),
-                        null));
-            } else {
-                throw new RaiseException(context.getCoreExceptions().internalError(
-                        String.format("The cext function %s in %s was not a Truffle object", name, feature),
-                        null));
-            }
-        }
-
-        return (TruffleObject) function;
     }
 
     // TODO (pitr-ch 16-Mar-2016): this protects the $LOADED_FEATURES only in this class,

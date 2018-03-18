@@ -7,10 +7,8 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-
 package org.truffleruby.language.loader;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -19,6 +17,8 @@ import com.oracle.truffle.api.interop.ForeignAccess;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.Message;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -40,6 +40,7 @@ import org.truffleruby.parser.ParserContext;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -50,6 +51,7 @@ public abstract class RequireNode extends RubyNode {
     @Child private CallDispatchHeadNode isInLoadedFeatures = CallDispatchHeadNode.createOnSelf();
     @Child private CallDispatchHeadNode addToLoadedFeatures = CallDispatchHeadNode.createOnSelf();
 
+    @Child private Node readNode = Message.READ.createNode();
     @Child private Node isExecutableNode = Message.IS_EXECUTABLE.createNode();
     @Child private Node executeNode = Message.createExecute(0).createNode();
 
@@ -156,6 +158,8 @@ public abstract class RequireNode extends RubyNode {
     private void requireCExtension(String feature, String expandedPath) {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
 
+        final List<TruffleObject> libraries;
+
         try {
             featureLoader.ensureCExtImplementationLoaded(feature, this);
 
@@ -163,25 +167,54 @@ public abstract class RequireNode extends RubyNode {
                 Log.LOGGER.info(String.format("loading cext module %s (requested as %s)", expandedPath, feature));
             }
 
-            featureLoader.loadCExtLibrary(expandedPath);
+            libraries = featureLoader.loadCExtLibrary(expandedPath);
         } catch (Exception e) {
             handleCExtensionException(feature, e);
             throw e;
         }
 
-        final TruffleObject initFunction = getInitFunction(expandedPath);
+        final String initFunctionName = "Init_" + getBaseName(expandedPath);
+
+        final TruffleObject initFunction = findFunctionInLibraries(libraries, initFunctionName, expandedPath);
 
         if (!ForeignAccess.sendIsExecutable(isExecutableNode, initFunction)) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new UnsupportedOperationException(initFunction + "() is not IS_EXECUTABLE");
+            throw new RaiseException(coreExceptions().loadError(initFunctionName + "() is not executable", expandedPath, null));
         }
 
         try {
             ForeignAccess.sendExecute(executeNode, initFunction);
         } catch (InteropException e) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
             throw new JavaException(e);
         }
+    }
+
+    public TruffleObject findFunctionInLibraries(List<TruffleObject> libraries, String functionName, String path) {
+        Object initObject = null;
+
+        for (TruffleObject library : libraries) {
+            try {
+                initObject = ForeignAccess.sendRead(readNode, library, functionName);
+            } catch (UnknownIdentifierException e) {
+                // TODO CS 18-Mar-18 it's not ideal that we're catching and throwing an exception when we don't find Init_ in each file
+                continue;
+            } catch (UnsupportedMessageException e) {
+                continue;
+            }
+
+            if (initObject != null) {
+                break;
+            }
+        }
+
+        if (initObject == null) {
+            throw new RaiseException(coreExceptions().loadError(String.format("%s() not found", functionName), path, null));
+        }
+
+        if (!(initObject instanceof TruffleObject)) {
+            throw new RaiseException(coreExceptions().loadError(String.format("%s() was a %s rather than a TruffleObject", functionName, initObject.getClass().getSimpleName()), path, null));
+        }
+
+        return (TruffleObject) initObject;
     }
 
     @TruffleBoundary
@@ -227,12 +260,6 @@ public abstract class RequireNode extends RubyNode {
     @TruffleBoundary
     private String getSourceMimeType(Source source) {
         return source.getMimeType();
-    }
-
-    @TruffleBoundary
-    private TruffleObject getInitFunction(String expandedPath) {
-        final String initFunctionName = "Init_" + getBaseName(expandedPath);
-        return getContext().getFeatureLoader().getCExtFunction(initFunctionName, expandedPath);
     }
 
     @TruffleBoundary
