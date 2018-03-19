@@ -53,7 +53,7 @@ Using arel 6.0.3
 Using concurrent-ruby 1.0.2
 Using multi_json 1.12.1
 Using systemu 2.6.5
-Using bundler 1.14.6
+Using bundler 1.16.1
 Using thor 0.19.1
 Using rdoc 4.3.0
 Using redis 3.3.1

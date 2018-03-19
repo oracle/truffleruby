@@ -1210,7 +1210,7 @@ module Commands
             'PATH'     => [File.join(gem_home, 'bin'), ENV['PATH']].join(File::PATH_SEPARATOR))
 
           run_ruby(environment, '-Xexceptions.print_java=true', *('--jdebug' if jdebug),
-                   '-S', 'gem', 'install', '--no-document', 'bundler', '-v', '1.14.6', '--backtrace')
+                   '-S', 'gem', 'install', '--no-document', 'bundler', '-v', '1.16.1', '--backtrace')
           run_ruby(environment, '-J-Xmx512M', '-Xexceptions.print_java=true', *('--jdebug' if jdebug),
                    '-S', 'bundle', 'install')
           run_ruby(environment, '-Xexceptions.print_java=true', *('--jdebug' if jdebug),
