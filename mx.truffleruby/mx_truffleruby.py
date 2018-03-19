@@ -264,7 +264,6 @@ def ruby_testdownstream_aot(args):
         '--excl-tag', 'graalvm',
         '--excl-tag', 'aot',
         '-t', aot_bin,
-        '-T-XX:YoungGenerationSize=2G', '-T-XX:OldGenerationSize=4G',
         '-T-Xhome=' + root
     ]
 

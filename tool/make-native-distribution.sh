@@ -87,8 +87,7 @@ mx fetch-languages --llvm --ruby
 ./native-image -no-server --llvm --ruby \
   -H:Path="$build_home/bin" -H:Name=native-ruby \
   -Dtruffleruby.native.libsulong_dir=lib/cext/sulong-libs \
-  -Dtruffleruby.native.resilient_gem_home=true \
-  -R:YoungGenerationSize=512m -R:OldGenerationSize=1g
+  -Dtruffleruby.native.resilient_gem_home=true
 
 # Copy TruffleRuby tar distribution
 cp "$build_home/mxbuild/$os-$arch/dists/truffleruby-zip.tar" "$release_home"
