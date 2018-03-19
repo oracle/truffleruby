@@ -20,7 +20,7 @@ $ path/to/truffleruby/test/truffle/ecosystem/rails-app.sh
 path/to/truffleruby/truffleruby-gem-test-pack-5
 ++ pwd
 + truffle_ruby=path/to/truffleruby
-+ JTR='path/to/truffleruby/bin/truffleruby path/to/truffleruby/lib/truffleruby-tool/bin/truffleruby-tool'
++ JTR='path/to/truffleruby/bin/truffleruby path/to/truffleruby/test/truffleruby-tool/bin/truffleruby-tool'
 + rails_app=path/to/truffleruby/test/truffle/ecosystem/rails-app
 + cd path/to/truffleruby/test/truffle/ecosystem/rails-app
 + '[' -n '' -a -z '' ']'
@@ -30,7 +30,7 @@ path/to/truffleruby/truffleruby-gem-test-pack-5
 path/to/truffleruby/test/truffle/ecosystem/rails-app.sh: line 21: kill: (7043) - No such process
 + true
 + rm tmp/pids/server.pid
-+ path/to/truffleruby/bin/truffleruby path/to/truffleruby/lib/truffleruby-tool/bin/truffleruby-tool setup --offline
++ path/to/truffleruby/bin/truffleruby path/to/truffleruby/test/truffleruby-tool/bin/truffleruby-tool setup --offline
 [ruby] PERFORMANCE this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md
 jtt: loading YAML configuration path/to/truffleruby/test/truffle/ecosystem/rails-app/.truffleruby-tool.yaml
 jtt: executing "setup" command
@@ -87,7 +87,7 @@ Bundle complete! 6 Gemfile dependencies, 45 gems now installed.
 Use `bundle show [gemname]` to see where a bundled gem is installed.
 + url=http://localhost:3000
 + set +x
-+ path/to/truffleruby/bin/truffleruby path/to/truffleruby/lib/truffleruby-tool/bin/truffleruby-tool run --offline -- -S bundle exec bin/rails server
++ path/to/truffleruby/bin/truffleruby path/to/truffleruby/test/truffleruby-tool/bin/truffleruby-tool run --offline -- -S bundle exec bin/rails server
 .[ruby] PERFORMANCE this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md
 ....jtt: loading YAML configuration path/to/truffleruby/test/truffle/ecosystem/rails-app/.truffleruby-tool.yaml
 jtt: executing "run" command

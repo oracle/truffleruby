@@ -5,7 +5,7 @@ source test/truffle/common.sh.inc
 jt gem-test-pack
 
 truffle_ruby=$(pwd)
-JTR="${truffle_ruby}/bin/truffleruby ${truffle_ruby}/lib/truffleruby-tool/bin/truffleruby-tool"
+JTR="${truffle_ruby}/bin/truffleruby ${truffle_ruby}/test/truffleruby-tool/bin/truffleruby-tool"
 rails_app="${truffle_ruby}/test/truffle/ecosystem/rails-app"
 
 cd "${rails_app}"
