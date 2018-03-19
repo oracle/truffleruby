@@ -59,7 +59,7 @@ OTHER_COPYRIGHTS = [
 truffle_paths = %w[
   lib/cext
   lib/truffle
-  lib/truffleruby-tool
+  test/truffleruby-tool
   src
   test/truffle
   spec/truffle

@@ -35,7 +35,7 @@ METRICS_REPS = Integer(ENV["TRUFFLERUBY_METRICS_REPS"] || 10)
 RUBOCOP_INCLUDE_LIST = %w[
   lib/cext
   lib/truffle
-  lib/truffleruby-tool
+  test/truffleruby-tool
   src/main/ruby
   src/test/ruby
 ]
