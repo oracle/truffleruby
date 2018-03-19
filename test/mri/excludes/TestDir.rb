@@ -1,3 +1,6 @@
 exclude :test_chdir, "needs investigation"
 exclude :test_glob, "needs investigation"
 exclude :test_unknown_keywords, "needs investigation"
+exclude :test_glob_cases, "fails on macOS due to case-sensitivity"
+exclude :test_seek, "fails on macOS"
+exclude :test_set_pos, "fails on macOS"
