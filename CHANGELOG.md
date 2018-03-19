@@ -21,6 +21,9 @@ New features:
   `Truffle::Interop.java_type` and other methods. Needs the `--jvm` flag to be
   used.
 
+* Supported and tested versions of LLVM for different platforms have been more
+  precisely [documented](doc/user/installing-llvm.md).
+
 Performance:
 
 * `Dir.glob` is much faster and more memory efficient in cases that can reduce
