@@ -517,7 +517,7 @@ module Commands
       cores = Etc.respond_to?(:nprocessors) ? Etc.nprocessors : 4
       raw_sh "make", "-j#{cores}", chdir: "#{TRUFFLERUBY_DIR}/src/main/c"
     when 'native'
-      build_native_image(*options)
+      build_native_image *options
     when nil
       build_truffleruby
     else
@@ -1770,7 +1770,7 @@ module Commands
     puts "$ #{TRUFFLERUBY_DIR}/tool/jt.rb ruby --graal ..."
   end
 
-  def build_native_image
+  def build_native_image(*options)
     sulong = options.delete "sulong"
 
     build
