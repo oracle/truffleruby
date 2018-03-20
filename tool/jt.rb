@@ -437,8 +437,8 @@ module Commands
           --native        use native TruffleRuby image (set AOT_BIN)
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME, or have graal built as a sibling)
       jt test mri test/mri/tests/test_find.rb [-- <MRI runner options>]
-                                                     run tests in given file, -n option of the runner can be used to further 
-                                                     limit executed test methods 
+                                                     run tests in given file, -n option of the runner can be used to further
+                                                     limit executed test methods
       jt test specs                                  run all specs
       jt test specs fast                             run all specs except sub-processes, GC, sleep, ...
       jt test spec/ruby/language                     run specs in this directory
@@ -923,7 +923,7 @@ module Commands
 
   def run_mri_tests(extra_args, test_files, runner_args, run_options = {})
     truffle_args =  if extra_args.include?('--native')
-                      %W[-XX:YoungGenerationSize=2G -XX:OldGenerationSize=4G -Xhome=#{TRUFFLERUBY_DIR}]
+                      %W[-Xhome=#{TRUFFLERUBY_DIR}]
                     else
                       %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
                     end
@@ -1253,8 +1253,6 @@ module Commands
 
       options += %w[--excl-tag graalvm --excl-tag aot]
       options << '-t' << Utilities.find_launcher(true)
-      options << '-T-XX:YoungGenerationSize=2G'
-      options << '-T-XX:OldGenerationSize=4G'
       options << "-T-Xhome=#{TRUFFLERUBY_DIR}"
     end
 
@@ -1640,8 +1638,6 @@ module Commands
     run_args = []
 
     if args.delete('--native') || (ENV.has_key?('JT_BENCHMARK_RUBY') && (ENV['JT_BENCHMARK_RUBY'] == Utilities.find_launcher(true)))
-      run_args.push '-XX:YoungGenerationSize=1G'
-      run_args.push '-XX:OldGenerationSize=2G'
       run_args.push "-Xhome=#{TRUFFLERUBY_DIR}"
 
       # We already have a mechanism for setting the Ruby to benchmark, but elsewhere we use AOT_BIN with the "--native" flag.
