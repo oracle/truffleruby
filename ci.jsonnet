@@ -276,11 +276,11 @@ local part_definitions = {
       },
     },
 
-    labsjdk9: {
+    oraclejdk10: {
       downloads+: {
         JAVA_HOME: {
-          name: "labsjdk",
-          version: "9+181",
+          name: "oraclejdk10",
+          version: "10+46",       // This is the GA of Java 10 - nobody knows what 46 means
           platformspecific: true,
         },
       },
@@ -409,28 +409,6 @@ local part_definitions = {
       ],
     },
 
-    # It tests that the locally-built Graal on Java 9 works fine.
-    compiler_standalone: {
-      is_after+:: ["$.jdk.labsjdk9"],
-      run+: [
-        [
-          "bin/truffleruby",
-          "-J-XX:+UnlockExperimentalVMOptions",
-          "-J-XX:+EnableJVMCI",
-          "-J--module-path=" + std.join(
-            ":",
-            [
-              "../graal/sdk/mxbuild/modules/org.graalvm.graal_sdk.jar",
-              "../graal/truffle/mxbuild/modules/com.oracle.truffle.truffle_api.jar",
-            ]
-          ),
-          "-J--upgrade-module-path=../graal/compiler/mxbuild/modules/jdk.internal.vm.compiler.jar",
-          "-e",
-          "raise 'no graal' unless Truffle.graal?",
-        ],
-      ],
-    },
-
     svm_gate: {
       local build = self,
       run+: [
@@ -551,7 +529,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      "ruby-test-fast-java9-linux": $.platform.linux + $.jdk.labsjdk9 + $.use.common + $.use.build + $.cap.gate +
+      "ruby-test-fast-java10-linux": $.platform.linux + $.jdk.oraclejdk10 + $.use.common + $.use.build + $.cap.gate +
                                     $.run.test_fast + { timelimit: "30:00" },
     } +
 
@@ -577,14 +555,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
       "ruby-test-mri-darwin": darwin_gate + $.run.test_mri,
       "ruby-test-cexts-darwin": darwin_gate + $.use.gem_test_pack + $.run.test_cexts,
-    } +
-
-    {
-      local shared = $.platform.linux + $.cap.gate + $.jdk.labsjdk9 + $.use.common + $.use.build +
-                     $.use.truffleruby + $.graal.core + { timelimit: "01:00:00" },
-
-      "ruby-test-compiler-graal-core-java9": shared + $.run.test_compiler,
-      "ruby-test-compiler-standalone-java9": shared + $.run.compiler_standalone,
     } +
 
     local svm_test_platforms = {
