@@ -26,6 +26,9 @@ New features:
 
 Performance:
 
+* `Dir.glob` is much faster and more memory efficient in cases that can reduce
+  to direct filename lookups.
+
 * `SecureRandom` now defers loading OpenSSL until it's needed, reducing time to
   load `SecureRandom`.
 
