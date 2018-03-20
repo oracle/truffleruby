@@ -477,6 +477,8 @@ module Commands
       jt pr [pr_number]                             pushes GitHub's PR to bitbucket to let CI run under github/pr/<number> name
                                                     if the pr_number is not supplied current HEAD is used to find a PR which contains it
       jt pr clean [--dry-run]                       delete all github/pr/<number> branches from BB whose GitHub PRs are closed
+      jt install jvmci                              install a JVMCI JDK in the parent directory
+      jt install graal [--no-jvmci]                 install Graal in the parent directory (--no-jvmci to use the system Java)
 
       you can also put --build or --rebuild in front of any command to build or rebuild first
 
@@ -1678,12 +1680,12 @@ module Commands
     end
   end
 
-  def install(name)
+  def install(name, *options)
     case name
     when "jvmci"
-      install_jvmci
+      install_jvmci *options
     when "graal", "graal-core"
-      install_graal
+      install_graal *options
     else
       raise "Unknown how to install #{what}"
     end
@@ -1749,14 +1751,14 @@ module Commands
     graal
   end
 
-  def install_graal
+  def install_graal(*options)
     build
-    java_home = install_jvmci
+    java_home = install_jvmci unless options.include?("--no-jvmci")
     graal = checkout_or_update_graal_repo
 
     puts "Building graal"
     chdir("#{graal}/compiler") do
-      File.write("mx.compiler/env", "JAVA_HOME=#{java_home}\n")
+      File.write("mx.compiler/env", "JAVA_HOME=#{java_home}\n") unless options.include?("--no-jvmci")
       mx "build"
     end
 
@@ -1768,7 +1770,7 @@ module Commands
     puts "$ #{TRUFFLERUBY_DIR}/tool/jt.rb ruby --graal ..."
   end
 
-  def build_native_image(*options)
+  def build_native_image
     sulong = options.delete "sulong"
 
     build
