@@ -1,6 +1,3 @@
-# frozen_string_literal: true
-# TODO (nirvdrum 11-Mar-18): The above pragma currently does nothing for 'core' files. We need to fix this limitation in BodyTranslator.
-
 # Copyright (c) 2007-2015, Evan Phoenix and contributors
 # All rights reserved.
 #
@@ -29,10 +26,6 @@
 
 class Dir
   module Glob
-    no_meta_chars = '[^*?\\[\\]{}\\\\]'
-    NO_GLOB_META_CHARS = /\A#{no_meta_chars}+\z/
-    TRAILING_BRACES = /\A(#{no_meta_chars}+)(?:\{(#{no_meta_chars}*)\})?\z/
-
     class Node
       def initialize(nxt, flags)
         @flags = flags
@@ -62,12 +55,12 @@ class Dir
         @dir = dir
       end
 
-      def call(matches, path)
+      def call(env, path)
         full = path_join(path, @dir)
 
         # Don't check if full exists. It just costs us time
         # and the downstream node will be able to check properly.
-        @next.call matches, full
+        @next.call env, full
       end
     end
 
@@ -77,23 +70,23 @@ class Dir
         @name = name
       end
 
-      def call(matches, parent)
+      def call(env, parent)
         path = path_join(parent, @name)
 
         if File.exist? path
-          matches << path
+          env.matches << path
         end
       end
     end
 
     class RootDirectory < Node
-      def call(matches, path)
-        @next.call matches, '/'
+      def call(env, path)
+        @next.call env, '/'
       end
     end
 
     class RecursiveDirectories < Node
-      def call(matches, start)
+      def call(env, start)
         return if !start || !File.exist?(start)
 
         # Even though the recursive entry is zero width
@@ -101,7 +94,7 @@ class Dir
         # dominant one, so we fix things up to use it.
         switched = @next.dup
         switched.separator = @separator
-        switched.call matches, start
+        switched.call env, start
 
         stack = [start]
 
@@ -122,7 +115,7 @@ class Dir
 
             if stat.directory? and (allow_dots or ent.getbyte(0) != 46) # ?.
               stack << full
-              @next.call matches, full
+              @next.call env, full
             end
           end
           dir.close
@@ -131,7 +124,7 @@ class Dir
     end
 
     class StartRecursiveDirectories < Node
-      def call(matches, start)
+      def call(env, start)
         raise 'invalid usage' if start
 
         # Even though the recursive entry is zero width
@@ -140,9 +133,9 @@ class Dir
         if @separator
           switched = @next.dup
           switched.separator = @separator
-          switched.call matches, start
+          switched.call env, start
         else
-          @next.call matches, start
+          @next.call env, start
         end
 
         stack = []
@@ -156,7 +149,7 @@ class Dir
 
           if stat.directory? and (allow_dots or ent.getbyte(0) != 46) # ?.
             stack << ent
-            @next.call matches, ent
+            @next.call env, ent
           end
         end
         dir.close
@@ -171,7 +164,7 @@ class Dir
 
             if stat.directory? and ent.getbyte(0) != 46  # ?.
               stack << full
-              @next.call matches, full
+              @next.call env, full
             end
           end
           dir.close
@@ -182,7 +175,7 @@ class Dir
     class Match < Node
       def initialize(nxt, flags, glob)
         super nxt, flags
-        @glob = glob || +''
+        @glob = glob || ''
       end
 
       def match?(str)
@@ -197,7 +190,7 @@ class Dir
         @glob.gsub! '**', '*'
       end
 
-      def call(matches, path)
+      def call(env, path)
         return if path and !File.exist?("#{path}/.")
 
         dir = Dir.new(path ? path : '.')
@@ -206,7 +199,7 @@ class Dir
             full = path_join(path, ent)
 
             if File.directory? full
-              @next.call matches, full
+              @next.call env, full
             end
           end
         end
@@ -215,7 +208,7 @@ class Dir
     end
 
     class EntryMatch < Match
-      def call(matches, path)
+      def call(env, path)
         return if path and !File.exist?("#{path}/.")
 
         begin
@@ -226,7 +219,7 @@ class Dir
 
         while ent = dir.read
           if match? ent
-            matches << path_join(path, ent)
+            env.matches << path_join(path, ent)
           end
         end
         dir.close
@@ -234,10 +227,18 @@ class Dir
     end
 
     class DirectoriesOnly < Node
-      def call(matches, path)
+      def call(env, path)
         if path and File.exist?("#{path}/.")
-          matches << "#{path}/"
+          env.matches << "#{path}/"
         end
+      end
+    end
+
+    class Environment
+      attr_reader :matches
+
+      def initialize(matches=[])
+        @matches = matches
       end
     end
 
@@ -275,17 +276,13 @@ class Dir
     end
 
     def self.single_compile(glob, flags=0)
-      if glob.getbyte(-1) != 47 && NO_GLOB_META_CHARS.match?(glob) # byte value 47 = ?/
-        return ConstantEntry.new nil, flags, glob
-      end
-
       parts = path_split(glob)
 
       if glob.getbyte(-1) == 47 # ?/
         last = DirectoriesOnly.new nil, flags
       else
         file = parts.pop
-        if NO_GLOB_META_CHARS.match?(file)
+        if /^[a-zA-Z0-9._]+$/.match(file)
           last = ConstantEntry.new nil, flags, file
         else
           last = EntryMatch.new nil, flags, file
@@ -302,8 +299,8 @@ class Dir
           else
             last = RecursiveDirectories.new last, flags
           end
-        elsif NO_GLOB_META_CHARS.match?(dir)
-          while NO_GLOB_META_CHARS.match?(parts[-2])
+        elsif /^[^\*\?\]]+$/.match(dir)
+          while /^[^\*\?\]]+$/.match(parts[-2])
             next_sep = parts.pop
             next_sect = parts.pop
 
@@ -324,23 +321,21 @@ class Dir
     end
 
     def self.run(node, all_matches=[])
-      if ConstantEntry === node
-        node.call all_matches, nil
-      else
-        matches = []
-        node.call matches, nil
-        # Truffle: ensure glob'd files are always sorted in consistent order,
-        # it avoids headaches due to platform differences (OS X is sorted, Linux not).
-        matches.sort!
-        all_matches.concat(matches)
-      end
+      matches = []
+      env = Environment.new(matches)
+      node.call env, nil
+      # Truffle: ensure glob'd files are always sorted in consistent order,
+      # it avoids headaches due to platform differences (OS X is sorted, Linux not).
+      matches.sort!
+      all_matches.concat(matches)
     end
 
     def self.glob(pattern, flags, matches=[])
       # Rubygems uses Dir[] as a glorified File.exist?  to check for multiple
       # extensions. So we went ahead and sped up that specific case.
 
-      if flags == 0 and m = TRAILING_BRACES.match(pattern)
+      if flags == 0 and
+             m = /^([a-zA-Z0-9_.\/\s]*[a-zA-Z0-9_.])(?:\{([^{}\/\*\?]*)\})?$/.match(pattern)
         # no meta characters, so this is a glorified
         # File.exist? check. We allow for a brace expansion
         # only as a suffix.
@@ -366,9 +361,8 @@ class Dir
         return matches
       end
 
-      left_brace_index = pattern.index('{')
-      if left_brace_index
-        patterns = compile(pattern, left_brace_index, flags)
+      if pattern.include? '{'
+        patterns = compile(pattern, flags)
 
         patterns.each do |node|
           run node, matches
@@ -380,13 +374,14 @@ class Dir
       end
     end
 
-    def self.compile(pattern, left_brace_index, flags, patterns=[])
+    def self.compile(pattern, flags=0, patterns=[])
       escape = (flags & File::FNM_NOESCAPE) == 0
 
-      lbrace = left_brace_index
       rbrace = nil
+      lbrace = nil
 
-      i = left_brace_index
+      # Do a quick search for a { to start the search better
+      i = pattern.index('{')
 
       # If there was a { found, then search
       if i
@@ -396,15 +391,20 @@ class Dir
           char = pattern[i]
 
           if char == '{'
+            lbrace = i if nest == 0
             nest += 1
-          elsif char == '}'
-            nest -= 1
+          end
 
-            if nest == 0
-              rbrace = i
-              break
-            end
-          elsif char == '\\' and escape
+          if char == '}'
+            nest -= 1
+          end
+
+          if nest == 0
+            rbrace = i
+            break
+          end
+
+          if char == '\\' and escape
             i += 1
           end
 
@@ -425,13 +425,10 @@ class Dir
           last = pos
 
           while pos < rbrace and not (pattern[pos] == ',' and nest == 0)
-            char = pattern[pos]
+            nest += 1 if pattern[pos] == '{'
+            nest -= 1 if pattern[pos] == '}'
 
-            if char == '{'
-              nest += 1
-            elsif char == '}'
-              nest -= 1
-            elsif char == '\\' and escape
+            if pattern[pos] == '\\' and escape
               pos += 1
               break if pos == rbrace
             end
@@ -439,23 +436,9 @@ class Dir
             pos += 1
           end
 
-          middle = pattern[last...pos]
-          brace_pattern = "#{front}#{middle}#{back}"
+          brace_pattern = "#{front}#{pattern[last...pos]}#{back}"
 
-          # The front part of the constructed string can't possibly have a '{' character, but the other parts might.
-          # By searching each part rather than the constructed string, we can reduce the number of characters that
-          # need to be checked.
-          next_left_brace = middle.index('{')
-          if next_left_brace
-            next_left_brace += front.size
-          else
-            next_left_brace = back.index('{')
-            if next_left_brace
-              next_left_brace += front.size + middle.size
-            end
-          end
-
-          compile brace_pattern, next_left_brace, flags, patterns
+          compile brace_pattern, flags, patterns
         end
 
         # No braces found, match the pattern normally
