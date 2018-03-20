@@ -24,10 +24,13 @@ describe "The launcher" do
                 truffleruby: /truffleruby .* like ruby 2\.3\.6/ }
 
   launchers.each do |launcher, (test, skip_success)|
-    bin_dirs = [RbConfig::CONFIG['bindir'], *RbConfig::CONFIG['extra_bindirs']]
-    bin_dirs.each do |bin_dir|
-      relative_bin_dir = Pathname(bin_dir).relative_path_from(Pathname(Truffle::Boot.ruby_home))
-      it "'#{launcher}' in '#{relative_bin_dir}' directory runs when symlinked" do
+    extra_bin_dirs_described = RbConfig::CONFIG['extra_bindirs'].
+        each_with_index.
+        reduce({}) { |h, (dir, i)| h.update "RbConfig::CONFIG['extra_bindirs'][#{i}]" => dir }
+    bin_dirs = { "RbConfig::CONFIG['bindir']" => RbConfig::CONFIG['bindir'] }.merge extra_bin_dirs_described
+
+    bin_dirs.each do |name, bin_dir|
+      it "'#{launcher}' in `#{name}` directory runs when symlinked" do
         # Use the system tmp dir to not be under the Ruby home dir
         Dir.mktmpdir do |path|
           Dir.chdir(path) do
