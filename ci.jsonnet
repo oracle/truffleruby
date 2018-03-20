@@ -280,7 +280,7 @@ local part_definitions = {
       downloads+: {
         JAVA_HOME: {
           name: "oraclejdk",
-          version: "10+46",       // This is the GA of Java 10 - nobody knows what 46 means
+          version: "10+46",       // 46 is the GA of Java 10
           platformspecific: true,
         },
       },
