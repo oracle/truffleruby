@@ -84,7 +84,7 @@ for using it as part of GraalVM.
 
 #### Can TruffleRuby run on a standard JVM?
 
-It is possible to [run on an unmodified JDK 9](doc/user/using-java9.md) but you
+It is possible to [run on an unmodified JDK 10](doc/user/using-java10.md) but you
 will have to build Graal yourself and we recommend using GraalVM instead.
 
 ## Contact

@@ -26,9 +26,9 @@ Truffle::Interop.mime_type_supported?('application/javascript')`.
 
 TruffleRuby is an integral part of GraalVM, so the version number of TruffleRuby
 is always the same as the version of GraalVM that contains it. If you are using
-TruffleRuby outside of GraalVM, such as from Java 9 or a modified Java 8, the
-version will be `'0.0'`. You can find the version number of GraalVM and
-TruffleRuby using the standard `RUBY_ENGINE_VERSION` constant.
+TruffleRuby outside of GraalVM, such as a standard JVM, the version will be
+`'0.0'`. You can find the version number of GraalVM and TruffleRuby using the
+standard `RUBY_ENGINE_VERSION` constant.
 
 ## Truffle methods
 
