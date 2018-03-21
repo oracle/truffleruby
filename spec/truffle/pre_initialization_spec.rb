@@ -67,6 +67,11 @@ guard -> { Truffle.native? } do
       ruby_exe(code, options: "-v").should include "[true, true]\n"
     end
 
+    it "is used with --disable-gems so startup with --disable-gems is not slower" do
+      code = "p [defined?(Gem), Truffle::Boot.was_preinitialized?]"
+      ruby_exe(code, options: "--disable-gems").should == "[nil, true]\n"
+    end
+
     it "picks up new environment variables" do
       var = "TR_PRE_INIT_NEW_VAR"
       ENV[var] = "true"
