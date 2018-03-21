@@ -1779,20 +1779,20 @@ module Commands
       File.write('mx.substratevm/env', "JAVA_HOME=#{java_home}\n")
       mx 'build'
 
-      languages = %w[--ruby]
+      languages = %w[--Language:ruby]
       extra = []
       if sulong
-        languages.unshift '--llvm'
+        languages.unshift '--Language:llvm'
         options = %w[
           -Dtruffleruby.native.libsulong_dir=lib/cext/sulong-libs
         ] + options
       end
 
-      mx 'fetch-languages', '--llvm', '--ruby'
+      mx 'fetch-languages', '--Language:llvm', '--Language:ruby'
 
       env = { "JAVA_HOME" => java_home }
       output_options = "-H:Path=#{TRUFFLERUBY_DIR}/bin", '-H:Name=native-ruby'
-      raw_sh env, './native-image', '-no-server', *languages, *output_options, *options
+      raw_sh env, './native-image', '--no-server', *languages, *output_options, *options
     end
   end
 
