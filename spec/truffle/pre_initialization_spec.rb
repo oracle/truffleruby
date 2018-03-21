@@ -76,5 +76,13 @@ guard -> { Truffle.native? } do
         ENV.delete var
       end
     end
+
+    it "uses the runtime value of $TZ" do
+      with_timezone("America/New_York") do
+        Time.local(2001, 1, 1).zone.should == "EST"
+        env = { "TZ" => "Pacific/Honolulu" }
+        ruby_exe("print Time.local(2001, 1, 1).zone", env: env).should == "HST"
+      end
+    end
   end
 end
