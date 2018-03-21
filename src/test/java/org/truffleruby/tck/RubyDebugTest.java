@@ -20,6 +20,7 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Instrument;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
+import org.junit.Ignore;
 import org.truffleruby.RubyTest;
 import org.truffleruby.launcher.Launcher;
 import org.truffleruby.launcher.options.OptionsCatalog;
@@ -97,6 +98,7 @@ public class RubyDebugTest {
         }
     }
 
+    @Ignore
     @Test
     public void testBreakpoint() throws Throwable {
         final Source factorial = createFactorial();
