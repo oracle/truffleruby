@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2017 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2018 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -20,7 +20,6 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
@@ -40,15 +39,28 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
     @Child private CallDispatchHeadNode callNode;
 
     protected final static String INDEX_METHOD_NAME = "[]";
+    protected final static String METHOD_NAME = "method";
 
     public abstract Object executeStringCachedHelper(VirtualFrame frame, DynamicObject receiver, Object name, Object stringName, boolean isIVar);
 
-    @Specialization(guards = "isIVar")
+    @Specialization(guards = "isRubyArray(receiver) || isRubyHash(receiver)")
+    public Object readArrayHash(
+            VirtualFrame frame,
+            DynamicObject receiver,
+            Object name,
+            Object stringName,
+            boolean isIVar,
+            @Cached("create()") ForeignToRubyNode nameToRubyNode) {
+        return getCallNode().call(frame, receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
+    }
+
+    @Specialization(guards = {"!isRubyArray(receiver)", "!isRubyHash(receiver)", "isIVar", "stringName.equals(cachedStringName)"})
     public Object readInstanceVariable(
             DynamicObject receiver,
             Object name,
             Object stringName,
             boolean isIVar,
+            @Cached("stringName") Object cachedStringName,
             @Cached("createReadObjectFieldNode(stringName)") ReadObjectFieldNode readObjectFieldNode) {
         return readObjectFieldNode.execute(receiver);
     }
@@ -58,7 +70,7 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
     }
 
     @Specialization(guards = {
-            "!isIVar",
+            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
             "methodDefined(frame, receiver, stringName, getDefinedNode())",
             "!methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())"
     })
@@ -67,12 +79,13 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
             DynamicObject receiver,
             Object name,
             Object stringName,
-            boolean isIVar) {
-        return getCallNode().call(frame, receiver, stringName);
+            boolean isIVar,
+            @Cached("create()") ForeignToRubyNode nameToRubyNode) {
+        return getCallNode().call(frame, receiver, METHOD_NAME, nameToRubyNode.executeConvert(name));
     }
 
     @Specialization(guards = {
-            "!isIVar",
+            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
             "methodDefined(frame, receiver, stringName, getDefinedNode())",
             "methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())"
     })
@@ -81,12 +94,13 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
             DynamicObject receiver,
             Object name,
             Object stringName,
-            boolean isIVar) {
-        return getCallNode().call(frame, receiver, stringName);
+            boolean isIVar,
+            @Cached("create()") ForeignToRubyNode nameToRubyNode) {
+        return getCallNode().call(frame, receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
     }
 
     @Specialization(guards = {
-            "!isIVar",
+            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
             "!methodDefined(frame, receiver, stringName, getDefinedNode())",
             "methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())"
     })
@@ -99,20 +113,11 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
             @Cached("create()") ForeignToRubyNode nameToRubyNode,
             @Cached("createBinaryProfile()") ConditionProfile arrayProfile,
             @Cached("createBinaryProfile()") ConditionProfile validArrayIndexProfile) {
-        if (arrayProfile.profile(RubyGuards.isRubyArray(receiver))) {
-            if (validArrayIndexProfile.profile(name instanceof Integer ||
-                    (name instanceof Long && RubyGuards.fitsInInteger((long) name)))) {
-                return getCallNode().call(frame, receiver, "[]", name);
-            } else {
-                throw UnknownIdentifierException.raise(toString(name));
-            }
-        } else {
-            return getCallNode().call(frame, receiver, "[]", nameToRubyNode.executeConvert(name));
-        }
+        return getCallNode().call(frame, receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
     }
 
     @Specialization(guards = {
-            "!isIVar",
+            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
             "!methodDefined(frame, receiver, stringName, getDefinedNode())",
             "!methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())"
     })

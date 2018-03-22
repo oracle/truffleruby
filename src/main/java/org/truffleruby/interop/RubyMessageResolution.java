@@ -22,7 +22,6 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -231,30 +230,29 @@ public class RubyMessageResolution {
     @Resolve(message = "REMOVE")
     public static abstract class ForeignRemoveNode extends Node {
 
-        private final BranchProfile arrayReceiverProfile = BranchProfile.create();
-        private final BranchProfile hashReceiverProfile = BranchProfile.create();
-        private final BranchProfile errorProfile = BranchProfile.create();
+        private final ConditionProfile arrayReceiverProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile hashReceiverProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile ivarProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile validArrayIndexProfile = ConditionProfile.createBinaryProfile();
 
         @Child private CallDispatchHeadNode arrayDeleteAtNode = CallDispatchHeadNode.createOnSelf();
         @Child private CallDispatchHeadNode hashDeleteNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode removeInstanceVariableNode = CallDispatchHeadNode.createOnSelf();
         @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
 
         protected boolean access(VirtualFrame frame, DynamicObject object, Object name) {
-            if (RubyGuards.isRubyArray(object)) {
-                arrayReceiverProfile.enter();
-
+            if (arrayReceiverProfile.profile(RubyGuards.isRubyArray(object))) {
                 if (validArrayIndexProfile.profile(name instanceof Integer ||
                         (name instanceof Long && RubyGuards.fitsInInteger((long) name)))) {
                     arrayDeleteAtNode.call(frame, object, "delete_at", name);
                 } else {
                     throw UnknownIdentifierException.raise(toString(name));
                 }
-            } else if (RubyGuards.isRubyHash(object)) {
-                hashReceiverProfile.enter();
+            } else if (hashReceiverProfile.profile(RubyGuards.isRubyHash(object))) {
                 hashDeleteNode.call(frame, object, "delete", foreignToRubyNode.executeConvert(name));
+            } else if (ivarProfile.profile(isIVar(toString(name)))) {
+                removeInstanceVariableNode.call(frame, object, "remove_instance_variable", foreignToRubyNode.executeConvert(name));
             } else {
-                errorProfile.enter();
                 throw UnsupportedMessageException.raise(Message.REMOVE);
             }
 
@@ -266,26 +264,20 @@ public class RubyMessageResolution {
             return name.toString();
         }
 
+        // TODO CS 22-Mar-18 this should be cached
+
+        @TruffleBoundary
+        private boolean isIVar(String name) {
+            return name.startsWith("@");
+        }
+
     }
 
     @Resolve(message = "HAS_KEYS")
     public static abstract class ForeignHasKeysNode extends Node {
 
-        @CompilationFinal private RubyContext context;
-
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
-
         protected Object access(VirtualFrame frame, DynamicObject object) {
-            return dispatchNode.call(frame, getContext().getCoreLibrary().getTruffleInteropModule(), "object_has_keys", object);
-        }
-
-        private RubyContext getContext() {
-            if (context == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                context = RubyLanguage.getCurrentContext();
-            }
-
-            return context;
+            return true;
         }
 
     }

@@ -55,7 +55,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import java.io.File;
 import java.io.IOException;
@@ -660,9 +659,8 @@ public abstract class InteropNodes {
         }
 
         @Specialization(guards = "!isTruffleObject(receiver)")
-        public Object hasKeys(VirtualFrame frame, Object receiver,
-                               @Cached("createOnSelf()") CallDispatchHeadNode hasKeysNode) {
-            return hasKeysNode.call(frame, getContext().getCoreLibrary().getTruffleInteropModule(), "object_has_keys", receiver);
+        public Object hasKeys(VirtualFrame frame, Object receiver) {
+            return true;
         }
 
     }

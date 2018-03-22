@@ -41,32 +41,29 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
     public abstract Object executeStringCachedHelper(VirtualFrame frame, DynamicObject receiver, Object name,
             Object stringName, boolean isIVar, Object value);
 
-    @Specialization(guards = "isIVar")
-    public Object readInstanceVariable(
-            DynamicObject receiver,
-            Object name,
-            Object stringName,
-            boolean isIVar,
-            Object value,
-            @Cached("createWriteObjectFieldNode(stringName)") WriteObjectFieldNode writeObjectFieldNode) {
-        writeObjectFieldNode.write(receiver, value);
-        return value;
-    }
-
-    @Specialization(guards = {
-            "!isIVar",
-            "methodDefined(frame, receiver, writeMethodName, getDefinedNode())",
-            "methodDefined(frame, receiver, INDEX_SET_METHOD_NAME, getIndexDefinedNode())"
-    })
-    public Object callMethodPriorityOverIndex(
+    @Specialization(guards = "isRubyArray(receiver) || isRubyHash(receiver)")
+    public Object writeArrayHash(
             VirtualFrame frame,
             DynamicObject receiver,
             Object name,
             Object stringName,
             boolean isIVar,
             Object value,
-            @Cached("createWriteMethodName(stringName)") String writeMethodName) {
-        return call(receiver, writeMethodName, value);
+            @Cached("create()") ForeignToRubyNode nameToRubyNode) {
+        return call(receiver, INDEX_SET_METHOD_NAME, nameToRubyNode.executeConvert(name), value);
+    }
+
+    @Specialization(guards = {"!isRubyArray(receiver)", "!isRubyHash(receiver)", "isIVar", "stringName.equals(cachedStringName)"})
+    public Object writeInstanceVariable(
+            DynamicObject receiver,
+            Object name,
+            Object stringName,
+            boolean isIVar,
+            Object value,
+            @Cached("stringName") Object cachedStringName,
+            @Cached("createWriteObjectFieldNode(stringName)") WriteObjectFieldNode writeObjectFieldNode) {
+        writeObjectFieldNode.write(receiver, value);
+        return value;
     }
 
     protected WriteObjectFieldNode createWriteObjectFieldNode(Object name) {
@@ -74,28 +71,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
     }
 
     @Specialization(guards = {
-            "!isIVar",
-            "methodDefined(frame, receiver, writeMethodName, getDefinedNode())",
-            "!methodDefined(frame, receiver, INDEX_SET_METHOD_NAME, getIndexDefinedNode())"
-    })
-    public Object callMethod(
-            VirtualFrame frame,
-            DynamicObject receiver,
-            Object name,
-            Object stringName,
-            boolean isIVar,
-            Object value,
-            @Cached("createWriteMethodName(stringName)") String writeMethodName) {
-        return call(receiver, writeMethodName, value);
-    }
-
-    protected String createWriteMethodName(Object name) {
-        return name + "=";
-    }
-
-    @Specialization(guards = {
-            "!isIVar",
-            "!methodDefined(frame, receiver, writeMethodName, getDefinedNode())",
+            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
             "methodDefined(frame, receiver, INDEX_SET_METHOD_NAME, getIndexDefinedNode())"
     })
     public Object index(
@@ -105,14 +81,12 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
             Object stringName,
             boolean isIVar,
             Object value,
-            @Cached("createWriteMethodName(stringName)") String writeMethodName,
             @Cached("create()") ForeignToRubyNode nameToRubyNode) {
-        return call(receiver, "[]=", nameToRubyNode.executeConvert(name), value);
+        return call(receiver, INDEX_SET_METHOD_NAME, nameToRubyNode.executeConvert(name), value);
     }
 
     @Specialization(guards = {
-            "!isIVar",
-            "!methodDefined(frame, receiver, writeMethodName, getDefinedNode())",
+            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
             "!methodDefined(frame, receiver, INDEX_SET_METHOD_NAME, getIndexDefinedNode())"
     })
     public Object unknownIdentifier(
@@ -121,8 +95,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
             Object name,
             Object stringName,
             boolean isIVar,
-            Object value,
-            @Cached("createWriteMethodName(stringName)") String writeMethodName) {
+            Object value) {
         throw UnknownIdentifierException.raise(toString(name));
     }
 
