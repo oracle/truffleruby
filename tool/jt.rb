@@ -1780,7 +1780,6 @@ module Commands
       mx 'build'
 
       languages = %w[--Language:ruby]
-      extra = []
       if sulong
         languages.unshift '--Language:llvm'
         options = %w[
@@ -1791,7 +1790,7 @@ module Commands
       mx 'fetch-languages', '--Language:llvm', '--Language:ruby'
 
       env = { "JAVA_HOME" => java_home }
-      output_options = "-H:Path=#{TRUFFLERUBY_DIR}/bin", '-H:Name=native-ruby'
+      output_options = "-H:Path=#{TRUFFLERUBY_DIR}/bin", '-H:Name=native-ruby', "-H:Class=org.truffleruby.Main"
       raw_sh env, './native-image', '--no-server', *languages, *output_options, *options
     end
   end
