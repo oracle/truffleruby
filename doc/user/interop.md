@@ -21,6 +21,7 @@ themselves are explained in the
 * [Java interop](#java-interop)
 * [Additional methods](#additional-methods)
 * [Notes on method resolution](#notes-on-method-resolution)
+* [Notes on objects for interop](#notes-on-objects-for-interop)
 * [Threading and interop](#threading-and-interop)
 * [Embedded configuration](#embedded-configuration)
 
@@ -89,150 +90,113 @@ Returns true only for the `nil` object.
 
 ### `HAS_KEYS`
 
-Returns true for all objects except those primitives that are always frozen,
-`nil`, `true`, `false`, `Fixnum`, `Bignum`, `Float`, `Symbol`. Note that `KEYS`
-will continue to return an empty list, even if `HAS_KEYS` returns false.
+Returns true.
 
 ### `KEYS`
 
-If the receiver is a Ruby `Hash`, return the hash keys.
+If the receiver is a Ruby `Array`, return an array of indices in
+bounds.
 
-`KEYS(hash)` → `hash.keys`
+Otherwise, if the receiver is a Ruby `Hash`, return the hash keys converted to
+strings.
 
-Otherwise, return the instance variable names, without the leading `@`.
-
-`KEYS(other)` → `other.instance_variables.map { |key| ...key without @... }`
-
-In both cases if the `internal` flag is set, instance variable names with the
-leading `@` are also returned.
+Otherwise, return all method names via `receiver.methods`, and instance
+variable names if the `internal` flag is set.
 
 Keys are returned as a Ruby `Array` containing Ruby `String` objects.
 
 ### `KEY_INFO`
 
-If the object is a Ruby `Array` and the key is an integer:
+If the receiver is a Ruby `Array`:
 
-`READABLE` will be set if the index is in bounds (0 <= index < array.size)
+- `READABLE` will set if the name is an integer and in bounds.
 
-`INSERTABLE` and `MODIFIABLE` will be set if the index is in bound and the array
-is not frozen.
+- `INSERTABLE` and `MODIFIABLE` will be set if the index is an integer, in bound
+  and the array is not frozen.
 
-`REMOVABLE` will be set if the array is not frozen.
+- `REMOVABLE`, `INVOCABLE` and `INTERNAL` will not be set.
 
-If the object is a Ruby `Hash`:
+Otherwise, if the receiver is a Ruby `Hash`:
 
-`READABLE` will be set if the key is found.
+- `READABLE` will be set if the key is found.
 
-`INSERTABLE` will be set if the hash is not frozen.
+- `INSERTABLE` will be set if the hash is not frozen.
 
-`MODIFIABLE` will be set if the key is found and the hash is not frozen.
+- `MODIFIABLE` and `REMOVABLE`  will be set if the key is found and the hash is
+  not frozen.
 
-`REMOVABLE` will be set if the array is not frozen.
+- `INVOCABLE` and `INTERNAL` will not be set.
+
+Otherwise if the name starts with an `@`:
+
+- `READABLE` will be set if the instance variable exists.
+
+- `INSERTABLE` will be set if the object is not frozen.
+
+- `MODIFIABLE` and `REMOVABLE` will be set if the instance variable exists is
+  found and the object is not frozen.
+
+- `INVOCABLE` will not be set.
+
+- `INTERNAL` will be set.
 
 Otherwise:
 
-`READABLE` will be set if the object responds to a method of the same name.
+- `READABLE` will be set if the object has a method of that name, or the object
+  has a `[]` method.
 
-`MODIFIABLE` will be set if the object responds to a method of the same name
-appended with `=` and the object is not frozen.
+- `INSERTABLE` and `MODIFIABLE` will be set if the object has a `[]=` method.
 
-`INSERTABLE` will be false.
+- `REMOVABLE` and `INTERNAL` will not be set.
 
-If the key has a leading `@`:
+- `INVOCABLE` will be set if the object has a method of that name.
 
-`READABLE` will be set if there is an instance variable of that name.
+For all objects:
 
-`MODIFIABLE` will be set if there is an instance variable of that name and the
-object is not frozen.
-
-`INSERTABLE` will be set if the object is not frozen.
-
-`INTERNAL` will be set if there is an instance variable of that name.
-
-For all objects and keys:
-
-`INVOCABLE` is never set, because currently `KEYS` does not include methods.
-
-`EXISTING` is set if `READABLE`, `MODIFIABLE`, `INVOCABLE`, `INTERNAL` or
-`REMOVABLE` are set.
-
-`REMOVABLE` is always set to false.
+- `EXISTING` is set if `READABLE`, `MODIFIABLE`, `INVOCABLE`, `INTERNAL` or
+  `REMOVABLE` are set.
 
 ### `READ`
 
-The name must be an `int` (small Ruby `Fixnum`), or a Ruby `String` or `Symbol`,
-or a Java `String`.
+If the receiver is a Ruby `String`, return bytes in the string as if
+`receiver.bytes[n]` was used, or return `0` if the byte is out of range.
 
-If the receiver is a Ruby `String` and the name is an integer, read a byte from
-the string, ignoring the encoding. If the index is out of range you'll get 0:
+If the receiver is a Ruby `Array` or `Hash`, call `receiver[name]`.
 
-`READ(string, integer)` → `string.get_byte(integer)`
+Otherwise if the name starts with an `@` it is read as an instance variable.
 
-Otherwise, if the name starts with `@`, read it as an instance variable:
+Otherwise, if there is a method called `[]` on the receiver, call
+`receiver[name]`.
 
-`READ(object, "@name")` → `object.instance_variable_get("name")`
+Otherwise, if there is a method defined on the object with the same name, return
+it as a (bound) `Method`.
 
-Otherwise, if there is a method defined on the object with the same name as
-the name, perform a method call using the name as the called method name:
-
-`READ(object, name)` → `object.name` if `object.responds_to?(name)`
-
-Otherwise, if there isn't a method defined on the object with the same name as
-the name, and there is a method defined on the object called `[]`, call `[]`
-with the name as the argument:
-
-`READ(object, name)` → `object[name]` unless `object.responds_to?(name)`
-
-Otherwise throws `UnknownIdentifierException`.
-
-In all cases where a call is made no block is passed.
-
-An exception during a read will result in an `UnknownIdentifierException`.
+Otherwise, throw `UnknownIdentifierException`.
 
 ### `WRITE`
 
-The name must be a `String` or `Symbol`.
+If the receiver is a Ruby `Array` or `Hash`, call `receiver[name] = value`.
 
-If the name starts with `@`, write it as an instance variable:
+Otherwise if the name starts with an `@` it is set as an instance variable.
 
-`WRITE(object, "@name", value)` → `object.instance_variable_set("name", value)`
+Otherwise, if there is a method called `[]=` on the receiver, call
+`receiver[name] = value`.
 
-Otherwise, if there is a method defined on the object with the same name as
-the name appended with `=`, perform a method call using the name appended with
-`=` as the called method name, and the value as the argument:
-
-`WRITE(object, name, value)` → `object.name = value` if
-`object.responds_to?(name + "=")`
-
-Otherwise, if there isn't a method defined on the object with the same name as
-the name appended with `=`, and there is a method defined on the object called
-`[]=`, call `[]=` with the name and value as the two arguments:
-
-`WRITE(object, name, value)` → `object[name] = value` if
-`object.responds_to?("[]=")` and unless
-`object.responds_to?(name + "=")`
-
-Otherwise throws `UnknownIdentifierException`.
-
-In all cases where a call is made no block is passed.
+Otherwise, throw `UnknownIdentifierException`.
 
 ### `REMOVE`
-
-The name must be an `int` (small Ruby `Fixnum`), or a Ruby `String` or `Symbol`,
-or a Java `String`.
 
 If the receiver is a Ruby `Array` and the name is an integer, delete the element
 at the index indicated by the name value. If the index is out of bounds then, in
 keeping with Ruby semantics, no-op. If the name value is not an integer, then
 `UnknownIdentifierException` is thrown.
 
-If the receiver is a Ruby `Hash`, delete the key indicated by the name value.
-If no such key exists then, in keeping with Ruby semantics, no-op.
+Otherwise, if the receiver is a Ruby `Hash`, delete the key indicated by the
+name value. If no such key exists then, in keeping with Ruby semantics, no-op.
 
-Any exception thrown during a `REMOVE` operation will be converted to
-`UnknownIdentifierException`.
+Otherwise, if the name starts with an `@` remove it as an instance variable.
 
-If the receiver is any other type, then `UnsupportedMessageException` is thrown.
+Otherwise, throw `UnknownIdentifierException`.
 
 ## How to explicitly send messages from Ruby
 
@@ -339,8 +303,6 @@ Not supported.
 
 `object.name(*args)`
 
-`object.name!` if there are no arguments (otherwise it is a `READ`)
-
 ### `IS_INSTANTIABLE`
 
 `object.respond_to?(:new)`
@@ -387,14 +349,10 @@ Not supported.
 
 ### `READ`
 
-`object.name`
-
 `object[name]`, where name is a `String` or `Symbol` in most cases, or an
 integer, or anything else
 
 ### `WRITE`
-
-`object.name = value`
 
 `object[name] = value`, where name is a `String` or `Symbol` in most cases, or
 an integer, or anything else
@@ -407,19 +365,15 @@ Not supported.
 
 `object[name]` (`#[](name)`) sends `READ`
 
-`object.name` with no arguments send `READ`
-
 `object[name] = value` (`#[]=(name, value)`) sends `WRITE`
-
-`object.name = value` (a message name matching `.*[^=]=`, such as `name=`, and with just one argument) sends `WRITE`
 
 `object.call(*args)` sends `EXECUTE`
 
 `object.nil?` sends `IS_NIL`
 
-`object.name(*args)` sends `INVOKE` (with no arguments it sends `READ`)
+`object.name` sends `INVOKE`
 
-`object.name!` sends `INVOKE`
+`object.name(*args)` sends `INVOKE`
 
 `object.new(*args)` sends `NEW`
 
@@ -511,11 +465,6 @@ type is supported for interop.
 
 `Truffle::Interop.from_java_string(java_string)`
 
-`Truffle::Interop.object_literal(a: 1, b: 2, c: 3...)` gives you a simple object
-with these fields and values, like a JavaScript object literal does. You can
-then continue to read and write fields on the object and they will be
-dynamically added, similar to `OpenStruct`.
-
 `Truffle::Interop.enumerable(object)` gives you an `Enumerable` interface to a
 foreign object.
 
@@ -546,6 +495,14 @@ call-site logic. They are not being provided by `BasicObject` or `Kernel` as you
 may expect. This means that for example `#method` isn't available, and you can't
 use it to get the method for `#to_a` on a foreign object, as it is a
 special-form, not a method.
+
+# Notes on objects for interop
+
+If you want to pass a Ruby object to another language for fields to be read and
+written, a good object to pass is usually a `Struct`, as this will have both the
+`.foo` and `.foo =` accessors for you to use from Ruby, and they will also
+respond to `.['foo']` and `.['foo'] =` which means they will work from other
+languages sending read and write messages.
 
 ## Threading and interop
 
