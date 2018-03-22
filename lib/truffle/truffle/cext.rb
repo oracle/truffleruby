@@ -70,8 +70,12 @@ module Truffle::CExt
     end
 
     def [](index)
-      raise unless index == NAME_FIELD_INDEX
-      @encoding.name
+      case index
+      when NAME_FIELD_INDEX, 'name'
+        name
+      else
+        raise
+      end
     end
 
     def name
@@ -88,11 +92,13 @@ module Truffle::CExt
     end
 
     def [](index)
-      if index == MODE_FIELD_INDEX
+      case index
+      when MODE_FIELD_INDEX, 'mode'
         mode
-      else
-        raise unless index == FD_FIELD_INDEX
+      when FD_FIELD_INDEX, 'fd'
         fd
+      else
+        raise
       end
     end
 

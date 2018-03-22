@@ -21,15 +21,6 @@ module Truffle
     def self.export_method(name)
       export(name.to_s, Object.method(name.to_sym))
     end
-    
-    def self.object_has_keys(object)
-      case object
-      when NilClass, TrueClass, FalseClass, Fixnum, Bignum, Float, Symbol
-        false
-      else
-        true
-      end
-    end
 
     def self.keys(object, internal = false)
       keys = Truffle.invoke_primitive :interop_send_keys, object, internal
@@ -37,24 +28,19 @@ module Truffle
     end
 
     def self.object_keys(object, internal)
-      if object.is_a?(Hash)
-        keys = object.keys.map(&:to_s)
+      if object.is_a?(::Array)
+        (0...object.size).to_a
+      elsif object.is_a?(Hash)
+        object.keys.map(&:to_s)
       else
-        keys = object.instance_variables.map do |ivar|
-          ivar = ivar.to_s
-          ivar = ivar[1..-1] if ivar.start_with?('@')
-          ivar
+        keys = object.methods.map(&:to_s)
+        if internal
+          keys += object.instance_variables
+            .map(&:to_s)
+            .select { |ivar| ivar.start_with?('@') }
         end
+        keys
       end
-      if internal
-        object.instance_variables.each do |ivar|
-          ivar = ivar.to_s
-          if ivar.start_with?('@')
-            keys << ivar
-          end
-        end
-      end
-      keys
     end
     
     def self.key_info(object, name)
@@ -63,36 +49,35 @@ module Truffle
     
     def self.object_key_info(object, name)
       readable, invocable, internal, insertable, modifiable, removable = false, false, false, false, false, false
-      string_like_name = name.is_a?(String) || name.is_a?(Symbol)
-      if string_like_name && name.to_s[0] == '@'
-        frozen = object.frozen?
-        if object.instance_variable_defined?(name)
-          modifiable = true unless frozen
-          readable = true
-          internal = true
-        end
-        insertable = true unless frozen
+      
+      if object.is_a?(::Array)
+        in_bounds = name.is_a?(Integer) && name >= 0 && name < object.size
+        readable = in_bounds
+        insertable = in_bounds && !object.frozen?
+        modifiable = insertable
       elsif object.is_a?(Hash)
         frozen = object.frozen?
-        if object.key?(name)
-          readable = true
-          modifiable = true unless frozen
-        end
-        insertable = true unless frozen
-        removable = true unless frozen
-      elsif name.is_a?(Integer) && object.is_a?(::Array)
+        has_key = object.has_key?(name)
+        readable = has_key
+        modifiable = has_key && !frozen
+        removable = modifiable
+        insertable = !frozen
+      elsif name.start_with?('@')
         frozen = object.frozen?
-        if 0 <= name && name < object.size
-          readable = true
-          writable = !frozen
-          modifiable, insertable = writable, writable
-        end
-        removable = true unless frozen
-      elsif string_like_name
-        name = name.to_sym
-        readable = object.respond_to?(name)
-        modifiable = object.respond_to?(:"#{name}=") && !object.frozen?
+        exists = object.instance_variable_defined?(name)
+        readable = exists
+        insertable = !frozen
+        modifiable = exists && !frozen
+        removable = modifiable
+        internal = true
+      else
+        method = object.respond_to?(name)
+        readable = method || object.respond_to?(:[])
+        insertable = object.respond_to?(:[]=)
+        modifiable = insertable
+        invocable = method
       end
+      
       key_info_flags_to_bits(readable, invocable, internal, insertable, modifiable, removable)
     end
     
@@ -150,43 +135,6 @@ module Truffle
       # (when the object is indeed foreign) are sent as interop messages,
       # rather than looking them up in the class.
 
-    end
-    
-    class ObjectLiteral
-    
-      def method_missing(sent_name, *args)
-        sent_name_s = sent_name.to_s
-        if sent_name_s.end_with?('=')
-          name = sent_name_s[0..-2].to_sym
-        else
-          name = sent_name
-        end
-        Truffle.privately { singleton_class.attr_accessor name }
-        send sent_name, *args
-      end
-      
-      # These are called for READ and WRITE on fields that haven't been
-      # accessed yet, because they won't have methods defined yet and
-      # interop doesn't call method_missing.
-      
-      def [](key)
-        key = Interop.from_java_string(key) if Interop.java_string?(key)
-        send key
-      end
-      
-      def []=(key, value)
-        key = Interop.from_java_string(key) if Interop.java_string?(key)
-        send "#{key}=", value
-      end
-    
-    end
-    
-    def self.object_literal(**fields)
-      o = ObjectLiteral.new
-      fields.each_pair do |key, value|
-        o[key] = value
-      end
-      o
     end
     
     def self.java_array(*array)
