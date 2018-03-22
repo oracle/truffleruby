@@ -10,320 +10,524 @@ require_relative '../../ruby/spec_helper'
 require_relative 'fixtures/classes'
 
 describe "Truffle::Interop.key_info" do
+  
   describe "for an Array" do
     
     before :each do
       @array = [1, 2, 3]
     end
     
-    it "returns :readable for indices in bounds" do
-      [0, 1, 2].each do |n|
-        Truffle::Interop.key_info(@array, n).should include(:readable)
+    describe "has READABLE" do
+      
+      describe "set" do
+        
+        it "for an integer in bounds" do
+          Truffle::Interop.key_info(@array, 1).should include(:readable)
+        end
+        
       end
+      
+      describe "not set" do
+        
+        it "for an integer out of bounds" do
+          Truffle::Interop.key_info(@array, 100).should_not include(:readable)
+        end
+        
+        it "for something other than an integer" do
+          Truffle::Interop.key_info(@array, :foo).should_not include(:readable)
+        end
+        
+        it "for instance variables that exist" do
+          @array.instance_variable_set :@foo, 14
+          Truffle::Interop.key_info(@array, :@foo).should_not include(:readable)
+        end
+        
+        it "for instance variables that don't exist" do
+          Truffle::Interop.key_info(@array, :@foo).should_not include(:readable)
+        end
+        
+        it "for a method" do
+          Truffle::Interop.key_info(@array, :to_s).should_not include(:readable)
+        end
+      
+      end
+      
     end
     
-    it "returns :modifiable for indices in bounds" do
-      [0, 1, 2].each do |n|
-        Truffle::Interop.key_info(@array, n).should include(:modifiable)
+    describe "has INSERTABLE and MODIFIABLE" do
+      
+      describe "set" do
+        
+        it "for an integer in bounds" do
+          Truffle::Interop.key_info(@array, 1).should include(:insertable, :modifiable)
+        end
+        
       end
+      
+      describe "not set" do
+        
+        it "for an integer in bounds if the array is frozen" do
+          @array.freeze
+          Truffle::Interop.key_info(@array, 1).should_not include_any_of(:inserable, :modifiable)
+        end
+        
+        it "for an integer out of bounds" do
+          Truffle::Interop.key_info(@array, 100).should_not include_any_of(:inserable, :modifiable)
+        end
+        
+        it "for something other than an integer" do
+          Truffle::Interop.key_info(@array, :foo).should_not include_any_of(:inserable, :modifiable)
+        end
+        
+        it "for instance variables that exist" do
+          @array.instance_variable_set :@foo, 14
+          Truffle::Interop.key_info(@array, :@foo).should_not include_any_of(:inserable, :modifiable)
+        end
+        
+        it "for instance variables that don't exist" do
+          Truffle::Interop.key_info(@array, :@foo).should_not include_any_of(:inserable, :modifiable)
+        end
+        
+        it "for a method" do
+          Truffle::Interop.key_info(@array, :to_s).should_not include_any_of(:inserable, :modifiable)
+        end
+      
+      end
+      
     end
     
-    it "returns :insertable for indices in bounds" do
-      [0, 1, 2].each do |n|
-        Truffle::Interop.key_info(@array, n).should include(:insertable)
+    describe "has REMOVABLE, INVOCABLE and INTERNAL" do
+      
+      describe "not set" do
+        
+        it "for an integer in bounds" do
+          Truffle::Interop.key_info(@array, 1).should_not include_any_of(:removable, :invocable, :internal)
+        end
+        
+        it "for an integer in bounds if the array is frozen" do
+          @array.freeze
+          Truffle::Interop.key_info(@array, 1).should_not include_any_of(:removable, :invocable, :internal)
+        end
+        
+        it "for an integer out of bounds" do
+          Truffle::Interop.key_info(@array, 100).should_not include_any_of(:removable, :invocable, :internal)
+        end
+        
+        it "for something other than an integer" do
+          Truffle::Interop.key_info(@array, :foo).should_not include_any_of(:removable, :invocable, :internal)
+        end
+        
+        it "for instance variables that exist" do
+          @array.instance_variable_set :@foo, 14
+          Truffle::Interop.key_info(@array, :@foo).should_not include_any_of(:removable, :invocable, :internal)
+        end
+        
+        it "for instance variables that don't exist" do
+          Truffle::Interop.key_info(@array, :@foo).should_not include_any_of(:removable, :invocable, :internal)
+        end
+        
+        it "for a method" do
+          Truffle::Interop.key_info(@array, :to_s).should_not include_any_of(:removable, :invocable, :internal)
+        end
+      
       end
+      
     end
     
-    it "does not return :modifiable for indices in bounds if the array is frozen" do
-      @array.freeze
-      [0, 1, 2].each do |n|
-        Truffle::Interop.key_info(@array, n).should_not include(:modifiable)
-      end
-    end
-    
-    it "does not return :insertable for indices in bounds if the array is frozen" do
-      @array.freeze
-      [0, 1, 2].each do |n|
-        Truffle::Interop.key_info(@array, n).should_not include(:insertable)
-      end
-    end
-    
-    it "returns :removable for indices in bounds" do
-      [0, 1, 2].each do |n|
-        Truffle::Interop.key_info(@array, n).should include(:removable)
-      end
-    end
-    
-    it "does not return :removable for indices in bounds if the array is frozen" do
-      @array.freeze
-      [0, 1, 2].each do |n|
-        Truffle::Interop.key_info(@array, n).should_not include(:removable)
-      end
-    end
-    
-    it "does not return :readable for indices out of bounds" do
-      [-1, 3].each do |n|
-        Truffle::Interop.key_info(@array, n).should_not include(:readable)
-      end
-    end
-    
-    it "does not return :modifiable for indices out of bounds" do
-      [-1, 3].each do |n|
-        Truffle::Interop.key_info(@array, n).should_not include(:modifiable)
-      end
-    end
-    
-    it "does not return :insertable for indices out of bounds" do
-      [-1, 3].each do |n|
-        Truffle::Interop.key_info(@array, n).should_not include(:insertable)
-      end
-    end
-    
-    it "returns :removable for indices out of bounds" do
-      [-1, 3].each do |n|
-        Truffle::Interop.key_info(@array, n).should include(:removable)
-      end
-    end
-    
-    it "does not return :removable for indices out of bounds if the array is frozen" do
-      @array.freeze
-      [-1, 3].each do |n|
-        Truffle::Interop.key_info(@array, n).should_not include(:removable)
-      end
-    end
-  
   end
-  
-  describe "for a Hash with String keys" do
+
+  describe "for a Hash" do
     
     before :each do
       @hash = {'a' => 1, 'b' => 2, 'c' => 3}
-      @hash.instance_variable_set(:@exists, 14)
     end
     
-    it "returns :existing for all keys" do
-      @hash.keys.each do |k|
-        Truffle::Interop.key_info(@hash, k).should include(:existing)
+    describe "has READABLE" do
+      
+      describe "set" do
+        
+        it "if the key is found" do
+          Truffle::Interop.key_info(@hash, 'b').should include(:readable)
+        end
+        
       end
-    end
-    
-    it "returns :readable for all keys" do
-      @hash.keys.each do |k|
-        Truffle::Interop.key_info(@hash, k).should include(:readable)
+      
+      describe "not set" do
+        
+        it "if the key is not found" do
+          Truffle::Interop.key_info(@hash, 'foo').should_not include(:readable)
+        end
+        
+        it "for instance variables that exist" do
+          @array.instance_variable_set :@foo, 14
+          Truffle::Interop.key_info(@array, :@foo).should_not include(:readable)
+        end
+        
+        it "for instance variables that don't exist" do
+          Truffle::Interop.key_info(@array, :@foo).should_not include(:readable)
+        end
+        
+        it "for a method" do
+          Truffle::Interop.key_info(@array, :to_s).should_not include(:readable)
+        end
+      
       end
+    
     end
     
-    it "returns :writable for all keys" do
-      @hash.keys.each do |k|
-        Truffle::Interop.key_info(@hash, k).should include(:writable)
+    describe "has INSERTABLE" do
+      
+      describe "set" do
+        
+        it "if the key is found" do
+          Truffle::Interop.key_info(@hash, 'b').should include(:insertable)
+        end
+        
+        it "if the key is not found" do
+          Truffle::Interop.key_info(@hash, 'foo').should include(:insertable)
+        end
+      
       end
-    end
-    
-    it "returns :removable for all keys" do
-      @hash.keys.each do |k|
-        Truffle::Interop.key_info(@hash, k).should include(:removable)
+      
+      describe "not set" do
+        
+        it "if the key is found and the hash is frozen" do
+          @hash.freeze
+          Truffle::Interop.key_info(@hash, 'b').should_not include(:insertable)
+        end
+          
+        it "for instance variables that exist" do
+          @array.instance_variable_set :@foo, 14
+          Truffle::Interop.key_info(@array, :@foo).should_not include(:insertable)
+        end
+        
+        it "for instance variables that don't exist" do
+          Truffle::Interop.key_info(@array, :@foo).should_not include(:insertable)
+        end
+        
+        it "for a method" do
+          Truffle::Interop.key_info(@array, :to_s).should_not include(:insertable)
+        end
+      
       end
+    
     end
     
-    it "does not return :removable for all keys if the hash is frozen" do
-      @hash.freeze
-      @hash.keys.each do |k|
-        Truffle::Interop.key_info(@hash, k).should_not include(:removable)
+    describe "has MODIFIABLE and REMOVABLE" do
+      
+      describe "set" do
+        
+        it "if the key is found" do
+          Truffle::Interop.key_info(@hash, 'b').should include(:modifiable, :removable)
+        end
+        
       end
-    end
-    
-    it "returns :removable for keys they don't exist" do
-      Truffle::Interop.key_info(@hash, :key_not_in_key_info_hash).should include(:removable)
-    end
-    
-    it "does not return :removable for keys they don't exist if the hash is frozen" do
-      @hash.freeze
-      Truffle::Interop.key_info(@hash, :key_not_in_key_info_hash).should_not include(:removable)
-    end
-    
-    it "does not return :writable for all keys if the hash is frozen" do
-      @hash.freeze
-      @hash.keys.each do |k|
-        Truffle::Interop.key_info(@hash, k).should_not include(:writable)
+      
+      describe "not set" do
+        
+        it "if the key is found and the hash is frozen" do
+          @hash.freeze
+          Truffle::Interop.key_info(@hash, 'b').should_not include_any_of(:modifiable, :removable)
+        end
+        
+        it "if the key is not found" do
+          Truffle::Interop.key_info(@hash, 'foo').should_not include_any_of(:modifiable, :removable)
+        end
+        
+        it "for instance variables that exist" do
+          @array.instance_variable_set :@foo, 14
+          Truffle::Interop.key_info(@array, :@foo).should_not include_any_of(:modifiable, :removable)
+        end
+        
+        it "for instance variables that don't exist" do
+          Truffle::Interop.key_info(@array, :@foo).should_not include_any_of(:modifiable, :removable)
+        end
+        
+        it "for a method" do
+          Truffle::Interop.key_info(@array, :to_s).should_not include_any_of(:modifiable, :removable)
+        end
+      
       end
+    
     end
     
-    it "does not return :invocable for keys" do
-      @hash.keys.each do |k|
-        Truffle::Interop.key_info(@hash, k).should_not include(:invocable)
+    describe "has INVOCABLE and INTERNAL" do
+      
+      describe "not set" do
+        
+        it "if the key is found" do
+          Truffle::Interop.key_info(@hash, 'b').should_not include_any_of(:invocable, :internal)
+        end
+        
+        it "if the key is found and the hash is frozen" do
+          @hash.freeze
+          Truffle::Interop.key_info(@hash, 'b').should_not include_any_of(:invocable, :internal)
+        end
+        
+        it "if the key is not found" do
+          Truffle::Interop.key_info(@hash, 'foo').should_not include_any_of(:invocable, :internal)
+        end
+        
+        it "for instance variables that exist" do
+          @array.instance_variable_set :@foo, 14
+          Truffle::Interop.key_info(@array, :@foo).should_not include_any_of(:invocable, :internal)
+        end
+        
+        it "for instance variables that don't exist" do
+          Truffle::Interop.key_info(@array, :@foo).should_not include_any_of(:invocable, :internal)
+        end
+        
+        it "for a method" do
+          Truffle::Interop.key_info(@array, :to_s).should_not include_any_of(:invocable, :internal)
+        end
+      
       end
-    end
     
-    it "does not return :internal for keys" do
-      @hash.keys.each do |k|
-        Truffle::Interop.key_info(@hash, k).should_not include(:internal)
-      end
-    end
-    
-    it "returns :insertable for all keys" do
-      @hash.keys.each do |k|
-        Truffle::Interop.key_info(@hash, k).should include(:insertable)
-      end
-    end
-    
-    it "returns :insertable for a missing key" do
-      Truffle::Interop.key_info(@hash, :key_not_in_key_info_hash).should include(:insertable)
-    end
-    
-    it "returns :writable for a missing key" do
-      Truffle::Interop.key_info(@hash, :key_not_in_key_info_hash).should include(:writable)
-    end
-    
-    it "returns :removable for a missing key" do
-      Truffle::Interop.key_info(@hash, :key_not_in_key_info_hash).should include(:removable)
-    end
-    
-    it "does not return :writable for a missing key if the hash is frozen" do
-      @hash.freeze
-      Truffle::Interop.key_info(@hash, :key_not_in_key_info_hash).should_not include(:writable)
-    end
-    
-    it "returns :existing for an instance variable" do
-      Truffle::Interop.key_info(@hash, :@exists).should include(:existing)
-    end
-
-    it "returns :readable for an instance variable" do
-      Truffle::Interop.key_info(@hash, :@exists).should include(:readable)
-    end
-
-    it "returns :writable for an instance variable" do
-      Truffle::Interop.key_info(@hash, :@exists).should include(:writable)
-    end
-
-    it "returns :readable for an instance variable if the hash is frozen" do
-      @hash.freeze
-      Truffle::Interop.key_info(@hash, :@exists).should include(:readable)
-    end
-
-    it "does not return :writable for an instance variable if the hash is frozen" do
-      @hash.freeze
-      Truffle::Interop.key_info(@hash, :@exists).should_not include(:writable)
-    end
-    
-    it "returns :internal for an instance variable" do
-      Truffle::Interop.key_info(@hash, :@exists).should include(:internal)
-    end
-
-    it "returns :insertable for an instance variable that does not exist" do
-      Truffle::Interop.key_info(@hash, :@does_not_exist).should include(:insertable)
-    end
-
-    it "returns :writable for an instance variable that does not exist" do
-      Truffle::Interop.key_info(@hash, :@does_not_exist).should include(:writable)
-    end
-
-    it "does not return :insertable for an instance variable that does not exist if the hash is frozen" do
-      @hash.freeze
-      Truffle::Interop.key_info(@hash, :@does_not_exist).should_not include(:insertable)
-    end
-
-    it "does not return :writable for an instance variable that does not exist if the hash is frozen" do
-      @hash.freeze
-      Truffle::Interop.key_info(@hash, :@does_not_exist).should_not include(:writable)
-    end
-  
-  end
-  
-  describe "for a general object" do
-    
-    before :each do
-      @object = TruffleInteropSpecs::KeyInfoFixture.new
-    end
-
-    it "returns :existing for all methods" do
-      Truffle::Interop.key_info(@object, :ro).should include(:existing)
-      Truffle::Interop.key_info(@object, :rw).should include(:existing)
-      Truffle::Interop.key_info(@object, :wo).should include(:existing)
-    end
-
-    it "returns :readable for a readable name" do
-      Truffle::Interop.key_info(@object, :ro).should include(:readable)
-      Truffle::Interop.key_info(@object, :rw).should include(:readable)
-    end
-
-    it "does not return :readable for a write-only name" do
-      Truffle::Interop.key_info(@object, :wo).should_not include(:readable)
-    end
-
-    it "returns :writable for a writable name" do
-      Truffle::Interop.key_info(@object, :rw).should include(:writable)
-      Truffle::Interop.key_info(@object, :wo).should include(:writable)
-    end
-
-    it "does not return :writable for a writable name for a frozen hash" do
-      @object.freeze
-      Truffle::Interop.key_info(@object, :rw).should_not include(:writable)
-      Truffle::Interop.key_info(@object, :wo).should_not include(:writable)
-    end
-
-    it "does not return :writable for a read-only name" do
-      Truffle::Interop.key_info(@object, :ro).should_not include(:writable)
-    end
-
-    it "does not return :invocable" do
-      Truffle::Interop.key_info(@object, :ro).should_not include(:invocable)
-      Truffle::Interop.key_info(@object, :rw).should_not include(:invocable)
-      Truffle::Interop.key_info(@object, :wo).should_not include(:invocable)
-    end
-
-    it "does not return :internal for methods" do
-      Truffle::Interop.key_info(@object, :ro).should_not include(:internal)
-      Truffle::Interop.key_info(@object, :rw).should_not include(:internal)
-      Truffle::Interop.key_info(@object, :wo).should_not include(:internal)
-    end
-
-    it "does not return anything for an undefined method" do
-      Truffle::Interop.key_info(@object, :method_not_defined_in_key_info_fixture).should be_empty
-    end
-    
-    it "returns :existing for an instance variable" do
-      Truffle::Interop.key_info(@object, :@exists).should include(:existing)
-    end
-    
-    it "returns :readable for an instance variable" do
-      Truffle::Interop.key_info(@object, :@exists).should include(:readable)
-    end
-    
-    it "returns :writable for an instance variable" do
-      Truffle::Interop.key_info(@object, :@exists).should include(:writable)
-    end
-    
-    it "returns :readable for an instance variable if the object is frozen" do
-      @object.freeze
-      Truffle::Interop.key_info(@object, :@exists).should include(:readable)
-    end
-    
-    it "does not return :writable for an instance variable if the object is frozen" do
-      @object.freeze
-      Truffle::Interop.key_info(@object, :@exists).should_not include(:writable)
-    end
-    
-    it "returns :internal for an instance variable" do
-      Truffle::Interop.key_info(@object, :@exists).should include(:internal)
-    end
-    
-    it "returns :insertable for an instance variable that does not exist" do
-      Truffle::Interop.key_info(@object, :@does_not_exist).should include(:insertable)
-    end
-
-    it "returns :writable for an instance variable that does not exist" do
-      Truffle::Interop.key_info(@object, :@does_not_exist).should include(:writable)
-    end
-
-    it "does not return :insertable for an instance variable that does not exist if the object is frozen" do
-      @object.freeze
-      Truffle::Interop.key_info(@object, :@does_not_exist).should_not include(:insertable)
-    end
-
-    it "does not return :writable for an instance variable that does not exist if the object is frozen" do
-      @object.freeze
-      Truffle::Interop.key_info(@object, :@does_not_exist).should_not include(:writable)
     end
 
   end
+
+  describe "for an object" do
+    
+    describe "with a name that starts with an @" do
+      
+      before :each do
+        @object = TruffleInteropSpecs::InteropKeysClass.new
+      end
+  
+      describe "has READABLE" do
+        
+        describe "set" do
+          
+          it "if the variable exists" do
+            Truffle::Interop.key_info(@object, :@a).should include(:readable)
+          end
+          
+        end
+        
+        describe "not set" do
+
+          it "if the variable does not exist" do
+            Truffle::Interop.key_info(@object, :@foo).should_not include(:readable)
+          end
+        
+        end
+        
+      end
+  
+      describe "has INSERTABLE" do
+        
+        describe "set" do
+          
+          it "if the object is not frozen" do
+            Truffle::Interop.key_info(@object, :@a).should include(:insertable)
+          end
+          
+        end
+        
+        describe "not set" do
+
+          it "if the object is frozen" do
+            @object.freeze
+            Truffle::Interop.key_info(@object, :@a).should_not include(:insertable)
+          end
+        
+        end
+        
+      end
+
+      describe "has MODIFIABLE and REMOVABLE" do
+        
+        describe "set" do
+          
+          it "if the variable exists and the object is not frozen" do
+            Truffle::Interop.key_info(@object, :@a).should include(:modifiable, :removable)
+          end
+        
+        end
+        
+        describe "not set" do
+          
+          it "if the variable exists and the object is frozen" do
+            @object.freeze
+            Truffle::Interop.key_info(@object, :@a).should_not include_any_of(:modifiable, :removable)
+          end
+
+          it "if the variable does not exist and the object is not frozen" do
+            Truffle::Interop.key_info(@object, :@foo).should_not include_any_of(:modifiable, :removable)
+          end
+
+          it "if the variable does not exist and the object is frozen" do
+            @object.freeze
+            Truffle::Interop.key_info(@object, :@foo).should_not include_any_of(:modifiable, :removable)
+          end
+      
+        end
+        
+      end
+
+      describe "has INVOCABLE" do
+        
+        describe "not set" do
+          
+          it "if the variable exists and the object is not frozen" do
+            Truffle::Interop.key_info(@object, :@a).should_not include(:invocable)
+          end
+          
+          it "if the variable exists and the object is frozen" do
+            @object.freeze
+            Truffle::Interop.key_info(@object, :@a).should_not include(:invocable)
+          end
+
+          it "if the variable does not exist and the object is not frozen" do
+            Truffle::Interop.key_info(@object, :@foo).should_not include(:invocable)
+          end
+
+          it "if the variable does not exist and the object is frozen" do
+            @object.freeze
+            Truffle::Interop.key_info(@object, :@foo).should_not include(:invocable)
+          end
+      
+        end
+        
+      end
+
+      describe "has INTERNAL" do
+        
+        describe "set" do
+          
+          it "if the variable exists and the object is not frozen" do
+            Truffle::Interop.key_info(@object, :@a).should include(:internal)
+          end
+          
+          it "if the variable exists and the object is frozen" do
+            @object.freeze
+            Truffle::Interop.key_info(@object, :@a).should include(:internal)
+          end
+
+          it "if the variable does not exist and the object is not frozen" do
+            Truffle::Interop.key_info(@object, :@foo).should include(:internal)
+          end
+
+          it "if the variable does not exist and the object is frozen" do
+            @object.freeze
+            Truffle::Interop.key_info(@object, :@foo).should include(:internal)
+          end
+      
+        end
+        
+      end
+
+    end
+    
+    describe "with a name that doesn't start with an @" do
+      
+      describe "has READABLE" do
+        
+        describe "set" do
+          
+          it "if the object has a method of that name" do
+            @object = TruffleInteropSpecs::ReadHasMethod.new
+            Truffle::Interop.key_info(@object, :foo).should include(:readable)
+          end
+          
+          it "if the object has a index method" do
+            @object = TruffleInteropSpecs::ReadHasIndex.new
+            Truffle::Interop.key_info(@object, :foo).should include(:readable)
+          end
+        
+        end
+        
+        describe "not set" do
+
+          it "if the object does not have a method of that name or an index method" do
+            @object = Object.new
+            Truffle::Interop.key_info(@object, :foo).should_not include(:readable)
+          end
+        
+        end
+        
+      end
+      
+      describe "has INSERTABLE and MODIFIABLE" do
+        
+        describe "set" do
+          
+          it "if the object has a index set method" do
+            @object = TruffleInteropSpecs::WriteHasIndexSet.new
+            Truffle::Interop.key_info(@object, :foo).should include(:insertable, :modifiable)
+          end
+        
+        end
+        
+        describe "not set" do
+          
+          it "if the object has a method of that name" do
+            @object = TruffleInteropSpecs::WriteHasMethod.new
+            Truffle::Interop.key_info(@object, :foo).should_not include_any_of(:insertable, :modifiable)
+          end
+
+          it "if the object does not have a method of that name or an index set method" do
+            @object = Object.new
+            Truffle::Interop.key_info(@object, :foo).should_not include_any_of(:insertable, :modifiable)
+          end
+        
+        end
+        
+      end
+      
+      describe "has REMOVABLE and INTERNAL" do
+        
+        describe "not set" do
+          
+          it "if the object has a index set method" do
+            @object = TruffleInteropSpecs::WriteHasIndexSet.new
+            Truffle::Interop.key_info(@object, :foo).should_not include_any_of(:removable, :internal)
+          end
+          
+          it "if the object has a method of that name" do
+            @object = TruffleInteropSpecs::WriteHasMethod.new
+            Truffle::Interop.key_info(@object, :foo).should_not include_any_of(:removable, :internal)
+          end
+
+          it "if the object does not have a method of that name or an index set method" do
+            @object = Object.new
+            Truffle::Interop.key_info(@object, :foo).should_not include_any_of(:removable, :internal)
+          end
+        
+        end
+        
+      end
+      
+      describe "has INVOCABLE" do
+        
+        describe "set" do
+          
+          it "if the object has a method of that name" do
+            @object = TruffleInteropSpecs::ReadHasMethod.new
+            Truffle::Interop.key_info(@object, :foo).should include(:invocable)
+          end
+        
+        end
+        
+        describe "not set" do
+          
+          it "if the object has a index method" do
+            @object = TruffleInteropSpecs::ReadHasIndex.new
+            Truffle::Interop.key_info(@object, :foo).should_not include(:invocable)
+          end
+
+          it "if the object does not have a method of that name or an index method" do
+            @object = Object.new
+            Truffle::Interop.key_info(@object, :foo).should_not include(:invocable)
+          end
+        
+        end
+        
+      end
+  
+    end
+    
+  end
+
 end

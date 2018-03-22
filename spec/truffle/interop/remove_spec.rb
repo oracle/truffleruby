@@ -7,6 +7,7 @@
 # GNU Lesser General Public License version 2.1
 
 require_relative '../../ruby/spec_helper'
+require_relative 'fixtures/classes'
 
 describe "Truffle::Interop.remove" do
 
@@ -52,10 +53,29 @@ describe "Truffle::Interop.remove" do
   end
 
   describe "with any other type" do
-    it "raises an unsupported message error" do
-      lambda {
-        Truffle::Interop.remove("abc", 1)
-      }.should raise_error(RubyTruffleError, /Message not supported: REMOVE/)
+    describe "with a name that starts with @" do
+      before :each do
+        @object = TruffleInteropSpecs::InteropKeysClass.new
+      end
+      
+      it "removes an instance variable that exists" do
+        Truffle::Interop.remove(@object, :@a).should == true
+        @object.instance_variable_defined?(:@a).should be_false
+      end
+      
+      it "raises an error when the instance variable doesn't exist" do
+        lambda {
+          Truffle::Interop.remove(@object, :@foo)
+        }.should raise_error(NameError)
+      end
+    end
+    
+    describe "with a name that doesn't start with @" do
+      it "raises an unsupported message error" do
+        lambda {
+          Truffle::Interop.remove("abc", 1)
+        }.should raise_error(RubyTruffleError, /Message not supported: REMOVE/)
+      end
     end
   end
 

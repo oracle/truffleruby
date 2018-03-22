@@ -12,21 +12,15 @@ module TruffleInteropSpecs
     end
   end
 
-  class KeyInfoFixture
-    def initialize
-      @exists = 14
-    end
-
-    attr_reader :ro
-    attr_accessor :rw
-    attr_writer :wo
-  end
-
   class InteropKeysClass
     def initialize
       @a = 1
       @b = 2
       @c = 3
+    end
+    
+    def foo
+      14
     end
   end
 
@@ -35,12 +29,6 @@ module TruffleInteropSpecs
 
     def initialize(a, b)
       @x = a + b
-    end
-  end
-
-  class ReadInstanceVariable
-    def initialize
-      @foo = 14
     end
   end
 
@@ -57,6 +45,10 @@ module TruffleInteropSpecs
       @key = n
       14
     end
+    
+    def bob
+      14
+    end
   end
 
   class WriteHasMethod
@@ -70,15 +62,16 @@ module TruffleInteropSpecs
   end
 
   class WriteHasIndexSet
-    attr_reader :key
+    attr_reader :key, :value, :called
 
     def []=(n, value)
       @key = n
+      @value = value
       @called = true
     end
-
-    def called?
-      @called
+    
+    def bob
+      14
     end
   end
 
