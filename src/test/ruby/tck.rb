@@ -94,34 +94,10 @@ export def complex_copy(a, b)
   end
 end
 
-class ValuesClass
-
-  attr_accessor :byteValue
-  attr_accessor :shortValue
-  attr_accessor :intValue
-  attr_accessor :longValue
-  attr_accessor :floatValue
-  attr_accessor :doubleValue
-  attr_accessor :charValue
-  attr_accessor :stringValue
-  attr_accessor :booleanValue
-
-  def initialize
-    @byteValue = 0
-    @shortValue = 0
-    @intValue = 0
-    @longValue = 0
-    @floatValue = 0.0
-    @doubleValue = 0.0
-    @charValue = '0'
-    @stringValue = ''
-    @booleanValue = false
-  end
-
-end
+ValuesClass = Struct.new(:byteValue, :shortValue, :intValue, :longValue, :floatValue, :doubleValue, :charValue, :stringValue, :booleanValue)
 
 export def values_object
-  ValuesClass.new
+  ValuesClass.new(0, 0, 0, 0, 0.0, 0.0, '0', '', false)
 end
 
 export def add_array(array, index, value)
@@ -160,22 +136,18 @@ export def function_add_numbers
   end
 end
 
+ObjectWithValueAndAddProperty = Struct.new(:value)
+
 class ObjectWithValueAndAddProperty
-
-  attr_accessor :value
-
-  def initialize
-    @value = 42.0
-  end
-
+  
   def add(other)
-    @value + other
+    value + other
   end
 
 end
 
 export def object_with_value_and_add_property
-  ObjectWithValueAndAddProperty.new
+  ObjectWithValueAndAddProperty.new(42.0)
 end
 
 export def call_function(function)
