@@ -22,32 +22,32 @@ describe "Truffle::Interop.keys?" do
     Truffle::Interop.keys?(Object.new.freeze).should be_true
   end
   
-  it "returns false for nil" do
-    Truffle::Interop.keys?(nil).should be_false
+  it "returns true for nil" do
+    Truffle::Interop.keys?(nil).should be_true
   end
   
-  it "returns false for true" do
-    Truffle::Interop.keys?(true).should be_false
+  it "returns true for true" do
+    Truffle::Interop.keys?(true).should be_true
   end
   
-  it "returns false for false" do
-    Truffle::Interop.keys?(false).should be_false
+  it "returns true for false" do
+    Truffle::Interop.keys?(false).should be_true
   end
   
-  it "returns false for Fixnum" do
-    Truffle::Interop.keys?(14).should be_false
+  it "returns true for Fixnum" do
+    Truffle::Interop.keys?(14).should be_true
   end
   
-  it "returns false for Bignum" do
-    Truffle::Interop.keys?(bignum_value).should be_false
+  it "returns true for Bignum" do
+    Truffle::Interop.keys?(bignum_value).should be_true
   end
   
-  it "returns false for Float" do
-    Truffle::Interop.keys?(14.2).should be_false
+  it "returns true for Float" do
+    Truffle::Interop.keys?(14.2).should be_true
   end
   
-  it "returns false for Symbol" do
-    Truffle::Interop.keys?(:foo).should be_false
+  it "returns true for Symbol" do
+    Truffle::Interop.keys?(:foo).should be_true
   end
 
 end

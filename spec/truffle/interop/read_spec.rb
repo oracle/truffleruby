@@ -1,4 +1,4 @@
-# Copyright (c) 2016, 2017 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2016, 2018 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 # 
@@ -11,93 +11,105 @@ require_relative 'fixtures/classes'
 
 describe "Truffle::Interop.read" do
 
-  it "reads a byte from a string" do
-    Truffle::Interop.read('123', 1).should == '2'.ord
-  end
+  describe "with a String" do
   
-  describe "reads an instance variable if given an @name" do
-    it "as a symbol" do
-      Truffle::Interop.read(TruffleInteropSpecs::ReadInstanceVariable.new, :@foo).should == 14
+    it "reads a byte in bounds" do
+      Truffle::Interop.read('123', 1).should == '2'.ord
     end
-    
-    it "as a string" do
-      Truffle::Interop.read(TruffleInteropSpecs::ReadInstanceVariable.new, '@foo').should == 14
-    end
-  end
   
-  describe "calls #[] if there isn't a method with the same name" do
-    it "as a symbol" do
-      Truffle::Interop.read(TruffleInteropSpecs::ReadHasIndex.new, :foo).should == 14
+    it "reads a 0 out of bounds" do
+      Truffle::Interop.read('123', 3).should == 0
     end
-    
-    it "as a string" do
-      Truffle::Interop.read(TruffleInteropSpecs::ReadHasIndex.new, 'foo').should == 14
-    end
+  
+  end
 
-    it "and converts the name to a Ruby String" do
+
+  describe "with an Array" do
+    
+    before :each do
+      @array = [1, 2, 3]
+    end
+    
+    it "reads a value of an index that exists" do
+      Truffle::Interop.read(@array, 1).should == 2
+    end
+    
+    it "returns nil for an index that doesn't exist" do
+      Truffle::Interop.read(@array, 100).should be_nil
+    end
+  
+  end
+
+  describe "with a Hash" do
+    
+    before :each do
+      @hash = {'a' => 1, 'b' => 2, 'c' => 3}
+    end
+    
+    it "reads a value of a key that exists" do
+      Truffle::Interop.read(@hash, 'b').should == 2
+    end
+    
+    it "returns nil for a key that doesn't exist" do
+      Truffle::Interop.read(@hash, 'foo').should be_nil
+    end
+    
+  end
+
+  describe "with a name that starts with @" do
+    
+    before :each do
+      @object = TruffleInteropSpecs::InteropKeysClass.new
+    end
+    
+    it "that exists as an instance variable reads it" do
+      Truffle::Interop.read(@object, :@b).should == 2
+    end
+    
+    it "that does not exist as an instance variable returns nil" do
+      Truffle::Interop.read(@object, :@foo).should be_nil
+    end
+  
+  end
+
+  describe "with an object with a method of the same name" do
+    
+    it "produces a bound Method" do
+      object = TruffleInteropSpecs::InteropKeysClass.new
+      Truffle::Interop.read(object, :foo).call.should == 14
+    end
+    
+  end
+
+  describe "with an object with an index method" do
+    
+    it "calls the index method" do
       object = TruffleInteropSpecs::ReadHasIndex.new
-      result = Truffle::Interop.read object, Truffle::Interop.to_java_string('foo')
-      result.should == 14
-      object.key.should == "foo"
-    end
-  end
-  
-  describe "calls a method if there is a method with the same name" do
-    it "as a symbol" do
-      Truffle::Interop.read(TruffleInteropSpecs::ReadHasMethod.new, :foo).should == 14
+      Truffle::Interop.read(object, 2).should == 14
+      object.key.should == 2
     end
     
-    it "as a string" do
-      Truffle::Interop.read(TruffleInteropSpecs::ReadHasMethod.new, 'foo').should == 14
+  end
+
+  describe "with both an object with a method of the same name and an index method" do
+    
+    it "calls the index method" do
+      object = TruffleInteropSpecs::ReadHasIndex.new
+      Truffle::Interop.read(object, :bob).should == 14
+      object.key.should == 'bob'
     end
+    
   end
 
-  it "can be used to index an array" do
-    Truffle::Interop.read([1, 2, 3], 1).should == 2
-  end
-
-  it "can be used to index a hash" do
-    Truffle::Interop.read({1 => 2, 3 => 4, 5 => 6}, 3).should == 4
-
-    Truffle::Interop.read({"foo" => 42}, 'foo').should == 42
-    Truffle::Interop.read({"foo" => 42}, Truffle::Interop.to_java_string('foo')).should == 42
-  end
-
-  it "raises a NameError when trying to access an Array with a String name" do
-    ary = []
-    lambda {
-      Truffle::Interop.read(ary, Truffle::Interop.to_java_string('foo'))
-    }.should raise_error(NameError, /Unknown identifier: foo/) { |e|
-      e.receiver.should equal ary
-      e.name.should == :foo
-    }
-  end
-
-  it "raises a NameError when the identifier is not found on a foreign object" do
-    foreign = Truffle::Interop.java_array(1, 2, 3)
-    lambda { foreign.foo }.should raise_error(NameError, /Unknown identifier: foo/) { |e|
-      e.receiver.equal?(foreign).should == true
-      e.name.should == :foo
-    }
-  end
-
-  it "raises a NameError when the name is not a supported type" do
-    lambda { Truffle::Interop.read(Math, Truffle::Debug.foreign_object) }.should raise_error(NameError, /Unknown identifier: /)
-  end
-
-  it "lets exceptions from #[] go through" do
-    obj = Object.new
-    def obj.[](n)
-      7 / n
+  describe "with an object without a method of the same name or an index method" do
+    
+    it "raises UnknownIdentifierException" do
+      object = Object.new
+      lambda {
+        Truffle::Interop.read(object, :foo)
+      }.should raise_error(NameError, /Unknown identifier: foo/)
     end
-
-    Truffle::Interop.read(obj, 2).should == 3
-    -> {
-      Truffle::Interop.read(obj, 0)
-    }.should raise_error(ZeroDivisionError, "divided by 0")
-    -> {
-      Truffle::Interop.read(obj, "string")
-    }.should raise_error(TypeError, "String can't be coerced into Fixnum")
+    
   end
 
 end

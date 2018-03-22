@@ -1,1 +1,0 @@
-fails:Truffle::Interop.write raises a NameError when the identifier is not found on a foreign object
