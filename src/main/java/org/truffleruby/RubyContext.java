@@ -20,6 +20,7 @@ import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.Source;
 
 import org.joni.Regex;
 import org.truffleruby.builtins.PrimitiveManager;
@@ -65,6 +66,7 @@ import org.truffleruby.launcher.Launcher;
 import org.truffleruby.launcher.options.Options;
 import org.truffleruby.launcher.options.OptionsBuilder;
 import org.truffleruby.launcher.options.OptionsCatalog;
+import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -306,14 +308,15 @@ public class RubyContext {
         preInitializationManager.rehash();
         Launcher.printTruffleTimeMetric("after-rehash");
 
+        Launcher.printTruffleTimeMetric("before-run-delayed-initialization");
         final Object toRunAtInit = Layouts.MODULE.getFields(coreLibrary.getTruffleBootModule()).getConstant("TO_RUN_AT_INIT").getValue();
-
         for (Object proc : ArrayOperations.toIterable((DynamicObject) toRunAtInit)) {
-            String info = sourceLoader.fileLine(language.findSourceLocation(this, proc));
-            Launcher.printTruffleTimeMetric("before-run-delayed-initialization-" + info);
+            final Source source = Layouts.PROC.getMethod((DynamicObject) proc).getSharedMethodInfo().getSourceSection().getSource();
+            TranslatorDriver.printParseTranslateExecuteMetric("before-run-delayed-initialization", this, source);
             ProcOperations.rootCall((DynamicObject) proc);
-            Launcher.printTruffleTimeMetric("after-run-delayed-initialization-" + info);
+            TranslatorDriver.printParseTranslateExecuteMetric("after-run-delayed-initialization", this, source);
         }
+        Launcher.printTruffleTimeMetric("after-run-delayed-initialization");
 
         initialized = true;
         return true;
