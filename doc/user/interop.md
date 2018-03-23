@@ -111,8 +111,8 @@ If the receiver is a Ruby `Array`:
 
 - `READABLE` will set if the name is an integer and in bounds.
 
-- `INSERTABLE` and `MODIFIABLE` will be set if the index is an integer, in bound
-  and the array is not frozen.
+- `INSERTABLE` and `MODIFIABLE` will be set if the index is an integer, in
+  bounds and the array is not frozen.
 
 - `REMOVABLE`, `INVOCABLE` and `INTERNAL` will not be set.
 
@@ -133,8 +133,8 @@ Otherwise if the name starts with an `@`:
 
 - `INSERTABLE` will be set if the object is not frozen.
 
-- `MODIFIABLE` and `REMOVABLE` will be set if the instance variable exists is
-  found and the object is not frozen.
+- `MODIFIABLE` and `REMOVABLE` will be set if the instance variable exists and
+  the object is not frozen.
 
 - `INVOCABLE` will not be set.
 
@@ -162,7 +162,7 @@ If the receiver is a Ruby `Array` or `Hash`, call `receiver[name]`.
 
 Otherwise if the name starts with an `@` it is read as an instance variable.
 
-Otherwise, if there is a method called `[]` on the receiver, call
+Otherwise, if there is a method `[]` defined on the receiver, call
 `receiver[name]`.
 
 Otherwise, if there is a method defined on the object with the same name, return
