@@ -28,7 +28,7 @@ Changes:
 
 * Interop semantics of `INVOKE`, `READ`, `WRITE`, `KEYS` and `KEY_INFO` have
   changed significantly, so that `INVOKE` maps to Ruby method calls, `READ`
-  returns (bound) `Method` objects or calls `[]`, and `WRITE` calls `[]=`.
+  calls `[]` or returns (bound) `Method` objects, and `WRITE` calls `[]=`.
 
 Performance:
 
