@@ -23,7 +23,6 @@ class IncludeAnyOfMatcher
   end
 end
 
-# Cannot override #include_any_of at the toplevel in MRI
 module MSpecMatchers
   private def include_any_of(*expected)
     IncludeAnyOfMatcher.new(*expected)
