@@ -68,28 +68,28 @@ describe "Truffle::Interop.key_info" do
         
         it "for an integer in bounds if the array is frozen" do
           @array.freeze
-          Truffle::Interop.key_info(@array, 1).should_not include_any_of(:inserable, :modifiable)
+          Truffle::Interop.key_info(@array, 1).should_not include_any_of(:insertable, :modifiable)
         end
         
         it "for an integer out of bounds" do
-          Truffle::Interop.key_info(@array, 100).should_not include_any_of(:inserable, :modifiable)
+          Truffle::Interop.key_info(@array, 100).should_not include_any_of(:insertable, :modifiable)
         end
         
         it "for something other than an integer" do
-          Truffle::Interop.key_info(@array, :foo).should_not include_any_of(:inserable, :modifiable)
+          Truffle::Interop.key_info(@array, :foo).should_not include_any_of(:insertable, :modifiable)
         end
         
         it "for instance variables that exist" do
           @array.instance_variable_set :@foo, 14
-          Truffle::Interop.key_info(@array, :@foo).should_not include_any_of(:inserable, :modifiable)
+          Truffle::Interop.key_info(@array, :@foo).should_not include_any_of(:insertable, :modifiable)
         end
         
         it "for instance variables that don't exist" do
-          Truffle::Interop.key_info(@array, :@foo).should_not include_any_of(:inserable, :modifiable)
+          Truffle::Interop.key_info(@array, :@foo).should_not include_any_of(:insertable, :modifiable)
         end
         
         it "for a method" do
-          Truffle::Interop.key_info(@array, :to_s).should_not include_any_of(:inserable, :modifiable)
+          Truffle::Interop.key_info(@array, :to_s).should_not include_any_of(:insertable, :modifiable)
         end
       
       end
