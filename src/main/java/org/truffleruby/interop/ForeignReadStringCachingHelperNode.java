@@ -32,17 +32,6 @@ abstract class ForeignReadStringCachingHelperNode extends RubyNode {
 
     public abstract Object executeStringCachingHelper(VirtualFrame frame, DynamicObject receiver, Object name);
 
-    @Specialization(guards = { "isRubyString(receiver)", "inRange(receiver, index)" })
-    public int indexString(DynamicObject receiver, int index) {
-        return Layouts.STRING.getRope(receiver).get(index);
-    }
-
-    @Specialization(guards = { "isRubyString(receiver)", "!inRange(receiver, index)" })
-    public int indexStringOutOfRange(DynamicObject receiver, int index) {
-        return 0;
-    }
-
-
     @Specialization(guards = "isStringLike(name)")
     public Object cacheStringLikeAndForward(VirtualFrame frame, DynamicObject receiver, Object name,
             @Cached("create()") ToJavaStringNode toJavaStringNode,
@@ -52,7 +41,7 @@ abstract class ForeignReadStringCachingHelperNode extends RubyNode {
         return nextHelper.executeStringCachedHelper(frame, receiver, name, nameAsJavaString, isIVar);
     }
 
-    @Specialization(guards = { "!isRubyString(receiver)", "!isStringLike(name)" })
+    @Specialization(guards = "!isStringLike(name)")
     public Object indexObject(VirtualFrame frame, DynamicObject receiver, Object name,
             @Cached("createNextHelper()") ForeignReadStringCachedHelperNode nextHelper) {
         return nextHelper.executeStringCachedHelper(frame, receiver, name, null, false);

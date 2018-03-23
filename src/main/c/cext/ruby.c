@@ -3010,9 +3010,8 @@ void rb_tr_release_handle(void *handle) {
   truffle_release_handle(handle);
 }
 
-void rb_tr_load_library(const char *library) {
-  const char *real_c_string = ruby_strdup(library);
-  truffle_load_library(real_c_string);
+void rb_tr_load_library(VALUE library) {
+  truffle_load_library(RSTRING_PTR(library));
 }
 
 void rb_big_2comp(VALUE x) {
