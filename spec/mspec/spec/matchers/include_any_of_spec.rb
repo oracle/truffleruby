@@ -37,6 +37,6 @@ describe IncludeAnyOfMatcher do
   it "provides a useful negative failure message" do
     matcher = IncludeAnyOfMatcher.new(1, 2, 3)
     matcher.matches?([1,2])
-    matcher.negative_failure_message.should == ["Expected [1, 2]", "not to include any of [1, 2]"]
+    matcher.negative_failure_message.should == ["Expected [1, 2]", "not to include any of [1, 2, 3]"]
   end
 end

@@ -5,13 +5,12 @@ class IncludeAnyOfMatcher
 
   def matches?(actual)
     @actual = actual
-    @matched = []
     @expected.each do |e|
       if @actual.include?(e)
-        @matched.push e
+        return true
       end
     end
-    return !@matched.empty?
+    return false
   end
 
   def failure_message
@@ -19,7 +18,7 @@ class IncludeAnyOfMatcher
   end
 
   def negative_failure_message
-    ["Expected #{@actual.inspect}", "not to include any of #{@matched.inspect}"]
+    ["Expected #{@actual.inspect}", "not to include any of #{@expected.inspect}"]
   end
 end
 
