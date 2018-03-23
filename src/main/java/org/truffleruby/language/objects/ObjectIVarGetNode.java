@@ -27,6 +27,10 @@ public abstract class ObjectIVarGetNode extends RubyNode {
         this.checkName = checkName;
     }
 
+    public static ObjectIVarGetNode create() {
+        return ObjectIVarGetNodeGen.create(false, null, null);
+    }
+
     public abstract Object executeIVarGet(DynamicObject object, Object name);
 
     @Specialization(guards = "name == cachedName", limit = "getCacheLimit()")

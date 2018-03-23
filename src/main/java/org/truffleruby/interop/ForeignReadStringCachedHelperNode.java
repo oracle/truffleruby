@@ -23,8 +23,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
+import org.truffleruby.language.objects.ObjectIVarGetNode;
 
 @NodeChildren({
         @NodeChild("receiver"),
@@ -54,19 +53,14 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
         return getCallNode().call(frame, receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
     }
 
-    @Specialization(guards = {"!isRubyArray(receiver)", "!isRubyHash(receiver)", "isIVar", "stringName.equals(cachedStringName)"})
+    @Specialization(guards = {"!isRubyArray(receiver)", "!isRubyHash(receiver)", "isIVar"})
     public Object readInstanceVariable(
             DynamicObject receiver,
             Object name,
             Object stringName,
             boolean isIVar,
-            @Cached("stringName") Object cachedStringName,
-            @Cached("createReadObjectFieldNode(stringName)") ReadObjectFieldNode readObjectFieldNode) {
-        return readObjectFieldNode.execute(receiver);
-    }
-
-    protected ReadObjectFieldNode createReadObjectFieldNode(Object name) {
-        return ReadObjectFieldNodeGen.create(name, nil());
+            @Cached("create()") ObjectIVarGetNode readObjectFieldNode) {
+        return readObjectFieldNode.executeIVarGet(receiver, stringName);
     }
 
     @Specialization(guards = {
