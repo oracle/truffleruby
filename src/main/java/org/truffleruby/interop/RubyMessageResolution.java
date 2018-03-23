@@ -232,9 +232,11 @@ public class RubyMessageResolution {
 
         private final ConditionProfile arrayReceiverProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile hashReceiverProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile stringProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile ivarProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile validArrayIndexProfile = ConditionProfile.createBinaryProfile();
 
+        @Child private ToJavaStringNode toJavaStringNode = ToJavaStringNode.create();
         @Child private CallDispatchHeadNode arrayDeleteAtNode = CallDispatchHeadNode.createOnSelf();
         @Child private CallDispatchHeadNode hashDeleteNode = CallDispatchHeadNode.createOnSelf();
         @Child private CallDispatchHeadNode removeInstanceVariableNode = CallDispatchHeadNode.createOnSelf();
@@ -246,29 +248,23 @@ public class RubyMessageResolution {
                         (name instanceof Long && RubyGuards.fitsInInteger((long) name)))) {
                     arrayDeleteAtNode.call(frame, object, "delete_at", name);
                 } else {
-                    throw UnknownIdentifierException.raise(toString(name));
+                    throw UnknownIdentifierException.raise(toJavaStringNode.executeToJavaString(name));
                 }
             } else if (hashReceiverProfile.profile(RubyGuards.isRubyHash(object))) {
                 hashDeleteNode.call(frame, object, "delete", foreignToRubyNode.executeConvert(name));
-            } else if (ivarProfile.profile(isIVar(toString(name)))) {
-                removeInstanceVariableNode.call(frame, object, "remove_instance_variable", foreignToRubyNode.executeConvert(name));
+            } else if (stringProfile.profile(name instanceof String)) {
+                final String stringName = (String) name;
+
+                if (ivarProfile.profile(!stringName.isEmpty() && stringName.charAt(0) == '@')) {
+                    removeInstanceVariableNode.call(frame, object, "remove_instance_variable", foreignToRubyNode.executeConvert(name));
+                } else {
+                    throw UnsupportedMessageException.raise(Message.REMOVE);
+                }
             } else {
                 throw UnsupportedMessageException.raise(Message.REMOVE);
             }
 
             return true;
-        }
-
-        @TruffleBoundary
-        private String toString(Object name) {
-            return name.toString();
-        }
-
-        // TODO CS 22-Mar-18 this should be cached
-
-        @TruffleBoundary
-        private boolean isIVar(String name) {
-            return name.startsWith("@");
         }
 
     }
