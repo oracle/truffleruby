@@ -11,19 +11,6 @@ require_relative 'fixtures/classes'
 
 describe "Truffle::Interop.read" do
 
-  describe "with a String" do
-  
-    it "reads a byte in bounds" do
-      Truffle::Interop.read('123', 1).should == '2'.ord
-    end
-  
-    it "reads a 0 out of bounds" do
-      Truffle::Interop.read('123', 3).should == 0
-    end
-  
-  end
-
-
   describe "with an Array" do
     
     before :each do

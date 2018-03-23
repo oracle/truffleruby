@@ -158,9 +158,6 @@ For all objects:
 
 ### `READ`
 
-If the receiver is a Ruby `String`, return bytes in the string as if
-`receiver.bytes[n]` was used, or return `0` if the byte is out of range.
-
 If the receiver is a Ruby `Array` or `Hash`, call `receiver[name]`.
 
 Otherwise if the name starts with an `@` it is read as an instance variable.
