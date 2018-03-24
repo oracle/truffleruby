@@ -13,14 +13,14 @@ guard -> { !Truffle.native? } do
 
     it "creates basic objects" do
       big_integer = Truffle::Interop.java_type("java.math.BigInteger").new("14")
-      Truffle::Interop.java_type_name(big_integer.getClass!).should == "java.math.BigInteger"
-      big_integer.intValue!.should == 14
+      Truffle::Interop.java_type_name(big_integer.getClass).should == "java.math.BigInteger"
+      big_integer.intValue.should == 14
     end
 
     it "calls appropriate overloads" do
       big_integer = Truffle::Interop.java_type("java.math.BigInteger").new("14", 8)
-      Truffle::Interop.java_type_name(big_integer.getClass!).should == "java.math.BigInteger"
-      big_integer.intValue!.should == 12
+      Truffle::Interop.java_type_name(big_integer.getClass).should == "java.math.BigInteger"
+      big_integer.intValue.should == 12
     end
 
     it "creates arrays of objects" do

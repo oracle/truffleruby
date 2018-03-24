@@ -20,9 +20,9 @@ describe "Calling #equal? on a foreign object" do
   guard -> { !Truffle.native? } do
     it "looks at the underlying object for Java interop" do
       big_integer = Truffle::Interop.java_type("java.math.BigInteger")
-      a = big_integer.ONE
-      b = big_integer.ONE
-      c = big_integer.TEN
+      a = big_integer[:ONE]
+      b = big_integer[:ONE]
+      c = big_integer[:TEN]
       a.equal?(a).should be_true
       a.equal?(b).should be_true
       a.equal?(c).should be_false

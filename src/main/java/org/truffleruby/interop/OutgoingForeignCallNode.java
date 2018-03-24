@@ -98,8 +98,6 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             return new IndexReadOutgoingNode();
         } else if (name.equals("[]=") && argsLength == 2) {
             return new IndexWriteOutgoingNode();
-        } else if (name.length() >= 2 && name.charAt(name.length() - 2) != '=' && name.charAt(name.length() - 1) == '=' && argsLength == 1) {
-            return new PropertyWriteOutgoingNode(name.substring(0, name.length() - 1));
         } else if (name.equals("call")) {
             return new CallOutgoingNode(argsLength);
         } else if (name.equals("new")) {
@@ -116,10 +114,6 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             return new IsNilOutgoingNode();
         } else if (name.equals("equal?") && argsLength == 1) {
             return new IsReferenceEqualOutgoingNode();
-        } else if (name.endsWith("!") && argsLength == 0) {
-            return new InvokeOutgoingNode(name.substring(0, name.length() - 1), argsLength);
-        } else if (argsLength == 0) {
-            return new PropertyReadOutgoingNode(name);
         } else {
             return new InvokeOutgoingNode(name, argsLength);
         }
@@ -200,77 +194,6 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                         receiver,
                         identifierToForeignNode.executeConvert(args[0]),
                         valueToForeignNode.executeConvert(args[1]));
-            } catch (UnknownIdentifierException e) {
-                unknownIdentifierProfile();
-                throw new RaiseException(coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
-            } catch (UnsupportedMessageException | UnsupportedTypeException e) {
-                exceptionProfile();
-                throw new JavaException(e);
-            }
-
-            return foreignToRubyNode.executeConvert(foreign);
-        }
-
-    }
-
-    protected class PropertyReadOutgoingNode extends OutgoingNode {
-
-        private final String name;
-
-        @Child private Node node;
-        @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
-
-        public PropertyReadOutgoingNode(String name) {
-            this.name = name;
-            node = Message.READ.createNode();
-        }
-
-        @Override
-        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
-            assert args.length == 0;
-
-            final Object foreign;
-
-            try {
-                foreign = ForeignAccess.sendRead(node, receiver, name);
-            } catch (UnknownIdentifierException e) {
-                unknownIdentifierProfile();
-                throw new RaiseException(coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
-            } catch (UnsupportedMessageException e) {
-                exceptionProfile();
-                throw new JavaException(e);
-            }
-
-            return foreignToRubyNode.executeConvert(foreign);
-        }
-
-    }
-
-    protected class PropertyWriteOutgoingNode extends OutgoingNode {
-
-        private final String name;
-
-        @Child private Node node;
-        @Child private RubyToForeignNode rubyToForeignNode = RubyToForeignNode.create();
-        @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
-
-        public PropertyWriteOutgoingNode(String name) {
-            this.name = name;
-            node = Message.WRITE.createNode();
-        }
-
-        @Override
-        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
-            assert args.length == 1;
-
-            final Object foreign;
-
-            try {
-                foreign = ForeignAccess.sendWrite(
-                        node,
-                        receiver,
-                        name,
-                        rubyToForeignNode.executeConvert(args[0]));
             } catch (UnknownIdentifierException e) {
                 unknownIdentifierProfile();
                 throw new RaiseException(coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
