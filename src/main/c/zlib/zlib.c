@@ -603,8 +603,8 @@ zstream_init(struct zstream *z, const struct zstream_funcs *func)
     z->buf = rb_tr_handle_for_managed_leaking(Qnil);
     z->buf_filled = 0;
     z->input = rb_tr_handle_for_managed_leaking(Qnil);
-    z->stream.zalloc = truffle_sulong_function_to_native_pointer(zlib_mem_alloc, "(POINTER,UINT32,UINT32):POINTER");
-    z->stream.zfree = truffle_sulong_function_to_native_pointer(zlib_mem_free, "(POINTER,POINTER):VOID");
+    z->stream.zalloc = (void *(*)(void *, uint32_t, uint32_t)) zlib_mem_alloc;
+    z->stream.zfree = (void (*)(void *, void *)) zlib_mem_free;
     z->stream.opaque = Z_NULL;
     z->stream.msg = Z_NULL;
     z->stream.next_in = Z_NULL;
@@ -4686,5 +4686,3 @@ Init_zlib(void)
  * Raised when the data length recorded in the gzip file footer is not equivalent
  * to the length of the actual uncompressed data.
  */
-
-

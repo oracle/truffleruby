@@ -150,7 +150,7 @@ ossl_x509store_initialize(int argc, VALUE *argv, VALUE self)
 /* BUG: This method takes any number of arguments but appears to ignore them. */
     GetX509Store(self, store);
     store->ex_data.sk = NULL;
-    X509_STORE_set_verify_cb_func(store, truffle_sulong_function_to_native_pointer(ossl_verify_cb, "(SINT32,POINTER):SINT32"));
+    X509_STORE_set_verify_cb_func(store, (int32_t (*)(int32_t, void *)) ossl_verify_cb);
     ossl_x509store_set_vfy_cb(self, Qnil);
 
 #if (OPENSSL_VERSION_NUMBER < 0x00907000L)
