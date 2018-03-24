@@ -177,7 +177,7 @@ then assign managed data to this variable.
 
 Variadic arguments of type `VALUE` that hold Ruby objects can be used, but they
 cannot be accessed with `va_start` etc. You can use
-`void *truffle_get_arg(int i)` instead.
+`void *polyglot_get_arg(int i)` instead.
 
 #### Pointers to `VALUE` locals and variadic functions
 
