@@ -378,4 +378,171 @@ void *truffle_polyglot_eval(const char *mimeType, const char *code) {
   return 0;
 }
 
+void *polyglot_import(const char *name) {
+  rb_tr_mock();
+  return 0;
+}
+
+void polyglot_export(const char *name, void *value) {
+  rb_tr_mock();
+}
+
+void *polyglot_eval(const char *id, const char *code) {
+  rb_tr_mock();
+  return 0;
+}
+
+void *polyglot_get_arg(int i) {
+  rb_tr_mock();
+  return 0;
+}
+
+bool polyglot_is_value(const void *value) {
+  rb_tr_mock();
+  return false;
+}
+
+bool polyglot_is_null(const void *value) {
+  rb_tr_mock();
+  return false;
+}
+
+bool polyglot_is_number(const void *value) {
+  rb_tr_mock();
+  return false;
+}
+
+bool polyglot_is_boolean(const void *value) {
+  rb_tr_mock();
+  return false;
+}
+
+bool polyglot_is_string(const void *value) {
+  rb_tr_mock();
+  return false;
+}
+
+bool polyglot_fits_in_i8(const void *value) {
+  rb_tr_mock();
+  return false;
+}
+
+bool polyglot_fits_in_i16(const void *value) {
+  rb_tr_mock();
+  return false;
+}
+
+bool polyglot_fits_in_i32(const void *value) {
+  rb_tr_mock();
+  return false;
+}
+
+bool polyglot_fits_in_i64(const void *value) {
+  rb_tr_mock();
+  return false;
+}
+
+bool polyglot_fits_in_float(const void *value) {
+  rb_tr_mock();
+  return false;
+}
+
+bool polyglot_fits_in_double(const void *value) {
+  rb_tr_mock();
+  return false;
+}
+
+int8_t polyglot_as_i8(const void *value) {
+  rb_tr_mock();
+  return 0;
+}
+
+int16_t polyglot_as_i16(const void *value) {
+  rb_tr_mock();
+  return 0;
+}
+
+int32_t polyglot_as_i32(const void *value) {
+  rb_tr_mock();
+  return 0;
+}
+
+int64_t polyglot_as_i64(const void *value) {
+  rb_tr_mock();
+  return 0;
+}
+
+float polyglot_as_float(const void *value) {
+  rb_tr_mock();
+  return 0.0;
+}
+
+double polyglot_as_double(const void *value) {
+  rb_tr_mock();
+  return 0.0;
+}
+
+bool polyglot_as_boolean(const void *value) {
+  rb_tr_mock();
+  return false;
+}
+
+bool polyglot_can_execute(const void *value) {
+  rb_tr_mock();
+  return false;
+}
+
+bool polyglot_has_members(const void *value) {
+  rb_tr_mock();
+  return false;
+}
+
+void *polyglot_get_member(const void *object, const char *name) {
+  rb_tr_mock();
+  return 0;
+}
+
+void polyglot_put_member(void *object, const char *name, ...) {
+  rb_tr_mock();
+}
+
+bool polyglot_has_array_elements(const void *value) {
+  rb_tr_mock();
+  return false;
+}
+
+uint64_t polyglot_get_array_size(const void *array) {
+  rb_tr_mock();
+  return 0;
+}
+
+void *polyglot_get_array_element(const void *array, int idx) {
+  rb_tr_mock();
+  return 0;
+}
+
+void polyglot_set_array_element(void *array, int idx, ...) {
+  rb_tr_mock();
+}
+
+uint64_t polyglot_get_string_size(const void *value) {
+  rb_tr_mock();
+  return 0;
+}
+
+uint64_t polyglot_as_string(const void *value, char *buffer, uint64_t bufsize, const char *charset) {
+  rb_tr_mock();
+  return 0;
+}
+
+void *polyglot_from_string(const char *string, const char *charset) {
+  rb_tr_mock();
+  return 0;
+}
+
+void *polyglot_from_string_n(const char *string, uint64_t size, const char *charset) {
+  rb_tr_mock();
+  return 0;
+}
+
 

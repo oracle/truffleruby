@@ -15,15 +15,17 @@ require 'erb'
 types = {
   'void*' => "0", 'void' => nil,
   'bool' => 'false', 'int' => '0', 'long' => '0', 'char' => "'0'",
+  'int8_t' => '0', 'int16_t' => '0', 'int32_t' => '0', 'int64_t' => '0',
+  'uint8_t' => '0', 'uint16_t' => '0', 'uint32_t' => '0', 'uint64_t' => '0',
   'float' => '0.0', 'double' => '0.0',
   'constchar*' => '""',
 }
 
 methods = []
 
-lines = IO.readlines("lib/cext/truffle.h")
+lines = IO.readlines("lib/cext/truffle.h") + IO.readlines("lib/cext/polyglot.h")
 lines.each do |l|
-   match = !l.start_with?('//') && /^(.+?)\btruffle(.+)\)(?=;)/.match(l)
+   match = !l.start_with?('//') && !l.start_with?(' *') && /^(.+?)\b(truffle|polyglot)(.+)\)(?=;)/.match(l)
    if match
      ret = types.fetch(match[1].gsub(' ', '')) { |t| raise "unknown type: `#{t}` for line `#{l}`" }
      methods << {:met => match[0], :ret => ret}

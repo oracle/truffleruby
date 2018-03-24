@@ -23,6 +23,7 @@ extern "C" {
 
 #include "ruby/config.h"
 #include <truffle.h>
+#include <polyglot.h>
 #include <ctype.h> // isdigit
 
 // Support
