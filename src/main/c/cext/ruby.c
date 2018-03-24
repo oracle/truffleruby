@@ -1835,7 +1835,7 @@ VALUE rb_hash_delete_if(VALUE hash) {
 }
 
 void rb_hash_foreach(VALUE hash, int (*func)(ANYARGS), VALUE farg) {
-  truffle_invoke(RUBY_CEXT, "rb_hash_foreach", hash, truffle_address_to_function(func), farg);
+  truffle_invoke(RUBY_CEXT, "rb_hash_foreach", hash, (void (*)(void *)) func, farg);
 }
 
 VALUE rb_hash_size(VALUE hash) {
@@ -1937,7 +1937,7 @@ VALUE rb_mod_ancestors(VALUE mod) {
 // Proc
 
 VALUE rb_proc_new(VALUE (*function)(ANYARGS), VALUE value) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_proc_new", truffle_address_to_function(function), value);
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_proc_new", (void (*)(void *)) function, value);
 }
 
 VALUE rb_proc_call(VALUE self, VALUE args) {
@@ -2197,7 +2197,7 @@ void rb_exc_raise(VALUE exception) {
 
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status) {
   VALUE ary = truffle_invoke(RUBY_CEXT, "rb_protect_with_block",
-                             truffle_address_to_function(function), data, rb_block_proc());
+                             (void (*)(void *)) function, data, rb_block_proc());
   *status = NUM2INT(truffle_read_idx(ary, 1));
   return truffle_read_idx(ary, 0);
 }
@@ -2310,7 +2310,7 @@ void rb_define_method(VALUE module, const char *name, VALUE (*function)(ANYARGS)
   if (function == rb_f_notimplement) {
     truffle_invoke(RUBY_CEXT, "rb_define_method_undefined", module, rb_str_new_cstr(name));
   } else {
-    truffle_invoke(RUBY_CEXT, "rb_define_method", module, rb_str_new_cstr(name), truffle_address_to_function(function), argc);
+    truffle_invoke(RUBY_CEXT, "rb_define_method", module, rb_str_new_cstr(name), (void (*)(void *)) function, argc);
   }
 }
 
@@ -2358,7 +2358,7 @@ void rb_attr(VALUE ruby_class, ID name, int read, int write, int ex) {
 }
 
 void rb_define_alloc_func(VALUE ruby_class, rb_alloc_func_t alloc_function) {
-  truffle_invoke(RUBY_CEXT, "rb_define_alloc_func", ruby_class, truffle_address_to_function(alloc_function));
+  truffle_invoke(RUBY_CEXT, "rb_define_alloc_func", ruby_class, (void (*)(void *)) alloc_function);
 }
 
 void rb_undef_alloc_func(VALUE ruby_class) {
@@ -2905,7 +2905,7 @@ VALUE rb_struct_define_under(VALUE outer, const char *name, ...) {
 // Data
 
 static void* to_free_function(RUBY_DATA_FUNC dfree) {
-  return dfree ? truffle_address_to_function(dfree) : Qnil;
+  return dfree ? (void (*)(void *)) dfree : Qnil;
 }
 
 struct RData *RDATA(VALUE value) {
