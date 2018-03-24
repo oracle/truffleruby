@@ -142,6 +142,7 @@ import org.truffleruby.gem.bcrypt.BCryptNodesBuiltins;
 import org.truffleruby.gem.bcrypt.BCryptNodesFactory;
 import org.truffleruby.interop.InteropNodesBuiltins;
 import org.truffleruby.interop.InteropNodesFactory;
+import org.truffleruby.interop.PolyglotNodesBuiltins;
 import org.truffleruby.interop.java.JavaUtilitiesNodesBuiltins;
 import org.truffleruby.interop.java.JavaUtilitiesNodesFactory;
 import org.truffleruby.language.RubyNode;
@@ -212,6 +213,7 @@ public abstract class BuiltinsClasses {
         ObjectSpaceNodesBuiltins.setup(coreManager, primitiveManager);
         ObjSpaceNodesBuiltins.setup(coreManager, primitiveManager);
         PointerNodesBuiltins.setup(coreManager, primitiveManager);
+        PolyglotNodesBuiltins.setup(coreManager, primitiveManager);
         ProcessNodesBuiltins.setup(coreManager, primitiveManager);
         ProcNodesBuiltins.setup(coreManager, primitiveManager);
         PsychEmitterNodesBuiltins.setup(coreManager, primitiveManager);
