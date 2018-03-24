@@ -1024,7 +1024,7 @@ VALUE rb_str_new(const char *string, long length) {
 
   if (string == NULL) {
     return (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_new_nul", length);
-  } else if (truffle_is_truffle_object((VALUE) string)) {
+  } else if (polyglot_is_value((VALUE) string)) {
     return (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_new", string, length);
   } else {
     // Copy the string to a new unmanaged buffer, because otherwise it's very
@@ -1048,7 +1048,7 @@ VALUE rb_tainted_str_new(const char *ptr, long len) {
 }
 
 VALUE rb_str_new_cstr(const char *string) {
-  if (truffle_is_truffle_object((VALUE) string)) {
+  if (polyglot_is_value((VALUE) string)) {
     VALUE ruby_string = (VALUE) truffle_invoke((VALUE) string, "to_s");
     int len = strlen(string);
     return (VALUE) truffle_invoke(ruby_string, "[]", 0, len);
@@ -1608,11 +1608,11 @@ int rb_is_instance_id(ID id) {
 // Array
 
 long rb_array_len(VALUE array) {
-  return truffle_get_size(array);
+  return polyglot_get_array_size(array);
 }
 
 int RARRAY_LENINT(VALUE array) {
-  return truffle_get_size(array);
+  return polyglot_get_array_size(array);
 }
 
 VALUE RARRAY_AREF(VALUE array, long index) {
@@ -1638,7 +1638,7 @@ VALUE rb_ary_resize(VALUE ary, long len) {
 VALUE rb_ary_new_from_args(long n, ...) {
   VALUE array = rb_ary_new_capa(n);
   for (int i = 0; i < n; i++) {
-    rb_ary_store(array, i, (VALUE) truffle_get_arg(1+i));
+    rb_ary_store(array, i, (VALUE) polyglot_get_arg(1+i));
   }
   return array;
 }
@@ -2051,7 +2051,7 @@ VALUE rb_yield_splat(VALUE values) {
 VALUE rb_yield_values(int n, ...) {
   VALUE values = rb_ary_new_capa(n);
   for (int i = 0; i < n; i++) {
-    rb_ary_store(values, i, (VALUE) truffle_get_arg(1+i));
+    rb_ary_store(values, i, (VALUE) polyglot_get_arg(1+i));
   }
   return rb_yield_splat(values);
 }
@@ -2244,7 +2244,7 @@ VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS)
   VALUE rescued = rb_ary_new();
   int n = 4;
   while (true) {
-    VALUE arg = truffle_get_arg(n);
+    VALUE arg = polyglot_get_arg(n);
     if (arg == NULL) {
       break;
     }
@@ -2868,7 +2868,7 @@ VALUE rb_struct_define(const char *name, ...) {
   VALUE *ary = rb_ary_new();
   int i = 0;
   char *arg = NULL;
-  while ((arg = (char *)truffle_get_arg(i + 1)) != NULL) {
+  while ((arg = (char *)polyglot_get_arg(i + 1)) != NULL) {
     rb_ary_store(ary, i++, rb_str_new_cstr(arg));
   }
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_struct_define_no_splat", rb_name, ary);
@@ -2880,7 +2880,7 @@ VALUE rb_struct_new(VALUE klass, ...) {
   int i = 0;
   char *arg = NULL;
   while (i < members) {
-    VALUE arg = truffle_get_arg(i + 1);
+    VALUE arg = polyglot_get_arg(i + 1);
     rb_ary_store(ary, i++, arg);
   }
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_struct_new_no_splat", klass, ary);
