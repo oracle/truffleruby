@@ -7,4 +7,4 @@
 # GNU Lesser General Public License version 2.1
 
 require 'mkmf'
-create_makefile('trufflemock')
+create_makefile('sulongmock')
