@@ -158,12 +158,12 @@ For all objects:
 
 ### `READ`
 
-If the receiver is a Ruby `Array` or `Hash`, call `receiver[name]`.
+If the receiver is a Ruby `Array` or `Hash`, call `receiver[name/index]`.
 
 Otherwise if the name starts with an `@` it is read as an instance variable.
 
 Otherwise, if there is a method `[]` defined on the receiver, call
-`receiver[name]`.
+`receiver[name/index]`.
 
 Otherwise, if there is a method defined on the object with the same name, return
 it as a (bound) `Method`.
@@ -172,12 +172,13 @@ Otherwise, throw `UnknownIdentifierException`.
 
 ### `WRITE`
 
-If the receiver is a Ruby `Array` or `Hash`, call `receiver[name] = value`.
+If the receiver is a Ruby `Array` or `Hash`, call
+`receiver[name/index] = value`.
 
 Otherwise if the name starts with an `@` it is set as an instance variable.
 
 Otherwise, if there is a method called `[]=` on the receiver, call
-`receiver[name] = value`.
+`receiver[name/index] = value`.
 
 Otherwise, throw `UnknownIdentifierException`.
 
@@ -276,15 +277,15 @@ in an undefined order.
 
 ### `READ`
 
-`Truffle::Interop.read(object, name)`
+`Truffle::Interop.read(object, name/index)`
 
 ### `WRITE`
 
-`Truffle::Interop.write(object, name, value)`
+`Truffle::Interop.write(object, name/index, value)`
 
 ### `REMOVE`
 
-`Truffle::Interop.remove(object, name)`
+`Truffle::Interop.remove(object, name/index)`
 
 ## How to send messages using idiomatic Ruby
 
@@ -346,13 +347,13 @@ Not supported.
 
 ### `READ`
 
-`object[name]`, where name is a `String` or `Symbol` in most cases, or an
+`object[name/index]`, where name is a `String` or `Symbol` in most cases, or an
 integer, or anything else
 
 ### `WRITE`
 
-`object[name] = value`, where name is a `String` or `Symbol` in most cases, or
-an integer, or anything else
+`object[name/index] = value`, where name is a `String` or `Symbol` in most
+cases, or an integer, or anything else
 
 ### `REMOVE`
 
@@ -363,9 +364,9 @@ Not supported.
 TruffleRuby automatically provides these special methods on a foreign object.
 They have priority over methods that the foreign object actually provides.
 
-`object[name]` (`#[](name)`) sends `READ`.
+`object[name/index]` (`#[](name/index)`) sends `READ`.
 
-`object[name] = value` (`#[]=(name, value)`) sends `WRITE`.
+`object[name/index] = value` (`#[]=(name/index, value)`) sends `WRITE`.
 
 `object.call(*args)` sends `EXECUTE`.
 
