@@ -133,7 +133,7 @@ module Truffle
 
       # Currently you cannot add methods here, as method calls on this class
       # (when the object is indeed foreign) are sent as interop messages,
-      # rather than looking them up in the class.
+      # rather than looking them up in the class. See #special_form, however.
 
     end
     
@@ -146,12 +146,31 @@ module Truffle
       to_java_array(Truffle::Type.coerce_to(array, ::Array, :to_a))
     end
     
+    def self.special_form(receiver, name, *args)
+      case name.to_sym
+      when :delete
+        Truffle::Interop.remove(receiver, *args)
+      when :size
+        Truffle::Interop.size(receiver)
+      when :keys
+        Truffle::Interop.keys(receiver)
+      else
+        raise
+      end
+    end
+    
     def self.respond_to?(object, name)
       case name.to_sym
       when :to_a, :to_ary
         Truffle::Interop.size?(object)
       when :new
         Truffle::Interop.instantiable?(object)
+      when :size
+        Truffle::Interop.size?(object)
+      when :keys
+        Truffle::Interop.keys?(object)
+      when :call
+        Truffle::Interop.executable?(object)
       else
         false
       end

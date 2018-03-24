@@ -291,7 +291,7 @@ in an undefined order.
 
 ### `IS_EXECUTABLE`
 
-Not supported.
+`object.respond_to?(:call)`
 
 ### `EXECUTE`
 
@@ -313,11 +313,11 @@ Not supported.
 
 ### `HAS_SIZE`
 
-Not supported.
+`object.respond_to?(:size)`
 
 ### `GET_SIZE`
 
-Not supported.
+`value.size`
 
 ### `IS_BOXED`
 
@@ -343,9 +343,13 @@ Not supported.
 
 `value.nil?`
 
+### `HAS_KEYS`
+
+`object.respond_to?(:keys)`
+
 ### `KEYS`
 
-Not supported.
+`value.keys`
 
 ### `READ`
 
@@ -370,9 +374,15 @@ They have priority over methods that the foreign object actually provides.
 
 `object[name/index] = value` (`#[]=(name/index, value)`) sends `WRITE`.
 
+`object.delete(name/index)` sends `REMOVE`.
+
 `object.call(*args)` sends `EXECUTE`.
 
 `object.nil?` sends `IS_NIL`.
+
+`object.size` sends `SIZE`.
+
+`object.keys` sends `KEYS` (you may get a foreign array back).
 
 `object.name` sends `INVOKE`.
 
@@ -390,6 +400,8 @@ looks at the underlying Java object.
 `#<Truffle::Interop::Foreign:system-identity-hash-code>`
 
 `object.respond_to?(:to_a)` and `:to_ary` sends `HAS_SIZE`.
+
+`object.respond_to?(:call)` sends `EXECUTABLE`.
 
 `object.respond_to?(:new)` sends `IS_INSTANTIABLE`.
 

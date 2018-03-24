@@ -28,6 +28,13 @@ describe "Interop special form" do
     @object.log.should include("WRITE(bar, 2)")
   end
 
+  it "#delete(name) sends REMOVE" do
+    @object.delete :foo
+    @object.delete 14
+    @object.log.should include("REMOVE(foo)")
+    @object.log.should include("REMOVE(14)")
+  end
+
   it "#call sends EXECUTE" do
     @object.call(1, 2, 3)
     @object.log.should include("EXECUTE(...)")
@@ -36,6 +43,16 @@ describe "Interop special form" do
   it "#nil? sends IS_NULL" do
     @object.nil?
     @object.log.should include("IS_NULL")
+  end
+
+  it "#size sends GET_SIZE" do
+    @object.size
+    @object.log.should include("GET_SIZE")
+  end
+
+  it "#keys sends KEYS" do
+    @object.keys
+    @object.log.should include("KEYS")
   end
 
   it "#name sends INVOKE" do
@@ -67,6 +84,21 @@ describe "Interop special form" do
   it "#respond_to?(:new) sends IS_INSTANTIABLE" do
     @object.respond_to?(:new)
     @object.log.should include("IS_INSTANTIABLE")
+  end
+
+  it "#respond_to?(:size) sends HAS_SIZE" do
+    @object.respond_to?(:size)
+    @object.log.should include("HAS_SIZE")
+  end
+
+  it "#respond_to?(:keys) sends HAS_KEYS" do
+    @object.respond_to?(:keys)
+    @object.log.should include("HAS_KEYS")
+  end
+
+  it "#respond_to?(:call) sends IS_EXECUTABLE" do
+    @object.respond_to?(:call)
+    @object.log.should include("IS_EXECUTABLE")
   end
 
   it "#__send__ can call special forms like outgoing #inspect" do

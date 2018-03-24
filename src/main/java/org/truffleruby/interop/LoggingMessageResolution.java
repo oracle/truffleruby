@@ -145,9 +145,9 @@ public class LoggingMessageResolution {
     public static abstract class ForeignRemoveNode extends Node {
 
         @TruffleBoundary
-        protected Object access(LoggingForeignObject log, Object name) {
+        protected boolean access(LoggingForeignObject log, Object name) {
             log.log("REMOVE(%s)", name);
-            return log;
+            return false;
         }
 
     }
