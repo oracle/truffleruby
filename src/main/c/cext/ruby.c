@@ -893,7 +893,7 @@ int rb_integer_pack(VALUE value, void *words, size_t numwords, size_t wordsize, 
 
   buf = (uint8_t *)words;
   for (i = 0; i < numwords * wordsize; i++) {
-    buf[i] = (uint8_t)truffle_read_idx_i(bytes, i);
+    buf[i] = (uint8_t) polyglot_as_i32(polyglot_get_array_element(bytes, i));
   }
   return result;
 }
@@ -1616,7 +1616,7 @@ int RARRAY_LENINT(VALUE array) {
 }
 
 VALUE RARRAY_AREF(VALUE array, long index) {
-  return truffle_read_idx(array, (int) index);
+  return polyglot_get_array_element(array, (int) index);
 }
 
 VALUE rb_Array(VALUE array) {
@@ -1665,7 +1665,7 @@ void rb_ary_store(VALUE array, long index, VALUE value) {
 }
 
 VALUE rb_ary_entry(VALUE array, long index) {
-  return truffle_read_idx(array, (int) index);
+  return polyglot_get_array_element(array, (int) index);
 }
 
 VALUE rb_ary_each(VALUE array) {
@@ -2198,8 +2198,8 @@ void rb_exc_raise(VALUE exception) {
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status) {
   VALUE ary = truffle_invoke(RUBY_CEXT, "rb_protect_with_block",
                              (void (*)(void *)) function, data, rb_block_proc());
-  *status = NUM2INT(truffle_read_idx(ary, 1));
-  return truffle_read_idx(ary, 0);
+  *status = NUM2INT(polyglot_get_array_element(ary, 1));
+  return polyglot_get_array_element(ary, 0);
 }
 
 void rb_jump_tag(int status) {
