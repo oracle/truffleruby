@@ -388,10 +388,26 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println("  -Xoptions       print available TruffleRuby options");
         out.println("  -Xname=value    set a TruffleRuby option (omit value to set to true)");
 
+        out.println("GraalVM related switches:");
+        out.println("  --version:graalvm        print versions of GraalVM languages and tools");
+        out.println("  --show-version:graalvm   print versions of GraalVM languages and tools and continue executing");
+        if (!isAOT() || IN_GRAALVM) {
+            out.println("  --polyglot               use multiple languages");
+        }
+        out.println("  --help:languages         print options of available languages");
+        out.println("  --help:tools             print options of available tools");
+        out.println("  --help:expert");
+
         if (isAOT()) {
             out.println("Native switches:");
             out.println("  --native.XX:arg       pass arg to the SVM");
             out.println("  --native.Dname=value  set a system property");
+            if (IN_GRAALVM) {
+                out.println("Switch to JVM:");
+                out.println("  --jvm                               use JVM");
+                out.println("  --jvm.arg,         -J-arg           pass arg to the JVM");
+                out.println("  --jvm.Dname=value, -J-Dname=value   set a system property");
+            }
         } else {
             out.println("JVM switches:");
             out.println("  --jvm.arg,         -J-arg           pass arg to the JVM");
