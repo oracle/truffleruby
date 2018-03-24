@@ -74,7 +74,7 @@ mkconfig.merge!(common)
 mkconfig['COMPILE_C']   = "ruby #{cext_dir}/preprocess.rb $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@"
 mkconfig['COMPILE_CXX'] = "ruby #{cext_dir}/preprocess.rb $< | $(CXX) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ - -o $@ && #{opt} #{opt_passes} $@ -o $@"
 mkconfig['LINK_SO']     = "#{RbConfig.ruby} -Xgraal.warn_unless=false #{cext_dir}/linker.rb -o $@ $(OBJS) $(LIBS)"
-mkconfig['TRY_LINK']    = "#{cc} -o conftest $(CPPFLAGS) #{cext_dir}/ruby.bc #{cext_dir}/trufflemock.bc $(src) $(INCFLAGS) #{linkflags} $(LIBS)"
+mkconfig['TRY_LINK']    = "#{cc} -o conftest $(CPPFLAGS) #{cext_dir}/ruby.bc #{cext_dir}/sulongmock.bc $(src) $(INCFLAGS) #{linkflags} $(LIBS)"
 
 %w[COMPILE_C COMPILE_CXX LINK_SO TRY_LINK].each do |key|
   expanded[key] = mkconfig[key].gsub(/\$\((\w+)\)/) { expanded.fetch($1, $&) }

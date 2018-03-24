@@ -10,7 +10,7 @@ CEXTS_DIR := $(ROOT)/lib/mri
 RUBY := $(ROOT)/bin/truffleruby -Xgraal.warn_unless=false
 
 TRUFFLE_POSIX := $(ROOT)/lib/cext/truffleposix.$(DLEXT)
-TRUFFLE_MOCK := $(ROOT)/lib/cext/trufflemock.bc
+TRUFFLE_MOCK := $(ROOT)/lib/cext/sulongmock.bc
 RUBY_LIBRARY := $(ROOT)/lib/cext/ruby.su
 
 RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/*.h) $(wildcard $(ROOT)/lib/cext/ruby/*.h)
@@ -40,8 +40,8 @@ clean_truffleposix:
 	rm -f truffleposix/*.o truffleposix/truffleposix.$(DLEXT)
 
 clean_cexts:
-	rm -f trufflemock/Makefile trufflemock/*.bc trufflemock/trufflemock.su
-	rm -f $(ROOT)/lib/cext/trufflemock.bc
+	rm -f sulongmock/Makefile sulongmock/*.bc sulongmock/sulongmock.su
+	rm -f $(ROOT)/lib/cext/sulongmock.bc
 	rm -f $(RUBY_LIBRARY)
 	rm -f $(ROOT)/lib/cext/ruby.bc
 	rm -f cext/Makefile cext/*.bc cext/ruby.su
@@ -59,14 +59,14 @@ truffleposix/truffleposix.$(DLEXT): truffleposix/Makefile truffleposix/trufflepo
 $(TRUFFLE_POSIX): truffleposix/truffleposix.$(DLEXT)
 	cp $< $@
 
-# trufflemock.bc
-trufflemock/Makefile: trufflemock/extconf.rb $(BASIC_EXTCONF_DEPS)
-	cd trufflemock && $(RUBY) extconf.rb
+# sulongmock.bc
+sulongmock/Makefile: sulongmock/extconf.rb $(BASIC_EXTCONF_DEPS)
+	cd sulongmock && $(RUBY) extconf.rb
 
-trufflemock/trufflemock.bc: trufflemock/Makefile trufflemock/trufflemock.c
-	cd trufflemock && $(MAKE)
+sulongmock/sulongmock.bc: sulongmock/Makefile sulongmock/sulongmock.c
+	cd sulongmock && $(MAKE)
 
-$(ROOT)/lib/cext/trufflemock.bc: trufflemock/trufflemock.bc
+$(ROOT)/lib/cext/sulongmock.bc: sulongmock/sulongmock.bc
 	cp $< $@
 
 # ruby.su
