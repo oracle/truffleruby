@@ -138,7 +138,9 @@ Also see the separate document on
 
 ## Strings
 
-XXXXX
+Ruby strings and symbols are converted to Java strings when they are passed to
+foreign languages, and Java strings are converted to Ruby strings when they
+are passed into Ruby.
 
 ## Threading and interop
 
