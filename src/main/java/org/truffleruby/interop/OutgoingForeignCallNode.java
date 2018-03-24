@@ -12,6 +12,7 @@ package org.truffleruby.interop;
 import java.util.Arrays;
 
 import com.oracle.truffle.api.interop.java.JavaInterop;
+import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Log;
 import org.truffleruby.core.rope.CodeRange;
@@ -114,6 +115,24 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             return new IsNilOutgoingNode();
         } else if (name.equals("equal?") && argsLength == 1) {
             return new IsReferenceEqualOutgoingNode();
+        } else if (name.equals("delete")
+                || name.equals("size")
+                || name.equals("keys")) {
+            final int expectedArgsLength;
+
+            switch (name) {
+                case "delete":
+                    expectedArgsLength = 1;
+                    break;
+                case "size":
+                case "keys":
+                    expectedArgsLength = 0;
+                    break;
+                default:
+                    throw new UnsupportedOperationException();
+            }
+
+            return new SpecialFormOutgoingNode(getContext().getSymbolTable().getSymbol(name), expectedArgsLength);
         } else {
             return new InvokeOutgoingNode(name, argsLength);
         }
@@ -326,6 +345,35 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             }
 
             return callRespondTo.call(frame, coreLibrary().getTruffleInteropModule(), "respond_to?", receiver, args[0]);
+        }
+
+    }
+
+    protected class SpecialFormOutgoingNode extends OutgoingNode {
+
+        private final DynamicObject name;
+        private final int argsLength;
+
+        @Child private CallDispatchHeadNode callRespondTo = CallDispatchHeadNode.create();
+
+        public SpecialFormOutgoingNode(DynamicObject name, int argsLength) {
+            this.name = name;
+            this.argsLength = argsLength;
+        }
+
+        @Override
+        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+            if (args.length != argsLength) {
+                CompilerDirectives.transferToInterpreter();
+                throw new RaiseException(getContext().getCoreExceptions().argumentError(args.length, 1, this));
+            }
+
+            final Object[] prependedArgs = new Object[args.length + 2];
+            prependedArgs[0] = receiver;
+            prependedArgs[1] = name;
+            System.arraycopy(args, 0, prependedArgs, 2, args.length);
+
+            return callRespondTo.call(frame, coreLibrary().getTruffleInteropModule(), "special_form", prependedArgs);
         }
 
     }

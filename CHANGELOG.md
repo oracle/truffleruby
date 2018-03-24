@@ -16,6 +16,10 @@ New features:
 * `equal?` on foreign objects will check if the underlying objects are equal
   if both are Java interop objects.
 
+* `remove` on foreign objects will send `REMOVE`, `size` will send `GET_SIZE`,
+  and `keys` will send `KEYS`. `respond_to?(:size)` will send `HAS_SIZE`,
+  `respond_to?(:keys)` will send `HAS_KEYS`.
+
 * Added a new Java-interop API similar to the one in the Nashorn JavaScript
   implementation, as also implemented by Graal.js. Includes
   `Truffle::Interop.java_type` and other methods. Needs the `--jvm` flag to be
