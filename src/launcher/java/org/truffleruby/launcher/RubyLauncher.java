@@ -224,6 +224,11 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         printHelp(System.out);
     }
 
+    @Override
+    protected AbortException abortUnrecognizedArgument(String argument) {
+        throw abortInvalidArgument(argument, "truffleruby: invalid option " + argument + "  (Use --help for usage instructions.");
+    }
+
     private static int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {
         if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.NONE) {
             return 0;
