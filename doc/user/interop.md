@@ -360,24 +360,24 @@ Not supported.
 
 ## What messages are sent for Ruby syntax on foreign objects
 
-`object[name]` (`#[](name)`) sends `READ`
+TruffleRuby automatically provides these special methods on a foreign object.
+They have priority over methods that the foreign object actually provides.
 
-`object[name] = value` (`#[]=(name, value)`) sends `WRITE`
+`object[name]` (`#[](name)`) sends `READ`.
 
-`object.call(*args)` sends `EXECUTE`
+`object[name] = value` (`#[]=(name, value)`) sends `WRITE`.
 
-`object.nil?` sends `IS_NIL`
+`object.call(*args)` sends `EXECUTE`.
 
-`object.name` sends `INVOKE`
+`object.nil?` sends `IS_NIL`.
 
-`object.name(*args)` sends `INVOKE`
+`object.name` sends `INVOKE`.
 
-`object.new(*args)` sends `NEW`
+`object.name(*args)` sends `INVOKE`.
 
-`object.respond_to?` calls `Truffle::Interop.respond_to?(object, message)`,
-which supports `to_a`, `to_ary`, `new`, returning `false` for everything else.
+`object.new(*args)` sends `NEW`.
 
-`object.to_a` and `object.to_ary` calls `Truffle::Interop.to_array(object)`
+`object.to_a` and `object.to_ary` calls `Truffle::Interop.to_array(object)`.
 
 `object.equal?(other)` returns whether `object` is the same as `other` using
 reference equality, like `BasicObject#equal?`. For Java interop objects it
@@ -386,8 +386,14 @@ looks at the underlying Java object.
 `object.inspect` produces a simple string of the format
 `#<Truffle::Interop::Foreign:system-identity-hash-code>`
 
-`object.__send__(name, *args)` works in the same way as literal method call on the
-foreign object, including allowing the special-forms listed above (see
+`object.respond_to?(:to_a)` and `:to_ary` sends `HAS_SIZE`.
+
+`object.respond_to?(:new)` sends `IS_INSTANTIABLE`.
+
+`object.respond_to?(name)` for other names returns false.
+
+`object.__send__(name, *args)` works in the same way as literal method call on
+the foreign object, including allowing the special-forms listed above (see
 [notes on method resolution](#notes-on-method-resolution)).
 
 ## String conversion
@@ -474,10 +480,6 @@ from the Ruby array.
 
 `Truffle::Interop.to_array(object)` converts to a Ruby array by calling
 `GET_SIZE` and sending `READ` for each index from zero to the size.
-
-`Truffle::Interop.respond_to?(object, name)` sends `HAS_SIZE` for `to_a` or
-`to_ary`, or `false` otherwise. Note that this means that many interop objects
-may have methods you can call that they do not report to respond to.
 
 `Truffle::Interop.meta_object(object)` returns the Truffle meta-object that
 describes the object (unrelated to the metaclass).
