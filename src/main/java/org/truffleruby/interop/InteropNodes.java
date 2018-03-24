@@ -1049,4 +1049,15 @@ public abstract class InteropNodes {
 
     }
 
+    @CoreMethod(names = "logging_foreign_object", onSingleton = true)
+    public abstract static class LoggingForeignObjectNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public TruffleObject loggingForeignObject() {
+            return new LoggingForeignObject();
+        }
+
+    }
+
 }
