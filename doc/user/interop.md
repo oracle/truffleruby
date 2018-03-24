@@ -393,7 +393,7 @@ looks at the underlying Java object.
 
 `object.respond_to?(:new)` sends `IS_INSTANTIABLE`.
 
-`object.respond_to?(name)` for other names returns false.
+`object.respond_to?(name)` for other names returns `false`.
 
 `object.__send__(name, *args)` works in the same way as literal method call on
 the foreign object, including allowing the special-forms listed above (see
