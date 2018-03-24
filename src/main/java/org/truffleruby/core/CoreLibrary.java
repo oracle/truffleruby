@@ -540,6 +540,7 @@ public class CoreLibrary {
         handleClass = defineClass(truffleModule, objectClass, "Handle");
         handleFactory = Layouts.HANDLE.createHandleShape(handleClass, handleClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(handleClass, handleFactory);
+        defineModule("Polyglot");
 
         bigDecimalClass = defineClass(truffleModule, numericClass, "BigDecimal");
         Layouts.CLASS.setInstanceFactoryUnsafe(bigDecimalClass, Layouts.BIG_DECIMAL.createBigDecimalShape(bigDecimalClass, bigDecimalClass));
@@ -1467,6 +1468,7 @@ public class CoreLibrary {
             "/core/method.rb",
             "/core/unbound_method.rb",
             "/core/truffle/interop.rb",
+            "/core/truffle/polyglot.rb",
             "/core/posix.rb",
             "/core/main.rb",
             "/core/post.rb"
