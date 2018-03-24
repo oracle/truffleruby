@@ -40,12 +40,13 @@ In practice this implies that the SubstrateVM is being used.
 
 ## Polyglot programming
 
-The `Polyglot` modules provides access to the polyglot programming
-functionality of GraalVM. It is [described in a separate document](polyglot.md).
+The `Polyglot` and `Java` modules provides access to the polyglot programming
+functionality of GraalVM. They are [described in a separate document](polyglot.md).
 
 ## Unsupported additional functionality
 
-You may be able to find some other modules and methods not listed here, such as
-`Truffle::POSIX`, which are designed to support the implementation of
-TruffleRuby and should not be used. They may modified or made not visible to
-user programs in the future, and you should not use them.
+You may be able to find some other modules and methods not listed here that look
+interesting, such as `Truffle::POSIX`. Additional modules and methods not listed
+in this document are designed to support the implementation of TruffleRuby and
+should not be used. They may modified or made not visible to user programs in
+the future, and you should not use them.
