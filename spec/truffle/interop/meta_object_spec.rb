@@ -11,21 +11,21 @@ require_relative '../../ruby/spec_helper'
 describe "Truffle::Interop.meta_object" do
   
   it "has a type property" do
-    Truffle::Interop.meta_object(14).type.should == "Fixnum"
-    Truffle::Interop.meta_object(Object.new).type.should == "Object"
-    Truffle::Interop.meta_object({}).type.should == "Hash"
+    Truffle::Interop.meta_object(14)[:type].should == "Fixnum"
+    Truffle::Interop.meta_object(Object.new)[:type].should == "Object"
+    Truffle::Interop.meta_object({})[:type].should == "Hash"
   end
   
   it "has a className property" do
-    Truffle::Interop.meta_object(14).className.should == "Fixnum"
-    Truffle::Interop.meta_object(Object.new).className.should == "Object"
-    Truffle::Interop.meta_object({}).className.should == "Hash"
+    Truffle::Interop.meta_object(14)[:className].should == "Fixnum"
+    Truffle::Interop.meta_object(Object.new)[:className].should == "Object"
+    Truffle::Interop.meta_object({})[:className].should == "Hash"
   end
   
   it "has a description property" do
-    Truffle::Interop.meta_object(14).description.should == "14"
-    Truffle::Interop.meta_object(Object.new).description.should =~ /#<Object:0x\h+>/
-    Truffle::Interop.meta_object({}).description.should == "{}"
+    Truffle::Interop.meta_object(14)[:description].should == "14"
+    Truffle::Interop.meta_object(Object.new)[:description].should =~ /#<Object:0x\h+>/
+    Truffle::Interop.meta_object({})[:description].should == "{}"
   end
   
 end

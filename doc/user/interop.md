@@ -299,6 +299,8 @@ Not supported.
 
 ### `INVOKE`
 
+`object.name`
+
 `object.name(*args)`
 
 ### `IS_INSTANTIABLE`

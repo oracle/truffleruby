@@ -63,19 +63,19 @@ export def evaluate_source(mime, source)
 end
 
 export def complex_add(a, b)
-  a.imaginary = a.imaginary + b.imaginary
-  a.real = a.real + b.real
+  a[:imaginary] = a[:imaginary] + b[:imaginary]
+  a[:real] = a[:real] + b[:real]
 end
 
 export def complex_add_with_method(a, b)
-  a.imaginary = a.imaginary + b.imaginary
-  a.real = a.real + b.real
+  a[:imaginary] = a[:imaginary] + b[:imaginary]
+  a[:real] = a[:real] + b[:real]
 end
 
 export def complex_sum_real(complexes)
   complexes = Truffle::Interop.enumerable(complexes)
 
-  complexes.map{ |c| c.real }.inject(&:+)
+  complexes.map{ |c| c[:real] }.inject(&:+)
 end
 
 export def complex_copy(a, b)
@@ -89,8 +89,8 @@ export def complex_copy(a, b)
   b = b.to_a
 
   a.zip(b).each do |x, y|
-    x.imaginary = y.imaginary
-    x.real = y.real
+    x[:imaginary] = y[:imaginary]
+    x[:real] = y[:real]
   end
 end
 
@@ -159,7 +159,7 @@ export def call_method(object)
 end
 
 export def read_value_from_foreign(object)
-  object.value
+  object[:value]
 end
 
 export def read_element_from_foreign(object)
@@ -167,7 +167,7 @@ export def read_element_from_foreign(object)
 end
 
 export def write_value_to_foreign(object)
-  object.value = 42.0
+  object[:value] = 42.0
 end
 
 export def write_element_to_foreign(object)
