@@ -20,9 +20,9 @@ In Ruby code, you can look at the standard `RUBY_ENGINE` constant, which will be
 `'truffleruby'`.
 
 It is also possible to use feature-detection instead of looking at
-`RUBY_ENGINE`. For example if you are writing an application that needs
-JavaScript interoperability you could test for `defined?(Truffle::Interop) &&
-Truffle::Interop.mime_type_supported?('application/javascript')`.
+`RUBY_ENGINE`. For example if you are writing an application that uses
+TruffleRuby's polyglot programming functionality you could test for
+`defined?(Polyglot)`.
 
 TruffleRuby is an integral part of GraalVM, so the version number of TruffleRuby
 is always the same as the version of GraalVM that contains it. If you are using
@@ -38,10 +38,10 @@ used.
 `Truffle.native?` reports if TruffleRuby has been ahead-of-time compiled.
 In practice this implies that the SubstrateVM is being used.
 
-## Polyglot interoperability
+## Polyglot programming
 
-The `Truffle::Interop` modules provides access to the interopability
-functionality of GraalVM. It is [described in a separate document](interop.md).
+The `Polyglot` modules provides access to the polyglot programming
+functionality of GraalVM. It is [described in a separate document](polyglot.md).
 
 ## Unsupported additional functionality
 

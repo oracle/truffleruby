@@ -10,6 +10,11 @@ New features:
 * The default VM is changed to SubstrateVM, where the startup is significantly 
   better. Use `--jvm` option for full JVM VM.
   
+* The `Truffle::Interop` module has been replaced with a new `Polyglot` module
+  which is designed to use more iditiomatic Ruby syntax rather than explicit
+  methods. A [new document](doc/user/polyglot.md) describes polyglot programming
+  at a higher level.
+  
 * The `REMOVABLE`, `MODIFIABLE` and `INSERTABLE` Truffle interop key info flags
   have been implemented.
 
@@ -21,9 +26,9 @@ New features:
   `respond_to?(:keys)` will send `HAS_KEYS`.
 
 * Added a new Java-interop API similar to the one in the Nashorn JavaScript
-  implementation, as also implemented by Graal.js. Includes
-  `Truffle::Interop.java_type` and other methods. Needs the `--jvm` flag to be
-  used.
+  implementation, as also implemented by Graal.js. The `Java.type` method
+  returns a Java class object on which you can use normal interop methods. Needs
+  the `--jvm` flag to be used.
 
 * Supported and tested versions of LLVM for different platforms have been more
   precisely [documented](doc/user/installing-llvm.md).
@@ -47,7 +52,7 @@ Performance:
 
 Bug fixes:
 
-* `Truffle::Interop.key_info` works with non-string-like names.
+* Interop key-info works with non-string-like names.
 
 Internal changes:
 

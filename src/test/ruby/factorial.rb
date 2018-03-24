@@ -23,4 +23,5 @@ def main
   res = fac(2)
   res
 end
-Truffle::Interop.export_method(:main)
+
+Polyglot.export_method :main

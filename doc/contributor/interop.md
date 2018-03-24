@@ -1,15 +1,17 @@
 # Truffle Interop
 
-TruffleRuby supports standard Truffle interop messages. This document explains
-what it does when it receives them, how to get it to explicitly send them, how
-to get it to send them using more idiomatic Ruby, and how what messages it sends
-for normal Ruby operations on foreign objects.
-
-Interop ignores visibility entirely.
+TruffleRuby supports standard Truffle API interop messages. This document
+explains what it does when it receives them, how to get it to explicitly send
+them, how to get it to send them using more idiomatic Ruby, and how what
+messages it sends for normal Ruby operations on foreign objects.
 
 This document only explains how TruffleRuby uses messages. The messages
 themselves are explained in the
 [Truffle JavaDoc](http://www.graalvm.org/truffle/javadoc/com/oracle/truffle/api/interop/Message.html).
+
+There is a separate document aimed at people using interop to write
+[polyglot programs](../user/polyglot.md). This document gives more internal
+details.
 
 * [How Ruby responds to messages](#how-ruby-responds-to-messages)
 * [How to explicitly send messages from Ruby](#how-to-explicitly-send-messages-from-ruby)
@@ -21,11 +23,9 @@ themselves are explained in the
 * [Java interop](#java-interop)
 * [Additional methods](#additional-methods)
 * [Notes on method resolution](#notes-on-method-resolution)
-* [Notes on objects for interop](#notes-on-objects-for-interop)
-* [Threading and interop](#threading-and-interop)
-* [Embedded configuration](#embedded-configuration)
 
-Also see the separate document on [JRuby-compatible Java interop](jruby-java-interop.md).
+Also see the separate document on
+[JRuby-compatible Java interop](../user/jruby-java-interop.md).
 
 ## How Ruby responds to messages
 
@@ -453,10 +453,6 @@ language MIME type.
 
 ## Java interop
 
-TruffleRuby's Java interop interface is similar to the interface from the
-Nashorn JavaScript implementation, as also implemented by Graal.js. It's only
-available in JVM mode (`--jvm`).
-
 `Truffle::Interop.java_type(name)` returns a Java class object, given a name
 such as `java.lang.Integer` or `int[]`.
 
@@ -467,8 +463,6 @@ Java class object, or `nil` if the object is not a Java class object.
 
 `Truffle::Interop.from_java_array(array)` creates a shallow copy of a Java
 array as a Ruby array.
-
-Also see the separate document on [JRuby-compatible Java interop](jruby-java-interop.md).
 
 ## Additional methods
 
@@ -510,40 +504,4 @@ may expect. This means that for example `#method` isn't available, and you can't
 use it to get the method for `#to_a` on a foreign object, as it is a
 special-form, not a method.
 
-# Notes on objects for interop
-
-If you want to pass a Ruby object to another language for fields to be read and
-written, a good object to pass is usually a `Struct`, as this will have both the
-`.foo` and `.foo =` accessors for you to use from Ruby, and they will also
-respond to `.['foo']` and `.['foo'] =` which means they will work from other
-languages sending read and write messages.
-
-## Threading and interop
-
-Ruby is designed to be a multi-threaded language and much of the ecosystem
-expects threads to be available. This may be incompatible with other Truffle
-languages which do not support threading, so you can disable the creation of
-multiple threads with the option `-Xsingle_threaded`. This option is set by
-default unless the Ruby launcher is used.
-
-It's separate from normal Ruby options and the
-[embedded configuration](#embedded-configuration) due technical details in the
-design of the Graal SDK.
-
-When this option is enabled, the `timeout` module will warn that the timeouts
-are being ignored, and signal handlers will warn that a signal has been caught
-but will not run the handler, as both of these features would require starting
-new threads.
-
-## Embedded configuration
-
-When used outside of the Ruby launcher, such as from another language's launcher
-via interop, embedded using the native polyglot library, or embedded via the
-Graal SDK, TruffleRuby will be automatically configured to work more
-cooperatively within another application. This includes options such as not
-installing an interrupt signal handler, and using the IO streams from the Graal
-SDK.
-
-This can be turned off even when embedded, with the `embedded` option
-(`--ruby.embedded=false` from another launcher, or
-`-Dpolyglot.ruby.embedded=false` from a normal Java application).
+Interop ignores visibility entirely.

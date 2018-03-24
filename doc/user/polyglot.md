@@ -1,6 +1,31 @@
 # Polyglot Programming
 
-## Evaluating code in foreign languages
+TruffleRuby allows you to interface with any other Truffle language to create
+polyglot programs -- programs written in more than one language.
+
+This document describes how to load code written in foreign languages, how to
+export and import objects between languages, how to use Ruby objects from
+a foreign language, how to use foreign objects from Ruby, and how to load
+Java types to interface with Java.
+
+There is also [additional documentation](../contributor/interop.md) that
+describes in more depth how polyglot programming in TruffleRuby is implemented
+using the Truffle interop API, and exactly how Ruby is matched to this API.
+
+* [Loading code written in foreign languages](#loading-code-written-in-foreign-languages)
+* [Exporting Ruby objects to foreign languages](#exporting-ruby-objects-to-foreign-languages)
+* [Importing foreign objects to Ruby](#importing-foreign-objects-to-ruby)
+* [Using Ruby objects from a foreign language](#using-ruby-objects-from-a-foreign-language)
+* [Using foreign objects from Ruby](#using-foreign-objects-from-ruby)
+* [Accessing Java objects](#accessing-java-objects)
+* [Strings](#strings)
+* [Threading and interop](#threading-and-interop)
+* [Embedded configuration](#embedded-configuration)
+
+Also see the separate document on
+[JRuby-compatible Java interop](jruby-java-interop.md).
+
+## Loading code written in foreign languages
 
 `Polyglot.eval(id, string)` executes code in a foreign language identified by
 its ID.
@@ -25,7 +50,7 @@ object.
 `Polyglot.import_method(name)` imports a method with a given name, and defines
 it in the top-level object.
 
-## Using Ruby objects a foreign language
+## Using Ruby objects from a foreign language
 
 Using JavaScript as an example.
 
@@ -54,6 +79,14 @@ Using JavaScript as an example.
 `"length" in obj` tells you if a Ruby object responds to `size`.
 
 `obj == null` calls `nil?` on the Ruby object.
+
+### Notes on creating Ruby objects for use in foreign languages
+
+If you want to pass a Ruby object to another language for fields to be read and
+written, a good object to pass is usually a `Struct`, as this will have both the
+`.foo` and `.foo =` accessors for you to use from Ruby, and they will also
+respond to `.['foo']` and `.['foo'] =` which means they will work from other
+languages sending read and write messages.
 
 ## Using foreign objects from Ruby
 
@@ -93,5 +126,46 @@ foreign object, using its size or length and reading from it.
 
 ## Accessing Java objects
 
+TruffleRuby's Java interop interface is similar to the interface from the
+Nashorn JavaScript implementation, as also implemented by Graal.js. It's only
+available in JVM mode (`--jvm`).
+
 `Java.type(name)` returns a Java class object, given a name such as
 `java.lang.Integer` or `int[]`.
+
+Also see the separate document on
+[JRuby-compatible Java interop](jruby-java-interop.md).
+
+## Strings
+
+XXXXX
+
+## Threading and interop
+
+Ruby is designed to be a multi-threaded language and much of the ecosystem
+expects threads to be available. This may be incompatible with other Truffle
+languages which do not support threading, so you can disable the creation of
+multiple threads with the option `-Xsingle_threaded`. This option is set by
+default unless the Ruby launcher is used.
+
+It's separate from normal Ruby options and the
+[embedded configuration](#embedded-configuration) due technical details in the
+design of the Graal SDK.
+
+When this option is enabled, the `timeout` module will warn that the timeouts
+are being ignored, and signal handlers will warn that a signal has been caught
+but will not run the handler, as both of these features would require starting
+new threads.
+
+## Embedded configuration
+
+When used outside of the Ruby launcher, such as from another language's launcher
+via interop, embedded using the native polyglot library, or embedded via the
+Graal SDK, TruffleRuby will be automatically configured to work more
+cooperatively within another application. This includes options such as not
+installing an interrupt signal handler, and using the IO streams from the Graal
+SDK.
+
+This can be turned off even when embedded, with the `embedded` option
+(`--ruby.embedded=false` from another launcher, or
+`-Dpolyglot.ruby.embedded=false` from a normal Java application).
