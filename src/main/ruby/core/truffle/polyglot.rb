@@ -29,3 +29,11 @@ module Polyglot
   end
 
 end
+
+module Java
+
+  def self.type(name)
+    Truffle::Interop.java_type(name)
+  end
+
+end

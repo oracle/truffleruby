@@ -90,3 +90,8 @@ list of members.
 
 `Polyglot.as_enumerable(object)` will create a Ruby `Enumerable` from the
 foreign object, using its size or length and reading from it.
+
+## Accessing Java objects
+
+`Java.type(name)` returns a Java class object, given a name such as
+`java.lang.Integer` or `int[]`.
