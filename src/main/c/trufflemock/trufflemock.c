@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -17,6 +17,50 @@
 void rb_tr_mock() {
   fprintf(stderr, "Warning: Mock method called in trufflemock\n");
   abort();
+}
+
+void truffle_load_library(const char *string) {
+  rb_tr_mock();
+}
+
+void *truffle_virtual_malloc(size_t size) {
+  rb_tr_mock();
+  return 0;
+}
+
+void *truffle_managed_malloc(long size) {
+  rb_tr_mock();
+  return 0;
+}
+
+void *truffle_managed_memcpy(void *destination, const void *source, size_t count) {
+  rb_tr_mock();
+  return 0;
+}
+
+void *truffle_handle_for_managed(void *managedObject) {
+  rb_tr_mock();
+  return 0;
+}
+
+void *truffle_release_handle(void *nativeHandle) {
+  rb_tr_mock();
+  return 0;
+}
+
+void *truffle_managed_from_handle(void *nativeHandle) {
+  rb_tr_mock();
+  return 0;
+}
+
+bool truffle_is_handle_to_managed(void *nativeHandle) {
+  rb_tr_mock();
+  return false;
+}
+
+void *truffle_assign_managed(void *dst, void *managed) {
+  rb_tr_mock();
+  return 0;
 }
 
 void *truffle_import(const char *name) {
@@ -134,7 +178,7 @@ bool truffle_invoke_b(void *object, const char *name, ...) {
   return false;
 }
 
-int truffle_get_size(void *object) {
+int truffle_get_size(const void *object) {
   rb_tr_mock();
   return 0;
 }
@@ -324,43 +368,9 @@ void truffle_free_cstr(const char *truffle_allocated_cstr) {
   rb_tr_mock();
 }
 
-void *truffle_virtual_malloc(size_t size) {
-  rb_tr_mock();
-  return 0;
-}
-
-void *truffle_managed_malloc(long size) {
-  rb_tr_mock();
-  return 0;
-}
-
-void *truffle_managed_memcpy(void *destination, const void *source, size_t count) {
-  rb_tr_mock();
-  return 0;
-}
-
-void *truffle_handle_for_managed(void *managedObject) {
-  rb_tr_mock();
-  return 0;
-}
-
-void *truffle_release_handle(void *nativeHandle) {
-  rb_tr_mock();
-  return 0;
-}
-
-void *truffle_managed_from_handle(void *nativeHandle) {
-  rb_tr_mock();
-  return 0;
-}
-
 void *truffle_sulong_function_to_native_pointer(void *sulongFunctionPointer, const void *signature) {
   rb_tr_mock();
   return 0;
-}
-
-void truffle_load_library(const char *string) {
-  rb_tr_mock();
 }
 
 void *truffle_polyglot_eval(const char *mimeType, const char *code) {

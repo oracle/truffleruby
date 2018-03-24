@@ -23,7 +23,7 @@ methods = []
 
 lines = IO.readlines("lib/cext/truffle.h")
 lines.each do |l|
-   match = !l.start_with?('//') && /^(.+?)\btruffle(.+)\)(?=;$)/.match(l)
+   match = !l.start_with?('//') && /^(.+?)\btruffle(.+)\)(?=;)/.match(l)
    if match
      ret = types.fetch(match[1].gsub(' ', '')) { |t| raise "unknown type: `#{t}` for line `#{l}`" }
      methods << {:met => match[0], :ret => ret}
@@ -32,7 +32,7 @@ end
 
 File.write('src/main/c/trufflemock/trufflemock.c', ERB.new(<<TRC).result)
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
