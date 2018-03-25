@@ -143,6 +143,7 @@ import org.truffleruby.gem.bcrypt.BCryptNodesFactory;
 import org.truffleruby.interop.InteropNodesBuiltins;
 import org.truffleruby.interop.InteropNodesFactory;
 import org.truffleruby.interop.PolyglotNodesBuiltins;
+import org.truffleruby.interop.PolyglotNodesFactory;
 import org.truffleruby.interop.java.JavaUtilitiesNodesBuiltins;
 import org.truffleruby.interop.java.JavaUtilitiesNodesFactory;
 import org.truffleruby.language.RubyNode;
@@ -295,6 +296,7 @@ public abstract class BuiltinsClasses {
             ObjectSpaceNodesFactory.getFactories(),
             ObjSpaceNodesFactory.getFactories(),
             PointerNodesFactory.getFactories(),
+            PolyglotNodesFactory.getFactories(),
             ProcessNodesFactory.getFactories(),
             ProcNodesFactory.getFactories(),
             PsychEmitterNodesFactory.getFactories(),
