@@ -2450,51 +2450,84 @@ public class BodyTranslator extends Translator {
          * visitOpAsgnNode.
          */
 
-        final ParseNode readArgs = node.getArgsNode();
-        final ParseNode operand = node.getValueNode();
+        final String tempName = environment.allocateLocalTemp("opelementassign");
 
-        final String temp = environment.allocateLocalTemp("opelementassign");
-        final ParseNode writeArrayToTemp = new LocalAsgnParseNode(node.getPosition(), temp, 0, node.getReceiverNode());
-        final ParseNode readArrayFromTemp = new LocalVarParseNode(node.getPosition(), 0, temp);
-
-        final ParseNode arrayRead = new CallParseNode(node.getPosition(), readArrayFromTemp, "[]", readArgs, null);
+        final ParseNode value = node.getValueNode();
+        final ParseNode readReceiverFromTemp = new LocalVarParseNode(node.getPosition(), 0, tempName);
+        final ParseNode writeReceiverToTemp = new LocalAsgnParseNode(node.getPosition(), tempName, 0, node.getReceiverNode());
 
         final String op = node.getOperatorName();
+        final boolean logicalOperation = op.equals("&&") || op.equals("||");
 
-        ParseNode operation = null;
+        if (logicalOperation) {
+            final ParseNode write = write(node, readReceiverFromTemp, value);
+            final ParseNode operation = operation(node, readReceiverFromTemp, op, write);
 
+            return block(node, writeReceiverToTemp, operation);
+        } else {
+            final ParseNode operation = operation(node, readReceiverFromTemp, op, value);
+            final ParseNode write = write(node, readReceiverFromTemp, operation);
+
+            return block(node, writeReceiverToTemp, write);
+        }
+    }
+
+    private RubyNode block(OpElementAsgnParseNode node, ParseNode writeReceiverToTemp, ParseNode main) {
+        final BlockParseNode block = new BlockParseNode(node.getPosition());
+        block.add(writeReceiverToTemp);
+        block.add(main);
+
+        final RubyNode ret = block.accept(this);
+        return addNewlineIfNeeded(node, ret);
+    }
+
+    private ParseNode write(
+            OpElementAsgnParseNode node,
+            ParseNode readReceiverFromTemp,
+            ParseNode value) {
+
+        final ParseNode readArguments = node.getArgsNode();
+        final ParseNode writeArguments;
+        // Like ParserSupport#arg_add, but copy the first node
+        if (readArguments instanceof ArrayParseNode) {
+            final ArrayParseNode readArgsCopy = new ArrayParseNode(node.getPosition());
+            readArgsCopy.addAll((ArrayParseNode) readArguments).add(value);
+            writeArguments = readArgsCopy;
+        } else {
+            writeArguments = new ArgsPushParseNode(node.getPosition(), readArguments, value);
+        }
+
+        return new CallParseNode(node.getPosition(), readReceiverFromTemp, "[]=", writeArguments, null);
+    }
+
+    private ParseNode operation(
+            OpElementAsgnParseNode node,
+            ParseNode readReceiverFromTemp,
+            String op,
+            ParseNode right) {
+
+        final ParseNode read = new CallParseNode(
+                node.getPosition(), readReceiverFromTemp, "[]", node.getArgsNode(), null);
+        ParseNode operation;
         switch (op) {
             case "||":
-                operation = new OrParseNode(node.getPosition(), arrayRead, operand);
+                operation = new OrParseNode(node.getPosition(), read, right);
                 break;
             case "&&":
-                operation = new AndParseNode(node.getPosition(), arrayRead, operand);
+                operation = new AndParseNode(node.getPosition(), read, right);
                 break;
             default:
-                operation = new CallParseNode(node.getPosition(), arrayRead, node.getOperatorName(), buildArrayNode(node.getPosition(), operand), null);
+                operation = new CallParseNode(
+                        node.getPosition(),
+                        read,
+                        node.getOperatorName(),
+                        buildArrayNode(node.getPosition(), right),
+                        null);
                 break;
         }
 
         copyNewline(node, operation);
-
-        final ParseNode writeArgs;
-        // Like ParserSupport#arg_add, but copy the first node
-        if (readArgs instanceof ArrayParseNode) {
-            final ArrayParseNode readArgsCopy = new ArrayParseNode(node.getPosition());
-            readArgsCopy.addAll((ArrayParseNode) readArgs).add(operation);
-            writeArgs = readArgsCopy;
-        } else {
-            writeArgs = new ArgsPushParseNode(node.getPosition(), readArgs, operation);
-        }
-
-        final ParseNode arrayWrite = new CallParseNode(node.getPosition(), readArrayFromTemp, "[]=", writeArgs, null);
-
-        final BlockParseNode block = new BlockParseNode(node.getPosition());
-        block.add(writeArrayToTemp);
-        block.add(arrayWrite);
-
-        final RubyNode ret = block.accept(this);
-        return addNewlineIfNeeded(node, ret);
+        return operation;
     }
 
     private static ArrayParseNode buildArrayNode(SourceIndexLength sourcePosition, ParseNode first, ParseNode... rest) {
