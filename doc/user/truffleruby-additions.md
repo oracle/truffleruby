@@ -21,8 +21,8 @@ In Ruby code, you can look at the standard `RUBY_ENGINE` constant, which will be
 
 It is also possible to use feature-detection instead of looking at
 `RUBY_ENGINE`. For example if you are writing an application that uses
-TruffleRuby's polyglot programming functionality you could test for
-`defined?(Polyglot)`.
+TruffleRuby's interoperability with Java you could test for `defined?(Java)`,
+which will be set when in hosted mode on the JVM but not in native mode.
 
 TruffleRuby is an integral part of GraalVM, so the version number of TruffleRuby
 is always the same as the version of GraalVM that contains it. If you are using
@@ -48,5 +48,5 @@ functionality of GraalVM. They are [described in a separate document](polyglot.m
 You may be able to find some other modules and methods not listed here that look
 interesting, such as `Truffle::POSIX`. Additional modules and methods not listed
 in this document are designed to support the implementation of TruffleRuby and
-should not be used. They may modified or made not visible to user programs in
+should not be used. They may be modified or made not visible to user programs in
 the future, and you should not use them.

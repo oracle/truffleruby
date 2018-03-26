@@ -30,10 +30,14 @@ module Polyglot
 
 end
 
-module Java
+unless Truffle.native?
+  
+  module Java
 
-  def self.type(name)
-    Truffle::Interop.java_type(name)
+    def self.type(name)
+      Truffle::Interop.java_type(name)
+    end
+
   end
-
+  
 end

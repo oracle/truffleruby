@@ -8,8 +8,22 @@
 
 require_relative '../../ruby/spec_helper'
 
+guard -> { Truffle.native? } do
+  describe "Java" do
+    
+    it "is not defined" do
+      defined?(Java).should be_nil
+    end
+    
+  end
+end
+
 guard -> { !Truffle.native? } do
   describe "Java" do
+    
+    it "is defined" do
+      defined?(Java).should_not be_nil
+    end
     
     describe ".type" do
 
