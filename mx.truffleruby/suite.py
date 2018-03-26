@@ -7,7 +7,7 @@ suite = {
             {
                 "name": "truffle",
                 "subdir": True,
-                "version": "85309ca494a6a5ec373c230738a8cef332639354",
+                "version": "ac78c6f6119bed0175c07ed732b3e12b689b5d1c",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -16,7 +16,7 @@ suite = {
             {
                 "name": "tools",
                 "subdir": True,
-                "version": "92a6692c07ab1c801910aa31c32d2078a3ebe367",
+                "version": "ac78c6f6119bed0175c07ed732b3e12b689b5d1c",
                 "urls": [
                     {"url": "https://github.com/graalvm/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
