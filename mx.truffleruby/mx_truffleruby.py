@@ -244,12 +244,12 @@ def ruby_run_ruby(args):
 
 def ruby_run_specs(launcher, format, args):
     with VerboseMx():
-        mx.run(launcher + ['spec/mspec/bin/mspec', 'run', '--config', 'spec/truffle.mspec', '--format', format, '--excl-tag', 'fails'] + args, cwd=root)
+        mx.run([launcher, 'spec/mspec/bin/mspec', 'run', '--config', 'spec/truffle.mspec', '--format', format, '--excl-tag', 'fails'] + args, cwd=root)
 
 def ruby_testdownstream(args):
     """Run fast specs"""
     build_truffleruby()
-    ruby_run_specs(['bin/truffleruby'], 'specdoc', ['--excl-tag', 'slow'] + args)
+    ruby_run_specs('bin/truffleruby', 'specdoc', ['--excl-tag', 'slow'] + args)
 
 def ruby_testdownstream_hello(args):
     """Run a minimal Hello World test"""
@@ -274,10 +274,10 @@ def ruby_testdownstream_aot(args):
         '-t', aot_bin
     ]
 
-    ruby_run_specs([aot_bin], format, mspec_args)
+    ruby_run_specs(aot_bin, format, mspec_args)
 
     # Run "jt test fast --native :truffle" to catch slow specs in Truffle which only apply to native
-    ruby_run_specs([aot_bin, '-Xhome='+root], format, fast + mspec_args + [':truffle'])
+    ruby_run_specs(aot_bin, format, fast + mspec_args + [':truffle'])
 
 def ruby_testdownstream_sulong(args):
     """Run C extension tests"""
