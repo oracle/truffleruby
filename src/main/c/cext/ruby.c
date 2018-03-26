@@ -1661,7 +1661,7 @@ VALUE rb_ary_pop(VALUE array) {
 }
 
 void rb_ary_store(VALUE array, long index, VALUE value) {
-  truffle_write_idx(array, (int) index, value);
+  polyglot_set_array_element(array, (int) index, value);
 }
 
 VALUE rb_ary_entry(VALUE array, long index) {
