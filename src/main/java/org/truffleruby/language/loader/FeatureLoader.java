@@ -243,7 +243,7 @@ public class FeatureLoader {
             final String rubySUpath = context.getRubyHome() + "/lib/cext/ruby.su";
             final List<TruffleObject> libraries = loadCExtLibRuby(rubySUpath, feature);
 
-            sulongLoadLibraryFunction = RequireNode.create().findFunctionInLibraries(libraries, "rb_tr_load_library", rubySUpath);
+            sulongLoadLibraryFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_load_library", rubySUpath);
 
             cextImplementationLoaded = true;
         }
