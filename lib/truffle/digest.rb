@@ -205,4 +205,8 @@ module Digest
   end
 end
 
+def Digest(name)
+  Digest.const_get(name.to_sym)
+end
+
 require 'digest/sha2'
