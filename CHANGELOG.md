@@ -11,7 +11,7 @@ New features:
   better. Use `--jvm` option for full JVM VM.
   
 * The `Truffle::Interop` module has been replaced with a new `Polyglot` module
-  which is designed to use more iditiomatic Ruby syntax rather than explicit
+  which is designed to use more idiomatic Ruby syntax rather than explicit
   methods. A [new document](doc/user/polyglot.md) describes polyglot programming
   at a higher level.
   
@@ -21,7 +21,7 @@ New features:
 * `equal?` on foreign objects will check if the underlying objects are equal
   if both are Java interop objects.
 
-* `remove` on foreign objects will send `REMOVE`, `size` will send `GET_SIZE`,
+* `delete` on foreign objects will send `REMOVE`, `size` will send `GET_SIZE`,
   and `keys` will send `KEYS`. `respond_to?(:size)` will send `HAS_SIZE`,
   `respond_to?(:keys)` will send `HAS_KEYS`.
 
