@@ -59,6 +59,8 @@ void *truffle_assign_managed(void *dst, void *managed);
 
 // Functions not used in TruffleRuby have been removed
 
+void *truffle_address_to_function(void *address);
+
 // Invoke: deprecated, use ployglot_get_member + function pointer call instead
 void *truffle_invoke(void *object, const char *name, ...);
 int truffle_invoke_i(void *object, const char *name, ...);

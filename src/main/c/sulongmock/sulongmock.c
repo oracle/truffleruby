@@ -64,6 +64,11 @@ void *truffle_assign_managed(void *dst, void *managed) {
   return 0;
 }
 
+void *truffle_address_to_function(void *address) {
+  rb_tr_mock();
+  return 0;
+}
+
 void *truffle_invoke(void *object, const char *name, ...) {
   rb_tr_mock();
   return 0;
