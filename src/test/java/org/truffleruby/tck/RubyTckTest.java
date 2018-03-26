@@ -304,7 +304,7 @@ public class RubyTckTest extends TruffleTCK {
 
     @Override
     public void testPropertiesInteropMessage() {
-        // Skipped as I can't get it to work with new interop CS 22-Mar-18
+        // Does KEYS and then READs each key - doesn't work because it's a Struct and so tries to #[] each method
     }
 
 }
