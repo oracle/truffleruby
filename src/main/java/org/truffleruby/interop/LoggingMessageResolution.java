@@ -15,10 +15,8 @@ import com.oracle.truffle.api.interop.MessageResolution;
 import com.oracle.truffle.api.interop.Resolve;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
-import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyObjectType;
 
-@MessageResolution(receiverType = RubyObjectType.class)
+@MessageResolution(receiverType = LoggingForeignObject.class)
 public class LoggingMessageResolution {
 
     @CanResolve
@@ -26,7 +24,7 @@ public class LoggingMessageResolution {
 
         @TruffleBoundary
         protected static boolean test(TruffleObject receiver) {
-            return RubyGuards.isRubyBasicObject(receiver);
+            return receiver instanceof LoggingForeignObject;
         }
 
     }
