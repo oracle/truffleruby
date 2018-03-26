@@ -399,7 +399,8 @@ looks at the underlying Java object.
 `object.inspect` produces a simple string of the format
 `#<Truffle::Interop::Foreign:system-identity-hash-code>`
 
-`object.respond_to?(:to_a)` and `:to_ary` sends `HAS_SIZE`.
+`object.respond_to?(:to_a)`, `respond_to?(:to_ary)` and `respond_to?(:size)`
+sends `HAS_SIZE`.
 
 `object.respond_to?(:call)` sends `EXECUTABLE`.
 
