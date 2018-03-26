@@ -2905,7 +2905,9 @@ VALUE rb_struct_define_under(VALUE outer, const char *name, ...) {
 // Data
 
 static void *to_free_function(RUBY_DATA_FUNC dfree) {
-  return dfree ? truffle_address_to_function(dfree) : Qnil;
+  // TODO CS 26-Mar-18 we should be able to write this but it doesn't work - you get an LLVMTruffleAddress
+  // return (RUBY_DATA_FUNC) dfree;
+  return truffle_address_to_function(dfree);
 }
 
 struct RData *RDATA(VALUE value) {
