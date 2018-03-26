@@ -47,22 +47,23 @@ object.
 
 `Polyglot.import(name)` imports and returns a value with a given name.
 
-`Polyglot.import_method(name)` imports a method with a given name, and defines
-it in the top-level object.
+`Polyglot.import_method(name)` imports a value, which should be `IS_EXECUTABLE`,
+with a given name, and defines it in the top-level object.
 
 ## Using Ruby objects from a foreign language
 
-Using JavaScript as an example.
+Using JavaScript as an example - the left example is JavaScript, the right one
+is the corresponding action it takes on the Ruby object expressed in Ruby code.
 
-`obj[name/index]` calls `[name/index]` on the Ruby object.
+`object[name/index]` calls `object[name/index]`.
 
-`obj[name/index] = value` calls `[name/index] = value` on the Ruby object.
+`object[name/index] = value` calls `object[name/index] = value`.
 
-`delete obj.name` calls `delete(name)` on the Ruby object.
+`delete object.name` calls `object.delete(name)`.
 
-`delete obj[name/index]` calls `delete(name)` on the Ruby object.
+`delete object[name/index]` calls `object.delete(name)`.
 
-`obj.length` calls `size` on the Ruby object.
+`object.length` calls `object.size`.
 
 `Object.keys(array)` gives an array of the array indices.
 
@@ -74,19 +75,19 @@ Using JavaScript as an example.
 
 `object.name(args...)` calls a method on the Ruby object.
 
-`new object(args...)` calls `new(args...)` on the Ruby object.
+`new object(args...)` calls `object.new(args...)`.
 
-`"length" in obj` tells you if a Ruby object responds to `size`.
+`"length" in obj` calls `object.respond_to?(:size)`
 
-`obj == null` calls `nil?` on the Ruby object.
+`object == null` calls `object.nil?`.
 
 ### Notes on creating Ruby objects for use in foreign languages
 
 If you want to pass a Ruby object to another language for fields to be read and
 written, a good object to pass is usually a `Struct`, as this will have both the
-`.foo` and `.foo =` accessors for you to use from Ruby, and they will also
-respond to `.['foo']` and `.['foo'] =` which means they will work from other
-languages sending read and write messages.
+`object.foo` and `object.foo = value` accessors for you to use from Ruby, and
+they will also respond to `object['foo']` and `object['foo'] = value` which
+means they will work from other languages sending read and write messages.
 
 ## Using foreign objects from Ruby
 
