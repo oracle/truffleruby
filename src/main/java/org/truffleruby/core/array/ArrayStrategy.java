@@ -97,6 +97,10 @@ public abstract class ArrayStrategy {
             return other.generalizeForMutation();
         }
 
+        if (other instanceof IntToObjectGeneralizationArrayStrategy) {
+            return other.generalize(this);
+        }
+
         for (ArrayStrategy generalized : TYPE_STRATEGIES) {
             if (generalized.canStore(type()) && generalized.canStore(other.type())) {
                 return generalized;
