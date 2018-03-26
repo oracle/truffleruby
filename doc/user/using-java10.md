@@ -10,7 +10,7 @@ moment we only document it for interest.
 To run on Java 10, Graal needs to be built with Java 10. As there is no binary
 distribution of GraalVM based on Java 10 you will need to [build Graal
 yourself](../contributor/building-graal.md), using Java 10 as the JDK (use the
-`install graal --no-jvmci` option to tell it to use your system Java 10). You
+`jt install graal --no-jvmci` option to tell it to use your system Java 10). You
 should also build TruffleRuby with the same JDK.
 
 ```
