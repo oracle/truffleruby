@@ -1610,7 +1610,7 @@ module Truffle::CExt
     object = ruby_class.internal_allocate
     data_holder = DataHolder.new(data)
     hidden_variable_set object, :data_holder, data_holder
-    ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) if free
+    ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
     object
   end
 
@@ -1620,13 +1620,13 @@ module Truffle::CExt
     data_holder = DataHolder.new(data)
     hidden_variable_set object, :data_type, data_type
     hidden_variable_set object, :data_holder, data_holder
-    ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) if free
+    ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
     object
   end
 
   def data_finalizer(free, data_holder)
     # In a separate method to avoid capturing the object
-
+    raise unless free.respond_to?(:call)
     proc {
       execute_with_mutex(free, data_holder.data)
     }

@@ -2905,7 +2905,7 @@ VALUE rb_struct_define_under(VALUE outer, const char *name, ...) {
 // Data
 
 static void *to_free_function(RUBY_DATA_FUNC dfree) {
-  return dfree ? (void *)dfree : Qnil;
+  return dfree ? truffle_address_to_function(dfree) : Qnil;
 }
 
 struct RData *RDATA(VALUE value) {
