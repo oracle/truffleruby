@@ -14,6 +14,7 @@ import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 import org.junit.Assert;
 import org.junit.Test;
+import org.truffleruby.launcher.options.OptionsCatalog;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -87,7 +88,9 @@ public class MiscTest {
 
     @Test
     public void testFiberFromIntegratorThread() throws InterruptedException {
-        try (Context context = Context.newBuilder().allowCreateThread(true).build()) {
+        try (Context context = Context.newBuilder()
+                .option(OptionsCatalog.SINGLE_THREADED.getName(), Boolean.FALSE.toString())
+                .allowCreateThread(true).build()) {
             context.eval("ruby", ":init");
 
             Thread thread = new Thread(() -> {
