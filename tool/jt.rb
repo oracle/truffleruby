@@ -404,7 +404,8 @@ module Commands
           parser                                     build the parser
           options                                    build the options
           cexts                                      build only the C extensions (part of "jt build")
-          native [sulong] [extra mx image options]   build a native image of TruffleRuby, optionally with Sulong
+          native [--no-sulong] [extra mx image options]
+                                                     build a native image of TruffleRuby, optionally with Sulong
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt clean                                       clean
       jt env                                         prints the current environment
@@ -1767,7 +1768,7 @@ module Commands
   end
 
   def build_native_image(*options)
-    sulong = options.delete "sulong"
+    sulong = !options.delete("--no-sulong")
 
     build
 
@@ -1777,20 +1778,22 @@ module Commands
     puts 'Building TruffleRuby native binary'
     chdir("#{graal}/substratevm") do
       File.write('mx.substratevm/env', "JAVA_HOME=#{java_home}\n")
+
       mx 'build'
+      mx 'fetch-languages', '--Language:llvm', '--Language:ruby'
 
       languages = %w[--Language:ruby]
       if sulong
         languages.unshift '--Language:llvm'
-        options = %w[
-          -Dtruffleruby.native.libsulong_dir=lib/cext/sulong-libs
-        ] + options
+        options.unshift '-Dtruffleruby.native.libsulong_dir=lib/cext/sulong-libs'
       end
 
-      mx 'fetch-languages', '--Language:llvm', '--Language:ruby'
-
       env = { "JAVA_HOME" => java_home }
-      output_options = "-H:Path=#{TRUFFLERUBY_DIR}/bin", '-H:Name=native-ruby', "-H:Class=org.truffleruby.launcher.RubyLauncher"
+      output_options = [
+          "-H:Path=#{TRUFFLERUBY_DIR}/bin",
+          '-H:Name=native-ruby',
+          '-H:Class=org.truffleruby.launcher.RubyLauncher']
+
       raw_sh env, './native-image', '--no-server', *languages, *output_options, *options
     end
   end
