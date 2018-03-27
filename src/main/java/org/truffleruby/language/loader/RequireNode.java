@@ -82,7 +82,7 @@ public abstract class RequireNode extends RubyNode {
         }
     }
 
-    @TruffleBoundary
+    @TruffleBoundary(transferToInterpreterOnException = false)
     private boolean doRequire(String feature, String expandedPathRaw, DynamicObject pathString) {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
         final ReentrantLockFreeingMap<String> fileLocks = featureLoader.getFileLocks();
