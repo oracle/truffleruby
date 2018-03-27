@@ -42,6 +42,7 @@ import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.FinalizationService;
 import org.truffleruby.language.objects.ObjectIDOperations;
@@ -83,7 +84,28 @@ public class ObjectSpaceManager {
         }
 
         finalizationService.addFinalizer(object, ObjectSpaceManager.class,
-                () -> context.send(callable, "call"), root);
+                new CallableFinalizer(context, callable), root);
+    }
+
+    private static class CallableFinalizer implements Runnable {
+
+        private final RubyContext context;
+        private final Object callable;
+
+        public CallableFinalizer(RubyContext context, Object callable) {
+            this.context = context;
+            this.callable = callable;
+        }
+
+        public void run() {
+            context.send(callable, "call");
+        }
+
+        @Override
+        public String toString() {
+            return callable.toString();
+        }
+
     }
 
     public synchronized void undefineFinalizer(DynamicObject object) {

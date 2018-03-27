@@ -191,13 +191,28 @@ public class Pointer implements AutoCloseable {
 
         // We must be careful here that the finalizer does not capture the Pointer itself that we'd
         // like to finalize.
-        addFinalizer(finalizationService, this, address);
+        finalizationService.addFinalizer(this, Pointer.class, new FreeAddressFinalizer(address));
 
         autorelease = true;
     }
 
-    private static void addFinalizer(FinalizationService finalizationService, Pointer pointer, long address) {
-        finalizationService.addFinalizer(pointer, Pointer.class, () -> UNSAFE.freeMemory(address));
+    private static class FreeAddressFinalizer implements Runnable {
+
+        private final long address;
+
+        public FreeAddressFinalizer(long address) {
+            this.address = address;
+        }
+
+        public void run() {
+            UNSAFE.freeMemory(address);
+        }
+
+        @Override
+        public String toString() {
+            return "free(" + address + ")";
+        }
+
     }
 
     @TruffleBoundary
