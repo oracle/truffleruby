@@ -1,0 +1,1 @@
+slow:The -Xfinalizers.run_on_exit=true option runs finalizers on exit
