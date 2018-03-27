@@ -1790,7 +1790,7 @@ module Commands
       mx 'fetch-languages', '--Language:llvm', '--Language:ruby'
 
       env = { "JAVA_HOME" => java_home }
-      output_options = "-H:Path=#{TRUFFLERUBY_DIR}/bin", '-H:Name=native-ruby', "-H:Class=org.truffleruby.Main"
+      output_options = "-H:Path=#{TRUFFLERUBY_DIR}/bin", '-H:Name=native-ruby', "-H:Class=org.truffleruby.launcher.RubyLauncher"
       raw_sh env, './native-image', '--no-server', *languages, *output_options, *options
     end
   end
