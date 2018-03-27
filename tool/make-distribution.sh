@@ -49,7 +49,7 @@ function copy {
 revision=$(git rev-parse --short HEAD)
 
 # Make sure Truffle is used as binary distribution
-grep MX_BINARY_SUITES mx.truffleruby/env 2>/dev/null || echo MX_BINARY_SUITES=truffle,sdk >> mx.truffleruby/env
+grep MX_BINARY_SUITES mx.truffleruby/env 2>/dev/null || echo MX_BINARY_SUITES=tools,truffle,sdk >> mx.truffleruby/env
 
 # Setup binary suites
 if [ -z "${SULONG_REVISION+x}" ]; then
