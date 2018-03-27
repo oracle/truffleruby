@@ -73,21 +73,20 @@ public abstract class RequireNode extends RubyNode {
             throw new RaiseException(getContext().getCoreExceptions().loadErrorCannotLoad(feature, this));
         }
 
-        final String expandedPath = expandedPathRaw.intern();
-
-        final DynamicObject pathString = makeStringNode.executeMake(expandedPath, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        final DynamicObject pathString = makeStringNode.executeMake(expandedPathRaw, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
         if (isLoadedProfile.profile(isFeatureLoaded(pathString))) {
             return false;
         } else {
-            return doRequire(feature, expandedPath, pathString);
+            return doRequire(feature, expandedPathRaw, pathString);
         }
     }
 
     @TruffleBoundary
-    private boolean doRequire(String feature, String expandedPath, DynamicObject pathString) {
+    private boolean doRequire(String feature, String expandedPathRaw, DynamicObject pathString) {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
         final ReentrantLockFreeingMap<String> fileLocks = featureLoader.getFileLocks();
+        final String expandedPath = expandedPathRaw.intern();
 
         while (true) {
             final ReentrantLock lock = fileLocks.get(expandedPath);
