@@ -175,8 +175,6 @@ suite = {
                 "truffleruby-annotations",
                 "sdk:GRAAL_SDK",
                 "sdk:LAUNCHER_COMMON",
-                "tools:CHROMEINSPECTOR",
-                "tools:TRUFFLE_PROFILER",
             ],
             "annotationProcessors": [
                 "TRUFFLERUBY-PROCESSOR",
