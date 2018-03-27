@@ -64,25 +64,29 @@ public abstract class RequireNode extends RubyNode {
     @Specialization
     protected boolean require(String feature,
             @Cached("create()") BranchProfile notFoundProfile,
-            @Cached("create()") BranchProfile mimeTypeNotFoundProfile,
             @Cached("createBinaryProfile()") ConditionProfile isLoadedProfile,
             @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-        final FeatureLoader featureLoader = getContext().getFeatureLoader();
-
-        final String expandedPathRaw = featureLoader.findFeature(feature);
+        final String expandedPathRaw = getContext().getFeatureLoader().findFeature(feature);
 
         if (expandedPathRaw == null) {
             notFoundProfile.enter();
             throw new RaiseException(getContext().getCoreExceptions().loadErrorCannotLoad(feature, this));
         }
+
         final String expandedPath = expandedPathRaw.intern();
 
         final DynamicObject pathString = makeStringNode.executeMake(expandedPath, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
         if (isLoadedProfile.profile(isFeatureLoaded(pathString))) {
             return false;
+        } else {
+            return doRequire(feature, expandedPath, pathString);
         }
+    }
 
+    @TruffleBoundary
+    private boolean doRequire(String feature, String expandedPath, DynamicObject pathString) {
+        final FeatureLoader featureLoader = getContext().getFeatureLoader();
         final ReentrantLockFreeingMap<String> fileLocks = featureLoader.getFileLocks();
 
         while (true) {
@@ -132,7 +136,6 @@ public abstract class RequireNode extends RubyNode {
                 } else if (RubyLanguage.CEXT_MIME_TYPE.equals(mimeType)) {
                     requireCExtension(feature, expandedPath);
                 } else {
-                    mimeTypeNotFoundProfile.enter();
                     throw new RaiseException(mimeTypeNotFound(expandedPath, mimeType));
                 }
 
