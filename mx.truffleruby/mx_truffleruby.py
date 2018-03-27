@@ -259,6 +259,7 @@ def ruby_testdownstream_aot(args):
     format = args[1] if len(args) >= 2 else 'dot'
     debug_build = args[2] == 'debug' if len(args) >= 3 else False
 
+    fast = ['--excl-tag', 'slow']
     mspec_args = [
         '--excl-tag', 'ci',
         '--excl-tag', 'graalvm',
@@ -268,6 +269,9 @@ def ruby_testdownstream_aot(args):
     ]
 
     ruby_run_specs([aot_bin, '-Xhome='+root], format, mspec_args)
+
+    # Run "jt test fast --native :truffle" to catch slow specs in Truffle which only apply to native
+    ruby_run_specs([aot_bin, '-Xhome='+root], format, fast + mspec_args + [':truffle'])
 
 def ruby_testdownstream_sulong(args):
     """Run C extension tests"""
