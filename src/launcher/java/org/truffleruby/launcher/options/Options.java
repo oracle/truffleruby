@@ -126,6 +126,7 @@ public class Options {
     public final boolean BASICOPS_INLINE;
     public final boolean REGEXP_INSTRUMENT_CREATION;
     public final boolean REGEXP_INSTRUMENT_MATCH;
+    public final boolean RUN_FINALIZERS_ON_EXIT;
     public final boolean GRAAL_WARNING_UNLESS;
     public final boolean SHARED_OBJECTS_ENABLED;
     public final boolean SHARED_OBJECTS_DEBUG;
@@ -251,6 +252,7 @@ public class Options {
         BASICOPS_INLINE = builder.getOrDefault(OptionsCatalog.BASICOPS_INLINE);
         REGEXP_INSTRUMENT_CREATION = builder.getOrDefault(OptionsCatalog.REGEXP_INSTRUMENT_CREATION);
         REGEXP_INSTRUMENT_MATCH = builder.getOrDefault(OptionsCatalog.REGEXP_INSTRUMENT_MATCH);
+        RUN_FINALIZERS_ON_EXIT = builder.getOrDefault(OptionsCatalog.RUN_FINALIZERS_ON_EXIT);
         GRAAL_WARNING_UNLESS = builder.getOrDefault(OptionsCatalog.GRAAL_WARNING_UNLESS);
         SHARED_OBJECTS_ENABLED = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_ENABLED);
         SHARED_OBJECTS_DEBUG = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_DEBUG);
@@ -488,6 +490,8 @@ public class Options {
                 return REGEXP_INSTRUMENT_CREATION;
             case "ruby.regexp.instrument-match":
                 return REGEXP_INSTRUMENT_MATCH;
+            case "ruby.finalizers.run_on_exit":
+                return RUN_FINALIZERS_ON_EXIT;
             case "ruby.graal.warn_unless":
                 return GRAAL_WARNING_UNLESS;
             case "ruby.shared.objects":

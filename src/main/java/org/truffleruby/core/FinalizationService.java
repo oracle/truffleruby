@@ -172,7 +172,8 @@ public class FinalizationService {
                 if (finalizer == null) {
                     break;
                 }
-                finalizer.getAction().run();
+                final Runnable action = finalizer.getAction();
+                action.run();
             }
         } catch (TerminationException e) {
             throw e;
@@ -183,6 +184,12 @@ public class FinalizationService {
             if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void runAllFinalizersOnExit() {
+        for (Entry<Object, FinalizerReference> entry : finalizerReferences.entrySet()) {
+            runFinalizer(entry.getValue());
         }
     }
 

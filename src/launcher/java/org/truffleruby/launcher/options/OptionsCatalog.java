@@ -566,6 +566,11 @@ public class OptionsCatalog {
             "Enable instrumentation to gather stats on regexp matching.",
             null,
             false);
+    public static final BooleanOptionDescription RUN_FINALIZERS_ON_EXIT = new BooleanOptionDescription(
+            "ruby.finalizers.run_on_exit",
+            "Run finalizers on exit (for debugging, even though objects are still alive)",
+            null,
+            false);
     public static final BooleanOptionDescription GRAAL_WARNING_UNLESS = new BooleanOptionDescription(
             "ruby.graal.warn_unless",
             "Warn unless the JVM has the Graal compiler",
@@ -854,6 +859,8 @@ public class OptionsCatalog {
                 return REGEXP_INSTRUMENT_CREATION;
             case "ruby.regexp.instrument-match":
                 return REGEXP_INSTRUMENT_MATCH;
+            case "ruby.finalizers.run_on_exit":
+                return RUN_FINALIZERS_ON_EXIT;
             case "ruby.graal.warn_unless":
                 return GRAAL_WARNING_UNLESS;
             case "ruby.shared.objects":
@@ -997,6 +1004,7 @@ public class OptionsCatalog {
             BASICOPS_INLINE,
             REGEXP_INSTRUMENT_CREATION,
             REGEXP_INSTRUMENT_MATCH,
+            RUN_FINALIZERS_ON_EXIT,
             GRAAL_WARNING_UNLESS,
             SHARED_OBJECTS_ENABLED,
             SHARED_OBJECTS_DEBUG,
