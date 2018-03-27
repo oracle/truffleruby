@@ -12,9 +12,10 @@ package org.truffleruby.core;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.WeakHashMap;
 
 import org.truffleruby.RubyContext;
@@ -53,27 +54,29 @@ public class FinalizationService {
 
     private static class FinalizerReference extends WeakReference<Object> {
 
-        public List<Finalizer> finalizers = new LinkedList<>();
+        /**
+         * All accesses to this Deque must be synchronized by taking the
+         * {@link FinalizationService} monitor, to avoid concurrent access.
+         */
+        private final Deque<Finalizer> finalizers = new LinkedList<>();
 
         public FinalizerReference(Object object, ReferenceQueue<? super Object> queue) {
             super(object, queue);
         }
 
-        public void addFinalizer(Class<?> owner, Runnable action, DynamicObject root) {
-            finalizers.add(new Finalizer(owner, action, root));
+        private void addFinalizer(Class<?> owner, Runnable action, DynamicObject root) {
+            finalizers.addLast(new Finalizer(owner, action, root));
         }
 
-        public void removeFinalizers(Class<?> owner) {
+        private void removeFinalizers(Class<?> owner) {
             finalizers.removeIf(f -> f.getOwner() == owner);
         }
 
-        public void runFinalizerActions() {
-            for (Finalizer finalizer : finalizers) {
-                finalizer.getAction().run();
-            }
+        private Finalizer getFirstFinalizer() {
+            return finalizers.pollFirst();
         }
 
-        public void collectRoots(Collection<DynamicObject> roots) {
+        private void collectRoots(Collection<DynamicObject> roots) {
             for (Finalizer finalizer : finalizers) {
                 final DynamicObject root = finalizer.getRoot();
                 if (root != null) {
@@ -161,7 +164,16 @@ public class FinalizationService {
 
     private void runFinalizer(FinalizerReference finalizerReference) {
         try {
-            finalizerReference.runFinalizerActions();
+            while (true) {
+                final Finalizer finalizer;
+                synchronized (this) {
+                    finalizer = finalizerReference.getFirstFinalizer();
+                }
+                if (finalizer == null) {
+                    break;
+                }
+                finalizer.getAction().run();
+            }
         } catch (TerminationException e) {
             throw e;
         } catch (RaiseException e) {
