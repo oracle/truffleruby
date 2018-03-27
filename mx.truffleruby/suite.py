@@ -5,15 +5,6 @@ suite = {
     "imports": {
         "suites": [
             {
-                "name": "truffle",
-                "subdir": True,
-                "version": "ac78c6f6119bed0175c07ed732b3e12b689b5d1c",
-                "urls": [
-                    {"url": "https://github.com/oracle/graal.git", "kind": "git"},
-                    {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
-                ]
-            },
-            {
                 "name": "tools",
                 "subdir": True,
                 "version": "ac78c6f6119bed0175c07ed732b3e12b689b5d1c",
