@@ -1704,7 +1704,7 @@ module Commands
         end
         dirs = Dir[dir_pattern]
         raise 'ambiguous JVMCI directories' if dirs.length != 1
-        java_home = dirs.first
+        dirs.first
       elsif MAC
         dir_pattern = "#{dir}/labsjdk1.8.0*-#{jvmci_version}"
         if Dir[dir_pattern].empty?
@@ -1722,7 +1722,7 @@ module Commands
         end
         dirs = Dir[dir_pattern]
         raise 'ambiguous JVMCI directories' if dirs.length != 1
-        java_home = "#{dirs.first}/Contents/Home"
+        "#{dirs.first}/Contents/Home"
       end
     end
 
