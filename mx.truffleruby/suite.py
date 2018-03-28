@@ -4,6 +4,7 @@ suite = {
 
     "imports": {
         "suites": [
+            # Import only tools which depends on truffle
             {
                 "name": "tools",
                 "subdir": True,
