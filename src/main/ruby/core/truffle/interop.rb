@@ -31,7 +31,7 @@ module Truffle
       if object.is_a?(::Array)
         (0...object.size).to_a
       elsif object.is_a?(Hash)
-        object.keys.map(&:to_s)
+        object.keys.map(&:to_s).map { |s| Truffle::Interop.to_java_string(s) }
       else
         keys = object.methods.map(&:to_s)
         if internal
@@ -39,7 +39,7 @@ module Truffle
             .map(&:to_s)
             .select { |ivar| ivar.start_with?('@') }
         end
-        keys
+        keys.map { |s| Truffle::Interop.to_java_string(s) }
       end
     end
     
