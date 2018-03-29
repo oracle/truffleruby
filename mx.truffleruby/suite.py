@@ -119,7 +119,7 @@ suite = {
             "dir": "src/processor",
             "sourceDirs": ["java"],
             "dependencies": [
-                "truffleruby-annotations",
+                "truffleruby:TRUFFLERUBY-ANNOTATIONS",
             ],
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",
@@ -133,7 +133,7 @@ suite = {
             "dir": "src/main",
             "sourceDirs": ["java"],
             "dependencies": [
-                "truffleruby-annotations",
+                "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-LAUNCHER",
                 "truffle:TRUFFLE_API",
                 "truffle:JLINE",
@@ -163,7 +163,7 @@ suite = {
             "dir": "src/launcher",
             "sourceDirs": ["java"],
             "dependencies": [
-                "truffleruby-annotations",
+                "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "sdk:GRAAL_SDK",
                 "sdk:LAUNCHER_COMMON",
             ],
@@ -290,9 +290,20 @@ suite = {
 
         # ------------- Distributions -------------
 
+        "TRUFFLERUBY-ANNOTATIONS": {
+            "dependencies": [
+                "truffleruby-annotations"
+            ],
+            "description": "TruffleRuby Annotations",
+            "license": ["EPL-1.0"]
+        },
+
         "TRUFFLERUBY-PROCESSOR": {
             "dependencies": [
                 "truffleruby-processor"
+            ],
+            "distDependencies": [
+                "truffleruby:TRUFFLERUBY-ANNOTATIONS",
             ],
             "description": "TruffleRuby Annotation Processor",
             "license": [
@@ -310,6 +321,7 @@ suite = {
                 "truffle:TRUFFLE_API",
                 "truffle:TRUFFLE_NFI",
                 "truffleruby:TRUFFLERUBY-LAUNCHER",
+                "truffleruby:TRUFFLERUBY-ANNOTATIONS",
             ],
             "description": "TruffleRuby",
             "license": [
@@ -326,6 +338,7 @@ suite = {
                 "truffleruby-launcher"
             ],
             "distDependencies": [
+                "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "sdk:GRAAL_SDK",
                 "sdk:LAUNCHER_COMMON",
             ],
