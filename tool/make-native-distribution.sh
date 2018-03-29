@@ -84,6 +84,7 @@ mx fetch-languages --Language:llvm --Language:ruby
 
 ./native-image --no-server --Language:llvm --Language:ruby \
   -H:Path="$build_home/bin" -H:Name=native-ruby \
+  -H:Class=org.truffleruby.launcher.RubyLauncher \
   -Dtruffleruby.native.libsulong_dir=lib/cext/sulong-libs \
   -Dtruffleruby.native.resilient_gem_home=true
 
