@@ -74,10 +74,9 @@ cd ../graal/substratevm
 mx build
 
 # Build image
-mx fetch-languages --llvm --ruby
+mx fetch-languages --Language:llvm --Language:ruby
 
-# Smaller default heap so it fits in Travis CI containers
-./native-image -no-server --llvm --ruby \
+./native-image --no-server --Language:llvm --Language:ruby \
   -H:Path="$build_home/bin" -H:Name=native-ruby \
   -Dtruffleruby.native.libsulong_dir=lib/cext/sulong-libs \
   -Dtruffleruby.native.resilient_gem_home=true
