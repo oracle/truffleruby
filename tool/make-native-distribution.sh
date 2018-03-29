@@ -10,8 +10,9 @@ set -e
 set -x
 
 # Tag to use for the different repositories
-RELEASE=0.32
-TAG=vm-enterprise-$RELEASE
+# If empty, take the current truffleruby revision and imports from suite.py
+TAG=""
+# TAG=vm-enterprise-32
 
 # In which directory to create the release, will contain the final archive
 PREFIX="../release"
@@ -41,6 +42,7 @@ case $(uname -m) in
     ;;
 esac
 
+original_repo=$(pwd -P)
 revision=$(git rev-parse --short HEAD)
 
 rm -rf "${PREFIX:?}"/*
@@ -52,9 +54,13 @@ PREFIX=$(cd "$PREFIX" && pwd -P)
 mkdir -p "$PREFIX/build"
 cd "$PREFIX/build"
 
-git clone --branch $TAG "$(mx urlrewrite https://github.com/oracle/truffleruby.git)"
-git clone --branch $TAG "$(mx urlrewrite https://github.com/graalvm/sulong.git)"
-git clone --branch $TAG "$(mx urlrewrite https://github.com/oracle/graal.git)"
+if [ -n "$TAG" ]; then
+  git clone --branch $TAG "$(mx urlrewrite https://github.com/oracle/truffleruby.git)"
+  git clone --branch $TAG "$(mx urlrewrite https://github.com/graalvm/sulong.git)"
+  git clone --branch $TAG "$(mx urlrewrite https://github.com/oracle/graal.git)"
+else
+  git clone "$original_repo" truffleruby
+fi
 
 cd truffleruby
 
@@ -92,7 +98,7 @@ cp "$build_home/bin/native-ruby" bin/truffleruby
 
 # Create archive
 cd "$PREFIX"
-archive_name="truffleruby-native-$RELEASE-$os-$arch-$revision.tar.gz"
+archive_name="truffleruby-native-$TAG-$os-$arch-$revision.tar.gz"
 tar czf "$archive_name" truffleruby
 
 # Upload the archive
