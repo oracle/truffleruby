@@ -3,7 +3,7 @@
 # This script creates a distribution of TruffleRuby and Sulong
 # compiled to a native image by Substrate VM.
 
-# Do not use jt.rb here to minimze dependencies and avoid compatibility problems
+# Do not use jt.rb here to minimize dependencies and avoid compatibility problems
 # between the current commit and the built tag's jt.rb.
 
 set -e
