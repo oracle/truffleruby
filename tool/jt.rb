@@ -1256,7 +1256,7 @@ module Commands
 
       options += %w[--excl-tag graalvm --excl-tag aot]
       options << '-t' << Utilities.find_launcher(true)
-      options << "-T-Xhome=#{TRUFFLERUBY_DIR}"
+      options << "-T-Xhome=#{TRUFFLERUBY_DIR}" unless args.delete('--no-home')
     end
 
     if args.delete('--graal')

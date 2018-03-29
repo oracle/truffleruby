@@ -104,4 +104,4 @@ fi
 "$release_home/bin/ruby" -v
 
 cd "$build_home"
-AOT_BIN="$release_home/bin/truffleruby" tool/jt.rb test --native :all
+AOT_BIN="$release_home/bin/truffleruby" tool/jt.rb test --native --no-home :all
