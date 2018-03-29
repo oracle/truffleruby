@@ -424,6 +424,18 @@ local part_definitions = {
         ],
       ],
     },
+
+    make_native_distribution: {
+      run+: [
+        ["tool/make-native-distribution.sh"],
+      ],
+    },
+
+    test_make_native_distribution: {
+      run+: [
+        ["env", "UPLOAD_URL=", "tool/make-native-distribution.sh"],
+      ],
+    },
   },
 
   benchmark: {
@@ -704,10 +716,10 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   release_builds:
     {
-      "ruby-native-distribution-linux": $.platform.linux + $.cap.manual + $.jdk.labsjdk8 + $.use.common +
-                                        { run+: [["tool/make-native-distribution.sh"]], timelimit: "30:00" },
-      "ruby-native-distribution-darwin": $.platform.darwin + $.cap.manual + $.jdk.labsjdk8 + $.use.common +
-                                         { run+: [["tool/make-native-distribution.sh"]], timelimit: "30:00" },
+      local shared = $.jdk.labsjdk8 + $.use.common + { timelimit: "30:00" },
+      "ruby-test-native-distribution": $.platform.linux + $.cap.gate + shared + $.run.test_make_native_distribution,
+      "ruby-native-distribution-linux": $.platform.linux + $.cap.manual + shared + $.run.make_native_distribution,
+      "ruby-native-distribution-darwin": $.platform.darwin + $.cap.manual + shared + $.run.make_native_distribution,
     },
 
   builds:
