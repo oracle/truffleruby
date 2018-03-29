@@ -404,7 +404,7 @@ module Commands
           parser                                     build the parser
           options                                    build the options
           cexts                                      build only the C extensions (part of "jt build")
-          native [--no-sulong] [--no-jvmci] [extra mx image options]
+          native [--no-sulong] [--no-jvmci] [--no-sforceimports] [extra mx image options]
                                                      build a native image of TruffleRuby (--no-jvmci to use the system Java)
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt clean                                       clean
@@ -526,8 +526,8 @@ module Commands
     end
   end
 
-  def build_truffleruby(*options)
-    mx 'sforceimports'
+  def build_truffleruby(*options, sforceimports: true)
+    mx 'sforceimports' if sforceimports
 
     mx 'build', '--force-javac', '--warning-as-error',
        # show more than default 100 errors not to hide actual errors under pile of missing symbols
@@ -1737,12 +1737,14 @@ module Commands
     java_home
   end
 
-  def checkout_or_update_graal_repo
+  def checkout_or_update_graal_repo(sforceimports: true)
     graal = Utilities.find_or_clone_repo('https://github.com/graalvm/graal.git')
 
-    chdir(graal) do
-      raw_sh "git", "fetch", continue_on_failure: true
-      raw_sh "git", "checkout", Utilities.truffle_version
+    if sforceimports
+      chdir(graal) do
+        raw_sh "git", "fetch", continue_on_failure: true
+        raw_sh "git", "checkout", Utilities.truffle_version
+      end
     end
 
     graal
@@ -1770,11 +1772,12 @@ module Commands
   def build_native_image(*options)
     sulong = !options.delete("--no-sulong")
     jvmci = !options.delete("--no-jvmci")
+    sforceimports = !options.delete("--no-sforceimports")
 
-    build
+    build_truffleruby(sforceimports: sforceimports)
 
     java_home = install_jvmci if jvmci
-    graal = checkout_or_update_graal_repo
+    graal = checkout_or_update_graal_repo(sforceimports: sforceimports)
 
     puts 'Building TruffleRuby native binary'
     chdir("#{graal}/substratevm") do
