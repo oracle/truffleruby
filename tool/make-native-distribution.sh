@@ -60,6 +60,13 @@ if [ -n "$TAG" ]; then
   git clone --branch $TAG "$(mx urlrewrite https://github.com/oracle/graal.git)"
 else
   git clone "$original_repo" truffleruby
+
+  if [ -d "$original_repo/../graal" ] && [ -d "$original_repo/../sulong" ]; then
+    # Building locally (not in CI), copy from local repositories to gain time
+    git clone "$original_repo/../graal" graal
+    git clone "$original_repo/../sulong" sulong
+    mx -p truffleruby sforceimports
+  fi
 fi
 
 cd truffleruby
@@ -74,6 +81,7 @@ export TRUFFLERUBY_RESILIENT_GEM_HOME=true
 
 # Build
 cd ../truffleruby
+mx sversions
 mx build
 
 cd ../graal/substratevm
