@@ -12,7 +12,7 @@ package org.truffleruby.tck;
 import com.oracle.truffle.api.source.Source;
 import org.truffleruby.RubyLanguage;
 import org.junit.Test;
-import org.truffleruby.launcher.options.OptionsCatalog;
+import org.truffleruby.shared.options.OptionsCatalog;
 
 import java.io.File;
 import java.io.IOException;

@@ -22,12 +22,12 @@ import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.junit.Ignore;
 import org.truffleruby.RubyTest;
-import org.truffleruby.launcher.RubyLauncher;
-import org.truffleruby.launcher.options.OptionsCatalog;
+import org.truffleruby.shared.options.OptionsCatalog;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.truffleruby.shared.Info;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -61,7 +61,7 @@ public class RubyDebugTest {
         InputStream stream = ClassLoader.getSystemResourceAsStream(path);
         Reader reader = new InputStreamReader(stream);
         try {
-            return Source.newBuilder(RubyLauncher.LANGUAGE_ID, reader, new File(path).getName()).build();
+            return Source.newBuilder(Info.LANGUAGE_ID, reader, new File(path).getName()).build();
         } catch (IOException e) {
             throw new Error(e);
         }

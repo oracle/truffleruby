@@ -11,7 +11,7 @@ package org.truffleruby;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.launcher.RubyLogger;
+import org.truffleruby.shared.RubyLogger;
 
 import java.util.Collections;
 import java.util.Set;

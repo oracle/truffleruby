@@ -115,6 +115,24 @@ suite = {
             ],
         },
 
+        "truffleruby-shared": {
+            "dir": "src/shared",
+            "sourceDirs": ["java"],
+            "dependencies": [
+                "truffleruby:TRUFFLERUBY-ANNOTATIONS",
+                "sdk:GRAAL_SDK",
+            ],
+            "annotationProcessors": [
+                "TRUFFLERUBY-PROCESSOR",
+            ],
+            "javaCompliance": "1.8",
+            "workingSets": "TruffleRuby",
+            "checkPackagePrefix": "false",
+            "license": [
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+            ],
+        },
+
         "truffleruby-processor": {
             "dir": "src/processor",
             "sourceDirs": ["java"],
@@ -134,7 +152,7 @@ suite = {
             "sourceDirs": ["java"],
             "dependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
-                "truffleruby:TRUFFLERUBY-LAUNCHER",
+                "truffleruby:TRUFFLERUBY-SHARED",
                 "truffle:TRUFFLE_API",
                 "truffle:JLINE",
                 "SNAKEYAML",
@@ -164,11 +182,9 @@ suite = {
             "sourceDirs": ["java"],
             "dependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
+                "truffleruby:TRUFFLERUBY-SHARED",
                 "sdk:GRAAL_SDK",
                 "sdk:LAUNCHER_COMMON",
-            ],
-            "annotationProcessors": [
-                "TRUFFLERUBY-PROCESSOR",
             ],
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",
@@ -298,6 +314,18 @@ suite = {
             "license": ["EPL-1.0"]
         },
 
+        "TRUFFLERUBY-SHARED": {
+            "dependencies": [
+                "truffleruby-shared"
+            ],
+            "distDependencies": [
+                "truffleruby:TRUFFLERUBY-ANNOTATIONS",
+                "sdk:GRAAL_SDK",
+            ],
+            "description": "TruffleRuby Shared constants and predicates",
+            "license": ["EPL-1.0"]
+        },
+
         "TRUFFLERUBY-PROCESSOR": {
             "dependencies": [
                 "truffleruby-processor"
@@ -320,8 +348,8 @@ suite = {
             "distDependencies": [
                 "truffle:TRUFFLE_API",
                 "truffle:TRUFFLE_NFI",
-                "truffleruby:TRUFFLERUBY-LAUNCHER",
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
+                "truffleruby:TRUFFLERUBY-SHARED",
             ],
             "description": "TruffleRuby",
             "license": [
@@ -339,6 +367,7 @@ suite = {
             ],
             "distDependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
+                "truffleruby:TRUFFLERUBY-SHARED",
                 "sdk:GRAAL_SDK",
                 "sdk:LAUNCHER_COMMON",
             ],

@@ -27,7 +27,7 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.platform;
 
-import org.truffleruby.launcher.BasicPlatform;
+import org.truffleruby.shared.BasicPlatform;
 
 public abstract class Platform extends BasicPlatform {
 

@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.launcher.options;
+package org.truffleruby.shared.options;
 
 public class DefaultExecutionActionOptionDescription extends EnumOptionDescription<DefaultExecutionAction> {
 

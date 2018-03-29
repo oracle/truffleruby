@@ -32,9 +32,9 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
-import org.truffleruby.launcher.Metrics;
-import org.truffleruby.launcher.options.OptionDescription;
-import org.truffleruby.launcher.options.OptionsCatalog;
+import org.truffleruby.shared.Metrics;
+import org.truffleruby.shared.options.OptionDescription;
+import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 

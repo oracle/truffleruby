@@ -17,10 +17,13 @@ import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
 import org.truffleruby.launcher.options.CommandLineException;
-import org.truffleruby.launcher.options.CommandLineOptions;
+import org.truffleruby.shared.options.CommandLineOptions;
 import org.truffleruby.launcher.options.CommandLineParser;
-import org.truffleruby.launcher.options.ExecutionAction;
-import org.truffleruby.launcher.options.OptionsCatalog;
+import org.truffleruby.shared.options.ExecutionAction;
+import org.truffleruby.shared.options.OptionsCatalog;
+import org.truffleruby.shared.Info;
+import org.truffleruby.shared.Metrics;
+import org.truffleruby.shared.RubyLogger;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -36,17 +39,8 @@ import java.util.Set;
 
 public class RubyLauncher extends AbstractLanguageLauncher {
 
-    public static final String LANGUAGE_ID = "ruby";
-    public static final String ENGINE_ID = "truffleruby";
-    public static final String LANGUAGE_VERSION = "2.3.6";
-    public static final String LANGUAGE_BASE_VERSION = "2.3.0";
-    public static final int LANGUAGE_REVISION = 61260;
-    public static final String BOOT_SOURCE_NAME = "main_boot_source";
-    public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2018 Oracle and/or its affiliates";
-
     // Properties set directly on the java command-line with -D for image building
-    public static final String LIBSULONG_DIR = isAOT() ? System.getProperty("truffleruby.native.libsulong_dir") : null;
-    public static final boolean PRE_INITIALIZE_CONTEXTS = System.getProperty("polyglot.engine.PreinitializeContexts") != null;
+    private static final String LIBSULONG_DIR = isAOT() ? System.getProperty("truffleruby.native.libsulong_dir") : null;
 
     private final CommandLineOptions config = new CommandLineOptions();
 
@@ -58,43 +52,9 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         return Engine.create().getImplementationName().contains("Graal");
     }
 
-    public static String getVersionString(boolean isGraal) {
-        return String.format(
-                "%s %s, like ruby %s <%s %s %s> [%s-%s]",
-                ENGINE_ID,
-                getEngineVersion(),
-                LANGUAGE_VERSION,
-                isAOT() ? "native" : System.getProperty("java.vm.name", "unknown JVM"),
-                isAOT() ? "build" : System.getProperty(
-                        "java.runtime.version",
-                        System.getProperty("java.version", "unknown runtime version")),
-                isGraal ? "with Graal" : "without Graal",
-                BasicPlatform.getArchitecture(),
-                BasicPlatform.getOSName()
-        );
-    }
-
-    public static String getEngineVersion() {
-        // The property cannot be read in a static initializer, it's set later
-        final String systemVersion = System.getProperty("org.graalvm.version");
-
-        // No version information, or just "dev" - use 0.0-commit
-        if (systemVersion == null || systemVersion.equals("dev")) {
-            return "0.0-" + BuildInformationImpl.INSTANCE.getRevision();
-        }
-
-        // A "-dev" version number - append the commit as well
-        if (systemVersion.endsWith("-dev")) {
-            return systemVersion + "-" + BuildInformationImpl.INSTANCE.getRevision();
-        }
-
-
-        return systemVersion;
-    }
-
     @Override
     protected String getLanguageId() {
-        return LANGUAGE_ID;
+        return Info.LANGUAGE_ID;
     }
 
     @Override
@@ -108,7 +68,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected void printVersion() {
-        System.out.println(getVersionString(isGraal()));
+        System.out.println(Info.getVersionString(isGraal(), isAOT()));
         System.out.println();
         printPolyglotVersions();
     }
@@ -177,7 +137,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         printPreRunInformation(config);
         debugPreInitialization();
         final int exitValue = runRubyMain(contextBuilder, config);
-        Metrics.end();
+        Metrics.end(isAOT());
         System.exit(exitValue);
     }
 
@@ -237,10 +197,10 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         try (Context context = createContext(contextBuilder, config)) {
             Metrics.printTime("before-run");
             final Source source = Source.newBuilder(
-                    LANGUAGE_ID,
+                    Info.LANGUAGE_ID,
                     // language=ruby
                     "Truffle::Boot.main",
-                    BOOT_SOURCE_NAME).internal(true).buildLiteral();
+                    Info.BOOT_SOURCE_NAME).internal(true).buildLiteral();
             final int exitCode = context.eval(source).asInt();
             Metrics.printTime("after-run");
             return exitCode;
@@ -252,7 +212,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     private static void debugPreInitialization() {
-        if (!isAOT() && PRE_INITIALIZE_CONTEXTS) {
+        if (!isAOT() && Info.PRE_INITIALIZE_CONTEXTS) {
             try {
                 final Class<?> holderClz = Class.forName("org.graalvm.polyglot.Engine$ImplHolder");
                 final Method preInitMethod = holderClz.getDeclaredMethod("preInitializeEngine");
@@ -286,7 +246,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         }
 
         builder.options(config.getOptions());
-        builder.arguments(LANGUAGE_ID, config.getArguments());
+        builder.arguments(Info.LANGUAGE_ID, config.getArguments());
 
         return builder.build();
     }
@@ -326,11 +286,11 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         }
 
         if (config.getOption(OptionsCatalog.SHOW_VERSION)) {
-            System.out.println(getVersionString(isGraal()));
+            System.out.println(Info.getVersionString(isGraal(), isAOT()));
         }
 
         if (config.getOption(OptionsCatalog.SHOW_COPYRIGHT)) {
-            System.out.println(RUBY_COPYRIGHT);
+            System.out.println(Info.RUBY_COPYRIGHT);
         }
 
         switch (config.getOption(OptionsCatalog.SHOW_HELP)) {
@@ -346,7 +306,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     private static void printHelp(PrintStream out) {
-        out.printf("Usage: %s [switches] [--] [programfile] [arguments]%n", ENGINE_ID);
+        out.printf("Usage: %s [switches] [--] [programfile] [arguments]%n", Info.ENGINE_ID);
         out.println("  -0[octal]       specify record separator (\0, if no argument)");
         out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
         out.println("  -c              check syntax only");
