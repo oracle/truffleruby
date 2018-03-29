@@ -119,4 +119,7 @@ fi
 "$release_home/bin/ruby" -v
 
 cd "$build_home"
+# All specs except C-extensions
 tool/jt.rb test --native -t "$release_home/bin/truffleruby"
+# C-extensions specs
+tool/jt.rb test --native :capi :library_cext -t "$release_home/bin/truffleruby"
