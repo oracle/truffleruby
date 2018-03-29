@@ -12,7 +12,7 @@ package org.truffleruby;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
 import org.junit.Test;
-import org.truffleruby.launcher.RubyLauncher;
+import org.truffleruby.shared.Info;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -30,7 +30,7 @@ public class PolyglotIOTest extends RubyTest {
                 .out(out)
                 .in(in)
                 .build()) {
-            context.eval(Source.create(RubyLauncher.LANGUAGE_ID, "puts STDIN.read(3)"));
+            context.eval(Source.create(Info.LANGUAGE_ID, "puts STDIN.read(3)"));
         }
 
         assertEquals("abc\n", out.toString());
@@ -43,7 +43,7 @@ public class PolyglotIOTest extends RubyTest {
         try (Context context = Context.newBuilder()
                 .out(out)
                 .build()) {
-            context.eval(Source.create(RubyLauncher.LANGUAGE_ID, "puts 'abc'"));
+            context.eval(Source.create(Info.LANGUAGE_ID, "puts 'abc'"));
         }
 
         assertEquals("abc\n", out.toString());
@@ -56,7 +56,7 @@ public class PolyglotIOTest extends RubyTest {
         try (Context context = Context.newBuilder()
                 .err(err)
                 .build()) {
-            context.eval(Source.create(RubyLauncher.LANGUAGE_ID, "STDERR.puts 'abc'"));
+            context.eval(Source.create(Info.LANGUAGE_ID, "STDERR.puts 'abc'"));
         }
 
         assertEquals("abc\n", err.toString());

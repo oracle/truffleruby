@@ -30,8 +30,8 @@ import org.truffleruby.language.backtrace.InternalRootNode;
 import org.truffleruby.language.exceptions.DisablingBacktracesNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.launcher.RubyLauncher;
 import org.truffleruby.parser.parser.SuppressFBWarnings;
+import org.truffleruby.shared.Info;
 
 import java.util.ArrayList;
 
@@ -344,7 +344,7 @@ public class CallStackManager {
                 return true;
             }
             final SourceSection sourceSection = sharedMethodInfo.getSourceSection();
-            if (sourceSection != null && sourceSection.getSource().getName() == RubyLauncher.BOOT_SOURCE_NAME) {
+            if (sourceSection != null && sourceSection.getSource().getName() == Info.BOOT_SOURCE_NAME) {
                 return true;
             }
         }

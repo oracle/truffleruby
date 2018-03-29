@@ -62,11 +62,10 @@ import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.loader.SourceLoader;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.launcher.Metrics;
-import org.truffleruby.launcher.RubyLauncher;
-import org.truffleruby.launcher.options.Options;
-import org.truffleruby.launcher.options.OptionsBuilder;
-import org.truffleruby.launcher.options.OptionsCatalog;
+import org.truffleruby.shared.Metrics;
+import org.truffleruby.shared.options.Options;
+import org.truffleruby.shared.options.OptionsBuilder;
+import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.NativeConfiguration;
@@ -74,6 +73,7 @@ import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.darwin.DarwinNativeConfiguration;
 import org.truffleruby.platform.linux.LinuxNativeConfiguration;
 import org.truffleruby.platform.solaris.SolarisSparcV9NativeConfiguration;
+import org.truffleruby.shared.Info;
 import org.truffleruby.stdlib.CoverageManager;
 import org.truffleruby.stdlib.readline.ConsoleHolder;
 
@@ -139,7 +139,7 @@ public class RubyContext {
     private boolean initialized;
     private volatile boolean finalizing;
 
-    private static boolean preInitializeContexts = RubyLauncher.PRE_INITIALIZE_CONTEXTS;
+    private static boolean preInitializeContexts = Info.PRE_INITIALIZE_CONTEXTS;
 
     private static final boolean LIBPOLYGLOT = Boolean.getBoolean("graalvm.libpolyglot");
 

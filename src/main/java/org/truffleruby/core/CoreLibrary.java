@@ -14,6 +14,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -54,13 +55,13 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.SingletonClassNodeGen;
-import org.truffleruby.launcher.BuildInformationImpl;
-import org.truffleruby.launcher.RubyLauncher;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.NativeTypes;
 import org.truffleruby.platform.Platform;
+import org.truffleruby.shared.BuildInformationImpl;
+import org.truffleruby.shared.Info;
 import org.truffleruby.stdlib.psych.YAMLEncoding;
 
 import java.io.File;
@@ -681,16 +682,19 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_ENUM", NativeTypes.TYPE_ENUM);
         Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_VARARGS", NativeTypes.TYPE_VARARGS);
 
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_VERSION", frozenUSASCIIString(RubyLauncher.LANGUAGE_VERSION));
-        Layouts.MODULE.getFields(truffleModule).setConstant(context, node, "RUBY_BASE_VERSION", frozenUSASCIIString(RubyLauncher.LANGUAGE_BASE_VERSION));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_VERSION", frozenUSASCIIString(Info.LANGUAGE_VERSION));
+        Layouts.MODULE.getFields(truffleModule).setConstant(context, node, "RUBY_BASE_VERSION", frozenUSASCIIString(
+                Info.LANGUAGE_BASE_VERSION));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PATCHLEVEL", 0);
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_REVISION", RubyLauncher.LANGUAGE_REVISION);
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE", frozenUSASCIIString(RubyLauncher.ENGINE_ID));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE_VERSION", frozenUSASCIIString(RubyLauncher.getEngineVersion()));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_REVISION", Info.LANGUAGE_REVISION);
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE", frozenUSASCIIString(Info.ENGINE_ID));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE_VERSION", frozenUSASCIIString(
+                Info.getEngineVersion()));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PLATFORM", frozenUSASCIIString(RubyLanguage.PLATFORM));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_RELEASE_DATE", frozenUSASCIIString(BuildInformationImpl.INSTANCE.getCompileDate()));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_DESCRIPTION", frozenUSASCIIString(RubyLauncher.getVersionString(TruffleNodes.GraalNode.isGraal())));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_COPYRIGHT", frozenUSASCIIString(RubyLauncher.RUBY_COPYRIGHT));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_DESCRIPTION", frozenUSASCIIString(
+                Info.getVersionString(TruffleNodes.GraalNode.isGraal(), TruffleOptions.AOT)));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_COPYRIGHT", frozenUSASCIIString(Info.RUBY_COPYRIGHT));
 
         // BasicObject knows itself
         Layouts.MODULE.getFields(basicObjectClass).setConstant(context, node, "BasicObject", basicObjectClass);

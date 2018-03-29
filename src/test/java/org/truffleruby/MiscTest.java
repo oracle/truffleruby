@@ -14,7 +14,7 @@ import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 import org.junit.Assert;
 import org.junit.Test;
-import org.truffleruby.launcher.options.OptionsCatalog;
+import org.truffleruby.shared.options.OptionsCatalog;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;

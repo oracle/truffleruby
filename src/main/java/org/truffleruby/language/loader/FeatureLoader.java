@@ -33,7 +33,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.launcher.options.OptionsCatalog;
+import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;

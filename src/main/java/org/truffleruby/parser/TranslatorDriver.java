@@ -69,7 +69,7 @@ import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
-import org.truffleruby.launcher.Metrics;
+import org.truffleruby.shared.Metrics;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.parser.lexer.LexerSource;
 import org.truffleruby.parser.lexer.SyntaxException;
@@ -359,7 +359,7 @@ public class TranslatorDriver {
     }
 
     public static void printParseTranslateExecuteMetric(String id, RubyContext context, Source source) {
-        if (Metrics.METRICS_TIME) {
+        if (Metrics.getMetricsTime()) {
             if (context.getOptions().METRICS_TIME_PARSING_FILE) {
                 String name = source.getName();
                 int lastSlash = name.lastIndexOf('/');

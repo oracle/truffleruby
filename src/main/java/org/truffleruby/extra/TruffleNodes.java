@@ -21,7 +21,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.launcher.BuildInformationImpl;
+import org.truffleruby.shared.BuildInformationImpl;
 
 @CoreClass("Truffle")
 public abstract class TruffleNodes {
