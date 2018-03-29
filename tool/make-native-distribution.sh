@@ -3,9 +3,6 @@
 # This script creates a distribution of TruffleRuby and Sulong
 # compiled to a native image by Substrate VM.
 
-# Do not use jt.rb here to minimize dependencies and avoid compatibility problems
-# between the current commit and the built tag's jt.rb.
-
 set -e
 set -x
 
@@ -78,20 +75,10 @@ export TRUFFLERUBY_RESILIENT_GEM_HOME=true
 # Build
 cd truffleruby
 build_home=$(pwd -P)
-
 mx sversions
-mx build
 
-cd ../graal/substratevm
-mx build
-
-# Build image
-mx fetch-languages --Language:llvm --Language:ruby
-
-./native-image --no-server --Language:llvm --Language:ruby \
-  -H:Path="$build_home/bin" -H:Name=native-ruby \
-  -H:Class=org.truffleruby.launcher.RubyLauncher \
-  -Dtruffleruby.native.libsulong_dir=lib/cext/sulong-libs \
+# Build the image
+tool/jt.rb build native --no-jvmci --no-sforceimports \
   -Dtruffleruby.native.resilient_gem_home=true
 
 # Copy TruffleRuby tar distribution
