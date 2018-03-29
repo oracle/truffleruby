@@ -69,10 +69,6 @@ else
   fi
 fi
 
-cd truffleruby
-
-build_home=$(pwd -P)
-
 release_home="$PREFIX/truffleruby"
 mkdir -p "$release_home"
 
@@ -80,7 +76,9 @@ mkdir -p "$release_home"
 export TRUFFLERUBY_RESILIENT_GEM_HOME=true
 
 # Build
-cd ../truffleruby
+cd truffleruby
+build_home=$(pwd -P)
+
 mx sversions
 mx build
 
