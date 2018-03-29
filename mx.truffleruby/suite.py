@@ -4,9 +4,8 @@ suite = {
 
     "imports": {
         "suites": [
-            # Import only tools which depends on truffle
             {
-                "name": "tools",
+                "name": "truffle",
                 "subdir": True,
                 "version": "ac78c6f6119bed0175c07ed732b3e12b689b5d1c",
                 "urls": [
@@ -329,8 +328,6 @@ suite = {
             "distDependencies": [
                 "sdk:GRAAL_SDK",
                 "sdk:LAUNCHER_COMMON",
-                "tools:CHROMEINSPECTOR",
-                "tools:TRUFFLE_PROFILER",
             ],
             "description": "TruffleRuby Launcher",
             "license": [

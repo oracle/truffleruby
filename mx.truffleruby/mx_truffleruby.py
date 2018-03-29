@@ -295,6 +295,13 @@ def ruby_testdownstream_sulong(args):
     jt('test', 'mri', 'zlib')
     jt('test', 'bundle')
 
+def mx_post_parse_cmd_line(opts):
+    if mx.suite("tools", fatalIfMissing=False):
+        mx.project('truffleruby-bin').buildDependencies += [
+            mx.distribution('CHROMEINSPECTOR'),
+            mx.distribution('TRUFFLE_PROFILER')
+        ]
+
 mx.update_commands(_suite, {
     'ruby': [ruby_run_ruby, ''],
     'rubytck': [ruby_tck, ''],
