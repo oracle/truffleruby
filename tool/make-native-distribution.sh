@@ -67,13 +67,6 @@ mkdir -p "$release_home"
 export TRUFFLERUBY_RESILIENT_GEM_HOME=true
 
 # Build
-
-# NOTE: The 3 lines below are no longer needed in the next release
-# Build Sulong first so that TRUFFLERUBY-ZIP includes sulong-libs
-cd ../sulong
-mx build
-cp -r mxbuild/sulong-libs ../truffleruby/lib/cext
-
 cd ../truffleruby
 mx build
 
