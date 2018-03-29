@@ -52,9 +52,9 @@ mkdir -p "$PREFIX/build"
 cd "$PREFIX/build"
 
 if [ -n "$TAG" ]; then
-  git clone --branch $TAG "$(mx urlrewrite https://github.com/oracle/truffleruby.git)"
-  git clone --branch $TAG "$(mx urlrewrite https://github.com/graalvm/sulong.git)"
-  git clone --branch $TAG "$(mx urlrewrite https://github.com/oracle/graal.git)"
+  git clone --depth 1 --branch $TAG "$(mx urlrewrite https://github.com/oracle/truffleruby.git)"
+  git clone --depth 1 --branch $TAG "$(mx urlrewrite https://github.com/graalvm/sulong.git)"
+  git clone --depth 1 --branch $TAG "$(mx urlrewrite https://github.com/oracle/graal.git)"
 else
   git clone "$original_repo" truffleruby
 
