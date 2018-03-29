@@ -404,8 +404,8 @@ module Commands
           parser                                     build the parser
           options                                    build the options
           cexts                                      build only the C extensions (part of "jt build")
-          native [--no-sulong] [extra mx image options]
-                                                     build a native image of TruffleRuby, optionally with Sulong
+          native [--no-sulong] [--no-jvmci] [extra mx image options]
+                                                     build a native image of TruffleRuby (--no-jvmci to use the system Java)
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt clean                                       clean
       jt env                                         prints the current environment
@@ -1769,15 +1769,16 @@ module Commands
 
   def build_native_image(*options)
     sulong = !options.delete("--no-sulong")
+    jvmci = !options.delete("--no-jvmci")
 
     build
 
-    java_home = install_jvmci
+    java_home = install_jvmci if jvmci
     graal = checkout_or_update_graal_repo
 
     puts 'Building TruffleRuby native binary'
     chdir("#{graal}/substratevm") do
-      File.write('mx.substratevm/env', "JAVA_HOME=#{java_home}\n")
+      File.write('mx.substratevm/env', "JAVA_HOME=#{java_home}\n") if jvmci
 
       mx 'build'
       mx 'fetch-languages', '--Language:llvm', '--Language:ruby'
@@ -1788,7 +1789,7 @@ module Commands
         options.unshift '-Dtruffleruby.native.libsulong_dir=lib/cext/sulong-libs'
       end
 
-      env = { "JAVA_HOME" => java_home }
+      env = jvmci ? { "JAVA_HOME" => java_home } : {}
       output_options = [
           "-H:Path=#{TRUFFLERUBY_DIR}/bin",
           '-H:Name=native-ruby',
