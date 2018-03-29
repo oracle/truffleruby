@@ -87,7 +87,7 @@ cd "$release_home"
 tar xf truffleruby-zip.tar
 rm truffleruby-zip.tar
 
-# Fix launchers
+# Copy the image
 cp "$build_home/bin/native-ruby" bin/truffleruby
 
 # Create archive
