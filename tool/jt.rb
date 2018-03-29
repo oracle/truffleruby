@@ -529,6 +529,13 @@ module Commands
   def build_truffleruby(*options, sforceimports: true)
     mx 'sforceimports' if sforceimports
 
+    env_path = "#{TRUFFLERUBY_DIR}/mx.truffleruby/env"
+    env_content = File.exist?(env_path) ? File.read(env_path) : ''
+    dynamic_import = 'DEFAULT_DYNAMIC_IMPORTS=/tools'
+    unless env_content.include? dynamic_import
+      File.write(env_path, env_content + "#{dynamic_import}\n")
+    end
+
     mx 'build', '--force-javac', '--warning-as-error',
        # show more than default 100 errors not to hide actual errors under pile of missing symbols
        '-A-Xmaxerrs', '-A1000', *options
