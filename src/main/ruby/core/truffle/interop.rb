@@ -28,9 +28,7 @@ module Truffle
     end
 
     def self.object_keys(object, internal)
-      if object.is_a?(::Array)
-        (0...object.size).to_a
-      elsif object.is_a?(Hash)
+      if object.is_a?(Hash)
         object.keys.map(&:to_s).map { |s| Truffle::Interop.to_java_string(s) }
       else
         keys = object.methods.map(&:to_s)
