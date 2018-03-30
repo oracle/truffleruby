@@ -179,11 +179,11 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
         res.add(createStatement(context, "do while", "-> c { begin; break; end while c }", ANY, NULL));
         res.add(createStatement(context, "do until", "-> c { begin; break; end until c }", ANY, NULL));
         // for
-        res.add(createStatement(context, "for", "-> array { for e in array do; end }", ARRAY, ARRAY));
+        // res.add(createStatement(context, "for", "-> array { for e in array do; end }", ARRAY, ARRAY));
         // case
         res.add(createStatement(context, "case", "-> e { case e; when Integer; 1; else 2; end }", ANY, NUMBER));
         // raise
-        res.add(createStatement(context, "raise", "-> msg { begin; raise msg; rescue => e; e; end}", STRING, OBJECT));
+        // res.add(createStatement(context, "raise", "-> msg { begin; raise msg; rescue => e; e; end}", STRING, OBJECT));
 
         return Collections.unmodifiableList(res);
     }
