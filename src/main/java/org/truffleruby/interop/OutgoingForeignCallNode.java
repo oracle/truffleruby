@@ -132,9 +132,16 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             }
 
             return new SpecialFormOutgoingNode(getContext().getSymbolTable().getSymbol(name), expectedArgsLength);
+        } else if (isOperatorMethod(name)) {
+            return new UnboxForOperatorAndReDispatchOutgoingNode(name, argsLength);
         } else {
             return new InvokeOutgoingNode(name, argsLength);
         }
+    }
+
+    @TruffleBoundary
+    private static boolean isOperatorMethod(String name) {
+        return !name.isEmpty() && !Character.isLetter(name.charAt(0));
     }
 
     protected int getCacheLimit() {
@@ -429,6 +436,66 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             } else {
                 return a == b;
             }
+        }
+
+    }
+
+    protected class UnboxForOperatorAndReDispatchOutgoingNode extends OutgoingNode {
+
+        private final String name;
+        private final int argsLength;
+
+        @Child private Node isBoxedNode = Message.IS_BOXED.createNode();
+        @Child private Node unboxNode;
+        @Child private CallDispatchHeadNode redispatchNode;
+        @Child private InvokeOutgoingNode invokeOutgoingNode;
+
+        public UnboxForOperatorAndReDispatchOutgoingNode(String name, int argsLength) {
+            this.name = name;
+            this.argsLength = argsLength;
+        }
+
+        @Override
+        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+            assert args.length == argsLength;
+
+            if (ForeignAccess.sendIsBoxed(isBoxedNode, receiver)) { // implicit profiling as a result of lazy nodes
+                final Object unboxedReceiver = unbox(receiver);
+                return reDispatch(frame, unboxedReceiver, args);
+            } else {
+                return invoke(frame, receiver, args);
+            }
+        }
+
+        private Object unbox(TruffleObject receiver) {
+            if (unboxNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                unboxNode = insert(Message.UNBOX.createNode());
+            }
+
+            try {
+                return ForeignAccess.sendUnbox(unboxNode, receiver);
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+        }
+
+        private Object reDispatch(VirtualFrame frame, Object receiver, Object[] args) {
+            if (redispatchNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                redispatchNode = insert(CallDispatchHeadNode.create());
+            }
+
+            return redispatchNode.call(frame, receiver, name, args);
+        }
+
+        private Object invoke(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+            if (invokeOutgoingNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                invokeOutgoingNode = insert(new InvokeOutgoingNode(name, argsLength));
+            }
+
+            return invokeOutgoingNode.executeCall(frame, receiver, args);
         }
 
     }
