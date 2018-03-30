@@ -41,14 +41,13 @@ ENV JAVA_HOME=/build/graal-jvmci-8/openjdk1.8.0_151/linux-amd64/product
 ENV JVMCI_VERSION_CHECK=ignore
 RUN $JAVA_HOME/bin/java -version
 
-# Build the Graal compiler
-RUN git clone https://github.com/oracle/graal.git
-RUN cd graal/compiler && mx build
-ENV GRAAL_HOME=/build/graal/compiler
-
 # Build TruffleRuby
 RUN git clone https://github.com/oracle/truffleruby.git
 RUN cd truffleruby && mx build
+
+# Build the Graal compiler
+RUN cd graal/compiler && mx build
+ENV GRAAL_HOME=/build/graal/compiler
 
 # Run a basic set of tests
 RUN cd truffleruby && ruby tool/jt.rb test fast :language
