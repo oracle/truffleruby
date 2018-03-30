@@ -10,22 +10,29 @@
 package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+import org.truffleruby.Log;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.cast.ToSymbolNodeGen;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.interop.OutgoingForeignCallNode;
+import org.truffleruby.interop.OutgoingForeignCallNodeGen;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.LookupMethodNodeGen;
+import org.truffleruby.language.objects.MetaClassNode;
+import org.truffleruby.language.objects.MetaClassNodeGen;
 
 public class UncachedDispatchNode extends DispatchNode {
 
@@ -36,10 +43,12 @@ public class UncachedDispatchNode extends DispatchNode {
     @Child private IndirectCallNode indirectCallNode;
     @Child private ToSymbolNode toSymbolNode;
     @Child private NameToJavaStringNode nameToJavaStringNode;
+    @Child private MetaClassNode metaClassNode;
 
     private final BranchProfile methodNotFoundProfile = BranchProfile.create();
     private final BranchProfile methodMissingProfile = BranchProfile.create();
     private final BranchProfile methodMissingNotFoundProfile = BranchProfile.create();
+    private final BranchProfile foreignProfile = BranchProfile.create();
 
     public UncachedDispatchNode(boolean ignoreVisibility, boolean onlyCallPublic, DispatchAction dispatchAction, MissingBehavior missingBehavior) {
         super(dispatchAction);
@@ -49,6 +58,7 @@ public class UncachedDispatchNode extends DispatchNode {
         this.indirectCallNode = Truffle.getRuntime().createIndirectCallNode();
         this.toSymbolNode = ToSymbolNodeGen.create(null);
         this.nameToJavaStringNode = NameToJavaStringNode.create();
+        this.metaClassNode = dispatchAction == DispatchAction.CALL_METHOD ? MetaClassNodeGen.create(null) : null;
     }
 
     @Override
@@ -63,11 +73,20 @@ public class UncachedDispatchNode extends DispatchNode {
             Object name,
             DynamicObject block,
             Object[] arguments) {
-        assert !RubyGuards.isForeignObject(receiver) : "uncached dispatch not supported on foreign objects";
-
-        final DispatchAction dispatchAction = getDispatchAction();
 
         final String methodName = nameToJavaStringNode.executeToJavaString(name);
+
+        final DispatchAction dispatchAction = getDispatchAction();
+        if (dispatchAction == DispatchAction.CALL_METHOD) {
+            if (metaClassNode.executeMetaClass(receiver) == coreLibrary().getTruffleInteropForeignClass()) {
+                foreignProfile.enter();
+                Log.notOptimizedOnce("megamorphic dispatch on foreign object");
+                return createOutgoingForeignCallNode(methodName).executeCall(frame, (TruffleObject) receiver, arguments);
+            }
+        } else {
+            assert !RubyGuards.isForeignObject(receiver) : "RESPOND_TO_METHOD not supported on foreign objects";
+        }
+
         final InternalMethod method = lookupMethodNode.executeLookupMethod(frame, receiver, methodName);
 
         if (method != null) {
@@ -110,6 +129,11 @@ public class UncachedDispatchNode extends DispatchNode {
         } else {
             throw new UnsupportedOperationException();
         }
+    }
+
+    @TruffleBoundary
+    private OutgoingForeignCallNode createOutgoingForeignCallNode(String methodName) {
+        return OutgoingForeignCallNodeGen.create(methodName, null, null);
     }
 
     private Object call(InternalMethod method, Object receiverObject, DynamicObject blockObject, Object[] argumentsObjects) {
