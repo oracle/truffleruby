@@ -25,12 +25,18 @@ public abstract class ForeignToRubyNode extends RubyNode {
     protected abstract Object executeConvert(Object value);
 
     @Specialization
+    public DynamicObject convertCharacterCached(char value,
+            @Cached("create()") FromJavaStringNode fromJavaStringNode) {
+        return fromJavaStringNode.executeFromJavaString(String.valueOf(value));
+    }
+
+    @Specialization
     public DynamicObject convertStringCached(String value,
-                                             @Cached("create()") FromJavaStringNode fromJavaStringNode) {
+            @Cached("create()") FromJavaStringNode fromJavaStringNode) {
         return fromJavaStringNode.executeFromJavaString(value);
     }
 
-    @Specialization(guards = "!isString(value)")
+    @Specialization(guards = { "!isCharacter(value)", "!isString(value)" })
     public Object convert(Object value) {
         return value;
     }
