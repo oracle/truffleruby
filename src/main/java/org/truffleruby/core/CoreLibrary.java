@@ -833,7 +833,7 @@ public class CoreLibrary {
 
     @TruffleBoundary
     public DynamicObject getMetaClass(Object object) {
-        if (object instanceof DynamicObject) {
+        if (RubyGuards.isRubyBasicObject(object)) {
             return Layouts.BASIC_OBJECT.getMetaClass((DynamicObject) object);
         } else {
             return getLogicalClass(object);
