@@ -18,6 +18,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyObjectType;
 
 @ImportStatic(ShapeCachingGuards.class)
 @NodeChild(value = "object", type = RubyNode.class)
@@ -78,8 +79,12 @@ public abstract class MetaClassNode extends RubyNode {
         return getContext().getCoreLibrary().getMetaClass(object);
     }
 
-    protected static DynamicObject getMetaClass(Shape shape) {
-        return Layouts.BASIC_OBJECT.getMetaClass(shape.getObjectType());
+    protected DynamicObject getMetaClass(Shape shape) {
+        if (shape.getObjectType() instanceof RubyObjectType) {
+            return Layouts.BASIC_OBJECT.getMetaClass(shape.getObjectType());
+        } else {
+            return getContext().getCoreLibrary().getTruffleInteropForeignClass();
+        }
     }
 
     protected int getCacheLimit() {
