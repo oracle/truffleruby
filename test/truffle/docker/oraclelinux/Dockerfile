@@ -32,7 +32,7 @@ ENV PATH=/test/graalvm-$GRAALVM_VERSION/bin:$PATH
 ENV RUBY_HOME=/test/graalvm-$GRAALVM_VERSION/jre/languages/ruby
 
 # Build our own native image
-RUN native-image -H:Name=native-ruby --ruby
+RUN native-image --no-server -H:Name=native-ruby --Language:ruby
 ENV PATH=/test:$PATH
 
 # Straight away, just run the ruby executables as the most basic test
