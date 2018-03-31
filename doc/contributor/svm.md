@@ -3,13 +3,13 @@
 The Substrate Virtual Machine, or SVM, is a closed- and whole-world analysis
 ahead-of-time compiler for Java, and an implementation of parts of a JVM.
 
-Using the SVM it is possible to ahead-of-time compile TruffleRuby and the Graal
-dynamic compiler to a single, statically linked native binary executable, that
-has no dependency on a JVM, and does not link to any JVM libraries. The
-technique is more sophisticated than just appending a JAR as a resource in a
-copy of the JVM - only parts of the JVM which are needed are included and they
-are specialised for how TruffleRuby uses them. There is no Java bytecode - only
-compiled native machine code and compiler graphs for dynamic compilation.
+We use the SVM to ahead-of-time compile TruffleRuby and the Graal dynamic
+compiler to a single, statically linked native binary executable, that has no
+dependency on a JVM, and does not link to any JVM libraries. The technique is
+more sophisticated than just appending a JAR as a resource in a copy of the JVM -
+only parts of the JVM which are needed are included and they are specialised for
+how TruffleRuby uses them. There is no Java bytecode - only compiled native
+machine code and compiler graphs for dynamic compilation.
 
 Note that a common confusion is that the SVM is an ahead-of-time compiler for
 the Java code that implements the TruffleRuby interpreter and the Graal
@@ -19,16 +19,11 @@ The SVM itself, like Graal and TruffleRuby, is implemented in Java.
 
 https://youtu.be/FJY96_6Y3a4?t=10023
 
-More information can be found in Kevin's [blog post](http://nirvdrum.com/2017/02/15/truffleruby-on-the-substrate-vm.html).
+More information can be found in Kevin's
+[blog post](http://nirvdrum.com/2017/02/15/truffleruby-on-the-substrate-vm.html).
 
-To use the SVM you need a release of GraalVM, as described in
-[Using GraalVM](using-graalvm.md).
-
-GraalVM contains a native binary that implements Ruby, similar to the MRI or
-Rubinius executables. By default this binary just starts the JVM, but if you use
-the `--native` flag it runs without a JVM.
-
-The binary doesn't need a JVM:
+The TruffleRuby that is distributed in the [GraalVM](../user/using-graalvm.md)
+by default uses a version compiled using SVM.
 
 ```bash
 $ cd graalvm
@@ -86,5 +81,34 @@ Hello
 0.25 66824
 ```
 
-(The first number `real` is the number of actual seconds which have elapsed while the command
-runs, and the second `maximum resident set size` is the maximum amount of memory occupied while the command runs)
+(The first number `real` is the number of actual seconds which have elapsed
+while the command runs, and the second `maximum resident set size` is the
+maximum amount of memory occupied while the command runs.)
+
+There is no need to do so, but you can actually also compile your own copy of
+the SVM version of TruffleRuby using a tool distributed as part of GraalVM and
+the Java version of TruffleRuby from GraalVM.
+
+```
+$ native-image -H:Name=native-ruby --Language:ruby
+```
+
+`native-ruby` is the output file name.
+
+You can build a native image using SVM from a source distribution using:
+
+```
+$ jt build native
+```
+
+The disadvantages of the SVM version of TruffleRuby are:
+
+* It has lower peak performance, as the GC is simpler and some optimisations
+  such as compressed ordinary object pointers (OOPS) are not available.
+* You can't use Java interopability.
+* You can't use standard Java tools like VisualVM.
+
+So the SVM version may not be appropriate for all uses.
+
+For the highest performance for long-running processes you want to use the
+JVM version of TruffleRuby, using `--jvm`.

@@ -226,16 +226,16 @@ not clear if this will ever be a priority.
 We do not have any plans at the moment to provide support for Rubinius'
 extensions to Ruby.
 
-## Features not yet supported on the SVM
+## Features not yet supported in native configuration
 
 * Java interop
 
-Running TruffleRuby on the SVM is substantially the same as running on
-GraalVM. There are differences in resource management, as both VMs use different
-garbage collectors. But, functionality-wise, they are essentially on par
-with one another. The big difference is support for Java interop, which
-currently relies on reflection. TruffleRuby's implementation of Java interop
-does not work with the SVM's limited support for runtime reflection.
+Running TruffleRuby in the native configuration is mostly the same as running on
+the JVM. There are differences in resource management, as both VMs use different
+garbage collectors. But, functionality-wise, they are essentially on par with
+one another. The big difference is support for Java interop, which currently
+relies on reflection. TruffleRuby's implementation of Java interop does not work
+with the SVM's limited support for runtime reflection.
 
 ## Spec Completeness
 

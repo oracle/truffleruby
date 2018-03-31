@@ -34,6 +34,40 @@ TruffleRuby aims to:
 * Add fast and low-overhead interoperability with languages like JavaScript, Python and R
 * All while maintaining very high compatibility with the standard implementation of Ruby
 
+## TruffleRuby Configurations
+
+It's important to understand the different configurations of TruffleRuby, as
+each has different capabilities and performance characteristics. You should
+pick the execution mode that is appropriate for your application.
+
+When distributed as part of GraalVM, TruffleRuby by default runs in the *native*
+configuration. In this configuration, TruffleRuby is ahead-of-time compiled to a
+standalone native machine code executable binary. This means that you don't need
+a JVM installed on your system to use it. The advantage of the native
+configuration is that it starts about as fast as MRI, it may use less memory,
+and it becomes fast in less time. The disadvantage of the native configuration
+is that you can't use Java tools like VisualVM, you can't use Java
+interopability, and *peak performance may be lower than other configurations*.
+The native configuration is used by default, but you can also request it using
+`--native`.
+
+TruffleRuby can also be used in the *JVM* configuration, where it runs as a
+normal Java application on the JVM, as any other Java application would. The
+advantage of the JVM configuration is that you can use Java interopability, and
+*peak performance may be higher than other configurations*. The disadvantage of
+the JVM configuration is that it takes much longer to start and to get fast, and
+may use more memory. The JVM configuration is requested using `--jvm`.
+
+If you are running a short-running program you probably want the default,
+native, configuration. If you are running a long-running program and want the
+highest possible performance you probably want the JVM configuration, by using
+`--jvm`.
+
+You won't encounter it when using TruffleRuby from the GraalVM, but there is
+also another configuration which is TruffleRuby running on the JVM but with the
+Graal compiler not available. This configuration will have much lower
+performance.
+
 ## Documentation
 
 Extensive documentation is available in [`doc`](doc).
@@ -61,31 +95,6 @@ try running your full Ruby application on.
 
 TruffleRuby is ready for experimentation and curious end-users to try on their
 gems and smaller applications.
-
-### Common questions about the status of TruffleRuby
-
-#### Do you run Rails?
-
-We do run Rails, and pass the majority of the Rails test suite. But we are
-missing support for OpenSSL, Nokogiri, and ActiveRecord database drivers
-which makes it not practical to run real Rails applications at the moment.
-
-#### What is happening with native, startup time, and the SubstrateVM?
-
-You don't need a JVM to run TruffleRuby. With the
-[SubstrateVM](doc/user/svm.md)
-it is possible to produce a single, statically linked native binary executable
-version of TruffleRuby, which doesn't need any JVM to run.
-
-This SubstrateVM version of TruffleRuby has startup performance and memory
-footprint more similar to MRI than TruffleRuby on the JVM or JRuby. There are
-[instructions](doc/user/svm.md)
-for using it as part of GraalVM.
-
-#### Can TruffleRuby run on a standard JVM?
-
-It is possible to [run on an unmodified JDK 10](doc/user/using-java10.md) but you
-will have to build Graal yourself and we recommend using GraalVM instead.
 
 ## Contact
 

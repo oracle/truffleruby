@@ -11,12 +11,12 @@ http://www.oracle.com/technetwork/oracle-labs/program-languages/
 
 Inside the GraalVM is a `jre/languages/ruby` directory which has the usual
 structure of a Ruby implementation. It is recommended to add this directory to
-a Ruby manager, see [Configuring Ruby managers](ruby-managers.md) for more
+a Ruby manager, see [configuring Ruby managers](ruby-managers.md) for more
 information.
 
-By default, GraalVM runs TruffleRuby on a JVM, but it can also run it on top
-of the [SubstrateVM](svm.md) for faster startup-time but slower peak-performance.
-This is enabled with the `--native` option.
+By default, GraalVM runs TruffleRuby in the native configuration, which is best
+for short-running processes, but it can also run it on top of the JVM which is
+best for long-running processes. Use `--jvm` to use the JVM configuration.
 
 You can also use GraalVM to run a different version of TruffleRuby than the one
 it packages, but this not advised for end-users.
