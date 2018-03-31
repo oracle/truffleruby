@@ -935,7 +935,6 @@ module Commands
       "EXCLUDES" => "test/mri/excludes",
       "RUBYOPT" => '--disable-gems',
       "TRUFFLERUBYOPT" => '-Xgraal.warn_unless=false',
-      "TRUFFLERUBY_CEXT_ENABLED" => 'true',
       "TRUFFLERUBY_RESILIENT_GEM_HOME" => nil,
     }
 

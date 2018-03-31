@@ -7,6 +7,9 @@ Changes:
   more clear what the minimum requirements for pure Ruby, C extensions, and C++
   extensions separately.
 
+* C extensions are now built by default - `TRUFFLERUBY_CEXT_ENABLED` is assumed
+  `true` unless set to `false`.
+
 # 0.33, April 2018
 
 New features:

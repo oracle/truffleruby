@@ -57,7 +57,6 @@ if [ -z "${SULONG_REVISION+x}" ]; then
   exit 1
 fi
 mx ruby_download_binary_suite sulong "$SULONG_REVISION"
-export TRUFFLERUBY_CEXT_ENABLED=true
 export TRUFFLERUBYOPT="-Xgraal.warn_unless=$graal"
 
 if [ "$graal" = true ]; then
@@ -109,7 +108,6 @@ rm mxbuild/$PLATFORM/dists/truffleruby-zip.tar
 # Environment sourced by the launcher, so adding to $PATH is enough
 cat > truffleruby_env <<EOS
 export TRUFFLERUBY_RESILIENT_GEM_HOME=true
-export TRUFFLERUBY_CEXT_ENABLED=$TRUFFLERUBY_CEXT_ENABLED
 export TRUFFLERUBYOPT="$TRUFFLERUBYOPT \$TRUFFLERUBYOPT"
 EOS
 if [ "$graal" = true ]; then

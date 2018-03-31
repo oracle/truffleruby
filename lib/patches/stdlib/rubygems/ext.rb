@@ -6,11 +6,10 @@ module Truffle::Patching::ConditionallyBuildNativeExtensions
   def build_extensions
     return if @spec.extensions.empty?
 
-    if ENV['TRUFFLERUBY_CEXT_ENABLED'] && ENV['TRUFFLERUBY_CEXT_ENABLED'] != "false"
-      super
+    if ENV['TRUFFLERUBY_CEXT_ENABLED'] == "false"
+      puts "C extensions for #{@spec.name} disabled by TRUFFLERUBY_CEXT_ENABLED=false"
     else
-      puts "WORKAROUND: Not building native extensions for #{@spec.name}.\n" +
-           'Support of C extensions is in development, set TRUFFLERUBY_CEXT_ENABLED=true to experiment.'
+      super
     end
   end
 end
