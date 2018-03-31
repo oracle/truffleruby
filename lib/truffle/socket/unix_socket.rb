@@ -51,7 +51,7 @@ class UNIXSocket < BasicSocket
     IO.setup(self, fd, 'r+', true)
     binmode
 
-    sockaddr = Socket.sockaddr_un(path)
+    sockaddr = Socket.sockaddr_un(Truffle::Type.check_null_safe(path))
     status   = Truffle::Socket::Foreign.connect(descriptor, sockaddr)
 
     Errno.handle('connect(2)') if status < 0

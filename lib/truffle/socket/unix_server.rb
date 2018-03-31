@@ -27,7 +27,7 @@
 class UNIXServer < UNIXSocket
   def initialize(path)
     @no_reverse_lookup = self.class.do_not_reverse_lookup
-    @path              = path
+    @path              = Truffle::Type.check_null_safe(path)
 
     fd = Truffle::Socket::Foreign.socket(Socket::AF_UNIX, Socket::SOCK_STREAM, 0)
 
