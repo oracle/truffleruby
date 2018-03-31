@@ -20,6 +20,17 @@ that is unique to us - it applies to many sophisticated virtual machines - but
 most Ruby implementations are not yet doing optimisations powerful enough to
 show them so it may be a new problem to some people in the Ruby community.
 
+## Using the JVM configuration
+
+For the best peak performance, you want to use the JVM configuration, using
+`--jvm`. The default native configuration starts faster but doesn't quite reach
+the same peak performance. However, you *must* then use a good benchmarking
+tool, like `benchmark-ips` described below, to run the benchmark, or the slower
+warmup time will mean that you don't see TruffleRuby's true performance in the
+benchmark. If you want to write simpler benchmarks that just run a while loop
+with a simple timer (which we would not recommend anyway), then use the default
+native mode so that startup and warmup time is shorter. 
+
 ## How to check for basic performance problems
 
 If you are examining the performance of TruffleRuby, we would recommend that you
@@ -34,7 +45,7 @@ try to work around errors and you will not see that there is a problem.
 We recommend that you use
 [`benchmark-ips`](https://github.com/evanphx/benchmark-ips), by Evan Phoenix, to
 check the performance of TruffleRuby, and it makes things easier for us if you
-report any potential performance problems using a report from `benchmark-ips`. 
+report any potential performance problems using a report from `benchmark-ips`.
 
 A benchmark could look like this:
 

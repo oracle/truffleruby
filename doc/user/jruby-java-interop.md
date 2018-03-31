@@ -2,7 +2,9 @@
 
 JRuby provides a rich set of interop functionality between Ruby and Java, and we
 attempt to emulate it faithfully in TruffleRuby.
-Currently, this is supported when running on JVM but not on SubstrateVM.
+
+You will need to use the JVM configuration, with `--jvm`, in order to use
+JRuby-compatibility Java interopability.
 
 ## Ruby proxies for Java classes
 
