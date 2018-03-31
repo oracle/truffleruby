@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 echo "You may want to wipe your Docker caches before running these"
 
 for c in oraclelinux ubuntu fedora rbenv chruby rvm; do
