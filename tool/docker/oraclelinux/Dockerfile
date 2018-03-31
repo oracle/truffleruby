@@ -4,7 +4,7 @@ FROM oraclelinux-llvm
 ENV LANG=en_US.UTF-8
 
 # To clone source repositories
-RUN yum install -y git mercurial
+RUN yum install -y git
 
 # To bootstrap our own JVMCI-comptaible JDK we need a JDK
 RUN yum install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk-openjfx java-atk-wrapper
@@ -12,11 +12,15 @@ RUN yum install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk-openjfx java-atk-
 # Other dependencies for building a JDK
 RUN yum install -y gcc libstdc++-static
 
-# To build Sulong and TruffleRuby's C extensions
-RUN yum install -y clang llvm libcxx libcxxabi libcxx-devel
+# Dependencies for using openssl
+RUN yum install -y openssl-devel
+
+# Dependencies for building and using C++ extensions
+RUN yum install -y libcxx-devel
+RUN yum install -y libcxx
 
 # To build TruffleRuby
-RUN yum install -y ruby rubygem-json openssl-devel
+RUN yum install -y python ruby rubygem-json openssl-devel
 
 # Used in spec/truffle.mspec
 RUN yum install -y which

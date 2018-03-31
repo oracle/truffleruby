@@ -10,7 +10,7 @@ RUN locale-gen en_US.UTF-8
 ENV LANG=en_US.UTF-8
 
 # To clone source repositories
-RUN apt-get install -y git mercurial
+RUN apt-get install -y git
 
 # To bootstrap our own JVMCI-comptaible JDK we need a JDK
 RUN apt-get install -y openjdk-8-jdk openjdk-8-source
@@ -18,11 +18,17 @@ RUN apt-get install -y openjdk-8-jdk openjdk-8-source
 # Other dependencies for building a JDK
 RUN apt-get install -y make gcc g++
 
-# To build Sulong and TruffleRuby's C extensions
-RUN apt-get install -y clang llvm libc++-dev libc++abi-dev
-
 # To build TruffleRuby
-RUN apt-get install -y ruby libssl-dev
+RUN apt-get install -y python ruby
+
+# Dependencies for using openssl
+RUN apt-get install -y libssl-dev
+
+# Dependencies for building C
+RUN apt-get install -y make clang llvm
+
+# Dependencies for building and using C++ extensions
+RUN apt-get install -y libc++-dev
 
 # Create a user and working directory
 WORKDIR /build
