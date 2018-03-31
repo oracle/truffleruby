@@ -35,6 +35,11 @@ ADD graalvm-$GRAALVM_VERSION-linux-amd64-jdk8.tar.gz /test
 ENV PATH=/test/graalvm-$GRAALVM_VERSION/bin:$PATH
 ENV RUBY_HOME=/test/graalvm-$GRAALVM_VERSION/jre/languages/ruby
 
+# Straight away, just run the ruby executables as the most basic test
+RUN ruby --version
+RUN ruby --native --version
+RUN ruby --jvm --version
+
 # Clone the TruffleRuby source code to get tests
 RUN git clone --branch $TEST_BRANCH --depth 1 https://github.com/oracle/truffleruby.git
 
@@ -44,6 +49,7 @@ RUN cp -r truffleruby/test .
 RUN rm -rf truffleruby
 
 # Run language specs as another basic test
+
 RUN ruby \
 spec/mspec/bin/mspec \
 --config spec/truffle.mspec \
@@ -53,7 +59,6 @@ spec/mspec/bin/mspec \
 -t ruby \
 :language
 
-# ...and in native mode
 RUN ruby \
 spec/mspec/bin/mspec \
 --config spec/truffle.mspec \
@@ -61,17 +66,17 @@ spec/mspec/bin/mspec \
 --excl-tag fails \
 --excl-tag graalvm \
 -t ruby \
--T --native \
+-T --jvm \
 :language
 
 # Check we can make a real-world openssl request
+
 RUN ruby \
 -ropen-uri \
 -e 'open("https://rubygems.org/") { |f| raise unless f.read.include?("Find, install, and publish RubyGems") }'
 
-# ...and in native mode
 RUN ruby \
---native \
+--jvm
 -ropen-uri \
 -e 'open("https://rubygems.org/") { |f| raise unless f.read.include?("Find, install, and publish RubyGems") }'
 
