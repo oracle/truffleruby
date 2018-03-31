@@ -612,8 +612,6 @@ module Commands
       if ENV["RUBY_BIN"]
         # Assume Graal is available if RUBY_BIN is set or that we are running
         # a non-TruffleRuby, such as MRI.
-      else
-        vm_args << '-Xgraal.warn_unless=false'
       end
     end
 
@@ -934,7 +932,6 @@ module Commands
     env_vars = {
       "EXCLUDES" => "test/mri/excludes",
       "RUBYOPT" => '--disable-gems',
-      "TRUFFLERUBYOPT" => '-Xgraal.warn_unless=false',
       "TRUFFLERUBY_RESILIENT_GEM_HOME" => nil,
     }
 

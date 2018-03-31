@@ -13,7 +13,6 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
 import org.junit.Test;
 import org.truffleruby.launcher.RubyLauncher;
-import org.truffleruby.launcher.options.OptionsCatalog;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -28,7 +27,6 @@ public class PolyglotIOTest extends RubyTest {
         final ByteArrayInputStream in = new ByteArrayInputStream("abc".getBytes());
 
         try (Context context = Context.newBuilder()
-                .option(OptionsCatalog.GRAAL_WARNING_UNLESS.getName(), Boolean.FALSE.toString())
                 .out(out)
                 .in(in)
                 .build()) {
@@ -43,7 +41,6 @@ public class PolyglotIOTest extends RubyTest {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         try (Context context = Context.newBuilder()
-                .option(OptionsCatalog.GRAAL_WARNING_UNLESS.getName(), Boolean.FALSE.toString())
                 .out(out)
                 .build()) {
             context.eval(Source.create(RubyLauncher.LANGUAGE_ID, "puts 'abc'"));
@@ -57,7 +54,6 @@ public class PolyglotIOTest extends RubyTest {
         final ByteArrayOutputStream err = new ByteArrayOutputStream();
 
         try (Context context = Context.newBuilder()
-                .option(OptionsCatalog.GRAAL_WARNING_UNLESS.getName(), Boolean.FALSE.toString())
                 .err(err)
                 .build()) {
             context.eval(Source.create(RubyLauncher.LANGUAGE_ID, "STDERR.puts 'abc'"));

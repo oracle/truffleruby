@@ -571,11 +571,6 @@ public class OptionsCatalog {
             "Run finalizers on exit (for debugging, even though objects are still alive)",
             null,
             false);
-    public static final BooleanOptionDescription GRAAL_WARNING_UNLESS = new BooleanOptionDescription(
-            "ruby.graal.warn_unless",
-            "Warn unless the JVM has the Graal compiler",
-            null,
-            true);
     public static final BooleanOptionDescription SHARED_OBJECTS_ENABLED = new BooleanOptionDescription(
             "ruby.shared.objects",
             "Enable shared objects",
@@ -861,8 +856,6 @@ public class OptionsCatalog {
                 return REGEXP_INSTRUMENT_MATCH;
             case "ruby.finalizers.run_on_exit":
                 return RUN_FINALIZERS_ON_EXIT;
-            case "ruby.graal.warn_unless":
-                return GRAAL_WARNING_UNLESS;
             case "ruby.shared.objects":
                 return SHARED_OBJECTS_ENABLED;
             case "ruby.shared.objects.debug":
@@ -1005,7 +998,6 @@ public class OptionsCatalog {
             REGEXP_INSTRUMENT_CREATION,
             REGEXP_INSTRUMENT_MATCH,
             RUN_FINALIZERS_ON_EXIT,
-            GRAAL_WARNING_UNLESS,
             SHARED_OBJECTS_ENABLED,
             SHARED_OBJECTS_DEBUG,
             SHARED_OBJECTS_FORCE,

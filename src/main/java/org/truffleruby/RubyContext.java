@@ -49,7 +49,6 @@ import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.time.GetTimeZoneNode;
-import org.truffleruby.extra.TruffleNodes;
 import org.truffleruby.interop.InteropManager;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.LexicalScope;
@@ -161,11 +160,6 @@ public class RubyContext {
         allocationReporter = env.lookup(AllocationReporter.class);
 
         options = createOptions(env);
-
-        if (!TruffleNodes.GraalNode.isGraal() && options.GRAAL_WARNING_UNLESS) {
-            Log.performanceOnce(
-                    "this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md");
-        }
 
         // We need to construct this at runtime
         random = new SecureRandom();

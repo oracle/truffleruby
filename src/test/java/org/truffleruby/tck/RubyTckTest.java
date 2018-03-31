@@ -298,8 +298,7 @@ public class RubyTckTest extends TruffleTCK {
         return builder
                 .config(RubyLanguage.MIME_TYPE, OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), false)
                 .config(RubyLanguage.MIME_TYPE, OptionsCatalog.HOME.getName(), cwd)
-                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.BASICOPS_INLINE.getName(), false)
-                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.GRAAL_WARNING_UNLESS.getName(), false);
+                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.BASICOPS_INLINE.getName(), false);
     }
 
     @Override

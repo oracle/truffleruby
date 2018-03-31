@@ -7,7 +7,7 @@ endif
 
 ROOT := $(realpath ../../..)
 CEXTS_DIR := $(ROOT)/lib/mri
-RUBY := $(ROOT)/bin/truffleruby -Xgraal.warn_unless=false
+RUBY := $(ROOT)/bin/truffleruby
 
 TRUFFLE_POSIX := $(ROOT)/lib/cext/truffleposix.$(DLEXT)
 TRUFFLE_MOCK := $(ROOT)/lib/cext/sulongmock.bc
