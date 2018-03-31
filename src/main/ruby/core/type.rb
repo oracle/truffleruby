@@ -575,7 +575,7 @@ module Truffle
     # String helpers
 
     def self.check_null_safe(string)
-      raise ArgumentError, 'string contains NULL byte' if string.include? "\0"
+      raise ArgumentError, 'string contains null byte' if string.include? "\0"
       string
     end
 

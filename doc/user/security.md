@@ -18,6 +18,7 @@ https://www.ruby-lang.org/en/security/.
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
+CVE-2018-8780 | Unintentional directory traversal by poisoned NUL byte in Dir | Check for NUL bytes | Tested in ruby/spec `:security` | Check for NUL bytes
 CVE-2018-8777 | DoS by large request in WEBrick | Logic for header length | Tested in MRI `test/webrick/test_httpserver.rb` | **Still vulnerable until upgrade to MRI 2.3.7**
 CVE-2017-17742 | HTTP response splitting in WEBrick | Logic for invalid headers | Tested in ruby/spec `:security` | **Still vulnerable until upgrade to MRI 2.3.7**
 CVE-2018-8778 | Buffer under-read in String#unpack | A range check | Tested in ruby/spec `:security` | A range check

@@ -1,0 +1,3 @@
+fails:CVE-2018-8780 is resisted by Dir.children by raising an exception when there is a NUL byte
+fails:CVE-2018-8780 is resisted by Dir.each_child by raising an exception when there is a NUL byte
+fails:CVE-2018-8780 is resisted by Dir.empty? by raising an exception when there is a NUL byte
