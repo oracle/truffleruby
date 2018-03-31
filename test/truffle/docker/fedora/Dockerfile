@@ -5,9 +5,6 @@ MAINTAINER chris.seaton@oracle.com
 # We need a conventional locale for testing
 ENV LANG=en_US.UTF-8
 
-# The native image tool uses gcc and zlib.h to figure out struct layouts and link
-RUN dnf install -y gcc zlib-devel
-
 # Dependencies for using openssl (compat-openssl10-devel so we get the /usr/lib64/libssl.so symlink)
 RUN dnf install -y compat-openssl10-devel
 
@@ -38,14 +35,9 @@ ADD graalvm-$GRAALVM_VERSION-linux-amd64-jdk8.tar.gz /test
 ENV PATH=/test/graalvm-$GRAALVM_VERSION/bin:$PATH
 ENV RUBY_HOME=/test/graalvm-$GRAALVM_VERSION/jre/languages/ruby
 
-# Build our own native image
-RUN native-image --no-server -H:Name=native-ruby --Language:ruby
-ENV PATH=/test:$PATH
-
 # Straight away, just run the ruby executables as the most basic test
 RUN ruby --version
 RUN ruby --native --version
-RUN native-ruby -Xhome=$RUBY_HOME --version
 
 # Clone the TruffleRuby source code to get tests
 RUN git clone --branch $TEST_BRANCH --depth 1 https://github.com/oracle/truffleruby.git
@@ -74,17 +66,6 @@ spec/mspec/bin/mspec \
 --excl-tag graalvm \
 -t ruby \
 -T --native \
-:language
-
-# ...and in the native image we just built
-RUN ruby \
-spec/mspec/bin/mspec \
---config spec/truffle.mspec \
---excl-tag slow \
---excl-tag fails \
---excl-tag graalvm \
--t native-ruby \
--T -Xhome=$RUBY_HOME \
 :language
 
 # Check we can make a real-world openssl request
