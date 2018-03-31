@@ -9,14 +9,20 @@ RUN apt-get install -y locales
 RUN locale-gen en_US.UTF-8
 ENV LANG=en_US.UTF-8
 
-# Tools we will need to get and run our tests
-RUN apt-get install -y git
-
 # The native image tool uses gcc and zlib.h to figure out struct layouts and link
 RUN apt-get install -y gcc zlib1g-dev
 
-# These are the actual runtime GraalVM dependencies
-RUN apt-get install -y libc++-dev libc++abi1 libssl-dev
+# Dependencies for using openssl
+RUN apt-get install -y libssl-dev
+
+# Dependencies for building C
+RUN apt-get install -y make clang llvm
+
+# Dependencies for building and using C++ extensions
+RUN apt-get install -y libc++-dev
+
+# Tools we will need to get and run our tests
+RUN apt-get install -y git
 
 # Create a user and working directory
 WORKDIR /test
@@ -92,6 +98,20 @@ RUN ruby \
 -ropen-uri \
 -e 'open("https://rubygems.org/") { |f| raise unless f.read.include?("Find, install, and publish RubyGems") }'
 
-# Check we can install a gem
+# Setup to install gems
+ENV GEM_HOME=/test/gems
+ENV TRUFFLERUBY_CEXT_ENABLED=true
 RUN mkdir /test/gems
-RUN GEM_HOME=/test/gems gem install color
+
+# Check we can install and run a gem
+RUN gem install color
+RUN ruby -rcolor -e 'raise unless defined?(Color)'
+
+# Check we can install and run a C extension gem
+RUN gem install oily_png
+RUN ruby -roily_png -e 'raise unless defined?(OilyPNG::Color)'
+
+# Check we can install and run a C++ extension gem
+# This is broken on Ubuntu because ruby.bc is built with LLVM 4.0
+#RUN gem install unf
+#RUN ruby -runf -e 'raise unless defined?(UNF)'

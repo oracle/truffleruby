@@ -5,17 +5,21 @@ MAINTAINER chris.seaton@oracle.com
 # We need a conventional locale for testing
 ENV LANG=en_US.UTF-8
 
+# The native image tool uses gcc and zlib.h to figure out struct layouts and link
+RUN yum install -y gcc zlib-devel
+
+# Dependencies for using openssl
+RUN yum install -y openssl-devel
+
+# Dependencies for building and using C++ extensions
+RUN yum install -y libcxx-devel
+RUN yum install -y libcxx
+
 # Tools we will need to get and run our tests
 RUN yum install -y git
 
 # Used in spec/truffle.mspec
 RUN yum install -y which
-
-# The native image tool uses gcc and zlib.h to figure out struct layouts and link
-RUN yum install -y gcc zlib-devel
-
-# These are the actual runtime GraalVM dependencies
-RUN yum install -y libcxx libcxxabi openssl-devel
 
 # Create a user and working directory
 WORKDIR /test
@@ -91,6 +95,20 @@ RUN ruby \
 -ropen-uri \
 -e 'open("https://rubygems.org/") { |f| raise unless f.read.include?("Find, install, and publish RubyGems") }'
 
-# Check we can install a gem
+# Setup to install gems
+ENV GEM_HOME=/test/gems
+ENV TRUFFLERUBY_CEXT_ENABLED=true
 RUN mkdir /test/gems
-RUN GEM_HOME=/test/gems gem install color
+
+# Check we can install and run a gem
+RUN gem install color
+RUN ruby -rcolor -e 'raise unless defined?(Color)'
+
+# Check we can install and run a C extension gem
+RUN gem install oily_png
+RUN ruby -roily_png -e 'raise unless defined?(OilyPNG::Color)'
+
+# Check we can install and run a C++ extension gem
+# This is broken on Ubuntu because ruby.bc is built with LLVM 4.0
+#RUN gem install unf
+#RUN ruby -runf -e 'raise unless defined?(UNF)'

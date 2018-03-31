@@ -6,7 +6,7 @@ MAINTAINER chris.seaton@oracle.com
 ENV LANG=en_US.UTF-8
 
 # To clone source repositories
-RUN dnf install -y git mercurial
+RUN dnf install -y git
 
 # To bootstrap our own JVMCI-comptaible JDK we need a JDK
 RUN dnf install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk-openjfx java-atk-wrapper
@@ -14,11 +14,18 @@ RUN dnf install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk-openjfx java-atk-
 # Other dependencies for building a JDK
 RUN dnf install -y gcc libstdc++-static
 
-# To build Sulong and TruffleRuby's C extensions
-RUN dnf install -y clang llvm libcxx libcxxabi libcxx-devel
+# Dependencies for using openssl (compat-openssl10-devel so we get the /usr/lib64/libssl.so symlink)
+RUN dnf install -y compat-openssl10-devel
+
+# Dependencies for building C extensions
+RUN dnf install -y clang llvm
+
+# Dependencies for building and using C++ extensions
+RUN dnf install -y libcxx-devel
+RUN dnf install -y libcxx
 
 # To build TruffleRuby
-RUN dnf install -y ruby rubygem-json compat-openssl10-devel
+RUN dnf install -y python ruby rubygem-json
 
 # Create a user and working directory
 WORKDIR /build
@@ -27,7 +34,7 @@ RUN chown build /build
 USER build
 
 # Get the mx build tool
-RUN git clone --depth 1 https://github.com/graalvm/mx.git
+RUN git clone https://github.com/graalvm/mx.git
 ENV PATH=$PATH:/build/mx
 
 # Build a JDK with JVMCI
