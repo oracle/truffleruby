@@ -13,6 +13,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.OutsideOfStringException;
+import org.truffleruby.core.format.exceptions.RangeException;
 
 public class SetSourcePositionNode extends FormatNode {
 
@@ -28,6 +29,10 @@ public class SetSourcePositionNode extends FormatNode {
     public Object execute(VirtualFrame frame) {
         if (rangeProfile.profile(position > getSourceLength(frame))) {
             throw new OutsideOfStringException();
+        }
+
+        if (rangeProfile.profile(position < 0)) {
+            throw new RangeException("pack length too big");
         }
 
         setSourcePosition(frame, position);
