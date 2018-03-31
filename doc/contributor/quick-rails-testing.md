@@ -31,11 +31,9 @@ path/to/truffleruby/test/truffle/ecosystem/rails-app.sh: line 21: kill: (7043) -
 + true
 + rm tmp/pids/server.pid
 + path/to/truffleruby/bin/truffleruby path/to/truffleruby/test/truffleruby-tool/bin/truffleruby-tool setup --offline
-[ruby] PERFORMANCE this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md
 jtt: loading YAML configuration path/to/truffleruby/test/truffle/ecosystem/rails-app/.truffleruby-tool.yaml
 jtt: executing "setup" command
 jtt: $ TRUFFLERUBY_RESILIENT_GEM_HOME="" GEM_HOME="path/to/truffleruby/truffleruby-gem-test-pack-5/gems" GEM_PATH="path/to/truffleruby/truffleruby-gem-test-pack-5/gems" path/to/truffleruby/bin/truffleruby path/to/truffleruby/truffleruby-gem-test-pack-5/gems/bin/bundle install --local --no-prune
-[ruby] PERFORMANCE this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md
 [ruby] WARNING rubygems.rb:11 Could not find 'did_you_mean' (>= 0) among 148 total gem(s)
 Checked in 'GEM_PATH=path/to/truffleruby/truffleruby-gem-test-pack-5/gems', execute `gem env` for more information
 Using rake 11.2.2
@@ -88,11 +86,9 @@ Use `bundle show [gemname]` to see where a bundled gem is installed.
 + url=http://localhost:3000
 + set +x
 + path/to/truffleruby/bin/truffleruby path/to/truffleruby/test/truffleruby-tool/bin/truffleruby-tool run --offline -- -S bundle exec bin/rails server
-.[ruby] PERFORMANCE this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md
 ....jtt: loading YAML configuration path/to/truffleruby/test/truffle/ecosystem/rails-app/.truffleruby-tool.yaml
 jtt: executing "run" command
 jtt: $ TRUFFLERUBY_RESILIENT_GEM_HOME="" GEM_HOME="path/to/truffleruby/truffleruby-gem-test-pack-5/gems" GEM_PATH="path/to/truffleruby/truffleruby-gem-test-pack-5/gems" PATH="path/to/truffleruby/truffleruby-gem-test-pack-5/gems/bin:<snipped>" NO_FORK="true" path/to/truffleruby/bin/truffleruby -J-Xmx2G -J-ea -J-esa -Xcore.load_path\=path/to/truffleruby/src/main/ruby -I path/to/truffleruby/test/truffle/ecosystem/rails-app/.truffleruby-tool_bundle/mocks -r openssl-stubs -r stubs -S bundle exec bin/rails server
-[ruby] PERFORMANCE this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md
 ....[ruby] WARNING rubygems.rb:11 Could not find 'did_you_mean' (>= 0) among 148 total gem(s)
 Checked in 'GEM_PATH=path/to/truffleruby/truffleruby-gem-test-pack-5/gems', execute `gem env` for more information
 .HTML sanitization stubbed

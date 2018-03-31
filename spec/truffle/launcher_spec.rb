@@ -79,19 +79,6 @@ describe "The launcher" do
     out.should == "value with spaces"
   end
 
-  it "warns when not using Graal" do
-    launcher, *flags = *ruby_exe
-    flags.delete_if { |flag| flag.start_with? "-Xgraal.warn_unless=" }
-    out = `#{launcher} #{flags.join(' ')} -e 'p graal: Truffle.graal?' 2>&1`
-    on_graal = out.lines.include? "{:graal=>true}\n"
-    performance_warning = "[ruby] PERFORMANCE this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md\n"
-    if on_graal
-      out.lines.should_not include performance_warning
-    else
-      out.lines.should include performance_warning
-    end
-  end
-
   it "takes options from TRUFFLERUBYOPT" do
     out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "-W2" })
     $?.success?.should == true

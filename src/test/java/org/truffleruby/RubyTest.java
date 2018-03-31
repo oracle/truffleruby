@@ -65,8 +65,7 @@ public abstract class RubyTest {
         return builder
                 .option(OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), Boolean.FALSE.toString())
                 .option(OptionsCatalog.HOME.getName(), cwd)
-                .option(OptionsCatalog.BASICOPS_INLINE.getName(), Boolean.FALSE.toString())
-                .option(OptionsCatalog.GRAAL_WARNING_UNLESS.getName(), Boolean.FALSE.toString());
+                .option(OptionsCatalog.BASICOPS_INLINE.getName(), Boolean.FALSE.toString());
     }
 
 }

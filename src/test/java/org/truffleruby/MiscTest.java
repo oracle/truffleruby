@@ -90,7 +90,6 @@ public class MiscTest {
     public void testFiberFromIntegratorThread() throws InterruptedException {
         try (Context context = Context.newBuilder()
                 .option(OptionsCatalog.SINGLE_THREADED.getName(), Boolean.FALSE.toString())
-                .option(OptionsCatalog.GRAAL_WARNING_UNLESS.getName(), Boolean.FALSE.toString())
                 .allowCreateThread(true).build()) {
             context.eval("ruby", ":init");
 

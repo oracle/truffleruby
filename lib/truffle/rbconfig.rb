@@ -177,7 +177,7 @@ module RbConfig
   end
 
   if ruby_home
-    expanded['LDSHARED'] = "#{launcher} -Xgraal.warn_unless=false #{libdir}/cext/ldshared.rb"
+    expanded['LDSHARED'] = "#{launcher} #{libdir}/cext/ldshared.rb"
   end
 
   RUBY = launcher

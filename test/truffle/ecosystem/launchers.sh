@@ -45,7 +45,7 @@ echo '** Check all launchers work'
 check_launchers bin/ true
 check_in_dir bin
 
-if [[ "$(bin/ruby -Xgraal.warn_unless=false -e "p Truffle.graalvm?")" =~ true ]]
+if [[ "$(bin/ruby -e "p Truffle.graalvm?")" =~ true ]]
 then
     check_in_dir ../../bin      # graalvm/jre/bin
     check_in_dir ../../../bin   # graalvm/bin
@@ -61,9 +61,9 @@ cd "$(dirname $SELF_PATH)/hello-world"
 "$home/bin/gem" install hello-world-0.0.1.gem
 cd -
 
-version="$(bin/ruby -Xgraal.warn_unless=false -v)"
+version="$(bin/ruby -v)"
 test "$(bin/hello-world.rb)" = "Hello world! from $version"
-if [[ "$(bin/ruby -Xgraal.warn_unless=false -e "p Truffle.graalvm?")" =~ true ]]
+if [[ "$(bin/ruby -e "p Truffle.graalvm?")" =~ true ]]
 then
     test "$(../../bin/hello-world.rb)" = "Hello world! from $version"
     test "$(../../../bin/hello-world.rb)" = "Hello world! from $version"
@@ -72,7 +72,7 @@ fi
 bin/gem uninstall hello-world -x
 
 test ! -f "bin/hello-world.rb"
-if [[ "$(bin/ruby -Xgraal.warn_unless=false -e "p Truffle.graalvm?")" =~ true ]]
+if [[ "$(bin/ruby -e "p Truffle.graalvm?")" =~ true ]]
 then
     test ! -f "../../bin/hello-world.rb"
     test ! -f "../../../bin/hello-world.rb"
