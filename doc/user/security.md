@@ -18,6 +18,7 @@ https://www.ruby-lang.org/en/security/.
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
+CVE-2017-17742 | HTTP response splitting in WEBrick | Logic for invalid headers | Tested in ruby/spec `:security` | **Still vulnerable until upgrade to MRI 2.3.7**
 CVE-2018-8778 | Buffer under-read in String#unpack | A range check | Tested in ruby/spec `:security` | A range check
 CVE-2017-17405 | Command injection vulnerability in Net::FTP | *todo* | *todo* | *todo*
 CVE-2017-10784 | Escape sequence injection vulnerability in the Basic authentication of WEBrick | *todo* | *todo* | *todo*
