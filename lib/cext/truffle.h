@@ -63,7 +63,6 @@ void *truffle_address_to_function(void *address);
 
 // Invoke:
 double truffle_invoke_d(void *object, const char *name, ...); // deprecated, use polyglot_as_double(polyglot_invoke(...))
-bool truffle_invoke_b(void *object, const char *name, ...);   // deprecated, use polyglot_as_boolean(polyglot_invoke(...))
 
 #if defined(__cplusplus)
 }

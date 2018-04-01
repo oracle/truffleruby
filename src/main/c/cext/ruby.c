@@ -88,7 +88,7 @@ int rb_type(VALUE value) {
 }
 
 bool RB_TYPE_P(VALUE value, int type) {
-  return truffle_invoke_b(RUBY_CEXT, "RB_TYPE_P", value, type);
+  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RB_TYPE_P", value, type));
 }
 
 void rb_check_type(VALUE value, int type) {
@@ -130,7 +130,7 @@ void rb_check_safe_obj(VALUE object) {
 }
 
 bool SYMBOL_P(VALUE value) {
-  return truffle_invoke_b(RUBY_CEXT, "SYMBOL_P", value);
+  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "SYMBOL_P", value));
 }
 
 VALUE rb_obj_hide(VALUE obj) {
@@ -606,19 +606,19 @@ void rb_num_zerodiv(void) {
 // Type checks
 
 int RB_NIL_P(VALUE value) {
-  return truffle_invoke_b(RUBY_CEXT, "RB_NIL_P", value);
+  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RB_NIL_P", value));
 }
 
 int RB_FIXNUM_P(VALUE value) {
-  return truffle_invoke_b(RUBY_CEXT, "RB_FIXNUM_P", value);
+  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RB_FIXNUM_P", value));
 }
 
 int RB_FLOAT_TYPE_P(VALUE value) {
-  return truffle_invoke_b(RUBY_CEXT, "RB_FLOAT_TYPE_P", value);
+  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RB_FLOAT_TYPE_P", value));
 }
 
 int RTEST(VALUE value) {
-  return value != NULL && truffle_invoke_b(RUBY_CEXT, "RTEST", value);
+  return value != NULL && polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RTEST", value));
 }
 
 // Kernel
@@ -749,7 +749,7 @@ int rb_obj_respond_to(VALUE object, ID id, int priv) {
 }
 
 int rb_special_const_p(VALUE object) {
-  return truffle_invoke_b(RUBY_CEXT, "rb_special_const_p", object);
+  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_special_const_p", object));
 }
 
 VALUE rb_to_int(VALUE object) {
@@ -781,11 +781,11 @@ VALUE rb_obj_taint(VALUE object) {
 }
 
 bool rb_tr_obj_taintable_p(VALUE object) {
-  return truffle_invoke_b(RUBY_CEXT, "RB_OBJ_TAINTABLE", object);
+  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RB_OBJ_TAINTABLE", object));
 }
 
 bool rb_tr_obj_tainted_p(VALUE object) {
-  return truffle_invoke_b((void *)object, "tainted?");
+  return polyglot_as_boolean(polyglot_invoke((void *)object, "tainted?"));
 }
 
 void rb_tr_obj_infect(VALUE a, VALUE b) {
@@ -981,7 +981,7 @@ char *RSTRING_PTR_IMPL(VALUE string) {
   // We start off treating RStringPtr as if it weren't a pointer for interop purposes. This is so Sulong doesn't try
   // to convert it to an actual char* when returning from `polyglot_invoke`. Once we have a handle to the real RStringPtr
   // object, we can instruct it to start acting like a pointer, which is necessary for pointer address comparisons.
-  truffle_invoke_b(ret, "act_like_pointer=", Qtrue);
+  polyglot_as_boolean(polyglot_invoke(ret, "act_like_pointer=", Qtrue));
 
   return ret;
 }
@@ -992,7 +992,7 @@ char *RSTRING_END(VALUE string) {
   // We start off treating RStringPtr as if it weren't a pointer for interop purposes. This is so Sulong doesn't try
   // to convert it to an actual char* when returning from `polyglot_invoke`. Once we have a handle to the real RStringPtr
   // object, we can instruct it to start acting like a pointer, which is necessary for pointer address comparisons.
-  truffle_invoke_b(ret, "act_like_pointer=", Qtrue);
+  polyglot_as_boolean(polyglot_invoke(ret, "act_like_pointer=", Qtrue));
 
   return ret;
 }
@@ -1193,7 +1193,7 @@ VALUE rb_external_str_new_with_enc(const char *ptr, long len, rb_encoding *eenc)
 }
 
 VALUE rb_external_str_with_enc(VALUE str, rb_encoding *eenc) {
-  if (truffle_invoke_b(rb_enc_from_encoding(eenc), "==", rb_enc_from_encoding(rb_usascii_encoding())) &&
+  if (polyglot_as_boolean(polyglot_invoke(rb_enc_from_encoding(eenc), "==", rb_enc_from_encoding(rb_usascii_encoding()))) &&
     rb_enc_str_coderange(str) != ENC_CODERANGE_7BIT) {
     rb_enc_associate_index(str, rb_ascii8bit_encindex());
     return str;
@@ -1353,7 +1353,7 @@ rb_encoding *rb_usascii_encoding(void) {
 }
 
 int rb_enc_asciicompat(rb_encoding *enc) {
-  return truffle_invoke_b(rb_enc_from_encoding(enc), "ascii_compatible?");
+  return polyglot_as_boolean(polyglot_invoke(rb_enc_from_encoding(enc), "ascii_compatible?"));
 }
 
 void rb_must_asciicompat(VALUE str) {
@@ -1594,15 +1594,15 @@ VALUE rb_id2str(ID id) {
 }
 
 int rb_is_class_id(ID id) {
-  return truffle_invoke_b(RUBY_CEXT, "rb_is_class_id", ID2SYM(id));
+  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_is_class_id", ID2SYM(id)));
 }
 
 int rb_is_const_id(ID id) {
-  return truffle_invoke_b(RUBY_CEXT, "rb_is_const_id", ID2SYM(id));
+  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_is_const_id", ID2SYM(id)));
 }
 
 int rb_is_instance_id(ID id) {
-  return truffle_invoke_b(RUBY_CEXT, "rb_is_instance_id", ID2SYM(id));
+  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_is_instance_id", ID2SYM(id)));
 }
 
 // Array
@@ -1987,7 +1987,7 @@ char* ruby_strdup(const char *str) {
 // Calls
 
 int rb_respond_to(VALUE object, ID name) {
-  return truffle_invoke_b((void *)object, "respond_to?", name);
+  return polyglot_as_boolean(polyglot_invoke((void *)object, "respond_to?", name));
 }
 
 VALUE rb_funcallv(VALUE object, ID name, int args_count, const VALUE *args) {
@@ -2087,11 +2087,11 @@ VALUE rb_attr_get(VALUE object, ID name) {
 // Accessing constants
 
 int rb_const_defined(VALUE module, ID name) {
-  return truffle_invoke_b((void *)module, "const_defined?", name);
+  return polyglot_as_boolean(polyglot_invoke((void *)module, "const_defined?", name));
 }
 
 int rb_const_defined_at(VALUE module, ID name) {
-  return truffle_invoke_b((void *)module, "const_defined?", name, Qfalse);
+  return polyglot_as_boolean(polyglot_invoke((void *)module, "const_defined?", name, Qfalse));
 }
 
 VALUE rb_const_get(VALUE module, ID name) {
