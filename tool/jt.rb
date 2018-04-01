@@ -608,11 +608,6 @@ module Commands
         env_vars["JAVACMD"] = javacmd
         vm_args.push(*javacmd_options)
       end
-    else
-      if ENV["RUBY_BIN"]
-        # Assume Graal is available if RUBY_BIN is set or that we are running
-        # a non-TruffleRuby, such as MRI.
-      end
     end
 
     if args.delete('--stress')
