@@ -13,7 +13,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <truffle.h>
+#include <sulong/truffle.h>
 
 void rb_tr_mock() {
   fprintf(stderr, "Warning: Mock method called in sulongmock\n");
@@ -240,5 +240,3 @@ void *polyglot_from_string_n(const char *string, uint64_t size, const char *char
   rb_tr_mock();
   return 0;
 }
-
-

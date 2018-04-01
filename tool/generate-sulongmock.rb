@@ -23,7 +23,7 @@ types = {
 
 methods = []
 
-lines = IO.readlines("lib/cext/include/truffle.h") + IO.readlines("lib/cext/include/polyglot.h")
+lines = IO.readlines("lib/cext/include/sulong/truffle.h") + IO.readlines("lib/cext/include/sulong/polyglot.h")
 lines.each do |l|
    match = !l.start_with?('//') && !l.start_with?(' *') && /^(.+?)\b(truffle|polyglot)(.+)\)(?=;)/.match(l)
    if match
@@ -48,7 +48,7 @@ File.write('src/main/c/sulongmock/sulongmock.c', ERB.new(<<TRC).result)
 
 #include <stdio.h>
 #include <stdint.h>
-#include <truffle.h>
+#include <sulong/truffle.h>
 
 void rb_tr_mock() {
   fprintf(stderr, "Warning: Mock method called in sulongmock\\n");
