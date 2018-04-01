@@ -4,6 +4,11 @@ New features:
 
 * The Ruby version has been updated to version 2.3.7.
 
+Security:
+
+* CVE-2018-6914, CVE-2018-8779, CVE-2018-8780, CVE-2018-8777, CVE-2017-17742
+  and CVE-2018-8778 have been mitigated.
+
 Changes:
 
 * C++ libraries like `libc++` are now not needed if you don't run C++

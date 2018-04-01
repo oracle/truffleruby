@@ -5,10 +5,10 @@ chris.seaton@oracle.com and CC kevin.menard@oracle.com.
 
 ## MRI Vulnerabilities
 
-Vulnerabilities reported against MRI may apply to the design of Ruby, or to code
-that we share with MRI, so we list reported MRI vulnerabilities here and
-documented, how MRI has mitigated the vulnerability, if the mitigation is
-tested by anything, and how TruffleRuby has mitigated.
+Vulnerabilities reported against MRI may apply to the design of Ruby or to code
+that we share with MRI. We list reported MRI vulnerabilities here and document
+how MRI has mitigated the vulnerability, if the mitigation is tested by
+anything, and how TruffleRuby has mitigated.
 
 Note that *todo* means we just haven't researched and filled the details in
 yet - not that we either believe TruffleRuby is vulnerable or not.
@@ -18,11 +18,11 @@ https://www.ruby-lang.org/en/security/.
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
-CVE-2018-6914 | Unintentional file and directory creation with directory traversal in tempfile and tmpdir | Sanitation of paths | Tested in ruby/spec `:security` | **Still vulnerable until upgrade to MRI 2.3.7**
+CVE-2018-6914 | Unintentional file and directory creation with directory traversal in tempfile and tmpdir | Sanitation of paths | Tested in ruby/spec `:security` | Sanitation of paths
 CVE-2018-8779 | Unintentional socket creation by poisoned NUL byte in UNIXServer and UNIXSocket | Check for NUL bytes | Tested in ruby/spec `:security` | Check for NUL bytes
 CVE-2018-8780 | Unintentional directory traversal by poisoned NUL byte in Dir | Check for NUL bytes | Tested in ruby/spec `:security` | Check for NUL bytes
-CVE-2018-8777 | DoS by large request in WEBrick | Logic for header length | Tested in MRI `test/webrick/test_httpserver.rb` | **Still vulnerable until upgrade to MRI 2.3.7**
-CVE-2017-17742 | HTTP response splitting in WEBrick | Logic for invalid headers | Tested in ruby/spec `:security` | **Still vulnerable until upgrade to MRI 2.3.7**
+CVE-2018-8777 | DoS by large request in WEBrick | Logic for header length | Tested in MRI `test/webrick/test_httpserver.rb` | Sanitation of paths
+CVE-2017-17742 | HTTP response splitting in WEBrick | Logic for invalid headers | Tested in ruby/spec `:security` | Sanitation of paths
 CVE-2018-8778 | Buffer under-read in String#unpack | A range check | Tested in ruby/spec `:security` | A range check
 CVE-2017-17405 | Command injection vulnerability in Net::FTP | *todo* | *todo* | *todo*
 CVE-2017-10784 | Escape sequence injection vulnerability in the Basic authentication of WEBrick | *todo* | *todo* | *todo*
