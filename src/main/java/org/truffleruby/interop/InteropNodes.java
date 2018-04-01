@@ -27,7 +27,6 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
-import com.oracle.truffle.api.interop.java.JavaInterop;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
@@ -831,7 +830,7 @@ public abstract class InteropNodes {
         @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public Object toJavaArray(DynamicObject interopModule, DynamicObject array,
                                   @Cached("of(array)") ArrayStrategy strategy) {
-            return JavaInterop.asTruffleObject(strategy.newMirror(array).copyArrayAndMirror().getArray());
+            return getContext().getEnv().asGuestValue(strategy.newMirror(array).copyArrayAndMirror().getArray());
         }
 
         @Specialization(guards = "!isRubyArray(object)")
@@ -846,7 +845,7 @@ public abstract class InteropNodes {
 
         @Specialization(guards = "isJavaObject(object)")
         public Object deproxyJavaObject(TruffleObject object) {
-            return JavaInterop.asJavaObject(object);
+            return getContext().getEnv().asHostObject(object);
         }
 
         @Specialization(guards = "!isJavaObject(object)")
@@ -860,7 +859,7 @@ public abstract class InteropNodes {
         }
 
         protected boolean isJavaObject(TruffleObject object) {
-            return JavaInterop.isJavaObject(object);
+            return getContext().getEnv().isHostObject(object);
         }
 
     }
@@ -1039,12 +1038,12 @@ public abstract class InteropNodes {
         @Specialization(guards = "isJavaInteropClass(object)")
         public DynamicObject javaTypeName(Object object,
                                           @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-            final String name = ((Class<?>) JavaInterop.asJavaObject((TruffleObject) object)).getName();
+            final String name = ((Class<?>) getContext().getEnv().asHostObject(object)).getName();
             return makeStringNode.executeMake(name, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
-        protected static boolean isJavaInteropClass(Object obj) {
-            return JavaInterop.isJavaObject(obj) && JavaInterop.asJavaObject((TruffleObject) obj) instanceof Class<?>;
+        protected boolean isJavaInteropClass(Object obj) {
+            return getContext().getEnv().isHostObject(obj) && getContext().getEnv().asHostObject(obj) instanceof Class<?>;
         }
 
     }
