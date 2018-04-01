@@ -572,7 +572,7 @@ VALUE rb_ull2inum(unsigned LONG_LONG val) {
 }
 
 double rb_num2dbl(VALUE val) {
-  return truffle_invoke_d(RUBY_CEXT, "rb_num2dbl", val);
+  return polyglot_as_double(polyglot_invoke(RUBY_CEXT, "rb_num2dbl", val));
 }
 
 long rb_num2int(VALUE val) {
@@ -919,11 +919,11 @@ VALUE rb_cstr_to_inum(const char* string, int base, int raise) {
 }
 
 double rb_cstr_to_dbl(const char* string, int badcheck) {
-  return truffle_invoke_d(RUBY_CEXT, "rb_cstr_to_dbl", rb_str_new_cstr(string), rb_boolean(badcheck));
+  return polyglot_as_double(polyglot_invoke(RUBY_CEXT, "rb_cstr_to_dbl", rb_str_new_cstr(string), rb_boolean(badcheck)));
 }
 
 double rb_big2dbl(VALUE x) {
-  return truffle_invoke_d(RUBY_CEXT, "rb_num2dbl", x);
+  return polyglot_as_double(polyglot_invoke(RUBY_CEXT, "rb_num2dbl", x));
 }
 
 VALUE rb_dbl2big(double d) {
@@ -970,7 +970,7 @@ VALUE rb_Float(VALUE value) {
 }
 
 double rb_float_value(VALUE value) {
-  return truffle_invoke_d(RUBY_CEXT, "RFLOAT_VALUE", value);
+  return polyglot_as_double(polyglot_invoke(RUBY_CEXT, "RFLOAT_VALUE", value));
 }
 
 // String

@@ -61,9 +61,6 @@ void *truffle_assign_managed(void *dst, void *managed);
 
 void *truffle_address_to_function(void *address);
 
-// Invoke:
-double truffle_invoke_d(void *object, const char *name, ...); // deprecated, use polyglot_as_double(polyglot_invoke(...))
-
 #if defined(__cplusplus)
 }
 #endif

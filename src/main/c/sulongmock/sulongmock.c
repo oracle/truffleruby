@@ -69,11 +69,6 @@ void *truffle_address_to_function(void *address) {
   return 0;
 }
 
-double truffle_invoke_d(void *object, const char *name, ...) {
-  rb_tr_mock();
-  return 0.0;
-}
-
 void *polyglot_import(const char *name) {
   rb_tr_mock();
   return 0;
@@ -245,3 +240,5 @@ void *polyglot_from_string_n(const char *string, uint64_t size, const char *char
   rb_tr_mock();
   return 0;
 }
+
+
