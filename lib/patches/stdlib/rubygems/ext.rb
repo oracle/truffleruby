@@ -2,18 +2,15 @@ Truffle::Patching.require_original __FILE__
 
 # TruffleRuby: build C extensions conditionally
 
-module Truffle::Patching::ConditionallyBuildNativeExtensions
-  def build_extensions
-    return if @spec.extensions.empty?
-
-    if ENV['TRUFFLERUBY_CEXT_ENABLED'] == "false"
-      puts "C extensions for #{@spec.name} disabled by TRUFFLERUBY_CEXT_ENABLED=false"
-    else
-      super
+if ENV['TRUFFLERUBY_CEXT_ENABLED'] == "false"
+  module Truffle::Patching::ConditionallyBuildNativeExtensions
+    def build_extensions
+      return if @spec.extensions.empty?
+      warn "C extensions for #{@spec.name} are not built, as TRUFFLERUBY_CEXT_ENABLED is 'false'"
     end
   end
-end
 
-class Gem::Ext::Builder
-  prepend Truffle::Patching::ConditionallyBuildNativeExtensions
+  class Gem::Ext::Builder
+    prepend Truffle::Patching::ConditionallyBuildNativeExtensions
+  end
 end
