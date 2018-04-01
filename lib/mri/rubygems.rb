@@ -10,7 +10,7 @@ require 'rbconfig'
 require 'thread'
 
 module Gem
-  VERSION = '2.5.2.2'
+  VERSION = '2.5.2.3'
 end
 
 # Must be first since it unloads the prelude from 1.9.2
@@ -1262,10 +1262,3 @@ require 'rubygems/core_ext/kernel_gem'
 require 'rubygems/core_ext/kernel_require'
 
 Gem.use_gemdeps
-
-# Add TruffleRuby rubygems hooks to install and uninstall executables from additional
-# GraalVM bin directories (./bin, ./jre/bin)
-unless RbConfig::CONFIG['extra_bindirs'].empty?
-  require 'rubygems/extra_executables_installer'
-  Gem::ExtraExecutablesInstaller.install_hooks_for RbConfig::CONFIG['extra_bindirs']
-end

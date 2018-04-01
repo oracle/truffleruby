@@ -548,6 +548,9 @@ class TestPack < Test::Unit::TestCase
     assert_equal([1, 2], "\x01\x00\x00\x02".unpack("C@3C"))
     assert_equal([nil], "\x00".unpack("@1C")) # is it OK?
     assert_raise(ArgumentError) { "\x00".unpack("@2C") }
+
+    pos = (1 << [nil].pack("p").bytesize * 8) - 100 # -100
+    assert_raise(RangeError) {"0123456789".unpack("@#{pos}C10")}
   end
 
   def test_pack_unpack_percent
@@ -686,6 +689,11 @@ EXPECTED
     assert_equal(["pre=hoge"], "pre=hoge".unpack("M"))
     assert_equal(["pre==31after"], "pre==31after".unpack("M"))
     assert_equal(["pre===31after"], "pre===31after".unpack("M"))
+
+    bug = '[ruby-core:83055] [Bug #13949]'
+    s = "abcdef".unpack("M").first
+    assert_equal(Encoding::ASCII_8BIT, s.encoding)
+    assert_predicate(s, :ascii_only?, bug)
   end
 
   def test_pack_unpack_P2
