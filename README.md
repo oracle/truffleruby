@@ -36,37 +36,37 @@ TruffleRuby aims to:
 
 ## TruffleRuby Configurations
 
-It's important to understand the different configurations of TruffleRuby, as
-each has different capabilities and performance characteristics. You should
-pick the execution mode that is appropriate for your application.
+There are two main configurations of TruffleRuby - *native* and *JVM*. It's
+important to understand the different configurations of TruffleRuby, as each has
+different capabilities and performance characteristics. You should pick the
+execution mode that is appropriate for your application.
 
 When distributed as part of GraalVM, TruffleRuby by default runs in the *native*
 configuration. In this configuration, TruffleRuby is ahead-of-time compiled to a
-standalone native machine code executable binary. This means that you don't need
-a JVM installed on your system to use it. The advantage of the native
-configuration is that it starts about as fast as MRI, it may use less memory,
-and it becomes fast in less time. The disadvantage of the native configuration
-is that you can't use Java tools like VisualVM, you can't use Java
-interopability, and *peak performance may be lower than other configurations*.
-The native configuration is used by default, but you can also request it using
-`--native`.
+standalone native executable. This means that you don't need a JVM installed on
+your system to use it. The advantage of the native configuration is that it
+starts about as fast as MRI, it may use less memory, and it becomes fast in less
+time. The disadvantage of the native configuration is that you can't use Java
+tools like VisualVM, you can't use Java interopability, and *peak performance
+may be lower than on the JVM*. The native configuration is used by default, but
+you can also request it using `--native`.
 
 TruffleRuby can also be used in the *JVM* configuration, where it runs as a
 normal Java application on the JVM, as any other Java application would. The
 advantage of the JVM configuration is that you can use Java interopability, and
-*peak performance may be higher than other configurations*. The disadvantage of
-the JVM configuration is that it takes much longer to start and to get fast, and
-may use more memory. The JVM configuration is requested using `--jvm`.
+*peak performance may be higher than the native configuration*. The disadvantage
+of the JVM configuration is that it takes much longer to start and to get fast,
+and may use more memory. The JVM configuration is requested using `--jvm`.
 
 If you are running a short-running program you probably want the default,
-native, configuration. If you are running a long-running program and want the
-highest possible performance you probably want the JVM configuration, by using
+*native*, configuration. If you are running a long-running program and want the
+highest possible performance you probably want the *JVM* configuration, by using
 `--jvm`.
 
 You won't encounter it when using TruffleRuby from the GraalVM, but there is
 also another configuration which is TruffleRuby running on the JVM but with the
 Graal compiler not available. This configuration will have much lower
-performance.
+performance and should normally only be used for development.
 
 ## Documentation
 
