@@ -15,7 +15,7 @@
 # with the MRI project as a sibling "../ruby"
 # ruby tool/add_missing_c.rb
 
-header_files = Dir.glob("lib/cext/**/*.h")
+header_files = Dir.glob("lib/cext/include/**/*.h")
 header_files.reject! { |h| h.include?("truffle") }
 ruby_path = File.expand_path("../ruby")
 ruby_c_files = Dir.glob("#{ruby_path}/**/*.c")

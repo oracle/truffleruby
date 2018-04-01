@@ -10,7 +10,7 @@ of the files from the last version of MRI. This will be called something like
 `MRI a.b.c unmodified files`.
 
 ```
-git diff <hash> HEAD -- lib/mri lib/cext src/main/c/openssl src/main/c/zlib test/mri/tests > ../mri.patch
+git diff <hash> HEAD -- lib/mri lib/cext/include src/main/c/openssl src/main/c/zlib test/mri/tests > ../mri.patch
 ```
 
 ## Import new files from MRI

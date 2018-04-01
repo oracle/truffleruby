@@ -127,9 +127,9 @@ module RbConfig
       'prefix' => prefix,
       'bindir' => bindir,
       'extra_bindirs' => extra_bindirs,
-      'hdrdir' => "#{prefix}/lib/cext",
-      'rubyhdrdir' => "#{prefix}/lib/cext",
-      'rubyarchhdrdir' => "#{prefix}/lib/cext",
+      'hdrdir' => "#{prefix}/lib/cext/include",
+      'rubyhdrdir' => "#{prefix}/lib/cext/include",
+      'rubyarchhdrdir' => "#{prefix}/lib/cext/include",
     }
     expanded.merge!(common)
     mkconfig.merge!(common)
