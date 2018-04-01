@@ -14,7 +14,7 @@ public class TruffleRuby {
 
     public static final String LANGUAGE_ID = "ruby";
     public static final String ENGINE_ID = "truffleruby";
-    public static final String LANGUAGE_VERSION = "2.3.6";
+    public static final String LANGUAGE_VERSION = "2.3.7";
     public static final String LANGUAGE_BASE_VERSION = "2.3.0";
     public static final int LANGUAGE_REVISION = 61260;
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
