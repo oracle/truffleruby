@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 #define rb_sprintf(format, ...) \
-(VALUE) truffle_invoke(RUBY_CEXT, "rb_sprintf", rb_str_new_cstr(format), ##__VA_ARGS__)
+(VALUE) polyglot_invoke(RUBY_CEXT, "rb_sprintf", rb_str_new_cstr(format), ##__VA_ARGS__)
 
 NORETURN(VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object));
 
@@ -27,7 +27,7 @@ NORETURN(VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object
 
 NORETURN(void rb_tr_error(const char *message));
 void rb_tr_log_warning(const char *message);
-#define rb_tr_debug(args...) truffle_invoke(RUBY_CEXT, "rb_tr_debug", args)
+#define rb_tr_debug(args...) polyglot_invoke(RUBY_CEXT, "rb_tr_debug", args)
 long rb_tr_obj_id(VALUE object);
 void rb_tr_hidden_variable_set(VALUE object, const char *name, VALUE value);
 VALUE rb_tr_hidden_variable_get(VALUE object, const char *name);
@@ -64,19 +64,19 @@ if (!rb_block_given_p())                                    \
 // Exceptions
 
 #define rb_raise(EXCEPTION, FORMAT, ...) \
-rb_exc_raise(rb_exc_new_str(EXCEPTION, (VALUE) truffle_invoke(RUBY_CEXT, "rb_sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)))
+rb_exc_raise(rb_exc_new_str(EXCEPTION, (VALUE) polyglot_invoke(RUBY_CEXT, "rb_sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)))
 
 // Utilities
 
 #define rb_warn(FORMAT, ...) do { \
 if (truffle_invoke_b(RUBY_CEXT, "warn?")) { \
-  truffle_invoke(rb_mKernel, "warn", (VALUE) truffle_invoke(rb_mKernel, "sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)); \
+  polyglot_invoke(rb_mKernel, "warn", (VALUE) polyglot_invoke(rb_mKernel, "sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)); \
 } \
 } while (0);
 
 #define rb_warning(FORMAT, ...) do { \
 if (truffle_invoke_b(RUBY_CEXT, "warning?")) { \
-  truffle_invoke(rb_mKernel, "warn", (VALUE) truffle_invoke(rb_mKernel, "sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)); \
+  polyglot_invoke(rb_mKernel, "warn", (VALUE) polyglot_invoke(rb_mKernel, "sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)); \
 } \
 } while (0);
 
@@ -98,7 +98,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 
 // Calls 
 
-#define rb_funcall(object, ...) truffle_invoke(RUBY_CEXT, "rb_funcall", (void *) object, __VA_ARGS__)
+#define rb_funcall(object, ...) polyglot_invoke(RUBY_CEXT, "rb_funcall", (void *) object, __VA_ARGS__)
 
 // Additional non-standard
 int RB_NIL_P(VALUE value);
@@ -119,7 +119,7 @@ VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value);
 // Inline implementations
 
 MUST_INLINE int rb_nativethread_lock_initialize(rb_nativethread_lock_t *lock) {
-  *lock = truffle_invoke(RUBY_CEXT, "rb_nativethread_lock_initialize");
+  *lock = polyglot_invoke(RUBY_CEXT, "rb_nativethread_lock_initialize");
   return 0;
 }
 
@@ -129,28 +129,28 @@ MUST_INLINE int rb_nativethread_lock_destroy(rb_nativethread_lock_t *lock) {
 }
 
 MUST_INLINE int rb_nativethread_lock_lock(rb_nativethread_lock_t *lock) {
-  truffle_invoke(*lock, "lock");
+  polyglot_invoke(*lock, "lock");
   return 0;
 }
 
 MUST_INLINE int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock) {
-  truffle_invoke(*lock, "unlock");
+  polyglot_invoke(*lock, "unlock");
   return 0;
 }
 
 MUST_INLINE int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
   if (rb_obj_is_kind_of(range, rb_cRange)) {
-    *begp = (VALUE) truffle_invoke(range, "begin");
-    *endp = (VALUE) truffle_invoke(range, "end");
+    *begp = (VALUE) polyglot_invoke(range, "begin");
+    *endp = (VALUE) polyglot_invoke(range, "end");
     *exclp = (int) truffle_invoke_b(range, "exclude_end?");
   }
   else {
     if (!truffle_invoke_b(range, "respond_to?", rb_intern("begin"))) return Qfalse_int_const;
     if (!truffle_invoke_b(range, "respond_to?", rb_intern("end"))) return Qfalse_int_const;
 
-    *begp = truffle_invoke(range, "begin");
-    *endp = truffle_invoke(range, "end");
-    *exclp = (int) RTEST(truffle_invoke(range, "exclude_end?"));
+    *begp = polyglot_invoke(range, "begin");
+    *endp = polyglot_invoke(range, "end");
+    *exclp = (int) RTEST(polyglot_invoke(range, "exclude_end?"));
   }
   return Qtrue_int_const;
 }
@@ -174,7 +174,7 @@ MUST_INLINE char *rb_string_value_ptr(VALUE *value_pointer) {
 MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer) {
   VALUE string = rb_string_value(value_pointer);
 
-  truffle_invoke(RUBY_CEXT, "rb_string_value_cstr_check", string);
+  polyglot_invoke(RUBY_CEXT, "rb_string_value_cstr_check", string);
 
   return RSTRING_PTR(string);
 }
@@ -293,7 +293,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
     } else if (kwargs && !taken_kwargs) {
        if (argn < argc) {
         arg = argv[argn];
-        truffle_invoke(RUBY_CEXT, "test_kwargs", arg, Qtrue);
+        polyglot_invoke(RUBY_CEXT, "test_kwargs", arg, Qtrue);
         argn++;
         found_kwargs = true;
       } else {

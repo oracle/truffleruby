@@ -75,8 +75,8 @@ goes to `clang` to workaround some limitations.
 
 Most API functions are defined in the C header file, the C implementation file,
 and then either implemented as a call to a method on one of the arguments using
-`truffle_invoke` to do a foreign call from C into Ruby, or we implement the
-function in Ruby in the `Truffle::CExt` module and use `truffle_invoke` to call
+`polyglot_invoke` to do a foreign call from C into Ruby, or we implement the
+function in Ruby in the `Truffle::CExt` module and use `polyglot_invoke` to call
 that.
 
 Some functions are re-implemented as macros, and some macros are re-implemented

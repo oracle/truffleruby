@@ -85,7 +85,7 @@ typedef struct rb_io_t {
 /* #define FMODE_INET                  0x00400000 */
 /* #define FMODE_INET6                 0x00800000 */
 
-#define GetOpenFile(file, pointer) rb_io_check_closed((pointer) = truffle_invoke(RUBY_CEXT, "GetOpenFile", file))
+#define GetOpenFile(file, pointer) rb_io_check_closed((pointer) = polyglot_invoke(RUBY_CEXT, "GetOpenFile", file))
 
 
 #define RB_IO_BUFFER_INIT(buf) do {\

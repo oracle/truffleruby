@@ -1507,7 +1507,7 @@ rb_ulong2num_inline(unsigned long v)
     if (RB_POSFIXABLE(v))
 	return LONG2FIX(v);
     else
-	return truffle_invoke(RUBY_CEXT, "rb_ulong2num", (long) v);
+	return polyglot_invoke(RUBY_CEXT, "rb_ulong2num", (long) v);
 }
 #define RB_ULONG2NUM(x) rb_ulong2num_inline(x)
 
