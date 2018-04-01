@@ -11,8 +11,8 @@
 * copyright (C) Yukihiro Matsumoto, licensed under the 2-clause BSD licence.
 */
 
-#ifndef TRUFFLERUBY_RUBY_H
-#define TRUFFLERUBY_RUBY_H
+#ifndef TRUFFLERUBY_H
+#define TRUFFLERUBY_H
 
 #if defined(__cplusplus)
 extern "C" {
