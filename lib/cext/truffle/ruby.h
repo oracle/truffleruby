@@ -18,7 +18,6 @@
 extern "C" {
 #endif
 
-
 #define rb_sprintf(format, ...) \
 (VALUE) truffle_invoke(RUBY_CEXT, "rb_sprintf", rb_str_new_cstr(format), ##__VA_ARGS__)
 

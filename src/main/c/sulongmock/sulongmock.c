@@ -218,6 +218,11 @@ bool polyglot_can_execute(const void *value) {
   return false;
 }
 
+void *polyglot_invoke(void *object, const char *name, ...) {
+  rb_tr_mock();
+  return 0;
+}
+
 bool polyglot_has_members(const void *value) {
   rb_tr_mock();
   return false;
