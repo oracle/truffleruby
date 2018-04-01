@@ -452,7 +452,7 @@ VALUE rb_tr_get_default_rs(void) {
 // Conversions
 
 unsigned long rb_num2ulong(VALUE val) {
-  return (unsigned long)truffle_invoke_l(RUBY_CEXT, "rb_num2ulong", val);
+  return (unsigned long)polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_num2ulong", val));
 }
 
 static char *out_of_range_float(char (*pbuf)[24], VALUE val) {
@@ -532,11 +532,11 @@ long rb_fix2int(VALUE value) {
 }
 
 unsigned long rb_fix2uint(VALUE value) {
-  return truffle_invoke_l(RUBY_CEXT, "rb_fix2uint", value);
+  return polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_fix2uint", value));
 }
 
 int rb_long2int(long value) {
-  return truffle_invoke_l(RUBY_CEXT, "rb_long2int", value);
+  return polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_long2int", value));
 }
 
 ID SYM2ID(VALUE value) {
@@ -580,11 +580,11 @@ long rb_num2int(VALUE val) {
 }
 
 unsigned long rb_num2uint(VALUE val) {
-  return (unsigned long)truffle_invoke_l(RUBY_CEXT, "rb_num2uint", val);
+  return (unsigned long)polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_num2uint", val));
 }
 
 long rb_num2long(VALUE val) {
-  return truffle_invoke_l(RUBY_CEXT, "rb_num2long", val);
+  return polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_num2long", val));
 }
 
 VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func) {
@@ -931,15 +931,15 @@ VALUE rb_dbl2big(double d) {
 }
 
 LONG_LONG rb_big2ll(VALUE x) {
-  return truffle_invoke_l(RUBY_CEXT, "rb_num2long", x);
+  return polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_num2long", x));
 }
 
 unsigned LONG_LONG rb_big2ull(VALUE x) {
-  return truffle_invoke_l(RUBY_CEXT, "rb_num2ulong", x);
+  return polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_num2ulong", x));
 }
 
 long rb_big2long(VALUE x) {
-  return truffle_invoke_l(RUBY_CEXT, "rb_num2long", x);
+  return polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_num2long", x));
 }
 
 VALUE rb_big2str(VALUE x, int base) {
@@ -947,7 +947,7 @@ VALUE rb_big2str(VALUE x, int base) {
 }
 
 unsigned long rb_big2ulong(VALUE x) {
-  return truffle_invoke_l(RUBY_CEXT, "rb_num2ulong", x);
+  return polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_num2ulong", x));
 }
 
 VALUE rb_big_cmp(VALUE x, VALUE y) {
@@ -1303,7 +1303,7 @@ VALUE rb_str_substr(VALUE string, long beg, long len) {
 }
 
 st_index_t rb_str_hash(VALUE string) {
-  return (st_index_t) truffle_invoke_l((void *)string, "hash");
+  return (st_index_t) polyglot_as_i64(polyglot_invoke((void *)string, "hash"));
 }
 
 void rb_str_update(VALUE string, long beg, long len, VALUE value) {
@@ -2493,8 +2493,8 @@ struct timeval rb_time_interval(VALUE time_val) {
   struct timeval result;
 
   VALUE time = rb_time_num_new(time_val, Qnil);
-  result.tv_sec = truffle_invoke_l((void *)time, "tv_sec");
-  result.tv_usec = truffle_invoke_l((void *)time, "tv_usec");
+  result.tv_sec = polyglot_as_i64(polyglot_invoke((void *)time, "tv_sec"));
+  result.tv_usec = polyglot_as_i64(polyglot_invoke((void *)time, "tv_usec"));
 
   return result;
 }
@@ -2503,8 +2503,8 @@ struct timeval rb_time_timeval(VALUE time_val) {
   struct timeval result;
 
   VALUE time = rb_time_num_new(time_val, Qnil);
-  result.tv_sec = truffle_invoke_l((void *)time, "tv_sec");
-  result.tv_usec = truffle_invoke_l((void *)time, "tv_usec");
+  result.tv_sec = polyglot_as_i64(polyglot_invoke((void *)time, "tv_sec"));
+  result.tv_usec = polyglot_as_i64(polyglot_invoke((void *)time, "tv_usec"));
 
   return result;
 }
@@ -2513,8 +2513,8 @@ struct timespec rb_time_timespec(VALUE time_val) {
   struct timespec result;
 
   VALUE time = rb_time_num_new(time_val, Qnil);
-  result.tv_sec = truffle_invoke_l((void *)time, "tv_sec");
-  result.tv_nsec = truffle_invoke_l((void *)time, "tv_nsec");
+  result.tv_sec = polyglot_as_i64(polyglot_invoke((void *)time, "tv_sec"));
+  result.tv_nsec = polyglot_as_i64(polyglot_invoke((void *)time, "tv_nsec"));
 
   return result;
 }
@@ -2976,7 +2976,7 @@ void rb_tr_log_warning(const char *message) {
 }
 
 long rb_tr_obj_id(VALUE object) {
-  return truffle_invoke_l(RUBY_CEXT, "rb_tr_obj_id", object);
+  return polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_tr_obj_id", object));
 }
 
 VALUE rb_java_class_of(VALUE obj) {
