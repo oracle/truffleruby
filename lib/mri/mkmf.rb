@@ -251,7 +251,7 @@ module MakeMakefile
     $topdir ||= RbConfig::CONFIG["topdir"]
     # Modified for TruffleRuby
     #$arch_hdrdir = "$(extout)/include/$(arch)"
-    $arch_hdrdir = $top_srcdir
+    $arch_hdrdir = $top_srcdir + "/include"
   else
     abort "mkmf.rb can't find header files for ruby at #{$hdrdir}/ruby.h"
   end

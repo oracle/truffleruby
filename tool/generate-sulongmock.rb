@@ -23,7 +23,7 @@ types = {
 
 methods = []
 
-lines = IO.readlines("lib/cext/truffle.h") + IO.readlines("lib/cext/polyglot.h")
+lines = IO.readlines("lib/cext/include/truffle.h") + IO.readlines("lib/cext/include/polyglot.h")
 lines.each do |l|
    match = !l.start_with?('//') && !l.start_with?(' *') && /^(.+?)\b(truffle|polyglot)(.+)\)(?=;)/.match(l)
    if match

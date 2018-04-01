@@ -121,7 +121,7 @@ constants = [
   [macro_name, name, expr]
 end
 
-File.open("lib/cext/truffle/constants.h", "w") do |f|
+File.open("lib/cext/include/truffle/constants.h", "w") do |f|
   f.puts "// From #{__FILE__}"
   f.puts
 

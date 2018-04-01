@@ -36,7 +36,7 @@ git checkout -- test/mri/tests/runner.rb
 cp ../ruby/BSDL doc/legal/ruby-bsdl.txt
 cp ../ruby/COPYING doc/legal/ruby-licence.txt
 
-rm -rf lib/cext/ruby.h lib/cext/ruby
-git checkout lib/cext/ruby/config.h
-cp -r ../ruby/include/. lib/cext/
-cp -r ../ruby/ccan/. lib/cext/ccan
+rm -rf lib/cext/include/ruby lib/cext/include/ccan
+git checkout lib/cext/include/ruby/config.h
+cp -r ../ruby/include/. lib/cext/include
+cp -r ../ruby/ccan/. lib/cext/include/ccan
