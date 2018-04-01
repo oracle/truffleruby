@@ -4,7 +4,7 @@ The Substrate Virtual Machine, or SVM, is a closed- and whole-world analysis
 ahead-of-time compiler for Java, and an implementation of parts of a JVM.
 
 We use the SVM to ahead-of-time compile TruffleRuby and the Graal dynamic
-compiler to a single, statically linked native binary executable, that has no
+compiler to a single, statically-linked native binary executable, that has no
 dependency on a JVM, and does not link to any JVM libraries. The technique is
 more sophisticated than just appending a JAR as a resource in a copy of the JVM -
 only parts of the JVM which are needed are included and they are specialised for
@@ -104,7 +104,7 @@ $ jt build native
 The disadvantages of the SVM version of TruffleRuby are:
 
 * It has lower peak performance, as the GC is simpler and some optimisations
-  such as compressed ordinary object pointers (OOPS) are not available.
+  such as compressed ordinary object pointers (OOPS) are not yet available.
 * You can't use Java interopability.
 * You can't use standard Java tools like VisualVM.
 
