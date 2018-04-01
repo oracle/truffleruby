@@ -41,52 +41,40 @@ $ du -h jre/bin/ruby
 ```
 
 The SVM version of TruffleRuby has better startup performance and lower memory
-footprint than TruffleRuby or JRuby on the JVM, and better startup performance
-than Rubinius. We expect these numbers to improve significantly in the future as
-we ahead-of-time compile more of the Ruby startup process, and aim to meet or
-beat MRI's startup time.
+footprint than JRuby, Rubinius and TruffleRuby on the JVM, and similar or better
+startup performance than MRI.
 
 | Implementation | Real Time (s) | Max RSS (MB) |
 | -------------- | ------------: | -----------: |
-| TruffleRuby SVM | 0.10 | 97 |
-| TruffleRuby JVM | 2.86 | 272 |
-| JRuby 9.1.13.0 | 1.44 | 154 |
-| MRI 2.4.2 | 0.03 | 8 |
-| Rubinius 3.84 | 0.25 | 65 |
+| TruffleRuby SVM | 0.024 |  65 |
+| TruffleRuby JVM | 1.890 | 333 |
+| MRI 2.5.1       | 0.043 |   9 |
+| JRuby 9.1.16.0  | 1.212 | 154 |
+| Rubinius 3.100  | 0.137 |  70 |
 
-Run on Linux with an Intel(R) Core(TM) i7-4702HQ CPU @ 2.20GHz.
+Run on Linux with an Intel(R) Core(TM) i7-7700HQ CPU @ 2.80GHz with a SSD.
 
 ```bash
-$ export TIME="%e %M"
+$ cd graalvm-0.33
+$ bin/ruby -e 'puts "Hello"'       # TruffleRuby on the SVM
+$ bin/ruby --jvm -e 'puts "Hello"' # TruffleRuby on the JVM
 
-$ cd graalvm-0.28
-$ /usr/bin/time bin/ruby --native -e 'puts "Hello"'  # TruffleRuby on the SVM
-Hello
-0.10 99764
+$ chruby jruby-9.1.16.0
+$ jruby -e 'puts "Hello"'
 
-$ /usr/bin/time bin/ruby --jvm -e 'puts "Hello"'  # TruffleRuby on the JVM
-Hello
-2.86 278240
+$ chruby ruby-2.5.1
+$ ruby -e 'puts "Hello"'
 
-$ chruby jruby-9.1.13.0
-$ /usr/bin/time jruby -e 'puts "Hello"'
-Hello
-1.44 158080
-
-$ chruby ruby-2.4.2
-$ /usr/bin/time ruby -e 'puts "Hello"'
-Hello
-0.03 8672
-
-$ chruby rbx-3.84
-$ /usr/bin/time rbx -e 'puts "Hello"'
-Hello
-0.25 66824
+$ chruby rbx-3.100
+$ rbx -e 'puts "Hello"'
 ```
 
-(The first number `real` is the number of actual seconds which have elapsed
-while the command runs, and the second `maximum resident set size` is the
-maximum amount of memory occupied while the command runs.)
+The real time and the maximum resident set size are measured with a custom
+[C program](https://gist.github.com/eregon/cbf6c89451ecf815463c00aef9745837)
+as `time` cannot measure real time in milliseconds and max RSS.
+Each command is run 10 times and the average is reported.
+`clock_gettime(CLOCK_MONOTONIC)` is used to measure time and `getrusage()` to
+measure max RSS.
 
 There is no need to do so, but you can actually also compile your own copy of
 the SVM version of TruffleRuby using a tool distributed as part of GraalVM and
