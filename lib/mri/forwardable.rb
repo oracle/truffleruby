@@ -113,12 +113,9 @@ module Forwardable
   # Version of +forwardable.rb+
   FORWARDABLE_VERSION = "1.1.0"
 
-  FILE_REGEXP = %r"#{Regexp.quote(__FILE__)}"
-
   @debug = nil
   class << self
-    # If true, <tt>__FILE__</tt> will remain in the backtrace in the event an
-    # Exception is raised.
+    # ignored
     attr_accessor :debug
   end
 
@@ -187,9 +184,6 @@ module Forwardable
       def #{ali}(*args, &block)
         begin
           #{accessor}.__send__(:#{method}, *args, &block)
-        rescue ::Exception
-          $@.delete_if{|s| ::Forwardable::FILE_REGEXP =~ s} unless ::Forwardable::debug
-          ::Kernel::raise
         end
       end
     }
@@ -284,9 +278,6 @@ module SingleForwardable
       def #{ali}(*args, &block)
         begin
           #{accessor}.__send__(:#{method}, *args, &block)
-        rescue ::Exception
-          $@.delete_if{|s| ::Forwardable::FILE_REGEXP =~ s} unless ::Forwardable::debug
-          ::Kernel::raise
         end
       end
     }
