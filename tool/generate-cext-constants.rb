@@ -138,7 +138,7 @@ end
 
 constants.each do |macro_name, name, _|
   puts "VALUE rb_tr_get_#{name}(void) {"
-  puts "  return (VALUE) truffle_invoke(RUBY_CEXT, \"#{macro_name}\");"
+  puts "  return (VALUE) polyglot_invoke(RUBY_CEXT, \"#{macro_name}\");"
   puts "}"
   puts
 end

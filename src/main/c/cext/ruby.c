@@ -92,19 +92,19 @@ bool RB_TYPE_P(VALUE value, int type) {
 }
 
 void rb_check_type(VALUE value, int type) {
-  truffle_invoke(RUBY_CEXT, "rb_check_type", value, type);
+  polyglot_invoke(RUBY_CEXT, "rb_check_type", value, type);
 }
 
 VALUE rb_obj_is_instance_of(VALUE object, VALUE ruby_class) {
-  return truffle_invoke(RUBY_CEXT, "rb_obj_is_instance_of", object, ruby_class);
+  return polyglot_invoke(RUBY_CEXT, "rb_obj_is_instance_of", object, ruby_class);
 }
 
 VALUE rb_obj_is_kind_of(VALUE object, VALUE ruby_class) {
-  return truffle_invoke(RUBY_CEXT, "rb_obj_is_kind_of", object, ruby_class);
+  return polyglot_invoke(RUBY_CEXT, "rb_obj_is_kind_of", object, ruby_class);
 }
 
 void rb_check_frozen(VALUE object) {
-  truffle_invoke(RUBY_CEXT, "rb_check_frozen", object);
+  polyglot_invoke(RUBY_CEXT, "rb_check_frozen", object);
 }
 
 void rb_insecure_operation(void) {
@@ -116,11 +116,11 @@ int rb_safe_level(void) {
 }
 
 void rb_set_safe_level_force(int level) {
-  truffle_invoke(RUBY_CEXT, "rb_set_safe_level_force", level);
+  polyglot_invoke(RUBY_CEXT, "rb_set_safe_level_force", level);
 }
 
 void rb_set_safe_level(int level) {
-  truffle_invoke(RUBY_CEXT, "rb_set_safe_level", level);
+  polyglot_invoke(RUBY_CEXT, "rb_set_safe_level", level);
 }
 
 void rb_check_safe_obj(VALUE object) {
@@ -142,7 +142,7 @@ VALUE rb_obj_hide(VALUE obj) {
 VALUE rb_obj_reveal(VALUE obj, VALUE klass) {
     // In MRI, this sets the class of the object, we are not deleting the class in rb_obj_hide, so we
     // ensure that class matches.
-    return truffle_invoke(RUBY_CEXT, "ensure_class", obj, klass,
+    return polyglot_invoke(RUBY_CEXT, "ensure_class", obj, klass,
            rb_str_new_cstr("class %s supplied to rb_obj_reveal does not matches the obj's class %s"));
     return obj;
 }
@@ -152,299 +152,299 @@ VALUE rb_obj_reveal(VALUE obj, VALUE klass) {
 // START from tool/generate-cext-constants.rb
 
 VALUE rb_tr_get_undef(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "Qundef");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "Qundef");
 }
 
 VALUE rb_tr_get_true(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "Qtrue");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "Qtrue");
 }
 
 VALUE rb_tr_get_false(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "Qfalse");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "Qfalse");
 }
 
 VALUE rb_tr_get_nil(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "Qnil");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "Qnil");
 }
 
 VALUE rb_tr_get_Array(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cArray");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cArray");
 }
 
 VALUE rb_tr_get_Bignum(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cBignum");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cBignum");
 }
 
 VALUE rb_tr_get_Class(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cClass");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cClass");
 }
 
 VALUE rb_tr_get_Comparable(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_mComparable");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_mComparable");
 }
 
 VALUE rb_tr_get_Data(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cData");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cData");
 }
 
 VALUE rb_tr_get_Encoding(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cEncoding");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cEncoding");
 }
 
 VALUE rb_tr_get_Enumerable(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_mEnumerable");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_mEnumerable");
 }
 
 VALUE rb_tr_get_FalseClass(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cFalseClass");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cFalseClass");
 }
 
 VALUE rb_tr_get_File(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cFile");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cFile");
 }
 
 VALUE rb_tr_get_Fixnum(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cFixnum");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cFixnum");
 }
 
 VALUE rb_tr_get_Float(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cFloat");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cFloat");
 }
 
 VALUE rb_tr_get_Hash(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cHash");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cHash");
 }
 
 VALUE rb_tr_get_Integer(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cInteger");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cInteger");
 }
 
 VALUE rb_tr_get_IO(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cIO");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cIO");
 }
 
 VALUE rb_tr_get_Kernel(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_mKernel");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_mKernel");
 }
 
 VALUE rb_tr_get_Match(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cMatch");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cMatch");
 }
 
 VALUE rb_tr_get_Module(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cModule");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cModule");
 }
 
 VALUE rb_tr_get_NilClass(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cNilClass");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cNilClass");
 }
 
 VALUE rb_tr_get_Numeric(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cNumeric");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cNumeric");
 }
 
 VALUE rb_tr_get_Object(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cObject");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cObject");
 }
 
 VALUE rb_tr_get_Range(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cRange");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cRange");
 }
 
 VALUE rb_tr_get_Regexp(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cRegexp");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cRegexp");
 }
 
 VALUE rb_tr_get_String(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cString");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cString");
 }
 
 VALUE rb_tr_get_Struct(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cStruct");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cStruct");
 }
 
 VALUE rb_tr_get_Symbol(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cSymbol");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cSymbol");
 }
 
 VALUE rb_tr_get_Time(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cTime");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cTime");
 }
 
 VALUE rb_tr_get_Thread(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cThread");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cThread");
 }
 
 VALUE rb_tr_get_TrueClass(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cTrueClass");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cTrueClass");
 }
 
 VALUE rb_tr_get_Proc(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cProc");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cProc");
 }
 
 VALUE rb_tr_get_Method(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cMethod");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cMethod");
 }
 
 VALUE rb_tr_get_Dir(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cDir");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cDir");
 }
 
 VALUE rb_tr_get_ArgError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eArgError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eArgError");
 }
 
 VALUE rb_tr_get_EOFError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eEOFError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eEOFError");
 }
 
 VALUE rb_tr_get_Errno(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_mErrno");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_mErrno");
 }
 
 VALUE rb_tr_get_Exception(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eException");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eException");
 }
 
 VALUE rb_tr_get_FloatDomainError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eFloatDomainError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eFloatDomainError");
 }
 
 VALUE rb_tr_get_IndexError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eIndexError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eIndexError");
 }
 
 VALUE rb_tr_get_Interrupt(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eInterrupt");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eInterrupt");
 }
 
 VALUE rb_tr_get_IOError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eIOError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eIOError");
 }
 
 VALUE rb_tr_get_LoadError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eLoadError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eLoadError");
 }
 
 VALUE rb_tr_get_LocalJumpError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eLocalJumpError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eLocalJumpError");
 }
 
 VALUE rb_tr_get_MathDomainError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eMathDomainError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eMathDomainError");
 }
 
 VALUE rb_tr_get_EncCompatError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eEncCompatError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eEncCompatError");
 }
 
 VALUE rb_tr_get_NameError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eNameError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eNameError");
 }
 
 VALUE rb_tr_get_NoMemError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eNoMemError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eNoMemError");
 }
 
 VALUE rb_tr_get_NoMethodError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eNoMethodError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eNoMethodError");
 }
 
 VALUE rb_tr_get_NotImpError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eNotImpError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eNotImpError");
 }
 
 VALUE rb_tr_get_RangeError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eRangeError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eRangeError");
 }
 
 VALUE rb_tr_get_RegexpError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eRegexpError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eRegexpError");
 }
 
 VALUE rb_tr_get_RuntimeError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eRuntimeError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eRuntimeError");
 }
 
 VALUE rb_tr_get_ScriptError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eScriptError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eScriptError");
 }
 
 VALUE rb_tr_get_SecurityError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eSecurityError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eSecurityError");
 }
 
 VALUE rb_tr_get_Signal(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eSignal");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eSignal");
 }
 
 VALUE rb_tr_get_StandardError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eStandardError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eStandardError");
 }
 
 VALUE rb_tr_get_SyntaxError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eSyntaxError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eSyntaxError");
 }
 
 VALUE rb_tr_get_SystemCallError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eSystemCallError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eSystemCallError");
 }
 
 VALUE rb_tr_get_SystemExit(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eSystemExit");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eSystemExit");
 }
 
 VALUE rb_tr_get_SysStackError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eSysStackError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eSysStackError");
 }
 
 VALUE rb_tr_get_TypeError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eTypeError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eTypeError");
 }
 
 VALUE rb_tr_get_ThreadError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eThreadError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eThreadError");
 }
 
 VALUE rb_tr_get_WaitReadable(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_mWaitReadable");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_mWaitReadable");
 }
 
 VALUE rb_tr_get_WaitWritable(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_mWaitWritable");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_mWaitWritable");
 }
 
 VALUE rb_tr_get_ZeroDivError(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eZeroDivError");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eZeroDivError");
 }
 
 VALUE rb_tr_get_stdin(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_stdin");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_stdin");
 }
 
 VALUE rb_tr_get_stdout(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_stdout");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_stdout");
 }
 
 VALUE rb_tr_get_stderr(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_stderr");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_stderr");
 }
 
 VALUE rb_tr_get_output_fs(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_output_fs");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_output_fs");
 }
 
 VALUE rb_tr_get_rs(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_rs");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_rs");
 }
 
 VALUE rb_tr_get_output_rs(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_output_rs");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_output_rs");
 }
 
 VALUE rb_tr_get_default_rs(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_default_rs");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_default_rs");
 }
 
 // END from tool/generate-cext-constants.rb
@@ -520,11 +520,11 @@ short rb_fix2short(VALUE value) {
 }
 
 VALUE INT2FIX(long value) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "INT2FIX", value);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "INT2FIX", value);
 }
 
 VALUE LONG2FIX(long value) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "LONG2FIX", value);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "LONG2FIX", value);
 }
 
 long rb_fix2int(VALUE value) {
@@ -556,7 +556,7 @@ VALUE rb_int2inum(SIGNED_VALUE n) {
 }
 
 VALUE rb_uint2inum(VALUE n) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_ulong2num",
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_ulong2num",
           // Cast otherwise it's considered as truffle object address
           (unsigned long) n);
 }
@@ -568,7 +568,7 @@ VALUE rb_ll2inum(LONG_LONG n) {
 
 VALUE rb_ull2inum(unsigned LONG_LONG val) {
   /* Long and long long are both 64-bits with clang x86-64. */
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_ulong2num", val);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_ulong2num", val);
 }
 
 double rb_num2dbl(VALUE val) {
@@ -588,15 +588,15 @@ long rb_num2long(VALUE val) {
 }
 
 VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func) {
-  return truffle_invoke(RUBY_CEXT, "rb_num_coerce_bin", x, y, ID2SYM(func));
+  return polyglot_invoke(RUBY_CEXT, "rb_num_coerce_bin", x, y, ID2SYM(func));
 }
 
 VALUE rb_num_coerce_cmp(VALUE x, VALUE y, ID func) {
-  return truffle_invoke(RUBY_CEXT, "rb_num_coerce_cmp", x, y, ID2SYM(func));
+  return polyglot_invoke(RUBY_CEXT, "rb_num_coerce_cmp", x, y, ID2SYM(func));
 }
 
 VALUE rb_num_coerce_relop(VALUE x, VALUE y, ID func) {
-  return truffle_invoke(RUBY_CEXT, "rb_num_coerce_relop", x, y, ID2SYM(func));
+  return polyglot_invoke(RUBY_CEXT, "rb_num_coerce_relop", x, y, ID2SYM(func));
 }
 
 void rb_num_zerodiv(void) {
@@ -624,23 +624,23 @@ int RTEST(VALUE value) {
 // Kernel
 
 void rb_p(VALUE obj) {
-  truffle_invoke(rb_mKernel, "p", obj);
+  polyglot_invoke(rb_mKernel, "p", obj);
 }
 
 VALUE rb_require(const char *feature) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_require", rb_str_new_cstr(feature));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_require", rb_str_new_cstr(feature));
 }
 
 VALUE rb_eval_string(const char *str) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eval_string", rb_str_new_cstr(str));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eval_string", rb_str_new_cstr(str));
 }
 
 VALUE rb_exec_recursive(VALUE (*func) (VALUE, VALUE, int), VALUE obj, VALUE arg) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_exec_recursive", func, obj, arg);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_exec_recursive", func, obj, arg);
 }
 
 VALUE rb_f_sprintf(int argc, const VALUE *argv) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_f_sprintf", rb_ary_new4(argc, argv));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_f_sprintf", rb_ary_new4(argc, argv));
 }
 
 VALUE rb_yield_block(VALUE val, VALUE arg, int argc, const VALUE *argv, VALUE blockarg) {
@@ -666,12 +666,12 @@ void rb_iter_break(void) {
 }
 
 void rb_iter_break_value(VALUE value) {
-  truffle_invoke(RUBY_CEXT, "rb_iter_break_value", value);
+  polyglot_invoke(RUBY_CEXT, "rb_iter_break_value", value);
   rb_tr_error("rb_iter_break_value should not return");
 }
 
 const char *rb_sourcefile(void) {
-  return RSTRING_PTR(truffle_invoke(RUBY_CEXT, "rb_sourcefile"));
+  return RSTRING_PTR(polyglot_invoke(RUBY_CEXT, "rb_sourcefile"));
 }
 
 int rb_sourceline(void) {
@@ -685,23 +685,23 @@ int rb_method_boundp(VALUE klass, ID id, int ex) {
 // Object
 
 VALUE rb_obj_dup(VALUE object) {
-  return (VALUE) truffle_invoke(object, "dup");
+  return (VALUE) polyglot_invoke(object, "dup");
 }
 
 VALUE rb_any_to_s(VALUE object) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_any_to_s", object);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_any_to_s", object);
 }
 
 VALUE rb_obj_instance_variables(VALUE object) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_obj_instance_variables", object);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_obj_instance_variables", object);
 }
 
 VALUE rb_check_convert_type(VALUE val, int type, const char *type_name, const char *method) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_check_convert_type", val, rb_str_new_cstr(type_name), rb_str_new_cstr(method));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_check_convert_type", val, rb_str_new_cstr(type_name), rb_str_new_cstr(method));
 }
 
 VALUE rb_check_to_integer(VALUE object, const char *method) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_check_to_integer", object, rb_str_new_cstr(method));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_check_to_integer", object, rb_str_new_cstr(method));
 }
 
 VALUE rb_check_string_type(VALUE object) {
@@ -709,35 +709,35 @@ VALUE rb_check_string_type(VALUE object) {
 }
 
 VALUE rb_convert_type(VALUE object, int type, const char *type_name, const char *method) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_convert_type", object, rb_str_new_cstr(type_name), rb_str_new_cstr(method));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_convert_type", object, rb_str_new_cstr(type_name), rb_str_new_cstr(method));
 }
 
 void rb_extend_object(VALUE object, VALUE module) {
-  truffle_invoke(module, "extend_object", object);
+  polyglot_invoke(module, "extend_object", object);
 }
 
 VALUE rb_inspect(VALUE object) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_inspect", object);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_inspect", object);
 }
 
 void rb_obj_call_init(VALUE object, int argc, const VALUE *argv) {
-  truffle_invoke(RUBY_CEXT, "rb_obj_call_init", object, rb_ary_new4(argc, argv));
+  polyglot_invoke(RUBY_CEXT, "rb_obj_call_init", object, rb_ary_new4(argc, argv));
 }
 
 const char *rb_obj_classname(VALUE object) {
-  return RSTRING_PTR((VALUE) truffle_invoke(RUBY_CEXT, "rb_obj_classname", object));
+  return RSTRING_PTR((VALUE) polyglot_invoke(RUBY_CEXT, "rb_obj_classname", object));
 }
 
 VALUE rb_obj_id(VALUE object) {
-  return (VALUE) truffle_invoke(object, "object_id");
+  return (VALUE) polyglot_invoke(object, "object_id");
 }
 
 void rb_tr_hidden_variable_set(VALUE object, const char *name, VALUE value) {
-  truffle_invoke(RUBY_CEXT, "hidden_variable_set", object, rb_intern(name), value);
+  polyglot_invoke(RUBY_CEXT, "hidden_variable_set", object, rb_intern(name), value);
 }
 
 VALUE rb_tr_hidden_variable_get(VALUE object, const char *name) {
-  return truffle_invoke(RUBY_CEXT, "hidden_variable_get", object, rb_intern(name));
+  return polyglot_invoke(RUBY_CEXT, "hidden_variable_get", object, rb_intern(name));
 }
 
 int rb_obj_method_arity(VALUE object, ID id) {
@@ -753,15 +753,15 @@ int rb_special_const_p(VALUE object) {
 }
 
 VALUE rb_to_int(VALUE object) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_to_int", object);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_to_int", object);
 }
 
 VALUE rb_obj_instance_eval(int argc, const VALUE *argv, VALUE self) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_obj_instance_eval", self, rb_ary_new4(argc, argv), rb_block_proc());
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_obj_instance_eval", self, rb_ary_new4(argc, argv), rb_block_proc());
 }
 
 VALUE rb_ivar_defined(VALUE object, ID id) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_ivar_defined", object, id);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_ivar_defined", object, id);
 }
 
 VALUE rb_equal_opt(VALUE a, VALUE b) {
@@ -769,15 +769,15 @@ VALUE rb_equal_opt(VALUE a, VALUE b) {
 }
 
 VALUE rb_class_inherited_p(VALUE module, VALUE object) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_class_inherited_p", module, object);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_class_inherited_p", module, object);
 }
 
 VALUE rb_equal(VALUE a, VALUE b) {
-  return (VALUE) truffle_invoke(a, "===", b);
+  return (VALUE) polyglot_invoke(a, "===", b);
 }
 
 VALUE rb_obj_taint(VALUE object) {
-  return (VALUE) truffle_invoke(object, "taint");
+  return (VALUE) polyglot_invoke(object, "taint");
 }
 
 bool rb_tr_obj_taintable_p(VALUE object) {
@@ -789,21 +789,21 @@ bool rb_tr_obj_tainted_p(VALUE object) {
 }
 
 void rb_tr_obj_infect(VALUE a, VALUE b) {
-  truffle_invoke(RUBY_CEXT, "rb_tr_obj_infect", a, b);
+  polyglot_invoke(RUBY_CEXT, "rb_tr_obj_infect", a, b);
 }
 
 VALUE rb_obj_freeze(VALUE object) {
-  return (VALUE) truffle_invoke(object, "freeze");
+  return (VALUE) polyglot_invoke(object, "freeze");
 }
 
 VALUE rb_obj_frozen_p(VALUE object) {
-  return truffle_invoke(object, "frozen?");
+  return polyglot_invoke(object, "frozen?");
 }
 
 // Integer
 
 VALUE rb_Integer(VALUE value) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_Integer", value);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_Integer", value);
 }
 
 #define INTEGER_PACK_WORDORDER_MASK \
@@ -877,7 +877,7 @@ int rb_integer_pack(VALUE value, void *words, size_t numwords, size_t wordsize, 
   twosComp = rb_boolean(((flags & INTEGER_PACK_2COMP) != 0));
   swap = rb_boolean(endian_swap(flags));
   // Test for fixnum and do the right things here.
-  bytes = truffle_invoke(RUBY_CEXT, "rb_integer_bytes", value,
+  bytes = polyglot_invoke(RUBY_CEXT, "rb_integer_bytes", value,
                          (int)numwords, (int)wordsize, msw_first, twosComp, swap);
   size = (twosComp == Qtrue) ? truffle_invoke_i(RUBY_CEXT, "rb_2scomp_bit_length", value)
     : truffle_invoke_i(RUBY_CEXT, "rb_absint_bit_length", value);
@@ -915,7 +915,7 @@ size_t rb_absint_size(VALUE value, int *nlz_bits_ret) {
 }
 
 VALUE rb_cstr_to_inum(const char* string, int base, int raise) {
-  return truffle_invoke(RUBY_CEXT, "rb_cstr_to_inum", rb_str_new_cstr(string), base, raise);
+  return polyglot_invoke(RUBY_CEXT, "rb_cstr_to_inum", rb_str_new_cstr(string), base, raise);
 }
 
 double rb_cstr_to_dbl(const char* string, int badcheck) {
@@ -927,7 +927,7 @@ double rb_big2dbl(VALUE x) {
 }
 
 VALUE rb_dbl2big(double d) {
-  return truffle_invoke(RUBY_CEXT, "DBL2BIG", d);
+  return polyglot_invoke(RUBY_CEXT, "DBL2BIG", d);
 }
 
 LONG_LONG rb_big2ll(VALUE x) {
@@ -943,7 +943,7 @@ long rb_big2long(VALUE x) {
 }
 
 VALUE rb_big2str(VALUE x, int base) {
-  return (VALUE) truffle_invoke((void *)x, "to_s", base);
+  return (VALUE) polyglot_invoke((void *)x, "to_s", base);
 }
 
 unsigned long rb_big2ulong(VALUE x) {
@@ -951,7 +951,7 @@ unsigned long rb_big2ulong(VALUE x) {
 }
 
 VALUE rb_big_cmp(VALUE x, VALUE y) {
-  return (VALUE) truffle_invoke(x, "<=>", y);
+  return (VALUE) polyglot_invoke(x, "<=>", y);
 }
 
 void rb_big_pack(VALUE val, unsigned long *buf, long num_longs) {
@@ -962,11 +962,11 @@ void rb_big_pack(VALUE val, unsigned long *buf, long num_longs) {
 // Float
 
 VALUE rb_float_new(double value) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_float_new", value);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_float_new", value);
 }
 
 VALUE rb_Float(VALUE value) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_Float", value);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_Float", value);
 }
 
 double rb_float_value(VALUE value) {
@@ -976,10 +976,10 @@ double rb_float_value(VALUE value) {
 // String
 
 char *RSTRING_PTR_IMPL(VALUE string) {
-  char* ret = truffle_invoke(RUBY_CEXT, "RSTRING_PTR", string);
+  char* ret = polyglot_invoke(RUBY_CEXT, "RSTRING_PTR", string);
 
   // We start off treating RStringPtr as if it weren't a pointer for interop purposes. This is so Sulong doesn't try
-  // to convert it to an actual char* when returning from `truffle_invoke`. Once we have a handle to the real RStringPtr
+  // to convert it to an actual char* when returning from `polyglot_invoke`. Once we have a handle to the real RStringPtr
   // object, we can instruct it to start acting like a pointer, which is necessary for pointer address comparisons.
   truffle_invoke_b(ret, "act_like_pointer=", Qtrue);
 
@@ -987,10 +987,10 @@ char *RSTRING_PTR_IMPL(VALUE string) {
 }
 
 char *RSTRING_END(VALUE string) {
-  char* ret = truffle_invoke(RUBY_CEXT, "RSTRING_END", string);
+  char* ret = polyglot_invoke(RUBY_CEXT, "RSTRING_END", string);
 
   // We start off treating RStringPtr as if it weren't a pointer for interop purposes. This is so Sulong doesn't try
-  // to convert it to an actual char* when returning from `truffle_invoke`. Once we have a handle to the real RStringPtr
+  // to convert it to an actual char* when returning from `polyglot_invoke`. Once we have a handle to the real RStringPtr
   // object, we can instruct it to start acting like a pointer, which is necessary for pointer address comparisons.
   truffle_invoke_b(ret, "act_like_pointer=", Qtrue);
 
@@ -1023,9 +1023,9 @@ VALUE rb_str_new(const char *string, long length) {
   }
 
   if (string == NULL) {
-    return (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_new_nul", length);
+    return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_nul", length);
   } else if (polyglot_is_value((VALUE) string)) {
-    return (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_new", string, length);
+    return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new", string, length);
   } else {
     // Copy the string to a new unmanaged buffer, because otherwise it's very
     // hard to accomodate all the different things this pointer could really be
@@ -1034,7 +1034,7 @@ VALUE rb_str_new(const char *string, long length) {
 
     const char* copy = malloc(length);
     memcpy(copy, string, length);
-    VALUE ruby_string = (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_new_cstr", copy, length);
+    VALUE ruby_string = (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_cstr", copy, length);
     free(copy);
     return ruby_string;
   }
@@ -1049,9 +1049,9 @@ VALUE rb_tainted_str_new(const char *ptr, long len) {
 
 VALUE rb_str_new_cstr(const char *string) {
   if (polyglot_is_value((VALUE) string)) {
-    VALUE ruby_string = (VALUE) truffle_invoke((VALUE) string, "to_s");
+    VALUE ruby_string = (VALUE) polyglot_invoke((VALUE) string, "to_s");
     int len = strlen(string);
-    return (VALUE) truffle_invoke(ruby_string, "[]", 0, len);
+    return (VALUE) polyglot_invoke(ruby_string, "[]", 0, len);
   } else {
     // TODO CS 24-Oct-17 would be nice to read in one go rather than strlen followed by read
     return rb_str_new(string, strlen(string));
@@ -1059,11 +1059,11 @@ VALUE rb_str_new_cstr(const char *string) {
 }
 
 VALUE rb_str_new_shared(VALUE string) {
-  return truffle_invoke((void *)string, "dup");
+  return polyglot_invoke((void *)string, "dup");
 }
 
 VALUE rb_str_new_with_class(VALUE klass, const char *string, long len) {
-  return truffle_invoke(truffle_invoke(klass, "class"), "new", rb_str_new(string, len));
+  return polyglot_invoke(polyglot_invoke(klass, "class"), "new", rb_str_new(string, len));
 }
 
 VALUE rb_tainted_str_new_cstr(const char *ptr) {
@@ -1074,16 +1074,16 @@ VALUE rb_tainted_str_new_cstr(const char *ptr) {
 }
 
 ID rb_intern_str(VALUE string) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_intern_str", string);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_intern_str", string);
 }
 
 VALUE rb_str_cat(VALUE string, const char *to_concat, long length) {
-  truffle_invoke(string, "concat", rb_enc_str_new(to_concat, length, STR_ENC_GET(string)));
+  polyglot_invoke(string, "concat", rb_enc_str_new(to_concat, length, STR_ENC_GET(string)));
   return string;
 }
 
 VALUE rb_str_cat2(VALUE string, const char *to_concat) {
-  truffle_invoke(string, "concat", rb_str_new_cstr(to_concat));
+  polyglot_invoke(string, "concat", rb_str_new_cstr(to_concat));
   return string;
 }
 
@@ -1100,11 +1100,11 @@ VALUE rb_vsprintf(const char *format, va_list args) {
 }
 
 VALUE rb_str_append(VALUE string, VALUE to_append) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_append", string, to_append);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_append", string, to_append);
 }
 
 VALUE rb_str_concat(VALUE string, VALUE to_concat) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_concat", string, to_concat);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_concat", string, to_concat);
 }
 
 void rb_str_set_len(VALUE string, long length) {
@@ -1112,19 +1112,19 @@ void rb_str_set_len(VALUE string, long length) {
 }
 
 VALUE rb_str_new_frozen(VALUE value) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_new_frozen", value);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_frozen", value);
 }
 
 VALUE rb_String(VALUE value) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_String", value);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_String", value);
 }
 
 VALUE rb_str_resize(VALUE string, long length) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_resize", string, length);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_resize", string, length);
 }
 
 VALUE rb_str_split(VALUE string, const char *split) {
-  return (VALUE) truffle_invoke(string, "split", rb_str_new_cstr(split));
+  return (VALUE) polyglot_invoke(string, "split", rb_str_new_cstr(split));
 }
 
 void rb_str_modify(VALUE string) {
@@ -1165,7 +1165,7 @@ VALUE rb_str_buf_cat(VALUE string, const char *to_concat, long length) {
 
 // returns Truffle::CExt::RbEncoding, takes Encoding or String
 rb_encoding *rb_to_encoding(VALUE encoding) {
-  return truffle_invoke(RUBY_CEXT, "rb_to_encoding", encoding);
+  return polyglot_invoke(RUBY_CEXT, "rb_to_encoding", encoding);
 }
 
 VALUE rb_str_conv_enc(VALUE string, rb_encoding *from, rb_encoding *to) {
@@ -1176,7 +1176,7 @@ VALUE rb_str_conv_enc_opts(VALUE str, rb_encoding *from, rb_encoding *to, int ec
   if (!to) return str;
   if (!from) from = rb_enc_get(str);
   if (from == to) return str;
-  return truffle_invoke(RUBY_CEXT, "rb_str_conv_enc_opts", str, rb_enc_from_encoding(from), rb_enc_from_encoding(to), ecflags, ecopts);
+  return polyglot_invoke(RUBY_CEXT, "rb_str_conv_enc_opts", str, rb_enc_from_encoding(from), rb_enc_from_encoding(to), ecflags, ecopts);
 }
 
 VALUE
@@ -1239,7 +1239,7 @@ VALUE rb_str_export_to_enc(VALUE string, rb_encoding *enc) {
 }
 
 rb_encoding *rb_default_external_encoding(void) {
-  VALUE result = truffle_invoke(RUBY_CEXT, "rb_default_external_encoding");
+  VALUE result = polyglot_invoke(RUBY_CEXT, "rb_default_external_encoding");
   if (result == Qnil) {
     return NULL;
   }
@@ -1247,7 +1247,7 @@ rb_encoding *rb_default_external_encoding(void) {
 }
 
 rb_encoding *rb_default_internal_encoding(void) {
-  VALUE result = truffle_invoke(RUBY_CEXT, "rb_default_internal_encoding");
+  VALUE result = polyglot_invoke(RUBY_CEXT, "rb_default_internal_encoding");
   if (result == Qnil) {
     return NULL;
   }
@@ -1255,7 +1255,7 @@ rb_encoding *rb_default_internal_encoding(void) {
 }
 
 rb_encoding *rb_locale_encoding(void) {
-  VALUE result = truffle_invoke(RUBY_CEXT, "rb_locale_encoding");
+  VALUE result = polyglot_invoke(RUBY_CEXT, "rb_locale_encoding");
   if (result == Qnil) {
     return NULL;
   }
@@ -1267,7 +1267,7 @@ int rb_locale_encindex(void) {
 }
 
 rb_encoding *rb_filesystem_encoding(void) {
-  VALUE result = truffle_invoke(RUBY_CEXT, "rb_filesystem_encoding");
+  VALUE result = polyglot_invoke(RUBY_CEXT, "rb_filesystem_encoding");
   if (result == Qnil) {
     return NULL;
   }
@@ -1279,19 +1279,19 @@ int rb_filesystem_encindex(void) {
 }
 
 rb_encoding *get_encoding(VALUE string) {
-  return rb_to_encoding(truffle_invoke(string, "encoding"));
+  return rb_to_encoding(polyglot_invoke(string, "encoding"));
 }
 
 VALUE rb_str_intern(VALUE string) {
-  return (VALUE) truffle_invoke(string, "intern");
+  return (VALUE) polyglot_invoke(string, "intern");
 }
 
 VALUE rb_str_length(VALUE string) {
-  return (VALUE) truffle_invoke(string, "length");
+  return (VALUE) polyglot_invoke(string, "length");
 }
 
 VALUE rb_str_plus(VALUE a, VALUE b) {
-  return (VALUE) truffle_invoke(a, "+", b);
+  return (VALUE) polyglot_invoke(a, "+", b);
 }
 
 VALUE rb_str_subseq(VALUE string, long beg, long len) {
@@ -1299,7 +1299,7 @@ VALUE rb_str_subseq(VALUE string, long beg, long len) {
 }
 
 VALUE rb_str_substr(VALUE string, long beg, long len) {
-  return (VALUE) truffle_invoke(string, "[]", beg, len);
+  return (VALUE) polyglot_invoke(string, "[]", beg, len);
 }
 
 st_index_t rb_str_hash(VALUE string) {
@@ -1307,15 +1307,15 @@ st_index_t rb_str_hash(VALUE string) {
 }
 
 void rb_str_update(VALUE string, long beg, long len, VALUE value) {
-  truffle_invoke(string, "[]=", beg, len, value);
+  polyglot_invoke(string, "[]=", beg, len, value);
 }
 
 VALUE rb_str_replace(VALUE str, VALUE by) {
-  return truffle_invoke(str, "replace", by);
+  return polyglot_invoke(str, "replace", by);
 }
 
 VALUE rb_str_equal(VALUE a, VALUE b) {
-  return (VALUE) truffle_invoke(a, "==", b);
+  return (VALUE) polyglot_invoke(a, "==", b);
 }
 
 void rb_str_free(VALUE string) {
@@ -1327,21 +1327,21 @@ unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_e
   if (len <= 0) {
     rb_raise(rb_eArgError, "empty string");
   }
-  VALUE array = truffle_invoke(RUBY_CEXT, "rb_enc_codepoint_len", rb_str_new(p, len), rb_enc_from_encoding(encoding));
+  VALUE array = polyglot_invoke(RUBY_CEXT, "rb_enc_codepoint_len", rb_str_new(p, len), rb_enc_from_encoding(encoding));
   if (len_p) *len_p = truffle_invoke_i(array, "[]", 0);
   return (unsigned int)truffle_invoke_i(array, "[]", 1);
 }
 
 rb_encoding *rb_enc_get(VALUE object) {
-  return rb_to_encoding(truffle_invoke(RUBY_CEXT, "rb_enc_get", object));
+  return rb_to_encoding(polyglot_invoke(RUBY_CEXT, "rb_enc_get", object));
 }
 
 void rb_enc_set_index(VALUE obj, int idx) {
-  truffle_invoke(RUBY_CEXT, "rb_enc_set_index", obj, idx);
+  polyglot_invoke(RUBY_CEXT, "rb_enc_set_index", obj, idx);
 }
 
 rb_encoding *rb_ascii8bit_encoding(void) {
-  return rb_to_encoding(truffle_invoke(RUBY_CEXT, "ascii8bit_encoding"));
+  return rb_to_encoding(polyglot_invoke(RUBY_CEXT, "ascii8bit_encoding"));
 }
 
 int rb_ascii8bit_encindex(void) {
@@ -1349,7 +1349,7 @@ int rb_ascii8bit_encindex(void) {
 }
 
 rb_encoding *rb_usascii_encoding(void) {
-  return rb_to_encoding(truffle_invoke(RUBY_CEXT, "usascii_encoding"));
+  return rb_to_encoding(polyglot_invoke(RUBY_CEXT, "usascii_encoding"));
 }
 
 int rb_enc_asciicompat(rb_encoding *enc) {
@@ -1368,7 +1368,7 @@ int rb_usascii_encindex(void) {
 }
 
 rb_encoding *rb_utf8_encoding(void) {
-  return rb_to_encoding(truffle_invoke(RUBY_CEXT, "utf8_encoding"));
+  return rb_to_encoding(polyglot_invoke(RUBY_CEXT, "utf8_encoding"));
 }
 
 int rb_utf8_encindex(void) {
@@ -1388,11 +1388,11 @@ VALUE rb_enc_associate(VALUE obj, rb_encoding *enc) {
 }
 
 VALUE rb_enc_associate_index(VALUE obj, int idx) {
-  return truffle_invoke(RUBY_CEXT, "rb_enc_associate_index", obj, idx);
+  return polyglot_invoke(RUBY_CEXT, "rb_enc_associate_index", obj, idx);
 }
 
 rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2) {
-  VALUE result = truffle_invoke(rb_cEncoding, "compatible?", str1, str2);
+  VALUE result = polyglot_invoke(rb_cEncoding, "compatible?", str1, str2);
   if (result != Qnil) {
     return rb_to_encoding(result);
   }
@@ -1415,11 +1415,11 @@ rb_encoding *rb_enc_find(const char *name) {
 
 // returns Encoding, takes rb_encoding struct or RbEncoding
 VALUE rb_enc_from_encoding(rb_encoding *encoding) {
-  return truffle_invoke(RUBY_CEXT, "rb_enc_from_encoding", encoding);
+  return polyglot_invoke(RUBY_CEXT, "rb_enc_from_encoding", encoding);
 }
 
 rb_encoding *rb_enc_from_index(int index) {
-  return rb_to_encoding(truffle_invoke(RUBY_CEXT, "rb_enc_from_index", index));
+  return rb_to_encoding(polyglot_invoke(RUBY_CEXT, "rb_enc_from_index", index));
 }
 
 int rb_enc_str_coderange(VALUE str) {
@@ -1446,7 +1446,7 @@ int rb_tr_flags(VALUE value) {
 // Undef conflicting macro from encoding.h like MRI
 #undef rb_enc_str_new
 VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {
-  return truffle_invoke(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(enc));
+  return polyglot_invoke(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(enc));
 }
 
 void rb_enc_raise(rb_encoding *enc, VALUE exc, const char *fmt, ...) {
@@ -1454,7 +1454,7 @@ void rb_enc_raise(rb_encoding *enc, VALUE exc, const char *fmt, ...) {
     va_start(args, fmt);
     VALUE mesg = rb_vsprintf(fmt, args);
     va_end(args);
-    rb_exc_raise(rb_exc_new_str(exc, (VALUE) truffle_invoke(mesg, "force_encoding", rb_enc_from_encoding(enc))));
+    rb_exc_raise(rb_exc_new_str(exc, (VALUE) polyglot_invoke(mesg, "force_encoding", rb_enc_from_encoding(enc))));
 }
 
 VALUE rb_enc_sprintf(rb_encoding *enc, const char *format, ...) {
@@ -1466,19 +1466,19 @@ int rb_enc_to_index(rb_encoding *enc) {
 }
 
 VALUE rb_obj_encoding(VALUE obj) {
-  return truffle_invoke(obj, "encoding");
+  return polyglot_invoke(obj, "encoding");
 }
 
 VALUE rb_str_encode(VALUE str, VALUE to, int ecflags, VALUE ecopts) {
-  return truffle_invoke(RUBY_CEXT, "rb_str_encode", str, to, ecflags, ecopts);
+  return polyglot_invoke(RUBY_CEXT, "rb_str_encode", str, to, ecflags, ecopts);
 }
 
 VALUE rb_usascii_str_new(const char *ptr, long len) {
-  return truffle_invoke(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(rb_usascii_encoding()));
+  return polyglot_invoke(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(rb_usascii_encoding()));
 }
 
 VALUE rb_usascii_str_new_cstr(const char *ptr) {
-  return truffle_invoke(rb_str_new_cstr(ptr), "force_encoding", rb_enc_from_encoding(rb_usascii_encoding()));
+  return polyglot_invoke(rb_str_new_cstr(ptr), "force_encoding", rb_enc_from_encoding(rb_usascii_encoding()));
 }
 
 int rb_to_encoding_index(VALUE enc) {
@@ -1514,7 +1514,7 @@ int rb_enc_precise_mbclen(const char *p, const char *e, rb_encoding *enc) {
 }
 
 VALUE rb_str_times(VALUE string, VALUE times) {
-  return (VALUE) truffle_invoke(string, "*", times);
+  return (VALUE) polyglot_invoke(string, "*", times);
 }
 
 int rb_enc_dummy_p(rb_encoding *enc) {
@@ -1566,23 +1566,23 @@ int rb_econv_prepare_opts(VALUE opthash, VALUE *opts) {
 // Symbol
 
 ID rb_to_id(VALUE name) {
-  return SYM2ID((VALUE) truffle_invoke(name, "to_sym"));
+  return SYM2ID((VALUE) polyglot_invoke(name, "to_sym"));
 }
 
 ID rb_intern(const char *string) {
-  return (ID) truffle_invoke(RUBY_CEXT, "rb_intern", rb_str_new_cstr(string));
+  return (ID) polyglot_invoke(RUBY_CEXT, "rb_intern", rb_str_new_cstr(string));
 }
 
 ID rb_intern2(const char *string, long length) {
-  return (ID) SYM2ID(truffle_invoke(RUBY_CEXT, "rb_intern", rb_str_new(string, length)));
+  return (ID) SYM2ID(polyglot_invoke(RUBY_CEXT, "rb_intern", rb_str_new(string, length)));
 }
 
 ID rb_intern3(const char *name, long len, rb_encoding *enc) {
-  return (ID) SYM2ID(truffle_invoke(RUBY_CEXT, "rb_intern3", rb_str_new(name, len), rb_enc_from_encoding(enc)));
+  return (ID) SYM2ID(polyglot_invoke(RUBY_CEXT, "rb_intern3", rb_str_new(name, len), rb_enc_from_encoding(enc)));
 }
 
 VALUE rb_sym2str(VALUE string) {
-  return (VALUE) truffle_invoke(string, "to_s");
+  return (VALUE) polyglot_invoke(string, "to_s");
 }
 
 const char *rb_id2name(ID id) {
@@ -1590,7 +1590,7 @@ const char *rb_id2name(ID id) {
 }
 
 VALUE rb_id2str(ID id) {
-  return truffle_invoke(RUBY_CEXT, "rb_id2str", ID2SYM(id));
+  return polyglot_invoke(RUBY_CEXT, "rb_id2str", ID2SYM(id));
 }
 
 int rb_is_class_id(ID id) {
@@ -1620,15 +1620,15 @@ VALUE RARRAY_AREF(VALUE array, long index) {
 }
 
 VALUE rb_Array(VALUE array) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_Array", array);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_Array", array);
 }
 
 VALUE rb_ary_new() {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_ary_new");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_ary_new");
 }
 
 VALUE rb_ary_new_capa(long capacity) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_ary_new_capa", capacity);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_ary_new_capa", capacity);
 }
 
 VALUE rb_ary_resize(VALUE ary, long len) {
@@ -1652,12 +1652,12 @@ VALUE rb_ary_new_from_values(long n, const VALUE *values) {
 }
 
 VALUE rb_ary_push(VALUE array, VALUE value) {
-  truffle_invoke(array, "push", value);
+  polyglot_invoke(array, "push", value);
   return array;
 }
 
 VALUE rb_ary_pop(VALUE array) {
-  return (VALUE) truffle_invoke(array, "pop");
+  return (VALUE) polyglot_invoke(array, "pop");
 }
 
 void rb_ary_store(VALUE array, long index, VALUE value) {
@@ -1673,62 +1673,62 @@ VALUE rb_ary_each(VALUE array) {
 }
 
 VALUE rb_ary_unshift(VALUE array, VALUE value) {
-  return (VALUE) truffle_invoke(array, "unshift", value);
+  return (VALUE) polyglot_invoke(array, "unshift", value);
 }
 
 VALUE rb_ary_aref(int n, const VALUE* values, VALUE array) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "send_splatted", array, rb_str_new_cstr("[]"), rb_ary_new4(n, values));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "send_splatted", array, rb_str_new_cstr("[]"), rb_ary_new4(n, values));
 }
 
 VALUE rb_ary_clear(VALUE array) {
-  return (VALUE) truffle_invoke(array, "clear");
+  return (VALUE) polyglot_invoke(array, "clear");
 }
 
 VALUE rb_ary_delete(VALUE array, VALUE value) {
-  return (VALUE) truffle_invoke(array, "delete", value);
+  return (VALUE) polyglot_invoke(array, "delete", value);
 }
 
 VALUE rb_ary_delete_at(VALUE array, long n) {
-  return (VALUE) truffle_invoke(array, "delete_at", n);
+  return (VALUE) polyglot_invoke(array, "delete_at", n);
 }
 
 VALUE rb_ary_includes(VALUE array, VALUE value) {
-  return (VALUE) truffle_invoke(array, "include?", value);
+  return (VALUE) polyglot_invoke(array, "include?", value);
 }
 
 VALUE rb_ary_join(VALUE array, VALUE sep) {
-  return (VALUE) truffle_invoke(array, "join", sep);
+  return (VALUE) polyglot_invoke(array, "join", sep);
 }
 
 VALUE rb_ary_to_s(VALUE array) {
-  return (VALUE) truffle_invoke(array, "to_s");
+  return (VALUE) polyglot_invoke(array, "to_s");
 }
 
 VALUE rb_ary_reverse(VALUE array) {
-  return (VALUE) truffle_invoke(array, "reverse!");
+  return (VALUE) polyglot_invoke(array, "reverse!");
 }
 
 VALUE rb_ary_shift(VALUE array) {
-  return (VALUE) truffle_invoke(array, "shift");
+  return (VALUE) polyglot_invoke(array, "shift");
 }
 
 VALUE rb_ary_concat(VALUE a, VALUE b) {
-  return (VALUE) truffle_invoke(a, "concat", b);
+  return (VALUE) polyglot_invoke(a, "concat", b);
 }
 
 VALUE rb_ary_plus(VALUE a, VALUE b) {
-  return (VALUE) truffle_invoke(a, "+", b);
+  return (VALUE) polyglot_invoke(a, "+", b);
 }
 
 VALUE rb_iterate(VALUE (*function)(), VALUE arg1, VALUE (*block)(), VALUE arg2) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_iterate", function, arg1, block, arg2);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_iterate", function, arg1, block, arg2);
 }
 
 VALUE rb_each(VALUE array) {
   if (rb_block_given_p()) {
     return rb_funcall_with_block(array, rb_intern("each"), 0, NULL, rb_block_proc());
   } else {
-    return (VALUE) truffle_invoke(array, "each");
+    return (VALUE) polyglot_invoke(array, "each");
   }
 }
 
@@ -1746,7 +1746,7 @@ VALUE rb_ary_to_ary(VALUE array) {
 }
 
 VALUE rb_ary_subseq(VALUE array, long start, long length) {
-  return (VALUE) truffle_invoke(array, "[]", start, length);
+  return (VALUE) polyglot_invoke(array, "[]", start, length);
 }
 
 VALUE rb_check_array_type(VALUE array) {
@@ -1754,12 +1754,12 @@ VALUE rb_check_array_type(VALUE array) {
 }
 
 VALUE rb_ary_cat(VALUE array, const VALUE *cat, long n) {
-  return (VALUE) truffle_invoke(array, "concat", rb_ary_new4(n, cat));
+  return (VALUE) polyglot_invoke(array, "concat", rb_ary_new4(n, cat));
 }
 
 VALUE rb_ary_rotate(VALUE array, long n) {
   if (n != 0) {
-    return (VALUE) truffle_invoke(array, "rotate!", n);
+    return (VALUE) polyglot_invoke(array, "rotate!", n);
   }
   return Qnil;
 }
@@ -1767,27 +1767,27 @@ VALUE rb_ary_rotate(VALUE array, long n) {
 // Hash
 
 VALUE rb_Hash(VALUE obj) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_Hash", obj);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_Hash", obj);
 }
 
 VALUE rb_hash(VALUE obj) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_hash", obj);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_hash", obj);
 }
 
 VALUE rb_hash_new() {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_hash_new");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_hash_new");
 }
 
 VALUE rb_hash_aref(VALUE hash, VALUE key) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_hash_aref", hash, key);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_hash_aref", hash, key);
 }
 
 VALUE rb_hash_fetch(VALUE hash, VALUE key) {
-  return (VALUE) truffle_invoke(hash, "fetch", key);
+  return (VALUE) polyglot_invoke(hash, "fetch", key);
 }
 
 VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE value) {
-  return (VALUE) truffle_invoke(hash, "[]=", key, value);
+  return (VALUE) polyglot_invoke(hash, "[]=", key, value);
 }
 
 VALUE rb_hash_dup(VALUE hash) {
@@ -1799,11 +1799,11 @@ VALUE rb_hash_lookup(VALUE hash, VALUE key) {
 }
 
 VALUE rb_hash_lookup2(VALUE hash, VALUE key, VALUE default_value) {
-  return (VALUE) truffle_invoke(hash, "fetch", key, default_value);
+  return (VALUE) polyglot_invoke(hash, "fetch", key, default_value);
 }
 
 VALUE rb_hash_set_ifnone(VALUE hash, VALUE if_none) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_hash_set_ifnone", hash, if_none);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_hash_set_ifnone", hash, if_none);
 }
 
 st_index_t rb_memhash(const void *data, long length) {
@@ -1819,27 +1819,27 @@ st_index_t rb_memhash(const void *data, long length) {
 }
 
 VALUE rb_hash_clear(VALUE hash) {
-  return (VALUE) truffle_invoke(hash, "clear");
+  return (VALUE) polyglot_invoke(hash, "clear");
 }
 
 VALUE rb_hash_delete(VALUE hash, VALUE key) {
-  return (VALUE) truffle_invoke(hash, "delete", key);
+  return (VALUE) polyglot_invoke(hash, "delete", key);
 }
 
 VALUE rb_hash_delete_if(VALUE hash) {
   if (rb_block_given_p()) {
     return rb_funcall_with_block(hash, rb_intern("delete_if"), 0, NULL, rb_block_proc());
   } else {
-    return (VALUE) truffle_invoke(hash, "delete_if");
+    return (VALUE) polyglot_invoke(hash, "delete_if");
   }
 }
 
 void rb_hash_foreach(VALUE hash, int (*func)(ANYARGS), VALUE farg) {
-  truffle_invoke(RUBY_CEXT, "rb_hash_foreach", hash, (void (*)(void *)) func, farg);
+  polyglot_invoke(RUBY_CEXT, "rb_hash_foreach", hash, (void (*)(void *)) func, farg);
 }
 
 VALUE rb_hash_size(VALUE hash) {
-  return (VALUE) truffle_invoke(hash, "size");
+  return (VALUE) polyglot_invoke(hash, "size");
 }
 
 // Class
@@ -1849,11 +1849,11 @@ const char* rb_class2name(VALUE ruby_class) {
 }
 
 VALUE rb_class_real(VALUE ruby_class) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_class_real", ruby_class);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_class_real", ruby_class);
 }
 
 VALUE rb_class_superclass(VALUE ruby_class) {
-  return (VALUE) truffle_invoke(ruby_class, "superclass");
+  return (VALUE) polyglot_invoke(ruby_class, "superclass");
 }
 
 VALUE rb_obj_class(VALUE object) {
@@ -1861,31 +1861,31 @@ VALUE rb_obj_class(VALUE object) {
 }
 
 VALUE rb_singleton_class(VALUE object) {
-  return truffle_invoke(object, "singleton_class");
+  return polyglot_invoke(object, "singleton_class");
 }
 
 VALUE rb_class_of(VALUE object) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_class_of", object);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_class_of", object);
 }
 
 VALUE rb_obj_alloc(VALUE ruby_class) {
-  return (VALUE) truffle_invoke(ruby_class, "__allocate__");
+  return (VALUE) polyglot_invoke(ruby_class, "__allocate__");
 }
 
 VALUE rb_class_path(VALUE ruby_class) {
-  return (VALUE) truffle_invoke(ruby_class, "name");
+  return (VALUE) polyglot_invoke(ruby_class, "name");
 }
 
 VALUE rb_path2class(const char *string) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_path_to_class", rb_str_new_cstr(string));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_path_to_class", rb_str_new_cstr(string));
 }
 
 VALUE rb_path_to_class(VALUE pathname) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_path_to_class", pathname);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_path_to_class", pathname);
 }
 
 VALUE rb_class_name(VALUE ruby_class) {
-  VALUE name = truffle_invoke(ruby_class, "name");
+  VALUE name = polyglot_invoke(ruby_class, "name");
 
   if (NIL_P(name)) {
     return rb_class_name(rb_obj_class(ruby_class));
@@ -1895,53 +1895,53 @@ VALUE rb_class_name(VALUE ruby_class) {
 }
 
 VALUE rb_class_new(VALUE super) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_class_new", super);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_class_new", super);
 }
 
 VALUE rb_class_new_instance(int argc, const VALUE *argv, VALUE klass) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_class_new_instance", klass, rb_ary_new4(argc, argv));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_class_new_instance", klass, rb_ary_new4(argc, argv));
 }
 
 VALUE rb_cvar_defined(VALUE klass, ID id) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cvar_defined", klass, id);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cvar_defined", klass, id);
 }
 
 VALUE rb_cvar_get(VALUE klass, ID id) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cvar_get", klass, id);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cvar_get", klass, id);
 }
 
 void rb_cvar_set(VALUE klass, ID id, VALUE val) {
-  truffle_invoke(RUBY_CEXT, "rb_cvar_set", klass, id, val);
+  polyglot_invoke(RUBY_CEXT, "rb_cvar_set", klass, id, val);
 }
 
 VALUE rb_cv_get(VALUE klass, const char *name) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cv_get", klass, rb_str_new_cstr(name));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cv_get", klass, rb_str_new_cstr(name));
 }
 
 void rb_cv_set(VALUE klass, const char *name, VALUE val) {
-  truffle_invoke(RUBY_CEXT, "rb_cv_set", klass, rb_str_new_cstr(name), val);
+  polyglot_invoke(RUBY_CEXT, "rb_cv_set", klass, rb_str_new_cstr(name), val);
 }
 
 void rb_define_attr(VALUE klass, const char *name, int read, int write) {
-  truffle_invoke(RUBY_CEXT, "rb_define_attr", klass, ID2SYM(rb_intern(name)), read, write);
+  polyglot_invoke(RUBY_CEXT, "rb_define_attr", klass, ID2SYM(rb_intern(name)), read, write);
 }
 
 void rb_define_class_variable(VALUE klass, const char *name, VALUE val) {
-  truffle_invoke(RUBY_CEXT, "rb_cv_set", klass, rb_str_new_cstr(name), val);
+  polyglot_invoke(RUBY_CEXT, "rb_cv_set", klass, rb_str_new_cstr(name), val);
 }
 
 VALUE rb_mod_ancestors(VALUE mod) {
-  return (VALUE) truffle_invoke(mod, "ancestors");
+  return (VALUE) polyglot_invoke(mod, "ancestors");
 }
 
 // Proc
 
 VALUE rb_proc_new(VALUE (*function)(ANYARGS), VALUE value) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_proc_new", (void (*)(void *)) function, value);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_proc_new", (void (*)(void *)) function, value);
 }
 
 VALUE rb_proc_call(VALUE self, VALUE args) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_proc_call", self, args);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_proc_call", self, args);
 }
 
 int rb_proc_arity(VALUE self) {
@@ -1967,11 +1967,11 @@ int rb_tr_to_int_const(VALUE value) {
 }
 
 VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_enumeratorize", obj, meth, rb_ary_new4(argc, argv));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_enumeratorize", obj, meth, rb_ary_new4(argc, argv));
 }
 
 void rb_check_arity(int argc, int min, int max) {
-  truffle_invoke(RUBY_CEXT, "rb_check_arity", argc, min, max);
+  polyglot_invoke(RUBY_CEXT, "rb_check_arity", argc, min, max);
 }
 
 char* ruby_strdup(const char *str) {
@@ -1991,15 +1991,15 @@ int rb_respond_to(VALUE object, ID name) {
 }
 
 VALUE rb_funcallv(VALUE object, ID name, int args_count, const VALUE *args) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_funcallv", object, ID2SYM(name), rb_ary_new4(args_count, args));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_funcallv", object, ID2SYM(name), rb_ary_new4(args_count, args));
 }
 
 VALUE rb_funcallv_public(VALUE object, ID name, int args_count, const VALUE *args) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_funcallv_public", object, ID2SYM(name), rb_ary_new4(args_count, args));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_funcallv_public", object, ID2SYM(name), rb_ary_new4(args_count, args));
 }
 
 VALUE rb_apply(VALUE object, ID name, VALUE args) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_apply", object, ID2SYM(name), args);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_apply", object, ID2SYM(name), args);
 }
 
 VALUE rb_block_call(VALUE object, ID name, int args_count, const VALUE *args, rb_block_call_func_t block_call_func, VALUE data) {
@@ -2008,12 +2008,12 @@ VALUE rb_block_call(VALUE object, ID name, int args_count, const VALUE *args, rb
   } else if (block_call_func == NULL) {
     return rb_funcallv(object, name, args_count, args);
   } else {
-    return (VALUE) truffle_invoke(RUBY_CEXT, "rb_block_call", object, ID2SYM(name), rb_ary_new4(args_count, args), block_call_func, data);
+    return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_block_call", object, ID2SYM(name), rb_ary_new4(args_count, args), block_call_func, data);
   }
 }
 
 VALUE rb_call_super(int args_count, const VALUE *args) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_call_super", rb_ary_new4(args_count, args));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_call_super", rb_ary_new4(args_count, args));
 }
 
 int rb_block_given_p() {
@@ -2021,30 +2021,30 @@ int rb_block_given_p() {
 }
 
 VALUE rb_block_proc(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_block_proc");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_block_proc");
 }
 
 VALUE rb_block_lambda(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_block_lambda");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_block_lambda");
 }
 
 VALUE rb_yield(VALUE value) {
   if (rb_block_given_p()) {
-    return (VALUE) truffle_invoke(RUBY_CEXT, "rb_yield", value);
+    return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_yield", value);
   } else {
-    return truffle_invoke(RUBY_CEXT, "yield_no_block");
+    return polyglot_invoke(RUBY_CEXT, "yield_no_block");
   }
 }
 
 VALUE rb_funcall_with_block(VALUE recv, ID mid, int argc, const VALUE *argv, VALUE pass_procval) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_funcall_with_block", recv, ID2SYM(mid), rb_ary_new4(argc, argv), pass_procval);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_funcall_with_block", recv, ID2SYM(mid), rb_ary_new4(argc, argv), pass_procval);
 }
 
 VALUE rb_yield_splat(VALUE values) {
   if (rb_block_given_p()) {
-    return (VALUE) truffle_invoke(RUBY_CEXT, "rb_yield_splat", values);
+    return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_yield_splat", values);
   } else {
-    return truffle_invoke(RUBY_CEXT, "yield_no_block");
+    return polyglot_invoke(RUBY_CEXT, "yield_no_block");
   }
 }
 
@@ -2059,25 +2059,25 @@ VALUE rb_yield_values(int n, ...) {
 // Instance variables
 
 VALUE rb_iv_get(VALUE object, const char *name) {
-  return truffle_invoke(RUBY_CEXT, "rb_ivar_get", object, rb_str_new_cstr(name));
+  return polyglot_invoke(RUBY_CEXT, "rb_ivar_get", object, rb_str_new_cstr(name));
 }
 
 VALUE rb_iv_set(VALUE object, const char *name, VALUE value) {
-  truffle_invoke(RUBY_CEXT, "rb_ivar_set", object, rb_str_new_cstr(name), value);
+  polyglot_invoke(RUBY_CEXT, "rb_ivar_set", object, rb_str_new_cstr(name), value);
   return value;
 }
 
 VALUE rb_ivar_get(VALUE object, ID name) {
-  return truffle_invoke(RUBY_CEXT, "rb_ivar_get", object, name);
+  return polyglot_invoke(RUBY_CEXT, "rb_ivar_get", object, name);
 }
 
 VALUE rb_ivar_set(VALUE object, ID name, VALUE value) {
-  truffle_invoke(RUBY_CEXT, "rb_ivar_set", object, name, value);
+  polyglot_invoke(RUBY_CEXT, "rb_ivar_set", object, name, value);
   return value;
 }
 
 VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_ivar_lookup", object, name, default_value);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_ivar_lookup", object, name, default_value);
 }
 
 VALUE rb_attr_get(VALUE object, ID name) {
@@ -2095,19 +2095,19 @@ int rb_const_defined_at(VALUE module, ID name) {
 }
 
 VALUE rb_const_get(VALUE module, ID name) {
-  return (VALUE) truffle_invoke(module, "const_get", name);
+  return (VALUE) polyglot_invoke(module, "const_get", name);
 }
 
 VALUE rb_const_get_at(VALUE module, ID name) {
-  return (VALUE) truffle_invoke(module, "const_get", name, Qfalse);
+  return (VALUE) polyglot_invoke(module, "const_get", name, Qfalse);
 }
 
 VALUE rb_const_get_from(VALUE module, ID name) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_const_get_from", module, name);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_const_get_from", module, name);
 }
 
 void rb_const_set(VALUE module, ID name, VALUE value) {
-  truffle_invoke(module, "const_set", name, value);
+  polyglot_invoke(module, "const_set", name, value);
 }
 
 void rb_define_const(VALUE module, const char *name, VALUE value) {
@@ -2137,7 +2137,7 @@ void rb_define_hooked_variable(const char *name, VALUE *var, VALUE (*getter)(ANY
     setter = rb_gvar_var_setter;
   }
 
-  truffle_invoke(RUBY_CEXT, "rb_define_hooked_variable", rb_str_new_cstr(name), var, getter, setter);
+  polyglot_invoke(RUBY_CEXT, "rb_define_hooked_variable", rb_str_new_cstr(name), var, getter, setter);
 }
 
 void rb_gvar_readonly_setter(VALUE val, ID id, void *data, struct rb_global_variable *gvar) {
@@ -2153,15 +2153,15 @@ void rb_define_variable(const char *name, VALUE *var) {
 }
 
 VALUE rb_f_global_variables(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_f_global_variables");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_f_global_variables");
 }
 
 VALUE rb_gv_set(const char *name, VALUE value) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_gv_set", rb_str_new_cstr(name), value);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_gv_set", rb_str_new_cstr(name), value);
 }
 
 VALUE rb_gv_get(const char *name) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_gv_get", rb_str_new_cstr(name));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_gv_get", rb_str_new_cstr(name));
 }
 
 VALUE rb_lastline_get(void) {
@@ -2179,24 +2179,24 @@ void rb_secure(int safe_level) {
 // Exceptions
 
 VALUE rb_exc_new(VALUE etype, const char *ptr, long len) {
-  return (VALUE) truffle_invoke(etype, "new", rb_str_new(ptr, len));
+  return (VALUE) polyglot_invoke(etype, "new", rb_str_new(ptr, len));
 }
 
 VALUE rb_exc_new_cstr(VALUE exception_class, const char *message) {
-  return (VALUE) truffle_invoke(exception_class, "new", rb_str_new_cstr(message));
+  return (VALUE) polyglot_invoke(exception_class, "new", rb_str_new_cstr(message));
 }
 
 VALUE rb_exc_new_str(VALUE exception_class, VALUE message) {
-  return (VALUE) truffle_invoke(exception_class, "new", message);
+  return (VALUE) polyglot_invoke(exception_class, "new", message);
 }
 
 void rb_exc_raise(VALUE exception) {
-  truffle_invoke(RUBY_CEXT, "rb_exc_raise", exception);
+  polyglot_invoke(RUBY_CEXT, "rb_exc_raise", exception);
   rb_tr_error("rb_exc_raise should not return");
 }
 
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status) {
-  VALUE ary = truffle_invoke(RUBY_CEXT, "rb_protect_with_block",
+  VALUE ary = polyglot_invoke(RUBY_CEXT, "rb_protect_with_block",
                              (void (*)(void *)) function, data, rb_block_proc());
   *status = NUM2INT(polyglot_get_array_element(ary, 1));
   return polyglot_get_array_element(ary, 0);
@@ -2204,21 +2204,21 @@ VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status) {
 
 void rb_jump_tag(int status) {
   if (status) {
-    truffle_invoke(RUBY_CEXT, "rb_jump_tag", status);
+    polyglot_invoke(RUBY_CEXT, "rb_jump_tag", status);
   }
   rb_tr_error("rb_jump_tag should not return");
 }
 
 void rb_set_errinfo(VALUE error) {
-  truffle_invoke(RUBY_CEXT, "rb_set_errinfo", error);
+  polyglot_invoke(RUBY_CEXT, "rb_set_errinfo", error);
 }
 
 VALUE rb_errinfo(void) {
-  return truffle_invoke(RUBY_CEXT, "rb_errinfo");
+  return polyglot_invoke(RUBY_CEXT, "rb_errinfo");
 }
 
 void rb_syserr_fail(int eno, const char *message) {
-  truffle_invoke(RUBY_CEXT, "rb_syserr_fail", eno, message == NULL ? Qnil : rb_str_new_cstr(message));
+  polyglot_invoke(RUBY_CEXT, "rb_syserr_fail", eno, message == NULL ? Qnil : rb_str_new_cstr(message));
   rb_tr_error("rb_syserr_fail should not return");
 }
 
@@ -2233,11 +2233,11 @@ void rb_sys_fail(const char *message) {
 }
 
 VALUE rb_ensure(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*e_proc)(ANYARGS), VALUE data2) {
-  return truffle_invoke(RUBY_CEXT, "rb_ensure", b_proc, data1, e_proc, data2);
+  return polyglot_invoke(RUBY_CEXT, "rb_ensure", b_proc, data1, e_proc, data2);
 }
 
 VALUE rb_rescue(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2) {
-  return truffle_invoke(RUBY_CEXT, "rb_rescue", b_proc, data1, r_proc, data2);
+  return polyglot_invoke(RUBY_CEXT, "rb_rescue", b_proc, data1, r_proc, data2);
 }
 
 VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2, ...) {
@@ -2251,11 +2251,11 @@ VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS)
     rb_ary_push(rescued, arg);
     n++;
   }
-  return truffle_invoke(RUBY_CEXT, "rb_rescue2", b_proc, data1, r_proc, data2, rescued);
+  return polyglot_invoke(RUBY_CEXT, "rb_rescue2", b_proc, data1, r_proc, data2, rescued);
 }
 
 VALUE rb_make_backtrace(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_make_backtrace");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_make_backtrace");
 }
 
 void rb_throw(const char *tag, VALUE val) {
@@ -2263,7 +2263,7 @@ void rb_throw(const char *tag, VALUE val) {
 }
 
 void rb_throw_obj(VALUE tag, VALUE value) {
-  truffle_invoke(rb_mKernel, "throw", tag, value == NULL ? Qnil : value);
+  polyglot_invoke(rb_mKernel, "throw", tag, value == NULL ? Qnil : value);
   rb_tr_error("rb_throw_obj should not return");
 }
 
@@ -2272,11 +2272,11 @@ VALUE rb_catch(const char *tag, VALUE (*func)(), VALUE data) {
 }
 
 VALUE rb_catch_obj(VALUE t, VALUE (*func)(), VALUE data) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_catch_obj", t, func, data);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_catch_obj", t, func, data);
 }
 
 void rb_memerror(void) {
-  truffle_invoke(RUBY_CEXT, "rb_memerror");
+  polyglot_invoke(RUBY_CEXT, "rb_memerror");
   rb_tr_error("rb_memerror should not return");
 }
 
@@ -2291,7 +2291,7 @@ VALUE rb_define_class_under(VALUE module, const char *name, VALUE superclass) {
 }
 
 VALUE rb_define_class_id_under(VALUE module, ID name, VALUE superclass) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_define_class_under", module, name, superclass);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_define_class_under", module, name, superclass);
 }
 
 VALUE rb_define_module(const char *name) {
@@ -2299,34 +2299,34 @@ VALUE rb_define_module(const char *name) {
 }
 
 VALUE rb_define_module_under(VALUE module, const char *name) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_define_module_under", module, rb_str_new_cstr(name));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_define_module_under", module, rb_str_new_cstr(name));
 }
 
 void rb_include_module(VALUE module, VALUE to_include) {
-  truffle_invoke(module, "include", to_include);
+  polyglot_invoke(module, "include", to_include);
 }
 
 void rb_define_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
   if (function == rb_f_notimplement) {
-    truffle_invoke(RUBY_CEXT, "rb_define_method_undefined", module, rb_str_new_cstr(name));
+    polyglot_invoke(RUBY_CEXT, "rb_define_method_undefined", module, rb_str_new_cstr(name));
   } else {
-    truffle_invoke(RUBY_CEXT, "rb_define_method", module, rb_str_new_cstr(name), (void (*)(void *)) function, argc);
+    polyglot_invoke(RUBY_CEXT, "rb_define_method", module, rb_str_new_cstr(name), (void (*)(void *)) function, argc);
   }
 }
 
 void rb_define_private_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
   rb_define_method(module, name, function, argc);
-  truffle_invoke(module, "private", rb_str_new_cstr(name));
+  polyglot_invoke(module, "private", rb_str_new_cstr(name));
 }
 
 void rb_define_protected_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
   rb_define_method(module, name, function, argc);
-  truffle_invoke(module, "protected", rb_str_new_cstr(name));
+  polyglot_invoke(module, "protected", rb_str_new_cstr(name));
 }
 
 void rb_define_module_function(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
   rb_define_method(module, name, function, argc);
-  truffle_invoke(RUBY_CEXT, "cext_module_function", module, rb_intern(name));
+  polyglot_invoke(RUBY_CEXT, "cext_module_function", module, rb_intern(name));
 }
 
 void rb_define_global_function(const char *name, VALUE (*function)(ANYARGS), int argc) {
@@ -2334,7 +2334,7 @@ void rb_define_global_function(const char *name, VALUE (*function)(ANYARGS), int
 }
 
 void rb_define_singleton_method(VALUE object, const char *name, VALUE (*function)(ANYARGS), int argc) {
-  rb_define_method(truffle_invoke(object, "singleton_class"), name, function, argc);
+  rb_define_method(polyglot_invoke(object, "singleton_class"), name, function, argc);
 }
 
 void rb_define_alias(VALUE module, const char *new_name, const char *old_name) {
@@ -2342,7 +2342,7 @@ void rb_define_alias(VALUE module, const char *new_name, const char *old_name) {
 }
 
 void rb_alias(VALUE module, ID new_name, ID old_name) {
-  truffle_invoke(RUBY_CEXT, "rb_alias", module, new_name, old_name);
+  polyglot_invoke(RUBY_CEXT, "rb_alias", module, new_name, old_name);
 }
 
 void rb_undef_method(VALUE module, const char *name) {
@@ -2350,85 +2350,85 @@ void rb_undef_method(VALUE module, const char *name) {
 }
 
 void rb_undef(VALUE module, ID name) {
-  truffle_invoke(RUBY_CEXT, "rb_undef", module, name);
+  polyglot_invoke(RUBY_CEXT, "rb_undef", module, name);
 }
 
 void rb_attr(VALUE ruby_class, ID name, int read, int write, int ex) {
-  truffle_invoke(RUBY_CEXT, "rb_attr", ruby_class, name, read, write, ex);
+  polyglot_invoke(RUBY_CEXT, "rb_attr", ruby_class, name, read, write, ex);
 }
 
 void rb_define_alloc_func(VALUE ruby_class, rb_alloc_func_t alloc_function) {
-  truffle_invoke(RUBY_CEXT, "rb_define_alloc_func", ruby_class, (void (*)(void *)) alloc_function);
+  polyglot_invoke(RUBY_CEXT, "rb_define_alloc_func", ruby_class, (void (*)(void *)) alloc_function);
 }
 
 void rb_undef_alloc_func(VALUE ruby_class) {
-  truffle_invoke(RUBY_CEXT, "rb_undef_alloc_func", ruby_class);
+  polyglot_invoke(RUBY_CEXT, "rb_undef_alloc_func", ruby_class);
 }
 
 VALUE rb_obj_method(VALUE obj, VALUE vid) {
-  return (VALUE) truffle_invoke(obj, "method", rb_intern_str(vid));
+  return (VALUE) polyglot_invoke(obj, "method", rb_intern_str(vid));
 }
 
 // Rational
 
 VALUE rb_Rational(VALUE num, VALUE den) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_Rational", num, den);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_Rational", num, den);
 }
 
 VALUE rb_rational_raw(VALUE num, VALUE den) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_rational_raw", num, den);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_rational_raw", num, den);
 }
 
 VALUE rb_rational_new(VALUE num, VALUE den) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_rational_new", num, den);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_rational_new", num, den);
 }
 
 VALUE rb_rational_num(VALUE rat) {
-  return (VALUE) truffle_invoke(rat, "numerator");
+  return (VALUE) polyglot_invoke(rat, "numerator");
 }
 
 VALUE rb_rational_den(VALUE rat) {
-  return (VALUE) truffle_invoke(rat, "denominator");
+  return (VALUE) polyglot_invoke(rat, "denominator");
 }
 
 VALUE rb_flt_rationalize_with_prec(VALUE value, VALUE precision) {
-  return (VALUE) truffle_invoke(value, "rationalize", precision);
+  return (VALUE) polyglot_invoke(value, "rationalize", precision);
 }
 
 VALUE rb_flt_rationalize(VALUE value) {
-  return (VALUE) truffle_invoke(value, "rationalize");
+  return (VALUE) polyglot_invoke(value, "rationalize");
 }
 
 // Complex
 
 VALUE rb_Complex(VALUE real, VALUE imag) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_Complex", real, imag);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_Complex", real, imag);
 }
 
 VALUE rb_complex_new(VALUE real, VALUE imag) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_complex_new", real, imag);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_complex_new", real, imag);
 }
 
 VALUE rb_complex_raw(VALUE real, VALUE imag) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_complex_raw", real, imag);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_complex_raw", real, imag);
 }
 
 VALUE rb_complex_polar(VALUE r, VALUE theta) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_complex_polar", r, theta);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_complex_polar", r, theta);
 }
 
 VALUE rb_complex_set_real(VALUE complex, VALUE real) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_complex_set_real", complex, real);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_complex_set_real", complex, real);
 }
 
 VALUE rb_complex_set_imag(VALUE complex, VALUE imag) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_complex_set_imag", complex, imag);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_complex_set_imag", complex, imag);
 }
 
 // Range
 
 VALUE rb_range_new(VALUE beg, VALUE end, int exclude_end) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_range_new", beg, end, exclude_end);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_range_new", beg, end, exclude_end);
 }
 
 VALUE rb_range_beg_len(VALUE range, long *begp, long *lenp, long len, int err) {
@@ -2476,19 +2476,19 @@ VALUE rb_range_beg_len(VALUE range, long *begp, long *lenp, long len, int err) {
 // Time
 
 VALUE rb_time_new(time_t sec, long usec) {
-  return (VALUE) truffle_invoke(rb_cTime, "at", sec, usec);
+  return (VALUE) polyglot_invoke(rb_cTime, "at", sec, usec);
 }
 
 VALUE rb_time_nano_new(time_t sec, long nsec) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_time_nano_new", sec, nsec);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_time_nano_new", sec, nsec);
 }
 
 VALUE rb_time_num_new(VALUE timev, VALUE off) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_time_num_new", timev, off);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_time_num_new", timev, off);
 }
 
 struct timeval rb_time_interval(VALUE time_val) {
-  truffle_invoke(RUBY_CEXT, "rb_time_interval_acceptable", time_val);
+  polyglot_invoke(RUBY_CEXT, "rb_time_interval_acceptable", time_val);
 
   struct timeval result;
 
@@ -2522,11 +2522,11 @@ struct timespec rb_time_timespec(VALUE time_val) {
 VALUE rb_time_timespec_new(const struct timespec *ts, int offset) {
   VALUE is_utc = rb_boolean(offset == INT_MAX-1);
   VALUE is_local = rb_boolean(offset == INT_MAX);
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_time_timespec_new", ts->tv_sec, ts->tv_nsec, offset, is_utc, is_local);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_time_timespec_new", ts->tv_sec, ts->tv_nsec, offset, is_utc, is_local);
 }
 
 void rb_timespec_now(struct timespec *ts) {
-  struct timeval tv = rb_time_timeval((VALUE) truffle_invoke(rb_cTime, "now"));
+  struct timeval tv = rb_time_timeval((VALUE) polyglot_invoke(rb_cTime, "now"));
   ts->tv_sec = tv.tv_sec;
   ts->tv_nsec = tv.tv_usec * 1000;
 }
@@ -2534,75 +2534,75 @@ void rb_timespec_now(struct timespec *ts) {
 // Regexp
 
 VALUE rb_backref_get(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_backref_get");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_backref_get");
 }
 
 VALUE rb_reg_match_pre(VALUE match) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_match_pre", match);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_reg_match_pre", match);
 }
 
 VALUE rb_reg_new(const char *s, long len, int options) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_new", rb_str_new(s, len), options);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_reg_new", rb_str_new(s, len), options);
 }
 
 VALUE rb_reg_new_str(VALUE s, int options) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_new_str", s, options);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_reg_new_str", s, options);
 }
 
 VALUE rb_reg_nth_match(int nth, VALUE match) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_nth_match", nth, match);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_reg_nth_match", nth, match);
 }
 
 int rb_reg_options(VALUE re) {
-  return FIX2INT(truffle_invoke(RUBY_CEXT, "rb_reg_options", re));
+  return FIX2INT(polyglot_invoke(RUBY_CEXT, "rb_reg_options", re));
 }
 
 VALUE rb_reg_regcomp(VALUE str) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_regcomp", str);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_reg_regcomp", str);
 }
 
 VALUE rb_reg_match(VALUE re, VALUE str) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_match", re, str);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_reg_match", re, str);
 }
 
 // Marshal
 
 VALUE rb_marshal_dump(VALUE obj, VALUE port) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_marshal_dump", obj, port);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_marshal_dump", obj, port);
 }
 
 VALUE rb_marshal_load(VALUE port) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_marshal_load", port);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_marshal_load", port);
 }
 
 // Mutexes
 
 VALUE rb_mutex_new(void) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_mutex_new");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_mutex_new");
 }
 
 VALUE rb_mutex_locked_p(VALUE mutex) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_mutex_locked_p", mutex);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_mutex_locked_p", mutex);
 }
 
 VALUE rb_mutex_trylock(VALUE mutex) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_mutex_trylock", mutex);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_mutex_trylock", mutex);
 }
 
 VALUE rb_mutex_lock(VALUE mutex) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_mutex_lock", mutex);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_mutex_lock", mutex);
 }
 
 VALUE rb_mutex_unlock(VALUE mutex) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_mutex_unlock", mutex);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_mutex_unlock", mutex);
 }
 
 VALUE rb_mutex_sleep(VALUE mutex, VALUE timeout) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_mutex_sleep", mutex, timeout);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_mutex_sleep", mutex, timeout);
 }
 
 VALUE rb_mutex_synchronize(VALUE mutex, VALUE (*func)(VALUE arg), VALUE arg) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_mutex_synchronize", mutex, func, arg);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_mutex_synchronize", mutex, func, arg);
 }
 
 // GC
@@ -2622,15 +2622,15 @@ void rb_gc_mark_maybe(VALUE obj) {
 }
 
 VALUE rb_gc_enable() {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_gc_enable");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_gc_enable");
 }
 
 VALUE rb_gc_disable() {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_gc_disable");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_gc_disable");
 }
 
 void rb_gc(void) {
-  truffle_invoke(RUBY_CEXT, "rb_gc");
+  polyglot_invoke(RUBY_CEXT, "rb_gc");
 }
 
 // Threads
@@ -2640,8 +2640,8 @@ void *rb_thread_call_with_gvl(gvl_call function, void *data1) {
 }
 
 void *rb_thread_call_without_gvl(gvl_call function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {
-  // TODO CS 9-Mar-17 truffle_invoke escapes LLVMAddress into Ruby, which goes wrong when Ruby tries to call the callbacks
-  return truffle_invoke(RUBY_CEXT, "rb_thread_call_without_gvl", function, data1, unblock_function, data2);
+  // TODO CS 9-Mar-17 polyglot_invoke escapes LLVMAddress into Ruby, which goes wrong when Ruby tries to call the callbacks
+  return polyglot_invoke(RUBY_CEXT, "rb_thread_call_without_gvl", function, data1, unblock_function, data2);
 }
 
 int rb_thread_alone(void) {
@@ -2649,36 +2649,36 @@ int rb_thread_alone(void) {
 }
 
 VALUE rb_thread_current(void) {
-  return (VALUE) truffle_invoke(rb_tr_get_Thread(), "current");
+  return (VALUE) polyglot_invoke(rb_tr_get_Thread(), "current");
 }
 
 VALUE rb_thread_local_aref(VALUE thread, ID id) {
-  return (VALUE) truffle_invoke(thread, "[]", ID2SYM(id));
+  return (VALUE) polyglot_invoke(thread, "[]", ID2SYM(id));
 }
 
 VALUE rb_thread_local_aset(VALUE thread, ID id, VALUE val) {
-  return (VALUE) truffle_invoke(thread, "[]=", ID2SYM(id), val);
+  return (VALUE) polyglot_invoke(thread, "[]=", ID2SYM(id), val);
 }
 
 void rb_thread_wait_for(struct timeval time) {
   double seconds = (double)time.tv_sec + (double)time.tv_usec/1000000;
-  truffle_invoke(rb_mKernel, "sleep", seconds);
+  polyglot_invoke(rb_mKernel, "sleep", seconds);
 }
 
 VALUE rb_thread_wakeup(VALUE thread) {
-  return (VALUE) truffle_invoke(thread, "wakeup");
+  return (VALUE) polyglot_invoke(thread, "wakeup");
 }
 
 VALUE rb_thread_create(VALUE (*fn)(ANYARGS), void *arg) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_thread_create", fn, arg);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_thread_create", fn, arg);
 }
 
 void rb_thread_schedule(void) {
-  truffle_invoke(rb_cThread, "pass");
+  polyglot_invoke(rb_cThread, "pass");
 }
 
 rb_nativethread_id_t rb_nativethread_self() {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_nativethread_self");
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_nativethread_self");
 }
 
 // IO
@@ -2743,7 +2743,7 @@ int rb_io_wait_writable(int fd) {
 }
 
 void rb_thread_wait_fd(int fd) {
-  truffle_invoke(RUBY_CEXT, "rb_thread_wait_fd", fd);
+  polyglot_invoke(RUBY_CEXT, "rb_thread_wait_fd", fd);
 }
 
 int rb_wait_for_single_fd(int fd, int events, struct timeval *tv) {
@@ -2783,27 +2783,27 @@ VALUE rb_io_taint_check(VALUE io) {
 }
 
 VALUE rb_io_close(VALUE io) {
-  return (VALUE) truffle_invoke(io, "close");
+  return (VALUE) polyglot_invoke(io, "close");
 }
 
 VALUE rb_io_print(int argc, const VALUE *argv, VALUE out) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_io_print", out, rb_ary_new4(argc, argv));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_io_print", out, rb_ary_new4(argc, argv));
 }
 
 VALUE rb_io_printf(int argc, const VALUE *argv, VALUE out) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_io_printf", out, rb_ary_new4(argc, argv));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_io_printf", out, rb_ary_new4(argc, argv));
 }
 
 VALUE rb_io_puts(int argc, const VALUE *argv, VALUE out) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_io_puts", out, rb_ary_new4(argc, argv));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_io_puts", out, rb_ary_new4(argc, argv));
 }
 
 VALUE rb_io_write(VALUE io, VALUE str) {
-  return (VALUE) truffle_invoke(io, "write", str);
+  return (VALUE) polyglot_invoke(io, "write", str);
 }
 
 VALUE rb_io_binmode(VALUE io) {
-  return (VALUE) truffle_invoke(io, "binmode");
+  return (VALUE) polyglot_invoke(io, "binmode");
 }
 
 int rb_thread_fd_writable(int fd) {
@@ -2819,15 +2819,15 @@ int rb_cloexec_open(const char *pathname, int flags, mode_t mode) {
 }
 
 VALUE rb_file_open(const char *fname, const char *modestr) {
-  return (VALUE) truffle_invoke(rb_cFile, "open", rb_str_new_cstr(fname), rb_str_new_cstr(modestr));
+  return (VALUE) polyglot_invoke(rb_cFile, "open", rb_str_new_cstr(fname), rb_str_new_cstr(modestr));
 }
 
 VALUE rb_file_open_str(VALUE fname, const char *modestr) {
-  return (VALUE) truffle_invoke(rb_cFile, "open", fname, rb_str_new_cstr(modestr));
+  return (VALUE) polyglot_invoke(rb_cFile, "open", fname, rb_str_new_cstr(modestr));
 }
 
 VALUE rb_get_path(VALUE object) {
-  return (VALUE) truffle_invoke(rb_cFile, "path", object);
+  return (VALUE) polyglot_invoke(rb_cFile, "path", object);
 }
 
 int rb_tr_readable(int mode) {
@@ -2842,8 +2842,8 @@ MUST_INLINE
 int rb_io_extract_encoding_option(VALUE opt, rb_encoding **enc_p, rb_encoding **enc2_p, int *fmode_p) {
   // TODO (pitr-ch 12-Jun-2017): review, just approximate implementation
   VALUE encoding = rb_cEncoding;
-  VALUE external_encoding = truffle_invoke(encoding, "default_external");
-  VALUE internal_encoding = truffle_invoke(encoding, "default_internal");
+  VALUE external_encoding = polyglot_invoke(encoding, "default_external");
+  VALUE internal_encoding = polyglot_invoke(encoding, "default_internal");
   if (!NIL_P(external_encoding)) {
     *enc_p = rb_tr_handle_for_managed_leaking(rb_to_encoding(external_encoding));
   }
@@ -2856,22 +2856,22 @@ int rb_io_extract_encoding_option(VALUE opt, rb_encoding **enc_p, rb_encoding **
 // Structs
 
 VALUE rb_struct_aref(VALUE s, VALUE idx) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_struct_aref", s, idx);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_struct_aref", s, idx);
 }
 
 VALUE rb_struct_aset(VALUE s, VALUE idx, VALUE val) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_struct_aset", s, idx, val);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_struct_aset", s, idx, val);
 }
 
 VALUE rb_struct_define(const char *name, ...) {
-  VALUE *rb_name = name == NULL ? truffle_invoke(RUBY_CEXT, "Qnil") : rb_str_new_cstr(name);
+  VALUE *rb_name = name == NULL ? polyglot_invoke(RUBY_CEXT, "Qnil") : rb_str_new_cstr(name);
   VALUE *ary = rb_ary_new();
   int i = 0;
   char *arg = NULL;
   while ((arg = (char *)polyglot_get_arg(i + 1)) != NULL) {
     rb_ary_store(ary, i++, rb_str_new_cstr(arg));
   }
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_struct_define_no_splat", rb_name, ary);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_struct_define_no_splat", rb_name, ary);
 }
 
 VALUE rb_struct_new(VALUE klass, ...) {
@@ -2883,7 +2883,7 @@ VALUE rb_struct_new(VALUE klass, ...) {
     VALUE arg = polyglot_get_arg(i + 1);
     rb_ary_store(ary, i++, arg);
   }
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_struct_new_no_splat", klass, ary);
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_struct_new_no_splat", klass, ary);
 }
 
 VALUE rb_struct_getmember(VALUE obj, ID id) {
@@ -2911,11 +2911,11 @@ static void *to_free_function(RUBY_DATA_FUNC dfree) {
 }
 
 struct RData *RDATA(VALUE value) {
-  return (struct RData *)truffle_invoke(RUBY_CEXT, "RDATA", value);
+  return (struct RData *)polyglot_invoke(RUBY_CEXT, "RDATA", value);
 }
 
 VALUE rb_data_object_wrap(VALUE klass, void *datap, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_data_object_wrap", klass, datap, dmark, to_free_function(dfree));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_data_object_wrap", klass, datap, dmark, to_free_function(dfree));
 }
 
 VALUE rb_data_object_zalloc(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
@@ -2927,7 +2927,7 @@ VALUE rb_data_object_zalloc(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY
 // Typed data
 
 VALUE rb_data_typed_object_wrap(VALUE ruby_class, void *data, const rb_data_type_t *data_type) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_data_typed_object_wrap", ruby_class, data, data_type, to_free_function(data_type->function.dfree));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_data_typed_object_wrap", ruby_class, data, data_type, to_free_function(data_type->function.dfree));
 }
 
 VALUE rb_data_typed_object_zalloc(VALUE ruby_class, size_t size, const rb_data_type_t *data_type) {
@@ -2953,26 +2953,26 @@ void *rb_check_typeddata(VALUE value, const rb_data_type_t *data_type) {
 VALUE rb_tr_ruby_verbose_ptr;
 
 VALUE *rb_ruby_verbose_ptr(void) {
-  rb_tr_ruby_verbose_ptr = truffle_invoke(RUBY_CEXT, "rb_ruby_verbose_ptr");
+  rb_tr_ruby_verbose_ptr = polyglot_invoke(RUBY_CEXT, "rb_ruby_verbose_ptr");
   return &rb_tr_ruby_verbose_ptr;
 }
 
 VALUE rb_tr_ruby_debug_ptr;
 
 VALUE *rb_ruby_debug_ptr(void) {
-  rb_tr_ruby_debug_ptr = truffle_invoke(RUBY_CEXT, "rb_ruby_debug_ptr");
+  rb_tr_ruby_debug_ptr = polyglot_invoke(RUBY_CEXT, "rb_ruby_debug_ptr");
   return &rb_tr_ruby_debug_ptr;
 }
 
 // Non-standard
 
 void rb_tr_error(const char *message) {
-  truffle_invoke(RUBY_CEXT, "rb_tr_error", rb_str_new_cstr(message));
+  polyglot_invoke(RUBY_CEXT, "rb_tr_error", rb_str_new_cstr(message));
   abort();
 }
 
 void rb_tr_log_warning(const char *message) {
-  truffle_invoke(RUBY_CEXT, "rb_tr_log_warning", rb_str_new_cstr(message));
+  polyglot_invoke(RUBY_CEXT, "rb_tr_log_warning", rb_str_new_cstr(message));
 }
 
 long rb_tr_obj_id(VALUE object) {
@@ -2980,11 +2980,11 @@ long rb_tr_obj_id(VALUE object) {
 }
 
 VALUE rb_java_class_of(VALUE obj) {
-  return truffle_invoke(RUBY_CEXT, "rb_java_class_of", obj);
+  return polyglot_invoke(RUBY_CEXT, "rb_java_class_of", obj);
 }
 
 VALUE rb_java_to_string(VALUE obj) {
-  return truffle_invoke(RUBY_CEXT, "rb_java_to_string", obj);
+  return polyglot_invoke(RUBY_CEXT, "rb_java_to_string", obj);
 }
 
 void *rb_tr_handle_for_managed(VALUE managed) {
