@@ -62,8 +62,6 @@ void *truffle_assign_managed(void *dst, void *managed);
 void *truffle_address_to_function(void *address);
 
 // Invoke:
-char truffle_invoke_c(void *object, const char *name, ...);   // deprecated, use polyglot_as_i8(polyglot_invoke(...))
-float truffle_invoke_f(void *object, const char *name, ...);  // deprecated, use polyglot_as_float(polyglot_invoke(...))
 double truffle_invoke_d(void *object, const char *name, ...); // deprecated, use polyglot_as_double(polyglot_invoke(...))
 bool truffle_invoke_b(void *object, const char *name, ...);   // deprecated, use polyglot_as_boolean(polyglot_invoke(...))
 
