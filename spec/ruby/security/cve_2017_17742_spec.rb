@@ -6,7 +6,7 @@ require "net/http"
 
 describe "WEBrick" do
 
-  describe "resists CVE-2018-8778" do
+  describe "resists CVE-2017-17742" do
 
     it "for a response splitting headers" do
       config = WEBrick::Config::HTTP

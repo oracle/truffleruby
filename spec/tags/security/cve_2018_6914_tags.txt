@@ -1,5 +1,0 @@
-fails:CVE-2018-6914 is resisted by Tempfile.open by deleting separators
-fails:CVE-2018-6914 is resisted by Tempfile.new by deleting separators
-fails:CVE-2018-6914 is resisted by Tempfile.create by deleting separators
-fails:CVE-2018-6914 is resisted by Dir.mktmpdir by deleting separators
-fails:CVE-2018-6914 is resisted by Dir.mktmpdir with an array by deleting separators
