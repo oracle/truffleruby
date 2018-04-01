@@ -43,7 +43,7 @@ git commit -am 'Restore MRI modifications'
 * Update `doc/legal/legal.md`
 * Search for other instances of the old version number (there are a
   couple in tests). The version numbers may use `.` or `_` depending
-  on context, and may be escapped as regular expressions so when
+  on context, and may be escaped as regular expressions so when
   searching it is best to use a regexp like `a\\*[._]b\\*[._]c` to try
   and find as many cases as possible.
 * The version numbers of commands like `gem` may also have changed, so

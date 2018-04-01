@@ -1,5 +1,9 @@
 # 0.34, May 2018
 
+New features:
+
+* The Ruby version has been updated to version 2.3.7.
+
 Changes:
 
 * C++ libraries like `libc++` are now not needed if you don't run C++
