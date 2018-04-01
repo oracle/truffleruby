@@ -567,7 +567,10 @@ class StringIO
   end
 
   alias_method :readpartial, :sysread
-  alias_method :read_nonblock, :sysread
+  
+  def read_nonblock(length, buffer='', **options)
+    sysread(length, buffer)
+  end
 
   def tell
     @__data__.pos
