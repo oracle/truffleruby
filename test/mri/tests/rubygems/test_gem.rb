@@ -6,14 +6,11 @@ require 'rubygems/installer'
 require 'pathname'
 require 'tmpdir'
 
-# Truffle: commented as we don't want to leak $SAFE=1 and it seems $SAFE is per-file in MRI.
-# Also, in MRI $SAFE is back to 0 when executing test_* methods so this seems to have no effect on them.
-
-# # TODO: push this up to test_case.rb once battle tested
-# $SAFE=1
-# $LOAD_PATH.map! do |path|
-#   path.dup.untaint
-# end
+# TODO: push this up to test_case.rb once battle tested
+$SAFE=1
+$LOAD_PATH.map! do |path|
+  path.dup.untaint
+end
 
 class TestGem < Gem::TestCase
 
