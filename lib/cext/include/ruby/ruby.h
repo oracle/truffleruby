@@ -1758,7 +1758,7 @@ NORETURN(void rb_throw_obj(VALUE,VALUE));
 
 VALUE rb_require(const char*);
 
-#include <truffle/constants.h>
+#include <truffleruby/constants.h>
 
 VALUE rb_class_of(VALUE object);
 
@@ -1947,7 +1947,7 @@ void ruby_sig_finalize(void);
 
 RUBY_SYMBOL_EXPORT_END
 
-#include <truffle/ruby.h>
+#include <truffleruby/truffleruby.h>
 
 #if defined(__cplusplus)
 #if 0
