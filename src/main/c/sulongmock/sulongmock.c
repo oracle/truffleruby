@@ -74,11 +74,6 @@ double truffle_invoke_d(void *object, const char *name, ...) {
   return 0.0;
 }
 
-bool truffle_invoke_b(void *object, const char *name, ...) {
-  rb_tr_mock();
-  return false;
-}
-
 void *polyglot_import(const char *name) {
   rb_tr_mock();
   return 0;

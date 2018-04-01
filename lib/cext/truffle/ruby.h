@@ -69,13 +69,13 @@ rb_exc_raise(rb_exc_new_str(EXCEPTION, (VALUE) polyglot_invoke(RUBY_CEXT, "rb_sp
 // Utilities
 
 #define rb_warn(FORMAT, ...) do { \
-if (truffle_invoke_b(RUBY_CEXT, "warn?")) { \
+if (polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "warn?"))) { \
   polyglot_invoke(rb_mKernel, "warn", (VALUE) polyglot_invoke(rb_mKernel, "sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)); \
 } \
 } while (0);
 
 #define rb_warning(FORMAT, ...) do { \
-if (truffle_invoke_b(RUBY_CEXT, "warning?")) { \
+if (polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "warning?"))) { \
   polyglot_invoke(rb_mKernel, "warn", (VALUE) polyglot_invoke(rb_mKernel, "sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)); \
 } \
 } while (0);
@@ -142,11 +142,11 @@ MUST_INLINE int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *excl
   if (rb_obj_is_kind_of(range, rb_cRange)) {
     *begp = (VALUE) polyglot_invoke(range, "begin");
     *endp = (VALUE) polyglot_invoke(range, "end");
-    *exclp = (int) truffle_invoke_b(range, "exclude_end?");
+    *exclp = (int) polyglot_as_boolean(polyglot_invoke(range, "exclude_end?"));
   }
   else {
-    if (!truffle_invoke_b(range, "respond_to?", rb_intern("begin"))) return Qfalse_int_const;
-    if (!truffle_invoke_b(range, "respond_to?", rb_intern("end"))) return Qfalse_int_const;
+    if (!polyglot_as_boolean(polyglot_invoke(range, "respond_to?", rb_intern("begin")))) return Qfalse_int_const;
+    if (!polyglot_as_boolean(polyglot_invoke(range, "respond_to?", rb_intern("end")))) return Qfalse_int_const;
 
     *begp = polyglot_invoke(range, "begin");
     *endp = polyglot_invoke(range, "end");
@@ -250,7 +250,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
   bool erased_kwargs = false;
   bool found_kwargs = false;
 
-  if (rest && kwargs && !truffle_invoke_b(RUBY_CEXT, "test_kwargs", argv[argc - 1], Qfalse)) {
+  if (rest && kwargs && !polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "test_kwargs", argv[argc - 1], Qfalse))) {
     kwargs = false;
     erased_kwargs = true;
   }
