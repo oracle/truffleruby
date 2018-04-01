@@ -10,8 +10,6 @@
 package org.truffleruby.tck;
 
 import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.vm.PolyglotEngine;
-import com.oracle.truffle.tck.TruffleTCK;
 import org.truffleruby.RubyLanguage;
 import org.junit.Test;
 import org.truffleruby.launcher.options.OptionsCatalog;
@@ -25,7 +23,8 @@ import java.util.concurrent.Executors;
 
 import static org.junit.Assert.assertNotNull;
 
-public class RubyTckTest extends TruffleTCK {
+@SuppressWarnings("deprecation")
+public class RubyTckTest extends com.oracle.truffle.tck.TruffleTCK {
 
     private static Source getSource(String path) {
         InputStream stream = ClassLoader.getSystemResourceAsStream(path);
@@ -37,30 +36,30 @@ public class RubyTckTest extends TruffleTCK {
         }
     }
 
-    private static PolyglotEngine engine;
+    private static com.oracle.truffle.api.vm.PolyglotEngine engine;
 
     @Test
     public void checkVM() {
-        PolyglotEngine engine = PolyglotEngine.newBuilder().build();
+        com.oracle.truffle.api.vm.PolyglotEngine engine = com.oracle.truffle.api.vm.PolyglotEngine.newBuilder().build();
         assertNotNull(engine.getLanguages().get(mimeType()));
     }
 
     @Override
-    protected synchronized PolyglotEngine prepareVM() throws Exception {
+    protected synchronized com.oracle.truffle.api.vm.PolyglotEngine prepareVM() throws Exception {
         if (engine == null) {
-            engine = spawnNewEngine(PolyglotEngine.newBuilder());
+            engine = spawnNewEngine(com.oracle.truffle.api.vm.PolyglotEngine.newBuilder());
         }
         return engine;
     }
 
     @Override
-    protected PolyglotEngine prepareVM(PolyglotEngine.Builder preparedBuilder) throws Exception {
+    protected com.oracle.truffle.api.vm.PolyglotEngine prepareVM(com.oracle.truffle.api.vm.PolyglotEngine.Builder preparedBuilder) throws Exception {
         // Create a new VM, on its own thread
         return spawnNewEngine(preparedBuilder.executor(Executors.newSingleThreadExecutor()));
     }
 
-    private PolyglotEngine spawnNewEngine(PolyglotEngine.Builder preparedBuilder) {
-        final PolyglotEngine engine = setupConfig(preparedBuilder).build();
+    private com.oracle.truffle.api.vm.PolyglotEngine spawnNewEngine(com.oracle.truffle.api.vm.PolyglotEngine.Builder preparedBuilder) {
+        final com.oracle.truffle.api.vm.PolyglotEngine engine = setupConfig(preparedBuilder).build();
         engine.eval(getSource("src/test/ruby/tck.rb"));
         return engine;
     }
@@ -292,7 +291,7 @@ public class RubyTckTest extends TruffleTCK {
         // Skipped as it fails with "No current engine found."
     }
 
-    private static PolyglotEngine.Builder setupConfig(PolyglotEngine.Builder builder) {
+    private static com.oracle.truffle.api.vm.PolyglotEngine.Builder setupConfig(com.oracle.truffle.api.vm.PolyglotEngine.Builder builder) {
         final String cwd = System.getProperty("user.dir");
 
         return builder

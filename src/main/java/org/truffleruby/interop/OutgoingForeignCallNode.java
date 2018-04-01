@@ -11,7 +11,6 @@ package org.truffleruby.interop;
 
 import java.util.Arrays;
 
-import com.oracle.truffle.api.interop.java.JavaInterop;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Log;
@@ -425,8 +424,8 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
             final TruffleObject b = (TruffleObject) args[0];
 
-            if (JavaInterop.isJavaObject(a) && JavaInterop.isJavaObject(b)) {
-                return JavaInterop.asJavaObject(a) == JavaInterop.asJavaObject(b);
+            if (getContext().getEnv().isHostObject(a) && getContext().getEnv().isHostObject(b)) {
+                return getContext().getEnv().asHostObject(a) == getContext().getEnv().asHostObject(b);
             } else {
                 return a == b;
             }

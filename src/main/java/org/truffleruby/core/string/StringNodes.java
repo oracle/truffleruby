@@ -159,8 +159,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.interop.java.JavaInterop;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
@@ -4557,19 +4555,19 @@ public abstract class StringNodes {
     public static abstract class StringToNullTerminatedByteArrayNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        protected TruffleObject stringToNullTerminatedByteArray(DynamicObject string,
+        protected Object stringToNullTerminatedByteArray(DynamicObject string,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
             // NOTE: we always need one copy here, as native code could modify the passed byte[]
             final byte[] bytes = bytesNode.execute(rope(string));
             final byte[] bytesWithNull = new byte[bytes.length + 1];
             System.arraycopy(bytes, 0, bytesWithNull, 0, bytes.length);
 
-            return JavaInterop.asTruffleObject(bytesWithNull);
+            return getContext().getEnv().asGuestValue(bytesWithNull);
         }
 
         @Specialization(guards = "isNil(string)")
-        protected TruffleObject emptyString(DynamicObject string) {
-            return JavaInterop.asTruffleObject(null);
+        protected Object emptyString(DynamicObject string) {
+            return getContext().getEnv().asGuestValue(null);
         }
 
     }

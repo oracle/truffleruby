@@ -9,8 +9,6 @@
  */
 package org.truffleruby;
 
-import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.interop.java.JavaInterop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
@@ -51,11 +49,9 @@ public abstract class RubyTest {
     }
 
     protected void testInContext(Runnable test) {
-        final TruffleObject testTruffleObject = JavaInterop.asTruffleFunction(Runnable.class, test);
-
         try (Context context = setupContext(Context.newBuilder()).build()) {
             context.eval(org.graalvm.polyglot.Source.create(RubyLauncher.LANGUAGE_ID, "-> test { test.call }"))
-                    .execute(testTruffleObject);
+                    .execute(test);
         }
     }
 

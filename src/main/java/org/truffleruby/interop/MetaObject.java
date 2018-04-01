@@ -9,15 +9,18 @@
  */
 package org.truffleruby.interop;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.interop.ForeignAccess;
 import com.oracle.truffle.api.interop.KeyInfo;
 import com.oracle.truffle.api.interop.MessageResolution;
 import com.oracle.truffle.api.interop.Resolve;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
-import com.oracle.truffle.api.interop.java.JavaInterop;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 
 @MessageResolution(receiverType = MetaObject.class)
 public final class MetaObject implements TruffleObject {
@@ -66,8 +69,20 @@ public final class MetaObject implements TruffleObject {
 
     @Resolve(message = "KEYS")
     abstract static class KeysNode extends Node {
-        TruffleObject access(MetaObject obj) {
-            return JavaInterop.asTruffleObject(KEYS);
+
+        @CompilationFinal private RubyContext context;
+
+        Object access(MetaObject obj) {
+            return getContext().getEnv().asGuestValue(KEYS);
+        }
+
+        private RubyContext getContext() {
+            if (context == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                context = RubyLanguage.getCurrentContext();
+            }
+
+            return context;
         }
     }
 
