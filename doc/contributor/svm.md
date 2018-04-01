@@ -1,7 +1,8 @@
 # Using TruffleRuby with the SVM
 
-The Substrate Virtual Machine, or SVM, is a closed- and whole-world analysis
-ahead-of-time compiler for Java, and an implementation of parts of a JVM.
+The Substrate Virtual Machine, or SubstrateVM, is a closed- and whole-world
+analysis ahead-of-time compiler for Java, and an implementation of parts of a
+JVM.
 
 We use the SVM to ahead-of-time compile TruffleRuby and the Graal dynamic
 compiler to a single, statically-linked native binary executable, that has no
@@ -23,7 +24,9 @@ More information can be found in Kevin's
 [blog post](http://nirvdrum.com/2017/02/15/truffleruby-on-the-substrate-vm.html).
 
 The TruffleRuby that is distributed in the [GraalVM](../user/using-graalvm.md)
-by default uses a version compiled using SVM.
+by default uses a version compiled using SVM - this is since version 0.33 of
+GraalVM and was changed to prioritise fast start-up and warm-up time for shorter
+running commands and benchmarks.
 
 ```bash
 $ cd graalvm

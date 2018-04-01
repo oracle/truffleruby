@@ -17,7 +17,8 @@ information.
 By default, GraalVM runs TruffleRuby in the native configuration, which is best
 for short-running processes, but it can also run it on top of the JVM which is
 best for getting the highest peak performance and for Java interopability. Use
-`--jvm` to use the JVM configuration.
+`--jvm` to use the JVM configuration. See the [readme](../../README.md) for
+more information on different configurations.
 
 You can also use GraalVM to run a different version of TruffleRuby than the one
 it packages, but this not advised for end-users.

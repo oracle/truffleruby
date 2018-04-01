@@ -45,11 +45,11 @@ When distributed as part of GraalVM, TruffleRuby by default runs in the *native*
 configuration. In this configuration, TruffleRuby is ahead-of-time compiled to a
 standalone native executable. This means that you don't need a JVM installed on
 your system to use it. The advantage of the native configuration is that it
-starts about as fast as MRI, it may use less memory, and it becomes fast in less
-time. The disadvantage of the native configuration is that you can't use Java
-tools like VisualVM, you can't use Java interopability, and *peak performance
-may be lower than on the JVM*. The native configuration is used by default, but
-you can also request it using `--native`.
+[starts about as fast as MRI](doc/contributor/svm.md), it may use less memory,
+and it becomes fast in less time. The disadvantage of the native configuration
+is that you can't use Java tools like VisualVM, you can't use Java
+interopability, and *peak performance may be lower than on the JVM*. The native
+configuration is used by default, but you can also request it using `--native`.
 
 TruffleRuby can also be used in the *JVM* configuration, where it runs as a
 normal Java application on the JVM, as any other Java application would. The
@@ -91,10 +91,15 @@ set up a [UTF-8 locale](doc/user/utf8-locale.md).
 ## Current Status
 
 TruffleRuby is progressing fast but is currently probably not ready for you to
-try running your full Ruby application on.
+try running your full Ruby application on. However it is ready for
+experimentation and curious end-users to try on their gems and smaller
+applications.
 
-TruffleRuby is ready for experimentation and curious end-users to try on their
-gems and smaller applications.
+TruffleRuby runs Rails, and passes the majority of the Rails test suite. But it
+is missing support for Nokogiri and ActiveRecord database drivers which makes it
+not practical to run real Rails applications at the moment.
+
+You will find that many C extensions will not work without modification.
 
 ## Contact
 
