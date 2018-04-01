@@ -69,16 +69,6 @@ void *truffle_address_to_function(void *address) {
   return 0;
 }
 
-char truffle_invoke_c(void *object, const char *name, ...) {
-  rb_tr_mock();
-  return '0';
-}
-
-float truffle_invoke_f(void *object, const char *name, ...) {
-  rb_tr_mock();
-  return 0.0;
-}
-
 double truffle_invoke_d(void *object, const char *name, ...) {
   rb_tr_mock();
   return 0.0;
