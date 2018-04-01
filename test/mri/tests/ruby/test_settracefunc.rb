@@ -639,16 +639,19 @@ class TestSetTraceFunc < Test::Unit::TestCase
 
   def test_tracepoint_enable
     ary = []
+    args = nil
     trace = TracePoint.new(:call){|tp|
       next if !target_thread?
       ary << tp.method_id
     }
     foo
-    trace.enable{
+    trace.enable{|*a|
+      args = a
       foo
     }
     foo
     assert_equal([:foo], ary)
+    assert_equal([], args)
 
     trace = TracePoint.new{}
     begin
@@ -663,17 +666,20 @@ class TestSetTraceFunc < Test::Unit::TestCase
 
   def test_tracepoint_disable
     ary = []
+    args = nil
     trace = TracePoint.trace(:call){|tp|
       next if !target_thread?
       ary << tp.method_id
     }
     foo
-    trace.disable{
+    trace.disable{|*a|
+      args = a
       foo
     }
     foo
     trace.disable
     assert_equal([:foo, :foo], ary)
+    assert_equal([], args)
 
     trace = TracePoint.new{}
     trace.enable{
@@ -1633,5 +1639,26 @@ class TestSetTraceFunc < Test::Unit::TestCase
                   [:return, :f_break_in_rescue, :f_break_in_rescue_return_value]],
                  tp_return_value(:f_break_in_rescue),
                  '[Bug #13369]'
+  end
+
+  def test_trace_point_raising_exception_in_bmethod_call
+    bug13705 = '[ruby-dev:50162]'
+    assert_normal_exit %q{
+      define_method(:m) {}
+
+      tp = TracePoint.new(:call) do
+        raise ''
+      end
+
+      tap do
+        tap do
+          begin
+            tp.enable
+            m
+          rescue
+          end
+        end
+      end
+    }, bug13705
   end
 end

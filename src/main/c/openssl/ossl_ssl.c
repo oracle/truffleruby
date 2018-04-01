@@ -159,7 +159,7 @@ ossl_sslctx_s_alloc(VALUE klass)
     }
     SSL_CTX_set_mode(ctx, mode);
     RTYPEDDATA_DATA(obj) = ctx;
-    SSL_CTX_set_ex_data(ctx, ossl_ssl_ex_ptr_idx, (void*)rb_tr_handle_for_managed_leaking(obj));
+    SSL_CTX_set_ex_data(ctx, ossl_ssl_ex_ptr_idx, (void*)obj);
 
     return obj;
 }
@@ -426,6 +426,13 @@ ossl_sslctx_session_remove_cb(SSL_CTX *ctx, SSL_SESSION *sess)
     VALUE ary, sslctx_obj, sess_obj;
     void *ptr;
     int state = 0;
+
+    /*
+     * This callback is also called for all sessions in the internal store
+     * when SSL_CTX_free() is called.
+     */
+    if (rb_during_gc())
+	return;
 
     OSSL_Debug("SSL SESSION remove callback entered");
 
@@ -1218,9 +1225,9 @@ ossl_ssl_setup(VALUE self)
         rb_io_check_readable(fptr);
         rb_io_check_writable(fptr);
         SSL_set_fd(ssl, TO_SOCKET(FPTR_TO_FD(fptr)));
-	SSL_set_ex_data(ssl, ossl_ssl_ex_ptr_idx, (void*)rb_tr_handle_for_managed_leaking(self));
+	SSL_set_ex_data(ssl, ossl_ssl_ex_ptr_idx, (void*)self);
 	cb = ossl_sslctx_get_verify_cb(v_ctx);
-	SSL_set_ex_data(ssl, ossl_ssl_ex_vcb_idx, (void*)rb_tr_handle_for_managed_leaking(cb));
+	SSL_set_ex_data(ssl, ossl_ssl_ex_vcb_idx, (void*)cb);
 	SSL_set_info_callback(ssl, ssl_info_cb);
     }
 
@@ -1427,21 +1434,25 @@ ossl_ssl_read_internal(int argc, VALUE *argv, VALUE self, int nonblock)
     }
 
     ilen = NUM2INT(len);
-    if(NIL_P(str)) str = rb_str_new(0, ilen);
-    else{
-        StringValue(str);
-        rb_str_modify(str);
-        rb_str_resize(str, ilen);
+    if (NIL_P(str))
+	str = rb_str_new(0, ilen);
+    else {
+	StringValue(str);
+	if (RSTRING_LEN(str) >= ilen)
+	    rb_str_modify(str);
+	else
+	    rb_str_modify_expand(str, ilen - RSTRING_LEN(str));
     }
-    if(ilen == 0) return str;
+    OBJ_TAINT(str);
+    rb_str_set_len(str, 0);
+    if (ilen == 0)
+	return str;
 
     GetSSL(self, ssl);
     GetOpenFile(ossl_ssl_get_io(self), fptr);
     if (ssl) {
-	if(!nonblock && SSL_pending(ssl) <= 0)
-	    rb_thread_wait_fd(FPTR_TO_FD(fptr));
 	for (;;){
-	    nread = SSL_read(ssl, RSTRING_PTR(str), RSTRING_LENINT(str));
+	    nread = SSL_read(ssl, RSTRING_PTR(str), ilen);
 	    switch(ssl_get_error(ssl, nread)){
 	    case SSL_ERROR_NONE:
 		goto end;
@@ -1481,8 +1492,6 @@ ossl_ssl_read_internal(int argc, VALUE *argv, VALUE self, int nonblock)
 
   end:
     rb_str_set_len(str, nread);
-    OBJ_TAINT(str);
-
     return str;
 }
 
