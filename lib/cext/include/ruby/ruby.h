@@ -22,8 +22,8 @@ extern "C" {
 #endif
 
 #include "ruby/config.h"
-#include <truffle.h>
-#include <polyglot.h>
+#include <sulong/truffle.h>
+#include <sulong/polyglot.h>
 #include <ctype.h> // isdigit
 
 // Support
