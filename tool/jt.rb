@@ -743,38 +743,38 @@ module Commands
       open_prs = prs_data.map { |prd| Integer(prd.fetch('number')) }
       puts "Open PRs: #{open_prs}"
 
-      sh 'git', 'fetch', bb, '--prune' # ensure we have locally only existing remote branches
+      sh 'git', 'fetch', Remotes.bitbucket, '--prune' # ensure we have locally only existing remote branches
       branches, _        = sh 'git', 'branch', '--remote', '--list', capture: true
       branches_to_delete = branches.
-          scan(/^ *#{bb}\/(github\/pr\/(\d+))$/).
+          scan(/^ *#{Remotes.bitbucket}\/(github\/pr\/(\d+))$/).
           reject { |_, number| open_prs.include? Integer(number) }
 
-      puts "Deleting #{branches_to_delete.size} remote branches on #{bb}:"
+      puts "Deleting #{branches_to_delete.size} remote branches on #{Remotes.bitbucket}:"
       puts branches_to_delete.map(&:last).map(&:to_i).to_s
       return if dry_run
 
       branches_to_delete.each do |remote_branch, _|
-        sh 'git', 'push', '--no-verify', bb, ":#{remote_branch}"
+        sh 'git', 'push', '--no-verify', Remotes.bitbucket, ":#{remote_branch}"
       end
 
       # update remote branches
-      sh 'git', 'fetch', bb, '--prune'
+      sh 'git', 'fetch', Remotes.bitbucket, '--prune'
     end
 
     def pr_push(*args)
       # Fetch PRs on GitHub
-      fetch     = "+refs/pull/*/head:refs/remotes/#{upstream}/pr/*"
-      out, _err = sh 'git', 'config', '--get-all', "remote.#{upstream}.fetch", capture: true
-      sh 'git', 'config', '--add', "remote.#{upstream}.fetch", fetch unless out.include? fetch
-      sh 'git', 'fetch', upstream
+      fetch     = "+refs/pull/*/head:refs/remotes/#{Remotes.github}/pr/*"
+      out, _err = sh 'git', 'config', '--get-all', "remote.#{Remotes.github}.fetch", capture: true
+      sh 'git', 'config', '--add', "remote.#{Remotes.github}.fetch", fetch unless out.include? fetch
+      sh 'git', 'fetch', Remotes.github
 
       pr_number = args.first
       if pr_number
-        github_pr_branch = "#{upstream}/pr/#{pr_number}"
+        github_pr_branch = "#{Remotes.github}/pr/#{pr_number}"
       else
         github_pr_branch = begin
           out, _err = sh 'git', 'branch', '-r', '--contains', 'HEAD', capture: true
-          candidate = out.lines.find { |l| l.strip.start_with? "#{upstream}/pr/" }
+          candidate = out.lines.find { |l| l.strip.start_with? "#{Remotes.github}/pr/" }
           candidate && candidate.strip.chomp
         end
 
@@ -792,28 +792,38 @@ module Commands
         "github/pr/#{pr_number}"
       end
 
-      sh 'git', 'push', '--force', '--no-verify', bb, "#{github_pr_branch}:refs/heads/#{target_branch}"
+      sh 'git', 'push', '--force', '--no-verify', Remotes.bitbucket, "#{github_pr_branch}:refs/heads/#{target_branch}"
     end
 
     def pr_update_master(skip_upstream_fetch: false)
-      sh 'git', 'fetch', upstream unless skip_upstream_fetch
-      sh 'git', 'push', '--no-verify', bb, "#{upstream}/master:master"
+      sh 'git', 'fetch', Remotes.github unless skip_upstream_fetch
+      sh 'git', 'push', '--no-verify', Remotes.bitbucket, "#{Remotes.github}/master:master"
+    end
+  end
+
+  module Remotes
+    include ShellUtils
+    extend self
+
+    def bitbucket(dir = TRUFFLERUBY_DIR)
+      candidate = remote_urls(dir).find { |r, u| u.include? 'ol-bitbucket' }
+      candidate.first if candidate
     end
 
-    def bb
-      remote_urls.find { |r, u| u.include? 'ol-bitbucket' }.first
+    def github(dir = TRUFFLERUBY_DIR)
+      candidate = remote_urls(dir).find { |r, u| u.include? 'github.com' }
+      candidate.first if candidate
     end
 
-    def upstream
-      remote_urls.find { |r, u| u.include? 'oracle/truffleruby' }.first
-    end
-
-    def remote_urls
-      @remote_urls ||= begin
-        out, _err = sh 'git', 'remote', capture: true
-        out.split.map do |remote|
-          url, _err = sh 'git', 'config', '--get', "remote.#{remote}.url", capture: true
-          [remote, url.chomp]
+    def remote_urls(dir = TRUFFLERUBY_DIR)
+      @remote_urls ||= Hash.new
+      @remote_urls[dir] ||= begin
+        chdir dir do
+          out, _err = raw_sh 'git', 'remote', capture: true
+          out.split.map do |remote|
+            url, _err = raw_sh 'git', 'config', '--get', "remote.#{remote}.url", capture: true
+            [remote, url.chomp]
+          end
         end
       end
     end
