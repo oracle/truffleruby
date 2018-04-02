@@ -51,7 +51,10 @@ PREFIX=$(cd "$PREFIX" && pwd -P)
 mkdir -p "$PREFIX/build"
 cd "$PREFIX/build"
 
+build_native_opts=()
+
 if [ -n "$TAG" ]; then
+  build_native_opts+=("--no-sforceimports")
   git clone --depth 1 --branch $TAG "$(mx urlrewrite https://github.com/oracle/truffleruby.git)"
   git clone --depth 1 --branch $TAG "$(mx urlrewrite https://github.com/graalvm/sulong.git)"
   git clone --depth 1 --branch $TAG "$(mx urlrewrite https://github.com/oracle/graal.git)"
@@ -78,7 +81,7 @@ build_home=$(pwd -P)
 mx sversions
 
 # Build the image
-tool/jt.rb build native --no-jvmci --no-sforceimports \
+tool/jt.rb build native --no-jvmci "${build_native_opts[@]}" \
   -Dtruffleruby.native.resilient_gem_home=true
 
 # Copy TruffleRuby tar distribution
