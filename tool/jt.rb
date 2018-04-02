@@ -404,8 +404,9 @@ module Commands
           parser                                     build the parser
           options                                    build the options
           cexts                                      build only the C extensions (part of "jt build")
-          native [--no-sulong] [--no-jvmci] [--no-sforceimports] [extra mx image options]
-                                                     build a native image of TruffleRuby (--no-jvmci to use the system Java)
+          native [--no-sulong] [--no-jvmci] [--no-sforceimports] [--tools] [extra mx image options]
+                                                     build a native image of TruffleRuby (--no-jvmci to use the system Java) 
+                                                     (--tools to include chromeinspector and profiler)
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt clean                                       clean
       jt env                                         prints the current environment
@@ -1784,6 +1785,7 @@ module Commands
     sulong = !options.delete("--no-sulong")
     jvmci = !options.delete("--no-jvmci")
     sforceimports = !options.delete("--no-sforceimports")
+    tools = options.delete("--tools")
 
     build_truffleruby(sforceimports: sforceimports)
 
@@ -1795,12 +1797,18 @@ module Commands
       File.write('mx.substratevm/env', "JAVA_HOME=#{java_home}\n") if jvmci
 
       mx 'build'
-      mx 'fetch-languages', '--Language:llvm', '--Language:ruby'
+      mx 'fetch-languages',
+         '--Language:llvm', '--Language:ruby',
+         '--Tool:chromeinspector', '--Tool:profiler'
 
       languages = %w[--Language:ruby]
+
       if sulong
         languages.unshift '--Language:llvm'
         options.unshift '-Dtruffleruby.native.libsulong_dir=lib/cext/sulong-libs'
+      end
+      if tools
+        languages.push '--Tool:chromeinspector', '--Tool:profiler'
       end
 
       env = jvmci ? { "JAVA_HOME" => java_home } : {}
