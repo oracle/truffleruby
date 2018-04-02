@@ -530,11 +530,12 @@ module Commands
     mx 'sforceimports' if sforceimports
 
     env_path = "#{TRUFFLERUBY_DIR}/mx.truffleruby/env"
-    env_content = File.exist?(env_path) ? File.read(env_path) : ''
-    dynamic_import = 'DEFAULT_DYNAMIC_IMPORTS=/tools'
-    unless env_content.include? dynamic_import
-      File.write(env_path, env_content + "#{dynamic_import}\n")
-    end
+    env_lines = (File.exist?(env_path) ? File.read(env_path) : '').lines.map(&:chomp)
+    dynamic_import_line = env_lines.find { |l| l.include? 'DEFAULT_DYNAMIC_IMPORTS' } || (env_lines[env_lines.size] = 'DEFAULT_DYNAMIC_IMPORTS=')
+    dynamic_imports = dynamic_import_line.split('=', 2).last.split(',')
+    dynamic_imports.push '/tools' unless dynamic_imports.include? '/tools'
+    dynamic_import_line.replace "DEFAULT_DYNAMIC_IMPORTS=#{dynamic_imports.join ','}"
+    File.write(env_path, env_lines.join("\n"))
 
     mx 'build', '--force-javac', '--warning-as-error',
        # show more than default 100 errors not to hide actual errors under pile of missing symbols
