@@ -31,7 +31,10 @@ SDK', 'Ruby SDK', 'New local', select the `ruby` executable in the repository,
 to the repository, select any 2.0 Ruby version, 'Finish'.
 
 ## Configuring Checkstyle Plugin
-Checkstyle style checks for Java code can be imported into IntelliJ via the [CheckStyle-IDEA](https://plugins.jetbrains.com/plugin/1065-checkstyle-idea) plugin.
+
+Checkstyle style checks for Java code can be imported into IntelliJ via the
+[CheckStyle-IDEA](https://plugins.jetbrains.com/plugin/1065-checkstyle-idea)
+plugin.
 
 ### Installation
 1. Select "IntelliJ" -> "Preferences", then "Plugins".

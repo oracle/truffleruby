@@ -1,14 +1,14 @@
 # Quick Rails testing
 
-This repository contains a small Rails application for testing 
-in the `test/truffle/ecosystem/rails-app` directory. 
-The test can be executed with `jt test ecosystem rails-app` in TruffleRuby's home directory.
-When executed it prepares its environment, starts the Rails server, 
-runs a few tests against JSON API, and shut downs the rails server.
-It requires Redis as a database to be running in its default configuration on `localhost:6379`.
+This repository contains a small Rails application for testing  in the
+`test/truffle/ecosystem/rails-app` directory.  The test can be executed with `jt
+test ecosystem rails-app` in TruffleRuby's home directory. When executed it
+prepares its environment, starts the Rails server,  runs a few tests against
+JSON API, and shut downs the rails server. It requires Redis as a database to be
+running in its default configuration on `localhost:6379`.
 
-The `jt test ecosystem rails-app` should be executed in TruffleRuby's home. 
-The output will be similar to following: 
+The `jt test ecosystem rails-app` should be executed in TruffleRuby's home.  The
+output will be similar to following: 
 
 ```txt
 jt test ecosystem rails-app

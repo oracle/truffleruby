@@ -1,9 +1,9 @@
 # Distributions
 
-In general, it is preferable to [use GraalVM](using-graalvm.md)
-for running TruffleRuby. GraalVM also includes other languages like JavaScript,
-R and Python. However, GraalVM currently requires a click-through license and
-is distributed under the OTN license.
+In general, it is preferable to [use GraalVM](using-graalvm.md) for running
+TruffleRuby. GraalVM also includes other languages like JavaScript, R and
+Python. However, GraalVM currently requires a click-through license and is
+distributed under the OTN license.
 
 Distributions of TruffleRuby *for testing* are made available on the
 [Releases page](https://github.com/oracle/truffleruby/releases).
