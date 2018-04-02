@@ -10,9 +10,9 @@ To add TruffleRuby to `rbenv` a symbolic link has to be added to the `versions`
 directory of rbenv:
 
 ```bash
-ln -s path/to/graalvm/jre/languages/ruby "$RBENV_ROOT/versions/truffleruby"
-rbenv shell truffleruby
-ruby --version
+$ ln -s path/to/graalvm/jre/languages/ruby "$RBENV_ROOT/versions/truffleruby"
+$ rbenv shell truffleruby
+$ ruby --version
 ```
 
 ## chruby
@@ -21,9 +21,9 @@ To add TruffleRuby to `chruby` a symbolic link has to be added to the
 `$HOME/.rubies`  directory:
 
 ```bash
-ln -s path/to/graalvm/jre/languages/ruby "$HOME/.rubies/truffleruby"
-chruby truffleruby
-ruby --version
+$ ln -s path/to/graalvm/jre/languages/ruby "$HOME/.rubies/truffleruby"
+$ chruby truffleruby
+$ ruby --version
 ```
 
 ## RVM
@@ -31,9 +31,9 @@ ruby --version
 RVM has a command for adding a precompiled Ruby to the list of available rubies.
 
 ```bash
-rvm mount path/to/graalvm/jre/languages/ruby -n truffleruby
-rvm use ext-truffleruby
-ruby --version
+$ rvm mount path/to/graalvm/jre/languages/ruby -n truffleruby
+$ rvm use ext-truffleruby
+$ ruby --version
 ```
 
 ## macOS
@@ -54,16 +54,16 @@ variables and always use its own Gem home under `truffleruby/lib/ruby/gems`:
 
 ```bash
 # In ~/.bashrc or ~/.zshenv
-export TRUFFLERUBY_RESILIENT_GEM_HOME=true
+$ export TRUFFLERUBY_RESILIENT_GEM_HOME=true
 ```
 
 It can also be fixed just for the current terminal by clearing
 the environment with one of the following commands:
 
 ```bash
-rvm use system
-rbenv system
-chruby system
+$ rvm use system
+$ rbenv system
+$ chruby system
 # Or manually:
-unset GEM_HOME GEM_PATH GEM_ROOT
+$ unset GEM_HOME GEM_PATH GEM_ROOT
 ```

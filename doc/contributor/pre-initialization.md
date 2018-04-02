@@ -3,14 +3,16 @@
 TruffleRuby supports context pre-initialization with SubstrateVM.
 
 Context pre-initialization is enabled in Truffle by setting a Java property:
+
 ```
 -Dpolyglot.engine.PreinitializeContexts=ruby
 ```
 
 This is enabled by default in `mx.truffleruby/native-image.properties`.
 
-Context pre-initialization does the full initialization during image build time:
-it creates a RubyContext (with `createContext()`) and calls `initializeContext()`.
+Context pre-initialization does the full initialization during image build time;
+it creates a RubyContext (with `createContext()`) and calls
+`initializeContext()`.
 
 During pre-initialization at image build-time, some special considerations need
 to be taken in account. Currently, native calls (via NFI) are not supported
@@ -35,7 +37,9 @@ It is possible to run the pre-initialization process on the JVM to help
 debugging more quickly. However, this does not fully emulate a pre-initialized
 image, as for instance the same process is used for pre-initialization and
 runtime execution.
+
 Debugging on the JVM can be achieved with:
+
 ```
 bin/truffleruby -J-Dpolyglot.engine.PreinitializeContexts=ruby -J-Dtruffleruby.preinitialization.home=$PWD -Xhome=$PWD -Xlog=fine -e 'p :hi'
 ```
