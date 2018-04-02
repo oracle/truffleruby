@@ -296,7 +296,7 @@ def ruby_testdownstream_sulong(args):
     jt('test', 'bundle')
 
 def mx_post_parse_cmd_line(opts):
-    if mx.suite("tools", fatalIfMissing=False):
+    if mx.suite("tools", fatalIfMissing=False) and not _suite.isBinarySuite():
         mx.project('truffleruby-bin').buildDependencies += [
             mx.distribution('CHROMEINSPECTOR'),
             mx.distribution('TRUFFLE_PROFILER')
