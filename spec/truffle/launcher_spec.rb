@@ -19,9 +19,9 @@ describe "The launcher" do
                 rake:        /^rake, version [0-9.]+/,
                 rdoc:        /^4\.2\.1$/,
                 ri:          /^ri 4\.2\.1$/,
-                ruby:        /truffleruby .* like ruby 2\.3\.6/,
+                ruby:        /truffleruby .* like ruby 2\.3\.7/,
                 testrb:      [/^testrb: version unknown$/, true],
-                truffleruby: /truffleruby .* like ruby 2\.3\.6/ }
+                truffleruby: /truffleruby .* like ruby 2\.3\.7/ }
 
   launchers.each do |launcher, (test, skip_success)|
     extra_bin_dirs_described = RbConfig::CONFIG['extra_bindirs'].
