@@ -404,9 +404,9 @@ module Commands
           parser                                     build the parser
           options                                    build the options
           cexts                                      build only the C extensions (part of "jt build")
-          native [--no-sulong] [--no-jvmci] [--no-sforceimports] [--tools] [extra mx image options]
+          native [--no-sulong] [--no-jvmci] [--no-sforceimports] [--no-tools] [extra mx image options]
                                                      build a native image of TruffleRuby (--no-jvmci to use the system Java) 
-                                                     (--tools to include chromeinspector and profiler)
+                                                     (--no-tools to exclude chromeinspector and profiler)
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt clean                                       clean
       jt env                                         prints the current environment
@@ -1785,7 +1785,7 @@ module Commands
     sulong = !options.delete("--no-sulong")
     jvmci = !options.delete("--no-jvmci")
     sforceimports = !options.delete("--no-sforceimports")
-    tools = options.delete("--tools")
+    tools = !options.delete("--no-tools")
 
     build_truffleruby(sforceimports: sforceimports)
 
