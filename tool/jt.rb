@@ -1689,7 +1689,7 @@ module Commands
   def install(name, *options)
     case name
     when "jvmci"
-      install_jvmci *options
+      install_jvmci
     when "graal", "graal-core"
       install_graal *options
     else
