@@ -696,7 +696,7 @@ public class RubyContext {
         if (!options.HOME.isEmpty()) {
             final File home = new File(options.HOME);
             if (!isRubyHome(home)) {
-                Log.LOGGER.warning(home + " does not look like TruffleRuby's home");
+                Log.LOGGER.warning(home + " from -Xhome does not look like TruffleRuby's home");
             }
             return home.getCanonicalPath();
         }
@@ -712,9 +712,24 @@ public class RubyContext {
             return home.getCanonicalPath();
         }
 
-        StringBuilder warning = new StringBuilder("home locations tried:\n");
+        // Use the Truffle reported home
+
+        final String truffleReported = language.getTruffleLanguageHome();
+
+        if (truffleReported != null) {
+            final File home = new File(truffleReported);
+            if (!isRubyHome(home)) {
+                Log.LOGGER.warning(home + " reported by Truffle does not look like TruffleRuby's home");
+            }
+            return truffleReported;
+        }
+
+        // All the following methods to find home should go away longer term
+
+        final StringBuilder warning = new StringBuilder("home locations tried:\n");
 
         warning.append("* -Xhome was not set");
+        warning.append("* Truffle could not report a home");
         warning.append("* truffleruby.preinitialization.home system property was not set (for internal use only)");
 
         if (!options.LAUNCHER.isEmpty()) {
@@ -732,6 +747,8 @@ public class RubyContext {
         } else {
             warning.append("* launcher not set, home path could not be derived\n");
         }
+
+        // graalvm.home is what Truffle does, but we'll leave this in for now in case something differs
 
         final String graalVMHome = System.getProperty("graalvm.home");
 

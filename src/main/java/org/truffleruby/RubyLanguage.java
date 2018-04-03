@@ -219,4 +219,8 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         context.getThreadManager().cleanup(rubyThread, thread);
     }
 
+    public String getTruffleLanguageHome() {
+        return getLanguageHome();
+    }
+
 }
