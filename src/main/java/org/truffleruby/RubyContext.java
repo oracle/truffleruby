@@ -714,6 +714,9 @@ public class RubyContext {
 
         StringBuilder warning = new StringBuilder("home locations tried:\n");
 
+        warning.append("* -Xhome was not set");
+        warning.append("* truffleruby.preinitialization.home system property was not set (for internal use only)");
+
         if (!options.LAUNCHER.isEmpty()) {
             final Path canonicalLauncherPath = Paths.get(new File(options.LAUNCHER).getCanonicalPath());
             final File candidate = canonicalLauncherPath.getParent().getParent().toFile();
@@ -731,6 +734,7 @@ public class RubyContext {
         }
 
         final String graalVMHome = System.getProperty("graalvm.home");
+
         if (graalVMHome != null) {
             final File candidate = Paths.get(graalVMHome).resolve("jre/languages/ruby").toFile();
             if (isRubyHome(candidate)) {

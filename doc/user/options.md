@@ -125,7 +125,17 @@ Native switches:
 ## Determining the TruffleRuby home
 
 TruffleRuby needs to know where to locate files such as the standard library.
-These are stored in the TruffleRuby home directory. The TruffleRuby option
-`home` has priority for setting the home directory. Otherwise it is set
-automatically to the directory containing the TruffleRuby JAR file, if
-TruffleRuby is running on a JVM.
+These are stored in the TruffleRuby home directory.
+
+The search priority for finding Ruby home is:
+
+* The value of the TruffleRuby `home` option.
+* The parent of the directory containing the Ruby launcher executable.
+* The value of the system property `graalvm.home` with `jre/languages/ruby`.
+
+If the `home` option is set it's used even if it doesn't appear to be a correct
+home location. Other options are tried until one is found that appears to be a
+correct home location. If none appears to be correct a warning will be given but
+the program will continue and you will not be able to require standard
+libraries. You tell TruffleRuby not to try to find a home at all using the
+`no_home_provided` option.
