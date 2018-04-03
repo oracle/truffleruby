@@ -114,14 +114,14 @@ module RbConfig
   if ruby_home
     prefix        = ruby_home
     bindir        = "#{prefix}/bin"
-    extra_bindirs = if Truffle.graalvm?
+    graalvm_home = Truffle::System.get_java_property 'org.graalvm.home'
+    extra_bindirs = if graalvm_home
                       graalvm_home = Truffle::System.get_java_property 'org.graalvm.home'
                       [File.expand_path('bin', graalvm_home),
                        File.expand_path('jre/bin', graalvm_home)]
                     else
                       []
                     end
-
 
     common = {
       'prefix' => prefix,

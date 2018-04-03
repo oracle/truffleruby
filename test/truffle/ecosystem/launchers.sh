@@ -45,7 +45,7 @@ echo '** Check all launchers work'
 check_launchers bin/ true
 check_in_dir bin
 
-if [[ "$(bin/ruby -e "p Truffle.graalvm?")" =~ true ]]
+if [[ "$(bin/ruby -e "Truffle::System.get_java_property('org.graalvm.home').nil?")" =~ false ]]
 then
     check_in_dir ../../bin      # graalvm/jre/bin
     check_in_dir ../../../bin   # graalvm/bin
