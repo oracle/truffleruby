@@ -14,7 +14,7 @@ describe "Truffle::Interop.size" do
     Truffle::Interop.size([1, 2, 3]).should == 3
   end
   
-  it "returns the size of an array" do
+  it "returns the size of a hash" do
     Truffle::Interop.size({a: 1, b: 2, c: 3}).should == 3
   end
   

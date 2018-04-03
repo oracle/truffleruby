@@ -12,6 +12,8 @@ Changes:
   
 * The `KEYS` interop message now returns an array of Java strings, rather than
   Ruby strings. `KEYS` on an array no longer returns indices.
+  
+* `HAS_SIZE` now returns `false` for `String`.
 
 * A method call on a foreign object that looks like an operator (the method name
   does not begin with a letter) will call `IS_BOXED` on the object and based on
