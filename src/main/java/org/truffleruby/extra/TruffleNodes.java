@@ -41,20 +41,6 @@ public abstract class TruffleNodes {
 
     }
 
-    @CoreMethod(names = "graalvm?", onSingleton = true)
-    public abstract static class GraalVMNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public boolean graal() {
-            return isGraalVM();
-        }
-
-        @TruffleBoundary
-        public static boolean isGraalVM() {
-            return System.getProperty("org.graalvm.home") != null;
-        }
-    }
-
     @CoreMethod(names = "native?", onSingleton = true)
     public abstract static class NativeNode extends CoreMethodArrayArgumentsNode {
 

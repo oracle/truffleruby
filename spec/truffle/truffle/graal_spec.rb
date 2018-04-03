@@ -14,7 +14,4 @@ describe "Truffle.graal?" do
     Truffle.graal?.should be_true_or_false
   end
 
-  it "returns a Boolean value" do
-    Truffle.graalvm?.should be_true_or_false
-  end
 end
