@@ -268,6 +268,8 @@ Otherwise, throw `UnknownIdentifierException`.
 TruffleRuby will convert the returned value from a foreign object of Java
 `String` objects, to a Ruby `Array` of Ruby `String` objects.
 
+`Truffle::Interop.keys_without_conversion(value, internal=false)`
+
 ### `KEY_INFO`
 
 `Truffle::Interop.key_info(object, name)`
@@ -383,7 +385,7 @@ They have priority over methods that the foreign object actually provides.
 
 `object.size` sends `SIZE`.
 
-`object.keys` sends `KEYS` (you may get a foreign array back).
+`object.keys` sends `KEYS`.
 
 `object.name` sends `INVOKE`.
 
@@ -418,10 +420,13 @@ the foreign object, including allowing the special-forms listed above (see
 Ruby strings and symbols are unboxable to Java strings.
 
 A call from Ruby to a foreign language using `NEW`, `EXECUTE`, `INVOKE`, `READ`,
-or `WRITE`, that has Ruby strings or symbols as arguments, will convert each
-Ruby string or symbol argument to a Java string. You can avoid this conversion
-for `EXECUTE` using `Truffle::Interop.execute_without_conversion`, and for
-`UNBOX` using `Truffle::Interop.unbox_without_conversion`.
+`WRITE`, or `UNBOX`, that has Ruby strings or symbols as arguments, will convert
+each Ruby string or symbol argument to a Java string. You can avoid this
+conversion for `EXECUTE` using `Truffle::Interop.execute_without_conversion`,
+and for `UNBOX` using `Truffle::Interop.unbox_without_conversion`.
+
+`Truffle::Interop.keys` converts Java string key names to Ruby strings, so it
+also has a `Truffle::Interop.keys_without_conversion` equivalent.
 
 A call from Ruby to a foreign language using `NEW`, `EXECUTE`, `INVOKE`, `READ`,
 `WRITE`, or `UNBOX`, that returns a Java string will convert the returned string

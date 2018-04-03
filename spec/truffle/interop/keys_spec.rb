@@ -11,6 +11,22 @@ require_relative 'fixtures/classes'
 
 describe "Truffle::Interop.keys" do
   
+  it "returns an array" do
+    keys = Truffle::Interop.keys({'a' => 1, 'b' => 2, 'c' => 3})
+    keys.should be_an_instance_of(Array)
+  end
+  
+  it "returns an array of Ruby strings by default" do
+    keys = Truffle::Interop.keys({'a' => 1, 'b' => 2, 'c' => 3})
+    keys[0].should be_an_instance_of(String)
+  end
+  
+  it "returns an array of Java strings if you don't use conversion" do
+    keys = Truffle::Interop.keys_without_conversion({'a' => 1, 'b' => 2, 'c' => 3})
+    key = keys[0]
+    Truffle::Interop.java_string?(key).should be_true
+  end
+  
   it "returns the keys of a hash" do
     Truffle::Interop.keys({'a' => 1, 'b' => 2, 'c' => 3}).should == ['a', 'b', 'c']
   end

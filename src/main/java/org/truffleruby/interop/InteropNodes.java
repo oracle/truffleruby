@@ -50,6 +50,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.JavaException;
@@ -586,6 +587,33 @@ public abstract class InteropNodes {
 
     }
 
+    @CoreMethod(names = "read_without_conversion", isModuleFunction = true, required = 2)
+    @ImportStatic({ StringCachingGuards.class, StringOperations.class, Message.class })
+    public abstract static class ReadWithoutConversionNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object read(TruffleObject receiver, Object identifier,
+                           @Cached("READ.createNode()") Node readNode,
+                           @Cached("create()") BranchProfile unknownIdentifierProfile,
+                           @Cached("create()") BranchProfile exceptionProfile,
+                           @Cached("create()") RubyToForeignNode rubyToForeignNode) {
+            final Object name = rubyToForeignNode.executeConvert(identifier);
+            try {
+                return ForeignAccess.sendRead(
+                        readNode,
+                        receiver,
+                        name);
+            } catch (UnknownIdentifierException e) {
+                unknownIdentifierProfile.enter();
+                throw new RaiseException(coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+            } catch (UnsupportedMessageException e) {
+                exceptionProfile.enter();
+                throw new JavaException(e);
+            }
+        }
+
+    }
+
     @CoreMethod(names = "write", isModuleFunction = true, required = 3)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class, Message.class })
     public abstract static class WriteNode extends CoreMethodArrayArgumentsNode {
@@ -665,11 +693,18 @@ public abstract class InteropNodes {
     }
 
     @ImportStatic(Message.class)
-    @Primitive(name = "interop_send_keys")
+    @CoreMethod(names = "keys_without_conversion", isModuleFunction = true, required = 1, optional = 1)
     public abstract static class KeysNode extends PrimitiveArrayArgumentsNode {
 
+        protected abstract Object executeKeys(TruffleObject receiver, boolean internal);
+
         @Specialization
-        public Object keys(VirtualFrame frame, TruffleObject receiver, boolean internal,
+        public Object keys(TruffleObject receiver, NotProvided internal) {
+            return executeKeys(receiver, false);
+        }
+
+        @Specialization
+        public Object keys(TruffleObject receiver, boolean internal,
                 @Cached("KEYS.createNode()") Node keysNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {

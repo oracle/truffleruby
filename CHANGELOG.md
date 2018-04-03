@@ -9,6 +9,9 @@ Changes:
 
 * C extensions are now built by default - `TRUFFLERUBY_CEXT_ENABLED` is assumed
   `true` unless set to `false`.
+  
+* The `KEYS` interop message now returns an array of Java strings, rather than
+  Ruby strings.
 
 # 0.33, April 2018
 
