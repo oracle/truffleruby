@@ -103,7 +103,8 @@ strings.
 Otherwise, return all method names via `receiver.methods`, and instance
 variable names if the `internal` flag is set.
 
-Keys are returned as a Ruby `Array` containing Ruby `String` objects.
+Keys are returned as a Ruby `Array` containing Java `String` objects or
+integers.
 
 ### `KEY_INFO`
 
@@ -429,6 +430,12 @@ to a Ruby string.
 A call from a foreign language to Ruby using `NEW`, `EXECUTE`, `INVOKE`, or
 `WRITE`, that has Java strings as arguments, will convert each Java string
 argument to a Ruby string.
+
+A call from a foreign language to Ruby `NEW`, `EXECUTE`, `INVOKE` or `READ`
+that returns a Ruby string will not convert it to a Java string, as this would
+break our C extension support which uses these messages to get Ruby objects
+and expects to be able to mutate them and so on
+(compare with `Truffle::Interop.execute_without_conversion`).
 
 It is planned that Java strings, and boxed foreign strings (foreign objects that
 respond positively to `IS_BOXED` and `UNBOX` to a Java string), will be able to
