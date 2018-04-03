@@ -19,7 +19,7 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
-import org.truffleruby.shared.Info;
+import org.truffleruby.shared.TruffleRuby;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -50,7 +50,7 @@ public abstract class RubyTest {
 
     protected void testInContext(Runnable test) {
         try (Context context = setupContext(Context.newBuilder()).build()) {
-            context.eval(org.graalvm.polyglot.Source.create(Info.LANGUAGE_ID, "-> test { test.call }"))
+            context.eval(org.graalvm.polyglot.Source.create(TruffleRuby.LANGUAGE_ID, "-> test { test.call }"))
                     .execute(test);
         }
     }

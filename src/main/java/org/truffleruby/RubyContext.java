@@ -73,7 +73,7 @@ import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.darwin.DarwinNativeConfiguration;
 import org.truffleruby.platform.linux.LinuxNativeConfiguration;
 import org.truffleruby.platform.solaris.SolarisSparcV9NativeConfiguration;
-import org.truffleruby.shared.Info;
+import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.stdlib.CoverageManager;
 import org.truffleruby.stdlib.readline.ConsoleHolder;
 
@@ -139,7 +139,7 @@ public class RubyContext {
     private boolean initialized;
     private volatile boolean finalizing;
 
-    private static boolean preInitializeContexts = Info.PRE_INITIALIZE_CONTEXTS;
+    private static boolean preInitializeContexts = TruffleRuby.PRE_INITIALIZE_CONTEXTS;
 
     private static final boolean LIBPOLYGLOT = Boolean.getBoolean("graalvm.libpolyglot");
 

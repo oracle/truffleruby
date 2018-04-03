@@ -11,7 +11,7 @@ package org.truffleruby.shared.options;
 
 import org.graalvm.options.OptionKey;
 import org.graalvm.options.OptionValues;
-import org.truffleruby.shared.Info;
+import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.RubyLogger;
 
 import java.util.HashMap;
@@ -53,8 +53,8 @@ public class OptionsBuilder {
 
         if (options.OPTIONS_LOG && RubyLogger.LOGGER.isLoggable(Level.CONFIG)) {
             for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
-                assert option.getName().startsWith(Info.LANGUAGE_ID);
-                final String xName = option.getName().substring(Info.LANGUAGE_ID.length() + 1);
+                assert option.getName().startsWith(TruffleRuby.LANGUAGE_ID);
+                final String xName = option.getName().substring(TruffleRuby.LANGUAGE_ID.length() + 1);
                 RubyLogger.LOGGER.config("option " + xName + "=" + option.valueToString(options.fromDescription(option)));
             }
         }

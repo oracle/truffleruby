@@ -21,7 +21,7 @@ import org.truffleruby.shared.options.CommandLineOptions;
 import org.truffleruby.launcher.options.CommandLineParser;
 import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionsCatalog;
-import org.truffleruby.shared.Info;
+import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.RubyLogger;
 
@@ -54,7 +54,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected String getLanguageId() {
-        return Info.LANGUAGE_ID;
+        return TruffleRuby.LANGUAGE_ID;
     }
 
     @Override
@@ -68,7 +68,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected void printVersion() {
-        System.out.println(Info.getVersionString(isGraal(), isAOT()));
+        System.out.println(TruffleRuby.getVersionString(isGraal(), isAOT()));
         System.out.println();
         printPolyglotVersions();
     }
@@ -197,10 +197,10 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         try (Context context = createContext(contextBuilder, config)) {
             Metrics.printTime("before-run");
             final Source source = Source.newBuilder(
-                    Info.LANGUAGE_ID,
+                    TruffleRuby.LANGUAGE_ID,
                     // language=ruby
                     "Truffle::Boot.main",
-                    Info.BOOT_SOURCE_NAME).internal(true).buildLiteral();
+                    TruffleRuby.BOOT_SOURCE_NAME).internal(true).buildLiteral();
             final int exitCode = context.eval(source).asInt();
             Metrics.printTime("after-run");
             return exitCode;
@@ -212,7 +212,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     private static void debugPreInitialization() {
-        if (!isAOT() && Info.PRE_INITIALIZE_CONTEXTS) {
+        if (!isAOT() && TruffleRuby.PRE_INITIALIZE_CONTEXTS) {
             try {
                 final Class<?> holderClz = Class.forName("org.graalvm.polyglot.Engine$ImplHolder");
                 final Method preInitMethod = holderClz.getDeclaredMethod("preInitializeEngine");
@@ -246,7 +246,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         }
 
         builder.options(config.getOptions());
-        builder.arguments(Info.LANGUAGE_ID, config.getArguments());
+        builder.arguments(TruffleRuby.LANGUAGE_ID, config.getArguments());
 
         return builder.build();
     }
@@ -286,11 +286,11 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         }
 
         if (config.getOption(OptionsCatalog.SHOW_VERSION)) {
-            System.out.println(Info.getVersionString(isGraal(), isAOT()));
+            System.out.println(TruffleRuby.getVersionString(isGraal(), isAOT()));
         }
 
         if (config.getOption(OptionsCatalog.SHOW_COPYRIGHT)) {
-            System.out.println(Info.RUBY_COPYRIGHT);
+            System.out.println(TruffleRuby.RUBY_COPYRIGHT);
         }
 
         switch (config.getOption(OptionsCatalog.SHOW_HELP)) {
@@ -306,7 +306,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     private static void printHelp(PrintStream out) {
-        out.printf("Usage: %s [switches] [--] [programfile] [arguments]%n", Info.ENGINE_ID);
+        out.printf("Usage: %s [switches] [--] [programfile] [arguments]%n", TruffleRuby.ENGINE_ID);
         out.println("  -0[octal]       specify record separator (\0, if no argument)");
         out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
         out.println("  -c              check syntax only");
