@@ -1753,7 +1753,7 @@ module Commands
     if sforceimports
       chdir(graal) do
         raw_sh "git", "fetch",
-               Remotes.github(graal) || Remotes.bitbucket(graal),
+               Remotes.github(graal) || Remotes.bitbucket(graal) || 'origin',
                continue_on_failure: true
         raw_sh "git", "checkout", Utilities.truffle_version
       end
