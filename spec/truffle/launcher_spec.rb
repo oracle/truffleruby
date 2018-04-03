@@ -11,6 +11,11 @@ require_relative '../ruby/spec_helper'
 
 describe "The launcher" do
 
+  it 'is in the bindir' do
+    bindir = File.expand_path(RbConfig::CONFIG['bindir'])
+    File.expand_path(File.dirname(RbConfig.ruby)).should == bindir
+  end
+
   require "tmpdir"
   require "pathname"
 
