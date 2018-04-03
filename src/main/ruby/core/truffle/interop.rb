@@ -23,7 +23,7 @@ module Truffle
     end
 
     def self.keys(object, internal = false)
-      keys = Truffle.invoke_primitive :interop_send_keys, object, internal
+      keys = keys_without_conversion(object, internal)
       enumerable(keys).map { |key| from_java_string(key) }
     end
 
