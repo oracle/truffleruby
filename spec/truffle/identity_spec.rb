@@ -16,11 +16,11 @@ describe "Identifying features such as" do
     RUBY_ENGINE.should == 'truffleruby'
   end
 
-  it "RUBY_VERSION matches /\A\d+\.\d+\.\d+\z/" do
+  it 'RUBY_VERSION matches /\A\d+\.\d+\.\d+\z/' do
     RUBY_VERSION.should =~ /\A\d+\.\d+\.\d+\z/
   end
 
-  it "RUBY_ENGINE_VERSION matches /\A\d+(\.\d+)*(\-dev)?(-[[:xdigit:]]+)?\z/" do
+  it 'RUBY_ENGINE_VERSION matches /\A\d+(\.\d+)*(\-dev)?(-[[:xdigit:]]+)?\z/' do
     RUBY_ENGINE_VERSION.should =~ /\A\d+(\.\d+)*(\-dev)?(-[[:xdigit:]]+)?\z/
   end
 
@@ -61,7 +61,7 @@ describe "Identifying features such as" do
     RbConfig::CONFIG['RUBY_BASE_NAME'].should == 'ruby'
   end
 
-  it "Truffle.revision matches /\A[[:xdigit:]]+\z/" do
+  it 'Truffle.revision matches /\A[[:xdigit:]]+\z/' do
     Truffle.revision.should =~ /\A[[:xdigit:]]+\z/
   end
 
