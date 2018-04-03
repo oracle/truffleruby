@@ -11,7 +11,7 @@ Changes:
   `true` unless set to `false`.
   
 * The `KEYS` interop message now returns an array of Java strings, rather than
-  Ruby strings.
+  Ruby strings. `KEYS` on an array no longer returns indices.
 
 # 0.33, April 2018
 

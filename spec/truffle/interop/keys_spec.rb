@@ -34,11 +34,6 @@ describe "Truffle::Interop.keys" do
   it "returns the keys of a hash converted to strings" do
     Truffle::Interop.keys({a: 1, b: 2, c: 3}).should == ['a', 'b', 'c']
   end
-
-  it "returns the indices of an array" do
-    array = [1, 2, 3]
-    Truffle::Interop.keys([1, 2, 3]).should == [0, 1, 2]
-  end
   
   it "returns the methods of an object" do
     object = Object.new
@@ -62,12 +57,6 @@ describe "Truffle::Interop.keys" do
       hash.instance_variable_set(:@foo, 14)
       Truffle::Interop.keys(hash, true).should_not include('@foo')
     end
-
-    it "does not return the instance variables of an array" do
-      array = [1, 2, 3]
-      array.instance_variable_set(:@foo, 14)
-      Truffle::Interop.keys(array, true).should_not include('@foo')
-    end
     
     it "does not return instance variables of an object" do
       Truffle::Interop.keys(TruffleInteropSpecs::InteropKeysClass.new).should_not include('@a', '@b', '@c')
@@ -81,12 +70,6 @@ describe "Truffle::Interop.keys" do
       hash = {a: 1, b: 2, c: 3}
       hash.instance_variable_set(:@foo, 14)
       Truffle::Interop.keys(hash, true).should_not include('@foo')
-    end
-
-    it "does not return the instance variables of an array" do
-      array = [1, 2, 3]
-      array.instance_variable_set(:@foo, 14)
-      Truffle::Interop.keys(array, true).should_not include('@foo')
     end
 
     it "returns instance variables of an object" do

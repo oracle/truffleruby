@@ -94,10 +94,7 @@ Returns true.
 
 ### `KEYS`
 
-If the receiver is a Ruby `Array`, return an array of indices in
-bounds.
-
-Otherwise, if the receiver is a Ruby `Hash`, return the hash keys converted to
+If the receiver is a Ruby `Hash`, return the hash keys converted to
 strings.
 
 Otherwise, return all method names via `receiver.methods`, and instance
