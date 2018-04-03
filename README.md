@@ -63,6 +63,9 @@ If you are running a short-running program you probably want the default,
 highest possible performance you probably want the *JVM* configuration, by using
 `--jvm`.
 
+At runtime you can tell if you are using the native configuration using
+`Truffle.native?`.
+
 You won't encounter it when using TruffleRuby from the GraalVM, but there is
 also another configuration which is TruffleRuby running on the JVM but with the
 Graal compiler not available. This configuration will have much lower
