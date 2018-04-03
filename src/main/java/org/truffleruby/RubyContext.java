@@ -141,6 +141,8 @@ public class RubyContext {
 
     private static boolean preInitializeContexts = RubyLauncher.PRE_INITIALIZE_CONTEXTS;
 
+    private static final boolean LIBPOLYGLOT = Boolean.getBoolean("graalvm.libpolyglot");
+
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
         Metrics.printTime("before-context-constructor");
 
@@ -747,7 +749,10 @@ public class RubyContext {
 
         warning.append("* try to set home using -Xhome=PATH option");
 
-        Log.LOGGER.warning("could not determine TruffleRuby's home - the standard library will not be available");
+        if (!LIBPOLYGLOT) {
+            // We have no way to ever find home automatically in libpolyglot, so don't clutter with warnings
+            Log.LOGGER.warning("could not determine TruffleRuby's home - the standard library will not be available");
+        }
 
         if (options.EMBEDDED) {
             Log.LOGGER.config(warning.toString());
