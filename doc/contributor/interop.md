@@ -386,6 +386,10 @@ They have priority over methods that the foreign object actually provides.
 
 `object.name` sends `INVOKE`.
 
+`object + other` for will send `IS_BOXED` on `object` and based on that will
+possibly `UNBOX` it, convert to Ruby, and then call the method on the unboxed
+version.
+
 `object.name(*args)` sends `INVOKE`.
 
 `object.new(*args)` sends `NEW`.
