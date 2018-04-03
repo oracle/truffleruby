@@ -1,6 +1,6 @@
 # TruffleRuby Options and Command Line
 
-TruffleRuby has the same command line interface as MRI 2.3.5.
+TruffleRuby has the same command line interface as MRI 2.3.7.
 
 ```
 Usage: truffleruby [switches] [--] [programfile] [arguments]
