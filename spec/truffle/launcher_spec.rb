@@ -16,9 +16,6 @@ describe "The launcher" do
     File.expand_path(File.dirname(RbConfig.ruby)).should == bindir
   end
 
-  require "tmpdir"
-  require "pathname"
-
   launchers = { gem:         /^2\.5\.2\.3$/,
                 irb:         /^irb 0\.9\.6/,
                 rake:        /^rake, version [0-9.]+/,
@@ -36,6 +33,7 @@ describe "The launcher" do
 
     bin_dirs.each do |name, bin_dir|
       it "'#{launcher}' in `#{name}` directory runs when symlinked" do
+        require "tmpdir"
         # Use the system tmp dir to not be under the Ruby home dir
         Dir.mktmpdir do |path|
           Dir.chdir(path) do
