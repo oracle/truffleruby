@@ -812,7 +812,7 @@ module Commands
     end
 
     def github(dir = TRUFFLERUBY_DIR)
-      candidate = remote_urls(dir).find { |r, u| u.include? 'github.com' }
+      candidate = remote_urls(dir).find { |r, u| u.match %r(github.com[:/]oracle) }
       candidate.first if candidate
     end
 
