@@ -276,6 +276,20 @@ local part_definitions = {
       },
     },
 
+    openjdk8: {
+      downloads+: {
+        JAVA_HOME: {
+          name: "openjdk",
+          version: "8u161-jvmci-0.42",
+          platformspecific: true,
+        },
+      },
+
+      environment+: {
+        path+:: ["$JAVA_HOME/bin"],
+      },
+    },
+
     oraclejdk10: {
       downloads+: {
         JAVA_HOME: {
@@ -716,10 +730,10 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   release_builds:
     {
-      local shared = $.jdk.labsjdk8 + $.use.common + { timelimit: "30:00" },
-      "ruby-test-native-distribution": $.platform.linux + $.cap.gate + shared + $.run.test_make_native_distribution,
-      "ruby-native-distribution-linux": $.platform.linux + $.cap.manual + shared + $.run.make_native_distribution,
-      "ruby-native-distribution-darwin": $.platform.darwin + $.cap.manual + shared + $.run.make_native_distribution,
+      local shared = $.use.common + { timelimit: "30:00" },
+      "ruby-test-native-distribution": $.platform.linux + $.cap.gate + $.jdk.openjdk8 + shared + $.run.test_make_native_distribution,
+      "ruby-native-distribution-linux": $.platform.linux + $.cap.manual + $.jdk.openjdk8 + shared + $.run.make_native_distribution,
+      "ruby-native-distribution-darwin": $.platform.darwin + $.cap.manual + $.jdk.labsjdk8 + shared + $.run.make_native_distribution,
     },
 
   builds:
