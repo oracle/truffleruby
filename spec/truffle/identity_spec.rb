@@ -20,8 +20,8 @@ describe "Identifying features such as" do
     RUBY_VERSION.should =~ /\A\d+\.\d+\.\d+\z/
   end
 
-  it 'RUBY_ENGINE_VERSION matches /\A\d+(\.\d+)*(\-dev)?(-[[:xdigit:]]+)?\z/' do
-    RUBY_ENGINE_VERSION.should =~ /\A\d+(\.\d+)*(\-dev)?(-[[:xdigit:]]+)?\z/
+  it 'RUBY_ENGINE_VERSION matches /\A\d+(\.\d+)*(\-dev)?(-\h+)?\z/' do
+    RUBY_ENGINE_VERSION.should =~ /\A\d+(\.\d+)*(\-dev)?(-\h+)?\z/
   end
 
   it "RUBY_ENGINE_VERSION can be parsed as a Gem::Version" do
@@ -61,8 +61,8 @@ describe "Identifying features such as" do
     RbConfig::CONFIG['RUBY_BASE_NAME'].should == 'ruby'
   end
 
-  it 'Truffle.revision matches /\A[[:xdigit:]]+\z/' do
-    Truffle.revision.should =~ /\A[[:xdigit:]]+\z/
+  it 'Truffle.revision matches /\A\h+\z/' do
+    Truffle.revision.should =~ /\A\h+\z/
   end
 
   describe "the Rubinius module" do
