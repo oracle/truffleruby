@@ -10,7 +10,7 @@
 
 package org.truffleruby.shared;
 
-public class Info {
+public class TruffleRuby {
 
     public static final String LANGUAGE_ID = "ruby";
     public static final String ENGINE_ID = "truffleruby";

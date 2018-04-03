@@ -23,7 +23,7 @@ import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.interop.MetaObject;
 import org.truffleruby.language.LazyRubyRootNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.shared.Info;
+import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.options.OptionDescription;
 import org.truffleruby.shared.options.OptionsCatalog;
@@ -35,8 +35,8 @@ import java.util.List;
 
 @TruffleLanguage.Registration(
         name = "Ruby",
-        id = Info.LANGUAGE_ID,
-        version = Info.LANGUAGE_VERSION,
+        id = TruffleRuby.LANGUAGE_ID,
+        version = TruffleRuby.LANGUAGE_VERSION,
         mimeType = RubyLanguage.MIME_TYPE,
         dependentLanguages = "llvm")
 @ProvidedTags({

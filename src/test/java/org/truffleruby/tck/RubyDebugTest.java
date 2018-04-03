@@ -27,7 +27,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.truffleruby.shared.Info;
+import org.truffleruby.shared.TruffleRuby;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -61,7 +61,7 @@ public class RubyDebugTest {
         InputStream stream = ClassLoader.getSystemResourceAsStream(path);
         Reader reader = new InputStreamReader(stream);
         try {
-            return Source.newBuilder(Info.LANGUAGE_ID, reader, new File(path).getName()).build();
+            return Source.newBuilder(TruffleRuby.LANGUAGE_ID, reader, new File(path).getName()).build();
         } catch (IOException e) {
             throw new Error(e);
         }
