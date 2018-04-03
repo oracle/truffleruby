@@ -20,8 +20,8 @@ describe "Identifying features such as" do
     RUBY_VERSION.should =~ /\A\d+\.\d+\.\d+\z/
   end
 
-  it "RUBY_ENGINE_VERSION matches /\A\d+\.\d+(\-dev)?(-[[:xdigit:]]+)?\z/" do
-    RUBY_ENGINE_VERSION.should =~ /\A\d+\.\d+(\-dev)?(-[[:xdigit:]]+)?\z/
+  it "RUBY_ENGINE_VERSION matches /\A\d+(\.\d+)*(\-dev)?(-[[:xdigit:]]+)?\z/" do
+    RUBY_ENGINE_VERSION.should =~ /\A\d+(\.\d+)*(\-dev)?(-[[:xdigit:]]+)?\z/
   end
 
   it "RUBY_ENGINE_VERSION can be parsed as a Gem::Version" do
