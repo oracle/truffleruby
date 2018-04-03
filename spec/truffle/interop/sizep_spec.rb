@@ -18,8 +18,8 @@ describe "Truffle::Interop.size?" do
     Truffle::Interop.size?({}).should be_true
   end
   
-  it "returns true for strings" do
-    Truffle::Interop.size?('').should be_true
+  it "returns false for strings" do
+    Truffle::Interop.size?('').should be_false
   end
 
   it "returns false for nil" do
