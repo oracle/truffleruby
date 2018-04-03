@@ -65,8 +65,6 @@ is the corresponding action it takes on the Ruby object expressed in Ruby code.
 
 `object.length` calls `object.size`.
 
-`Object.keys(array)` gives an array of the array indices.
-
 `Object.keys(hash)` gives the hash keys as strings.
 
 `Object.keys(object)` gives the methods of an object as functions.
