@@ -750,7 +750,7 @@ public class RubyContext {
 
         // graalvm.home is what Truffle does, but we'll leave this in for now in case something differs
 
-        final String graalVMHome = System.getProperty("graalvm.home");
+        final String graalVMHome = System.getProperty("org.graalvm.home");
 
         if (graalVMHome != null) {
             final File candidate = Paths.get(graalVMHome).resolve("jre/languages/ruby").toFile();
@@ -759,7 +759,7 @@ public class RubyContext {
             } else {
                 warning.append("* path '").
                         append(candidate).
-                        append("' derived from GraalVM home '").
+                        append("' derived from the org.graalvm.home system property home '").
                         append(graalVMHome).
                         append("' does not look like TruffleRuby's home\n");
 
