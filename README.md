@@ -50,6 +50,8 @@ and it becomes fast in less time. The disadvantage of the native configuration
 is that you can't use Java tools like VisualVM, you can't use Java
 interopability, and *peak performance may be lower than on the JVM*. The native
 configuration is used by default, but you can also request it using `--native`.
+To use polyglot programming with the *native* configuration, you need to use the
+`--polyglot` flag.
 
 TruffleRuby can also be used in the *JVM* configuration, where it runs as a
 normal Java application on the JVM, as any other Java application would. The
