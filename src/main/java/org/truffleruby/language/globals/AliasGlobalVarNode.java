@@ -35,7 +35,7 @@ public class AliasGlobalVarNode extends RubyNode {
     @TruffleBoundary
     private void checkExisting() {
         if (getContext().getCoreLibrary().getGlobalVariables().contains(newName)) {
-            throw new RaiseException(coreExceptions().internalError(String.format("%s is already a global", newName), this));
+            throw new RaiseException(coreExceptions().internalError(String.format("%s is already a global", newName), this), true);
         }
     }
 

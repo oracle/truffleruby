@@ -565,38 +565,7 @@ module Kernel
   module_function :warning
 
   def raise(exc=undefined, msg=undefined, ctx=nil)
-    skip = false
-    if undefined.equal? exc
-      exc = $!
-      if exc
-        skip = true
-      else
-        exc = RuntimeError.new('No current exception')
-      end
-    elsif exc.respond_to? :exception
-      if undefined.equal? msg
-        exc = exc.exception
-      else
-        exc = exc.exception msg
-      end
-      raise ::TypeError, 'exception class/object expected' unless exc.kind_of?(::Exception)
-    elsif exc.kind_of? String
-      exc = ::RuntimeError.exception exc
-    else
-      raise ::TypeError, 'exception class/object expected'
-    end
-
-    unless skip
-      exc.set_context ctx if ctx
-      exc.capture_backtrace!(2) unless exc.backtrace?
-      exc.instance_variable_set(:@cause, $!)
-    end
-
-    if $DEBUG
-      STDERR.puts "Exception: `#{exc.class}' #{caller.first} - #{exc.message}\n"
-    end
-
-    Truffle.invoke_primitive :vm_raise_exception, exc
+    Truffle::KernelOperations.internal_raise exc, msg, ctx, false
   end
   module_function :raise
 

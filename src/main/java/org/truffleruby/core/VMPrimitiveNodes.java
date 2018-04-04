@@ -213,9 +213,10 @@ public abstract class VMPrimitiveNodes {
     public static abstract class VMRaiseExceptionPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyException(exception)")
-        public DynamicObject vmRaiseException(DynamicObject exception) {
-            throw new RaiseException(exception);
+        public DynamicObject vmRaiseException(DynamicObject exception, boolean internal) {
+            throw new RaiseException(exception, internal);
         }
+
     }
 
     @Primitive(name = "vm_set_module_name", needsSelf = false)
