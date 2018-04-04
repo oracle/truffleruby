@@ -79,7 +79,7 @@ module Truffle::CExt
     end
 
     def name
-      @encoding.name
+      RStringPtr.new(@encoding.name)
     end
   end
 
