@@ -71,13 +71,13 @@ public class MiscTest {
     }
 
     @Test
-    public void testEvalFromIntegratorThreadSingleThreaded() throws InterruptedException {
+    public void testEvalFromIntegratorThreadSingleThreaded() throws Throwable {
         final String codeDependingOnCurrentThread = "Thread.current.object_id";
 
         try (Context context = Context.create()) {
             long thread1 = context.eval("ruby", codeDependingOnCurrentThread).asLong();
 
-            Thread thread = new Thread(() -> {
+            TestingThread thread = new TestingThread(() -> {
                 long thread2 = context.eval("ruby", codeDependingOnCurrentThread).asLong();
                 assertNotEquals(thread1, thread2);
             });
@@ -87,13 +87,13 @@ public class MiscTest {
     }
 
     @Test
-    public void testFiberFromIntegratorThread() throws InterruptedException {
+    public void testFiberFromIntegratorThread() throws Throwable {
         try (Context context = Context.newBuilder()
                 .option(OptionsCatalog.SINGLE_THREADED.getName(), Boolean.FALSE.toString())
                 .allowCreateThread(true).build()) {
             context.eval("ruby", ":init");
 
-            Thread thread = new Thread(() -> {
+            TestingThread thread = new TestingThread(() -> {
                 int value = context.eval("ruby", "Fiber.new { 6 * 7 }.resume").asInt();
                 assertEquals(42, value);
             });
