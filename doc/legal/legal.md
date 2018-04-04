@@ -34,11 +34,11 @@ code, build system, shell script launchers, standard library modified from MRI,
 and so on.
 
 Where original files had JRuby licence headers we have copied them over. In
-general this code is available under these licences:
+general this code is available under any of these licences:
 
 * Eclipse Public License version 1.0, or
 * GNU General Public License version 2, or
-* GNU Lesser General Public License version 2.1, or
+* GNU Lesser General Public License version 2.1.
 
 See `epl-1.0.txt`, `gpl-2.txt`, `lgpl-2.1.txt`.
 
