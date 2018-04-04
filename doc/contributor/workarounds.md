@@ -6,9 +6,9 @@ installed gems.  The code implementing the patching itself can be found in
 `-Xpatching=false` option.
 
 The patching system works for gems as follows.  When a gem *g* is activated,
-there is a directory `g` in `lib/patches`,  and the directory is listed in
-`lib/truffle/truffle/patching.rb`,   the directory is inserted into `$LOAD_PATH`
-before the original load-paths of the *g* gem.  As a result the patching files
+there is a directory `g` in `lib/patches`, and the directory is listed in
+`lib/truffle/truffle/patching.rb`, the directory is inserted into `$LOAD_PATH`
+before the original load-paths of the *g* gem. As a result the patching files
 are loaded first before the original files in the gem. The patching file is
 responsible for loading the original file (if desirable), which can be done with
 `Truffle::Patching.require_original __FILE__`.
@@ -31,6 +31,6 @@ should use it.
 
 ## Constant replacement
 
-`org.truffleruby.parser.ConstantReplacer` replaces constant  if a partial file
+`org.truffleruby.parser.ConstantReplacer` replaces constant if a partial file
 path matches and the name of the constant equals. Usually used to fix Ruby
 implementation detection. Should be removed and not used further.    

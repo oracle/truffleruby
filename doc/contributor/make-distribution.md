@@ -5,7 +5,7 @@ See the [Distributions page](../user/distribution.md).
 The tool to build these distributions is `tool/make-distribution.sh`.
 
 This script should be run in a fresh checkout of truffleruby in a new workspace.
-This is necessary as otherwise extra gems and build artefacts might be included.
+This is necessary as otherwise extra gems and build artifacts might be included.
 
 ```bash
 $ mkdir truffleruby-dist-ws
