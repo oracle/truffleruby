@@ -279,6 +279,8 @@ in an undefined order.
 
 `Truffle::Interop.read(object, name/index)`
 
+`Truffle::Interop.read_without_conversion(object, name/index)`
+
 ### `WRITE`
 
 `Truffle::Interop.write(object, name/index, value)`
@@ -424,7 +426,8 @@ A call from Ruby to a foreign language using `NEW`, `EXECUTE`, `INVOKE`, `READ`,
 `WRITE`, or `UNBOX`, that has Ruby strings or symbols as arguments, will convert
 each Ruby string or symbol argument to a Java string. You can avoid this
 conversion for `EXECUTE` using `Truffle::Interop.execute_without_conversion`,
-and for `UNBOX` using `Truffle::Interop.unbox_without_conversion`.
+for `READ` using `Truffle::Interop.read_without_conversion`, and for `UNBOX`
+using `Truffle::Interop.unbox_without_conversion`.
 
 `Truffle::Interop.keys` converts Java string key names to Ruby strings, so it
 also has a `Truffle::Interop.keys_without_conversion` equivalent.
