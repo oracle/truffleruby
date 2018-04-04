@@ -1,3 +1,6 @@
 ---
 TimeExtMarshalingTest:
 - test_marshalling_preserves_fractional_seconds
+FileStoreTest:
+- test_filename_max_size
+- test_really_long_keys
