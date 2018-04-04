@@ -23,7 +23,7 @@ function check_launchers() {
         [[ "$(${1}truffleruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.3.7 ]]
         [[ "$(${1}ruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.3.7 ]]
     fi
-    [[ "$(${1}gem --version)" =~ ^2.5.2.2$ ]]
+    [[ "$(${1}gem --version)" =~ ^2.5.2.3$ ]]
     [[ "$(${1}irb --version)" =~ ^irb\ 0.9.6 ]]
     [[ "$(${1}rake --version)" =~ ^rake,\ version\ [0-9.]+ ]]
     [[ "$(${1}rdoc --version)" =~ ^4.2.1$ ]]
