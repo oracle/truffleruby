@@ -43,8 +43,8 @@ guard -> { !Truffle.native? } do
         Java.type("java.math.BigInteger[]").getName.should == "[Ljava.math.BigInteger;"
       end
 
-      it "throws RubyTruffleError for unknown class names" do
-        lambda { Java.type("does.not.Exist") }.should raise_error(RubyTruffleError)
+      it "throws RuntimeError for unknown class names" do
+        lambda { Java.type("does.not.Exist") }.should raise_error(RuntimeError)
       end
 
       it "works with symbols" do

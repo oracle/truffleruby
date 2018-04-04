@@ -129,7 +129,7 @@ EXAMPLES.each do |example|
       while true
         value = test_pe_code
       end
-    rescue RubyTruffleError => e
+    rescue RuntimeError => e
       if e.message.include? 'Truffle::Graal.assert_not_compiled'
         constant = true
       elsif e.message.include? 'Truffle::Graal.assert_constant'

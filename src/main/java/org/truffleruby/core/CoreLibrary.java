@@ -137,7 +137,6 @@ public class CoreLibrary {
     private final DynamicObject regexpClass;
     private final DynamicObjectFactory regexpFactory;
     private final DynamicObject regexpErrorClass;
-    private final DynamicObject rubyTruffleErrorClass;
     private final DynamicObject runtimeErrorClass;
     private final DynamicObject systemStackErrorClass;
     private final DynamicObject securityErrorClass;
@@ -325,9 +324,6 @@ public class CoreLibrary {
 
         // NoMemoryError
         noMemoryErrorClass = defineClass(exceptionClass, "NoMemoryError");
-
-        // RubyTruffleError
-        rubyTruffleErrorClass = defineClass(exceptionClass, "RubyTruffleError");
 
         // StandardError
         standardErrorClass = defineClass(exceptionClass, "StandardError");
@@ -1057,10 +1053,6 @@ public class CoreLibrary {
 
     public DynamicObject getTruffleTypeModule() {
         return truffleTypeModule;
-    }
-
-    public DynamicObject getRubyTruffleErrorClass() {
-        return rubyTruffleErrorClass;
     }
 
     public DynamicObject getStringClass() {
