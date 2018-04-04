@@ -29,9 +29,15 @@ public class RaiseException extends ControlFlowException implements TruffleExcep
     private static final long serialVersionUID = -4128190563044417424L;
 
     private final DynamicObject exception;
+    private final boolean internal;
 
     public RaiseException(DynamicObject exception) {
+        this(exception, false);
+    }
+
+    public RaiseException(DynamicObject exception, boolean internal) {
         this.exception = exception;
+        this.internal = internal;
     }
 
     public DynamicObject getException() {
@@ -64,8 +70,7 @@ public class RaiseException extends ControlFlowException implements TruffleExcep
 
     @Override
     public boolean isInternalError() {
-        final RubyContext context = RubyLanguage.getCurrentContext();
-        return isA(context, context.getCoreLibrary().getRubyTruffleErrorClass());
+        return internal;
     }
 
     @Override

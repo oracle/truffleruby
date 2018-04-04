@@ -31,7 +31,7 @@ public abstract class AssertConstantNode extends RubyNode {
 
         if (!compilationConstant[0]) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new RaiseException(coreExceptions().internalErrorAssertConstantNotConstant(this));
+            throw new RaiseException(coreExceptions().internalErrorAssertConstantNotConstant(this), true);
         }
 
         return value;

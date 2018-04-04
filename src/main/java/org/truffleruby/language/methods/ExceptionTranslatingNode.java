@@ -84,7 +84,7 @@ public class ExceptionTranslatingNode extends RubyNode {
             throw new RaiseException(translateIllegalArgument(e));
         } catch (Throwable exception) {
             errorProfile.enter();
-            throw new RaiseException(translateThrowable(exception));
+            throw new RaiseException(translateThrowable(exception), true);
         }
     }
 

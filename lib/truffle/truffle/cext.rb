@@ -1641,7 +1641,7 @@ module Truffle::CExt
   end
 
   def rb_tr_error(message)
-    raise RubyTruffleError, message
+    Truffle::KernelOperations.internal_raise RubyTruffleError, message, true
   end
 
   def test_kwargs(kwargs, raise_error)

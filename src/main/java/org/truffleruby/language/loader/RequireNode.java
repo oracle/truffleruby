@@ -135,7 +135,7 @@ public abstract class RequireNode extends RubyNode {
                 } else if (RubyLanguage.CEXT_MIME_TYPE.equals(mimeType)) {
                     requireCExtension(feature, expandedPath);
                 } else {
-                    throw new RaiseException(mimeTypeNotFound(expandedPath, mimeType));
+                    throw new RaiseException(mimeTypeNotFound(expandedPath, mimeType), true);
                 }
 
                 addToLoadedFeatures(pathString);

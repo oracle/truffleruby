@@ -30,7 +30,7 @@ public abstract class AssertNotCompiledNode extends RubyNode {
 
         if (compiled[0]) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new RaiseException(coreExceptions().internalErrorAssertNotCompiledCompiled(this));
+            throw new RaiseException(coreExceptions().internalErrorAssertNotCompiledCompiled(this), true);
         }
 
         return nil();

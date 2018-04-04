@@ -189,7 +189,7 @@ public abstract class TruffleDebugNodes {
             if (callTarget instanceof RootCallTarget) {
                 return ast((RootCallTarget) callTarget);
             } else {
-                throw new RaiseException(getContext().getCoreExceptions().internalError("call target is not a root call target", this));
+                throw new RaiseException(getContext().getCoreExceptions().internalError("call target is not a root call target", this), true);
             }
         }
 
@@ -254,7 +254,7 @@ public abstract class TruffleDebugNodes {
             if (callTarget instanceof RootCallTarget) {
                 printAst((RootCallTarget) callTarget);
             } else {
-                throw new RaiseException(getContext().getCoreExceptions().internalError("call target is not a root call target", this));
+                throw new RaiseException(getContext().getCoreExceptions().internalError("call target is not a root call target", this), true);
             }
         }
 
