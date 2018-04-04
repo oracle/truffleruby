@@ -71,10 +71,7 @@ public class RubyMessageResolution {
         @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
-            if (RubyGuards.isRubyString(object)) {
-                return false;
-            }
-            return doesRespond.doesRespondTo(frame, "size", object);
+            return RubyGuards.isRubyArray(object);
         }
 
     }

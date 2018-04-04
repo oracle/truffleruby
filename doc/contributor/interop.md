@@ -53,7 +53,7 @@ Calls `new`, passing the arguments as you'd expect.
 
 ### `HAS_SIZE`
 
-Returns true if the object responds to `size`, except for `String`.
+Returns `true` only for `Array`.
 
 ### `GET_SIZE`
 

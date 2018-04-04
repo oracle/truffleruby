@@ -75,7 +75,7 @@ is the corresponding action it takes on the Ruby object expressed in Ruby code.
 
 `new object(args...)` calls `object.new(args...)`.
 
-`"length" in obj` calls `object.respond_to?(:size)`
+`"length" in obj` retursn `true` for a Ruby `Array`.
 
 `object == null` calls `object.nil?`.
 
