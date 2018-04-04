@@ -536,7 +536,7 @@ module Commands
     dynamic_imports = dynamic_import_line.split('=', 2).last.split(',')
     dynamic_imports.push '/tools' unless dynamic_imports.include? '/tools'
     dynamic_import_line.replace "DEFAULT_DYNAMIC_IMPORTS=#{dynamic_imports.join ','}"
-    File.write(env_path, env_lines.join("\n"))
+    File.write(env_path, env_lines.join("\n") + "\n")
 
     mx 'build', '--force-javac', '--warning-as-error', '--force-deprecation-as-warning-for-dependencies',
        # show more than default 100 errors not to hide actual errors under pile of missing symbols
