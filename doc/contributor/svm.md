@@ -81,7 +81,7 @@ the SVM version of TruffleRuby using a tool distributed as part of GraalVM and
 the Java version of TruffleRuby from GraalVM.
 
 ```
-$ native-image -H:Name=native-ruby --Language:ruby
+$ native-image -H:Name=native-ruby --language:ruby
 ```
 
 `native-ruby` is the output file name.

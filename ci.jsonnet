@@ -245,9 +245,9 @@ local part_definitions = {
         # Workaround for NFI when building with different Truffle versions
         ["mx", "clean"],
         ["mx", "build"],
-        ["mx", "fetch-languages", "--Language:llvm", "--Language:ruby"],
+        ["mx", "fetch-languages", "--language:llvm", "--language:ruby"],
         # aot-build.log is used for the build-stats metrics
-        ["./native-image", "--no-server", "--Language:ruby", "|", "tee", "../../main/aot-build.log"],
+        ["./native-image", "--no-server", "--language:ruby", "|", "tee", "../../main/aot-build.log"],
         ["cd", "../../main"],
       ],
 
