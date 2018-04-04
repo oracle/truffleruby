@@ -8,6 +8,10 @@ export and import objects between languages, how to use Ruby objects from
 a foreign language, how to use foreign objects from Ruby, and how to load
 Java types to interface with Java.
 
+If you are using the native configuration, you will need to use the `--polyglot`
+flag to get access to other languages. The JVM configuration automatically has
+access to other languages.
+
 There is also [additional documentation](../contributor/interop.md) that
 describes in more depth how polyglot programming in TruffleRuby is implemented
 using the Truffle interop API, and exactly how Ruby is matched to this API.
