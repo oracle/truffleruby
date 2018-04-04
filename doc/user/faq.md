@@ -48,7 +48,9 @@ The easiest way to get TruffleRuby is the GraalVM, available from the Oracle
 Technology Network. This includes the JVM, the Graal compiler, and TruffleRuby,
 all in one package with compatible versions.
 
-See [Using GraalVM](using-graalvm.md).
+You can get the GraalVM from the OTN, or see [Using GraalVM](using-graalvm.md).
+
+http://www.oracle.com/technetwork/oracle-labs/program-languages/
 
 ### Why is TruffleRuby slow on a standard JVM?
 

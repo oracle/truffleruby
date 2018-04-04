@@ -38,7 +38,8 @@ used.
 `Truffle.native?` reports if TruffleRuby has been ahead-of-time compiled.
 In practice this implies that the SubstrateVM is being used.
 
-`Truffle.revision` reports the source control revision of TruffleRuby.
+`Truffle.revision` reports the source control revision used to build
+TruffleRuby.
 
 ## Polyglot programming
 
