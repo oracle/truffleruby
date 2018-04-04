@@ -11,6 +11,11 @@ package org.truffleruby.tck;
 
 import static org.graalvm.polyglot.tck.TypeDescriptor.*;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -24,7 +29,7 @@ import org.graalvm.polyglot.tck.ResultVerifier;
 import org.graalvm.polyglot.tck.Snippet;
 import org.graalvm.polyglot.tck.TypeDescriptor;
 import org.junit.Assert;
-import org.truffleruby.RubyTest;
+import org.truffleruby.launcher.RubyLauncher;
 
 public class RubyTCKLanguageProvider implements LanguageProvider {
 
@@ -192,7 +197,7 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
     public Collection<? extends Snippet> createScripts(Context context) {
         final List<Snippet> res = new ArrayList<>();
 
-        Snippet.newBuilder("array of Points", context.eval(RubyTest.getSource("src/test/ruby/points.rb")), array(OBJECT)).resultVerifier(run -> {
+        Snippet.newBuilder("array of Points", context.eval(getSource("src/test/ruby/points.rb")), array(OBJECT)).resultVerifier(run -> {
             ResultVerifier.getDefaultResultVerfier().accept(run);
             final Value result = run.getResult();
             Assert.assertEquals("Array size", 2, result.getArraySize());
@@ -204,7 +209,7 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
             Assert.assertEquals("res[1].y", 7, p2.getMember("y").asInt());
         });
 
-        Snippet.newBuilder("recursion", context.eval(RubyTest.getSource("src/test/ruby/recursion.rb")), array(NUMBER)).resultVerifier(run -> {
+        Snippet.newBuilder("recursion", context.eval(getSource("src/test/ruby/recursion.rb")), array(NUMBER)).resultVerifier(run -> {
             ResultVerifier.getDefaultResultVerfier().accept(run);
             final Value result = run.getResult();
             Assert.assertEquals("Array size", 3, result.getArraySize());
@@ -249,6 +254,17 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
     private static Snippet createStatement(Context context, String name, String expression, TypeDescriptor argumentType, TypeDescriptor returnType) {
         final Value fnc = context.eval(ID, expression);
         return Snippet.newBuilder(name, fnc, returnType).parameterTypes(argumentType).build();
+    }
+
+    private static Source getSource(String path) {
+        final InputStream stream = ClassLoader.getSystemResourceAsStream(path);
+        final Reader reader = new InputStreamReader(stream);
+
+        try {
+            return Source.newBuilder(RubyLauncher.LANGUAGE_ID, reader, new File(path).getName()).build();
+        } catch (IOException e) {
+            throw new Error(e);
+        }
     }
 
 }
