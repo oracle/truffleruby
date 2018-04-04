@@ -336,12 +336,14 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println("                  specify the default external or internal character encoding");
         out.println("  --version       print the version");
         out.println("  --help          show this message, -h for short message");
+        out.println();
         out.println("Features:");
         out.println("  gems            rubygems (default: enabled)");
         out.println("  did_you_mean    did_you_mean (default: enabled)");
         out.println("  rubyopt         RUBYOPT environment variable (default: enabled)");
         out.println("  frozen-string-literal");
         out.println("                  freeze all string literals (default: disabled)");
+        out.println();
         out.println("TruffleRuby:");
         out.println("  -Xlog=severe,warning,performance,info,config,fine,finer,finest");
         out.println("                  set the TruffleRuby logging level");
