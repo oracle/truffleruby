@@ -92,6 +92,6 @@ begin
   p Backtraces.native_callback(-> {
     error_helper
   })
-rescue RubyTruffleError => e
+rescue RuntimeError => e
   puts_backtrace e.full_message
 end

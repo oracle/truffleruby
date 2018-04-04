@@ -299,7 +299,7 @@ public class ExceptionTranslatingNode extends RubyNode {
             firstException = false;
         }
 
-        // When printing the backtrace of the RubyTruffleError, make it clear it's not a cause
+        // When printing the backtrace of the exception, make it clear it's not a cause
         builder.append("Translated to internal error");
 
         return coreExceptions().internalErrorFullMessage(builder.toString(), this, throwable);

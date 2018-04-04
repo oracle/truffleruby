@@ -15,7 +15,7 @@ begin
   
   puts 'while loop optimisation timed out'
   exit 1
-rescue RubyTruffleError => e
+rescue RuntimeError => e
   if e.message.include? 'Truffle::Graal.assert_not_compiled'
     puts 'while loop optimising'
     exit 0

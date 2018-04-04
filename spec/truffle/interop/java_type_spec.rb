@@ -28,8 +28,8 @@ guard -> { !Truffle.native? } do
       Truffle::Interop.java_type_name(Truffle::Interop.java_type("java.math.BigInteger[]")).should == "[Ljava.math.BigInteger;"
     end
 
-    it "throws RubyTruffleError for unknown class names" do
-      lambda { Truffle::Interop.java_type("does.not.Exist") }.should raise_error(RubyTruffleError)
+    it "throws RuntimeError for unknown class names" do
+      lambda { Truffle::Interop.java_type("does.not.Exist") }.should raise_error(RuntimeError)
     end
 
     it "works with symbols" do

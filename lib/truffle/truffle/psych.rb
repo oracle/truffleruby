@@ -56,7 +56,7 @@ module Psych
       loop do
         begin
           event = get_event(parser)
-        rescue RubyTruffleError => e
+        rescue RuntimeError => e
           if info = parse_exception_info(e)
             raise Psych::SyntaxError.new(path, *info)
           else

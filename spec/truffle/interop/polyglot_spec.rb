@@ -19,7 +19,7 @@ describe Polyglot do
     it "doesn't work with MIME types" do
       lambda {
         Polyglot.eval("application/x-ruby", "14 + 2")
-      }.should raise_error(RubyTruffleError, /No language for id application\/x-ruby found/)
+      }.should raise_error(RuntimeError, /No language for id application\/x-ruby found/)
     end
   
   end
@@ -34,7 +34,7 @@ describe Polyglot do
     it "doesn't work with MIME types" do
       lambda {
         Polyglot.eval_file("application/x-ruby", File.join(File.dirname(__FILE__), "fixtures/eval_file_id.rb"))
-      }.should raise_error(RubyTruffleError, /No language for id application\/x-ruby found/)
+      }.should raise_error(RuntimeError, /No language for id application\/x-ruby found/)
     end
   
   end

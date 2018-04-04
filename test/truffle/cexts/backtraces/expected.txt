@@ -67,7 +67,7 @@ Caused by:
 	from /lib/truffle/truffle/cext.rb:n:in `execute_with_mutex'
 	from /lib/truffle/truffle/cext_ruby.rb:n:in `native_callback'
 	from /bin/backtraces:92:in `<main>'
-Translated to internal error (RubyTruffleError)
+Translated to internal error (RuntimeError)
 	from /lib/truffle/truffle/cext.rb:n:in `execute_with_mutex'
 	from /lib/truffle/truffle/cext_ruby.rb:n:in `native_callback'
 	from /bin/backtraces:92:in `<main>'

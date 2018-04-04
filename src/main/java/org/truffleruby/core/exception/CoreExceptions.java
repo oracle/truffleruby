@@ -783,7 +783,7 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject internalErrorFullMessage(String fullMessage, Node currentNode, Throwable javaThrowable) {
-        DynamicObject exceptionClass = context.getCoreLibrary().getRubyTruffleErrorClass();
+        DynamicObject exceptionClass = context.getCoreLibrary().getRuntimeErrorClass();
         DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(fullMessage, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, javaThrowable);
     }

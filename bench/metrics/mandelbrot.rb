@@ -105,6 +105,6 @@ begin
   loop do
     mandelbrot 750
   end
-rescue RubyTruffleError
+rescue RuntimeError
   puts Time.now - start
 end
