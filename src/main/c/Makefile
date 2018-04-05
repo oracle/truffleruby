@@ -116,7 +116,7 @@ $(CEXTS_DIR)/syslog.su: syslog/syslog.su
 psych/Makefile: psych/extconf.rb $(EXTCONF_DEPS)
 	cd psych && $(RUBY) extconf.rb
 
-psych/psych.su: psych/Makefile psych/psych.c
+psych/psych.su: psych/Makefile psych/*.c psych/*.h psych/yaml/*.c psych/yaml/*.h
 	cd psych && $(MAKE)
 
 $(CEXTS_DIR)/psych.su: psych/psych.su
