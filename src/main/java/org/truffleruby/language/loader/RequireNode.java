@@ -200,7 +200,7 @@ public abstract class RequireNode extends RubyNode {
                 // TODO CS 18-Mar-18 it's not ideal that we're catching and throwing an exception when we don't find Init_ in each file
                 continue;
             } catch (UnsupportedMessageException e) {
-                continue;
+                throw new JavaException(e);
             }
 
             if (initObject != null) {
