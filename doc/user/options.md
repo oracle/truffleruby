@@ -33,6 +33,7 @@ Usage: truffleruby [switches] [--] [programfile] [arguments]
                   specify the default external or internal character encoding
   --version       print the version
   --help          show this message, -h for short message
+
 Features:
   gems            rubygems (default: enabled)
   did_you_mean    did_you_mean (default: enabled)
@@ -61,18 +62,19 @@ Beyond the standard Ruby command line switches we support some additional
 switches specific to TruffleRuby.
 
 ```
-TruffleRuby switches:
+TruffleRuby:
   -Xlog=severe,warning,performance,info,config,fine,finer,finest
                   set the TruffleRuby logging level
   -Xoptions       print available TruffleRuby options
   -Xname=value    set a TruffleRuby option (omit value to set to true)
+  -J-option=value Translates to --jvm.option=value
 ```
 
 As well as being set at the command line, options, except for `log`,
-can be set using `--ruby.option=` in any GraalVM launcher.
+can be set using `--ruby.option=`.
 For example `--ruby.inline_js=true`. They can also be set as JVM system
 properties, where they have a prefix `polyglot.ruby.`. For example
-`-J-Dpolyglot.ruby.inline_js=true`, or via any other way of setting JVM system
+`--jvm.Dpolyglot.ruby.inline_js=true`, or via any other way of setting JVM system
 properties. Finally, options can be set as Graal-SDK polyglot API configuration
 options.
 
@@ -97,12 +99,10 @@ passing options to the JVM using either a `-J-` or `--jvm.` prefix.
 For example `-J-ea`. `-J-classpath` and `-J-cp` 
 also implicitly take the following argument to be passed to the JVM.
 `-J-cmd` print the Java command that will be executed, for
-debugging.
+debugging. 
 
 ```
-JVM switches:
-  --jvm.arg,         -J-arg           pass arg to the JVM
-  --jvm.Dname=value, -J-Dname=value   set a system property
+  --jvm.[option]  Pass options to the JVM; for example, '--jvm.classpath=myapp.jar'. To see available options. use '--jvm.help'.
 ```
 
 `--` or the first non-option argument both stop processing of JVM-specific
@@ -117,9 +117,7 @@ The SVM supports `--native.D` for setting system properties and
 `--native.XX:arg` for SVM options. 
 
 ```
-Native switches:
-  --native.XX:arg       pass arg to the SVM
-  --native.Dname=value  set a system property
+  --native.[option]  Pass options to the native image. To see available options, use '--native.help'.
 ```
 
 ## Determining the TruffleRuby home
