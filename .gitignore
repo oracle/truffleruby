@@ -26,6 +26,7 @@ lib/cext/ruby.bc
 lib/cext/sulong-libs
 lib/mri/openssl.su
 lib/mri/zlib.su
+lib/mri/psych.su
 lib/mri/syslog.su
 /.ext
 
