@@ -165,6 +165,11 @@ module RbConfig
     mkconfig['sitearchdir'] = '$(sitelibdir)/$(sitearch)'
     expanded['topdir'] = archdir
     mkconfig['topdir'] = '$(archdir)'
+    datarootdir = \
+    expanded['datarootdir'] = "#{prefix}/share"
+    mkconfig['datarootdir'] = '$(prefix)/share'
+    expanded['ridir'] = "#{datarootdir}/ri"
+    mkconfig['ridir'] = '$(datarootdir)/ri'
   end
 
   launcher = Truffle::Boot.ruby_launcher
