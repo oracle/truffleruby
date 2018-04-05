@@ -18,7 +18,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -65,8 +64,22 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
 
     @Specialization(guards = {
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "methodDefined(frame, receiver, stringName, getDefinedNode())",
-            "!methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())"
+            "methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())"
+    })
+    public Object callIndex(
+            VirtualFrame frame,
+            DynamicObject receiver,
+            Object name,
+            Object stringName,
+            boolean isIVar,
+            @Cached("create()") ForeignToRubyNode nameToRubyNode) {
+        return getCallNode().call(frame, receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
+    }
+
+    @Specialization(guards = {
+            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
+            "!methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())",
+            "methodDefined(frame, receiver, stringName, getDefinedNode())"
     })
     public Object callMethod(
             VirtualFrame frame,
@@ -80,40 +93,8 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
 
     @Specialization(guards = {
             "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "methodDefined(frame, receiver, stringName, getDefinedNode())",
-            "methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())"
-    })
-    public Object callMethodPriorityOverIndex(
-            VirtualFrame frame,
-            DynamicObject receiver,
-            Object name,
-            Object stringName,
-            boolean isIVar,
-            @Cached("create()") ForeignToRubyNode nameToRubyNode) {
-        return getCallNode().call(frame, receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
-    }
-
-    @Specialization(guards = {
-            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "!methodDefined(frame, receiver, stringName, getDefinedNode())",
-            "methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())"
-    })
-    public Object index(
-            VirtualFrame frame,
-            DynamicObject receiver,
-            Object name,
-            Object stringName,
-            boolean isIVar,
-            @Cached("create()") ForeignToRubyNode nameToRubyNode,
-            @Cached("createBinaryProfile()") ConditionProfile arrayProfile,
-            @Cached("createBinaryProfile()") ConditionProfile validArrayIndexProfile) {
-        return getCallNode().call(frame, receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
-    }
-
-    @Specialization(guards = {
-            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
-            "!methodDefined(frame, receiver, stringName, getDefinedNode())",
-            "!methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())"
+            "!methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())",
+            "!methodDefined(frame, receiver, stringName, getDefinedNode())"
     })
     public Object unknownIdentifier(
             VirtualFrame frame,
