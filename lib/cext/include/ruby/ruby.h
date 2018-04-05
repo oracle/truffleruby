@@ -1003,6 +1003,10 @@ struct RArray {
 long rb_array_len(VALUE a);
 
 int RARRAY_LENINT(VALUE array);
+
+// TruffleRuby
+#define rb_array_const_ptr(array) ((const VALUE *)RARRAY_PTR(array))
+
 #define RARRAY_CONST_PTR(a) rb_array_const_ptr(a)
 
 #define RARRAY_PTR_USE_START(a) ((VALUE *)RARRAY_CONST_PTR(a))

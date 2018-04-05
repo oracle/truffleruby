@@ -31,7 +31,7 @@ endif
 no_cexts: clean_cexts
 	@echo "WARNING: TRUFFLERUBY_CEXT_ENABLED is set to false - not building cexts" 1>&2
 
-all: $(RUBY_LIBRARY) $(CEXTS_DIR)/openssl.su $(CEXTS_DIR)/zlib.su $(CEXTS_DIR)/syslog.su
+all: $(RUBY_LIBRARY) $(CEXTS_DIR)/openssl.su $(CEXTS_DIR)/zlib.su $(CEXTS_DIR)/psych.su $(CEXTS_DIR)/syslog.su
 
 clean: clean_cexts clean_truffleposix
 
@@ -49,6 +49,8 @@ clean_cexts:
 	rm -f openssl/Makefile openssl/*.bc openssl/openssl.su
 	rm -f $(CEXTS_DIR)/zlib.su
 	rm -f zlib/Makefile zlib/*.bc zlib/zlib.su
+	rm -f $(CEXTS_DIR)/psych.su
+	rm -f psych/Makefile psych/*.bc psych/yaml/*.bc psych/psych.su
 	rm -f $(CEXTS_DIR)/syslog.su
 	rm -f syslog/Makefile syslog/*.bc syslog/syslog.su
 
@@ -108,4 +110,14 @@ syslog/syslog.su: syslog/Makefile syslog/syslog.c
 	cd syslog && $(MAKE)
 
 $(CEXTS_DIR)/syslog.su: syslog/syslog.su
+	cp $< $@
+
+# psych.su
+psych/Makefile: psych/extconf.rb $(EXTCONF_DEPS)
+	cd psych && $(RUBY) extconf.rb
+
+psych/psych.su: psych/Makefile psych/psych.c
+	cd psych && $(MAKE)
+
+$(CEXTS_DIR)/psych.su: psych/psych.su
 	cp $< $@
