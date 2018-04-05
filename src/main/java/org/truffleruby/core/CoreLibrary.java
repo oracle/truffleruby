@@ -62,7 +62,6 @@ import org.truffleruby.platform.NativeTypes;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.shared.BuildInformationImpl;
 import org.truffleruby.shared.TruffleRuby;
-import org.truffleruby.stdlib.psych.YAMLEncoding;
 
 import java.io.File;
 import java.io.IOException;
@@ -122,10 +121,6 @@ public class CoreLibrary {
     private final DynamicObject numericClass;
     private final DynamicObject objectClass;
     private final DynamicObjectFactory objectFactory;
-    private final DynamicObject psychYAMLEventClass;
-    private final DynamicObjectFactory psychYAMLEventFactory;
-    private final DynamicObject psychYAMLParserClass;
-    private final DynamicObjectFactory psychYAMLParserFactory;
     private final DynamicObject procClass;
     private final DynamicObjectFactory procFactory;
     private final DynamicObject processModule;
@@ -188,8 +183,6 @@ public class CoreLibrary {
     private final DynamicObject weakRefClass;
     private final DynamicObjectFactory weakRefFactory;
     private final DynamicObject objectSpaceModule;
-    private final DynamicObject psychModule;
-    private final DynamicObject publicPsychParserClass;
     private final DynamicObject randomizerClass;
     private final DynamicObjectFactory randomizerFactory;
     private final DynamicObject atomicReferenceClass;
@@ -526,15 +519,6 @@ public class CoreLibrary {
         defineModule(truffleModule, "Readline");
         defineModule(truffleModule, "ReadlineHistory");
         defineModule(truffleModule, "ThreadOperations");
-        psychModule = defineModule("Psych");
-        publicPsychParserClass = defineClass(psychModule, objectClass, "Parser");
-        psychYAMLParserClass = defineClass(publicPsychParserClass, objectClass, "YAMLParser");
-        psychYAMLParserFactory = Layouts.PSYCH_YAML_PARSER.createPsychParserShape(psychYAMLParserClass, psychYAMLParserClass);
-        psychYAMLEventClass = defineClass(publicPsychParserClass, objectClass, "YAMLEvent");
-        psychYAMLEventFactory = Layouts.PSYCH_EVENT.createPsychEventShape(psychYAMLEventClass, psychYAMLEventClass);
-        final DynamicObject psychHandlerClass = defineClass(psychModule, objectClass, "Handler");
-        final DynamicObject psychEmitterClass = defineClass(psychModule, psychHandlerClass, "Emitter");
-        Layouts.CLASS.setInstanceFactoryUnsafe(psychEmitterClass, Layouts.PSYCH_EMITTER.createEmitterShape(psychEmitterClass, psychEmitterClass));
         handleClass = defineClass(truffleModule, objectClass, "Handle");
         handleFactory = Layouts.HANDLE.createHandleShape(handleClass, handleClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(handleClass, handleFactory);
@@ -716,11 +700,6 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "XML_TEXT_DECORATOR", EConvFlags.XML_TEXT_DECORATOR);
         Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "XML_ATTR_CONTENT_DECORATOR", EConvFlags.XML_ATTR_CONTENT_DECORATOR);
         Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "XML_ATTR_QUOTE_DECORATOR", EConvFlags.XML_ATTR_QUOTE_DECORATOR);
-
-        Layouts.MODULE.getFields(publicPsychParserClass).setConstant(context, node, "ANY", YAMLEncoding.YAML_ANY_ENCODING.ordinal());
-        Layouts.MODULE.getFields(publicPsychParserClass).setConstant(context, node, "UTF8", YAMLEncoding.YAML_UTF8_ENCODING.ordinal());
-        Layouts.MODULE.getFields(publicPsychParserClass).setConstant(context, node, "UTF16LE", YAMLEncoding.YAML_UTF16LE_ENCODING.ordinal());
-        Layouts.MODULE.getFields(publicPsychParserClass).setConstant(context, node, "UTF16BE", YAMLEncoding.YAML_UTF16BE_ENCODING.ordinal());
 
         // Errno classes and constants
         for (Entry<String, Object> entry : context.getNativeConfiguration().getSection(ERRNO_CONFIG_PREFIX)) {
@@ -1023,14 +1002,6 @@ public class CoreLibrary {
 
     public DynamicObject getProcessModule() {
         return processModule;
-    }
-
-    public DynamicObjectFactory getPsychYAMLEventFactory() {
-        return psychYAMLEventFactory;
-    }
-
-    public DynamicObjectFactory getPsychYAMLParserFactory() {
-        return psychYAMLParserFactory;
     }
 
     public DynamicObject getRangeClass() {

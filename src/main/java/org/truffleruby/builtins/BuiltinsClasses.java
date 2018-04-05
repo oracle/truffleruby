@@ -159,10 +159,6 @@ import org.truffleruby.stdlib.bigdecimal.BigDecimalNodesBuiltins;
 import org.truffleruby.stdlib.bigdecimal.BigDecimalNodesFactory;
 import org.truffleruby.stdlib.digest.DigestNodesBuiltins;
 import org.truffleruby.stdlib.digest.DigestNodesFactory;
-import org.truffleruby.stdlib.psych.PsychEmitterNodesBuiltins;
-import org.truffleruby.stdlib.psych.PsychEmitterNodesFactory;
-import org.truffleruby.stdlib.psych.PsychParserNodesBuiltins;
-import org.truffleruby.stdlib.psych.PsychParserNodesFactory;
 import org.truffleruby.stdlib.readline.ReadlineHistoryNodesBuiltins;
 import org.truffleruby.stdlib.readline.ReadlineHistoryNodesFactory;
 import org.truffleruby.stdlib.readline.ReadlineNodesBuiltins;
@@ -217,8 +213,6 @@ public abstract class BuiltinsClasses {
         PolyglotNodesBuiltins.setup(coreManager, primitiveManager);
         ProcessNodesBuiltins.setup(coreManager, primitiveManager);
         ProcNodesBuiltins.setup(coreManager, primitiveManager);
-        PsychEmitterNodesBuiltins.setup(coreManager, primitiveManager);
-        PsychParserNodesBuiltins.setup(coreManager, primitiveManager);
         QueueNodesBuiltins.setup(coreManager, primitiveManager);
         RandomizerNodesBuiltins.setup(coreManager, primitiveManager);
         RangeNodesBuiltins.setup(coreManager, primitiveManager);
@@ -299,8 +293,6 @@ public abstract class BuiltinsClasses {
             PolyglotNodesFactory.getFactories(),
             ProcessNodesFactory.getFactories(),
             ProcNodesFactory.getFactories(),
-            PsychEmitterNodesFactory.getFactories(),
-            PsychParserNodesFactory.getFactories(),
             QueueNodesFactory.getFactories(),
             RandomizerNodesFactory.getFactories(),
             RangeNodesFactory.getFactories(),
