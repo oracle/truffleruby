@@ -1802,17 +1802,17 @@ module Commands
 
       mx 'build'
       mx 'fetch-languages',
-         '--Language:llvm', '--Language:ruby',
-         '--Tool:chromeinspector', '--Tool:profiler'
+         '--language:llvm', '--language:ruby',
+         '--tool:chromeinspector', '--tool:profiler'
 
-      languages = %w[--Language:ruby]
+      languages = %w[--language:ruby]
 
       if sulong
-        languages.unshift '--Language:llvm'
+        languages.unshift '--language:llvm'
         options.unshift '-Dtruffleruby.native.libsulong_dir=lib/cext/sulong-libs'
       end
       if tools
-        languages.push '--Tool:chromeinspector', '--Tool:profiler'
+        languages.push '--tool:chromeinspector', '--tool:profiler'
       end
 
       env = jvmci ? { "JAVA_HOME" => java_home } : {}
