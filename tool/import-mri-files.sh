@@ -15,8 +15,8 @@ cp ../ruby/ext/syslog/*.{c,rb} src/main/c/syslog
 cp ../ruby/ext/zlib/*.{c,rb} src/main/c/zlib
 cp -r ../ruby/ext/openssl/lib/* lib/mri
 cp -r ../ruby/ext/bigdecimal/lib/bigdecimal lib/mri
-cp -r ../ruby/ext/psych/lib/psych lib/mri
-cp -r ../ruby/ext/psych/lib/*.rb lib/mri
+#cp -r ../ruby/ext/psych/lib/psych lib/mri
+#cp -r ../ruby/ext/psych/lib/*.rb lib/mri
 cp -r ../ruby/ext/pty/lib/*.rb lib/mri
 cp -r ../ruby/ext/syslog/lib/syslog lib/mri/syslog
 

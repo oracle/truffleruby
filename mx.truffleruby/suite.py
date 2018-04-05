@@ -51,7 +51,6 @@ suite = {
                 "BSD-simplified",   # MRI
                 "BSD-new",          # Rubinius, FFI
                 "MIT",              # JCodings, minitest, did_you_mean, rake
-                "Apache-2.0",       # SnakeYAML
             ]
         },
     },
@@ -59,19 +58,6 @@ suite = {
     "libraries": {
 
         # ------------- Libraries -------------
-
-        "SNAKEYAML": {
-            "maven": {
-                "groupId": "org.yaml",
-                "artifactId": "snakeyaml",
-                "version": "1.17"
-            },
-            "sha1": "7a27ea250c5130b2922b86dea63cbb1cc10a660c",
-            "sourceSha1": "63577e87886c76228db9f8a2c50ea43cde5072eb",
-            "license": [
-                "Apache-2.0",       # SnakeYAML
-            ],
-        },
 
         "JONI": {
             "maven": {
@@ -155,7 +141,6 @@ suite = {
                 "truffleruby:TRUFFLERUBY-SHARED",
                 "truffle:TRUFFLE_API",
                 "truffle:JLINE",
-                "SNAKEYAML",
                 "JONI",
                 "JCODINGS",
             ],
@@ -173,7 +158,6 @@ suite = {
                 "BSD-new",          # Rubinius
                 "BSD-simplified",   # MRI
                 "MIT",              # Joni, JCodings
-                "Apache-2.0",       # SnakeYAML
             ],
         },
 
@@ -360,7 +344,6 @@ suite = {
                 "BSD-new",          # Rubinius
                 "BSD-simplified",   # MRI
                 "MIT",              # Joni, JCodings
-                "Apache-2.0",       # SnakeYAML
             ],
         },
 

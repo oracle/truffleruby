@@ -111,11 +111,3 @@ end
 Truffle::Boot.delay do
   $LOAD_PATH.unshift(*Truffle::Boot.original_load_path)
 end
-
-# We defined Psych at the top level because several things depend on its name.
-# Here we fix that up and put it back into Truffle.
-Truffle::Psych = Psych
-
-class Object
-  remove_const :Psych
-end
