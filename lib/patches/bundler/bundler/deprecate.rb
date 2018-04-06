@@ -31,6 +31,7 @@ end
 
 module Bundler
   # TODO (pitr-ch 26-Mar-2018): we need to also check that it's not autoload cosntant
+  # Resources: https://github.com/bundler/bundler/issues/6163 https://github.com/rubinius/rubinius/issues/3769
   if defined?(Bundler::Deprecate) && !autoload?(:Deprecate)
     # nothing to do!
   elsif defined? ::Deprecate
