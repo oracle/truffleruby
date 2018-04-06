@@ -21,10 +21,13 @@ extern "C" {
 #endif
 #endif
 
+// Must be first, as it defines feature test macros like _GNU_SOURCE,
+// which influences the definitions exposed by system header files.
+#include "ruby/config.h"
+
 #include <sulong/truffle.h>
 #include <sulong/polyglot.h>
 
-#include "ruby/config.h"
 #include <ctype.h> // isdigit
 
 // Support
