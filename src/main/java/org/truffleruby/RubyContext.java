@@ -714,6 +714,11 @@ public class RubyContext {
 
         // Use the Truffle reported home
 
+        final StringBuilder warning = new StringBuilder("home locations tried:\n");
+
+        warning.append("* -Xhome was not set");
+        warning.append("* truffleruby.preinitialization.home system property was not set (for internal use only)");
+
         final String truffleReported = language.getTruffleLanguageHome();
 
         if (truffleReported != null) {
@@ -721,17 +726,14 @@ public class RubyContext {
             if (isRubyHome(home)) {
                 return truffleReported;
             } else {
-                Log.LOGGER.config(home + " reported by Truffle does not look like TruffleRuby's home");
+                warning.append("* path '").
+                        append(truffleReported).
+                        append("' reported by Truffle does not look like TruffleRuby's home\n");
             }
         }
 
         // All the following methods to find home should go away longer term
 
-        final StringBuilder warning = new StringBuilder("home locations tried:\n");
-
-        warning.append("* -Xhome was not set");
-        warning.append("* Truffle could not report a home");
-        warning.append("* truffleruby.preinitialization.home system property was not set (for internal use only)");
 
         if (!options.LAUNCHER.isEmpty()) {
             final Path canonicalLauncherPath = Paths.get(new File(options.LAUNCHER).getCanonicalPath());
