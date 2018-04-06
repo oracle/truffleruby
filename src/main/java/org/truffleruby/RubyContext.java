@@ -721,7 +721,7 @@ public class RubyContext {
             if (isRubyHome(home)) {
                 return truffleReported;
             } else {
-                Log.LOGGER.warning(home + " reported by Truffle does not look like TruffleRuby's home");
+                Log.LOGGER.config(home + " reported by Truffle does not look like TruffleRuby's home");
             }
         }
 
