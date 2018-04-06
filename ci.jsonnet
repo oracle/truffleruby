@@ -200,10 +200,6 @@ local part_definitions = {
         ["cd", "../../main"],
       ],
 
-      "$.svm.build_image":: {
-        aot_bin: "$GRAAL_HOME/../substratevm/ruby",
-      },
-
       environment+: {
         HOST_VM_CONFIG: "graal-core",
         GRAAL_HOME: "$PWD/../graal/compiler",
@@ -228,10 +224,6 @@ local part_definitions = {
         ["cd", "../../main"],
       ],
 
-      "$.svm.build_image":: {
-        aot_bin: "$GRAAL_HOME/../substratevm-enterprise/ruby",
-      },
-
       environment+: {
         HOST_VM_CONFIG: "graal-enterprise",
         GRAAL_HOME: "$PWD/../graal-enterprise/graal-enterprise",
@@ -254,9 +246,7 @@ local part_definitions = {
       local build = self,
       environment+: {
         JT_BENCHMARK_RUBY: "$AOT_BIN",
-        AOT_BIN: build["$.svm.build_image"].aot_bin,
-        # so far there is no conflict buy it may become cumulative later
-        TRUFFLERUBYOPT: "-Xhome=$PWD",
+        AOT_BIN: "$SVM_HOME/svmbuild/native-image-root/languages/ruby/bin/truffleruby",
       },
     },
   },
