@@ -718,10 +718,11 @@ public class RubyContext {
 
         if (truffleReported != null) {
             final File home = new File(truffleReported);
-            if (!isRubyHome(home)) {
+            if (isRubyHome(home)) {
+                return truffleReported;
+            } else {
                 Log.LOGGER.warning(home + " reported by Truffle does not look like TruffleRuby's home");
             }
-            return truffleReported;
         }
 
         // All the following methods to find home should go away longer term
