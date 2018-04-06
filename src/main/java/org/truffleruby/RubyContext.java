@@ -716,8 +716,8 @@ public class RubyContext {
 
         final StringBuilder warning = new StringBuilder("home locations tried:\n");
 
-        warning.append("* -Xhome was not set");
-        warning.append("* truffleruby.preinitialization.home system property was not set (for internal use only)");
+        warning.append("* -Xhome was not set\n");
+        warning.append("* truffleruby.preinitialization.home system property was not set (for internal use only)\n");
 
         final String truffleReported = language.getTruffleLanguageHome();
 
