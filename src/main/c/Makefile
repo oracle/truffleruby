@@ -114,7 +114,8 @@ $(CEXTS_DIR)/syslog.su: syslog/syslog.su
 
 # psych.su
 psych/Makefile: psych/extconf.rb $(EXTCONF_DEPS)
-	cd psych && $(RUBY) extconf.rb
+	# TODO CS 6-Apr-18 --enable-bundled-libyaml should be automatic - the header and symbol check pass and I can't see why
+	cd psych && $(RUBY) extconf.rb --enable-bundled-libyaml
 
 psych/psych.su: psych/Makefile psych/*.c psych/*.h psych/yaml/*.c psych/yaml/*.h
 	cd psych && $(MAKE)
