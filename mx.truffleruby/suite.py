@@ -313,7 +313,10 @@ suite = {
             "description": "TruffleRuby Annotations",
             "license": ["EPL-1.0"]
         },
-
+        
+        # Required to share code between the launcher and the rest, 
+        # since the rest cannot depend on the launcher and the shared code cannot be there. 
+        # This code is loaded twice in different classloaders, therefore any created instances should not be passed around.
         "TRUFFLERUBY-SHARED": {
             "dependencies": [
                 "truffleruby-shared"
