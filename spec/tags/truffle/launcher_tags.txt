@@ -67,3 +67,4 @@ slow:The launcher 'testrb' in `RbConfig::CONFIG['extra_bindirs'][0]` directory r
 slow:The launcher 'testrb' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
 slow:The launcher 'truffleruby' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked
 slow:The launcher 'truffleruby' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
+graalvm(the executable is in jre/bin):The launcher is in the bindir
