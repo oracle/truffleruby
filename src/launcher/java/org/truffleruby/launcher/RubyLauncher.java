@@ -186,7 +186,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected AbortException abortUnrecognizedArgument(String argument) {
-        throw abortInvalidArgument(argument, "truffleruby: invalid option " + argument + "  (Use --help for usage instructions.");
+        throw abortInvalidArgument(argument, "truffleruby: invalid option " + argument + "  (Use --help for usage instructions.)");
     }
 
     private static int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {
