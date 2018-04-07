@@ -351,7 +351,7 @@ public class CommandLineParser {
                     break FOR;
                 case 'X':
                     disallowedInRubyOpts(argument);
-                    String extendedOption = grabValue("-X must be followed by an option");
+                    final String extendedOption = grabValue("-X must be followed by an option");
                     if (new File(extendedOption).isDirectory()) {
                         RubyLogger.LOGGER.warning("the -X option supplied also appears to be a directory name - did you intend to use -X like -C?");
                     }
@@ -381,17 +381,19 @@ public class CommandLineParser {
                         final String value;
 
                         final int equals = extendedOption.indexOf('=');
+                        final String name;
                         if (equals == -1) {
                             value = "true";
+                            name = extendedOption;
                         } else {
                             value = extendedOption.substring(equals + 1);
-                            extendedOption = extendedOption.substring(0, equals);
+                            name = extendedOption.substring(0, equals);
                         }
 
-                        final String fullName = TruffleRuby.LANGUAGE_ID + "." + extendedOption;
+                        final String fullName = TruffleRuby.LANGUAGE_ID + "." + name;
 
                         if (OptionsCatalog.fromName(fullName) == null) {
-                            config.getUnknownArguments().add(extendedOption);
+                            config.getUnknownArguments().add("-X" + extendedOption);
                             break FOR;
                         }
 

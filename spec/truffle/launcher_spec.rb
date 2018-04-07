@@ -170,9 +170,9 @@ describe "The launcher" do
   end
 
   it "prints an error for an unknown option" do
-    out = ruby_exe(nil, options: "-Xunknown", args: "2>&1")
+    out = ruby_exe(nil, options: "-Xunknown=value", args: "2>&1")
     $?.success?.should == false
-    out.should include("invalid option")
+    out.should include("invalid option -Xunknown=value")
   end
 
   describe 'StringArray option' do
