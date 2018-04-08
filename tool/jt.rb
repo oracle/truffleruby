@@ -542,7 +542,8 @@ module Commands
     env_lines = (File.exist?(env_path) ? File.read(env_path) : '').lines.map(&:chomp)
     dynamic_import_line = env_lines.find { |l| l.include? 'DEFAULT_DYNAMIC_IMPORTS' } || (env_lines[env_lines.size] = 'DEFAULT_DYNAMIC_IMPORTS=')
     dynamic_imports = dynamic_import_line.split('=', 2).last.split(',')
-    dynamic_imports.push '/tools' unless dynamic_imports.include? '/tools'
+    return if dynamic_imports.include?('/tools')
+    dynamic_imports << '/tools'
     dynamic_import_line.replace "DEFAULT_DYNAMIC_IMPORTS=#{dynamic_imports.join ','}"
     File.write(env_path, env_lines.join("\n") + "\n")
   end
