@@ -367,8 +367,10 @@ module ShellUtils
     end
   end
 
-  def mx(*args)
-    raw_sh Utilities.find_mx, *args
+  def mx(*args, java_home: nil, **kwargs)
+    mx_args = args
+    mx_args.unshift '--java-home', java_home if java_home
+    raw_sh Utilities.find_mx, *mx_args, **kwargs
   end
 
   def mspec(command, *args)
@@ -1774,8 +1776,7 @@ module Commands
 
     puts "Building graal"
     chdir("#{graal}/compiler") do
-      File.write("mx.compiler/env", "JAVA_HOME=#{java_home}\n") unless options.include?("--no-jvmci")
-      mx "build"
+      mx "build", java_home: java_home
     end
 
     puts "Running with Graal"
@@ -1799,12 +1800,11 @@ module Commands
 
     puts 'Building TruffleRuby native binary'
     chdir("#{graal}/substratevm") do
-      File.write('mx.substratevm/env', "JAVA_HOME=#{java_home}\n") if jvmci
-
-      mx 'build'
+      mx 'build', java_home: java_home
       mx 'fetch-languages',
          '--language:llvm', '--language:ruby',
-         '--tool:chromeinspector', '--tool:profiler'
+         '--tool:chromeinspector', '--tool:profiler',
+         java_home: java_home
 
       languages = %w[--language:ruby]
 
@@ -1816,7 +1816,7 @@ module Commands
         languages.push '--tool:chromeinspector', '--tool:profiler'
       end
 
-      env = jvmci ? { "JAVA_HOME" => java_home } : {}
+      env = java_home ? { "JAVA_HOME" => java_home } : {}
       output_options = [
           "-H:Path=#{TRUFFLERUBY_DIR}/bin",
           '-H:Name=native-ruby',
