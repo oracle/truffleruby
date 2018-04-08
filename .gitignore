@@ -73,10 +73,7 @@ test/mri/tests/cext-c/**/*.o
 /mx.truffleruby/eclipse-launches
 /mxbuild
 /mx.imports
-/TRUFFLERUBY.dist
-/TRUFFLERUBY-LAUNCHER.dist
-/TRUFFLERUBY-PROCESSOR.dist
-/TRUFFLERUBY-TEST.dist
+/TRUFFLERUBY*.dist
 
 # ruby/spec
 /rubyspec_temp
