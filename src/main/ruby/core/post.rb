@@ -33,9 +33,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Set up IO only now as it has lots of dependencies
-STDIN = File.new(0)
-STDOUT = File.new(1)
-STDERR = File.new(2)
+STDIN = IO.new(0)
+STDOUT = IO.new(1)
+STDERR = IO.new(2)
 
 $stdin = STDIN
 $stdout = STDOUT
