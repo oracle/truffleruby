@@ -1136,7 +1136,7 @@ class IO
   # The +sync+ attribute will also be set.
   #
   def self.setup(io, fd, mode=nil, sync=false)
-    if Truffle::POSIX::NATIVE
+    if Truffle::POSIX::NATIVE and !Truffle::Boot.preinitializing?
       cur_mode = Truffle::POSIX.fcntl(fd, F_GETFL, 0)
       Errno.handle if cur_mode < 0
       cur_mode &= ACCMODE
