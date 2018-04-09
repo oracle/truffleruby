@@ -239,7 +239,16 @@ local part_definitions = {
         ["mx", "build"],
         ["mx", "fetch-languages", "--language:llvm", "--language:ruby"],
         # aot-build.log is used for the build-stats metrics
-        ["./native-image", "--no-server", "--language:ruby", "|", "tee", "../../main/aot-build.log"],
+        [
+          "./native-image",
+          "--no-server",
+          "--language:ruby",
+          "-H:Path=$SVM_HOME/svmbuild/native-image-root/languages/ruby/bin",
+          "-H:Name=truffleruby",
+          "|",
+          "tee",
+          "../../main/aot-build.log"
+        ],
         ["cd", "../../main"],
       ],
 
