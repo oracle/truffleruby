@@ -26,7 +26,7 @@ public class PolyglotIOTest extends RubyTest {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         final ByteArrayInputStream in = new ByteArrayInputStream("abc".getBytes());
 
-        try (Context context = Context.newBuilder()
+        try (Context context = RubyTest.setupContext(Context.newBuilder())
                 .out(out)
                 .in(in)
                 .build()) {
@@ -40,7 +40,7 @@ public class PolyglotIOTest extends RubyTest {
     public void testPolyglotOut() {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        try (Context context = Context.newBuilder()
+        try (Context context = RubyTest.setupContext(Context.newBuilder())
                 .out(out)
                 .build()) {
             context.eval(Source.create(TruffleRuby.LANGUAGE_ID, "puts 'abc'"));
@@ -53,7 +53,7 @@ public class PolyglotIOTest extends RubyTest {
     public void testPolyglotErr() {
         final ByteArrayOutputStream err = new ByteArrayOutputStream();
 
-        try (Context context = Context.newBuilder()
+        try (Context context = RubyTest.setupContext(Context.newBuilder())
                 .err(err)
                 .build()) {
             context.eval(Source.create(TruffleRuby.LANGUAGE_ID, "STDERR.puts 'abc'"));

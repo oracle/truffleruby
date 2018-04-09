@@ -49,7 +49,7 @@ public abstract class RubyTest {
     }
 
     protected void testInContext(Runnable test) {
-        try (Context context = setupContext(Context.newBuilder()).build()) {
+        try (Context context = createContext()) {
             context.eval(org.graalvm.polyglot.Source.create(TruffleRuby.LANGUAGE_ID, "-> test { test.call }"))
                     .execute(test);
         }
@@ -59,9 +59,14 @@ public abstract class RubyTest {
         final String cwd = System.getProperty("user.dir");
 
         return builder
+                .allowAllAccess(true)
                 .option(OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), Boolean.FALSE.toString())
                 .option(OptionsCatalog.HOME.getName(), cwd)
                 .option(OptionsCatalog.BASICOPS_INLINE.getName(), Boolean.FALSE.toString());
+    }
+
+    public static Context createContext() {
+        return setupContext(Context.newBuilder()).build();
     }
 
 }
