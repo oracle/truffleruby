@@ -27,7 +27,7 @@ public class MiscTest {
 
     @Test
     public void testMembersAndStringUnboxing() {
-        try (Context context = Context.create()) {
+        try (Context context = RubyTest.createContext()) {
             Value result = context.eval("ruby", "Struct.new(:id, :text, :arr).new(42, '42', [1, 42, 3])");
             assertTrue(result.hasMembers());
 
@@ -46,7 +46,7 @@ public class MiscTest {
 
     @Test
     public void timeoutExecution() {
-        Context context = Context.create();
+        Context context = RubyTest.createContext();
 
         Timer timer = new Timer();
         // schedule a timeout in 1s
@@ -74,7 +74,7 @@ public class MiscTest {
     public void testEvalFromIntegratorThreadSingleThreaded() throws Throwable {
         final String codeDependingOnCurrentThread = "Thread.current.object_id";
 
-        try (Context context = Context.create()) {
+        try (Context context = RubyTest.createContext()) {
             long thread1 = context.eval("ruby", codeDependingOnCurrentThread).asLong();
 
             TestingThread thread = new TestingThread(() -> {
@@ -88,7 +88,7 @@ public class MiscTest {
 
     @Test
     public void testFiberFromIntegratorThread() throws Throwable {
-        try (Context context = Context.newBuilder()
+        try (Context context = RubyTest.setupContext(Context.newBuilder())
                 .option(OptionsCatalog.SINGLE_THREADED.getName(), Boolean.FALSE.toString())
                 .allowCreateThread(true).build()) {
             context.eval("ruby", ":init");
