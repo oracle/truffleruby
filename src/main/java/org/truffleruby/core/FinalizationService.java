@@ -164,7 +164,7 @@ public class FinalizationService {
 
     private void runFinalizer(FinalizerReference finalizerReference) {
         try {
-            while (true) {
+            while (!context.isFinalizing()) {
                 final Finalizer finalizer;
                 synchronized (this) {
                     finalizer = finalizerReference.getFirstFinalizer();
