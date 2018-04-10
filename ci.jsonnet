@@ -243,6 +243,7 @@ local part_definitions = {
           "./native-image",
           "--no-server",
           "--language:ruby",
+          "--language:llvm",
           "-H:Path=$SVM_HOME/svmbuild/native-image-root/languages/ruby/bin",
           "-H:Name=truffleruby",
           "|",
