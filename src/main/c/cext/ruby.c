@@ -2996,11 +2996,35 @@ void *rb_tr_handle_for_managed_leaking(VALUE managed) {
   return rb_tr_handle_for_managed(managed);
 }
 
+void *rb_tr_handle_if_managed(VALUE pointer) {
+  if (polyglot_is_value(pointer)) {
+    return rb_tr_handle_for_managed(pointer);
+  } else {
+    return pointer;
+  }
+}
+
+void *rb_tr_handle_if_managed_leaking(VALUE pointer) {
+  if (polyglot_is_value(pointer)) {
+    return rb_tr_handle_if_managed_leaking(pointer);
+  } else {
+    return pointer;
+  }
+}
+
 VALUE rb_tr_managed_from_handle_or_null(void *handle) {
   if (handle == NULL) {
     return NULL;
   } else {
     return rb_tr_managed_from_handle(handle);
+  }
+}
+
+VALUE rb_tr_managed_if_handle(void *pointer) {
+  if (truffle_is_handle_to_managed(pointer)) {
+    return rb_tr_managed_from_handle(pointer);
+  } else {
+    return pointer;
   }
 }
 
