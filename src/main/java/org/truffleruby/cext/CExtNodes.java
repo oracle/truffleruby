@@ -20,6 +20,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -931,16 +932,16 @@ public class CExtNodes {
     public abstract static class CaptureExceptionNode extends YieldingCoreMethodNode {
 
         @Specialization
-        public Object executeWithProtect(DynamicObject block,
-                @Cached("create()") BranchProfile exceptionProfile,
-                @Cached("create()") BranchProfile noExceptionProfile) {
+        public TruffleObject executeWithProtect(DynamicObject block,
+                                                @Cached("create()") BranchProfile exceptionProfile,
+                                                @Cached("create()") BranchProfile noExceptionProfile) {
             try {
                 yield(block);
                 noExceptionProfile.enter();
                 return nil();
             } catch (Throwable e) {
                 exceptionProfile.enter();
-                return e;
+                return new CapturedException(e);
             }
         }
     }
@@ -949,9 +950,10 @@ public class CExtNodes {
     public abstract static class RaiseExceptionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object executeThrow(Throwable e,
+        public Object executeThrow(CapturedException captured,
                 @Cached("createBinaryProfile()") ConditionProfile runtimeExceptionProfile,
                 @Cached("createBinaryProfile()") ConditionProfile errorProfile) {
+            final Throwable e = captured.getException();
             if (runtimeExceptionProfile.profile(e instanceof RuntimeException)) {
                 throw (RuntimeException) e;
             } else if (errorProfile.profile(e instanceof Error)) {
