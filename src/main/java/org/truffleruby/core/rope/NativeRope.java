@@ -66,7 +66,7 @@ public class NativeRope extends Rope {
 
     @Override
     public Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange) {
-        throw new UnsupportedOperationException();
+        return RopeOperations.create(getBytes(), newEncoding, newCodeRange);
     }
 
     public Pointer getNativePointer() {
@@ -76,4 +76,5 @@ public class NativeRope extends Rope {
     public LeafRope toLeafRope() {
         return RopeOperations.create(getBytes(), getEncoding(), CodeRange.CR_UNKNOWN);
     }
+
 }
