@@ -79,8 +79,9 @@ class MSpecScript
     # Hangs in CI
     "^spec/ruby/library/net",
 
-    # openssl and zlib are tested separately as they need Sulong
+    # openssl, yaml and zlib are tested separately as they need Sulong
     "^spec/ruby/library/openssl",
+    "^spec/ruby/library/yaml",
     "^spec/ruby/library/zlib"
   ]
 
@@ -90,6 +91,7 @@ class MSpecScript
 
   set :library_cext, [
     "spec/ruby/library/openssl",
+    "spec/ruby/library/yaml",
     "spec/ruby/library/zlib"
   ]
 
