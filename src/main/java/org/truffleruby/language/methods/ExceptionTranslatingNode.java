@@ -302,7 +302,7 @@ public class ExceptionTranslatingNode extends RubyNode {
         // When printing the backtrace of the exception, make it clear it's not a cause
         builder.append("Translated to internal error");
 
-        return coreExceptions().internalErrorFullMessage(builder.toString(), this, throwable);
+        return coreExceptions().runtimeError(builder.toString(), this, throwable);
     }
 
     private Throwable translateCExtException(Throwable t, StringBuilder builder) {

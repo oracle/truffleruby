@@ -118,7 +118,7 @@ public class ThreadManager {
 
     public Thread createJavaThread(Runnable runnable) {
         if (context.getOptions().SINGLE_THREADED) {
-            throw new RaiseException(context.getCoreExceptions().internalError("threads not allowed in single-threaded mode", null), true);
+            throw new RaiseException(context.getCoreExceptions().securityError("threads not allowed in single-threaded mode", null));
         }
 
         if (context.isPreInitializing()) {

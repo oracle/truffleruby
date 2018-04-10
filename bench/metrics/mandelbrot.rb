@@ -105,6 +105,6 @@ begin
   loop do
     mandelbrot 750
   end
-rescue RuntimeError
+rescue Truffle::GraalError
   puts Time.now - start
 end

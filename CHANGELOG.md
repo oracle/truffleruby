@@ -11,7 +11,8 @@ Security:
 
 Changes:
 
-* `RubyTruffleError` has been replaced with `RuntimeError`.
+* `RubyTruffleError` has been removed and uses replaced with standard
+  exceptions.
 
 * C++ libraries like `libc++` are now not needed if you don't run C++
   extensions. `libc++abi` is now never needed. Documentation updated to make it

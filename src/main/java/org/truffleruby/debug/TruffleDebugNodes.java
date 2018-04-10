@@ -33,7 +33,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
@@ -186,11 +185,7 @@ public abstract class TruffleDebugNodes {
         }
 
         private DynamicObject ast(CallTarget callTarget) {
-            if (callTarget instanceof RootCallTarget) {
-                return ast((RootCallTarget) callTarget);
-            } else {
-                throw new RaiseException(getContext().getCoreExceptions().internalError("call target is not a root call target", this), true);
-            }
+            return ast((RootCallTarget) callTarget);
         }
 
         private DynamicObject ast(RootCallTarget rootCallTarget) {
@@ -251,11 +246,7 @@ public abstract class TruffleDebugNodes {
         }
 
         private void printAst(CallTarget callTarget) {
-            if (callTarget instanceof RootCallTarget) {
-                printAst((RootCallTarget) callTarget);
-            } else {
-                throw new RaiseException(getContext().getCoreExceptions().internalError("call target is not a root call target", this), true);
-            }
+            printAst((RootCallTarget) callTarget);
         }
 
         private void printAst(RootCallTarget callTarget) {

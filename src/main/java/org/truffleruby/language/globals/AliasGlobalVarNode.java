@@ -7,7 +7,6 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-
 package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -36,7 +35,7 @@ public class AliasGlobalVarNode extends RubyNode {
     private void checkExisting() {
         if (getContext().getCoreLibrary().getGlobalVariables().contains(newName)) {
             // TODO CS 4-Apr-18 This exception is non-standard
-            throw new RaiseException(coreExceptions().internalError(String.format("%s is already a global", newName), this), true);
+            throw new RaiseException(coreExceptions().notImplementedError(String.format("%s is already a global", newName), this), true);
         }
     }
 

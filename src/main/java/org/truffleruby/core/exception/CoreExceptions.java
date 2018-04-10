@@ -213,6 +213,13 @@ public class CoreExceptions {
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
+    @TruffleBoundary
+    public DynamicObject runtimeError(String fullMessage, Node currentNode, Throwable javaThrowable) {
+        DynamicObject exceptionClass = context.getCoreLibrary().getRuntimeErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(fullMessage, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, javaThrowable);
+    }
+
     // SystemStackError
 
     @TruffleBoundary
@@ -762,30 +769,21 @@ public class CoreExceptions {
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
-    // InternalError
+    // Truffle::GraalError
 
-    public DynamicObject internalError(String message, Node currentNode) {
-        return internalError(message, currentNode, null);
+    public DynamicObject graalErrorAssertConstantNotConstant(Node currentNode) {
+        return graalError("value in Truffle::Graal.assert_constant was not constant", currentNode);
     }
 
-    public DynamicObject internalErrorAssertConstantNotConstant(Node currentNode) {
-        return internalError("Value in Truffle::Graal.assert_constant was not constant", currentNode);
-    }
-
-    public DynamicObject internalErrorAssertNotCompiledCompiled(Node currentNode) {
-        return internalError("Call to Truffle::Graal.assert_not_compiled was compiled", currentNode);
+    public DynamicObject graalErrorAssertNotCompiledCompiled(Node currentNode) {
+        return graalError("call to Truffle::Graal.assert_not_compiled was compiled", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject internalError(String message, Node currentNode, Throwable javaThrowable) {
-        return internalErrorFullMessage("internal implementation error - " + message, currentNode, javaThrowable);
-    }
-
-    @TruffleBoundary
-    public DynamicObject internalErrorFullMessage(String fullMessage, Node currentNode, Throwable javaThrowable) {
-        DynamicObject exceptionClass = context.getCoreLibrary().getRuntimeErrorClass();
-        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(fullMessage, UTF8Encoding.INSTANCE));
-        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, javaThrowable);
+    private DynamicObject graalError(String message, Node currentNode) {
+        DynamicObject exceptionClass = context.getCoreLibrary().getGraalErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     // RegexpError
