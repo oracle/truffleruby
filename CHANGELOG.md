@@ -1,4 +1,4 @@
-# 0.34, May 2018
+# 1.0, May 2018
 
 New features:
 
