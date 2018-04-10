@@ -3032,6 +3032,12 @@ VALUE rb_tr_managed_from_handle(void *handle) {
   return truffle_managed_from_handle(handle);
 }
 
+void rb_tr_release_if_handle(void *pointer) {
+  if (truffle_is_handle_to_managed(pointer)) {
+    truffle_release_handle(pointer);
+  }
+}
+
 void rb_tr_release_handle(void *handle) {
   truffle_release_handle(handle);
 }

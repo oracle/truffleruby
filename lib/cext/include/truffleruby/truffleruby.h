@@ -44,6 +44,7 @@ VALUE rb_tr_managed_from_handle_or_null(void *handle);
 VALUE rb_tr_managed_from_handle(void *handle);
 VALUE rb_tr_managed_if_handle(void *handle);
 void rb_tr_release_handle(void *handle);
+void rb_tr_release_if_handle(void *handle);
 
 bool rb_tr_obj_taintable_p(VALUE object);
 bool rb_tr_obj_tainted_p(VALUE object);
