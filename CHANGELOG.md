@@ -30,6 +30,8 @@ Changes:
 * A method call on a foreign object that looks like an operator (the method name
   does not begin with a letter) will call `IS_BOXED` on the object and based on
   that will possibly `UNBOX` and convert to Ruby.
+  
+* Now using the native version of Psych.
 
 # 0.33, April 2018
 
