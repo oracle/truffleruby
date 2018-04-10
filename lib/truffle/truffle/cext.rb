@@ -1291,7 +1291,7 @@ module Truffle::CExt
         res = foreign_call_with_block(function, arg)
       end
     end
-    unless e == nil
+    unless nil == e # This way around because e is a CapturedException which is a foreign object with no interop
       store = (Thread.current[:__stored_exceptions__] ||= [])
       pos = store.push(e).size
     end
