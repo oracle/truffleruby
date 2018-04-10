@@ -137,6 +137,7 @@ public class CoreLibrary {
     private final DynamicObject regexpClass;
     private final DynamicObjectFactory regexpFactory;
     private final DynamicObject regexpErrorClass;
+    private final DynamicObject graalErrorClass;
     private final DynamicObject runtimeErrorClass;
     private final DynamicObject systemStackErrorClass;
     private final DynamicObject securityErrorClass;
@@ -498,6 +499,7 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(encodingConverterClass, Layouts.ENCODING_CONVERTER.createEncodingConverterShape(encodingConverterClass, encodingConverterClass));
 
         truffleModule = defineModule("Truffle");
+        graalErrorClass = defineClass(truffleModule, exceptionClass, "GraalError");
         truffleExceptionOperationsModule = defineModule(truffleModule, "ExceptionOperations");
         truffleInteropModule = defineModule(truffleModule, "Interop");
         truffleInteropForeignClass = defineClass(truffleInteropModule, objectClass, "Foreign");
@@ -1053,6 +1055,10 @@ public class CoreLibrary {
 
     public DynamicObject getTruffleTypeModule() {
         return truffleTypeModule;
+    }
+
+    public DynamicObject getGraalErrorClass() {
+        return graalErrorClass;
     }
 
     public DynamicObject getStringClass() {

@@ -135,7 +135,7 @@ public abstract class RequireNode extends RubyNode {
                 } else if (RubyLanguage.CEXT_MIME_TYPE.equals(mimeType)) {
                     requireCExtension(feature, expandedPath);
                 } else {
-                    throw new RaiseException(mimeTypeNotFound(expandedPath, mimeType), true);
+                    throw new RaiseException(mimeTypeNotFound(expandedPath, mimeType));
                 }
 
                 addToLoadedFeatures(pathString);
@@ -150,9 +150,9 @@ public abstract class RequireNode extends RubyNode {
     @TruffleBoundary
     private DynamicObject mimeTypeNotFound(String expandedPath, String mimeType) {
         if (expandedPath.toLowerCase(Locale.ENGLISH).endsWith(".su")) {
-            return coreExceptions().internalError("cext support is not available to load " + expandedPath, this);
+            return coreExceptions().notImplementedError("cext support is not available to load " + expandedPath, this);
         } else {
-            return coreExceptions().internalError("unknown language " + mimeType + " for " + expandedPath, this);
+            return coreExceptions().argumentError("unknown language " + mimeType + " for " + expandedPath, this);
         }
     }
 

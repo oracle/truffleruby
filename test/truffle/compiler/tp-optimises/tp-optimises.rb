@@ -26,7 +26,7 @@ begin
     Truffle::Graal.assert_constant x
     Truffle::Graal.assert_not_compiled
   end
-rescue RuntimeError => e
+rescue Truffle::GraalError => e
   if e.message.include? 'Truffle::Graal.assert_not_compiled'
     puts 'TP optimising'
     exit 0

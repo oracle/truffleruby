@@ -1058,7 +1058,7 @@ public abstract class InteropNodes {
             final TruffleLanguage.Env env = getContext().getEnv();
 
             if (!env.isHostLookupAllowed()) {
-                throw new RaiseException(getContext().getCoreExceptions().internalError("host access is not allowed", this), true);
+                throw new RaiseException(getContext().getCoreExceptions().securityError("host access is not allowed", this));
             }
 
             return env.lookupHostSymbol(name);
