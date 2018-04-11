@@ -187,7 +187,8 @@ describe "The launcher" do
   it "prints an error for an unknown option" do
     out = ruby_exe(nil, options: "-Xunknown=value", args: "2>&1")
     $?.success?.should == false
-    out.should include("invalid option -Xunknown=value")
+    out.should include("invalid option")
+    out.should include("-Xunknown=value")
   end
 
   describe 'StringArray option' do
@@ -216,6 +217,41 @@ describe "The launcher" do
     $?.success?.should == true
     out.should include("SEVERE deterministic hashing is enabled - this may make you vulnerable to denial of service attacks")
     out.should include("7141275149799654099")
+  end
+
+  it "prints help containing runtime options" do
+    out = ruby_exe(nil, options: "--help", args: "2>&1")
+    $?.success?.should == true
+    out.should include("--polyglot")
+    out.should include("--native")
+    out.should include("--jvm")
+  end
+
+  it "prints help:languages containing language options" do
+    out = ruby_exe(nil, options: "--help:languages", args: "2>&1")
+    $?.success?.should == true
+    out.should include("Language Options:")
+    out.should include("Ruby:")
+    out.should include("--ruby.load_paths=")
+    # we assume Sulong is always available
+    out.should include("llvm:")
+    out.should include("--llvm.libraryPath=")
+  end
+
+  it "prints help:tools containing tools options" do
+    out = ruby_exe(nil, options: "--help:tools", args: "2>&1")
+    $?.success?.should == true
+    # we assume tools are always available
+    out.should include("Tool options:")
+    out.should include("Chrome Inspector:")
+    out.should include("--inspect.Suspend=")
+  end
+
+  it "understands ruby polyglot options" do
+    out = ruby_exe(nil, options: "--ruby.show_version=true --ruby.to_execute=p:b --ruby.execution_action=INLINE", args: "2>&1")
+    $?.success?.should == true
+    out.should include(RUBY_DESCRIPTION)
+    out.should include(':b')
   end
 
 end
