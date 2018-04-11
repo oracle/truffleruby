@@ -42,7 +42,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     // Properties set directly on the java command-line with -D for image building
     private static final String LIBSULONG_DIR = isAOT() ? System.getProperty("truffleruby.native.libsulong_dir") : null;
 
-    private final CommandLineOptions config = new CommandLineOptions();
+    private CommandLineOptions config;
 
     public static void main(String[] args) {
         new RubyLauncher().launch(args);
@@ -76,6 +76,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     @Override
     protected List<String> preprocessArguments(List<String> args, Map<String, String> polyglotOptions) {
         Metrics.begin();
+
+        config = new CommandLineOptions(polyglotOptions);
 
         try {
             config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.UNSET);
@@ -245,7 +247,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             builder.option("llvm.libraryPath", libraryPath);
         }
 
-        builder.options(config.getOptions());
         builder.arguments(TruffleRuby.LANGUAGE_ID, config.getArguments());
 
         return builder.build();
