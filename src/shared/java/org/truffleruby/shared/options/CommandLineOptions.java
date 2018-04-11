@@ -29,17 +29,22 @@
 package org.truffleruby.shared.options;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class CommandLineOptions {
 
-    private Map<String, String> options = new HashMap<>();
-    private String[] arguments = new String[]{};
-    private final List<String> unknownArguments = new ArrayList<>(0);
+    private Map<String, String> options;
+    private String[] arguments;
+    private final List<String> unknownArguments;
+    private boolean irbInsteadOfInputUsed;
 
-    private boolean irbInsteadOfInputUsed = false;
+    public CommandLineOptions(Map<String, String> options) {
+        this.options = options;
+        this.arguments = new String[]{};
+        this.unknownArguments = new ArrayList<>(0);
+        this.irbInsteadOfInputUsed = false;
+    }
 
     public Map<String, String> getOptions() {
         return options;
