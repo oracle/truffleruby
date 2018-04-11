@@ -48,17 +48,18 @@ your system to use it. The advantage of the native configuration is that it
 [starts about as fast as MRI](doc/contributor/svm.md), it may use less memory,
 and it becomes fast in less time. The disadvantage of the native configuration
 is that you can't use Java tools like VisualVM, you can't use Java
-interopability, and *peak performance may be lower than on the JVM*. The native
-configuration is used by default, but you can also request it using `--native`.
-To use polyglot programming with the *native* configuration, you need to use the
-`--polyglot` flag.
+interoperability, and *peak performance may be lower than on the JVM*. The
+native configuration is used by default, but you can also request it using
+`--native`. To use polyglot programming with the *native* configuration, you
+need to use the `--polyglot` flag.
 
 TruffleRuby can also be used in the *JVM* configuration, where it runs as a
 normal Java application on the JVM, as any other Java application would. The
-advantage of the JVM configuration is that you can use Java interopability, and
-*peak performance may be higher than the native configuration*. The disadvantage
-of the JVM configuration is that it takes much longer to start and to get fast,
-and may use more memory. The JVM configuration is requested using `--jvm`.
+advantage of the JVM configuration is that you can use Java interoperability,
+and *peak performance may be higher than the native configuration*. The
+disadvantage of the JVM configuration is that it takes much longer to start and
+to get fast, and may use more memory. The JVM configuration is requested using
+`--jvm`.
 
 If you are running a short-running program you probably want the default,
 *native*, configuration. If you are running a long-running program and want the
