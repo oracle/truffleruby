@@ -123,12 +123,6 @@ licence (see `ffi.txt`).
 TruffleRuby has Java dependencies on these modules, which are then included in
 the distribution:
 
-#### SnakeYAML
-
-TruffleRuby uses SnakeYaml (version as described in `mx.truffleruby/suite.py`).
-SnakeYAML is copyright the SnakeYAML authors and is licensed under Apache 2.0
-(see `apache-2.0.txt`).
-
 #### JONI
 
 TruffleRuby uses JONI (version as described in `mx.truffleruby/suite.py`). JONI

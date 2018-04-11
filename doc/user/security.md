@@ -88,11 +88,6 @@ CVE-2012-5372 | Rubinius computes hash values without properly restricting the a
 
 ## Java Dependency Vulnerabilities
 
-### SnakeYAML
-
-Number | Description | Their Mitigation | Test | Our Mitigation
---- | --- | --- | --- | ---
-CVE-2016-8744 | SnakeYAML allows the use of YAML tags to indicate that SnakeYAML should unmarshal data to a Java type | *todo* | *todo* | *todo*
 
 ### JONI
 
