@@ -96,7 +96,7 @@ The disadvantages of the SVM version of TruffleRuby are:
 
 * It has lower peak performance, as the GC is simpler and some optimisations
   such as compressed ordinary object pointers (OOPS) are not yet available.
-* You can't use Java interopability.
+* You can't use Java interoperability.
 * You can't use standard Java tools like VisualVM.
 
 So the SVM version may not be appropriate for all uses.
