@@ -82,8 +82,6 @@ RUN ruby \
 
 # Setup to install gems
 ENV GEM_HOME=/test/gems
-# This can go away in 0.34
-ENV TRUFFLERUBY_CEXT_ENABLED=true
 RUN mkdir /test/gems
 
 # Check we can install and run a gem
