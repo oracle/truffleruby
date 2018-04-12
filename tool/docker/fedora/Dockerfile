@@ -40,7 +40,7 @@ ENV PATH=$PATH:/build/mx
 # Build a JDK with JVMCI
 RUN git clone https://github.com/graalvm/graal-jvmci-8.git
 RUN cd graal-jvmci-8 && mx build
-ENV JAVA_HOME=/build/graal-jvmci-8/openjdk1.8.0_161/linux-amd64/product
+ENV JAVA_HOME=/build/graal-jvmci-8/openjdk1.8.0_151/linux-amd64/product
 ENV JVMCI_VERSION_CHECK=ignore
 RUN $JAVA_HOME/bin/java -version
 
