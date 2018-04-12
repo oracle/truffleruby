@@ -31,18 +31,9 @@ install `openssl-devel`:
 sudo dnf install openssl-devel
 ```
 
-However, on Fedora 26 or more recent, the default openssl is 1.1.0 which is too
-recent. A workaround is to install the compatibility openssl 1.0.
-
-```
-# Make sure the 1.1.0 headers are not installed as they would conflict
-sudo dnf remove openssl-devel
-# Install openssl 1.0
-sudo dnf install compat-openssl10-devel
-```
-
-We recommend `compat-openssl10-devel` instead of `compat-openssl10`, because the
-latter doesn't seem to put the shared library in a place where we can find it.
+We recommend `openssl-devel` instead of `openssl`, even though we aren't using
+it for development because the latter doesn't seem to put the shared library in
+a place where we can find it.
 
 ## macOS
 

@@ -1,12 +1,12 @@
-FROM fedora:26
+FROM fedora:25
 
 MAINTAINER chris.seaton@oracle.com
 
 # We need a conventional locale for testing
 ENV LANG=en_US.UTF-8
 
-# Dependencies for using openssl (compat-openssl10-devel so we get the /usr/lib64/libssl.so symlink)
-RUN dnf install -y compat-openssl10-devel
+# Dependencies for using openssl
+RUN dnf install -y openssl-devel
 
 # Dependencies for building C extensions
 RUN dnf install -y clang llvm

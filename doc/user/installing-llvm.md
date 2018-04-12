@@ -48,7 +48,7 @@ installing `libc++` seems to introduce some system conflicts.
 
 ## Fedora
 
-The tested version of LLVM for Fedora is 4.0.1.
+The tested version of LLVM for Fedora is 3.8.
 
 For building C extensions you need to install:
 
