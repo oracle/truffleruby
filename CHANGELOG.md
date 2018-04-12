@@ -33,6 +33,10 @@ Changes:
   
 * Now using the native version of Psych.
 
+* The supported version of Fedora has been dropped to 25, and the supported
+  version of LLVM to 3.8, due to LLVM incompatibilities. The instructions for
+  installing `libssl` have changed to match.
+
 # 0.33, April 2018
 
 New features:

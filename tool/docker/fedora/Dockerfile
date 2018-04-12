@@ -1,4 +1,4 @@
-FROM fedora:26
+FROM fedora:25
 
 MAINTAINER chris.seaton@oracle.com
 
@@ -12,10 +12,10 @@ RUN dnf install -y git
 RUN dnf install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk-openjfx java-atk-wrapper
 
 # Other dependencies for building a JDK
-RUN dnf install -y gcc libstdc++-static
+RUN dnf install -y make gcc libstdc++-static
 
-# Dependencies for using openssl (compat-openssl10-devel so we get the /usr/lib64/libssl.so symlink)
-RUN dnf install -y compat-openssl10-devel
+# Dependencies for using openssl
+RUN dnf install -y openssl-devel
 
 # Dependencies for building C extensions
 RUN dnf install -y clang llvm

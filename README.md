@@ -85,7 +85,7 @@ TruffleRuby is actively tested on these systems:
 
 * Oracle Linux 7
 * Ubuntu 16.04 LTS
-* Fedora 26
+* Fedora 25
 * macOS 10.13
 
 You need to [install LLVM](doc/user/installing-llvm.md) to build and run C
