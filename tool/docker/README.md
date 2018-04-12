@@ -6,7 +6,7 @@ and useful for building and testing on Linux if you normally develop on macOS.
 
 ```
 $ docker build -t truffleruby-dev-ubuntu .
-$ docker run -it truffleruby-dev-ubuntu
+$ docker run -it truffleruby-dev-ubuntu bash
 ```
 
 ## Oracle Linux and LLVM
