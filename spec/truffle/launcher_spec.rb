@@ -235,15 +235,6 @@ describe "The launcher" do
     out.should include("--ruby.load_paths=")
   end
 
-  it "prints help:tools containing tools options" do
-    out = ruby_exe(nil, options: "--help:tools", args: "2>&1")
-    $?.success?.should == true
-    # we assume tools are always available
-    out.should include("Tool options:")
-    out.should include("Chrome Inspector:")
-    out.should include("--inspect.Suspend=")
-  end
-
   guard -> { Truffle.sulong? } do
     it "prints help:languages containing llvm language options" do
       out = ruby_exe(nil, options: "--help:languages", args: "2>&1")
