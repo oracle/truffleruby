@@ -53,4 +53,8 @@ slow:The launcher 'testrb' in `RbConfig::CONFIG['extra_bindirs'][0]` directory r
 slow:The launcher 'testrb' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
 slow:The launcher 'truffleruby' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked
 slow:The launcher 'truffleruby' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
+slow:The launcher prints help containing runtime options
+slow:The launcher prints help:languages containing ruby language options
+slow:The launcher prints help:languages containing llvm language options
+slow:The launcher understands ruby polyglot options
 graalvm(the executable is in jre/bin):The launcher is in the bindir
