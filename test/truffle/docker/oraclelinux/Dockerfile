@@ -63,7 +63,7 @@ spec/mspec/bin/mspec \
 --excl-tag fails \
 --excl-tag graalvm \
 -t ruby \
--T --jvm \
+-T--jvm \
 :language
 
 # Check we can make a real-world openssl request
@@ -73,7 +73,7 @@ RUN ruby \
 -e 'open("https://rubygems.org/") { |f| raise unless f.read.include?("Find, install, and publish RubyGems") }'
 
 RUN ruby \
---jvm
+--jvm \
 -ropen-uri \
 -e 'open("https://rubygems.org/") { |f| raise unless f.read.include?("Find, install, and publish RubyGems") }'
 

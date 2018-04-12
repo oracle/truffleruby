@@ -6,7 +6,7 @@ ENV LANG=en_US.UTF-8
 # To clone source repositories
 RUN yum install -y git
 
-# To bootstrap our own JVMCI-comptaible JDK we need a JDK
+# To bootstrap our own JVMCI-compatible JDK we need a JDK
 RUN yum install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk-openjfx java-atk-wrapper
 
 # Other dependencies for building a JDK

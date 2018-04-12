@@ -12,7 +12,7 @@ ENV LANG=en_US.UTF-8
 # To clone source repositories
 RUN apt-get install -y git
 
-# To bootstrap our own JVMCI-comptaible JDK we need a JDK
+# To bootstrap our own JVMCI-compatible JDK we need a JDK
 RUN apt-get install -y openjdk-8-jdk openjdk-8-source
 
 # Other dependencies for building a JDK
@@ -43,7 +43,7 @@ ENV PATH=$PATH:/build/mx
 # Build a JDK with JVMCI
 RUN git clone https://github.com/graalvm/graal-jvmci-8.git
 RUN cd graal-jvmci-8 && mx build
-ENV JAVA_HOME=/build/graal-jvmci-8/openjdk1.8.0_151/linux-amd64/product
+ENV JAVA_HOME=/build/graal-jvmci-8/openjdk1.8.0_162/linux-amd64/product
 ENV JVMCI_VERSION_CHECK=ignore
 RUN $JAVA_HOME/bin/java -version
 
