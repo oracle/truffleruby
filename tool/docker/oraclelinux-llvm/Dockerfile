@@ -3,7 +3,7 @@ FROM oraclelinux:7-slim
 MAINTAINER chris.seaton@oracle.com
 
 # Install LLVM from source
-ENV LANG=en_US.UTF-8 WORK_DIR=/tmp/llvm-build LLVM_VERSION=4.0.1
+ENV LANG=en_US.UTF-8 WORK_DIR=/tmp/llvm-build LLVM_VERSION=3.8.0
 ENV LLVM_INSTALL_PREFIX=/opt/llvm-${LLVM_VERSION} LLVM_BUILD_DIR=${WORK_DIR}/llvm-${LLVM_VERSION}
 ENV PATH ${LLVM_INSTALL_PREFIX}/bin:${PATH}
 RUN mkdir $WORK_DIR
@@ -60,3 +60,4 @@ RUN make install
 RUN echo "/opt/llvm-${LLVM_VERSION}/lib64" >> /etc/ld.so.conf.d/llvm-x86_64.conf && ldconfig
 WORKDIR /
 RUN rm -rf ${WORK_DIR}
+RUN clang --version
