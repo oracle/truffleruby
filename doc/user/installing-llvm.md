@@ -6,7 +6,7 @@ have success with later versions, but we don't actively test these.
 
 ## Oracle Linux
 
-The tested version of LLVM for Oracle Linux is 4.0.1.
+The tested version of LLVM for Oracle Linux is 3.8.
 
 Oracle Linux does not include recent-enough LLVM packages, so you will have to
 [build LLVM from scratch](https://llvm.org/docs/CMake.html). You'll need to

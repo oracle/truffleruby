@@ -33,6 +33,8 @@ Changes:
   
 * Now using the native version of Psych.
 
+* The supported version of LLVM on Oracle Linux has been dropped to 3.8.
+
 * The supported version of Fedora has been dropped to 25, and the supported
   version of LLVM to 3.8, due to LLVM incompatibilities. The instructions for
   installing `libssl` have changed to match.
