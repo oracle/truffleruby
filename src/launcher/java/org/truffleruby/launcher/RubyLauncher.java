@@ -196,10 +196,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     private static int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {
-        if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
-            config.getOption(OptionsCatalog.DEFAULT_EXECUTION_ACTION).applyTo(config);
-        }
-
         if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.NONE) {
             return 0;
         }

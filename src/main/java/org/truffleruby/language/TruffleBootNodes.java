@@ -32,11 +32,12 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
-import org.truffleruby.shared.Metrics;
-import org.truffleruby.shared.options.OptionDescription;
-import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
+import org.truffleruby.shared.Metrics;
+import org.truffleruby.shared.options.ExecutionAction;
+import org.truffleruby.shared.options.OptionDescription;
+import org.truffleruby.shared.options.OptionsCatalog;
 
 import java.io.IOException;
 
@@ -117,7 +118,10 @@ public abstract class TruffleBootNodes {
 
             setArgvGlobals(makeStringNode);
 
-            Source source = loadMainSourceSettingDollarZero(findSFile, makeStringNode);
+            Source source = loadMainSourceSettingDollarZero(
+                    findSFile, makeStringNode,
+                    getContext().getOptions().EXECUTION_ACTION,
+                    getContext().getOptions().TO_EXECUTE.intern());
 
             if (source == null) {
                 // EXECUTION_ACTION was set to NONE
@@ -171,34 +175,39 @@ public abstract class TruffleBootNodes {
             }
         }
 
-        private Source loadMainSourceSettingDollarZero(
-                CallDispatchHeadNode findSFile,
-                StringNodes.MakeStringNode makeStringNode) {
+        private Source loadMainSourceSettingDollarZero(CallDispatchHeadNode findSFile, StringNodes.MakeStringNode makeStringNode, ExecutionAction executionAction, String toExecute) {
             final Source source;
             final Object dollarZeroValue;
-
             try {
-                final String to_execute = getContext().getOptions().TO_EXECUTE.intern();
-                switch (getContext().getOptions().EXECUTION_ACTION) {
+                switch (executionAction) {
                     case UNSET:
-                        throw new IllegalArgumentException("ExecutionAction.UNSET should never reach RubyContext");
-
+                        switch (getContext().getOptions().DEFAULT_EXECUTION_ACTION) {
+                            case NONE:
+                                return loadMainSourceSettingDollarZero(findSFile, makeStringNode, ExecutionAction.NONE, toExecute);
+                            case STDIN:
+                                return loadMainSourceSettingDollarZero(findSFile, makeStringNode, ExecutionAction.STDIN, toExecute);
+                            case IRB:
+                                return loadMainSourceSettingDollarZero(findSFile, makeStringNode, ExecutionAction.PATH, "irb");
+                            default:
+                                throw new UnsupportedOperationException("unreachable");
+                        }
                     case NONE:
                         source = null;
                         dollarZeroValue = nil();
                         break;
 
                     case FILE:
-                        source = getContext().getSourceLoader().loadMainFile(this, to_execute);
-                        dollarZeroValue = makeStringNode.executeMake(to_execute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                        source = getContext().getSourceLoader().loadMainFile(this, toExecute);
+                        dollarZeroValue = makeStringNode.executeMake(toExecute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                         break;
 
                     case PATH:
                         final DynamicObject path = (DynamicObject) findSFile.call(
                                 null,
                                 getContext().getCoreLibrary().getTruffleBootModule(),
+                                // language=ruby
                                 "find_s_file",
-                                makeStringNode.executeMake(to_execute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
+                                makeStringNode.executeMake(toExecute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
                         source = getContext().getSourceLoader().loadMainFile(
                                 this,
                                 StringOperations.getString(path));
@@ -208,7 +217,7 @@ public abstract class TruffleBootNodes {
                     case STDIN:
                         source = getContext().getSourceLoader().loadMainStdin(
                                 this,
-                                to_execute);
+                                toExecute);
                         dollarZeroValue = makeStringNode.executeMake("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
                         break;
 
@@ -225,7 +234,6 @@ public abstract class TruffleBootNodes {
             }
 
             getContext().getCoreLibrary().getGlobalVariables().getStorage("$0").setValueInternal(dollarZeroValue);
-
             return source;
         }
 
