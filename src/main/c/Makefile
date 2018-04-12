@@ -43,7 +43,6 @@ clean_cexts:
 	rm -f sulongmock/Makefile sulongmock/*.bc sulongmock/sulongmock.su
 	rm -f $(ROOT)/lib/cext/sulongmock.bc
 	rm -f $(RUBY_LIBRARY)
-	rm -f $(ROOT)/lib/cext/ruby.bc
 	rm -f cext/Makefile cext/*.bc cext/ruby.su
 	rm -f $(CEXTS_DIR)/openssl.su
 	rm -f openssl/Makefile openssl/*.bc openssl/openssl.su
@@ -80,7 +79,6 @@ cext/ruby.su: cext/Makefile cext/ruby.c
 
 $(RUBY_LIBRARY): cext/ruby.su
 	cp $< $@
-	cp cext/ruby.bc $(ROOT)/lib/cext/ruby.bc
 
 # openssl.su
 openssl/Makefile: openssl/extconf.rb $(EXTCONF_DEPS)
