@@ -12,6 +12,7 @@ RUBY := $(ROOT)/bin/truffleruby
 TRUFFLE_POSIX := $(ROOT)/lib/cext/truffleposix.$(DLEXT)
 TRUFFLE_MOCK := $(ROOT)/lib/cext/sulongmock.bc
 RUBY_LIBRARY := $(ROOT)/lib/cext/ruby.su
+RUBY_O := $(ROOT)/lib/cext/ruby.o
 
 RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/include/*.h) $(wildcard $(ROOT)/lib/cext/include/ruby/*.h)
 RBCONFIG := $(ROOT)/lib/truffle/rbconfig.rb
@@ -20,7 +21,7 @@ PREPROCESS := $(ROOT)/lib/cext/preprocess.rb $(wildcard $(ROOT)/lib/cext/patches
 MKMF := $(ROOT)/lib/mri/mkmf.rb
 BASIC_EXTCONF_DEPS := $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(RBCONFIG) $(RBCONFIG_MKMF) $(PREPROCESS) $(MKMF)
 # These 2 libraries are needed for try_link() in extconf.rb
-EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) $(TRUFFLE_MOCK) $(RUBY_LIBRARY)
+EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) $(TRUFFLE_MOCK) $(RUBY_LIBRARY) $(RUBY_O)
 
 ifeq ($(TRUFFLERUBY_CEXT_ENABLED),false)
 goal: no_cexts $(TRUFFLE_POSIX)
@@ -31,7 +32,7 @@ endif
 no_cexts: clean_cexts
 	@echo "WARNING: TRUFFLERUBY_CEXT_ENABLED is set to false - not building cexts" 1>&2
 
-all: $(RUBY_LIBRARY) $(CEXTS_DIR)/openssl.su $(CEXTS_DIR)/zlib.su $(CEXTS_DIR)/psych.su $(CEXTS_DIR)/syslog.su
+all: $(RUBY_LIBRARY) $(RUBY_O) $(CEXTS_DIR)/openssl.su $(CEXTS_DIR)/zlib.su $(CEXTS_DIR)/psych.su $(CEXTS_DIR)/syslog.su
 
 clean: clean_cexts clean_truffleposix
 
@@ -43,7 +44,7 @@ clean_cexts:
 	rm -f sulongmock/Makefile sulongmock/*.bc sulongmock/sulongmock.su
 	rm -f $(ROOT)/lib/cext/sulongmock.bc
 	rm -f $(RUBY_LIBRARY)
-	rm -f $(ROOT)/lib/cext/ruby.bc
+	rm -f $(ROOT)/lib/cext/ruby.o
 	rm -f cext/Makefile cext/*.bc cext/ruby.su
 	rm -f $(CEXTS_DIR)/openssl.su
 	rm -f openssl/Makefile openssl/*.bc openssl/openssl.su
@@ -80,7 +81,9 @@ cext/ruby.su: cext/Makefile cext/ruby.c
 
 $(RUBY_LIBRARY): cext/ruby.su
 	cp $< $@
-	cp cext/ruby.bc $(ROOT)/lib/cext/ruby.bc
+
+$(RUBY_O): cext/ruby.c
+	$(CC) -I $(ROOT)/lib/cext/include -c $< -o $@
 
 # openssl.su
 openssl/Makefile: openssl/extconf.rb $(EXTCONF_DEPS)
