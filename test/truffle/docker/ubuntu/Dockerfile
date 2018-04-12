@@ -93,6 +93,5 @@ RUN gem install oily_png
 RUN ruby -roily_png -e 'raise unless defined?(OilyPNG::Color)'
 
 # Check we can install and run a C++ extension gem
-# This is broken on Ubuntu because ruby.bc is built with LLVM 4.0
-#RUN gem install unf
-#RUN ruby -runf -e 'raise unless defined?(UNF)'
+RUN gem install unf
+RUN ruby -runf -e 'raise unless defined?(UNF)'

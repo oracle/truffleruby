@@ -29,9 +29,7 @@ yum install libcxx-devel
 
 ## Ubuntu
 
-The tested version of LLVM for Ubuntu is 3.8. At the moment this may be
-incompatible with GraalVM for installing some C extensions as bitcode in
-GraalVM binary releases is built with 4.0.
+The tested version of LLVM for Ubuntu is 3.8.
 
 For building C extensions you need to install:
 
