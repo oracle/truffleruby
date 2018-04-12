@@ -30,6 +30,7 @@ import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.support.IONodes.GetThreadBufferNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.extra.TruffleNodes;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
@@ -223,18 +224,13 @@ public class FeatureLoader {
     }
 
     @TruffleBoundary
-    private boolean isSulongAvailable() {
-        return context.getEnv().isMimeTypeSupported(RubyLanguage.SULONG_BITCODE_BASE64_MIME_TYPE);
-    }
-
-    @TruffleBoundary
     public void ensureCExtImplementationLoaded(String feature, RequireNode requireNode) {
         synchronized (cextImplementationLock) {
             if (cextImplementationLoaded) {
                 return;
             }
 
-            if (!isSulongAvailable()) {
+            if (!TruffleNodes.SulongNode.isSulongAvailable(context)) {
                 throw new RaiseException(context.getCoreExceptions().loadError("Sulong is required to support C extensions, and it doesn't appear to be available", feature, null));
             }
 

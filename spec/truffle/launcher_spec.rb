@@ -227,15 +227,12 @@ describe "The launcher" do
     out.should include("--jvm")
   end
 
-  it "prints help:languages containing language options" do
+  it "prints help:languages containing ruby language options" do
     out = ruby_exe(nil, options: "--help:languages", args: "2>&1")
     $?.success?.should == true
     out.should include("Language Options:")
     out.should include("Ruby:")
     out.should include("--ruby.load_paths=")
-    # we assume Sulong is always available
-    out.should include("llvm:")
-    out.should include("--llvm.libraryPath=")
   end
 
   it "prints help:tools containing tools options" do
@@ -245,6 +242,16 @@ describe "The launcher" do
     out.should include("Tool options:")
     out.should include("Chrome Inspector:")
     out.should include("--inspect.Suspend=")
+  end
+
+  guard -> { Truffle.sulong? } do
+    it "prints help:languages containing llvm language options" do
+      out = ruby_exe(nil, options: "--help:languages", args: "2>&1")
+      $?.success?.should == true
+      out.should include("Language Options:")
+      out.should include("llvm:")
+      out.should include("--llvm.libraryPath=")
+    end
   end
 
   it "understands ruby polyglot options" do
