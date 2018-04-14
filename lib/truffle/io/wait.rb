@@ -8,7 +8,8 @@
 
 class IO
   def nread
-    raise NotImplementedError
+    # TODO CS 14-Apr-18 provide a proper implementation
+    0
   end
 
   def ready?
