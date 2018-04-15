@@ -1,0 +1,4 @@
+fails:The TOPLEVEL_BINDING constant is always the same object for all top levels
+slow:The TOPLEVEL_BINDING constant includes local variables defined in the same file
+slow:The TOPLEVEL_BINDING constant does not include local variables defined in a required file
+slow:The TOPLEVEL_BINDING constant does not include local variables defined in eval
