@@ -81,6 +81,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
@@ -164,7 +165,12 @@ public class RubyContext {
         options = createOptions(env);
 
         // We need to construct this at runtime
-        random = new SecureRandom();
+        try {
+            // Use NativePRNGNonBlocking because it uses /dev/urandom like MRI and allows us to use #generateSeed without worrying about entropy
+            random = SecureRandom.getInstance("NativePRNGNonBlocking");
+        } catch (NoSuchAlgorithmException e) {
+            throw new JavaException(e);
+        }
 
         hashing = new Hashing(generateHashingSeed(random));
 
@@ -802,10 +808,7 @@ public class RubyContext {
     }
 
     public byte[] getRandomSeedBytes(int numBytes) {
-        // We'd like to use /dev/urandom each time here by using NativePRNGNonBlocking, but this is not supported on the SVM
-        final byte[] bytes = new byte[numBytes];
-        random.nextBytes(bytes);
-        return bytes;
+        return random.generateSeed(numBytes);
     }
 
     public WeakValueCache<RegexpCacheKey, Regex> getRegexpCache() {
