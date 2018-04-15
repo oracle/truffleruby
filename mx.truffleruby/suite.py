@@ -398,8 +398,8 @@ suite = {
                     "file:lib",  # contains some results from truffleruby-cext
                     "file:CHANGELOG.md",
                     "file:mx.truffleruby/GraalCE_Ruby_license_3rd_party_license.txt",
-                    "file:mx.truffleruby/native-image.properties",
                 ],
+                "native-image.properties" : ["file:mx.truffleruby/graalvm.properties"],
                 "bin/" : [
                     "file:bin/gem",
                     "file:bin/irb",
