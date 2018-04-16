@@ -37,9 +37,9 @@ VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object) {
 // Memory
 
 void ruby_malloc_size_overflow(size_t count, size_t elsize) {
-    rb_raise(rb_eArgError,
-	     "malloc: possible integer overflow (%"PRIdSIZE"*%"PRIdSIZE")",
-	     count, elsize);
+  rb_raise(rb_eArgError,
+     "malloc: possible integer overflow (%"PRIdSIZE"*%"PRIdSIZE")",
+     count, elsize);
 }
 
 void *ruby_xmalloc(size_t size) {
@@ -134,17 +134,17 @@ bool SYMBOL_P(VALUE value) {
 }
 
 VALUE rb_obj_hide(VALUE obj) {
-    // In MRI, this deletes the class information which is later set by rb_obj_reveal.
-    // It also hides the object from each_object, we do not hide it.
-    return obj;
+  // In MRI, this deletes the class information which is later set by rb_obj_reveal.
+  // It also hides the object from each_object, we do not hide it.
+  return obj;
 }
 
 VALUE rb_obj_reveal(VALUE obj, VALUE klass) {
-    // In MRI, this sets the class of the object, we are not deleting the class in rb_obj_hide, so we
-    // ensure that class matches.
-    return polyglot_invoke(RUBY_CEXT, "ensure_class", obj, klass,
-           rb_str_new_cstr("class %s supplied to rb_obj_reveal does not matches the obj's class %s"));
-    return obj;
+  // In MRI, this sets the class of the object, we are not deleting the class in rb_obj_hide, so we
+  // ensure that class matches.
+  return polyglot_invoke(RUBY_CEXT, "ensure_class", obj, klass,
+         rb_str_new_cstr("class %s supplied to rb_obj_reveal does not matches the obj's class %s"));
+  return obj;
 }
 
 // Constants
@@ -456,12 +456,12 @@ unsigned long rb_num2ulong(VALUE val) {
 }
 
 static char *out_of_range_float(char (*pbuf)[24], VALUE val) {
-    char *const buf = *pbuf;
-    char *s;
+  char *const buf = *pbuf;
+  char *s;
 
-    snprintf(buf, sizeof(*pbuf), "%-.10g", RFLOAT_VALUE(val));
-    if ((s = strchr(buf, ' ')) != 0) *s = '\0';
-    return buf;
+  snprintf(buf, sizeof(*pbuf), "%-.10g", RFLOAT_VALUE(val));
+  if ((s = strchr(buf, ' ')) != 0) *s = '\0';
+  return buf;
 }
 
 #define FLOAT_OUT_OF_RANGE(val, type) do { \
@@ -478,33 +478,30 @@ static char *out_of_range_float(char (*pbuf)[24], VALUE val) {
    LLONG_MIN_MINUS_ONE < (n))
 
 LONG_LONG rb_num2ll(VALUE val) {
-    if (NIL_P(val)) {
-	rb_raise(rb_eTypeError, "no implicit conversion from nil");
-    }
+  if (NIL_P(val)) {
+    rb_raise(rb_eTypeError, "no implicit conversion from nil");
+  }
 
-    if (FIXNUM_P(val)) return (LONG_LONG)FIX2LONG(val);
-
-    else if (RB_TYPE_P(val, T_FLOAT)) {
-	if (RFLOAT_VALUE(val) < LLONG_MAX_PLUS_ONE
-            && (LLONG_MIN_MINUS_ONE_IS_LESS_THAN(RFLOAT_VALUE(val)))) {
-	    return (LONG_LONG)(RFLOAT_VALUE(val));
-	}
-	else {
-	    FLOAT_OUT_OF_RANGE(val, "long long");
-	}
+  if (FIXNUM_P(val)) {
+    return (LONG_LONG)FIX2LONG(val);
+  } else if (RB_TYPE_P(val, T_FLOAT)) {
+    if (RFLOAT_VALUE(val) < LLONG_MAX_PLUS_ONE
+        && (LLONG_MIN_MINUS_ONE_IS_LESS_THAN(RFLOAT_VALUE(val)))) {
+      return (LONG_LONG)(RFLOAT_VALUE(val));
+    } else {
+      FLOAT_OUT_OF_RANGE(val, "long long");
     }
-    else if (RB_TYPE_P(val, T_BIGNUM)) {
-	return rb_big2ll(val);
-    }
-    else if (RB_TYPE_P(val, T_STRING)) {
-	rb_raise(rb_eTypeError, "no implicit conversion from string");
-    }
-    else if (RB_TYPE_P(val, T_TRUE) || RB_TYPE_P(val, T_FALSE)) {
-	rb_raise(rb_eTypeError, "no implicit conversion from boolean");
-    }
-
-    val = rb_to_int(val);
-    return NUM2LL(val);
+  }
+  else if (RB_TYPE_P(val, T_BIGNUM)) {
+    return rb_big2ll(val);
+  } else if (RB_TYPE_P(val, T_STRING)) {
+    rb_raise(rb_eTypeError, "no implicit conversion from string");
+  } else if (RB_TYPE_P(val, T_TRUE) || RB_TYPE_P(val, T_FALSE)) {
+    rb_raise(rb_eTypeError, "no implicit conversion from boolean");
+  }
+  
+  val = rb_to_int(val);
+  return NUM2LL(val);
 }
 
 short rb_num2short(VALUE value) {
@@ -822,41 +819,46 @@ VALUE rb_Integer(VALUE value) {
    INTEGER_PACK_2COMP | \
    INTEGER_PACK_FORCE_GENERIC_IMPLEMENTATION)
 
-static void
-validate_integer_pack_format(size_t numwords, size_t wordsize, size_t nails, int flags, int supported_flags) {
-    int wordorder_bits = flags & INTEGER_PACK_WORDORDER_MASK;
-    int byteorder_bits = flags & INTEGER_PACK_BYTEORDER_MASK;
+static void validate_integer_pack_format(size_t numwords, size_t wordsize, size_t nails, int flags, int supported_flags) {
+  int wordorder_bits = flags & INTEGER_PACK_WORDORDER_MASK;
+  int byteorder_bits = flags & INTEGER_PACK_BYTEORDER_MASK;
 
-    if (flags & ~supported_flags) {
-        rb_raise(rb_eArgError, "unsupported flags specified");
-    }
+  if (flags & ~supported_flags) {
+    rb_raise(rb_eArgError, "unsupported flags specified");
+  }
 
-    if (wordorder_bits == 0) {
-        if (1 < numwords)
-            rb_raise(rb_eArgError, "word order not specified");
-    } else if (wordorder_bits != INTEGER_PACK_MSWORD_FIRST &&
-               wordorder_bits != INTEGER_PACK_LSWORD_FIRST) {
-      rb_raise(rb_eArgError, "unexpected word order");
+  if (wordorder_bits == 0) {
+    if (1 < numwords) {
+      rb_raise(rb_eArgError, "word order not specified");
     }
-    if (byteorder_bits == 0) {
-        rb_raise(rb_eArgError, "byte order not specified");
-    } else if (byteorder_bits != INTEGER_PACK_MSBYTE_FIRST &&
-               byteorder_bits != INTEGER_PACK_LSBYTE_FIRST &&
-               byteorder_bits != INTEGER_PACK_NATIVE_BYTE_ORDER) {
+  } else if (wordorder_bits != INTEGER_PACK_MSWORD_FIRST &&
+      wordorder_bits != INTEGER_PACK_LSWORD_FIRST) {
+    rb_raise(rb_eArgError, "unexpected word order");
+  }
+  
+  if (byteorder_bits == 0) {
+    rb_raise(rb_eArgError, "byte order not specified");
+  } else if (byteorder_bits != INTEGER_PACK_MSBYTE_FIRST &&
+    byteorder_bits != INTEGER_PACK_LSBYTE_FIRST &&
+    byteorder_bits != INTEGER_PACK_NATIVE_BYTE_ORDER) {
       rb_raise(rb_eArgError, "unexpected byte order");
-    }
-    if (wordsize == 0) {
-        rb_raise(rb_eArgError, "invalid wordsize: %lu", wordsize);
-    }
-    if (8 < wordsize) {
-      rb_raise(rb_eArgError, "too big wordsize: %lu", wordsize);
-    }
-    if (wordsize <= nails / CHAR_BIT) {
-      rb_raise(rb_eArgError, "too big nails: %lu", nails);
-    }
-    if (INT_MAX / wordsize < numwords) {
-      rb_raise(rb_eArgError, "too big numwords * wordsize: %lu * %lu", numwords, wordsize);
-    }
+  }
+  
+  if (wordsize == 0) {
+    rb_raise(rb_eArgError, "invalid wordsize: %lu", wordsize);
+  }
+  
+  if (8 < wordsize) {
+    rb_raise(rb_eArgError, "too big wordsize: %lu", wordsize);
+  }
+  
+  if (wordsize <= nails / CHAR_BIT) {
+    rb_raise(rb_eArgError, "too big nails: %lu", nails);
+  }
+  
+  if (INT_MAX / wordsize < numwords) {
+    rb_raise(rb_eArgError, "too big numwords * wordsize: %lu * %lu", numwords, wordsize);
+  }
 }
 
 static int check_msw_first(int flags) {
@@ -1442,7 +1444,6 @@ int rb_tr_flags(VALUE value) {
   return flags;
 }
 
-
 // Undef conflicting macro from encoding.h like MRI
 #undef rb_enc_str_new
 VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {
@@ -1561,7 +1562,6 @@ void rb_econv_check_error(rb_econv_t *ec) {
 int rb_econv_prepare_opts(VALUE opthash, VALUE *opts) {
   rb_tr_error("rb_econv_prepare_opts not implemented");
 }
-
 
 // Symbol
 
@@ -1975,13 +1975,13 @@ void rb_check_arity(int argc, int min, int max) {
 }
 
 char* ruby_strdup(const char *str) {
-    char *tmp;
-    size_t len = strlen(str) + 1;
+  char *tmp;
+  size_t len = strlen(str) + 1;
 
-    tmp = xmalloc(len);
-    memcpy(tmp, str, len);
+  tmp = xmalloc(len);
+  memcpy(tmp, str, len);
 
-    return tmp;
+  return tmp;
 }
 
 // Calls
@@ -2432,45 +2432,53 @@ VALUE rb_range_new(VALUE beg, VALUE end, int exclude_end) {
 }
 
 VALUE rb_range_beg_len(VALUE range, long *begp, long *lenp, long len, int err) {
-    long beg, end, origbeg, origend;
-    VALUE b, e;
-    int excl;
+  long beg, end, origbeg, origend;
+  VALUE b, e;
+  int excl;
 
-    if (!rb_range_values(range, &b, &e, &excl))
-	return Qfalse;
-    beg = NUM2LONG(b);
-    end = NUM2LONG(e);
-    origbeg = beg;
-    origend = end;
+  if (!rb_range_values(range, &b, &e, &excl)) {
+    return Qfalse;
+  }
+  
+  beg = NUM2LONG(b);
+  end = NUM2LONG(e);
+  origbeg = beg;
+  origend = end;
+  if (beg < 0) {
+    beg += len;
     if (beg < 0) {
-	beg += len;
-	if (beg < 0)
-	    goto out_of_range;
+      goto out_of_range;
     }
-    if (end < 0)
-	end += len;
-    if (!excl)
-	end++;			/* include end point */
-    if (err == 0 || err == 2) {
-	if (beg > len)
-	    goto out_of_range;
-	if (end > len)
-	    end = len;
+  }
+  if (end < 0) {
+    end += len;
+  }
+  if (!excl) {
+    end++;                        /* include end point */
+  }
+  if (err == 0 || err == 2) {
+    if (beg > len) {
+      goto out_of_range;
     }
-    len = end - beg;
-    if (len < 0)
-	len = 0;
+    if (end > len) {
+      end = len;
+    }
+  }
+  len = end - beg;
+  if (len < 0) {
+    len = 0;
+  }
 
-    *begp = beg;
-    *lenp = len;
-    return Qtrue;
+  *begp = beg;
+  *lenp = len;
+  return Qtrue;
 
-  out_of_range:
-    if (err) {
-	rb_raise(rb_eRangeError, "%d..%s%d out of range",
-		 origbeg, excl ? "." : "", origend);
-    }
-    return Qnil;
+out_of_range:
+  if (err) {
+    rb_raise(rb_eRangeError, "%d..%s%d out of range",
+             origbeg, excl ? "." : "", origend);
+  }
+  return Qnil;
 }
 
 // Time
@@ -2919,9 +2927,9 @@ VALUE rb_data_object_wrap(VALUE klass, void *datap, RUBY_DATA_FUNC dmark, RUBY_D
 }
 
 VALUE rb_data_object_zalloc(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
-    VALUE obj = rb_data_object_wrap(klass, 0, dmark, dfree);
-    DATA_PTR(obj) = xcalloc(1, size);
-    return obj;
+  VALUE obj = rb_data_object_wrap(klass, 0, dmark, dfree);
+  DATA_PTR(obj) = xcalloc(1, size);
+  return obj;
 }
 
 // Typed data
