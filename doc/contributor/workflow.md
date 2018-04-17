@@ -148,37 +148,9 @@ set in `RUBYOPT`.
 
 ## Running with Graal
 
-To run with a GraalVM binary tarball, set the `GRAALVM_BIN` environment variable
-and run with the `--graal` option. Note that if you're running a native TruffleRuby
-binary, Graal is always built into the binary and enabled; you can safely ignore
-the rest of this section.
-
-```bash
-$ export GRAALVM_BIN=.../graalvm-0.nn/bin/java
-$ jt ruby --graal ...
-```
-
-You can check this is working by printing the value of `Truffle.graal?`.
-
-```bash
-$ export GRAALVM_BIN=.../graalvm-0.nn/bin/java
-$ jt ruby --graal -e 'p Truffle.graal?'
-```
-
-To run with Graal built from source, set `GRAAL_HOME`. Or it will be
-automatically found if it is cloned into the same directory as `truffleruby`, it
-is built, and you are not using a binary suite for Truffle.
-
-```bash
-$ export GRAAL_HOME=.../graal
-$ jt ruby --graal ...
-```
-
-Set Graal options as any other JVM option.
-
-```bash
-$ jt ruby --graal -J-Dgraal.TraceTruffleCompilation=true ...
-```
+To run a build from source with Graal, use Graal as a source dependency (don't
+set `truffle` in `MX_BINARY_SUITES`), build `graal/compiler` using `mx`, and
+then use the `--graal` option.
 
 We have flags in `jt` to set some options, such as `--trace` for
 `-J-Dgraal.TraceTruffleCompilation=true` and `--igv` for
