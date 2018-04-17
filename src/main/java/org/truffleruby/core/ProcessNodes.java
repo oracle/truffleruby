@@ -36,6 +36,7 @@ public abstract class ProcessNodes {
     @Primitive(name = "process_time_currenttimemillis", needsSelf = false)
     public abstract static class ProcessTimeCurrentTimeMillisNode extends PrimitiveArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
         public long currentTimeMillis() {
             return System.currentTimeMillis();
