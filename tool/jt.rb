@@ -145,18 +145,6 @@ module Utilities
     end
   end
 
-  def self.find_graal_js
-    jar = ENV['GRAAL_JS_JAR']
-    return jar if jar
-    raise "couldn't find trufflejs.jar - download GraalVM as described in https://github.com/oracle/truffleruby/blob/master/doc/user/using-graalvm.md and find it in there"
-  end
-
-  def self.find_sl
-    jar = ENV['SL_JAR']
-    return jar if jar
-    raise "couldn't find truffle-sl.jar - build Truffle and find it in there"
-  end
-
   def self.find_launcher(use_native)
     if use_native
       ENV['AOT_BIN'] || "#{TRUFFLERUBY_DIR}/bin/native-ruby"
@@ -422,7 +410,6 @@ module Commands
       jt ruby [options] args...                      run TruffleRuby with args
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME, or have graal built as a sibling)
               --stress    stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
-          --js            add Graal.js to the classpath (set GRAAL_JS_JAR)
           --asm           show assembly (implies --graal)
           --server        run an instrumentation server on port 8080
           --igv           make sure IGV is running and dump Graal graphs after partial escape (implies --graal)
@@ -498,8 +485,6 @@ module Commands
         GRAAL_HOME                                   Directory where there is a built checkout of the Graal compiler (make sure mx is on your path)
         JVMCI_BIN                                    JVMCI-enabled java command (also set JVMCI_GRAAL_HOME)
         JVMCI_GRAAL_HOME                             Like GRAAL_HOME, but only used for the JARs to run with JVMCI_BIN
-        GRAAL_JS_JAR                                 The location of trufflejs.jar
-        SL_JAR                                       The location of truffle-sl.jar
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         AOT_BIN                                      TruffleRuby/SVM executable
     TXT
@@ -573,8 +558,8 @@ module Commands
     puts "Environment"
     env_vars = %w[JAVA_HOME PATH RUBY_BIN GRAALVM_BIN
                   GRAAL_HOME TRUFFLERUBY_RESILIENT_GEM_HOME
-                  JVMCI_BIN JVMCI_GRAAL_HOME GRAAL_JS_JAR
-                  SL_JAR OPENSSL_PREFIX AOT_BIN TRUFFLERUBY_CEXT_ENABLED
+                  JVMCI_BIN JVMCI_GRAAL_HOME OPENSSL_PREFIX
+                  AOT_BIN TRUFFLERUBY_CEXT_ENABLED
                   TRUFFLERUBYOPT RUBYOPT]
     column_size = env_vars.map(&:size).max
     env_vars.each do |e|
@@ -635,11 +620,6 @@ module Commands
       vm_args << '-J-Dgraal.TruffleCompileImmediately=true'
       vm_args << '-J-Dgraal.TruffleBackgroundCompilation=false'
       vm_args << '-J-Dgraal.TruffleCompilationExceptionsAreFatal=true'
-    end
-
-    if args.delete('--js')
-      vm_args << '-J-cp'
-      vm_args << Utilities.find_graal_js
     end
 
     if args.delete('--asm')
@@ -1025,10 +1005,6 @@ module Commands
 
     env['TRUFFLERUBYOPT'] = '-Xexceptions.print_java=true'
 
-    if ENV['GRAAL_JS_JAR']
-      env['JAVA_OPTS'] = "-cp #{Utilities.find_graal_js}"
-    end
-
     Dir["#{TRUFFLERUBY_DIR}/test/truffle/compiler/*.sh"].sort.each do |test_script|
       if args.empty? or args.include?(File.basename(test_script, ".*"))
         sh env, test_script
@@ -1147,28 +1123,13 @@ EOS
   end
 
   def test_integration(*args)
-    classpath = []
-
-    if ENV['GRAAL_JS_JAR']
-      classpath << Utilities.find_graal_js
-    end
-
-    if ENV['SL_JAR']
-      classpath << Utilities.find_sl
-    end
-
-    env = {}
-    unless classpath.empty?
-      env['JAVA_OPTS'] = "-cp #{classpath.join(':')}"
-    end
-
     tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/integration"
     single_test            = !args.empty?
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
     Dir["#{tests_path}/#{test_names}.sh"].sort.each do |test_script|
       check_test_port
-      sh env, test_script
+      sh test_script
     end
   end
   private :test_integration
@@ -1176,18 +1137,13 @@ EOS
   def test_gems(*args)
     gem_test_pack
 
-    env = {}
-    if ENV['GRAAL_JS_JAR']
-      env['JAVA_OPTS'] = "-cp #{Utilities.find_graal_js}"
-    end
-
     tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/gems"
     single_test            = !args.empty?
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
     Dir["#{tests_path}/#{test_names}.sh"].sort.each do |test_script|
       check_test_port
-      sh env, test_script
+      sh test_script
     end
   end
   private :test_gems
