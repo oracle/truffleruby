@@ -1,23 +1,19 @@
 ![TruffleRuby logo](logo/png/truffleruby_logo_horizontal_medium.png)
 
-A high performance implementation of the Ruby programming language. Built on the
-GraalVM by [Oracle Labs](https://labs.oracle.com).
+A high performance implementation of the Ruby programming language. Built on
+[GraalVM](http://graalvm.org/) by [Oracle Labs](https://labs.oracle.com).
 
 ## Getting Started
 
-The best way to get started with TruffleRuby is via the GraalVM, which includes
-compatible versions of everything you need as well as TruffleRuby.
-
-http://www.oracle.com/technetwork/oracle-labs/program-languages/
-
-Inside the GraalVM is a `bin/ruby` command that runs TruffleRuby. See
-[Using TruffleRuby with GraalVM](doc/user/using-graalvm.md).
+To get started with TruffleRuby
+[install GraalVM and Ruby](doc/user/installing.md). Inside GraalVM will then be
+a `bin/ruby` command that runs TruffleRuby.
 
 We recommend that you use a [Ruby version manager](doc/user/ruby-managers.md)
 to use TruffleRuby.
 
-You can use `gem` to install Gems as normal.
-TruffleRuby currently requires Bundler version `1.16.x`.
+You can use `gem` to install Gems as normal. TruffleRuby currently requires
+Bundler version `1.16.x`.
 
 You can also build TruffleRuby from source, see the
 [Building Instructions](doc/contributor/workflow.md).
@@ -74,12 +70,6 @@ also another configuration which is TruffleRuby running on the JVM but with the
 Graal compiler not available. This configuration will have much lower
 performance and should normally only be used for development.
 
-## Documentation
-
-Extensive documentation is available in [`doc`](doc).
-[`doc/user`](doc/user) documents how to use TruffleRuby and
-[`doc/contributor`](doc/contributor) documents how to develop TruffleRuby.
-
 ## System Compatibility
 
 TruffleRuby is actively tested on these systems:
@@ -106,6 +96,12 @@ is missing support for Nokogiri and ActiveRecord database drivers which makes it
 not practical to run real Rails applications at the moment.
 
 You will find that many C extensions will not work without modification.
+
+## Documentation
+
+Extensive documentation is available in [`doc`](doc).
+[`doc/user`](doc/user) documents how to use TruffleRuby and
+[`doc/contributor`](doc/contributor) documents how to develop TruffleRuby.
 
 ## Contact
 

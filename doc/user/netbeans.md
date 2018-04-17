@@ -6,7 +6,7 @@ You can debug Ruby programs running in TruffleRuby using the NetBeans IDE.
 
 * Install NetBeans 8.2
 * Via Tools, Plugins, install 'Truffle Debugging Support'
-* [Download GraalVM](using-graalvm.md)
+* [Install TruffleRuby](installing.md)
 
 We then need a project to debug. An example project that works well and
 demonstrates features is available on GitHub:

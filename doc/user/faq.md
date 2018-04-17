@@ -33,24 +33,18 @@ machine code.
 
 ### What is GraalVM?
 
-The GraalVM is a platform for high-performance polyglot programming. The GraalVM
-is the easiest way to get and use TruffleRuby.
+GraalVM is the platform on which TruffleRuby runs. It's a system for
+high-performance polyglot programming.
 
-See [Using GraalVM](using-graalvm.md).
+More concretely, GraalVM is a modified version of the OracleJDK that includes
+Truffle, Graal, TruffleRuby and other languages running on the Truffle framework
+including JavaScript, Python and R.
 
-More concretely, the GraalVM is a modified version of the OracleJDK that
-includes Truffle, Graal, TruffleRuby and other languages running on the Truffle
-framework including JavaScript, Python and R.
+See how to [install GraalVM and TruffleRuby](installing.md).
 
 ### How do I get TruffleRuby?
 
-The easiest way to get TruffleRuby is the GraalVM, available from the Oracle
-Technology Network. This includes the JVM, the Graal compiler, and TruffleRuby,
-all in one package with compatible versions.
-
-You can get the GraalVM from the OTN, or see [Using GraalVM](using-graalvm.md).
-
-http://www.oracle.com/technetwork/oracle-labs/program-languages/
+The easiest way to get TruffleRuby is [GraalVM](installing.md).
 
 ### Why is TruffleRuby slow on a standard JVM?
 
@@ -128,6 +122,10 @@ specialized. Currently we’ve added specialisation for the code paths in the
 benchmarks and applications that we’ve been using. Adding them is generally not
 complicated and over time we will have specialisations to cover a broad range of
 applications.
+
+Make sure that you are using the
+[Enterprise Edition of GraalVM, and have rebuilt the executable images](installing.md)
+for the best performance.
 
 ### How is this related to `invokedynamic`?
 
