@@ -13,14 +13,16 @@ You need to put the built GraalVM binary tarball into the same directory as the
 Dockerfile, and update the Dockerfile for the version.
 
 ```
-$ docker build -t truffleruby-test-ubuntu . --build-arg GRAALVM_VERSION=n.n
+$ docker build -t truffleruby-test-ubuntu . build-args...
 ```
 
-You need to specify `GRAALVM_VERSION` as the version of GraalVM that you are
-using.
+You need to specify these build args:
 
-Also set `--build-arg TEST_BRANCH=master` to pick a branch to test against
-if you are testing a pre-release.
+* `--build-arg GRAALVM_VERSION=...`
+* `--build-arg GRAALVM_TARBALL=...`
+* `--build-arg TRUFFLERUBY_JAR=...`
+* `--build-arg REBUILD=true` if you want to rebuild images (you do with EE)
+* `--build-arg TEST_BRANCH=master` unless you want to test against the tag for the GraalVM version
 
 Docker will need to run the container with at least 8 GB of RAM if you are using
 virtualisation, to give enough space for the native image to build.
@@ -34,5 +36,12 @@ Ruby Managers are also tested by Dockerfiles. These all run on Ubuntu. We test
 rbenv, chruby, and RVM.
 
 ```
-$ docker build -t truffleruby-test-rbenv . --build-arg GRAALVM_VERSION=n.n
+$ docker build -t truffleruby-test-rbenv . build-args...
 ```
+
+You need to specify these build args:
+
+* `--build-arg GRAALVM_VERSION=...`
+* `--build-arg GRAALVM_TARBALL=...`
+* `--build-arg TRUFFLERUBY_JAR=...`
+* `--build-arg REBUILD=true` if you want to rebuild images (you do with EE)

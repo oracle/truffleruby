@@ -9,6 +9,9 @@ RUN apt-get install -y locales
 RUN locale-gen en_US.UTF-8
 ENV LANG=en_US.UTF-8
 
+# Dependencies for the rebuild-images command
+RUN apt-get install -y gcc
+
 # Dependencies for using openssl
 RUN apt-get install -y libssl-dev
 
@@ -27,12 +30,20 @@ RUN useradd -ms /bin/bash test
 RUN chown test /test
 USER test
 
-# Extract the GraalVM binary tarball
+# Install GraalVM and TruffleRuby
+ARG GRAALVM_TARBALL
 ARG GRAALVM_VERSION
-ARG TEST_BRANCH=vm-enterprise-$GRAALVM_VERSION
+ARG TRUFFLERUBY_JAR
+ARG REBUILD
+RUN test -n "$GRAALVM_TARBALL"
 RUN test -n "$GRAALVM_VERSION"
-ADD graalvm-$GRAALVM_VERSION-linux-amd64-jdk8.tar.gz /test
+RUN test -n "$TRUFFLERUBY_JAR"
+ARG TEST_BRANCH=vm-enterprise-$GRAALVM_VERSION
+COPY $GRAALVM_TARBALL $TRUFFLERUBY_JAR /test/
+RUN tar -C /test -zxf /test/$GRAALVM_TARBALL
 ENV PATH=/test/graalvm-$GRAALVM_VERSION/bin:$PATH
+RUN gu install /test/$TRUFFLERUBY_JAR
+RUN if [ -n "$REBUILD" ]; then /test/graalvm-$GRAALVM_VERSION/jre/lib/svm/bin/rebuild-images ruby; fi
 ENV RUBY_HOME=/test/graalvm-$GRAALVM_VERSION/jre/languages/ruby
 
 # Straight away, just run the ruby executables as the most basic test
