@@ -24,6 +24,9 @@ You need to specify these build args:
 * `--build-arg REBUILD_IMAGES=true` if you want to rebuild images (you do with EE)
 * `--build-arg TEST_BRANCH=master` unless you want to test against the tag for the GraalVM version
 
+See [the installation instructions](../../doc/user/installing.md) to see where
+to get the files if you aren't testing your own build.
+
 Docker will need to run the container with at least 8 GB of RAM if you are using
 virtualisation, to give enough space for the native image to build.
 
