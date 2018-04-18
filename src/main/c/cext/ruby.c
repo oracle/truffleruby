@@ -143,7 +143,7 @@ VALUE rb_obj_reveal(VALUE obj, VALUE klass) {
   // In MRI, this sets the class of the object, we are not deleting the class in rb_obj_hide, so we
   // ensure that class matches.
   return polyglot_invoke(RUBY_CEXT, "ensure_class", obj, klass,
-         rb_str_new_cstr("class %s supplied to rb_obj_reveal does not matches the obj's class %s"));
+             rb_str_new_cstr("class %s supplied to rb_obj_reveal does not matches the obj's class %s"));
   return obj;
 }
 
