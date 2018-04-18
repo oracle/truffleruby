@@ -460,7 +460,9 @@ static char *out_of_range_float(char (*pbuf)[24], VALUE val) {
   char *s;
 
   snprintf(buf, sizeof(*pbuf), "%-.10g", RFLOAT_VALUE(val));
-  if ((s = strchr(buf, ' ')) != 0) *s = '\0';
+  if ((s = strchr(buf, ' ')) != 0) {
+    *s = '\0';
+  }
   return buf;
 }
 
