@@ -59,14 +59,15 @@ $ gu install -c org.graalvm.ruby
 
 Or download manually from https://github.com/oracle/truffleruby/releases.
 
-If you install Ruby into the Enterprise Edition of GraalVM, you may then want to
+If you install Ruby into the Enterprise Edition of GraalVM, you should then
 rebuild the Ruby executable images using the runtime from the Enterprise
 Edition. The version of the Ruby executable images you install by default uses
 the Community Edition runtime until you rebuild.
 
 To get the best performance you want to rebuild the images.
 
-Rebuilding the executable images can take a few minutes.
+Rebuilding the executable images can take a few minutes and you should have
+about 8 GB of RAM available.
 
 ```
 $ graalvm/jre/lib/svm/bin/rebuild-images ruby
