@@ -44,7 +44,6 @@ RUN tar -C /test -zxf /test/$GRAALVM_TARBALL
 ENV PATH=/test/graalvm-$GRAALVM_VERSION/bin:$PATH
 RUN gu install /test/$TRUFFLERUBY_JAR
 RUN if [ -n "$REBUILD_IMAGES" ]; then /test/graalvm-$GRAALVM_VERSION/jre/lib/svm/bin/rebuild-images ruby; fi
-ENV RUBY_HOME=/test/graalvm-$GRAALVM_VERSION/jre/languages/ruby
 
 # Straight away, just run the ruby executables as the most basic test
 RUN ruby --version
