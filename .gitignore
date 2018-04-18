@@ -24,6 +24,7 @@ lib/cext/sulongmock.bc
 lib/cext/ruby.su
 lib/cext/ruby.bc
 lib/cext/sulong-libs
+lib/cext/include/sulong/polyglot.h
 lib/mri/openssl.su
 lib/mri/zlib.su
 lib/mri/psych.su
