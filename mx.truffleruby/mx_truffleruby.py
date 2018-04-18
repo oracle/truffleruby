@@ -15,6 +15,7 @@ import sys
 import mx
 import mx_subst
 import mx_unittest
+import mx_sdk
 
 if 'RUBY_BENCHMARKS' in os.environ:
     import mx_truffleruby_benchmark
@@ -124,6 +125,10 @@ class TruffleRubyLauncherBuildTask(mx.ArchivableBuildTask):
     def build(self):
         self.store_jvm_args()
 
+        try:
+            os.unlink(self.launcher)
+        except OSError:
+            pass
         if sys.platform.startswith('darwin'):
             shutil.copy(self.binary, self.launcher)
         else:
@@ -294,12 +299,54 @@ def ruby_testdownstream_sulong(args):
     jt('test', 'mri', 'zlib')
     jt('test', 'bundle')
 
+
 def mx_post_parse_cmd_line(opts):
     if mx.suite("tools", fatalIfMissing=False) and not _suite.isBinarySuite():
         mx.project('truffleruby-bin').buildDependencies += [
             mx.distribution('CHROMEINSPECTOR'),
             mx.distribution('TRUFFLE_PROFILER')
         ]
+
+
+mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
+    name='Truffle.Ruby',
+    short_name='rby',
+    dir_name='ruby',
+    documentation_files=['extracted-dependency:truffleruby:TRUFFLERUBY_GRAALVM_DOCS/README_TRUFFLERUBY.md'],
+    license_files=['link:<support>/GraalCE_Ruby_license_3rd_party_license.txt'],
+    third_party_license_files=[],
+    truffle_jars=[
+        'dependency:truffleruby:TRUFFLERUBY',
+        # 'dependency:truffleruby:TRUFFLERUBY-LAUNCHER', ??
+        'dependency:truffleruby:TRUFFLERUBY-SHARED',
+        'dependency:truffleruby:TRUFFLERUBY-ANNOTATIONS'
+    ],
+    support_distributions=[
+        'extracted-dependency:truffleruby:TRUFFLERUBY_GRAALVM_DOCS',
+        'extracted-dependency:truffleruby:TRUFFLERUBY_GRAALVM_SUPPORT',
+    ],
+    provided_executables=[
+        'link:<support>/bin/gem',
+        'link:<support>/bin/irb',
+        'link:<support>/bin/rake',
+        'link:<support>/bin/rdoc',
+        'link:<support>/bin/ri',
+        'link:<support>/bin/testrb',
+    ],
+    launcher_configs=[
+        mx_sdk.LanguageLauncherConfig(
+            destination='bin/<exe:ruby>',
+            jar_distributions=['dependency:truffleruby:TRUFFLERUBY-LAUNCHER'],
+            main_class='org.truffleruby.launcher.RubyLauncher',
+            build_args=[
+                '--language:llvm',
+                '--language:ruby',
+                '-Dorg.graalvm.launcher.standalone=false',
+            ],
+            links=['bin/<exe:truffleruby>'],
+        )
+    ],
+), _suite)
 
 mx.update_commands(_suite, {
     'ruby': [ruby_run_ruby, ''],
