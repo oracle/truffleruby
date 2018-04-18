@@ -21,7 +21,7 @@ You need to specify these build args:
 * `--build-arg GRAALVM_VERSION=...`
 * `--build-arg GRAALVM_TARBALL=...`
 * `--build-arg TRUFFLERUBY_JAR=...`
-* `--build-arg REBUILD=true` if you want to rebuild images (you do with EE)
+* `--build-arg REBUILD_IMAGES=true` if you want to rebuild images (you do with EE)
 * `--build-arg TEST_BRANCH=master` unless you want to test against the tag for the GraalVM version
 
 Docker will need to run the container with at least 8 GB of RAM if you are using
@@ -44,4 +44,4 @@ You need to specify these build args:
 * `--build-arg GRAALVM_VERSION=...`
 * `--build-arg GRAALVM_TARBALL=...`
 * `--build-arg TRUFFLERUBY_JAR=...`
-* `--build-arg REBUILD=true` if you want to rebuild images (you do with EE)
+* `--build-arg REBUILD_IMAGES=true` if you want to rebuild images (you do with EE)

@@ -25,7 +25,7 @@ USER test
 ARG GRAALVM_TARBALL
 ARG GRAALVM_VERSION
 ARG TRUFFLERUBY_JAR
-ARG REBUILD
+ARG REBUILD_IMAGES
 RUN test -n "$GRAALVM_TARBALL"
 RUN test -n "$GRAALVM_VERSION"
 RUN test -n "$TRUFFLERUBY_JAR"
@@ -34,7 +34,7 @@ COPY $GRAALVM_TARBALL $TRUFFLERUBY_JAR /test/
 RUN tar -C /test -zxf /test/$GRAALVM_TARBALL
 ENV PATH=/test/graalvm-$GRAALVM_VERSION/bin:$PATH
 RUN gu install /test/$TRUFFLERUBY_JAR
-RUN if [ -n "$REBUILD" ]; then /test/graalvm-$GRAALVM_VERSION/jre/lib/svm/bin/rebuild-images ruby; fi
+RUN if [ -n "$REBUILD_IMAGES" ]; then /test/graalvm-$GRAALVM_VERSION/jre/lib/svm/bin/rebuild-images ruby; fi
 ENV RUBY_HOME=/test/graalvm-$GRAALVM_VERSION/jre/languages/ruby
 
 # Install chruby
