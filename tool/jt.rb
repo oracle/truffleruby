@@ -35,9 +35,10 @@ METRICS_REPS = Integer(ENV["TRUFFLERUBY_METRICS_REPS"] || 10)
 RUBOCOP_INCLUDE_LIST = %w[
   lib/cext
   lib/truffle
-  test/truffleruby-tool
   src/main/ruby
   src/test/ruby
+  test/truffleruby-tool
+  tool/generate-sulongmock.rb
 ]
 
 UNAME = `uname`.chomp

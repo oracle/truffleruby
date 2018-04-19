@@ -13,7 +13,7 @@
 require 'erb'
 
 types = {
-  'void*' => "0", 'void' => nil,
+  'void*' => '0', 'void' => nil,
   'bool' => 'false', 'int' => '0', 'long' => '0', 'char' => "'0'",
   'int8_t' => '0', 'int16_t' => '0', 'int32_t' => '0', 'int64_t' => '0',
   'uint8_t' => '0', 'uint16_t' => '0', 'uint32_t' => '0', 'uint64_t' => '0',
@@ -23,7 +23,7 @@ types = {
 
 methods = []
 
-lines = IO.readlines("lib/cext/include/sulong/truffle.h") + IO.readlines("lib/cext/include/sulong/polyglot.h")
+lines = IO.readlines('lib/cext/include/sulong/truffle.h') + IO.readlines('lib/cext/include/sulong/polyglot.h')
 lines.each do |l|
   # Ignore functions only defined for documentation
   break if l.start_with?('#ifdef DOXYGEN')
