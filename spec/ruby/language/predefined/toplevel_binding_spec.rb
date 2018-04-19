@@ -22,6 +22,11 @@ describe "The TOPLEVEL_BINDING constant" do
 EOS
   end
 
+  it "gets updated variables values as they are defined and set" do
+    out = ruby_exe(fixture(__FILE__, "toplevel_binding_values.rb"))
+    out.should == "nil\nnil\n1\nnil\n3\n2\n"
+  end
+
   it "is always the same object for all top levels" do
     binding_toplevel_id = ruby_exe(fixture(__FILE__, "toplevel_binding_id.rb"))
     binding_toplevel_id.should == "1\n"
