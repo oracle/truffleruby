@@ -27,8 +27,9 @@ lines = IO.readlines('lib/cext/include/sulong/truffle.h') + IO.readlines('lib/ce
 lines.each do |l|
   # Ignore functions only defined for documentation
   break if l.start_with?('#ifdef DOXYGEN')
+  next if l.start_with?('//') || l.start_with?(' *')
 
-  match = !l.start_with?('//') && !l.start_with?(' *') && /^(\S.+?)\b(truffle|polyglot|__polyglot)(.+)\)(?=;)/.match(l)
+  match = /^(\S.+?)\b(truffle|polyglot|__polyglot)(.+)\)(?=;)/.match(l)
   if match
     ret = types.fetch(match[1].gsub(' ', '')) { |t| raise "unknown type: `#{t}` for line `#{l}`" }
     methods << {:met => match[0], :ret => ret}
