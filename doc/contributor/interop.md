@@ -480,10 +480,14 @@ array as a Ruby array.
 
 ## Additional methods
 
-`Truffle::Interop.foreign?(object)`
-
 `Truffle::Interop.mime_type_supported?(mime_type)` reports if a language's MIME
 type is supported for interop.
+
+`Truffle::Interop.foreign?(object)`
+
+`Truffle::Interop.java?(object)`
+
+`Truffle::Interop.java_class?(object)`
 
 `Truffle::Interop.java_string?(object)`
 
