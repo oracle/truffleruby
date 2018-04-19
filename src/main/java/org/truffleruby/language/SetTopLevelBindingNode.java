@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -21,12 +22,15 @@ public class SetTopLevelBindingNode extends RubyNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final MaterializedFrame mainScriptFrame = frame.materialize();
+        updateTopLevelBindingFrame(mainScriptFrame);
+        return nil();
+    }
 
+    @TruffleBoundary
+    private void updateTopLevelBindingFrame(MaterializedFrame mainScriptFrame) {
         final ModuleFields fields = Layouts.MODULE.getFields(coreLibrary().getObjectClass());
         final DynamicObject toplevelBinding = (DynamicObject) fields.getConstant("TOPLEVEL_BINDING").getValue();
-
         BindingNodes.insertAncestorFrame(getContext(), toplevelBinding, mainScriptFrame);
-        return nil();
     }
 
 }
