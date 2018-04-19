@@ -1066,23 +1066,6 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "java_type_name", onSingleton = true, required = 1)
-    public abstract static class JavaTypeNameNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isJavaInteropClass(object)")
-        public DynamicObject javaTypeName(Object object,
-                                          @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-            final String name = ((Class<?>) getContext().getEnv().asHostObject(object)).getName();
-            return makeStringNode.executeMake(name, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        }
-
-        protected boolean isJavaInteropClass(Object obj) {
-            return getContext().getEnv().isHostObject(obj) && getContext().getEnv().asHostObject(obj) instanceof Class<?>;
-        }
-
-    }
-
     @CoreMethod(names = "logging_foreign_object", onSingleton = true)
     public abstract static class LoggingForeignObjectNode extends CoreMethodArrayArgumentsNode {
 

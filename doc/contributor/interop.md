@@ -475,9 +475,6 @@ such as `java.lang.Integer` or `int[]`.
 
 `java_class.new(*args)` creates a new instance of a Java class object.
 
-`Truffle::Interop.java_type_name(java_class)` gives the Java class name for a
-Java class object, or `nil` if the object is not a Java class object.
-
 `Truffle::Interop.from_java_array(array)` creates a shallow copy of a Java
 array as a Ruby array.
 
