@@ -27,21 +27,21 @@ module Truffle::CExt
     end
 
     def [](index)
-      raise "bad index: #{index}" unless index == DATA_FIELD_INDEX
-      data_holder.data
+      case index
+      when 'data'
+        data_holder.data
+      else
+        raise "Unknown index: #{index}"
+      end
     end
 
     def []=(index, value)
-      raise "bad index: #{index}" unless index == DATA_FIELD_INDEX
-      data_holder.data = value
-    end
-
-    def data
-      data_holder.data
-    end
-
-    def data=(value)
-      data_holder.data = value
+      case index
+      when 'data'
+        data_holder.data = value
+      else
+        raise "Unknown index: #{index}"
+      end
     end
 
     def data_holder
@@ -52,8 +52,6 @@ module Truffle::CExt
   class RbEncoding
     ENCODING_CACHE = {}
     ENCODING_CACHE_MUTEX = Mutex.new
-
-    NAME_FIELD_INDEX = 0
 
     private_class_method :new
 
@@ -71,10 +69,10 @@ module Truffle::CExt
 
     def [](index)
       case index
-      when NAME_FIELD_INDEX, 'name'
+      when 'name'
         name
       else
-        raise
+        raise "Unknown index: #{index}"
       end
     end
 
@@ -84,21 +82,18 @@ module Truffle::CExt
   end
 
   class RbIO
-    MODE_FIELD_INDEX = 0
-    FD_FIELD_INDEX = 1
-
     def initialize(io)
       @io = io
     end
 
     def [](index)
       case index
-      when MODE_FIELD_INDEX, 'mode'
+      when 'mode'
         mode
-      when FD_FIELD_INDEX, 'fd'
+      when 'fd'
         fd
       else
-        raise
+        raise "Unknown index: #{index}"
       end
     end
 
