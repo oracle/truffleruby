@@ -261,4 +261,3 @@ void *__polyglot_from_typed_array(void *arr, uint64_t length, void *typeId) {
   return 0;
 }
 
-
