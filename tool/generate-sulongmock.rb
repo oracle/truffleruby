@@ -24,15 +24,18 @@ types = {
 methods = []
 
 lines = IO.readlines('lib/cext/include/sulong/truffle.h') + IO.readlines('lib/cext/include/sulong/polyglot.h')
-lines.each do |l|
+lines.each do |line|
   # Ignore functions only defined for documentation
-  break if l.start_with?('#ifdef DOXYGEN')
-  next if l.start_with?('//') || l.start_with?(' *')
+  break if line.start_with?('#ifdef DOXYGEN')
+  next if line.start_with?('//') || line.start_with?(' *')
 
-  match = /^(\S.+?)\b(truffle|polyglot|__polyglot)(.+)\)(?=;)/.match(l)
+  match = /^(\S.+?)\b(truffle|polyglot|__polyglot)(.+)\)(?=;)/.match(line)
   if match
-    ret = types.fetch(match[1].gsub(' ', '')) { |t| raise "unknown type: `#{t}` for line `#{l}`" }
-    methods << {:met => match[0], :ret => ret}
+    signature, return_type = match[0], match[1]
+    return_value = types.fetch(return_type.gsub(' ', '')) do
+      raise "unknown type: `#{return_type}` for line `#{line}`"
+    end
+    methods << [signature, return_value]
   end
 end
 
@@ -58,11 +61,10 @@ void rb_tr_mock() {
   fprintf(stderr, "Warning: Mock method called in sulongmock\\n");
   abort();
 }
-<% methods.each do |m| %>
-<%= m[:met] %> {
-  rb_tr_mock();<% if m[:ret] %>
-  return <%= m[:ret] %>;<% end %>
+<% methods.each do |signature, return_value| %>
+<%= signature %> {
+  rb_tr_mock();<% if return_value %>
+  return <%= return_value %>;<% end %>
 }
 <% end %>
-
 TRC
