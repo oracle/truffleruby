@@ -98,7 +98,7 @@ enum ruby_coderange_type RB_ENC_CODERANGE(VALUE obj);
 #define ENC_CODERANGE_AND(a, b)      RB_ENC_CODERANGE_AND(a, b)
 #define ENCODING_CODERANGE_SET(obj, encindex, cr) RB_ENCODING_CODERANGE_SET(obj, encindex, cr)
 
-typedef struct {
+typedef struct rb_encoding {
   char *name;
 } rb_encoding;
 
