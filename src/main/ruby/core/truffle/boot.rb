@@ -6,6 +6,8 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
+# There must be no local variables at the top scope in this file,
+# as the TOPLEVEL_BINDING should be empty until the main script is executed.
 TOPLEVEL_BINDING = binding
 
 module Truffle::Boot
