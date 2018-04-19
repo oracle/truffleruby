@@ -909,6 +909,27 @@ public abstract class InteropNodes {
 
     }
 
+    @CoreMethod(names = "java?", isModuleFunction = true, required = 1)
+    public abstract static class InteropIsJavaNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean isJava(Object value) {
+            return getContext().getEnv().isHostObject(value);
+        }
+
+    }
+
+    @CoreMethod(names = "java_class?", isModuleFunction = true, required = 1)
+    public abstract static class InteropIsJavaClassNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean isJavaClass(Object value) {
+            return getContext().getEnv().isHostObject(value)
+                    && getContext().getEnv().asHostObject(value) instanceof Class;
+        }
+
+    }
+
     @CoreMethod(names = "meta_object", isModuleFunction = true, required = 1)
     public abstract static class InteropMetaObjectNode extends CoreMethodArrayArgumentsNode {
 
