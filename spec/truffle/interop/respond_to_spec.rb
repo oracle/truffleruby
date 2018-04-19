@@ -49,5 +49,29 @@ describe "Truffle::Interop.respond_to?" do
     end
 
   end
+  
+  describe "for :class" do
+    
+    it "and a Java class returns true" do
+      Truffle::Interop.respond_to?(Truffle::Interop.java_type("java.math.BigInteger"), :class).should be_true
+    end
+    
+    it "and a Java object returns false" do
+      Truffle::Interop.respond_to?(Truffle::Interop.java_type("java.math.BigInteger").new("14"), :class).should be_false
+    end
+    
+    it "and a Ruby object returns false" do
+      Truffle::Interop.respond_to?(Object.new, :to_ary).should be_false
+    end
+    
+    describe "via a direct call" do
+  
+      it "and a Java array returns true" do
+        Truffle::Interop.java_array(1, 2, 3).respond_to?(:to_ary).should be_true
+      end
+  
+    end
+
+  end
 
 end
