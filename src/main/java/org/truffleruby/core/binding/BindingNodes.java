@@ -108,6 +108,18 @@ public abstract class BindingNodes {
         return frame;
     }
 
+    public static void insertAncestorFrame(RubyContext context, DynamicObject binding, MaterializedFrame ancestorFrame) {
+        assert RubyGuards.isRubyBinding(binding);
+        MaterializedFrame frame = Layouts.BINDING.getFrame(binding);
+        while (RubyArguments.getDeclarationFrame(frame) != null) {
+            frame = RubyArguments.getDeclarationFrame(frame);
+        }
+        RubyArguments.setDeclarationFrame(frame, ancestorFrame);
+
+        // We need to invalidate caches depending on the top frame, so create a new empty frame
+        newFrame(binding, newFrameDescriptor(context));
+    }
+
     protected static class FrameSlotAndDepth {
         private final FrameSlot slot;
         private final int depth;

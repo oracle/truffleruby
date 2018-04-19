@@ -54,7 +54,7 @@ public class SharedObjects {
             stack.push(object);
         }
 
-        // Share all named modules and constants (including the shared TOPLEVEL_BINDING)
+        // Share all named modules and constants
         stack.push(context.getCoreLibrary().getObjectClass());
 
         // Share all threads since they are accessible via Thread.list
