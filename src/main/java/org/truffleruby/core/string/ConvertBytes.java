@@ -292,7 +292,7 @@ public class ConvertBytes {
     public Object byteListToInum() {
         if (_str == null) {
             if (badcheck) {
-                invalidString("Integer");
+                invalidString();
             }
             return 0;
         }
@@ -304,7 +304,7 @@ public class ConvertBytes {
         if (str < end) {
             if (data[str] == '+' || data[str] == '-') {
                 if (badcheck) {
-                    invalidString("Integer");
+                    invalidString();
                 }
                 return 0;
             }
@@ -323,7 +323,7 @@ public class ConvertBytes {
         c = convertDigit(c);
         if (c < 0 || c >= base) {
             if (badcheck) {
-                invalidString("Integer");
+                invalidString();
             }
             return 0;
         }
@@ -343,7 +343,7 @@ public class ConvertBytes {
             }
             if (badcheck) {
                 if (endPlace[0] == str) {
-                    invalidString("Integer"); // no number
+                    invalidString(); // no number
                 }
 
                 while (isSpace(endPlace[0])) {
@@ -351,7 +351,7 @@ public class ConvertBytes {
                 }
 
                 if (endPlace[0] < end) {
-                    invalidString("Integer"); // trailing garbage
+                    invalidString(); // trailing garbage
                 }
             }
 
@@ -386,7 +386,7 @@ public class ConvertBytes {
 
     private Object bigParse(int len, boolean sign) {
         if (badcheck && str < end && data[str] == '_') {
-            invalidString("Integer");
+            invalidString();
         }
 
         char[] result = new char[end - str];
@@ -402,7 +402,7 @@ public class ConvertBytes {
                 if (c == '_') {
                     if (nondigit != -1) {
                         if (badcheck) {
-                            invalidString("Integer");
+                            invalidString();
                         }
                         break;
                     }
@@ -426,13 +426,13 @@ public class ConvertBytes {
             if (badcheck) {
                 // no str-- here because we don't null-terminate strings
                 if (1 < tmpStr && data[tmpStr - 1] == '_') {
-                    invalidString("Integer");
+                    invalidString();
                 }
                 while (tmpStr < end && Character.isWhitespace(data[tmpStr])) {
                     tmpStr++;
                 }
                 if (tmpStr < end) {
-                    invalidString("Integer");
+                    invalidString();
                 }
 
             }
@@ -446,13 +446,13 @@ public class ConvertBytes {
 
         if (badcheck) {
             if (1 < str && data[str - 1] == '_') {
-                invalidString("Integer");
+                invalidString();
             }
             while (str < end && isSpace(str)) {
                 str++;
             }
             if (str < end) {
-                invalidString("Integer");
+                invalidString();
             }
         }
 
@@ -525,9 +525,9 @@ public class ConvertBytes {
     /** rb_invalid_str
      *
      */
-    private void invalidString(String type) {
+    private void invalidString() {
         throw new RaiseException(
-                context.getCoreExceptions().argumentErrorInvalidValue(_str, type, node));
+                context.getCoreExceptions().argumentErrorInvalidStringToInteger(_str, node));
     }
 
     public static final byte[] intToBinaryBytes(int i) {

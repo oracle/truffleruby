@@ -161,9 +161,12 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject argumentErrorInvalidValue(Object object, String expectedType, Node currentNode) {
-        String badClassName = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(object)).getName();
-        return argumentError(StringUtils.format("invalid value for %s(): %s", badClassName, expectedType), currentNode);
+    public DynamicObject argumentErrorInvalidStringToInteger(Object object, Node currentNode) {
+        assert RubyGuards.isRubyString(object);
+
+        // TODO (nirvdrum 19-Apr-18): Guard against String#inspect being redefined to return something other than a String.
+        final String formattedObject = StringOperations.getString((DynamicObject) context.send(object, "inspect"));
+        return argumentError(StringUtils.format("invalid value for Integer(): %s", formattedObject), currentNode);
     }
 
     @TruffleBoundary
