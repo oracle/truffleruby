@@ -110,6 +110,9 @@ means they will work from other languages sending read and write messages.
 `object.new(*args)` will create a new object from the foreign object (as if it's
 some kind of class.)
 
+`object.class` on a Java `Class` object will give you an object on which you
+can call instance methods, rather than static methods.
+
 `object.respond_to?(:size)` will tell you if the foreign object has a size or
 length.
 
@@ -124,6 +127,8 @@ create a new object (if it's a class).
 `object.respond_to?(:keys)` will tell you if a foreign object can give you a
 list of members.
 
+`object.respond_to?(:class)` will tell you if an object is a Java class.
+
 `Polyglot.as_enumerable(object)` will create a Ruby `Enumerable` from the
 foreign object, using its size or length and reading from it.
 
@@ -135,6 +140,9 @@ available in JVM mode (`--jvm`).
 
 `Java.type(name)` returns a Java class object, given a name such as
 `java.lang.Integer` or `int[]`.
+
+Java `Class` objects give you the static members of a class. To access instance
+methods use `.class`.
 
 Also see the separate document on
 [JRuby-compatible Java interop](jruby-java-interop.md).

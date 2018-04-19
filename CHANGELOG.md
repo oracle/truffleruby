@@ -2,6 +2,14 @@
 
 New features:
 
+* `object.class` on a Java `Class` object will give you an object on which you
+  can call instance methods, rather than static methods which is what you get by
+  default.
+
+# 1.0 RC 1, April 2018
+
+New features:
+
 * The Ruby version has been updated to version 2.3.7.
 
 Security:
