@@ -12,6 +12,16 @@ describe "The TOPLEVEL_BINDING constant" do
     out.should == "[:required_before, []]\n[:a, :b]\n"
   end
 
+  it "merges local variables of the main script with dynamically-defined Binding variables" do
+    required = fixture(__FILE__, 'toplevel_binding_dynamic_required.rb')
+    out = ruby_exe(fixture(__FILE__, 'toplevel_binding_dynamic.rb'), options: "-r#{required}")
+    out.should == <<EOS
+[:dynamic_set_required]
+[:dynamic_set_required, :main_script]
+[:dynamic_set_main, :dynamic_set_required, :main_script]
+EOS
+  end
+
   it "is always the same object for all top levels" do
     binding_toplevel_id = ruby_exe(fixture(__FILE__, "toplevel_binding_id.rb"))
     binding_toplevel_id.should == "1\n"
