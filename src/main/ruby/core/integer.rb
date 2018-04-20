@@ -29,6 +29,15 @@ class Integer < Numeric
   alias_method :ceil, :to_i
   alias_method :floor, :to_i
 
+  def divmod(b)
+    Truffle.primitive :integer_divmod
+    raise ZeroDivisionError if b == 0
+    [
+      (self / b).floor,
+      self - b * (self / b).floor
+    ]
+  end
+
   def times
     return to_enum(:times) { self } unless block_given?
 
