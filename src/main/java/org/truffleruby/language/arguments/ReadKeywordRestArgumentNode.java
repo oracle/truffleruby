@@ -46,7 +46,7 @@ public class ReadKeywordRestArgumentNode extends RubyNode {
         final Object hash = readUserKeywordsHashNode.execute(frame);
 
         if (noHash.profile(hash == null)) {
-            return coreLibrary().getHashFactory().newInstance(Layouts.HASH.build(null, 0, null, null, null, null, false));
+            return coreLibrary().getHashFactory().newInstance(Layouts.HASH.build(null, 0, null, null, null, nil(), false));
         }
 
         Log.notOptimizedOnce(Log.KWARGS_NOT_OPTIMIZED_YET);
