@@ -74,8 +74,6 @@ import org.truffleruby.core.mutex.MutexNodesBuiltins;
 import org.truffleruby.core.mutex.MutexNodesFactory;
 import org.truffleruby.core.numeric.BignumNodesBuiltins;
 import org.truffleruby.core.numeric.BignumNodesFactory;
-import org.truffleruby.core.numeric.FixnumNodesBuiltins;
-import org.truffleruby.core.numeric.FixnumNodesFactory;
 import org.truffleruby.core.numeric.FloatNodesBuiltins;
 import org.truffleruby.core.numeric.FloatNodesFactory;
 import org.truffleruby.core.numeric.IntegerNodesBuiltins;
@@ -190,7 +188,6 @@ public abstract class BuiltinsClasses {
         ExceptionNodesBuiltins.setup(coreManager, primitiveManager);
         FalseClassNodesBuiltins.setup(coreManager, primitiveManager);
         FiberNodesBuiltins.setup(coreManager, primitiveManager);
-        FixnumNodesBuiltins.setup(coreManager, primitiveManager);
         FloatNodesBuiltins.setup(coreManager, primitiveManager);
         JavaUtilitiesNodesBuiltins.setup(coreManager, primitiveManager);
         HashNodesBuiltins.setup(coreManager, primitiveManager);
@@ -270,7 +267,6 @@ public abstract class BuiltinsClasses {
             ExceptionNodesFactory.getFactories(),
             FalseClassNodesFactory.getFactories(),
             FiberNodesFactory.getFactories(),
-            FixnumNodesFactory.getFactories(),
             FloatNodesFactory.getFactories(),
             JavaUtilitiesNodesFactory.getFactories(),
             HashNodesFactory.getFactories(),

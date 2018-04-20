@@ -10,8 +10,8 @@
 package org.truffleruby.core.inlined;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.numeric.FixnumNodes.BitAndNode;
-import org.truffleruby.core.numeric.FixnumNodesFactory.BitAndNodeFactory;
+import org.truffleruby.core.numeric.IntegerNodes.BitAndNode;
+import org.truffleruby.core.numeric.IntegerNodesFactory.BitAndNodeFactory;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.CompilerDirectives;

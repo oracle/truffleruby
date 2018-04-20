@@ -10,8 +10,8 @@
 package org.truffleruby.core.inlined;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.numeric.FixnumNodes.RightShiftNode;
-import org.truffleruby.core.numeric.FixnumNodesFactory.RightShiftNodeFactory;
+import org.truffleruby.core.numeric.IntegerNodes.RightShiftNode;
+import org.truffleruby.core.numeric.IntegerNodesFactory.RightShiftNodeFactory;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.CompilerDirectives;
