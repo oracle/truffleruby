@@ -244,6 +244,10 @@ module Utilities
     end
   end
 
+  def self.diff(expected, actual)
+    `diff #{expected} #{actual}`
+  end
+
 end
 
 module ShellUtils
@@ -1067,9 +1071,21 @@ module Commands
           cextc(dir)
           run_ruby "-I#{dir}/lib", "#{dir}/bin/#{test_name}", out: output_file
           actual = File.read(output_file)
-          expected = File.read("#{dir}/expected.txt")
+          expected_file = "#{dir}/expected.txt"
+          expected = File.read(expected_file)
           unless actual == expected
-            abort "C extension #{dir} didn't work as expected\nActual:\n#{actual}\nExpected:\n#{expected}"
+            abort <<-EOS
+C extension #{dir} didn't work as expected
+
+Actual:
+#{actual}
+
+Expected:
+#{expected}
+
+Diff:
+#{Utilities.diff(expected_file, output_file)}
+EOS
           end
         ensure
           File.delete output_file if File.exist? output_file
