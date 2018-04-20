@@ -1,1 +1,0 @@
-fails:Module#refine for methods accessed indirectly is not honored by string interpolation
