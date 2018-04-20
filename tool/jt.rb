@@ -827,12 +827,10 @@ module Commands
     def remote_urls(dir = TRUFFLERUBY_DIR)
       @remote_urls ||= Hash.new
       @remote_urls[dir] ||= begin
-        chdir dir do
-          out, _err = raw_sh 'git', 'remote', capture: true
-          out.split.map do |remote|
-            url, _err = raw_sh 'git', 'config', '--get', "remote.#{remote}.url", capture: true
-            [remote, url.chomp]
-          end
+        out, _err = raw_sh 'git', '-C', dir, 'remote', capture: true, no_print_cmd: true
+        out.split.map do |remote|
+          url, _err = raw_sh 'git', '-C', dir, 'config', '--get', "remote.#{remote}.url", capture: true, no_print_cmd: true
+          [remote, url.chomp]
         end
       end
     end
