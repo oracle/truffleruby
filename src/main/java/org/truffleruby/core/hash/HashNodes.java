@@ -57,7 +57,7 @@ public abstract class HashNodes {
 
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, Layouts.HASH.build(null, 0, null, null, null, null, false));
+            return allocateObjectNode.allocate(rubyClass, Layouts.HASH.build(null, 0, null, null, null, nil(), false));
         }
 
     }
@@ -110,7 +110,7 @@ public abstract class HashNodes {
                 }
             }
 
-            return allocateObjectNode.allocate(hashClass, Layouts.HASH.build(newStore, size, null, null, null, null, false));
+            return allocateObjectNode.allocate(hashClass, Layouts.HASH.build(newStore, size, null, null, null, nil(), false));
         }
 
         @Specialization(guards = "!isSmallArrayOfPairs(args)")
@@ -309,15 +309,8 @@ public abstract class HashNodes {
     public abstract static class DefaultValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public Object defaultValue(DynamicObject hash,
-                @Cached("createBinaryProfile()") ConditionProfile nullValueProfile) {
-            final Object value = Layouts.HASH.getDefaultValue(hash);
-
-            if (nullValueProfile.profile(value == null)) {
-                return nil();
-            } else {
-                return value;
-            }
+        public Object defaultValue(DynamicObject hash) {
+            return Layouts.HASH.getDefaultValue(hash);
         }
     }
 
@@ -524,7 +517,7 @@ public abstract class HashNodes {
         @Specialization
         public DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, NotProvided block) {
             assert HashOperations.verifyStore(getContext(), null, 0, null, null);
-            Layouts.HASH.setDefaultValue(hash, null);
+            Layouts.HASH.setDefaultValue(hash, nil());
             Layouts.HASH.setDefaultBlock(hash, null);
             return hash;
         }
@@ -532,7 +525,7 @@ public abstract class HashNodes {
         @Specialization
         public DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, DynamicObject block) {
             assert HashOperations.verifyStore(getContext(), null, 0, null, null);
-            Layouts.HASH.setDefaultValue(hash, null);
+            Layouts.HASH.setDefaultValue(hash, nil());
             Layouts.HASH.setDefaultBlock(hash, block);
             return hash;
         }
@@ -993,14 +986,14 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isRubyProc(defaultProc)")
         public DynamicObject setDefaultProc(DynamicObject hash, DynamicObject defaultProc) {
-            Layouts.HASH.setDefaultValue(hash, null);
+            Layouts.HASH.setDefaultValue(hash, nil());
             Layouts.HASH.setDefaultBlock(hash, defaultProc);
             return defaultProc;
         }
 
         @Specialization(guards = "isNil(nil)")
         public DynamicObject setDefaultProc(DynamicObject hash, Object nil) {
-            Layouts.HASH.setDefaultValue(hash, null);
+            Layouts.HASH.setDefaultValue(hash, nil());
             Layouts.HASH.setDefaultBlock(hash, null);
             return nil();
         }
