@@ -11,8 +11,8 @@ package org.truffleruby.core.inlined;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.numeric.FloatNodes;
-import org.truffleruby.core.numeric.FixnumNodes.ModNode;
-import org.truffleruby.core.numeric.FixnumNodesFactory.ModNodeFactory;
+import org.truffleruby.core.numeric.IntegerNodes.ModNode;
+import org.truffleruby.core.numeric.IntegerNodesFactory.ModNodeFactory;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.CompilerDirectives;
