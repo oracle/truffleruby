@@ -29,6 +29,17 @@ describe "Hash#initialize" do
     HashSpecs::NewHash.new(:one, :two)[1].should == :two
   end
 
+  it "does not change the storage, only the default value or proc" do
+    h = HashSpecs::SubHashSettingInInitialize.new
+    h.to_a.should == [[:foo, :bar]]
+
+    h = HashSpecs::SubHashSettingInInitialize.new(:default)
+    h.to_a.should == [[:foo, :bar]]
+
+    h = HashSpecs::SubHashSettingInInitialize.new { :default_block }
+    h.to_a.should == [[:foo, :bar]]
+  end
+
   it "returns self" do
     h = Hash.new
     h.send(:initialize).should equal(h)
