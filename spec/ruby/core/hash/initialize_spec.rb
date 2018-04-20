@@ -9,9 +9,19 @@ describe "Hash#initialize" do
   it "can be used to reset default_proc" do
     h = { "foo" => 1, "bar" => 2 }
     h.default_proc.should == nil
-    h.instance_eval { initialize { |_, k| k * 2 } }
+    h.send(:initialize) { |_, k| k * 2 }
     h.default_proc.should_not == nil
     h["a"].should == "aa"
+  end
+
+  it "can be used to reset the default value" do
+    h = {}
+    h.default = 42
+    h.default.should == 42
+    h.send(:initialize, 1)
+    h.default.should == 1
+    h.send(:initialize)
+    h.default.should == nil
   end
 
   it "receives the arguments passed to Hash#new" do
