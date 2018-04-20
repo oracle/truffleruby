@@ -524,11 +524,6 @@ public abstract class HashNodes {
         @Specialization
         public DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, NotProvided block) {
             assert HashOperations.verifyStore(getContext(), null, 0, null, null);
-            Layouts.HASH.setStore(hash, null);
-            Layouts.HASH.setSize(hash, 0);
-            Layouts.HASH.setFirstInSequence(hash, null);
-            Layouts.HASH.setLastInSequence(hash, null);
-
             Layouts.HASH.setDefaultValue(hash, null);
             Layouts.HASH.setDefaultBlock(hash, null);
             return hash;
@@ -537,11 +532,6 @@ public abstract class HashNodes {
         @Specialization
         public DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, DynamicObject block) {
             assert HashOperations.verifyStore(getContext(), null, 0, null, null);
-            Layouts.HASH.setStore(hash, null);
-            Layouts.HASH.setSize(hash, 0);
-            Layouts.HASH.setFirstInSequence(hash, null);
-            Layouts.HASH.setLastInSequence(hash, null);
-
             Layouts.HASH.setDefaultValue(hash, null);
             Layouts.HASH.setDefaultBlock(hash, block);
             return hash;
@@ -550,11 +540,6 @@ public abstract class HashNodes {
         @Specialization(guards = "wasProvided(defaultValue)")
         public DynamicObject initialize(DynamicObject hash, Object defaultValue, NotProvided block) {
             assert HashOperations.verifyStore(getContext(), null, 0, null, null);
-            Layouts.HASH.setStore(hash, null);
-            Layouts.HASH.setSize(hash, 0);
-            Layouts.HASH.setFirstInSequence(hash, null);
-            Layouts.HASH.setLastInSequence(hash, null);
-
             Layouts.HASH.setDefaultValue(hash, defaultValue);
             Layouts.HASH.setDefaultBlock(hash, null);
             return hash;
