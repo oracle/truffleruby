@@ -57,7 +57,7 @@ public abstract class HashLiteralNode extends RubyNode {
 
         @Override
         public Object execute(VirtualFrame frame) {
-            return coreLibrary().getHashFactory().newInstance(Layouts.HASH.build(null, 0, null, null, null, nil(), false));
+            return coreLibrary().getHashFactory().newInstance(Layouts.HASH.build(null, 0, null, null, nil(), nil(), false));
         }
 
     }
@@ -111,7 +111,7 @@ public abstract class HashLiteralNode extends RubyNode {
                 size++;
             }
 
-            return coreLibrary().getHashFactory().newInstance(Layouts.HASH.build(store, size, null, null, null, nil(), false));
+            return coreLibrary().getHashFactory().newInstance(Layouts.HASH.build(store, size, null, null, nil(), nil(), false));
         }
 
         private int hash(VirtualFrame frame, Object key) {
@@ -175,7 +175,7 @@ public abstract class HashLiteralNode extends RubyNode {
             final int bucketsCount = BucketsStrategy.capacityGreaterThan(keyValues.length / 2) * BucketsStrategy.OVERALLOCATE_FACTOR;
             final Entry[] newEntries = new Entry[bucketsCount];
 
-            final DynamicObject hash = coreLibrary().getHashFactory().newInstance(Layouts.HASH.build(newEntries, 0, null, null, null, nil(), false));
+            final DynamicObject hash = coreLibrary().getHashFactory().newInstance(Layouts.HASH.build(newEntries, 0, null, null, nil(), nil(), false));
 
             for (int n = 0; n < keyValues.length; n += 2) {
                 final Object key = keyValues[n].execute(frame);
