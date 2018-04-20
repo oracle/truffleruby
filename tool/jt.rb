@@ -25,7 +25,7 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = 7
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = "e7c82f89e7a978bc2fdaf3098b10d39e42a66875"
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -840,6 +840,11 @@ module Commands
         end
       end
     end
+
+    def try_fetch(repo)
+      remote = github(repo) || bitbucket(repo) || 'origin'
+      raw_sh "git", "-C", repo, "fetch", continue_on_failure: true
+    end
   end
 
   def pr(*args)
@@ -1332,23 +1337,19 @@ EOS
   private :test_tck
 
   def gem_test_pack
-    name = "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}"
-    test_pack = File.expand_path(name, TRUFFLERUBY_DIR)
-    archive = "#{test_pack}.tar.gz"
-    unless File.exist?(archive)
-      $stderr.puts "Downloading latest gem test pack..."
+    name = "truffleruby-gem-test-pack"
+    gem_test_pack = File.expand_path(name, TRUFFLERUBY_DIR)
+    unless Dir.exist?(gem_test_pack)
+      $stderr.puts "Cloning the truffleruby-gem-test-pack repository"
+      url = mx('urlrewrite', "https://github.com/graalvm/#{name}.git", capture: true).first.rstrip
+      sh "git", "clone", url
+    end
 
-      # To update these files contact someone with permissions on lafo.
-      url = mx('urlrewrite', "https://lafo.ssw.uni-linz.ac.at/pub/graal-external-deps/#{name}.tar.gz", capture: true).first.rstrip
-      archive = "#{test_pack}.tar.gz"
-      sh 'curl', '-L', '-o', archive, url
-    end
-    unless Dir.exist?(test_pack)
-      $stderr.puts "Unpacking gem test pack..."
-      sh 'tar', '-zxf', archive
-    end
-    puts test_pack
-    test_pack
+    Remotes.try_fetch(gem_test_pack)
+    raw_sh "git", "-C", gem_test_pack, "checkout", "-q", TRUFFLERUBY_GEM_TEST_PACK_VERSION
+
+    puts gem_test_pack
+    gem_test_pack
   end
   alias_method :'gem-test-pack', :gem_test_pack
 
@@ -1775,12 +1776,8 @@ EOS
     graal = Utilities.find_or_clone_repo('https://github.com/graalvm/graal.git')
 
     if sforceimports
-      chdir(graal) do
-        raw_sh "git", "fetch",
-               Remotes.github(graal) || Remotes.bitbucket(graal) || 'origin',
-               continue_on_failure: true
-        raw_sh "git", "checkout", Utilities.truffle_version
-      end
+      Remotes.try_fetch(graal)
+      raw_sh "git", "-C", graal, "checkout", Utilities.truffle_version
     end
 
     graal
