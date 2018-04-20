@@ -1158,21 +1158,6 @@ public abstract class IntegerNodes {
 
     }
 
-    @CoreMethod(names = "zero?")
-    public abstract static class ZeroNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public boolean zero(int n) {
-            return n == 0;
-        }
-
-        @Specialization
-        public boolean zero(long n) {
-            return n == 0;
-        }
-
-    }
-
     @Primitive(name = "fixnum_coerce", lowerFixnum = 1)
     public static abstract class FixnumCoercePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
