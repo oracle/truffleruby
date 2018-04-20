@@ -27,7 +27,7 @@ public interface HashLayout extends BasicObjectLayout {
             int size,
             @Nullable Entry firstInSequence,
             @Nullable Entry lastInSequence,
-            @Nullable DynamicObject defaultBlock,
+            DynamicObject defaultBlock,
             Object defaultValue,
             boolean compareByIdentity);
 
