@@ -49,23 +49,12 @@ class Fixnum < Integer
     index < 0 ? 0 : (self >> index) & 1
   end
 
-  alias_method :modulo, :%
-
   def fdiv(n)
     if n.kind_of?(Integer)
       to_f / n
     else
       redo_coerced :fdiv, n
     end
-  end
-
-  def divmod(b)
-    Truffle.primitive :fixnum_divmod
-    raise ZeroDivisionError if b == 0
-    [
-      (self / b).floor,
-      self - b * (self / b).floor
-    ]
   end
 
   def **(o)
@@ -82,31 +71,5 @@ class Fixnum < Integer
 
   # Have a copy in Fixnum of the Integer version, as MRI does
   public :even?, :odd?, :succ
-
-  def left_shift_fallback(other)
-    # Fallback from Rubinius' Fixnum#<<, after the primitive call
-
-    other = Truffle::Type.coerce_to other, Integer, :to_int
-    unless other.kind_of? Fixnum
-      raise RangeError, 'argument is out of range for a Fixnum'
-    end
-
-    self << other
-  end
-
-  private :left_shift_fallback
-
-  def right_shift_fallback(other)
-    # Fallback from Rubinius' Fixnum#>>, after the primitive call
-
-    other = Truffle::Type.coerce_to other, Integer, :to_int
-    unless other.kind_of? Fixnum
-      raise RangeError, 'argument is out of range for a Fixnum'
-    end
-
-    self >> other
-  end
-
-  private :right_shift_fallback
 
 end

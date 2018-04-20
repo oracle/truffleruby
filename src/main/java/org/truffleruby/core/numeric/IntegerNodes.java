@@ -12,7 +12,6 @@ package org.truffleruby.core.numeric;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -33,9 +32,10 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.Hashing;
+import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.AbsNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.DivNodeFactory;
-import org.truffleruby.core.numeric.IntegerNodesFactory.IntegerMulNodeGen;
 import org.truffleruby.core.numeric.IntegerNodesFactory.LeftShiftNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.MulNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.RightShiftNodeFactory;
@@ -44,7 +44,6 @@ import org.truffleruby.core.rope.LazyIntRope;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -53,8 +52,22 @@ import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 @CoreClass("Integer")
 public abstract class IntegerNodes {
 
+    public static abstract class BignumCoreMethodNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private FixnumOrBignumNode fixnumOrBignum;
+
+        public Object fixnumOrBignum(BigInteger value) {
+            if (fixnumOrBignum == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                fixnumOrBignum = insert(new FixnumOrBignumNode());
+            }
+            return fixnumOrBignum.fixnumOrBignum(value);
+        }
+
+    }
+
     @CoreMethod(names = "-@")
-    public abstract static class NegNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class NegNode extends BignumCoreMethodNode {
 
         @Child private FixnumOrBignumNode fixnumOrBignumNode;
 
@@ -79,18 +92,18 @@ public abstract class IntegerNodes {
 
         @Specialization
         public Object negWithOverflow(long value) {
-            if (fixnumOrBignumNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                fixnumOrBignumNode = insert(new FixnumOrBignumNode());
-            }
+            return fixnumOrBignum(BigInteger.valueOf(value).negate());
+        }
 
-            return fixnumOrBignumNode.fixnumOrBignum(BigInteger.valueOf(value).negate());
+        @Specialization
+        public Object neg(DynamicObject value) {
+            return fixnumOrBignum(Layouts.BIGNUM.getValue(value).negate());
         }
 
     }
 
     @CoreMethod(names = "+", required = 1)
-    public abstract static class AddNode extends BignumNodes.BignumCoreMethodNode {
+    public abstract static class AddNode extends BignumCoreMethodNode {
 
         public abstract Object executeAdd(Object a, Object b);
 
@@ -141,10 +154,27 @@ public abstract class IntegerNodes {
             return redoCoerced.call(null, a, "redo_coerced", coreStrings().PLUS.getSymbol(), b);
         }
 
+        @Specialization
+        public Object add(DynamicObject a, long b) {
+            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).add(BigInteger.valueOf(b)));
+        }
+
+        @Specialization
+        public double add(DynamicObject a, double b) {
+            return Layouts.BIGNUM.getValue(a).doubleValue() + b;
+        }
+
+        @Specialization(guards = "isRubyBignum(b)")
+        public Object add(DynamicObject a, DynamicObject b) {
+            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).add(Layouts.BIGNUM.getValue(b)));
+        }
+
+        // TODO (eregon, 21 Apr 2018): missing redo_coerced for Bignum
+
     }
 
     @CoreMethod(names = "-", required = 1)
-    public abstract static class SubNode extends BignumNodes.BignumCoreMethodNode {
+    public abstract static class SubNode extends BignumCoreMethodNode {
 
         public abstract Object executeSub(Object a, Object b);
 
@@ -189,6 +219,23 @@ public abstract class IntegerNodes {
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(null, a, "redo_coerced", coreStrings().MINUS.getSymbol(), b);
         }
+
+        @Specialization
+        public Object sub(DynamicObject a, long b) {
+            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).subtract(BigInteger.valueOf(b)));
+        }
+
+        @Specialization
+        public double sub(DynamicObject a, double b) {
+            return Layouts.BIGNUM.getValue(a).doubleValue() - b;
+        }
+
+        @Specialization(guards = "isRubyBignum(b)")
+        public Object sub(DynamicObject a, DynamicObject b) {
+            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).subtract(Layouts.BIGNUM.getValue(b)));
+        }
+
+        // TODO (eregon, 21 Apr 2018): missing redo_coerced for Bignum
 
     }
 
@@ -244,10 +291,34 @@ public abstract class IntegerNodes {
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(null, a, "redo_coerced", coreStrings().MULTIPLY.getSymbol(), b);
         }
+
+        @TruffleBoundary
+        @Specialization
+        public Object mul(DynamicObject a, long b) {
+            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).multiply(BigInteger.valueOf(b)));
+        }
+
+        @Specialization
+        public double mul(DynamicObject a, double b) {
+            return Layouts.BIGNUM.getValue(a).doubleValue() * b;
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyBignum(b)")
+        public Object mul(DynamicObject a, DynamicObject b) {
+            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).multiply(Layouts.BIGNUM.getValue(b)));
+        }
+
+        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isDouble(b)", "!isRubyBignum(b)" })
+        public Object mul(DynamicObject a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().MULTIPLY.getSymbol(), b);
+        }
+
     }
 
     @CoreMethod(names = "/", required = 1)
-    public abstract static class DivNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class DivNode extends BignumCoreMethodNode {
 
         private final BranchProfile bGreaterZero = BranchProfile.create();
         private final BranchProfile bGreaterZeroAGreaterEqualZero = BranchProfile.create();
@@ -369,6 +440,41 @@ public abstract class IntegerNodes {
             return redoCoerced.call(null, a, "redo_coerced", coreStrings().DIVIDE.getSymbol(), b);
         }
 
+        @TruffleBoundary
+        @Specialization
+        public Object div(DynamicObject a, long b) {
+            if (b == 0) {
+                throw new RaiseException(coreExceptions().zeroDivisionError(this));
+            }
+            final BigInteger bBigInt = BigInteger.valueOf(b);
+            final BigInteger aBigInt = Layouts.BIGNUM.getValue(a);
+            final BigInteger result = aBigInt.divide(bBigInt);
+            if (result.signum() == -1 && !aBigInt.mod(bBigInt.abs()).equals(BigInteger.ZERO)) {
+                return fixnumOrBignum(result.subtract(BigInteger.ONE));
+            } else {
+                return fixnumOrBignum(result);
+            }
+        }
+
+        @TruffleBoundary
+        @Specialization
+        public double div(DynamicObject a, double b) {
+            return Layouts.BIGNUM.getValue(a).doubleValue() / b;
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyBignum(b)")
+        public Object div(DynamicObject a, DynamicObject b) {
+            final BigInteger aBigInt = Layouts.BIGNUM.getValue(a);
+            final BigInteger bBigInt = Layouts.BIGNUM.getValue(b);
+            final BigInteger result = aBigInt.divide(bBigInt);
+            if (result.signum() == -1 && !aBigInt.mod(bBigInt.abs()).equals(BigInteger.ZERO)) {
+                return fixnumOrBignum(result.subtract(BigInteger.ONE));
+            } else {
+                return fixnumOrBignum(result);
+            }
+        }
+
         protected static boolean isLongMinValue(long a) {
             return a == Long.MIN_VALUE;
         }
@@ -398,8 +504,8 @@ public abstract class IntegerNodes {
 
     }
 
-    @CoreMethod(names = "%", required = 1)
-    public abstract static class ModNode extends BignumNodes.BignumCoreMethodNode {
+    @CoreMethod(names = { "%", "modulo" }, required = 1)
+    public abstract static class ModNode extends BignumCoreMethodNode {
 
         private final BranchProfile adjustProfile = BranchProfile.create();
 
@@ -469,9 +575,42 @@ public abstract class IntegerNodes {
             return mod;
         }
 
+        @TruffleBoundary
+        @Specialization
+        public Object mod(DynamicObject a, long b) {
+            if (b == 0) {
+                throw new ArithmeticException("divide by zero");
+            } else if (b < 0) {
+                final BigInteger bigint = BigInteger.valueOf(b);
+                final BigInteger mod = Layouts.BIGNUM.getValue(a).mod(bigint.negate());
+                return fixnumOrBignum(mod.add(bigint));
+            }
+            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).mod(BigInteger.valueOf(b)));
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyBignum(b)")
+        public Object mod(DynamicObject a, DynamicObject b) {
+            final BigInteger bigint = Layouts.BIGNUM.getValue(b);
+            final int compare = bigint.compareTo(BigInteger.ZERO);
+            if (compare == 0) {
+                throw new ArithmeticException("divide by zero");
+            } else if (compare < 0) {
+                final BigInteger mod = Layouts.BIGNUM.getValue(a).mod(bigint.negate());
+                return fixnumOrBignum(mod.add(bigint));
+            }
+            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).mod(Layouts.BIGNUM.getValue(b)));
+        }
+
+        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isRubyBignum(b)" })
+        public Object mod(DynamicObject a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().MODULO.getSymbol(), b);
+        }
+
     }
 
-    @Primitive(name = "fixnum_divmod")
+    @Primitive(name = "integer_divmod")
     public abstract static class DivModNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GeneralDivModNode divModNode = new GeneralDivModNode();
@@ -486,14 +625,29 @@ public abstract class IntegerNodes {
             return divModNode.execute(a, Layouts.BIGNUM.getValue(b));
         }
 
-        @Specialization(guards = "!isRubyBignum(b)")
-        public Object divModOther(VirtualFrame frame, long a, DynamicObject b) {
-            return FAILURE;
-        }
-
         @Specialization
         public DynamicObject divMod(long a, double b) {
             return divModNode.execute(a, b);
+        }
+
+        @Specialization
+        public DynamicObject divMod(DynamicObject a, long b) {
+            return divModNode.execute(Layouts.BIGNUM.getValue(a), b);
+        }
+
+        @Specialization
+        public DynamicObject divMod(DynamicObject a, double b) {
+            return divModNode.execute(Layouts.BIGNUM.getValue(a), b);
+        }
+
+        @Specialization(guards = "isRubyBignum(b)")
+        public DynamicObject divMod(DynamicObject a, DynamicObject b) {
+            return divModNode.execute(Layouts.BIGNUM.getValue(a), Layouts.BIGNUM.getValue(b));
+        }
+
+        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isDouble(b)", "!isRubyBignum(b)" })
+        public Object divModOther(Object a, Object b) {
+            return FAILURE;
         }
 
     }
@@ -532,6 +686,31 @@ public abstract class IntegerNodes {
                 "!isLong(b)",
                 "!isDouble(b)" })
         public Object lessCoerced(long a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(null, a, "redo_compare", coreStrings().LESS_THAN.getSymbol(), b);
+        }
+
+        @Specialization
+        public boolean less(DynamicObject a, long b) {
+            return Layouts.BIGNUM.getValue(a).compareTo(BigInteger.valueOf(b)) < 0;
+        }
+
+        @Specialization
+        public boolean less(DynamicObject a, double b) {
+            return Double.compare(Layouts.BIGNUM.getValue(a).doubleValue(), b) < 0;
+        }
+
+        @Specialization(guards = "isRubyBignum(b)")
+        public boolean less(DynamicObject a, DynamicObject b) {
+            return Layouts.BIGNUM.getValue(a).compareTo(Layouts.BIGNUM.getValue(b)) < 0;
+        }
+
+        @Specialization(guards = {
+                "!isRubyBignum(b)",
+                "!isInteger(b)",
+                "!isLong(b)",
+                "!isDouble(b)" })
+        public Object lessCoerced(DynamicObject a, Object b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(null, a, "redo_compare", coreStrings().LESS_THAN.getSymbol(), b);
         }
@@ -574,12 +753,36 @@ public abstract class IntegerNodes {
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(null, a, "redo_compare", coreStrings().LESS_OR_EQUAL.getSymbol(), b);
         }
+
+        @Specialization
+        public boolean lessEqual(DynamicObject a, long b) {
+            return Layouts.BIGNUM.getValue(a).compareTo(BigInteger.valueOf(b)) <= 0;
+        }
+
+        @Specialization
+        public boolean lessEqual(DynamicObject a, double b) {
+            return Layouts.BIGNUM.getValue(a).compareTo(BigInteger.valueOf((long) b)) <= 0;
+        }
+
+        @Specialization(guards = "isRubyBignum(b)")
+        public boolean lessEqual(DynamicObject a, DynamicObject b) {
+            return Layouts.BIGNUM.getValue(a).compareTo(Layouts.BIGNUM.getValue(b)) <= 0;
+        }
+
+        @Specialization(guards = {
+                "!isRubyBignum(b)",
+                "!isInteger(b)",
+                "!isLong(b)",
+                "!isDouble(b)" })
+        public Object lessEqualCoerced(DynamicObject a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(null, a, "redo_compare", coreStrings().LESS_OR_EQUAL.getSymbol(), b);
+        }
+
     }
 
     @CoreMethod(names = { "==", "===" }, required = 1)
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private CallDispatchHeadNode reverseCallNode = CallDispatchHeadNode.create();
 
         @Specialization
         public boolean equal(int a, int b) {
@@ -606,14 +809,37 @@ public abstract class IntegerNodes {
             return false;
         }
 
+        @Specialization
+        public boolean equal(DynamicObject a, int b) {
+            return false;
+        }
+
+        @Specialization
+        public boolean equal(DynamicObject a, long b) {
+            return false;
+        }
+
+        @Specialization
+        public boolean equal(DynamicObject a, double b) {
+            return Layouts.BIGNUM.getValue(a).doubleValue() == b;
+        }
+
+        @Specialization(guards = "isRubyBignum(b)")
+        public boolean equal(DynamicObject a, DynamicObject b) {
+            return Layouts.BIGNUM.getValue(a).equals(Layouts.BIGNUM.getValue(b));
+        }
+
         @Specialization(guards = {
                 "!isByte(b)",
                 "!isShort(b)",
                 "!isInteger(b)",
                 "!isLong(b)",
                 "!isRubyBignum(b)" })
-        public Object equal(VirtualFrame frame, Object a, Object b) {
-            return reverseCallNode.call(frame, b, "==", a);
+        public Object equal(VirtualFrame frame, Object a, Object b,
+                @Cached("create()") CallDispatchHeadNode reverseCallNode,
+                @Cached("create()") BooleanCastNode booleanCastNode) {
+            final Object reversedResult = reverseCallNode.call(frame, b, "==", a);
+            return booleanCastNode.executeToBoolean(reversedResult);
         }
 
     }
@@ -711,6 +937,32 @@ public abstract class IntegerNodes {
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(null, a, "redo_compare", coreStrings().GREATER_OR_EQUAL.getSymbol(), b);
         }
+
+        @Specialization
+        public boolean greaterEqual(DynamicObject a, long b) {
+            return Layouts.BIGNUM.getValue(a).compareTo(BigInteger.valueOf(b)) >= 0;
+        }
+
+        @Specialization
+        public boolean greaterEqual(DynamicObject a, double b) {
+            return Double.compare(Layouts.BIGNUM.getValue(a).doubleValue(), b) >= 0;
+        }
+
+        @Specialization(guards = "isRubyBignum(b)")
+        public boolean greaterEqual(DynamicObject a, DynamicObject b) {
+            return Layouts.BIGNUM.getValue(a).compareTo(Layouts.BIGNUM.getValue(b)) >= 0;
+        }
+
+        @Specialization(guards = {
+                "!isRubyBignum(b)",
+                "!isInteger(b)",
+                "!isLong(b)",
+                "!isDouble(b)" })
+        public Object greaterEqualCoerced(DynamicObject a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(null, a, "redo_compare", coreStrings().GREATER_OR_EQUAL.getSymbol(), b);
+        }
+
     }
 
     @CoreMethod(names = ">", required = 1, unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
@@ -750,10 +1002,36 @@ public abstract class IntegerNodes {
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(null, a, "redo_compare", coreStrings().GREATER_THAN.getSymbol(), b);
         }
+
+        @Specialization
+        public boolean greater(DynamicObject a, long b) {
+            return Layouts.BIGNUM.getValue(a).compareTo(BigInteger.valueOf(b)) > 0;
+        }
+
+        @Specialization
+        public boolean greater(DynamicObject a, double b) {
+            return Double.compare(Layouts.BIGNUM.getValue(a).doubleValue(), b) > 0;
+        }
+
+        @Specialization(guards = "isRubyBignum(b)")
+        public boolean greater(DynamicObject a, DynamicObject b) {
+            return Layouts.BIGNUM.getValue(a).compareTo(Layouts.BIGNUM.getValue(b)) > 0;
+        }
+
+        @Specialization(guards = {
+                "!isRubyBignum(b)",
+                "!isInteger(b)",
+                "!isLong(b)",
+                "!isDouble(b)" })
+        public Object greaterCoerced(DynamicObject a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(null, a, "redo_compare", coreStrings().GREATER_THAN.getSymbol(), b);
+        }
+
     }
 
     @CoreMethod(names = "~")
-    public abstract static class ComplementNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ComplementNode extends BignumCoreMethodNode {
 
         @Specialization
         public int complement(int n) {
@@ -763,6 +1041,11 @@ public abstract class IntegerNodes {
         @Specialization
         public long complement(long n) {
             return ~n;
+        }
+
+        @Specialization
+        public Object complement(DynamicObject value) {
+            return fixnumOrBignum(Layouts.BIGNUM.getValue(value).not());
         }
 
     }
@@ -814,6 +1097,22 @@ public abstract class IntegerNodes {
             return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().AMPERSAND.getSymbol(), b);
         }
 
+        @Specialization
+        public Object bitAnd(DynamicObject a, long b) {
+            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).and(BigInteger.valueOf(b)));
+        }
+
+        @Specialization(guards = "isRubyBignum(b)")
+        public Object bitAnd(DynamicObject a, DynamicObject b) {
+            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).and(Layouts.BIGNUM.getValue(b)));
+        }
+
+        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isRubyBignum(b)" })
+        public Object bitAnd(DynamicObject a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().AMPERSAND.getSymbol(), b);
+        }
+
     }
 
     @CoreMethod(names = "|", required = 1)
@@ -835,6 +1134,23 @@ public abstract class IntegerNodes {
         public Object bitOr(long a, DynamicObject b) {
             return fixnumOrBignum(BigInteger.valueOf(a).or(Layouts.BIGNUM.getValue(b)));
         }
+
+        @Specialization
+        public Object bitOr(DynamicObject a, long b) {
+            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).or(BigInteger.valueOf(b)));
+        }
+
+        @Specialization(guards = "isRubyBignum(b)")
+        public Object bitOr(DynamicObject a, DynamicObject b) {
+            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).or(Layouts.BIGNUM.getValue(b)));
+        }
+
+        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isRubyBignum(b)" })
+        public Object bitAnd(DynamicObject a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().PIPE.getSymbol(), b);
+        }
+
     }
 
     @CoreMethod(names = "^", required = 1)
@@ -857,6 +1173,22 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyBignum(b)")
         public Object bitXOr(Object a, DynamicObject b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().CIRCUMFLEX.getSymbol(), b);
+        }
+
+        @Specialization
+        public Object bitXOr(DynamicObject a, long b) {
+            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).xor(BigInteger.valueOf(b)));
+        }
+
+        @Specialization(guards = "isRubyBignum(b)")
+        public Object bitXOr(DynamicObject a, DynamicObject b) {
+            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).xor(Layouts.BIGNUM.getValue(b)));
+        }
+
+        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isRubyBignum(b)" })
+        public Object bitAnd(DynamicObject a, Object b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().CIRCUMFLEX.getSymbol(), b);
         }
@@ -914,13 +1246,33 @@ public abstract class IntegerNodes {
             return rightShiftNode.executeRightShift(a, absoluteValue(b));
         }
 
-        @Specialization(guards = { "!isInteger(b)", "!isLong(b)" })
-        public Object leftShiftFallback(Object a, Object b) {
-            if (fallbackCallNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                fallbackCallNode = insert(CallDispatchHeadNode.createOnSelf());
+        @TruffleBoundary
+        @Specialization
+        public Object leftShift(DynamicObject a, int b,
+                @Cached("createBinaryProfile()") ConditionProfile bPositive) {
+            if (bPositive.profile(b >= 0)) {
+                return fixnumOrBignum(Layouts.BIGNUM.getValue(a).shiftLeft(b));
+            } else {
+                return fixnumOrBignum(Layouts.BIGNUM.getValue(a).shiftRight(-b));
             }
-            return fallbackCallNode.call(null, a, "left_shift_fallback", b);
+        }
+
+        @Specialization(guards = "isRubyBignum(b)")
+        public Object leftShift(DynamicObject a, DynamicObject b,
+                @Cached("create()") ToIntNode toIntNode) {
+            final BigInteger bBigInt = Layouts.BIGNUM.getValue(b);
+            if (bBigInt.signum() == -1) {
+                return 0;
+            } else {
+                // MRI would raise a NoMemoryError; JRuby would raise a coercion error.
+                return executeLeftShift(a, toIntNode.doInt(b));
+            }
+        }
+
+        @Specialization(guards = { "!isRubyBignum(b)", "!isInteger(b)", "!isLong(b)" })
+        public Object leftShift(Object a, Object b,
+                @Cached("create()") ToIntNode toIntNode) {
+            return executeLeftShift(a, toIntNode.doInt(b));
         }
 
         private Object absoluteValue(Object value) {
@@ -946,7 +1298,7 @@ public abstract class IntegerNodes {
     }
 
     @CoreMethod(names = ">>", required = 1, lowerFixnum = 1)
-    public abstract static class RightShiftNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class RightShiftNode extends BignumCoreMethodNode {
 
         @Child private CallDispatchHeadNode fallbackCallNode;
         @Child private LeftShiftNode leftShiftNode;
@@ -1003,13 +1355,31 @@ public abstract class IntegerNodes {
             return leftShiftNode.executeLeftShift(a, Layouts.BIGNUM.getValue(b).negate());
         }
 
-        @Specialization(guards = { "!isInteger(b)", "!isLong(b)" })
-        public Object rightShiftFallback(Object a, Object b) {
-            if (fallbackCallNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                fallbackCallNode = insert(CallDispatchHeadNode.createOnSelf());
+        @Specialization
+        public Object rightShift(DynamicObject a, int b,
+                @Cached("createBinaryProfile()") ConditionProfile bPositive) {
+            if (bPositive.profile(b >= 0)) {
+                return fixnumOrBignum(Layouts.BIGNUM.getValue(a).shiftRight(b));
+            } else {
+                return fixnumOrBignum(Layouts.BIGNUM.getValue(a).shiftLeft(-b));
             }
-            return fallbackCallNode.call(null, a, "right_shift_fallback", b);
+        }
+
+        @Specialization
+        public Object rightShift(DynamicObject a, long b) {
+            assert !CoreLibrary.fitsIntoInteger(b);
+            return 0;
+        }
+
+        @Specialization(guards = "isRubyBignum(b)")
+        public int rightShift(DynamicObject a, DynamicObject b) {
+            return 0;
+        }
+
+        @Specialization(guards = { "!isRubyBignum(b)", "!isInteger(b)", "!isLong(b)" })
+        public Object rightShift(Object a, Object b,
+                @Cached("create()") ToIntNode toIntNode) {
+            return executeRightShift(a, toIntNode.doInt(b));
         }
 
         protected static boolean isPositive(DynamicObject b) {
@@ -1019,7 +1389,7 @@ public abstract class IntegerNodes {
     }
 
     @CoreMethod(names = { "abs", "magnitude" })
-    public abstract static class AbsNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class AbsNode extends BignumCoreMethodNode {
 
         public abstract Object executeAbs(Object a);
 
@@ -1050,6 +1420,11 @@ public abstract class IntegerNodes {
             return (n < 0) ? -n : n;
         }
 
+        @Specialization
+        public Object abs(DynamicObject value) {
+            return fixnumOrBignum(Layouts.BIGNUM.getValue(value).abs());
+        }
+
     }
 
     @CoreMethod(names = "bit_length")
@@ -1073,36 +1448,24 @@ public abstract class IntegerNodes {
             return Long.SIZE - Long.numberOfLeadingZeros(n);
         }
 
-    }
-
-    @CoreMethod(names = "inspect")
-    public abstract static class InspectNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
         @Specialization
-        public DynamicObject inspect(int n) {
-            return makeStringNode.fromRope(new LazyIntRope(n));
-        }
-
-        @TruffleBoundary
-        @Specialization
-        public DynamicObject inspect(long n) {
-            if (CoreLibrary.fitsIntoInteger(n)) {
-                return inspect((int) n);
-            }
-
-            return makeStringNode.executeMake(Long.toString(n), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+        public int bitLength(DynamicObject value) {
+            return Layouts.BIGNUM.getValue(value).bitLength();
         }
 
     }
 
-    @CoreMethod(names = "size", needsSelf = false)
+    @CoreMethod(names = "size")
     public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int size() {
-            return Long.SIZE / Byte.SIZE;
+        public int size(long value) {
+            return Long.BYTES;
+        }
+
+        @Specialization
+        public int size(DynamicObject value) {
+            return (Layouts.BIGNUM.getValue(value).bitLength() + 7) / 8;
         }
 
     }
@@ -1120,9 +1483,14 @@ public abstract class IntegerNodes {
             return n;
         }
 
+        @Specialization
+        public double toF(DynamicObject value) {
+            return Layouts.BIGNUM.getValue(value).doubleValue();
+        }
+
     }
 
-    @CoreMethod(names = "to_s", optional = 1, lowerFixnum = 1)
+    @CoreMethod(names = { "to_s", "inspect" }, optional = 1, lowerFixnum = 1)
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
@@ -1144,6 +1512,12 @@ public abstract class IntegerNodes {
 
         @TruffleBoundary
         @Specialization
+        public DynamicObject toS(DynamicObject value, NotProvided base) {
+            return makeStringNode.executeMake(Layouts.BIGNUM.getValue(value).toString(), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+        }
+
+        @TruffleBoundary
+        @Specialization
         public DynamicObject toS(long n, int base) {
             if (base == 10) {
                 return toS(n, NotProvided.INSTANCE);
@@ -1154,6 +1528,16 @@ public abstract class IntegerNodes {
             }
 
             return makeStringNode.executeMake(Long.toString(n, base), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+        }
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject toS(DynamicObject value, int base) {
+            if (base < 2 || base > 36) {
+                throw new RaiseException(coreExceptions().argumentErrorInvalidRadix(base, this));
+            }
+
+            return makeStringNode.executeMake(Layouts.BIGNUM.getValue(value).toString(base), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }
 
     }
@@ -1327,7 +1711,7 @@ public abstract class IntegerNodes {
         public Object powConstantExponent(Object base, int exponent,
                 @Cached("exponent") int cachedExponent,
                 @Cached("create()") BranchProfile overflowProfile,
-                @Cached("create()") IntegerMulNode mulNode) {
+                @Cached("create()") MulNode mulNode) {
             Object result = 1;
             int exp = cachedExponent;
             while (exp > 0) {
@@ -1351,7 +1735,7 @@ public abstract class IntegerNodes {
         @Specialization(guards = { "isIntOrLong(base)", "exponent >= 0" })
         public Object powLoop(Object base, long exponent,
                 @Cached("create()") BranchProfile overflowProfile,
-                @Cached("create()") IntegerMulNode mulNode) {
+                @Cached("create()") MulNode mulNode) {
             Object result = 1;
             long exp = exponent;
             while (exp > 0) {
@@ -1608,36 +1992,6 @@ public abstract class IntegerNodes {
             }
 
             return uptoInternalCall.callWithBlock(frame, from, "upto_internal", block, to);
-        }
-
-    }
-
-    @NodeChild
-    @NodeChild
-    public abstract static class IntegerMulNode extends RubyNode {
-
-        public static IntegerMulNode create() {
-            return IntegerMulNodeGen.create(null, null);
-        }
-
-        public abstract Object executeMul(Object a, Object b);
-
-        @Specialization
-        public Object mul(int a, Object b,
-                @Cached("create()") MulNode fixnumMulNode) {
-            return fixnumMulNode.executeMul(a, b);
-        }
-
-        @Specialization
-        public Object mul(long a, Object b,
-                @Cached("create()") MulNode fixnumMulNode) {
-            return fixnumMulNode.executeMul(a, b);
-        }
-
-        @Specialization(guards = "isRubyBignum(a)")
-        public Object mul(DynamicObject a, Object b,
-                @Cached("create()") BignumNodes.MulNode bignumMulNode) {
-            return bignumMulNode.executeMul(a, b);
         }
 
     }
