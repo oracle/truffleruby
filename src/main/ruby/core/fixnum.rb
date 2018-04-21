@@ -57,18 +57,6 @@ class Fixnum < Integer
     end
   end
 
-  def **(o)
-    Truffle.primitive :fixnum_pow
-
-    if o.is_a?(Float) && self < 0 && o != o.round
-      return Complex.new(self, 0) ** o
-    elsif o.is_a?(Integer) && o < 0
-      return Rational.new(self, 1) ** o
-    end
-
-    redo_coerced :**, o
-  end
-
   # Have a copy in Fixnum of the Integer version, as MRI does
   public :even?, :odd?, :succ
 
