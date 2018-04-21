@@ -40,14 +40,6 @@
 
 class Fixnum < Integer
 
-  def fdiv(n)
-    if n.kind_of?(Integer)
-      to_f / n
-    else
-      redo_coerced :fdiv, n
-    end
-  end
-
   # Have a copy in Fixnum of the Integer version, as MRI does
   public :even?, :odd?, :succ
 
