@@ -8,9 +8,10 @@
 
 require_relative '../ruby/spec_helper'
 
-# Switch to MRI 2.3.3 and run:
+# Switch to MRI 2.3.7 and run:
 # $ jt test spec/truffle/methods_spec.rb -t ruby
 # to regenerate the files under methods/.
+# Integer is generated from MRI 2.4.4 for Integer unification
 
 # Only set to true for faster development if this spec is run alone
 run_directly = false
@@ -18,7 +19,7 @@ run_directly = false
 modules = [
   BasicObject, Kernel, Object,
   Enumerable, Enumerator,
-  Numeric, Fixnum, Bignum, # Integer,
+  Numeric, Integer,
   Array,
 ]
 # Hash, Range, String
