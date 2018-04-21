@@ -40,7 +40,4 @@
 
 class Fixnum < Integer
 
-  # Have a copy in Fixnum of the Integer version, as MRI does
-  public :even?, :odd?, :succ
-
 end
