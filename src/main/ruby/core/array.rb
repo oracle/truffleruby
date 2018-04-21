@@ -475,7 +475,8 @@ class Array
       end
     end
 
-    if left >= Fixnum::MAX || right > Fixnum::MAX
+    unless Truffle.invoke_primitive(:fixnum_fits_into_long, left) &&
+           Truffle.invoke_primitive(:fixnum_fits_into_long, right)
       raise ArgumentError, 'argument too big'
     end
 
@@ -792,7 +793,7 @@ class Array
     # Check the result size will fit in an Array.
     sum = args.inject(size) { |n, x| n * x.size }
 
-    if sum > Fixnum::MAX
+    unless Truffle.invoke_primitive(:fixnum_fits_into_long, sum)
       raise RangeError, 'product result is too large'
     end
 
