@@ -43,7 +43,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.LazyIntRope;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -240,7 +239,7 @@ public abstract class IntegerNodes {
     }
 
     @CoreMethod(names = "*", required = 1)
-    public abstract static class MulNode extends BignumNodes.BignumCoreMethodNode {
+    public abstract static class MulNode extends BignumCoreMethodNode {
 
         public static MulNode create() {
             return MulNodeFactory.create(null);
@@ -483,7 +482,7 @@ public abstract class IntegerNodes {
 
     // Defined in Java as we need to statically call #/
     @CoreMethod(names = "div", required = 1)
-    public abstract static class IDivNode extends BignumNodes.BignumCoreMethodNode {
+    public abstract static class IDivNode extends BignumCoreMethodNode {
 
         @Child private DivNode divNode = DivNodeFactory.create(null);
         @Child private FloatNodes.FloorNode floorNode = FloatNodesFactory.FloorNodeFactory.create(null);
@@ -1075,7 +1074,7 @@ public abstract class IntegerNodes {
     }
 
     @CoreMethod(names = "&", required = 1)
-    public abstract static class BitAndNode extends BignumNodes.BignumCoreMethodNode {
+    public abstract static class BitAndNode extends BignumCoreMethodNode {
 
         public abstract Object executeBitAnd(Object a, Object b);
 
@@ -1140,7 +1139,7 @@ public abstract class IntegerNodes {
     }
 
     @CoreMethod(names = "|", required = 1)
-    public abstract static class BitOrNode extends BignumNodes.BignumCoreMethodNode {
+    public abstract static class BitOrNode extends BignumCoreMethodNode {
 
         public abstract Object executeBitOr(Object a, Object b);
 
@@ -1178,7 +1177,7 @@ public abstract class IntegerNodes {
     }
 
     @CoreMethod(names = "^", required = 1)
-    public abstract static class BitXOrNode extends BignumNodes.BignumCoreMethodNode {
+    public abstract static class BitXOrNode extends BignumCoreMethodNode {
 
         @Specialization
         public int bitXOr(int a, int b) {
@@ -1220,7 +1219,7 @@ public abstract class IntegerNodes {
     }
 
     @CoreMethod(names = "<<", required = 1, lowerFixnum = 1)
-    public abstract static class LeftShiftNode extends BignumNodes.BignumCoreMethodNode {
+    public abstract static class LeftShiftNode extends BignumCoreMethodNode {
 
         @Child private AbsNode absNode;
         @Child private RightShiftNode rightShiftNode;
