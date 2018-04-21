@@ -110,13 +110,12 @@ class Integer < Numeric
   def round(ndigits=undefined)
     return self if undefined.equal? ndigits
 
-    if ndigits.kind_of? Numeric
-      if ndigits > Fixnum::MAX or ndigits <= Fixnum::MIN
-        raise RangeError, 'precision is outside of the range of Fixnum'
-      end
+    if Float === ndigits && ndigits.infinite?
+      raise RangeError, "float #{ndigits} out of range of integer"
     end
 
     ndigits = Truffle::Type.coerce_to ndigits, Integer, :to_int
+    Truffle::Type.check_int(ndigits)
 
     if ndigits > 0
       to_f
