@@ -72,8 +72,6 @@ import org.truffleruby.core.module.ModuleNodesBuiltins;
 import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.mutex.MutexNodesBuiltins;
 import org.truffleruby.core.mutex.MutexNodesFactory;
-import org.truffleruby.core.numeric.BignumNodesBuiltins;
-import org.truffleruby.core.numeric.BignumNodesFactory;
 import org.truffleruby.core.numeric.FloatNodesBuiltins;
 import org.truffleruby.core.numeric.FloatNodesFactory;
 import org.truffleruby.core.numeric.IntegerNodesBuiltins;
@@ -175,7 +173,6 @@ public abstract class BuiltinsClasses {
         BasicObjectNodesBuiltins.setup(coreManager, primitiveManager);
         BCryptNodesBuiltins.setup(coreManager, primitiveManager);
         BigDecimalNodesBuiltins.setup(coreManager, primitiveManager);
-        BignumNodesBuiltins.setup(coreManager, primitiveManager);
         BindingNodesBuiltins.setup(coreManager, primitiveManager);
         ByteArrayNodesBuiltins.setup(coreManager, primitiveManager);
         CExtNodesBuiltins.setup(coreManager, primitiveManager);
@@ -254,7 +251,6 @@ public abstract class BuiltinsClasses {
             BasicObjectNodesFactory.getFactories(),
             BCryptNodesFactory.getFactories(),
             BigDecimalNodesFactory.getFactories(),
-            BignumNodesFactory.getFactories(),
             BindingNodesFactory.getFactories(),
             ByteArrayNodesFactory.getFactories(),
             CExtNodesFactory.getFactories(),
