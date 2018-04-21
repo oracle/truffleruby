@@ -26,8 +26,4 @@
 
 class Bignum < Integer
 
-  def eql?(value)
-    value.is_a?(Bignum) && self == value
-  end
-
 end
