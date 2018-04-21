@@ -38,6 +38,9 @@ class Integer < Numeric
   alias_method :ceil, :to_i
   alias_method :floor, :to_i
 
+  # Have a copy in Integer of the Numeric version, as MRI does
+  public :remainder
+
   def **(o)
     Truffle.primitive :integer_pow
 
