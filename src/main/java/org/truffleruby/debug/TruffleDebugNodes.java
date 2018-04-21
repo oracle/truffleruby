@@ -9,6 +9,7 @@
  */
 package org.truffleruby.debug;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -393,6 +394,28 @@ public abstract class TruffleDebugNodes {
 
     }
 
+    @CoreMethod(names = "java_class", onSingleton = true)
+    public abstract static class JavaClassNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public Object javaObject() {
+            return getContext().getEnv().asGuestValue(BigInteger.class);
+        }
+
+    }
+
+    @CoreMethod(names = "java_object", onSingleton = true)
+    public abstract static class JavaObjectNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public Object javaObject() {
+            return getContext().getEnv().asGuestValue(new BigInteger("14"));
+        }
+
+    }
+
     @CoreMethod(names = "foreign_object", onSingleton = true)
     public abstract static class ForeignObjectNode extends CoreMethodArrayArgumentsNode {
 
@@ -405,6 +428,7 @@ public abstract class TruffleDebugNodes {
             
         }
 
+        @TruffleBoundary
         @Specialization
         public Object foreignObject() {
             return new ForeignObject();
