@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -42,10 +41,10 @@ public abstract class ToIntNode extends RubyNode {
         return ToIntNodeGen.create(null);
     }
 
-    public int doInt(VirtualFrame frame, Object object) {
+    public int doInt(Object object) {
         // TODO CS 14-Nov-15 this code is crazy - should have separate nodes for ToRubyInteger and ToJavaInt
 
-        final Object integerObject = executeIntOrLong(frame, object);
+        final Object integerObject = executeIntOrLong(object);
 
         if (wasInteger.profile(integerObject instanceof Integer)) {
             return (int) integerObject;
@@ -67,7 +66,7 @@ public abstract class ToIntNode extends RubyNode {
         }
     }
 
-    public abstract Object executeIntOrLong(VirtualFrame frame, Object object);
+    public abstract Object executeIntOrLong(Object object);
 
     @Specialization
     public int coerceInt(int value) {
@@ -85,35 +84,35 @@ public abstract class ToIntNode extends RubyNode {
     }
 
     @Specialization
-    public Object coerceDouble(VirtualFrame frame, double value) {
+    public Object coerceDouble(double value) {
         if (floatToIntNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             floatToIntNode = insert(FloatNodesFactory.ToINodeFactory.create(null));
         }
-        return floatToIntNode.executeToI(frame, value);
+        return floatToIntNode.executeToI(value);
     }
 
     @Specialization
-    public Object coerceBoolean(VirtualFrame frame, boolean value,
+    public Object coerceBoolean(boolean value,
             @Cached("create()") BranchProfile errorProfile) {
-        return coerceObject(frame, value, errorProfile);
+        return coerceObject(value, errorProfile);
     }
 
     @Specialization(guards = "!isRubyBignum(object)")
-    public Object coerceBasicObject(VirtualFrame frame, DynamicObject object,
+    public Object coerceBasicObject(DynamicObject object,
             @Cached("create()") BranchProfile errorProfile) {
-        return coerceObject(frame, object, errorProfile);
+        return coerceObject(object, errorProfile);
     }
 
-    private Object coerceObject(VirtualFrame frame, Object object, BranchProfile errorProfile) {
+    private Object coerceObject(Object object, BranchProfile errorProfile) {
         if (toIntNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toIntNode = insert(CallDispatchHeadNode.create());
+            toIntNode = insert(CallDispatchHeadNode.createOnSelf());
         }
 
         final Object coerced;
         try {
-            coerced = toIntNode.call(frame, object, "to_int");
+            coerced = toIntNode.call(null, object, "to_int");
         } catch (RaiseException e) {
             errorProfile.enter();
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {

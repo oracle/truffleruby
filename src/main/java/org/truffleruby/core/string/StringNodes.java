@@ -300,7 +300,7 @@ public abstract class StringNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private ToIntNode toIntNode;
 
-        public abstract DynamicObject executeInt(VirtualFrame frame, DynamicObject string, int times);
+        public abstract DynamicObject executeInt(DynamicObject string, int times);
 
         @Specialization(guards = "times < 0")
         public DynamicObject multiplyTimesNegative(DynamicObject string, long times) {
@@ -334,13 +334,13 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!isRubyBignum(times)", "!isInteger(times)", "!isLong(times)" })
-        public DynamicObject multiply(VirtualFrame frame, DynamicObject string, Object times) {
+        public DynamicObject multiply(DynamicObject string, Object times) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toIntNode = insert(ToIntNode.create());
             }
 
-            return executeInt(frame, string, toIntNode.doInt(frame, times));
+            return executeInt(string, toIntNode.doInt(times));
         }
     }
 
@@ -2197,7 +2197,7 @@ public abstract class StringNodes {
         public Object sum(VirtualFrame frame, DynamicObject string, Object bits,
                 @Cached("create()") ToIntNode toIntNode,
                 @Cached("create()") SumNode sumNode) {
-            return sumNode.executeSum(frame, string, toIntNode.executeIntOrLong(frame, bits));
+            return sumNode.executeSum(frame, string, toIntNode.executeIntOrLong(bits));
         }
 
     }

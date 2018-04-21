@@ -403,27 +403,27 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "isLongRange(range)")
-        public DynamicObject longRange(VirtualFrame frame, DynamicObject range) {
-            int begin = toInt(frame, Layouts.LONG_RANGE.getBegin(range));
-            int end = toInt(frame, Layouts.LONG_RANGE.getEnd(range));
+        public DynamicObject longRange(DynamicObject range) {
+            int begin = toInt(Layouts.LONG_RANGE.getBegin(range));
+            int end = toInt(Layouts.LONG_RANGE.getEnd(range));
             boolean excludedEnd = Layouts.LONG_RANGE.getExcludedEnd(range);
             return Layouts.INT_RANGE.createIntRange(coreLibrary().getIntRangeFactory(), excludedEnd, begin, end);
         }
 
         @Specialization(guards = "isObjectRange(range)")
-        public DynamicObject objectRange(VirtualFrame frame, DynamicObject range) {
-            int begin = toInt(frame, Layouts.OBJECT_RANGE.getBegin(range));
-            int end = toInt(frame, Layouts.OBJECT_RANGE.getEnd(range));
+        public DynamicObject objectRange(DynamicObject range) {
+            int begin = toInt(Layouts.OBJECT_RANGE.getBegin(range));
+            int end = toInt(Layouts.OBJECT_RANGE.getEnd(range));
             boolean excludedEnd = Layouts.OBJECT_RANGE.getExcludedEnd(range);
             return Layouts.INT_RANGE.createIntRange(coreLibrary().getIntRangeFactory(), excludedEnd, begin, end);
         }
 
-        private int toInt(VirtualFrame frame, Object indexObject) {
+        private int toInt(Object indexObject) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toIntNode = insert(ToIntNode.create());
             }
-            return toIntNode.doInt(frame, indexObject);
+            return toIntNode.doInt(indexObject);
         }
 
     }
