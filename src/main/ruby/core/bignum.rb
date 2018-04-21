@@ -26,9 +26,6 @@
 
 class Bignum < Integer
 
-  # Have a copy in Bignum of the Numeric version, as MRI does
-  public :remainder
-
   def eql?(value)
     value.is_a?(Bignum) && self == value
   end
