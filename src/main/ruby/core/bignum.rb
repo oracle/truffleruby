@@ -30,7 +30,4 @@ class Bignum < Integer
     value.is_a?(Bignum) && self == value
   end
 
-  def fdiv(n)
-    to_f / n
-  end
 end

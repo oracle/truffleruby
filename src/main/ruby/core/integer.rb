@@ -76,6 +76,14 @@ class Integer < Numeric
     ]
   end
 
+  def fdiv(n)
+    if n.kind_of?(Integer)
+      to_f / n
+    else
+      redo_coerced :fdiv, n
+    end
+  end
+
   def times
     return to_enum(:times) { self } unless block_given?
 
