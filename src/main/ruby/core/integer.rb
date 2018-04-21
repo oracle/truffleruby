@@ -29,6 +29,18 @@ class Integer < Numeric
   alias_method :ceil, :to_i
   alias_method :floor, :to_i
 
+  def **(o)
+    Truffle.primitive :integer_pow
+
+    if o.is_a?(Float) && self < 0 && o != o.round
+      return Complex.new(self, 0) ** o
+    elsif o.is_a?(Integer) && o < 0
+      return Rational.new(self, 1) ** o
+    end
+
+    redo_coerced :**, o
+  end
+
   def divmod(b)
     Truffle.primitive :integer_divmod
     raise ZeroDivisionError if b == 0

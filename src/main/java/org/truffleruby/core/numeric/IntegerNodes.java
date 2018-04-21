@@ -1708,10 +1708,11 @@ public abstract class IntegerNodes {
         }
     }
 
-    @Primitive(name = "fixnum_pow", lowerFixnum = { 0, 1 })
+    @Primitive(name = "integer_pow", lowerFixnum = { 0, 1 })
     public abstract static class PowNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private BignumNodes.BignumPowPrimitiveNode bignumPowNode;
+        // Value taken from MRI for determining when to promote integer exponentiation into doubles.
+        private static final int BIGLEN_LIMIT = 32 * 1024 * 1024;
 
         public abstract Object executePow(Object a, Object b);
 
@@ -1745,7 +1746,7 @@ public abstract class IntegerNodes {
 
                     if (base instanceof DynamicObject) {
                         overflowProfile.enter();
-                        final Object bignumResult = bignumPow(base, exp);
+                        final Object bignumResult = executePow(base, exp);
                         return mulNode.executeMul(result, bignumResult);
                     }
                 } else {
@@ -1769,7 +1770,7 @@ public abstract class IntegerNodes {
 
                     if (base instanceof DynamicObject) {
                         overflowProfile.enter();
-                        final Object bignumResult = bignumPow(base, exp);
+                        final Object bignumResult = executePow(base, exp);
                         return mulNode.executeMul(result, bignumResult);
                     }
                 } else {
@@ -1778,17 +1779,6 @@ public abstract class IntegerNodes {
                 }
             }
             return result;
-        }
-
-        private Object bignumPow(Object a, Object b) {
-            assert RubyGuards.isRubyBignum(a);
-
-            if (bignumPowNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                bignumPowNode = insert(BignumNodes.BignumPowPrimitiveNode.create());
-            }
-
-            return bignumPowNode.executePow(a, b);
         }
 
         @Specialization(guards = "exponent < 0")
@@ -1836,6 +1826,45 @@ public abstract class IntegerNodes {
             return Double.POSITIVE_INFINITY;
         }
 
+        @Specialization
+        public Object pow(DynamicObject a, int b) {
+            return executePow(a, (long) b);
+        }
+
+        @Specialization
+        public Object pow(DynamicObject a, long b,
+                @Cached("createBinaryProfile()") ConditionProfile negativeProfile,
+                @Cached("createBinaryProfile()") ConditionProfile maybeTooBigProfile,
+                @Cached("new()") WarnNode warnNode) {
+            if (negativeProfile.profile(b < 0)) {
+                return FAILURE;
+            } else {
+                final BigInteger base = Layouts.BIGNUM.getValue(a);
+                final int baseBitLength = base.bitLength();
+
+                // Logic for promoting integer exponentiation into doubles taken from MRI.
+                // We replicate the logic exactly so we match MRI's ranges.
+                if (maybeTooBigProfile.profile(baseBitLength > BIGLEN_LIMIT || (baseBitLength * b > BIGLEN_LIMIT))) {
+                    warnNode.warn("warn('in a**b, b may be too big')");
+                    return executePow(a, (double) b);
+                }
+
+                // TODO CS 15-Feb-15 what about this cast?
+                return createBignum(pow(base, (int) b));
+            }
+        }
+
+        @TruffleBoundary
+        @Specialization
+        public double pow(DynamicObject a, double b) {
+            return Math.pow(Layouts.BIGNUM.getValue(a).doubleValue(), b);
+        }
+
+        @Specialization(guards = "isRubyBignum(b)")
+        public Void pow(DynamicObject a, DynamicObject b) {
+            throw new UnsupportedOperationException();
+        }
+
         @Specialization(guards = "!isRubyBignum(b)")
         public Object pow(long a, DynamicObject b) {
             return FAILURE;
@@ -1853,6 +1882,11 @@ public abstract class IntegerNodes {
         @TruffleBoundary
         private int compareTo(BigInteger a, BigInteger b) {
             return a.compareTo(b);
+        }
+
+        @TruffleBoundary
+        private static BigInteger pow(BigInteger bigInteger, int exponent) {
+            return bigInteger.pow(exponent);
         }
 
         protected int getLimit() {
