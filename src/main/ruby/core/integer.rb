@@ -25,6 +25,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class Integer < Numeric
+
   alias_method :truncate, :to_i
   alias_method :ceil, :to_i
   alias_method :floor, :to_i
@@ -39,6 +40,14 @@ class Integer < Numeric
     end
 
     redo_coerced :**, o
+  end
+
+  def coerce(other)
+    if other.instance_of? self.class
+      return [other, self]
+    end
+
+    [Float(other), Float(self)]
   end
 
   def divmod(b)
