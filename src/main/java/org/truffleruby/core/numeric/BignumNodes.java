@@ -41,40 +41,6 @@ public abstract class BignumNodes {
 
     }
 
-    @Primitive(name = "bignum_compare")
-    public abstract static class BignumCompareNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        public int compare(DynamicObject a, long b) {
-            return Layouts.BIGNUM.getValue(a).compareTo(BigInteger.valueOf(b));
-        }
-
-        @Specialization(guards = "!isInfinity(b)")
-        public int compare(DynamicObject a, double b) {
-            return Double.compare(Layouts.BIGNUM.getValue(a).doubleValue(), b);
-        }
-
-        @Specialization(guards = "isInfinity(b)")
-        public int compareInfinity(DynamicObject a, double b) {
-            if (b < 0) {
-                return +1;
-            } else {
-                return -1;
-            }
-        }
-
-        @Specialization(guards = "isRubyBignum(b)")
-        public int compare(DynamicObject a, DynamicObject b) {
-            return Layouts.BIGNUM.getValue(a).compareTo(Layouts.BIGNUM.getValue(b));
-        }
-
-        @Specialization(guards = "!isRubyBignum(b)")
-        public Object compareFallback(DynamicObject a, DynamicObject b) {
-            return FAILURE;
-        }
-
-    }
-
     @Primitive(name = "bignum_pow")
     public static abstract class BignumPowPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
