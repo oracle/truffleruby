@@ -38,7 +38,7 @@ public abstract class GetIntegerConstantNode extends RubyNode {
             @Cached("create()") IntegerCastNode integerCastNode) {
         final RubyConstant constant = lookupConstantNode.lookupConstant(frame, module, name);
         final Object value = getConstantNode.executeGetConstant(frame, module, name, constant, lookupConstantNode);
-        return integerCastNode.executeCastInt(toIntNode.executeIntOrLong(frame, value));
+        return integerCastNode.executeCastInt(toIntNode.executeIntOrLong(value));
     }
 
     protected LookupConstantNode createLookupConstantNode() {

@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.USASCIIEncoding;
@@ -477,7 +476,7 @@ public abstract class BignumNodes {
     @CoreMethod(names = "<<", required = 1, lowerFixnum = 1)
     public abstract static class LeftShiftNode extends BignumCoreMethodNode {
 
-        public abstract Object executeLeftShift(VirtualFrame frame, DynamicObject a, Object b);
+        public abstract Object executeLeftShift(DynamicObject a, Object b);
 
         @TruffleBoundary
         @Specialization
@@ -491,21 +490,21 @@ public abstract class BignumNodes {
         }
 
         @Specialization(guards = "isRubyBignum(b)")
-        public Object leftShift(VirtualFrame frame, DynamicObject a, DynamicObject b,
+        public Object leftShift(DynamicObject a, DynamicObject b,
                                 @Cached("create()") ToIntNode toIntNode) {
             final BigInteger bBigInt = Layouts.BIGNUM.getValue(b);
             if (bBigInt.signum() == -1) {
                 return 0;
             } else {
                 // MRI would raise a NoMemoryError; JRuby would raise a coercion error.
-                return executeLeftShift(frame, a, toIntNode.doInt(frame, b));
+                return executeLeftShift(a, toIntNode.doInt(b));
             }
         }
 
         @Specialization(guards = {"!isRubyBignum(b)", "!isInteger(b)", "!isLong(b)"})
-        public Object leftShift(VirtualFrame frame, DynamicObject a, Object b,
+        public Object leftShift(DynamicObject a, Object b,
                                 @Cached("create()") ToIntNode toIntNode) {
-            return executeLeftShift(frame, a, toIntNode.doInt(frame, b));
+            return executeLeftShift(a, toIntNode.doInt(b));
         }
 
     }
@@ -513,7 +512,7 @@ public abstract class BignumNodes {
     @CoreMethod(names = ">>", required = 1, lowerFixnum = 1)
     public abstract static class RightShiftNode extends BignumCoreMethodNode {
 
-        public abstract Object executeRightShift(VirtualFrame frame, DynamicObject a, Object b);
+        public abstract Object executeRightShift(DynamicObject a, Object b);
 
         @Specialization
         public Object rightShift(DynamicObject a, int b,
@@ -526,7 +525,7 @@ public abstract class BignumNodes {
         }
 
         @Specialization
-        public Object rightShift(VirtualFrame frame, DynamicObject a, long b) {
+        public Object rightShift(DynamicObject a, long b) {
             assert !CoreLibrary.fitsIntoInteger(b);
             return 0;
         }
@@ -537,9 +536,9 @@ public abstract class BignumNodes {
         }
 
         @Specialization(guards = {"!isRubyBignum(b)", "!isInteger(b)", "!isLong(b)"})
-        public Object rightShift(VirtualFrame frame, DynamicObject a, Object b,
+        public Object rightShift(DynamicObject a, Object b,
                 @Cached("create()") ToIntNode toIntNode) {
-            return executeRightShift(frame, a, toIntNode.doInt(frame, b));
+            return executeRightShift(a, toIntNode.doInt(b));
         }
 
 

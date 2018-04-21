@@ -695,7 +695,7 @@ public abstract class FloatNodes {
 
         @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
 
-        public abstract Object executeToI(VirtualFrame frame, double value);
+        public abstract Object executeToI(double value);
 
         @Specialization
         Object toI(double value,

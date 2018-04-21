@@ -181,7 +181,7 @@ public abstract class MatchDataNodes {
             return MatchDataNodesFactory.GetIndexNodeFactory.create(nodes);
         }
 
-        public abstract Object executeGetIndex(VirtualFrame frame, Object matchData, Object index, Object length);
+        public abstract Object executeGetIndex(Object matchData, Object index, Object length);
 
         @Specialization
         public Object getIndex(DynamicObject matchData, int index, NotProvided length,
@@ -218,40 +218,40 @@ public abstract class MatchDataNodes {
 
         @Specialization(guards = { "isRubySymbol(cachedIndex)", "name != null",
                 "getRegexp(matchData) == regexp", "cachedIndex == index" })
-        public Object getIndexSymbolSingleMatch(VirtualFrame frame, DynamicObject matchData, DynamicObject index, NotProvided length,
+        public Object getIndexSymbolSingleMatch(DynamicObject matchData, DynamicObject index, NotProvided length,
                 @Cached("index") DynamicObject cachedIndex,
                 @Cached("getRegexp(matchData)") DynamicObject regexp,
                 @Cached("findNameEntry(regexp, index)") NameEntry name,
                 @Cached("numBackRefs(name)") int backRefs,
                 @Cached("backRefIndex(name)") int backRefIndex) {
             if (backRefs == 1) {
-                return executeGetIndex(frame, matchData, backRefIndex, NotProvided.INSTANCE);
+                return executeGetIndex(matchData, backRefIndex, NotProvided.INSTANCE);
             } else {
                 final int i = getBackRef(matchData, regexp, name);
 
-                return executeGetIndex(frame, matchData, i, NotProvided.INSTANCE);
+                return executeGetIndex(matchData, i, NotProvided.INSTANCE);
             }
         }
 
         @Specialization(guards = "isRubySymbol(index)")
-        public Object getIndexSymbol(VirtualFrame frame, DynamicObject matchData, DynamicObject index, NotProvided length,
+        public Object getIndexSymbol(DynamicObject matchData, DynamicObject index, NotProvided length,
                 @Cached("create()") BranchProfile errorProfile) {
-            return executeGetIndex(frame, matchData, getBackRefFromSymbol(matchData, index), NotProvided.INSTANCE);
+            return executeGetIndex(matchData, getBackRefFromSymbol(matchData, index), NotProvided.INSTANCE);
         }
 
         @Specialization(guards = "isRubyString(index)")
-        public Object getIndexString(VirtualFrame frame, DynamicObject matchData, DynamicObject index, NotProvided length) {
-            return executeGetIndex(frame, matchData, getBackRefFromString(matchData, index), NotProvided.INSTANCE);
+        public Object getIndexString(DynamicObject matchData, DynamicObject index, NotProvided length) {
+            return executeGetIndex(matchData, getBackRefFromString(matchData, index), NotProvided.INSTANCE);
         }
 
         @Specialization(guards = { "!isRubySymbol(index)", "!isRubyString(index)", "!isIntRange(index)" })
-        public Object getIndex(VirtualFrame frame, DynamicObject matchData, Object index, NotProvided length) {
+        public Object getIndex(DynamicObject matchData, Object index, NotProvided length) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toIntNode = insert(ToIntNode.create());
             }
 
-            return executeGetIndex(frame, matchData, toIntNode.doInt(frame, index), NotProvided.INSTANCE);
+            return executeGetIndex(matchData, toIntNode.doInt(index), NotProvided.INSTANCE);
         }
 
         @TruffleBoundary
