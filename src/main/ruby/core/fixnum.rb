@@ -43,12 +43,6 @@ class Fixnum < Integer
   MIN = -9223372036854775808
   MAX =  9223372036854775807
 
-  def [](index)
-    index = Truffle::Type.coerce_to(index, Integer, :to_int)
-    return 0 if index.is_a?(Bignum)
-    index < 0 ? 0 : (self >> index) & 1
-  end
-
   def fdiv(n)
     if n.kind_of?(Integer)
       to_f / n

@@ -1,3 +1,11 @@
+# Copyright (c) 2014, 2018 Oracle and/or its affiliates. All rights reserved. This
+# code is released under a tri EPL/GPL/LGPL license. You can use it,
+# redistribute it and/or modify it under the terms of the:
+#
+# Eclipse Public License version 1.0
+# GNU General Public License version 2
+# GNU Lesser General Public License version 2.1
+
 # Copyright (c) 2007-2015, Evan Phoenix and contributors
 # All rights reserved.
 #
@@ -40,6 +48,12 @@ class Integer < Numeric
     end
 
     redo_coerced :**, o
+  end
+
+  def [](index)
+    index = Truffle::Type.coerce_to(index, Integer, :to_int)
+    return 0 if index.is_a?(Bignum)
+    index < 0 ? 0 : (self >> index) & 1
   end
 
   def coerce(other)

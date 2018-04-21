@@ -29,12 +29,6 @@ class Bignum < Integer
   # Have a copy in Bignum of the Numeric version, as MRI does
   public :remainder
 
-  def [](index)
-    index = Truffle::Type.coerce_to(index, Integer, :to_int)
-    return 0 if index.is_a?(Bignum)
-    index < 0 ? 0 : (self >> index) & 1
-  end
-
   def eql?(value)
     value.is_a?(Bignum) && self == value
   end
