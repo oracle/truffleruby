@@ -148,9 +148,8 @@ set in `RUBYOPT`.
 
 ## Running with Graal
 
-To run a build from source with Graal, use Graal as a source dependency (don't
-set `truffle` in `MX_BINARY_SUITES`), build `graal/compiler` using `mx`, and
-then use the `--graal` option.
+See the document on [build graal](building-graal.md), and then run `jt ruby`
+with the `--graal` option.
 
 We have flags in `jt` to set some options, such as `--trace` for
 `-J-Dgraal.TraceTruffleCompilation=true` and `--igv` for
