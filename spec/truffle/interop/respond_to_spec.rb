@@ -53,11 +53,11 @@ describe "Truffle::Interop.respond_to?" do
   describe "for :class" do
     
     it "and a Java class returns true" do
-      Truffle::Interop.respond_to?(Truffle::Interop.java_type("java.math.BigInteger"), :class).should be_true
+      Truffle::Interop.respond_to?(Truffle::Debug.java_class, :class).should be_true
     end
     
     it "and a Java object returns false" do
-      Truffle::Interop.respond_to?(Truffle::Interop.java_type("java.math.BigInteger").new("14"), :class).should be_false
+      Truffle::Interop.respond_to?(Truffle::Debug.java_object, :class).should be_false
     end
     
     it "and a Ruby object returns false" do

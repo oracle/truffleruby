@@ -15,11 +15,11 @@ describe "Truffle::Interop.java?" do
   end
 
   it "returns true for a Java class" do
-    Truffle::Interop.java?(Java.type("java.math.BigInteger")).should be_true
+    Truffle::Interop.java?(Truffle::Debug.java_class).should be_true
   end
 
   it "returns true for a Java object" do
-    Truffle::Interop.java?(Java.type("java.math.BigInteger").new("14")).should be_true
+    Truffle::Interop.java?(Truffle::Debug.java_object).should be_true
   end
 
   it "returns false for some other foreign object" do
