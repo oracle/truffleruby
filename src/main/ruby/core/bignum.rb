@@ -45,23 +45,6 @@ class Bignum < Integer
     [other, self]
   end
 
-  def <=>(other)
-    Truffle.primitive :bignum_compare
-
-    # We do not use redo_compare here because Ruby does not
-    # raise if any part of the coercion or comparison raises
-    # an exception.
-    begin
-      coerced = other.coerce self
-      return nil unless coerced
-      coerced[0] <=> coerced[1]
-    rescue
-      warn 'warning: Numerical comparison operators will no more rescue exceptions of #coerce',
-           'warning: in the next release. Return nil in #coerce if the coercion is impossible.'
-      return nil
-    end
-  end
-
   def eql?(value)
     value.is_a?(Bignum) && self == value
   end
