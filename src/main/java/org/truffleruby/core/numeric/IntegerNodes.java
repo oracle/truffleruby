@@ -1716,11 +1716,6 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        public Object pow(DynamicObject a, int b) {
-            return executePow(a, (long) b);
-        }
-
-        @Specialization
         public Object pow(DynamicObject a, long b,
                 @Cached("createBinaryProfile()") ConditionProfile negativeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile maybeTooBigProfile,
