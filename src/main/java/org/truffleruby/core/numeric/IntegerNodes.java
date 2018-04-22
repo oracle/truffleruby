@@ -38,6 +38,7 @@ import org.truffleruby.core.numeric.IntegerNodesFactory.AbsNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.DivNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.LeftShiftNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.MulNodeFactory;
+import org.truffleruby.core.numeric.IntegerNodesFactory.PowNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.RightShiftNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.LazyIntRope;
@@ -1600,10 +1601,21 @@ public abstract class IntegerNodes {
     @Primitive(name = "integer_pow", lowerFixnum = { 0, 1 })
     public abstract static class PowNode extends PrimitiveArrayArgumentsNode {
 
+        @Child private PowNode recursivePowNode;
+
         // Value taken from MRI for determining when to promote integer exponentiation into doubles.
         private static final int BIGLEN_LIMIT = 32 * 1024 * 1024;
 
         public abstract Object executePow(Object a, Object b);
+
+        protected Object recursivePow(Object a, Object b) {
+            if (recursivePowNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                recursivePowNode = insert(PowNodeFactory.create(null));
+            }
+
+            return recursivePowNode.executePow(a, b);
+        }
 
         // Highest bit we can set is the 30th due to sign
         @Specialization(guards = { "a == 2", "b >= 0", "b <= 30" })
@@ -1635,7 +1647,7 @@ public abstract class IntegerNodes {
 
                     if (base instanceof DynamicObject) {
                         overflowProfile.enter();
-                        final Object bignumResult = executePow(base, exp);
+                        final Object bignumResult = recursivePow(base, exp);
                         return mulNode.executeMul(result, bignumResult);
                     }
                 } else {
@@ -1659,7 +1671,7 @@ public abstract class IntegerNodes {
 
                     if (base instanceof DynamicObject) {
                         overflowProfile.enter();
-                        final Object bignumResult = executePow(base, exp);
+                        final Object bignumResult = recursivePow(base, exp);
                         return mulNode.executeMul(result, bignumResult);
                     }
                 } else {
@@ -1730,7 +1742,7 @@ public abstract class IntegerNodes {
                 // We replicate the logic exactly so we match MRI's ranges.
                 if (maybeTooBigProfile.profile(baseBitLength > BIGLEN_LIMIT || (baseBitLength * b > BIGLEN_LIMIT))) {
                     warnNode.warn("warn('in a**b, b may be too big')");
-                    return executePow(a, (double) b);
+                    return recursivePow(a, (double) b);
                 }
 
                 // TODO CS 15-Feb-15 what about this cast?
