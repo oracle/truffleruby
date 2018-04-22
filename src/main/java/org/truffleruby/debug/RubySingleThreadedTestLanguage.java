@@ -43,7 +43,7 @@ public class RubySingleThreadedTestLanguage extends TruffleLanguage<Object> {
 
             @Override
             public Object execute(VirtualFrame frame) {
-                return Integer.parseInt(source);
+                return Integer.parseInt(source.trim());
             }
 
         });
