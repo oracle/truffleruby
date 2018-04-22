@@ -60,7 +60,7 @@ class Integer < Numeric
   end
 
   def coerce(other)
-    if other.instance_of? self.class
+    if other.kind_of? Integer
       return [other, self]
     end
 
