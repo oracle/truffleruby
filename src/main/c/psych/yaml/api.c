@@ -1,6 +1,5 @@
 
 #include "yaml_private.h"
-#include "ruby.h"
 
 /*
  * Get the library version.
@@ -215,8 +214,6 @@ YAML_DECLARE(void)
 yaml_parser_delete(yaml_parser_t *parser)
 {
     assert(parser); /* Non-NULL parser object expected. */
-    
-    rb_tr_release_if_handle(parser->read_handler_data);
 
     BUFFER_DEL(parser, parser->raw_buffer);
     BUFFER_DEL(parser, parser->buffer);
@@ -291,7 +288,7 @@ yaml_parser_set_input_string(yaml_parser_t *parser,
     assert(input);  /* Non-NULL input string expected. */
 
     parser->read_handler = yaml_string_read_handler;
-    parser->read_handler_data = rb_tr_handle_if_managed(parser);
+    parser->read_handler_data = parser;
 
     parser->input.string.start = input;
     parser->input.string.current = input;
@@ -310,7 +307,7 @@ yaml_parser_set_input_file(yaml_parser_t *parser, FILE *file)
     assert(file);   /* Non-NULL file object expected. */
 
     parser->read_handler = yaml_file_read_handler;
-    parser->read_handler_data = rb_tr_handle_for_managed(parser);
+    parser->read_handler_data = parser;
 
     parser->input.file = file;
 }
@@ -328,7 +325,7 @@ yaml_parser_set_input(yaml_parser_t *parser,
     assert(handler);    /* Non-NULL read handler expected. */
 
     parser->read_handler = handler;
-    parser->read_handler_data = rb_tr_handle_for_managed(data);
+    parser->read_handler_data = data;
 }
 
 /*
@@ -389,8 +386,6 @@ YAML_DECLARE(void)
 yaml_emitter_delete(yaml_emitter_t *emitter)
 {
     assert(emitter);    /* Non-NULL emitter object expected. */
-    
-    rb_tr_release_handle(emitter->write_handler_data);
 
     BUFFER_DEL(emitter, emitter->buffer);
     BUFFER_DEL(emitter, emitter->raw_buffer);
@@ -461,7 +456,7 @@ yaml_emitter_set_output_string(yaml_emitter_t *emitter,
     assert(output);     /* Non-NULL output string expected. */
 
     emitter->write_handler = yaml_string_write_handler;
-    emitter->write_handler_data = rb_tr_handle_for_managed(emitter);
+    emitter->write_handler_data = emitter;
 
     emitter->output.string.buffer = output;
     emitter->output.string.size = size;
@@ -481,7 +476,7 @@ yaml_emitter_set_output_file(yaml_emitter_t *emitter, FILE *file)
     assert(file);       /* Non-NULL file object expected. */
 
     emitter->write_handler = yaml_file_write_handler;
-    emitter->write_handler_data = rb_tr_handle_for_managed(emitter);
+    emitter->write_handler_data = emitter;
 
     emitter->output.file = file;
 }
@@ -499,7 +494,7 @@ yaml_emitter_set_output(yaml_emitter_t *emitter,
     assert(handler);    /* Non-NULL handler object expected. */
 
     emitter->write_handler = handler;
-    emitter->write_handler_data = rb_tr_handle_for_managed(data);
+    emitter->write_handler_data = data;
 }
 
 /*
@@ -1393,3 +1388,5 @@ yaml_document_append_mapping_pair(yaml_document_t *document,
 
     return 1;
 }
+
+
