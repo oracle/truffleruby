@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.impl.DefaultCallTarget;
 import com.oracle.truffle.api.nodes.RootNode;
 
 @TruffleLanguage.Registration(
