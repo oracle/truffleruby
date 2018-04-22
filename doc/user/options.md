@@ -72,11 +72,11 @@ TruffleRuby:
 
 As well as being set at the command line, options, except for `log`,
 can be set using `--ruby.option=`.
-For example `--ruby.inline_js=true`. They can also be set as JVM system
+For example `--ruby.cexts.remap=true`. They can also be set as JVM system
 properties, where they have a prefix `polyglot.ruby.`. For example
-`--jvm.Dpolyglot.ruby.inline_js=true`, or via any other way of setting JVM system
-properties. Finally, options can be set as Graal-SDK polyglot API configuration
-options.
+`--jvm.Dpolyglot.ruby.cexts.remap=true`, or via any other way of setting JVM
+system properties. Finally, options can be set as Graal-SDK polyglot API
+configuration options.
 
 The priority for options is the command line first, then the Graal-SDK polyglot
 API configuration, then system properties last.

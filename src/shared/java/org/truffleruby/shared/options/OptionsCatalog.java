@@ -216,11 +216,6 @@ public class OptionsCatalog {
             "Run coverage for all code and print results on exit",
             null,
             false);
-    public static final BooleanOptionDescription INLINE_JS = new BooleanOptionDescription(
-            "ruby.inline_js",
-            "Allow inline JavaScript",
-            null,
-            false);
     public static final StringOptionDescription CORE_LOAD_PATH = new StringOptionDescription(
             "ruby.core.load_path",
             "Location to load the Truffle core library from",
@@ -714,8 +709,6 @@ public class OptionsCatalog {
                 return TRACE_CALLS;
             case "ruby.coverage.global":
                 return COVERAGE_GLOBAL;
-            case "ruby.inline_js":
-                return INLINE_JS;
             case "ruby.core.load_path":
                 return CORE_LOAD_PATH;
             case "ruby.stdlib_as_internal":
@@ -927,7 +920,6 @@ public class OptionsCatalog {
             PREINITIALIZATION,
             TRACE_CALLS,
             COVERAGE_GLOBAL,
-            INLINE_JS,
             CORE_LOAD_PATH,
             STDLIB_AS_INTERNAL,
             LAZY_BUILTINS,

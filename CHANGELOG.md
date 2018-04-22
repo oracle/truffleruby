@@ -6,6 +6,10 @@ New features:
   can call instance methods, rather than static methods which is what you get by
   default.
 
+Changes:
+
+* The inline JavaScript functionality `-Xinline_js` has been removed.
+
 # 1.0 RC 1, April 2018
 
 New features:
