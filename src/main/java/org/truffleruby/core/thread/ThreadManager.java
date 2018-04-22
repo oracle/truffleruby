@@ -251,8 +251,7 @@ public class ThreadManager {
             try {
                 if (thrown.isDone()
                         && thrown.get() instanceof IllegalStateException
-                        && thrown.get().getMessage().startsWith("Multi threaded access requested")
-                        && context.getEnv().isCreateThreadAllowed()) {
+                        && thrown.get().getMessage().startsWith("Multi threaded access requested")) {
                     message = thrown.get().getMessage() + " Are you attempting to create a Ruby thread after you have used a single-threaded language?";
                 } else {
                     message = "creating thread timed out";
