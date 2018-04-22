@@ -217,7 +217,7 @@ static VALUE ossl_ec_key_initialize(int argc, VALUE *argv, VALUE self)
 	BIO *in;
 
 	pass = ossl_pem_passwd_value(pass);
-	in = ossl_obj2bio(&arg);
+	in = ossl_obj2bio_x(arg);
 
 	ec = PEM_read_bio_ECPrivateKey(in, NULL, ossl_pem_passwd_cb, (void *)pass);
 	if (!ec) {
@@ -775,7 +775,7 @@ static VALUE ossl_ec_group_initialize(int argc, VALUE *argv, VALUE self)
             if ((group = EC_GROUP_dup(arg1_group)) == NULL)
                 ossl_raise(eEC_GROUP, "EC_GROUP_dup");
         } else {
-            BIO *in = ossl_obj2bio(&arg1);
+            BIO *in = ossl_obj2bio_x(arg1);
 
             group = PEM_read_bio_ECPKParameters(in, NULL, NULL, NULL);
             if (!group) {
@@ -1381,7 +1381,7 @@ static VALUE ossl_ec_point_initialize(int argc, VALUE *argv, VALUE self)
 
             point = EC_POINT_bn2point(group, bn, NULL, ossl_bn_ctx);
         } else {
-            BIO *in = ossl_obj2bio(&arg1);
+            BIO *in = ossl_obj2bio_x(arg1);
 
 /* BUG: finish me */
 
@@ -1618,7 +1618,9 @@ static VALUE ossl_ec_point_mul(int argc, VALUE *argv, VALUE self)
     SafeGetECGroup(group_v, group);
 
     result = rb_obj_alloc(cEC_POINT);
-    ossl_ec_point_initialize(1, &group_v, result);
+    VALUE group_v_addr[1]; // TruffleRuby to allow the preprocessor to turn into a managed malloc
+    group_v_addr[0] = group_v; // TruffleRuby
+    ossl_ec_point_initialize(1, group_v_addr, result); // TruffleRuby
     GetECPoint(result, point_result);
 
     rb_scan_args(argc, argv, "12", &arg1, &arg2, &arg3);

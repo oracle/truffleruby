@@ -12,6 +12,7 @@
 require 'socket'
 require 'io/nonblock'
 require 'etc'
+require 'timeout'
 
 module WEBrick
   module Utils
@@ -256,15 +257,9 @@ module WEBrick
     # than +seconds+.
     #
     # If +seconds+ is zero or nil, simply executes the block
-    def timeout(seconds, exception=Timeout::Error)
+    def timeout(seconds, exception=Timeout::Error, &block)
       return yield if seconds.nil? or seconds.zero?
-      # raise ThreadError, "timeout within critical session" if Thread.critical
-      id = TimeoutHandler.register(seconds, exception)
-      begin
-        yield(seconds)
-      ensure
-        TimeoutHandler.cancel(id)
-      end
+      Timeout.timeout(seconds, exception, &block)
     end
     module_function :timeout
   end

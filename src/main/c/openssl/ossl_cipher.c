@@ -154,8 +154,9 @@ ossl_cipher_copy(VALUE self, VALUE other)
 }
 
 static void*
-add_cipher_name_to_ary(const OBJ_NAME *name, VALUE ary)
+add_cipher_name_to_ary(const OBJ_NAME *name, void* ary_handle) // TruffleRuby void* instead of VALUE
 {
+    VALUE ary = rb_tr_managed_from_handle(ary_handle);
     rb_ary_push(ary, rb_str_new2(name->name));
     return NULL;
 }
@@ -174,7 +175,7 @@ ossl_s_ciphers(VALUE self)
     ary = rb_ary_new();
     OBJ_NAME_do_all_sorted(OBJ_NAME_TYPE_CIPHER_METH,
                     (void(*)(const OBJ_NAME*,void*))add_cipher_name_to_ary,
-                    (void*)ary);
+                    rb_tr_handle_for_managed_leaking(ary));
 
     return ary;
 }
