@@ -212,7 +212,9 @@ ossl_engine_s_by_id(VALUE klass, VALUE id)
     VALUE obj;
 
     StringValueCStr(id);
-    ossl_engine_s_load(1, &id, klass);
+    VALUE argv[1]; // TruffleRuby to allow the preprocessor to turn into a managed malloc
+    argv[0] = id; // TruffleRuby
+    ossl_engine_s_load(1, argv, klass); // TruffleRuby
     obj = NewEngine(klass);
     if(!(e = ENGINE_by_id(RSTRING_PTR(id))))
 	ossl_raise(eEngineError, NULL);

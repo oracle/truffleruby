@@ -591,7 +591,10 @@ module URI
       if @opaque
         raise InvalidURIError,
           "can not set host with registry or opaque"
-      elsif parser.regexp[:HOST] !~ v
+      elsif !parser.regexp[:HOST].match(v)
+        # Truffle: !~ would cause a deopt to set named match
+        # variables. Since we are only interested in whether the
+        # method matches we should avoid this cost.
         raise InvalidComponentError,
           "bad component(expected host component): #{v}"
       end

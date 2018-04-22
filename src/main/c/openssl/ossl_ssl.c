@@ -126,7 +126,7 @@ ossl_sslctx_s_alloc(VALUE klass)
     }
     SSL_CTX_set_mode(ctx, mode);
     RTYPEDDATA_DATA(obj) = ctx;
-    SSL_CTX_set_ex_data(ctx, ossl_ssl_ex_ptr_idx, (void*)obj);
+    SSL_CTX_set_ex_data(ctx, ossl_ssl_ex_ptr_idx, (void*)rb_tr_handle_for_managed_leaking(obj));
 
 #if !defined(OPENSSL_NO_EC) && defined(HAVE_SSL_CTX_SET_ECDH_AUTO)
     /* We use SSL_CTX_set1_curves_list() to specify the curve used in ECDH. It
@@ -1686,10 +1686,9 @@ ossl_ssl_read_internal(int argc, VALUE *argv, VALUE self, int nonblock)
 	if (RSTRING_LEN(str) >= ilen)
 	    rb_str_modify(str);
 	else
-	    rb_str_modify_expand(str, ilen - RSTRING_LEN(str));
+	    rb_str_resize(str, ilen);
     }
     OBJ_TAINT(str);
-    rb_str_set_len(str, 0);
     if (ilen == 0)
 	return str;
 

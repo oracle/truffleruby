@@ -97,13 +97,21 @@ ossl_str_new(int size)
     return rb_str_new(0, size);
 }
 
+// Workaround for Sulong not accepting the undefined behaviour of casting a function pointer type like this
+
+static VALUE
+ossl_str_new_x(VALUE size)
+{
+    return ossl_str_new((int) size);
+}
+
 VALUE
 ossl_buf2str(char *buf, int len)
 {
     VALUE str;
     int status = 0;
 
-    str = rb_protect((VALUE (*)(VALUE))ossl_str_new, len, &status);
+    str = rb_protect(ossl_str_new_x, len, &status);
     if(!NIL_P(str)) memcpy(RSTRING_PTR(str), buf, len);
     OPENSSL_free(buf);
     if(status) rb_jump_tag(status);
@@ -550,7 +558,7 @@ static void ossl_threadid_func(CRYPTO_THREADID *id)
 static unsigned long ossl_thread_id(void)
 {
     /* before OpenSSL 1.0, this is 'unsigned long' */
-    return (unsigned long)rb_nativethread_self();
+    return rb_tr_obj_id(rb_nativethread_self());
 }
 #endif
 
@@ -567,7 +575,9 @@ static void Init_ossl_locks(void)
     int i;
     int num_locks = CRYPTO_num_locks();
 
-    ossl_locks = ALLOC_N(struct CRYPTO_dynlock_value, num_locks);
+    // Modified for TruffleRuby
+    //ossl_locks = ALLOC_N(struct CRYPTO_dynlock_value, num_locks);
+    ossl_locks = (struct CRYPTO_dynlock_value *) truffle_managed_malloc(num_locks * (int)sizeof(struct CRYPTO_dynlock_value));
     for (i = 0; i < num_locks; i++)
 	ossl_lock_init(&ossl_locks[i]);
 
