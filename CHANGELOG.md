@@ -9,6 +9,9 @@ New features:
 Changes:
 
 * The inline JavaScript functionality `-Xinline_js` has been removed.
+* You'll now get a more helpful error message telling you to use
+  `-Xsingle_threaded` when you try to use a single-threaded language like
+  JavaScript in multi-threaded mode.
 
 # 1.0 RC 1, April 2018
 
