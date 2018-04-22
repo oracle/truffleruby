@@ -42,8 +42,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -232,10 +234,35 @@ public class ThreadManager {
         Layouts.THREAD.setSourceLocation(rubyThread, info);
 
         final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task));
+
         thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + info);
+
+        final CompletableFuture<Throwable> thrown = new CompletableFuture<>();
+
+        thread.setUncaughtExceptionHandler((t, e) -> {
+            thrown.complete(e);
+        });
+
         thread.start();
 
-        FiberManager.waitForInitialization(context, Layouts.THREAD.getFiberManager(rubyThread).getRootFiber(), currentNode);
+        if (!FiberManager.waitForInitialization(context, Layouts.THREAD.getFiberManager(rubyThread).getRootFiber(), currentNode)) {
+            final String message;
+
+            try {
+                if (thrown.isDone()
+                        && thrown.get() instanceof IllegalStateException
+                        && thrown.get().getMessage().startsWith("Multi threaded access requested")
+                        && context.getEnv().isCreateThreadAllowed()) {
+                    message = thrown.get().getMessage() + " Are you attempting to create a Ruby thread after you have used a single-threaded language?";
+                } else {
+                    message = "creating thread timed out";
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+
+            throw new RaiseException(context.getCoreExceptions().securityError(message, currentNode));
+        }
     }
 
     private void threadMain(DynamicObject thread, Node currentNode, Supplier<Object> task) {

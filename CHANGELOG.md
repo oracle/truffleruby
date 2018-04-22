@@ -12,6 +12,12 @@ Changes:
 * You'll now get a more helpful error message telling you to use
   `-Xsingle_threaded` when you try to use a single-threaded language like
   JavaScript in multi-threaded mode.
+  
+* You'll now get a more helpful error message if you use a single-threaded
+  language and then later try to create a thread.
+
+* An error message is now printed if a thread is created but for some reason
+  never responds.
 
 # 1.0 RC 1, April 2018
 
