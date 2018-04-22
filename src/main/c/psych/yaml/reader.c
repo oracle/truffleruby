@@ -118,7 +118,7 @@ yaml_parser_update_raw_buffer(yaml_parser_t *parser)
 
     /* Call the read handler to fill the buffer. */
 
-    if (!parser->read_handler(parser->read_handler_data, parser->raw_buffer.last,
+    if (!parser->read_handler(rb_tr_managed_if_handle(parser->read_handler_data), parser->raw_buffer.last,
                 parser->raw_buffer.end - parser->raw_buffer.last, &size_read)) {
         return yaml_parser_set_reader_error(parser, "input error",
                 parser->offset, -1);
