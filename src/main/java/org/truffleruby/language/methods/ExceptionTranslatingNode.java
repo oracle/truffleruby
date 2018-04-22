@@ -234,18 +234,6 @@ public class ExceptionTranslatingNode extends RubyNode {
             throw (AssertionError) throwable;
         }
 
-        if (throwable.getClass().getName().equals("com.oracle.truffle.api.vm.PolyglotIllegalStateException")) {
-            final String message;
-
-            if (throwable.getMessage().startsWith("Multi threaded access requested")) {
-                message = throwable.getMessage() + " Try running Ruby in single-threaded mode by using -Xsingle_threaded or --ruby.single_threaded.";
-            } else {
-                message = throwable.getMessage();
-            }
-
-            return coreExceptions().securityError(message, this);
-        }
-
         if (getContext().getOptions().EXCEPTIONS_PRINT_JAVA
                 || getContext().getOptions().EXCEPTIONS_PRINT_UNCAUGHT_JAVA) {
             throwable.printStackTrace();
@@ -253,6 +241,11 @@ public class ExceptionTranslatingNode extends RubyNode {
             if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
                 getContext().getCallStack().printBacktrace(this);
             }
+        }
+
+        if (throwable instanceof IllegalStateException
+                && throwable.getMessage().startsWith("Multi threaded access requested")) {
+            return coreExceptions().securityError(throwable.getMessage() + " Try running Ruby in single-threaded mode by using -Xsingle_threaded or --ruby.single_threaded.", this);
         }
 
         Throwable t = throwable;
