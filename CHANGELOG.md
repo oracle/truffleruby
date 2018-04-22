@@ -16,6 +16,10 @@ Changes:
 * You'll now get a more helpful error message if you use a single-threaded
   language and then later try to create a thread.
 
+* Auto-releasing unmanaged memory no longer creates a Truffle thread, so doesn't
+  cause an error and a hang if you do it after a single-threaded language has
+  been used.
+  
 * An error message is now printed if a thread is created but for some reason
   never responds.
 

@@ -83,7 +83,7 @@ public class ObjectSpaceManager {
             root = null;
         }
 
-        finalizationService.addFinalizer(object, ObjectSpaceManager.class,
+        finalizationService.addFinalizer(true, object, ObjectSpaceManager.class,
                 new CallableFinalizer(context, callable), root);
     }
 
@@ -109,7 +109,7 @@ public class ObjectSpaceManager {
     }
 
     public synchronized void undefineFinalizer(DynamicObject object) {
-        finalizationService.removeFinalizers(object, ObjectSpaceManager.class);
+        finalizationService.removeFinalizers(true, object, ObjectSpaceManager.class);
     }
 
     public void traceAllocationsStart() {
