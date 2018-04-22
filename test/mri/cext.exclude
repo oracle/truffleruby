@@ -30,6 +30,7 @@ cext-ruby/string/test_set_len.rb
 cext-ruby/string/test_nofree.rb
 cext-ruby/struct/test_duplicate.rb
 cext-ruby/struct/test_member.rb
+cext-ruby/symbol/noninterned_name.rb
 cext-ruby/symbol/test_inadvertent_creation.rb
 cext-ruby/symbol/test_type.rb
 cext-ruby/time/test_new.rb
