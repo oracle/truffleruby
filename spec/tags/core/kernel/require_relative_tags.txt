@@ -1,0 +1,2 @@
+fails:Kernel#require_relative with a relative path loads a relative path relative to the working directory plus the directory path of a synthetic relative file path specified in an #instance_eval
+fails:Kernel#require_relative with a relative path in an #instance_eval with a synthetic file path loads a relative path relative to the working directory plus the directory of the synthetic path
