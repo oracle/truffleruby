@@ -40,14 +40,14 @@ describe "Single-threaded mode" do
 
     it "before interop" do
       ruby_exe(
-        "File.read('README.md'); Polyglot.eval('ruby-single-threaded-test', '14'); puts 14",
+        "File.read(#{__FILE__.inspect}); Polyglot.eval('ruby-single-threaded-test', '14'); puts 14",
         options: "-Xsingle_threaded=true"
       ).should == "14\n"
     end
     
     it "after interop" do
       ruby_exe(
-        "Polyglot.eval('ruby-single-threaded-test', '14'); File.read('README.md'); puts 14",
+        "Polyglot.eval('ruby-single-threaded-test', '14'); File.read(#{__FILE__.inspect}); puts 14",
         options: "-Xsingle_threaded=true"
       ).should == "14\n"
     end
@@ -96,14 +96,14 @@ describe "Interop with a single-threaded language in non-single-threaded mode" d
 
     it "before interop" do
       ruby_exe(
-        "File.read('README.md'); Polyglot.eval('ruby-single-threaded-test', '14'); puts 14",
+        "File.read(#{__FILE__.inspect}); Polyglot.eval('ruby-single-threaded-test', '14'); puts 14",
         options: "-Xsingle_threaded=false"
       ).should == "14\n"
     end
     
     it "after interop" do
       ruby_exe(
-        "Polyglot.eval('ruby-single-threaded-test', '14'); File.read('README.md'); puts 14",
+        "Polyglot.eval('ruby-single-threaded-test', '14'); File.read(#{__FILE__.inspect}); puts 14",
         options: "-Xsingle_threaded=false"
       ).should == "14\n"
     end
