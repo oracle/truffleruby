@@ -1095,14 +1095,4 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "single_threaded?", onSingleton = true)
-    public abstract static class SingleThreadedNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public boolean singleThreaded() {
-            return getContext().getOptions().SINGLE_THREADED;
-        }
-
-    }
-
 }
