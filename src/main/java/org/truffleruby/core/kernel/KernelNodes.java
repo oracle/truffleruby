@@ -104,6 +104,7 @@ import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Activation;
 import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -147,6 +148,7 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1392,7 +1394,11 @@ public abstract class KernelNodes {
                 featurePath = dirname(sourcePath) + "/" + featureString;
             }
 
-            return featurePath;
+            try {
+                return new File(featurePath).getCanonicalPath();
+            } catch (IOException e) {
+                throw new JavaException(e);
+            }
         }
 
         private String dirname(String path) {
