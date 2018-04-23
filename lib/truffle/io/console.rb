@@ -45,36 +45,41 @@ end
 
 
 class IO
+  CONSOLE_MUTEX = Mutex.new
+
   def self.console(sym=nil, *args)
     raise TypeError, "expected Symbol, got #{sym.class}" unless sym.nil? || sym.kind_of?(Symbol)
 
-    # klass = self == IO ? File : self
-    if defined?(@console) # using ivar instead of hidden const as in MRI
-      con = @console
-      # MRI checks IO internals : (!RB_TYPE_P(con, T_FILE) || (!(fptr = RFILE(con)->fptr) || GetReadFD(fptr) == -1))
-      if !con.kind_of?(File) || (con.kind_of?(IO) && (con.closed? || !FileTest.readable?(con)))
-        remove_instance_variable :@console
-        con = nil
-      end
-    end
+    console = nil
 
-    if sym
+    CONSOLE_MUTEX.synchronize do
+      if defined?(@console) # using ivar instead of hidden const as in MRI
+        console = @console
+
+        # MRI checks IO internals : (!RB_TYPE_P(con, T_FILE) || (!(fptr = RFILE(con)->fptr) || GetReadFD(fptr) == -1))
+        if !console.kind_of?(File) || (console.closed? || !FileTest.readable?(console))
+          remove_instance_variable :@console
+          console = nil
+        end
+      end
+
       if sym == :close
-        if con
-          con.close
+        if console
+          console.close
           remove_instance_variable :@console if defined?(@console)
         end
+
         return nil
+      end
+
+      if !console && $stdin.tty?
+        console = File.open('/dev/tty', 'r+')
+        console.sync = true
+        @console = console
       end
     end
 
-    if !con && $stdin.tty?
-      con = File.open('/dev/tty', 'r+')
-      con.sync = true
-      @console = con
-    end
-
-    sym ? con.send(sym, *args) : con
+    sym ? console.send(sym, *args) : console
   end
 
   if RbConfig::CONFIG['host_os'].downcase =~ /linux/ && File.exist?("/proc/#{Process.pid}/fd")
