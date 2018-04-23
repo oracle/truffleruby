@@ -15,7 +15,7 @@ describe "Single-threaded mode" do
       "Thread.new { }",
       options: "-Xsingle_threaded=true",
       args: '2>&1'
-    ).should =~ /threads not allowed in single-threaded mode/
+    ).should include('threads not allowed in single-threaded mode')
   end
     
   describe "allows native memory finalisers created" do
@@ -63,7 +63,7 @@ describe "Interop with a single-threaded language in non-single-threaded mode" d
       "thread = Thread.new { }; Polyglot.eval('ruby-single-threaded-test', '14')",
       options: "-Xsingle_threaded=false",
       args: '2>&1'
-    ).should =~ /Try running Ruby in single-threaded mode by using -Xsingle_threaded or --ruby.single_threaded./
+    ).should include('Try running Ruby in single-threaded mode by using -Xsingle_threaded or --ruby.single_threaded.')
   end
   
   it "should give a helpful error if a thread is created later" do
@@ -71,7 +71,7 @@ describe "Interop with a single-threaded language in non-single-threaded mode" d
       "Polyglot.eval('ruby-single-threaded-test', '14'); thread = Thread.new { };",
       options: "-Xsingle_threaded=false",
       args: '2>&1'
-    ).should =~ /Are you attempting to create a Ruby thread after you have used a single-threaded language?/
+    ).should include('Are you attempting to create a Ruby thread after you have used a single-threaded language?')
   end
 
   describe "allows native memory finalisers created" do
