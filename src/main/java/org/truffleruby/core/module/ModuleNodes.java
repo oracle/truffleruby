@@ -619,8 +619,7 @@ public abstract class ModuleNodes {
             final MaterializedFrame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
                     .getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize();
             final Encoding encoding = Layouts.STRING.getRope(rubySource).getEncoding();
-            code = KernelNodes.EvalNode.offsetSource("class/module_eval", code, file, line);
-            Source source = Source.newBuilder(code).name(file.intern()).mimeType(RubyLanguage.MIME_TYPE).build();
+            Source source= KernelNodes.EvalNode.createEvalSource(KernelNodes.EvalNode.offsetSource("class/module_eval", code, file, line), file);
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, encoding, ParserContext.MODULE, callerFrame, true, this);
             final DeclarationContext declarationContext = new DeclarationContext(Visibility.PUBLIC, new FixedDefaultDefinee(module));

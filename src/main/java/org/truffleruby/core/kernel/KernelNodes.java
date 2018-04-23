@@ -609,9 +609,8 @@ public abstract class KernelNodes {
 
         protected RubyRootNode buildRootNode(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line, boolean ownScopeForAssignments) {
             final String sourceFile = RopeOperations.decodeRope(file).intern();
-            final String sourceString = offsetSource("eval", RopeOperations.decodeRope(sourceText), sourceFile, line);
             final Encoding encoding = sourceText.getEncoding();
-            final Source source = Source.newBuilder(sourceString).name(sourceFile).mimeType(RubyLanguage.MIME_TYPE).build();
+            final Source source = createEvalSource(offsetSource("eval", RopeOperations.decodeRope(sourceText), sourceFile, line), sourceFile);
             final TranslatorDriver translator = new TranslatorDriver(getContext());
             return translator.parse(source, encoding, ParserContext.EVAL, null, null, parentFrame, ownScopeForAssignments, this);
         }
@@ -656,6 +655,13 @@ public abstract class KernelNodes {
 
         private boolean frameHasOnlySelf(final FrameDescriptor descriptor) {
             return descriptor.getSize() == 1 && SelfNode.SELF_IDENTIFIER.equals(descriptor.getSlots().get(0).getIdentifier());
+        }
+
+        public static Source createEvalSource(String source, String file) {
+            return Source.newBuilder(source)
+                    .name(file)
+                    .mimeType(RubyLanguage.MIME_TYPE)
+                    .build();
         }
 
         public static String offsetSource(String method, String source, String file, int line) {
