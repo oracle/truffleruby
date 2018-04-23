@@ -10,6 +10,10 @@ Changes:
 
 * The inline JavaScript functionality `-Xinline_js` has been removed.
 
+Bug fixes:
+
+* `Kernel#require_relative` now canonicalizes paths before requiring them.
+
 # 1.0 RC 1, April 2018
 
 New features:
