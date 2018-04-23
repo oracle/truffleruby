@@ -36,11 +36,11 @@ import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNode
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -264,10 +264,9 @@ public abstract class BasicObjectNodes {
         public Object instanceEval(Object receiver, DynamicObject string, DynamicObject fileName, int line, NotProvided block,
                 @Cached("create()") IndirectCallNode callNode) {
             final Rope code = StringOperations.rope(string);
+            final String fileNameString = RopeOperations.decodeRope(StringOperations.rope(fileName));
 
-            // TODO (pitr 15-Oct-2015): fix this ugly hack, required for AS, copy-paste
-            final String space = getSpace(line);
-            final Source source = loadFragment(space + RopeOperations.decodeRope(code), RopeOperations.decodeRope(StringOperations.rope(fileName)));
+            final Source source = loadFragment(KernelNodes.EvalNode.offsetSource("instance_eval", RopeOperations.decodeRope(code), fileNameString, line), fileNameString);
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, code.getEncoding(), ParserContext.EVAL, null, true, this);
             final DeclarationContext declarationContext = new DeclarationContext(Visibility.PUBLIC, new SingletonClassOfSelfDefaultDefinee(receiver));
@@ -291,11 +290,6 @@ public abstract class BasicObjectNodes {
         public Object instanceEval(Object receiver, NotProvided string, NotProvided fileName, NotProvided line, DynamicObject block,
                 @Cached("create()") InstanceExecNode instanceExecNode) {
             return instanceExecNode.executeInstanceExec(receiver, new Object[]{ receiver }, block);
-        }
-
-        private String getSpace(int line) {
-            final String s = new String(new char[Math.max(line - 1, 0)]);
-            return StringUtils.replace(s, "\0", "\n");
         }
 
         private Source loadFragment(String fragment, String name) {
