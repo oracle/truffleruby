@@ -671,13 +671,9 @@ public abstract class KernelNodes {
             } else if (line > 1) {
                 // fine instead of warning because we can simulate these
                 Log.LOGGER.fine(() -> String.format("offset line number %s:%d are simulated in #%s by adding blank lines", file, line, method));
-
-                final StringBuilder builder = new StringBuilder();
-                for (int n = 1; n < line; n++) {
-                    builder.append("\n");
-                }
-                builder.append(source);
-                return builder.toString();
+                final char[] emptyLines = new char[line - 1];
+                Arrays.fill(emptyLines, '\n');
+                return new String(emptyLines) + source;
             } else {
                 return source;
             }
