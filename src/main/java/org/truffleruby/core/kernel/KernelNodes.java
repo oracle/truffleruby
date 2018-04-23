@@ -658,7 +658,6 @@ public abstract class KernelNodes {
             return descriptor.getSize() == 1 && SelfNode.SELF_IDENTIFIER.equals(descriptor.getSlots().get(0).getIdentifier());
         }
 
-        @TruffleBoundary
         public static String offsetSource(String method, String source, String file, int line) {
             // TODO CS 23-Apr-18 Truffle doesn't support line numbers starting at anything but 1
             if (line == 0) {
