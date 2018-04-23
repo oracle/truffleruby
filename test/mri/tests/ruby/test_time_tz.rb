@@ -405,7 +405,7 @@ End
           ]
         }
       }
-      assert_includes(results, [true, true, true, true, true])
+      assert_include(results, [true, true, true, true, true])
     }
   end
 

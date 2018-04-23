@@ -697,16 +697,16 @@ class TestRequire < Test::Unit::TestCase
     bug7530 = '[ruby-core:50645]'
     Tempfile.create(%w'bug-7530- .rb') {|script|
       script.close
-      assert_in_out_err([{"RUBYOPT" => nil}, "-", script.path], <<-INPUT, %w(:ok), [], bug7530)
+      assert_in_out_err([{"RUBYOPT" => nil}, "-", script.path], <<-INPUT, %w(:ok), [], bug7530, timeout: 60)
         PATH = ARGV.shift
-        THREADS = 2
+        THREADS = 4
         ITERATIONS_PER_THREAD = 1000
 
         THREADS.times.map {
           Thread.new do
             ITERATIONS_PER_THREAD.times do
               require PATH
-              $".pop
+              $".delete_if {|p| Regexp.new(PATH) =~ p}
             end
           end
         }.each(&:join)
@@ -720,14 +720,14 @@ class TestRequire < Test::Unit::TestCase
       f.close
       File.unlink(f.path)
       File.mkfifo(f.path)
-      assert_ruby_status(["-", f.path], <<-END, timeout: 3)
-      th = Thread.current
-      Thread.start {begin sleep(0.001) end until th.stop?; th.raise(IOError)}
-      begin
-        load(ARGV[0])
-      rescue IOError
-      end
-      END
+      assert_separately(["-", f.path], "#{<<-"begin;"}\n#{<<-"end;"}", timeout: 3)
+      begin;
+        th = Thread.current
+        Thread.start {begin sleep(0.001) end until th.stop?; th.raise(IOError)}
+        assert_raise(IOError) do
+          load(ARGV[0])
+        end
+      end;
     }
   end if File.respond_to?(:mkfifo)
 
@@ -737,22 +737,49 @@ class TestRequire < Test::Unit::TestCase
       File.unlink(f.path)
       File.mkfifo(f.path)
 
-      assert_ruby_status(["-", f.path], <<-INPUT, timeout: 3)
-      path = ARGV[0]
-      th = Thread.current
-      Thread.start {
-        begin
-          sleep(0.001)
-        end until th.stop?
-        open(path, File::WRONLY | File::NONBLOCK) {|fifo_w|
-          fifo_w.print "__END__\n" # ensure finishing
+      assert_separately(["-", f.path], "#{<<-"begin;"}\n#{<<-"end;"}", timeout: 3)
+      begin;
+        path = ARGV[0]
+        th = Thread.current
+        $ok = false
+        Thread.start {
+          begin
+            sleep(0.001)
+          end until th.stop?
+          open(path, File::WRONLY | File::NONBLOCK) {|fifo_w|
+            fifo_w.print "$ok = true\n__END__\n" # ensure finishing
+          }
         }
-      }
 
-      load(path)
-    INPUT
+        load(path)
+        assert($ok)
+      end;
     }
   end if File.respond_to?(:mkfifo)
+
+  def test_loading_fifo_fd_leak
+    Tempfile.create(%w'fifo .rb') {|f|
+      f.close
+      File.unlink(f.path)
+      File.mkfifo(f.path)
+      assert_separately(["-", f.path], "#{<<-"begin;"}\n#{<<-"end;"}", timeout: 3)
+      begin;
+        Process.setrlimit(Process::RLIMIT_NOFILE, 50)
+        th = Thread.current
+        100.times do |i|
+          Thread.start {begin sleep(0.001) end until th.stop?; th.raise(IOError)}
+          assert_raise(IOError, "\#{i} time") do
+            begin
+              tap {tap {tap {load(ARGV[0])}}}
+            rescue LoadError
+              GC.start
+              retry
+            end
+          end
+        end
+      end;
+    }
+  end if File.respond_to?(:mkfifo) and defined?(Process::RLIMIT_NOFILE)
 
   def test_throw_while_loading
     Tempfile.create(%w'bug-11404 .rb') do |f|
@@ -781,5 +808,19 @@ class TestRequire < Test::Unit::TestCase
         end
       end;
     end
+  end
+
+  def test_symlink_load_path
+    Dir.mktmpdir {|tmp|
+      Dir.mkdir(File.join(tmp, "real"))
+      begin
+        File.symlink "real", File.join(tmp, "symlink")
+      rescue NotImplementedError, Errno::EACCES
+        skip "File.symlink is not implemented"
+      end
+      File.write(File.join(tmp, "real/a.rb"), "print __FILE__")
+      result = IO.popen([EnvUtil.rubybin, "-I#{tmp}/symlink", "-e", "require 'a.rb'"], &:read)
+      assert_operator(result, :end_with?, "/real/a.rb")
+    }
   end
 end

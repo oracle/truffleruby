@@ -2,7 +2,7 @@
 require 'test/unit'
 
 class Test_PathToClass < Test::Unit::TestCase
-  require 'c/path_to_class/path_to_class'
+  require 'c/path_to_class'
 
   def test_path_to_class
     bug5691 = '[ruby-core:41410]'

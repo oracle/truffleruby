@@ -85,9 +85,6 @@ end
 
 class Gem::TestCase < MiniTest::Unit::TestCase
 
-  # Truffle: added to avoid hardcoded paths
-  TEST_DIR = File.expand_path("../../../../test/mri/tests", __FILE__)
-
   attr_accessor :fetcher # :nodoc:
 
   attr_accessor :gem_repo # :nodoc:
@@ -226,6 +223,10 @@ class Gem::TestCase < MiniTest::Unit::TestCase
     @orig_gem_spec_cache = ENV['GEM_SPEC_CACHE']
     @orig_rubygems_gemdeps = ENV['RUBYGEMS_GEMDEPS']
     @orig_rubygems_host = ENV['RUBYGEMS_HOST']
+    ENV.keys.find_all { |k| k.start_with?('GEM_REQUIREMENT_') }.each do |k|
+      ENV.delete k
+    end
+    @orig_gem_env_requirements = ENV.to_hash
 
     ENV['GEM_VENDOR'] = nil
 
@@ -291,6 +292,7 @@ class Gem::TestCase < MiniTest::Unit::TestCase
     ENV['HOME'] = @userhome
     Gem.instance_variable_set :@user_home, nil
     Gem.instance_variable_set :@gemdeps, nil
+    Gem.instance_variable_set :@env_requirements_by_name, nil
     Gem.send :remove_instance_variable, :@ruby_version if
       Gem.instance_variables.include? :@ruby_version
 
@@ -381,6 +383,11 @@ class Gem::TestCase < MiniTest::Unit::TestCase
     Dir.chdir @current_dir
 
     FileUtils.rm_rf @tempdir unless ENV['KEEP_FILES']
+
+    ENV.clear
+    @orig_gem_env_requirements.each do |k,v|
+      ENV[k] = v
+    end
 
     ENV['GEM_HOME']   = @orig_gem_home
     ENV['GEM_PATH']   = @orig_gem_path
@@ -477,7 +484,7 @@ class Gem::TestCase < MiniTest::Unit::TestCase
 
       system @git, 'add', gemspec
       system @git, 'commit', '-a', '-m', 'a non-empty commit message', '--quiet'
-      head = Gem::Util.popen('git', 'rev-parse', 'master').strip
+      head = Gem::Util.popen(@git, 'rev-parse', 'master').strip
     end
 
     return name, git_spec.version, directory, head
@@ -584,7 +591,7 @@ class Gem::TestCase < MiniTest::Unit::TestCase
   def write_file(path)
     path = File.join @gemhome, path unless Pathname.new(path).absolute?
     dir = File.dirname path
-    FileUtils.mkdir_p dir
+    FileUtils.mkdir_p dir unless File.directory? dir
 
     open path, 'wb' do |io|
       yield io if block_given?
@@ -1234,9 +1241,8 @@ Also, a list:
   end
 
   @@ruby = rubybin
-  # Truffle: use TEST_DIR
-  @@good_rake = "#{rubybin} \"#{TEST_DIR}/rubygems/good_rake.rb\""
-  @@bad_rake = "#{rubybin} \"#{TEST_DIR}/rubygems/bad_rake.rb\""
+  @@good_rake = "#{rubybin} \"#{File.expand_path('../../../test/rubygems/good_rake.rb', __FILE__)}\""
+  @@bad_rake = "#{rubybin} \"#{File.expand_path('../../../test/rubygems/bad_rake.rb', __FILE__)}\""
 
   ##
   # Construct a new Gem::Dependency.
@@ -1328,7 +1334,7 @@ Also, a list:
   end
 
   ##
-  # create_gemspec creates gem specification in given +direcotry+ or '.'
+  # create_gemspec creates gem specification in given +directory+ or '.'
   # for the given +name+ and +version+.
   #
   # Yields the +specification+ to the block, if given
@@ -1425,14 +1431,13 @@ Also, a list:
   def self.cert_path cert_name
     if 32 == (Time.at(2**32) rescue 32) then
       cert_file =
-        # Truffle: use TEST_DIR
-        "#{TEST_DIR}/rubygems/#{cert_name}_cert_32.pem"
+        File.expand_path "../../../test/rubygems/#{cert_name}_cert_32.pem",
+                         __FILE__
 
       return cert_file if File.exist? cert_file
     end
 
-    # Truffle: use TEST_DIR
-    "#{TEST_DIR}/rubygems/#{cert_name}_cert.pem"
+    File.expand_path "../../../test/rubygems/#{cert_name}_cert.pem", __FILE__
   end
 
   ##
@@ -1450,8 +1455,7 @@ Also, a list:
   # Returns the path to the key named +key_name+ from <tt>test/rubygems</tt>
 
   def self.key_path key_name
-    # Truffle: use TEST_DIR
-    "#{TEST_DIR}/rubygems/#{key_name}_key.pem"
+    File.expand_path "../../../test/rubygems/#{key_name}_key.pem", __FILE__
   end
 
   # :stopdoc:
@@ -1494,6 +1498,8 @@ end
 begin
   gem 'rdoc'
   require 'rdoc'
+
+  require 'rubygems/rdoc'
 rescue LoadError, Gem::LoadError
 end
 
@@ -1510,3 +1516,4 @@ tmpdirs << (ENV['GEM_PATH'] = Dir.mktmpdir("path"))
 pid = $$
 END {tmpdirs.each {|dir| Dir.rmdir(dir)} if $$ == pid}
 Gem.clear_paths
+Gem.loaded_specs.clear

@@ -189,7 +189,9 @@ p Foo::Bar
   end
 
   def ruby_impl_require
-    Kernel.module_eval do; alias :old_require :require; end
+    Kernel.module_eval do
+      alias old_require require
+    end
     called_with = []
     Kernel.send :define_method, :require do |path|
       called_with << path
@@ -197,7 +199,11 @@ p Foo::Bar
     end
     yield called_with
   ensure
-    Kernel.module_eval do; alias :require :old_require; undef :old_require; end
+    Kernel.module_eval do
+      undef require
+      alias require old_require
+      undef old_require
+    end
   end
 
   def test_require_implemented_in_ruby_is_called
@@ -238,6 +244,46 @@ p Foo::Bar
   def test_bug_13526
     script = File.join(__dir__, 'bug-13526.rb')
     assert_ruby_status([script], '', '[ruby-core:81016] [Bug #13526]')
+  end
+
+  def test_autoload_private_constant
+    Dir.mktmpdir('autoload') do |tmpdir|
+      File.write(tmpdir+"/zzz.rb", "#{<<~"begin;"}\n#{<<~'end;'}")
+      begin;
+        class AutoloadTest
+          ZZZ = :ZZZ
+          private_constant :ZZZ
+        end
+      end;
+      assert_separately(%W[-I #{tmpdir}], "#{<<-"begin;"}\n#{<<-'end;'}")
+      bug = '[ruby-core:85516] [Bug #14469]'
+      begin;
+        class AutoloadTest
+          autoload :ZZZ, "zzz.rb"
+        end
+        assert_raise(NameError, bug) {AutoloadTest::ZZZ}
+      end;
+    end
+  end
+
+  def test_autoload_deprecate_constant
+    Dir.mktmpdir('autoload') do |tmpdir|
+      File.write(tmpdir+"/zzz.rb", "#{<<~"begin;"}\n#{<<~'end;'}")
+      begin;
+        class AutoloadTest
+          ZZZ = :ZZZ
+          deprecate_constant :ZZZ
+        end
+      end;
+      assert_separately(%W[-I #{tmpdir}], "#{<<-"begin;"}\n#{<<-'end;'}")
+      bug = '[ruby-core:85516] [Bug #14469]'
+      begin;
+        class AutoloadTest
+          autoload :ZZZ, "zzz.rb"
+        end
+        assert_warning(/ZZZ is deprecated/, bug) {AutoloadTest::ZZZ}
+      end;
+    end
   end
 
   def add_autoload(path)

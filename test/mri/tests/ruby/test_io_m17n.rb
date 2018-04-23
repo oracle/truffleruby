@@ -2103,14 +2103,27 @@ EOT
     }
     assert_equal(Encoding::US_ASCII, enc)
 
+    enc = nil
+    assert_warn(/BOM/) {
+      open(__FILE__, "r", encoding: "bom|us-ascii") {|f| enc = f.external_encoding}
+    }
+    assert_equal(Encoding::US_ASCII, enc)
+
+    enc = nil
     assert_warn(/BOM/) {
       open(IO::NULL, "w:bom|us-ascii") {|f| enc = f.external_encoding}
     }
     assert_equal(Encoding::US_ASCII, enc)
 
+    enc = nil
+    assert_warn(/BOM/) {
+      open(IO::NULL, "w", encoding: "bom|us-ascii") {|f| enc = f.external_encoding}
+    }
+    assert_equal(Encoding::US_ASCII, enc)
+
     tlhInganHol = "\u{f8e4 f8d9 f8d7 f8dc f8d0 f8db} \u{f8d6 f8dd f8d9}"
-    EnvUtil.with_default_external(Encoding::UTF_8) {
-      assert_warn(/#{tlhInganHol}/) {
+    assert_warn(/#{tlhInganHol}/) {
+      EnvUtil.with_default_internal(nil) {
         open(IO::NULL, "w:bom|#{tlhInganHol}") {|f| enc = f.external_encoding}
       }
     }
@@ -2626,7 +2639,7 @@ EOT
         begin
           assert_in_out_err(args, "", out, err,
                             "#{bug11444}: #{test} in #{mode} mode",
-                            timeout: 1)
+                            timeout: 10)
         rescue Exception => e
           failure << e
         end
