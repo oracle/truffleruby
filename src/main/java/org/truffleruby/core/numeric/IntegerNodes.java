@@ -1742,7 +1742,7 @@ public abstract class IntegerNodes {
                 // We replicate the logic exactly so we match MRI's ranges.
                 if (maybeTooBigProfile.profile(baseBitLength > BIGLEN_LIMIT || (baseBitLength * b > BIGLEN_LIMIT))) {
                     warnNode.warn("warn('in a**b, b may be too big')");
-                    return recursivePow(a, (double) b);
+                    return powBigIntegerDouble(base, b);
                 }
 
                 // TODO CS 15-Feb-15 what about this cast?
@@ -1750,10 +1750,9 @@ public abstract class IntegerNodes {
             }
         }
 
-        @TruffleBoundary
         @Specialization
         public double pow(DynamicObject a, double b) {
-            return Math.pow(Layouts.BIGNUM.getValue(a).doubleValue(), b);
+            return powBigIntegerDouble(Layouts.BIGNUM.getValue(a), b);
         }
 
         @Specialization(guards = "isRubyBignum(b)")
@@ -1783,6 +1782,11 @@ public abstract class IntegerNodes {
         @TruffleBoundary
         private static BigInteger pow(BigInteger bigInteger, int exponent) {
             return bigInteger.pow(exponent);
+        }
+
+        @TruffleBoundary
+        private static double powBigIntegerDouble(BigInteger bigInteger, double exponent) {
+            return Math.pow(bigInteger.doubleValue(), exponent);
         }
 
         protected int getLimit() {
