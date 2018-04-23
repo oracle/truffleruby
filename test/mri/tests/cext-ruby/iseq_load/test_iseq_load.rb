@@ -2,7 +2,7 @@
 require 'test/unit'
 
 class TestIseqLoad < Test::Unit::TestCase
-  require 'c/iseq_load/iseq_load'
+  require 'c/iseq_load'
   ISeq = RubyVM::InstructionSequence
 
   def test_bug8543

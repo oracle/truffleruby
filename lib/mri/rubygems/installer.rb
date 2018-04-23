@@ -214,9 +214,10 @@ class Gem::Installer
 
       ruby_executable = true
       existing = io.read.slice(%r{
-          ^(
+          ^\s*(
             gem \s |
-            load \s Gem\.bin_path\(
+            load \s Gem\.bin_path\( |
+            load \s Gem\.activate_bin_path\(
           )
           (['"])(.*?)(\2),
         }x, 3)
@@ -230,7 +231,7 @@ class Gem::Installer
     question = "#{spec.name}'s executable \"#{filename}\" conflicts with ".dup
 
     if ruby_executable then
-      question << existing
+      question << (existing || 'an unknown executable')
 
       return if ask_yes_no "#{question}\nOverwrite the executable?", false
 
@@ -281,17 +282,23 @@ class Gem::Installer
 
     run_pre_install_hooks
 
+    # Set loaded_from to ensure extension_dir is correct
+    if @options[:install_as_default] then
+      spec.loaded_from = default_spec_file
+    else
+      spec.loaded_from = spec_file
+    end
+
     # Completely remove any previous gem files
     FileUtils.rm_rf gem_dir
+    FileUtils.rm_rf spec.extension_dir
 
     FileUtils.mkdir_p gem_dir
 
-    if @options[:install_as_default]
-      spec.loaded_from = default_spec_file
+    if @options[:install_as_default] then
       extract_bin
       write_default_spec
     else
-      spec.loaded_from = spec_file
       extract_files
 
       build_extensions
@@ -508,12 +515,6 @@ class Gem::Installer
   # the symlink if the gem being installed has a newer version.
 
   def generate_bin_symlink(filename, bindir)
-    if Gem.win_platform? then
-      alert_warning "Unable to use symlinks on Windows, installing wrapper"
-      generate_bin_script filename, bindir
-      return
-    end
-
     src = File.join gem_dir, spec.bindir, filename
     dst = File.join bindir, formatted_program_filename(filename)
 
@@ -527,6 +528,9 @@ class Gem::Installer
     end
 
     FileUtils.symlink src, dst, :verbose => Gem.configuration.really_verbose
+  rescue NotImplementedError, SystemCallError
+    alert_warning "Unable to use symlinks, installing wrapper"
+    generate_bin_script filename, bindir
   end
 
   ##
@@ -702,6 +706,8 @@ class Gem::Installer
   # Return the text for an application file.
 
   def app_script_text(bin_file_name)
+    # note that the `load` lines cannot be indented, as old RG versions match
+    # against the beginning of the line
     return <<-TEXT
 #{shebang bin_file_name}
 #
@@ -724,7 +730,12 @@ if ARGV.first
   end
 end
 
-load Gem.bin_path('#{spec.name}', '#{bin_file_name}', version)
+if Gem.respond_to?(:activate_bin_path)
+load Gem.activate_bin_path('#{spec.name}', '#{bin_file_name}', version)
+else
+gem #{spec.name.dump}, version
+load Gem.bin_path(#{spec.name.dump}, #{bin_file_name.dump}, version)
+end
 TEXT
   end
 

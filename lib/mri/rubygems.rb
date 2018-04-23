@@ -10,7 +10,7 @@ require 'rbconfig'
 require 'thread'
 
 module Gem
-  VERSION = '2.5.2.3'
+  VERSION = "2.6.14.1"
 end
 
 # Must be first since it unloads the prelude from 1.9.2
@@ -154,6 +154,26 @@ module Gem
     specifications/default
   ]
 
+  ##
+  # Exception classes used in a Gem.read_binary +rescue+ statement. Not all of
+  # these are defined in Ruby 1.8.7, hence the need for this convoluted setup.
+
+  READ_BINARY_ERRORS = begin
+    read_binary_errors = [Errno::EACCES]
+    read_binary_errors << Errno::ENOTSUP if Errno.const_defined?(:ENOTSUP)
+    read_binary_errors
+  end.freeze
+
+  ##
+  # Exception classes used in Gem.write_binary +rescue+ statement. Not all of
+  # these are defined in Ruby 1.8.7.
+
+  WRITE_BINARY_ERRORS = begin
+    write_binary_errors = []
+    write_binary_errors << Errno::ENOTSUP if Errno.const_defined?(:ENOTSUP)
+    write_binary_errors
+  end.freeze
+
   @@win_platform = nil
 
   @configuration = nil
@@ -192,8 +212,13 @@ module Gem
 
     begin
       spec.activate
-    rescue Gem::LoadError # this could fail due to gem dep collisions, go lax
-      Gem::Specification.find_by_name(spec.name).activate
+    rescue Gem::LoadError => e # this could fail due to gem dep collisions, go lax
+      spec_by_name = Gem::Specification.find_by_name(spec.name)
+      if spec_by_name.nil?
+        raise e
+      else
+        spec_by_name.activate
+      end
     end
 
     return true
@@ -209,6 +234,7 @@ module Gem
 
   def self.finish_resolve(request_set=Gem::RequestSet.new)
     request_set.import Gem::Specification.unresolved_deps.values
+    request_set.import Gem.loaded_specs.values.map {|s| Gem::Dependency.new(s.name, s.version) }
 
     request_set.resolve_current.each do |s|
       s.full_spec.activate
@@ -230,11 +256,15 @@ module Gem
     requirements = Gem::Requirement.default if
       requirements.empty?
 
+    find_spec_for_exe(name, exec_name, requirements).bin_file exec_name
+  end
+
+  def self.find_spec_for_exe name, exec_name, requirements
     dep = Gem::Dependency.new name, requirements
 
     loaded = Gem.loaded_specs[name]
 
-    return loaded.bin_file exec_name if loaded && dep.matches_spec?(loaded)
+    return loaded if loaded && dep.matches_spec?(loaded)
 
     specs = dep.matching_specs(true)
 
@@ -245,11 +275,29 @@ module Gem
       spec.executables.include? exec_name
     } if exec_name
 
-    unless spec = specs.last
+    unless spec = specs.first
       msg = "can't find gem #{name} (#{requirements}) with executable #{exec_name}"
       raise Gem::GemNotFoundException, msg
     end
 
+    spec
+  end
+  private_class_method :find_spec_for_exe
+
+  ##
+  # Find the full path to the executable for gem +name+.  If the +exec_name+
+  # is not given, the gem's default_executable is chosen, otherwise the
+  # specified executable's path is returned.  +requirements+ allows
+  # you to specify specific gem versions.
+  #
+  # A side effect of this method is that it will activate the gem that
+  # contains the executable.
+  #
+  # This method should *only* be used in bin stub files.
+
+  def self.activate_bin_path name, exec_name, requirement # :nodoc:
+    spec = find_spec_for_exe name, exec_name, [requirement]
+    Gem::LOADED_SPECS_MUTEX.synchronize { spec.activate }
     spec.bin_file exec_name
   end
 
@@ -326,16 +374,39 @@ module Gem
   # lookup files.
 
   def self.paths
-    @paths ||= Gem::PathSupport.new
+    @paths ||= Gem::PathSupport.new(ENV)
   end
 
   # Initialize the filesystem paths to use from +env+.
   # +env+ is a hash-like object (typically ENV) that
   # is queried for 'GEM_HOME', 'GEM_PATH', and 'GEM_SPEC_CACHE'
+  # Keys for the +env+ hash should be Strings, and values of the hash should
+  # be Strings or +nil+.
 
   def self.paths=(env)
     clear_paths
-    @paths = Gem::PathSupport.new env
+    target = {}
+    env.each_pair do |k,v|
+      case k
+      when 'GEM_HOME', 'GEM_PATH', 'GEM_SPEC_CACHE'
+        case v
+        when nil, String
+          target[k] = v
+        when Array
+          unless Gem::Deprecate.skip
+            warn <<-eowarn
+Array values in the parameter to `Gem.paths=` are deprecated.
+Please use a String or nil.
+An Array (#{env.inspect}) was passed in from #{caller[3]}
+            eowarn
+          end
+          target[k] = v.join File::PATH_SEPARATOR
+        end
+      else
+        target[k] = v
+      end
+    end
+    @paths = Gem::PathSupport.new ENV.to_hash.merge(target)
     Gem::Specification.dirs = @paths.path
   end
 
@@ -430,7 +501,9 @@ module Gem
 
     files = find_files_from_load_path glob if check_load_path
 
-    files.concat Gem::Specification.stubs.map { |spec|
+    gem_specifications = @gemdeps ? Gem.loaded_specs.values : Gem::Specification.stubs
+
+    files.concat gem_specifications.map { |spec|
       spec.matches_for_glob("#{glob}#{Gem.suffix_pattern}")
     }.flatten
 
@@ -778,7 +851,7 @@ module Gem
       f.flock(File::LOCK_EX)
       f.read
     end
-  rescue Errno::EACCES
+  rescue *READ_BINARY_ERRORS
     open path, 'rb' do |f|
       f.read
     end
@@ -788,6 +861,26 @@ module Gem
     else
       open path, 'rb' do |f|
         f.read
+      end
+    end
+  end
+
+  ##
+  # Safely write a file in binary mode on all platforms.
+  def self.write_binary(path, data)
+    open(path, 'wb') do |io|
+      begin
+        io.flock(File::LOCK_EX)
+      rescue *WRITE_BINARY_ERRORS
+      end
+      io.write data
+    end
+  rescue Errno::ENOLCK # NFS
+    if Thread.main != Thread.current
+      raise
+    else
+      open(path, 'wb') do |io|
+        io.write data
       end
     end
   end
@@ -812,6 +905,15 @@ module Gem
   def self.ruby_api_version
     @ruby_api_version ||= RbConfig::CONFIG['ruby_version'].dup
   end
+
+  def self.env_requirement(gem_name)
+    @env_requirements_by_name ||= {}
+    @env_requirements_by_name[gem_name] ||= begin
+      req = ENV["GEM_REQUIREMENT_#{gem_name.upcase}"] || '>= 0'.freeze
+      Gem::Requirement.create(req)
+    end
+  end
+  post_reset { @env_requirements_by_name = {} }
 
   ##
   # Returns the latest release-version specification for the gem +name+.
@@ -871,7 +973,8 @@ module Gem
   # default_sources if the sources list is empty.
 
   def self.sources
-    @sources ||= Gem::SourceList.from(default_sources)
+    source_list = configuration.sources || default_sources
+    @sources ||= Gem::SourceList.from(source_list)
   end
 
   ##
@@ -940,9 +1043,11 @@ module Gem
   # by the unit tests to provide environment isolation.
 
   def self.use_paths(home, *paths)
-    paths = nil if paths == [nil]
-    paths = paths.first if Array === Array(paths).first
-    self.paths = { "GEM_HOME" => home, "GEM_PATH" => paths }
+    paths.flatten!
+    paths.compact!
+    hash = { "GEM_HOME" => home, "GEM_PATH" => paths.empty? ? home : paths.join(File::PATH_SEPARATOR) }
+    hash.delete_if { |_, v| v.nil? }
+    self.paths = hash
   end
 
   ##
@@ -1262,10 +1367,3 @@ require 'rubygems/core_ext/kernel_gem'
 require 'rubygems/core_ext/kernel_require'
 
 Gem.use_gemdeps
-
-# Add TruffleRuby rubygems hooks to install and uninstall executables from additional
-# GraalVM bin directories (./bin, ./jre/bin)
-unless RbConfig::CONFIG['extra_bindirs'].empty?
-  require 'rubygems/extra_executables_installer'
-  Gem::ExtraExecutablesInstaller.install_hooks_for RbConfig::CONFIG['extra_bindirs']
-end

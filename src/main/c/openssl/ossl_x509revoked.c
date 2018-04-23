@@ -110,22 +110,47 @@ ossl_x509revoked_initialize(int argc, VALUE *argv, VALUE self)
 }
 
 static VALUE
+ossl_x509revoked_initialize_copy(VALUE self, VALUE other)
+{
+    X509_REVOKED *rev, *rev_other, *rev_new;
+
+    rb_check_frozen(self);
+    GetX509Rev(self, rev);
+    SafeGetX509Rev(other, rev_other);
+
+    rev_new = X509_REVOKED_dup(rev_other);
+    if (!rev_new)
+	ossl_raise(eX509RevError, "X509_REVOKED_dup");
+
+    SetX509Rev(self, rev_new);
+    X509_REVOKED_free(rev);
+
+    return self;
+}
+
+static VALUE
 ossl_x509revoked_get_serial(VALUE self)
 {
     X509_REVOKED *rev;
 
     GetX509Rev(self, rev);
 
-    return asn1integer_to_num(rev->serialNumber);
+    return asn1integer_to_num(X509_REVOKED_get0_serialNumber(rev));
 }
 
 static VALUE
 ossl_x509revoked_set_serial(VALUE self, VALUE num)
 {
     X509_REVOKED *rev;
+    ASN1_INTEGER *asn1int;
 
     GetX509Rev(self, rev);
-    rev->serialNumber = num_to_asn1integer(num, rev->serialNumber);
+    asn1int = num_to_asn1integer(num, NULL);
+    if (!X509_REVOKED_set_serialNumber(rev, asn1int)) {
+	ASN1_INTEGER_free(asn1int);
+	ossl_raise(eX509RevError, "X509_REVOKED_set_serialNumber");
+    }
+    ASN1_INTEGER_free(asn1int);
 
     return num;
 }
@@ -137,20 +162,22 @@ ossl_x509revoked_get_time(VALUE self)
 
     GetX509Rev(self, rev);
 
-    return asn1time_to_time(rev->revocationDate);
+    return asn1time_to_time(X509_REVOKED_get0_revocationDate(rev));
 }
 
 static VALUE
 ossl_x509revoked_set_time(VALUE self, VALUE time)
 {
     X509_REVOKED *rev;
-    time_t sec;
+    ASN1_TIME *asn1time;
 
-    sec = time_to_time_t(time);
     GetX509Rev(self, rev);
-    if (!X509_time_adj(rev->revocationDate, 0, &sec)) {
-	ossl_raise(eX509RevError, NULL);
+    asn1time = ossl_x509_time_adjust(NULL, time);
+    if (!X509_REVOKED_set_revocationDate(rev, asn1time)) {
+	ASN1_TIME_free(asn1time);
+	ossl_raise(eX509RevError, "X509_REVOKED_set_revocationDate");
     }
+    ASN1_TIME_free(asn1time);
 
     return time;
 }
@@ -196,8 +223,8 @@ ossl_x509revoked_set_extensions(VALUE self, VALUE ary)
 	OSSL_Check_Kind(RARRAY_AREF(ary, i), cX509Ext);
     }
     GetX509Rev(self, rev);
-    sk_X509_EXTENSION_pop_free(rev->extensions, X509_EXTENSION_free);
-    rev->extensions = NULL;
+    while ((ext = X509_REVOKED_delete_ext(rev, 0)))
+	X509_EXTENSION_free(ext);
     for (i=0; i<RARRAY_LEN(ary); i++) {
 	item = RARRAY_AREF(ary, i);
 	ext = GetX509ExtPtr(item);
@@ -228,12 +255,19 @@ ossl_x509revoked_add_extension(VALUE self, VALUE ext)
 void
 Init_ossl_x509revoked(void)
 {
+#if 0
+    mOSSL = rb_define_module("OpenSSL");
+    eOSSLError = rb_define_class_under(mOSSL, "OpenSSLError", rb_eStandardError);
+    mX509 = rb_define_module_under(mOSSL, "X509");
+#endif
+
     eX509RevError = rb_define_class_under(mX509, "RevokedError", eOSSLError);
 
     cX509Rev = rb_define_class_under(mX509, "Revoked", rb_cObject);
 
     rb_define_alloc_func(cX509Rev, ossl_x509revoked_alloc);
     rb_define_method(cX509Rev, "initialize", ossl_x509revoked_initialize, -1);
+    rb_define_copy_func(cX509Rev, ossl_x509revoked_initialize_copy);
 
     rb_define_method(cX509Rev, "serial", ossl_x509revoked_get_serial, 0);
     rb_define_method(cX509Rev, "serial=", ossl_x509revoked_set_serial, 1);

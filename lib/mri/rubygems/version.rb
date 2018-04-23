@@ -204,8 +204,12 @@ class Gem::Version
   # series of digits or ASCII letters separated by dots.
 
   def initialize version
-    raise ArgumentError, "Malformed version number string #{version}" unless
-      self.class.correct?(version)
+    unless self.class.correct?(version)
+      raise ArgumentError, "Malformed version number string #{version}"
+    end
+
+    # If version is an empty string convert it to 0
+    version = 0 if version =~ /\A\s*\Z/
 
     @version = version.to_s.strip.gsub("-",".pre.")
     @segments = nil
@@ -219,7 +223,7 @@ class Gem::Version
 
   def bump
     @bump ||= begin
-                segments = self.segments.dup
+                segments = self.segments
                 segments.pop while segments.any? { |s| String === s }
                 segments.pop if segments.size > 1
 
@@ -298,7 +302,7 @@ class Gem::Version
 
   def release
     @release ||= if prerelease?
-                   segments = self.segments.dup
+                   segments = self.segments
                    segments.pop while segments.any? { |s| String === s }
                    self.class.new segments.join('.')
                  else
@@ -307,20 +311,14 @@ class Gem::Version
   end
 
   def segments # :nodoc:
-
-    # segments is lazy so it can pick up version values that come from
-    # old marshaled versions, which don't go through marshal_load.
-
-    @segments ||= @version.scan(/[0-9]+|[a-z]+/i).map do |s|
-      /^\d+$/ =~ s ? s.to_i : s
-    end
+    _segments.dup
   end
 
   ##
   # A recommended version for use with a ~> Requirement.
 
   def approximate_recommendation
-    segments = self.segments.dup
+    segments = self.segments
 
     segments.pop    while segments.any? { |s| String === s }
     segments.pop    while segments.size > 2
@@ -339,8 +337,8 @@ class Gem::Version
     return unless Gem::Version === other
     return 0 if @version == other._version
 
-    lhsegments = segments
-    rhsegments = other.segments
+    lhsegments = _segments
+    rhsegments = other._segments
 
     lhsize = lhsegments.size
     rhsize = rhsegments.size
@@ -366,5 +364,15 @@ class Gem::Version
 
   def _version
     @version
+  end
+
+  def _segments
+    # segments is lazy so it can pick up version values that come from
+    # old marshaled versions, which don't go through marshal_load.
+    # since this version object is cached in @@all, its @segments should be frozen
+
+    @segments ||= @version.scan(/[0-9]+|[a-z]+/i).map do |s|
+      /^\d+$/ =~ s ? s.to_i : s
+    end.freeze
   end
 end

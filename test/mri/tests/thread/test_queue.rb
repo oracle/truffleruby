@@ -5,6 +5,9 @@ require 'tmpdir'
 require 'timeout'
 
 class TestQueue < Test::Unit::TestCase
+  Queue = Thread::Queue
+  SizedQueue = Thread::SizedQueue
+
   def test_queue_initialized
     assert_raise(TypeError) {
       Queue.allocate.push(nil)
@@ -509,14 +512,17 @@ class TestQueue < Test::Unit::TestCase
         count = 0
         while e = q.pop
           i, st = e
-          count += 1 if i.is_a?(Fixnum) && st.is_a?(String)
+          count += 1 if i.is_a?(Integer) && st.is_a?(String)
         end
         count
       end
     end
 
-    # No dead or finished threads
-    assert (consumers + producers).all?{|thr| thr.status =~ /\Arun|sleep\Z/}, 'no threads runnning'
+    # No dead or finished threads, give up to 10 seconds to start running
+    t = Time.now
+    Thread.pass until Time.now - t > 10 || (consumers + producers).all?{|thr| thr.status =~ /\A(?:run|sleep)\z/}
+
+    assert (consumers + producers).all?{|thr| thr.status =~ /\A(?:run|sleep)\z/}, 'no threads running'
 
     # just exercising the concurrency of the support methods.
     counter = Thread.new do

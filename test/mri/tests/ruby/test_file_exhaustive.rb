@@ -8,7 +8,7 @@ require '-test-/file'
 class TestFileExhaustive < Test::Unit::TestCase
   DRIVE = Dir.pwd[%r'\A(?:[a-z]:|//[^/]+/[^/]+)'i]
   POSIX = /cygwin|mswin|bccwin|mingw|emx/ !~ RUBY_PLATFORM
-  NTFS = !(/cygwin|mingw|mswin|bccwin/ !~ RUBY_PLATFORM)
+  NTFS = !(/mingw|mswin|bccwin/ !~ RUBY_PLATFORM)
 
   def assert_incompatible_encoding
     d = "\u{3042}\u{3044}".encode("utf-16le")
@@ -115,11 +115,11 @@ class TestFileExhaustive < Test::Unit::TestCase
   end
 
   def symlinkfile
-    return @symlinkfile if @symlinkfile
+    return @symlinkfile if defined? @symlinkfile
     @symlinkfile = make_tmp_filename("symlinkfile")
     begin
       File.symlink(regular_file, @symlinkfile)
-    rescue NotImplementedError, Errno::EACCES
+    rescue NotImplementedError, Errno::EACCES, Errno::EPERM
       @symlinkfile = nil
     end
     @symlinkfile
@@ -192,7 +192,7 @@ class TestFileExhaustive < Test::Unit::TestCase
   end
 
   def assert_integer_or_nil(n)
-    msg = ->{"#{n.inspect} is neither Fixnum nor nil."}
+    msg = ->{"#{n.inspect} is neither Integer nor nil."}
     if n
       assert_kind_of(Integer, n, msg)
     else
@@ -262,6 +262,16 @@ class TestFileExhaustive < Test::Unit::TestCase
       end
     end
   end if NTFS
+
+  def test_lstat
+    return unless symlinkfile
+    assert_equal(false, File.stat(symlinkfile).symlink?)
+    assert_equal(true, File.lstat(symlinkfile).symlink?)
+    f = File.new(symlinkfile)
+    assert_equal(false, f.stat.symlink?)
+    assert_equal(true, f.lstat.symlink?)
+    f.close
+  end
 
   def test_directory_p
     assert_file.directory?(@dir)
@@ -458,6 +468,14 @@ class TestFileExhaustive < Test::Unit::TestCase
     assert_file.not_zero?(nofile)
   end
 
+  def test_empty_p
+    assert_nothing_raised { File.empty?(@dir) }
+    assert_file.not_empty?(regular_file)
+    assert_file.not_empty?(utf8_file)
+    assert_file.empty?(zerofile)
+    assert_file.not_empty?(nofile)
+  end
+
   def test_size_p
     assert_nothing_raised { File.size?(@dir) }
     assert_equal(3, File.size?(regular_file))
@@ -651,7 +669,8 @@ class TestFileExhaustive < Test::Unit::TestCase
   def test_readlink_long_path
     return unless symlinkfile
     bug9157 = '[ruby-core:58592] [Bug #9157]'
-    assert_separately(["-", symlinkfile, bug9157], <<-"end;")
+    assert_separately(["-", symlinkfile, bug9157], "#{<<~begin}#{<<~"end;"}")
+    begin
       symlinkfile, bug9157 = *ARGV
       100.step(1000, 100) do |n|
         File.unlink(symlinkfile)
@@ -774,6 +793,8 @@ class TestFileExhaustive < Test::Unit::TestCase
     a = "#{drive}/\225\\\\"
     if File::ALT_SEPARATOR == '\\'
       [%W"cp437 #{drive}/\225", %W"cp932 #{drive}/\225\\"]
+    elsif File.directory?("#{@dir}/\\")
+      [%W"cp437 /\225", %W"cp932 /\225\\"]
     else
       [["cp437", a], ["cp932", a]]
     end.each do |cp, expected|
@@ -819,7 +840,6 @@ class TestFileExhaustive < Test::Unit::TestCase
       ENV["HOMEDRIVE"] = nil
       ENV["HOMEPATH"] = nil
       ENV["USERPROFILE"] = nil
-      assert_raise(ArgumentError) { File.expand_path("~") }
       ENV["HOME"] = "~"
       assert_raise(ArgumentError, bug3630) { File.expand_path("~") }
       ENV["HOME"] = "."
@@ -1086,8 +1106,7 @@ class TestFileExhaustive < Test::Unit::TestCase
     assert_equal('z:/bar/foo', File.expand_path('z:foo', '/bar'), bug10858)
   end if DRIVE
 
-  case RUBY_PLATFORM
-  when /darwin/
+  if /darwin/ =~ RUBY_PLATFORM and Encoding.find("filesystem") == Encoding::UTF_8
     def test_expand_path_compose
       pp = Object.new.extend(Test::Unit::Assertions)
       def pp.mu_pp(str) #:nodoc:
@@ -1131,6 +1150,20 @@ class TestFileExhaustive < Test::Unit::TestCase
         assert_equal(basename, File.basename(file + ".", ".*"))
         assert_equal(basename, File.basename(file + "::$DATA", ".*"))
       end
+    else
+      [regular_file, utf8_file].each do |file|
+        basename = File.basename(file)
+        assert_equal(basename + " ", File.basename(file + " "))
+        assert_equal(basename + ".", File.basename(file + "."))
+        assert_equal(basename + "::$DATA", File.basename(file + "::$DATA"))
+        assert_equal(basename + " ", File.basename(file + " ", ".test"))
+        assert_equal(basename + ".", File.basename(file + ".", ".test"))
+        assert_equal(basename + "::$DATA", File.basename(file + "::$DATA", ".test"))
+        assert_equal(basename, File.basename(file + ".", ".*"))
+        basename.chomp!(".test")
+        assert_equal(basename, File.basename(file + " ", ".*"))
+        assert_equal(basename, File.basename(file + "::$DATA", ".*"))
+      end
     end
     if File::ALT_SEPARATOR == '\\'
       a = "foo/\225\\\\"
@@ -1151,7 +1184,7 @@ class TestFileExhaustive < Test::Unit::TestCase
   end
 
   def test_dirname
-    assert(regular_file.start_with?(File.dirname(regular_file)))
+    assert_equal(@dir, File.dirname(regular_file))
     assert_equal(@dir, File.dirname(utf8_file))
     assert_equal(".", File.dirname(""))
     assert_incompatible_encoding {|d| File.dirname(d)}
@@ -1264,12 +1297,55 @@ class TestFileExhaustive < Test::Unit::TestCase
   rescue NotImplementedError
   end
 
-  def test_flock ## xxx
-    f = File.new(regular_file, "r+")
-    f.flock(File::LOCK_EX)
-    f.flock(File::LOCK_SH)
-    f.flock(File::LOCK_UN)
-    f.close
+  def test_flock_exclusive
+    File.open(regular_file, "r+") do |f|
+      f.flock(File::LOCK_EX)
+      assert_separately(["-rtimeout", "-", regular_file], "#{<<~begin}#{<<~"end;"}")
+      begin
+        open(ARGV[0], "r") do |f|
+          Timeout.timeout(0.1) do
+            assert(!f.flock(File::LOCK_SH|File::LOCK_NB))
+          end
+        end
+      end;
+      assert_separately(["-rtimeout", "-", regular_file], "#{<<~begin}#{<<~"end;"}")
+      begin
+        open(ARGV[0], "r") do |f|
+          assert_raise(Timeout::Error) do
+            Timeout.timeout(0.1) do
+              f.flock(File::LOCK_SH)
+            end
+          end
+        end
+      end;
+      f.flock(File::LOCK_UN)
+    end
+  rescue NotImplementedError
+  end
+
+  def test_flock_shared
+    File.open(regular_file, "r+") do |f|
+      f.flock(File::LOCK_SH)
+      assert_separately(["-rtimeout", "-", regular_file], "#{<<~begin}#{<<~"end;"}")
+      begin
+        open(ARGV[0], "r") do |f|
+          Timeout.timeout(0.1) do
+            assert(f.flock(File::LOCK_SH))
+          end
+        end
+      end;
+      assert_separately(["-rtimeout", "-", regular_file], "#{<<~begin}#{<<~"end;"}")
+      begin
+        open(ARGV[0], "r+") do |f|
+          assert_raise(Timeout::Error) do
+            Timeout.timeout(0.1) do
+              f.flock(File::LOCK_EX)
+            end
+          end
+        end
+      end;
+      f.flock(File::LOCK_UN)
+    end
   rescue NotImplementedError
   end
 

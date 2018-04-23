@@ -53,6 +53,16 @@ class CGIUtilTest < Test::Unit::TestCase
     assert_equal(Encoding::UTF_8, CGI::unescape("%C0%3C%3C".force_encoding("UTF-8")).encoding)
   end
 
+  def test_cgi_unescape_accept_charset
+    return unless defined?(::Encoding)
+
+    assert_raise(TypeError) {CGI.unescape('', nil)}
+    assert_separately(%w[-rcgi/util], "#{<<-"begin;"}\n#{<<-"end;"}")
+    begin;
+      assert_equal("", CGI.unescape(''))
+    end;
+  end
+
   def test_cgi_pretty
     assert_equal("<HTML>\n  <BODY>\n  </BODY>\n</HTML>\n",CGI::pretty("<HTML><BODY></BODY></HTML>"))
     assert_equal("<HTML>\n\t<BODY>\n\t</BODY>\n</HTML>\n",CGI::pretty("<HTML><BODY></BODY></HTML>","\t"))
@@ -96,6 +106,43 @@ class CGIUtilTest < Test::Unit::TestCase
 
   def test_cgi_unescapeHTML
     assert_equal("'&\"><", CGI::unescapeHTML("&#39;&amp;&quot;&gt;&lt;"))
+  end
+
+  def test_cgi_unescapeHTML_invalid
+    assert_equal('&<&amp>&quot&abcdefghijklmn', CGI::unescapeHTML('&&lt;&amp&gt;&quot&abcdefghijklmn'))
+  end
+
+  Encoding.list.each do |enc|
+    begin
+      escaped = "&#39;&amp;&quot;&gt;&lt;".encode(enc)
+      unescaped = "'&\"><".encode(enc)
+    rescue Encoding::ConverterNotFoundError
+      next
+    else
+      define_method("test_cgi_escapeHTML:#{enc.name}") do
+        assert_equal(escaped, CGI::escapeHTML(unescaped))
+      end
+      define_method("test_cgi_unescapeHTML:#{enc.name}") do
+        assert_equal(unescaped, CGI::unescapeHTML(escaped))
+      end
+    end
+  end
+
+  Encoding.list.each do |enc|
+    next unless enc.ascii_compatible?
+    begin
+      escaped = "%25+%2B"
+      unescaped = "% +".encode(enc)
+    rescue Encoding::ConverterNotFoundError
+      next
+    else
+      define_method("test_cgi_escape:#{enc.name}") do
+        assert_equal(escaped, CGI::escape(unescaped))
+      end
+      define_method("test_cgi_unescape:#{enc.name}") do
+        assert_equal(unescaped, CGI::unescape(escaped, enc))
+      end
+    end
   end
 
   def test_cgi_unescapeHTML_uppercasecharacter

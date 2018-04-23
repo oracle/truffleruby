@@ -12,9 +12,6 @@
 # This program is free software. You can re-distribute and/or
 # modify this program under the same terms as Ruby itself.
 #
-# NOTE: You can find Japanese version of this document at:
-# http://www.ruby-lang.org/ja/man/html/net_smtp.html
-#
 # $Id$
 #
 # See Net::SMTP for documentation.
@@ -570,7 +567,7 @@ module Net
     ensure
       unless @started
         # authentication failed, cancel connection.
-        s.close if s and not s.closed?
+        s.close if s
         @socket = nil
       end
     end
@@ -595,10 +592,8 @@ module Net
     end
 
     def new_internet_message_io(s)
-      io = InternetMessageIO.new(s)
-      io.read_timeout = @read_timeout
-      io.debug_output = @debug_output
-      io
+      InternetMessageIO.new(s, read_timeout: @read_timeout,
+                            debug_output: @debug_output)
     end
 
     def do_helo(helo_domain)
@@ -618,7 +613,7 @@ module Net
     ensure
       @started = false
       @error_occurred = false
-      @socket.close if @socket and not @socket.closed?
+      @socket.close if @socket
       @socket = nil
     end
 
@@ -788,7 +783,7 @@ module Net
 
     def base64_encode(str)
       # expects "str" may not become too long
-      [str].pack('m').gsub(/\s+/, '')
+      [str].pack('m0')
     end
 
     IMASK = 0x36

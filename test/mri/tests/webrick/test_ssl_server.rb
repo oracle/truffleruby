@@ -20,6 +20,13 @@ class TestWEBrickSSLServer < Test::Unit::TestCase
     )
   end
 
+  def test_self_signed_cert_server_with_string
+    assert_self_signed_cert(
+      :SSLEnable => true,
+      :SSLCertName => "/C=JP/O=www.ruby-lang.org/CN=Ruby",
+    )
+  end
+
   def assert_self_signed_cert(config)
     TestWEBrick.start_server(Echo, config){|server, addr, port, log|
       io = TCPSocket.new(addr, port)
@@ -46,7 +53,7 @@ class TestWEBrickSSLServer < Test::Unit::TestCase
     end
     config = {
       :SSLEnable => true,
-      :SSLCertName => [["C", "JP"], ["O", "www.ruby-lang.org"], ["CN", "Ruby"]],
+      :SSLCertName => "/C=JP/O=www.ruby-lang.org/CN=Ruby",
     }
     Timeout.timeout(10) do
       TestWEBrick.start_server(Echo, config) do |server, addr, port, log|

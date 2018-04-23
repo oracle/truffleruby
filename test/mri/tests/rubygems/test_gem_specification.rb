@@ -100,6 +100,17 @@ end
     load 'rubygems/syck_hack.rb'
   end
 
+  def test_self_find_active_stub_by_path
+    spec = new_spec('a', '1', nil, 'lib/foo.rb')
+    spec.activated = true
+
+    # There used to be a bug (introduced in a9c1aaf) when Gem::Specification
+    # objects are present in the @stubs collection. This test verifies that
+    # this scenario works correctly.
+    Gem::Specification.all = [spec]
+    Gem::Specification.find_active_stub_by_path('foo')
+  end
+
   def test_self_activate
     foo = util_spec 'foo', '1'
 
@@ -1249,7 +1260,7 @@ dependencies: []
       s.version = '1'
     end
 
-    spec.instance_variable_set :@licenses, :blah
+    spec.instance_variable_set :@licenses, (class << (Object.new);self;end)
     spec.loaded_from = '/path/to/file'
 
     e = assert_raises Gem::FormatException do
@@ -3114,7 +3125,7 @@ Did you mean 'Ruby'?
         end
       end
 
-      err = 'specification_version must be a Fixnum (did you mean version?)'
+      err = 'specification_version must be an Integer (did you mean version?)'
       assert_equal err, e.message
     end
   end
@@ -3418,9 +3429,16 @@ end
     assert Gem::Specification.find_by_name "a", "1"
     assert Gem::Specification.find_by_name "a", ">1"
 
-    assert_raises Gem::LoadError do
+    assert_raises Gem::MissingSpecError do
       Gem::Specification.find_by_name "monkeys"
     end
+  end
+
+  def test_find_by_name_with_only_prereleases
+    q = util_spec "q", "2.a"
+    install_specs q
+
+    assert Gem::Specification.find_by_name "q"
   end
 
   def test_find_by_name_prerelease
@@ -3432,7 +3450,7 @@ end
 
     assert Gem::Specification.find_by_name "b"
 
-    assert_raises Gem::LoadError do
+    assert_raises Gem::MissingSpecVersionError do
       Gem::Specification.find_by_name "b", "1"
     end
 

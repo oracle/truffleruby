@@ -12,49 +12,14 @@
 
 #include RUBY_EXTCONF_H
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
-#if 0
-  mOSSL = rb_define_module("OpenSSL");
-  mX509 = rb_define_module_under(mOSSL, "X509");
-#endif
-
-/*
-* OpenSSL has defined RFILE and Ruby has defined RFILE - so undef it!
-*/
-#if defined(RFILE) /*&& !defined(OSSL_DEBUG)*/
-#  undef RFILE
-#endif
+#include <assert.h>
+#include <errno.h>
 #include <ruby.h>
 #include <ruby/io.h>
 #include <ruby/thread.h>
-
-/*
- * Check the OpenSSL version
- * The only supported are:
- * 	OpenSSL >= 0.9.7
- */
 #include <openssl/opensslv.h>
-
-#ifdef HAVE_ASSERT_H
-#  include <assert.h>
-#else
-#  define assert(condition)
-#endif
-
-#if defined(_WIN32) && !defined(LIBRESSL_VERSION_NUMBER)
-#  include <openssl/e_os2.h>
-#  define OSSL_NO_CONF_API 1
-#  if !defined(OPENSSL_SYS_WIN32)
-#    define OPENSSL_SYS_WIN32 1
-#  endif
-#  include <winsock2.h>
-#endif
-#include <errno.h>
 #include <openssl/err.h>
-#include <openssl/asn1_mac.h>
+#include <openssl/asn1.h>
 #include <openssl/x509v3.h>
 #include <openssl/ssl.h>
 #include <openssl/pkcs12.h>
@@ -63,24 +28,13 @@ extern "C" {
 #include <openssl/rand.h>
 #include <openssl/conf.h>
 #include <openssl/conf_api.h>
-#if !defined(_WIN32)
-#  include <openssl/crypto.h>
-#endif
-#undef X509_NAME
-#undef PKCS7_SIGNER_INFO
-#if defined(HAVE_OPENSSL_ENGINE_H) && defined(HAVE_EVP_CIPHER_CTX_ENGINE)
-#  define OSSL_ENGINE_ENABLED
+#include <openssl/crypto.h>
+#if !defined(OPENSSL_NO_ENGINE)
 #  include <openssl/engine.h>
 #endif
-#if defined(HAVE_OPENSSL_OCSP_H)
-#  define OSSL_OCSP_ENABLED
+#if !defined(OPENSSL_NO_OCSP)
 #  include <openssl/ocsp.h>
 #endif
-
-/* OpenSSL requires passwords for PEM-encoded files to be at least four
- * characters long
- */
-#define OSSL_MIN_PWD_LEN 4
 
 /*
  * Common Module
@@ -116,26 +70,14 @@ extern VALUE eOSSLError;
 } while (0)
 
 /*
- * Compatibility
- */
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L
-#define STACK _STACK
-#endif
-
-/*
- * String to HEXString conversion
- */
-int string2hex(const unsigned char *, int, char **, int *);
-
-/*
  * Data Conversion
  */
 STACK_OF(X509) *ossl_x509_ary2sk0(VALUE);
 STACK_OF(X509) *ossl_x509_ary2sk(VALUE);
 STACK_OF(X509) *ossl_protect_x509_ary2sk(VALUE,int*);
-VALUE ossl_x509_sk2ary(STACK_OF(X509) *certs);
-VALUE ossl_x509crl_sk2ary(STACK_OF(X509_CRL) *crl);
-VALUE ossl_x509name_sk2ary(STACK_OF(X509_NAME) *names);
+VALUE ossl_x509_sk2ary(const STACK_OF(X509) *certs);
+VALUE ossl_x509crl_sk2ary(const STACK_OF(X509_CRL) *crl);
+VALUE ossl_x509name_sk2ary(const STACK_OF(X509_NAME) *names);
 VALUE ossl_buf2str(char *buf, int len);
 #define ossl_str_adjust(str, p) \
 do{\
@@ -144,40 +86,39 @@ do{\
     assert(newlen <= len);\
     rb_str_set_len((str), newlen);\
 }while(0)
+/*
+ * Convert binary string to hex string. The caller is responsible for
+ * ensuring out has (2 * len) bytes of capacity.
+ */
+void ossl_bin2hex(unsigned char *in, char *out, size_t len);
 
 /*
- * our default PEM callback
+ * Our default PEM callback
  */
+/* Convert the argument to String and validate the length. Note this may raise. */
+VALUE ossl_pem_passwd_value(VALUE);
+/* Can be casted to pem_password_cb. If a password (String) is passed as the
+ * "arbitrary data" (typically the last parameter of PEM_{read,write}_
+ * functions), uses the value. If not, but a block is given, yields to it.
+ * If not either, fallbacks to PEM_def_callback() which reads from stdin. */
 int ossl_pem_passwd_cb(char *, int, int, void *);
 
 /*
  * Clear BIO* with this in PEM/DER fallback scenarios to avoid decoding
  * errors piling up in OpenSSL::Errors
  */
-#define OSSL_BIO_reset(bio)	(void)BIO_reset((bio)); \
-				ERR_clear_error();
+#define OSSL_BIO_reset(bio) do { \
+    (void)BIO_reset((bio)); \
+    ossl_clear_error(); \
+} while (0)
 
 /*
  * ERRor messages
  */
 #define OSSL_ErrMsg() ERR_reason_error_string(ERR_get_error())
 NORETURN(void ossl_raise(VALUE, const char *, ...));
-VALUE ossl_exc_new(VALUE, const char *, ...);
-
-/*
- * Verify callback
- */
-extern int ossl_store_ctx_ex_verify_cb_idx;
-extern int ossl_store_ex_verify_cb_idx;
-
-struct ossl_verify_cb_args {
-    VALUE proc;
-    int preverify_ok; // TruffleRuby instead of VALUE
-    VALUE store_ctx;
-};
-
-VALUE ossl_call_verify_cb_proc(struct ossl_verify_cb_args *);
-int ossl_verify_cb(int, X509_STORE_CTX *);
+/* Clear OpenSSL error queue. If dOSSL is set, rb_warn() them. */
+void ossl_clear_error(void);
 
 /*
  * String to DER String
@@ -241,9 +182,5 @@ void ossl_debug(const char *, ...);
 #include "ossl_engine.h"
 
 void Init_openssl(void);
-
-#if defined(__cplusplus)
-}
-#endif
 
 #endif /* _OSSL_H_ */

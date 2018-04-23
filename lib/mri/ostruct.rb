@@ -73,13 +73,6 @@
 # of these properties compared to using a Hash or a Struct.
 #
 class OpenStruct
-  # :nodoc:
-  class << self
-    def allocate
-      (x = super).instance_variable_set(:@table, {})
-      x
-    end
-  end
 
   #
   # Creates a new OpenStruct object.  By default, the resulting OpenStruct
@@ -159,7 +152,7 @@ class OpenStruct
   # Used internally to check if the OpenStruct is able to be
   # modified before granting access to the internal Hash table to be modified.
   #
-  def modifiable
+  def modifiable? # :nodoc:
     begin
       @modifiable = true
     rescue
@@ -167,6 +160,10 @@ class OpenStruct
     end
     @table
   end
+  private :modifiable?
+
+  # ::Kernel.warn("#{caller(1, 1)[0]}: do not use OpenStruct#modifiable")
+  alias modifiable modifiable? # :nodoc:
   protected :modifiable
 
   #
@@ -174,24 +171,28 @@ class OpenStruct
   # OpenStruct. It does this by using the metaprogramming function
   # define_singleton_method for both the getter method and the setter method.
   #
-  def new_ostruct_member(name)
+  def new_ostruct_member!(name) # :nodoc:
     name = name.to_sym
     unless singleton_class.method_defined?(name)
       define_singleton_method(name) { @table[name] }
-      define_singleton_method("#{name}=") { |x| modifiable[name] = x }
+      define_singleton_method("#{name}=") {|x| modifiable?[name] = x}
     end
     name
   end
+  private :new_ostruct_member!
+
+  # ::Kernel.warn("#{caller(1, 1)[0]}: do not use OpenStruct#new_ostruct_member")
+  alias new_ostruct_member new_ostruct_member! # :nodoc:
   protected :new_ostruct_member
 
   def freeze
-    @table.each_key {|key| new_ostruct_member(key)}
+    @table.each_key {|key| new_ostruct_member!(key)}
     super
   end
 
   def respond_to_missing?(mid, include_private = false) # :nodoc:
     mname = mid.to_s.chomp("=").to_sym
-    @table.key?(mname) || super
+    @table&.key?(mname) || super
   end
 
   def method_missing(mid, *args) # :nodoc:
@@ -200,10 +201,10 @@ class OpenStruct
       if len != 1
         raise ArgumentError, "wrong number of arguments (#{len} for 1)", caller(1)
       end
-      modifiable[new_ostruct_member(mname)] = args[0]
+      modifiable?[new_ostruct_member!(mname)] = args[0]
     elsif len == 0
       if @table.key?(mid)
-        new_ostruct_member(mid)
+        new_ostruct_member!(mid) unless frozen?
         @table[mid]
       end
     else
@@ -239,7 +240,7 @@ class OpenStruct
   #   person.age          # => 42
   #
   def []=(name, value)
-    modifiable[new_ostruct_member(name)] = value
+    modifiable?[new_ostruct_member!(name)] = value
   end
 
   #
@@ -328,6 +329,7 @@ class OpenStruct
 
   attr_reader :table # :nodoc:
   protected :table
+  alias table! table
 
   #
   # Compares this object and +other+ for equality.  An OpenStruct is equal to
@@ -344,7 +346,7 @@ class OpenStruct
   #
   def ==(other)
     return false unless other.kind_of?(OpenStruct)
-    @table == other.table
+    @table == other.table!
   end
 
   #
@@ -354,7 +356,7 @@ class OpenStruct
   #
   def eql?(other)
     return false unless other.kind_of?(OpenStruct)
-    @table.eql?(other.table)
+    @table.eql?(other.table!)
   end
 
   # Computes a hash code for this OpenStruct.

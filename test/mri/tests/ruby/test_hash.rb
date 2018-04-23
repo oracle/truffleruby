@@ -148,6 +148,14 @@ class TestHash < Test::Unit::TestCase
 
   end
 
+  def test_try_convert
+    assert_equal({1=>2}, Hash.try_convert({1=>2}))
+    assert_equal(nil, Hash.try_convert("1=>2"))
+    o = Object.new
+    def o.to_hash; {3=>4} end
+    assert_equal({3=>4}, Hash.try_convert(o))
+  end
+
   def test_AREF # '[]'
     t = Time.now
     h = @cls[
@@ -357,6 +365,15 @@ class TestHash < Test::Unit::TestCase
     assert_equal({3=>4,5=>6}, h.keep_if {|k, v| k + v >= 7 })
     h = @cls[1=>2,3=>4,5=>6]
     assert_equal({1=>2,3=>4,5=>6}, h.keep_if{true})
+  end
+
+  def test_compact
+    h = @cls[a: 1, b: nil, c: false, d: true, e: nil]
+    assert_equal({a: 1, c: false, d: true}, h.compact)
+    assert_equal({a: 1, b: nil, c: false, d: true, e: nil}, h)
+    assert_same(h, h.compact!)
+    assert_equal({a: 1, c: false, d: true}, h)
+    assert_nil(h.compact!)
   end
 
   def test_dup
@@ -747,6 +764,28 @@ class TestHash < Test::Unit::TestCase
     assert_instance_of(Hash, h)
   end
 
+  def test_to_h_instance_variable
+    @h.instance_variable_set(:@x, 42)
+    h = @h.to_h
+    if @cls == Hash
+      assert_equal(42, h.instance_variable_get(:@x))
+    else
+      assert_not_send([h, :instance_variable_defined?, :@x])
+    end
+  end
+
+  def test_to_h_default_value
+    @h.default = :foo
+    h = @h.to_h
+    assert_equal(:foo, h.default)
+  end
+
+  def test_to_h_default_proc
+    @h.default_proc = ->(_,k) {"nope#{k}"}
+    h = @h.to_h
+    assert_equal("nope42", h[42])
+  end
+
   def test_nil_to_h
     h = nil.to_h
     assert_equal({}, h)
@@ -800,7 +839,7 @@ class TestHash < Test::Unit::TestCase
     assert_equal([], expected - vals)
   end
 
-  def test_intialize_wrong_arguments
+  def test_initialize_wrong_arguments
     assert_raise(ArgumentError) do
       Hash.new(0) { }
     end
@@ -809,7 +848,7 @@ class TestHash < Test::Unit::TestCase
   def test_create
     assert_equal({1=>2, 3=>4}, @cls[[[1,2],[3,4]]])
     assert_raise(ArgumentError) { Hash[0, 1, 2] }
-    assert_warning(/wrong element type Fixnum at 1 /) {@cls[[[1, 2], 3]]}
+    assert_warning(/wrong element type Integer at 1 /) {@cls[[[1, 2], 3]]}
     bug5406 = '[ruby-core:39945]'
     assert_raise(ArgumentError, bug5406) { @cls[[[1, 2], [3, 4, 5]]] }
     assert_equal({1=>2, 3=>4}, @cls[1,2,3,4])
@@ -1157,7 +1196,7 @@ class TestHash < Test::Unit::TestCase
     assert_equal({o=>1}.hash, @cls[o=>1].hash)
   end
 
-  def test_hash_poped
+  def test_hash_popped
     assert_nothing_raised { eval("a = 1; @cls[a => a]; a") }
   end
 
@@ -1276,7 +1315,7 @@ class TestHash < Test::Unit::TestCase
     assert_no_memory_leak([], prepare, code, bug9187)
   end
 
-  def test_wrapper_of_special_const
+  def test_wrapper
     bug9381 = '[ruby-core:59638] [Bug #9381]'
 
     wrapper = Class.new do
@@ -1297,11 +1336,50 @@ class TestHash < Test::Unit::TestCase
       5, true, false, nil,
       0.0, 1.72723e-77,
       :foo, "dsym_#{self.object_id.to_s(16)}_#{Time.now.to_i.to_s(16)}".to_sym,
+      "str",
     ].select do |x|
       hash = {x => bug9381}
       hash[wrapper.new(x)] != bug9381
     end
     assert_empty(bad, bug9381)
+  end
+
+  def assert_hash_random(obj, dump = obj.inspect)
+    a = [obj.hash.to_s]
+    3.times {
+      assert_in_out_err(["-e", "print (#{dump}).hash"], "") do |r, e|
+        a += r
+        assert_equal([], e)
+      end
+    }
+    assert_not_equal([obj.hash.to_s], a.uniq)
+    assert_operator(a.uniq.size, :>, 2, proc {a.inspect})
+  end
+
+  def test_string_hash_random
+    assert_hash_random('abc')
+  end
+
+  def test_symbol_hash_random
+    assert_hash_random(:-)
+    assert_hash_random(:foo)
+    assert_hash_random("dsym_#{self.object_id.to_s(16)}_#{Time.now.to_i.to_s(16)}".to_sym)
+  end
+
+  def test_integer_hash_random
+    assert_hash_random(0)
+    assert_hash_random(+1)
+    assert_hash_random(-1)
+    assert_hash_random(+(1<<100))
+    assert_hash_random(-(1<<100))
+  end
+
+  def test_float_hash_random
+    assert_hash_random(0.0)
+    assert_hash_random(+1.0)
+    assert_hash_random(-1.0)
+    assert_hash_random(1.72723e-77)
+    assert_hash_random(Float::INFINITY, "Float::INFINITY")
   end
 
   def test_label_syntax
@@ -1335,7 +1413,7 @@ class TestHash < Test::Unit::TestCase
     def o.respond_to?(*args)
       super
     end
-    assert_raise(TypeError) {{foo: o}.dig(:foo, :foo)}
+    assert_raise(TypeError, bug12030) {{foo: o}.dig(:foo, :foo)}
   end
 
   def test_cmp
@@ -1396,6 +1474,34 @@ class TestHash < Test::Unit::TestCase
     }
 
     assert_equal([10, 20, 30], [1, 2, 3].map(&h))
+  end
+
+  def test_transform_values
+    x = @cls[a: 1, b: 2, c: 3]
+    y = x.transform_values {|v| v ** 2 }
+    assert_equal([1, 4, 9], y.values_at(:a, :b, :c))
+    assert_not_same(x, y)
+
+    y = x.transform_values.with_index {|v, i| "#{v}.#{i}" }
+    assert_equal(%w(1.0  2.1  3.2), y.values_at(:a, :b, :c))
+  end
+
+  def test_transform_values_bang
+    x = @cls[a: 1, b: 2, c: 3]
+    y = x.transform_values! {|v| v ** 2 }
+    assert_equal([1, 4, 9], y.values_at(:a, :b, :c))
+    assert_same(x, y)
+
+    x = @cls[a: 1, b: 2, c: 3]
+    y = x.transform_values!.with_index {|v, i| "#{v}.#{i}" }
+    assert_equal(%w(1.0  2.1  3.2), y.values_at(:a, :b, :c))
+  end
+
+  def test_broken_hash_value
+    bug14218 = '[ruby-core:84395] [Bug #14218]'
+
+    assert_equal(0, 1_000_000.times.count{a=Object.new.hash; b=Object.new.hash; a < 0 && b < 0 && a + b > 0}, bug14218)
+    assert_equal(0, 1_000_000.times.count{a=Object.new.hash; b=Object.new.hash; 0 + a + b != 0 + b + a}, bug14218)
   end
 
   class TestSubHash < TestHash
