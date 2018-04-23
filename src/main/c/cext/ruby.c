@@ -42,12 +42,20 @@ void ruby_malloc_size_overflow(size_t count, size_t elsize) {
      count, elsize);
 }
 
+size_t xmalloc2_size(const size_t count, const size_t elsize) {
+  size_t ret;
+  if (rb_mul_size_overflow(count, elsize, SSIZE_MAX, &ret)) {
+    ruby_malloc_size_overflow(count, elsize);
+  }
+  return ret;
+}
+
 void *ruby_xmalloc(size_t size) {
   return malloc(size);
 }
 
 void *ruby_xmalloc2(size_t n, size_t size) {
-  return malloc(ruby_xmalloc2_size(n, size));
+  return malloc(xmalloc2_size(n, size));
 }
 
 void *ruby_xcalloc(size_t n, size_t size) {
