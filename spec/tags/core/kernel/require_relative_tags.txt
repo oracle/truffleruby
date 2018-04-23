@@ -1,4 +1,3 @@
-fails:Kernel#require_relative with a relative path raises a LoadError if basepath does not exist
 fails:Kernel#require_relative with a relative path stores the missing path in a LoadError object
 fails:Kernel#require_relative with a relative path calls #to_str on non-String objects
 fails:Kernel#require_relative with a relative path raises a TypeError if #to_str does not return a String
