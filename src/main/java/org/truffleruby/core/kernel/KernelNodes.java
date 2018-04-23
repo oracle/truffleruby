@@ -112,6 +112,7 @@ import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.loader.CodeLoader;
+import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.loader.RequireNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -1427,7 +1428,7 @@ public abstract class KernelNodes {
         private String dirname(String path) {
             final int lastSlash = path.lastIndexOf(File.separatorChar);
             if (lastSlash == -1) {
-                return getContext().send(getContext().getCoreLibrary().getDirClass(), "getwd").toString();
+                return getContext().getFeatureLoader().getWorkingDirectory();
             } else {
                 return path.substring(0, lastSlash);
             }

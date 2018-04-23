@@ -70,7 +70,7 @@ public class FeatureLoader {
         }
     }
 
-    private String getWorkingDirectory() {
+    public String getWorkingDirectory() {
         final TruffleNFIPlatform nfi = context.getTruffleNFI();
         if (nfi == null) {
             // The current working cannot change if there are no native calls
