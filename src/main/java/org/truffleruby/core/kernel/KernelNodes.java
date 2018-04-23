@@ -1365,8 +1365,8 @@ public abstract class KernelNodes {
     public abstract static class RequireRelativeNode extends CoreMethodNode {
 
         @CreateCast("feature")
-        public RubyNode coerceToString(RubyNode feature) {
-            return NameToJavaStringNodeGen.create(feature);
+        public RubyNode coerceToPath(RubyNode feature) {
+            return NameToJavaStringNodeGen.create(ToPathNodeGen.create(feature));
         }
 
         @Specialization

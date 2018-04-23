@@ -1,4 +1,0 @@
-fails:Kernel#require_relative with a relative path calls #to_path on non-String objects
-fails:Kernel#require_relative with a relative path calls #to_str on non-String objects returned by #to_path
-fails:Kernel#require_relative with an absolute path calls #to_path on non-String objects
-fails:Kernel#require_relative with an absolute path calls #to_str on non-String objects returned by #to_path

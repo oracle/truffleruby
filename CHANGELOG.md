@@ -12,8 +12,8 @@ Changes:
 
 Bug fixes:
 
-* `Kernel#require_relative` now tries `#to_str` to convert the feature parameter
-  to a string and canonicalizes paths before requiring them.
+* `Kernel#require_relative` now coerces the feature argument to a path and
+  canonicalizes it before requiring.
 
 # 1.0 RC 1, April 2018
 
