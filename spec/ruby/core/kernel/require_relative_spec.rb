@@ -40,6 +40,18 @@ describe "Kernel#require_relative with a relative path" do
     ScratchPad.recorded.should == [:loaded]
   end
 
+  it "loads a path relative to a file base name as specified in an #instance_eval" do
+    Dir.chdir File.dirname(File.join(__dir__, @path)) do
+      Object.new.instance_eval("require_relative(#{File.basename(@path).inspect})", "foo.rb").should be_true
+    end
+    ScratchPad.recorded.should == [:loaded]
+  end
+
+  it "loads a path relative to an absolute path as specified in an #instance_eval" do
+    Object.new.instance_eval("require_relative(#{@path.inspect})", __FILE__).should be_true
+    ScratchPad.recorded.should == [:loaded]
+  end
+
   it "loads a file defining many methods" do
     require_relative("#{@dir}/methods_fixture.rb").should be_true
     ScratchPad.recorded.should == [:loaded]
