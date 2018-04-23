@@ -1,4 +1,4 @@
-# Copyright (c) 2007-2016 The JRuby project. All rights reserved. This
+# Copyright (c) 2007-2017 The JRuby project. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -45,6 +45,38 @@ end
 
 
 class IO
+  def self.console(sym=nil, *args)
+    raise TypeError, "expected Symbol, got #{sym.class}" unless sym.nil? || sym.kind_of?(Symbol)
+
+    # klass = self == IO ? File : self
+    if defined?(@console) # using ivar instead of hidden const as in MRI
+      con = @console
+      # MRI checks IO internals : (!RB_TYPE_P(con, T_FILE) || (!(fptr = RFILE(con)->fptr) || GetReadFD(fptr) == -1))
+      if !con.kind_of?(File) || (con.kind_of?(IO) && (con.closed? || !FileTest.readable?(con)))
+        remove_instance_variable :@console
+        con = nil
+      end
+    end
+
+    if sym
+      if sym == :close
+        if con
+          con.close
+          remove_instance_variable :@console if defined?(@console)
+        end
+        return nil
+      end
+    end
+
+    if !con && $stdin.tty?
+      con = File.open('/dev/tty', 'r+')
+      con.sync = true
+      @console = con
+    end
+
+    sym ? con.send(sym, *args) : con
+  end
+
   if RbConfig::CONFIG['host_os'].downcase =~ /linux/ && File.exist?("/proc/#{Process.pid}/fd")
     def stty(*args)
       `stty #{args.join(' ')} < /proc/#{Process.pid}/fd/#{fileno}`
