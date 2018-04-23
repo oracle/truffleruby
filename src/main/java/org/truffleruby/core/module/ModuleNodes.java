@@ -33,11 +33,9 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ValueProfile;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -614,16 +612,26 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         private CodeLoader.DeferredCall classEvalSource(DynamicObject module, DynamicObject rubySource, String file, int line) {
             assert RubyGuards.isRubyString(rubySource);
-            String code = StringOperations.getString(rubySource);
+
+            final Source source = KernelNodes.EvalNode.createEvalSource(KernelNodes.EvalNode.offsetSource("class/module_eval", StringOperations.getString(rubySource), file, line), file);
 
             final MaterializedFrame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
                     .getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize();
-            final Encoding encoding = Layouts.STRING.getRope(rubySource).getEncoding();
-            Source source= KernelNodes.EvalNode.createEvalSource(KernelNodes.EvalNode.offsetSource("class/module_eval", code, file, line), file);
 
-            final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, encoding, ParserContext.MODULE, callerFrame, true, this);
-            final DeclarationContext declarationContext = new DeclarationContext(Visibility.PUBLIC, new FixedDefaultDefinee(module));
-            return getContext().getCodeLoader().prepareExecute(ParserContext.MODULE, declarationContext, rootNode, callerFrame, module);
+            final RubyRootNode rootNode = getContext().getCodeLoader().parse(
+                    source,
+                    Layouts.STRING.getRope(rubySource).getEncoding(),
+                    ParserContext.MODULE,
+                    callerFrame,
+                    true,
+                    this);
+
+            return getContext().getCodeLoader().prepareExecute(
+                    ParserContext.MODULE,
+                    new DeclarationContext(Visibility.PUBLIC, new FixedDefaultDefinee(module)),
+                    rootNode,
+                    callerFrame,
+                    module);
         }
 
         @Specialization
