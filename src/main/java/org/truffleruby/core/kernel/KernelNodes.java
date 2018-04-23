@@ -1361,15 +1361,18 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "require_relative", isModuleFunction = true, required = 1)
-    public abstract static class RequireRelativeNode extends CoreMethodArrayArgumentsNode {
+    @NodeChild(type = RubyNode.class, value = "feature")
+    public abstract static class RequireRelativeNode extends CoreMethodNode {
 
-        @Specialization(guards = "isRubyString(feature)")
-        public boolean requireRelative(DynamicObject feature,
+        @CreateCast("feature")
+        public RubyNode coerceToString(RubyNode feature) {
+            return NameToJavaStringNodeGen.create(feature);
+        }
+
+        @Specialization
+        public boolean requireRelative(String feature,
                 @Cached("create()") RequireNode requireNode) {
-            final String featureString = StringOperations.getString(feature);
-            final String featurePath = getFullPath(featureString);
-
-            return requireNode.executeRequire(featurePath);
+            return requireNode.executeRequire(getFullPath(feature));
         }
 
         @TruffleBoundary
