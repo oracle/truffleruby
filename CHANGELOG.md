@@ -19,7 +19,8 @@ Changes:
 Bug fixes:
 
 * `Kernel#require_relative` now coerces the feature argument to a path and
-  canonicalizes it before requiring.
+  canonicalizes it before requiring, and it now uses the current directory as
+  the directory for a synthetic file name from `#instance_eval`.
 
 # 1.0 RC 1, April 2018
 
