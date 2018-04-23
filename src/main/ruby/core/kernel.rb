@@ -218,7 +218,7 @@ module Kernel
 
   def eval(str, a_binding=nil, file=nil, line=nil)
     file = '(eval)' unless file
-    line = 0 unless line
+    line = 1 unless line
     str = str.to_str unless str.class == String
     file = file.to_str unless file.class == String
     line = line.to_i unless line.is_a?(Integer)
