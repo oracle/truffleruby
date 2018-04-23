@@ -1,1 +1,0 @@
-fails:Kernel#require_relative with a relative path loads a path relative to a file base name as specified in an #instance_eval
