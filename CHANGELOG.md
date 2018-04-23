@@ -10,6 +10,12 @@ Changes:
 
 * The inline JavaScript functionality `-Xinline_js` has been removed.
 
+* Line numbers `< 0`, in the various eval methods, are now warned about, because
+  we don't support these at all. Line numbers `> 1` are warned about (at the
+  fine level) but the are shimmed by adding blank lines in front to get to the
+  correct offset. Line numbers starting at `0` are also warned about at the fine
+  level and set to `1` instead.
+
 Bug fixes:
 
 * `Kernel#require_relative` now coerces the feature argument to a path and

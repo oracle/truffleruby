@@ -40,6 +40,7 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CallerFrameAccess;
@@ -90,7 +91,6 @@ import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNode
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
@@ -608,18 +608,11 @@ public abstract class KernelNodes {
         }
 
         protected RubyRootNode buildRootNode(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line, boolean ownScopeForAssignments) {
-            String sourceString;
-            if (line > 0) {
-                String s = StringUtils.replace(new String(new char[Math.max(line - 1, 0)]), '\0', '\n');
-                sourceString = s + RopeOperations.decodeRope(sourceText);
-            } else {
-                sourceString = RopeOperations.decodeRope(sourceText);
-            }
+            final String sourceFile = RopeOperations.decodeRope(file).intern();
+            final String sourceString = offsetSource("eval", RopeOperations.decodeRope(sourceText), sourceFile, line);
             final Encoding encoding = sourceText.getEncoding();
-            final Source source = Source.newBuilder(sourceString).name(RopeOperations.decodeRope(file).intern()).mimeType(RubyLanguage.MIME_TYPE).build();
-
+            final Source source = Source.newBuilder(sourceString).name(sourceFile).mimeType(RubyLanguage.MIME_TYPE).build();
             final TranslatorDriver translator = new TranslatorDriver(getContext());
-
             return translator.parse(source, encoding, ParserContext.EVAL, null, null, parentFrame, ownScopeForAssignments, this);
         }
 
@@ -664,6 +657,32 @@ public abstract class KernelNodes {
         private boolean frameHasOnlySelf(final FrameDescriptor descriptor) {
             return descriptor.getSize() == 1 && SelfNode.SELF_IDENTIFIER.equals(descriptor.getSlots().get(0).getIdentifier());
         }
+
+        @TruffleBoundary
+        public static String offsetSource(String method, String source, String file, int line) {
+            // TODO CS 23-Apr-18 Truffle doesn't support line numbers starting at anything but 1
+            if (line == 0) {
+                // fine instead of warning because these seem common
+                Log.LOGGER.fine(() -> String.format("zero line number %s:%d not supported in #%s - will be reported as starting at 1", file, line, method));
+                return source;
+            } else if (line < 1) {
+                Log.LOGGER.warning(String.format("negative line number %s:%d not supported in #%s - will be reported as starting at 1", file, line, method));
+                return source;
+            } else if (line > 1) {
+                // fine instead of warning because we can simulate these
+                Log.LOGGER.fine(() -> String.format("offset line number %s:%d are simulated in #%s by adding blank lines", file, line, method));
+
+                final StringBuilder builder = new StringBuilder();
+                for (int n = 1; n < line; n++) {
+                    builder.append("\n");
+                }
+                builder.append(source);
+                return builder.toString();
+            } else {
+                return source;
+            }
+        }
+
     }
 
     @CoreMethod(names = "freeze")
