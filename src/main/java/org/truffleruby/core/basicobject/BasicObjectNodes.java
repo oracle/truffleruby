@@ -26,7 +26,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -266,11 +265,24 @@ public abstract class BasicObjectNodes {
             final Rope code = StringOperations.rope(string);
             final String fileNameString = RopeOperations.decodeRope(StringOperations.rope(fileName));
 
-            final Source source = loadFragment(KernelNodes.EvalNode.offsetSource("instance_eval", RopeOperations.decodeRope(code), fileNameString, line), fileNameString);
+            final Source source = KernelNodes.EvalNode.createEvalSource(KernelNodes.EvalNode.offsetSource("instance_eval", RopeOperations.decodeRope(code), fileNameString, line), fileNameString);
+            final RubyRootNode rootNode = getContext().getCodeLoader().parse(
+                    source,
+                    code.getEncoding(),
+                    ParserContext.EVAL,
+                    null,
+                    true,
+                    this);
 
-            final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, code.getEncoding(), ParserContext.EVAL, null, true, this);
             final DeclarationContext declarationContext = new DeclarationContext(Visibility.PUBLIC, new SingletonClassOfSelfDefaultDefinee(receiver));
-            final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(ParserContext.EVAL, declarationContext, rootNode, null, receiver);
+
+            final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
+                    ParserContext.EVAL,
+                    declarationContext,
+                    rootNode,
+                    null,
+                    receiver);
+
             return deferredCall.call(callNode);
         }
 
@@ -290,10 +302,6 @@ public abstract class BasicObjectNodes {
         public Object instanceEval(Object receiver, NotProvided string, NotProvided fileName, NotProvided line, DynamicObject block,
                 @Cached("create()") InstanceExecNode instanceExecNode) {
             return instanceExecNode.executeInstanceExec(receiver, new Object[]{ receiver }, block);
-        }
-
-        private Source loadFragment(String fragment, String name) {
-            return KernelNodes.EvalNode.createEvalSource(fragment, name);
         }
 
     }

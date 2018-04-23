@@ -112,7 +112,6 @@ import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.loader.CodeLoader;
-import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.loader.RequireNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -609,11 +608,17 @@ public abstract class KernelNodes {
         }
 
         protected RubyRootNode buildRootNode(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line, boolean ownScopeForAssignments) {
-            final String sourceFile = RopeOperations.decodeRope(file).intern();
-            final Encoding encoding = sourceText.getEncoding();
+            final String sourceFile = RopeOperations.decodeRope(file);
             final Source source = createEvalSource(offsetSource("eval", RopeOperations.decodeRope(sourceText), sourceFile, line), sourceFile);
-            final TranslatorDriver translator = new TranslatorDriver(getContext());
-            return translator.parse(source, encoding, ParserContext.EVAL, null, null, parentFrame, ownScopeForAssignments, this);
+            return new TranslatorDriver(getContext()).parse(
+                    source,
+                    sourceText.getEncoding(),
+                    ParserContext.EVAL,
+                    null,
+                    null,
+                    parentFrame,
+                    ownScopeForAssignments,
+                    this);
         }
 
         protected RootNodeWrapper compileSource(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line) {
