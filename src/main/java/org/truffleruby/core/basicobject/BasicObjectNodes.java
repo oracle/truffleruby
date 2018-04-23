@@ -293,7 +293,7 @@ public abstract class BasicObjectNodes {
         }
 
         private Source loadFragment(String fragment, String name) {
-            return Source.newBuilder(fragment).name(name.intern()).mimeType(RubyLanguage.MIME_TYPE).build();
+            return KernelNodes.EvalNode.createEvalSource(fragment, name);
         }
 
     }
