@@ -1447,10 +1447,10 @@ int rb_tr_obj_equal(VALUE first, VALUE second) {
 int rb_tr_flags(VALUE value) {
   int flags = 0;
   if (OBJ_FROZEN(value)) {
-    flags |= FL_FREEZE;
+    flags |= RUBY_FL_FREEZE;
   }
   if (OBJ_TAINTED(value)) {
-    flags |= FL_TAINT;
+    flags |= RUBY_FL_TAINT;
   }
   // TODO BJF Nov-11-2017 Implement more flags
   return flags;
