@@ -930,7 +930,7 @@ zstream_run_func(void *ptr)
 {
     struct zstream_run_args *args = (struct zstream_run_args *)ptr;
     int err, state, flush = args->flush;
-    struct zstream *z = args->z;
+    struct zstream *z = rb_tr_managed_from_handle(args->z);
     uInt n;
 
     err = Z_OK;
@@ -997,7 +997,7 @@ zstream_run(struct zstream *z, Bytef *src, long len, int flush)
     int err;
     VALUE guard = Qnil;
 
-    args.z = z;
+    args.z = rb_tr_handle_for_managed_leaking(z);
     args.flush = flush;
     args.interrupt = 0;
     args.jump_state = 0;
@@ -1147,6 +1147,8 @@ zstream_new(VALUE klass, const struct zstream_funcs *funcs)
     struct zstream *z;
 
     obj = TypedData_Make_Struct(klass, struct zstream, &zstream_data_type, z);
+    free(DATA_PTR(obj));
+    z = DATA_PTR(obj) = rb_hash_new();
     zstream_init(z, funcs);
     z->stream.opaque = (voidpf)rb_tr_handle_for_managed_leaking(obj);
     return obj;
@@ -1593,7 +1595,7 @@ rb_deflate_s_deflate(int argc, VALUE *argv, VALUE klass)
 
     rb_scan_args(argc, argv, "11", &src, &level);
 
-    z = malloc(sizeof(struct zstream));
+    z = rb_hash_new(); // malloc(sizeof(struct zstream));
     lev = ARG_LEVEL(level);
     StringValue(src);
     zstream_init_deflate(z);
@@ -1911,7 +1913,7 @@ rb_inflate_s_inflate(VALUE obj, VALUE src)
     int err;
 
     StringValue(src);
-    z = malloc(sizeof(struct zstream));
+    z = rb_hash_new(); // malloc(sizeof(struct zstream));
     zstream_init_inflate(z);
     err = inflateInit(&z->stream);
     if (err != Z_OK) {
