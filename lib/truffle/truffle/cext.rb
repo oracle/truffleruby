@@ -249,8 +249,6 @@ module Truffle::CExt
       T_HASH
     when Struct
       T_STRUCT
-    when Bignum
-      T_BIGNUM
     when File
       T_FILE
     when Complex
@@ -265,8 +263,8 @@ module Truffle::CExt
       T_FALSE
     when Symbol
       T_SYMBOL
-    when Fixnum
-      T_FIXNUM
+    when Integer
+      Truffle::Type.fits_into_long?(value) ? T_FIXNUM : T_BIGNUM
     when Time
       T_DATA
     when Data
@@ -292,9 +290,9 @@ module Truffle::CExt
     when T_STRING
       value.is_a?(String)
     when T_FIXNUM
-      value.is_a?(Fixnum)
+      value.is_a?(Integer) && Truffle::Type.fits_into_long?(value)
     when T_BIGNUM
-      value.is_a?(Bignum)
+      value.is_a?(Integer) && !Truffle::Type.fits_into_long?(value)
     when T_ARRAY
       value.is_a?(Array)
     when T_FILE
@@ -654,7 +652,7 @@ module Truffle::CExt
   end
 
   def RB_FIXNUM_P(value)
-    value.is_a?(Fixnum)
+    Truffle::Type.fits_into_long?(value)
   end
 
   def RB_FLOAT_TYPE_P(value)
@@ -671,7 +669,7 @@ module Truffle::CExt
 
   def RB_OBJ_TAINTABLE(object)
     case object
-    when TrueClass, FalseClass, NilClass, Fixnum, Bignum, Float, Symbol
+    when TrueClass, FalseClass, NilClass, Integer, Float, Symbol
       false
     else
       true
