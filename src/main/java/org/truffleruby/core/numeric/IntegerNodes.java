@@ -1476,8 +1476,8 @@ public abstract class IntegerNodes {
 
     }
 
-    @Primitive(name = "fixnum_memhash")
-    public static abstract class FixnumMemhashPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "integer_memhash")
+    public static abstract class IntegerMemhashNode extends PrimitiveArrayArgumentsNode {
 
         private static final int CLASS_SALT = 94974697; // random number, stops hashes for similar
                                                         // values but different classes being the
@@ -1494,8 +1494,8 @@ public abstract class IntegerNodes {
 
     }
 
-    @Primitive(name = "fixnum_fits_into_int")
-    public static abstract class FixnumFitsIntoIntPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "integer_fits_into_int")
+    public static abstract class FixnumFitsIntoIntNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         public boolean fitsIntoIntInt(int a) {
@@ -1514,8 +1514,8 @@ public abstract class IntegerNodes {
 
     }
 
-    @Primitive(name = "fixnum_fits_into_uint")
-    public static abstract class FixnumFitsIntoUIntPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "integer_fits_into_uint")
+    public static abstract class IntegerFitsIntoUIntNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         public boolean fitsIntoUIntInt(int a) {
@@ -1534,8 +1534,8 @@ public abstract class IntegerNodes {
 
     }
 
-    @Primitive(name = "fixnum_fits_into_long")
-    public static abstract class FixnumFitsIntoLongPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "integer_fits_into_long")
+    public static abstract class IntegerFitsIntoLongNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         public boolean fitsIntoLongInt(int a) {
@@ -1554,8 +1554,8 @@ public abstract class IntegerNodes {
 
     }
 
-    @Primitive(name = "fixnum_fits_into_ulong")
-    public static abstract class FixnumFitsIntoULongPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "integer_fits_into_ulong")
+    public static abstract class IntegerFitsIntoULongNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         public boolean fitsIntoULongInt(int a) {
@@ -1579,8 +1579,8 @@ public abstract class IntegerNodes {
 
     }
 
-    @Primitive(name = "fixnum_lower")
-    public abstract static class FixnumLowerNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "integer_lower")
+    public abstract static class IntegerLowerNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         public int lower(int value) {
@@ -1603,8 +1603,8 @@ public abstract class IntegerNodes {
 
     }
 
-    @Primitive(name = "fixnum_ulong_from_bignum")
-    public static abstract class FixnumULongFromBigNumPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "integer_ulong_from_bignum")
+    public static abstract class IntegerULongFromBigNumNode extends PrimitiveArrayArgumentsNode {
 
         private static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);
         private static final BigInteger LONG_MAX = BigInteger.valueOf(Long.MAX_VALUE);

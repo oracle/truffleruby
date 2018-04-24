@@ -182,7 +182,7 @@ module Truffle
       raise TypeError, 'no implicit conversion from nil to integer' if val.nil?
 
       if object_kind_of?(val, Integer)
-        if Truffle.invoke_primitive(:fixnum_fits_into_long, val)
+        if Truffle.invoke_primitive(:integer_fits_into_long, val)
           return val
         else
           return rb_big2ulong(val)
@@ -217,7 +217,7 @@ module Truffle
 
     def self.rb_big2ulong(val)
       check_ulong(val)
-      Truffle.invoke_primitive(:fixnum_ulong_from_bignum, val)
+      Truffle.invoke_primitive(:integer_ulong_from_bignum, val)
     end
 
     def self.rb_to_f(val)
@@ -251,33 +251,33 @@ module Truffle
     end
 
     def self.fits_into_int?(val)
-      Integer === val && Truffle.invoke_primitive(:fixnum_fits_into_int, val)
+      Integer === val && Truffle.invoke_primitive(:integer_fits_into_int, val)
     end
 
     def self.fits_into_long?(val)
-      Integer === val && Truffle.invoke_primitive(:fixnum_fits_into_long, val)
+      Integer === val && Truffle.invoke_primitive(:integer_fits_into_long, val)
     end
 
     def self.check_int(val)
-      unless Truffle.invoke_primitive(:fixnum_fits_into_int, val)
+      unless Truffle.invoke_primitive(:integer_fits_into_int, val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `int"
       end
     end
 
     def self.check_uint(val)
-      unless Truffle.invoke_primitive(:fixnum_fits_into_uint, val)
+      unless Truffle.invoke_primitive(:integer_fits_into_uint, val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `uint"
       end
     end
 
     def self.check_long(val)
-      unless Truffle.invoke_primitive(:fixnum_fits_into_long, val)
+      unless Truffle.invoke_primitive(:integer_fits_into_long, val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `long"
       end
     end
 
     def self.check_ulong(val)
-      unless Truffle.invoke_primitive(:fixnum_fits_into_ulong, val)
+      unless Truffle.invoke_primitive(:integer_fits_into_ulong, val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `ulong"
       end
     end
@@ -411,8 +411,8 @@ module Truffle
     INT_MAX = 2147483647
 
     def self.clamp_to_int(n)
-      if Truffle.invoke_primitive(:fixnum_fits_into_int, n)
-        Truffle.invoke_primitive(:fixnum_lower, n)
+      if Truffle.invoke_primitive(:integer_fits_into_int, n)
+        Truffle.invoke_primitive(:integer_lower, n)
       else
         n > 0 ? INT_MAX : INT_MIN
       end

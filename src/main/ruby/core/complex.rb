@@ -325,7 +325,7 @@ class Complex < Numeric
   end
 
   def hash
-    Truffle.invoke_primitive :fixnum_memhash, @real.hash, @imag.hash
+    Truffle.invoke_primitive :integer_memhash, @real.hash, @imag.hash
   end
 
   def inspect
