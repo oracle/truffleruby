@@ -510,7 +510,6 @@ public class CoreLibrary {
         truffleRegexpOperationsModule = defineModule(truffleModule, "RegexpOperations");
         defineModule(truffleModule, "StringOperations");
         truffleBootModule = defineModule(truffleModule, "Boot");
-        defineModule(truffleModule, "FixnumOperations");
         defineModule(truffleModule, "System");
         truffleKernelOperationsModule = defineModule(truffleModule, "KernelOperations");
         defineModule(truffleModule, "Process");

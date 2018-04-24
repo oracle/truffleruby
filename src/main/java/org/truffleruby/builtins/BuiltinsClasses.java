@@ -76,8 +76,6 @@ import org.truffleruby.core.numeric.FloatNodesBuiltins;
 import org.truffleruby.core.numeric.FloatNodesFactory;
 import org.truffleruby.core.numeric.IntegerNodesBuiltins;
 import org.truffleruby.core.numeric.IntegerNodesFactory;
-import org.truffleruby.core.numeric.TruffleFixnumNodesBuiltins;
-import org.truffleruby.core.numeric.TruffleFixnumNodesFactory;
 import org.truffleruby.core.objectspace.ObjectSpaceNodesBuiltins;
 import org.truffleruby.core.objectspace.ObjectSpaceNodesFactory;
 import org.truffleruby.core.proc.ProcNodesBuiltins;
@@ -226,7 +224,6 @@ public abstract class BuiltinsClasses {
         TruffleBindingNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleBootNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleDebugNodesBuiltins.setup(coreManager, primitiveManager);
-        TruffleFixnumNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleGCNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleGraalNodesBuiltins.setup(coreManager, primitiveManager);
@@ -304,7 +301,6 @@ public abstract class BuiltinsClasses {
             TruffleBindingNodesFactory.getFactories(),
             TruffleBootNodesFactory.getFactories(),
             TruffleDebugNodesFactory.getFactories(),
-            TruffleFixnumNodesFactory.getFactories(),
             TruffleGCNodesFactory.getFactories(),
             TruffleNodesFactory.getFactories(),
             TruffleGraalNodesFactory.getFactories(),

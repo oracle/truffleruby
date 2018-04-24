@@ -412,7 +412,7 @@ module Truffle
 
     def self.clamp_to_int(n)
       if Truffle.invoke_primitive(:fixnum_fits_into_int, n)
-        Truffle::FixnumOperations.lower(n)
+        Truffle.invoke_primitive(:fixnum_lower, n)
       else
         n > 0 ? INT_MAX : INT_MIN
       end
