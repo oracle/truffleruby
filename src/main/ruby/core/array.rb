@@ -788,7 +788,7 @@ class Array
     # Check the result size will fit in an Array.
     sum = args.inject(size) { |n, x| n * x.size }
 
-    unless Truffle.invoke_primitive(:fixnum_fits_into_long, sum)
+    unless Truffle.invoke_primitive(:integer_fits_into_long, sum)
       raise RangeError, 'product result is too large'
     end
 
