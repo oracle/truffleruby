@@ -60,7 +60,7 @@ module Truffle
       if undefined.equal?(limit)
         limited = false
       else
-        limit = Truffle::Type.coerce_to limit, Fixnum, :to_int
+        limit = Truffle::Type.coerce_to_int limit
 
         if limit > 0
           return [string.dup] if limit == 1

@@ -302,7 +302,7 @@ class SystemExit < Exception
   # *args is used to simulate optional prepended argument like MRI
 
   def initialize(first=nil, *args)
-    if first.kind_of?(Fixnum)
+    if first.kind_of?(Integer)
       status = first
       super(*args)
     else
@@ -346,7 +346,7 @@ class SystemCallError < StandardError
     if self.equal? SystemCallError
       case args.size
       when 1
-        if args.first.kind_of?(Fixnum)
+        if args.first.kind_of?(Integer)
           errno = args.first
           message = nil
         else
@@ -383,7 +383,7 @@ class SystemCallError < StandardError
         raise ArgumentError, "wrong number of arguments (#{args.size} for 0..2)"
       end
 
-      if defined?(self::Errno) && self::Errno.kind_of?(Fixnum)
+      if defined?(self::Errno) && self::Errno.kind_of?(Integer)
         error = SystemCallError.errno_error(message, self::Errno, location)
         if error && error.class.equal?(self)
           return error

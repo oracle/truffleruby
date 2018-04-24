@@ -1165,7 +1165,7 @@ module Truffle::FFI
     # when the block returns. The value returned is the value of the block.
     #
     def self.new(type, count=nil, clear=true)
-      if type.kind_of? Fixnum
+      if type.kind_of? Integer
         size = type
       elsif type.kind_of? Symbol
         size = Pointer.find_type_size(type)

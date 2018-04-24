@@ -16,7 +16,7 @@ module Math
   module_function
 
   def hypot(a, b)
-    if Fixnum === a and Fixnum === b
+    if Truffle::Type.fits_into_long?(a) and Truffle::Type.fits_into_long?(b)
       # Much faster (~10x) than calling the Math.hypot() / hypot(3)
       Math.sqrt(a*a + b*b)
     else

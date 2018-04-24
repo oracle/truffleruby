@@ -276,7 +276,7 @@ class Thread
   end
 
   def priority=(priority)
-    Kernel.raise TypeError, 'priority must be a Fixnum' unless priority.kind_of? Fixnum
+    Kernel.raise TypeError, 'priority must be an Integer' unless priority.kind_of? Integer
     priority = -3 if priority < -3
     priority = 3 if priority > 3
     java_priority = PRIORITIES_RUBY_TO_JAVA[priority+3]

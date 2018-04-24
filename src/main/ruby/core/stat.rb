@@ -221,14 +221,14 @@ class File
     def world_readable?
       if mode & S_IROTH == S_IROTH
         tmp = mode & (S_IRUGO | S_IWUGO | S_IXUGO)
-        Truffle::Type.coerce_to tmp, Fixnum, :to_int
+        Truffle::Type.coerce_to_int tmp
       end
     end
 
     def world_writable?
       if mode & S_IWOTH == S_IWOTH
         tmp = mode & (S_IRUGO | S_IWUGO | S_IXUGO)
-        Truffle::Type.coerce_to tmp, Fixnum, :to_int
+        Truffle::Type.coerce_to_int tmp
       end
     end
 

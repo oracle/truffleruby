@@ -38,9 +38,6 @@
 # isspace, islower, ... are not in MRI core library.
 
 module Truffle::CType
-  # The character literals (?x) are Fixnums in 1.8 and Strings in 1.9
-  # so we use literal values instead so this is 1.8/1.9 compatible.
-
   def self.isdigit(num)
     num >= 48 and num <= 57
   end

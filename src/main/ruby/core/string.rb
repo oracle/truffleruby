@@ -342,7 +342,7 @@ class String
 
     return nil unless match
 
-    if index = Truffle::Type.check_convert_type(capture, Fixnum, :to_int)
+    if index = Truffle::Type.check_convert_type(capture, Integer, :to_int)
       return nil if index >= match.size || -index >= match.size
       capture = index
     end
@@ -1088,7 +1088,7 @@ class String
     end
 
     case index
-    when Fixnum
+    when Integer
       index += size if index < 0
 
       if index < 0 or index > size
@@ -1100,7 +1100,7 @@ class String
       end
 
       if count
-        count = Truffle::Type.coerce_to count, Fixnum, :to_int
+        count = Truffle::Type.coerce_to_int count
 
         if count < 0
           raise IndexError, 'count is negative'
@@ -1130,7 +1130,7 @@ class String
 
       Truffle.invoke_primitive(:string_splice, self, replacement, start, index.bytesize, enc)
     when Range
-      start = Truffle::Type.coerce_to index.first, Fixnum, :to_int
+      start = Truffle::Type.coerce_to_int index.first
 
       start += size if start < 0
 
@@ -1142,7 +1142,7 @@ class String
         raise IndexError, "unable to find character at: #{start}"
       end
 
-      stop = Truffle::Type.coerce_to index.last, Fixnum, :to_int
+      stop = Truffle::Type.coerce_to_int index.last
       stop += size if stop < 0
       stop -= 1 if index.exclude_end?
 
@@ -1160,7 +1160,7 @@ class String
       Truffle.invoke_primitive(:string_splice, self, replacement, bi, bs, enc)
     when Regexp
       if count
-        count = Truffle::Type.coerce_to count, Fixnum, :to_int
+        count = Truffle::Type.coerce_to_int count
       else
         count = 0
       end
@@ -1188,7 +1188,7 @@ class String
 
       Truffle.invoke_primitive(:string_splice, self, replacement, bi, bs, enc)
     else
-      index = Truffle::Type.coerce_to index, Fixnum, :to_int
+      index = Truffle::Type.coerce_to_int index
 
       if count
         return self[index, count] = replacement
@@ -1208,7 +1208,7 @@ class String
 
     enc = Truffle::Type.compatible_encoding self, padding
 
-    width = Truffle::Type.coerce_to width, Fixnum, :to_int
+    width = Truffle::Type.coerce_to_int width
     return dup if width <= size
 
     width -= size
@@ -1253,7 +1253,7 @@ class String
 
     enc = Truffle::Type.compatible_encoding self, padding
 
-    width = Truffle::Type.coerce_to width, Fixnum, :to_int
+    width = Truffle::Type.coerce_to_int width
     return dup if width <= size
 
     width -= size
@@ -1297,7 +1297,7 @@ class String
 
     enc = Truffle::Type.compatible_encoding self, padding
 
-    width = Truffle::Type.coerce_to width, Fixnum, :to_int
+    width = Truffle::Type.coerce_to_int width
     return dup if width <= size
 
     width -= size
@@ -1327,7 +1327,7 @@ class String
     if undefined.equal?(start)
       start = 0
     else
-      start = Truffle::Type.coerce_to start, Fixnum, :to_int
+      start = Truffle::Type.coerce_to_int start
 
       start += size if start < 0
       if start < 0 or start > size
@@ -1382,7 +1382,7 @@ class String
     byte_finish = Truffle.invoke_primitive(:string_byte_index_from_char_index, self, finish)
 
     case sub
-    when Fixnum
+    when Integer
       if finish == size
         return nil if finish == 0
       end
@@ -1437,7 +1437,7 @@ class String
   def insert(index, other)
     other = StringValue(other)
 
-    index = Truffle::Type.coerce_to index, Fixnum, :to_int
+    index = Truffle::Type.coerce_to_int index
     index = length + 1 + index if index < 0
 
     if index > length or index < 0 then

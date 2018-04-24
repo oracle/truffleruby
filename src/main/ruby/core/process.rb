@@ -298,7 +298,7 @@ module Process
       signal = Signal::Names[signal]
     end
 
-    raise ArgumentError unless signal.kind_of? Fixnum
+    raise ArgumentError unless signal.kind_of? Integer
 
     if signal < 0
       signal = -signal
