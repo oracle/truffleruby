@@ -187,7 +187,11 @@ public abstract class TruffleBootNodes {
                             case STDIN:
                                 return loadMainSourceSettingDollarZero(findSFile, makeStringNode, ExecutionAction.STDIN, toExecute);
                             case IRB:
+                            if (System.console() != null) {
                                 return loadMainSourceSettingDollarZero(findSFile, makeStringNode, ExecutionAction.PATH, "irb");
+                            } else {
+                                return loadMainSourceSettingDollarZero(findSFile, makeStringNode, ExecutionAction.STDIN, toExecute);
+                            }
                             default:
                                 throw new UnsupportedOperationException("unreachable");
                         }
