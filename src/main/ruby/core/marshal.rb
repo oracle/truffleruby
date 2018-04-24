@@ -298,15 +298,9 @@ class String
   end
 end
 
-class Fixnum
+class Integer
   private def __marshal__(ms)
     ms.serialize_integer(self, 'i')
-  end
-end
-
-class Bignum
-  private def __marshal__(ms)
-    ms.serialize_bignum(self)
   end
 end
 
