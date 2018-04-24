@@ -187,16 +187,6 @@ class Numeric
     end
   end
 
-  #--
-  # We deviate from MRI behavior here because we ensure that Fixnum op Bignum
-  # => Bignum (possibly normalized to Fixnum)
-  #
-  # Note these differences on MRI, where a is a Fixnum, b is a Bignum
-  #
-  #   a.coerce b => [Float, Float]
-  #   b.coerce a => [Bignum, Bignum]
-  #++
-
   def coerce(other)
     if other.instance_of? self.class
       return [other, self]
