@@ -77,11 +77,7 @@ class Symbol
   include ImmediateValue
 end
 
-class Fixnum
-  include ImmediateValue
-end
-
-class Bignum
+class Integer
   include ImmediateValue
 end
 
