@@ -1579,6 +1579,30 @@ public abstract class IntegerNodes {
 
     }
 
+    @Primitive(name = "fixnum_lower")
+    public abstract static class FixnumLowerNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public int lower(int value) {
+            return value;
+        }
+
+        @Specialization(guards = "canLower(value)")
+        public int lower(long value) {
+            return (int) value;
+        }
+
+        @Specialization(guards = "!canLower(value)")
+        public long lowerFails(long value) {
+            return value;
+        }
+
+        protected static boolean canLower(long value) {
+            return CoreLibrary.fitsIntoInteger(value);
+        }
+
+    }
+
     @Primitive(name = "fixnum_ulong_from_bignum")
     public static abstract class FixnumULongFromBigNumPrimitiveNode extends PrimitiveArrayArgumentsNode {
 

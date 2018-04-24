@@ -137,7 +137,7 @@ module Truffle::POSIX
         elsif return_type == :pointer
           result = Truffle::FFI::Pointer.new(Truffle::Interop.as_pointer(result))
         elsif return_type == :ssize_t
-          result = Truffle::FixnumOperations.lower(result)
+          result = Truffle.invoke_primitive(:fixnum_lower, result)
         end
 
         result
