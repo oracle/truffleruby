@@ -202,7 +202,7 @@ module Truffle
       def parse_options(options)
         options.each do |key, value|
           case key
-          when ::IO, ::Fixnum, :in, :out, :err
+          when ::IO, ::Integer, :in, :out, :err
             from = convert_io_fd key
             to = convert_to_fd value, from
             redirect from, to
@@ -263,7 +263,7 @@ module Truffle
 
       def convert_io_fd(obj)
         case obj
-        when ::Fixnum
+        when ::Integer
           obj
         when :in
           0
@@ -280,7 +280,7 @@ module Truffle
 
       def convert_to_fd(obj, target)
         case obj
-        when ::Fixnum
+        when ::Integer
           obj
         when :in
           0
@@ -301,7 +301,7 @@ module Truffle
           when 2
             if obj[0] == :child
               fd = convert_to_fd obj[1], target
-              fd.kind_of?(::Fixnum) ?  -(fd + 1) : fd
+              fd.kind_of?(::Integer) ?  -(fd + 1) : fd
             else
               open_file_for_child(obj[0], convert_file_mode(obj[1]), 0644)
             end
@@ -329,7 +329,7 @@ module Truffle
 
       def convert_file_mode(obj)
         case obj
-        when ::Fixnum
+        when ::Integer
           obj
         when ::String
           OFLAGS[obj]

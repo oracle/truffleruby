@@ -221,7 +221,7 @@ module Kernel
     line = 0 unless line
     str = str.to_str unless str.class == String
     file = file.to_str unless file.class == String
-    line = line.to_i unless line.class == Fixnum
+    line = line.to_i unless line.is_a?(Integer)
     unless a_binding
       receiver = self
       a_binding = Truffle.invoke_primitive(:caller_binding)

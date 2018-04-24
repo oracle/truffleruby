@@ -71,7 +71,7 @@ module Signal
         raise ArgumentError, "Unknown signal '#{osig}'"
       end
     else
-      number = Truffle::Type.coerce_to sig, Fixnum, :to_int
+      number = Truffle::Type.coerce_to_int sig
     end
 
     signame = self.signame(number)
@@ -131,7 +131,7 @@ module Signal
   end
 
   def self.signame(signo)
-    index = Truffle::Type.coerce_to signo, Fixnum, :to_int
+    index = Truffle::Type.coerce_to_int signo
 
     Numbers[index]
   end

@@ -32,7 +32,7 @@ class Range
   def initialize(first, last, exclude_end = false)
     raise NameError, "`initialize' called twice" if self.begin
 
-    unless first.kind_of?(Fixnum) && last.kind_of?(Fixnum)
+    unless first.kind_of?(Integer) && last.kind_of?(Integer)
       begin
         raise ArgumentError, 'bad value for range' unless first <=> last
       rescue
@@ -139,7 +139,7 @@ class Range
     end
 
     case first
-    when Fixnum
+    when Integer
       last -= 1 if exclude_end?
 
       i = first
@@ -333,7 +333,7 @@ class Range
   alias_method :map, :collect
 
   def to_a_internal # MODIFIED called from java to_a
-    return to_a_from_enumerable unless self.begin.kind_of? Fixnum and self.end.kind_of? Fixnum
+    return to_a_from_enumerable unless self.begin.kind_of? Integer and self.end.kind_of? Integer
 
     fin = self.end
     fin += 1 unless exclude_end?

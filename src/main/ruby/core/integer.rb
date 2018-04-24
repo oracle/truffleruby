@@ -54,8 +54,7 @@ class Integer < Numeric
   end
 
   def [](index)
-    index = Truffle::Type.coerce_to(index, Integer, :to_int)
-    return 0 if index.is_a?(Bignum)
+    index = Truffle::Type.coerce_to_int(index)
     index < 0 ? 0 : (self >> index) & 1
   end
 
@@ -125,7 +124,7 @@ class Integer < Numeric
       raise RangeError, "float #{ndigits} out of range of integer"
     end
 
-    ndigits = Truffle::Type.coerce_to ndigits, Integer, :to_int
+    ndigits = Truffle::Type.coerce_to_int(ndigits)
     Truffle::Type.check_int(ndigits)
 
     if ndigits > 0
@@ -142,7 +141,7 @@ class Integer < Numeric
 
       f = 10 ** ndigits
 
-      if kind_of? Fixnum and f.kind_of? Fixnum
+      if kind_of? Integer and f.kind_of? Integer
         x = self < 0 ? -self : self
         x = (x + f / 2) / f * f
         x = -x if self < 0

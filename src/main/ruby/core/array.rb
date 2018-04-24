@@ -157,24 +157,20 @@ class Array
         end
         start_index = arg.begin.to_int
         end_index = arg.end.to_int
-        if start_index.is_a?(Bignum) || end_index.is_a?(Bignum)
-          raise RangeError, "bignum too big to convert into `long'"
-        end
+        Truffle::Type.check_long(start_index)
+        Truffle::Type.check_long(end_index)
         start_index = Truffle::Type.clamp_to_int(start_index)
         end_index = Truffle::Type.clamp_to_int(end_index)
         range = Range.new(start_index, end_index, arg.exclude_end?)
         send(method_name, range)
-      when Bignum
-        raise RangeError, "bignum too big to convert into `long'"
       else
         send(method_name, Truffle::Type.rb_num2long(arg))
       end
     else
       start_index = start.to_int
       end_index = length.to_int
-      if start_index.is_a?(Bignum) || end_index.is_a?(Bignum)
-        raise RangeError, "bignum too big to convert into `long'"
-      end
+      Truffle::Type.check_long(start_index)
+      Truffle::Type.check_long(end_index)
       start_index = Truffle::Type.clamp_to_int(start_index)
       end_index = Truffle::Type.clamp_to_int(end_index)
       send(method_name, start_index, end_index)
@@ -465,7 +461,7 @@ class Array
         rescue ArgumentError
           raise RangeError, 'bignum too big to convert into `long'
         rescue TypeError
-          raise ArgumentError, 'second argument must be a Fixnum'
+          raise ArgumentError, 'second argument must be an Integer'
         end
 
         return self if right == 0
@@ -475,8 +471,7 @@ class Array
       end
     end
 
-    unless Truffle.invoke_primitive(:fixnum_fits_into_long, left) &&
-           Truffle.invoke_primitive(:fixnum_fits_into_long, right)
+    unless Truffle::Type.fits_into_long?(left) && Truffle::Type.fits_into_long?(right)
       raise ArgumentError, 'argument too big'
     end
 

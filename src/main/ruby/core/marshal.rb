@@ -1028,7 +1028,7 @@ module Marshal
     end
 
     def serialize_integer(n, prefix = nil)
-      if (!Truffle::Platform::L64 && n.is_a?(Fixnum)) || ((n >> 31) == 0 or (n >> 31) == -1)
+      if Truffle::Type.fits_into_int?(n)
         Truffle::Type.binary_string(prefix.to_s + serialize_fixnum(n))
       else
         serialize_bignum(n)
@@ -1259,7 +1259,7 @@ module Marshal
 
   def self.dump(obj, an_io=nil, limit=nil)
     unless limit
-      if Truffle::Type.object_kind_of? an_io, Fixnum
+      if Truffle::Type.object_kind_of? an_io, Integer
         limit = an_io
         an_io = nil
       else
@@ -1267,7 +1267,7 @@ module Marshal
       end
     end
 
-    depth = Truffle::Type.coerce_to limit, Fixnum, :to_int
+    depth = Truffle::Type.coerce_to_int limit
     ms = State.new nil, depth, nil
 
     if an_io
