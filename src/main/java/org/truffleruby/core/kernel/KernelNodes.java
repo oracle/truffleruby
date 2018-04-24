@@ -1438,7 +1438,7 @@ public abstract class KernelNodes {
                 if (lastIndex == -1) {
                     return workingDirectory;
                 } else {
-                    return workingDirectory + "/" + path.substring(0, path.lastIndexOf(File.separatorChar));
+                    return workingDirectory + "/" + path.substring(0, lastIndex);
                 }
             }
         }
