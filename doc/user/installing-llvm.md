@@ -77,10 +77,12 @@ you are on macOS. We would recommend that you install LLVM 4 via
 [Homebrew](https://brew.sh) and then manually set your path.
 
 For building and using C and C++ extensions on macOS we recommend just
-installing the full `llvm` package. We give more specific advice above for Linux
-to support use in containers such as Docker.
+installing the full `llvm` package. Make sure you have also installed the
+standard C headers from Xcode via `xcode-select --install`. We give more
+specific advice above for Linux to support use in containers such as Docker.
 
 ```bash
+xcode-select --install
 brew install llvm@4
 export PATH="/usr/local/opt/llvm@4/bin:$PATH"
 ```
