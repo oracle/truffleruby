@@ -10,33 +10,5 @@
 package org.truffleruby.shared.options;
 
 public enum DefaultExecutionAction {
-
-    NONE {
-        @Override
-        public void applyTo(CommandLineOptions config) {
-            config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
-        }
-    },
-
-    STDIN {
-        @Override
-        public void applyTo(CommandLineOptions config) {
-            config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.STDIN);
-        }
-    },
-
-    IRB {
-        @Override
-        public void applyTo(CommandLineOptions config) {
-            if (System.console() != null) {
-                config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.PATH);
-                config.setOption(OptionsCatalog.TO_EXECUTE, "irb");
-                config.setIrbInsteadOfInputUsed(true);
-            } else {
-                STDIN.applyTo(config);
-            }
-        }
-    };
-
-    public abstract void applyTo(CommandLineOptions config);
+    NONE, STDIN, IRB
 }
