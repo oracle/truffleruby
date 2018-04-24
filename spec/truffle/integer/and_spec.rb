@@ -8,7 +8,7 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "Fixnum#&" do
+describe "Integer#&" do
   before :each do
     @long = (1 << 48) + 1
     @mask = Truffle.invoke_primitive(:fixnum_lower, ((1 << 30) - 1))
