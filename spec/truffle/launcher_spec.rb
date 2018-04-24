@@ -187,8 +187,10 @@ describe "The launcher" do
   it "prints an error for an unknown option" do
     out = ruby_exe(nil, options: "-Xunknown=value", args: "2>&1")
     $?.success?.should == false
-    out.should include("invalid option")
-    out.should include("-Xunknown=value")
+    out.should include("invalid option --ruby.unknown=value (-Xunknown=value)")
+    out = ruby_exe(nil, options: "--unknown=value", args: "2>&1")
+    $?.success?.should == false
+    out.should include("invalid option --unknown=value")
   end
 
   describe 'StringArray option' do
@@ -247,6 +249,13 @@ describe "The launcher" do
 
   it "understands ruby polyglot options" do
     out = ruby_exe(nil, options: "--ruby.show_version=true --ruby.to_execute=p:b --ruby.execution_action=INLINE", args: "2>&1")
+    $?.success?.should == true
+    out.should include(RUBY_DESCRIPTION)
+    out.should include(':b')
+  end
+
+  it "understands ruby polyglot options without ruby. prefix" do
+    out = ruby_exe(nil, options: "--show_version=true --to_execute=p:b --execution_action=INLINE", args: "2>&1")
     $?.success?.should == true
     out.should include(RUBY_DESCRIPTION)
     out.should include(':b')
