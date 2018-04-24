@@ -68,7 +68,7 @@ class BasicSocket < IO
     if level_or_option and optname and optval
       if level_or_option.is_a?(Socket::Option)
         raise TypeError,
-          'expected the first argument to be a Fixnum, Symbol, or String'
+          'expected the first argument to be a Integer, Symbol, or String'
       end
 
       level = level_or_option
@@ -80,7 +80,7 @@ class BasicSocket < IO
       optval  = level_or_option.data
     else
       raise TypeError,
-        'expected the first argument to be a Fixnum, Symbol, String, or Socket::Option'
+        'expected the first argument to be a Integer, Symbol, String, or Socket::Option'
     end
 
     optval = 1 if optval == true
@@ -92,7 +92,7 @@ class BasicSocket < IO
     optname  = Truffle::Socket::SocketOptions.socket_option(level, optname)
     error    = 0
 
-    if optval.is_a?(Fixnum)
+    if optval.is_a?(Integer)
       Truffle::Socket::Foreign.memory_pointer(:socklen_t) do |pointer|
         pointer.write_int(optval)
 
@@ -107,7 +107,7 @@ class BasicSocket < IO
           .setsockopt(descriptor, level, optname, pointer, optval.bytesize)
       end
     else
-      raise TypeError, 'socket option should be a Fixnum, String, true, or false'
+      raise TypeError, 'socket option should be an Integer, String, true, or false'
     end
 
     Errno.handle('unable to set socket option') if error < 0
