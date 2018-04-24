@@ -93,7 +93,7 @@ class Socket < BasicSocket
       unpacked = @data.unpack('I')[0]
 
       unless unpacked
-        raise TypeError, 'data could not be unpacked into a Fixnum'
+        raise TypeError, 'data could not be unpacked into an Integer'
       end
 
       unpacked

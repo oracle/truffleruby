@@ -36,7 +36,9 @@ class Truffle::BigDecimal < Numeric
   ROUND_HALF_EVEN = 7
 
   def self.mode(key, value = nil)
-    raise ArgumentError, 'requires key to be Fixnum' unless key.is_a? Fixnum
+    key = Truffle::Type.coerce_to_int(key)
+    Truffle::Type.check_long(key)
+
     if key == ROUND_MODE
       Thread.current[:'BigDecimal.rounding_mode'] ||= 3
       if value
@@ -64,8 +66,10 @@ class Truffle::BigDecimal < Numeric
   def self.limit(limit = nil)
     Thread.current[:'BigDecimal.precision_limit'] ||= 0
     if limit
-      raise ArgumentError, 'requires key to be Fixnum' unless limit.is_a? Fixnum
-      old                                           = Thread.current[:'BigDecimal.precision_limit']
+      limit = Truffle::Type.coerce_to_int(limit)
+      Truffle::Type.check_long(limit)
+
+      old = Thread.current[:'BigDecimal.precision_limit']
       Thread.current[:'BigDecimal.precision_limit'] = limit
       old
     else

@@ -47,7 +47,7 @@ class Socket < BasicSocket
       host = '255.255.255.255'
     end
 
-    if service.kind_of?(Fixnum)
+    if service.kind_of?(Integer)
       service = service.to_s
     elsif service
       service = Truffle::Socket.coerce_to_string(service)

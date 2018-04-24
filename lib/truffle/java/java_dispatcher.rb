@@ -135,7 +135,7 @@ module JavaUtilities
     def arg_types(args)
       args.map do |x|
         case x
-        when Fixnum
+        when -> n { Truffle::Type.fits_into_long?(n) }
           :fixnum
         when Float
           :float

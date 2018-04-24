@@ -1076,7 +1076,7 @@ module Truffle::CExt
             obj.encoding
           when File
             obj.internal_encoding || obj.external_encoding
-          when NilClass, Fixnum, Float, TrueClass, FalseClass
+          when NilClass, Integer, Float, TrueClass, FalseClass
             -1
           # TODO BJF Mar-9-2017 Handle T_DATA
           else
@@ -1376,7 +1376,7 @@ module Truffle::CExt
   end
 
   def rb_special_const_p(object)
-    object == nil || object == true || object == false || object.class == Symbol || object.class == Fixnum
+    object == nil || object == true || object == false || object.is_a?(Symbol) || object.is_a?(Integer)
   end
 
   def rb_id2str(sym)
@@ -1934,7 +1934,7 @@ module Truffle::CExt
     id = object.object_id
 
     # This method specifically returns a long for everyday practicality - so return a sentinel value if it's out of range
-    if Fixnum === id && id >= 0
+    if Truffle::Type.fits_into_long?(id) && id >= 0
       id
     else
       0x0101010101010101

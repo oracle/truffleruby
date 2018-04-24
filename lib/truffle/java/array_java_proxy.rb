@@ -51,7 +51,7 @@ begin
 
     def [](*dimensions)
       dimensions.each do |d|
-        raise TypeError, 'Array dimension must be an integer' unless d.kind_of?(Fixnum)
+        raise TypeError, 'Array dimension must be an integer' unless d.kind_of?(Integer)
         dims << d
       end
       self

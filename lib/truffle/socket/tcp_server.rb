@@ -28,7 +28,7 @@ class TCPServer < TCPSocket
   def initialize(host, service = nil)
     @no_reverse_lookup = self.class.do_not_reverse_lookup
 
-    if host.is_a?(Fixnum) and service.nil?
+    if host.is_a?(Integer) and service.nil?
       service = host
       host    = nil
     end
@@ -43,7 +43,7 @@ class TCPServer < TCPSocket
       host = nil
     end
 
-    unless service.is_a?(Fixnum)
+    unless service.is_a?(Integer)
       service = Truffle::Socket.coerce_to_string(service)
     end
 

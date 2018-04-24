@@ -110,7 +110,7 @@ module Truffle
     end
 
     def self.listen(source, backlog)
-      backlog = Truffle::Type.coerce_to(backlog, Fixnum, :to_int)
+      backlog = Truffle::Type.coerce_to_int(backlog)
       err     = Foreign.listen(source.descriptor, backlog)
 
       Error.read_error('listen(2)', source) if err < 0
@@ -344,7 +344,7 @@ module Truffle
         prefixed_socket_constant(how.to_s, 'SHUT_') do
           "unknown shutdown argument: #{how}"
         end
-      when Fixnum
+      when Integer
         if how == ::Socket::SHUT_RD or
           how == ::Socket::SHUT_WR or
           how == ::Socket::SHUT_RDWR
