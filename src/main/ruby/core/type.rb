@@ -422,22 +422,16 @@ module Truffle
       return index if fits_into_long?(index)
 
       index = coerce_to_int(index)
-      if fits_into_long?(index)
-        index
-      else
-        raise RangeError, 'Array index must be a Fixnum (passed Bignum)'
-      end
+      check_long(index)
+      index
     end
 
     def self.coerce_to_collection_length(length)
       return length if fits_into_long?(length)
 
       length = coerce_to_int(length)
-      if fits_into_long?(length)
-        length
-      else
-        raise RangeError, 'Array size must be a Fixnum (passed Bignum)'
-      end
+      check_long(length)
+      length
     end
 
     def self.coerce_to_int(obj)
