@@ -70,7 +70,7 @@ local part_definitions = {
     build: {
       setup+: [
         ["mx", "sversions"],
-        ["mx", "build", "--force-javac", "--warning-as-error", "--force-deprecation-as-warning-for-dependencies"] + self["$.use.build"].extra_args,
+        ["mx", "build", "--force-javac", "--warning-as-error", "--force-deprecation-as-warning"] + self["$.use.build"].extra_args,
       ],
     },
 
@@ -403,7 +403,7 @@ local part_definitions = {
       run+: [
         # Build with ECJ to get warnings
         ["mx", "sversions"],
-        ["mx", "build", "--jdt", "$JDT", "--warning-as-error", "--force-deprecation-as-warning-for-dependencies"],
+        ["mx", "build", "--jdt", "$JDT", "--warning-as-error", "--force-deprecation-as-warning"],
       ] + jt(["lint"]) + [
         ["mx", "findbugs"],
       ],
