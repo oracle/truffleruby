@@ -16,11 +16,11 @@ describe "The launcher" do
     File.expand_path(File.dirname(RbConfig.ruby)).should == bindir
   end
 
-  launchers = { gem:         /^2\.5\.2\.3$/,
+  launchers = { gem:         /^2\.6\.14\.1$/,
                 irb:         /^irb 0\.9\.6/,
                 rake:        /^rake, version [0-9.]+/,
-                rdoc:        /^4\.2\.1$/,
-                ri:          /^ri 4\.2\.1$/,
+                rdoc:        /^5\.0\.0$/,
+                ri:          /^ri 5\.0\.0$/,
                 ruby:        /truffleruby .* like ruby 2\.3\.7/,
                 testrb:      [/^testrb: version unknown$/, true],
                 truffleruby: /truffleruby .* like ruby 2\.3\.7/ }
