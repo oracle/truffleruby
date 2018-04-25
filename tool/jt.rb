@@ -1299,10 +1299,9 @@ EOS
       sh "git", "clone", url
     end
 
-    Remotes.try_fetch(gem_test_pack)
-
     current = `git -C #{gem_test_pack} rev-parse HEAD`.chomp
     unless current == TRUFFLERUBY_GEM_TEST_PACK_VERSION
+      Remotes.try_fetch(gem_test_pack)
       raw_sh "git", "-C", gem_test_pack, "checkout", "-q", TRUFFLERUBY_GEM_TEST_PACK_VERSION
     end
 
