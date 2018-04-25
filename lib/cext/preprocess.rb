@@ -17,6 +17,7 @@ require_relative 'patches/pg_patches'
 require_relative 'patches/puma_patches'
 require_relative 'patches/sqlite3_patches'
 require_relative 'patches/websocket_driver_patches'
+require_relative 'patches/racc_patches'
 
 class Preprocessor
 
@@ -54,6 +55,7 @@ class Preprocessor
   add_gem_patches(PATCHED_FILES, ::PumaPatches::PATCHES)
   add_gem_patches(PATCHED_FILES, ::SQLite3Patches::PATCHES)
   add_gem_patches(PATCHED_FILES, ::WebsocketDriverPatches::PATCHES)
+  add_gem_patches(PATCHED_FILES, ::RaccPatches::PATCHES)
 
   def self.preprocess(line)
     if line =~ VALUE_LOCALS
