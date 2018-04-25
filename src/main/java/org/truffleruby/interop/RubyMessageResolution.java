@@ -11,7 +11,6 @@ package org.truffleruby.interop;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.CanResolve;
 import com.oracle.truffle.api.interop.Message;
@@ -202,11 +201,6 @@ public class RubyMessageResolution {
 
         protected Object access(VirtualFrame frame, DynamicObject object, Object name) {
             return helperNode.executeStringCachingHelper(frame, object, name);
-        }
-
-        @TruffleBoundary
-        private String toString(Object name) {
-            return name.toString();
         }
 
     }
