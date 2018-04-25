@@ -524,7 +524,7 @@ module Commands
 
     add_default_dynamic_imports
 
-    mx 'build', '--force-javac', '--warning-as-error', '--force-deprecation-as-warning-for-dependencies',
+    mx 'build', '--force-javac', '--warning-as-error', '--force-deprecation-as-warning',
        # show more than default 100 errors not to hide actual errors under pile of missing symbols
        '-A-Xmaxerrs', '-A1000', *options
   end
