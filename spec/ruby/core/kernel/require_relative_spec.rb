@@ -67,6 +67,12 @@ describe "Kernel#require_relative with a relative path" do
       Object.new.instance_eval("require_relative(#{@path.inspect})", __FILE__).should be_true
       ScratchPad.recorded.should == [:loaded]
     end
+
+    it "absolute file path loads a path relative to the root directory" do
+      root_relative = @abs_path[1..-1]
+      Object.new.instance_eval("require_relative(#{root_relative.inspect})", "/").should be_true
+      ScratchPad.recorded.should == [:loaded]
+    end
   
   end
 
