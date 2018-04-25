@@ -6,6 +6,8 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
+require_relative 'common_patches'
+
 class ByeBugPatches < CommonPatches
 
   BYEBUG_BYEBUG_INIT = <<-EOF
