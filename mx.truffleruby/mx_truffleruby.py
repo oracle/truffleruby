@@ -309,34 +309,32 @@ def mx_post_parse_cmd_line(opts):
 
 
 mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
+    suite=_suite,
     name='Truffle.Ruby',
     short_name='rby',
     dir_name='ruby',
-    documentation_files=['extracted-dependency:truffleruby:TRUFFLERUBY_GRAALVM_DOCS/README_TRUFFLERUBY.md'],
-    license_files=['link:<support>/GraalCE_Ruby_license_3rd_party_license.txt'],
+    license_files=['GraalCE_Ruby_license_3rd_party_license.txt'],
     third_party_license_files=[],
     truffle_jars=[
-        'dependency:truffleruby:TRUFFLERUBY',
-        # 'dependency:truffleruby:TRUFFLERUBY-LAUNCHER', ??
-        'dependency:truffleruby:TRUFFLERUBY-SHARED',
-        'dependency:truffleruby:TRUFFLERUBY-ANNOTATIONS'
+        'truffleruby:TRUFFLERUBY',
+        'truffleruby:TRUFFLERUBY-SHARED',
+        'truffleruby:TRUFFLERUBY-ANNOTATIONS'
     ],
     support_distributions=[
-        'extracted-dependency:truffleruby:TRUFFLERUBY_GRAALVM_DOCS',
-        'extracted-dependency:truffleruby:TRUFFLERUBY_GRAALVM_SUPPORT',
+        'truffleruby:TRUFFLERUBY_GRAALVM_SUPPORT',
     ],
     provided_executables=[
-        'link:<support>/bin/gem',
-        'link:<support>/bin/irb',
-        'link:<support>/bin/rake',
-        'link:<support>/bin/rdoc',
-        'link:<support>/bin/ri',
-        'link:<support>/bin/testrb',
+        'bin/gem',
+        'bin/irb',
+        'bin/rake',
+        'bin/rdoc',
+        'bin/ri',
+        'bin/testrb',
     ],
     launcher_configs=[
         mx_sdk.LanguageLauncherConfig(
             destination='bin/<exe:ruby>',
-            jar_distributions=['dependency:truffleruby:TRUFFLERUBY-LAUNCHER'],
+            jar_distributions=['truffleruby:TRUFFLERUBY-LAUNCHER'],
             main_class='org.truffleruby.launcher.RubyLauncher',
             build_args=[
                 '--language:llvm',
@@ -346,7 +344,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
             links=['bin/<exe:truffleruby>'],
         )
     ],
-), _suite)
+))
 
 mx.update_commands(_suite, {
     'ruby': [ruby_run_ruby, ''],

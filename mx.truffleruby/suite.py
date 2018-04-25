@@ -378,14 +378,6 @@ suite = {
             ],
         },
 
-        "TRUFFLERUBY_GRAALVM_DOCS" : {
-            "native" : True,
-            "description" : "TruffleRuby documentation files for the GraalVM",
-            "layout" : {
-                "README_TRUFFLERUBY.md" : "file:README.md",
-            },
-        },
-
         "TRUFFLERUBY_GRAALVM_SUPPORT" : {
             "native": True,
             "platformDependent": True,
@@ -398,6 +390,7 @@ suite = {
                     "file:lib",  # contains some results from truffleruby-cext
                     "file:CHANGELOG.md",
                     "file:mx.truffleruby/GraalCE_Ruby_license_3rd_party_license.txt",
+                    "file:README.md",
                 ],
                 "native-image.properties" : ["file:mx.truffleruby/graalvm.properties"],
                 "bin/" : [
