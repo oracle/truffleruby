@@ -1,0 +1,11 @@
+slow:Single-threaded mode should give a helpful error if a thread is created
+slow:Single-threaded mode allows native memory finalisers created before interop
+slow:Single-threaded mode allows native memory finalisers created after interop
+slow:Single-threaded mode allows files to be read before interop
+slow:Single-threaded mode allows files to be read after interop
+slow:Interop with a single-threaded language in non-single-threaded mode should give a helpful error if a thread has already been created
+slow:Interop with a single-threaded language in non-single-threaded mode should give a helpful error if a thread is created later
+slow:Interop with a single-threaded language in non-single-threaded mode allows native memory finalisers created before interop
+slow:Interop with a single-threaded language in non-single-threaded mode allows native memory finalisers created after interop
+slow:Interop with a single-threaded language in non-single-threaded mode allows files to be read before interop
+slow:Interop with a single-threaded language in non-single-threaded mode allows files to be read after interop

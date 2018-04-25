@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -124,17 +125,18 @@ public class FiberManager {
     public void initialize(DynamicObject fiber, DynamicObject block, Node currentNode) {
         context.getThreadManager().spawnFiber(() -> fiberMain(context, fiber, block, currentNode));
 
-        waitForInitialization(context, fiber, currentNode);
+        if (!waitForInitialization(context, fiber, currentNode)) {
+            throw new RuntimeException("the root fiber for a thread did not initialize in reasonable time");
+        }
     }
 
     /** Wait for full initialization of the new fiber */
-    public static void waitForInitialization(RubyContext context, DynamicObject fiber, Node currentNode) {
+    public static boolean waitForInitialization(RubyContext context, DynamicObject fiber, Node currentNode) {
         final CountDownLatch initializedLatch = Layouts.FIBER.getInitializedLatch(fiber);
 
-        context.getThreadManager().runUntilResultKeepStatus(currentNode, () -> {
-            initializedLatch.await();
-            return BlockingAction.SUCCESS;
-        });
+        return context.getThreadManager().runUntilResultKeepStatus(currentNode, () ->
+            initializedLatch.await(3, TimeUnit.SECONDS)
+        );
     }
 
     private static final BranchProfile UNPROFILED = BranchProfile.create();

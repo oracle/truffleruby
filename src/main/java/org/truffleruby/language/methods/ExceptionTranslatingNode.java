@@ -243,6 +243,11 @@ public class ExceptionTranslatingNode extends RubyNode {
             }
         }
 
+        if (throwable instanceof IllegalStateException
+                && throwable.getMessage().startsWith("Multi threaded access requested")) {
+            return coreExceptions().securityError(throwable.getMessage() + " Try running Ruby in single-threaded mode by using -Xsingle_threaded or --ruby.single_threaded.", this);
+        }
+
         Throwable t = throwable;
         if (t instanceof JavaException) {
             t = t.getCause();

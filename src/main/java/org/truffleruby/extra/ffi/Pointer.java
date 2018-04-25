@@ -191,7 +191,7 @@ public class Pointer implements AutoCloseable {
 
         // We must be careful here that the finalizer does not capture the Pointer itself that we'd
         // like to finalize.
-        finalizationService.addFinalizer(this, Pointer.class, new FreeAddressFinalizer(address));
+        finalizationService.addFinalizer(false, this, Pointer.class, new FreeAddressFinalizer(address), null);
 
         autorelease = true;
     }
@@ -221,7 +221,7 @@ public class Pointer implements AutoCloseable {
             return;
         }
 
-        finalizationService.removeFinalizers(this, Pointer.class);
+        finalizationService.removeFinalizers(false, this, Pointer.class);
 
         autorelease = false;
     }

@@ -89,20 +89,30 @@ public class FinalizationService {
 
     private final RubyContext context;
 
-    private final Map<Object, FinalizerReference> finalizerReferences = new WeakHashMap<>();
-    private final ReferenceQueue<Object> finalizerQueue = new ReferenceQueue<>();
+    private final Map<Object, FinalizerReference> inContextFinalizerReferences = new WeakHashMap<>();
+    private final ReferenceQueue<Object> inContextFinalizerQueue = new ReferenceQueue<>();
+    private DynamicObject inContextFinalizerThread;
 
-    private DynamicObject finalizerThread;
+    private final Map<Object, FinalizerReference> outOfContextFinalizerReferences = new WeakHashMap<>();
+    private final ReferenceQueue<Object> outOfContextFinalizerQueue = new ReferenceQueue<>();
+    private Thread outOfContextFinalizerThread;
 
     public FinalizationService(RubyContext context) {
         this.context = context;
     }
 
-    public void addFinalizer(Object object, Class<?> owner, Runnable action) {
-        addFinalizer(object, owner, action, null);
-    }
+    public synchronized void addFinalizer(boolean inContext, Object object, Class<?> owner, Runnable action, DynamicObject root) {
+        final Map<Object, FinalizerReference> finalizerReferences;
+        final ReferenceQueue<Object> finalizerQueue;
 
-    public synchronized void addFinalizer(Object object, Class<?> owner, Runnable action, DynamicObject root) {
+        if (inContext) {
+            finalizerReferences = inContextFinalizerReferences;
+            finalizerQueue = inContextFinalizerQueue;
+        } else {
+            finalizerReferences = outOfContextFinalizerReferences;
+            finalizerQueue = outOfContextFinalizerQueue;
+        }
+
         FinalizerReference finalizerReference = finalizerReferences.get(object);
 
         if (finalizerReference == null) {
@@ -113,29 +123,32 @@ public class FinalizationService {
         finalizerReference.addFinalizer(owner, action, root);
 
         if (context.getOptions().SINGLE_THREADED) {
-
-            drainFinalizationQueue();
-
+            drainFinalizationQueue(finalizerQueue);
         } else {
+            if (inContext) {
+                /*
+                 * We can't create a new thread while the context is initializing or finalizing, as the
+                 * polyglot API locks on creating new threads, and some core loading does things such as
+                 * stat files which could allocate memory that is marked to be automatically freed and so
+                 * would want to start the finalization thread. So don't start the finalization thread if we
+                 * are initializing. We will rely on some other finalizer to be created to ever free this
+                 * memory allocated during startup, but that's a reasonable assumption and a low risk of
+                 * leaking a tiny number of bytes if it doesn't hold.
+                 */
 
-            /*
-             * We can't create a new thread while the context is initializing or finalizing, as the
-             * polyglot API locks on creating new threads, and some core loading does things such as
-             * stat files which could allocate memory that is marked to be automatically freed and so
-             * would want to start the finalization thread. So don't start the finalization thread if we
-             * are initializing. We will rely on some other finalizer to be created to ever free this
-             * memory allocated during startup, but that's a reasonable assumption and a low risk of
-             * leaking a tiny number of bytes if it doesn't hold.
-             */
-
-            if (finalizerThread == null && !context.isPreInitializing() && context.isInitialized() && !context.isFinalizing()) {
-                createFinalizationThread();
+                if (inContextFinalizerThread == null && !context.isPreInitializing() && context.isInitialized() && !context.isFinalizing()) {
+                    createInContextFinalizationThread();
+                }
+            } else {
+                if (outOfContextFinalizerThread == null) {
+                    createOutOfContextFinalizationThread();
+                }
             }
 
         }
     }
 
-    private final void drainFinalizationQueue() {
+    private final void drainFinalizationQueue(ReferenceQueue<Object> finalizerQueue) {
         while (true) {
             final FinalizerReference finalizerReference = (FinalizerReference) finalizerQueue.poll();
 
@@ -147,19 +160,42 @@ public class FinalizationService {
         }
     }
 
-    private void createFinalizationThread() {
-        final ThreadManager threadManager = context.getThreadManager();
-        finalizerThread = threadManager.createBootThread("finalizer");
-        context.send(finalizerThread, "internal_thread_initialize");
+    private void createInContextFinalizationThread() {
+        final String name = "ruby-in-context-finalizer";
 
-        threadManager.initialize(finalizerThread, null, "finalizer", () -> {
+        final ThreadManager threadManager = context.getThreadManager();
+        inContextFinalizerThread = threadManager.createBootThread(name);
+        context.send(inContextFinalizerThread, "internal_thread_initialize");
+
+        threadManager.initialize(inContextFinalizerThread, null, name, () -> {
             while (true) {
                 final FinalizerReference finalizerReference = (FinalizerReference) threadManager.runUntilResult(null,
-                        finalizerQueue::remove);
+                        inContextFinalizerQueue::remove);
 
                 runFinalizer(finalizerReference);
             }
         });
+    }
+
+    private void createOutOfContextFinalizationThread() {
+        outOfContextFinalizerThread = new Thread(() -> {
+            while (true) {
+                final FinalizerReference finalizerReference;
+
+                try {
+                    finalizerReference = (FinalizerReference) outOfContextFinalizerQueue.remove();
+                } catch (InterruptedException e) {
+                    continue;
+                }
+
+                runFinalizer(finalizerReference);
+            }
+        });
+
+        outOfContextFinalizerThread.setName("ruby-out-of-context-finalizer");
+        outOfContextFinalizerThread.setDaemon(true);
+
+        outOfContextFinalizerThread.start();
     }
 
     private void runFinalizer(FinalizerReference finalizerReference) {
@@ -179,21 +215,33 @@ public class FinalizationService {
             throw e;
         } catch (RaiseException e) {
             context.getCoreExceptions().showExceptionIfDebug(e.getException());
-        } catch (Exception e) {
+        } catch (Throwable t) {
             // Do nothing, the finalizer thread must continue to process objects.
             if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
-                e.printStackTrace();
+                t.printStackTrace();
             }
         }
     }
 
     public void runAllFinalizersOnExit() {
-        for (Entry<Object, FinalizerReference> entry : finalizerReferences.entrySet()) {
+        for (Entry<Object, FinalizerReference> entry : inContextFinalizerReferences.entrySet()) {
+            runFinalizer(entry.getValue());
+        }
+
+        for (Entry<Object, FinalizerReference> entry : outOfContextFinalizerReferences.entrySet()) {
             runFinalizer(entry.getValue());
         }
     }
 
-    public synchronized void removeFinalizers(Object object, Class<?> owner) {
+    public synchronized void removeFinalizers(boolean inContext, Object object, Class<?> owner) {
+        final Map<Object, FinalizerReference> finalizerReferences;
+
+        if (inContext) {
+            finalizerReferences = inContextFinalizerReferences;
+        } else {
+            finalizerReferences = outOfContextFinalizerReferences;
+        }
+
         final FinalizerReference finalizerReference = finalizerReferences.get(object);
 
         if (finalizerReference != null) {
@@ -202,7 +250,11 @@ public class FinalizationService {
     }
 
     public synchronized void collectRoots(Collection<DynamicObject> roots) {
-        for (FinalizerReference finalizerReference : finalizerReferences.values()) {
+        for (FinalizerReference finalizerReference : inContextFinalizerReferences.values()) {
+            finalizerReference.collectRoots(roots);
+        }
+
+        for (FinalizerReference finalizerReference : outOfContextFinalizerReferences.values()) {
             finalizerReference.collectRoots(roots);
         }
     }

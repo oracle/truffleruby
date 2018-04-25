@@ -10,6 +10,20 @@ Changes:
 
 * The inline JavaScript functionality `-Xinline_js` has been removed.
 
+* You'll now get a more helpful error message telling you to use
+  `-Xsingle_threaded` when you try to use a single-threaded language like
+  JavaScript in multi-threaded mode.
+  
+* You'll now get a more helpful error message if you use a single-threaded
+  language and then later try to create a thread.
+
+* Auto-releasing unmanaged memory no longer creates a Truffle thread, so doesn't
+  cause an error and a hang if you do it after a single-threaded language has
+  been used.
+  
+* An error message is now printed if a thread is created but for some reason
+  never responds.
+
 # 1.0 RC 1, April 2018
 
 New features:
