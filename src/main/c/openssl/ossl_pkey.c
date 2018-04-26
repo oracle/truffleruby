@@ -147,11 +147,11 @@ ossl_pkey_new_from_data(int argc, VALUE *argv, VALUE self)
     bio = ossl_obj2bio_x(data);
     if (!(pkey = d2i_PrivateKey_bio(bio, NULL))) {
 	OSSL_BIO_reset(bio);
-	if (!(pkey = PEM_read_bio_PrivateKey(bio, NULL, ossl_pem_passwd_cb, (void *)pass))) {
+	if (!(pkey = PEM_read_bio_PrivateKey(bio, NULL, ossl_pem_passwd_cb, rb_tr_handle_for_managed(pass)))) {
 	    OSSL_BIO_reset(bio);
 	    if (!(pkey = d2i_PUBKEY_bio(bio, NULL))) {
 		OSSL_BIO_reset(bio);
-		pkey = PEM_read_bio_PUBKEY(bio, NULL, ossl_pem_passwd_cb, (void *)pass);
+		pkey = PEM_read_bio_PUBKEY(bio, NULL, ossl_pem_passwd_cb, rb_tr_handle_for_managed(pass));
 	    }
 	}
     }
