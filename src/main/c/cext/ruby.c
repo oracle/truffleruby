@@ -78,15 +78,18 @@ void ruby_xfree(void *address) {
   free(address);
 }
 
-void *rb_alloc_tmp_buffer(volatile VALUE *buffer_pointer, long length) {
-  // TODO CS 13-Apr-17 MRI sometimes uses alloc and sometimes malloc, and wraps it in a Ruby object - is rb_free_tmp_buffer guaranteed to be called or do we need to free in a finalizer?
-  void *space = malloc(length);
-  *((void**) buffer_pointer) = space;
-  return space;
+void *rb_alloc_tmp_buffer(volatile VALUE *store, long len) {
+  void *ptr = malloc(len);
+  *((void**)store) = ptr;
+  return ptr;
 }
 
-void rb_free_tmp_buffer(volatile VALUE *buffer_pointer) {
-  free(*((void**) buffer_pointer));
+void *rb_alloc_tmp_buffer_with_count(volatile VALUE *store, size_t size, size_t cnt) {
+  return rb_alloc_tmp_buffer(store, size);
+}
+
+void rb_free_tmp_buffer(volatile VALUE *store) {
+  free(*((void**)store));
 }
 
 // Types
