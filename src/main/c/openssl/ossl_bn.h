@@ -15,10 +15,12 @@ extern VALUE eBNError;
 
 extern BN_CTX *ossl_bn_ctx;
 
-#define GetBNPtr(obj) ossl_bn_value_ptr(&(obj))
+// TruffleRuby: avoid taking address of local variables
+#define GetBNPtr(obj) ossl_bn_value_ptr_x(obj)
 
 VALUE ossl_bn_new(const BIGNUM *);
 BIGNUM *ossl_bn_value_ptr(volatile VALUE *);
+BIGNUM *ossl_bn_value_ptr_x(VALUE);
 void Init_ossl_bn(void);
 
 
