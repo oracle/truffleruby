@@ -4051,7 +4051,7 @@ VALUE rb_gc_latest_gc_info(VALUE key) {
 }
 
 VALUE rb_check_hash_type(VALUE hash) {
-  rb_tr_error("rb_check_hash_type not implemented");
+  return rb_check_convert_type(hash, T_HASH, "Hash", "to_hash");
 }
 
 VALUE rb_hash_update_by(VALUE hash1, VALUE hash2, rb_hash_update_func *func) {
