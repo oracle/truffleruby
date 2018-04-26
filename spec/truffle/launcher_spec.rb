@@ -232,7 +232,7 @@ describe "The launcher" do
   it "prints help:languages containing ruby language options" do
     out = ruby_exe(nil, options: "--help:languages", args: "2>&1")
     $?.success?.should == true
-    out.should include("Language Options:")
+    out.should =~ /language options/i
     out.should include("Ruby:")
     out.should include("--ruby.load_paths=")
   end
@@ -241,7 +241,7 @@ describe "The launcher" do
     it "prints help:languages containing llvm language options" do
       out = ruby_exe(nil, options: "--help:languages", args: "2>&1")
       $?.success?.should == true
-      out.should include("Language Options:")
+      out.should =~ /language options/i
       out.should include("llvm:")
       out.should include("--llvm.libraryPath=")
     end
