@@ -4454,7 +4454,7 @@ long rb_str_offset(VALUE str, long pos) {
 }
 
 size_t rb_str_capacity(VALUE str) {
-  rb_tr_error("rb_str_capacity not implemented");
+  return polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_str_capacity", str));
 }
 
 VALUE rb_str_ellipsize(VALUE str, long len) {

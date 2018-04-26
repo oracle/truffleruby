@@ -408,6 +408,19 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_str_capacity", onSingleton = true, required = 1)
+    public abstract static class RbStrCapacityNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public long capacity(DynamicObject string,
+                @Cached("create()") StringToNativeNode stringToNativeNode) {
+            final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
+            final long nativeBufferSize = nativeRope.getNativePointer().getSize();
+            assert nativeBufferSize > 0;
+            return nativeBufferSize - 1; // Do not count the extra byte for \0, like MRI.
+        }
+
+    }
 
     @CoreMethod(names = "rb_str_set_len", onSingleton = true, required = 2, lowerFixnum = 2)
     public abstract static class RbStrSetLenNode extends CoreMethodArrayArgumentsNode {
