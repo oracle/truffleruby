@@ -550,7 +550,7 @@ struct zstream {
 #define ZSTREAM_IS_FINISHED(z) ((z)->flags & ZSTREAM_FLAG_FINISHED)
 #define ZSTREAM_IS_CLOSING(z)  ((z)->flags & ZSTREAM_FLAG_CLOSING)
 #define ZSTREAM_IS_GZFILE(z)   ((z)->flags & ZSTREAM_FLAG_GZFILE)
-#define ZSTREAM_BUF_FILLED(z)  (NIL_P((z)->buf) ? 0 : RSTRING_LEN((z)->buf))
+#define ZSTREAM_BUF_FILLED(z)  (NIL_P(rb_tr_managed_from_handle((z)->buf)) ? 0 : RSTRING_LEN(rb_tr_managed_from_handle((z)->buf)))
 
 #define ZSTREAM_EXPAND_BUFFER_OK          0
 
@@ -937,7 +937,7 @@ zstream_run_func(void *ptr)
     while (!args->interrupt) {
 	n = z->stream.avail_out;
 	err = z->func->run(&z->stream, flush);
-	rb_str_set_len(z->buf, ZSTREAM_BUF_FILLED(z) + (n - z->stream.avail_out));
+	rb_str_set_len(rb_tr_managed_from_handle(z->buf), ZSTREAM_BUF_FILLED(z) + (n - z->stream.avail_out));
 
 	if (err == Z_STREAM_END) {
 	    z->flags &= ~ZSTREAM_FLAG_IN_STREAM;
@@ -1740,7 +1740,7 @@ rb_deflate_params(VALUE obj, VALUE v_level, VALUE v_strategy)
     while (err == Z_BUF_ERROR) {
 	rb_warning("deflateParams() returned Z_BUF_ERROR");
 	zstream_expand_buffer(z);
-	rb_str_set_len(z->buf, RSTRING_LEN(z->buf) + filled);
+	rb_str_set_len(rb_tr_managed_from_handle(z->buf), RSTRING_LEN(rb_tr_managed_from_handle(z->buf)) + filled);
 	n = z->stream.avail_out;
 	err = deflateParams(&z->stream, level, strategy);
 	filled = n - z->stream.avail_out;
@@ -1748,7 +1748,7 @@ rb_deflate_params(VALUE obj, VALUE v_level, VALUE v_strategy)
     if (err != Z_OK) {
 	raise_zlib_error(err, z->stream.msg);
     }
-    rb_str_set_len(z->buf, RSTRING_LEN(z->buf) + filled);
+    rb_str_set_len(rb_tr_managed_from_handle(z->buf), RSTRING_LEN(rb_tr_managed_from_handle(z->buf)) + filled);
 
     return Qnil;
 }
