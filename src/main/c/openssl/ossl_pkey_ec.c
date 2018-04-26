@@ -219,10 +219,10 @@ static VALUE ossl_ec_key_initialize(int argc, VALUE *argv, VALUE self)
 	pass = ossl_pem_passwd_value(pass);
 	in = ossl_obj2bio_x(arg);
 
-	ec = PEM_read_bio_ECPrivateKey(in, NULL, ossl_pem_passwd_cb, (void *)pass);
+	ec = PEM_read_bio_ECPrivateKey(in, NULL, ossl_pem_passwd_cb, rb_tr_handle_for_managed(pass));
 	if (!ec) {
 	    OSSL_BIO_reset(in);
-	    ec = PEM_read_bio_EC_PUBKEY(in, NULL, ossl_pem_passwd_cb, (void *)pass);
+	    ec = PEM_read_bio_EC_PUBKEY(in, NULL, ossl_pem_passwd_cb, rb_tr_handle_for_managed(pass));
 	}
 	if (!ec) {
 	    OSSL_BIO_reset(in);
@@ -468,7 +468,7 @@ static VALUE ossl_ec_key_to_string(VALUE self, VALUE ciph, VALUE pass, int forma
     switch(format) {
     case EXPORT_PEM:
     	if (private) {
-            i = PEM_write_bio_ECPrivateKey(out, ec, cipher, NULL, 0, ossl_pem_passwd_cb, (void *)pass);
+            i = PEM_write_bio_ECPrivateKey(out, ec, cipher, NULL, 0, ossl_pem_passwd_cb, rb_tr_handle_for_managed(pass));
     	} else {
             i = PEM_write_bio_EC_PUBKEY(out, ec);
         }
