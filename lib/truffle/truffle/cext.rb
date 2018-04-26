@@ -1376,7 +1376,7 @@ module Truffle::CExt
   end
 
   def rb_special_const_p(object)
-    object == nil || object == true || object == false || object.is_a?(Symbol) || object.is_a?(Integer)
+    object == nil || object == true || object == false || object.is_a?(Symbol) || Truffle::Type.fits_into_long?(object)
   end
 
   def rb_id2str(sym)
