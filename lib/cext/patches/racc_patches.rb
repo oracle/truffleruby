@@ -50,22 +50,6 @@ class RaccPatches < CommonPatches
             match: 'reduce0(VALUE val, VALUE data, VALUE self)',
             replacement: 'reduce0(VALUE val, VALUE data)'
         },
-        { # We don't guarantee we #define macros, but racc has backwards-compatiblity code to check for them. Undo racc's work to avoid bad redefinitions of our implementations.
-            match: 'define ID2SYM(i) ULONG2NUM(i)',
-            replacement: 'define ID2SYM_DEAD_CODE(i) ULONG2NUM(i)'
-        },
-        { # We don't guarantee we #define macros, but racc has backwards-compatiblity code to check for them. Undo racc's work to avoid bad redefinitions of our implementations.
-            match: 'define SYM2ID(v) ((ID)NUM2ULONG(v))',
-            replacement: 'define SYM2ID_DEAD_CODE(v) ((ID)NUM2ULONG(v))'
-        },
-        { # We don't guarantee we #define macros, but racc has backwards-compatiblity code to check for them. Undo racc's work to avoid bad redefinitions of our implementations.
-            match: 'define SYMBOL_P(v) FIXNUM_P(v)',
-            replacement: 'define SYMBOL_P_DEAD_CODE(v) FIXNUM_P(v)'
-        },
-        { # We don't guarantee we #define macros, but racc has backwards-compatiblity code to check for them. Undo racc's work to avoid bad redefinitions of our implementations.
-            match: 'define LONG2NUM(i) INT2NUM(i)',
-            replacement: 'define LONG2NUM_DEAD_CODE(i) INT2NUM(i)'
-        },
         { # racc_cparse and racc_yyparse
           match: 'volatile VALUE',
           replacement: 'VALUE'
