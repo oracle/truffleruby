@@ -13,7 +13,7 @@ objects, but instead either see primitive types which have been converted
 (numeric types and string), or other types wrapped in a proxy class. These
 classes are organised under the `::Java` module according to their Java package.
 For example `java.lang.Object` would have a proxy class created as
-`::Java::JavaUtil::Object`. To make it feel more natural when accessing Java
+`::Java::JavaLang::Object`. To make it feel more natural when accessing Java
 classes they can also be accessed using `Kernel#java` to return the `java`
 package, with sub-package objects created as necessary, so you can write
 `java.lang.Object.new` to create a new instance of an object. In a similar
