@@ -36,6 +36,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
@@ -408,6 +409,20 @@ public class CExtNodes {
     }
 
 
+    @CoreMethod(names = "rb_str_set_len", onSingleton = true, required = 2, lowerFixnum = 2)
+    public abstract static class RbStrSetLenNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject strSetLen(DynamicObject string, int len,
+                @Cached("create()") StringToNativeNode stringToNativeNode) {
+            final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
+            final NativeRope newNativeRope = nativeRope.withByteLength(len);
+            StringOperations.setRope(string, newNativeRope);
+            return string;
+        }
+
+    }
+
     @CoreMethod(names = "rb_str_resize", onSingleton = true, required = 2, lowerFixnum = 2)
     public abstract static class RbStrResizeNode extends CoreMethodArrayArgumentsNode {
 
@@ -765,11 +780,17 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "string_pointer_to_native", onSingleton = true, required = 1)
-    public abstract static class StringPointerToNativeNode extends CoreMethodArrayArgumentsNode {
+    @NodeChild("string")
+    public abstract static class StringToNativeNode extends RubyNode {
+
+        public static StringToNativeNode create() {
+            return StringToNativeNodeGen.create(null);
+        }
+
+        public abstract NativeRope executeToNative(DynamicObject string);
 
         @Specialization(guards = "isRubyString(string)")
-        public long toNative(DynamicObject string,
+        protected NativeRope toNative(DynamicObject string,
                 @Cached("createBinaryProfile()") ConditionProfile convertProfile,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope currentRope = rope(string);
@@ -783,6 +804,19 @@ public class CExtNodes {
                         currentRope.getCodeRange());
                 StringOperations.setRope(string, nativeRope);
             }
+
+            return nativeRope;
+        }
+
+    }
+
+    @CoreMethod(names = "string_pointer_to_native", onSingleton = true, required = 1)
+    public abstract static class StringPointerToNativeNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(string)")
+        public long toNative(DynamicObject string,
+                @Cached("create()") StringToNativeNode stringToNativeNode) {
+            final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
             return nativeRope.getNativePointer().getAddress();
         }
