@@ -20,11 +20,6 @@ require_relative 'patches/websocket_driver_patches'
 
 class Preprocessor
 
-  LOCAL = /\w+\s*(\[\s*\d+\s*\])?/
-  VALUE_LOCALS = /^(?<before>\s+)VALUE\s+(?<locals>#{LOCAL}(\s*,\s*#{LOCAL})*);(?<after>\s*(\/\/.+)?)$/
-
-  ALLOCA_LOCALS = /^(?<before>\s+)VALUE\s*\*\s*(?<var>[a-z_][a-zA-Z_0-9]*)\s*=\s*(\(\s*VALUE\s*\*\s*\)\s*)?alloca\(/
-
   PATCHED_FILES = {}
 
   def self.add_gem_patches(patch_hash, gem_patches)
@@ -54,6 +49,11 @@ class Preprocessor
   add_gem_patches(PATCHED_FILES, ::PumaPatches::PATCHES)
   add_gem_patches(PATCHED_FILES, ::SQLite3Patches::PATCHES)
   add_gem_patches(PATCHED_FILES, ::WebsocketDriverPatches::PATCHES)
+
+  LOCAL = /\w+\s*(\[\s*\d+\s*\])?/
+  VALUE_LOCALS = /^(?<before>\s+)VALUE\s+(?<locals>#{LOCAL}(\s*,\s*#{LOCAL})*);(?<after>\s*(\/\/.+)?)$/
+
+  ALLOCA_LOCALS = /^(?<before>\s+)VALUE\s*\*\s*(?<var>[a-z_][a-zA-Z_0-9]*)\s*=\s*(\(\s*VALUE\s*\*\s*\)\s*)?alloca\(/
 
   def self.preprocess(line)
     if line =~ VALUE_LOCALS
