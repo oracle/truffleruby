@@ -43,6 +43,7 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Log;
@@ -50,6 +51,7 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.rope.CodeRange;
@@ -57,6 +59,8 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.interop.FromJavaStringNode;
+import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.Platform;
@@ -85,6 +89,31 @@ public abstract class TruffleSystemNodes {
                 store[i++] = makeStringNode.executeMake(variable, localeEncoding, CodeRange.CR_UNKNOWN);
             }
             return createArray(store, size);
+        }
+
+    }
+
+    @Primitive(name = "java_get_env", needsSelf = false)
+    public abstract static class JavaGetEnv extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(name)")
+        public DynamicObject javaGetEnv(DynamicObject name,
+                                        @Cached("create()") ToJavaStringNode toJavaStringNode,
+                                        @Cached("create()") FromJavaStringNode fromJavaStringNode,
+                                        @Cached("createBinaryProfile()") ConditionProfile nullValueProfile) {
+            final String javaName = toJavaStringNode.executeToJavaString(name);
+            final String value = getEnv(javaName);
+
+            if (nullValueProfile.profile(value == null)) {
+                return nil();
+            } else {
+                return fromJavaStringNode.executeFromJavaString(value);
+            }
+        }
+
+        @TruffleBoundary
+        private String getEnv(String name) {
+            return System.getenv(name);
         }
 
     }

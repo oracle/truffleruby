@@ -23,6 +23,7 @@ if Truffle::Boot.ruby_home
       Truffle::Boot.print_time_metric :'before-patching'
       require 'truffle/patching'
       Truffle::Patching.insert_patching_dir 'stdlib', "#{Truffle::Boot.ruby_home}/lib/mri"
+      Truffle::Boot.delay { Truffle::Patching.install_local_patches }
       Truffle::Boot.print_time_metric :'after-patching'
     end
   rescue LoadError => e
