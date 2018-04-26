@@ -849,8 +849,8 @@ zstream_discard_input(struct zstream *z, long len)
 	z->input = rb_tr_handle_for_managed_leaking(Qnil);
     }
     else {
-	z->input = rb_str_substr(rb_tr_managed_from_handle(z->input), len,
-				 RSTRING_LEN(rb_tr_managed_from_handle(z->input)) - len);
+	z->input = rb_tr_handle_for_managed_leaking(rb_str_substr(rb_tr_managed_from_handle(z->input), len,
+				 RSTRING_LEN(rb_tr_managed_from_handle(z->input)) - len));
     }
 }
 
