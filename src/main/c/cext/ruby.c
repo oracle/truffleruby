@@ -4417,7 +4417,20 @@ long rb_str_sublen(VALUE str, long pos) {
 }
 
 void rb_str_modify_expand(VALUE str, long expand) {
-  rb_tr_error("rb_str_modify_expand not implemented");
+  long len = RSTRING_LEN(str);
+  if (expand < 0) {
+    rb_raise(rb_eArgError, "negative expanding string size");
+  }
+  if (expand > LONG_MAX - len) {
+    rb_raise(rb_eArgError, "string size too big");
+  }
+
+  if (expand > 0) {
+    // Resize the native buffer but do not change RSTRING_LEN/byteLength
+    // TODO (eregon, 26 Apr 2018): Do this more directly.
+    rb_str_resize(str, len + expand);
+    rb_str_set_len(str, len);
+  }
 }
 
 #undef rb_str_cat_cstr
