@@ -79,4 +79,21 @@ module Truffle::Patching
     end
   end
 
+  # Allows specifying patching outside the context of RubyGems by setting an environment variable value.
+  # E.g., setting TRUFFLERUBY_CUSTOM_PATCH='launchy:lib,spec' will allow patching of files in the 'lib' and 'spec'
+  # of a local checkout of the 'launchy' gem.
+  def install_local_patches
+    custom_patch = Truffle.invoke_primitive :java_get_env, 'TRUFFLERUBY_CUSTOM_PATCH' # Use the primitive here rather than ENV so it works if native is disabled.
+
+    if custom_patch
+      name, paths = custom_patch.split(':')
+      begin
+        Truffle::Patching.insert_patching_dir name, *paths.split(',')
+      rescue # rubocop:disable Lint/HandleExceptions
+        # We don't want to fail patching just because an environment variable is visible to a process. This might be
+        # the case when running with rake where the rake process won't need the patches but the tests it spawns will.
+      end
+    end
+  end
+
 end
