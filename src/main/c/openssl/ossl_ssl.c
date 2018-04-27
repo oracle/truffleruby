@@ -211,7 +211,7 @@ ossl_client_cert_cb(SSL *ssl, X509 **x509, EVP_PKEY **pkey)
 {
     VALUE obj, ret;
 
-    obj = (VALUE)SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx);
+    obj = rb_tr_managed_from_handle(SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx));
     ret = rb_protect(ossl_call_client_cert_cb, obj, NULL);
     if (NIL_P(ret))
 	return 0;
@@ -260,7 +260,7 @@ ossl_tmp_dh_callback(SSL *ssl, int is_export, int keylength)
     struct tmp_dh_callback_args args;
     int state;
 
-    rb_ssl = (VALUE)SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx);
+    rb_ssl = rb_tr_managed_from_handle(SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx));
     args.ssl_obj = rb_ssl;
     args.id = id_tmp_dh_callback;
     args.is_export = is_export;
@@ -289,7 +289,7 @@ ossl_tmp_ecdh_callback(SSL *ssl, int is_export, int keylength)
     struct tmp_dh_callback_args args;
     int state;
 
-    rb_ssl = (VALUE)SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx);
+    rb_ssl = rb_tr_managed_from_handle(SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx));
     args.ssl_obj = rb_ssl;
     args.id = id_tmp_ecdh_callback;
     args.is_export = is_export;
@@ -317,7 +317,7 @@ call_verify_certificate_identity(VALUE ctx_v)
     VALUE ssl_obj, hostname, cert_obj;
 
     ssl = X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
-    ssl_obj = (VALUE)SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx);
+    ssl_obj = rb_tr_managed_from_handle(SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx));
     hostname = rb_attr_get(ssl_obj, id_i_hostname);
 
     if (!RTEST(hostname)) {
@@ -338,8 +338,8 @@ ossl_ssl_verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
     int status;
 
     ssl = X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
-    cb = (VALUE)SSL_get_ex_data(ssl, ossl_ssl_ex_vcb_idx);
-    ssl_obj = (VALUE)SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx);
+    cb = rb_tr_managed_from_handle(SSL_get_ex_data(ssl, ossl_ssl_ex_vcb_idx));
+    ssl_obj = rb_tr_managed_from_handle(SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx));
     sslctx_obj = rb_attr_get(ssl_obj, id_i_context);
     verify_hostname = rb_attr_get(sslctx_obj, id_i_verify_hostname);
 
@@ -386,7 +386,7 @@ ossl_sslctx_session_get_cb(SSL *ssl, unsigned char *buf, int len, int *copy)
     OSSL_Debug("SSL SESSION get callback entered");
     if ((ptr = SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx)) == NULL)
     	return NULL;
-    ssl_obj = (VALUE)ptr;
+    ssl_obj = rb_tr_managed_from_handle(ptr);
     ary = rb_ary_new2(2);
     rb_ary_push(ary, ssl_obj);
     rb_ary_push(ary, rb_str_new((const char *)buf, len));
@@ -431,7 +431,7 @@ ossl_sslctx_session_new_cb(SSL *ssl, SSL_SESSION *sess)
 
     if ((ptr = SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx)) == NULL)
     	return 1;
-    ssl_obj = (VALUE)ptr;
+    ssl_obj = rb_tr_managed_from_handle(ptr);
     sess_obj = rb_obj_alloc(cSSLSession);
     SSL_SESSION_up_ref(sess);
     DATA_PTR(sess_obj) = sess;
@@ -567,7 +567,7 @@ ssl_servername_cb(SSL *ssl, int *ad, void *arg)
 
     if ((ptr = SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx)) == NULL)
     	return SSL_TLSEXT_ERR_ALERT_FATAL;
-    ssl_obj = (VALUE)ptr;
+    ssl_obj = rb_tr_managed_from_handle(ptr);
     ary = rb_ary_new2(2);
     rb_ary_push(ary, ssl_obj);
     rb_ary_push(ary, rb_str_new2(servername));
@@ -590,7 +590,7 @@ ssl_renegotiation_cb(const SSL *ssl)
 
     if ((ptr = SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx)) == NULL)
 	ossl_raise(eSSLError, "SSL object could not be retrieved");
-    ssl_obj = (VALUE)ptr;
+    ssl_obj = rb_tr_managed_from_handle(ptr);
 
     sslctx_obj = rb_attr_get(ssl_obj, id_i_context);
     cb = rb_attr_get(sslctx_obj, id_i_renegotiation_cb);
@@ -671,7 +671,7 @@ ssl_npn_select_cb_common(SSL *ssl, VALUE cb, const unsigned char **out,
 
     selected = rb_protect(npn_select_cb_common_i, (VALUE)&args, &status);
     if (status) {
-	VALUE ssl_obj = (VALUE)SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx);
+	VALUE ssl_obj = rb_tr_managed_from_handle(SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx));
 
 	rb_ivar_set(ssl_obj, ID_callback_state, INT2NUM(status));
 	return SSL_TLSEXT_ERR_ALERT_FATAL;
@@ -1458,10 +1458,10 @@ ossl_ssl_initialize(int argc, VALUE *argv, VALUE self)
 	ossl_raise(eSSLError, NULL);
     RTYPEDDATA_DATA(self) = ssl;
 
-    SSL_set_ex_data(ssl, ossl_ssl_ex_ptr_idx, (void *)self);
+    SSL_set_ex_data(ssl, ossl_ssl_ex_ptr_idx, rb_tr_handle_for_managed_leaking(self));
     SSL_set_info_callback(ssl, ssl_info_cb);
     verify_cb = rb_attr_get(v_ctx, id_i_verify_callback);
-    SSL_set_ex_data(ssl, ossl_ssl_ex_vcb_idx, (void *)verify_cb);
+    SSL_set_ex_data(ssl, ossl_ssl_ex_vcb_idx, rb_tr_handle_for_managed_leaking(verify_cb));
 
     rb_call_super(0, NULL);
 
