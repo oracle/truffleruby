@@ -1,2 +1,1 @@
 fails:C-API String function rb_str_buf_new returns a string whose bytes can be accessed by RSTRING_PTR
-fails:C-API String function rb_str_subseq returns a byte-indexed substring

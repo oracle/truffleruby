@@ -1309,7 +1309,7 @@ VALUE rb_str_plus(VALUE a, VALUE b) {
 }
 
 VALUE rb_str_subseq(VALUE string, long beg, long len) {
-  rb_tr_error("rb_str_subseq not implemented");
+  return polyglot_invoke(string, "byteslice", beg, len);
 }
 
 VALUE rb_str_substr(VALUE string, long beg, long len) {
