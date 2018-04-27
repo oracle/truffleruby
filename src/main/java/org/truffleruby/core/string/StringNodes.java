@@ -1968,12 +1968,11 @@ public abstract class StringNodes {
             }
 
             if (negativeIndexProfile.profile(index < 0)) {
-                if (-index > length) {
+                index += length;
+                if (index < 0) {
                     errorProfile.enter();
                     throw new RaiseException(getContext().getCoreExceptions().indexErrorOutOfString(index, this));
                 }
-
-                index += length;
             }
 
             return index;
