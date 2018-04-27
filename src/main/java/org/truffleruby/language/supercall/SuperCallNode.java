@@ -44,7 +44,7 @@ public class SuperCallNode extends RubyNode {
 
         final InternalMethod superMethod = executeLookupSuperMethod(frame, self);
 
-        return callSuperMethodNode.callSuperMethod(frame, superMethod, superArguments, blockObject);
+        return callSuperMethodNode.executeCallSuperMethod(frame, superMethod, superArguments, blockObject);
     }
 
     @Override

@@ -719,7 +719,7 @@ public class CExtNodes {
             final DynamicObject callingMetaclass = metaClassNode.executeMetaClass(callingSelf);
             final MethodLookupResult superMethodLookup = ModuleOperations.lookupSuperMethod(callingMethod, callingMetaclass);
             final InternalMethod superMethod = superMethodLookup.getMethod();
-            return callSuperMethodNode.callSuperMethod(frame, superMethod, args, null);
+            return callSuperMethodNode.executeCallSuperMethod(frame, superMethod, args, null);
         }
 
         @TruffleBoundary
