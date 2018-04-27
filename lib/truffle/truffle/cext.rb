@@ -680,6 +680,12 @@ module Truffle::CExt
     Truffle::Type.infect(dest, source)
   end
 
+  FREEZE_METHOD = Kernel.instance_method :freeze
+
+  def rb_obj_freeze(obj)
+    FREEZE_METHOD.bind(obj).call
+  end
+
   def rb_float_new(value)
     value.to_f
   end
