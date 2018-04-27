@@ -67,7 +67,7 @@ class Preprocessor
       simple = []
       arrays = []
 
-      before, locals, after = $~.values_at(:before, :locals, :after)
+      before, locals, after = $~[:before], $~[:locals], $~[:after]
 
       locals.split(',').each do |local|
         local.strip!
