@@ -82,6 +82,11 @@ describe "C-API String function" do
       @s.RSTRING_LEN(buf).should == 0
     end
 
+    it "returns a string with the given capacity" do
+      buf = @s.rb_str_buf_new(256, nil)
+      @s.rb_str_capacity(buf).should == 256
+    end
+
     it "returns a string that can be appended to" do
       str = @s.rb_str_buf_new(10, "defg")
       str << "abcde"

@@ -65,6 +65,10 @@ VALUE string_spec_rb_str_buf_new(VALUE self, VALUE len, VALUE str) {
 
   return buf;
 }
+
+VALUE string_spec_rb_str_capacity(VALUE self, VALUE str) {
+  return SIZET2NUM(rb_str_capacity(str));
+}
 #endif
 
 #ifdef HAVE_RB_STR_BUF_NEW2
@@ -485,6 +489,7 @@ void Init_string_spec(void) {
 
 #ifdef HAVE_RB_STR_BUF_NEW
   rb_define_method(cls, "rb_str_buf_new", string_spec_rb_str_buf_new, 2);
+  rb_define_method(cls, "rb_str_capacity", string_spec_rb_str_capacity, 1);
 #endif
 
 #ifdef HAVE_RB_STR_BUF_NEW2
