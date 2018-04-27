@@ -263,14 +263,14 @@ public abstract class TruffleBootNodes {
 
     }
 
-    @CoreMethod(names = "original_load_path", onSingleton = true)
-    public abstract static class OriginalLoadPathNode extends CoreMethodNode {
+    @CoreMethod(names = "extra_load_paths", onSingleton = true)
+    public abstract static class ExtraLoadPathsNode extends CoreMethodNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject originalLoadPath() {
+        public DynamicObject extraLoadPaths() {
             final String[] paths = getContext().getOptions().LOAD_PATHS;
             final Object[] array = new Object[paths.length];
 
