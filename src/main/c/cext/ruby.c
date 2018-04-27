@@ -3439,7 +3439,7 @@ void rb_econv_binmode(rb_econv_t *ec) {
 }
 
 VALUE rb_ary_tmp_new(long capa) {
-  rb_tr_error("rb_ary_tmp_new not implemented");
+  return rb_ary_new_capa(capa);
 }
 
 void rb_ary_free(VALUE ary) {
