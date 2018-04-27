@@ -1205,7 +1205,7 @@ module DRb
   # not normally need to deal with it directly.
   class DRbConn
     POOL_SIZE = 16  # :nodoc:
-    @mutex = Mutex.new
+    @mutex = Thread::Mutex.new
     @pool = []
 
     def self.open(remote_uri)  # :nodoc:
@@ -1632,6 +1632,17 @@ module DRb
       include InvokeMethod18Mixin
     end
 
+    def error_print(exception)
+      exception.backtrace.inject(true) do |first, x|
+        if first
+          $stderr.puts "#{x}: #{exception} (#{exception.class})"
+        else
+          $stderr.puts "\tfrom #{x}"
+        end
+        false
+      end
+    end
+
     # The main loop performed by a DRbServer's internal thread.
     #
     # Accepts a connection from a client, and starts up its own
@@ -1655,13 +1666,10 @@ module DRb
             succ = false
             invoke_method = InvokeMethod.new(self, client)
             succ, result = invoke_method.perform
-            if !succ && verbose
-              p result
-              result.backtrace.each do |x|
-                puts x
-              end
-            end
-            client.send_reply(succ, result) rescue nil
+            error_print(result) if !succ && verbose
+            client.send_reply(succ, result)
+          rescue Exception => e
+            error_print(e) if verbose
           ensure
             client.close unless succ
             if Thread.current['DRb']['stop_service']
@@ -1816,7 +1824,7 @@ module DRb
   end
   module_function :install_acl
 
-  @mutex = Mutex.new
+  @mutex = Thread::Mutex.new
   def mutex # :nodoc:
     @mutex
   end

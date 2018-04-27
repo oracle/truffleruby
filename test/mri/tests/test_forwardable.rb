@@ -256,6 +256,46 @@ class TestForwardable < Test::Unit::TestCase
     }
   end
 
+  def test_aref
+    obj = Object.new.extend SingleForwardable
+    obj.instance_variable_set("@h", {foo: 42})
+    obj.def_delegator("@h", :[])
+    assert_equal(42, obj[:foo])
+  end
+
+  def test_aset
+    obj = Object.new.extend SingleForwardable
+    obj.instance_variable_set("@h", h = {foo: 0})
+    obj.def_delegator("@h", :[]=)
+    obj[:foo] = 42
+    assert_equal(42, h[:foo])
+  end
+
+  def test_binop
+    obj = Object.new.extend SingleForwardable
+    obj.instance_variable_set("@h", 40)
+    obj.def_delegator("@h", :+)
+    assert_equal(42, obj+2)
+  end
+
+  def test_uniop
+    obj = Object.new.extend SingleForwardable
+    obj.instance_variable_set("@h", -42)
+    obj.def_delegator("@h", :-@)
+    assert_equal(42, -obj)
+  end
+
+  def test_on_private_method
+    cls = Class.new do
+      private def foo; :foo end
+      extend Forwardable
+      def_delegator :itself, :foo, :bar
+    end
+    assert_warn(/forwarding to private method/) do
+      assert_equal(:foo, cls.new.bar)
+    end
+  end
+
   private
 
   def forwardable_class(

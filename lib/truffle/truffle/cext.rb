@@ -680,6 +680,12 @@ module Truffle::CExt
     Truffle::Type.infect(dest, source)
   end
 
+  FREEZE_METHOD = Kernel.instance_method :freeze
+
+  def rb_obj_freeze(obj)
+    FREEZE_METHOD.bind(obj).call
+  end
+
   def rb_float_new(value)
     value.to_f
   end
@@ -1376,7 +1382,8 @@ module Truffle::CExt
   end
 
   def rb_special_const_p(object)
-    object == nil || object == true || object == false || object.is_a?(Symbol) || object.is_a?(Integer)
+    # Avoid calling methods on object since it might be a foreign object
+    NilClass === object || TrueClass === object || FalseClass === object || Symbol === object || Truffle::Type.fits_into_long?(object)
   end
 
   def rb_id2str(sym)

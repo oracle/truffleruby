@@ -3,8 +3,9 @@ require_relative 'utils'
 
 if defined?(OpenSSL::TestUtils)
 
-class OpenSSL::TestX509Extension < Test::Unit::TestCase
+class OpenSSL::TestX509Extension < OpenSSL::TestCase
   def setup
+    super
     @basic_constraints_value = OpenSSL::ASN1::Sequence([
       OpenSSL::ASN1::Boolean(true),   # CA
       OpenSSL::ASN1::Integer(2)       # pathlen
@@ -14,9 +15,6 @@ class OpenSSL::TestX509Extension < Test::Unit::TestCase
       OpenSSL::ASN1::Boolean(true),
       OpenSSL::ASN1::OctetString(@basic_constraints_value.to_der),
     ])
-  end
-
-  def teardown
   end
 
   def test_new
@@ -70,6 +68,12 @@ class OpenSSL::TestX509Extension < Test::Unit::TestCase
     assert_equal("certificatePolicies", cp.oid)
     assert_match(%r{2.23.140.1.2.1}, cp.value)
     assert_match(%r{http://cps.example.com}, cp.value)
+  end
+
+  def test_dup
+    ext = OpenSSL::X509::Extension.new(@basic_constraints.to_der)
+    assert_equal(@basic_constraints.to_der, ext.to_der)
+    assert_equal(ext.to_der, ext.dup.to_der)
   end
 end
 

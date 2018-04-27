@@ -35,14 +35,16 @@ class Rational_Test < Test::Unit::TestCase
     c2 = Rational(0)
     c3 = Rational(1)
 
-    assert_equal(true, c.eql?(c2))
-    assert_equal(false, c.eql?(c3))
+    assert_operator(c, :eql?, c2)
+    assert_not_operator(c, :eql?, c3)
 
-    assert_equal(false, c.eql?(0))
+    assert_not_operator(c, :eql?, 0)
   end
 
   def test_hash
-    assert_instance_of(Fixnum, Rational(1,2).hash)
+    h = Rational(1,2).hash
+    assert_kind_of(Integer, h)
+    assert_nothing_raised {h.to_s}
 
     h = {}
     h[Rational(0)] = 0
@@ -60,7 +62,7 @@ class Rational_Test < Test::Unit::TestCase
   def test_freeze
     c = Rational(1)
     c.freeze
-    assert_equal(true, c.frozen?)
+    assert_predicate(c, :frozen?)
     assert_instance_of(String, c.to_s)
   end
 
@@ -112,9 +114,7 @@ class Rational_Test < Test::Unit::TestCase
     assert_raise(TypeError){Rational(nil)}
     assert_raise(ArgumentError){Rational('')}
     assert_raise_with_message(ArgumentError, /\u{221a 2668}/) {
-      EnvUtil.with_default_external(Encoding::UTF_8) {
-        Rational("\u{221a 2668}")
-      }
+      Rational("\u{221a 2668}")
     }
     assert_raise(TypeError){Rational(Object.new)}
     assert_raise(ArgumentError){Rational()}
@@ -163,15 +163,15 @@ class Rational_Test < Test::Unit::TestCase
   def test_attr2
     c = Rational(1)
 
-    assert_equal(false, c.integer?)
-    assert_equal(true, c.real?)
+    assert_not_predicate(c, :integer?)
+    assert_predicate(c, :real?)
 
-    assert_equal(true, Rational(0).zero?)
-    assert_equal(true, Rational(0,1).zero?)
-    assert_equal(false, Rational(1,1).zero?)
+    assert_predicate(Rational(0), :zero?)
+    assert_predicate(Rational(0,1), :zero?)
+    assert_not_predicate(Rational(1,1), :zero?)
 
-    assert_equal(nil, Rational(0).nonzero?)
-    assert_equal(nil, Rational(0,1).nonzero?)
+    assert_nil(Rational(0).nonzero?)
+    assert_nil(Rational(0,1).nonzero?)
     assert_equal(Rational(1,1), Rational(1,1).nonzero?)
   end
 
@@ -539,23 +539,23 @@ class Rational_Test < Test::Unit::TestCase
     assert_equal(-1, Rational(b-1) <=> Rational(b))
     assert_equal(+1, Rational(b) <=> Rational(b-1))
 
-    assert_equal(false, Rational(0) < Rational(0))
-    assert_equal(true, Rational(0) <= Rational(0))
-    assert_equal(true, Rational(0) >= Rational(0))
-    assert_equal(false, Rational(0) > Rational(0))
+    assert_not_operator(Rational(0), :<, Rational(0))
+    assert_operator(Rational(0), :<=, Rational(0))
+    assert_operator(Rational(0), :>=, Rational(0))
+    assert_not_operator(Rational(0), :>, Rational(0))
 
-    assert_equal(nil, Rational(0) <=> nil)
-    assert_equal(nil, Rational(0) <=> 'foo')
+    assert_nil(Rational(0) <=> nil)
+    assert_nil(Rational(0) <=> 'foo')
   end
 
   def test_eqeq
     assert_equal(Rational(1,1), Rational(1))
     assert_equal(Rational(-1,1), Rational(-1))
 
-    assert_equal(false, Rational(2,1) == Rational(1))
-    assert_equal(true, Rational(2,1) != Rational(1))
-    assert_equal(false, Rational(1) == nil)
-    assert_equal(false, Rational(1) == '')
+    assert_not_operator(Rational(2,1), :==, Rational(1))
+    assert_operator(Rational(2,1), :!=, Rational(1))
+    assert_not_operator(Rational(1), :==, nil)
+    assert_not_operator(Rational(1), :==, '')
   end
 
   def test_coerce
@@ -569,7 +569,7 @@ class Rational_Test < Test::Unit::TestCase
   end
 
   class ObjectX
-    def + (x) Rational(1) end
+    def +(x) Rational(1) end
     alias - +
     alias * +
     alias / +
@@ -599,17 +599,21 @@ class Rational_Test < Test::Unit::TestCase
   end
 
   def test_trunc
-    [[Rational(13, 5),  [ 2,  3,  2,  3]], #  2.6
-     [Rational(5, 2),   [ 2,  3,  2,  3]], #  2.5
-     [Rational(12, 5),  [ 2,  3,  2,  2]], #  2.4
-     [Rational(-12,5),  [-3, -2, -2, -2]], # -2.4
-     [Rational(-5, 2),  [-3, -2, -2, -3]], # -2.5
-     [Rational(-13, 5), [-3, -2, -2, -3]], # -2.6
+    [[Rational(13, 5),  [ 2,  3,  2,  3,  3,  3,  3]], #  2.6
+     [Rational(5, 2),   [ 2,  3,  2,  3,  2,  3,  2]], #  2.5
+     [Rational(12, 5),  [ 2,  3,  2,  2,  2,  2,  2]], #  2.4
+     [Rational(-12,5),  [-3, -2, -2, -2, -2, -2, -2]], # -2.4
+     [Rational(-5, 2),  [-3, -2, -2, -3, -2, -3, -2]], # -2.5
+     [Rational(-13, 5), [-3, -2, -2, -3, -3, -3, -3]], # -2.6
     ].each do |i, a|
-      assert_equal(a[0], i.floor)
-      assert_equal(a[1], i.ceil)
-      assert_equal(a[2], i.truncate)
-      assert_equal(a[3], i.round)
+      s = proc {i.inspect}
+      assert_equal(a[0], i.floor, s)
+      assert_equal(a[1], i.ceil, s)
+      assert_equal(a[2], i.truncate, s)
+      assert_equal(a[3], i.round, s)
+      assert_equal(a[4], i.round(half: :even), s)
+      assert_equal(a[5], i.round(half: :up), s)
+      assert_equal(a[6], i.round(half: :down), s)
     end
   end
 
@@ -645,6 +649,10 @@ class Rational_Test < Test::Unit::TestCase
     assert_equal(9, c2.instance_variable_get(:@ivar))
     assert_instance_of(Rational, c2)
 
+    assert_raise(TypeError){
+      Marshal.load("\x04\bU:\rRational[\ai\x060")
+    }
+
     assert_raise(ZeroDivisionError){
       Marshal.load("\x04\bU:\rRational[\ai\x06i\x05")
     }
@@ -662,6 +670,10 @@ class Rational_Test < Test::Unit::TestCase
     dump = "\x04\x08o:\x0dRational\x07:\x11@denominatori\x07:\x0f@numeratori\x06"
     assert_nothing_raised(bug6625) do
       assert_equal(Rational(1, 2), Marshal.load(dump), bug6625)
+    end
+    dump = "\x04\x08o:\x0dRational\x07:\x11@denominatori\x07:\x0f@numerator0"
+    assert_raise(TypeError) do
+      Marshal.load(dump)
     end
   end
 
@@ -881,8 +893,8 @@ class Rational_Test < Test::Unit::TestCase
   end
 
   def test_supp
-    assert_equal(true, 1.real?)
-    assert_equal(true, 1.1.real?)
+    assert_predicate(1, :real?)
+    assert_predicate(1.1, :real?)
 
     assert_equal(1, 1.numerator)
     assert_equal(9, 9.numerator)
@@ -905,6 +917,13 @@ class Rational_Test < Test::Unit::TestCase
     assert_equal(5000000000.0, 10000000000.fdiv(2))
     assert_equal(0.5, 1.0.fdiv(2))
     assert_equal(0.25, Rational(1,2).fdiv(2))
+
+    a = 0xa42fcabf_c51ce400_00001000_00000000_00000000_00000000_00000000_00000000
+    b = 1<<1074
+    assert_equal(Rational(a, b).to_f, a.fdiv(b))
+    a = 3
+    b = 0x20_0000_0000_0001
+    assert_equal(Rational(a, b).to_f, a.fdiv(b))
   end
 
   def test_ruby19
@@ -914,7 +933,8 @@ class Rational_Test < Test::Unit::TestCase
 
   def test_fixed_bug
     n = Float::MAX.to_i * 2
-    assert_equal(1.0, Rational(n + 2, n + 1).to_f, '[ruby-dev:33852]')
+    x = EnvUtil.suppress_warning {Rational(n + 2, n + 1).to_f}
+    assert_equal(1.0, x, '[ruby-dev:33852]')
   end
 
   def test_power_of_1_and_minus_1
@@ -923,7 +943,7 @@ class Rational_Test < Test::Unit::TestCase
     one = Rational( 1, 1)
     assert_eql  one,   one  ** -big     , bug5715
     assert_eql  one, (-one) ** -big     , bug5715
-    assert_eql -one, (-one) ** -(big+1) , bug5715
+    assert_eql (-one), (-one) ** -(big+1) , bug5715
     assert_equal Complex, ((-one) ** Rational(1,3)).class
   end
 
@@ -958,4 +978,13 @@ class Rational_Test < Test::Unit::TestCase
   def test_known_bug
   end
 
+  def test_finite_p
+    assert_predicate(1/2r, :finite?)
+    assert_predicate(-1/2r, :finite?)
+  end
+
+  def test_infinite_p
+    assert_nil((1/2r).infinite?)
+    assert_nil((-1/2r).infinite?)
+  end
 end

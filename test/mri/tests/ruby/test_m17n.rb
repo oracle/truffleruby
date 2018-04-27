@@ -465,7 +465,7 @@ class TestM17N < Test::Unit::TestCase
   def test_regexp_ascii_none
     r = /a/n
 
-    assert_warning(%r{regexp match /.../n against to}) {
+    assert_warning(%r{regexp match /\.\.\./n against to}) {
       assert_regexp_generic_ascii(r)
     }
 
@@ -474,13 +474,13 @@ class TestM17N < Test::Unit::TestCase
     assert_equal(0, r =~ s("a"))
     assert_equal(0, r =~ u("a"))
     assert_equal(nil, r =~ a("\xc2\xa1"))
-    assert_warning(%r{regexp match /.../n against to EUC-JP string}) {
+    assert_warning(%r{regexp match /\.\.\./n against to EUC-JP string}) {
       assert_equal(nil, r =~ e("\xc2\xa1"))
     }
-    assert_warning(%r{regexp match /.../n against to Windows-31J string}) {
+    assert_warning(%r{regexp match /\.\.\./n against to Windows-31J string}) {
       assert_equal(nil, r =~ s("\xc2\xa1"))
     }
-    assert_warning(%r{regexp match /.../n against to UTF-8 string}) {
+    assert_warning(%r{regexp match /\.\.\./n against to UTF-8 string}) {
       assert_equal(nil, r =~ u("\xc2\xa1"))
     }
 
@@ -1680,13 +1680,9 @@ class TestM17N < Test::Unit::TestCase
   def test_inspect_with_default_internal
     bug11787 = '[ruby-dev:49415] [Bug #11787]'
 
-    orig_int = Encoding.default_internal
-    Encoding.default_internal = ::Encoding::EUC_JP
-    s = begin
-          [e("\xB4\xC1\xBB\xFA")].inspect
-        ensure
-          Encoding.default_internal = orig_int
-        end
+    s = EnvUtil.with_default_internal(::Encoding::EUC_JP) do
+      [e("\xB4\xC1\xBB\xFA")].inspect
+    end
     assert_equal(e("[\"\xB4\xC1\xBB\xFA\"]"), s, bug11787)
   end
 

@@ -4,6 +4,11 @@ require "open3"
 require "timeout"
 require_relative "find_executable"
 
+class Integer
+  FIXNUM_MIN = Truffle::Platform::LONG_MIN
+  FIXNUM_MAX = Truffle::Platform::LONG_MAX
+end
+
 module EnvUtil
   def rubybin
     if ruby = ENV["RUBY"]
@@ -121,7 +126,7 @@ module EnvUtil
       th.kill if th
     end
     [in_c, in_p, out_c, out_p, err_c, err_p].each do |io|
-      io.close if io && !io.closed?
+      io&.close
     end
     [th_stdout, th_stderr].each do |th|
       th.join if th

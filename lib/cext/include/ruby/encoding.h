@@ -20,6 +20,7 @@ extern "C" {
 #endif
 
 #include <stdarg.h>
+#include "ruby/ruby.h"
 #include "ruby/oniguruma.h"
 
 RUBY_SYMBOL_EXPORT_BEGIN
@@ -106,8 +107,8 @@ int rb_char_to_option_kcode(int c, int *option, int *kcode);
 
 int rb_enc_replicate(const char *, rb_encoding *);
 int rb_define_dummy_encoding(const char *);
-int rb_enc_dummy_p(rb_encoding *enc);
-int rb_enc_to_index(rb_encoding *enc);
+PUREFUNC(int rb_enc_dummy_p(rb_encoding *enc));
+PUREFUNC(int rb_enc_to_index(rb_encoding *enc));
 int rb_enc_get_index(VALUE obj);
 void rb_enc_set_index(VALUE obj, int encindex);
 int rb_enc_find_index(const char *name);
@@ -141,19 +142,17 @@ VALUE rb_str_export_to_enc(VALUE, rb_encoding *);
 VALUE rb_str_conv_enc(VALUE str, rb_encoding *from, rb_encoding *to);
 VALUE rb_str_conv_enc_opts(VALUE str, rb_encoding *from, rb_encoding *to, int ecflags, VALUE ecopts);
 
-#if defined(__GNUC__) && !defined(__PCC__)
-#define rb_enc_str_new(str, len, enc) __extension__ ( \
-{					       \
+#ifdef HAVE_BUILTIN___BUILTIN_CONSTANT_P
+#define rb_enc_str_new(str, len, enc) RB_GNUC_EXTENSION_BLOCK( \
     (__builtin_constant_p(str) && __builtin_constant_p(len)) ? \
 	rb_enc_str_new_static((str), (len), (enc)) : \
-	rb_enc_str_new((str), (len), (enc)); \
-})
-#define rb_enc_str_new_cstr(str, enc) __extension__ (	\
-{					       \
+	rb_enc_str_new((str), (len), (enc)) \
+)
+#define rb_enc_str_new_cstr(str, enc) RB_GNUC_EXTENSION_BLOCK(	\
     (__builtin_constant_p(str)) ?	       \
 	rb_enc_str_new_static((str), (long)strlen(str), (enc)) : \
-	rb_enc_str_new_cstr((str), (enc)); \
-})
+	rb_enc_str_new_cstr((str), (enc)) \
+)
 #endif
 
 PRINTF_ARGS(NORETURN(void rb_enc_raise(rb_encoding *, VALUE, const char*, ...)), 3, 4);
@@ -231,8 +230,8 @@ char* rb_enc_left_char_head(char *start, char *p, char *end, rb_encoding *enc);
 int rb_enc_asciicompat(rb_encoding *enc);
 
 int rb_enc_casefold(char *to, const char *p, const char *e, rb_encoding *enc);
-int rb_enc_toupper(int c, rb_encoding *enc);
-int rb_enc_tolower(int c, rb_encoding *enc);
+CONSTFUNC(int rb_enc_toupper(int c, rb_encoding *enc));
+CONSTFUNC(int rb_enc_tolower(int c, rb_encoding *enc));
 ID rb_intern3(const char*, long, rb_encoding*);
 ID rb_interned_id_p(const char *, long, rb_encoding *);
 int rb_enc_symname_p(const char*, rb_encoding*);
@@ -242,7 +241,7 @@ long rb_str_coderange_scan_restartable(const char*, const char*, rb_encoding*, i
 int rb_enc_str_asciionly_p(VALUE);
 #define rb_enc_str_asciicompat_p(str) rb_enc_asciicompat(rb_enc_get(str))
 VALUE rb_enc_from_encoding(rb_encoding *enc);
-int rb_enc_unicode_p(rb_encoding *enc);
+PUREFUNC(int rb_enc_unicode_p(rb_encoding *enc));
 rb_encoding *rb_ascii8bit_encoding(void);
 rb_encoding *rb_utf8_encoding(void);
 rb_encoding *rb_usascii_encoding(void);
@@ -251,13 +250,13 @@ rb_encoding *rb_filesystem_encoding(void);
 rb_encoding *rb_default_external_encoding(void);
 rb_encoding *rb_default_internal_encoding(void);
 #ifndef rb_ascii8bit_encindex
-int rb_ascii8bit_encindex(void);
+CONSTFUNC(int rb_ascii8bit_encindex(void));
 #endif
 #ifndef rb_utf8_encindex
-int rb_utf8_encindex(void);
+CONSTFUNC(int rb_utf8_encindex(void));
 #endif
 #ifndef rb_usascii_encindex
-int rb_usascii_encindex(void);
+CONSTFUNC(int rb_usascii_encindex(void));
 #endif
 int rb_locale_encindex(void);
 int rb_filesystem_encindex(void);

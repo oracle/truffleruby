@@ -42,12 +42,20 @@ void ruby_malloc_size_overflow(size_t count, size_t elsize) {
      count, elsize);
 }
 
+size_t xmalloc2_size(const size_t count, const size_t elsize) {
+  size_t ret;
+  if (rb_mul_size_overflow(count, elsize, SSIZE_MAX, &ret)) {
+    ruby_malloc_size_overflow(count, elsize);
+  }
+  return ret;
+}
+
 void *ruby_xmalloc(size_t size) {
   return malloc(size);
 }
 
 void *ruby_xmalloc2(size_t n, size_t size) {
-  return malloc(ruby_xmalloc2_size(n, size));
+  return malloc(xmalloc2_size(n, size));
 }
 
 void *ruby_xcalloc(size_t n, size_t size) {
@@ -70,15 +78,18 @@ void ruby_xfree(void *address) {
   free(address);
 }
 
-void *rb_alloc_tmp_buffer(volatile VALUE *buffer_pointer, long length) {
-  // TODO CS 13-Apr-17 MRI sometimes uses alloc and sometimes malloc, and wraps it in a Ruby object - is rb_free_tmp_buffer guaranteed to be called or do we need to free in a finalizer?
-  void *space = malloc(length);
-  *((void**) buffer_pointer) = space;
-  return space;
+void *rb_alloc_tmp_buffer(volatile VALUE *store, long len) {
+  void *ptr = malloc(len);
+  *((void**)store) = ptr;
+  return ptr;
 }
 
-void rb_free_tmp_buffer(volatile VALUE *buffer_pointer) {
-  free(*((void**) buffer_pointer));
+void *rb_alloc_tmp_buffer_with_count(volatile VALUE *store, size_t size, size_t cnt) {
+  return rb_alloc_tmp_buffer(store, size);
+}
+
+void rb_free_tmp_buffer(volatile VALUE *store) {
+  free(*((void**)store));
 }
 
 // Types
@@ -518,11 +529,11 @@ short rb_fix2short(VALUE value) {
   rb_tr_error("rb_num2ushort not implemented");
 }
 
-VALUE INT2FIX(long value) {
+VALUE RB_INT2FIX(long value) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "INT2FIX", value);
 }
 
-VALUE LONG2FIX(long value) {
+VALUE RB_LONG2FIX(long value) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "LONG2FIX", value);
 }
 
@@ -792,7 +803,7 @@ void rb_tr_obj_infect(VALUE a, VALUE b) {
 }
 
 VALUE rb_obj_freeze(VALUE object) {
-  return (VALUE) polyglot_invoke(object, "freeze");
+  return polyglot_invoke(RUBY_CEXT, "rb_obj_freeze", object);
 }
 
 VALUE rb_obj_frozen_p(VALUE object) {
@@ -1096,7 +1107,9 @@ VALUE rb_str_to_str(VALUE string) {
 }
 
 VALUE rb_str_buf_new(long capacity) {
-  return rb_str_new_cstr("");
+  VALUE str = rb_str_new(0, capacity);
+  rb_str_set_len(str, 0);
+  return str;
 }
 
 VALUE rb_vsprintf(const char *format, va_list args) {
@@ -1112,7 +1125,11 @@ VALUE rb_str_concat(VALUE string, VALUE to_concat) {
 }
 
 void rb_str_set_len(VALUE string, long length) {
-  rb_str_resize(string, length);
+  long capacity = rb_str_capacity(string);
+  if (length > capacity) {
+    rb_raise(rb_eRuntimeError, "probable buffer overflow: %ld for %ld", length, capacity);
+  }
+  polyglot_invoke(RUBY_CEXT, "rb_str_set_len", string, length);
 }
 
 VALUE rb_str_new_frozen(VALUE value) {
@@ -1439,10 +1456,10 @@ int rb_tr_obj_equal(VALUE first, VALUE second) {
 int rb_tr_flags(VALUE value) {
   int flags = 0;
   if (OBJ_FROZEN(value)) {
-    flags |= FL_FREEZE;
+    flags |= RUBY_FL_FREEZE;
   }
   if (OBJ_TAINTED(value)) {
-    flags |= FL_TAINT;
+    flags |= RUBY_FL_TAINT;
   }
   // TODO BJF Nov-11-2017 Implement more flags
   return flags;
@@ -3433,7 +3450,7 @@ void rb_econv_binmode(rb_econv_t *ec) {
 }
 
 VALUE rb_ary_tmp_new(long capa) {
-  rb_tr_error("rb_ary_tmp_new not implemented");
+  return rb_ary_new_capa(capa);
 }
 
 void rb_ary_free(VALUE ary) {
@@ -4045,7 +4062,7 @@ VALUE rb_gc_latest_gc_info(VALUE key) {
 }
 
 VALUE rb_check_hash_type(VALUE hash) {
-  rb_tr_error("rb_check_hash_type not implemented");
+  return rb_check_convert_type(hash, T_HASH, "Hash", "to_hash");
 }
 
 VALUE rb_hash_update_by(VALUE hash1, VALUE hash2, rb_hash_update_func *func) {
@@ -4403,7 +4420,20 @@ long rb_str_sublen(VALUE str, long pos) {
 }
 
 void rb_str_modify_expand(VALUE str, long expand) {
-  rb_tr_error("rb_str_modify_expand not implemented");
+  long len = RSTRING_LEN(str);
+  if (expand < 0) {
+    rb_raise(rb_eArgError, "negative expanding string size");
+  }
+  if (expand > LONG_MAX - len) {
+    rb_raise(rb_eArgError, "string size too big");
+  }
+
+  if (expand > 0) {
+    // Resize the native buffer but do not change RSTRING_LEN/byteLength
+    // TODO (eregon, 26 Apr 2018): Do this more directly.
+    rb_str_resize(str, len + expand);
+    rb_str_set_len(str, len);
+  }
 }
 
 #undef rb_str_cat_cstr
@@ -4448,7 +4478,7 @@ long rb_str_offset(VALUE str, long pos) {
 }
 
 size_t rb_str_capacity(VALUE str) {
-  rb_tr_error("rb_str_capacity not implemented");
+  return polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_str_capacity", str));
 }
 
 VALUE rb_str_ellipsize(VALUE str, long len) {
@@ -4822,60 +4852,4 @@ VALUE rb_syserr_new_str(int n, VALUE arg) {
 
 VALUE rb_yield_values2(int argc, const VALUE *argv) {
   rb_tr_error("rb_yield_values2 not implemented");
-}
-
-int rb_isalnum(int c) {
-  return rb_isalpha(c) || rb_isdigit(c);
-}
-
-int rb_isalpha(int c) {
-  return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
-}
-
-int rb_isblank(int c) {
-  return c == 0x09 || c == 0x20;
-}
-
-int rb_iscntrl(int c) {
-  return (c >= 0x00 && c <= 0x1f) || c == 0x7f;
-}
-
-int rb_isdigit(int c) {
-  return c >= '0' && c <= '9';
-}
-
-int rb_isgraph(int c) {
-  return c >= '!' && c <= '~';
-}
-
-int rb_islower(int c) {
-  return c >= 'a' && c <= 'z';
-}
-
-int rb_isprint(int c) {
-  return c == ' ' || rb_isgraph(c);
-}
-
-int rb_ispunct(int c) {
-  return (c >= '!' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~');
-}
-
-int rb_isspace(int c) {
-  return c == 0x20 || (c >= 0x09 && c <= 0x0d);
-}
-
-int rb_isupper(int c) {
-  return c >= 'A' && c <= 'Z';
-}
-
-int rb_isxdigit(int c) {
-  return rb_isdigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
-}
-
-int rb_tolower(int c) {
-  return rb_isascii(c) && rb_isupper(c) ? c ^ 0x20 : c;
-}
-
-int rb_toupper(int c) {
-  return rb_isascii(c) && rb_islower(c) ? c ^ 0x20 : c;
 }

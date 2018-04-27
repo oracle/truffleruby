@@ -21,11 +21,6 @@ require_relative 'patches/racc_patches'
 
 class Preprocessor
 
-  LOCAL = /\w+\s*(\[\s*\d+\s*\])?/
-  VALUE_LOCALS = /^(\s+)VALUE\s+(#{LOCAL}(\s*,\s*#{LOCAL})*);\s*$/
-
-  ALLOCA_LOCALS = /^(\s+)VALUE\s*\*\s*([a-z_][a-zA-Z_0-9]*)\s*=\s*(\(\s*VALUE\s*\*\s*\)\s*)?alloca\(/
-
   PATCHED_FILES = {}
 
   def self.add_gem_patches(patch_hash, gem_patches)
@@ -57,6 +52,11 @@ class Preprocessor
   add_gem_patches(PATCHED_FILES, ::WebsocketDriverPatches::PATCHES)
   add_gem_patches(PATCHED_FILES, ::RaccPatches::PATCHES)
 
+  LOCAL = /\w+\s*(\[\s*\d+\s*\])?/
+  VALUE_LOCALS = /^(?<before>\s+)VALUE\s+(?<locals>#{LOCAL}(\s*,\s*#{LOCAL})*);(?<after>\s*(\/\/.+)?)$/
+
+  ALLOCA_LOCALS = /^(?<before>\s+)VALUE\s*\*\s*(?<var>[a-z_][a-zA-Z_0-9]*)\s*=\s*(\(\s*VALUE\s*\*\s*\)\s*)?alloca\(/
+
   def self.preprocess(line)
     if line =~ VALUE_LOCALS
       # Translate
@@ -67,9 +67,9 @@ class Preprocessor
       simple = []
       arrays = []
 
-      line = $1
+      before, locals, after = $~.values_at(:before, :locals, :after)
 
-      $2.split(',').each do |local|
+      locals.split(',').each do |local|
         local.strip!
         if local.end_with?(']')
           raise unless local =~ /(\w+)\s*\[\s*(\d+)\s*\]/
@@ -79,12 +79,14 @@ class Preprocessor
         end
       end
 
+      line = "#{before}"
+
       unless simple.empty?
         line += "VALUE #{simple.join(', ')};"
       end
 
       arrays.each do |name, size|
-        line += " VALUE *#{name} = truffle_managed_malloc(#{size} * sizeof(VALUE));"
+        line += " VALUE *#{name} = truffle_managed_malloc(#{size} * sizeof(VALUE));#{after}"
       end
       line
     elsif line =~ ALLOCA_LOCALS
@@ -93,7 +95,7 @@ class Preprocessor
       # into
       #   VALUE *argv = (VALUE *)truffle_managed_malloc(sizeof(VALUE) * argc);
 
-      line = "#{$1}VALUE *#{$2} = truffle_managed_malloc(#{$'}"
+      "#{$1}VALUE *#{$2} = truffle_managed_malloc(#{$'}"
     else
       line
     end
