@@ -79,6 +79,8 @@ import org.truffleruby.stdlib.readline.ConsoleHolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
@@ -657,6 +659,19 @@ public class RubyContext {
                 if (consoleHolder == null) {
                     consoleHolder = new ConsoleHolder();
                 }
+            }
+        }
+
+        return consoleHolder;
+    }
+
+    public ConsoleHolder updateConsoleHolder(int inFd, int outFd) {
+        synchronized (this) {
+            final ConsoleHolder newConsoleHolder = ConsoleHolder.update(consoleHolder, inFd, outFd);
+
+            if (newConsoleHolder != consoleHolder) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                consoleHolder = newConsoleHolder;
             }
         }
 

@@ -73,7 +73,10 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.TaintNode;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -267,6 +270,28 @@ public abstract class ReadlineNodes {
             }
 
             return nil();
+        }
+
+    }
+
+    @Primitive(name = "readline_set_input", needsSelf = false)
+    public abstract static class SetInputNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public int setInput(int fd) {
+            getContext().updateConsoleHolder(fd, getContext().getConsoleHolder().getOut().getFd());
+            return fd;
+        }
+
+    }
+
+    @Primitive(name = "readline_set_output", needsSelf = false)
+    public abstract static class SetOutputNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public int setOutput(int fd) {
+            getContext().updateConsoleHolder(getContext().getConsoleHolder().getIn().getFd(), fd);
+            return fd;
         }
 
     }
