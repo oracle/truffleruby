@@ -195,22 +195,26 @@ describe "The launcher" do
 
   describe 'StringArray option' do
     it 'appends multiple options' do
-      out = ruby_exe("p $LOAD_PATH", options: "-I a -I b")
+      out = ruby_exe("puts $LOAD_PATH", options: "-I a -I b")
       $?.success?.should == true
-      out.should include('["a", "b", ')
+      out.lines[0].should == "#{Dir.pwd}/a\n"
+      out.lines[1].should == "#{Dir.pwd}/b\n"
     end
 
     it 'parses ,' do
-      out = ruby_exe("p $LOAD_PATH", options: "-Xload_paths=a,b")
+      out = ruby_exe("puts $LOAD_PATH", options: "-Xload_paths=a,b")
       $?.success?.should == true
-      out.should include('["a", "b", ')
+      out.lines[0].should == "#{Dir.pwd}/a\n"
+      out.lines[1].should == "#{Dir.pwd}/b\n"
     end
 
     it 'parses , respecting escaping' do
       # \\\\ translates to one \
-      out = ruby_exe("p $LOAD_PATH", options: "-Xload_paths=a\\\\,b,,\\\\c")
+      out = ruby_exe("puts $LOAD_PATH", options: "-Xload_paths=a\\\\,b,,\\\\c")
       $?.success?.should == true
-      out.should include('["a,b", "", "\\\\c", ')
+      out.lines[0].should == "#{Dir.pwd}/a,b\n"
+      out.lines[1].should == "#{Dir.pwd}\n"
+      out.lines[2].should == "#{Dir.pwd}/\\c\n"
     end
   end
 
