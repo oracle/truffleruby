@@ -313,13 +313,13 @@ def ruby_testdownstream_sulong(args):
     # Ensure Sulong is available
     mx.suite('sulong')
 
-    jt('test', 'cexts')
     jt('test', 'specs', ':capi')
     jt('test', 'specs', ':library_cext')
     jt('test', 'mri', '--cext')
     jt('test', 'mri', '--openssl')
     jt('test', 'mri', '--syslog')
     jt('test', 'mri', 'zlib')
+    jt('test', 'cexts')
     jt('test', 'bundle')
 
 def mx_post_parse_cmd_line(opts):

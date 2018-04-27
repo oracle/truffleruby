@@ -48,14 +48,43 @@ describe "C-API String function" do
       @s.rb_str_set_len(@str, 8).should == "abcde\x00gh"
     end
 
+    it "updates the byte size and character size" do
+      @s.rb_str_set_len(@str, 4)
+      @str.bytesize.should == 4
+      @str.size.should == 4
+      @str.should == "abcd"
+    end
+
     it "updates the string's attributes visible in C code" do
       @s.rb_str_set_len_RSTRING_LEN(@str, 4).should == 4
+    end
+
+    it "can reveal characters written from C with RSTRING_PTR" do
+      @s.rb_str_set_len(@str, 1)
+      @str.should == "a"
+
+      @str.force_encoding(Encoding::UTF_8)
+      @s.RSTRING_PTR_set(@str, 1, 66)
+      @s.RSTRING_PTR_set(@str, 2, 67)
+      @s.rb_str_set_len(@str, 3)
+
+      @str.bytesize.should == 3
+      @str.should == "aBC"
     end
   end
 
   describe "rb_str_buf_new" do
     it "returns the equivalent of an empty string" do
-      @s.rb_str_buf_new(10, nil).should == ""
+      buf = @s.rb_str_buf_new(10, nil)
+      buf.should == ""
+      buf.bytesize.should == 0
+      buf.size.should == 0
+      @s.RSTRING_LEN(buf).should == 0
+    end
+
+    it "returns a string with the given capacity" do
+      buf = @s.rb_str_buf_new(256, nil)
+      @s.rb_str_capacity(buf).should == 256
     end
 
     it "returns a string that can be appended to" do
@@ -82,6 +111,19 @@ describe "C-API String function" do
       @s.rb_str_set_len(str, 8)
       str[0, 6].should == "abcd\x00f"
       @s.RSTRING_LEN(str).should == 8
+    end
+
+    it "can be used as a general buffer and reveal characters with rb_str_set_len" do
+      str = @s.rb_str_buf_new(10, "abcdef")
+
+      @s.RSTRING_PTR_set(str, 0, 195)
+      @s.RSTRING_PTR_set(str, 1, 169)
+      @s.rb_str_set_len(str, 2)
+
+      str.force_encoding(Encoding::UTF_8)
+      str.bytesize.should == 2
+      str.size.should == 1
+      str.should == "é"
     end
   end
 
@@ -415,6 +457,13 @@ describe "C-API String function" do
 
       str.should == "NEW CONTENT"
       ret.should == str
+    end
+
+    it "reflects changes from native memory and from String#setbyte in bounds" do
+      str = "abc"
+      from_rstring_ptr = @s.RSTRING_PTR_after_yield(str) { str.setbyte(1, 66) }
+      from_rstring_ptr.should == "1B2"
+      str.should == "1B2"
     end
 
     it "returns a pointer to the contents of encoded pointer-sized string" do

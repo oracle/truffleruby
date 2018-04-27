@@ -117,7 +117,8 @@ public class BacktraceFormatter {
                     }
                 }
 
-                lines.add(StringUtils.format("(exception %s %s", e.getMessage(), e.getStackTrace()[0].toString()));
+                final String firstFrame = e.getStackTrace().length > 0 ? e.getStackTrace()[0].toString() : "";
+                lines.add(StringUtils.format("(exception %s %s %s", e.getClass().getName(), e.getMessage(), firstFrame));
             }
         }
 

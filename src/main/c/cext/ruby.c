@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -792,7 +793,7 @@ void rb_tr_obj_infect(VALUE a, VALUE b) {
 }
 
 VALUE rb_obj_freeze(VALUE object) {
-  return (VALUE) polyglot_invoke(object, "freeze");
+  return polyglot_invoke(RUBY_CEXT, "rb_obj_freeze", object);
 }
 
 VALUE rb_obj_frozen_p(VALUE object) {
@@ -985,7 +986,7 @@ char *RSTRING_PTR_IMPL(VALUE string) {
   // We start off treating RStringPtr as if it weren't a pointer for interop purposes. This is so Sulong doesn't try
   // to convert it to an actual char* when returning from `polyglot_invoke`. Once we have a handle to the real RStringPtr
   // object, we can instruct it to start acting like a pointer, which is necessary for pointer address comparisons.
-  polyglot_as_boolean(polyglot_invoke(ret, "act_like_pointer=", Qtrue));
+  polyglot_invoke(ret, "act_like_pointer=", Qtrue);
 
   return ret;
 }
@@ -996,7 +997,7 @@ char *RSTRING_END(VALUE string) {
   // We start off treating RStringPtr as if it weren't a pointer for interop purposes. This is so Sulong doesn't try
   // to convert it to an actual char* when returning from `polyglot_invoke`. Once we have a handle to the real RStringPtr
   // object, we can instruct it to start acting like a pointer, which is necessary for pointer address comparisons.
-  polyglot_as_boolean(polyglot_invoke(ret, "act_like_pointer=", Qtrue));
+  polyglot_invoke(ret, "act_like_pointer=", Qtrue);
 
   return ret;
 }
@@ -1021,6 +1022,11 @@ int rb_str_len(VALUE string) {
   return polyglot_as_i32(polyglot_invoke((void *)string, "bytesize"));
 }
 
+bool is_managed_rstring_ptr(VALUE ptr) {
+  return polyglot_is_value(ptr) &&
+    !polyglot_as_boolean(polyglot_invoke(ptr, "native?"));
+}
+
 VALUE rb_str_new(const char *string, long length) {
   if (length < 0) {
     rb_raise(rb_eArgError, "negative string size (or size too big)");
@@ -1028,7 +1034,7 @@ VALUE rb_str_new(const char *string, long length) {
 
   if (string == NULL) {
     return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_nul", length);
-  } else if (polyglot_is_value((VALUE) string)) {
+  } else if (is_managed_rstring_ptr((VALUE) string)) {
     return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new", string, length);
   } else {
     // Copy the string to a new unmanaged buffer, because otherwise it's very
@@ -1052,10 +1058,12 @@ VALUE rb_tainted_str_new(const char *ptr, long len) {
 }
 
 VALUE rb_str_new_cstr(const char *string) {
-  if (polyglot_is_value((VALUE) string)) {
+  if (is_managed_rstring_ptr((VALUE) string)) {
     VALUE ruby_string = (VALUE) polyglot_invoke((VALUE) string, "to_s");
     int len = strlen(string);
-    return (VALUE) polyglot_invoke(ruby_string, "[]", 0, len);
+    ruby_string = rb_str_subseq(ruby_string, 0, len);
+    rb_enc_associate(ruby_string, rb_ascii8bit_encoding());
+    return ruby_string;
   } else {
     // TODO CS 24-Oct-17 would be nice to read in one go rather than strlen followed by read
     return rb_str_new(string, strlen(string));
@@ -1096,7 +1104,9 @@ VALUE rb_str_to_str(VALUE string) {
 }
 
 VALUE rb_str_buf_new(long capacity) {
-  return rb_str_new_cstr("");
+  VALUE str = rb_str_new(0, capacity);
+  rb_str_set_len(str, 0);
+  return str;
 }
 
 VALUE rb_vsprintf(const char *format, va_list args) {
@@ -1112,7 +1122,11 @@ VALUE rb_str_concat(VALUE string, VALUE to_concat) {
 }
 
 void rb_str_set_len(VALUE string, long length) {
-  rb_str_resize(string, length);
+  long capacity = rb_str_capacity(string);
+  if (length > capacity) {
+    rb_raise(rb_eRuntimeError, "probable buffer overflow: %ld for %ld", length, capacity);
+  }
+  polyglot_invoke(RUBY_CEXT, "rb_str_set_len", string, length);
 }
 
 VALUE rb_str_new_frozen(VALUE value) {
@@ -1301,7 +1315,7 @@ VALUE rb_str_plus(VALUE a, VALUE b) {
 }
 
 VALUE rb_str_subseq(VALUE string, long beg, long len) {
-  rb_tr_error("rb_str_subseq not implemented");
+  return polyglot_invoke(string, "byteslice", beg, len);
 }
 
 VALUE rb_str_substr(VALUE string, long beg, long len) {
@@ -3433,7 +3447,7 @@ void rb_econv_binmode(rb_econv_t *ec) {
 }
 
 VALUE rb_ary_tmp_new(long capa) {
-  rb_tr_error("rb_ary_tmp_new not implemented");
+  return rb_ary_new_capa(capa);
 }
 
 void rb_ary_free(VALUE ary) {
@@ -4045,7 +4059,7 @@ VALUE rb_gc_latest_gc_info(VALUE key) {
 }
 
 VALUE rb_check_hash_type(VALUE hash) {
-  rb_tr_error("rb_check_hash_type not implemented");
+  return rb_check_convert_type(hash, T_HASH, "Hash", "to_hash");
 }
 
 VALUE rb_hash_update_by(VALUE hash1, VALUE hash2, rb_hash_update_func *func) {
@@ -4403,7 +4417,20 @@ long rb_str_sublen(VALUE str, long pos) {
 }
 
 void rb_str_modify_expand(VALUE str, long expand) {
-  rb_tr_error("rb_str_modify_expand not implemented");
+  long len = RSTRING_LEN(str);
+  if (expand < 0) {
+    rb_raise(rb_eArgError, "negative expanding string size");
+  }
+  if (expand > LONG_MAX - len) {
+    rb_raise(rb_eArgError, "string size too big");
+  }
+
+  if (expand > 0) {
+    // Resize the native buffer but do not change RSTRING_LEN/byteLength
+    // TODO (eregon, 26 Apr 2018): Do this more directly.
+    rb_str_resize(str, len + expand);
+    rb_str_set_len(str, len);
+  }
 }
 
 #undef rb_str_cat_cstr
@@ -4448,7 +4475,7 @@ long rb_str_offset(VALUE str, long pos) {
 }
 
 size_t rb_str_capacity(VALUE str) {
-  rb_tr_error("rb_str_capacity not implemented");
+  return polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_str_capacity", str));
 }
 
 VALUE rb_str_ellipsize(VALUE str, long len) {
