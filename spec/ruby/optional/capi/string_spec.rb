@@ -459,6 +459,13 @@ describe "C-API String function" do
       ret.should == str
     end
 
+    it "reflects changes from native memory and from String#setbyte in bounds" do
+      str = "abc"
+      from_rstring_ptr = @s.RSTRING_PTR_after_yield(str) { str.setbyte(1, 66) }
+      from_rstring_ptr.should == "1B2"
+      str.should == "1B2"
+    end
+
     it "returns a pointer to the contents of encoded pointer-sized string" do
       s = "70パク".
         encode(Encoding::UTF_16LE).
