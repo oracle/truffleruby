@@ -358,6 +358,11 @@ VALUE string_spec_RSTRING_PTR_assign(VALUE self, VALUE str, VALUE chr) {
   return Qnil;
 }
 
+VALUE string_spec_RSTRING_PTR_set(VALUE self, VALUE str, VALUE i, VALUE chr) {
+  RSTRING_PTR(str)[FIX2INT(i)] = (char) FIX2INT(chr);
+  return str;
+}
+
 VALUE string_spec_RSTRING_PTR_after_funcall(VALUE self, VALUE str, VALUE cb) {
   /* Silence gcc 4.3.2 warning about computed value not used */
   if(RSTRING_PTR(str)) { /* force it out */
@@ -643,6 +648,7 @@ void Init_string_spec(void) {
 #ifdef HAVE_RSTRING_PTR
   rb_define_method(cls, "RSTRING_PTR_iterate", string_spec_RSTRING_PTR_iterate, 1);
   rb_define_method(cls, "RSTRING_PTR_assign", string_spec_RSTRING_PTR_assign, 2);
+  rb_define_method(cls, "RSTRING_PTR_set", string_spec_RSTRING_PTR_set, 3);
   rb_define_method(cls, "RSTRING_PTR_after_funcall",
       string_spec_RSTRING_PTR_after_funcall, 2);
 #endif
