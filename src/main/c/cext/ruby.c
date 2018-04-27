@@ -1055,7 +1055,7 @@ VALUE rb_str_new_cstr(const char *string) {
   if (polyglot_is_value((VALUE) string)) {
     VALUE ruby_string = (VALUE) polyglot_invoke((VALUE) string, "to_s");
     int len = strlen(string);
-    ruby_string = polyglot_invoke(ruby_string, "[]", 0, len);
+    ruby_string = rb_str_subseq(ruby_string, 0, len);
     rb_enc_associate(ruby_string, rb_ascii8bit_encoding());
     return ruby_string;
   } else {
