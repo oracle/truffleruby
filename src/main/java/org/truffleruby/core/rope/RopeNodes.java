@@ -1126,7 +1126,7 @@ public abstract class RopeNodes {
         public abstract Rope executeSetByte(Rope string, int index, int value);
 
         @Specialization
-        public Rope setByte(Rope rope, int index, int value) {
+        public Rope setByte(ManagedRope rope, int index, int value) {
             assert 0 <= index && index < rope.byteLength();
 
             final Rope left = leftSubstringNode.executeSubstring(rope, 0, index);
@@ -1135,6 +1135,12 @@ public abstract class RopeNodes {
             final Rope composed = composedConcatNode.executeConcat(middleConcatNode.executeConcat(left, middle, rope.getEncoding()), right, rope.getEncoding());
 
             return composed;
+        }
+
+        @Specialization
+        public Rope setByte(NativeRope rope, int index, int value) {
+            rope.set(index, value);
+            return rope;
         }
 
     }
