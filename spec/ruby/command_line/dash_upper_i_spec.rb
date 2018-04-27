@@ -21,3 +21,20 @@ describe "The -I command line option" do
     ruby_exe(@script, options: "-I not_exist/not_exist").lines[0].should == "#{Dir.pwd}/not_exist/not_exist\n"
   end
 end
+
+describe "The -I command line option" do
+  before :each do
+    @script = fixture __FILE__, "loadpath.rb"
+    @fixtures = File.dirname(@script)
+    @symlink = tmp("loadpath_symlink")
+    File.symlink(@fixtures, @symlink)
+  end
+
+  after :each do
+    rm_r @symlink
+  end
+
+  it "does not expand symlinks" do
+    ruby_exe(@script, options: "-I #{@symlink}").lines[0].should == "#{@symlink}\n"
+  end
+end
