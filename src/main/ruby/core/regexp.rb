@@ -396,33 +396,33 @@ class MatchData
 end
 
 Truffle::KernelOperations.define_hooked_variable(
-  :$~,
+  :'$~',
   -> b { Truffle::RegexpOperations.last_match(b) },
   -> v, b { Truffle::RegexpOperations.set_last_match(v, b) })
 
 Truffle::KernelOperations.define_hooked_variable(
-  %s{$`},
+  :'$`',
   -> b { match = Truffle::RegexpOperations.last_match(b)
          match.pre_match if match },
   -> { raise SyntaxError, "Can't set variable $`"},
   -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })
 
 Truffle::KernelOperations.define_hooked_variable(
-  %s{$'},
+  :"$'",
   -> b { match = Truffle::RegexpOperations.last_match(b)
          match.post_match if match },
   -> { raise SyntaxError, "Can't set variable $'"},
   -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })
 
 Truffle::KernelOperations.define_hooked_variable(
-  :$&,
+  :'$&',
   -> b { match = Truffle::RegexpOperations.last_match(b)
          match[0] if match },
   -> { raise SyntaxError, "Can't set variable $&"},
   -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })
 
 Truffle::KernelOperations.define_hooked_variable(
-  :$+,
+  :'$+',
   -> b { match = Truffle::RegexpOperations.last_match(b)
          match.captures.reverse.find { |m| !m.nil? } if match },
   -> { raise SyntaxError, "Can't set variable $+"},
