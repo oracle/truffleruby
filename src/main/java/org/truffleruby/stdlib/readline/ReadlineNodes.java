@@ -271,6 +271,28 @@ public abstract class ReadlineNodes {
 
     }
 
+    @Primitive(name = "readline_set_input", needsSelf = false)
+    public abstract static class SetInputNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public int setInput(int fd) {
+            getContext().updateConsoleHolder(fd, getContext().getConsoleHolder().getOut().getFd());
+            return fd;
+        }
+
+    }
+
+    @Primitive(name = "readline_set_output", needsSelf = false)
+    public abstract static class SetOutputNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public int setOutput(int fd) {
+            getContext().updateConsoleHolder(getContext().getConsoleHolder().getIn().getFd(), fd);
+            return fd;
+        }
+
+    }
+
     // Taken from org.jruby.ext.readline.Readline.ProcCompleter.
     // Complete using a Proc object
     private static class ProcCompleter implements Completer {

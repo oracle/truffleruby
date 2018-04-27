@@ -53,11 +53,23 @@ public class ConsoleHolder {
     private final ConsoleReader readline;
     private Completer currentCompleter;
     private final History history;
+    private final FileStreamer in;
+    private final FileStreamer out;
+
+    public static ConsoleHolder update(ConsoleHolder original, int inFd, int outFd) {
+        if (inFd == original.getIn().getFd() && outFd == original.getOut().getFd()) {
+            return original;
+        }
+
+        return new ConsoleHolder(original, inFd, outFd);
+    }
 
     @TruffleBoundary
     public ConsoleHolder() {
         try {
-            readline = new ConsoleReader();
+            in = new FileStreamer(0);
+            out = new FileStreamer(1);
+            readline = new ConsoleReader(in.getIn(), out.getOut());
         } catch (IOException e) {
             throw new UnsupportedOperationException("Couldn't initialize readline", e);
         }
@@ -70,6 +82,30 @@ public class ConsoleHolder {
         readline.addCompleter(currentCompleter);
 
         history = new MemoryHistory();
+        readline.setHistory(history);
+    }
+
+    @TruffleBoundary
+    public ConsoleHolder(ConsoleHolder copy, int inFd, int outFd) {
+        in = copy.in.getFd() == inFd ? copy.in : new FileStreamer(inFd);
+        out = copy.out.getFd() == outFd ? copy.out : new FileStreamer(outFd);
+
+        try {
+            readline = new ConsoleReader(in.getIn(), out.getOut());
+        } catch (IOException e) {
+            throw new UnsupportedOperationException("Couldn't initialize readline", e);
+        }
+
+        final ConsoleReader copyReadline = copy.getReadline();
+
+        readline.setHistoryEnabled(copyReadline.isHistoryEnabled());
+        readline.setPaginationEnabled(copyReadline.isPaginationEnabled());
+        readline.setBellEnabled(copyReadline.getBellEnabled());
+
+        currentCompleter = copy.getCurrentCompleter();
+        readline.addCompleter(currentCompleter);
+
+        history = copy.getHistory();
         readline.setHistory(history);
     }
 
@@ -89,6 +125,14 @@ public class ConsoleHolder {
 
     public History getHistory() {
         return history;
+    }
+
+    public FileStreamer getIn() {
+        return in;
+    }
+
+    public FileStreamer getOut() {
+        return out;
     }
 
 }

@@ -663,6 +663,19 @@ public class RubyContext {
         return consoleHolder;
     }
 
+    public ConsoleHolder updateConsoleHolder(int inFd, int outFd) {
+        synchronized (this) {
+            final ConsoleHolder newConsoleHolder = ConsoleHolder.update(consoleHolder, inFd, outFd);
+
+            if (newConsoleHolder != consoleHolder) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                consoleHolder = newConsoleHolder;
+            }
+        }
+
+        return consoleHolder;
+    }
+
     public boolean isInitialized() {
         return initialized;
     }

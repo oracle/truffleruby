@@ -310,6 +310,12 @@ module Truffle
       v
     end
 
+    def self.rb_check_type(obj, cls)
+      unless object_kind_of?(obj, cls)
+        raise TypeError, "wrong argument type #{obj.class} (expected #{cls})"
+      end
+    end
+
     def self.convert_type(obj, cls, meth, raise_on_error)
       r = check_funcall(obj, meth)
       if undefined.equal?(r)

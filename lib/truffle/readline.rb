@@ -73,13 +73,15 @@ module Readline
   end
 
   def self.input=(input)
-    # TODO (nirvdrum 20-May-16): This should do something functional.
-    nil
+    Truffle::Type.rb_check_type(input, IO)
+    Truffle.invoke_primitive :readline_set_input, input.fileno
+    input
   end
 
   def self.output=(output)
-    # TODO (nirvdrum 20-May-16): This should do something functional.
-    nil
+    Truffle::Type.rb_check_type(output, IO)
+    Truffle.invoke_primitive :readline_set_output, output.fileno
+    output
   end
 
 end
