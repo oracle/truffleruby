@@ -792,7 +792,7 @@ void rb_tr_obj_infect(VALUE a, VALUE b) {
 }
 
 VALUE rb_obj_freeze(VALUE object) {
-  return (VALUE) polyglot_invoke(object, "freeze");
+  return polyglot_invoke(RUBY_CEXT, "rb_obj_freeze", object);
 }
 
 VALUE rb_obj_frozen_p(VALUE object) {
