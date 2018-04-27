@@ -109,5 +109,8 @@ if ruby_home
 end
 
 Truffle::Boot.delay do
-  $LOAD_PATH.unshift(*Truffle::Boot.original_load_path)
+  extra_load_paths = Truffle::Boot.extra_load_paths
+  unless extra_load_paths.empty?
+    $LOAD_PATH.unshift(*extra_load_paths.map { |path| File.expand_path(path) })
+  end
 end
