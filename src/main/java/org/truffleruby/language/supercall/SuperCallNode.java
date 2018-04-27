@@ -44,7 +44,7 @@ public class SuperCallNode extends RubyNode {
 
         final InternalMethod superMethod = executeLookupSuperMethod(frame, self);
 
-        return callSuperMethodNode.executeCallSuperMethod(frame, superMethod, superArguments, blockObject);
+        return callSuperMethodNode.executeCallSuperMethod(frame, self, superMethod, superArguments, blockObject);
     }
 
     @Override
@@ -74,7 +74,7 @@ public class SuperCallNode extends RubyNode {
         }
         if (callSuperMethodNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callSuperMethodNode = insert(CallSuperMethodNodeGen.create(null, null, null));
+            callSuperMethodNode = insert(CallSuperMethodNode.create());
         }
     }
 

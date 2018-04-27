@@ -87,7 +87,6 @@ import org.truffleruby.language.objects.ObjectIVarGetNodeGen;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
 import org.truffleruby.language.objects.ObjectIVarSetNodeGen;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
-import org.truffleruby.language.supercall.CallSuperMethodNodeGen;
 import org.truffleruby.parser.Identifiers;
 
 import java.io.IOException;
@@ -708,7 +707,7 @@ public class CExtNodes {
     @CoreMethod(names = "rb_call_super_splatted", onSingleton = true, rest = true)
     public abstract static class CallSuperNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallSuperMethodNode callSuperMethodNode = CallSuperMethodNodeGen.create(null, null, null);
+        @Child private CallSuperMethodNode callSuperMethodNode = CallSuperMethodNode.create();
         @Child private MetaClassNode metaClassNode = MetaClassNodeGen.create(null);
 
         @Specialization
@@ -719,7 +718,7 @@ public class CExtNodes {
             final DynamicObject callingMetaclass = metaClassNode.executeMetaClass(callingSelf);
             final MethodLookupResult superMethodLookup = ModuleOperations.lookupSuperMethod(callingMethod, callingMetaclass);
             final InternalMethod superMethod = superMethodLookup.getMethod();
-            return callSuperMethodNode.executeCallSuperMethod(frame, superMethod, args, null);
+            return callSuperMethodNode.executeCallSuperMethod(frame, callingSelf, superMethod, args, null);
         }
 
         @TruffleBoundary
