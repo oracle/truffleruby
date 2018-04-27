@@ -16,6 +16,7 @@ module Truffle::Patching
   PATCHES = {
     'stdlib' => "#{DIR}/stdlib",
     'bundler' => "#{DIR}/bundler",
+    'launchy' => "#{DIR}/launchy",
     'rake-compiler' => "#{DIR}/rake-compiler",
     'rspec-core' => "#{DIR}/rspec-core",
     'rspec-support' => "#{DIR}/rspec-support",
