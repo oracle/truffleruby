@@ -56,7 +56,6 @@ import org.truffleruby.core.rope.RopeNodesFactory;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.SubstringRope;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringNodesFactory;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.interop.ToJavaStringNodeGen;
@@ -873,20 +872,16 @@ public class CExtNodes {
 
         @Specialization(guards = "isRubyString(string)")
         public int write(DynamicObject string, int index, int value,
-                @Cached("createBinaryProfile()") ConditionProfile nativeRopeProfile,
-                @Cached("getHelperNode()") StringNodes.SetByteNode setByteNode) {
+                @Cached("createBinaryProfile()") ConditionProfile newRopeProfile,
+                @Cached("create()") RopeNodes.SetByteNode setByteNode) {
             final Rope rope = rope(string);
 
-            if (nativeRopeProfile.profile(rope instanceof NativeRope)) {
-                ((NativeRope) rope).set(index, value);
-                return value;
-            } else {
-                return setByteNode.executeSetByte(string, index, value);
+            final Rope newRope = setByteNode.executeSetByte(rope, index, value);
+            if (newRopeProfile.profile(newRope != rope)) {
+                StringOperations.setRope(string, newRope);
             }
-        }
 
-        protected StringNodes.SetByteNode getHelperNode() {
-            return StringNodesFactory.SetByteNodeFactory.create(null, null, null);
+            return value;
         }
 
     }
