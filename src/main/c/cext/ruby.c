@@ -985,7 +985,7 @@ char *RSTRING_PTR_IMPL(VALUE string) {
   // We start off treating RStringPtr as if it weren't a pointer for interop purposes. This is so Sulong doesn't try
   // to convert it to an actual char* when returning from `polyglot_invoke`. Once we have a handle to the real RStringPtr
   // object, we can instruct it to start acting like a pointer, which is necessary for pointer address comparisons.
-  polyglot_as_boolean(polyglot_invoke(ret, "act_like_pointer=", Qtrue));
+  polyglot_invoke(ret, "act_like_pointer=", Qtrue);
 
   return ret;
 }
@@ -996,7 +996,7 @@ char *RSTRING_END(VALUE string) {
   // We start off treating RStringPtr as if it weren't a pointer for interop purposes. This is so Sulong doesn't try
   // to convert it to an actual char* when returning from `polyglot_invoke`. Once we have a handle to the real RStringPtr
   // object, we can instruct it to start acting like a pointer, which is necessary for pointer address comparisons.
-  polyglot_as_boolean(polyglot_invoke(ret, "act_like_pointer=", Qtrue));
+  polyglot_invoke(ret, "act_like_pointer=", Qtrue);
 
   return ret;
 }
