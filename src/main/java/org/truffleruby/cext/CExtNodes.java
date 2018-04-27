@@ -835,6 +835,16 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "string_pointer_is_native?", onSingleton = true, required = 1)
+    public abstract static class StringPointerIsNativeNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(string)")
+        public boolean isNative(DynamicObject string) {
+            return rope(string) instanceof NativeRope;
+        }
+
+    }
+
     @CoreMethod(names = "string_pointer_read", onSingleton = true, required = 2, lowerFixnum = 2)
     public abstract static class StringPointerReadNode extends CoreMethodArrayArgumentsNode {
 
