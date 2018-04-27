@@ -850,14 +850,15 @@ public class CExtNodes {
 
         @Specialization(guards = "isRubyString(string)")
         public Object read(DynamicObject string, int index,
-                           @Cached("createBinaryProfile()") ConditionProfile beyondEndProfile,
-                           @Cached("getHelperNode()") RopeNodes.GetByteNode getByteNode) {
+                @Cached("createBinaryProfile()") ConditionProfile nativeRopeProfile,
+                @Cached("createBinaryProfile()") ConditionProfile inBoundsProfile,
+                @Cached("getHelperNode()") RopeNodes.GetByteNode getByteNode) {
             final Rope rope = rope(string);
 
-            if (beyondEndProfile.profile(index >= rope.byteLength())) {
-                return 0;
-            } else {
+            if (nativeRopeProfile.profile(rope instanceof NativeRope) || inBoundsProfile.profile(index < rope.byteLength())) {
                 return getByteNode.executeGetByte(rope, index);
+            } else {
+                return 0;
             }
         }
 
@@ -871,9 +872,17 @@ public class CExtNodes {
     public abstract static class StringPointerWriteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public Object write(DynamicObject string, int index, int value,
-                            @Cached("getHelperNode()") StringNodes.SetByteNode setByteNode) {
-            return setByteNode.executeSetByte(string, index, value);
+        public int write(DynamicObject string, int index, int value,
+                @Cached("createBinaryProfile()") ConditionProfile nativeRopeProfile,
+                @Cached("getHelperNode()") StringNodes.SetByteNode setByteNode) {
+            final Rope rope = rope(string);
+
+            if (nativeRopeProfile.profile(rope instanceof NativeRope)) {
+                ((NativeRope) rope).set(index, value);
+                return value;
+            } else {
+                return setByteNode.executeSetByte(string, index, value);
+            }
         }
 
         protected StringNodes.SetByteNode getHelperNode() {

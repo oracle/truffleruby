@@ -69,11 +69,15 @@ public class NativeRope extends Rope {
         return get(index);
     }
 
-    @TruffleBoundary
     @Override
     public byte get(int index) {
-        assert 0 <= index && index < byteLength();
+        assert 0 <= index && index < pointer.getSize();
         return pointer.readByte(index);
+    }
+
+    public void set(int index, int value) {
+        assert 0 <= index && index < pointer.getSize();
+        pointer.writeByte(index, (byte) value);
     }
 
     @Override
