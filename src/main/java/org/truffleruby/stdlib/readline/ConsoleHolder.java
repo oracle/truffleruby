@@ -41,35 +41,54 @@
 package org.truffleruby.stdlib.readline;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.object.DynamicObject;
 import jline.console.ConsoleReader;
 import jline.console.completer.Completer;
 import jline.console.history.History;
 import jline.console.history.MemoryHistory;
+import org.truffleruby.RubyContext;
 
 import java.io.IOException;
 
 public class ConsoleHolder {
 
+    private final RubyContext context;
     private final ConsoleReader readline;
     private Completer currentCompleter;
     private final History history;
+    private final IoStream in;
+    private final IoStream out;
+
+    public static ConsoleHolder create(RubyContext context) {
+        return new ConsoleHolder(context, 0, null, 1, null,
+                false, true, true,
+                new ReadlineNodes.RubyFileNameCompleter(), new MemoryHistory());
+    }
 
     @TruffleBoundary
-    public ConsoleHolder() {
+    private ConsoleHolder(RubyContext context,
+                          int inFd, DynamicObject inIo,
+                          int outFd, DynamicObject outIo,
+                          boolean historyEnabled, boolean paginationEnabled, boolean bellEnabled,
+                          Completer completer, History history) {
+        this.context = context;
+        this.in = new IoStream(context, inFd, inIo);
+        this.out = new IoStream(context, outFd, outIo);
+
         try {
-            readline = new ConsoleReader();
+            readline = new ConsoleReader(in.getIn(), out.getOut());
         } catch (IOException e) {
             throw new UnsupportedOperationException("Couldn't initialize readline", e);
         }
 
-        readline.setHistoryEnabled(false);
-        readline.setPaginationEnabled(true);
-        readline.setBellEnabled(true);
+        readline.setHistoryEnabled(historyEnabled);
+        readline.setPaginationEnabled(paginationEnabled);
+        readline.setBellEnabled(bellEnabled);
 
-        currentCompleter = new ReadlineNodes.RubyFileNameCompleter();
+        this.currentCompleter = completer;
         readline.addCompleter(currentCompleter);
 
-        history = new MemoryHistory();
+        this.history = history;
         readline.setHistory(history);
     }
 
@@ -89,6 +108,32 @@ public class ConsoleHolder {
 
     public History getHistory() {
         return history;
+    }
+
+    public ConsoleHolder updateIn(int fd, DynamicObject io) {
+        if (fd == in.getFd()) {
+            return this;
+        }
+
+        return new ConsoleHolder(context, fd, io, out.getFd(), out.getIo(),
+                readline.isHistoryEnabled(),
+                readline.isPaginationEnabled(),
+                readline.getBellEnabled(),
+                currentCompleter,
+                history);
+    }
+
+    public ConsoleHolder updateOut(int fd, DynamicObject io) {
+        if (fd == out.getFd()) {
+            return this;
+        }
+
+        return new ConsoleHolder(context, in.getFd(), in.getIo(), fd, io,
+                readline.isHistoryEnabled(),
+                readline.isPaginationEnabled(),
+                readline.getBellEnabled(),
+                currentCompleter,
+                history);
     }
 
 }
