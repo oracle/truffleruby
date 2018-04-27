@@ -170,10 +170,10 @@ x509store_verify_cb(int ok, X509_STORE_CTX *ctx)
 {
     VALUE proc;
 
-    proc = (VALUE)X509_STORE_CTX_get_ex_data(ctx, stctx_ex_verify_cb_idx);
+    proc = rb_tr_managed_from_handle_or_null(X509_STORE_CTX_get_ex_data(ctx, stctx_ex_verify_cb_idx));
     if (!proc)
-	proc = (VALUE)X509_STORE_get_ex_data(X509_STORE_CTX_get0_store(ctx),
-					     store_ex_verify_cb_idx);
+	proc = rb_tr_managed_from_handle_or_null(X509_STORE_get_ex_data(X509_STORE_CTX_get0_store(ctx),
+					     store_ex_verify_cb_idx));
     if (!proc)
 	return ok;
 
