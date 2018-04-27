@@ -375,6 +375,24 @@ VALUE string_spec_RSTRING_PTR_after_funcall(VALUE self, VALUE str, VALUE cb) {
 
   return rb_str_new2(RSTRING_PTR(str));
 }
+
+VALUE string_spec_RSTRING_PTR_after_yield(VALUE self, VALUE str) {
+  char* ptr = RSTRING_PTR(str);
+  long len = RSTRING_LEN(str);
+  VALUE from_rstring_ptr;
+
+  /* Make sure ptr and the bytes are in native memory */
+  char** native = malloc(sizeof(char*));
+  *native = ptr;
+
+  (*native)[0] = '1';
+  rb_yield(str);
+  (*native)[2] = '2';
+
+  from_rstring_ptr = rb_str_new(*native, len);
+  free(native);
+  return from_rstring_ptr;
+}
 #endif
 
 #ifdef HAVE_STRINGVALUE
@@ -654,8 +672,8 @@ void Init_string_spec(void) {
   rb_define_method(cls, "RSTRING_PTR_iterate", string_spec_RSTRING_PTR_iterate, 1);
   rb_define_method(cls, "RSTRING_PTR_assign", string_spec_RSTRING_PTR_assign, 2);
   rb_define_method(cls, "RSTRING_PTR_set", string_spec_RSTRING_PTR_set, 3);
-  rb_define_method(cls, "RSTRING_PTR_after_funcall",
-      string_spec_RSTRING_PTR_after_funcall, 2);
+  rb_define_method(cls, "RSTRING_PTR_after_funcall", string_spec_RSTRING_PTR_after_funcall, 2);
+  rb_define_method(cls, "RSTRING_PTR_after_yield", string_spec_RSTRING_PTR_after_yield, 1);
 #endif
 
 #ifdef HAVE_STRINGVALUE
