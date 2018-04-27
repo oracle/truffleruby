@@ -30,6 +30,7 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.core.rope.RopeNodesFactory.SetByteNodeGen;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
@@ -1101,6 +1102,39 @@ public abstract class RopeNodes {
             }
 
             return rope.getRight().getRawBytes()[index - rope.getLeft().byteLength()] & 0xff;
+        }
+
+    }
+
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "rope"),
+            @NodeChild(type = RubyNode.class, value = "index"),
+            @NodeChild(type = RubyNode.class, value = "value")
+    })
+    public abstract static class SetByteNode extends RubyNode {
+
+        @Child private ConcatNode composedConcatNode = ConcatNode.create();
+        @Child private ConcatNode middleConcatNode = ConcatNode.create();
+        @Child private MakeLeafRopeNode makeLeafRopeNode = MakeLeafRopeNode.create();
+        @Child private SubstringNode leftSubstringNode = SubstringNode.create();
+        @Child private SubstringNode rightSubstringNode = SubstringNode.create();
+
+        public static SetByteNode create() {
+            return SetByteNodeGen.create(null, null, null);
+        }
+
+        public abstract Rope executeSetByte(Rope string, int index, int value);
+
+        @Specialization
+        public Rope setByte(Rope rope, int index, int value) {
+            assert 0 <= index && index < rope.byteLength();
+
+            final Rope left = leftSubstringNode.executeSubstring(rope, 0, index);
+            final Rope right = rightSubstringNode.executeSubstring(rope, index + 1, rope.byteLength() - index - 1);
+            final Rope middle = makeLeafRopeNode.executeMake(new byte[]{ (byte) value }, rope.getEncoding(), CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
+            final Rope composed = composedConcatNode.executeConcat(middleConcatNode.executeConcat(left, middle, rope.getEncoding()), right, rope.getEncoding());
+
+            return composed;
         }
 
     }
