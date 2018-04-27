@@ -990,7 +990,7 @@ module Truffle::CExt
   end
 
   def rb_str_new(string, length)
-    string.to_s[0, length].b
+    string.to_s.byteslice(0, length).force_encoding(Encoding::BINARY)
   end
 
   def rb_cstr_to_inum(string, base, raise)
