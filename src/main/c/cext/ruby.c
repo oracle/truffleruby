@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -1021,6 +1022,11 @@ int rb_str_len(VALUE string) {
   return polyglot_as_i32(polyglot_invoke((void *)string, "bytesize"));
 }
 
+bool is_managed_rstring_ptr(VALUE ptr) {
+  return polyglot_is_value(ptr) &&
+    !polyglot_as_boolean(polyglot_invoke(ptr, "native?"));
+}
+
 VALUE rb_str_new(const char *string, long length) {
   if (length < 0) {
     rb_raise(rb_eArgError, "negative string size (or size too big)");
@@ -1028,7 +1034,7 @@ VALUE rb_str_new(const char *string, long length) {
 
   if (string == NULL) {
     return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_nul", length);
-  } else if (polyglot_is_value((VALUE) string)) {
+  } else if (is_managed_rstring_ptr((VALUE) string)) {
     return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new", string, length);
   } else {
     // Copy the string to a new unmanaged buffer, because otherwise it's very
@@ -1052,7 +1058,7 @@ VALUE rb_tainted_str_new(const char *ptr, long len) {
 }
 
 VALUE rb_str_new_cstr(const char *string) {
-  if (polyglot_is_value((VALUE) string)) {
+  if (is_managed_rstring_ptr((VALUE) string)) {
     VALUE ruby_string = (VALUE) polyglot_invoke((VALUE) string, "to_s");
     int len = strlen(string);
     ruby_string = rb_str_subseq(ruby_string, 0, len);

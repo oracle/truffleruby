@@ -131,6 +131,10 @@ module Truffle::CExt
       Truffle::CExt.string_pointer_write(@string, index, value)
     end
 
+    def native?
+      Truffle::CExt.string_pointer_is_native?(@string)
+    end
+
     alias_method :to_str, :string
     alias_method :to_s, :string
     alias_method :pointer?, :act_like_pointer
