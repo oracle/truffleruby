@@ -36,8 +36,10 @@ public abstract class CallSuperMethodNode extends RubyNode {
     @Child private CallInternalMethodNode callMethodNode;
     @Child private CallDispatchHeadNode callMethodMissingNode;
 
+    public abstract Object executeCallSuperMethod(VirtualFrame frame, InternalMethod superMethod, Object[] arguments, Object block);
+
     @Specialization
-    public final Object callSuperMethod(VirtualFrame frame, InternalMethod superMethod, Object[] arguments, Object block) {
+    protected Object callSuperMethod(VirtualFrame frame, InternalMethod superMethod, Object[] arguments, Object block) {
         final Object self = RubyArguments.getSelf(frame);
 
         if (missingProfile.profile(superMethod == null)) {
@@ -48,10 +50,10 @@ public abstract class CallSuperMethodNode extends RubyNode {
 
         final Object[] frameArguments = RubyArguments.pack(null, null, superMethod, null, self, (DynamicObject) block, arguments);
 
-        return executeCallMethod(superMethod, frameArguments);
+        return callMethod(superMethod, frameArguments);
     }
 
-    private Object executeCallMethod(InternalMethod superMethod, Object[] frameArguments) {
+    private Object callMethod(InternalMethod superMethod, Object[] frameArguments) {
         if (callMethodNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callMethodNode = insert(CallInternalMethodNodeGen.create(null, null));
