@@ -1022,7 +1022,7 @@ public class BodyTranslator extends Translator {
         }
 
         final SourceIndexLength sourceSection = node.getPosition();
-        final String name = ConstantReplacer.replacementName(source, node.getName());
+        final String name = node.getName();
 
         final RubyNode lhs = node.getLeftNode().accept(this);
 
@@ -1036,7 +1036,7 @@ public class BodyTranslator extends Translator {
         // Root namespace constant access, as in ::Foo
 
         final SourceIndexLength sourceSection = node.getPosition();
-        final String name = ConstantReplacer.replacementName(source, node.getName());
+        final String name = node.getName();
 
         final ObjectLiteralNode root = new ObjectLiteralNode(context.getCoreLibrary().getObjectClass());
         root.unsafeSetSourceSection(sourceSection);
@@ -1129,8 +1129,7 @@ public class BodyTranslator extends Translator {
     public RubyNode visitConstNode(ConstParseNode node) {
         // Unqualified constant access, as in CONST
         final SourceIndexLength sourceSection = node.getPosition();
-
-        final String name = ConstantReplacer.replacementName(source, node.getName());
+        final String name = node.getName();
 
         final RubyNode ret;
         if (environment.isDynamicConstantLookup()) {
