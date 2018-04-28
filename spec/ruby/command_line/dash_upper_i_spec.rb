@@ -10,15 +10,24 @@ describe "The -I command line option" do
   end
 
   it "adds the path at the front of $LOAD_PATH" do
-    ruby_exe(@script, options: "-I fixtures").lines[0].should include("fixtures")
+    lines = ruby_exe(@script, options: "-I fixtures").lines
+    if File.basename(ruby_exe[0]) == "miniruby"
+      # In a MRI checkout, $PWD ends up as the first entry in $LOAD_PATH.
+      # So just assert that it's at the beginning.
+      idx = lines.index { |l| l.include?("fixtures") }
+      idx.should < 2
+      idx.should < lines.size-1
+    else
+      lines[0].should include("fixtures")
+    end
   end
 
   it "adds the path expanded from CWD to $LOAD_PATH" do
-    ruby_exe(@script, options: "-I fixtures").lines[0].should == "#{Dir.pwd}/fixtures\n"
+    ruby_exe(@script, options: "-I fixtures").lines.should include "#{Dir.pwd}/fixtures\n"
   end
 
   it "expands a path from CWD even if it does not exist" do
-    ruby_exe(@script, options: "-I not_exist/not_exist").lines[0].should == "#{Dir.pwd}/not_exist/not_exist\n"
+    ruby_exe(@script, options: "-I not_exist/not_exist").lines.should include "#{Dir.pwd}/not_exist/not_exist\n"
   end
 end
 
@@ -35,6 +44,6 @@ describe "The -I command line option" do
   end
 
   it "does not expand symlinks" do
-    ruby_exe(@script, options: "-I #{@symlink}").lines[0].should == "#{@symlink}\n"
+    ruby_exe(@script, options: "-I #{@symlink}").lines.should include "#{@symlink}\n"
   end
 end
