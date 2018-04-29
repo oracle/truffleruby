@@ -55,6 +55,16 @@ git commit -am 'Restore MRI modifications'
 Look in `../ruby/ext/json` to see the version of `flori/json` being used, and
 then copy the original source of `flori/json` into `lib/json`.
 
+## Updating .gemspec of default gems
+
+Default gems are imported from MRI files, except the .gemspec files in
+`lib/ruby/gems/2.4.0/specifications/default`.
+To update those, copy the files over from an installed MRI.
+```
+rm -rf lib/ruby/gems/2.4.0/specifications/default
+cp ~/.rubies/ruby-2.4.4/lib/ruby/gems/2.4.0/specifications/default lib/ruby/gems/2.4.0/specifications
+```
+
 ## Updating bundled gems
 
 The current list of bundled gems their versions are found at
