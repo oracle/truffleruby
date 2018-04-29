@@ -898,16 +898,7 @@ module Commands
       args, files_to_run = args.partition { |a| a.start_with?('-') }
     end
 
-    if files_to_run
-      prefix = "test/mri/tests/"
-      files_to_run = files_to_run.map { |file|
-        if file.start_with?(prefix)
-          file[prefix.size..-1]
-        else
-          file
-        end
-      }
-    else
+    unless files_to_run
       prefix = "#{TRUFFLERUBY_DIR}/test/mri/tests/"
       include_files = Dir.glob(include_pattern).map { |f|
         raise unless f.start_with?(prefix)
@@ -932,6 +923,15 @@ module Commands
   private :test_mri
 
   def run_mri_tests(extra_args, test_files, runner_args, run_options = {})
+    prefix = "test/mri/tests/"
+    test_files = test_files.map { |file|
+      if file.start_with?(prefix)
+        file[prefix.size..-1]
+      else
+        file
+      end
+    }
+
     truffle_args =  if extra_args.include?('--native')
                       %W[-Xhome=#{TRUFFLERUBY_DIR}]
                     else
