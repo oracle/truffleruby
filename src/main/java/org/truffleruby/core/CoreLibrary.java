@@ -382,10 +382,9 @@ public class CoreLibrary {
         complexClass = defineClass(numericClass, "Complex");
         floatClass = defineClass(numericClass, "Float");
         integerClass = defineClass(numericClass, "Integer");
-        fixnumClass = defineClass(integerClass, "Fixnum");
-        bignumClass = defineClass(integerClass, "Bignum");
+        fixnumClass = integerClass;
+        bignumClass = integerClass;
         bignumFactory = alwaysFrozen(Layouts.BIGNUM.createBignumShape(bignumClass, bignumClass));
-        Layouts.CLASS.setInstanceFactoryUnsafe(bignumClass, bignumFactory);
         rationalClass = defineClass(numericClass, "Rational");
 
         // Classes defined in Object
