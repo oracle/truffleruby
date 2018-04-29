@@ -2915,6 +2915,10 @@ VALUE rb_struct_new(VALUE klass, ...) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_struct_new_no_splat", klass, ary);
 }
 
+VALUE rb_struct_size(VALUE s) {
+  return polyglot_invoke(s, "size");
+}
+
 VALUE rb_struct_getmember(VALUE obj, ID id) {
   rb_tr_error("rb_struct_getmember not implemented");
 }
