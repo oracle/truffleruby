@@ -946,23 +946,30 @@ module Commands
 
     cext_tests = test_files.select { |f| f.include?("cext-ruby") }
     cext_tests.each do |test|
+      puts
+      puts test
       test_path = "#{TRUFFLERUBY_DIR}/test/mri/tests/#{test}"
       match = File.read(test_path).match(/\brequire ['"]c\/(.*?)["']/)
       if match
-        compile_dir = if match[1].include?('/')
-                        if Dir.exists?("#{MRI_TEST_CEXT_DIR}/#{match[1]}")
-                          "#{MRI_TEST_CEXT_DIR}/#{match[1]}"
+        cext_name = match[1]
+        compile_dir = if cext_name.include?('/')
+                        if Dir.exists?("#{MRI_TEST_CEXT_DIR}/#{cext_name}")
+                          "#{MRI_TEST_CEXT_DIR}/#{cext_name}"
                         else
-                          "#{MRI_TEST_CEXT_DIR}/#{File.dirname(match[1])}"
+                          "#{MRI_TEST_CEXT_DIR}/#{File.dirname(cext_name)}"
                         end
                       else
-                        "#{MRI_TEST_CEXT_DIR}/#{match[1]}"
+                        if Dir.exists?("#{MRI_TEST_CEXT_DIR}/#{cext_name}")
+                          "#{MRI_TEST_CEXT_DIR}/#{cext_name}"
+                        else
+                          "#{MRI_TEST_CEXT_DIR}/#{cext_name.gsub('_', '-')}"
+                        end
                       end
         name = File.basename(match[1])
         target_dir = if match[1].include?('/')
                        File.dirname(match[1])
                      else
-                      ''
+                       ''
                      end
         dest_dir = File.join(MRI_TEST_CEXT_LIB_DIR, target_dir)
         FileUtils::Verbose.mkdir_p(dest_dir)
