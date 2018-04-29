@@ -62,6 +62,7 @@ test/truffle/cexts/**/*.dylib
 test/truffle/ecosystem/hello-world/*.gem
 
 test/mri/tests/cext-c/**/Makefile
+test/mri/tests/cext-c/**/depend
 test/mri/tests/cext-c/**/*.bc
 test/mri/tests/cext-c/**/*.su
 test/mri/tests/cext-c/**/extconf.h
