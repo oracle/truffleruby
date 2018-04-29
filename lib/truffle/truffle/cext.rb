@@ -361,10 +361,6 @@ module Truffle::CExt
     Array
   end
 
-  def rb_cBignum
-    Bignum
-  end
-
   def rb_cClass
     Class
   end
@@ -391,10 +387,6 @@ module Truffle::CExt
 
   def rb_cFile
     File
-  end
-
-  def rb_cFixnum
-    Fixnum
   end
 
   def rb_cFloat

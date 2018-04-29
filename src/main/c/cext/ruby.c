@@ -183,10 +183,6 @@ VALUE rb_tr_get_Array(void) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cArray");
 }
 
-VALUE rb_tr_get_Bignum(void) {
-  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cBignum");
-}
-
 VALUE rb_tr_get_Class(void) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cClass");
 }
@@ -213,10 +209,6 @@ VALUE rb_tr_get_FalseClass(void) {
 
 VALUE rb_tr_get_File(void) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cFile");
-}
-
-VALUE rb_tr_get_Fixnum(void) {
-  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cFixnum");
 }
 
 VALUE rb_tr_get_Float(void) {
