@@ -32,3 +32,6 @@ exclude :test_redefine_method_which_may_case_serious_problem, "needs investigati
 exclude :test_send_with_block, "needs investigation"
 exclude :"test_convert_array", "needs investigation"
 exclude :"test_convert_string", "needs investigation"
+exclude :test_clone, "needs investigation"
+exclude :test_clone_object_should_not_be_old, "needs investigation"
+exclude :test_dup, "needs investigation"
