@@ -100,6 +100,7 @@ lib/ruby/gems/2.4.0/gems/*
 !lib/ruby/gems/2.4.0/gems/power_assert-0.4.1
 !lib/ruby/gems/2.4.0/gems/test-unit-3.2.3
 !lib/ruby/gems/2.4.0/gems/net-telnet-0.1.1
+!lib/ruby/gems/2.4.0/gems/xmlrpc-0.2.1
 
 !lib/ruby/gems/2.4.0/specifications
 lib/ruby/gems/2.4.0/specifications/*
@@ -110,6 +111,7 @@ lib/ruby/gems/2.4.0/specifications/*
 !lib/ruby/gems/2.4.0/specifications/power_assert-0.4.1.gemspec
 !lib/ruby/gems/2.4.0/specifications/test-unit-3.2.3.gemspec
 !lib/ruby/gems/2.4.0/specifications/net-telnet-0.1.1.gemspec
+!lib/ruby/gems/2.4.0/specifications/xmlrpc-0.2.1.gemspec
 
 # Bin directory
 bin/*
