@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.constants;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -20,16 +19,13 @@ import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.parser.SuppressFBWarnings;
 
-public abstract class LookupConstantWithLexicalScopeNode extends RubyNode implements LookupConstantInterface {
+public abstract class LookupConstantWithLexicalScopeNode extends LookupConstantBaseNode implements LookupConstantInterface {
 
     private final LexicalScope lexicalScope;
     private final String name;
-    @Child private WarnNode warnNode;
 
     public LookupConstantWithLexicalScopeNode(LexicalScope lexicalScope, String name) {
         this.lexicalScope = lexicalScope;
@@ -57,7 +53,7 @@ public abstract class LookupConstantWithLexicalScopeNode extends RubyNode implem
             throw new RaiseException(coreExceptions().nameErrorPrivateConstant(getModule(), name, this));
         }
         if (constant.isDeprecated()) {
-            warnDeprecatedConstant(name);
+            warnDeprecatedConstant(constant.getConstant(), name);
         }
         return constant.getConstant();
     }
@@ -71,7 +67,7 @@ public abstract class LookupConstantWithLexicalScopeNode extends RubyNode implem
             throw new RaiseException(coreExceptions().nameErrorPrivateConstant(getModule(), name, this));
         }
         if (isDeprecatedProfile.profile(constant.isDeprecated())) {
-            warnDeprecatedConstant(name);
+            warnDeprecatedConstant(constant.getConstant(), name);
         }
         return constant.getConstant();
     }
@@ -84,14 +80,6 @@ public abstract class LookupConstantWithLexicalScopeNode extends RubyNode implem
     @TruffleBoundary
     protected boolean isVisible(ConstantLookupResult constant) {
         return constant.isVisibleTo(getContext(), lexicalScope, getModule());
-    }
-
-    private void warnDeprecatedConstant(String name) {
-        if (warnNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            warnNode = insert(new WarnNode());
-        }
-        warnNode.warn("constant ", name, " is deprecated");
     }
 
 }
