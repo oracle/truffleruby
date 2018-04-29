@@ -1,6 +1,6 @@
 # power_assert.rb
 #
-# Copyright (C) 2014-2015 Kazuki Tsujimoto, All rights reserved.
+# Copyright (C) 2014-2016 Kazuki Tsujimoto, All rights reserved.
 
 begin
   captured = false
@@ -16,19 +16,12 @@ rescue
 end
 
 require 'power_assert/version'
+require 'power_assert/configuration'
 require 'power_assert/enable_tracepoint_events'
 require 'ripper'
 
 module PowerAssert
   class << self
-    def configuration
-      @configuration ||= Configuration[false]
-    end
-
-    def configure
-      yield configuration
-    end
-
     def start(assertion_proc_or_source, assertion_method: nil, source_binding: TOPLEVEL_BINDING)
       if respond_to?(:clear_global_method_cache, true)
         clear_global_method_cache
@@ -44,9 +37,6 @@ module PowerAssert
       end
     end
   end
-
-  Configuration = Struct.new(:lazy_inspection)
-  private_constant :Configuration
 
   module Empty
   end
@@ -90,7 +80,7 @@ module PowerAssert
     Ident = Struct.new(:type, :name, :column)
 
     TARGET_CALLER_DIFF = {return: 5, c_return: 4}
-    TARGET_INDEX_OFFSET = {bmethod: 3, method: 2}
+    TARGET_INDEX_OFFSET = 2
 
     attr_reader :message_proc
 
@@ -111,40 +101,52 @@ module PowerAssert
       @base_caller_length = -1
       @assertion_method_name = assertion_method.to_s
       @message_proc = -> {
-        return nil if @base_caller_length < 0
+        raise RuntimeError, 'call #yield at first' if @base_caller_length < 0
         @message ||= build_assertion_message(@line || '', methods || [], return_values, refs || [], @assertion_proc.binding).freeze
       }
       @proc_local_variables = @assertion_proc.binding.eval('local_variables').map(&:to_s)
       target_thread = Thread.current
+      @trace_call = TracePoint.new(:call, :c_call) do |tp|
+        next if @base_caller_length < 0
+        locs = caller_locations
+        if locs.length >= @base_caller_length+TARGET_INDEX_OFFSET and Thread.current == target_thread
+          idx = -(@base_caller_length+TARGET_INDEX_OFFSET)
+          path = locs[idx].path
+          lineno = locs[idx].lineno
+          @line ||= open(path).each_line.drop(lineno - 1).first
+          idents = extract_idents(Ripper.sexp(@line))
+          methods, refs = idents.partition {|i| i.type == :method }
+          method_ids = methods.map(&:name).map(&:to_sym).each_with_object({}) {|i, h| h[i] = true }
+          @trace_call.disable
+        end
+      end
+      trace_alias_method = PowerAssert.configuration._trace_alias_method
       @trace = TracePoint.new(:return, :c_return) do |tp|
-        next if method_ids and ! method_ids.include?(tp.method_id)
+        method_id = SUPPORT_ALIAS_METHOD                      ? tp.callee_id :
+                    trace_alias_method && tp.event == :return ? tp.binding.eval('::Kernel.__callee__') :
+                                                                tp.method_id
+        next if method_ids and ! method_ids[method_id]
+        next if tp.event == :c_return and
+                not (lineno == tp.lineno and path == tp.path)
         next unless tp.binding # workaround for ruby 2.2
         locs = tp.binding.eval('::Kernel.caller_locations')
         current_diff = locs.length - @base_caller_length
-        target_diff = TARGET_CALLER_DIFF[tp.event]
-        is_target_bmethod = current_diff < target_diff
-        if (is_target_bmethod or current_diff == target_diff) and Thread.current == target_thread
-          idx = target_diff - TARGET_INDEX_OFFSET[is_target_bmethod ? :bmethod : :method]
-          unless path
-            path = locs[idx].path
-            lineno = locs[idx].lineno
-            @line ||= open(path).each_line.drop(lineno - 1).first
-            idents = extract_idents(Ripper.sexp(@line))
-            methods, refs = idents.partition {|i| i.type == :method }
-            method_ids = methods.map(&:name).map(&:to_sym).uniq
-          end
+        if current_diff <= TARGET_CALLER_DIFF[tp.event] and Thread.current == target_thread
+          idx = -(@base_caller_length+TARGET_INDEX_OFFSET)
           if path == locs[idx].path and lineno == locs[idx].lineno
             val = PowerAssert.configuration.lazy_inspection ?
               tp.return_value :
               InspectedValue.new(SafeInspectable.new(tp.return_value).inspect)
-            return_values << Value[tp.method_id.to_s, val, nil]
+            return_values << Value[method_id.to_s, val, nil]
           end
         end
       end
     end
 
     def yield
-      do_yield(&@assertion_proc)
+      @trace_call.enable do
+        do_yield(&@assertion_proc)
+      end
     end
 
     def message

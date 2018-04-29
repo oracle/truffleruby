@@ -7,3 +7,10 @@ Rake::TestTask.new do |t|
   t.ruby_opts = ["-w", "-r./test/helper"]
   t.test_files = FileList["test/test_*.rb"]
 end
+
+desc "Run the benchmark suite"
+task('benchmark') do
+  Dir.glob('benchmarks/bm_*.rb').each do |f|
+    load(f)
+  end
+end
