@@ -1,12 +1,9 @@
-#!/usr/bin/env ruby
-# encoding: utf-8
+#frozen_string_literal: false
+require 'test_helper'
 
-require 'test/unit'
-require File.join(File.dirname(__FILE__), 'setup_variant')
-
-class TestJSONFixtures < Test::Unit::TestCase
+class JSONFixturesTest < Test::Unit::TestCase
   def setup
-    fixtures = File.join(File.dirname(__FILE__), 'fixtures/*.json')
+    fixtures = File.join(File.dirname(__FILE__), 'fixtures/{fail,pass}.json')
     passed, failed = Dir[fixtures].partition { |f| f['pass'] }
     @passed = passed.inject([]) { |a, f| a << [ f, File.read(f) ] }.sort
     @failed = failed.inject([]) { |a, f| a << [ f, File.read(f) ] }.sort
@@ -26,7 +23,7 @@ class TestJSONFixtures < Test::Unit::TestCase
 
   def test_failing
     for name, source in @failed
-      assert_raises(JSON::ParserError, JSON::NestingError,
+      assert_raise(JSON::ParserError, JSON::NestingError,
         "Did not fail for fixture '#{name}': #{source.inspect}") do
         JSON.parse(source)
       end

@@ -7,14 +7,20 @@ static ID i_encoding, i_encode;
 #endif
 
 static VALUE mJSON, mExt, mGenerator, cState, mGeneratorMethods, mObject,
-             mHash, mArray, mFixnum, mBignum, mFloat, mString, mString_Extend,
+             mHash, mArray,
+#ifdef RUBY_INTEGER_UNIFICATION
+             mInteger,
+#else
+             mFixnum, mBignum,
+#endif
+             mFloat, mString, mString_Extend,
              mTrueClass, mFalseClass, mNilClass, eGeneratorError,
              eNestingError, CRegexp_MULTILINE, CJSON_SAFE_STATE_PROTOTYPE,
              i_SAFE_STATE_PROTOTYPE;
 
 static ID i_to_s, i_to_json, i_new, i_indent, i_space, i_space_before,
           i_object_nl, i_array_nl, i_max_nesting, i_allow_nan, i_ascii_only,
-          i_quirks_mode, i_pack, i_unpack, i_create_id, i_extend, i_key_p,
+          i_pack, i_unpack, i_create_id, i_extend, i_key_p,
           i_aref, i_send, i_respond_to_p, i_match, i_keys, i_depth,
           i_buffer_initial_length, i_dup;
 
@@ -216,6 +222,7 @@ static void convert_UTF8_to_JSON_ASCII(FBuffer *buffer, VALUE string)
             unicode_escape_to_buffer(buffer, buf, (UTF16)((ch & halfMask) + UNI_SUR_LOW_START));
         }
     }
+    RB_GC_GUARD(string);
 }
 
 /* Converts string to a JSON string in FBuffer buffer, where only the
@@ -301,7 +308,7 @@ static char *fstrndup(const char *ptr, unsigned long len) {
   char *result;
   if (len <= 0) return NULL;
   result = ALLOC_N(char, len);
-  memccpy(result, ptr, 0, len);
+  memcpy(result, ptr, len);
   return result;
 }
 
@@ -342,6 +349,18 @@ static VALUE mArray_to_json(int argc, VALUE *argv, VALUE self) {
     GENERATE_JSON(array);
 }
 
+#ifdef RUBY_INTEGER_UNIFICATION
+/*
+ * call-seq: to_json(*)
+ *
+ * Returns a JSON string representation for this Integer number.
+ */
+static VALUE mInteger_to_json(int argc, VALUE *argv, VALUE self)
+{
+    GENERATE_JSON(integer);
+}
+
+#else
 /*
  * call-seq: to_json(*)
  *
@@ -361,6 +380,7 @@ static VALUE mBignum_to_json(int argc, VALUE *argv, VALUE self)
 {
     GENERATE_JSON(bignum);
 }
+#endif
 
 /*
  * call-seq: to_json(*)
@@ -622,8 +642,6 @@ static VALUE cState_configure(VALUE self, VALUE opts)
     state->allow_nan = RTEST(tmp);
     tmp = rb_hash_aref(opts, ID2SYM(i_ascii_only));
     state->ascii_only = RTEST(tmp);
-    tmp = rb_hash_aref(opts, ID2SYM(i_quirks_mode));
-    state->quirks_mode = RTEST(tmp);
     return self;
 }
 
@@ -657,7 +675,6 @@ static VALUE cState_to_h(VALUE self)
     rb_hash_aset(result, ID2SYM(i_array_nl), rb_str_new(state->array_nl, state->array_nl_len));
     rb_hash_aset(result, ID2SYM(i_allow_nan), state->allow_nan ? Qtrue : Qfalse);
     rb_hash_aset(result, ID2SYM(i_ascii_only), state->ascii_only ? Qtrue : Qfalse);
-    rb_hash_aset(result, ID2SYM(i_quirks_mode), state->quirks_mode ? Qtrue : Qfalse);
     rb_hash_aset(result, ID2SYM(i_max_nesting), LONG2FIX(state->max_nesting));
     rb_hash_aset(result, ID2SYM(i_depth), LONG2FIX(state->depth));
     rb_hash_aset(result, ID2SYM(i_buffer_initial_length), LONG2FIX(state->buffer_initial_length));
@@ -825,6 +842,15 @@ static void generate_json_bignum(FBuffer *buffer, VALUE Vstate, JSON_Generator_S
     fbuffer_append_str(buffer, tmp);
 }
 
+#ifdef RUBY_INTEGER_UNIFICATION
+static void generate_json_integer(FBuffer *buffer, VALUE Vstate, JSON_Generator_State *state, VALUE obj)
+{
+    if (FIXNUM_P(obj))
+        generate_json_fixnum(buffer, Vstate, state, obj);
+    else
+        generate_json_bignum(buffer, Vstate, state, obj);
+}
+#endif
 static void generate_json_float(FBuffer *buffer, VALUE Vstate, JSON_Generator_State *state, VALUE obj)
 {
     double value = RFLOAT_VALUE(obj);
@@ -858,9 +884,9 @@ static void generate_json(FBuffer *buffer, VALUE Vstate, JSON_Generator_State *s
         generate_json_false(buffer, Vstate, state, obj);
     } else if (obj == Qtrue) {
         generate_json_true(buffer, Vstate, state, obj);
-    } else if (klass == rb_cFixnum) {
+    } else if (FIXNUM_P(obj)) {
         generate_json_fixnum(buffer, Vstate, state, obj);
-    } else if (klass == rb_cBignum) {
+    } else if (RB_TYPE_P(obj, T_BIGNUM)) {
         generate_json_bignum(buffer, Vstate, state, obj);
     } else if (klass == rb_cFloat) {
         generate_json_float(buffer, Vstate, state, obj);
@@ -871,7 +897,7 @@ static void generate_json(FBuffer *buffer, VALUE Vstate, JSON_Generator_State *s
     } else {
         tmp = rb_funcall(obj, i_to_s, 0);
         Check_Type(tmp, T_STRING);
-        generate_json(buffer, Vstate, state, tmp);
+        generate_json_string(buffer, Vstate, state, tmp);
     }
 }
 
@@ -915,21 +941,6 @@ static VALUE cState_partial_generate(VALUE self, VALUE obj)
 }
 
 /*
- * This function returns true if string is either a JSON array or JSON object.
- * It might suffer from false positives, e. g. syntactically incorrect JSON in
- * the string or certain UTF-8 characters on the right hand side.
- */
-static int isArrayOrObject(VALUE string)
-{
-    long string_len = RSTRING_LEN(string);
-    char *p = RSTRING_PTR(string), *q = p + string_len - 1;
-    if (string_len < 2) return 0;
-    for (; p < q && isspace((unsigned char)*p); p++);
-    for (; q > p && isspace((unsigned char)*q); q--);
-    return (*p == '[' && *q == ']') || (*p == '{' && *q == '}');
-}
-
-/*
  * call-seq: generate(obj)
  *
  * Generates a valid JSON document from object +obj+ and returns the
@@ -940,9 +951,7 @@ static VALUE cState_generate(VALUE self, VALUE obj)
 {
     VALUE result = cState_partial_generate(self, obj);
     GET_STATE(self);
-    if (!state->quirks_mode && !isArrayOrObject(result)) {
-        rb_raise(eGeneratorError, "only generation of JSON objects or arrays allowed");
-    }
+    (void)state;
     return result;
 }
 
@@ -961,8 +970,6 @@ static VALUE cState_generate(VALUE self, VALUE obj)
  * * *allow_nan*: true if NaN, Infinity, and -Infinity should be
  *   generated, otherwise an exception is thrown, if these values are
  *   encountered. This options defaults to false.
- * * *quirks_mode*: Enables quirks_mode for parser, that is for example
- *   generating single JSON values instead of documents is possible.
  * * *buffer_initial_length*: sets the initial length of the generator's
  *   internal buffer.
  */
@@ -1055,7 +1062,7 @@ static VALUE cState_indent_set(VALUE self, VALUE indent)
         }
     } else {
         if (state->indent) ruby_xfree(state->indent);
-        state->indent = strdup(RSTRING_PTR(indent));
+        state->indent = fstrndup(RSTRING_PTR(indent), len);
         state->indent_len = len;
     }
     return Qnil;
@@ -1093,7 +1100,7 @@ static VALUE cState_space_set(VALUE self, VALUE space)
         }
     } else {
         if (state->space) ruby_xfree(state->space);
-        state->space = strdup(RSTRING_PTR(space));
+        state->space = fstrndup(RSTRING_PTR(space), len);
         state->space_len = len;
     }
     return Qnil;
@@ -1129,7 +1136,7 @@ static VALUE cState_space_before_set(VALUE self, VALUE space_before)
         }
     } else {
         if (state->space_before) ruby_xfree(state->space_before);
-        state->space_before = strdup(RSTRING_PTR(space_before));
+        state->space_before = fstrndup(RSTRING_PTR(space_before), len);
         state->space_before_len = len;
     }
     return Qnil;
@@ -1166,7 +1173,7 @@ static VALUE cState_object_nl_set(VALUE self, VALUE object_nl)
         }
     } else {
         if (state->object_nl) ruby_xfree(state->object_nl);
-        state->object_nl = strdup(RSTRING_PTR(object_nl));
+        state->object_nl = fstrndup(RSTRING_PTR(object_nl), len);
         state->object_nl_len = len;
     }
     return Qnil;
@@ -1201,7 +1208,7 @@ static VALUE cState_array_nl_set(VALUE self, VALUE array_nl)
         }
     } else {
         if (state->array_nl) ruby_xfree(state->array_nl);
-        state->array_nl = strdup(RSTRING_PTR(array_nl));
+        state->array_nl = fstrndup(RSTRING_PTR(array_nl), len);
         state->array_nl_len = len;
     }
     return Qnil;
@@ -1267,29 +1274,6 @@ static VALUE cState_ascii_only_p(VALUE self)
 {
     GET_STATE(self);
     return state->ascii_only ? Qtrue : Qfalse;
-}
-
-/*
- * call-seq: quirks_mode?
- *
- * Returns true, if quirks mode is enabled. Otherwise returns false.
- */
-static VALUE cState_quirks_mode_p(VALUE self)
-{
-    GET_STATE(self);
-    return state->quirks_mode ? Qtrue : Qfalse;
-}
-
-/*
- * call-seq: quirks_mode=(enable)
- *
- * If set to true, enables the quirks_mode mode.
- */
-static VALUE cState_quirks_mode_set(VALUE self, VALUE enable)
-{
-    GET_STATE(self);
-    state->quirks_mode = RTEST(enable);
-    return Qnil;
 }
 
 /*
@@ -1380,9 +1364,6 @@ void Init_generator(void)
     rb_define_method(cState, "check_circular?", cState_check_circular_p, 0);
     rb_define_method(cState, "allow_nan?", cState_allow_nan_p, 0);
     rb_define_method(cState, "ascii_only?", cState_ascii_only_p, 0);
-    rb_define_method(cState, "quirks_mode?", cState_quirks_mode_p, 0);
-    rb_define_method(cState, "quirks_mode", cState_quirks_mode_p, 0);
-    rb_define_method(cState, "quirks_mode=", cState_quirks_mode_set, 1);
     rb_define_method(cState, "depth", cState_depth, 0);
     rb_define_method(cState, "depth=", cState_depth_set, 1);
     rb_define_method(cState, "buffer_initial_length", cState_buffer_initial_length, 0);
@@ -1402,10 +1383,15 @@ void Init_generator(void)
     rb_define_method(mHash, "to_json", mHash_to_json, -1);
     mArray = rb_define_module_under(mGeneratorMethods, "Array");
     rb_define_method(mArray, "to_json", mArray_to_json, -1);
+#ifdef RUBY_INTEGER_UNIFICATION
+    mInteger = rb_define_module_under(mGeneratorMethods, "Integer");
+    rb_define_method(mInteger, "to_json", mInteger_to_json, -1);
+#else
     mFixnum = rb_define_module_under(mGeneratorMethods, "Fixnum");
     rb_define_method(mFixnum, "to_json", mFixnum_to_json, -1);
     mBignum = rb_define_module_under(mGeneratorMethods, "Bignum");
     rb_define_method(mBignum, "to_json", mBignum_to_json, -1);
+#endif
     mFloat = rb_define_module_under(mGeneratorMethods, "Float");
     rb_define_method(mFloat, "to_json", mFloat_to_json, -1);
     mString = rb_define_module_under(mGeneratorMethods, "String");
@@ -1434,7 +1420,6 @@ void Init_generator(void)
     i_max_nesting = rb_intern("max_nesting");
     i_allow_nan = rb_intern("allow_nan");
     i_ascii_only = rb_intern("ascii_only");
-    i_quirks_mode = rb_intern("quirks_mode");
     i_depth = rb_intern("depth");
     i_buffer_initial_length = rb_intern("buffer_initial_length");
     i_pack = rb_intern("pack");

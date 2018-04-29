@@ -1,8 +1,7 @@
 /*
  * This code is copyrighted work by Daniel Luz <dev at mernen dot com>.
  *
- * Distributed under the Ruby and GPLv2 licenses; see COPYING and GPL files
- * for details.
+ * Distributed under the Ruby license: https://www.ruby-lang.org/en/about/license.txt
  */
 package json.ext;
 
@@ -51,10 +50,9 @@ public class Parser extends RubyObject {
     private int maxNesting;
     private boolean allowNaN;
     private boolean symbolizeNames;
-    private boolean quirksMode;
     private RubyClass objectClass;
     private RubyClass arrayClass;
-    private RubyHash match_string;
+    private RubyHash matchString;
 
     private static final int DEFAULT_MAX_NESTING = 100;
 
@@ -122,10 +120,6 @@ public class Parser extends RubyObject {
      * <dd>If set to <code>true</code>, returns symbols for the names (keys) in
      * a JSON object. Otherwise strings are returned, which is also the default.
      *
-     * <dt><code>:quirks_mode?</code>
-     * <dd>If set to <code>true</code>, if the parse is in quirks_mode, false
-     * otherwise.
-     * 
      * <dt><code>:create_additions</code>
      * <dd>If set to <code>false</code>, the Parser doesn't create additions
      * even if a matching class and <code>create_id</code> was found. This option
@@ -137,9 +131,6 @@ public class Parser extends RubyObject {
      * <dt><code>:array_class</code>
      * <dd>Defaults to Array.
      *
-     * <dt><code>:quirks_mode</code>
-     * <dd>Enables quirks_mode for parser, that is for example parsing single
-     * JSON values instead of documents is possible.
      * </dl>
      */
     @JRubyMethod(name = "new", required = 1, optional = 1, meta = true)
@@ -162,15 +153,20 @@ public class Parser extends RubyObject {
         this.maxNesting      = opts.getInt("max_nesting", DEFAULT_MAX_NESTING);
         this.allowNaN        = opts.getBool("allow_nan", false);
         this.symbolizeNames  = opts.getBool("symbolize_names", false);
-        this.quirksMode      = opts.getBool("quirks_mode", false);
         this.createId        = opts.getString("create_id", getCreateId(context));
         this.createAdditions = opts.getBool("create_additions", false);
         this.objectClass     = opts.getClass("object_class", runtime.getHash());
         this.arrayClass      = opts.getClass("array_class", runtime.getArray());
-        this.match_string    = opts.getHash("match_string");
+        this.matchString    = opts.getHash("match_string");
 
+        if(symbolizeNames && createAdditions) {
+          throw runtime.newArgumentError(
+            "options :symbolize_names and :create_additions cannot be " +
+            " used in conjunction"
+          );
+        }
         this.vSource = args[0].convertToString();
-        if (!quirksMode) this.vSource = convertEncoding(context, vSource);
+        this.vSource = convertEncoding(context, vSource);
 
         return this;
     }
@@ -181,33 +177,16 @@ public class Parser extends RubyObject {
      * Returns the source string if no conversion is needed.
      */
     private RubyString convertEncoding(ThreadContext context, RubyString source) {
-        ByteList bl = source.getByteList();
-        int len = bl.length();
-        if (len < 2) {
-            throw Utils.newException(context, Utils.M_PARSER_ERROR,
-                "A JSON text must at least contain two octets!");
-        }
-
-        if (info.encodingsSupported()) {
-            RubyEncoding encoding = (RubyEncoding)source.encoding(context);
-            if (encoding != info.ascii8bit.get()) {
-                return (RubyString)source.encode(context, info.utf8.get());
-            }
-
-            String sniffedEncoding = sniffByteList(bl);
-            if (sniffedEncoding == null) return source; // assume UTF-8
-            return reinterpretEncoding(context, source, sniffedEncoding);
-        }
-
-        String sniffedEncoding = sniffByteList(bl);
-        if (sniffedEncoding == null) return source; // assume UTF-8
-        Ruby runtime = context.getRuntime();
-        return (RubyString)info.jsonModule.get().
-            callMethod(context, "iconv",
-                new IRubyObject[] {
-                    runtime.newString("utf-8"),
-                    runtime.newString(sniffedEncoding),
-                    source});
+      RubyEncoding encoding = (RubyEncoding)source.encoding(context);
+      if (encoding == info.ascii8bit.get()) {
+          if (source.isFrozen()) {
+            source = (RubyString) source.dup();
+          }
+          source.force_encoding(context, info.utf8.get());
+      } else {
+        source = (RubyString) source.encode(context, info.utf8.get());
+      }
+      return source;
     }
 
     /**
@@ -258,17 +237,6 @@ public class Parser extends RubyObject {
     @JRubyMethod(name = "source")
     public IRubyObject source_get() {
         return checkAndGetSource().dup();
-    }
-
-    /**
-     * <code>Parser#quirks_mode?()</code>
-     * 
-     * <p>If set to <code>true</code>, if the parse is in quirks_mode, false
-     * otherwise.
-     */
-    @JRubyMethod(name = "quirks_mode?")
-    public IRubyObject quirks_mode_p(ThreadContext context) {
-        return context.getRuntime().newBoolean(quirksMode);
     }
 
     public RubyString checkAndGetSource() {
@@ -394,7 +362,7 @@ public class Parser extends RubyObject {
                 }
             }
             action parse_number {
-                if (pe > fpc + 9 - (parser.quirksMode ? 1 : 0) &&
+                if (pe > fpc + 8 &&
                     absSubSequence(fpc, fpc + 9).equals(JSON_MINUS_INFINITY)) {
 
                     if (parser.allowNaN) {
@@ -624,11 +592,11 @@ public class Parser extends RubyObject {
             %% write exec;
 
             if (parser.createAdditions) {
-                RubyHash match_string = parser.match_string;
-                if (match_string != null) {
+                RubyHash matchString = parser.matchString;
+                if (matchString != null) {
                     final IRubyObject[] memoArray = { result, null };
                     try {
-                      match_string.visitAll(new RubyHash.Visitor() {
+                      matchString.visitAll(new RubyHash.Visitor() {
                           @Override
                           public void visit(IRubyObject pattern, IRubyObject klass) {
                               if (pattern.callMethod(context, "===", memoArray[0]).isTrue()) {
@@ -649,7 +617,7 @@ public class Parser extends RubyObject {
             }
 
             if (cs >= JSON_string_first_final && result != null) {                
-                if (info.encodingsSupported() && result instanceof RubyString) {
+                if (result instanceof RubyString) {
                   ((RubyString)result).force_encoding(context, info.utf8.get());
                 }
                 res.update(result, p + 1);
@@ -836,21 +804,8 @@ public class Parser extends RubyObject {
 
             write data;
 
-            action parse_object {
-                currentNesting = 1;
-                parseObject(res, fpc, pe);
-                if (res.result == null) {
-                    fhold;
-                    fbreak;
-                } else {
-                    result = res.result;
-                    fexec res.p;
-                }
-            }
-
-            action parse_array {
-                currentNesting = 1;
-                parseArray(res, fpc, pe);
+            action parse_value {
+                parseValue(res, fpc, pe);
                 if (res.result == null) {
                     fhold;
                     fbreak;
@@ -861,12 +816,11 @@ public class Parser extends RubyObject {
             }
 
             main := ignore*
-                    ( begin_object >parse_object
-                    | begin_array >parse_array )
+                    ( begin_value >parse_value)
                     ignore*;
         }%%
 
-        public IRubyObject parseStrict() {
+        public IRubyObject parseImplemetation() {
             int cs = EVIL;
             int p, pe;
             IRubyObject result = null;
@@ -884,53 +838,8 @@ public class Parser extends RubyObject {
             }
         }
 
-        %%{
-            machine JSON_quirks_mode;
-            include JSON_common;
-
-            write data;
-
-            action parse_value {
-                parseValue(res, fpc, pe);
-                if (res.result == null) {
-                    fhold;
-                    fbreak;
-                } else {
-                    result = res.result;
-                    fexec res.p;
-                }
-            }
-
-            main := ignore*
-                    ( begin_value >parse_value)
-                    ignore*;
-        }%%
-
-        public IRubyObject parseQuirksMode() {
-            int cs = EVIL;
-            int p, pe;
-            IRubyObject result = null;
-            ParserResult res = new ParserResult();
-
-            %% write init;
-            p = byteList.begin();
-            pe = p + byteList.length();
-            %% write exec;
-
-            if (cs >= JSON_quirks_mode_first_final && p == pe) {
-                return result;
-            } else {
-                throw unexpectedToken(p, pe);
-            }
-        }
-
         public IRubyObject parse() {
-          if (parser.quirksMode) {
-            return parseQuirksMode();
-          } else {
-            return parseStrict();
-          }
-
+            return parseImplemetation();
         }
 
         /**

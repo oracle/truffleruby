@@ -1,8 +1,7 @@
 /*
  * This code is copyrighted work by Daniel Luz <dev at mernen dot com>.
  *
- * Distributed under the Ruby and GPLv2 licenses; see COPYING and GPL files
- * for details.
+ * Distributed under the Ruby license: https://www.ruby-lang.org/en/about/license.txt
  */
 package json.ext;
 

@@ -1,8 +1,7 @@
 /*
  * This code is copyrighted work by Daniel Luz <dev at mernen dot com>.
  *
- * Distributed under the Ruby and GPLv2 licenses; see COPYING and GPL files
- * for details.
+ * Distributed under the Ruby license: https://www.ruby-lang.org/en/about/license.txt
  */
 package json.ext;
 
@@ -208,43 +207,9 @@ public class GeneratorState extends RubyObject {
     @JRubyMethod
     public IRubyObject generate(ThreadContext context, IRubyObject obj) {
         RubyString result = Generator.generateJson(context, obj, this);
-        if (!quirksMode && !objectOrArrayLiteral(result)) {
-            throw Utils.newException(context, Utils.M_GENERATOR_ERROR,
-                    "only generation of JSON objects or arrays allowed");
-        }
         RuntimeInfo info = RuntimeInfo.forRuntime(context.getRuntime());
-        if (info.encodingsSupported()) {
-            result.force_encoding(context, info.utf8.get());
-        }
+        result.force_encoding(context, info.utf8.get());
         return result;
-    }
-
-    /**
-     * Ensures the given string is in the form "[...]" or "{...}", being
-     * possibly surrounded by white space.
-     * The string's encoding must be ASCII-compatible.
-     * @param value
-     * @return
-     */
-    private static boolean objectOrArrayLiteral(RubyString value) {
-        ByteList bl = value.getByteList();
-        int len = bl.length();
-
-        for (int pos = 0; pos < len - 1; pos++) {
-            int b = bl.get(pos);
-            if (Character.isWhitespace(b)) continue;
-
-            // match the opening brace
-            switch (b) {
-            case '[':
-                return matchClosingBrace(bl, pos, len, ']');
-            case '{':
-                return matchClosingBrace(bl, pos, len, '}');
-            default:
-                return false;
-            }
-        }
-        return false;
     }
 
     private static boolean matchClosingBrace(ByteList bl, int pos, int len,
@@ -399,17 +364,6 @@ public class GeneratorState extends RubyObject {
         return context.getRuntime().newBoolean(asciiOnly);
     }
 
-    @JRubyMethod(name="quirks_mode")
-    public RubyBoolean quirks_mode_get(ThreadContext context) {
-        return context.getRuntime().newBoolean(quirksMode);
-    }
-
-    @JRubyMethod(name="quirks_mode=")
-    public IRubyObject quirks_mode_set(IRubyObject quirks_mode) {
-        quirksMode = quirks_mode.isTrue();
-        return quirks_mode.getRuntime().newBoolean(quirksMode);
-    }
-
     @JRubyMethod(name="buffer_initial_length")
     public RubyInteger buffer_initial_length_get(ThreadContext context) {
         return context.getRuntime().newFixnum(bufferInitialLength);
@@ -420,11 +374,6 @@ public class GeneratorState extends RubyObject {
         int newLength = RubyNumeric.fix2int(buffer_initial_length);
         if (newLength > 0) bufferInitialLength = newLength;
         return buffer_initial_length;
-    }
-
-    @JRubyMethod(name="quirks_mode?")
-    public RubyBoolean quirks_mode_p(ThreadContext context) {
-        return context.getRuntime().newBoolean(quirksMode);
     }
 
     public int getDepth() {
@@ -445,7 +394,7 @@ public class GeneratorState extends RubyObject {
     private ByteList prepareByteList(ThreadContext context, IRubyObject value) {
         RubyString str = value.convertToString();
         RuntimeInfo info = RuntimeInfo.forRuntime(context.getRuntime());
-        if (info.encodingsSupported() && str.encoding(context) != info.utf8.get()) {
+        if (str.encoding(context) != info.utf8.get()) {
             str = (RubyString)str.encode(context, info.utf8.get());
         }
         return str.getByteList().dup();
@@ -481,7 +430,6 @@ public class GeneratorState extends RubyObject {
         maxNesting = opts.getInt("max_nesting", DEFAULT_MAX_NESTING);
         allowNaN   = opts.getBool("allow_nan",  DEFAULT_ALLOW_NAN);
         asciiOnly  = opts.getBool("ascii_only", DEFAULT_ASCII_ONLY);
-        quirksMode = opts.getBool("quirks_mode", DEFAULT_QUIRKS_MODE);
         bufferInitialLength = opts.getInt("buffer_initial_length", DEFAULT_BUFFER_INITIAL_LENGTH);
 
         depth = opts.getInt("depth", 0);
@@ -508,7 +456,6 @@ public class GeneratorState extends RubyObject {
         result.op_aset(context, runtime.newSymbol("array_nl"), array_nl_get(context));
         result.op_aset(context, runtime.newSymbol("allow_nan"), allow_nan_p(context));
         result.op_aset(context, runtime.newSymbol("ascii_only"), ascii_only_p(context));
-        result.op_aset(context, runtime.newSymbol("quirks_mode"), quirks_mode_p(context));
         result.op_aset(context, runtime.newSymbol("max_nesting"), max_nesting_get(context));
         result.op_aset(context, runtime.newSymbol("depth"), depth_get(context));
         result.op_aset(context, runtime.newSymbol("buffer_initial_length"), buffer_initial_length_get(context));
