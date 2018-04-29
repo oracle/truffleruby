@@ -275,12 +275,13 @@ begin # tested gems in CI
                              use_bundler_environment,
                              rails_basic,
                              stubs.fetch(:activesupport_isolation),
-                             stubs.fetch(:bcrypt))
+                             stubs.fetch(:bcrypt),
+                             exclusions_for(:activemodel))
   # TODO (pitr-ch 05-Jan-2017): not added for now since it's missing in the bundle
   # additions.fetch(:minitest_reporters))
   TruffleTool.add_ci_definition :activemodel do
     subdir 'activemodel'
-    rails_ci require_pattern: 'test/cases/**/*_test.rb'
+    rails_ci has_exclusions: true, require_pattern: 'test/cases/**/*_test.rb'
   end
 
 
