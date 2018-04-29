@@ -207,11 +207,10 @@ def exclusion_file(gem_name)
 end
 
 def exclusions_for(name, ignore_missing: false)
-  ruby = dedent(<<-RUBY)
+  ruby = dedent('
     failures = %s
     require "%s"
-    TruffleTool.exclude_rspec_examples failures, ignore_missing: %s
-  RUBY
+    TruffleTool.exclude_rspec_examples failures, ignore_missing: %s')
   { setup: { file: {
       'excluded-tests.rb' => format(ruby,
                                     exclusion_file(name),
