@@ -711,7 +711,7 @@ module Commands
     build("cexts")
 
     chdir(ext_dir) do
-      run_ruby('-rmkmf', "extconf.rb") # -rmkmf is required for C ext tests
+      run_ruby('-rmkmf', "#{ext_dir}/extconf.rb") # -rmkmf is required for C ext tests
       if File.exists?('Makefile')
         raw_sh("make")
         FileUtils::Verbose.cp("#{name}.su", target) if target
