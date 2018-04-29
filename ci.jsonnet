@@ -381,7 +381,6 @@ local part_definitions = {
 
       run+: deploy_binaries +
             jt(["test", "specs"] + self["$.run.deploy_and_spec"].test_spec_options) +
-            jt(["test", "specs", ":ruby24"]) +
             jt(["test", "specs", ":ruby25"]),
     },
 

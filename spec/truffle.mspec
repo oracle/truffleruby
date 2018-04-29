@@ -97,15 +97,6 @@ class MSpecScript
     "spec/truffle"
   ]
 
-  set :ruby24, [
-    "spec/ruby/core/file/empty_spec.rb",
-    "spec/ruby/core/hash/compact_spec.rb",
-    "spec/ruby/core/integer/digits_spec.rb",
-    "spec/ruby/core/regexp/match_spec.rb",
-    "spec/ruby/core/string/match_spec.rb",
-    "spec/ruby/core/hash/transform_values_spec.rb",
-  ]
-
   set :ruby25, [
     "spec/ruby/core/kernel/yield_self_spec.rb",
     "spec/ruby/core/method/case_compare_spec.rb",
@@ -161,8 +152,6 @@ end
 if MSpecScript.child_process?
   if version = ENV["PRETEND_RUBY_VERSION"]
     ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new(version)
-  elsif ARGV.include? ":ruby24"
-    ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("2.4.3")
   elsif ARGV.include? ":ruby25"
     ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("2.5.0")
   end
