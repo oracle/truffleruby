@@ -45,7 +45,7 @@ echo '** Check all launchers work'
 check_launchers bin/ true
 check_in_dir bin
 
-if [[ "$(bin/ruby -e "Truffle::System.get_java_property('org.graalvm.home').nil?")" =~ false ]]
+if [[ "$(bin/ruby -e "p Truffle::System.get_java_property('org.graalvm.home').nil?")" =~ false ]]
 then
     check_in_dir ../../bin      # graalvm/jre/bin
     check_in_dir ../../../bin   # graalvm/bin
@@ -63,7 +63,7 @@ cd -
 
 version="$(bin/ruby -v)"
 test "$(bin/hello-world.rb)" = "Hello world! from $version"
-if [[ "$(bin/ruby -e "p Truffle.graalvm?")" =~ true ]]
+if [[ "$(bin/ruby -e "p Truffle::System.get_java_property('org.graalvm.home').nil?")" =~ false ]]
 then
     test "$(../../bin/hello-world.rb)" = "Hello world! from $version"
     test "$(../../../bin/hello-world.rb)" = "Hello world! from $version"
@@ -72,7 +72,7 @@ fi
 bin/gem uninstall hello-world -x
 
 test ! -f "bin/hello-world.rb"
-if [[ "$(bin/ruby -e "p Truffle.graalvm?")" =~ true ]]
+if [[ "$(bin/ruby -e "p Truffle::System.get_java_property('org.graalvm.home').nil?")" =~ false ]]
 then
     test ! -f "../../bin/hello-world.rb"
     test ! -f "../../../bin/hello-world.rb"
