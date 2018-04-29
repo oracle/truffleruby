@@ -141,11 +141,16 @@ constants.each do |macro_name, name, _|
   puts
 end
 
-puts
+File.open("lib/truffle/truffle/cext_constants.rb", "w") do |f|
+  f.puts "# From #{__FILE__}"
+  f.puts
 
-constants.each do |macro_name, _, expr|
-  puts "  def #{macro_name}"
-  puts "    #{expr}"
-  puts "  end"
-  puts
+  f.puts "module Truffle::CExt"
+  constants.each do |macro_name, _, expr|
+    f.puts "  def #{macro_name}"
+    f.puts "    #{expr}"
+    f.puts "  end"
+    f.puts
+  end
+  f.puts "end"
 end
