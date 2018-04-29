@@ -38,7 +38,7 @@ git commit -am 'Restore MRI modifications'
 ## Make other changes
 
 * Copy and paste `-h` and `--help` output to `RubyLauncher`
-* Update version information (version, base version, and revision) in `Launcher`
+* Update version information (version, base version, and revision) in `TruffleRuby`
 * Update `doc/user/compatibility.md`
 * Update `doc/legal/legal.md`
 * Search for other instances of the old version number (there are a
