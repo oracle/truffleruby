@@ -35,8 +35,6 @@ class MSpecScript
       -J-ea
       -J-esa
       -J-Xmx2G
-     
-      --disable-gems
     ]
     core_path = "#{TRUFFLERUBY_DIR}/src/main/ruby"
     if File.directory?(core_path)
