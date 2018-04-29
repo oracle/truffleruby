@@ -73,3 +73,4 @@ class NilClass
 end
 
 NIL = nil
+Object.deprecate_constant :NIL
