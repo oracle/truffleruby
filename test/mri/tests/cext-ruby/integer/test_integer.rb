@@ -1,6 +1,7 @@
 # frozen_string_literal: false
 require 'test/unit'
 require 'c/integer'
+require '-test-/integer'
 
 class TestInteger < Test::Unit::TestCase
   FIXNUM_MIN = Integer::FIXNUM_MIN
