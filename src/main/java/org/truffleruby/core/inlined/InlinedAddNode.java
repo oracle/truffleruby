@@ -24,7 +24,7 @@ public abstract class InlinedAddNode extends BinaryInlinedOperationNode {
 
     public InlinedAddNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(callNodeParameters,
-                context.getCoreMethods().fixnumAddAssumption,
+                context.getCoreMethods().integerAddAssumption,
                 context.getCoreMethods().floatAddAssumption);
     }
 

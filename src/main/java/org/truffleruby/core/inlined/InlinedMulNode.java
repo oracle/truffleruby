@@ -24,7 +24,7 @@ public abstract class InlinedMulNode extends BinaryInlinedOperationNode {
 
     public InlinedMulNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(callNodeParameters,
-                context.getCoreMethods().fixnumMulAssumption,
+                context.getCoreMethods().integerMulAssumption,
                 context.getCoreMethods().floatMulAssumption);
     }
 

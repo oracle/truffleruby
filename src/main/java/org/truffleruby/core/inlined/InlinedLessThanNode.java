@@ -19,7 +19,7 @@ public abstract class InlinedLessThanNode extends BinaryInlinedOperationNode {
 
     public InlinedLessThanNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(callNodeParameters,
-                context.getCoreMethods().fixnumLessThanAssumption);
+                context.getCoreMethods().integerLessThanAssumption);
     }
 
     @Specialization(assumptions = "assumptions")

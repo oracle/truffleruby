@@ -37,12 +37,12 @@ public abstract class LogicalClassNode extends RubyNode {
 
     @Specialization
     protected DynamicObject logicalClassInt(int value) {
-        return coreLibrary().getFixnumClass();
+        return coreLibrary().getIntegerClass();
     }
 
     @Specialization
     protected DynamicObject logicalClassLong(long value) {
-        return coreLibrary().getFixnumClass();
+        return coreLibrary().getIntegerClass();
     }
 
     @Specialization

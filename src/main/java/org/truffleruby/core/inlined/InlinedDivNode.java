@@ -19,7 +19,7 @@ public abstract class InlinedDivNode extends BinaryInlinedOperationNode {
 
     public InlinedDivNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(callNodeParameters,
-                context.getCoreMethods().fixnumDivAssumption,
+                context.getCoreMethods().integerDivAssumption,
                 context.getCoreMethods().floatDivAssumption);
     }
 

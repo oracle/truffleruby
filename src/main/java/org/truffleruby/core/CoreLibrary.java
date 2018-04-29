@@ -83,7 +83,6 @@ public class CoreLibrary {
     private final DynamicObject arrayClass;
     private final DynamicObjectFactory arrayFactory;
     private final DynamicObject basicObjectClass;
-    private final DynamicObject bignumClass;
     private final DynamicObjectFactory bignumFactory;
     private final DynamicObject bindingClass;
     private final DynamicObjectFactory bindingFactory;
@@ -98,7 +97,6 @@ public class CoreLibrary {
     private final DynamicObject falseClass;
     private final DynamicObject fiberClass;
     private final DynamicObjectFactory fiberFactory;
-    private final DynamicObject fixnumClass;
     private final DynamicObject floatClass;
     private final DynamicObject floatDomainErrorClass;
     private final DynamicObject hashClass;
@@ -382,9 +380,7 @@ public class CoreLibrary {
         complexClass = defineClass(numericClass, "Complex");
         floatClass = defineClass(numericClass, "Float");
         integerClass = defineClass(numericClass, "Integer");
-        fixnumClass = integerClass;
-        bignumClass = integerClass;
-        bignumFactory = alwaysFrozen(Layouts.BIGNUM.createBignumShape(bignumClass, bignumClass));
+        bignumFactory = alwaysFrozen(Layouts.BIGNUM.createBignumShape(integerClass, integerClass));
         rationalClass = defineClass(numericClass, "Rational");
 
         // Classes defined in Object
@@ -831,13 +827,13 @@ public class CoreLibrary {
                 return falseClass;
             }
         } else if (object instanceof Byte) {
-            return fixnumClass;
+            return integerClass;
         } else if (object instanceof Short) {
-            return fixnumClass;
+            return integerClass;
         } else if (object instanceof Integer) {
-            return fixnumClass;
+            return integerClass;
         } else if (object instanceof Long) {
-            return fixnumClass;
+            return integerClass;
         } else if (object instanceof Float) {
             return floatClass;
         } else if (object instanceof Double) {
@@ -930,8 +926,8 @@ public class CoreLibrary {
         return fiberFactory;
     }
 
-    public DynamicObject getFixnumClass() {
-        return fixnumClass;
+    public DynamicObject getIntegerClass() {
+        return integerClass;
     }
 
     public DynamicObject getFloatClass() {

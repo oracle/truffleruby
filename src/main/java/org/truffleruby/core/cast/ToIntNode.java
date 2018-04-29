@@ -122,7 +122,7 @@ public abstract class ToIntNode extends RubyNode {
             }
         }
 
-        if (coreLibrary().getLogicalClass(coerced) == coreLibrary().getFixnumClass()) {
+        if (coreLibrary().getLogicalClass(coerced) == coreLibrary().getIntegerClass()) {
             return coerced;
         } else {
             errorProfile.enter();
