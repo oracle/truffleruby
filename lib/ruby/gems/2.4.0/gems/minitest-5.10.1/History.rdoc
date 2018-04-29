@@ -1,3 +1,44 @@
+=== 5.10.1 / 2016-12-01
+
+* 1 bug fix:
+
+  * Added a hack/kludge to deal with missing #prerecord on reporters that aren't properly subclassing AbstractReporter (I'm looking at you minitest-reporters)
+
+=== 5.10.0 / 2016-11-30
+
+* 2 minor enhancements:
+
+  * Added AbstractReporter#prerecord and extended ProgressReporter and CompositeReporter to use it.
+  * Minor optimization: remove runnables with no runnable methods before run.
+
+* 1 bug fix:
+
+  * 2.4: removed deprecation warnings when referring to Fixnum.
+
+=== 5.9.1 / 2016-09-25
+
+* 2 bug fixes:
+
+  * Re-release to refresh gem certificate signing. ugh.
+  * Fixed hoe/minitest to not augment load path if we're actually testing minitest.  
+
+=== 5.9.0 / 2016-05-16
+
+* 8 minor enhancements:
+
+  * Added Minitest.info_signal accessors to customize signal for test run info. (nate)
+  * Added assert_mock to make it more clear that you're testing w/ them.
+  * Added negative filter by test name. (utilum)
+  * Added warning to README that 1.8 and 1.9 support will be dropped in minitest 6.
+  * Automatically activate minitest/hell if $MT_HELL is defined.
+  * Improved default error messages for assert and refute. (bhenderson)
+  * minitest/hell now tries to require minitest/proveit
+  * mu_pp for strings prints out non-standard encodings to improve assert_equal diffs.
+
+* 1 bug fix:
+
+  * Removed Interrupt from PASSTHROUGH_EXCEPTIONS (already handled). (waldyr)
+
 === 5.8.5 / 2016-09-25
 
 * 2 bug fixes:

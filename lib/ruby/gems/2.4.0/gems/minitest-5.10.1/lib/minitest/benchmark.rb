@@ -1,4 +1,4 @@
-require "minitest/unit"
+require "minitest/test"
 require "minitest/spec"
 
 module Minitest
@@ -18,8 +18,7 @@ module Minitest
     end
 
     def self.run reporter, options = {} # :nodoc:
-      # NOTE: this is truly horrible... but I don't see a way around this ATM.
-      @io = reporter.reporters.first.io
+      @io = reporter.io
       super
     end
 

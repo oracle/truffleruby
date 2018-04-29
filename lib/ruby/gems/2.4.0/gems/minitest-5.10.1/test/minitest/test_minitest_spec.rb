@@ -12,6 +12,9 @@ class ExampleA; end
 class ExampleB < ExampleA; end
 
 describe Minitest::Spec do
+  # helps to deal with 2.4 deprecation of Fixnum for Integer
+  Int = 1.class
+
   # do not parallelize this suite... it just can"t handle it.
 
   def assert_triggered expected = "blah", klass = Minitest::Assertion
@@ -115,7 +118,7 @@ describe Minitest::Spec do
     @assertion_count -= 1 # no msg
     @assertion_count += 2 # assert_output is 2 assertions
 
-    proc {  }.must_be_silent.must_equal true
+    proc {}.must_be_silent.must_equal true
 
     assert_triggered "In stdout.\nExpected: \"\"\n  Actual: \"xxx\"" do
       proc { print "xxx" }.must_be_silent
@@ -304,7 +307,7 @@ describe Minitest::Spec do
   it "needs to verify inequality" do
     @assertion_count += 2
     42.wont_equal(6 * 9).must_equal false
-    proc{}.wont_equal(42).must_equal false
+    proc {}.wont_equal(42).must_equal false
 
     assert_triggered "Expected 1 to not be equal to 1." do
       1.wont_equal 1
@@ -318,12 +321,12 @@ describe Minitest::Spec do
   it "needs to verify instances of a class" do
     42.wont_be_instance_of(String).must_equal false
 
-    assert_triggered "Expected 42 to not be an instance of Fixnum." do
-      42.wont_be_instance_of Fixnum
+    assert_triggered "Expected 42 to not be a kind of #{Int.name}." do
+      42.wont_be_kind_of Int
     end
 
-    assert_triggered "msg.\nExpected 42 to not be an instance of Fixnum." do
-      42.wont_be_instance_of Fixnum, "msg"
+    assert_triggered "msg.\nExpected 42 to not be an instance of #{Int.name}." do
+      42.wont_be_instance_of Int, "msg"
     end
   end
 
@@ -331,34 +334,34 @@ describe Minitest::Spec do
     @assertion_count += 2
 
     42.wont_be_kind_of(String).must_equal false
-    proc{}.wont_be_kind_of(String).must_equal false
+    proc {}.wont_be_kind_of(String).must_equal false
 
-    assert_triggered "Expected 42 to not be a kind of Integer." do
-      42.wont_be_kind_of Integer
+    assert_triggered "Expected 42 to not be a kind of #{Int.name}." do
+      42.wont_be_kind_of Int
     end
 
-    assert_triggered "msg.\nExpected 42 to not be a kind of Integer." do
-      42.wont_be_kind_of Integer, "msg"
+    assert_triggered "msg.\nExpected 42 to not be a kind of #{Int.name}." do
+      42.wont_be_kind_of Int, "msg"
     end
   end
 
   it "needs to verify kinds of objects" do
     @assertion_count += 3 # extra test
 
-    (6 * 7).must_be_kind_of(Fixnum).must_equal true
+    (6 * 7).must_be_kind_of(Int).must_equal true
     (6 * 7).must_be_kind_of(Numeric).must_equal true
 
-    assert_triggered "Expected 42 to be a kind of String, not Fixnum." do
+    assert_triggered "Expected 42 to be a kind of String, not #{Int.name}." do
       (6 * 7).must_be_kind_of String
     end
 
-    assert_triggered "msg.\nExpected 42 to be a kind of String, not Fixnum." do
+    assert_triggered "msg.\nExpected 42 to be a kind of String, not #{Int.name}." do
       (6 * 7).must_be_kind_of String, "msg"
     end
 
     exp = "Expected #<Proc:0xXXXXXX@PATH> to be a kind of String, not Proc."
     assert_triggered exp do
-      proc{}.must_be_kind_of String
+      proc {}.must_be_kind_of String
     end
   end
 
@@ -502,7 +505,7 @@ describe Minitest::Spec do
     proc { throw :blah }.must_throw(:blah).must_equal true
 
     assert_triggered "Expected :blah to have been thrown." do
-      proc { }.must_throw :blah
+      proc {}.must_throw :blah
     end
 
     assert_triggered "Expected :blah to have been thrown, not :xxx." do
@@ -510,7 +513,7 @@ describe Minitest::Spec do
     end
 
     assert_triggered "msg.\nExpected :blah to have been thrown." do
-      proc { }.must_throw :blah, "msg"
+      proc {}.must_throw :blah, "msg"
     end
 
     assert_triggered "msg.\nExpected :blah to have been thrown, not :xxx." do
@@ -519,9 +522,9 @@ describe Minitest::Spec do
   end
 
   it "needs to verify types of objects" do
-    (6 * 7).must_be_instance_of(Fixnum).must_equal true
+    (6 * 7).must_be_instance_of(Int).must_equal true
 
-    exp = "Expected 42 to be an instance of String, not Fixnum."
+    exp = "Expected 42 to be an instance of String, not #{Int.name}."
 
     assert_triggered exp do
       (6 * 7).must_be_instance_of String
@@ -565,11 +568,11 @@ describe Minitest::Spec do
   it "needs to verify using respond_to" do
     42.must_respond_to(:+).must_equal true
 
-    assert_triggered "Expected 42 (Fixnum) to respond to #clear." do
+    assert_triggered "Expected 42 (#{Int.name}) to respond to #clear." do
       42.must_respond_to :clear
     end
 
-    assert_triggered "msg.\nExpected 42 (Fixnum) to respond to #clear." do
+    assert_triggered "msg.\nExpected 42 (#{Int.name}) to respond to #clear." do
       42.must_respond_to :clear, "msg"
     end
   end
@@ -626,7 +629,7 @@ describe Minitest::Spec, :let do
   end
 
   it "procs come after dont_flip" do
-    p = proc { }
+    p = proc {}
     assert_respond_to p, :call
     p.must_respond_to :call
   end
@@ -947,21 +950,21 @@ class ValueMonadTest < Minitest::Test
   attr_accessor :struct
 
   def setup
-    @struct = { :_ => 'a', :value => 'b', :expect => 'c' }
+    @struct = { :_ => "a", :value => "b", :expect => "c" }
     def @struct.method_missing k # think openstruct
       self[k]
     end
   end
 
   def test_value_monad_method
-    assert_equal 'a', struct._
+    assert_equal "a", struct._
   end
 
   def test_value_monad_value_alias
-    assert_equal 'b', struct.value
+    assert_equal "b", struct.value
   end
 
   def test_value_monad_expect_alias
-    assert_equal 'c', struct.expect
+    assert_equal "c", struct.expect
   end
 end

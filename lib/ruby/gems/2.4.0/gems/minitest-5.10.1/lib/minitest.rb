@@ -7,7 +7,7 @@ require "minitest/parallel"
 # :include: README.rdoc
 
 module Minitest
-  VERSION = "5.8.5" # :nodoc:
+  VERSION = "5.10.1" # :nodoc:
   ENCS = "".respond_to? :encoding # :nodoc:
 
   @@installed_at_exit ||= false
@@ -38,6 +38,12 @@ module Minitest
   # Names of known extension plugins.
 
   mc.send :attr_accessor, :extensions
+
+  ##
+  # The signal to use for dumping information to STDERR. Defaults to "INFO".
+
+  mc.send :attr_accessor, :info_signal
+  self.info_signal = "INFO"
 
   ##
   # Registers Minitest to run at process exit
@@ -141,7 +147,7 @@ module Minitest
   # sub-classes to run.
 
   def self.__run reporter, options
-    suites = Runnable.runnables.shuffle
+    suites = Runnable.runnables.reject { |s| s.runnable_methods.empty? }.shuffle
     parallel, serial = suites.partition { |s| s.test_order == :parallel }
 
     # If we run the parallel tests before the serial tests, the parallel tests
@@ -179,6 +185,10 @@ module Minitest
 
       opts.on "-n", "--name PATTERN", "Filter run on /regexp/ or string." do |a|
         options[:filter] = a
+      end
+
+      opts.on "-e", "--exclude PATTERN", "Exclude /regexp/ or string from run." do |a|
+        options[:exclude] = a
       end
 
       unless extensions.empty?
@@ -286,6 +296,13 @@ module Minitest
         filter === m || filter === "#{self}##{m}"
       }
 
+      exclude = options[:exclude]
+      exclude = Regexp.new $1 if exclude =~ %r%/(.*)/%
+
+      filtered_methods.delete_if { |m|
+        exclude === m || exclude === "#{self}##{m}"
+      }
+
       return if filtered_methods.empty?
 
       with_info_handler reporter do
@@ -302,6 +319,7 @@ module Minitest
     # test. See Minitest::ParallelTest::ClassMethods for an example.
 
     def self.run_one_method klass, method_name, reporter
+      reporter.prerecord klass, method_name
       reporter.record Minitest.run_one_method(klass, method_name)
     end
 
@@ -315,7 +333,7 @@ module Minitest
         end
       end
 
-      on_signal "INFO", handler, &block
+      on_signal ::Minitest.info_signal, handler, &block
     end
 
     SIGNALS = Signal.list # :nodoc:
@@ -413,6 +431,13 @@ module Minitest
     end
 
     ##
+    # About to start running a test. This allows a reporter to show
+    # that it is starting or that we are in the middle of a test run.
+
+    def prerecord klass, name
+    end
+
+    ##
     # Record a result and output the Runnable#result_code. Stores the
     # result of the run if the run did not pass.
 
@@ -460,9 +485,15 @@ module Minitest
   # own.
 
   class ProgressReporter < Reporter
+    def prerecord klass, name
+      if options[:verbose] then
+        io.print "%s#%s = " % [klass, name]
+        io.flush
+      end
+    end
+
     def record result # :nodoc:
-      io.print "%s#%s = %.2f s = " % [result.class, result.name, result.time] if
-        options[:verbose]
+      io.print "%.2f s = " % [result.time] if options[:verbose]
       io.print result.result_code
       io.puts if options[:verbose]
     end
@@ -612,6 +643,10 @@ module Minitest
       self.reporters = reporters
     end
 
+    def io # :nodoc:
+      reporters.first.io
+    end
+
     ##
     # Add another reporter to the mix.
 
@@ -625,6 +660,13 @@ module Minitest
 
     def start # :nodoc:
       self.reporters.each(&:start)
+    end
+
+    def prerecord klass, name # :nodoc:
+      self.reporters.each do |reporter|
+        # TODO: remove conditional for minitest 6
+        reporter.prerecord klass, name if reporter.respond_to? :prerecord
+      end
     end
 
     def record result # :nodoc:
@@ -764,9 +806,11 @@ module Minitest
 
       return bt.dup if $DEBUG
 
-      new_bt = bt.take_while { |line| line !~ /lib\/minitest/ }
-      new_bt = bt.select     { |line| line !~ /lib\/minitest/ } if new_bt.empty?
-      new_bt = bt.dup                                           if new_bt.empty?
+      mt_re = %r%lib/minitest%
+
+      new_bt = bt.take_while { |line| line !~ mt_re }
+      new_bt = bt.select     { |line| line !~ mt_re } if new_bt.empty?
+      new_bt = bt.dup                                 if new_bt.empty?
 
       new_bt
     end
@@ -780,7 +824,9 @@ module Minitest
     result
   end
 
-  if defined? Process::CLOCK_MONOTONIC
+  # :stopdoc:
+
+  if defined? Process::CLOCK_MONOTONIC # :nodoc:
     def self.clock_time
       Process.clock_gettime Process::CLOCK_MONOTONIC
     end
@@ -789,6 +835,8 @@ module Minitest
       Time.now
     end
   end
+
+  # :startdoc:
 end
 
 require "minitest/test"

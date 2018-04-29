@@ -26,7 +26,7 @@ class TestMinitestMock < Minitest::Test
     @mock.foo
     @mock.meaning_of_life
 
-    assert @mock.verify
+    assert_mock @mock
   end
 
   def test_allow_expectations_to_be_added_after_creation
@@ -60,7 +60,7 @@ class TestMinitestMock < Minitest::Test
     mock.expect(:foo, retval)
     mock.foo
 
-    assert mock.verify
+    assert_mock mock
   end
 
   def test_mock_args_does_not_raise
@@ -71,7 +71,7 @@ class TestMinitestMock < Minitest::Test
     mock.expect(:foo, nil, [arg])
     mock.foo(arg)
 
-    assert mock.verify
+    assert_mock mock
   end
 
   def test_set_expectation_on_special_methods
@@ -98,14 +98,14 @@ class TestMinitestMock < Minitest::Test
     mock.expect :send, "received send"
     assert_equal "received send", mock.send
 
-    assert mock.verify
+    assert_mock mock
   end
 
   def test_expectations_can_be_satisfied_via_send
     @mock.send :foo
     @mock.send :meaning_of_life
 
-    assert @mock.verify
+    assert_mock @mock
   end
 
   def test_expectations_can_be_satisfied_via_public_send
@@ -114,7 +114,7 @@ class TestMinitestMock < Minitest::Test
     @mock.public_send :foo
     @mock.public_send :meaning_of_life
 
-    assert @mock.verify
+    assert_mock @mock
   end
 
   def test_blow_up_on_wrong_arguments
@@ -174,10 +174,10 @@ class TestMinitestMock < Minitest::Test
   end
 
   def test_mock_is_a_blank_slate
-    @mock.expect :kind_of?, true, [Fixnum]
+    @mock.expect :kind_of?, true, [String]
     @mock.expect :==, true, [1]
 
-    assert @mock.kind_of?(Fixnum), "didn't mock :kind_of\?"
+    assert @mock.kind_of?(String), "didn't mock :kind_of\?"
     assert @mock == 1, "didn't mock :=="
   end
 
@@ -186,7 +186,7 @@ class TestMinitestMock < Minitest::Test
     mock.expect :loose_expectation, true, [Integer]
     mock.loose_expectation 1
 
-    assert mock.verify
+    assert_mock mock
   end
 
   def test_verify_raises_with_strict_args
@@ -223,7 +223,7 @@ class TestMinitestMock < Minitest::Test
     mock.foo :bar
     mock.foo :baz
 
-    assert mock.verify
+    assert_mock mock
   end
 
   def test_same_method_expects_blow_up_when_not_all_called
@@ -262,7 +262,7 @@ class TestMinitestMock < Minitest::Test
 
     mock.foo
 
-    assert mock.verify
+    assert_mock mock
   end
 
   def test_mock_block_is_passed_function_params
@@ -274,7 +274,7 @@ class TestMinitestMock < Minitest::Test
 
     mock.foo arg1, arg2, arg3
 
-    assert mock.verify
+    assert_mock mock
   end
 
   def test_mock_block_is_passed_function_block
@@ -285,7 +285,7 @@ class TestMinitestMock < Minitest::Test
       blk == block
     end
     mock.foo "foo", &block
-    assert mock.verify
+    assert_mock mock
   end
 
   def test_verify_fails_when_mock_block_returns_false
@@ -338,7 +338,7 @@ class TestMinitestMock < Minitest::Test
     mock.expect(:foo, true)
 
     mock.send :foo
-    mock.verify
+    assert_mock mock
   end
 
   def test_mock_called_via___send__
@@ -346,7 +346,7 @@ class TestMinitestMock < Minitest::Test
     mock.expect(:foo, true)
 
     mock.__send__ :foo
-    mock.verify
+    assert_mock mock
   end
 
   def test_mock_called_via_send_with_args
@@ -354,7 +354,7 @@ class TestMinitestMock < Minitest::Test
     mock.expect(:foo, true, [1, 2, 3])
 
     mock.send(:foo, 1, 2, 3)
-    mock.verify
+    assert_mock mock
   end
 
 end
@@ -473,11 +473,11 @@ class TestMinitestStub < Minitest::Test
     @assertion_count = 2
 
     dynamic = Class.new do
-      def self.respond_to?(meth)
+      def self.respond_to? meth
         meth == :found
       end
 
-      def self.method_missing(meth, *args, &block)
+      def self.method_missing meth, *args, &block
         if meth == :found
           false
         else
@@ -501,8 +501,8 @@ class TestMinitestStub < Minitest::Test
     end
     rs = nil
 
-    File.stub(:open, true, mock) do
-      File.open("foo.txt", "r") do |f|
+    File.stub :open, true, mock do
+      File.open "foo.txt", "r" do |f|
         rs = f.write
       end
     end

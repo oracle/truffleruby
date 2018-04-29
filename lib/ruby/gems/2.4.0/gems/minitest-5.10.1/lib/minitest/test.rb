@@ -11,8 +11,7 @@ module Minitest
     require "minitest/assertions"
     include Minitest::Assertions
 
-    PASSTHROUGH_EXCEPTIONS = [NoMemoryError, SignalException, # :nodoc:
-                              Interrupt, SystemExit]
+    PASSTHROUGH_EXCEPTIONS = [NoMemoryError, SignalException, SystemExit] # :nodoc:
 
     class << self; attr_accessor :io_lock; end # :nodoc:
     self.io_lock = Mutex.new
@@ -38,9 +37,7 @@ module Minitest
     def self.make_my_diffs_pretty!
       require "pp"
 
-      define_method :mu_pp do |o|
-        o.pretty_inspect
-      end
+      define_method :mu_pp, &:pretty_inspect
     end
 
     ##
@@ -273,7 +270,7 @@ module Minitest
         warn "\nCurrent: %s#%s %.2fs" % [self.class, self.name, Minitest.clock_time - t0]
       end
 
-      self.class.on_signal "INFO", handler, &block
+      self.class.on_signal ::Minitest.info_signal, handler, &block
     end
 
     include LifecycleHooks

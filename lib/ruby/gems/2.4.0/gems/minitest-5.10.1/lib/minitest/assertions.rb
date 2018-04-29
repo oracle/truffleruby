@@ -1,3 +1,5 @@
+# encoding: UTF-8
+
 require "rbconfig"
 require "tempfile"
 require "stringio"
@@ -104,7 +106,15 @@ module Minitest
 
     def mu_pp obj
       s = obj.inspect
-      s = s.encode Encoding.default_external if defined? Encoding
+
+      if defined? Encoding then
+        s = s.encode Encoding.default_external
+
+        if String === obj && obj.encoding != Encoding.default_external then
+          s = "# encoding: #{obj.encoding}\n#{s}"
+        end
+      end
+
       s
     end
 
@@ -124,7 +134,7 @@ module Minitest
     def assert test, msg = nil
       self.assertions += 1
       unless test then
-        msg ||= "Failed assertion, no message given."
+        msg ||= "Expected #{mu_pp test} to be truthy."
         msg = msg.call if Proc === msg
         raise Minitest::Assertion, msg
       end
@@ -152,7 +162,8 @@ module Minitest
     #
     # If there is no visible difference but the assertion fails, you
     # should suspect that your #== is buggy, or your inspect output is
-    # missing crucial details.
+    # missing crucial details.  For nicer structural diffing, set
+    # Minitest::Test.make_my_diffs_pretty!
     #
     # For floats use assert_in_delta.
     #
@@ -160,7 +171,17 @@ module Minitest
 
     def assert_equal exp, act, msg = nil
       msg = message(msg, E) { diff exp, act }
-      assert exp == act, msg
+      result = assert exp == act, msg
+
+      if exp.nil? then
+        if Minitest::VERSION =~ /^6/ then
+          refute_nil exp, "Use assert_nil if expecting nil."
+        else
+          $stderr.puts "Use assert_nil if expecting nil from #{caller.first}. This will fail in MT6."
+        end
+      end
+
+      result
     end
 
     ##
@@ -251,6 +272,8 @@ module Minitest
     # Pass in nil if you don't care about that streams output. Pass in
     # "" if you require it to be silent. Pass in a regexp if you want
     # to pattern match.
+    #
+    #   assert_output(/hey/) { method_with_output }
     #
     # NOTE: this uses #capture_io, not #capture_subprocess_io.
     #
@@ -344,6 +367,8 @@ module Minitest
     # Fails unless the call returns a true value
 
     def assert_send send_ary, m = nil
+      warn "DEPRECATED: assert_send. From #{caller.first}"
+
       recv, msg, *args = send_ary
       m = message(m) {
         "Expected #{mu_pp(recv)}.#{msg}(*#{mu_pp(args)}) to return true" }
@@ -373,8 +398,10 @@ module Minitest
         rescue ThreadError => e       # wtf?!? 1.8 + threads == suck
           default += ", not \:#{e.message[/uncaught throw \`(\w+?)\'/, 1]}"
         rescue ArgumentError => e     # 1.9 exception
+          raise e unless e.message.include?("uncaught throw")
           default += ", not #{e.message.split(/ /).last}"
         rescue NameError => e         # 1.8 exception
+          raise e unless e.name == sym
           default += ", not #{e.name.inspect}"
         end
         caught = false
@@ -501,7 +528,7 @@ module Minitest
     # Fails if +test+ is truthy.
 
     def refute test, msg = nil
-      msg ||= "Failed refutation, no message given"
+      msg ||= message { "Expected #{mu_pp(test)} to not be truthy" }
       not assert !test, msg
     end
 
