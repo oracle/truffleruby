@@ -1420,7 +1420,7 @@ rb_obj_write(VALUE a, VALUE *slot, VALUE b, RB_UNUSED_VAR(const char *filename),
     *slot = b;
 
 #if USE_RGENGC
-    rb_obj_written(a, RUBY_Qundef /* ignore `oldv' now */, b, filename, line);
+    rb_obj_written(a, Qundef /* ignore `oldv' now */, b, filename, line);
 #endif
     return a;
 }
