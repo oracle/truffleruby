@@ -38,6 +38,7 @@ git commit -am 'Restore MRI modifications'
 ## Make other changes
 
 * Copy and paste `-h` and `--help` output to `RubyLauncher`
+* Copy and paste the TruffleRuby `--help` output to `doc/user/options.md`.
 * Update version information (version, base version, and revision) in `TruffleRuby`
 * Update `doc/user/compatibility.md`
 * Update `doc/legal/legal.md`
