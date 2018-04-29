@@ -1,0 +1,6 @@
+fails:Enumerable#uniq returns an array that contains only unique elements
+fails:Enumerable#uniq uses eql? semantics
+fails:Enumerable#uniq compares elements first with hash
+fails:Enumerable#uniq does not compare elements with different hash codes via eql?
+fails:Enumerable#uniq compares elements with matching hash codes with #eql?
+fails:Enumerable#uniq when yielded with multiple arguments returns all yield arguments as an array

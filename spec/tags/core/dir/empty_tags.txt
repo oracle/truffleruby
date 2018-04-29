@@ -1,0 +1,4 @@
+fails:Dir.empty? returns true for empty directories
+fails:Dir.empty? returns false for non-empty directories
+fails:Dir.empty? returns false for a non-directory
+fails:Dir.empty? raises ENOENT for nonexistent directories

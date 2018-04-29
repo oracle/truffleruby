@@ -1,0 +1,5 @@
+fails:Kernel#dup returns nil for NilClass
+fails:Kernel#dup returns true for TrueClass
+fails:Kernel#dup returns false for FalseClass
+fails:Kernel#dup returns the same Integer for Integer
+fails:Kernel#dup returns the same Symbol for Symbol

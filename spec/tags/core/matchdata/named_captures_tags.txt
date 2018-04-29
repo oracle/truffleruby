@@ -1,0 +1,2 @@
+fails:MatchData#named_captures returns a Hash that has captured name and the matched string pairs
+fails:MatchData#named_captures prefers later captures

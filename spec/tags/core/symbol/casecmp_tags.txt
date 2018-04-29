@@ -1,0 +1,5 @@
+fails:Symbol#casecmp? compares symbols without regard to case
+fails:Symbol#casecmp? doesn't consider non-ascii characters equal that aren't
+fails:Symbol#casecmp? doesn't do case mapping for non-ascii and non-unicode characters
+fails:Symbol#casecmp? does case mapping for unicode characters
+fails:Symbol#casecmp? returns nil when comparing characters with different encodings

@@ -1,0 +1,6 @@
+fails:Complex#finite? returns true if magnitude is finite
+fails:Complex#finite? returns false for positive infinity
+fails:Complex#finite? returns false for positive complex with infinite imaginary
+fails:Complex#finite? returns false for negative infinity
+fails:Complex#finite? returns false for negative complex with infinite imaginary
+fails:Complex#finite? returns false for NaN
