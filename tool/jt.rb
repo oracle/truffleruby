@@ -924,9 +924,12 @@ module Commands
 
   def run_mri_tests(extra_args, test_files, runner_args, run_options = {})
     prefix = "test/mri/tests/"
+    abs_prefix = "#{TRUFFLERUBY_DIR}/#{prefix}"
     test_files = test_files.map { |file|
       if file.start_with?(prefix)
         file[prefix.size..-1]
+      elsif file.start_with?(abs_prefix)
+        file[abs_prefix.size..-1]
       else
         file
       end
