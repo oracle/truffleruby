@@ -1933,12 +1933,13 @@ public abstract class StringNodes {
         public abstract int executeSetByte(DynamicObject string, int index, Object value);
 
         @Specialization
-        public int setByte(DynamicObject string, int index, int value) {
+        public int setByte(DynamicObject string, int index, int value,
+                @Cached("createBinaryProfile()") ConditionProfile newRopeProfile) {
             final Rope rope = rope(string);
             final int normalizedIndex = checkIndexNode.executeCheck(index, rope.byteLength());
 
             final Rope newRope = setByteNode.executeSetByte(rope, normalizedIndex, value);
-            if (newRope != rope) {
+            if (newRopeProfile.profile(newRope != rope)) {
                 StringOperations.setRope(string, newRope);
             }
 
