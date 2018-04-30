@@ -11,6 +11,7 @@ package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
 import org.truffleruby.core.FinalizationService;
+import org.truffleruby.core.string.StringSupport;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.extra.ffi.Pointer;
@@ -20,11 +21,34 @@ public class NativeRope extends Rope {
     private Pointer pointer;
 
     public NativeRope(FinalizationService finalizationService, byte[] bytes, Encoding encoding, int characterLength, CodeRange codeRange) {
-        super(encoding, codeRange, false, bytes.length, characterLength, 1, null);
-        pointer = Pointer.malloc(bytes.length + 1);
+        this(createNativePointer(finalizationService, bytes), bytes.length, encoding, characterLength, codeRange);
+    }
+
+    private static Pointer createNativePointer(FinalizationService finalizationService, byte[] bytes) {
+        final Pointer pointer = Pointer.malloc(bytes.length + 1);
         pointer.enableAutorelease(finalizationService);
         pointer.writeBytes(0, bytes, 0, bytes.length);
         pointer.writeByte(bytes.length, (byte) 0);
+        return pointer;
+    }
+
+    private NativeRope(Pointer pointer, int byteLength, Encoding encoding, int characterLength, CodeRange codeRange) {
+        super(encoding, codeRange, false, byteLength, characterLength, 1, null);
+        this.pointer = pointer;
+    }
+
+    @TruffleBoundary
+    public NativeRope withByteLength(int newByteLength) {
+        final byte[] bytes = new byte[newByteLength];
+        pointer.readBytes(0, bytes, 0, newByteLength);
+
+        final long packedLengthAndCodeRange = RopeOperations.calculateCodeRangeAndLength(getEncoding(), bytes, 0, newByteLength);
+        final CodeRange codeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
+        final int characterLength = StringSupport.unpackResult(packedLengthAndCodeRange);
+
+        getNativePointer().writeByte(newByteLength, (byte) 0); // Like MRI
+
+        return new NativeRope(getNativePointer(), newByteLength, getEncoding(), characterLength, codeRange);
     }
 
     @Override
@@ -45,11 +69,15 @@ public class NativeRope extends Rope {
         return get(index);
     }
 
-    @TruffleBoundary
     @Override
     public byte get(int index) {
-        assert 0 <= index && index < byteLength();
+        assert 0 <= index && index < pointer.getSize();
         return pointer.readByte(index);
+    }
+
+    public void set(int index, int value) {
+        assert 0 <= index && index < pointer.getSize();
+        pointer.writeByte(index, (byte) value);
     }
 
     @Override

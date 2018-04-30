@@ -131,6 +131,10 @@ module Truffle::CExt
       Truffle::CExt.string_pointer_write(@string, index, value)
     end
 
+    def native?
+      Truffle::CExt.string_pointer_is_native?(@string)
+    end
+
     alias_method :to_str, :string
     alias_method :to_s, :string
     alias_method :pointer?, :act_like_pointer
@@ -680,6 +684,12 @@ module Truffle::CExt
     Truffle::Type.infect(dest, source)
   end
 
+  FREEZE_METHOD = Kernel.instance_method :freeze
+
+  def rb_obj_freeze(obj)
+    FREEZE_METHOD.bind(obj).call
+  end
+
   def rb_float_new(value)
     value.to_f
   end
@@ -984,7 +994,7 @@ module Truffle::CExt
   end
 
   def rb_str_new(string, length)
-    string.to_s[0, length].b
+    string.to_s.byteslice(0, length).force_encoding(Encoding::BINARY)
   end
 
   def rb_cstr_to_inum(string, base, raise)
@@ -1376,7 +1386,8 @@ module Truffle::CExt
   end
 
   def rb_special_const_p(object)
-    object == nil || object == true || object == false || object.is_a?(Symbol) || object.is_a?(Integer)
+    # Avoid calling methods on object since it might be a foreign object
+    NilClass === object || TrueClass === object || FalseClass === object || Symbol === object || Truffle::Type.fits_into_long?(object)
   end
 
   def rb_id2str(sym)
