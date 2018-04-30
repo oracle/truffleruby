@@ -64,8 +64,8 @@ describe "C-API String function" do
       @str.should == "a"
 
       @str.force_encoding(Encoding::UTF_8)
-      @s.RSTRING_PTR_set(@str, 1, 66)
-      @s.RSTRING_PTR_set(@str, 2, 67)
+      @s.RSTRING_PTR_set(@str, 1, 'B'.ord)
+      @s.RSTRING_PTR_set(@str, 2, 'C'.ord)
       @s.rb_str_set_len(@str, 3)
 
       @str.bytesize.should == 3
@@ -444,7 +444,7 @@ describe "C-API String function" do
 
     it "allows changing the characters in the string" do
       str = "abc"
-      @s.RSTRING_PTR_assign(str, 65)
+      @s.RSTRING_PTR_assign(str, 'A'.ord)
       str.should == "AAA"
     end
 
@@ -461,7 +461,7 @@ describe "C-API String function" do
 
     it "reflects changes from native memory and from String#setbyte in bounds" do
       str = "abc"
-      from_rstring_ptr = @s.RSTRING_PTR_after_yield(str) { str.setbyte(1, 66) }
+      from_rstring_ptr = @s.RSTRING_PTR_after_yield(str) { str.setbyte(1, 'B'.ord) }
       from_rstring_ptr.should == "1B2"
       str.should == "1B2"
     end
