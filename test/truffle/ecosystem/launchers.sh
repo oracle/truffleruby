@@ -83,12 +83,13 @@ echo '** Check bundled gems'
 
 # 2.3.3 bundled gems, https://github.com/ruby/ruby/blob/v2_3_3/gems/bundled_gems
 bundled_gems=(
-    "power_assert 0.2.6"
-    "test-unit 3.1.5"
-    "minitest 5.8.5"
-    "rake 10.4.2"
+    "did_you_mean 1.1.0"
+    "minitest 5.10.1"
     "net-telnet 0.1.1"
-    "did_you_mean 1.0.0"
+    "power_assert 0.4.1"
+    "rake 12.0.0"
+    "test-unit 3.2.3"
+    "xmlrpc 0.2.1"
 )
 gem_list=$(bin/gem list)
 
