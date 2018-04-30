@@ -1,4 +1,4 @@
-require File.expand_path('../../../spec_helper', __FILE__)
+require_relative '../../spec_helper'
 
 describe "The TOPLEVEL_BINDING constant" do
   it "only includes local variables defined in the main script, not in required files or eval" do
