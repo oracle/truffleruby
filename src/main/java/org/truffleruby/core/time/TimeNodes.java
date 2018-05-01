@@ -615,10 +615,6 @@ public abstract class TimeNodes {
                 String minutes = tzMatcher.group(4);
                 String seconds = tzMatcher.group(5);
 
-                if (name == null) {
-                    name = "";
-                }
-
                 // Sign is reversed in legacy TZ notation
                 return getTimeZoneFromHHMM(node, name, sign.equals("-"), hours, minutes, seconds);
             } else {
@@ -669,18 +665,13 @@ public abstract class TimeNodes {
 
         private static TimeZoneAndName timeZoneWithOffset(RubyNode node, String zoneName, int offset) {
             final ZoneId zone;
-
             try {
                 zone = ZoneId.ofOffset("", ZoneOffset.ofTotalSeconds(offset / 1000));
             } catch (DateTimeException e) {
                 throw new RaiseException(node.getContext().getCoreExceptions().argumentError(e.getMessage(), node));
             }
 
-            if (zoneName.isEmpty()) {
-                return new TimeZoneAndName(zone, null);
-            } else {
-                return new TimeZoneAndName(zone, zoneName);
-            }
+            return new TimeZoneAndName(zone, zoneName);
         }
 
     }
