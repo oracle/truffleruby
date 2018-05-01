@@ -288,6 +288,16 @@ public abstract class MethodNodes {
 
     }
 
+    @Primitive(name = "method_unimplemented?")
+    public abstract static class MethodUnimplementedQueryNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public boolean isMethodUnimplemented(DynamicObject rubyMethod) {
+            return Layouts.METHOD.getMethod(rubyMethod).isUnimplemented();
+        }
+
+    }
+
     private static class SetReceiverNode extends RubyNode {
 
         @Child private DirectCallNode methodCallNode;
