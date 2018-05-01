@@ -66,7 +66,7 @@ public abstract class GetTimeZoneNode extends RubyNode {
             // On Solaris, $TZ is "localtime", so get it from Java
             return new TimeZoneAndName(ZoneId.systemDefault(), null);
         } else if (RubyGuards.isRubyString(tz)) {
-            return parse(this, tzString);
+            return parse(tzString);
         } else {
             throw new UnsupportedOperationException();
         }
@@ -121,8 +121,7 @@ public abstract class GetTimeZoneNode extends RubyNode {
     private static final Pattern TZ_PATTERN =
             Pattern.compile("([a-zA-Z]{3,}+)([\\+-]?)(\\d+)(?::(\\d+))?(?::(\\d+))?");
 
-    @TruffleBoundary(transferToInterpreterOnException = false)
-    private static TimeZoneAndName parse(RubyNode node, String zoneString) {
+    private TimeZoneAndName parse(String zoneString) {
         String zone = zoneString;
 
         Matcher tzMatcher = TZ_PATTERN.matcher(zone);
@@ -134,7 +133,7 @@ public abstract class GetTimeZoneNode extends RubyNode {
             String seconds = tzMatcher.group(5);
 
             // Sign is reversed in legacy TZ notation
-            return getTimeZoneFromHHMM(node, name, sign.equals("-"), hours, minutes, seconds);
+            return getTimeZoneFromHHMM(name, sign.equals("-"), hours, minutes, seconds);
         } else {
             final String upZone = zone.toUpperCase(Locale.ENGLISH);
             if (LONG_TZNAME.containsKey(upZone)) {
@@ -156,12 +155,7 @@ public abstract class GetTimeZoneNode extends RubyNode {
         }
     }
 
-    private static TimeZoneAndName getTimeZoneFromHHMM(RubyNode node,
-                                                    String name,
-                                                    boolean positive,
-                                                    String hours,
-                                                    String minutes,
-                                                    String seconds) {
+    private TimeZoneAndName getTimeZoneFromHHMM(String name, boolean positive, String hours, String minutes, String seconds) {
         int h = Integer.parseInt(hours);
         int m = 0;
         int s = 0;
@@ -174,19 +168,19 @@ public abstract class GetTimeZoneNode extends RubyNode {
         }
 
         if (h > 23 || m > 59) {
-            throw new RaiseException(node.getContext().getCoreExceptions().argumentError("utc_offset out of range", node));
+            throw new RaiseException(coreExceptions().argumentError("utc_offset out of range", this));
         }
 
         int offset = (positive ? +1 : -1) * ((h * 3600) + m * 60 + s) * 1000;
-        return timeZoneWithOffset(node, name, offset);
+        return timeZoneWithOffset(name, offset);
     }
 
-    private static TimeZoneAndName timeZoneWithOffset(RubyNode node, String zoneName, int offset) {
+    private TimeZoneAndName timeZoneWithOffset(String zoneName, int offset) {
         final ZoneId zone;
         try {
             zone = ZoneId.ofOffset("", ZoneOffset.ofTotalSeconds(offset / 1000));
         } catch (DateTimeException e) {
-            throw new RaiseException(node.getContext().getCoreExceptions().argumentError(e.getMessage(), node));
+            throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
         }
 
         return new TimeZoneAndName(zone, zoneName);
