@@ -1,5 +1,2 @@
-exclude :test_method_inspect_lchmod, "needs investigation"
 exclude :test_respond_to_fork, "assumes fork is available on Linux"
-exclude :test_respond_to_lchmod, "needs investigation"
-exclude :test_call_lchmod, "needs investigation"
 exclude :test_respond_to, "needs investigation"
