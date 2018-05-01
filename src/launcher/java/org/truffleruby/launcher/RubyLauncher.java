@@ -49,7 +49,9 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     static boolean isGraal() {
-        return Engine.create().getImplementationName().contains("Graal");
+        try (Engine engine = Engine.create()) {
+            return engine.getImplementationName().contains("Graal");
+        }
     }
 
     @Override
