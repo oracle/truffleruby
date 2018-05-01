@@ -16,8 +16,8 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 
 /**
- * Catch-all class for Rubinius primitives that are invoked but haven't yet been defined.  Its only purpose is to
- * allow Truffle to parse Rubinius primitive calls without failing during the translation phase.  If any code ever
+ * Catch-all class for primitives that are invoked but haven't yet been defined.  Its only purpose is to
+ * allow Truffle to parse primitive calls without failing during the translation phase.  If any code ever
  * executes nodes here, things will break and you must implement the primitive in its respective parent.
  */
 public abstract class UndefinedPrimitiveNodes {
@@ -30,7 +30,7 @@ public abstract class UndefinedPrimitiveNodes {
         public Object undefined(Object args) {
             final SourceSection sourceSection = getEncapsulatingSourceSection();
             throw new UnsupportedOperationException(
-                    "Undefined Rubinius primitive: \"" + sourceSection.toString().trim() + '"');
+                    "Undefined primitive: \"" + sourceSection.toString().trim() + '"');
         }
 
     }

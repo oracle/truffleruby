@@ -93,7 +93,7 @@ public class UncachedDispatchNode extends DispatchNode {
             if (dispatchAction == DispatchAction.CALL_METHOD) {
                 return call(method, receiver, block, arguments);
             } else if (dispatchAction == DispatchAction.RESPOND_TO_METHOD) {
-                return true;
+                return !method.isUnimplemented();
             } else {
                 throw new UnsupportedOperationException();
             }
