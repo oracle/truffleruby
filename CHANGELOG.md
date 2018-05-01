@@ -2,9 +2,7 @@
 
 New features:
 
-* The Ruby version has been updated to version 2.4.4.
-
-* Integer unification (Fixnum = Bignum = Integer) as in MRI 2.4.
+* We are now compatible with Ruby 2.4.4.
 
 * `object.class` on a Java `Class` object will give you an object on which you
   can call instance methods, rather than static methods which is what you get by
