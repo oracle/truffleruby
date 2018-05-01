@@ -42,6 +42,7 @@ public class TimeZoneAndName {
     }
 
     public TimeZoneAndName(ZoneOffset zone, String name) {
+        assert name != null;
         this.zone = zone;
         this.name = name;
     }
