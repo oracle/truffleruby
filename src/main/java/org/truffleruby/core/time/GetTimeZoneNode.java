@@ -121,10 +121,8 @@ public abstract class GetTimeZoneNode extends RubyNode {
     private static final Pattern TZ_PATTERN =
             Pattern.compile("([a-zA-Z]{3,}+)([\\+-]?)(\\d+)(?::(\\d+))?(?::(\\d+))?");
 
-    private TimeZoneAndName parse(String zoneString) {
-        String zone = zoneString;
-
-        Matcher tzMatcher = TZ_PATTERN.matcher(zone);
+    private TimeZoneAndName parse(String zone) {
+        final Matcher tzMatcher = TZ_PATTERN.matcher(zone);
         if (tzMatcher.matches()) {
             String name = tzMatcher.group(1);
             String sign = tzMatcher.group(2);
@@ -135,24 +133,32 @@ public abstract class GetTimeZoneNode extends RubyNode {
             // Sign is reversed in legacy TZ notation
             return getTimeZoneFromHHMM(name, sign.equals("-"), hours, minutes, seconds);
         } else {
-            final String upZone = zone.toUpperCase(Locale.ENGLISH);
-            if (LONG_TZNAME.containsKey(upZone)) {
-                zone = LONG_TZNAME.get(upZone);
-            } else if (upZone.equals("UTC") || upZone.equals("GMT")) {
-                // MRI behavior: With TZ equal to "GMT" or "UTC", Time.now
-                // is *NOT* considered as a proper GMT/UTC time:
-                //   ENV['TZ']="GMT"; Time.now.gmt? #=> false
-                //   ENV['TZ']="UTC"; Time.now.utc? #=> false
-                // Hence, we need to adjust for that.
-                zone = "Etc/" + upZone;
-            }
+            final String expandedZone = expandZoneName(zone);
 
+            ZoneId zoneID;
             try {
-                return new TimeZoneAndName(ZoneId.of(zone));
+                zoneID = ZoneId.of(expandedZone);
             } catch (DateTimeException | IllegalArgumentException e) {
-                return new TimeZoneAndName(TimeNodes.UTC);
+                zoneID = TimeNodes.UTC;
             }
+            return new TimeZoneAndName(zoneID);
         }
+    }
+
+    private String expandZoneName(String zone) {
+        final String upZone = zone.toUpperCase(Locale.ENGLISH);
+        if (LONG_TZNAME.containsKey(upZone)) {
+            return LONG_TZNAME.get(upZone);
+        } else if (upZone.equals("UTC") || upZone.equals("GMT")) {
+            // MRI behavior: With TZ equal to "GMT" or "UTC", Time.now
+            // is *NOT* considered as a proper GMT/UTC time:
+            //   ENV['TZ']="GMT"; Time.now.gmt? #=> false
+            //   ENV['TZ']="UTC"; Time.now.utc? #=> false
+            // Hence, we need to adjust for that.
+            return "Etc/" + upZone;
+        }
+
+        return zone;
     }
 
     private TimeZoneAndName getTimeZoneFromHHMM(String name, boolean positive, String hours, String minutes, String seconds) {
