@@ -156,34 +156,24 @@ public abstract class GetTimeZoneNode extends RubyNode {
     }
 
     private TimeZoneAndName getTimeZoneFromHHMM(String name, boolean positive, String hours, String minutes, String seconds) {
-        int h = Integer.parseInt(hours);
-        int m = 0;
-        int s = 0;
-        if (minutes != null) {
-            m = Integer.parseInt(minutes);
-        }
-
-        if (seconds != null) {
-            s = Integer.parseInt(seconds);
-        }
+        final int h = Integer.parseInt(hours);
+        final int m = minutes != null ? Integer.parseInt(minutes) : 0;
+        final int s = seconds != null ? Integer.parseInt(seconds) : 0;
 
         if (h > 23 || m > 59) {
             throw new RaiseException(coreExceptions().argumentError("utc_offset out of range", this));
         }
 
-        int offset = (positive ? +1 : -1) * ((h * 3600) + m * 60 + s) * 1000;
-        return timeZoneWithOffset(name, offset);
-    }
+        final int offset = (positive ? +1 : -1) * ((h * 3600) + m * 60 + s);
 
-    private TimeZoneAndName timeZoneWithOffset(String zoneName, int offset) {
         final ZoneOffset zoneOffset;
         try {
-            zoneOffset = ZoneOffset.ofTotalSeconds(offset / 1000);
+            zoneOffset = ZoneOffset.ofTotalSeconds(offset);
         } catch (DateTimeException e) {
             throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
         }
 
-        return new TimeZoneAndName(zoneOffset, zoneName);
+        return new TimeZoneAndName(zoneOffset, name);
     }
 
 }
