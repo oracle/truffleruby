@@ -61,10 +61,10 @@ public abstract class GetTimeZoneNode extends RubyNode {
 
         if (tz == nil()) {
             // $TZ is not set, use the system timezone
-            return new TimeZoneAndName(ZoneId.systemDefault(), null);
+            return new TimeZoneAndName(ZoneId.systemDefault());
         } else if (tzString.equalsIgnoreCase("localtime")) {
             // On Solaris, $TZ is "localtime", so get it from Java
-            return new TimeZoneAndName(ZoneId.systemDefault(), null);
+            return new TimeZoneAndName(ZoneId.systemDefault());
         } else if (RubyGuards.isRubyString(tz)) {
             return parse(tzString);
         } else {
@@ -148,9 +148,9 @@ public abstract class GetTimeZoneNode extends RubyNode {
             }
 
             try {
-                return new TimeZoneAndName(ZoneId.of(zone), null);
+                return new TimeZoneAndName(ZoneId.of(zone));
             } catch (DateTimeException | IllegalArgumentException e) {
-                return new TimeZoneAndName(TimeNodes.UTC, null);
+                return new TimeZoneAndName(TimeNodes.UTC);
             }
         }
     }
@@ -176,14 +176,14 @@ public abstract class GetTimeZoneNode extends RubyNode {
     }
 
     private TimeZoneAndName timeZoneWithOffset(String zoneName, int offset) {
-        final ZoneId zone;
+        final ZoneOffset zoneOffset;
         try {
-            zone = ZoneOffset.ofTotalSeconds(offset / 1000);
+            zoneOffset = ZoneOffset.ofTotalSeconds(offset / 1000);
         } catch (DateTimeException e) {
             throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
         }
 
-        return new TimeZoneAndName(zone, zoneName);
+        return new TimeZoneAndName(zoneOffset, zoneName);
     }
 
 }

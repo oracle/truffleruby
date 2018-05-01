@@ -27,14 +27,21 @@ public class TimeZoneAndName {
     private final ZoneId zone;
 
     /**
-     * The short name optionally captured from the $TZ environment variable such as PST if TZ=PST8:00:00.
-     * If $TZ is like America/New_York, the short zone name is computed later in getName().
+     * {@code name} is non-null if and only if the timezone is just a fixed offset (a ZoneOffset).
+     * In that case, the timezone name is captured from $TZ such as "PST" when TZ=PST8:00:00.
+     *
+     * Otherwise (e.g., TZ=Europe/Vienna or TZ is unset), the timezone name is computed later in
+     * getName(), as the timezone name depends on the date (e.g. CET vs CEST).
      */
     private final String name;
 
-    public TimeZoneAndName(ZoneId zone, String name) {
-        // A name is given if and only if the ZoneId is just an offset
-        assert name != null == zone instanceof ZoneOffset;
+    public TimeZoneAndName(ZoneId zone) {
+        assert !(zone instanceof ZoneOffset);
+        this.zone = zone;
+        this.name = null;
+    }
+
+    public TimeZoneAndName(ZoneOffset zone, String name) {
         this.zone = zone;
         this.name = name;
     }
