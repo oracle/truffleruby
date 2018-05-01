@@ -178,7 +178,7 @@ public abstract class GetTimeZoneNode extends RubyNode {
     private TimeZoneAndName timeZoneWithOffset(String zoneName, int offset) {
         final ZoneId zone;
         try {
-            zone = ZoneId.ofOffset("", ZoneOffset.ofTotalSeconds(offset / 1000));
+            zone = ZoneOffset.ofTotalSeconds(offset / 1000);
         } catch (DateTimeException e) {
             throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
         }
