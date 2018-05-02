@@ -50,7 +50,6 @@ import java.util.Locale;
 public abstract class TimeNodes {
 
     private static final ZonedDateTime ZERO = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneId.systemDefault());
-    public static final ZoneId UTC = ZoneId.of("UTC");
 
     public static DynamicObject getShortZoneName(StringNodes.MakeStringNode makeStringNode, ZonedDateTime dt, TimeZoneAndName zoneAndName) {
         final String shortZoneName = zoneAndName.getName(dt);
@@ -164,12 +163,12 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         private String getUTCDisplayName() {
-            return UTC.getDisplayName(TextStyle.NARROW, Locale.ENGLISH);
+            return GetTimeZoneNode.UTC.getDisplayName(TextStyle.NARROW, Locale.ENGLISH);
         }
 
         @TruffleBoundary
-        private ZonedDateTime inUTC(final ZonedDateTime dateTime) {
-            return dateTime.withZoneSameInstant(UTC);
+        private ZonedDateTime inUTC(ZonedDateTime dateTime) {
+            return dateTime.withZoneSameInstant(GetTimeZoneNode.UTC);
         }
 
     }
@@ -475,7 +474,7 @@ public abstract class TimeNodes {
             TimeZoneAndName envZone = null;
 
             if (isutc) {
-                zone = UTC;
+                zone = GetTimeZoneNode.UTC;
                 relativeOffset = false;
                 zoneToStore = coreStrings().UTC.createInstance();
             } else if (utcoffset == nil()) {

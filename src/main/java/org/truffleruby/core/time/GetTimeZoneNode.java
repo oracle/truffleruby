@@ -47,6 +47,8 @@ import java.util.regex.Pattern;
 
 public abstract class GetTimeZoneNode extends RubyNode {
 
+    public static final ZoneId UTC = ZoneId.of("UTC");
+
     protected static final CyclicAssumption TZ_UNCHANGED = new CyclicAssumption("ENV['TZ'] is unmodified");
 
     public static void invalidateTZ() {
@@ -115,7 +117,7 @@ public abstract class GetTimeZoneNode extends RubyNode {
             try {
                 zoneID = ZoneId.of(expandedZone);
             } catch (DateTimeException | IllegalArgumentException e) {
-                zoneID = TimeNodes.UTC;
+                zoneID = UTC;
             }
             return new TimeZoneAndName(zoneID);
         }
