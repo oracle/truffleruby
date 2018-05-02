@@ -11,7 +11,6 @@ require_relative '../ruby/spec_helper'
 # Switch to MRI, the version we are compatible with, and run:
 # $ jt test spec/truffle/methods_spec.rb -t ruby
 # to regenerate the files under methods/.
-# Integer is generated from MRI 2.4.4 for Integer unification
 
 # Only set to true for faster development if this spec is run alone
 run_directly = false

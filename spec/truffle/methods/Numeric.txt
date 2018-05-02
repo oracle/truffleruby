@@ -15,10 +15,12 @@ div
 divmod
 eql?
 fdiv
+finite?
 floor
 i
 imag
 imaginary
+infinite?
 integer?
 magnitude
 modulo
