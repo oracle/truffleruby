@@ -45,6 +45,14 @@ describe "Time#<=>" do
     (Time.at(100, 0) <=> Time.at(100, Rational(1,1000))).should == -1
   end
 
+  it "returns nil when compared to an Integer because Time does not respond to #coerce" do
+    time = Time.at(1)
+    -> {
+      (time <=> 2).should == nil
+      (2 <=> time).should == nil
+    }.should_not complain
+  end
+
   describe "given a non-Time argument" do
     it "returns nil if argument <=> self returns nil" do
       t = Time.now
