@@ -161,6 +161,14 @@ class Numeric
     self < 0
   end
 
+  def finite?
+    true
+  end
+
+  def infinite?
+    nil
+  end
+
   def round
     to_f.round
   end

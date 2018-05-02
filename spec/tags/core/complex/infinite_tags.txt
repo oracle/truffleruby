@@ -1,6 +1,0 @@
-fails:Complex#infinite? returns nil if magnitude is finite
-fails:Complex#infinite? returns 1 for positive infinity
-fails:Complex#infinite? returns 1 for positive complex with infinite imaginary
-fails:Complex#infinite? returns -1 for negative infinity
-fails:Complex#infinite? returns -1 for negative complex with infinite imaginary
-fails:Complex#infinite? returns nil for NaN

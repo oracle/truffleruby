@@ -278,6 +278,14 @@ class Complex < Numeric
     false
   end
 
+  def finite?
+    @real.finite? and @imag.finite?
+  end
+
+  def infinite?
+    magnitude.infinite?
+  end
+
   def rect
     [@real, @imag]
   end
