@@ -74,5 +74,3 @@ module Truffle
     end
   end
 end
-
-RUBY_ENGINE_FAKE_JRUBY='jruby'
