@@ -25,18 +25,27 @@
  */
 package org.truffleruby.core.time;
 
+import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
+
+import org.truffleruby.Log;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.parser.Helpers;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -79,14 +88,47 @@ public abstract class GetTimeZoneNode extends RubyNode {
 
         if (tz == nil()) {
             // $TZ is not set, use the system timezone
-            return new TimeZoneAndName(ZoneId.systemDefault());
+            return new TimeZoneAndName(getSystemTimeZone());
         } else if (tzString.equalsIgnoreCase("localtime")) {
             // On Solaris, $TZ is "localtime", so get it from Java
-            return new TimeZoneAndName(ZoneId.systemDefault());
+            return new TimeZoneAndName(getSystemTimeZone());
         } else if (RubyGuards.isRubyString(tz)) {
             return parse(tzString);
         } else {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    private ZoneId getSystemTimeZone() {
+        if (TruffleOptions.AOT) {
+            // TimeZone.getDefault() returns the image build time zone on SVM.
+            final Path localtime = Paths.get("/etc/localtime");
+            if (!Files.exists(localtime, LinkOption.NOFOLLOW_LINKS)) {
+                Log.LOGGER.warning("Could not find timezone (/etc/localtime does not exist), using UTC instead.");
+                return UTC;
+            }
+            if (!Files.isSymbolicLink(localtime)) {
+                Log.LOGGER.warning("Could not find timezone (/etc/localtime is not a symlink), using UTC instead.");
+                return UTC;
+            }
+
+            final String resolved;
+            try {
+                resolved = Files.readSymbolicLink(localtime).toString();
+            } catch (IOException e) {
+                throw new JavaException(e);
+            }
+
+            final int index = resolved.indexOf("zoneinfo/");
+            if (index == -1) {
+                Log.LOGGER.warning("Could not find timezone (The /etc/localtime symlink does not contain zoneinfo/), using UTC instead.");
+                return UTC;
+            }
+
+            final String timeZoneID = resolved.substring(index + "zoneinfo/".length());
+            return ZoneId.of(timeZoneID);
+        } else {
+            return ZoneId.systemDefault();
         }
     }
 
