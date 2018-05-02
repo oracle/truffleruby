@@ -992,4 +992,5 @@ class Array
   public :drop_while, :take_while
   public :frozen?
   public :sum
+  public :min, :max
 end
