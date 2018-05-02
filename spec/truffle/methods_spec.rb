@@ -14,12 +14,11 @@ require_relative '../ruby/spec_helper'
 
 modules = [
   BasicObject, Kernel, Object,
-  Enumerable, Enumerator,
-  Numeric, Integer,
-  Array,
+  Enumerable, Enumerator, Range,
+  Numeric, Integer, Float,
+  Rational, Complex,
+  Array, Hash, String,
 ]
-# Hash, Range, String
-# Float, Rational, Complex
 
 describe "Public methods on" do
   modules.each do |mod|
