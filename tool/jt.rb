@@ -821,7 +821,7 @@ module Commands
 
     def try_fetch(repo)
       remote = github(repo) || bitbucket(repo) || 'origin'
-      raw_sh "git", "-C", repo, "fetch", continue_on_failure: true
+      raw_sh "git", "-C", repo, "fetch", remote, continue_on_failure: true
     end
   end
 
