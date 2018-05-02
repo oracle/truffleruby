@@ -20,32 +20,34 @@ modules = [
   Array, Hash, String,
 ]
 
-describe "Public methods on" do
-  modules.each do |mod|
-    describe "#{mod.name}" do
-      file = File.expand_path("../methods/#{mod.name}.txt", __FILE__)
+guard -> { !defined?(SlowSpecsTagger) } do
+  describe "Public methods on" do
+    modules.each do |mod|
+      describe "#{mod.name}" do
+        file = File.expand_path("../methods/#{mod.name}.txt", __FILE__)
 
-      methods = ruby_exe("puts #{mod}.public_instance_methods(false).sort")
-      methods = methods.lines.map { |line| line.chomp.to_sym }
+        methods = ruby_exe("puts #{mod}.public_instance_methods(false).sort")
+        methods = methods.lines.map { |line| line.chomp.to_sym }
 
-      if RUBY_ENGINE == "ruby"
-        contents = methods.map { |meth| "#{meth}\n" }.join
-        File.write file, contents
-      else
-        expected = File.readlines(file).map { |line| line.chomp.to_sym }
-        if methods == expected
-          it "are the same as on MRI" do
-            methods.should == expected
-          end
+        if RUBY_ENGINE == "ruby"
+          contents = methods.map { |meth| "#{meth}\n" }.join
+          File.write file, contents
         else
-          (methods - expected).each do |extra|
-            it "should not include #{extra}" do
-              methods.should_not include(extra)
+          expected = File.readlines(file).map { |line| line.chomp.to_sym }
+          if methods == expected
+            it "are the same as on MRI" do
+              methods.should == expected
             end
-          end
-          (expected - methods).each do |missing|
-            it "should include #{missing}" do
-              methods.should include(missing)
+          else
+            (methods - expected).each do |extra|
+              it "should not include #{extra}" do
+                methods.should_not include(extra)
+              end
+            end
+            (expected - methods).each do |missing|
+              it "should include #{missing}" do
+                methods.should include(missing)
+              end
             end
           end
         end

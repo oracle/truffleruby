@@ -1,13 +1,3 @@
-slow:Public methods on BasicObject are the same as on MRI
-slow:Public methods on Object are the same as on MRI
-slow:Public methods on Enumerable are the same as on MRI
-slow:Public methods on Enumerator are the same as on MRI
-slow:Public methods on Numeric are the same as on MRI
-slow:Public methods on Kernel are the same as on MRI
-slow:Public methods on Integer are the same as on MRI
-slow:Public methods on Fixnum are the same as on MRI
-slow:Public methods on Bignum are the same as on MRI
-slow:Public methods on Array are the same as on MRI
 fails:Public methods on Kernel should not include yield_self
 fails:Public methods on Range should not include clone
 fails:Public methods on Range should not include collect
