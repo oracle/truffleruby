@@ -1287,6 +1287,7 @@ EOS
   def test_tck(*args)
     debug = ['-d'] if args.delete '--jdebug'
     mx *debug, 'rubytck', *args
+    mx *debug, 'tck', *args
   end
   private :test_tck
 
