@@ -47,6 +47,8 @@ describe "Time#<=>" do
 
   it "returns nil when compared to an Integer because Time does not respond to #coerce" do
     time = Time.at(1)
+    time.respond_to?(:coerce).should == false
+    time.should_receive(:respond_to?).exactly(2).and_return(false)
     -> {
       (time <=> 2).should == nil
       (2 <=> time).should == nil
