@@ -46,8 +46,10 @@ slice_before
 slice_when
 sort
 sort_by
+sum
 take
 take_while
 to_a
 to_h
+uniq
 zip

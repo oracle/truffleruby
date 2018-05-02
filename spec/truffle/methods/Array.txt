@@ -49,6 +49,8 @@ last
 length
 map
 map!
+max
+min
 pack
 permutation
 pop
@@ -78,6 +80,7 @@ slice!
 sort
 sort!
 sort_by!
+sum
 take
 take_while
 to_a

@@ -1,9 +1,0 @@
-fails:Array#sum returns the sum of elements
-fails:Array#sum applies a block to each element before adding if it's given
-fails:Array#sum returns init value if array is empty
-fails:Array#sum returns 0 if array is empty and init is omitted
-fails:Array#sum adds init value to the sum of elemens
-fails:Array#sum can be used for non-numeric objects by providing init value
-fails:Array#sum raises TypeError if any element are not numeric
-fails:Array#sum raises TypeError if any element cannot be added to init value
-fails:Array#sum calls + to sum the elements

@@ -20,3 +20,5 @@ MessageEncryptorTest:
 - test_messing_with_either_encrypted_values_causes_failure
 - test_messing_with_verified_values_causes_failures
 - test_signed_round_tripping
+EnumerableTests:
+- test_sums
