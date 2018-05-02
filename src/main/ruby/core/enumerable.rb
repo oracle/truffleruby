@@ -951,6 +951,30 @@ module Enumerable
   end
   alias_method :member?, :include?
 
+  def uniq(&block)
+    result = []
+    if block_given?
+      h = {}
+      each do |e|
+        v = yield(e)
+        unless h.key?(v)
+          h[v] = true
+          result << e
+        end
+      end
+    else
+      h = {}
+      each do |e|
+        unless h.key?(e)
+          h[e] = true
+          result << e
+        end
+      end
+    end
+
+    result
+  end
+
 end
 
 class Array

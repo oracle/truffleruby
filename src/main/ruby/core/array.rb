@@ -1192,10 +1192,6 @@ class Array
     out
   end
 
-  def uniq(&block)
-    dup.uniq!(&block) or dup
-  end
-
   def unshift(*values)
     Truffle.check_frozen
 
@@ -1617,32 +1613,23 @@ class Array
   end
   private :delete_range
 
+  def uniq(&block)
+    copy_of_same_class = dup
+    result = super(&block)
+    Truffle::Array.steal_storage(copy_of_same_class, result)
+    copy_of_same_class
+  end
+
   def uniq!(&block)
     Truffle.check_frozen
+    result = uniq(&block)
 
-    result = []
-    if block_given?
-      h = {}
-      each do |e|
-        v = yield(e)
-        unless h.key?(v)
-          h[v] = true
-          result << e
-        end
-      end
+    if self.size == result.size
+      nil
     else
-      h = {}
-      each do |e|
-        unless h.key?(e)
-          h[e] = true
-          result << e
-        end
-      end
+      Truffle::Array.steal_storage(self, result)
+      self
     end
-    return if result.size == size
-
-    Truffle::Array.steal_storage(self, result)
-    self
   end
 
   def sort!(&block)
