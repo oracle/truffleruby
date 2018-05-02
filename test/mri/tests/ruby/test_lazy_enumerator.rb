@@ -14,7 +14,14 @@ class TestLazyEnumerator < Test::Unit::TestCase
 
     def each(*args)
       @args = args
-      @enum.each {|i| @current = i; yield i}
+      @enum.each do |v|
+        @current = v
+        if v.is_a? Enumerable
+          yield *v
+        else
+          yield v
+        end
+      end
     end
   end
 
@@ -98,6 +105,15 @@ class TestLazyEnumerator < Test::Unit::TestCase
     assert_equal(3, a.current)
     assert_equal(2, a.lazy.map {|x| x * 2}.first)
     assert_equal(1, a.current)
+  end
+
+  def test_map_packed_nested
+    bug = '[ruby-core:81638] [Bug#13648]'
+
+    a = Step.new([[1, 2]])
+    expected = [[[1, 2]]]
+    assert_equal(expected, a.map {|*args| args}.map {|*args| args}.to_a)
+    assert_equal(expected, a.lazy.map {|*args| args}.map {|*args| args}.to_a, bug)
   end
 
   def test_flat_map
@@ -273,6 +289,11 @@ class TestLazyEnumerator < Test::Unit::TestCase
     a = Step.new(1..10)
     assert_equal([], a.lazy.take(0).force)
     assert_equal(nil, a.current)
+  end
+
+  def test_take_bad_arg
+    a = Step.new(1..10)
+    assert_raise(ArgumentError) { a.lazy.take(-1) }
   end
 
   def test_take_recycle

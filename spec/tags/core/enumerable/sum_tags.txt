@@ -1,0 +1,3 @@
+fails:Enumerable#sum returns amount of the elements with taking an argument as the initial value
+fails:Enumerable#sum gives 0 as a default argument
+fails:Enumerable#sum takes a block to transform the elements

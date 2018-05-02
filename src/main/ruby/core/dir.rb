@@ -163,6 +163,19 @@ class Dir
       ret
     end
 
+    def empty?(path)
+      if PrivateFile.exist?(path) and !PrivateFile.directory?(path)
+        return false
+      end
+
+      open(path) do |dir|
+        while s = dir.read
+          return false if s != '.' and s != '..'
+        end
+      end
+      true
+    end
+
     def exist?(path)
       PrivateFile.directory?(path)
     end

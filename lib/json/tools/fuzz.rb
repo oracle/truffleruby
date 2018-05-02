@@ -1,13 +1,5 @@
 require 'json'
 
-require 'iconv'
-ISO_8859_1_TO_UTF8 = Iconv.new('utf-8', 'iso-8859-15')
-class ::String
-  def to_utf8
-    ISO_8859_1_TO_UTF8.iconv self
-  end
-end
-
 class Fuzzer
   def initialize(n, freqs = {})
     sum = freqs.inject(0.0) { |s, x| s + x.last }
@@ -25,7 +17,7 @@ class Fuzzer
   def random_string
     s = ''
     30.times { s << @alpha[rand(@alpha.size)] }
-    s.to_utf8
+    s
   end
 
   def pick

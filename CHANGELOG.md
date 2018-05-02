@@ -2,6 +2,8 @@
 
 New features:
 
+* We are now compatible with Ruby 2.4.4.
+
 * `object.class` on a Java `Class` object will give you an object on which you
   can call instance methods, rather than static methods which is what you get by
   default.

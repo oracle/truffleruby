@@ -1,7 +1,6 @@
 // From ./tool/generate-cext-constants.rb
 
 VALUE rb_tr_get_Array(void);
-VALUE rb_tr_get_Bignum(void);
 VALUE rb_tr_get_Class(void);
 VALUE rb_tr_get_Comparable(void);
 VALUE rb_tr_get_Data(void);
@@ -9,7 +8,6 @@ VALUE rb_tr_get_Encoding(void);
 VALUE rb_tr_get_Enumerable(void);
 VALUE rb_tr_get_FalseClass(void);
 VALUE rb_tr_get_File(void);
-VALUE rb_tr_get_Fixnum(void);
 VALUE rb_tr_get_Float(void);
 VALUE rb_tr_get_Hash(void);
 VALUE rb_tr_get_Integer(void);
@@ -72,7 +70,6 @@ VALUE rb_tr_get_output_rs(void);
 VALUE rb_tr_get_default_rs(void);
 
 #define rb_cArray rb_tr_get_Array()
-#define rb_cBignum rb_tr_get_Bignum()
 #define rb_cClass rb_tr_get_Class()
 #define rb_mComparable rb_tr_get_Comparable()
 #define rb_cData rb_tr_get_Data()
@@ -80,7 +77,6 @@ VALUE rb_tr_get_default_rs(void);
 #define rb_mEnumerable rb_tr_get_Enumerable()
 #define rb_cFalseClass rb_tr_get_FalseClass()
 #define rb_cFile rb_tr_get_File()
-#define rb_cFixnum rb_tr_get_Fixnum()
 #define rb_cFloat rb_tr_get_Float()
 #define rb_cHash rb_tr_get_Hash()
 #define rb_cInteger rb_tr_get_Integer()

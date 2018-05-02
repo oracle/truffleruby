@@ -1,1 +1,2 @@
 fails:IO#each_line with limit when limit is 0 raises an ArgumentError
+fails:IO#each_line when passed chomp yields each line without trailing newline characters to the passed block

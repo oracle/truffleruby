@@ -2033,7 +2033,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "strategy.matches(array)", "strategy.isPrimitive()" },
-                assumptions = { "getContext().getCoreMethods().fixnumCmpAssumption", "getContext().getCoreMethods().floatCmpAssumption" })
+                assumptions = { "getContext().getCoreMethods().integerCmpAssumption", "getContext().getCoreMethods().floatCmpAssumption" })
         public Object sortPrimitiveArrayNoBlock(DynamicObject array, NotProvided block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy) {

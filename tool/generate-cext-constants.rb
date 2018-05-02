@@ -14,7 +14,6 @@ constants = [
     false,
     nil,
     Array,
-    Bignum,
     Class,
     Comparable,
     Data,
@@ -22,7 +21,6 @@ constants = [
     Enumerable,
     FalseClass,
     File,
-    Fixnum,
     Float,
     Hash,
     Integer,
@@ -76,13 +74,13 @@ constants = [
     IO::WaitReadable,
     IO::WaitWritable,
     [ZeroDivisionError, 'ZeroDivError'],
-    ['STDIN', 'stdin'],
-    ['STDOUT', 'stdout'],
-    ['STDERR', 'stderr'],
+    ['$stdin', 'stdin'],
+    ['$stdout', 'stdout'],
+    ['$stderr', 'stderr'],
     ['$,', 'output_fs'],
     ['$/', 'rs'],
     ['$\\', 'output_rs'],
-    ['$;', 'default_rs']
+    ['"\n"', 'default_rs']
 ].map do |const|
   if const.is_a?(Array)
     value, name = const
@@ -121,7 +119,7 @@ constants = [
   [macro_name, name, expr]
 end
 
-File.open("lib/cext/include/truffle/constants.h", "w") do |f|
+File.open("lib/cext/include/truffleruby/constants.h", "w") do |f|
   f.puts "// From #{__FILE__}"
   f.puts
 
@@ -143,11 +141,16 @@ constants.each do |macro_name, name, _|
   puts
 end
 
-puts
+File.open("lib/truffle/truffle/cext_constants.rb", "w") do |f|
+  f.puts "# From #{__FILE__}"
+  f.puts
 
-constants.each do |macro_name, _, expr|
-  puts "  def #{macro_name}"
-  puts "    #{expr}"
-  puts "  end"
-  puts
+  f.puts "module Truffle::CExt"
+  constants.each do |macro_name, _, expr|
+    f.puts "  def #{macro_name}"
+    f.puts "    #{expr}"
+    f.puts "  end"
+    f.puts
+  end
+  f.puts "end"
 end

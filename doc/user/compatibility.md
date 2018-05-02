@@ -1,7 +1,7 @@
 # Compatibility
 
 TruffleRuby aims to be highly compatible with the standard implementation of
-Ruby, MRI, version 2.3.7, revision 63024.
+Ruby, MRI, version 2.4.4, revision 63013.
 
 Our policy is to match the behaviour of MRI, except where we do not know how to
 do so with good performance for typical Ruby programs. Some features work but
@@ -77,11 +77,6 @@ available on C Ruby (MRI). We implement these classes if it's practical to do
 so, but this isn't always the case. For example `RubyVM` is not available.
 
 ## Features with subtle differences
-
-#### The range of `Fixnum` is different
-
-The range of `Fixnum` is slightly larger than it is in MRI. This won't be an
-issue when we support Ruby 2.4, as `Integer` is unified there.
 
 #### Command line switches
 
@@ -198,7 +193,7 @@ The `mark` function of `RDATA` and `RTYPEDDATA` is never called.
 
 #### Ruby objects and truthiness in C
 
-All Ruby objects are truthy in C, except for `Qfalse`, the `Fixnum` value `0`,
+All Ruby objects are truthy in C, except for `Qfalse`, the `Integer` value `0`,
 and the `Float` value `0.0`. The last two are incompatible with MRI, which would
 also see these values as truthy.
 

@@ -22,6 +22,7 @@ class TestDir_M17N < Test::Unit::TestCase
         assert_include(ents, filename)
       EOS
 
+      return if /cygwin/ =~ RUBY_PLATFORM
       assert_separately(%w[-EASCII-8BIT], <<-EOS, :chdir=>dir)
         filename = #{code}.chr('UTF-8').force_encoding("ASCII-8BIT")
         opts = {:encoding => Encoding.default_external} if /mswin|mingw/ =~ RUBY_PLATFORM
@@ -58,6 +59,7 @@ class TestDir_M17N < Test::Unit::TestCase
   end
 
   def test_filename_extutf8_invalid
+    return if /cygwin/ =~ RUBY_PLATFORM
     # High Sierra's APFS cannot use invalid filenames
     return if Bug::File::Fs.fsname(Dir.tmpdir) == "apfs"
     with_tmpdir {|d|
@@ -175,6 +177,7 @@ class TestDir_M17N < Test::Unit::TestCase
   ## others
 
   def test_filename_bytes_euc_jp
+    return if /cygwin/ =~ RUBY_PLATFORM
     with_tmpdir {|d|
       assert_separately(%w[-EEUC-JP], <<-'EOS', :chdir=>d)
         filename = "\xA4\xA2".force_encoding("euc-jp")
@@ -191,6 +194,7 @@ class TestDir_M17N < Test::Unit::TestCase
   end
 
   def test_filename_euc_jp
+    return if /cygwin/ =~ RUBY_PLATFORM
     with_tmpdir {|d|
       assert_separately(%w[-EEUC-JP], <<-'EOS', :chdir=>d)
         filename = "\xA4\xA2".force_encoding("euc-jp")
@@ -236,6 +240,7 @@ class TestDir_M17N < Test::Unit::TestCase
   end
 
   def test_filename_ext_euc_jp_and_int_utf_8
+    return if /cygwin/ =~ RUBY_PLATFORM
     with_tmpdir {|d|
       assert_separately(%w[-EEUC-JP], <<-'EOS', :chdir=>d)
         filename = "\xA4\xA2".force_encoding("euc-jp")

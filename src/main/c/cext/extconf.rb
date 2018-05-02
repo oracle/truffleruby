@@ -7,4 +7,9 @@
 # GNU Lesser General Public License version 2.1
 
 require 'mkmf'
+
+# st.c needs this for TRUE/FALSE to be defined.
+# -DRUBY_EXPORT is added in MRI's configure.in.
+$CFLAGS << " -DRUBY_EXPORT"
+
 create_makefile('ruby')

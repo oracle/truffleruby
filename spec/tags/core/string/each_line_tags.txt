@@ -1,0 +1,4 @@
+fails:String#each_line when `chomp` keyword argument is passed removes new line characters
+fails:String#each_line when `chomp` keyword argument is passed removes new line characters when separator is not specified
+fails:String#each_line when `chomp` keyword argument is passed removes only specified separator
+fails:String#each_line when `chomp` keyword argument is passed ignores new line characters when separator is specified

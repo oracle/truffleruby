@@ -39,3 +39,4 @@ class FalseClass
 end
 
 FALSE = false
+Object.deprecate_constant :FALSE

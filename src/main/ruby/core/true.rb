@@ -39,3 +39,4 @@ class TrueClass
 end
 
 TRUE = true
+Object.deprecate_constant :TRUE

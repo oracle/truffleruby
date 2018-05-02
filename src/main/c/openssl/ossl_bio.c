@@ -8,9 +8,6 @@
  * (See the file 'LICENCE'.)
  */
 #include "ossl.h"
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 BIO *
 ossl_obj2bio(volatile VALUE *pobj)
@@ -25,7 +22,6 @@ ossl_obj2bio(volatile VALUE *pobj)
     if (!bio)
 	ossl_raise(eOSSLError, "BIO_new_mem_buf");
     *pobj = obj;
-
     return bio;
 }
 
@@ -61,7 +57,7 @@ ossl_membio2str0(BIO *bio)
 VALUE
 ossl_protect_membio2str(BIO *bio, int *status)
 {
-    return rb_protect((VALUE(*)_((VALUE)))ossl_membio2str0, (VALUE)bio, status);
+    return rb_protect((VALUE (*)(VALUE))ossl_membio2str0, (VALUE)bio, status);
 }
 
 VALUE

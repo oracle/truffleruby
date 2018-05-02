@@ -209,7 +209,7 @@ public class CommandLineParser {
                     disallowedInRubyOpts(argument);
                     final String dir = grabValue(getArgumentError(" -C must be followed by a directory expression"));
                     config.setOption(OptionsCatalog.WORKING_DIRECTORY, dir);
-                    break;
+                    break FOR;
                 case 'd':
                     config.setOption(OptionsCatalog.DEBUG, true);
                     config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);

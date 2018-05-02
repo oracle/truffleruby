@@ -164,7 +164,9 @@ class Array
         range = Range.new(start_index, end_index, arg.exclude_end?)
         send(method_name, range)
       else
-        send(method_name, Truffle::Type.rb_num2long(arg))
+        arg = Truffle::Type.rb_num2long(arg)
+        return nil unless Truffle::Type.fits_into_int?(arg)
+        send(method_name, arg)
       end
     else
       start_index = start.to_int

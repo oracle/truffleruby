@@ -11,13 +11,13 @@ require_relative '../../ruby/spec_helper'
 describe "Truffle::Interop.meta_object" do
   
   it "has a type property" do
-    Truffle::Interop.meta_object(14)[:type].should == "Fixnum"
+    Truffle::Interop.meta_object(14)[:type].should == "Integer"
     Truffle::Interop.meta_object(Object.new)[:type].should == "Object"
     Truffle::Interop.meta_object({})[:type].should == "Hash"
   end
   
   it "has a className property" do
-    Truffle::Interop.meta_object(14)[:className].should == "Fixnum"
+    Truffle::Interop.meta_object(14)[:className].should == "Integer"
     Truffle::Interop.meta_object(Object.new)[:className].should == "Object"
     Truffle::Interop.meta_object({})[:className].should == "Hash"
   end

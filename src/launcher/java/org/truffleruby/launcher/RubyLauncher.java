@@ -310,9 +310,13 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         }
     }
 
+    // To update this, use:
+    // ruby -h | ruby -e 'puts STDIN.readlines.map{|line|"out.println(#{line.chomp.inspect});"}'
+    // and replace ruby by truffleruby for the first line.
+    // Also add an extra out.println(); before out.println("Features:");
     private static void printHelp(PrintStream out) {
-        out.printf("Usage: %s [switches] [--] [programfile] [arguments]%n", TruffleRuby.ENGINE_ID);
-        out.println("  -0[octal]       specify record separator (\0, if no argument)");
+        out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
+        out.println("  -0[octal]       specify record separator (\\0, if no argument)");
         out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
         out.println("  -c              check syntax only");
         out.println("  -Cdirectory     cd to directory before executing your script");
@@ -348,6 +352,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println("  rubyopt         RUBYOPT environment variable (default: enabled)");
         out.println("  frozen-string-literal");
         out.println("                  freeze all string literals (default: disabled)");
+        // Extra output for TruffleRuby
         out.println();
         out.println("TruffleRuby:");
         out.println("  -Xlog=severe,warning,performance,info,config,fine,finer,finest");
@@ -359,7 +364,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     private static void printShortHelp(PrintStream out) {
         out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
-        out.println("  -0[octal]       specify record separator (\0, if no argument)");
+        out.println("  -0[octal]       specify record separator (\\0, if no argument)");
         out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
         out.println("  -c              check syntax only");
         out.println("  -Cdirectory     cd to directory before executing your script");

@@ -17,6 +17,7 @@ cext-ruby/proc/test_bmethod.rb
 cext-ruby/rational/test_rat.rb
 cext-ruby/st/test_numhash.rb
 cext-ruby/st/test_update.rb
+cext-ruby/string/test_capacity.rb
 cext-ruby/string/test_coderange.rb
 cext-ruby/string/test_cstr.rb
 cext-ruby/string/test_ellipsize.rb
@@ -24,10 +25,10 @@ cext-ruby/string/test_enc_associate.rb
 cext-ruby/string/test_enc_str_buf_cat.rb
 cext-ruby/string/test_fstring.rb
 cext-ruby/string/test_modify_expand.rb
+cext-ruby/string/test_nofree.rb
 cext-ruby/string/test_normalize.rb
 cext-ruby/string/test_qsort.rb
 cext-ruby/string/test_set_len.rb
-cext-ruby/string/test_nofree.rb
 cext-ruby/struct/test_duplicate.rb
 cext-ruby/struct/test_member.rb
 cext-ruby/symbol/noninterned_name.rb

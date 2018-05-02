@@ -24,6 +24,7 @@ have_flags = %w[
   EVP_CIPHER_CTX_ENGINE
   AUTHENTICATED_ENCRYPTION
   OPENSSL_OCSP_H
+  SSL_CTX_CLEAR_OPTIONS
 ]
 
 $CFLAGS += " #{have_flags.map { |h| "-DHAVE_#{h}" }.join(' ')}"

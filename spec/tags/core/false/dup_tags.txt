@@ -1,0 +1,1 @@
+fails:FalseClass#dup returns self

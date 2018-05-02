@@ -1,0 +1,1 @@
+fails:String#unpack1 returns the first value of #unpack

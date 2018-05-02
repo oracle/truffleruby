@@ -25,7 +25,7 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = "e7c82f89e7a978bc2fdaf3098b10d39e42a66875"
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = "f2cedf92c5ef8f3c82208c229e9797d0ad6f48f6"
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -711,7 +711,7 @@ module Commands
     build("cexts")
 
     chdir(ext_dir) do
-      run_ruby('-rmkmf', "extconf.rb") # -rmkmf is required for C ext tests
+      run_ruby('-rmkmf', "#{ext_dir}/extconf.rb") # -rmkmf is required for C ext tests
       if File.exists?('Makefile')
         raw_sh("make")
         FileUtils::Verbose.cp("#{name}.su", target) if target
@@ -898,16 +898,7 @@ module Commands
       args, files_to_run = args.partition { |a| a.start_with?('-') }
     end
 
-    if files_to_run
-      prefix = "test/mri/tests/"
-      files_to_run = files_to_run.map { |file|
-        if file.start_with?(prefix)
-          file[prefix.size..-1]
-        else
-          file
-        end
-      }
-    else
+    unless files_to_run
       prefix = "#{TRUFFLERUBY_DIR}/test/mri/tests/"
       include_files = Dir.glob(include_pattern).map { |f|
         raise unless f.start_with?(prefix)
@@ -932,6 +923,18 @@ module Commands
   private :test_mri
 
   def run_mri_tests(extra_args, test_files, runner_args, run_options = {})
+    prefix = "test/mri/tests/"
+    abs_prefix = "#{TRUFFLERUBY_DIR}/#{prefix}"
+    test_files = test_files.map { |file|
+      if file.start_with?(prefix)
+        file[prefix.size..-1]
+      elsif file.start_with?(abs_prefix)
+        file[abs_prefix.size..-1]
+      else
+        file
+      end
+    }
+
     truffle_args =  if extra_args.include?('--native')
                       %W[-Xhome=#{TRUFFLERUBY_DIR}]
                     else
@@ -946,23 +949,30 @@ module Commands
 
     cext_tests = test_files.select { |f| f.include?("cext-ruby") }
     cext_tests.each do |test|
+      puts
+      puts test
       test_path = "#{TRUFFLERUBY_DIR}/test/mri/tests/#{test}"
       match = File.read(test_path).match(/\brequire ['"]c\/(.*?)["']/)
       if match
-        compile_dir = if match[1].include?('/')
-                        if Dir.exists?("#{MRI_TEST_CEXT_DIR}/#{match[1]}")
-                          "#{MRI_TEST_CEXT_DIR}/#{match[1]}"
+        cext_name = match[1]
+        compile_dir = if cext_name.include?('/')
+                        if Dir.exists?("#{MRI_TEST_CEXT_DIR}/#{cext_name}")
+                          "#{MRI_TEST_CEXT_DIR}/#{cext_name}"
                         else
-                          "#{MRI_TEST_CEXT_DIR}/#{File.dirname(match[1])}"
+                          "#{MRI_TEST_CEXT_DIR}/#{File.dirname(cext_name)}"
                         end
                       else
-                        "#{MRI_TEST_CEXT_DIR}/#{match[1]}"
+                        if Dir.exists?("#{MRI_TEST_CEXT_DIR}/#{cext_name}")
+                          "#{MRI_TEST_CEXT_DIR}/#{cext_name}"
+                        else
+                          "#{MRI_TEST_CEXT_DIR}/#{cext_name.gsub('_', '-')}"
+                        end
                       end
         name = File.basename(match[1])
         target_dir = if match[1].include?('/')
                        File.dirname(match[1])
                      else
-                      ''
+                       ''
                      end
         dest_dir = File.join(MRI_TEST_CEXT_LIB_DIR, target_dir)
         FileUtils::Verbose.mkdir_p(dest_dir)

@@ -43,12 +43,20 @@ void ruby_malloc_size_overflow(size_t count, size_t elsize) {
      count, elsize);
 }
 
+size_t xmalloc2_size(const size_t count, const size_t elsize) {
+  size_t ret;
+  if (rb_mul_size_overflow(count, elsize, SSIZE_MAX, &ret)) {
+    ruby_malloc_size_overflow(count, elsize);
+  }
+  return ret;
+}
+
 void *ruby_xmalloc(size_t size) {
   return malloc(size);
 }
 
 void *ruby_xmalloc2(size_t n, size_t size) {
-  return malloc(ruby_xmalloc2_size(n, size));
+  return malloc(xmalloc2_size(n, size));
 }
 
 void *ruby_xcalloc(size_t n, size_t size) {
@@ -71,15 +79,18 @@ void ruby_xfree(void *address) {
   free(address);
 }
 
-void *rb_alloc_tmp_buffer(volatile VALUE *buffer_pointer, long length) {
-  // TODO CS 13-Apr-17 MRI sometimes uses alloc and sometimes malloc, and wraps it in a Ruby object - is rb_free_tmp_buffer guaranteed to be called or do we need to free in a finalizer?
-  void *space = malloc(length);
-  *((void**) buffer_pointer) = space;
-  return space;
+void *rb_alloc_tmp_buffer(volatile VALUE *store, long len) {
+  void *ptr = malloc(len);
+  *((void**)store) = ptr;
+  return ptr;
 }
 
-void rb_free_tmp_buffer(volatile VALUE *buffer_pointer) {
-  free(*((void**) buffer_pointer));
+void *rb_alloc_tmp_buffer_with_count(volatile VALUE *store, size_t size, size_t cnt) {
+  return rb_alloc_tmp_buffer(store, size);
+}
+
+void rb_free_tmp_buffer(volatile VALUE *store) {
+  free(*((void**)store));
 }
 
 // Types
@@ -172,10 +183,6 @@ VALUE rb_tr_get_Array(void) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cArray");
 }
 
-VALUE rb_tr_get_Bignum(void) {
-  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cBignum");
-}
-
 VALUE rb_tr_get_Class(void) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cClass");
 }
@@ -202,10 +209,6 @@ VALUE rb_tr_get_FalseClass(void) {
 
 VALUE rb_tr_get_File(void) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cFile");
-}
-
-VALUE rb_tr_get_Fixnum(void) {
-  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cFixnum");
 }
 
 VALUE rb_tr_get_Float(void) {
@@ -519,11 +522,11 @@ short rb_fix2short(VALUE value) {
   rb_tr_error("rb_num2ushort not implemented");
 }
 
-VALUE INT2FIX(long value) {
+VALUE RB_INT2FIX(long value) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "INT2FIX", value);
 }
 
-VALUE LONG2FIX(long value) {
+VALUE RB_LONG2FIX(long value) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "LONG2FIX", value);
 }
 
@@ -1453,10 +1456,10 @@ int rb_tr_obj_equal(VALUE first, VALUE second) {
 int rb_tr_flags(VALUE value) {
   int flags = 0;
   if (OBJ_FROZEN(value)) {
-    flags |= FL_FREEZE;
+    flags |= RUBY_FL_FREEZE;
   }
   if (OBJ_TAINTED(value)) {
-    flags |= FL_TAINT;
+    flags |= RUBY_FL_TAINT;
   }
   // TODO BJF Nov-11-2017 Implement more flags
   return flags;
@@ -2910,6 +2913,10 @@ VALUE rb_struct_new(VALUE klass, ...) {
     rb_ary_store(ary, i++, arg);
   }
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_struct_new_no_splat", klass, ary);
+}
+
+VALUE rb_struct_size(VALUE s) {
+  return polyglot_invoke(s, "size");
 }
 
 VALUE rb_struct_getmember(VALUE obj, ID id) {
@@ -4849,60 +4856,4 @@ VALUE rb_syserr_new_str(int n, VALUE arg) {
 
 VALUE rb_yield_values2(int argc, const VALUE *argv) {
   rb_tr_error("rb_yield_values2 not implemented");
-}
-
-int rb_isalnum(int c) {
-  return rb_isalpha(c) || rb_isdigit(c);
-}
-
-int rb_isalpha(int c) {
-  return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
-}
-
-int rb_isblank(int c) {
-  return c == 0x09 || c == 0x20;
-}
-
-int rb_iscntrl(int c) {
-  return (c >= 0x00 && c <= 0x1f) || c == 0x7f;
-}
-
-int rb_isdigit(int c) {
-  return c >= '0' && c <= '9';
-}
-
-int rb_isgraph(int c) {
-  return c >= '!' && c <= '~';
-}
-
-int rb_islower(int c) {
-  return c >= 'a' && c <= 'z';
-}
-
-int rb_isprint(int c) {
-  return c == ' ' || rb_isgraph(c);
-}
-
-int rb_ispunct(int c) {
-  return (c >= '!' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~');
-}
-
-int rb_isspace(int c) {
-  return c == 0x20 || (c >= 0x09 && c <= 0x0d);
-}
-
-int rb_isupper(int c) {
-  return c >= 'A' && c <= 'Z';
-}
-
-int rb_isxdigit(int c) {
-  return rb_isdigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
-}
-
-int rb_tolower(int c) {
-  return rb_isascii(c) && rb_isupper(c) ? c ^ 0x20 : c;
-}
-
-int rb_toupper(int c) {
-  return rb_isascii(c) && rb_islower(c) ? c ^ 0x20 : c;
 }

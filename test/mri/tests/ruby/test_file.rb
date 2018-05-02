@@ -122,8 +122,8 @@ class TestFile < Test::Unit::TestCase
 
   def test_truncate_size
     Tempfile.create("test-truncate") do |f|
-      q1 = Queue.new
-      q2 = Queue.new
+      q1 = Thread::Queue.new
+      q2 = Thread::Queue.new
 
       th = Thread.new do
         data = ''
@@ -271,7 +271,7 @@ class TestFile < Test::Unit::TestCase
       a = File.join(tmpdir, "x")
       begin
         File.symlink(tst, a)
-      rescue Errno::EACCES
+      rescue Errno::EACCES, Errno::EPERM
         skip "need privilege"
       end
       assert_equal(File.join(realdir, tst), File.realpath(a))
@@ -282,6 +282,14 @@ class TestFile < Test::Unit::TestCase
       File.symlink(tst, a)
       assert_equal(File.join(realdir, tst), File.realpath(a.encode("UTF-8")))
     }
+  end
+
+  def test_realpath_special_symlink
+    IO.pipe do |r, w|
+      if File.pipe?(path = "/dev/fd/#{r.fileno}")
+        assert_file.identical?(File.realpath(path), path)
+      end
+    end
   end
 
   def test_realdirpath

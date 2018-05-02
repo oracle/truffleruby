@@ -1,0 +1,3 @@
+fails:String#prepend takes multiple arguments
+fails:String#prepend prepends the initial value when given arguments contain 2 self
+fails:String#prepend returns self when given no arguments
