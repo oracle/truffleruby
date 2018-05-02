@@ -21,34 +21,48 @@ modules = [
 ]
 
 guard -> { !defined?(SlowSpecsTagger) } do
-  describe "Public methods on" do
+  if RUBY_ENGINE == "ruby"
     modules.each do |mod|
-      describe "#{mod.name}" do
-        file = File.expand_path("../methods/#{mod.name}.txt", __FILE__)
+      file = File.expand_path("../methods/#{mod.name}.txt", __FILE__)
+      methods = ruby_exe("puts #{mod}.public_instance_methods(false).sort")
+      methods = methods.lines.map { |line| line.chomp.to_sym }
+      contents = methods.map { |meth| "#{meth}\n" }.join
+      File.write file, contents
+    end
+  end
 
-        methods = ruby_exe("puts #{mod}.public_instance_methods(false).sort")
-        methods = methods.lines.map { |line| line.chomp.to_sym }
+  code = <<-EOR
+  #{modules.inspect}.each { |m|
+    puts m.name
+    puts m.public_instance_methods(false).sort
+    puts
+  }
+  EOR
+  all_methods = {}
+  ruby_exe(code).rstrip.split("\n\n").each { |group|
+    mod, *methods = group.lines.map(&:chomp)
+    all_methods[mod] = methods.map(&:to_sym)
+  }
 
-        if RUBY_ENGINE == "ruby"
-          contents = methods.map { |meth| "#{meth}\n" }.join
-          File.write file, contents
-        else
-          expected = File.readlines(file).map { |line| line.chomp.to_sym }
-          if methods == expected
-            it "are the same as on MRI" do
-              methods.should == expected
-            end
-          else
-            (methods - expected).each do |extra|
-              it "should not include #{extra}" do
-                methods.should_not include(extra)
-              end
-            end
-            (expected - methods).each do |missing|
-              it "should include #{missing}" do
-                methods.should include(missing)
-              end
-            end
+  modules.each do |mod|
+    describe "Public methods on #{mod.name}" do
+      file = File.expand_path("../methods/#{mod.name}.txt", __FILE__)
+      expected = File.readlines(file).map { |line| line.chomp.to_sym }
+      methods = all_methods[mod.name]
+
+      if methods == expected
+        it "are the same as on MRI" do
+          methods.should == expected
+        end
+      else
+        (methods - expected).each do |extra|
+          it "should not include #{extra}" do
+            methods.should_not include(extra)
+          end
+        end
+        (expected - methods).each do |missing|
+          it "should include #{missing}" do
+            methods.should include(missing)
           end
         end
       end
