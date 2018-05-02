@@ -49,4 +49,8 @@ module Truffle::Platform
   def self.mathn_loaded?
     false
   end
+
+  def self.has_lchmod?
+    bsd? || darwin?
+  end
 end
