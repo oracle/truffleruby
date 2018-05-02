@@ -46,8 +46,6 @@ import java.util.List;
 @CoreClass("Time")
 public abstract class TimeNodes {
 
-    private static final ZonedDateTime ZERO = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneId.systemDefault());
-
     public static DynamicObject getShortZoneName(StringNodes.MakeStringNode makeStringNode, ZonedDateTime dt, TimeZoneAndName zoneAndName) {
         final String shortZoneName = zoneAndName.getName(dt);
         return makeStringNode.executeMake(shortZoneName, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
@@ -55,6 +53,8 @@ public abstract class TimeNodes {
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
+
+        private static final ZonedDateTime ZERO = ZonedDateTime.ofInstant(Instant.EPOCH, GetTimeZoneNode.UTC);
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
