@@ -975,6 +975,14 @@ module Enumerable
     result
   end
 
+  def sum(init = 0)
+    if block_given?
+      inject(init) { |sum, e| sum + yield(e) }
+    else
+      inject(init, :+)
+    end
+  end
+
 end
 
 class Array
@@ -983,4 +991,5 @@ class Array
   public :take
   public :drop_while, :take_while
   public :frozen?
+  public :sum
 end
