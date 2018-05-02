@@ -16,7 +16,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
@@ -42,15 +41,10 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.format.TextStyle;
 import java.util.List;
-import java.util.Locale;
 
 @CoreClass("Time")
 public abstract class TimeNodes {
-
-    private static final ZonedDateTime ZERO = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneId.systemDefault());
-    public static final ZoneId UTC = ZoneId.of("UTC");
 
     public static DynamicObject getShortZoneName(StringNodes.MakeStringNode makeStringNode, ZonedDateTime dt, TimeZoneAndName zoneAndName) {
         final String shortZoneName = zoneAndName.getName(dt);
@@ -59,6 +53,8 @@ public abstract class TimeNodes {
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
+
+        private static final ZonedDateTime ZERO = ZonedDateTime.ofInstant(Instant.EPOCH, GetTimeZoneNode.UTC);
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
@@ -148,28 +144,21 @@ public abstract class TimeNodes {
     @CoreMethod(names = { "gmtime", "utc" })
     public abstract static class GmTimeNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
         @Specialization
         public DynamicObject gmtime(DynamicObject time) {
             final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
 
             Layouts.TIME.setIsUtc(time, true);
             Layouts.TIME.setRelativeOffset(time, false);
-            Layouts.TIME.setZone(time, makeStringNode.executeMake(getUTCDisplayName(), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
+            Layouts.TIME.setZone(time, coreStrings().UTC.createInstance());
             Layouts.TIME.setDateTime(time, inUTC(dateTime));
 
             return time;
         }
 
         @TruffleBoundary
-        private String getUTCDisplayName() {
-            return UTC.getDisplayName(TextStyle.NARROW, Locale.ENGLISH);
-        }
-
-        @TruffleBoundary
-        private ZonedDateTime inUTC(final ZonedDateTime dateTime) {
-            return dateTime.withZoneSameInstant(UTC);
+        private ZonedDateTime inUTC(ZonedDateTime dateTime) {
+            return dateTime.withZoneSameInstant(GetTimeZoneNode.UTC);
         }
 
     }
@@ -475,7 +464,7 @@ public abstract class TimeNodes {
             TimeZoneAndName envZone = null;
 
             if (isutc) {
-                zone = UTC;
+                zone = GetTimeZoneNode.UTC;
                 relativeOffset = false;
                 zoneToStore = coreStrings().UTC.createInstance();
             } else if (utcoffset == nil()) {
