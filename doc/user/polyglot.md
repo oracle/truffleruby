@@ -59,9 +59,12 @@ with a given name, and defines it in the top-level object.
 Using JavaScript as an example - the left example is JavaScript, the right one
 is the corresponding action it takes on the Ruby object expressed in Ruby code.
 
-`object[name/index]` calls `object[name/index]`.
+`object[name/index]` calls `object[name/index]` if the object has a method `[]`,
+or reads an instance variable if the name starts with `@`, or returns a bound
+method with the name.
 
-`object[name/index] = value` calls `object[name/index] = value`.
+`object[name/index] = value` calls `object[name/index] = value` if the object
+has a method `[]`, or sets an instance variable if the name starts with `@`.
 
 `delete object.name` calls `object.delete(name)`.
 
