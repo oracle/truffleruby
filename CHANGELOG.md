@@ -20,6 +20,8 @@ Changes:
 
 Bug fixes:
 
+* TruffleRuby on SubstrateVM now correctly determines the system timezone.
+
 * `Kernel#require_relative` now coerces the feature argument to a path and
   canonicalizes it before requiring, and it now uses the current directory as
   the directory for a synthetic file name from `#instance_eval`.
