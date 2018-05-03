@@ -130,7 +130,7 @@ public abstract class ArrayNodes {
         public DynamicObject addGeneralize(DynamicObject a, DynamicObject b,
                 @Cached("of(a)") ArrayStrategy aStrategy,
                 @Cached("of(b)") ArrayStrategy bStrategy,
-                @Cached("aStrategy.generalizeNew(bStrategy)") ArrayStrategy generalized) {
+                @Cached("aStrategy.generalize(bStrategy)") ArrayStrategy generalized) {
             return addInternal(a, b, aStrategy, bStrategy, generalized);
         }
 
@@ -987,7 +987,7 @@ public abstract class ArrayNodes {
     @CoreMethod(names = "fill", rest = true, needsBlock = true, raiseIfFrozenSelf = true)
     public abstract static class FillNode extends ArrayCoreMethodNode {
 
-        @Specialization(guards = { "strategy.isStorageMutable()", "args.length == 1", "strategy.matches(array)", "strategy.accepts(value(args))" }, limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = { "args.length == 1", "strategy.matches(array)", "strategy.accepts(value(args))" }, limit = "STORAGE_STRATEGIES")
         protected DynamicObject fill(DynamicObject array, Object[] args, NotProvided block,
                 @Cached("of(array)") ArrayStrategy strategy) {
             final Object value = args[0];
@@ -2086,7 +2086,7 @@ public abstract class ArrayNodes {
         public DynamicObject zipToPairs(DynamicObject array, DynamicObject other,
                 @Cached("of(array)") ArrayStrategy aStrategy,
                 @Cached("of(other)") ArrayStrategy bStrategy,
-                @Cached("aStrategy.generalizeNew(bStrategy)") ArrayStrategy generalized,
+                @Cached("aStrategy.generalize(bStrategy)") ArrayStrategy generalized,
                 @Cached("createBinaryProfile()") ConditionProfile bNotSmallerProfile) {
             final ArrayMirror a = aStrategy.newMirror(array);
             final ArrayMirror b = bStrategy.newMirror(other);

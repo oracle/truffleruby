@@ -32,7 +32,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyNode {
 
     // Writing within an existing array with a compatible type
 
-    @Specialization(guards = { "strategy.isStorageMutable()",
+    @Specialization(guards = {
             "isInBounds(array, index)", "strategy.matches(array)", "strategy.accepts(value)"
     }, limit = "STORAGE_STRATEGIES")
     public Object writeWithin(DynamicObject array, int index, Object value,
