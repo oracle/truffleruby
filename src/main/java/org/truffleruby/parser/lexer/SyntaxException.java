@@ -74,24 +74,11 @@ public class SyntaxException extends RuntimeException {
     private int line;
     private PID pid;
 
-    public SyntaxException(PID pid, String file, int line, String lastLine, String message) {
-        super(prepareMessage(message, lastLine));
+    public SyntaxException(PID pid, String file, int line, String message) {
+        super(message);
         this.pid = pid;
         this.file = file;
         this.line = line;
-    }
-
-
-    private static String prepareMessage(String message, String line) {
-        if (line != null && line.endsWith("\n")) {
-            line = line.substring(0, line.length() - 1);
-        }
-        if (line != null && !line.isEmpty()) {
-            boolean addNewline = message != null && !message.endsWith("\n");
-            return message + (addNewline ? "\n" : "") + line;
-        }
-        
-        return message;
     }
 
     public String getFile() {
