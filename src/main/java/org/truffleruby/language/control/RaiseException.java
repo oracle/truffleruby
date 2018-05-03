@@ -14,6 +14,7 @@ import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -38,6 +39,7 @@ public class RaiseException extends ControlFlowException implements TruffleExcep
     public RaiseException(DynamicObject exception, boolean internal) {
         this.exception = exception;
         this.internal = internal;
+        assert !isSyntaxError() || getSourceLocation() != null;
     }
 
     public DynamicObject getException() {
@@ -66,6 +68,11 @@ public class RaiseException extends ControlFlowException implements TruffleExcep
     public boolean isSyntaxError() {
         final RubyContext context = RubyLanguage.getCurrentContext();
         return isA(context, context.getCoreLibrary().getSyntaxErrorClass());
+    }
+
+    @Override
+    public SourceSection getSourceLocation() {
+        return Layouts.EXCEPTION.getBacktrace(exception).getSourceLocation();
     }
 
     @Override

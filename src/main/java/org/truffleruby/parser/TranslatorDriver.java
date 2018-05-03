@@ -306,7 +306,7 @@ public class TranslatorDriver {
                     buffer.append(e.getMessage());
 
                     if (context != null) {
-                        throw new RaiseException(context.getCoreExceptions().syntaxError(buffer.toString(), null));
+                        throw new RaiseException(context.getCoreExceptions().syntaxError(buffer.toString(), null, source.createSection(e.getLine())));
                     } else {
                         throw new UnsupportedOperationException(buffer.toString(), e);
                     }

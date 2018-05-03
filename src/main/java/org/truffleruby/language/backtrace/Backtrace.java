@@ -11,6 +11,7 @@ package org.truffleruby.language.backtrace;
 
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
@@ -20,18 +21,24 @@ import java.util.EnumSet;
 public class Backtrace {
 
     private final Node location;
+    private SourceSection sourceLocation;
     private final Activation[] activations;
     private final Throwable javaThrowable;
     private DynamicObject backtraceStringArray;
 
-    public Backtrace(Node location, Activation[] activations, Throwable javaThrowable) {
+    public Backtrace(Node location, SourceSection sourceLocation, Activation[] activations, Throwable javaThrowable) {
         this.location = location;
+        this.sourceLocation = sourceLocation;
         this.activations = activations;
         this.javaThrowable = javaThrowable;
     }
 
     public Node getLocation() {
         return location;
+    }
+
+    public SourceSection getSourceLocation() {
+        return sourceLocation;
     }
 
     /**

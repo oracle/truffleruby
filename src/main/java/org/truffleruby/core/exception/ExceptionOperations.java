@@ -12,6 +12,7 @@ package org.truffleruby.core.exception;
 import java.io.PrintWriter;
 import java.util.EnumSet;
 
+import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -104,8 +105,8 @@ public abstract class ExceptionOperations {
 
     // because the factory is not constant
     @TruffleBoundary
-    public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Node node, Throwable javaException) {
-        Backtrace backtrace = context.getCallStack().getBacktraceForException(node, rubyClass, javaException);
+    public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Node node, SourceSection sourceLocation, Throwable javaException) {
+        Backtrace backtrace = context.getCallStack().getBacktraceForException(node, sourceLocation, rubyClass, javaException);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         return Layouts.EXCEPTION.createException(Layouts.CLASS.getInstanceFactory(rubyClass), message, null, backtrace);
     }

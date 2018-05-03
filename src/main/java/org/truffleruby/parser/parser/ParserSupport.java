@@ -1581,7 +1581,7 @@ public class ParserSupport {
             message += (addNewline ? "\n" : "") + line;
         }
 
-        throw new RaiseException(getConfiguration().getContext().getCoreExceptions().syntaxError(errorMessage + message, null));
+        throw new RaiseException(getConfiguration().getContext().getCoreExceptions().syntaxError(errorMessage + message, null, position.toSourceSection(lexer.getSource())));
     }
 
     protected void compileError(Encoding optionEncoding, Encoding encoding) {
