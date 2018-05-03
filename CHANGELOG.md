@@ -11,6 +11,9 @@ New features:
 * The log level can now also be set with `-Dtruffleruby.log=info` or
   `TRUFFLERUBY_LOG=info`.
 
+* `-Xbacktraces.raise` will print Ruby backtraces whenever an exception is
+  raised.
+
 Changes:
 
 * The inline JavaScript functionality `-Xinline_js` has been removed.

@@ -20,6 +20,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.module.ModuleFields;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 
 /**
@@ -40,6 +41,10 @@ public class RaiseException extends ControlFlowException implements TruffleExcep
         this.exception = exception;
         this.internal = internal;
         assert !isSyntaxError() || getSourceLocation() != null;
+
+        if (context.getOptions().BACKTRACE_ON_RAISE) {
+            BacktraceFormatter.createDefaultFormatter(context).printBacktrace(context, exception);
+        }
     }
 
     public DynamicObject getException() {
