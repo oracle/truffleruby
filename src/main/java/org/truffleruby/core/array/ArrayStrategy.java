@@ -97,10 +97,6 @@ public abstract class ArrayStrategy {
             return other.generalizeForMutation();
         }
 
-        if (other instanceof IntToObjectGeneralizationArrayStrategy) {
-            return other.generalize(this);
-        }
-
         for (ArrayStrategy generalized : TYPE_STRATEGIES) {
             if (generalized.canStore(type()) && generalized.canStore(other.type())) {
                 return generalized;
@@ -239,18 +235,6 @@ public abstract class ArrayStrategy {
         @Override
         public boolean matchesStore(Object store) {
             return store instanceof int[];
-        }
-
-        @Override
-        public ArrayStrategy generalize(ArrayStrategy other) {
-            CompilerAsserts.neverPartOfCompilation();
-            if (other == this) {
-                return this;
-            } else if (other == LongArrayStrategy.INSTANCE) {
-                return LongArrayStrategy.INSTANCE;
-            } else {
-                return IntToObjectGeneralizationArrayStrategy.INSTANCE;
-            }
         }
 
         @Override
@@ -452,60 +436,6 @@ public abstract class ArrayStrategy {
         @Override
         public String toString() {
             return "Object[]";
-        }
-
-    }
-
-    /** Object[] not accepting long */
-    private static class IntToObjectGeneralizationArrayStrategy extends ArrayStrategy {
-
-        static final ArrayStrategy INSTANCE = new IntToObjectGeneralizationArrayStrategy();
-
-        @Override
-        public boolean accepts(Object value) {
-            return !(value instanceof Long);
-        }
-
-        @Override
-        public boolean isPrimitive() {
-            return false;
-        }
-
-        @Override
-        public boolean isStorageMutable() {
-            return true;
-        }
-
-        @Override
-        public boolean matchesStore(Object store) {
-            return store != null && store.getClass() == Object[].class;
-        }
-
-        @Override
-        public ArrayStrategy generalize(ArrayStrategy other) {
-            CompilerAsserts.neverPartOfCompilation();
-            if (other == LongArrayStrategy.INSTANCE) {
-                return ObjectArrayStrategy.INSTANCE;
-            } else if (other == ObjectArrayStrategy.INSTANCE) {
-                return other;
-            } else {
-                return this;
-            }
-        }
-
-        @Override
-        public ArrayMirror newArray(int size) {
-            return new ObjectArrayMirror(new Object[size]);
-        }
-
-        @Override
-        public ArrayMirror newMirrorFromStore(Object store) {
-            return new ObjectArrayMirror((Object[]) store);
-        }
-
-        @Override
-        public String toString() {
-            return "Object[] (not accepting long)";
         }
 
     }
