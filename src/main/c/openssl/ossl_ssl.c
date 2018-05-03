@@ -689,7 +689,7 @@ static int
 ssl_npn_advertise_cb(SSL *ssl, const unsigned char **out, unsigned int *outlen,
 		     void *arg)
 {
-    VALUE protocols = (VALUE)arg;
+    VALUE protocols = rb_tr_managed_from_handle(arg);
 
     *out = (const unsigned char *) RSTRING_PTR(protocols);
     *outlen = RSTRING_LENINT(protocols);
@@ -703,7 +703,7 @@ ssl_npn_select_cb(SSL *ssl, unsigned char **out, unsigned char *outlen,
 {
     VALUE sslctx_obj, cb;
 
-    sslctx_obj = (VALUE) arg;
+    sslctx_obj = rb_tr_managed_from_handle(arg);
     cb = rb_attr_get(sslctx_obj, id_i_npn_select_cb);
 
     return ssl_npn_select_cb_common(ssl, cb, (const unsigned char **)out,
@@ -718,7 +718,7 @@ ssl_alpn_select_cb(SSL *ssl, const unsigned char **out, unsigned char *outlen,
 {
     VALUE sslctx_obj, cb;
 
-    sslctx_obj = (VALUE) arg;
+    sslctx_obj = rb_tr_managed_from_handle(arg);
     cb = rb_attr_get(sslctx_obj, id_i_alpn_select_cb);
 
     return ssl_npn_select_cb_common(ssl, cb, out, outlen, in, inlen);
@@ -903,11 +903,11 @@ ossl_sslctx_setup(VALUE self)
     if (!NIL_P(val)) {
 	VALUE encoded = ssl_encode_npn_protocols(val);
 	rb_ivar_set(self, id_npn_protocols_encoded, encoded);
-	SSL_CTX_set_next_protos_advertised_cb(ctx, ssl_npn_advertise_cb, (void *)encoded);
+	SSL_CTX_set_next_protos_advertised_cb(ctx, ssl_npn_advertise_cb, rb_tr_handle_for_managed_leaking(encoded));
 	OSSL_Debug("SSL NPN advertise callback added");
     }
     if (RTEST(rb_attr_get(self, id_i_npn_select_cb))) {
-	SSL_CTX_set_next_proto_select_cb(ctx, ssl_npn_select_cb, (void *) self);
+	SSL_CTX_set_next_proto_select_cb(ctx, ssl_npn_select_cb, rb_tr_handle_for_managed_leaking(self));
 	OSSL_Debug("SSL NPN select callback added");
     }
 #endif
@@ -924,7 +924,7 @@ ossl_sslctx_setup(VALUE self)
 	OSSL_Debug("SSL ALPN values added");
     }
     if (RTEST(rb_attr_get(self, id_i_alpn_select_cb))) {
-	SSL_CTX_set_alpn_select_cb(ctx, ssl_alpn_select_cb, (void *) self);
+	SSL_CTX_set_alpn_select_cb(ctx, ssl_alpn_select_cb, rb_tr_handle_for_managed_leaking(self));
 	OSSL_Debug("SSL ALPN select callback added");
     }
 #endif
