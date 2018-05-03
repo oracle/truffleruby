@@ -81,7 +81,7 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
             "!methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())",
             "methodDefined(frame, receiver, stringName, getDefinedNode())"
     })
-    public Object callMethod(
+    public Object getBoundMethod(
             VirtualFrame frame,
             DynamicObject receiver,
             Object name,
