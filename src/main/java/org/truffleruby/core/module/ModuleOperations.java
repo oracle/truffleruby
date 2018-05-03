@@ -193,14 +193,14 @@ public abstract class ModuleOperations {
             } else if (RubyGuards.isRubyModule(constant.getConstant().getValue())) {
                 module = (DynamicObject) constant.getConstant().getValue();
             } else {
-                throw new RaiseException(context.getCoreExceptions().typeError(fullName.substring(0, next) + " does not refer to class/module", currentNode));
+                throw new RaiseException(context, context.getCoreExceptions().typeError(fullName.substring(0, next) + " does not refer to class/module", currentNode));
             }
             start = next + 2;
         }
 
         final String lastSegment = fullName.substring(start);
         if (!Identifiers.isValidConstantName19(lastSegment)) {
-            throw new RaiseException(context.getCoreExceptions().nameError(StringUtils.format("wrong constant name %s", fullName), module, fullName, currentNode));
+            throw new RaiseException(context, context.getCoreExceptions().nameError(StringUtils.format("wrong constant name %s", fullName), module, fullName, currentNode));
         }
 
         return lookupConstantWithInherit(context, module, lastSegment, inherit, currentNode);
@@ -211,7 +211,7 @@ public abstract class ModuleOperations {
         assert RubyGuards.isRubyModule(module);
 
         if (!Identifiers.isValidConstantName19(name)) {
-            throw new RaiseException(context.getCoreExceptions().nameError(StringUtils.format("wrong constant name %s", name), module, name, currentNode));
+            throw new RaiseException(context, context.getCoreExceptions().nameError(StringUtils.format("wrong constant name %s", name), module, name, currentNode));
         }
 
         if (inherit) {
@@ -515,7 +515,7 @@ public abstract class ModuleOperations {
 
         final Object found = moduleFields.getClassVariables().remove(name);
         if (found == null) {
-            throw new RaiseException(context.getCoreExceptions().nameErrorClassVariableNotDefined(name, moduleFields.rubyModuleObject, currentNode));
+            throw new RaiseException(context, context.getCoreExceptions().nameErrorClassVariableNotDefined(name, moduleFields.rubyModuleObject, currentNode));
         }
         return found;
     }

@@ -201,7 +201,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                 if (!methodMissing.isDefined()) {
                     final String methodNameString = toString(methodName);
                     final DynamicObject formatter = ExceptionOperations.getFormatter(ExceptionOperations.NO_METHOD_ERROR, getContext());
-                    throw new RaiseException(coreExceptions().noMethodError(formatter, receiverObject, methodNameString,
+                    throw new RaiseException(getContext(), coreExceptions().noMethodError(formatter, receiverObject, methodNameString,
                             argumentsObjects, this));
                 }
 

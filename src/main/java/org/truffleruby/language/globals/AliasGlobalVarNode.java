@@ -35,7 +35,7 @@ public class AliasGlobalVarNode extends RubyNode {
     private void checkExisting() {
         if (getContext().getCoreLibrary().getGlobalVariables().contains(newName)) {
             // TODO CS 4-Apr-18 This exception is non-standard
-            throw new RaiseException(coreExceptions().notImplementedError(String.format("%s is already a global", newName), this), true);
+            throw new RaiseException(getContext(), coreExceptions().notImplementedError(String.format("%s is already a global", newName), this), true);
         }
     }
 

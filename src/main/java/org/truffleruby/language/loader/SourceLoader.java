@@ -121,7 +121,7 @@ public class SourceLoader {
                 while (true) {
                     final String line = bufferedReader.readLine();
                     if (line == null) {
-                        throw new RaiseException(context.getCoreExceptions().loadError(
+                        throw new RaiseException(context, context.getCoreExceptions().loadError(
                                 "no Ruby script found in input",
                                 "",
                                 currentNode));
@@ -249,11 +249,11 @@ public class SourceLoader {
     private static void ensureReadable(RubyContext context, String path, File file) {
         if (context != null) {
             if (!file.exists()) {
-                throw new RaiseException(context.getCoreExceptions().loadError("No such file or directory -- " + path, path, null));
+                throw new RaiseException(context, context.getCoreExceptions().loadError("No such file or directory -- " + path, path, null));
             }
 
             if (!file.canRead()) {
-                throw new RaiseException(context.getCoreExceptions().loadError("Permission denied -- " + path, path, null));
+                throw new RaiseException(context, context.getCoreExceptions().loadError("Permission denied -- " + path, path, null));
             }
         }
     }

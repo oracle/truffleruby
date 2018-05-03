@@ -32,10 +32,10 @@ public class ZSuperOutsideMethodNode extends RubyNode {
     public final Object execute(VirtualFrame frame) {
         // This is MRI behavior
         if (insideDefineMethod) { // TODO (eregon, 22 July 2015): This check should be more dynamic.
-            throw new RaiseException(coreExceptions().runtimeError(
+            throw new RaiseException(getContext(), coreExceptions().runtimeError(
                     "implicit argument passing of super from method defined by define_method() is not supported. Specify all arguments explicitly.", this));
         } else {
-            throw new RaiseException(coreExceptions().noSuperMethodOutsideMethodError(this));
+            throw new RaiseException(getContext(), coreExceptions().noSuperMethodOutsideMethodError(this));
         }
     }
 

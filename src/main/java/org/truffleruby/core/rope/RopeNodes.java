@@ -409,7 +409,7 @@ public abstract class RopeNodes {
             try {
                 Math.addExact(left.byteLength(), right.byteLength());
             } catch (ArithmeticException e) {
-                throw new RaiseException(getContext().getCoreExceptions().argumentError("Result of string concatenation exceeds the system maximum string length", this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError("Result of string concatenation exceeds the system maximum string length", this));
             }
 
             if (shouldRebalanceProfile.profile(left.depth() >= getContext().getOptions().ROPE_DEPTH_THRESHOLD)) {
@@ -545,7 +545,7 @@ public abstract class RopeNodes {
             try {
                 Math.addExact(left.byteLength(), right.byteLength());
             } catch (ArithmeticException e) {
-                throw new RaiseException(getContext().getCoreExceptions().argumentError("Result of string concatenation exceeds the system maximum string length", this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError("Result of string concatenation exceeds the system maximum string length", this));
             }
 
             final byte[] leftBytes = left.getBytes();
@@ -817,7 +817,7 @@ public abstract class RopeNodes {
             try {
                 Math.multiplyExact(base.byteLength(), times);
             } catch (ArithmeticException e) {
-                throw new RaiseException(getContext().getCoreExceptions().argumentError("Result of repeating string exceeds the system maximum string length", this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError("Result of repeating string exceeds the system maximum string length", this));
             }
 
             return new RepeatingRope(base, times);
@@ -1189,7 +1189,7 @@ public abstract class RopeNodes {
             final int characterLength = preciseLength(encoding, bytes, index, rope.byteLength());
             if (characterLength <= 0) {
                 errorProfile.enter();
-                throw new RaiseException(getContext().getCoreExceptions().argumentError("invalid byte sequence in " + encoding, null));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError("invalid byte sequence in " + encoding, null));
             }
 
             return mbcToCode(encoding, bytes, index, rope.byteLength());

@@ -331,7 +331,7 @@ public abstract class ClassNodes {
                 return superclass;
             } else {
                 errorProfile.enter();
-                throw new RaiseException(getContext().getCoreExceptions().typeError("uninitialized class", this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().typeError("uninitialized class", this));
             }
         }
 

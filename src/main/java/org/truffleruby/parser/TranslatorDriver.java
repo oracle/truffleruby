@@ -295,7 +295,7 @@ public class TranslatorDriver {
                 case UNKNOWN_ENCODING:
                 case NOT_ASCII_COMPATIBLE:
                     if (context != null) {
-                        throw new RaiseException(context.getCoreExceptions().argumentError(e.getMessage(), null));
+                        throw new RaiseException(context,context.getCoreExceptions().argumentError(e.getMessage(), null));
                     } else {
                         throw e;
                     }
@@ -306,7 +306,7 @@ public class TranslatorDriver {
                     buffer.append(e.getMessage());
 
                     if (context != null) {
-                        throw new RaiseException(context.getCoreExceptions().syntaxError(buffer.toString(), null, source.createSection(e.getLine())));
+                        throw new RaiseException(context, context.getCoreExceptions().syntaxError(buffer.toString(), null, source.createSection(e.getLine())));
                     } else {
                         throw new UnsupportedOperationException(buffer.toString(), e);
                     }

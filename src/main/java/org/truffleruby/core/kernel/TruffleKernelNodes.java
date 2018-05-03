@@ -90,7 +90,7 @@ public abstract class TruffleKernelNodes {
                 deferredCall.call(callNode);
             } catch (IOException e) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().loadErrorCannotLoad(file.toString(), this));
+                throw new RaiseException(getContext(), coreExceptions().loadErrorCannotLoad(file.toString(), this));
             }
 
             return true;

@@ -45,7 +45,7 @@ public abstract class IntegerCastNode extends RubyNode {
 
     @Fallback
     public int doBasicObject(Object object) {
-        throw new RaiseException(notAFixnum(object));
+        throw new RaiseException(getContext(), notAFixnum(object));
     }
 
     @TruffleBoundary

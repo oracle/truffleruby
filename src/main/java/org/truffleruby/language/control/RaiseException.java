@@ -32,11 +32,11 @@ public class RaiseException extends ControlFlowException implements TruffleExcep
     private final DynamicObject exception;
     private final boolean internal;
 
-    public RaiseException(DynamicObject exception) {
-        this(exception, false);
+    public RaiseException(RubyContext context, DynamicObject exception) {
+        this(context, exception, false);
     }
 
-    public RaiseException(DynamicObject exception, boolean internal) {
+    public RaiseException(RubyContext context, DynamicObject exception, boolean internal) {
         this.exception = exception;
         this.internal = internal;
         assert !isSyntaxError() || getSourceLocation() != null;

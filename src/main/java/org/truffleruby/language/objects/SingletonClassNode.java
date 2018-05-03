@@ -125,7 +125,7 @@ public abstract class SingletonClassNode extends RubyNode {
     }
 
     private DynamicObject noSingletonClass() {
-        throw new RaiseException(coreExceptions().typeErrorCantDefineSingleton(this));
+        throw new RaiseException(getContext(), coreExceptions().typeErrorCantDefineSingleton(this));
     }
 
     protected DynamicObject getSingletonClassOrNull(DynamicObject object) {

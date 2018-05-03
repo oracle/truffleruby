@@ -65,7 +65,7 @@ public abstract class InitializeClassNode extends RubyNode {
 
     @Specialization(guards = {"!isRubyClass(superclass)", "wasProvided(superclass)"})
     public DynamicObject initializeNotClass(VirtualFrame frame, DynamicObject rubyClass, Object superclass, Object maybeBlock) {
-        throw new RaiseException(coreExceptions().typeErrorSuperclassMustBeClass(this));
+        throw new RaiseException(getContext(), coreExceptions().typeErrorSuperclassMustBeClass(this));
     }
 
     private DynamicObject initializeGeneralWithoutBlock(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, boolean superClassProvided) {
@@ -73,13 +73,13 @@ public abstract class InitializeClassNode extends RubyNode {
         assert RubyGuards.isRubyClass(superclass);
 
         if (isInitialized(rubyClass)) {
-            throw new RaiseException(getContext().getCoreExceptions().typeErrorAlreadyInitializedClass(this));
+            throw new RaiseException(getContext(), getContext().getCoreExceptions().typeErrorAlreadyInitializedClass(this));
         }
 
         if (superClassProvided) {
             checkInheritable(superclass);
             if (!isInitialized(superclass)) {
-                throw new RaiseException(getContext().getCoreExceptions().typeErrorInheritUninitializedClass(this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().typeErrorInheritUninitializedClass(this));
             }
         }
 
@@ -96,12 +96,12 @@ public abstract class InitializeClassNode extends RubyNode {
         assert RubyGuards.isRubyClass(superclass);
 
         if (isInitialized(rubyClass)) {
-            throw new RaiseException(getContext().getCoreExceptions().typeErrorAlreadyInitializedClass(this));
+            throw new RaiseException(getContext(), getContext().getCoreExceptions().typeErrorAlreadyInitializedClass(this));
         }
         if (superClassProvided) {
             checkInheritable(superclass);
             if (!isInitialized(superclass)) {
-                throw new RaiseException(getContext().getCoreExceptions().typeErrorInheritUninitializedClass(this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().typeErrorInheritUninitializedClass(this));
             }
         }
 
@@ -119,13 +119,13 @@ public abstract class InitializeClassNode extends RubyNode {
     // rb_check_inheritable
     private void checkInheritable(DynamicObject superClass) {
         if (!RubyGuards.isRubyClass(superClass)) {
-            throw new RaiseException(coreExceptions().typeErrorSuperclassMustBeClass(this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorSuperclassMustBeClass(this));
         }
         if (Layouts.CLASS.getIsSingleton(superClass)) {
-            throw new RaiseException(coreExceptions().typeErrorSubclassSingletonClass(this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorSubclassSingletonClass(this));
         }
         if (superClass == coreLibrary().getClassClass()) {
-            throw new RaiseException(coreExceptions().typeErrorSubclassClass(this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorSubclassClass(this));
         }
     }
 

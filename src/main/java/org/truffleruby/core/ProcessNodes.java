@@ -54,7 +54,7 @@ public abstract class ProcessNodes {
             try {
                 Signal.raise(signal);
             } catch (IllegalArgumentException e) {
-                throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
             return 1;
         }

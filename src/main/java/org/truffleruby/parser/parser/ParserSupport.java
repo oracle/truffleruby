@@ -1123,7 +1123,7 @@ public class ParserSupport {
 
     private void checkSymbolCodeRange(SymbolParseNode symbolParseNode) {
         if (symbolParseNode.getRope().getCodeRange() == CR_BROKEN) {
-            throw new RaiseException(getConfiguration().getContext().getCoreExceptions().encodingError("invalid encoding symbol", null));
+            throw new RaiseException(getContext(), getConfiguration().getContext().getCoreExceptions().encodingError("invalid encoding symbol", null));
         }
     }
 
@@ -1581,7 +1581,7 @@ public class ParserSupport {
             message += (addNewline ? "\n" : "") + line;
         }
 
-        throw new RaiseException(getConfiguration().getContext().getCoreExceptions().syntaxError(errorMessage + message, null, position.toSourceSection(lexer.getSource())));
+        throw new RaiseException(getContext(), getConfiguration().getContext().getCoreExceptions().syntaxError(errorMessage + message, null, position.toSourceSection(lexer.getSource())));
     }
 
     protected void compileError(Encoding optionEncoding, Encoding encoding) {

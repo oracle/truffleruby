@@ -32,7 +32,7 @@ public class EnsureSymbolKeysNode extends RubyNode {
         for (KeyValue keyValue : HashOperations.iterableKeyValues((DynamicObject) hash)) {
             if (!RubyGuards.isRubySymbol(keyValue.getKey())) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().typeErrorWrongArgumentType(keyValue.getKey(), "Symbol", this));
+                throw new RaiseException(getContext(), coreExceptions().typeErrorWrongArgumentType(keyValue.getKey(), "Symbol", this));
             }
         }
         return hash;

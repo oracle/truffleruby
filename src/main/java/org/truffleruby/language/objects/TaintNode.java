@@ -72,7 +72,7 @@ public abstract class TaintNode extends RubyNode {
             }
 
             if (isFrozenNode.executeIsFrozen(object)) {
-                throw new RaiseException(coreExceptions().frozenError(object, this));
+                throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
             }
         }
 

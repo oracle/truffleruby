@@ -71,7 +71,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
             @Cached("isVisible(cachedModule, constant)") boolean isVisible,
             @Cached("createBinaryProfile()") ConditionProfile sameNameProfile) {
         if (!isVisible) {
-            throw new RaiseException(coreExceptions().nameErrorPrivateConstant(module, name, this));
+            throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(module, name, this));
         }
         if (constant.isDeprecated()) {
             warnDeprecatedConstant(constant.getConstant(), name);
@@ -87,7 +87,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
         boolean isVisible = isVisible(module, constant);
 
         if (isVisibleProfile.profile(!isVisible)) {
-            throw new RaiseException(coreExceptions().nameErrorPrivateConstant(module, name, this));
+            throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(module, name, this));
         }
         if (isDeprecatedProfile.profile(constant.isDeprecated())) {
             warnDeprecatedConstant(constant.getConstant(), name);
@@ -97,7 +97,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
 
     @Specialization(guards = "!isRubyModule(module)")
     protected RubyConstant lookupNotModule(Object module, String name) {
-        throw new RaiseException(coreExceptions().typeErrorIsNotAClassModule(module, this));
+        throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotAClassModule(module, this));
     }
 
     protected boolean guardName(String name, String cachedName, ConditionProfile sameNameProfile) {

@@ -112,7 +112,7 @@ public abstract class ByteArrayNodes {
                 @Cached("create()") BranchProfile errorProfile) {
             if (index < 0 || index >= Layouts.BYTE_ARRAY.getBytes(bytes).getLength()) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().indexError("index out of bounds", this));
+                throw new RaiseException(getContext(), coreExceptions().indexError("index out of bounds", this));
             }
 
             Layouts.BYTE_ARRAY.getBytes(bytes).set(index, value);

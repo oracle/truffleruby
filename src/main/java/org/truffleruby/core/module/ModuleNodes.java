@@ -172,7 +172,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "!isRubyModule(other)")
         public Object isSubclassOfOther(DynamicObject self, DynamicObject other) {
-            throw new RaiseException(coreExceptions().typeError("compared with non class/module", this));
+            throw new RaiseException(getContext(), coreExceptions().typeError("compared with non class/module", this));
         }
 
     }
@@ -198,7 +198,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "!isRubyModule(other)")
         public Object isSubclassOfOrEqualToOther(DynamicObject self, DynamicObject other) {
-            throw new RaiseException(coreExceptions().typeError("compared with non class/module", this));
+            throw new RaiseException(getContext(), coreExceptions().typeError("compared with non class/module", this));
         }
 
     }
@@ -228,7 +228,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "!isRubyModule(other)")
         public Object isSuperclassOfOther(DynamicObject self, DynamicObject other) {
-            throw new RaiseException(coreExceptions().typeError("compared with non class/module", this));
+            throw new RaiseException(getContext(), coreExceptions().typeError("compared with non class/module", this));
         }
 
     }
@@ -254,7 +254,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "!isRubyModule(other)")
         public Object isSuperclassOfOrEqualToOther(DynamicObject self, DynamicObject other) {
-            throw new RaiseException(coreExceptions().typeError("compared with non class/module", this));
+            throw new RaiseException(getContext(), coreExceptions().typeError("compared with non class/module", this));
         }
 
     }
@@ -346,7 +346,7 @@ public abstract class ModuleNodes {
                 @Cached("create()") BranchProfile errorProfile) {
             if (RubyGuards.isRubyClass(features)) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().typeError("append_features must be called only on modules", this));
+                throw new RaiseException(getContext(), coreExceptions().typeError("append_features must be called only on modules", this));
             }
             Layouts.MODULE.getFields(target).include(getContext(), this, features);
             taintResultNode.maybeTaint(features, target);
@@ -518,11 +518,11 @@ public abstract class ModuleNodes {
         @Specialization(guards = "isRubyString(filename)")
         public DynamicObject autoload(DynamicObject module, String name, DynamicObject filename) {
             if (!Identifiers.isValidConstantName19(name)) {
-                throw new RaiseException(coreExceptions().nameError(StringUtils.format("autoload must be constant name: %s", name), module, name, this));
+                throw new RaiseException(getContext(), coreExceptions().nameError(StringUtils.format("autoload must be constant name: %s", name), module, name, this));
             }
 
             if (StringOperations.rope(filename).isEmpty()) {
-                throw new RaiseException(coreExceptions().argumentError("empty file name", this));
+                throw new RaiseException(getContext(), coreExceptions().argumentError("empty file name", this));
             }
 
             if (Layouts.MODULE.getFields(module).getConstant(name) != null) {
@@ -642,12 +642,12 @@ public abstract class ModuleNodes {
 
         @Specialization
         public Object classEval(DynamicObject self, NotProvided code, NotProvided file, NotProvided line, NotProvided block) {
-            throw new RaiseException(coreExceptions().argumentError(0, 1, 2, this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError(0, 1, 2, this));
         }
 
         @Specialization(guards = "wasProvided(code)")
         public Object classEval(DynamicObject self, Object code, NotProvided file, NotProvided line, DynamicObject block) {
-            throw new RaiseException(coreExceptions().argumentError(1, 0, this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError(1, 0, this));
         }
 
     }
@@ -671,7 +671,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         public Object classExec(DynamicObject self, Object[] args, NotProvided block) {
-            throw new RaiseException(coreExceptions().noBlockGiven(this));
+            throw new RaiseException(getContext(), coreExceptions().noBlockGiven(this));
         }
 
     }
@@ -720,7 +720,7 @@ public abstract class ModuleNodes {
             final Object value = ModuleOperations.lookupClassVariable(module, name);
 
             if (value == null) {
-                throw new RaiseException(coreExceptions().nameErrorUninitializedClassVariable(module, name, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorUninitializedClassVariable(module, name, this));
             } else {
                 return value;
             }
@@ -918,7 +918,7 @@ public abstract class ModuleNodes {
         private Object getConstantScoped(DynamicObject module, String fullName, boolean inherit) {
             ConstantLookupResult constant = ModuleOperations.lookupScopedConstant(getContext(), module, fullName, inherit, this);
             if (!constant.isFound()) {
-                throw new RaiseException(coreExceptions().nameErrorUninitializedConstant(module, fullName, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorUninitializedConstant(module, fullName, this));
             } else {
                 return constant.getConstant().getValue();
             }
@@ -965,7 +965,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         public Object constMissing(DynamicObject module, String name) {
-            throw new RaiseException(coreExceptions().nameErrorUninitializedConstant(module, name, this));
+            throw new RaiseException(getContext(), coreExceptions().nameErrorUninitializedConstant(module, name, this));
         }
 
     }
@@ -989,7 +989,7 @@ public abstract class ModuleNodes {
         @Specialization
         public Object setConstant(DynamicObject module, String name, Object value) {
             if (!Identifiers.isValidConstantName19(name)) {
-                throw new RaiseException(coreExceptions().nameError(StringUtils.format("wrong constant name %s", name), module, name, this));
+                throw new RaiseException(getContext(), coreExceptions().nameError(StringUtils.format("wrong constant name %s", name), module, name, this));
             }
 
             final RubyConstant previous = Layouts.MODULE.getFields(module).setConstant(getContext(), this, name, value);
@@ -1029,7 +1029,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject defineMethod(DynamicObject module, String name, NotProvided proc, NotProvided block) {
-            throw new RaiseException(coreExceptions().argumentError("needs either proc or block", this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError("needs either proc or block", this));
         }
 
         @TruffleBoundary
@@ -1053,10 +1053,10 @@ public abstract class ModuleNodes {
             if (!canBindMethodToModuleNode.executeCanBindMethodToModule(method, module)) {
                 final DynamicObject declaringModule = method.getDeclaringModule();
                 if (RubyGuards.isSingletonClass(declaringModule)) {
-                    throw new RaiseException(coreExceptions().typeError(
+                    throw new RaiseException(getContext(), coreExceptions().typeError(
                             "can't bind singleton method to a different class", this));
                 } else {
-                    throw new RaiseException(coreExceptions().typeError(
+                    throw new RaiseException(getContext(), coreExceptions().typeError(
                             "class must be a subclass of " + Layouts.MODULE.getFields(declaringModule).getName(), this));
                 }
             }
@@ -1070,7 +1070,7 @@ public abstract class ModuleNodes {
         public DynamicObject defineMethod(DynamicObject module, String name, DynamicObject method, NotProvided block) {
             final DynamicObject origin = Layouts.UNBOUND_METHOD.getOrigin(method);
             if (!ModuleOperations.canBindMethodTo(origin, module)) {
-                throw new RaiseException(coreExceptions().typeError("bind argument must be a subclass of " + Layouts.MODULE.getFields(origin).getName(), this));
+                throw new RaiseException(getContext(), coreExceptions().typeError("bind argument must be a subclass of " + Layouts.MODULE.getFields(origin).getName(), this));
             }
 
             // TODO CS 5-Apr-15 TypeError if the method came from a singleton
@@ -1139,7 +1139,7 @@ public abstract class ModuleNodes {
                 @Cached("create()") BranchProfile errorProfile) {
             if (RubyGuards.isRubyClass(module)) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().typeErrorWrongArgumentType(module, "Module", this));
+                throw new RaiseException(getContext(), coreExceptions().typeErrorWrongArgumentType(module, "Module", this));
             }
 
             Layouts.MODULE.getFields(singletonClassNode.executeSingletonClass(object)).include(getContext(), this, module);
@@ -1197,10 +1197,10 @@ public abstract class ModuleNodes {
                 @Cached("create()") BranchProfile errorProfile) {
             if (from == coreLibrary().getBasicObjectClass()) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().typeError("can't copy the root class", this));
+                throw new RaiseException(getContext(), coreExceptions().typeError("can't copy the root class", this));
             } else if (Layouts.CLASS.getIsSingleton(from)) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().typeError("can't copy singleton class", this));
+                throw new RaiseException(getContext(), coreExceptions().typeError("can't copy singleton class", this));
             }
 
             Layouts.MODULE.getFields(self).initCopy(from);
@@ -1298,7 +1298,7 @@ public abstract class ModuleNodes {
                 @Cached("create()") BranchProfile errorProfile) {
             if (RubyGuards.isRubyClass(module)) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().typeError("module_function must be called for modules", this));
+                throw new RaiseException(getContext(), coreExceptions().typeError("module_function must be called for modules", this));
             }
 
             return setVisibilityNode.executeSetVisibility(frame, module, names);
@@ -1406,7 +1406,7 @@ public abstract class ModuleNodes {
                 @Cached("create()") BranchProfile errorProfile) {
             if (RubyGuards.isRubyClass(features)) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().typeError("prepend_features must be called only on modules", this));
+                throw new RaiseException(getContext(), coreExceptions().typeError("prepend_features must be called only on modules", this));
             }
             Layouts.MODULE.getFields(target).prepend(getContext(), this, features);
             taintResultNode.maybeTaint(features, target);
@@ -1452,10 +1452,10 @@ public abstract class ModuleNodes {
 
             if (method == null || method.isUndefined()) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().nameErrorUndefinedMethod(name, module, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorUndefinedMethod(name, module, this));
             } else if (method.getVisibility() != Visibility.PUBLIC) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().nameErrorPrivateMethod(name, module, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateMethod(name, module, this));
             }
 
             return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().getUnboundMethodFactory(), module, method);
@@ -1608,7 +1608,7 @@ public abstract class ModuleNodes {
 
             if (method == null || method.isUndefined()) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().nameErrorUndefinedMethod(name, module, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorUndefinedMethod(name, module, this));
             }
 
             return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().getUnboundMethodFactory(), module, method);
@@ -1710,7 +1710,7 @@ public abstract class ModuleNodes {
         Object removeConstant(DynamicObject module, String name) {
             final RubyConstant oldConstant = Layouts.MODULE.getFields(module).removeConstant(getContext(), this, name);
             if (oldConstant == null) {
-                throw new RaiseException(coreExceptions().nameErrorConstantNotDefined(module, name, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorConstantNotDefined(module, name, this));
             } else {
                 if (oldConstant.isAutoload()) {
                     return nil();
@@ -1751,7 +1751,7 @@ public abstract class ModuleNodes {
                 }
             } else {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().nameErrorMethodNotDefinedIn(module, name, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorMethodNotDefinedIn(module, name, this));
             }
         }
 
@@ -1916,7 +1916,7 @@ public abstract class ModuleNodes {
 
             if (method == null) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().nameErrorUndefinedMethod(methodName, module, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorUndefinedMethod(methodName, module, this));
             }
 
             /*
@@ -1937,12 +1937,12 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected DynamicObject refine(DynamicObject self, DynamicObject classToRefine, NotProvided block) {
-            throw new RaiseException(coreExceptions().argumentError("no block given", this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError("no block given", this));
         }
 
         @Specialization(guards = "!isRubyClass(classToRefine)")
         protected DynamicObject refineNotClass(DynamicObject self, Object classToRefine, DynamicObject block) {
-            throw new RaiseException(coreExceptions().typeErrorWrongArgumentType(classToRefine, "Class", this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorWrongArgumentType(classToRefine, "Class", this));
         }
 
         @TruffleBoundary
@@ -1990,7 +1990,7 @@ public abstract class ModuleNodes {
         public DynamicObject moduleUsing(DynamicObject self, DynamicObject refinementModule) {
             final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_ONLY);
             if (self != RubyArguments.getSelf(callerFrame)) {
-                throw new RaiseException(coreExceptions().runtimeError("Module#using is not called on self", this));
+                throw new RaiseException(getContext(), coreExceptions().runtimeError("Module#using is not called on self", this));
             }
             usingNode.executeUsing(refinementModule);
             return self;

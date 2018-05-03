@@ -92,7 +92,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
     @Specialization
     public DynamicObject create(double value, DynamicObject self, NotProvided digits) {
-        throw new RaiseException(coreExceptions().argumentErrorCantOmitPrecision(this));
+        throw new RaiseException(getContext(), coreExceptions().argumentErrorCantOmitPrecision(this));
     }
 
     @Specialization
@@ -127,7 +127,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
                 modeCallNode.call(frame, getBigDecimalClass(), "boolean_mode", exceptionConstant));
 
         if (raiseProfile.profile(raise)) {
-            throw new RaiseException(coreExceptions().floatDomainErrorResultsToInfinity(this));
+            throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToInfinity(this));
         }
 
         Layouts.BIG_DECIMAL.setType(self, value);
@@ -153,7 +153,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
                 modeCallNode.call(frame, getBigDecimalClass(), "boolean_mode", exceptionConstant));
 
         if (raiseProfile.profile(raise)) {
-            throw new RaiseException(coreExceptions().floatDomainErrorResultsToNaN(this));
+            throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToNaN(this));
         }
 
         Layouts.BIG_DECIMAL.setType(self, value);
@@ -226,7 +226,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
         final Object castedValue = bigDecimalCastNode.executeObject(frame, value, getRoundMode(frame));
 
         if (nilProfile.profile(castedValue == nil())) {
-            throw new RaiseException(coreExceptions().typeErrorCantBeCastedToBigDecimal(this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorCantBeCastedToBigDecimal(this));
         }
 
         Layouts.BIG_DECIMAL.setValue(self, round(((BigDecimal) castedValue), new MathContext(digits, getRoundMode(frame))));

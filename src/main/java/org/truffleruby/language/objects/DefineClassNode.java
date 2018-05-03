@@ -49,7 +49,7 @@ public class DefineClassNode extends RubyNode {
 
         if (!RubyGuards.isRubyModule(lexicalParentObject)) {
             errorProfile.enter();
-            throw new RaiseException(coreExceptions().typeErrorIsNotA(lexicalParentObject, "module", this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotA(lexicalParentObject, "module", this));
         }
 
         final DynamicObject lexicalParentModule = (DynamicObject) lexicalParentObject;
@@ -70,7 +70,7 @@ public class DefineClassNode extends RubyNode {
         } else {
             if (!RubyGuards.isRubyClass(constant.getValue())) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().typeErrorIsNotA(constant.getValue(), "class", this));
+                throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotA(constant.getValue(), "class", this));
             }
 
             definedClass = (DynamicObject) constant.getValue();
@@ -79,7 +79,7 @@ public class DefineClassNode extends RubyNode {
 
             if (suppliedSuperClass != null && currentSuperClass != suppliedSuperClass) { // bug-compat with MRI https://bugs.ruby-lang.org/issues/12367
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().superclassMismatch(
+                throw new RaiseException(getContext(), coreExceptions().superclassMismatch(
                         Layouts.MODULE.getFields(definedClass).getName(), this));
             }
         }
@@ -95,14 +95,14 @@ public class DefineClassNode extends RubyNode {
 
         if (!RubyGuards.isRubyClass(superClassObject)) {
             errorProfile.enter();
-            throw new RaiseException(coreExceptions().typeError("superclass must be a Class", this));
+            throw new RaiseException(getContext(), coreExceptions().typeError("superclass must be a Class", this));
         }
 
         final DynamicObject superClass = (DynamicObject) superClassObject;
 
         if (Layouts.CLASS.getIsSingleton(superClass)) {
             errorProfile.enter();
-            throw new RaiseException(coreExceptions().typeError("can't make subclass of virtual class", this));
+            throw new RaiseException(getContext(), coreExceptions().typeError("can't make subclass of virtual class", this));
         }
 
         return superClass;

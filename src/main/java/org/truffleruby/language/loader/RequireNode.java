@@ -70,7 +70,7 @@ public abstract class RequireNode extends RubyNode {
 
         if (expandedPathRaw == null) {
             notFoundProfile.enter();
-            throw new RaiseException(getContext().getCoreExceptions().loadErrorCannotLoad(feature, this));
+            throw new RaiseException(getContext(), getContext().getCoreExceptions().loadErrorCannotLoad(feature, this));
         }
 
         final DynamicObject pathString = makeStringNode.executeMake(expandedPathRaw, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
@@ -135,7 +135,7 @@ public abstract class RequireNode extends RubyNode {
                 } else if (RubyLanguage.CEXT_MIME_TYPE.equals(mimeType)) {
                     requireCExtension(feature, expandedPath);
                 } else {
-                    throw new RaiseException(mimeTypeNotFound(expandedPath, mimeType));
+                    throw new RaiseException(getContext(), mimeTypeNotFound(expandedPath, mimeType));
                 }
 
                 addToLoadedFeatures(pathString);
@@ -180,7 +180,7 @@ public abstract class RequireNode extends RubyNode {
         final TruffleObject initFunction = findFunctionInLibraries(libraries, initFunctionName, expandedPath);
 
         if (!ForeignAccess.sendIsExecutable(isExecutableNode, initFunction)) {
-            throw new RaiseException(coreExceptions().loadError(initFunctionName + "() is not executable", expandedPath, null));
+            throw new RaiseException(getContext(), coreExceptions().loadError(initFunctionName + "() is not executable", expandedPath, null));
         }
 
         try {
@@ -209,11 +209,11 @@ public abstract class RequireNode extends RubyNode {
         }
 
         if (initObject == null) {
-            throw new RaiseException(coreExceptions().loadError(String.format("%s() not found", functionName), path, null));
+            throw new RaiseException(getContext(), coreExceptions().loadError(String.format("%s() not found", functionName), path, null));
         }
 
         if (!(initObject instanceof TruffleObject)) {
-            throw new RaiseException(coreExceptions().loadError(String.format("%s() was a %s rather than a TruffleObject", functionName, initObject.getClass().getSimpleName()), path, null));
+            throw new RaiseException(getContext(), coreExceptions().loadError(String.format("%s() was a %s rather than a TruffleObject", functionName, initObject.getClass().getSimpleName()), path, null));
         }
 
         return (TruffleObject) initObject;
@@ -245,7 +245,7 @@ public abstract class RequireNode extends RubyNode {
             message = linkError;
         }
 
-        throw new RaiseException(getContext().getCoreExceptions().runtimeError(message, this));
+        throw new RaiseException(getContext(), getContext().getCoreExceptions().runtimeError(message, this));
     }
 
     private <T extends Throwable> T searchForException(Class<T> exceptionClass, Throwable exception) {

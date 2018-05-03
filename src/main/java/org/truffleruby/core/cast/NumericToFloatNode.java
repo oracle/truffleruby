@@ -51,13 +51,13 @@ public abstract class NumericToFloatNode extends RubyNode {
             return (double) result;
         } else {
             errorProfile.enter();
-            throw new RaiseException(coreExceptions().typeErrorCantConvertTo(value, "Float", "to_f", result, this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertTo(value, "Float", "to_f", result, this));
         }
     }
 
     @Fallback
     protected double fallback(Object value) {
-        throw new RaiseException(coreExceptions().typeErrorCantConvertInto(value, "Float", this));
+        throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(value, "Float", this));
     }
 
     protected boolean isNumeric(VirtualFrame frame, Object value) {

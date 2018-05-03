@@ -251,7 +251,7 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
     @Override
     public void error(String message) {
         // TODO CS 29-Oct-16 make this a node so that side effects from previous directives happen
-        throw new RaiseException(context.getCoreExceptions().argumentError(message, currentNode));
+        throw new RaiseException(context, context.getCoreExceptions().argumentError(message, currentNode));
     }
 
     public FormatNode getNode() {

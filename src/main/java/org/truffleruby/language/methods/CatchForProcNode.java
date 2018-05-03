@@ -43,7 +43,7 @@ public class CatchForProcNode extends RubyNode {
                 return e.getResult();
             } catch (RetryException e) {
                 retryProfile.enter();
-                throw new RaiseException(coreExceptions().syntaxErrorInvalidRetry(this));
+                throw new RaiseException(getContext(), coreExceptions().syntaxErrorInvalidRetry(this));
             }
         }
     }

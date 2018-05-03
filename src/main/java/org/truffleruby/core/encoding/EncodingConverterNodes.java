@@ -236,7 +236,7 @@ public abstract class EncodingConverterNodes {
 
                 if (outBytes.getLength() < offset) {
                     throw new RaiseException(
-                            coreExceptions().argumentError("output offset too big", this)
+                            getContext(), coreExceptions().argumentError("output offset too big", this)
                     );
                 }
 
@@ -245,7 +245,7 @@ public abstract class EncodingConverterNodes {
                 if (outputByteEnd > Integer.MAX_VALUE) {
                     // overflow check
                     throw new RaiseException(
-                            coreExceptions().argumentError("output offset + bytesize too big", this)
+                            getContext(), coreExceptions().argumentError("output offset + bytesize too big", this)
                     );
                 }
 
@@ -266,7 +266,7 @@ public abstract class EncodingConverterNodes {
                 if (growOutputBuffer && res == EConvResult.DestinationBufferFull) {
                     if (Integer.MAX_VALUE / 2 < size) {
                         throw new RaiseException(
-                                coreExceptions().argumentError("too long conversion result", this)
+                                getContext(), coreExceptions().argumentError("too long conversion result", this)
                         );
                     }
                     size *= 2;
@@ -422,7 +422,7 @@ public abstract class EncodingConverterNodes {
 
             final int ret = ec.makeReplacement();
             if (ret == -1) {
-                throw new RaiseException(getContext().getCoreExceptions().encodingUndefinedConversionError(this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().encodingUndefinedConversionError(this));
             }
 
             final byte[] bytes = ArrayUtils.extractRange(ec.replacementString, 0, ec.replacementLength);
@@ -458,7 +458,7 @@ public abstract class EncodingConverterNodes {
 
             if (ret == -1) {
                 errorProfile.enter();
-                throw new RaiseException(getContext().getCoreExceptions().encodingUndefinedConversionError(this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().encodingUndefinedConversionError(this));
             }
 
             return replacement;

@@ -769,7 +769,7 @@ public abstract class KernelNodes {
         public Object initializeCopy(DynamicObject self, DynamicObject from) {
             if (Layouts.BASIC_OBJECT.getLogicalClass(self) != Layouts.BASIC_OBJECT.getLogicalClass(from)) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().typeError("initialize_copy should take same class object", this));
+                throw new RaiseException(getContext(), coreExceptions().typeError("initialize_copy should take same class object", this));
             }
 
             return self;
@@ -921,7 +921,7 @@ public abstract class KernelNodes {
                 }
             } else {
                 if (!object.delete(name)) {
-                    throw new RaiseException(coreExceptions().nameErrorInstanceVariableNotDefined(name, object, this));
+                    throw new RaiseException(getContext(), coreExceptions().nameErrorInstanceVariableNotDefined(name, object, this));
                 }
             }
             return value;
@@ -931,7 +931,7 @@ public abstract class KernelNodes {
             Shape shape = object.getShape();
             Property property = shape.getProperty(name);
             if (!PropertyFlags.isDefined(property)) {
-                throw new RaiseException(coreExceptions().nameErrorInstanceVariableNotDefined(name, object, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorInstanceVariableNotDefined(name, object, this));
             }
 
             Shape newShape = shape.replaceProperty(property, PropertyFlags.asRemoved(property));
@@ -962,7 +962,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "!isRubyModule(module)")
         public boolean isATypeError(Object self, Object module) {
-            throw new RaiseException(coreExceptions().typeError("class or module required", this));
+            throw new RaiseException(getContext(), coreExceptions().typeError("class or module required", this));
         }
 
     }
@@ -979,7 +979,7 @@ public abstract class KernelNodes {
             final DynamicObject parentBlock = RubyArguments.getBlock(parentFrame);
 
             if (parentBlock == null) {
-                throw new RaiseException(coreExceptions().argumentError("tried to create Proc object without a block", this));
+                throw new RaiseException(getContext(), coreExceptions().argumentError("tried to create Proc object without a block", this));
             } else {
                 warnProcWithoutBlock();
             }
@@ -1117,7 +1117,7 @@ public abstract class KernelNodes {
                     final InternalMethod methodMissing = lookupMethodNode.executeLookupMethod(frame, self, "method_missing");
                     method = createMissingMethod(self, name, normalizedName, methodMissing);
                 } else {
-                    throw new RaiseException(coreExceptions().nameErrorUndefinedMethod(normalizedName, coreLibrary().getLogicalClass(self), this));
+                    throw new RaiseException(getContext(), coreExceptions().nameErrorUndefinedMethod(normalizedName, coreLibrary().getLogicalClass(self), this));
                 }
             }
 
@@ -1364,7 +1364,7 @@ public abstract class KernelNodes {
 
             // TODO CS 1-Mar-15 ERB will use strscan if it's there, but strscan is not yet complete, so we need to hide it
             if (feature.equals("strscan") && callerIs("mri/erb.rb")) {
-                throw new RaiseException(coreExceptions().loadErrorCannotLoad(feature, this));
+                throw new RaiseException(getContext(), coreExceptions().loadErrorCannotLoad(feature, this));
             }
 
             return requireNode.executeRequire(feature);
@@ -1416,7 +1416,7 @@ public abstract class KernelNodes {
                 }
 
                 if (sourcePath == null) {
-                    throw new RaiseException(coreExceptions().loadError("cannot infer basepath", featureString, this));
+                    throw new RaiseException(getContext(), coreExceptions().loadError("cannot infer basepath", featureString, this));
                 }
 
                 featurePath = dirname(sourcePath) + "/" + featureString;
@@ -1591,7 +1591,7 @@ public abstract class KernelNodes {
             }
 
             errorProfile.enter();
-            throw new RaiseException(coreExceptions().nameErrorUndefinedSingletonMethod(name, self, this));
+            throw new RaiseException(getContext(), coreExceptions().nameErrorUndefinedSingletonMethod(name, self, this));
         }
 
     }
@@ -1642,7 +1642,7 @@ public abstract class KernelNodes {
                 @Cached("create()") BranchProfile errorProfile) {
             if (durationInMillis < 0) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().argumentError("time interval must be positive", this));
+                throw new RaiseException(getContext(), coreExceptions().argumentError("time interval must be positive", this));
             }
 
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
@@ -1778,7 +1778,7 @@ public abstract class KernelNodes {
                 return new PrintfCompiler(getContext(), this)
                         .compile(Layouts.STRING.getRope(format).getBytes(), arguments, isDebug);
             } catch (InvalidFormatException e) {
-                throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
         }
 

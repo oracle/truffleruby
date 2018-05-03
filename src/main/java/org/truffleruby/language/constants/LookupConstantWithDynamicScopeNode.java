@@ -50,7 +50,7 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
                     @Cached("doLookup(lexicalScope)") ConstantLookupResult constant,
                     @Cached("isVisible(lexicalScope, constant)") boolean isVisible) {
         if (!isVisible) {
-            throw new RaiseException(coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
+            throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
         }
         if (constant.isDeprecated()) {
             warnDeprecatedConstant(constant.getConstant(), name);
@@ -65,7 +65,7 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
         final LexicalScope lexicalScope = getLexicalScope(frame);
         final ConstantLookupResult constant = doLookup(lexicalScope);
         if (isVisibleProfile.profile(!isVisible(lexicalScope, constant))) {
-            throw new RaiseException(coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
+            throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
         }
         if (isDeprecatedProfile.profile(constant.isDeprecated())) {
             warnDeprecatedConstant(constant.getConstant(), name);

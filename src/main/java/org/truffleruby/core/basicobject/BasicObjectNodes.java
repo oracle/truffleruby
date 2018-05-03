@@ -325,7 +325,7 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         public Object instanceExec(Object receiver, Object[] arguments, NotProvided block) {
-            throw new RaiseException(coreExceptions().localJumpError("no block given", this));
+            throw new RaiseException(getContext(), coreExceptions().localJumpError("no block given", this));
         }
 
     }
@@ -335,7 +335,7 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         public Object methodMissingNoName(Object self, NotProvided name, Object[] args, NotProvided block) {
-            throw new RaiseException(coreExceptions().argumentError("no id given", this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError("no id given", this));
         }
 
         @Specialization
@@ -349,7 +349,7 @@ public abstract class BasicObjectNodes {
         }
 
         private Object methodMissing(Object self, DynamicObject nameObject, Object[] args, DynamicObject block) {
-            throw new RaiseException(buildMethodMissingException(self, nameObject, args, block));
+            throw new RaiseException(getContext(), buildMethodMissingException(self, nameObject, args, block));
         }
 
         @TruffleBoundary

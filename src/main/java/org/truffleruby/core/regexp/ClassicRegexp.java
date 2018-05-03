@@ -92,7 +92,7 @@ public class ClassicRegexp implements ReOptions {
         try {
             return new Regex(bytes.getUnsafeBytes(), 0, bytes.getLength(), options.toJoniOptions(), enc, Syntax.DEFAULT, new RegexWarnCallback(context));
         } catch (Exception e) {
-            throw new RaiseException(context.getCoreExceptions().regexpError(e.getMessage(), null));
+            throw new RaiseException(context, context.getCoreExceptions().regexpError(e.getMessage(), null));
         }
     }
 
@@ -378,7 +378,7 @@ public class ClassicRegexp implements ReOptions {
             to[p + 5] = (byte) ((code & 0x3f) | 0x80);
             return 6;
         }
-        throw new RaiseException(context.getCoreExceptions().rangeError("pack(U): value out of range", null));
+        throw new RaiseException(context, context.getCoreExceptions().rangeError("pack(U): value out of range", null));
     }
 
     private static void checkUnicodeRange(RubyContext context, int code, Rope str, RegexpSupport.ErrorMode mode) {
@@ -423,9 +423,9 @@ public class ClassicRegexp implements ReOptions {
     public static int raisePreprocessError(RubyContext context, Rope str, String err, RegexpSupport.ErrorMode mode) {
         switch (mode) {
             case RAISE:
-                throw new RaiseException(context.getCoreExceptions().regexpError(err, null));
+                throw new RaiseException(context, context.getCoreExceptions().regexpError(err, null));
             case PREPROCESS:
-                throw new RaiseException(context.getCoreExceptions().argumentError("regexp preprocess failed: " + err, null));
+                throw new RaiseException(context, context.getCoreExceptions().argumentError("regexp preprocess failed: " + err, null));
             case DESC:
                 // silent ?
         }
@@ -581,7 +581,7 @@ public class ClassicRegexp implements ReOptions {
 
         if (options.isEncodingNone() && strEnc != ASCIIEncoding.INSTANCE) {
             if (str.getCodeRange() != CR_7BIT) {
-                throw new RaiseException(context.getCoreExceptions().regexpError("/.../n has a non escaped non ASCII character in non ASCII-8BIT script", null));
+                throw new RaiseException(context, context.getCoreExceptions().regexpError("/.../n has a non escaped non ASCII character in non ASCII-8BIT script", null));
             }
             strEnc = ASCIIEncoding.INSTANCE;
         }
@@ -593,7 +593,7 @@ public class ClassicRegexp implements ReOptions {
 
         if (fixedEnc[0] != null) {
             if (regexpEnc != null && regexpEnc != fixedEnc[0]) {
-                throw new RaiseException(context.getCoreExceptions().regexpError("encoding mismatch in dynamic regexp: " +
+                throw new RaiseException(context, context.getCoreExceptions().regexpError("encoding mismatch in dynamic regexp: " +
                                 new String(regexpEnc.getName()) + " and " + new String(fixedEnc[0].getName()), null));
             }
             regexpEnc = fixedEnc[0];
@@ -721,7 +721,7 @@ public class ClassicRegexp implements ReOptions {
         // FIXME: Something unsets this bit, but we aren't...be more permissive until we figure this out
         //if (isLiteral()) throw runtime.newSecurityError("can't modify literal regexp");
         if (pattern != null) {
-            throw new RaiseException(context.getCoreExceptions().typeError("already initialized regexp", null));
+            throw new RaiseException(context, context.getCoreExceptions().typeError("already initialized regexp", null));
         }
         if (enc.isDummy()) {
             throw new UnsupportedOperationException(); // RegexpSupport.raiseRegexpError19(runtime, bytes, enc, options, "can't make regexp with dummy encoding");

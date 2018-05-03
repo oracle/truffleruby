@@ -153,7 +153,7 @@ public abstract class ArrayNodes {
             try {
                 newSize = Math.multiplyExact(size, count);
             } catch (ArithmeticException e) {
-                throw new RaiseException(coreExceptions().rangeError("new array size too large", this));
+                throw new RaiseException(getContext(), coreExceptions().rangeError("new array size too large", this));
             }
             final ArrayMirror store = strategy.newMirror(array);
             final ArrayMirror newStore = mutableStrategy.newArray(newSize);
@@ -168,12 +168,12 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "count < 0")
         public DynamicObject mulNeg(DynamicObject array, long count) {
-            throw new RaiseException(coreExceptions().argumentError("negative argument", this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError("negative argument", this));
         }
 
         @Specialization(guards = { "!isEmptyArray(array)", "count >= 0", "!fitsInInteger(count)" })
         public DynamicObject mulLong(DynamicObject array, long count) {
-            throw new RaiseException(coreExceptions().rangeError("array size too big", this));
+            throw new RaiseException(getContext(), coreExceptions().rangeError("array size too big", this));
         }
 
         @Specialization(guards = { "isEmptyArray(array)", "strategy.matches(array)" })
@@ -439,7 +439,7 @@ public abstract class ArrayNodes {
             final int start = ArrayOperations.normalizeIndex(size, begin, negativeBeginProfile);
             if (start < 0) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().rangeError(range, this));
+                throw new RaiseException(getContext(), coreExceptions().rangeError(range, this));
             }
             final int end = ArrayOperations.normalizeIndex(size, Layouts.INT_RANGE.getEnd(range), negativeEndProfile);
             int inclusiveEnd = Layouts.INT_RANGE.getExcludedEnd(range) ? end - 1 : end;
@@ -470,14 +470,14 @@ public abstract class ArrayNodes {
         private void checkIndex(DynamicObject array, int index, int normalizedIndex) {
             if (normalizedIndex < 0) {
                 negativeIndexProfile.enter();
-                throw new RaiseException(coreExceptions().indexTooSmallError("array", index, getSize(array), this));
+                throw new RaiseException(getContext(), coreExceptions().indexTooSmallError("array", index, getSize(array), this));
             }
         }
 
         public void checkLengthPositive(int length) {
             if (length < 0) {
                 negativeLengthProfile.enter();
-                throw new RaiseException(coreExceptions().negativeLengthError(length, this));
+                throw new RaiseException(getContext(), coreExceptions().negativeLengthError(length, this));
             }
         }
 
@@ -1105,13 +1105,13 @@ public abstract class ArrayNodes {
         @TruffleBoundary
         @Specialization(guards = "size < 0")
         public DynamicObject initializeNegativeIntSize(DynamicObject array, int size, Object unusedValue, Object maybeBlock) {
-            throw new RaiseException(coreExceptions().argumentError("negative array size", this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError("negative array size", this));
         }
 
         @TruffleBoundary
         @Specialization(guards = "size < 0")
         public DynamicObject initializeNegativeLongSize(DynamicObject array, long size, Object unusedValue, Object maybeBlock) {
-            throw new RaiseException(coreExceptions().argumentError("negative array size", this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError("negative array size", this));
         }
 
         protected static final long MAX_INT = Integer.MAX_VALUE;
@@ -1119,7 +1119,7 @@ public abstract class ArrayNodes {
         @TruffleBoundary
         @Specialization(guards = "size >= MAX_INT")
         public DynamicObject initializeSizeTooBig(DynamicObject array, long size, NotProvided unusedValue, NotProvided block) {
-            throw new RaiseException(coreExceptions().argumentError("array size too big", this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError("array size too big", this));
         }
 
         @Specialization(guards = "size >= 0")
@@ -1532,7 +1532,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "n < 0")
         public Object popNNegative(DynamicObject array, int n) {
-            throw new RaiseException(coreExceptions().argumentErrorNegativeArraySize(this));
+            throw new RaiseException(getContext(), coreExceptions().argumentErrorNegativeArraySize(this));
         }
 
         @Specialization(guards = { "n >= 0", "isEmptyArray(array)" })
@@ -1927,7 +1927,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "n < 0")
         public Object shiftNegative(DynamicObject array, int n) {
-            throw new RaiseException(coreExceptions().argumentErrorNegativeArraySize(this));
+            throw new RaiseException(getContext(), coreExceptions().argumentErrorNegativeArraySize(this));
         }
 
         @Specialization(guards = "n == 0")
@@ -2067,7 +2067,7 @@ public abstract class ArrayNodes {
 
             errorProfile.enter();
             // TODO CS 14-Mar-15 - what's the error message here?
-            throw new RaiseException(coreExceptions().argumentError("expecting a Fixnum to sort", this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError("expecting a Fixnum to sort", this));
         }
 
         protected boolean isSmall(DynamicObject array) {

@@ -42,7 +42,7 @@ public class ReadClassVariableNode extends RubyNode {
 
         if (value == null) {
             missingProfile.enter();
-            throw new RaiseException(coreExceptions().nameErrorUninitializedClassVariable(module, name, this));
+            throw new RaiseException(getContext(), coreExceptions().nameErrorUninitializedClassVariable(module, name, this));
         }
 
         if (lexicalScope.getParent() == null) {

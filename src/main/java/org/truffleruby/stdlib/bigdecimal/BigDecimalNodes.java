@@ -331,7 +331,7 @@ public abstract class BigDecimalNodes {
                 @Cached("createBinaryProfile()") ConditionProfile bZeroProfile,
                 @Cached("create()") CallDispatchHeadNode floorNode) {
             if (bZeroProfile.profile(isNormalZero(b))) {
-                throw new RaiseException(coreExceptions().zeroDivisionError(this));
+                throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else {
                 final Object result = div(frame, a, b, 0);
                 return floorNode.call(frame, result, "floor");
@@ -371,9 +371,9 @@ public abstract class BigDecimalNodes {
                 @Cached("createBinaryProfile()") ConditionProfile negativeZeroProfile,
                 @Cached("createBinaryProfile()") ConditionProfile nanProfile) {
             if (negativeZeroProfile.profile(Layouts.BIG_DECIMAL.getType(b) == BigDecimalType.NEGATIVE_ZERO)) {
-                throw new RaiseException(coreExceptions().zeroDivisionError(this));
+                throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else if (nanProfile.profile(Layouts.BIG_DECIMAL.getType(b) == BigDecimalType.NAN)) {
-                throw new RaiseException(coreExceptions().floatDomainErrorResultsToNaN(this));
+                throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToNaN(this));
             } else {
                 return divNormalSpecial(frame, a, b, 0);
             }
@@ -401,13 +401,13 @@ public abstract class BigDecimalNodes {
                 @Cached("createBinaryProfile()") ConditionProfile nanProfile,
                 @Cached("createBinaryProfile()") ConditionProfile infinityProfile) {
             if (zeroDivisionProfile.profile(isNormalZero(b))) {
-                throw new RaiseException(coreExceptions().zeroDivisionError(this));
+                throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else if (nanProfile.profile(Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.NAN)) {
-                throw new RaiseException(coreExceptions().floatDomainErrorResultsToNaN(this));
+                throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToNaN(this));
             } else if (infinityProfile.profile(
                     Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.POSITIVE_INFINITY
                             || Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.NEGATIVE_INFINITY)) {
-                throw new RaiseException(coreExceptions().floatDomainErrorResultsToInfinity(this));
+                throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToInfinity(this));
             } else {
                 return divSpecialNormal(frame, a, b, 0);
             }
@@ -434,11 +434,11 @@ public abstract class BigDecimalNodes {
                 @Cached("createBinaryProfile()") ConditionProfile negZeroProfile,
                 @Cached("createBinaryProfile()") ConditionProfile nanProfile) {
             if (negZeroProfile.profile(Layouts.BIG_DECIMAL.getType(b) == BigDecimalType.NEGATIVE_ZERO)) {
-                throw new RaiseException(coreExceptions().zeroDivisionError(this));
+                throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else if (nanProfile.profile(
                     Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.NAN
                             || Layouts.BIG_DECIMAL.getType(b) == BigDecimalType.NAN)) {
-                throw new RaiseException(coreExceptions().floatDomainErrorResultsToNaN(this));
+                throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToNaN(this));
             } else {
                 return divSpecialSpecial(frame, a, b, 0);
             }
@@ -498,7 +498,7 @@ public abstract class BigDecimalNodes {
                 "isNormalZero(b)"
         })
         public Object divmodZeroDivisor(DynamicObject a, DynamicObject b) {
-            throw new RaiseException(coreExceptions().zeroDivisionError(this));
+            throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
         }
 
         @Specialization(guards = {
@@ -524,7 +524,7 @@ public abstract class BigDecimalNodes {
             }
 
             if (nanProfile.profile(bType == BigDecimalType.NEGATIVE_ZERO || (bType == BigDecimalType.NORMAL && isNormalZero(b)))) {
-                throw new RaiseException(coreExceptions().zeroDivisionError(this));
+                throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             }
 
             if (normalNegProfile.profile(aType == BigDecimalType.NEGATIVE_ZERO || (aType == BigDecimalType.NORMAL && isNormalZero(a)))) {
@@ -628,7 +628,7 @@ public abstract class BigDecimalNodes {
                 "isNormalZero(b)"
         })
         public Object moduloZero(DynamicObject a, DynamicObject b) {
-            throw new RaiseException(coreExceptions().zeroDivisionError(this));
+            throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
         }
 
         @Specialization(guards = {
@@ -654,7 +654,7 @@ public abstract class BigDecimalNodes {
 
             if (normalNegProfile.profile(bType == BigDecimalType.NEGATIVE_ZERO
                     || (bType == BigDecimalType.NORMAL && isNormalZero(b)))) {
-                throw new RaiseException(coreExceptions().zeroDivisionError(this));
+                throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             }
 
             if (negNormalProfile.profile(aType == BigDecimalType.NEGATIVE_ZERO
@@ -887,7 +887,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "precision < 0")
         public Object sqrtNegativePrecision(VirtualFrame frame, DynamicObject a, int precision) {
-            throw new RaiseException(coreExceptions().argumentError("precision must be positive", this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError("precision must be positive", this));
         }
 
         @Specialization(guards = "precision == 0")
@@ -908,7 +908,7 @@ public abstract class BigDecimalNodes {
             if (positiveValueProfile.profile(valueBigDecimal.signum() >= 0)) {
                 return createBigDecimal(frame, sqrt(valueBigDecimal, new MathContext(precision, getRoundMode(frame))));
             } else {
-                throw new RaiseException(coreExceptions().floatDomainErrorSqrtNegative(this));
+                throw new RaiseException(getContext(), coreExceptions().floatDomainErrorSqrtNegative(this));
             }
         }
 
@@ -927,13 +927,13 @@ public abstract class BigDecimalNodes {
             switch (Layouts.BIG_DECIMAL.getType(a)) {
                 case NAN:
                     nanProfile.enter();
-                    throw new RaiseException(coreExceptions().floatDomainErrorSqrtNegative(this));
+                    throw new RaiseException(getContext(), coreExceptions().floatDomainErrorSqrtNegative(this));
                 case POSITIVE_INFINITY:
                     posInfProfile.enter();
                     return createBigDecimal(frame, BigDecimalType.POSITIVE_INFINITY);
                 case NEGATIVE_INFINITY:
                     negInfProfile.enter();
-                    throw new RaiseException(coreExceptions().floatDomainErrorSqrtNegative(this));
+                    throw new RaiseException(getContext(), coreExceptions().floatDomainErrorSqrtNegative(this));
                 case NEGATIVE_ZERO:
                     negZeroProfile.enter();
                     return createBigDecimal(frame, sqrt(BigDecimal.ZERO, new MathContext(precision, getRoundMode(frame))));
@@ -1289,16 +1289,16 @@ public abstract class BigDecimalNodes {
             switch (Layouts.BIG_DECIMAL.getType(value)) {
                 case NEGATIVE_INFINITY:
                     negInfinityProfile.enter();
-                    throw new RaiseException(coreExceptions().floatDomainErrorResultsToNegInfinity(this));
+                    throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToNegInfinity(this));
                 case POSITIVE_INFINITY:
                     posInfinityProfile.enter();
-                    throw new RaiseException(coreExceptions().floatDomainErrorResultsToInfinity(this));
+                    throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToInfinity(this));
                 case NEGATIVE_ZERO:
                     negZeroProfile.enter();
                     return fixnumOrBignumNode.fixnumOrBignum(Layouts.BIG_DECIMAL.getValue(value));
                 case NAN:
                     nanProfile.enter();
-                    throw new RaiseException(coreExceptions().floatDomainErrorResultsToNaN(this));
+                    throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToNaN(this));
                 default:
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     throw new UnsupportedOperationException("unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(value));
@@ -1458,11 +1458,11 @@ public abstract class BigDecimalNodes {
             final BigDecimalType type = Layouts.BIG_DECIMAL.getType(value);
             switch (type) {
                 case NEGATIVE_INFINITY:
-                    throw new RaiseException(coreExceptions().floatDomainError(type.getRepresentation(), this));
+                    throw new RaiseException(getContext(), coreExceptions().floatDomainError(type.getRepresentation(), this));
                 case POSITIVE_INFINITY:
-                    throw new RaiseException(coreExceptions().floatDomainError(type.getRepresentation(), this));
+                    throw new RaiseException(getContext(), coreExceptions().floatDomainError(type.getRepresentation(), this));
                 case NAN:
-                    throw new RaiseException(coreExceptions().floatDomainError(type.getRepresentation(), this));
+                    throw new RaiseException(getContext(), coreExceptions().floatDomainError(type.getRepresentation(), this));
                 case NEGATIVE_ZERO:
                     return 0;
                 default:

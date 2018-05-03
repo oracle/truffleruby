@@ -62,12 +62,12 @@ public abstract class FiberNodes {
 
             if (!Layouts.FIBER.getAlive(fiber)) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().deadFiberCalledError(this));
+                throw new RaiseException(getContext(), coreExceptions().deadFiberCalledError(this));
             }
 
             if (Layouts.FIBER.getRubyThread(fiber) != currentThread) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().fiberError("fiber called across threads", this));
+                throw new RaiseException(getContext(), coreExceptions().fiberError("fiber called across threads", this));
             }
 
             final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
@@ -143,11 +143,11 @@ public abstract class FiberNodes {
             final FiberManager fiberToResumeManager = Layouts.THREAD.getFiberManager(Layouts.FIBER.getRubyThread(fiber));
 
             if (doubleResumeProfile.profile(parentFiber != null || fiber == fiberToResumeManager.getRootFiber())) {
-                throw new RaiseException(coreExceptions().fiberError("double resume", this));
+                throw new RaiseException(getContext(), coreExceptions().fiberError("double resume", this));
             }
 
             if (transferredProfile.profile(Layouts.FIBER.getTransferred(fiber))) {
-                throw new RaiseException(coreExceptions().fiberError("cannot resume transferred Fiber", this));
+                throw new RaiseException(getContext(), coreExceptions().fiberError("cannot resume transferred Fiber", this));
             }
 
             final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);

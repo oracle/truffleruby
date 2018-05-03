@@ -471,7 +471,7 @@ public class RubyLexer {
 
     private RuntimeException argumentError(RubyContext context, String message) {
         if (context != null) {
-            return new RaiseException(context.getCoreExceptions().argumentError(message, null));
+            return new RaiseException(context, context.getCoreExceptions().argumentError(message, null));
         } else {
             return new UnsupportedOperationException(message);
         }

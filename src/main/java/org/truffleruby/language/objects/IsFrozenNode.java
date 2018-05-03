@@ -29,7 +29,7 @@ public abstract class IsFrozenNode extends RubyNode {
     public void raiseIfFrozen(Object object) {
         if (executeIsFrozen(object)) {
             errorProfile.enter();
-            throw new RaiseException(coreExceptions().frozenError(object, this));
+            throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
         }
     }
 

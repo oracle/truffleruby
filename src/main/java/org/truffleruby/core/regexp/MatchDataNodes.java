@@ -303,7 +303,7 @@ public abstract class MatchDataNodes {
                 return Layouts.REGEXP.getRegex(Layouts.MATCH_DATA.getRegexp(matchData)).nameToBackrefNumber(value.getBytes(), 0, value.byteLength(), Layouts.MATCH_DATA.getRegion(matchData));
             } catch (final ValueException e) {
                 throw new RaiseException(
-                        coreExceptions().indexError(StringUtils.format("undefined group name reference: %s", index.toString()), this));
+                        getContext(), coreExceptions().indexError(StringUtils.format("undefined group name reference: %s", index.toString()), this));
             }
         }
 
@@ -346,7 +346,7 @@ public abstract class MatchDataNodes {
         @TruffleBoundary
         @Specialization(guards = "!inBounds(matchData, index)")
         public Object beginError(DynamicObject matchData, int index) {
-            throw new RaiseException(coreExceptions().indexError(StringUtils.format("index %d out of matches", index), this));
+            throw new RaiseException(getContext(), coreExceptions().indexError(StringUtils.format("index %d out of matches", index), this));
         }
 
         protected boolean inBounds(DynamicObject matchData, int index) {
@@ -422,7 +422,7 @@ public abstract class MatchDataNodes {
         @TruffleBoundary
         @Specialization(guards = "!inBounds(matchData, index)")
         public Object endError(DynamicObject matchData, int index) {
-            throw new RaiseException(coreExceptions().indexError(StringUtils.format("index %d out of matches", index), this));
+            throw new RaiseException(getContext(), coreExceptions().indexError(StringUtils.format("index %d out of matches", index), this));
         }
 
         protected boolean inBounds(DynamicObject matchData, int index) {
@@ -550,7 +550,7 @@ public abstract class MatchDataNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
-            throw new RaiseException(coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 
     }

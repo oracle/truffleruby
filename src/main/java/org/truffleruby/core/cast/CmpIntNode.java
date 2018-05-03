@@ -82,7 +82,7 @@ public abstract class CmpIntNode extends RubyNode {
 
     @Specialization(guards = "isNil(nil)")
     public int cmpNil(Object nil, Object receiver, Object other) {
-        throw new RaiseException(coreExceptions().argumentError(formatMessage(receiver, other), this));
+        throw new RaiseException(getContext(), coreExceptions().argumentError(formatMessage(receiver, other), this));
     }
 
     @TruffleBoundary

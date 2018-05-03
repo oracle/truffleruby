@@ -45,7 +45,7 @@ public class WriteInstanceVariableNode extends RubyNode {
 
             writeNode.write((DynamicObject) object, value);
         } else {
-            throw new RaiseException(coreExceptions().frozenError(object, this));
+            throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
         }
 
         return value;

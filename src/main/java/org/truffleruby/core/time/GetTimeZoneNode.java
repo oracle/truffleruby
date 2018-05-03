@@ -187,7 +187,7 @@ public abstract class GetTimeZoneNode extends RubyNode {
         final int s = seconds != null ? Integer.parseInt(seconds) : 0;
 
         if (h > 23 || m > 59) {
-            throw new RaiseException(coreExceptions().argumentError("utc_offset out of range", this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError("utc_offset out of range", this));
         }
 
         final int offset = (positive ? +1 : -1) * ((h * 3600) + m * 60 + s);
@@ -196,7 +196,7 @@ public abstract class GetTimeZoneNode extends RubyNode {
         try {
             zoneOffset = ZoneOffset.ofTotalSeconds(offset);
         } catch (DateTimeException e) {
-            throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
         }
 
         return new TimeZoneAndName(zoneOffset, name);

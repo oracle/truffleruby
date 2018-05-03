@@ -35,7 +35,7 @@ public class RaiseIfFrozenNode extends RubyNode {
 
         if (executeIsFrozen(result)) {
             errorProfile.enter();
-            throw new RaiseException(coreExceptions().frozenError(result, this));
+            throw new RaiseException(getContext(), coreExceptions().frozenError(result, this));
         }
 
         return result;

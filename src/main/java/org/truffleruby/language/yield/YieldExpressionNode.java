@@ -54,7 +54,7 @@ public class YieldExpressionNode extends RubyNode {
 
             if (block == null) {
                 noCapturedBlock.enter();
-                throw new RaiseException(coreExceptions().noBlockToYieldTo(this));
+                throw new RaiseException(getContext(), coreExceptions().noBlockToYieldTo(this));
             }
         }
 

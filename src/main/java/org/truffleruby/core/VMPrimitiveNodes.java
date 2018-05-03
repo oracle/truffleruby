@@ -214,7 +214,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "isRubyException(exception)")
         public DynamicObject vmRaiseException(DynamicObject exception, boolean internal) {
-            throw new RaiseException(exception, internal);
+            throw new RaiseException(getContext(), exception, internal);
         }
 
     }
@@ -308,7 +308,7 @@ public abstract class VMPrimitiveNodes {
             try {
                 return Signals.restoreDefaultHandler(StringOperations.getString(signalName));
             } catch (IllegalArgumentException e) {
-                throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
         }
 
@@ -317,7 +317,7 @@ public abstract class VMPrimitiveNodes {
             try {
                 Signals.registerHandler(newHandler, StringOperations.getString(signalName));
             } catch (IllegalArgumentException e) {
-                throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
             return true;
         }

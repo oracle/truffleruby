@@ -166,7 +166,7 @@ public class SymbolTable implements ReHashable {
             Object receiver,
             Node currentNode) {
         if (!Identifiers.isValidInstanceVariableName(name)) {
-            throw new RaiseException(context.getCoreExceptions().nameErrorInstanceNameNotAllowable(
+            throw new RaiseException(context, context.getCoreExceptions().nameErrorInstanceNameNotAllowable(
                     name,
                     receiver,
                     currentNode));
@@ -181,7 +181,7 @@ public class SymbolTable implements ReHashable {
             Object receiver,
             Node currentNode) {
         if (!Identifiers.isValidClassVariableName(name)) {
-            throw new RaiseException(context.getCoreExceptions().nameErrorInstanceNameNotAllowable(
+            throw new RaiseException(context, context.getCoreExceptions().nameErrorInstanceNameNotAllowable(
                     name,
                     receiver,
                     currentNode));

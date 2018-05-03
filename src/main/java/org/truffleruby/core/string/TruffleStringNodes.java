@@ -33,14 +33,14 @@ public class TruffleStringNodes {
         @TruffleBoundary
         public DynamicObject truncateLengthNegative(DynamicObject string, int newByteLength) {
             throw new RaiseException(
-                    getContext().getCoreExceptions().argumentError(formatNegativeError(newByteLength), this));
+                    getContext(), getContext().getCoreExceptions().argumentError(formatNegativeError(newByteLength), this));
         }
 
         @Specialization(guards = { "newByteLength >= 0", "isRubyString(string)", "isNewLengthTooLarge(string, newByteLength)" })
         @TruffleBoundary
         public DynamicObject truncateLengthTooLong(DynamicObject string, int newByteLength) {
             throw new RaiseException(
-                    getContext().getCoreExceptions().argumentError(formatTooLongError(newByteLength, rope(string)), this));
+                    getContext(), getContext().getCoreExceptions().argumentError(formatTooLongError(newByteLength, rope(string)), this));
         }
 
         @Specialization(guards = { "newByteLength >= 0", "isRubyString(string)", "!isNewLengthTooLarge(string, newByteLength)" })
