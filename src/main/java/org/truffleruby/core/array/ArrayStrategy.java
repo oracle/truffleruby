@@ -27,12 +27,20 @@ public abstract class ArrayStrategy {
         throw unsupported();
     }
 
+    /**
+     * When the strategy {@link #matches(DynamicObject)} an Array, this can be used to see if the
+     * given value can be written in the Array without generalizing the storage.
+     */
     public abstract boolean accepts(Object value);
 
     public abstract boolean isPrimitive();
 
     public abstract boolean isStorageMutable();
 
+    /**
+     * Whether the strategy obtained from {@link #forValue(Object)} describes accurately the kind of
+     * array storage needed to store this value (so e.g., Object[] specializesFor non-int/long/double).
+     */
     public boolean specializesFor(Object value) {
         throw unsupported();
     }
@@ -41,6 +49,7 @@ public abstract class ArrayStrategy {
         throw unsupported();
     }
 
+    /** Whether {@code this} is the strategy of {@code array}. */
     public final boolean matches(DynamicObject array) {
         return matchesStore(Layouts.ARRAY.getStore(array));
     }
@@ -173,6 +182,9 @@ public abstract class ArrayStrategy {
         return ofStore(Layouts.ARRAY.getStore(array));
     }
 
+    /**
+     * Use together with {@link #specializesFor(Object)}, not {@link #accepts(Object)}.
+     */
     public static ArrayStrategy forValue(Object value) {
         CompilerAsserts.neverPartOfCompilation();
         if (value instanceof Integer) {
