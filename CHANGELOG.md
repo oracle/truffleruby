@@ -21,6 +21,9 @@ Changes:
   correct offset. Line numbers starting at `0` are also warned about at the fine
   level and set to `1` instead.
 
+* The `READ` interop message will not call `#[]` on `Proc` or `Method` objects,
+  to avoid executing the method.
+
 Bug fixes:
 
 * TruffleRuby on SubstrateVM now correctly determines the system timezone.

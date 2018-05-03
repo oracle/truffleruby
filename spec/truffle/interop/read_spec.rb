@@ -78,6 +78,33 @@ describe "Truffle::Interop.read" do
     
   end
 
+  describe "with a proc" do
+    
+    it "returns the bound index method" do
+      object = proc { 14 }
+      Truffle::Interop.read(object, :[]).call.should == 14
+    end
+    
+  end
+
+  describe "with a lambda" do
+    
+    it "returns the bound index method" do
+      object = lambda { 14 }
+      Truffle::Interop.read(object, :[]).call.should == 14
+    end
+    
+  end
+
+  describe "with a Method" do
+    
+    it "returns the bound index method" do
+      object = proc { 14 }.method(:call)
+      Truffle::Interop.read(object, :[]).call.should == 14
+    end
+    
+  end
+
   describe "with both an object with a method of the same name and an index method" do
     
     it "calls the index method" do
