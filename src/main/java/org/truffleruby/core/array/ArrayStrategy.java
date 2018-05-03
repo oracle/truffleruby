@@ -113,10 +113,6 @@ public abstract class ArrayStrategy {
         return this;
     }
 
-    public ArrayStrategy generalizeFor(Object value) {
-        return generalize(ArrayStrategy.forValue(value));
-    }
-
     // Helpers
 
     protected RuntimeException unsupported() {
