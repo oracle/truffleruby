@@ -1368,7 +1368,7 @@ public class ParserSupport {
      * @param expected list of acceptable tokens, if available.
      */
     public void yyerror(String message, String[] expected, String found) {
-        lexer.compile_error(PID.GRAMMAR_ERROR, message + ", unexpected " + found + "\n");
+        lexer.compile_error(PID.GRAMMAR_ERROR, message + ", unexpected " + found);
     }
 
     public SourceIndexLength getPosition(ParseNode start) {
