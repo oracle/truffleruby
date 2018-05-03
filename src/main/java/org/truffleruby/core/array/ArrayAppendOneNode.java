@@ -36,7 +36,7 @@ public abstract class ArrayAppendOneNode extends RubyNode {
 
     // Append of the correct type
 
-    @Specialization(guards = { "strategy.isStorageMutable()", "strategy.matches(array)", "strategy.accepts(value)" }, limit = "STORAGE_STRATEGIES")
+    @Specialization(guards = { "strategy.matches(array)", "strategy.accepts(value)" }, limit = "STORAGE_STRATEGIES")
     public DynamicObject appendOneSameType(DynamicObject array, Object value,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {

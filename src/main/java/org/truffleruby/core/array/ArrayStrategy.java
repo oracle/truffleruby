@@ -463,7 +463,7 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean accepts(Object value) {
-            throw unsupported();
+            return false; // Cannot write any element in a null storage
         }
 
         @Override
@@ -529,7 +529,7 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean accepts(Object value) {
-            throw unsupported();
+            return false; // Cannot write to a DelegatedArrayStrategy, need to unshare the storage
         }
 
         @Override

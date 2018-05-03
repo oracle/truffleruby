@@ -987,7 +987,7 @@ public abstract class ArrayNodes {
     @CoreMethod(names = "fill", rest = true, needsBlock = true, raiseIfFrozenSelf = true)
     public abstract static class FillNode extends ArrayCoreMethodNode {
 
-        @Specialization(guards = { "strategy.isStorageMutable()", "args.length == 1", "strategy.matches(array)", "strategy.accepts(value(args))" }, limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = { "args.length == 1", "strategy.matches(array)", "strategy.accepts(value(args))" }, limit = "STORAGE_STRATEGIES")
         protected DynamicObject fill(DynamicObject array, Object[] args, NotProvided block,
                 @Cached("of(array)") ArrayStrategy strategy) {
             final Object value = args[0];
