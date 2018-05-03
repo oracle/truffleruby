@@ -144,7 +144,7 @@ module FFI
     #   ffi_lib_flags(:lazy, :local) # => 5
     #
     # @param [Symbol, …] flags (see {FlagsMap})
-    # @return [Fixnum] the new value
+    # @return [Integer] the new value
     def ffi_lib_flags(*flags)
       @ffi_lib_flags = flags.inject(0) { |result, f| result | FlagsMap[f] }
     end

@@ -152,6 +152,12 @@ module Truffle
         Truffle::Interop.size(receiver)
       when :keys
         Truffle::Interop.keys(receiver)
+      when :class
+        if Truffle::Interop.java_class?(object)
+          Truffle::Interop.read(receiver, :class)
+        else
+          Truffle::Interop.invoke(receiver, :class, *args)
+        end
       else
         raise
       end
@@ -169,6 +175,8 @@ module Truffle
         Truffle::Interop.keys?(object)
       when :call
         Truffle::Interop.executable?(object)
+      when :class
+        Truffle::Interop.java_class?(object)
       else
         false
       end

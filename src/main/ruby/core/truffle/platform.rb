@@ -10,6 +10,9 @@ module Truffle::Platform
   # Used by Truffle::FFI
   L64 = true
 
+  LONG_MIN = -0x8000000000000000
+  LONG_MAX =  0x7fffffffffffffff
+
   # jnr-posix hard codes this value
   PATH_MAX = 1024
 
@@ -45,5 +48,9 @@ module Truffle::Platform
 
   def self.mathn_loaded?
     false
+  end
+
+  def self.has_lchmod?
+    bsd? || darwin?
   end
 end

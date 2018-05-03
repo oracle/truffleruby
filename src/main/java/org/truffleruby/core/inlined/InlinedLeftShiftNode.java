@@ -10,8 +10,8 @@
 package org.truffleruby.core.inlined;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.numeric.FixnumNodes.LeftShiftNode;
-import org.truffleruby.core.numeric.FixnumNodesFactory.LeftShiftNodeFactory;
+import org.truffleruby.core.numeric.IntegerNodes.LeftShiftNode;
+import org.truffleruby.core.numeric.IntegerNodesFactory.LeftShiftNodeFactory;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -24,7 +24,7 @@ public abstract class InlinedLeftShiftNode extends BinaryInlinedOperationNode {
 
     public InlinedLeftShiftNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(callNodeParameters,
-                context.getCoreMethods().fixnumLeftShiftAssumption);
+                context.getCoreMethods().integerLeftShiftAssumption);
     }
 
     @Specialization(assumptions = "assumptions")

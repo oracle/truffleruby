@@ -58,8 +58,6 @@ class Regexp
     i += 1
   end
 
-  # The character literals (?x) are Fixnums in 1.8 and Strings in 1.9
-  # so we use literal values instead so this is 1.8/1.9 compatible.
   ESCAPE_TABLE[9]   = '\\t'
   ESCAPE_TABLE[10]  = '\\n'
   ESCAPE_TABLE[11]  = '\\v'
@@ -136,7 +134,7 @@ class Regexp
   def self.last_match(index=nil)
     match = Truffle::RegexpOperations.last_match(Truffle.invoke_primitive(:caller_binding))
     if index
-      index = Truffle::Type.coerce_to index, Fixnum, :to_int
+      index = Truffle::Type.coerce_to_int index
       match[index] if match
     else
       match
@@ -181,9 +179,9 @@ class Regexp
     if pattern.kind_of?(Regexp)
       opts = pattern.options
       pattern = pattern.source
-    elsif pattern.kind_of?(Fixnum) or pattern.kind_of?(Float)
-      raise TypeError, "can't convert Fixnum into String"
-    elsif opts.kind_of?(Fixnum)
+    elsif pattern.kind_of?(Integer) or pattern.kind_of?(Float)
+      raise TypeError, "can't convert #{pattern.class} into String"
+    elsif opts.kind_of?(Integer)
       opts = opts & (OPTION_MASK | KCODE_MASK) if opts > 0
     elsif opts
       opts = IGNORECASE
@@ -398,33 +396,33 @@ class MatchData
 end
 
 Truffle::KernelOperations.define_hooked_variable(
-  :$~,
+  :'$~',
   -> b { Truffle::RegexpOperations.last_match(b) },
   -> v, b { Truffle::RegexpOperations.set_last_match(v, b) })
 
 Truffle::KernelOperations.define_hooked_variable(
-  %s{$`},
+  :'$`',
   -> b { match = Truffle::RegexpOperations.last_match(b)
          match.pre_match if match },
   -> { raise SyntaxError, "Can't set variable $`"},
   -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })
 
 Truffle::KernelOperations.define_hooked_variable(
-  %s{$'},
+  :"$'",
   -> b { match = Truffle::RegexpOperations.last_match(b)
          match.post_match if match },
   -> { raise SyntaxError, "Can't set variable $'"},
   -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })
 
 Truffle::KernelOperations.define_hooked_variable(
-  :$&,
+  :'$&',
   -> b { match = Truffle::RegexpOperations.last_match(b)
          match[0] if match },
   -> { raise SyntaxError, "Can't set variable $&"},
   -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })
 
 Truffle::KernelOperations.define_hooked_variable(
-  :$+,
+  :'$+',
   -> b { match = Truffle::RegexpOperations.last_match(b)
          match.captures.reverse.find { |m| !m.nil? } if match },
   -> { raise SyntaxError, "Can't set variable $+"},

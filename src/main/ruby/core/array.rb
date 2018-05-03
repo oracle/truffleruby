@@ -157,24 +157,22 @@ class Array
         end
         start_index = arg.begin.to_int
         end_index = arg.end.to_int
-        if start_index.is_a?(Bignum) || end_index.is_a?(Bignum)
-          raise RangeError, "bignum too big to convert into `long'"
-        end
+        Truffle::Type.check_long(start_index)
+        Truffle::Type.check_long(end_index)
         start_index = Truffle::Type.clamp_to_int(start_index)
         end_index = Truffle::Type.clamp_to_int(end_index)
         range = Range.new(start_index, end_index, arg.exclude_end?)
         send(method_name, range)
-      when Bignum
-        raise RangeError, "bignum too big to convert into `long'"
       else
-        send(method_name, Truffle::Type.rb_num2long(arg))
+        arg = Truffle::Type.rb_num2long(arg)
+        return nil unless Truffle::Type.fits_into_int?(arg)
+        send(method_name, arg)
       end
     else
       start_index = start.to_int
       end_index = length.to_int
-      if start_index.is_a?(Bignum) || end_index.is_a?(Bignum)
-        raise RangeError, "bignum too big to convert into `long'"
-      end
+      Truffle::Type.check_long(start_index)
+      Truffle::Type.check_long(end_index)
       start_index = Truffle::Type.clamp_to_int(start_index)
       end_index = Truffle::Type.clamp_to_int(end_index)
       send(method_name, start_index, end_index)
@@ -465,7 +463,7 @@ class Array
         rescue ArgumentError
           raise RangeError, 'bignum too big to convert into `long'
         rescue TypeError
-          raise ArgumentError, 'second argument must be a Fixnum'
+          raise ArgumentError, 'second argument must be an Integer'
         end
 
         return self if right == 0
@@ -475,7 +473,7 @@ class Array
       end
     end
 
-    if left >= Fixnum::MAX || right > Fixnum::MAX
+    unless Truffle::Type.fits_into_long?(left) && Truffle::Type.fits_into_long?(right)
       raise ArgumentError, 'argument too big'
     end
 
@@ -792,7 +790,7 @@ class Array
     # Check the result size will fit in an Array.
     sum = args.inject(size) { |n, x| n * x.size }
 
-    if sum > Fixnum::MAX
+    unless Truffle.invoke_primitive(:integer_fits_into_long, sum)
       raise RangeError, 'product result is too large'
     end
 
@@ -1192,10 +1190,6 @@ class Array
     end
 
     out
-  end
-
-  def uniq(&block)
-    dup.uniq!(&block) or dup
   end
 
   def unshift(*values)
@@ -1619,32 +1613,23 @@ class Array
   end
   private :delete_range
 
+  def uniq(&block)
+    copy_of_same_class = dup
+    result = super(&block)
+    Truffle::Array.steal_storage(copy_of_same_class, result)
+    copy_of_same_class
+  end
+
   def uniq!(&block)
     Truffle.check_frozen
+    result = uniq(&block)
 
-    result = []
-    if block_given?
-      h = {}
-      each do |e|
-        v = yield(e)
-        unless h.key?(v)
-          h[v] = true
-          result << e
-        end
-      end
+    if self.size == result.size
+      nil
     else
-      h = {}
-      each do |e|
-        unless h.key?(e)
-          h[e] = true
-          result << e
-        end
-      end
+      Truffle::Array.steal_storage(self, result)
+      self
     end
-    return if result.size == size
-
-    Truffle::Array.steal_storage(self, result)
-    self
   end
 
   def sort!(&block)

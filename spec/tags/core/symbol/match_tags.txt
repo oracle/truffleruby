@@ -1,0 +1,2 @@
+fails:Symbol#match returns the MatchData
+fails:Symbol#match sets the last match pseudo-variables

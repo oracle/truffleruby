@@ -162,7 +162,7 @@ module Truffle::FFI
 
         offset = spec[i + 2]
 
-        if offset.kind_of?(Fixnum)
+        if offset.kind_of?(Integer)
           i += 3
         else
           if self < FFI::Union
@@ -299,7 +299,7 @@ module Truffle::FFI
       raise "Unknown field #{field}" unless offset
 
       case type
-      when Fixnum
+      when Integer
         @pointer.set_at_offset(offset, type, val)
       when FFI::Type::Array
         if type.implementation == InlineCharArray
@@ -324,7 +324,7 @@ module Truffle::FFI
       case type
       when FFI::TYPE_CHARARR
         (@pointer + offset).read_string
-      when Fixnum
+      when Integer
         @pointer.get_at_offset(offset, type)
       when FFI::Type::Array
         type.implementation.new(type, @pointer + offset)

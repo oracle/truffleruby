@@ -45,21 +45,21 @@ public class CoreMethods {
 
     private final RubyContext context;
 
-    final Assumption fixnumAddAssumption, floatAddAssumption;
-    final Assumption fixnumSubAssumption, floatSubAssumption;
-    final Assumption fixnumMulAssumption, floatMulAssumption;
-    final Assumption fixnumDivAssumption, floatDivAssumption;
-    final Assumption fixnumModAssumption, floatModAssumption;
-    public final Assumption fixnumCmpAssumption, floatCmpAssumption;
+    final Assumption integerAddAssumption, floatAddAssumption;
+    final Assumption integerSubAssumption, floatSubAssumption;
+    final Assumption integerMulAssumption, floatMulAssumption;
+    final Assumption integerDivAssumption, floatDivAssumption;
+    final Assumption integerModAssumption, floatModAssumption;
+    public final Assumption integerCmpAssumption, floatCmpAssumption;
 
-    final Assumption fixnumLeftShiftAssumption;
-    final Assumption fixnumRightShiftAssumption;
-    final Assumption fixnumBitOrAssumption;
-    final Assumption fixnumBitAndAssumption;
+    final Assumption integerLeftShiftAssumption;
+    final Assumption integerRightShiftAssumption;
+    final Assumption integerBitOrAssumption;
+    final Assumption integerBitAndAssumption;
 
-    final Assumption fixnumEqualAssumption;
-    final Assumption fixnumLessThanAssumption, fixnumLessOrEqualAssumption;
-    final Assumption fixnumGreaterThanAssumption, fixnumGreaterOrEqualAssumption;
+    final Assumption integerEqualAssumption;
+    final Assumption integerLessThanAssumption, integerLessOrEqualAssumption;
+    final Assumption integerGreaterThanAssumption, integerGreaterOrEqualAssumption;
 
     final Assumption nilClassIsNilAssumption;
 
@@ -72,39 +72,39 @@ public class CoreMethods {
         this.context = context;
         final DynamicObject basicObjectClass = context.getCoreLibrary().getBasicObjectClass();
         final DynamicObject kernelModule = context.getCoreLibrary().getKernelModule();
-        final DynamicObject fixnumClass = context.getCoreLibrary().getFixnumClass();
+        final DynamicObject integerClass = context.getCoreLibrary().getIntegerClass();
         final DynamicObject floatClass = context.getCoreLibrary().getFloatClass();
         final DynamicObject nilClass = context.getCoreLibrary().getNilClass();
         final DynamicObject stringClass = context.getCoreLibrary().getStringClass();
 
-        fixnumAddAssumption = registerAssumption(fixnumClass, "+");
+        integerAddAssumption = registerAssumption(integerClass, "+");
         floatAddAssumption = registerAssumption(floatClass, "+");
 
-        fixnumSubAssumption = registerAssumption(fixnumClass, "-");
+        integerSubAssumption = registerAssumption(integerClass, "-");
         floatSubAssumption = registerAssumption(floatClass, "-");
 
-        fixnumMulAssumption = registerAssumption(fixnumClass, "*");
+        integerMulAssumption = registerAssumption(integerClass, "*");
         floatMulAssumption = registerAssumption(floatClass, "*");
 
-        fixnumDivAssumption = registerAssumption(fixnumClass, "/");
+        integerDivAssumption = registerAssumption(integerClass, "/");
         floatDivAssumption = registerAssumption(floatClass, "/");
 
-        fixnumModAssumption = registerAssumption(fixnumClass, "%");
+        integerModAssumption = registerAssumption(integerClass, "%");
         floatModAssumption = registerAssumption(floatClass, "%");
 
-        fixnumCmpAssumption = registerAssumption(fixnumClass, "<=>");
+        integerCmpAssumption = registerAssumption(integerClass, "<=>");
         floatCmpAssumption = registerAssumption(floatClass, "<=>");
 
-        fixnumLeftShiftAssumption = registerAssumption(fixnumClass, "<<");
-        fixnumRightShiftAssumption = registerAssumption(fixnumClass, ">>");
-        fixnumBitOrAssumption = registerAssumption(fixnumClass, "|");
-        fixnumBitAndAssumption = registerAssumption(fixnumClass, "&");
+        integerLeftShiftAssumption = registerAssumption(integerClass, "<<");
+        integerRightShiftAssumption = registerAssumption(integerClass, ">>");
+        integerBitOrAssumption = registerAssumption(integerClass, "|");
+        integerBitAndAssumption = registerAssumption(integerClass, "&");
 
-        fixnumEqualAssumption = registerAssumption(fixnumClass, "==");
-        fixnumLessThanAssumption = registerAssumption(fixnumClass, "<");
-        fixnumLessOrEqualAssumption = registerAssumption(fixnumClass, "<=");
-        fixnumGreaterThanAssumption = registerAssumption(fixnumClass, ">");
-        fixnumGreaterOrEqualAssumption = registerAssumption(fixnumClass, ">=");
+        integerEqualAssumption = registerAssumption(integerClass, "==");
+        integerLessThanAssumption = registerAssumption(integerClass, "<");
+        integerLessOrEqualAssumption = registerAssumption(integerClass, "<=");
+        integerGreaterThanAssumption = registerAssumption(integerClass, ">");
+        integerGreaterOrEqualAssumption = registerAssumption(integerClass, ">=");
 
         nilClassIsNilAssumption = registerAssumption(nilClass, "nil?");
 

@@ -258,7 +258,7 @@ class TestModule < Test::Unit::TestCase
       "\u3042",
       "Name?",
     ].each do |name, msg|
-      expected = "wrong constant name %s" % quote(name)
+      expected = "wrong constant name %s" % name
       msg = "#{msg}#{': ' if msg}wrong constant name #{name.dump}"
       assert_raise_with_message(NameError, expected, "#{msg} to #{m}") do
         yield name
@@ -440,6 +440,10 @@ class TestModule < Test::Unit::TestCase
     EOS
   end
 
+  def test_include_with_no_args
+    assert_raise(ArgumentError) { Module.new { include } }
+  end
+
   def test_included_modules
     assert_equal([], Mixin.included_modules)
     assert_equal([Mixin], User.included_modules)
@@ -451,7 +455,7 @@ class TestModule < Test::Unit::TestCase
   end
 
   def test_instance_methods
-    assert_equal([:user, :user2], User.instance_methods(false))
+    assert_equal([:user, :user2], User.instance_methods(false).sort)
     assert_equal([:user, :user2, :mixin].sort, User.instance_methods(true).sort)
     assert_equal([:mixin], Mixin.instance_methods)
     assert_equal([:mixin], Mixin.instance_methods(true))
@@ -519,7 +523,7 @@ class TestModule < Test::Unit::TestCase
   end
 
   def test_name
-    assert_equal("Fixnum", Fixnum.name)
+    assert_equal("Integer", Integer.name)
     assert_equal("TestModule::Mixin",  Mixin.name)
     assert_equal("TestModule::User",   User.name)
   end
@@ -532,9 +536,9 @@ class TestModule < Test::Unit::TestCase
     assert_nil(n.name)
     assert_equal([:N], m.constants)
     m.module_eval("module O end")
-    assert_equal([:N, :O], m.constants)
+    assert_equal([:N, :O], m.constants.sort)
     m.module_eval("class C; end")
-    assert_equal([:N, :O, :C], m.constants)
+    assert_equal([:C, :N, :O], m.constants.sort)
     assert_nil(m::N.name)
     assert_match(/\A#<Module:.*>::O\z/, m::O.name)
     assert_match(/\A#<Module:.*>::C\z/, m::C.name)
@@ -711,9 +715,7 @@ class TestModule < Test::Unit::TestCase
     assert_raise(NameError) { c1.const_set("X\u{3042}".encode("utf-32be"), :foo) }
     assert_raise(NameError) { c1.const_set("X\u{3042}".encode("utf-32le"), :foo) }
     cx = EnvUtil.labeled_class("X\u{3042}")
-    EnvUtil.with_default_external(Encoding::UTF_8) {
-      assert_raise_with_message(TypeError, /X\u{3042}/) { c1.const_set(cx, :foo) }
-    }
+    assert_raise_with_message(TypeError, /X\u{3042}/) { c1.const_set(cx, :foo) }
   end
 
   def test_const_get_invalid_name
@@ -1576,6 +1578,12 @@ class TestModule < Test::Unit::TestCase
     end
   end
 
+  def test_prepend_CMP
+    bug11878 = '[ruby-core:72493] [Bug #11878]'
+    assert_equal(-1, C1 <=> M2)
+    assert_equal(+1, M2 <=> C1, bug11878)
+  end
+
   def test_prepend_inheritance
     bug6654 = '[ruby-core:45914]'
     a = labeled_module("a")
@@ -1699,7 +1707,7 @@ class TestModule < Test::Unit::TestCase
           to_f / other
         end
       end
-      Fixnum.send(:prepend, M)
+      Integer.send(:prepend, M)
       assert_equal(0.5, 1 / 2, "#{bug7983}")
     }
     assert_equal(0, 1 / 2)
@@ -1710,7 +1718,7 @@ class TestModule < Test::Unit::TestCase
     assert_separately [], %{
       module M
       end
-      class Fixnum
+      class Integer
         prepend M
         def /(other)
           quo(other)
@@ -1726,7 +1734,7 @@ class TestModule < Test::Unit::TestCase
     assert_separately [], %{
       module M
       end
-      class Fixnum
+      class Integer
         prepend M
       end
       module M
@@ -1864,6 +1872,10 @@ class TestModule < Test::Unit::TestCase
     end;
   end
 
+  def test_prepend_module_with_no_args
+    assert_raise(ArgumentError) { Module.new { prepend } }
+  end
+
   def test_prepend_private_super
     wrapper = Module.new do
       def wrapped
@@ -1949,6 +1961,10 @@ class TestModule < Test::Unit::TestCase
     assert_equal(['public', 'protected'], list)
   end
 
+  def test_extend_module_with_no_args
+    assert_raise(ArgumentError) { Module.new { extend } }
+  end
+
   def test_invalid_attr
     %W[
       foo?
@@ -1990,10 +2006,7 @@ class TestModule < Test::Unit::TestCase
 
     name = "@\u{5909 6570}"
     assert_warning(/instance variable #{name} not initialized/) do
-      val = EnvUtil.with_default_external(Encoding::UTF_8) {
-        a.instance_eval(name)
-      }
-      assert_nil(val)
+      assert_nil(a.instance_eval(name))
     end
   end
 

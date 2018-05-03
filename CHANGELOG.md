@@ -2,6 +2,34 @@
 
 New features:
 
+* We are now compatible with Ruby 2.4.4.
+
+* `object.class` on a Java `Class` object will give you an object on which you
+  can call instance methods, rather than static methods which is what you get by
+  default.
+
+Changes:
+
+* The inline JavaScript functionality `-Xinline_js` has been removed.
+
+* Line numbers `< 0`, in the various eval methods, are now warned about, because
+  we don't support these at all. Line numbers `> 1` are warned about (at the
+  fine level) but the are shimmed by adding blank lines in front to get to the
+  correct offset. Line numbers starting at `0` are also warned about at the fine
+  level and set to `1` instead.
+
+Bug fixes:
+
+* TruffleRuby on SubstrateVM now correctly determines the system timezone.
+
+* `Kernel#require_relative` now coerces the feature argument to a path and
+  canonicalizes it before requiring, and it now uses the current directory as
+  the directory for a synthetic file name from `#instance_eval`.
+
+# 1.0 RC 1, April 2018
+
+New features:
+
 * The Ruby version has been updated to version 2.3.7.
 
 Security:

@@ -83,7 +83,6 @@ public class CoreLibrary {
     private final DynamicObject arrayClass;
     private final DynamicObjectFactory arrayFactory;
     private final DynamicObject basicObjectClass;
-    private final DynamicObject bignumClass;
     private final DynamicObjectFactory bignumFactory;
     private final DynamicObject bindingClass;
     private final DynamicObjectFactory bindingFactory;
@@ -98,7 +97,6 @@ public class CoreLibrary {
     private final DynamicObject falseClass;
     private final DynamicObject fiberClass;
     private final DynamicObjectFactory fiberFactory;
-    private final DynamicObject fixnumClass;
     private final DynamicObject floatClass;
     private final DynamicObject floatDomainErrorClass;
     private final DynamicObject hashClass;
@@ -382,10 +380,7 @@ public class CoreLibrary {
         complexClass = defineClass(numericClass, "Complex");
         floatClass = defineClass(numericClass, "Float");
         integerClass = defineClass(numericClass, "Integer");
-        fixnumClass = defineClass(integerClass, "Fixnum");
-        bignumClass = defineClass(integerClass, "Bignum");
-        bignumFactory = alwaysFrozen(Layouts.BIGNUM.createBignumShape(bignumClass, bignumClass));
-        Layouts.CLASS.setInstanceFactoryUnsafe(bignumClass, bignumFactory);
+        bignumFactory = alwaysFrozen(Layouts.BIGNUM.createBignumShape(integerClass, integerClass));
         rationalClass = defineClass(numericClass, "Rational");
 
         // Classes defined in Object
@@ -510,7 +505,6 @@ public class CoreLibrary {
         truffleRegexpOperationsModule = defineModule(truffleModule, "RegexpOperations");
         defineModule(truffleModule, "StringOperations");
         truffleBootModule = defineModule(truffleModule, "Boot");
-        defineModule(truffleModule, "FixnumOperations");
         defineModule(truffleModule, "System");
         truffleKernelOperationsModule = defineModule(truffleModule, "KernelOperations");
         defineModule(truffleModule, "Process");
@@ -833,13 +827,13 @@ public class CoreLibrary {
                 return falseClass;
             }
         } else if (object instanceof Byte) {
-            return fixnumClass;
+            return integerClass;
         } else if (object instanceof Short) {
-            return fixnumClass;
+            return integerClass;
         } else if (object instanceof Integer) {
-            return fixnumClass;
+            return integerClass;
         } else if (object instanceof Long) {
-            return fixnumClass;
+            return integerClass;
         } else if (object instanceof Float) {
             return floatClass;
         } else if (object instanceof Double) {
@@ -932,8 +926,8 @@ public class CoreLibrary {
         return fiberFactory;
     }
 
-    public DynamicObject getFixnumClass() {
-        return fixnumClass;
+    public DynamicObject getIntegerClass() {
+        return integerClass;
     }
 
     public DynamicObject getFloatClass() {
@@ -1359,6 +1353,10 @@ public class CoreLibrary {
         return truffleRegexpOperationsModule;
     }
 
+    public DynamicObject getDirClass() {
+        return dirClass;
+    }
+
     public static final String[] CORE_FILES = {
             "/core/pre.rb",
             "/core/basic_object.rb",
@@ -1406,8 +1404,6 @@ public class CoreLibrary {
             "/core/numeric.rb",
             "/core/truffle/ctype.rb",
             "/core/integer.rb",
-            "/core/fixnum.rb",
-            "/core/bignum.rb",
             "/core/regexp.rb",
             "/core/transcoding.rb",
             "/core/encoding.rb",

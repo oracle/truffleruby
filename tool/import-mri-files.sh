@@ -10,6 +10,7 @@ rm lib/mri/securerandom.rb
 rm lib/mri/timeout.rb
 rm lib/mri/weakref.rb
 rm src/main/c/openssl/*.{c,h}
+cp ../ruby/st.c src/main/c/cext/st.c
 cp ../ruby/ext/openssl/*.{c,h} src/main/c/openssl
 cp ../ruby/ext/syslog/*.{c,rb} src/main/c/syslog
 cp ../ruby/ext/zlib/*.{c,rb} src/main/c/zlib

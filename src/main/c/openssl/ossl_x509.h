@@ -15,6 +15,13 @@
  */
 extern VALUE mX509;
 
+/*
+ * Converts the VALUE into Integer and set it to the ASN1_TIME. This is a
+ * wrapper for X509_time_adj_ex() so passing NULL creates a new ASN1_TIME.
+ * Note that the caller must check the NULL return.
+ */
+ASN1_TIME *ossl_x509_time_adjust(ASN1_TIME *, VALUE);
+
 void Init_ossl_x509(void);
 
 /*
@@ -59,7 +66,6 @@ extern VALUE eX509ExtError;
 
 VALUE ossl_x509ext_new(X509_EXTENSION *);
 X509_EXTENSION *GetX509ExtPtr(VALUE);
-X509_EXTENSION *DupX509ExtPtr(VALUE);
 void Init_ossl_x509ext(void);
 
 /*
@@ -104,10 +110,13 @@ VALUE ossl_x509store_new(X509_STORE *);
 X509_STORE *GetX509StorePtr(VALUE);
 X509_STORE *DupX509StorePtr(VALUE);
 
-VALUE ossl_x509stctx_new(X509_STORE_CTX *);
-VALUE ossl_x509stctx_clear_ptr(VALUE);
 X509_STORE_CTX *GetX509StCtxtPtr(VALUE);
-
 void Init_ossl_x509store(void);
+
+/*
+ * Calls the verify callback Proc (the first parameter) with given pre-verify
+ * result and the X509_STORE_CTX.
+ */
+int ossl_verify_cb_call(VALUE, int, X509_STORE_CTX *);
 
 #endif /* _OSSL_X509_H_ */

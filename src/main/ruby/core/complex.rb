@@ -51,6 +51,8 @@ class Complex < Numeric
   undef_method :step
   undef_method :truncate
   undef_method :i
+  undef_method :negative?
+  undef_method :positive?
 
   def self.convert(real, imag = undefined)
     if nil.equal?(real) || nil.equal?(imag)
@@ -92,7 +94,6 @@ class Complex < Numeric
     return real if Truffle::Platform.mathn_loaded? && imag.equal?(0)
     rect(real, imag)
   end
-
   private_class_method :convert
 
   def Complex.generic?(other) # :nodoc:
@@ -117,6 +118,9 @@ class Complex < Numeric
     obj.kind_of?(Numeric) && obj.real?
   end
   private_class_method :check_real?
+
+  attr_reader :real, :imag
+  alias_method :imaginary, :imag
 
   def initialize(a, b = 0)
     @real = a
@@ -167,7 +171,6 @@ class Complex < Numeric
       redo_coerced(:quo, other)
     end
   end
-
   alias_method :/, :divide
   alias_method :quo, :divide
 
@@ -215,7 +218,6 @@ class Complex < Numeric
   def abs
     Math.hypot(@real, @imag)
   end
-
   alias_method :magnitude, :abs
 
   def abs2
@@ -235,7 +237,7 @@ class Complex < Numeric
   def conjugate
     Complex(@real, -@imag)
   end
-  alias conj conjugate
+  alias_method :conj, :conjugate
 
   def ==(other)
     if other.kind_of?(Complex)
@@ -278,10 +280,17 @@ class Complex < Numeric
     false
   end
 
+  def finite?
+    @real.finite? and @imag.finite?
+  end
+
+  def infinite?
+    magnitude.infinite?
+  end
+
   def rect
     [@real, @imag]
   end
-
   alias_method :rectangular, :rect
 
   def to_f
@@ -325,7 +334,7 @@ class Complex < Numeric
   end
 
   def hash
-    Truffle.invoke_primitive :fixnum_memhash, @real.hash, @imag.hash
+    Truffle.invoke_primitive :integer_memhash, @real.hash, @imag.hash
   end
 
   def inspect
@@ -346,7 +355,6 @@ class Complex < Numeric
     end
     ary
   end
-
   private :marshal_dump
 
   def marshal_load(ary)
@@ -358,22 +366,5 @@ class Complex < Numeric
   end
 
   I = Complex(0, 1)
-
-  attr_reader :real
-  attr_reader :imag
-  alias_method :imaginary, :imag
-
-  private
-
-  def real=(real)
-    @real = real
-  end
-
-  def imag=(imag)
-    @imag = imag
-  end
-
-  undef_method :negative?
-  undef_method :positive?
 
 end

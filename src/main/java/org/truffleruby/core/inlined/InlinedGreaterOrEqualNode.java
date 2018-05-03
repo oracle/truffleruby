@@ -19,7 +19,7 @@ public abstract class InlinedGreaterOrEqualNode extends BinaryInlinedOperationNo
 
     public InlinedGreaterOrEqualNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(callNodeParameters,
-                context.getCoreMethods().fixnumGreaterOrEqualAssumption);
+                context.getCoreMethods().integerGreaterOrEqualAssumption);
     }
 
     @Specialization(assumptions = "assumptions")

@@ -161,6 +161,14 @@ class Numeric
     self < 0
   end
 
+  def finite?
+    true
+  end
+
+  def infinite?
+    nil
+  end
+
   def round
     to_f.round
   end
@@ -187,16 +195,6 @@ class Numeric
     end
   end
 
-  #--
-  # We deviate from MRI behavior here because we ensure that Fixnum op Bignum
-  # => Bignum (possibly normalized to Fixnum)
-  #
-  # Note these differences on MRI, where a is a Fixnum, b is a Bignum
-  #
-  #   a.coerce b => [Float, Float]
-  #   b.coerce a => [Bignum, Bignum]
-  #++
-
   def coerce(other)
     if other.instance_of? self.class
       return [other, self]
@@ -215,6 +213,16 @@ class Numeric
   # See also Integer#coerce
 
   def math_coerce(other, error=:coerce_error)
+    unless other.respond_to? :coerce
+      if error == :coerce_error
+        raise TypeError, "#{other.class} can't be coerced into #{self.class}"
+      elsif error == :compare_error
+        raise ArgumentError, "comparison of #{self.class} with #{other.class} failed"
+      elsif error == :no_error
+        return nil
+      end
+    end
+
     begin
       values = other.coerce(self)
     rescue
@@ -231,7 +239,11 @@ class Numeric
     end
 
     unless Truffle::Type.object_kind_of?(values, Array) && values.length == 2
-      raise TypeError, 'coerce must return [x, y]'
+      if error == :no_error
+        return nil
+      else
+        raise TypeError, 'coerce must return [x, y]'
+      end
     end
 
     [values[1], values[0]]

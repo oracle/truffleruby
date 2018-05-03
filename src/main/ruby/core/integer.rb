@@ -1,3 +1,11 @@
+# Copyright (c) 2014, 2018 Oracle and/or its affiliates. All rights reserved. This
+# code is released under a tri EPL/GPL/LGPL license. You can use it,
+# redistribute it and/or modify it under the terms of the:
+#
+# Eclipse Public License version 1.0
+# GNU General Public License version 2
+# GNU Lesser General Public License version 2.1
+
 # Copyright (c) 2007-2015, Evan Phoenix and contributors
 # All rights reserved.
 #
@@ -24,10 +32,59 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+Fixnum = Bignum = Integer
+Object.deprecate_constant :Fixnum, :Bignum
+
 class Integer < Numeric
+
   alias_method :truncate, :to_i
   alias_method :ceil, :to_i
   alias_method :floor, :to_i
+
+  # Have a copy in Integer of the Numeric version, as MRI does
+  public :remainder
+
+  def **(o)
+    Truffle.primitive :integer_pow
+
+    if o.is_a?(Float) && self < 0 && o != o.round
+      return Complex.new(self, 0) ** o
+    elsif o.is_a?(Integer) && o < 0
+      return Rational.new(self, 1) ** o
+    end
+
+    redo_coerced :**, o
+  end
+
+  def [](index)
+    index = Truffle::Type.coerce_to_int(index)
+    index < 0 ? 0 : (self >> index) & 1
+  end
+
+  def coerce(other)
+    if other.kind_of? Integer
+      return [other, self]
+    end
+
+    [Float(other), Float(self)]
+  end
+
+  def divmod(b)
+    Truffle.primitive :integer_divmod
+    raise ZeroDivisionError if b == 0
+    [
+      (self / b).floor,
+      self - b * (self / b).floor
+    ]
+  end
+
+  def fdiv(n)
+    if n.kind_of?(Integer)
+      to_f / n
+    else
+      redo_coerced :fdiv, n
+    end
+  end
 
   def times
     return to_enum(:times) { self } unless block_given?
@@ -66,13 +123,12 @@ class Integer < Numeric
   def round(ndigits=undefined)
     return self if undefined.equal? ndigits
 
-    if ndigits.kind_of? Numeric
-      if ndigits > Fixnum::MAX or ndigits <= Fixnum::MIN
-        raise RangeError, 'precision is outside of the range of Fixnum'
-      end
+    if Float === ndigits && ndigits.infinite?
+      raise RangeError, "float #{ndigits} out of range of integer"
     end
 
-    ndigits = Truffle::Type.coerce_to ndigits, Integer, :to_int
+    ndigits = Truffle::Type.coerce_to_int(ndigits)
+    Truffle::Type.check_int(ndigits)
 
     if ndigits > 0
       to_f
@@ -88,7 +144,7 @@ class Integer < Numeric
 
       f = 10 ** ndigits
 
-      if kind_of? Fixnum and f.kind_of? Fixnum
+      if kind_of? Integer and f.kind_of? Integer
         x = self < 0 ? -self : self
         x = (x + f / 2) / f * f
         x = -x if self < 0

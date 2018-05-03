@@ -33,7 +33,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.Source;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.Log;
 import org.truffleruby.builtins.CoreClass;
@@ -44,11 +43,9 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayStrategy;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -909,6 +906,27 @@ public abstract class InteropNodes {
 
     }
 
+    @CoreMethod(names = "java?", isModuleFunction = true, required = 1)
+    public abstract static class InteropIsJavaNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean isJava(Object value) {
+            return getContext().getEnv().isHostObject(value);
+        }
+
+    }
+
+    @CoreMethod(names = "java_class?", isModuleFunction = true, required = 1)
+    public abstract static class InteropIsJavaClassNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean isJavaClass(Object value) {
+            return getContext().getEnv().isHostObject(value)
+                    && getContext().getEnv().asHostObject(value) instanceof Class;
+        }
+
+    }
+
     @CoreMethod(names = "meta_object", isModuleFunction = true, required = 1)
     public abstract static class InteropMetaObjectNode extends CoreMethodArrayArgumentsNode {
 
@@ -1062,23 +1080,6 @@ public abstract class InteropNodes {
             }
 
             return env.lookupHostSymbol(name);
-        }
-
-    }
-
-    @CoreMethod(names = "java_type_name", onSingleton = true, required = 1)
-    public abstract static class JavaTypeNameNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isJavaInteropClass(object)")
-        public DynamicObject javaTypeName(Object object,
-                                          @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-            final String name = ((Class<?>) getContext().getEnv().asHostObject(object)).getName();
-            return makeStringNode.executeMake(name, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        }
-
-        protected boolean isJavaInteropClass(Object obj) {
-            return getContext().getEnv().isHostObject(obj) && getContext().getEnv().asHostObject(obj) instanceof Class<?>;
         }
 
     }

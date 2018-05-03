@@ -240,3 +240,24 @@ void *polyglot_from_string_n(const char *string, uint64_t size, const char *char
   rb_tr_mock();
   return 0;
 }
+
+void *__polyglot_as_typed(void *ptr, void *typeId) {
+  rb_tr_mock();
+  return 0;
+}
+
+void *__polyglot_as_typed_array(void *ptr, void *typeId) {
+  rb_tr_mock();
+  return 0;
+}
+
+void *__polyglot_from_typed(void *p, void *typeId) {
+  rb_tr_mock();
+  return 0;
+}
+
+void *__polyglot_from_typed_array(void *arr, uint64_t length, void *typeId) {
+  rb_tr_mock();
+  return 0;
+}
+

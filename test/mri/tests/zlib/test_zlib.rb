@@ -1,3 +1,4 @@
+# coding: us-ascii
 # frozen_string_literal: false
 require 'test/unit'
 require 'stringio'
@@ -126,6 +127,16 @@ if defined? Zlib
       assert_equal("foobar", Zlib::Inflate.inflate(s))
     end
 
+    def test_expand_buffer;
+      z = Zlib::Deflate.new
+      src = "baz" * 1000
+      z.avail_out = 1
+      GC.stress = true
+      s = z.deflate(src, Zlib::FINISH)
+      GC.stress = false
+      assert_equal(src, Zlib::Inflate.inflate(s))
+    end
+
     def test_total
       z = Zlib::Deflate.new
       1000.times { z << "foo" }
@@ -212,7 +223,9 @@ if defined? Zlib
       z = Zlib::Deflate.new
       z << "foo"
       assert_raise(Zlib::StreamError) { z.set_dictionary("foo") }
-      z.close # without this, outputs `zlib(finalizer): the stream was freed prematurely.'
+      EnvUtil.suppress_warning do
+        z.close # without this, outputs `zlib(finalizer): the stream was freed prematurely.'
+      end
     end
 
     def test_reset
@@ -1138,5 +1151,58 @@ if defined? Zlib
       assert_equal 20016, deflated.length
     end
 
+    def test_gzip
+      actual = Zlib.gzip("foo".freeze)
+      actual[4, 4] = "\x00\x00\x00\x00" # replace mtime
+      actual[9] = "\xff" # replace OS
+      expected = %w[1f8b08000000000000ff4bcbcf07002165738c03000000].pack("H*")
+      assert_equal expected, actual
+
+      actual = Zlib.gzip("foo".freeze, level: 0)
+      actual[4, 4] = "\x00\x00\x00\x00" # replace mtime
+      actual[9] = "\xff" # replace OS
+      expected = %w[1f8b08000000000000ff010300fcff666f6f2165738c03000000].pack("H*")
+      assert_equal expected, actual
+
+      actual = Zlib.gzip("foo".freeze, level: 9)
+      actual[4, 4] = "\x00\x00\x00\x00" # replace mtime
+      actual[9] = "\xff" # replace OS
+      expected = %w[1f8b08000000000002ff4bcbcf07002165738c03000000].pack("H*")
+      assert_equal expected, actual
+
+      actual = Zlib.gzip("foo".freeze, level: 9, strategy: Zlib::FILTERED)
+      actual[4, 4] = "\x00\x00\x00\x00" # replace mtime
+      actual[9] = "\xff" # replace OS
+      expected = %w[1f8b08000000000002ff4bcbcf07002165738c03000000].pack("H*")
+      assert_equal expected, actual
+    end
+
+    def test_gunzip
+      src = %w[1f8b08000000000000034bcbcf07002165738c03000000].pack("H*")
+      assert_equal 'foo', Zlib.gunzip(src.freeze)
+
+      src = %w[1f8b08000000000000034bcbcf07002165738c03000001].pack("H*")
+      assert_raise(Zlib::GzipFile::LengthError){ Zlib.gunzip(src) }
+
+      src = %w[1f8b08000000000000034bcbcf07002165738d03000000].pack("H*")
+      assert_raise(Zlib::GzipFile::CRCError){ Zlib.gunzip(src) }
+
+      src = %w[1f8b08000000000000034bcbcf07002165738d030000].pack("H*")
+      assert_raise(Zlib::GzipFile::Error){ Zlib.gunzip(src) }
+
+      src = %w[1f8b08000000000000034bcbcf0700].pack("H*")
+      assert_raise(Zlib::GzipFile::NoFooter){ Zlib.gunzip(src) }
+
+      src = %w[1f8b080000000000000].pack("H*")
+      assert_raise(Zlib::GzipFile::Error){ Zlib.gunzip(src) }
+    end
+
+    def test_gunzip_no_memory_leak
+      assert_no_memory_leak(%[-rzlib], "#{<<~"{#"}", "#{<<~'};'}")
+      d = Zlib.gzip("data")
+      {#
+        10_000.times {Zlib.gunzip(d)}
+      };
+    end
   end
 end

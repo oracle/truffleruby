@@ -1,8 +1,7 @@
 /*
  * This code is copyrighted work by Daniel Luz <dev at mernen dot com>.
  *
- * Distributed under the Ruby and GPLv2 licenses; see COPYING and GPL files
- * for details.
+ * Distributed under the Ruby license: https://www.ruby-lang.org/en/about/license.txt
  */
 package json.ext;
 
@@ -173,9 +172,7 @@ public final class Generator {
             result = RubyString.newString(session.getRuntime(), buffer);
             ThreadContext context = session.getContext();
             RuntimeInfo info = session.getInfo();
-            if (info.encodingsSupported()) {
-                result.force_encoding(context, info.utf8.get());
-            }
+            result.force_encoding(context, info.utf8.get());
             return result;
         }
 
@@ -382,8 +379,7 @@ public final class Generator {
                 RuntimeInfo info = session.getInfo();
                 RubyString src;
 
-                if (info.encodingsSupported() &&
-                        object.encoding(session.getContext()) != info.utf8.get()) {
+                if (object.encoding(session.getContext()) != info.utf8.get()) {
                     src = (RubyString)object.encode(session.getContext(),
                                                     info.utf8.get());
                 } else {
@@ -428,11 +424,14 @@ public final class Generator {
         new Handler<IRubyObject>() {
             @Override
             RubyString generateNew(Session session, IRubyObject object) {
-                IRubyObject result =
-                    object.callMethod(session.getContext(), "to_json",
-                          new IRubyObject[] {session.getState()});
-                if (result instanceof RubyString) return (RubyString)result;
-                throw session.getRuntime().newTypeError("to_json must return a String");
+                if (object.respondsTo("to_json")) {
+                    IRubyObject result = object.callMethod(session.getContext(), "to_json",
+                              new IRubyObject[] {session.getState()});
+                    if (result instanceof RubyString) return (RubyString)result;
+                    throw session.getRuntime().newTypeError("to_json must return a String");
+                } else {
+                    return OBJECT_HANDLER.generateNew(session, object);
+                }
             }
 
             @Override

@@ -1,0 +1,2 @@
+fails:The if expression accepts multiple assignments in conditional expression with non-nil values
+fails:The if expression accepts multiple assignments in conditional expression with nil values

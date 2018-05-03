@@ -37,9 +37,9 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CallerFrameAccess;
@@ -90,7 +90,6 @@ import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNode
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
@@ -104,6 +103,7 @@ import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Activation;
 import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -147,6 +147,7 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -606,19 +607,17 @@ public abstract class KernelNodes {
         }
 
         protected RubyRootNode buildRootNode(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line, boolean ownScopeForAssignments) {
-            String sourceString;
-            if (line > 0) {
-                String s = StringUtils.replace(new String(new char[Math.max(line - 1, 0)]), '\0', '\n');
-                sourceString = s + RopeOperations.decodeRope(sourceText);
-            } else {
-                sourceString = RopeOperations.decodeRope(sourceText);
-            }
-            final Encoding encoding = sourceText.getEncoding();
-            final Source source = Source.newBuilder(sourceString).name(RopeOperations.decodeRope(file).intern()).mimeType(RubyLanguage.MIME_TYPE).build();
-
-            final TranslatorDriver translator = new TranslatorDriver(getContext());
-
-            return translator.parse(source, encoding, ParserContext.EVAL, null, null, parentFrame, ownScopeForAssignments, this);
+            final String sourceFile = RopeOperations.decodeRope(file);
+            final Source source = createEvalSource(offsetSource("eval", RopeOperations.decodeRope(sourceText), sourceFile, line), sourceFile);
+            return new TranslatorDriver(getContext()).parse(
+                    source,
+                    sourceText.getEncoding(),
+                    ParserContext.EVAL,
+                    null,
+                    null,
+                    parentFrame,
+                    ownScopeForAssignments,
+                    this);
         }
 
         protected RootNodeWrapper compileSource(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line) {
@@ -662,6 +661,34 @@ public abstract class KernelNodes {
         private boolean frameHasOnlySelf(final FrameDescriptor descriptor) {
             return descriptor.getSize() == 1 && SelfNode.SELF_IDENTIFIER.equals(descriptor.getSlots().get(0).getIdentifier());
         }
+
+        public static Source createEvalSource(String source, String file) {
+            return Source.newBuilder(source)
+                    .name(file)
+                    .mimeType(RubyLanguage.MIME_TYPE)
+                    .build();
+        }
+
+        public static String offsetSource(String method, String source, String file, int line) {
+            // TODO CS 23-Apr-18 Truffle doesn't support line numbers starting at anything but 1
+            if (line == 0) {
+                // fine instead of warning because these seem common
+                Log.LOGGER.fine(() -> String.format("zero line number %s:%d not supported in #%s - will be reported as starting at 1", file, line, method));
+                return source;
+            } else if (line < 1) {
+                Log.LOGGER.warning(String.format("negative line number %s:%d not supported in #%s - will be reported as starting at 1", file, line, method));
+                return source;
+            } else if (line > 1) {
+                // fine instead of warning because we can simulate these
+                Log.LOGGER.fine(() -> String.format("offset line number %s:%d are simulated in #%s by adding blank lines", file, line, method));
+                final char[] emptyLines = new char[line - 1];
+                Arrays.fill(emptyLines, '\n');
+                return new String(emptyLines) + source;
+            } else {
+                return source;
+            }
+        }
+
     }
 
     @CoreMethod(names = "freeze")
@@ -718,8 +745,13 @@ public abstract class KernelNodes {
             return getContext().getHashing(this).hash(CLASS_SALT, Boolean.valueOf(value).hashCode());
         }
 
+        @Specialization(guards = "isRubyBignum(value)")
+        public long hashBignum(DynamicObject value) {
+            return getContext().getHashing(this).hash(CLASS_SALT, Layouts.BIGNUM.getValue(value).hashCode());
+        }
+
         @TruffleBoundary
-        @Specialization
+        @Specialization(guards = "!isRubyBignum(self)")
         public int hash(DynamicObject self) {
             // TODO(CS 8 Jan 15) we shouldn't use the Java class hierarchy like this - every class should define it's
             // own @CoreMethod hash
@@ -1354,15 +1386,18 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "require_relative", isModuleFunction = true, required = 1)
-    public abstract static class RequireRelativeNode extends CoreMethodArrayArgumentsNode {
+    @NodeChild(type = RubyNode.class, value = "feature")
+    public abstract static class RequireRelativeNode extends CoreMethodNode {
 
-        @Specialization(guards = "isRubyString(feature)")
-        public boolean requireRelative(DynamicObject feature,
+        @CreateCast("feature")
+        public RubyNode coerceToPath(RubyNode feature) {
+            return NameToJavaStringNodeGen.create(ToPathNodeGen.create(feature));
+        }
+
+        @Specialization
+        public boolean requireRelative(String feature,
                 @Cached("create()") RequireNode requireNode) {
-            final String featureString = StringOperations.getString(feature);
-            final String featurePath = getFullPath(featureString);
-
-            return requireNode.executeRequire(featurePath);
+            return requireNode.executeRequire(getFullPath(feature));
         }
 
         @TruffleBoundary
@@ -1387,15 +1422,24 @@ public abstract class KernelNodes {
                 featurePath = dirname(sourcePath) + "/" + featureString;
             }
 
-            return featurePath;
+            try {
+                return new File(featurePath).getCanonicalPath();
+            } catch (IOException e) {
+                throw new JavaException(e);
+            }
         }
 
         private String dirname(String path) {
-            final int lastSlash = path.lastIndexOf(File.separatorChar);
-            if (lastSlash == -1) {
-                return path;
+            if (path.charAt(0) == File.separatorChar) {
+                return path.substring(0, path.lastIndexOf(File.separatorChar));
             } else {
-                return path.substring(0, lastSlash);
+                final String workingDirectory = getContext().getFeatureLoader().getWorkingDirectory();
+                final int lastIndex = path.lastIndexOf(File.separatorChar);
+                if (lastIndex == -1) {
+                    return workingDirectory;
+                } else {
+                    return workingDirectory + "/" + path.substring(0, lastIndex);
+                }
             }
         }
     }

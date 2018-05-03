@@ -9,13 +9,19 @@
 class Method
 
   def inspect
-    file, line = source_location
+    extra = ''
 
-    if file && line
-      "#<#{self.class}: #{receiver.class}(#{owner})##{name} #{file}:#{line}>"
+    if Truffle.invoke_primitive :method_unimplemented?, self
+      extra = ' (not-implemented)'
     else
-      "#<#{self.class}: #{receiver.class}(#{owner})##{name}>"
+      file, line = source_location
+
+      if file && line
+        extra = " #{file}:#{line}"
+      end
     end
+
+    "#<#{self.class}: #{receiver.class}(#{owner})##{name}#{extra}>"
   end
 
   def curry(curried_arity = nil)

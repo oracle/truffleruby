@@ -25,7 +25,7 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = 7
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = "f2cedf92c5ef8f3c82208c229e9797d0ad6f48f6"
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -35,9 +35,10 @@ METRICS_REPS = Integer(ENV["TRUFFLERUBY_METRICS_REPS"] || 10)
 RUBOCOP_INCLUDE_LIST = %w[
   lib/cext
   lib/truffle
-  test/truffleruby-tool
   src/main/ruby
   src/test/ruby
+  test/truffleruby-tool
+  tool/generate-sulongmock.rb
 ]
 
 UNAME = `uname`.chomp
@@ -144,18 +145,6 @@ module Utilities
     end
   end
 
-  def self.find_graal_js
-    jar = ENV['GRAAL_JS_JAR']
-    return jar if jar
-    raise "couldn't find trufflejs.jar - download GraalVM as described in https://github.com/oracle/truffleruby/blob/master/doc/user/using-graalvm.md and find it in there"
-  end
-
-  def self.find_sl
-    jar = ENV['SL_JAR']
-    return jar if jar
-    raise "couldn't find truffle-sl.jar - build Truffle and find it in there"
-  end
-
   def self.find_launcher(use_native)
     if use_native
       ENV['AOT_BIN'] || "#{TRUFFLERUBY_DIR}/bin/native-ruby"
@@ -241,6 +230,10 @@ module Utilities
     else
       STDERR.print full_message unless full_message.nil?
     end
+  end
+
+  def self.diff(expected, actual)
+    `diff #{expected} #{actual}`
   end
 
 end
@@ -417,7 +410,6 @@ module Commands
       jt ruby [options] args...                      run TruffleRuby with args
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME, or have graal built as a sibling)
               --stress    stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
-          --js            add Graal.js to the classpath (set GRAAL_JS_JAR)
           --asm           show assembly (implies --graal)
           --server        run an instrumentation server on port 8080
           --igv           make sure IGV is running and dump Graal graphs after partial escape (implies --graal)
@@ -493,8 +485,6 @@ module Commands
         GRAAL_HOME                                   Directory where there is a built checkout of the Graal compiler (make sure mx is on your path)
         JVMCI_BIN                                    JVMCI-enabled java command (also set JVMCI_GRAAL_HOME)
         JVMCI_GRAAL_HOME                             Like GRAAL_HOME, but only used for the JARs to run with JVMCI_BIN
-        GRAAL_JS_JAR                                 The location of trufflejs.jar
-        SL_JAR                                       The location of truffle-sl.jar
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         AOT_BIN                                      TruffleRuby/SVM executable
     TXT
@@ -534,7 +524,7 @@ module Commands
 
     add_default_dynamic_imports
 
-    mx 'build', '--force-javac', '--warning-as-error', '--force-deprecation-as-warning-for-dependencies',
+    mx 'build', '--force-javac', '--warning-as-error', '--force-deprecation-as-warning',
        # show more than default 100 errors not to hide actual errors under pile of missing symbols
        '-A-Xmaxerrs', '-A1000', *options
   end
@@ -568,8 +558,8 @@ module Commands
     puts "Environment"
     env_vars = %w[JAVA_HOME PATH RUBY_BIN GRAALVM_BIN
                   GRAAL_HOME TRUFFLERUBY_RESILIENT_GEM_HOME
-                  JVMCI_BIN JVMCI_GRAAL_HOME GRAAL_JS_JAR
-                  SL_JAR OPENSSL_PREFIX AOT_BIN TRUFFLERUBY_CEXT_ENABLED
+                  JVMCI_BIN JVMCI_GRAAL_HOME OPENSSL_PREFIX
+                  AOT_BIN TRUFFLERUBY_CEXT_ENABLED
                   TRUFFLERUBYOPT RUBYOPT]
     column_size = env_vars.map(&:size).max
     env_vars.each do |e|
@@ -630,11 +620,6 @@ module Commands
       vm_args << '-J-Dgraal.TruffleCompileImmediately=true'
       vm_args << '-J-Dgraal.TruffleBackgroundCompilation=false'
       vm_args << '-J-Dgraal.TruffleCompilationExceptionsAreFatal=true'
-    end
-
-    if args.delete('--js')
-      vm_args << '-J-cp'
-      vm_args << Utilities.find_graal_js
     end
 
     if args.delete('--asm')
@@ -726,7 +711,7 @@ module Commands
     build("cexts")
 
     chdir(ext_dir) do
-      run_ruby('-rmkmf', "extconf.rb") # -rmkmf is required for C ext tests
+      run_ruby('-rmkmf', "#{ext_dir}/extconf.rb") # -rmkmf is required for C ext tests
       if File.exists?('Makefile')
         raw_sh("make")
         FileUtils::Verbose.cp("#{name}.su", target) if target
@@ -826,14 +811,17 @@ module Commands
     def remote_urls(dir = TRUFFLERUBY_DIR)
       @remote_urls ||= Hash.new
       @remote_urls[dir] ||= begin
-        chdir dir do
-          out, _err = raw_sh 'git', 'remote', capture: true
-          out.split.map do |remote|
-            url, _err = raw_sh 'git', 'config', '--get', "remote.#{remote}.url", capture: true
-            [remote, url.chomp]
-          end
+        out, _err = raw_sh 'git', '-C', dir, 'remote', capture: true, no_print_cmd: true
+        out.split.map do |remote|
+          url, _err = raw_sh 'git', '-C', dir, 'config', '--get', "remote.#{remote}.url", capture: true, no_print_cmd: true
+          [remote, url.chomp]
         end
       end
+    end
+
+    def try_fetch(repo)
+      remote = github(repo) || bitbucket(repo) || 'origin'
+      raw_sh "git", "-C", repo, "fetch", remote, continue_on_failure: true
     end
   end
 
@@ -910,16 +898,7 @@ module Commands
       args, files_to_run = args.partition { |a| a.start_with?('-') }
     end
 
-    if files_to_run
-      prefix = "test/mri/tests/"
-      files_to_run = files_to_run.map { |file|
-        if file.start_with?(prefix)
-          file[prefix.size..-1]
-        else
-          file
-        end
-      }
-    else
+    unless files_to_run
       prefix = "#{TRUFFLERUBY_DIR}/test/mri/tests/"
       include_files = Dir.glob(include_pattern).map { |f|
         raise unless f.start_with?(prefix)
@@ -944,6 +923,18 @@ module Commands
   private :test_mri
 
   def run_mri_tests(extra_args, test_files, runner_args, run_options = {})
+    prefix = "test/mri/tests/"
+    abs_prefix = "#{TRUFFLERUBY_DIR}/#{prefix}"
+    test_files = test_files.map { |file|
+      if file.start_with?(prefix)
+        file[prefix.size..-1]
+      elsif file.start_with?(abs_prefix)
+        file[abs_prefix.size..-1]
+      else
+        file
+      end
+    }
+
     truffle_args =  if extra_args.include?('--native')
                       %W[-Xhome=#{TRUFFLERUBY_DIR}]
                     else
@@ -958,23 +949,30 @@ module Commands
 
     cext_tests = test_files.select { |f| f.include?("cext-ruby") }
     cext_tests.each do |test|
+      puts
+      puts test
       test_path = "#{TRUFFLERUBY_DIR}/test/mri/tests/#{test}"
       match = File.read(test_path).match(/\brequire ['"]c\/(.*?)["']/)
       if match
-        compile_dir = if match[1].include?('/')
-                        if Dir.exists?("#{MRI_TEST_CEXT_DIR}/#{match[1]}")
-                          "#{MRI_TEST_CEXT_DIR}/#{match[1]}"
+        cext_name = match[1]
+        compile_dir = if cext_name.include?('/')
+                        if Dir.exists?("#{MRI_TEST_CEXT_DIR}/#{cext_name}")
+                          "#{MRI_TEST_CEXT_DIR}/#{cext_name}"
                         else
-                          "#{MRI_TEST_CEXT_DIR}/#{File.dirname(match[1])}"
+                          "#{MRI_TEST_CEXT_DIR}/#{File.dirname(cext_name)}"
                         end
                       else
-                        "#{MRI_TEST_CEXT_DIR}/#{match[1]}"
+                        if Dir.exists?("#{MRI_TEST_CEXT_DIR}/#{cext_name}")
+                          "#{MRI_TEST_CEXT_DIR}/#{cext_name}"
+                        else
+                          "#{MRI_TEST_CEXT_DIR}/#{cext_name.gsub('_', '-')}"
+                        end
                       end
         name = File.basename(match[1])
         target_dir = if match[1].include?('/')
                        File.dirname(match[1])
                      else
-                      ''
+                       ''
                      end
         dest_dir = File.join(MRI_TEST_CEXT_LIB_DIR, target_dir)
         FileUtils::Verbose.mkdir_p(dest_dir)
@@ -1016,10 +1014,6 @@ module Commands
     env = {}
 
     env['TRUFFLERUBYOPT'] = '-Xexceptions.print_java=true'
-
-    if ENV['GRAAL_JS_JAR']
-      env['JAVA_OPTS'] = "-cp #{Utilities.find_graal_js}"
-    end
 
     Dir["#{TRUFFLERUBY_DIR}/test/truffle/compiler/*.sh"].sort.each do |test_script|
       if args.empty? or args.include?(File.basename(test_script, ".*"))
@@ -1066,9 +1060,21 @@ module Commands
           cextc(dir)
           run_ruby "-I#{dir}/lib", "#{dir}/bin/#{test_name}", out: output_file
           actual = File.read(output_file)
-          expected = File.read("#{dir}/expected.txt")
+          expected_file = "#{dir}/expected.txt"
+          expected = File.read(expected_file)
           unless actual == expected
-            abort "C extension #{dir} didn't work as expected\nActual:\n#{actual}\nExpected:\n#{expected}"
+            abort <<-EOS
+C extension #{dir} didn't work as expected
+
+Actual:
+#{actual}
+
+Expected:
+#{expected}
+
+Diff:
+#{Utilities.diff(expected_file, output_file)}
+EOS
           end
         ensure
           File.delete output_file if File.exist? output_file
@@ -1127,28 +1133,13 @@ module Commands
   end
 
   def test_integration(*args)
-    classpath = []
-
-    if ENV['GRAAL_JS_JAR']
-      classpath << Utilities.find_graal_js
-    end
-
-    if ENV['SL_JAR']
-      classpath << Utilities.find_sl
-    end
-
-    env = {}
-    unless classpath.empty?
-      env['JAVA_OPTS'] = "-cp #{classpath.join(':')}"
-    end
-
     tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/integration"
     single_test            = !args.empty?
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
     Dir["#{tests_path}/#{test_names}.sh"].sort.each do |test_script|
       check_test_port
-      sh env, test_script
+      sh test_script
     end
   end
   private :test_integration
@@ -1156,18 +1147,13 @@ module Commands
   def test_gems(*args)
     gem_test_pack
 
-    env = {}
-    if ENV['GRAAL_JS_JAR']
-      env['JAVA_OPTS'] = "-cp #{Utilities.find_graal_js}"
-    end
-
     tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/gems"
     single_test            = !args.empty?
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
     Dir["#{tests_path}/#{test_names}.sh"].sort.each do |test_script|
       check_test_port
-      sh env, test_script
+      sh test_script
     end
   end
   private :test_gems
@@ -1315,23 +1301,22 @@ module Commands
   private :test_tck
 
   def gem_test_pack
-    name = "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}"
-    test_pack = File.expand_path(name, TRUFFLERUBY_DIR)
-    archive = "#{test_pack}.tar.gz"
-    unless File.exist?(archive)
-      $stderr.puts "Downloading latest gem test pack..."
+    name = "truffleruby-gem-test-pack"
+    gem_test_pack = File.expand_path(name, TRUFFLERUBY_DIR)
+    unless Dir.exist?(gem_test_pack)
+      $stderr.puts "Cloning the truffleruby-gem-test-pack repository"
+      url = mx('urlrewrite', "https://github.com/graalvm/#{name}.git", capture: true).first.rstrip
+      sh "git", "clone", url
+    end
 
-      # To update these files contact someone with permissions on lafo.
-      url = mx('urlrewrite', "https://lafo.ssw.uni-linz.ac.at/pub/graal-external-deps/#{name}.tar.gz", capture: true).first.rstrip
-      archive = "#{test_pack}.tar.gz"
-      sh 'curl', '-L', '-o', archive, url
+    current = `git -C #{gem_test_pack} rev-parse HEAD`.chomp
+    unless current == TRUFFLERUBY_GEM_TEST_PACK_VERSION
+      Remotes.try_fetch(gem_test_pack)
+      raw_sh "git", "-C", gem_test_pack, "checkout", "-q", TRUFFLERUBY_GEM_TEST_PACK_VERSION
     end
-    unless Dir.exist?(test_pack)
-      $stderr.puts "Unpacking gem test pack..."
-      sh 'tar', '-zxf', archive
-    end
-    puts test_pack
-    test_pack
+
+    puts gem_test_pack
+    gem_test_pack
   end
   alias_method :'gem-test-pack', :gem_test_pack
 
@@ -1758,12 +1743,8 @@ module Commands
     graal = Utilities.find_or_clone_repo('https://github.com/graalvm/graal.git')
 
     if sforceimports
-      chdir(graal) do
-        raw_sh "git", "fetch",
-               Remotes.github(graal) || Remotes.bitbucket(graal) || 'origin',
-               continue_on_failure: true
-        raw_sh "git", "checkout", Utilities.truffle_version
-      end
+      Remotes.try_fetch(graal)
+      raw_sh "git", "-C", graal, "checkout", Utilities.truffle_version
     end
 
     graal

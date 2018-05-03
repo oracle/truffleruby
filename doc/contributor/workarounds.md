@@ -28,9 +28,3 @@ They should all be eventually removed and no new usages should be added.
 Is a legacy tool to setup patches to run gem tests.  It's used only in `jt test
 ecosystem` mainly for Rails testing. The tool should be removed and no new tests
 should use it.
-
-## Constant replacement
-
-`org.truffleruby.parser.ConstantReplacer` replaces constant if a partial file
-path matches and the name of the constant equals. Usually used to fix Ruby
-implementation detection. Should be removed and not used further.    

@@ -72,16 +72,10 @@ import org.truffleruby.core.module.ModuleNodesBuiltins;
 import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.mutex.MutexNodesBuiltins;
 import org.truffleruby.core.mutex.MutexNodesFactory;
-import org.truffleruby.core.numeric.BignumNodesBuiltins;
-import org.truffleruby.core.numeric.BignumNodesFactory;
-import org.truffleruby.core.numeric.FixnumNodesBuiltins;
-import org.truffleruby.core.numeric.FixnumNodesFactory;
 import org.truffleruby.core.numeric.FloatNodesBuiltins;
 import org.truffleruby.core.numeric.FloatNodesFactory;
 import org.truffleruby.core.numeric.IntegerNodesBuiltins;
 import org.truffleruby.core.numeric.IntegerNodesFactory;
-import org.truffleruby.core.numeric.TruffleFixnumNodesBuiltins;
-import org.truffleruby.core.numeric.TruffleFixnumNodesFactory;
 import org.truffleruby.core.objectspace.ObjectSpaceNodesBuiltins;
 import org.truffleruby.core.objectspace.ObjectSpaceNodesFactory;
 import org.truffleruby.core.proc.ProcNodesBuiltins;
@@ -177,7 +171,6 @@ public abstract class BuiltinsClasses {
         BasicObjectNodesBuiltins.setup(coreManager, primitiveManager);
         BCryptNodesBuiltins.setup(coreManager, primitiveManager);
         BigDecimalNodesBuiltins.setup(coreManager, primitiveManager);
-        BignumNodesBuiltins.setup(coreManager, primitiveManager);
         BindingNodesBuiltins.setup(coreManager, primitiveManager);
         ByteArrayNodesBuiltins.setup(coreManager, primitiveManager);
         CExtNodesBuiltins.setup(coreManager, primitiveManager);
@@ -190,7 +183,6 @@ public abstract class BuiltinsClasses {
         ExceptionNodesBuiltins.setup(coreManager, primitiveManager);
         FalseClassNodesBuiltins.setup(coreManager, primitiveManager);
         FiberNodesBuiltins.setup(coreManager, primitiveManager);
-        FixnumNodesBuiltins.setup(coreManager, primitiveManager);
         FloatNodesBuiltins.setup(coreManager, primitiveManager);
         JavaUtilitiesNodesBuiltins.setup(coreManager, primitiveManager);
         HashNodesBuiltins.setup(coreManager, primitiveManager);
@@ -232,7 +224,6 @@ public abstract class BuiltinsClasses {
         TruffleBindingNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleBootNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleDebugNodesBuiltins.setup(coreManager, primitiveManager);
-        TruffleFixnumNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleGCNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleGraalNodesBuiltins.setup(coreManager, primitiveManager);
@@ -257,7 +248,6 @@ public abstract class BuiltinsClasses {
             BasicObjectNodesFactory.getFactories(),
             BCryptNodesFactory.getFactories(),
             BigDecimalNodesFactory.getFactories(),
-            BignumNodesFactory.getFactories(),
             BindingNodesFactory.getFactories(),
             ByteArrayNodesFactory.getFactories(),
             CExtNodesFactory.getFactories(),
@@ -270,7 +260,6 @@ public abstract class BuiltinsClasses {
             ExceptionNodesFactory.getFactories(),
             FalseClassNodesFactory.getFactories(),
             FiberNodesFactory.getFactories(),
-            FixnumNodesFactory.getFactories(),
             FloatNodesFactory.getFactories(),
             JavaUtilitiesNodesFactory.getFactories(),
             HashNodesFactory.getFactories(),
@@ -312,7 +301,6 @@ public abstract class BuiltinsClasses {
             TruffleBindingNodesFactory.getFactories(),
             TruffleBootNodesFactory.getFactories(),
             TruffleDebugNodesFactory.getFactories(),
-            TruffleFixnumNodesFactory.getFactories(),
             TruffleGCNodesFactory.getFactories(),
             TruffleNodesFactory.getFactories(),
             TruffleGraalNodesFactory.getFactories(),

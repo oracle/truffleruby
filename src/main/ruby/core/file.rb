@@ -237,7 +237,6 @@ class File < IO
   # the link, not the file referenced by the link).
   # Often not available.
   def self.lchmod(mode, *paths)
-
     mode = Truffle::Type.coerce_to(mode, Integer, :to_int)
 
     paths.each do |path|
@@ -247,6 +246,7 @@ class File < IO
 
     paths.size
   end
+  Truffle.invoke_primitive(:method_unimplement, method(:lchmod)) unless Truffle::Platform.has_lchmod?
 
   ##
   # Changes the owner and group of the
@@ -713,7 +713,7 @@ class File < IO
   def self.fnmatch(pattern, path, flags=0)
     pattern = StringValue(pattern)
     path    = Truffle::Type.coerce_to_path(path)
-    flags   = Truffle::Type.coerce_to(flags, Fixnum, :to_int)
+    flags   = Truffle::Type.coerce_to_int(flags)
     brace_match = false
 
     if (flags & FNM_EXTGLOB) != 0
@@ -1138,7 +1138,7 @@ class File < IO
     mode = Stat.new(path).mode
     if (mode & Stat::S_IROTH) == Stat::S_IROTH
       tmp = mode & (Stat::S_IRUGO | Stat::S_IWUGO | Stat::S_IXUGO)
-      return Truffle::Type.coerce_to tmp, Fixnum, :to_int
+      return Truffle::Type.coerce_to_int(tmp)
     end
     nil
   end
@@ -1149,7 +1149,7 @@ class File < IO
     mode = Stat.new(path).mode
     if (mode & Stat::S_IWOTH) == Stat::S_IWOTH
       tmp = mode & (Stat::S_IRUGO | Stat::S_IWUGO | Stat::S_IXUGO)
-      return Truffle::Type.coerce_to tmp, Fixnum, :to_int
+      return Truffle::Type.coerce_to_int(tmp)
     end
   end
 
@@ -1234,7 +1234,7 @@ class File < IO
 
       # TODO: fix normalize_options
       case mode
-      when String, Fixnum
+      when String, Integer
         # do nothing
       when nil
         mode = 'r'

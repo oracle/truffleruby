@@ -148,37 +148,8 @@ set in `RUBYOPT`.
 
 ## Running with Graal
 
-To run with a GraalVM binary tarball, set the `GRAALVM_BIN` environment variable
-and run with the `--graal` option. Note that if you're running a native TruffleRuby
-binary, Graal is always built into the binary and enabled; you can safely ignore
-the rest of this section.
-
-```bash
-$ export GRAALVM_BIN=.../graalvm-0.nn/bin/java
-$ jt ruby --graal ...
-```
-
-You can check this is working by printing the value of `Truffle.graal?`.
-
-```bash
-$ export GRAALVM_BIN=.../graalvm-0.nn/bin/java
-$ jt ruby --graal -e 'p Truffle.graal?'
-```
-
-To run with Graal built from source, set `GRAAL_HOME`. Or it will be
-automatically found if it is cloned into the same directory as `truffleruby`, it
-is built, and you are not using a binary suite for Truffle.
-
-```bash
-$ export GRAAL_HOME=.../graal
-$ jt ruby --graal ...
-```
-
-Set Graal options as any other JVM option.
-
-```bash
-$ jt ruby --graal -J-Dgraal.TraceTruffleCompilation=true ...
-```
+See the document on [build graal](building-graal.md), and then run `jt ruby`
+with the `--graal` option.
 
 We have flags in `jt` to set some options, such as `--trace` for
 `-J-Dgraal.TraceTruffleCompilation=true` and `--igv` for
@@ -221,18 +192,16 @@ exception.
 When the spec is fixed the `untag` command will remove the tag and you can
 commit the fix and the removal of the tag.
 
-## Running specs for Ruby 2.4/2.5 features
+## Running specs for Ruby 2.5 features
 
-TruffleRuby currently targets Ruby 2.3. However, we welcome pull requests for
-Ruby 2.4/2.5 features as long as they don't conflict significantly with
-Ruby 2.3 semantics.
+TruffleRuby currently targets Ruby 2.4. However, we welcome pull requests for
+Ruby 2.5 features as long as they don't conflict significantly with
+Ruby 2.4 semantics.
 
-It is possible to run specs for Ruby 2.4 and 2.5 features by setting
+It is possible to run specs for Ruby 2.5 features by setting
 `PRETEND_RUBY_VERSION`:
 
 ```bash
-# String#match? is introduced in 2.4
-$ PRETEND_RUBY_VERSION=2.4.3 jt test spec/ruby/core/string/match_spec.rb
 # Integer#digits is introduced in 2.5
 $ PRETEND_RUBY_VERSION=2.5.0 jt test spec/ruby/core/integer/digits_spec.rb
 ```
@@ -240,8 +209,7 @@ $ PRETEND_RUBY_VERSION=2.5.0 jt test spec/ruby/core/integer/digits_spec.rb
 This also works for `jt tag`/`jt untag`.
 
 When working on a 2.4/2.5 feature, add the spec file in the corresponding file
-list (`:ruby24` or `:ruby25`) in `spec/truffle.mspec` so that the specs are run
-in the CI too.
+list (`:ruby25`) in `spec/truffle.mspec` so that the specs are run in CI too.
 
 ## How to fix a failing MRI test
 

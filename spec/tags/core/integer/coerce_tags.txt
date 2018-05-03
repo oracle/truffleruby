@@ -1,1 +1,3 @@
 fails:Integer#coerce bignum coerces other to a Bignum and returns [other, self] when passed a Fixnum
+fails:Integer#coerce bignum raises a TypeError when passed a String
+fails:Integer#coerce bignum raises a TypeError when passed a Float

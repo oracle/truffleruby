@@ -125,6 +125,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                     break;
                 case "size":
                 case "keys":
+                case "class":
                     expectedArgsLength = 0;
                     break;
                 default:

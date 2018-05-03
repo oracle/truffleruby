@@ -48,7 +48,7 @@ module Gem::Resolver::Molinillo
       if debug?
         debug_info = yield
         debug_info = debug_info.inspect unless debug_info.is_a?(String)
-        output.puts debug_info.split("\n").map { |s| '  ' * depth + s }
+        output.puts debug_info.split("\n").map { |s| ' ' * depth + s }
       end
     end
 
@@ -58,7 +58,8 @@ module Gem::Resolver::Molinillo
     #
     # @return [Boolean]
     def debug?
-      @debug_mode ||= ENV['MOLINILLO_DEBUG']
+      return @debug_mode if defined?(@debug_mode)
+      @debug_mode = ENV['MOLINILLO_DEBUG']
     end
   end
 end

@@ -33,11 +33,9 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ValueProfile;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -53,6 +51,7 @@ import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.module.ModuleNodesFactory.ClassExecNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen;
@@ -613,20 +612,26 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         private CodeLoader.DeferredCall classEvalSource(DynamicObject module, DynamicObject rubySource, String file, int line) {
             assert RubyGuards.isRubyString(rubySource);
-            final String code = StringOperations.getString(rubySource);
+
+            final Source source = KernelNodes.EvalNode.createEvalSource(KernelNodes.EvalNode.offsetSource("class/module_eval", StringOperations.getString(rubySource), file, line), file);
 
             final MaterializedFrame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
                     .getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize();
-            Encoding encoding = Layouts.STRING.getRope(rubySource).getEncoding();
 
-            // TODO (pitr 15-Oct-2015): fix this ugly hack, required for AS, copy-paste
-            final char[] emptyLines = new char[Math.max(line - 1, 0)];
-            Arrays.fill(emptyLines, '\n');
-            Source source = Source.newBuilder(new String(emptyLines) + code).name(file.intern()).mimeType(RubyLanguage.MIME_TYPE).build();
+            final RubyRootNode rootNode = getContext().getCodeLoader().parse(
+                    source,
+                    Layouts.STRING.getRope(rubySource).getEncoding(),
+                    ParserContext.MODULE,
+                    callerFrame,
+                    true,
+                    this);
 
-            final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, encoding, ParserContext.MODULE, callerFrame, true, this);
-            final DeclarationContext declarationContext = new DeclarationContext(Visibility.PUBLIC, new FixedDefaultDefinee(module));
-            return getContext().getCodeLoader().prepareExecute(ParserContext.MODULE, declarationContext, rootNode, callerFrame, module);
+            return getContext().getCodeLoader().prepareExecute(
+                    ParserContext.MODULE,
+                    new DeclarationContext(Visibility.PUBLIC, new FixedDefaultDefinee(module)),
+                    rootNode,
+                    callerFrame,
+                    module);
         }
 
         @Specialization

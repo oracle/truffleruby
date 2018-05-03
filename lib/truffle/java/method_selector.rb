@@ -88,7 +88,7 @@ module JavaUtilities
 
     def initialize(range, type)
       @range = range
-      @checker = lambda { |x| x.class == Fixnum && range.include?(x) }
+      @checker = lambda { |x| x.is_a?(Integer) && range.include?(x) }
       super(type)
     end
 
@@ -101,7 +101,7 @@ module JavaUtilities
     end
 
     def fast_checker(a)
-      if a.class == Fixnum
+      if a.is_a?(Integer)
         checker
       else
         super(a)
@@ -119,13 +119,13 @@ module JavaUtilities
 
   class PrimitiveIntegerParameter < IntegerParameter
     def primitive_of?(a)
-      a.class == Fixnum && in_range?(a)
+      a.is_a?(Integer) && in_range?(a)
     end
   end
 
   class BoxedIntegerParameter < IntegerParameter
     def box_of?(a)
-      a.class == Fixnum && in_range?(a)
+      a.is_a?(Integer) && in_range?(a)
     end
   end
 

@@ -85,7 +85,7 @@ class Addrinfo
   # separate new-like method that completely ignores #initialize. You can thank
   # Ruby for being such a well designed language.
   #
-  # For the sake of simplicity `family` **must** be a Fixnum, a String based
+  # For the sake of simplicity `family` **must** be an Integer, a String based
   # address family is not supported.
   def self.raw_with_family(family)
     instance = allocate

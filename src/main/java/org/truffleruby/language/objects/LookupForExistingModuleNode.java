@@ -22,17 +22,15 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.constants.LookupConstantBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.loader.RequireNode;
 
 @NodeChildren({ @NodeChild("name"), @NodeChild("lexicalParent") })
-public abstract class LookupForExistingModuleNode extends RubyNode {
+public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode {
 
     @Child private RequireNode requireNode;
-    @Child private WarnNode warnNode;
 
     public abstract RubyConstant executeLookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent);
 
@@ -45,7 +43,7 @@ public abstract class LookupForExistingModuleNode extends RubyNode {
                 lexicalScope, lexicalParent);
 
         if (warnProfile.profile(constant != null && constant.isDeprecated())) {
-            warnDeprecatedConstant(name);
+            warnDeprecatedConstant(constant, name);
         }
 
         // If a constant already exists with this class/module name and it's an autoload module, we have to trigger
@@ -62,7 +60,7 @@ public abstract class LookupForExistingModuleNode extends RubyNode {
             final RubyConstant autoConstant = deepConstantSearch(name, lexicalScope, lexicalParent);
 
             if (warnProfile.profile(constant.isDeprecated())) {
-                warnDeprecatedConstant(name);
+                warnDeprecatedConstant(constant, name);
             }
 
             return autoConstant;
@@ -102,15 +100,6 @@ public abstract class LookupForExistingModuleNode extends RubyNode {
             requireNode = insert(RequireNode.create());
         }
         return requireNode;
-    }
-
-    private void warnDeprecatedConstant(String name) {
-        if (warnNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            warnNode = insert(new WarnNode());
-        }
-
-        warnNode.warn("constant ", name, " is deprecated");
     }
 
 }

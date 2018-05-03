@@ -12,7 +12,6 @@ package org.truffleruby.core.adapters;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.RubyContext;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 public class InputStreamAdapter extends InputStream {
@@ -26,7 +25,7 @@ public class InputStreamAdapter extends InputStream {
     }
 
     @Override
-    public int read() throws IOException {
+    public int read() {
         final Object result = context.send(object, "getbyte");
 
         if (result == context.getCoreLibrary().getNil()) {

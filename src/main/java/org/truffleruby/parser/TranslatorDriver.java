@@ -53,6 +53,7 @@ import org.truffleruby.language.DataNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.SetTopLevelBindingNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
@@ -258,6 +259,7 @@ public class TranslatorDriver {
         if (parserContext == ParserContext.TOP_LEVEL_FIRST) {
             truffleNode = Translator.sequence(sourceIndexLength, Arrays.asList(
                     new LoadRequiredLibrariesNode(),
+                    new SetTopLevelBindingNode(),
                     truffleNode));
 
             if (node.hasEndPosition()) {

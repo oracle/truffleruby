@@ -7,6 +7,7 @@
 # GNU Lesser General Public License version 2.1
 
 require_relative 'cext_ruby'
+require_relative 'cext_constants'
 
 module Truffle::CExt
   extend self
@@ -27,21 +28,21 @@ module Truffle::CExt
     end
 
     def [](index)
-      raise "bad index: #{index}" unless index == DATA_FIELD_INDEX
-      data_holder.data
+      case index
+      when 'data'
+        data_holder.data
+      else
+        raise "Unknown index: #{index}"
+      end
     end
 
     def []=(index, value)
-      raise "bad index: #{index}" unless index == DATA_FIELD_INDEX
-      data_holder.data = value
-    end
-
-    def data
-      data_holder.data
-    end
-
-    def data=(value)
-      data_holder.data = value
+      case index
+      when 'data'
+        data_holder.data = value
+      else
+        raise "Unknown index: #{index}"
+      end
     end
 
     def data_holder
@@ -52,8 +53,6 @@ module Truffle::CExt
   class RbEncoding
     ENCODING_CACHE = {}
     ENCODING_CACHE_MUTEX = Mutex.new
-
-    NAME_FIELD_INDEX = 0
 
     private_class_method :new
 
@@ -71,10 +70,10 @@ module Truffle::CExt
 
     def [](index)
       case index
-      when NAME_FIELD_INDEX, 'name'
+      when 'name'
         name
       else
-        raise
+        raise "Unknown index: #{index}"
       end
     end
 
@@ -84,21 +83,18 @@ module Truffle::CExt
   end
 
   class RbIO
-    MODE_FIELD_INDEX = 0
-    FD_FIELD_INDEX = 1
-
     def initialize(io)
       @io = io
     end
 
     def [](index)
       case index
-      when MODE_FIELD_INDEX, 'mode'
+      when 'mode'
         mode
-      when FD_FIELD_INDEX, 'fd'
+      when 'fd'
         fd
       else
-        raise
+        raise "Unknown index: #{index}"
       end
     end
 
@@ -134,6 +130,10 @@ module Truffle::CExt
 
     def []=(index, value)
       Truffle::CExt.string_pointer_write(@string, index, value)
+    end
+
+    def native?
+      Truffle::CExt.string_pointer_is_native?(@string)
     end
 
     alias_method :to_str, :string
@@ -254,8 +254,6 @@ module Truffle::CExt
       T_HASH
     when Struct
       T_STRUCT
-    when Bignum
-      T_BIGNUM
     when File
       T_FILE
     when Complex
@@ -270,8 +268,8 @@ module Truffle::CExt
       T_FALSE
     when Symbol
       T_SYMBOL
-    when Fixnum
-      T_FIXNUM
+    when Integer
+      Truffle::Type.fits_into_long?(value) ? T_FIXNUM : T_BIGNUM
     when Time
       T_DATA
     when Data
@@ -297,9 +295,9 @@ module Truffle::CExt
     when T_STRING
       value.is_a?(String)
     when T_FIXNUM
-      value.is_a?(Fixnum)
+      value.is_a?(Integer) && Truffle::Type.fits_into_long?(value)
     when T_BIGNUM
-      value.is_a?(Bignum)
+      value.is_a?(Integer) && !Truffle::Type.fits_into_long?(value)
     when T_ARRAY
       value.is_a?(Array)
     when T_FILE
@@ -342,306 +340,6 @@ module Truffle::CExt
     value.is_a?(Symbol)
   end
 
-  # START from tool/generate-cext-constants.rb
-
-  def Qundef
-    Truffle::UNDEFINED
-  end
-
-  def Qtrue
-    true
-  end
-
-  def Qfalse
-    false
-  end
-
-  def Qnil
-    nil
-  end
-
-  def rb_cArray
-    Array
-  end
-
-  def rb_cBignum
-    Bignum
-  end
-
-  def rb_cClass
-    Class
-  end
-
-  def rb_mComparable
-    Comparable
-  end
-
-  def rb_cData
-    Data
-  end
-
-  def rb_cEncoding
-    Encoding
-  end
-
-  def rb_mEnumerable
-    Enumerable
-  end
-
-  def rb_cFalseClass
-    FalseClass
-  end
-
-  def rb_cFile
-    File
-  end
-
-  def rb_cFixnum
-    Fixnum
-  end
-
-  def rb_cFloat
-    Float
-  end
-
-  def rb_cHash
-    Hash
-  end
-
-  def rb_cInteger
-    Integer
-  end
-
-  def rb_cIO
-    IO
-  end
-
-  def rb_mKernel
-    Kernel
-  end
-
-  def rb_cMatch
-    MatchData
-  end
-
-  def rb_cModule
-    Module
-  end
-
-  def rb_cNilClass
-    NilClass
-  end
-
-  def rb_cNumeric
-    Numeric
-  end
-
-  def rb_cObject
-    Object
-  end
-
-  def rb_cRange
-    Range
-  end
-
-  def rb_cRegexp
-    Regexp
-  end
-
-  def rb_cString
-    String
-  end
-
-  def rb_cStruct
-    Struct
-  end
-
-  def rb_cSymbol
-    Symbol
-  end
-
-  def rb_cTime
-    Time
-  end
-
-  def rb_cThread
-    Thread
-  end
-
-  def rb_cTrueClass
-    TrueClass
-  end
-
-  def rb_cProc
-    Proc
-  end
-
-  def rb_cMethod
-    Method
-  end
-
-  def rb_cDir
-    Dir
-  end
-
-  def rb_eArgError
-    ArgumentError
-  end
-
-  def rb_eEOFError
-    EOFError
-  end
-
-  def rb_mErrno
-    Errno
-  end
-
-  def rb_eException
-    Exception
-  end
-
-  def rb_eFloatDomainError
-    FloatDomainError
-  end
-
-  def rb_eIndexError
-    IndexError
-  end
-
-  def rb_eInterrupt
-    Interrupt
-  end
-
-  def rb_eIOError
-    IOError
-  end
-
-  def rb_eLoadError
-    LoadError
-  end
-
-  def rb_eLocalJumpError
-    LocalJumpError
-  end
-
-  def rb_eMathDomainError
-    Math::DomainError
-  end
-
-  def rb_eEncCompatError
-    Encoding::CompatibilityError
-  end
-
-  def rb_eNameError
-    NameError
-  end
-
-  def rb_eNoMemError
-    NoMemoryError
-  end
-
-  def rb_eNoMethodError
-    NoMethodError
-  end
-
-  def rb_eNotImpError
-    NotImplementedError
-  end
-
-  def rb_eRangeError
-    RangeError
-  end
-
-  def rb_eRegexpError
-    RegexpError
-  end
-
-  def rb_eRuntimeError
-    RuntimeError
-  end
-
-  def rb_eScriptError
-    ScriptError
-  end
-
-  def rb_eSecurityError
-    SecurityError
-  end
-
-  def rb_eSignal
-    SignalException
-  end
-
-  def rb_eStandardError
-    StandardError
-  end
-
-  def rb_eSyntaxError
-    SyntaxError
-  end
-
-  def rb_eSystemCallError
-    SystemCallError
-  end
-
-  def rb_eSystemExit
-    SystemExit
-  end
-
-  def rb_eSysStackError
-    SystemStackError
-  end
-
-  def rb_eTypeError
-    TypeError
-  end
-
-  def rb_eThreadError
-    ThreadError
-  end
-
-  def rb_mWaitReadable
-    IO::WaitReadable
-  end
-
-  def rb_mWaitWritable
-    IO::WaitWritable
-  end
-
-  def rb_eZeroDivError
-    ZeroDivisionError
-  end
-
-  def rb_stdin
-    $stdin
-  end
-
-  def rb_stdout
-    $stdout
-  end
-
-  def rb_stderr
-    $stderr
-  end
-
-  def rb_output_fs
-    $,
-  end
-
-  def rb_rs
-    $/
-  end
-
-  def rb_output_rs
-    $\
-  end
-
-  def rb_default_rs
-    "\n"
-  end
-
-  # END from tool/generate-cext-constants.rb
-
   def rb_to_int(val)
     Truffle::Type.rb_to_int(val)
   end
@@ -659,7 +357,7 @@ module Truffle::CExt
   end
 
   def RB_FIXNUM_P(value)
-    value.is_a?(Fixnum)
+    Truffle::Type.fits_into_long?(value)
   end
 
   def RB_FLOAT_TYPE_P(value)
@@ -676,7 +374,7 @@ module Truffle::CExt
 
   def RB_OBJ_TAINTABLE(object)
     case object
-    when TrueClass, FalseClass, NilClass, Fixnum, Bignum, Float, Symbol
+    when TrueClass, FalseClass, NilClass, Integer, Float, Symbol
       false
     else
       true
@@ -685,6 +383,12 @@ module Truffle::CExt
 
   def rb_tr_obj_infect(dest, source)
     Truffle::Type.infect(dest, source)
+  end
+
+  FREEZE_METHOD = Kernel.instance_method :freeze
+
+  def rb_obj_freeze(obj)
+    FREEZE_METHOD.bind(obj).call
   end
 
   def rb_float_new(value)
@@ -991,7 +695,7 @@ module Truffle::CExt
   end
 
   def rb_str_new(string, length)
-    string.to_s[0, length].b
+    string.to_s.byteslice(0, length).force_encoding(Encoding::BINARY)
   end
 
   def rb_cstr_to_inum(string, base, raise)
@@ -1083,7 +787,7 @@ module Truffle::CExt
             obj.encoding
           when File
             obj.internal_encoding || obj.external_encoding
-          when NilClass, Fixnum, Float, TrueClass, FalseClass
+          when NilClass, Integer, Float, TrueClass, FalseClass
             -1
           # TODO BJF Mar-9-2017 Handle T_DATA
           else
@@ -1383,7 +1087,8 @@ module Truffle::CExt
   end
 
   def rb_special_const_p(object)
-    object == nil || object == true || object == false || object.class == Symbol || object.class == Fixnum
+    # Avoid calling methods on object since it might be a foreign object
+    NilClass === object || TrueClass === object || FalseClass === object || Symbol === object || Truffle::Type.fits_into_long?(object)
   end
 
   def rb_id2str(sym)
@@ -1391,6 +1096,11 @@ module Truffle::CExt
   end
 
   def rb_define_class_under(mod, name, superclass)
+    # nil is TypeError (checked below), NULL is ArgumentError
+    if !nil.equal?(superclass) and superclass.nil?
+      raise ArgumentError, "no super class for `#{name}'"
+    end
+
     if mod.const_defined?(name, false)
       current_class = mod.const_get(name, false)
       unless current_class.class == Class
@@ -1941,7 +1651,7 @@ module Truffle::CExt
     id = object.object_id
 
     # This method specifically returns a long for everyday practicality - so return a sentinel value if it's out of range
-    if Fixnum === id && id >= 0
+    if Truffle::Type.fits_into_long?(id) && id >= 0
       id
     else
       0x0101010101010101

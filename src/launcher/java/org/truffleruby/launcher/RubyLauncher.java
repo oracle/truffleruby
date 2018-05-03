@@ -42,14 +42,16 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     // Properties set directly on the java command-line with -D for image building
     private static final String LIBSULONG_DIR = isAOT() ? System.getProperty("truffleruby.native.libsulong_dir") : null;
 
-    private final CommandLineOptions config = new CommandLineOptions();
+    private CommandLineOptions config;
 
     public static void main(String[] args) {
         new RubyLauncher().launch(args);
     }
 
     static boolean isGraal() {
-        return Engine.create().getImplementationName().contains("Graal");
+        try (Engine engine = Engine.create()) {
+            return engine.getImplementationName().contains("Graal");
+        }
     }
 
     @Override
@@ -76,6 +78,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     @Override
     protected List<String> preprocessArguments(List<String> args, Map<String, String> polyglotOptions) {
         Metrics.begin();
+
+        config = new CommandLineOptions(polyglotOptions);
 
         try {
             config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.UNSET);
@@ -118,9 +122,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 }
             }
 
-            if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
-                config.getOption(OptionsCatalog.DEFAULT_EXECUTION_ACTION).applyTo(config);
-            }
         } catch (CommandLineException commandLineException) {
             System.err.println("truffleruby: " + commandLineException.getMessage());
             if (commandLineException.isUsageError()) {
@@ -186,7 +187,14 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected AbortException abortUnrecognizedArgument(String argument) {
-        throw abortInvalidArgument(argument, "truffleruby: invalid option " + argument + "  (Use --help for usage instructions.)");
+        final String description;
+        if (argument.startsWith("--ruby.")) {
+            description = argument + " (-X" + argument.substring(7) + ")";
+        } else {
+            description = argument;
+        }
+
+        throw abortInvalidArgument(argument, "truffleruby: invalid option " + description + "  (Use --help for usage instructions.)");
     }
 
     private static int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {
@@ -245,7 +253,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             builder.option("llvm.libraryPath", libraryPath);
         }
 
-        builder.options(config.getOptions());
         builder.arguments(TruffleRuby.LANGUAGE_ID, config.getArguments());
 
         return builder.build();
@@ -305,9 +312,13 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         }
     }
 
+    // To update this, use:
+    // ruby -h | ruby -e 'puts STDIN.readlines.map{|line|"out.println(#{line.chomp.inspect});"}'
+    // and replace ruby by truffleruby for the first line.
+    // Also add an extra out.println(); before out.println("Features:");
     private static void printHelp(PrintStream out) {
-        out.printf("Usage: %s [switches] [--] [programfile] [arguments]%n", TruffleRuby.ENGINE_ID);
-        out.println("  -0[octal]       specify record separator (\0, if no argument)");
+        out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
+        out.println("  -0[octal]       specify record separator (\\0, if no argument)");
         out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
         out.println("  -c              check syntax only");
         out.println("  -Cdirectory     cd to directory before executing your script");
@@ -343,6 +354,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println("  rubyopt         RUBYOPT environment variable (default: enabled)");
         out.println("  frozen-string-literal");
         out.println("                  freeze all string literals (default: disabled)");
+        // Extra output for TruffleRuby
         out.println();
         out.println("TruffleRuby:");
         out.println("  -Xlog=severe,warning,performance,info,config,fine,finer,finest");
@@ -354,7 +366,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     private static void printShortHelp(PrintStream out) {
         out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
-        out.println("  -0[octal]       specify record separator (\0, if no argument)");
+        out.println("  -0[octal]       specify record separator (\\0, if no argument)");
         out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
         out.println("  -c              check syntax only");
         out.println("  -Cdirectory     cd to directory before executing your script");

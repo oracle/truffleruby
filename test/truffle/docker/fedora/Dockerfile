@@ -5,6 +5,9 @@ MAINTAINER chris.seaton@oracle.com
 # We need a conventional locale for testing
 ENV LANG=en_US.UTF-8
 
+# Dependencies for the rebuild-images command
+RUN dnf install -y gcc
+
 # Dependencies for using openssl
 RUN dnf install -y openssl-devel
 
@@ -28,12 +31,19 @@ RUN chown test /test
 USER test
 
 # Extract the GraalVM binary tarball
+ARG GRAALVM_TARBALL
 ARG GRAALVM_VERSION
-ARG TEST_BRANCH=vm-enterprise-$GRAALVM_VERSION
+ARG TRUFFLERUBY_JAR
+ARG REBUILD_IMAGES
+RUN test -n "$GRAALVM_TARBALL"
 RUN test -n "$GRAALVM_VERSION"
-ADD graalvm-$GRAALVM_VERSION-linux-amd64-jdk8.tar.gz /test
+RUN test -n "$TRUFFLERUBY_JAR"
+ARG TEST_BRANCH=vm-enterprise-$GRAALVM_VERSION
+COPY $GRAALVM_TARBALL $TRUFFLERUBY_JAR /test/
+RUN tar -C /test -zxf /test/$GRAALVM_TARBALL
 ENV PATH=/test/graalvm-$GRAALVM_VERSION/bin:$PATH
-ENV RUBY_HOME=/test/graalvm-$GRAALVM_VERSION/jre/languages/ruby
+RUN gu install /test/$TRUFFLERUBY_JAR
+RUN if [ -n "$REBUILD_IMAGES" ]; then /test/graalvm-$GRAALVM_VERSION/jre/lib/svm/bin/rebuild-images ruby; fi
 
 # Straight away, just run the ruby executables as the most basic test
 RUN ruby --version

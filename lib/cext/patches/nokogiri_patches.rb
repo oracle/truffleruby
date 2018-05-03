@@ -8,6 +8,8 @@
 
 # Patches nokogiri 1.8.1
 
+require_relative 'common_patches'
+
 class NokogiriPatches < CommonPatches
   
   XML_NODE_SET_PATCH = <<-EOF

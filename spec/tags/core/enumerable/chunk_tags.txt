@@ -1,0 +1,1 @@
+fails:Enumerable#chunk returns an Enumerator if called without a block

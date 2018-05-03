@@ -396,6 +396,9 @@ a letter) will send `IS_BOXED` on `object` and based on that will possibly
 
 `object.new(*args)` sends `NEW`.
 
+`object.class` sends `READ(class)` for a Java `Class` object, otherwise sends an
+`INVOKE` as normal.
+
 `object.to_a` and `object.to_ary` calls `Truffle::Interop.to_array(object)`.
 
 `object.equal?(other)` returns whether `object` is the same as `other` using
@@ -411,6 +414,8 @@ sends `HAS_SIZE`.
 `object.respond_to?(:call)` sends `EXECUTABLE`.
 
 `object.respond_to?(:new)` sends `IS_INSTANTIABLE`.
+
+`object.respond_to?(:class)` calls `Truffle::Interop.java_class?(object)`.
 
 `object.respond_to?(name)` for other names returns `false`.
 
@@ -475,18 +480,19 @@ such as `java.lang.Integer` or `int[]`.
 
 `java_class.new(*args)` creates a new instance of a Java class object.
 
-`Truffle::Interop.java_type_name(java_class)` gives the Java class name for a
-Java class object, or `nil` if the object is not a Java class object.
-
 `Truffle::Interop.from_java_array(array)` creates a shallow copy of a Java
 array as a Ruby array.
 
 ## Additional methods
 
-`Truffle::Interop.foreign?(object)`
-
 `Truffle::Interop.mime_type_supported?(mime_type)` reports if a language's MIME
 type is supported for interop.
+
+`Truffle::Interop.foreign?(object)`
+
+`Truffle::Interop.java?(object)`
+
+`Truffle::Interop.java_class?(object)`
 
 `Truffle::Interop.java_string?(object)`
 

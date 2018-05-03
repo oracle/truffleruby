@@ -109,7 +109,7 @@ class Encoding
       @source_encoding = Truffle::Type.coerce_to_encoding from
       @destination_encoding = Truffle::Type.coerce_to_encoding to
 
-      if options.kind_of? Fixnum
+      if options.kind_of? Integer
         @options = options
       else
         options = Truffle::Type.coerce_to options, Hash, :to_hash
@@ -187,13 +187,13 @@ class Encoding
       if offset.nil?
         offset = target.bytesize
       else
-        offset = Truffle::Type.coerce_to offset, Fixnum, :to_int
+        offset = Truffle::Type.coerce_to_int offset
       end
 
       if size.nil?
         size = -1
       else
-        size = Truffle::Type.coerce_to size, Fixnum, :to_int
+        size = Truffle::Type.coerce_to_int size
 
         if size < 0
           raise ArgumentError, 'byte size is negative'
@@ -208,7 +208,7 @@ class Encoding
         raise ArgumentError, 'byte offset is greater than destination buffer size'
       end
 
-      if !options.kind_of? Fixnum
+      if !options.kind_of? Integer
         opts = Truffle::Type.coerce_to options, Hash, :to_hash
 
         options = 0

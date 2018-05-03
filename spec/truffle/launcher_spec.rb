@@ -16,14 +16,14 @@ describe "The launcher" do
     File.expand_path(File.dirname(RbConfig.ruby)).should == bindir
   end
 
-  launchers = { gem:         /^2\.5\.2\.3$/,
+  launchers = { gem:         /^2\.6\.14\.1$/,
                 irb:         /^irb 0\.9\.6/,
                 rake:        /^rake, version [0-9.]+/,
-                rdoc:        /^4\.2\.1$/,
-                ri:          /^ri 4\.2\.1$/,
-                ruby:        /truffleruby .* like ruby 2\.3\.7/,
+                rdoc:        /^5\.0\.0$/,
+                ri:          /^ri 5\.0\.0$/,
+                ruby:        /truffleruby .* like ruby 2\.4\.4/,
                 testrb:      [/^testrb: version unknown$/, true],
-                truffleruby: /truffleruby .* like ruby 2\.3\.7/ }
+                truffleruby: /truffleruby .* like ruby 2\.4\.4/ }
 
   launchers.each do |launcher, (test, skip_success)|
     extra_bin_dirs_described = RbConfig::CONFIG['extra_bindirs'].
@@ -187,27 +187,34 @@ describe "The launcher" do
   it "prints an error for an unknown option" do
     out = ruby_exe(nil, options: "-Xunknown=value", args: "2>&1")
     $?.success?.should == false
-    out.should include("invalid option -Xunknown=value")
+    out.should include("invalid option --ruby.unknown=value (-Xunknown=value)")
+    out = ruby_exe(nil, options: "--unknown=value", args: "2>&1")
+    $?.success?.should == false
+    out.should include("invalid option --unknown=value")
   end
 
   describe 'StringArray option' do
     it 'appends multiple options' do
-      out = ruby_exe("p $LOAD_PATH", options: "-I a -I b")
+      out = ruby_exe("puts $LOAD_PATH", options: "-I a -I b")
       $?.success?.should == true
-      out.should include('["a", "b", ')
+      out.lines[0].should == "#{Dir.pwd}/a\n"
+      out.lines[1].should == "#{Dir.pwd}/b\n"
     end
 
     it 'parses ,' do
-      out = ruby_exe("p $LOAD_PATH", options: "-Xload_paths=a,b")
+      out = ruby_exe("puts $LOAD_PATH", options: "-Xload_paths=a,b")
       $?.success?.should == true
-      out.should include('["a", "b", ')
+      out.lines[0].should == "#{Dir.pwd}/a\n"
+      out.lines[1].should == "#{Dir.pwd}/b\n"
     end
 
     it 'parses , respecting escaping' do
       # \\\\ translates to one \
-      out = ruby_exe("p $LOAD_PATH", options: "-Xload_paths=a\\\\,b,,\\\\c")
+      out = ruby_exe("puts $LOAD_PATH", options: "-Xload_paths=a\\\\,b,,\\\\c")
       $?.success?.should == true
-      out.should include('["a,b", "", "\\\\c", ')
+      out.lines[0].should == "#{Dir.pwd}/a,b\n"
+      out.lines[1].should == "#{Dir.pwd}\n"
+      out.lines[2].should == "#{Dir.pwd}/\\c\n"
     end
   end
 
@@ -216,6 +223,46 @@ describe "The launcher" do
     $?.success?.should == true
     out.should include("SEVERE deterministic hashing is enabled - this may make you vulnerable to denial of service attacks")
     out.should include("7141275149799654099")
+  end
+
+  it "prints help containing runtime options" do
+    out = ruby_exe(nil, options: "--help", args: "2>&1")
+    $?.success?.should == true
+    out.should include("--polyglot")
+    out.should include("--native")
+    out.should include("--jvm")
+  end
+
+  it "prints help:languages containing ruby language options" do
+    out = ruby_exe(nil, options: "--help:languages", args: "2>&1")
+    $?.success?.should == true
+    out.should =~ /language options/i
+    out.should include("Ruby:")
+    out.should include("--ruby.load_paths=")
+  end
+
+  guard -> { Truffle.sulong? } do
+    it "prints help:languages containing llvm language options" do
+      out = ruby_exe(nil, options: "--help:languages", args: "2>&1")
+      $?.success?.should == true
+      out.should =~ /language options/i
+      out.should include("llvm:")
+      out.should include("--llvm.libraryPath=")
+    end
+  end
+
+  it "understands ruby polyglot options" do
+    out = ruby_exe(nil, options: "--ruby.show_version=true --ruby.to_execute=p:b --ruby.execution_action=INLINE", args: "2>&1")
+    $?.success?.should == true
+    out.should include(RUBY_DESCRIPTION)
+    out.should include(':b')
+  end
+
+  it "understands ruby polyglot options without ruby. prefix" do
+    out = ruby_exe(nil, options: "--show_version=true --to_execute=p:b --execution_action=INLINE", args: "2>&1")
+    $?.success?.should == true
+    out.should include(RUBY_DESCRIPTION)
+    out.should include(':b')
   end
 
 end

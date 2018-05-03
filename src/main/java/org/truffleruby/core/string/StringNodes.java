@@ -300,7 +300,7 @@ public abstract class StringNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private ToIntNode toIntNode;
 
-        public abstract DynamicObject executeInt(VirtualFrame frame, DynamicObject string, int times);
+        public abstract DynamicObject executeInt(DynamicObject string, int times);
 
         @Specialization(guards = "times < 0")
         public DynamicObject multiplyTimesNegative(DynamicObject string, long times) {
@@ -334,13 +334,13 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!isRubyBignum(times)", "!isInteger(times)", "!isLong(times)" })
-        public DynamicObject multiply(VirtualFrame frame, DynamicObject string, Object times) {
+        public DynamicObject multiply(DynamicObject string, Object times) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toIntNode = insert(ToIntNode.create());
             }
 
-            return executeInt(frame, string, toIntNode.doInt(frame, times));
+            return executeInt(string, toIntNode.doInt(times));
         }
     }
 
@@ -1920,11 +1920,7 @@ public abstract class StringNodes {
     public abstract static class SetByteNode extends CoreMethodNode {
 
         @Child private CheckIndexNode checkIndexNode = StringNodesFactory.CheckIndexNodeGen.create(null, null);
-        @Child private RopeNodes.ConcatNode composedConcatNode = RopeNodes.ConcatNode.create();
-        @Child private RopeNodes.ConcatNode middleConcatNode = RopeNodes.ConcatNode.create();
-        @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
-        @Child private RopeNodes.SubstringNode leftSubstringNode = RopeNodes.SubstringNode.create();
-        @Child private RopeNodes.SubstringNode rightSubstringNode = RopeNodes.SubstringNode.create();
+        @Child private RopeNodes.SetByteNode setByteNode = RopeNodes.SetByteNode.create();
 
         @CreateCast("index") public RubyNode coerceIndexToInt(RubyNode index) {
             return FixnumLowerNodeGen.create(ToIntNodeGen.create(index));
@@ -1937,16 +1933,15 @@ public abstract class StringNodes {
         public abstract int executeSetByte(DynamicObject string, int index, Object value);
 
         @Specialization
-        public int setByte(DynamicObject string, int index, int value) {
+        public int setByte(DynamicObject string, int index, int value,
+                @Cached("createBinaryProfile()") ConditionProfile newRopeProfile) {
             final Rope rope = rope(string);
             final int normalizedIndex = checkIndexNode.executeCheck(index, rope.byteLength());
 
-            final Rope left = leftSubstringNode.executeSubstring(rope, 0, normalizedIndex);
-            final Rope right = rightSubstringNode.executeSubstring(rope, normalizedIndex + 1, rope.byteLength() - normalizedIndex - 1);
-            final Rope middle = makeLeafRopeNode.executeMake(new byte[] { (byte) value }, rope.getEncoding(), CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
-            final Rope composed = composedConcatNode.executeConcat(middleConcatNode.executeConcat(left, middle, rope.getEncoding()), right, rope.getEncoding());
-
-            StringOperations.setRope(string, composed);
+            final Rope newRope = setByteNode.executeSetByte(rope, normalizedIndex, value);
+            if (newRopeProfile.profile(newRope != rope)) {
+                StringOperations.setRope(string, newRope);
+            }
 
             return value;
         }
@@ -1968,12 +1963,11 @@ public abstract class StringNodes {
             }
 
             if (negativeIndexProfile.profile(index < 0)) {
-                if (-index > length) {
+                index += length;
+                if (index < 0) {
                     errorProfile.enter();
                     throw new RaiseException(getContext().getCoreExceptions().indexErrorOutOfString(index, this));
                 }
-
-                index += length;
             }
 
             return index;
@@ -2197,7 +2191,7 @@ public abstract class StringNodes {
         public Object sum(VirtualFrame frame, DynamicObject string, Object bits,
                 @Cached("create()") ToIntNode toIntNode,
                 @Cached("create()") SumNode sumNode) {
-            return sumNode.executeSum(frame, string, toIntNode.executeIntOrLong(frame, bits));
+            return sumNode.executeSum(frame, string, toIntNode.executeIntOrLong(bits));
         }
 
     }

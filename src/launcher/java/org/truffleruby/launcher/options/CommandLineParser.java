@@ -34,8 +34,8 @@
  */
 package org.truffleruby.launcher.options;
 
-import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.RubyLogger;
+import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.CommandLineOptions;
 import org.truffleruby.shared.options.DefaultExecutionAction;
 import org.truffleruby.shared.options.ExecutionAction;
@@ -209,7 +209,7 @@ public class CommandLineParser {
                     disallowedInRubyOpts(argument);
                     final String dir = grabValue(getArgumentError(" -C must be followed by a directory expression"));
                     config.setOption(OptionsCatalog.WORKING_DIRECTORY, dir);
-                    break;
+                    break FOR;
                 case 'd':
                     config.setOption(OptionsCatalog.DEBUG, true);
                     config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
@@ -378,26 +378,10 @@ public class CommandLineParser {
 
                         RubyLogger.LOGGER.setLevel(level);
                     } else {
-                        final String value;
-
-                        final int equals = extendedOption.indexOf('=');
-                        final String name;
-                        if (equals == -1) {
-                            value = "true";
-                            name = extendedOption;
-                        } else {
-                            value = extendedOption.substring(equals + 1);
-                            name = extendedOption.substring(0, equals);
-                        }
-
-                        final String fullName = TruffleRuby.LANGUAGE_ID + "." + name;
-
-                        if (OptionsCatalog.fromName(fullName) == null) {
-                            config.getUnknownArguments().add("-X" + extendedOption);
-                            break FOR;
-                        }
-
-                        config.getOptions().put(fullName, value);
+                        // Turn extra options into polyglot options and let
+                        // org.graalvm.launcher.Launcher.parsePolyglotOption
+                        // parse it
+                        config.getUnknownArguments().add("--ruby." + extendedOption);
                     }
                     break FOR;
                 case '-':

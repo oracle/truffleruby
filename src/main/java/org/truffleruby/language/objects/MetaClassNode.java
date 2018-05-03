@@ -42,12 +42,12 @@ public abstract class MetaClassNode extends RubyNode {
 
     @Specialization
     protected DynamicObject metaClassInt(int value) {
-        return coreLibrary().getFixnumClass();
+        return coreLibrary().getIntegerClass();
     }
 
     @Specialization
     protected DynamicObject metaClassLong(long value) {
-        return coreLibrary().getFixnumClass();
+        return coreLibrary().getIntegerClass();
     }
 
     @Specialization

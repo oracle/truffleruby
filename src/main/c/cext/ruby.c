@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -37,9 +38,17 @@ VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object) {
 // Memory
 
 void ruby_malloc_size_overflow(size_t count, size_t elsize) {
-    rb_raise(rb_eArgError,
-	     "malloc: possible integer overflow (%"PRIdSIZE"*%"PRIdSIZE")",
-	     count, elsize);
+  rb_raise(rb_eArgError,
+     "malloc: possible integer overflow (%"PRIdSIZE"*%"PRIdSIZE")",
+     count, elsize);
+}
+
+size_t xmalloc2_size(const size_t count, const size_t elsize) {
+  size_t ret;
+  if (rb_mul_size_overflow(count, elsize, SSIZE_MAX, &ret)) {
+    ruby_malloc_size_overflow(count, elsize);
+  }
+  return ret;
 }
 
 void *ruby_xmalloc(size_t size) {
@@ -47,7 +56,7 @@ void *ruby_xmalloc(size_t size) {
 }
 
 void *ruby_xmalloc2(size_t n, size_t size) {
-  return malloc(ruby_xmalloc2_size(n, size));
+  return malloc(xmalloc2_size(n, size));
 }
 
 void *ruby_xcalloc(size_t n, size_t size) {
@@ -70,15 +79,18 @@ void ruby_xfree(void *address) {
   free(address);
 }
 
-void *rb_alloc_tmp_buffer(volatile VALUE *buffer_pointer, long length) {
-  // TODO CS 13-Apr-17 MRI sometimes uses alloc and sometimes malloc, and wraps it in a Ruby object - is rb_free_tmp_buffer guaranteed to be called or do we need to free in a finalizer?
-  void *space = malloc(length);
-  *((void**) buffer_pointer) = space;
-  return space;
+void *rb_alloc_tmp_buffer(volatile VALUE *store, long len) {
+  void *ptr = malloc(len);
+  *((void**)store) = ptr;
+  return ptr;
 }
 
-void rb_free_tmp_buffer(volatile VALUE *buffer_pointer) {
-  free(*((void**) buffer_pointer));
+void *rb_alloc_tmp_buffer_with_count(volatile VALUE *store, size_t size, size_t cnt) {
+  return rb_alloc_tmp_buffer(store, size);
+}
+
+void rb_free_tmp_buffer(volatile VALUE *store) {
+  free(*((void**)store));
 }
 
 // Types
@@ -129,22 +141,18 @@ void rb_check_safe_obj(VALUE object) {
   }
 }
 
-bool SYMBOL_P(VALUE value) {
-  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "SYMBOL_P", value));
-}
-
 VALUE rb_obj_hide(VALUE obj) {
-    // In MRI, this deletes the class information which is later set by rb_obj_reveal.
-    // It also hides the object from each_object, we do not hide it.
-    return obj;
+  // In MRI, this deletes the class information which is later set by rb_obj_reveal.
+  // It also hides the object from each_object, we do not hide it.
+  return obj;
 }
 
 VALUE rb_obj_reveal(VALUE obj, VALUE klass) {
-    // In MRI, this sets the class of the object, we are not deleting the class in rb_obj_hide, so we
-    // ensure that class matches.
-    return polyglot_invoke(RUBY_CEXT, "ensure_class", obj, klass,
-           rb_str_new_cstr("class %s supplied to rb_obj_reveal does not matches the obj's class %s"));
-    return obj;
+  // In MRI, this sets the class of the object, we are not deleting the class in rb_obj_hide, so we
+  // ensure that class matches.
+  return polyglot_invoke(RUBY_CEXT, "ensure_class", obj, klass,
+             rb_str_new_cstr("class %s supplied to rb_obj_reveal does not matches the obj's class %s"));
+  return obj;
 }
 
 // Constants
@@ -169,10 +177,6 @@ VALUE rb_tr_get_nil(void) {
 
 VALUE rb_tr_get_Array(void) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cArray");
-}
-
-VALUE rb_tr_get_Bignum(void) {
-  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cBignum");
 }
 
 VALUE rb_tr_get_Class(void) {
@@ -201,10 +205,6 @@ VALUE rb_tr_get_FalseClass(void) {
 
 VALUE rb_tr_get_File(void) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cFile");
-}
-
-VALUE rb_tr_get_Fixnum(void) {
-  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cFixnum");
 }
 
 VALUE rb_tr_get_Float(void) {
@@ -456,12 +456,14 @@ unsigned long rb_num2ulong(VALUE val) {
 }
 
 static char *out_of_range_float(char (*pbuf)[24], VALUE val) {
-    char *const buf = *pbuf;
-    char *s;
+  char *const buf = *pbuf;
+  char *s;
 
-    snprintf(buf, sizeof(*pbuf), "%-.10g", RFLOAT_VALUE(val));
-    if ((s = strchr(buf, ' ')) != 0) *s = '\0';
-    return buf;
+  snprintf(buf, sizeof(*pbuf), "%-.10g", RFLOAT_VALUE(val));
+  if ((s = strchr(buf, ' ')) != 0) {
+    *s = '\0';
+  }
+  return buf;
 }
 
 #define FLOAT_OUT_OF_RANGE(val, type) do { \
@@ -478,33 +480,30 @@ static char *out_of_range_float(char (*pbuf)[24], VALUE val) {
    LLONG_MIN_MINUS_ONE < (n))
 
 LONG_LONG rb_num2ll(VALUE val) {
-    if (NIL_P(val)) {
-	rb_raise(rb_eTypeError, "no implicit conversion from nil");
-    }
+  if (NIL_P(val)) {
+    rb_raise(rb_eTypeError, "no implicit conversion from nil");
+  }
 
-    if (FIXNUM_P(val)) return (LONG_LONG)FIX2LONG(val);
-
-    else if (RB_TYPE_P(val, T_FLOAT)) {
-	if (RFLOAT_VALUE(val) < LLONG_MAX_PLUS_ONE
-            && (LLONG_MIN_MINUS_ONE_IS_LESS_THAN(RFLOAT_VALUE(val)))) {
-	    return (LONG_LONG)(RFLOAT_VALUE(val));
-	}
-	else {
-	    FLOAT_OUT_OF_RANGE(val, "long long");
-	}
+  if (FIXNUM_P(val)) {
+    return (LONG_LONG)FIX2LONG(val);
+  } else if (RB_TYPE_P(val, T_FLOAT)) {
+    if (RFLOAT_VALUE(val) < LLONG_MAX_PLUS_ONE
+        && (LLONG_MIN_MINUS_ONE_IS_LESS_THAN(RFLOAT_VALUE(val)))) {
+      return (LONG_LONG)(RFLOAT_VALUE(val));
+    } else {
+      FLOAT_OUT_OF_RANGE(val, "long long");
     }
-    else if (RB_TYPE_P(val, T_BIGNUM)) {
-	return rb_big2ll(val);
-    }
-    else if (RB_TYPE_P(val, T_STRING)) {
-	rb_raise(rb_eTypeError, "no implicit conversion from string");
-    }
-    else if (RB_TYPE_P(val, T_TRUE) || RB_TYPE_P(val, T_FALSE)) {
-	rb_raise(rb_eTypeError, "no implicit conversion from boolean");
-    }
-
-    val = rb_to_int(val);
-    return NUM2LL(val);
+  }
+  else if (RB_TYPE_P(val, T_BIGNUM)) {
+    return rb_big2ll(val);
+  } else if (RB_TYPE_P(val, T_STRING)) {
+    rb_raise(rb_eTypeError, "no implicit conversion from string");
+  } else if (RB_TYPE_P(val, T_TRUE) || RB_TYPE_P(val, T_FALSE)) {
+    rb_raise(rb_eTypeError, "no implicit conversion from boolean");
+  }
+  
+  val = rb_to_int(val);
+  return NUM2LL(val);
 }
 
 short rb_num2short(VALUE value) {
@@ -519,11 +518,11 @@ short rb_fix2short(VALUE value) {
   rb_tr_error("rb_num2ushort not implemented");
 }
 
-VALUE INT2FIX(long value) {
+VALUE RB_INT2FIX(long value) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "INT2FIX", value);
 }
 
-VALUE LONG2FIX(long value) {
+VALUE RB_LONG2FIX(long value) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "LONG2FIX", value);
 }
 
@@ -537,14 +536,6 @@ unsigned long rb_fix2uint(VALUE value) {
 
 int rb_long2int(long value) {
   return polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_long2int", value));
-}
-
-ID SYM2ID(VALUE value) {
-  return (ID) value;
-}
-
-VALUE ID2SYM(ID value) {
-  return (VALUE) value;
 }
 
 int rb_cmpint(VALUE val, VALUE a, VALUE b) {
@@ -793,7 +784,7 @@ void rb_tr_obj_infect(VALUE a, VALUE b) {
 }
 
 VALUE rb_obj_freeze(VALUE object) {
-  return (VALUE) polyglot_invoke(object, "freeze");
+  return polyglot_invoke(RUBY_CEXT, "rb_obj_freeze", object);
 }
 
 VALUE rb_obj_frozen_p(VALUE object) {
@@ -822,41 +813,46 @@ VALUE rb_Integer(VALUE value) {
    INTEGER_PACK_2COMP | \
    INTEGER_PACK_FORCE_GENERIC_IMPLEMENTATION)
 
-static void
-validate_integer_pack_format(size_t numwords, size_t wordsize, size_t nails, int flags, int supported_flags) {
-    int wordorder_bits = flags & INTEGER_PACK_WORDORDER_MASK;
-    int byteorder_bits = flags & INTEGER_PACK_BYTEORDER_MASK;
+static void validate_integer_pack_format(size_t numwords, size_t wordsize, size_t nails, int flags, int supported_flags) {
+  int wordorder_bits = flags & INTEGER_PACK_WORDORDER_MASK;
+  int byteorder_bits = flags & INTEGER_PACK_BYTEORDER_MASK;
 
-    if (flags & ~supported_flags) {
-        rb_raise(rb_eArgError, "unsupported flags specified");
-    }
+  if (flags & ~supported_flags) {
+    rb_raise(rb_eArgError, "unsupported flags specified");
+  }
 
-    if (wordorder_bits == 0) {
-        if (1 < numwords)
-            rb_raise(rb_eArgError, "word order not specified");
-    } else if (wordorder_bits != INTEGER_PACK_MSWORD_FIRST &&
-               wordorder_bits != INTEGER_PACK_LSWORD_FIRST) {
-      rb_raise(rb_eArgError, "unexpected word order");
+  if (wordorder_bits == 0) {
+    if (1 < numwords) {
+      rb_raise(rb_eArgError, "word order not specified");
     }
-    if (byteorder_bits == 0) {
-        rb_raise(rb_eArgError, "byte order not specified");
-    } else if (byteorder_bits != INTEGER_PACK_MSBYTE_FIRST &&
-               byteorder_bits != INTEGER_PACK_LSBYTE_FIRST &&
-               byteorder_bits != INTEGER_PACK_NATIVE_BYTE_ORDER) {
+  } else if (wordorder_bits != INTEGER_PACK_MSWORD_FIRST &&
+      wordorder_bits != INTEGER_PACK_LSWORD_FIRST) {
+    rb_raise(rb_eArgError, "unexpected word order");
+  }
+  
+  if (byteorder_bits == 0) {
+    rb_raise(rb_eArgError, "byte order not specified");
+  } else if (byteorder_bits != INTEGER_PACK_MSBYTE_FIRST &&
+    byteorder_bits != INTEGER_PACK_LSBYTE_FIRST &&
+    byteorder_bits != INTEGER_PACK_NATIVE_BYTE_ORDER) {
       rb_raise(rb_eArgError, "unexpected byte order");
-    }
-    if (wordsize == 0) {
-        rb_raise(rb_eArgError, "invalid wordsize: %lu", wordsize);
-    }
-    if (8 < wordsize) {
-      rb_raise(rb_eArgError, "too big wordsize: %lu", wordsize);
-    }
-    if (wordsize <= nails / CHAR_BIT) {
-      rb_raise(rb_eArgError, "too big nails: %lu", nails);
-    }
-    if (INT_MAX / wordsize < numwords) {
-      rb_raise(rb_eArgError, "too big numwords * wordsize: %lu * %lu", numwords, wordsize);
-    }
+  }
+  
+  if (wordsize == 0) {
+    rb_raise(rb_eArgError, "invalid wordsize: %lu", wordsize);
+  }
+  
+  if (8 < wordsize) {
+    rb_raise(rb_eArgError, "too big wordsize: %lu", wordsize);
+  }
+  
+  if (wordsize <= nails / CHAR_BIT) {
+    rb_raise(rb_eArgError, "too big nails: %lu", nails);
+  }
+  
+  if (INT_MAX / wordsize < numwords) {
+    rb_raise(rb_eArgError, "too big numwords * wordsize: %lu * %lu", numwords, wordsize);
+  }
 }
 
 static int check_msw_first(int flags) {
@@ -981,7 +977,7 @@ char *RSTRING_PTR_IMPL(VALUE string) {
   // We start off treating RStringPtr as if it weren't a pointer for interop purposes. This is so Sulong doesn't try
   // to convert it to an actual char* when returning from `polyglot_invoke`. Once we have a handle to the real RStringPtr
   // object, we can instruct it to start acting like a pointer, which is necessary for pointer address comparisons.
-  polyglot_as_boolean(polyglot_invoke(ret, "act_like_pointer=", Qtrue));
+  polyglot_invoke(ret, "act_like_pointer=", Qtrue);
 
   return ret;
 }
@@ -992,7 +988,7 @@ char *RSTRING_END(VALUE string) {
   // We start off treating RStringPtr as if it weren't a pointer for interop purposes. This is so Sulong doesn't try
   // to convert it to an actual char* when returning from `polyglot_invoke`. Once we have a handle to the real RStringPtr
   // object, we can instruct it to start acting like a pointer, which is necessary for pointer address comparisons.
-  polyglot_as_boolean(polyglot_invoke(ret, "act_like_pointer=", Qtrue));
+  polyglot_invoke(ret, "act_like_pointer=", Qtrue);
 
   return ret;
 }
@@ -1017,6 +1013,11 @@ int rb_str_len(VALUE string) {
   return polyglot_as_i32(polyglot_invoke((void *)string, "bytesize"));
 }
 
+bool is_managed_rstring_ptr(VALUE ptr) {
+  return polyglot_is_value(ptr) &&
+    !polyglot_as_boolean(polyglot_invoke(ptr, "native?"));
+}
+
 VALUE rb_str_new(const char *string, long length) {
   if (length < 0) {
     rb_raise(rb_eArgError, "negative string size (or size too big)");
@@ -1024,7 +1025,7 @@ VALUE rb_str_new(const char *string, long length) {
 
   if (string == NULL) {
     return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_nul", length);
-  } else if (polyglot_is_value((VALUE) string)) {
+  } else if (is_managed_rstring_ptr((VALUE) string)) {
     return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new", string, length);
   } else {
     // Copy the string to a new unmanaged buffer, because otherwise it's very
@@ -1048,10 +1049,12 @@ VALUE rb_tainted_str_new(const char *ptr, long len) {
 }
 
 VALUE rb_str_new_cstr(const char *string) {
-  if (polyglot_is_value((VALUE) string)) {
+  if (is_managed_rstring_ptr((VALUE) string)) {
     VALUE ruby_string = (VALUE) polyglot_invoke((VALUE) string, "to_s");
     int len = strlen(string);
-    return (VALUE) polyglot_invoke(ruby_string, "[]", 0, len);
+    ruby_string = rb_str_subseq(ruby_string, 0, len);
+    rb_enc_associate(ruby_string, rb_ascii8bit_encoding());
+    return ruby_string;
   } else {
     // TODO CS 24-Oct-17 would be nice to read in one go rather than strlen followed by read
     return rb_str_new(string, strlen(string));
@@ -1092,7 +1095,9 @@ VALUE rb_str_to_str(VALUE string) {
 }
 
 VALUE rb_str_buf_new(long capacity) {
-  return rb_str_new_cstr("");
+  VALUE str = rb_str_new(0, capacity);
+  rb_str_set_len(str, 0);
+  return str;
 }
 
 VALUE rb_vsprintf(const char *format, va_list args) {
@@ -1108,7 +1113,11 @@ VALUE rb_str_concat(VALUE string, VALUE to_concat) {
 }
 
 void rb_str_set_len(VALUE string, long length) {
-  rb_str_resize(string, length);
+  long capacity = rb_str_capacity(string);
+  if (length > capacity) {
+    rb_raise(rb_eRuntimeError, "probable buffer overflow: %ld for %ld", length, capacity);
+  }
+  polyglot_invoke(RUBY_CEXT, "rb_str_set_len", string, length);
 }
 
 VALUE rb_str_new_frozen(VALUE value) {
@@ -1163,9 +1172,11 @@ VALUE rb_str_buf_cat(VALUE string, const char *to_concat, long length) {
   return rb_str_cat(string, to_concat, length);
 }
 
+POLYGLOT_DECLARE_STRUCT(rb_encoding)
+
 // returns Truffle::CExt::RbEncoding, takes Encoding or String
 rb_encoding *rb_to_encoding(VALUE encoding) {
-  return polyglot_invoke(RUBY_CEXT, "rb_to_encoding", encoding);
+  return polyglot_as_rb_encoding(polyglot_invoke(RUBY_CEXT, "rb_to_encoding", encoding));
 }
 
 VALUE rb_str_conv_enc(VALUE string, rb_encoding *from, rb_encoding *to) {
@@ -1295,7 +1306,7 @@ VALUE rb_str_plus(VALUE a, VALUE b) {
 }
 
 VALUE rb_str_subseq(VALUE string, long beg, long len) {
-  rb_tr_error("rb_str_subseq not implemented");
+  return polyglot_invoke(string, "byteslice", beg, len);
 }
 
 VALUE rb_str_substr(VALUE string, long beg, long len) {
@@ -1433,15 +1444,14 @@ int rb_tr_obj_equal(VALUE first, VALUE second) {
 int rb_tr_flags(VALUE value) {
   int flags = 0;
   if (OBJ_FROZEN(value)) {
-    flags |= FL_FREEZE;
+    flags |= RUBY_FL_FREEZE;
   }
   if (OBJ_TAINTED(value)) {
-    flags |= FL_TAINT;
+    flags |= RUBY_FL_TAINT;
   }
   // TODO BJF Nov-11-2017 Implement more flags
   return flags;
 }
-
 
 // Undef conflicting macro from encoding.h like MRI
 #undef rb_enc_str_new
@@ -1561,7 +1571,6 @@ void rb_econv_check_error(rb_econv_t *ec) {
 int rb_econv_prepare_opts(VALUE opthash, VALUE *opts) {
   rb_tr_error("rb_econv_prepare_opts not implemented");
 }
-
 
 // Symbol
 
@@ -1975,13 +1984,13 @@ void rb_check_arity(int argc, int min, int max) {
 }
 
 char* ruby_strdup(const char *str) {
-    char *tmp;
-    size_t len = strlen(str) + 1;
+  char *tmp;
+  size_t len = strlen(str) + 1;
 
-    tmp = xmalloc(len);
-    memcpy(tmp, str, len);
+  tmp = xmalloc(len);
+  memcpy(tmp, str, len);
 
-    return tmp;
+  return tmp;
 }
 
 // Calls
@@ -2432,45 +2441,53 @@ VALUE rb_range_new(VALUE beg, VALUE end, int exclude_end) {
 }
 
 VALUE rb_range_beg_len(VALUE range, long *begp, long *lenp, long len, int err) {
-    long beg, end, origbeg, origend;
-    VALUE b, e;
-    int excl;
+  long beg, end, origbeg, origend;
+  VALUE b, e;
+  int excl;
 
-    if (!rb_range_values(range, &b, &e, &excl))
-	return Qfalse;
-    beg = NUM2LONG(b);
-    end = NUM2LONG(e);
-    origbeg = beg;
-    origend = end;
+  if (!rb_range_values(range, &b, &e, &excl)) {
+    return Qfalse;
+  }
+  
+  beg = NUM2LONG(b);
+  end = NUM2LONG(e);
+  origbeg = beg;
+  origend = end;
+  if (beg < 0) {
+    beg += len;
     if (beg < 0) {
-	beg += len;
-	if (beg < 0)
-	    goto out_of_range;
+      goto out_of_range;
     }
-    if (end < 0)
-	end += len;
-    if (!excl)
-	end++;			/* include end point */
-    if (err == 0 || err == 2) {
-	if (beg > len)
-	    goto out_of_range;
-	if (end > len)
-	    end = len;
+  }
+  if (end < 0) {
+    end += len;
+  }
+  if (!excl) {
+    end++;                        /* include end point */
+  }
+  if (err == 0 || err == 2) {
+    if (beg > len) {
+      goto out_of_range;
     }
-    len = end - beg;
-    if (len < 0)
-	len = 0;
+    if (end > len) {
+      end = len;
+    }
+  }
+  len = end - beg;
+  if (len < 0) {
+    len = 0;
+  }
 
-    *begp = beg;
-    *lenp = len;
-    return Qtrue;
+  *begp = beg;
+  *lenp = len;
+  return Qtrue;
 
-  out_of_range:
-    if (err) {
-	rb_raise(rb_eRangeError, "%d..%s%d out of range",
-		 origbeg, excl ? "." : "", origend);
-    }
-    return Qnil;
+out_of_range:
+  if (err) {
+    rb_raise(rb_eRangeError, "%d..%s%d out of range",
+             origbeg, excl ? "." : "", origend);
+  }
+  return Qnil;
 }
 
 // Time
@@ -2886,6 +2903,10 @@ VALUE rb_struct_new(VALUE klass, ...) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_struct_new_no_splat", klass, ary);
 }
 
+VALUE rb_struct_size(VALUE s) {
+  return polyglot_invoke(s, "size");
+}
+
 VALUE rb_struct_getmember(VALUE obj, ID id) {
   rb_tr_error("rb_struct_getmember not implemented");
 }
@@ -2904,6 +2925,8 @@ VALUE rb_struct_define_under(VALUE outer, const char *name, ...) {
 
 // Data
 
+POLYGLOT_DECLARE_STRUCT(RData)
+
 static void *to_free_function(RUBY_DATA_FUNC dfree) {
   // TODO CS 26-Mar-18 we should be able to write this but it doesn't work - you get an LLVMTruffleAddress
   // return (RUBY_DATA_FUNC) dfree;
@@ -2911,7 +2934,7 @@ static void *to_free_function(RUBY_DATA_FUNC dfree) {
 }
 
 struct RData *RDATA(VALUE value) {
-  return (struct RData *)polyglot_invoke(RUBY_CEXT, "RDATA", value);
+  return polyglot_as_RData(polyglot_invoke(RUBY_CEXT, "RDATA", value));
 }
 
 VALUE rb_data_object_wrap(VALUE klass, void *datap, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
@@ -2919,9 +2942,9 @@ VALUE rb_data_object_wrap(VALUE klass, void *datap, RUBY_DATA_FUNC dmark, RUBY_D
 }
 
 VALUE rb_data_object_zalloc(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
-    VALUE obj = rb_data_object_wrap(klass, 0, dmark, dfree);
-    DATA_PTR(obj) = xcalloc(1, size);
-    return obj;
+  VALUE obj = rb_data_object_wrap(klass, 0, dmark, dfree);
+  DATA_PTR(obj) = xcalloc(1, size);
+  return obj;
 }
 
 // Typed data
@@ -3419,7 +3442,7 @@ void rb_econv_binmode(rb_econv_t *ec) {
 }
 
 VALUE rb_ary_tmp_new(long capa) {
-  rb_tr_error("rb_ary_tmp_new not implemented");
+  return rb_ary_new_capa(capa);
 }
 
 void rb_ary_free(VALUE ary) {
@@ -4031,7 +4054,7 @@ VALUE rb_gc_latest_gc_info(VALUE key) {
 }
 
 VALUE rb_check_hash_type(VALUE hash) {
-  rb_tr_error("rb_check_hash_type not implemented");
+  return rb_check_convert_type(hash, T_HASH, "Hash", "to_hash");
 }
 
 VALUE rb_hash_update_by(VALUE hash1, VALUE hash2, rb_hash_update_func *func) {
@@ -4389,7 +4412,20 @@ long rb_str_sublen(VALUE str, long pos) {
 }
 
 void rb_str_modify_expand(VALUE str, long expand) {
-  rb_tr_error("rb_str_modify_expand not implemented");
+  long len = RSTRING_LEN(str);
+  if (expand < 0) {
+    rb_raise(rb_eArgError, "negative expanding string size");
+  }
+  if (expand > INT_MAX - len) {
+    rb_raise(rb_eArgError, "string size too big");
+  }
+
+  if (expand > 0) {
+    // Resize the native buffer but do not change RSTRING_LEN/byteLength
+    // TODO (eregon, 26 Apr 2018): Do this more directly.
+    rb_str_resize(str, len + expand);
+    rb_str_set_len(str, len);
+  }
 }
 
 #undef rb_str_cat_cstr
@@ -4434,7 +4470,7 @@ long rb_str_offset(VALUE str, long pos) {
 }
 
 size_t rb_str_capacity(VALUE str) {
-  rb_tr_error("rb_str_capacity not implemented");
+  return polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_str_capacity", str));
 }
 
 VALUE rb_str_ellipsize(VALUE str, long len) {
@@ -4670,11 +4706,11 @@ int rb_reg_region_copy(struct re_registers *to, const struct re_registers *from)
 }
 
 ID rb_sym2id(VALUE sym) {
-  rb_tr_error("rb_sym2id not implemented");
+  return (ID) sym;
 }
 
 VALUE rb_id2sym(ID x) {
-  rb_tr_error("rb_id2sym not implemented");
+  return (VALUE) x;
 }
 
 VALUE rb_get_path_no_checksafe(VALUE obj) {
@@ -4808,60 +4844,4 @@ VALUE rb_syserr_new_str(int n, VALUE arg) {
 
 VALUE rb_yield_values2(int argc, const VALUE *argv) {
   rb_tr_error("rb_yield_values2 not implemented");
-}
-
-int rb_isalnum(int c) {
-  return rb_isalpha(c) || rb_isdigit(c);
-}
-
-int rb_isalpha(int c) {
-  return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
-}
-
-int rb_isblank(int c) {
-  return c == 0x09 || c == 0x20;
-}
-
-int rb_iscntrl(int c) {
-  return (c >= 0x00 && c <= 0x1f) || c == 0x7f;
-}
-
-int rb_isdigit(int c) {
-  return c >= '0' && c <= '9';
-}
-
-int rb_isgraph(int c) {
-  return c >= '!' && c <= '~';
-}
-
-int rb_islower(int c) {
-  return c >= 'a' && c <= 'z';
-}
-
-int rb_isprint(int c) {
-  return c == ' ' || rb_isgraph(c);
-}
-
-int rb_ispunct(int c) {
-  return (c >= '!' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~');
-}
-
-int rb_isspace(int c) {
-  return c == 0x20 || (c >= 0x09 && c <= 0x0d);
-}
-
-int rb_isupper(int c) {
-  return c >= 'A' && c <= 'Z';
-}
-
-int rb_isxdigit(int c) {
-  return rb_isdigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
-}
-
-int rb_tolower(int c) {
-  return rb_isascii(c) && rb_isupper(c) ? c ^ 0x20 : c;
-}
-
-int rb_toupper(int c) {
-  return rb_isascii(c) && rb_islower(c) ? c ^ 0x20 : c;
 }

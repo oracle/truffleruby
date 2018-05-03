@@ -115,7 +115,8 @@ public abstract class BucketsStrategy {
             lastInSequence = newEntry;
         }
 
-        return context.getCoreLibrary().getHashFactory().newInstance(Layouts.HASH.build(newEntries, actualSize, firstInSequence, lastInSequence, null, null, false));
+        final DynamicObject nil = context.getCoreLibrary().getNil();
+        return context.getCoreLibrary().getHashFactory().newInstance(Layouts.HASH.build(newEntries, actualSize, firstInSequence, lastInSequence, nil, nil, false));
     }
 
     public static int capacityGreaterThan(int size) {

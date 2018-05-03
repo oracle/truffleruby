@@ -56,7 +56,6 @@ public class Options {
     public final boolean PREINITIALIZATION;
     public final boolean TRACE_CALLS;
     public final boolean COVERAGE_GLOBAL;
-    public final boolean INLINE_JS;
     public final String CORE_LOAD_PATH;
     public final boolean STDLIB_AS_INTERNAL;
     public final boolean LAZY_BUILTINS;
@@ -181,7 +180,6 @@ public class Options {
         PREINITIALIZATION = builder.getOrDefault(OptionsCatalog.PREINITIALIZATION);
         TRACE_CALLS = builder.getOrDefault(OptionsCatalog.TRACE_CALLS);
         COVERAGE_GLOBAL = builder.getOrDefault(OptionsCatalog.COVERAGE_GLOBAL);
-        INLINE_JS = builder.getOrDefault(OptionsCatalog.INLINE_JS);
         CORE_LOAD_PATH = builder.getOrDefault(OptionsCatalog.CORE_LOAD_PATH);
         STDLIB_AS_INTERNAL = builder.getOrDefault(OptionsCatalog.STDLIB_AS_INTERNAL);
         LAZY_BUILTINS = builder.getOrDefault(OptionsCatalog.LAZY_BUILTINS, DEFAULT_LAZY);
@@ -348,8 +346,6 @@ public class Options {
                 return TRACE_CALLS;
             case "ruby.coverage.global":
                 return COVERAGE_GLOBAL;
-            case "ruby.inline_js":
-                return INLINE_JS;
             case "ruby.core.load_path":
                 return CORE_LOAD_PATH;
             case "ruby.stdlib_as_internal":

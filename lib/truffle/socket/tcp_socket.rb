@@ -48,7 +48,7 @@ class TCPSocket < IPSocket
       host = Truffle::Socket.coerce_to_string(host)
     end
 
-    if service.is_a?(Fixnum)
+    if service.is_a?(Integer)
       service = service.to_s
     else
       service = Truffle::Socket.coerce_to_string(service)
@@ -63,7 +63,7 @@ class TCPSocket < IPSocket
         local_host = Truffle::Socket.coerce_to_string(local_host)
       end
 
-      if local_service.is_a?(Fixnum)
+      if local_service.is_a?(Integer)
         local_service = local_service.to_s
       elsif local_service
         local_service = Truffle::Socket.coerce_to_string(local_service)

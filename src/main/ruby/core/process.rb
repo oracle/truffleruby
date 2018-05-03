@@ -112,7 +112,7 @@ module Process
   CLOCK_REALTIME          = 2
   CLOCK_THREAD_CPUTIME_ID = 3
   CLOCK_MONOTONIC_RAW_ID  = 4
-  
+
   def self.clock_gettime(id, unit=:float_second)
     case id
     when CLOCK_MONOTONIC
@@ -298,7 +298,7 @@ module Process
       signal = Signal::Names[signal]
     end
 
-    raise ArgumentError unless signal.kind_of? Fixnum
+    raise ArgumentError unless signal.kind_of? Integer
 
     if signal < 0
       signal = -signal
@@ -956,10 +956,10 @@ module Process
 end
 
 Truffle::KernelOperations.define_hooked_variable(
-  :$0,
-  -> { Truffle::KernelOperations.global_variable_get(:$0) },
+  :'$0',
+  -> { Truffle::KernelOperations.global_variable_get(:'$0') },
   -> v { v = StringValue(v)
          Process.setproctitle(v)
-         Truffle::KernelOperations.global_variable_set(:$0, v) })
+         Truffle::KernelOperations.global_variable_set(:'$0', v) })
 
 alias $PROGRAM_NAME $0

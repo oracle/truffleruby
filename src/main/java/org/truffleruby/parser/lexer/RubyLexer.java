@@ -1668,78 +1668,7 @@ public class RubyLexer {
 
         tempVal = tempVal.intern();
 
-        if (tempVal.equals("function") && parserSupport.getContext() != null && parserSupport.getContext().getOptions().INLINE_JS) {
-            return javaScript(tempVal);
-        }
-
         return identifierToken(result, tempVal);
-    }
-
-    private int javaScript(String keyword) {
-        if (!Character.isWhitespace(p(lex_p))) {
-            return identifierToken(Tokens.tIDENTIFIER, keyword);
-        }
-
-        int length = 0;
-
-        while (Character.isWhitespace(p(lex_p + length))) {
-            length++;
-        }
-
-        if (!Character.isJavaIdentifierPart(p(lex_p + length))) {
-            return identifierToken(Tokens.tIDENTIFIER, keyword);
-        }
-
-        length++;
-
-        while (Character.isJavaIdentifierPart(p(lex_p + length))) {
-            length++;
-        }
-
-        if (p(lex_p + length) != '(') {
-            return identifierToken(Tokens.tIDENTIFIER, keyword);
-        }
-
-        length++;
-
-        // Commit to parsing this as JavaScript
-
-        // TODO CS 11-09-16 strings, escaping etc
-
-        while (p(lex_p + length) != '{') {
-            length++;
-        }
-
-        length++;
-
-        int depth = 0;
-
-        int c;
-
-        while ((c = p(lex_p + length)) != '}' || depth > 0) {
-            switch (c) {
-                case '{':
-                    depth++;
-                    break;
-                case '}':
-                    depth--;
-                    break;
-            }
-
-            length++;
-        }
-
-        length++;
-
-        final StringBuilder builder = new StringBuilder();
-        builder.append(keyword);
-
-        for (int n = 0; n < length; n++) {
-            builder.append((char) nextc());
-        }
-
-        yaccValue = builder.toString();
-        return Tokens.tJAVASCRIPT;
     }
 
     private int leftBracket(boolean spaceSeen) {

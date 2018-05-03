@@ -15,6 +15,8 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.USASCIIEncoding;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -47,6 +49,21 @@ public abstract class TruffleNodes {
         @Specialization
         public boolean isNative() {
             return TruffleOptions.AOT;
+        }
+
+    }
+
+    @CoreMethod(names = "sulong?", onSingleton = true)
+    public abstract static class SulongNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean isSulong() {
+            return isSulongAvailable(getContext());
+        }
+
+        @TruffleBoundary
+        public static boolean isSulongAvailable(RubyContext context) {
+            return context.getEnv().isMimeTypeSupported(RubyLanguage.SULONG_BITCODE_BASE64_MIME_TYPE);
         }
 
     }

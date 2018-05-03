@@ -37,8 +37,9 @@ git commit -am 'Restore MRI modifications'
 
 ## Make other changes
 
-* Copy and paste `-h` and `--help` output to `Launcher`
-* Update version information (version, base version, and revision) in `Launcher`
+* Copy and paste `-h` and `--help` output to `RubyLauncher`
+* Copy and paste the TruffleRuby `--help` output to `doc/user/options.md`.
+* Update version information (version, base version, and revision) in `TruffleRuby`
 * Update `doc/user/compatibility.md`
 * Update `doc/legal/legal.md`
 * Search for other instances of the old version number (there are a
@@ -54,6 +55,16 @@ git commit -am 'Restore MRI modifications'
 Look in `../ruby/ext/json` to see the version of `flori/json` being used, and
 then copy the original source of `flori/json` into `lib/json`.
 
+## Updating .gemspec of default gems
+
+Default gems are imported from MRI files, except the .gemspec files in
+`lib/ruby/gems/2.4.0/specifications/default`.
+To update those, copy the files over from an installed MRI.
+```
+rm -rf lib/ruby/gems/2.4.0/specifications/default
+cp ~/.rubies/ruby-2.4.4/lib/ruby/gems/2.4.0/specifications/default lib/ruby/gems/2.4.0/specifications
+```
+
 ## Updating bundled gems
 
 The current list of bundled gems their versions are found at
@@ -63,14 +74,28 @@ update any bundled gems.
 
 To update a bundled gem, follow these steps:
 
-* Remove the current gem and gemspec from `lib/gems/a.b.c/gems` and `lib/gems/a.b.c/specifications`
+* Remove the current gem and gemspec from `lib/ruby/gems/a.b.c/gems` and `lib/ruby/gems/a.b.c/specifications`
 * Run the gem install command with the desired version. E.g. `gem install rake -v 10.4.2 --no-doc`
 * Update the project `.gitignore` to allow the newly install gem sources and gemspec
 * If the gem installs any executables like `rake` in `bin`. Add these to the `.gitignore` using `!bin/rake` if not already and ensure that the shebang has a format as follows:
 
 ```bash
 #!/usr/bin/env bash
-exec "$(dirname $0)/truffleruby" "$(dirname $0)/the-executable" "$@" # ignored by Ruby interpreter
+# ignored by Ruby interpreter
+
+# get the absolute path of the executable and resolve symlinks
+SELF_PATH=$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")
+while [ -h "$SELF_PATH" ]; do
+  # 1) cd to directory of the symlink
+  # 2) cd to the directory of where the symlink points
+  # 3) get the pwd
+  # 4) append the basename
+  DIR=$(dirname "$SELF_PATH")
+  SYM=$(readlink "$SELF_PATH")
+  SELF_PATH=$(cd "$DIR" && cd "$(dirname "$SYM")" && pwd)/$(basename "$SYM")
+done
+exec "$(dirname $SELF_PATH)/ruby" "$SELF_PATH" "$@"
+
 #!ruby
 # ^ marks start of Ruby interpretation
 

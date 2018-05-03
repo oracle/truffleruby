@@ -51,7 +51,7 @@ module Truffle::FFI
 
   class << self
     def add_typedef(current, add)
-      if current.kind_of? Fixnum
+      if current.kind_of? Integer
         code = current
       else
         code = FFI::TypeDefs[current]

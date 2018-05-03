@@ -8,47 +8,63 @@
 
 require_relative '../ruby/spec_helper'
 
-# Switch to MRI 2.3.3 and run:
+# Switch to MRI, the version we are compatible with, and run:
 # $ jt test spec/truffle/methods_spec.rb -t ruby
 # to regenerate the files under methods/.
 
-# Only set to true for faster development if this spec is run alone
-run_directly = false
-
 modules = [
   BasicObject, Kernel, Object,
-  Enumerable, Enumerator,
-  Numeric, Fixnum, Bignum, # Integer,
-  Array,
+  Enumerable, Enumerator, Range,
+  Numeric, Integer, Float,
+  Rational, Complex,
+  Array, Hash, String,
 ]
-# Hash, Range, String
-# Float, Rational, Complex
 
-describe "Public methods on" do
-  modules.each do |mod|
-    it "#{mod.name} are the same as on MRI" do
-      if run_directly
-        methods = mod.public_instance_methods(false).sort
-      else
-        methods = ruby_exe("puts #{mod}.public_instance_methods(false).sort")
-        methods = methods.lines.map { |line| line.chomp.to_sym }
-      end
-
+guard -> { !defined?(SlowSpecsTagger) } do
+  if RUBY_ENGINE == "ruby"
+    modules.each do |mod|
       file = File.expand_path("../methods/#{mod.name}.txt", __FILE__)
+      methods = ruby_exe("puts #{mod}.public_instance_methods(false).sort")
+      methods = methods.lines.map { |line| line.chomp.to_sym }
+      contents = methods.map { |meth| "#{meth}\n" }.join
+      File.write file, contents
+    end
+  end
 
-      if RUBY_ENGINE == "ruby"
-        contents = methods.map { |meth| "#{meth}\n" }.join
-        File.write file, contents
-        1.should == 1
-      else
-        methods.delete(:yield_self) if mod == Kernel
+  code = <<-EOR
+  #{modules.inspect}.each { |m|
+    puts m.name
+    puts m.public_instance_methods(false).sort
+    puts
+  }
+  EOR
+  all_methods = {}
+  ruby_exe(code).rstrip.split("\n\n").each { |group|
+    mod, *methods = group.lines.map(&:chomp)
+    all_methods[mod] = methods.map(&:to_sym)
+  }
 
-        expected = File.readlines(file).map { |line| line.chomp.to_sym }
-        unless methods == expected
-          (methods - expected).should == []
-          (expected - methods).should == []
+  modules.each do |mod|
+    describe "Public methods on #{mod.name}" do
+      file = File.expand_path("../methods/#{mod.name}.txt", __FILE__)
+      expected = File.readlines(file).map { |line| line.chomp.to_sym }
+      methods = all_methods[mod.name]
+
+      if methods == expected
+        it "are the same as on MRI" do
+          methods.should == expected
         end
-        methods.should == expected
+      else
+        (methods - expected).each do |extra|
+          it "should not include #{extra}" do
+            methods.should_not include(extra)
+          end
+        end
+        (expected - methods).each do |missing|
+          it "should include #{missing}" do
+            methods.should include(missing)
+          end
+        end
       end
     end
   end

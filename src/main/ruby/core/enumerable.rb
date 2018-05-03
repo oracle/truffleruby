@@ -951,6 +951,38 @@ module Enumerable
   end
   alias_method :member?, :include?
 
+  def uniq(&block)
+    result = []
+    if block_given?
+      h = {}
+      each do |e|
+        v = yield(e)
+        unless h.key?(v)
+          h[v] = true
+          result << e
+        end
+      end
+    else
+      h = {}
+      each do |e|
+        unless h.key?(e)
+          h[e] = true
+          result << e
+        end
+      end
+    end
+
+    result
+  end
+
+  def sum(init = 0)
+    if block_given?
+      inject(init) { |sum, e| sum + yield(e) }
+    else
+      inject(init, :+)
+    end
+  end
+
 end
 
 class Array
@@ -959,4 +991,6 @@ class Array
   public :take
   public :drop_while, :take_while
   public :frozen?
+  public :sum
+  public :min, :max
 end

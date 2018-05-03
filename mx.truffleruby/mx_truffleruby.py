@@ -8,7 +8,7 @@
 
 import glob
 import os
-from os.path import exists, join, dirname
+from os.path import exists, join, dirname, basename, isdir
 import shutil
 import sys
 
@@ -62,17 +62,45 @@ class TruffleRubySulongLibsBuildTask(mx.ArchivableBuildTask):
     def __init__(self, *args):
         mx.ArchivableBuildTask.__init__(self, *args)
         self.sulong_libs_under_home = join(root, self.subject.outputDir)
+        self.sulong_include_dir = join(root, 'lib', 'cext', 'include', 'sulong')
 
     def needsBuild(self, newestInput):
+        for header in self.headers_target_files():
+            if not exists(header):
+                return (True, header + " does not exist")
+
         if not exists(self.sulong_libs_under_home):
             return (True, self.sulong_libs_under_home + " does not exist")
+
         return mx.ArchivableBuildTask.needsBuild(self, newestInput)
 
-    def build(self):
+    def split_headers_libraries(self):
         sulong_libs = mx_subst.path_substitutions.substitute('<path:SULONG_LIBS>')
-        shutil.copytree(sulong_libs, self.sulong_libs_under_home)
+        files = glob.glob(join(sulong_libs, '*'))
+        headers = glob.glob(join(sulong_libs, '*.h'))
+        libraries = [f for f in files if f not in headers]
+        return headers, libraries
+
+    def headers_target_files(self):
+        headers, _libraries = self.split_headers_libraries()
+        return [join(self.sulong_include_dir, basename(header)) for header in headers]
+
+    def build(self):
+        headers, libraries = self.split_headers_libraries()
+
+        for header in headers:
+            shutil.copy(header, self.sulong_include_dir)
+
+        if not isdir(self.sulong_libs_under_home):
+            os.mkdir(self.sulong_libs_under_home)
+        for library in libraries:
+            shutil.copy(library, self.sulong_libs_under_home)
 
     def clean(self, forBuild=False):
+        for header in self.headers_target_files():
+            if exists(header):
+                os.remove(header)
+
         if exists(self.sulong_libs_under_home):
             shutil.rmtree(self.sulong_libs_under_home)
 
@@ -290,13 +318,13 @@ def ruby_testdownstream_sulong(args):
     # Ensure Sulong is available
     mx.suite('sulong')
 
-    jt('test', 'cexts')
     jt('test', 'specs', ':capi')
     jt('test', 'specs', ':library_cext')
     jt('test', 'mri', '--cext')
     jt('test', 'mri', '--openssl')
     jt('test', 'mri', '--syslog')
     jt('test', 'mri', 'zlib')
+    jt('test', 'cexts')
     jt('test', 'bundle')
 
 

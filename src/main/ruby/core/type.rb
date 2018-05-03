@@ -166,14 +166,13 @@ module Truffle
     def self.rb_num2long(val)
       raise TypeError, 'no implicit conversion from nil to integer' if val.nil?
 
-      if object_kind_of?(val, Fixnum)
+      if object_kind_of?(val, Integer)
+        check_long(val)
         return val
       elsif object_kind_of?(val, Float)
         fval = val.to_int
         check_long(fval)
         return fval
-      elsif object_kind_of?(val, Bignum)
-        return rb_big2long(val)
       else
         return rb_num2long(rb_to_int(val))
       end
@@ -182,13 +181,15 @@ module Truffle
     def self.rb_num2ulong(val)
       raise TypeError, 'no implicit conversion from nil to integer' if val.nil?
 
-      if object_kind_of?(val, Fixnum)
-        return val
+      if object_kind_of?(val, Integer)
+        if Truffle.invoke_primitive(:integer_fits_into_long, val)
+          return val
+        else
+          return rb_big2ulong(val)
+        end
       elsif object_kind_of?(val, Float)
         fval = val.to_int
         return rb_num2ulong(fval)
-      elsif object_kind_of?(val, Bignum)
-        return rb_big2ulong(val)
       else
         return rb_num2ulong(rb_to_int(val))
       end
@@ -199,9 +200,7 @@ module Truffle
 
       if object_kind_of?(val, Float)
         return val
-      elsif object_kind_of?(val, Fixnum)
-        return val.to_f
-      elsif object_kind_of?(val, Bignum)
+      elsif object_kind_of?(val, Integer)
         return val.to_f
       elsif object_kind_of?(val, Rational)
         return val.to_f
@@ -212,17 +211,13 @@ module Truffle
       end
     end
 
-    def self.rb_big2long(val)
-      raise RangeError, "bignum too big to convert into `long'"
-    end
-
     def self.rb_big2dbl(val)
       val.to_f
     end
 
     def self.rb_big2ulong(val)
       check_ulong(val)
-      Truffle.invoke_primitive(:fixnum_ulong_from_bignum, val)
+      Truffle.invoke_primitive(:integer_ulong_from_bignum, val)
     end
 
     def self.rb_to_f(val)
@@ -255,33 +250,40 @@ module Truffle
       raise TypeError, "can't convert #{val.class} to #{cls} (#{val.class}##{meth} gives #{res.class})"
     end
 
+    def self.fits_into_int?(val)
+      Integer === val && Truffle.invoke_primitive(:integer_fits_into_int, val)
+    end
+
+    def self.fits_into_long?(val)
+      Integer === val && Truffle.invoke_primitive(:integer_fits_into_long, val)
+    end
+
     def self.check_int(val)
-      unless Truffle.invoke_primitive(:fixnum_fits_into_int, val)
+      unless Truffle.invoke_primitive(:integer_fits_into_int, val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `int"
       end
     end
 
     def self.check_uint(val)
-      unless Truffle.invoke_primitive(:fixnum_fits_into_uint, val)
+      unless Truffle.invoke_primitive(:integer_fits_into_uint, val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `uint"
       end
     end
 
     def self.check_long(val)
-      unless Truffle.invoke_primitive(:fixnum_fits_into_long, val)
+      unless Truffle.invoke_primitive(:integer_fits_into_long, val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `long"
       end
     end
 
     def self.check_ulong(val)
-      unless Truffle.invoke_primitive(:fixnum_fits_into_ulong, val)
+      unless Truffle.invoke_primitive(:integer_fits_into_ulong, val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `ulong"
       end
     end
 
     def self.rb_check_to_integer(val, meth)
-      return val if object_kind_of?(val, Fixnum)
-      return val if object_kind_of?(val, Bignum)
+      return val if object_kind_of?(val, Integer)
       v = convert_type(val, Integer, meth, false)
       unless object_kind_of?(v, Integer)
         return nil
@@ -306,6 +308,13 @@ module Truffle
         raise TypeError, "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{object_class(v)})"
       end
       v
+    end
+
+    def self.rb_check_type(obj, cls)
+      unless object_kind_of?(obj, cls)
+        raise TypeError, "wrong argument type #{obj.class} (expected #{cls})"
+      end
+      obj
     end
 
     def self.convert_type(obj, cls, meth, raise_on_error)
@@ -409,51 +418,27 @@ module Truffle
     INT_MAX = 2147483647
 
     def self.clamp_to_int(n)
-      if Truffle.invoke_primitive(:fixnum_fits_into_int, n)
-        Truffle::FixnumOperations.lower(n)
+      if Truffle.invoke_primitive(:integer_fits_into_int, n)
+        Truffle.invoke_primitive(:integer_lower, n)
       else
         n > 0 ? INT_MAX : INT_MIN
       end
     end
 
     def self.coerce_to_collection_index(index)
-      return index if object_kind_of? index, Fixnum
+      return index if fits_into_long?(index)
 
-      method = :to_int
-      klass = Fixnum
-
-      begin
-        idx = index.__send__ method
-      rescue => exc
-        coerce_to_failed index, klass, method, exc
-      end
-      return idx if object_kind_of? idx, klass
-
-      if object_kind_of? index, Bignum
-        raise RangeError, 'Array index must be a Fixnum (passed Bignum)'
-      else
-        coerce_to_type_error index, idx, method, klass
-      end
+      index = coerce_to_int(index)
+      check_long(index)
+      index
     end
 
     def self.coerce_to_collection_length(length)
-      return length if object_kind_of? length, Fixnum
+      return length if fits_into_long?(length)
 
-      method = :to_int
-      klass = Fixnum
-
-      begin
-        size = length.__send__ method
-      rescue => exc
-        coerce_to_failed length, klass, method, exc
-      end
-      return size if object_kind_of? size, klass
-
-      if object_kind_of? size, Bignum
-        raise ArgumentError, 'Array size must be a Fixnum (passed Bignum)'
-      else
-        coerce_to_type_error length, size, :to_int, Fixnum
-      end
+      length = coerce_to_int(length)
+      check_long(length)
+      length
     end
 
     def self.coerce_to_int(obj)

@@ -32,37 +32,37 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Truffle::Boot.delay do
-  # Set up IO only now as it has lots of dependencies
-  STDIN = File.new(0)
-  STDOUT = File.new(1)
-  STDERR = File.new(2)
+# Set up IO only now as it has lots of dependencies
+STDIN = IO.new(0, IO::RDONLY)
+STDOUT = IO.new(1, IO::WRONLY)
+STDERR = IO.new(2, IO::WRONLY)
 
-  $stdin = STDIN
-  $stdout = STDOUT
-  $stderr = STDERR
+$stdin = STDIN
+$stdout = STDOUT
+$stderr = STDERR
 
-  class << STDIN
-    def external_encoding
-      super || Encoding.default_external
-    end
+class << STDIN
+  def external_encoding
+    super || Encoding.default_external
   end
+end
 
+Truffle::Boot.delay do
   # stdout is line-buffered if it refers to a terminal
   if Truffle::Boot.get_option('sync.stdio') || STDOUT.tty?
     STDOUT.sync = true
   end
+end
 
-  # stderr is always unbuffered, see setvbuf(3)
-  STDERR.sync = true
+# stderr is always unbuffered, see setvbuf(3)
+STDERR.sync = true
 
-  # Always flush standard streams on exit
-  Truffle::KernelOperations.at_exit true do
-    STDOUT.flush
-  end
-  Truffle::KernelOperations.at_exit true do
-    STDERR.flush
-  end
+# Always flush standard streams on exit
+Truffle::KernelOperations.at_exit true do
+  STDOUT.flush
+end
+Truffle::KernelOperations.at_exit true do
+  STDERR.flush
 end
 
 module Truffle
@@ -109,5 +109,8 @@ if ruby_home
 end
 
 Truffle::Boot.delay do
-  $LOAD_PATH.unshift(*Truffle::Boot.original_load_path)
+  extra_load_paths = Truffle::Boot.extra_load_paths
+  unless extra_load_paths.empty?
+    $LOAD_PATH.unshift(*extra_load_paths.map { |path| File.expand_path(path) })
+  end
 end

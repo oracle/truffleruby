@@ -22,6 +22,81 @@ extern "C" {
 #include RUBY_EXTCONF_H
 #endif
 
+/* function attributes */
+#ifndef CONSTFUNC
+# define CONSTFUNC(x) x
+#endif
+#ifndef PUREFUNC
+# define PUREFUNC(x) x
+#endif
+#define NORETURN_STYLE_NEW 1
+#ifndef NORETURN
+# define NORETURN(x) x
+#endif
+#ifndef DEPRECATED
+# define DEPRECATED(x) x
+#endif
+#ifndef DEPRECATED_BY
+# define DEPRECATED_BY(n,x) DEPRECATED(x)
+#endif
+#ifndef DEPRECATED_TYPE
+# define DEPRECATED_TYPE(mesg, decl) decl
+#endif
+#ifndef NOINLINE
+# define NOINLINE(x) x
+#endif
+#ifndef ALWAYS_INLINE
+# define ALWAYS_INLINE(x) x
+#endif
+#ifndef ERRORFUNC
+# define HAVE_ATTRIBUTE_ERRORFUNC 0
+# define ERRORFUNC(mesg, x) x
+#else
+# define HAVE_ATTRIBUTE_ERRORFUNC 1
+#endif
+#ifndef WARNINGFUNC
+# define HAVE_ATTRIBUTE_WARNINGFUNC 0
+# define WARNINGFUNC(mesg, x) x
+#else
+# define HAVE_ATTRIBUTE_WARNINGFUNC 1
+#endif
+
+#ifndef GCC_VERSION_SINCE
+# if defined(__GNUC__) && !defined(__INTEL_COMPILER) && !defined(__clang__)
+#  define GCC_VERSION_SINCE(major, minor, patchlevel) \
+    ((__GNUC__ > (major)) ||  \
+     ((__GNUC__ == (major) && \
+       ((__GNUC_MINOR__ > (minor)) || \
+        (__GNUC_MINOR__ == (minor) && __GNUC_PATCHLEVEL__ >= (patchlevel))))))
+# else
+#  define GCC_VERSION_SINCE(major, minor, patchlevel) 0
+# endif
+#endif
+
+/* likely */
+#if __GNUC__ >= 3
+#define RB_LIKELY(x)   (__builtin_expect(!!(x), 1))
+#define RB_UNLIKELY(x) (__builtin_expect(!!(x), 0))
+#else /* __GNUC__ >= 3 */
+#define RB_LIKELY(x)   (x)
+#define RB_UNLIKELY(x) (x)
+#endif /* __GNUC__ >= 3 */
+
+#ifdef __GNUC__
+#define PRINTF_ARGS(decl, string_index, first_to_check) \
+  decl __attribute__((format(printf, string_index, first_to_check)))
+#else
+#define PRINTF_ARGS(decl, string_index, first_to_check) decl
+#endif
+
+#ifdef __GNUC__
+#define RB_GNUC_EXTENSION __extension__
+#define RB_GNUC_EXTENSION_BLOCK(x) __extension__ ({ x; })
+#else
+#define RB_GNUC_EXTENSION
+#define RB_GNUC_EXTENSION_BLOCK(x) (x)
+#endif
+
 /* AC_INCLUDES_DEFAULT */
 #include <stdio.h>
 #ifdef HAVE_SYS_TYPES_H
@@ -61,7 +136,7 @@ extern "C" {
 # include <sys/select.h>
 #endif
 
-#if defined HAVE_SETJMPEX_H && defined HAVE__SETJMPEX
+#ifdef RUBY_USE_SETJMPEX
 #include <setjmpex.h>
 #endif
 
@@ -112,8 +187,8 @@ RUBY_SYMBOL_EXPORT_BEGIN
 #define xrealloc2 ruby_xrealloc2
 #define xfree ruby_xfree
 
-#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3))
-# define RUBY_ATTR_ALLOC_SIZE(params) __attribute__ ((__alloc_size__ params))
+#if GCC_VERSION_SINCE(4,3,0)
+# define RUBY_ATTR_ALLOC_SIZE(params) __attribute__ ((alloc_size params))
 #else
 # define RUBY_ATTR_ALLOC_SIZE(params)
 #endif

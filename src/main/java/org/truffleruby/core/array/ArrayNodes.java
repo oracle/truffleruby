@@ -130,7 +130,7 @@ public abstract class ArrayNodes {
         public DynamicObject addGeneralize(DynamicObject a, DynamicObject b,
                 @Cached("of(a)") ArrayStrategy aStrategy,
                 @Cached("of(b)") ArrayStrategy bStrategy,
-                @Cached("aStrategy.generalizeNew(bStrategy)") ArrayStrategy generalized) {
+                @Cached("aStrategy.generalize(bStrategy)") ArrayStrategy generalized) {
             return addInternal(a, b, aStrategy, bStrategy, generalized);
         }
 
@@ -987,7 +987,7 @@ public abstract class ArrayNodes {
     @CoreMethod(names = "fill", rest = true, needsBlock = true, raiseIfFrozenSelf = true)
     public abstract static class FillNode extends ArrayCoreMethodNode {
 
-        @Specialization(guards = { "strategy.isStorageMutable()", "args.length == 1", "strategy.matches(array)", "strategy.accepts(value(args))" }, limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = { "args.length == 1", "strategy.matches(array)", "strategy.accepts(value(args))" }, limit = "STORAGE_STRATEGIES")
         protected DynamicObject fill(DynamicObject array, Object[] args, NotProvided block,
                 @Cached("of(array)") ArrayStrategy strategy) {
             final Object value = args[0];
@@ -1035,19 +1035,19 @@ public abstract class ArrayNodes {
 
             for (int n = 0; n < size; n++) {
                 final Object value = store.get(n);
-                final long valueHash = toLong(frame, toHashNode.call(frame, value, "hash"));
+                final long valueHash = toLong(toHashNode.call(frame, value, "hash"));
                 h = Hashing.update(h, valueHash);
             }
 
             return Hashing.end(h);
         }
 
-        private long toLong(VirtualFrame frame, Object indexObject) {
+        private long toLong(Object indexObject) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toIntNode = insert(ToIntNode.create());
             }
-            final Object result = toIntNode.executeIntOrLong(frame, indexObject);
+            final Object result = toIntNode.executeIntOrLong(indexObject);
             if (result instanceof Integer) {
                 return (int) result;
             } else {
@@ -1146,7 +1146,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "wasProvided(sizeObject)", "!isInteger(sizeObject)", "!isLong(sizeObject)", "wasProvided(value)" })
         public DynamicObject initializeSizeOther(VirtualFrame frame, DynamicObject array, Object sizeObject, Object value, NotProvided block) {
-            int size = toInt(frame, sizeObject);
+            int size = toInt(sizeObject);
             return executeInitialize(frame, array, size, value, block);
         }
 
@@ -1192,7 +1192,7 @@ public abstract class ArrayNodes {
             if (copy != null) {
                 return executeInitialize(frame, array, copy, NotProvided.INSTANCE, NotProvided.INSTANCE);
             } else {
-                int size = toInt(frame, object);
+                int size = toInt(object);
                 return executeInitialize(frame, array, size, NotProvided.INSTANCE, NotProvided.INSTANCE);
             }
         }
@@ -1213,12 +1213,12 @@ public abstract class ArrayNodes {
             return toAryNode.call(frame, object, "to_ary");
         }
 
-        protected int toInt(VirtualFrame frame, Object value) {
+        protected int toInt(Object value) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toIntNode = insert(ToIntNode.create());
             }
-            return toIntNode.doInt(frame, value);
+            return toIntNode.doInt(value);
         }
 
         protected ReplaceNode createReplaceNode() {
@@ -1518,7 +1518,7 @@ public abstract class ArrayNodes {
         @Child private ToIntNode toIntNode;
         @Child private ArrayPopOneNode popOneNode;
 
-        public abstract Object executePop(VirtualFrame frame, DynamicObject array, Object n);
+        public abstract Object executePop(DynamicObject array, Object n);
 
         @Specialization
         public Object pop(DynamicObject array, NotProvided n) {
@@ -1531,12 +1531,12 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "n < 0")
-        public Object popNNegative(VirtualFrame frame, DynamicObject array, int n) {
+        public Object popNNegative(DynamicObject array, int n) {
             throw new RaiseException(coreExceptions().argumentErrorNegativeArraySize(this));
         }
 
         @Specialization(guards = { "n >= 0", "isEmptyArray(array)" })
-        public Object popEmpty(VirtualFrame frame, DynamicObject array, int n) {
+        public Object popEmpty(DynamicObject array, int n) {
             return createArray(null, 0);
         }
 
@@ -1583,16 +1583,16 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "wasProvided(n)", "!isInteger(n)", "!isLong(n)" })
-        public Object popNToInt(VirtualFrame frame, DynamicObject array, Object n) {
-            return executePop(frame, array, toInt(frame, n));
+        public Object popNToInt(DynamicObject array, Object n) {
+            return executePop(array, toInt(n));
         }
 
-        private int toInt(VirtualFrame frame, Object indexObject) {
+        private int toInt(Object indexObject) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toIntNode = insert(ToIntNode.create());
             }
-            return toIntNode.doInt(frame, indexObject);
+            return toIntNode.doInt(indexObject);
         }
 
     }
@@ -1902,7 +1902,7 @@ public abstract class ArrayNodes {
 
         @Child private ToIntNode toIntNode;
 
-        public abstract Object executeShift(VirtualFrame frame, DynamicObject array, Object n);
+        public abstract Object executeShift(DynamicObject array, Object n);
 
         // No n, just shift 1 element and return it
 
@@ -1958,16 +1958,16 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "wasProvided(n)", "!isInteger(n)", "!isLong(n)" })
-        public Object shiftNToInt(VirtualFrame frame, DynamicObject array, Object n) {
-            return executeShift(frame, array, toInt(frame, n));
+        public Object shiftNToInt(DynamicObject array, Object n) {
+            return executeShift(array, toInt(n));
         }
 
-        private int toInt(VirtualFrame frame, Object indexObject) {
+        private int toInt(Object indexObject) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toIntNode = insert(ToIntNode.create());
             }
-            return toIntNode.doInt(frame, indexObject);
+            return toIntNode.doInt(indexObject);
         }
 
     }
@@ -2033,7 +2033,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "strategy.matches(array)", "strategy.isPrimitive()" },
-                assumptions = { "getContext().getCoreMethods().fixnumCmpAssumption", "getContext().getCoreMethods().floatCmpAssumption" })
+                assumptions = { "getContext().getCoreMethods().integerCmpAssumption", "getContext().getCoreMethods().floatCmpAssumption" })
         public Object sortPrimitiveArrayNoBlock(DynamicObject array, NotProvided block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy) {
@@ -2086,7 +2086,7 @@ public abstract class ArrayNodes {
         public DynamicObject zipToPairs(DynamicObject array, DynamicObject other,
                 @Cached("of(array)") ArrayStrategy aStrategy,
                 @Cached("of(other)") ArrayStrategy bStrategy,
-                @Cached("aStrategy.generalizeNew(bStrategy)") ArrayStrategy generalized,
+                @Cached("aStrategy.generalize(bStrategy)") ArrayStrategy generalized,
                 @Cached("createBinaryProfile()") ConditionProfile bNotSmallerProfile) {
             final ArrayMirror a = aStrategy.newMirror(array);
             final ArrayMirror b = bStrategy.newMirror(other);

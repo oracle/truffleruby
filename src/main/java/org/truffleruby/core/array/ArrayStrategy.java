@@ -27,12 +27,20 @@ public abstract class ArrayStrategy {
         throw unsupported();
     }
 
+    /**
+     * When the strategy {@link #matches(DynamicObject)} an Array, this can be used to see if the
+     * given value can be written in the Array without generalizing the storage.
+     */
     public abstract boolean accepts(Object value);
 
     public abstract boolean isPrimitive();
 
     public abstract boolean isStorageMutable();
 
+    /**
+     * Whether the strategy obtained from {@link #forValue(Object)} describes accurately the kind of
+     * array storage needed to store this value (so e.g., Object[] specializesFor non-int/long/double).
+     */
     public boolean specializesFor(Object value) {
         throw unsupported();
     }
@@ -41,6 +49,7 @@ public abstract class ArrayStrategy {
         throw unsupported();
     }
 
+    /** Whether {@code this} is the strategy of {@code array}. */
     public final boolean matches(DynamicObject array) {
         return matchesStore(Layouts.ARRAY.getStore(array));
     }
@@ -105,16 +114,8 @@ public abstract class ArrayStrategy {
         throw unsupported();
     }
 
-    public ArrayStrategy generalizeNew(ArrayStrategy other) {
-        return generalize(other);
-    }
-
     public ArrayStrategy generalizeForMutation() {
         return this;
-    }
-
-    public ArrayStrategy generalizeFor(Object value) {
-        return generalize(ArrayStrategy.forValue(value));
     }
 
     // Helpers
@@ -177,6 +178,9 @@ public abstract class ArrayStrategy {
         return ofStore(Layouts.ARRAY.getStore(array));
     }
 
+    /**
+     * Use together with {@link #specializesFor(Object)}, not {@link #accepts(Object)}.
+     */
     public static ArrayStrategy forValue(Object value) {
         CompilerAsserts.neverPartOfCompilation();
         if (value instanceof Integer) {
@@ -235,18 +239,6 @@ public abstract class ArrayStrategy {
         @Override
         public boolean matchesStore(Object store) {
             return store instanceof int[];
-        }
-
-        @Override
-        public ArrayStrategy generalize(ArrayStrategy other) {
-            CompilerAsserts.neverPartOfCompilation();
-            if (other == this) {
-                return this;
-            } else if (other == LongArrayStrategy.INSTANCE) {
-                return LongArrayStrategy.INSTANCE;
-            } else {
-                return IntToObjectGeneralizationArrayStrategy.INSTANCE;
-            }
         }
 
         @Override
@@ -452,60 +444,6 @@ public abstract class ArrayStrategy {
 
     }
 
-    /** Object[] not accepting long */
-    private static class IntToObjectGeneralizationArrayStrategy extends ArrayStrategy {
-
-        static final ArrayStrategy INSTANCE = new IntToObjectGeneralizationArrayStrategy();
-
-        @Override
-        public boolean accepts(Object value) {
-            return !(value instanceof Long);
-        }
-
-        @Override
-        public boolean isPrimitive() {
-            return false;
-        }
-
-        @Override
-        public boolean isStorageMutable() {
-            return true;
-        }
-
-        @Override
-        public boolean matchesStore(Object store) {
-            return store != null && store.getClass() == Object[].class;
-        }
-
-        @Override
-        public ArrayStrategy generalize(ArrayStrategy other) {
-            CompilerAsserts.neverPartOfCompilation();
-            if (other == LongArrayStrategy.INSTANCE) {
-                return ObjectArrayStrategy.INSTANCE;
-            } else if (other == ObjectArrayStrategy.INSTANCE) {
-                return other;
-            } else {
-                return this;
-            }
-        }
-
-        @Override
-        public ArrayMirror newArray(int size) {
-            return new ObjectArrayMirror(new Object[size]);
-        }
-
-        @Override
-        public ArrayMirror newMirrorFromStore(Object store) {
-            return new ObjectArrayMirror((Object[]) store);
-        }
-
-        @Override
-        public String toString() {
-            return "Object[] (not accepting long)";
-        }
-
-    }
-
     // Null/empty strategy
 
     private static class NullArrayStrategy extends ArrayStrategy {
@@ -525,7 +463,7 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean accepts(Object value) {
-            throw unsupported();
+            return false; // Cannot write any element in a null storage
         }
 
         @Override
@@ -591,7 +529,7 @@ public abstract class ArrayStrategy {
 
         @Override
         public boolean accepts(Object value) {
-            throw unsupported();
+            return false; // Cannot write to a DelegatedArrayStrategy, need to unshare the storage
         }
 
         @Override

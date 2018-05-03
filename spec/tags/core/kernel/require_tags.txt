@@ -1,5 +1,4 @@
 fails:Kernel#require (path resolution) does not require file twice after $LOAD_PATH change
-fails:Kernel#require (path resolution) with an unreadable file raises a LoadError
 fails:Kernel#require ($LOADED_FEATURES) does not load a ./ relative path that is already stored
 fails:Kernel#require ($LOADED_FEATURES) does not load a ../ relative path that is already stored
 fails:Kernel#require ($LOADED_FEATURES) does not load a non-canonical path that is already stored
@@ -8,7 +7,6 @@ fails:Kernel#require ($LOADED_FEATURES) when a non-extensioned file is in $LOADE
 fails:Kernel#require (shell expansion) performs tilde expansion on a .rb file before storing paths in $LOADED_FEATURES
 fails:Kernel#require (shell expansion) performs tilde expansion on a non-extensioned file before storing paths in $LOADED_FEATURES
 fails:Kernel.require (path resolution) does not require file twice after $LOAD_PATH change
-fails:Kernel.require (path resolution) with an unreadable file raises a LoadError
 fails:Kernel.require ($LOADED_FEATURES) does not load a ./ relative path that is already stored
 fails:Kernel.require ($LOADED_FEATURES) does not load a ../ relative path that is already stored
 fails:Kernel.require ($LOADED_FEATURES) does not load a non-canonical path that is already stored

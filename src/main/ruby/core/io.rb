@@ -314,7 +314,7 @@ class IO
       IO.read_encode io, str
     end
 
-    # Returns one Fixnum as the start byte.
+    # Returns one Integer as the start byte.
     def getbyte(io)
       return if size == 0 and fill_from(io) == 0
 
@@ -512,7 +512,7 @@ class IO
 
     separator = $/ if undefined.equal?(separator)
     case separator
-    when Fixnum
+    when Integer
       options = limit
       limit = separator
       separator = $/
@@ -527,7 +527,7 @@ class IO
 
     limit = nil if undefined.equal?(limit)
     case limit
-    when Fixnum, nil
+    when Integer, nil
       # do nothing
     when Hash
       if undefined.equal? options
@@ -538,7 +538,7 @@ class IO
       end
     else
       value = limit
-      limit = Truffle::Type.try_convert limit, Fixnum, :to_int
+      limit = Truffle::Type.try_convert limit, Integer, :to_int
 
       unless limit
         options = Truffle::Type.coerce_to value, Hash, :to_hash
@@ -635,10 +635,10 @@ class IO
       offset = 0
       options = length_or_options
     elsif length_or_options
-      offset = Truffle::Type.coerce_to(offset || 0, Fixnum, :to_int)
+      offset = Truffle::Type.coerce_to_int(offset || 0)
       raise Errno::EINVAL, 'offset must not be negative' if offset < 0
 
-      length = Truffle::Type.coerce_to(length_or_options, Fixnum, :to_int)
+      length = Truffle::Type.coerce_to_int(length_or_options)
       raise ArgumentError, 'length must not be negative' if length < 0
     else
       length = undefined
@@ -1115,7 +1115,7 @@ class IO
   end
 
   ##
-  # Opens the given path, returning the underlying file descriptor as a Fixnum.
+  # Opens the given path, returning the underlying file descriptor as an Integer.
   #  IO.sysopen("testfile")   #=> 3
   def self.sysopen(path, mode = nil, perm = nil)
     path = Truffle::Type.coerce_to_path path
@@ -1136,7 +1136,7 @@ class IO
   # The +sync+ attribute will also be set.
   #
   def self.setup(io, fd, mode=nil, sync=false)
-    if Truffle::POSIX::NATIVE
+    if Truffle::POSIX::NATIVE and !Truffle::Boot.preinitializing?
       cur_mode = Truffle::POSIX.fcntl(fd, F_GETFL, 0)
       Errno.handle if cur_mode < 0
       cur_mode &= ACCMODE
@@ -1227,16 +1227,15 @@ class IO
     raise IOError, 'stream is closed' if closed?
     raise TypeError, 'advice must be a Symbol' unless advice.kind_of?(Symbol)
 
-    if offset.kind_of?(Bignum) || len.kind_of?(Bignum)
-      raise RangeError, "bignum too big to convert into `long'"
-    end
+    Truffle::Type.check_long(offset)
+    Truffle::Type.check_long(len)
 
     unless [:normal, :sequential, :random, :noreuse, :dontneed, :willneed].include? advice
       raise NotImplementedError, "Unsupported advice: #{advice}"
     end
 
-    _offset = Truffle::Type.coerce_to offset, Integer, :to_int
-    _len = Truffle::Type.coerce_to len, Integer, :to_int
+    _offset = Truffle::Type.coerce_to_int offset
+    _len = Truffle::Type.coerce_to_int len
 
     # Truffle.invoke_primitive :io_advise, self, advice, offset, len
     raise 'IO#advise not implemented'
@@ -1702,10 +1701,10 @@ class IO
     elsif arg.kind_of? String
       raise NotImplementedError, 'cannot handle String'
     else
-      arg = Truffle::Type.coerce_to arg, Fixnum, :to_int
+      arg = Truffle::Type.coerce_to_int arg
     end
 
-    command = Truffle::Type.coerce_to command, Fixnum, :to_int
+    command = Truffle::Type.coerce_to_int command
     Truffle::POSIX.fcntl descriptor, command, arg
   end
 
@@ -1739,10 +1738,10 @@ class IO
       buffer.write_string arg, arg.bytesize
       real_arg = buffer.address
     else
-      real_arg = Truffle::Type.coerce_to arg, Fixnum, :to_int
+      real_arg = Truffle::Type.coerce_to_int arg
     end
 
-    command = Truffle::Type.coerce_to command, Fixnum, :to_int
+    command = Truffle::Type.coerce_to_int command
     ret = Truffle::POSIX.ioctl descriptor, command, real_arg
     Errno.handle if ret < 0
     if arg.kind_of?(String)

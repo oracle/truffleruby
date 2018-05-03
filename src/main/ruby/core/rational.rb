@@ -57,28 +57,30 @@ class Rational < Numeric
     end
 
     case other
-    when Fixnum
-      if other > 0
-        Rational(@numerator ** other, @denominator ** other)
-      elsif other < 0
-        raise ZeroDivisionError, 'divided by 0' if self == 0
-        Rational(@denominator ** -other, @numerator ** -other)
-      elsif other == 0
-        Rational.new(1, 1)
-      end
-    when Bignum
-      if self == 0
-        if other < 0
-          raise ZeroDivisionError, 'divided by 0'
-        elsif other > 0
-          Rational.new(0, 1)
+    when Integer
+      if Truffle::Type.fits_into_long?(other)
+        if other > 0
+          Rational(@numerator ** other, @denominator ** other)
+        elsif other < 0
+          raise ZeroDivisionError, 'divided by 0' if self == 0
+          Rational(@denominator ** -other, @numerator ** -other)
+        elsif other == 0
+          Rational.new(1, 1)
         end
-      elsif self == 1
-        Rational.new(1, 1)
-      elsif self == -1
-        Rational.new(other.even? ? 1 : -1, 1)
       else
-        to_f ** other
+        if self == 0
+          if other < 0
+            raise ZeroDivisionError, 'divided by 0'
+          elsif other > 0
+            Rational.new(0, 1)
+          end
+        elsif self == 1
+          Rational.new(1, 1)
+        elsif self == -1
+          Rational.new(other.even? ? 1 : -1, 1)
+        else
+          to_f ** other
+        end
       end
     when Float
       to_f ** other

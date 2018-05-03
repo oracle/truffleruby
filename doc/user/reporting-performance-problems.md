@@ -20,6 +20,11 @@ that is unique to us - it applies to many sophisticated virtual machines - but
 most Ruby implementations are not yet doing optimisations powerful enough to
 show them so it may be a new problem to some people in the Ruby community.
 
+## Using the Enterprise Edition of GraalVM
+
+To experiment with how fast TruffleRuby can be we recommend using the
+[Enterprise Edition of GraalVM and rebuilding the Ruby executable images](installing.md).
+
 ## Using the JVM configuration
 
 For the best peak performance, you want to use the JVM configuration, using
