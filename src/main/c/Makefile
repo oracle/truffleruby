@@ -22,6 +22,8 @@ BASIC_EXTCONF_DEPS := $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(RBCONFIG) $(RBCONFIG_MK
 # These 2 libraries are needed for try_link() in extconf.rb
 EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) $(TRUFFLE_MOCK) $(RUBY_LIBRARY)
 
+IF_EXTCONF_FAIL := ( echo "`pwd`/extconf.rb failed:" 1>&2 && cat mkmf.log && false )
+
 ifeq ($(TRUFFLERUBY_CEXT_ENABLED),false)
 goal: no_cexts $(TRUFFLE_POSIX)
 else
@@ -63,7 +65,7 @@ $(TRUFFLE_POSIX): truffleposix/truffleposix.$(DLEXT)
 
 # sulongmock.bc
 sulongmock/Makefile: sulongmock/extconf.rb $(BASIC_EXTCONF_DEPS)
-	cd sulongmock && $(RUBY) extconf.rb
+	cd sulongmock && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
 sulongmock/sulongmock.bc: sulongmock/Makefile sulongmock/sulongmock.c
 	cd sulongmock && $(MAKE)
@@ -73,7 +75,7 @@ $(ROOT)/lib/cext/sulongmock.bc: sulongmock/sulongmock.bc
 
 # ruby.su
 cext/Makefile: cext/extconf.rb $(BASIC_EXTCONF_DEPS)
-	cd cext && $(RUBY) extconf.rb
+	cd cext && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
 cext/ruby.su: cext/Makefile cext/ruby.c
 	cd cext && $(MAKE)
@@ -84,7 +86,7 @@ $(RUBY_LIBRARY): cext/ruby.su
 
 # openssl.su
 openssl/Makefile: openssl/extconf.rb $(EXTCONF_DEPS)
-	cd openssl && $(RUBY) extconf.rb
+	cd openssl && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
 openssl/openssl.su: openssl/Makefile openssl/*.c openssl/*.h
 	cd openssl && $(MAKE)
@@ -94,7 +96,7 @@ $(CEXTS_DIR)/openssl.su: openssl/openssl.su
 
 # zlib.su
 zlib/Makefile: zlib/extconf.rb $(EXTCONF_DEPS)
-	cd zlib && $(RUBY) extconf.rb
+	cd zlib && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
 zlib/zlib.su: zlib/Makefile zlib/zlib.c
 	cd zlib && $(MAKE)
@@ -104,7 +106,7 @@ $(CEXTS_DIR)/zlib.su: zlib/zlib.su
 
 # syslog.su
 syslog/Makefile: syslog/extconf.rb $(EXTCONF_DEPS)
-	cd syslog && $(RUBY) extconf.rb
+	cd syslog && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
 syslog/syslog.su: syslog/Makefile syslog/syslog.c
 	cd syslog && $(MAKE)
@@ -115,7 +117,7 @@ $(CEXTS_DIR)/syslog.su: syslog/syslog.su
 # psych.su
 psych/Makefile: psych/extconf.rb $(EXTCONF_DEPS)
 	# TODO CS 6-Apr-18 --enable-bundled-libyaml should be automatic - the header and symbol check pass and I can't see why
-	cd psych && $(RUBY) extconf.rb --enable-bundled-libyaml
+	cd psych && $(RUBY) extconf.rb --enable-bundled-libyaml || $(IF_EXTCONF_FAIL)
 
 psych/psych.su: psych/Makefile psych/*.c psych/*.h psych/yaml/*.c psych/yaml/*.h
 	cd psych && $(MAKE)
