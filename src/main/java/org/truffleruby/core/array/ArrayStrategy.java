@@ -114,10 +114,6 @@ public abstract class ArrayStrategy {
         throw unsupported();
     }
 
-    public ArrayStrategy generalizeNew(ArrayStrategy other) {
-        return generalize(other);
-    }
-
     public ArrayStrategy generalizeForMutation() {
         return this;
     }
