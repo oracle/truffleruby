@@ -213,6 +213,16 @@ class Numeric
   # See also Integer#coerce
 
   def math_coerce(other, error=:coerce_error)
+    unless other.respond_to? :coerce
+      if error == :coerce_error
+        raise TypeError, "#{other.class} can't be coerced into #{self.class}"
+      elsif error == :compare_error
+        raise ArgumentError, "comparison of #{self.class} with #{other.class} failed"
+      elsif error == :no_error
+        return nil
+      end
+    end
+
     begin
       values = other.coerce(self)
     rescue
