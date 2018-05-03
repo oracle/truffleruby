@@ -42,7 +42,8 @@ Features:
                   freeze all string literals (default: disabled)
 ```
 
-TruffleRuby also reads the `RUBYOPT` environment variable.
+TruffleRuby also reads the `RUBYOPT` environment variable, if run from the Ruby
+launcher.
 
 ## Unlisted Ruby switches
 
@@ -87,7 +88,8 @@ rather than once per TruffleRuby instance, and is used to report problems
 loading the TruffleRuby instance before options are loaded.
 
 TruffleRuby-specific options, as well as conventional Ruby options, can also
-bet set in the `TRUFFLERUBYOPT` environment variable.
+bet set in the `TRUFFLERUBYOPT` environment variable, if run from the Ruby
+launcher.
 
 `--` or the first non-option argument both stop processing of Truffle-specific
 arguments in the same way it stops processing of Ruby arguments.
@@ -131,6 +133,7 @@ The search priority for finding Ruby home is:
 * The home that the Truffle framework reports.
 * The parent of the directory containing the Ruby launcher executable.
 * `jre/languages/ruby` relative to the directory specified in the system property `org.graalvm.home`.
+* Two directories up from the home that the Truffle framework reports (for development only).
 
 If the `home` option is set, it's used even if it doesn't appear to be a correct
 home location. Other options are tried until one is found that appears to be a

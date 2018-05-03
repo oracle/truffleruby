@@ -50,12 +50,40 @@ public class RubyLogger {
 
     }
 
+    public static void setLevel(String levelString) {
+        setLevel(LOGGER, levelString);
+    }
+
+    private static void setLevel(Logger logger, String levelString) {
+        final Level level;
+
+        if (levelString.equals("PERFORMANCE")) {
+            level = RubyLogger.PERFORMANCE;
+        } else {
+            level = Level.parse(levelString.toUpperCase());
+        }
+
+        logger.setLevel(level);
+    }
+
     private static Logger createLogger() {
         final Logger logger = Logger.getLogger("org.truffleruby");
 
         if (LogManager.getLogManager().getProperty("org.truffleruby.handlers") == null) {
             logger.setUseParentHandlers(false);
             logger.addHandler(new RubyHandler());
+        }
+
+        final String propertyLogLevel = System.getProperty("truffleruby.log");
+
+        if (propertyLogLevel != null) {
+            setLevel(logger, propertyLogLevel);
+        } else {
+            final String environmentLogLevel = System.getenv("TRUFFLERUBY_LOG");
+
+            if (environmentLogLevel != null) {
+                setLevel(logger, environmentLogLevel);
+            }
         }
 
         return logger;

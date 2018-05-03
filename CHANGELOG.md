@@ -8,6 +8,9 @@ New features:
   can call instance methods, rather than static methods which is what you get by
   default.
 
+* The log level can now also be set with `-Dtruffleruby.log=info` or
+  `TRUFFLERUBY_LOG=info`.
+
 Changes:
 
 * The inline JavaScript functionality `-Xinline_js` has been removed.
