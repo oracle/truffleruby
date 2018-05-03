@@ -14,7 +14,7 @@
 require "mkmf"
 require File.expand_path('../deprecation', __FILE__)
 
-dir_config("openssl")
+dir_config("openssl", ENV["OPENSSL_PREFIX"]) # TruffleRuby: use $OPENSSL_PREFIX as default if set
 dir_config("kerberos")
 
 Logging::message "=== OpenSSL for Ruby configurator ===\n"
