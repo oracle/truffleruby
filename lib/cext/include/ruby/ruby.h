@@ -354,18 +354,25 @@ int RB_FIXNUM_P(VALUE value);
 #define RB_IMMEDIATE_P(x) ((VALUE)(x) & RUBY_IMMEDIATE_MASK)
 #define IMMEDIATE_P(x) RB_IMMEDIATE_P(x)
 
+static inline VALUE
+rb_symbol_p_inline(VALUE v)
+{
+    return polyglot_invoke(RUBY_CEXT, "SYMBOL_P", v);
+}
+
 ID rb_sym2id(VALUE);
 VALUE rb_id2sym(ID);
 #define RB_STATIC_SYM_P(x) (((VALUE)(x)&~((~(VALUE)0)<<RUBY_SPECIAL_SHIFT)) == RUBY_SYMBOL_FLAG)
 #define RB_DYNAMIC_SYM_P(x) (!RB_SPECIAL_CONST_P(x) && RB_BUILTIN_TYPE(x) == (RUBY_T_SYMBOL))
-#define RB_SYMBOL_P(x) (RB_STATIC_SYM_P(x)||RB_DYNAMIC_SYM_P(x))
+#define RB_SYMBOL_P(x) rb_symbol_p_inline(x)
 #define RB_ID2SYM(x) (rb_id2sym(x))
 #define RB_SYM2ID(x) (rb_sym2id(x))
 #define STATIC_SYM_P(x) RB_STATIC_SYM_P(x)
 #define DYNAMIC_SYM_P(x) RB_DYNAMIC_SYM_P(x)
-bool SYMBOL_P(VALUE value);
-VALUE ID2SYM(ID value);
-ID SYM2ID(VALUE value);
+#define SYMBOL_P(x) RB_SYMBOL_P(x)
+#define ID2SYM(x) RB_ID2SYM(x)
+#define SYM2ID(x) RB_SYM2ID(x)
+
 
 #ifndef USE_FLONUM
 #if SIZEOF_VALUE >= SIZEOF_DOUBLE
