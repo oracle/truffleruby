@@ -321,8 +321,9 @@ public class FeatureLoader {
         if (nativeLibraryMap == null) {
             nativeLibraryMap = new HashMap<>();
 
-            // Default remapping of libssl to use Homebrew on macOS (ignored on other platforms, thanks to dylib extension)
+            // Default remapping of libssl and libcrypto to use Homebrew on macOS (ignored on other platforms, thanks to dylib extension)
             nativeLibraryMap.put("libssl.dylib", "/usr/local/opt/openssl/lib/libssl.dylib");
+            nativeLibraryMap.put("libcrypto.dylib", "/usr/local/opt/openssl/lib/libcrypto.dylib");
 
             for (String mapPair : context.getOptions().CEXTS_LIBRARY_REMAP) {
                 final int divider = mapPair.indexOf(':');
