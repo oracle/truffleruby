@@ -76,7 +76,10 @@ mkconfig.merge!(common)
 
 mkconfig['COMPILE_C']   = "ruby #{cext_dir}/preprocess.rb $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@"
 mkconfig['COMPILE_CXX'] = "ruby #{cext_dir}/preprocess.rb $< | $(CXX) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ - -o $@ && #{opt} #{opt_passes} $@ -o $@"
-mkconfig['LINK_SO']     = "#{RbConfig.ruby} #{cext_dir}/linker.rb -o $@ $(OBJS) $(LIBS)"
+
+# From mkmf.rb: "$(LDSHARED) #{OUTFLAG}$@ $(OBJS) $(LIBPATH) $(DLDFLAGS) $(LOCAL_LIBS) $(LIBS)"
+# The only difference is we use linker.rb instead of LDSHARED
+mkconfig['LINK_SO'] = "#{RbConfig.ruby} #{cext_dir}/linker.rb -o $@ $(OBJS) $(LIBPATH) $(DLDFLAGS) $(LOCAL_LIBS) $(LIBS)"
 
 cflags_for_try_link = "#{debugflags} #{warnflags}"
 # From mkmf.rb: "$(CC) #{OUTFLAG}#{CONFTEST}#{$EXEEXT} $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
