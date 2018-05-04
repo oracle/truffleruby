@@ -18,6 +18,7 @@ modules = [
   Numeric, Integer, Float,
   Rational, Complex,
   Array, Hash, String,
+  File, IO,
 ]
 
 guard -> { !defined?(SlowSpecsTagger) } do

@@ -1269,13 +1269,6 @@ class File < IO
     Stat.new(@path).atime
   end
 
-  def reopen(other, mode = 'r+')
-    unless other.kind_of? IO
-      other = Truffle::Type.coerce_to_path(other)
-    end
-    super(other, mode)
-  end
-
   def ctime
     Stat.new(@path).ctime
   end
