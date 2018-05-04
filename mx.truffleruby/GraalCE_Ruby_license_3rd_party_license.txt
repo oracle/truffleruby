@@ -3519,7 +3519,7 @@ The complete text of the MIT license is as follows:
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation
-  files (the â€œSoftwareâ€), to deal in the Software without
+  files (the "Software"), to deal in the Software without
   restriction, including without limitation the rights to use,
   copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the
@@ -3529,7 +3529,7 @@ The complete text of the MIT license is as follows:
   The above copyright notice and this permission notice shall be
   included in all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED â€œAS ISâ€, WITHOUT WARRANTY OF ANY KIND,
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -3544,7 +3544,7 @@ The complete text of the Eclipse Public License v1.0 is as follows:
   
   THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS ECLIPSE PUBLIC
   LICENSE ("AGREEMENT"). ANY USE, REPRODUCTION OR DISTRIBUTION OF THE PROGRAM
-  CONSTITUTES RECIPIENTâ€™S ACCEPTANCE OF THIS AGREEMENT.
+  CONSTITUTES RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT.
   
   1. DEFINITIONS
   
@@ -3562,7 +3562,7 @@ The complete text of the Eclipse Public License v1.0 is as follows:
   distributed by that particular Contributor. A Contribution 'originates' from a
   Contributor if it was added to the Program by such Contributor itself or 
 anyone
-  acting on such Contributorâ€™s behalf. Contributions do not include 
+  acting on such Contributor's behalf. Contributions do not include 
 additions to
   the Program which: (i) are separate modules of software distributed in
   conjunction with the Program under their own license agreement, and (ii) are 
@@ -3613,7 +3613,7 @@ to
   responsibility to secure any other intellectual property rights needed, if 
 any.
   For example, if a third party patent license is required to allow Recipient to
-  distribute the Program, it is Recipientâ€™s responsibility to acquire 
+  distribute the Program, it is Recipient's responsibility to acquire 
 that license
   before distributing the Program.
   
@@ -3698,7 +3698,7 @@ in
 that
   Commercial Contributor then makes performance claims, or offers warranties
   related to Product X, those performance claims and warranties are such
-  Commercial Contributorâ€™s responsibility alone. Under this section, the
+  Commercial Contributor's responsibility alone. Under this section, the
   Commercial Contributor would have to defend claims against the other
   Contributors related to those performance claims and warranties, and if a 
 court
@@ -3744,18 +3744,18 @@ such
   If Recipient institutes patent litigation against any entity (including a
   cross-claim or counterclaim in a lawsuit) alleging that the Program itself
   (excluding combinations of the Program with other software or hardware)
-  infringes such Recipientâ€™s patent(s), then such Recipientâ€™s 
+  infringes such Recipient's patent(s), then such Recipient's 
 rights granted under
   Section 2(b) shall terminate as of the date such litigation is filed.
   
-  All Recipientâ€™s rights under this Agreement shall terminate if it 
+  All Recipient's rights under this Agreement shall terminate if it 
 fails to
   comply with any of the material terms or conditions of this Agreement and does
   not cure such failure in a reasonable period of time after becoming aware of
-  such noncompliance. If all Recipientâ€™s rights under this Agreement 
+  such noncompliance. If all Recipient's rights under this Agreement 
 terminate,
   Recipient agrees to cease use and distribution of the Program as soon as
-  reasonably practicable. However, Recipientâ€™s obligations under this 
+  reasonably practicable. However, Recipient's obligations under this 
 Agreement
   and any licenses granted by Recipient relating to the Program shall continue 
 and
