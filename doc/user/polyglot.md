@@ -64,7 +64,7 @@ or reads an instance variable if the name starts with `@`, or returns a bound
 method with the name.
 
 `object[name/index] = value` calls `object[name/index] = value` if the object
-has a method `[]`, or sets an instance variable if the name starts with `@`.
+has a method `[]=`, or sets an instance variable if the name starts with `@`.
 
 `delete object.name` calls `object.delete(name)`.
 
