@@ -153,17 +153,13 @@ class TruffleRubyLauncherBuildTask(mx.ArchivableBuildTask):
     def build(self):
         self.store_jvm_args()
 
-        try:
-            os.unlink(self.launcher)
-        except OSError:
-            pass
         if sys.platform.startswith('darwin'):
             shutil.copy(self.binary, self.launcher)
         else:
             os.symlink("truffleruby.sh", self.launcher)
 
     def clean(self, forBuild=False):
-        if exists(self.launcher):
+        if os.path.lexists(self.launcher):
             os.remove(self.launcher)
 
     def store_jvm_args(self):
