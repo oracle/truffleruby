@@ -1,5 +1,5 @@
 suite = {
-    "mxversion": "5.153.0",
+    "mxversion": "5.156.0",
     "name": "truffleruby",
 
     "imports": {
@@ -82,6 +82,31 @@ suite = {
         },
     },
 
+    "externalProjects": {
+        "truffleruby-root": {
+            "type": "ruby",
+            "path": '.',
+            "source": [
+                "lib/json",
+                "lib/mri",
+                "lib/truffle",
+            ],
+            "load_path": ["src/main/ruby/core"],
+            "test": ["spec", "test"],
+            "excluded": [
+                "bench",
+                "dumps",
+                "logo",
+                "mxbuild",
+                "truffleruby-gem-test-pack",
+                "lib/ruby",
+                "test/truffle/ecosystem/blog",
+                "test/truffle/ecosystem/hello-world",
+                "test/truffle/ecosystem/rails-app",
+            ]
+        },
+    },
+
     "projects": {
 
         # ------------- Projects -------------
@@ -155,6 +180,14 @@ suite = {
                 "BSD-simplified",   # MRI
                 "MIT",              # Joni, JCodings
             ],
+            "externalProjects": {
+                "ruby-core" : {
+                    "type": "ruby",
+                    "path": "ruby",
+                    "source": ["core", "post-boot"],
+                    "load_path": ["core"]
+                }
+            }
         },
 
         "truffleruby-launcher": {
@@ -294,9 +327,9 @@ suite = {
             "description": "TruffleRuby Annotations",
             "license": ["EPL-1.0"]
         },
-        
-        # Required to share code between the launcher and the rest, 
-        # since the rest cannot depend on the launcher and the shared code cannot be there. 
+
+        # Required to share code between the launcher and the rest,
+        # since the rest cannot depend on the launcher and the shared code cannot be there.
         # This code is loaded twice in different classloaders, therefore any created instances should not be passed around.
         "TRUFFLERUBY-SHARED": {
             "dependencies": [
