@@ -23,13 +23,15 @@ public class Backtrace {
     private final Node location;
     private SourceSection sourceLocation;
     private final Activation[] activations;
+    private final int omitted;
     private final Throwable javaThrowable;
     private DynamicObject backtraceStringArray;
 
-    public Backtrace(Node location, SourceSection sourceLocation, Activation[] activations, Throwable javaThrowable) {
+    public Backtrace(Node location, SourceSection sourceLocation, Activation[] activations, int omitted, Throwable javaThrowable) {
         this.location = location;
         this.sourceLocation = sourceLocation;
         this.activations = activations;
+        this.omitted = omitted;
         this.javaThrowable = javaThrowable;
     }
 
@@ -46,6 +48,10 @@ public class Backtrace {
      */
     public Activation[] getActivations() {
         return activations;
+    }
+
+    public int getOmitted() {
+        return omitted;
     }
 
     public Throwable getJavaThrowable() {

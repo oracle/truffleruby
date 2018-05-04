@@ -248,7 +248,7 @@ public class CallStackManager {
         if (context.getOptions().BACKTRACES_OMIT_UNUSED
                 && DisablingBacktracesNode.areBacktracesDisabled()
                 && ModuleOperations.assignableTo(exceptionClass, context.getCoreLibrary().getStandardErrorClass())) {
-            return new Backtrace(currentNode, null, new Activation[] { Activation.OMITTED_UNUSED }, null);
+            return new Backtrace(currentNode, null, new Activation[] { Activation.OMITTED_UNUSED }, omit, null);
         }
         return getBacktrace(currentNode, sourceLocation, omit, false, javaThrowable);
     }
@@ -273,7 +273,7 @@ public class CallStackManager {
             }
         }
 
-        return new Backtrace(currentNode, sourceLocation, activations, javaThrowable);
+        return new Backtrace(currentNode, sourceLocation, activations, omit, javaThrowable);
     }
 
     public Activation[] createActivations(Node currentNode, int omit, boolean filterNullSourceSection) {
