@@ -334,7 +334,7 @@ def mx_post_parse_cmd_line(opts):
 
 mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     suite=_suite,
-    name='Truffle.Ruby',
+    name='TruffleRuby',
     short_name='rby',
     dir_name='ruby',
     license_files=['GraalCE_Ruby_license_3rd_party_license.txt'],
@@ -357,7 +357,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     ],
     launcher_configs=[
         mx_sdk.LanguageLauncherConfig(
-            destination='bin/<exe:ruby>',
+            destination='bin/<exe:truffleruby>',
             jar_distributions=['truffleruby:TRUFFLERUBY-LAUNCHER'],
             main_class='org.truffleruby.launcher.RubyLauncher',
             build_args=[
@@ -365,7 +365,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
                 '--language:ruby',
                 '-Dorg.graalvm.launcher.standalone=false',
             ],
-            links=['bin/<exe:truffleruby>'],
+            links=['bin/<exe:ruby>'],
         )
     ],
 ))
