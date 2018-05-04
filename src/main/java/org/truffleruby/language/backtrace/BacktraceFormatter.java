@@ -128,7 +128,7 @@ public class BacktraceFormatter {
         }
 
         if (backtrace.getJavaThrowable() != null && flags.contains(FormattingFlags.INTERLEAVE_JAVA)) {
-            final List<String> interleaved = BacktraceInterleaver.interleave(lines, backtrace.getJavaThrowable().getStackTrace());
+            final List<String> interleaved = BacktraceInterleaver.interleave(lines, backtrace.getJavaThrowable().getStackTrace(), backtrace.getOmitted());
             return interleaved.toArray(new String[interleaved.size()]);
         }
 

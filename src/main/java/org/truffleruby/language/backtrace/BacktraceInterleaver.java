@@ -9,34 +9,38 @@
  */
 package org.truffleruby.language.backtrace;
 
-import org.truffleruby.core.string.StringUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class BacktraceInterleaver {
 
-    public static List<String> interleave(List<String> rubyBacktrace, StackTraceElement[] javaStacktrace) {
+    public static List<String> interleave(List<String> rubyBacktrace, StackTraceElement[] javaStacktrace, int omitted) {
         final List<String> interleaved = new ArrayList<>();
 
         int javaIndex = 0;
+        int rubyIndex = 0;
+        int toOmit = omitted;
 
-        for (String rubyLine : rubyBacktrace) {
-            if (javaIndex < javaStacktrace.length) {
-                interleaved.add(format(javaStacktrace[javaIndex]));
-                javaIndex++;
-
-                while (javaIndex < javaStacktrace.length && !isCallBoundary(javaStacktrace[javaIndex])) {
-                    interleaved.add(format(javaStacktrace[javaIndex]));
-                    javaIndex++;
+        while (javaIndex < javaStacktrace.length || rubyIndex < rubyBacktrace.size()) {
+            if (isCallBoundary(javaStacktrace[javaIndex]) && rubyIndex < rubyBacktrace.size()) {
+                if (toOmit == 0) {
+                    interleaved.add(rubyBacktrace.get(rubyIndex));
+                    rubyIndex++;
+                } else {
+                    toOmit--;
                 }
             }
 
-            interleaved.add(rubyLine);
-        }
+            interleaved.add(String.format("\t\t%s", javaStacktrace[javaIndex]));
 
-        while (javaIndex < javaStacktrace.length) {
-            interleaved.add(format(javaStacktrace[javaIndex]));
+            if (isIntoRuby(javaStacktrace, javaIndex)) {
+                interleaved.add("\t\t\tforeign call goes into Ruby");
+            }
+
+            if (isForeignCall(javaStacktrace[javaIndex])) {
+                interleaved.add("\t\t\tforeign call being made");
+            }
+
             javaIndex++;
         }
 
@@ -48,8 +52,17 @@ public class BacktraceInterleaver {
                 || element.toString().startsWith("com.oracle.truffle.api.impl.DefaultCallTarget.call");
     }
 
-    private static String format(StackTraceElement element) {
-        return StringUtils.format("\t\t%s", element);
+    private static boolean isIntoRuby(StackTraceElement[] elements, int index) {
+        if (index + 1 >= elements.length) {
+            return false;
+        }
+
+        return elements[index].toString().startsWith("org.truffleruby.interop.RubyMessageResolutionForeign")
+                && !elements[index + 1].toString().startsWith("org.truffleruby.interop.RubyMessageResolutionForeign");
+    }
+
+    private static boolean isForeignCall(StackTraceElement element) {
+        return element.toString().startsWith("com.oracle.truffle.api.interop.ForeignAccess.send");
     }
 
 }
