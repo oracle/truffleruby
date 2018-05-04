@@ -139,7 +139,7 @@ public class OptionsCatalog {
     }
 
     public static OptionDescription<?>[] allDescriptions() {
-        return new OptionDescription<?>[] {<% options.each do |o| %>
+        return new OptionDescription<?>[] {<% options.sort_by(&:name).each do |o| %>
             <%= o.constant %>,<% end %>
         };
     }
