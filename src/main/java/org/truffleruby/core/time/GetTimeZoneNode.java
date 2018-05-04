@@ -106,7 +106,7 @@ public abstract class GetTimeZoneNode extends RubyNode {
             // TimeZone.getDefault() returns the image build time zone on SVM.
             final Path localtime = Paths.get("/etc/localtime");
             if (!Files.exists(localtime, LinkOption.NOFOLLOW_LINKS)) {
-                Log.LOGGER.warning("Could not find timezone (/etc/localtime does not exist), using UTC instead.");
+                Log.LOGGER.warning("could not find timezone (/etc/localtime does not exist), using UTC instead");
                 return UTC;
             }
 
@@ -136,7 +136,7 @@ public abstract class GetTimeZoneNode extends RubyNode {
 
         final int index = resolved.indexOf("zoneinfo/");
         if (index == -1) {
-            Log.LOGGER.warning("Could not find timezone (The /etc/localtime symlink does not contain zoneinfo/), using UTC instead.");
+            Log.LOGGER.warning("could not find timezone (the /etc/localtime symlink does not contain zoneinfo/), using UTC instead");
             return "UTC";
         }
 
@@ -167,7 +167,7 @@ public abstract class GetTimeZoneNode extends RubyNode {
         if (same.isPresent()) {
             return zoneinfo.relativize(same.get()).toString();
         } else {
-            Log.LOGGER.warning("Could not find timezone (no file in " + zoneinfo + " is the same as /etc/localtime), using UTC instead.");
+            Log.LOGGER.warning("could not find timezone (no file in " + zoneinfo + " is the same as /etc/localtime), using UTC instead");
             return "UTC";
         }
     }
