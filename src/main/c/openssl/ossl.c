@@ -553,7 +553,7 @@ ossl_dyn_destroy_callback(struct CRYPTO_dynlock_value *l, const char *file, int 
 static void ossl_threadid_func(CRYPTO_THREADID *id)
 {
     /* register native thread id */
-    CRYPTO_THREADID_set_pointer(id, (void *)rb_nativethread_self());
+    CRYPTO_THREADID_set_pointer(id, (void *)rb_tr_obj_id(rb_nativethread_self()));
 }
 #else
 static unsigned long ossl_thread_id(void)

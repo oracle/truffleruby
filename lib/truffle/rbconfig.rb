@@ -52,7 +52,6 @@ module RbConfig
   ruby_version   = Truffle::RUBY_BASE_VERSION
 
   arch     = "#{host_cpu}-#{host_os}"
-  cppflags = ''
   libs     = ''
 
   # Sorted alphabetically using sort(1)
@@ -62,7 +61,7 @@ module RbConfig
     'build'             => host,
     'build_os'          => host_os_full,
     'configure_args'    => ' ',
-    'CPPFLAGS'          => cppflags,
+    'CPPFLAGS'          => '',
     'CPPOUTFILE'        => '-o conftest.i',
     'DLDFLAGS'          => '',
     'DLDLIBS'           => '',
@@ -89,6 +88,7 @@ module RbConfig
     'NATIVE_DLEXT'      => Truffle::Platform::NATIVE_DLEXT,
     'NULLCMD'           => ':',
     'OBJEXT'            => 'bc',
+    'OUTFLAG'           => '-o ',
     'optflags'          => '',
     'PATH_SEPARATOR'    => File::PATH_SEPARATOR,
     'prefix'            => '',

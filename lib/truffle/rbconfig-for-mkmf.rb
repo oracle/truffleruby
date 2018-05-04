@@ -38,8 +38,9 @@ extra_cflags = nil
 end
 
 opt_passes = ['-always-inline', '-mem2reg', '-constprop'].join(' ')
-linkflags = [
-  '-g',                              # Show debug information such as line numbers in backtrace
+
+debugflags = '-g' # Show debug information such as line numbers in backtrace
+warnflags = [
   '-Wimplicit-function-declaration', # To make missing C ext functions clear
   '-Wno-unknown-warning-option',     # If we're on an earlier version of clang without a warning option, ignore it
   '-Wno-int-conversion',             # MRI has VALUE defined as long while we have it as void*
@@ -52,7 +53,7 @@ linkflags = [
 cc = clang
 cxx = 'clang++'
 
-cflags = "#{linkflags} -c -emit-llvm"
+cflags = "#{debugflags} #{warnflags} -c -emit-llvm"
 cflags = "#{extra_cflags} #{cflags}" if extra_cflags
 cxxflags = "#{cflags} -stdlib=libc++"
 
@@ -65,6 +66,8 @@ common = {
   'CC' => cc,
   'CPP' => cc,
   'CXX' => cxx,
+  'debugflags' => debugflags,
+  'warnflags' => warnflags,
   'CFLAGS' => cflags,
   'CXXFLAGS' => cxxflags
 }
@@ -73,8 +76,14 @@ mkconfig.merge!(common)
 
 mkconfig['COMPILE_C']   = "ruby #{cext_dir}/preprocess.rb $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@"
 mkconfig['COMPILE_CXX'] = "ruby #{cext_dir}/preprocess.rb $< | $(CXX) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ - -o $@ && #{opt} #{opt_passes} $@ -o $@"
-mkconfig['LINK_SO']     = "#{RbConfig.ruby} #{cext_dir}/linker.rb -o $@ $(OBJS) $(LIBS)"
-mkconfig['TRY_LINK']    = "#{cc} -o conftest $(CPPFLAGS) #{cext_dir}/ruby.bc #{cext_dir}/sulongmock.bc $(src) $(INCFLAGS) #{linkflags} $(LIBS)"
+
+# From mkmf.rb: "$(LDSHARED) #{OUTFLAG}$@ $(OBJS) $(LIBPATH) $(DLDFLAGS) $(LOCAL_LIBS) $(LIBS)"
+# The only difference is we use linker.rb instead of LDSHARED
+mkconfig['LINK_SO'] = "#{RbConfig.ruby} #{cext_dir}/linker.rb -o $@ $(OBJS) $(LIBPATH) $(DLDFLAGS) $(LOCAL_LIBS) $(LIBS)"
+
+cflags_for_try_link = "#{debugflags} #{warnflags}"
+# From mkmf.rb: "$(CC) #{OUTFLAG}#{CONFTEST}#{$EXEEXT} $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
+mkconfig['TRY_LINK'] = "#{cc} -o conftest $(INCFLAGS) $(CPPFLAGS) #{cflags_for_try_link} #{cext_dir}/ruby.bc #{cext_dir}/sulongmock.bc $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
 
 %w[COMPILE_C COMPILE_CXX LINK_SO TRY_LINK].each do |key|
   expanded[key] = mkconfig[key].gsub(/\$\((\w+)\)/) { expanded.fetch($1, $&) }
