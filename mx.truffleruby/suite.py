@@ -1,5 +1,5 @@
 suite = {
-    "mxversion": "5.128.1",
+    "mxversion": "5.153.0",
     "name": "truffleruby",
 
     "imports": {
@@ -7,7 +7,7 @@ suite = {
             {
                 "name": "truffle",
                 "subdir": True,
-                "version": "f1ea8d21556d3031e542d4d7609266a1affdb2ac",
+                "version": "8ed0b0b53c7e722b0779c29d7e3532fcf27ab3ac",
                 "urls": [
                     {"url": "https://github.com/graalvm/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -15,7 +15,7 @@ suite = {
             },
             {
                 "name": "sulong",
-                "version": "cdadc5b4c54bd98cf1914d70de2f10025f68c184",
+                "version": "5dbf4341fa2c19271c3dc7da85f3eaa53239f8e8",
                 "urls": [
                     {"url": "https://github.com/graalvm/sulong.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -364,7 +364,7 @@ suite = {
         "TRUFFLERUBY-ZIP": {
             "native": True, # Not Java
             "relpath": True,
-            "platformDependent": True, # truffleruby-cext
+            "platformDependent": True, # truffleruby-cext, truffleruby-bin
             "dependencies": [
                 "truffleruby-bin",
                 "truffleruby-lib",
@@ -377,6 +377,36 @@ suite = {
                 "BSD-simplified",   # MRI
                 "BSD-new",          # Rubinius, FFI
             ],
+        },
+
+        "TRUFFLERUBY_GRAALVM_SUPPORT" : {
+            "native": True,
+            "platformDependent": True,
+            "description" : "TruffleRuby support distribution for the GraalVM",
+            "dependencies" : [
+                "truffleruby-cext",
+            ],
+            "layout" : {
+                "./" : [
+                    "file:lib",  # contains some results from truffleruby-cext
+                    "file:CHANGELOG.md",
+                    "file:mx.truffleruby/GraalCE_Ruby_license_3rd_party_license.txt",
+                    "file:README.md",
+                ],
+                "native-image.properties" : ["file:mx.truffleruby/graalvm.properties"],
+                "bin/" : [
+                    "file:bin/gem",
+                    "file:bin/irb",
+                    "file:bin/rake",
+                    "file:bin/rdoc",
+                    "file:bin/ri",
+                    "file:bin/testrb",
+                ],
+                "doc/" : [
+                    "file:doc/legal",
+                    "file:doc/user",
+                ],
+            },
         },
 
         "TRUFFLERUBY-TEST": {

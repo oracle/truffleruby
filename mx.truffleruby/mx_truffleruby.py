@@ -15,6 +15,7 @@ import sys
 import mx
 import mx_subst
 import mx_unittest
+import mx_sdk
 
 if 'RUBY_BENCHMARKS' in os.environ:
     import mx_truffleruby_benchmark
@@ -158,7 +159,7 @@ class TruffleRubyLauncherBuildTask(mx.ArchivableBuildTask):
             os.symlink("truffleruby.sh", self.launcher)
 
     def clean(self, forBuild=False):
-        if exists(self.launcher):
+        if os.path.lexists(self.launcher):
             os.remove(self.launcher)
 
     def store_jvm_args(self):
@@ -322,12 +323,52 @@ def ruby_testdownstream_sulong(args):
     jt('test', 'cexts')
     jt('test', 'bundle')
 
+
 def mx_post_parse_cmd_line(opts):
     if mx.suite("tools", fatalIfMissing=False) and not _suite.isBinarySuite():
         mx.project('truffleruby-bin').buildDependencies += [
             mx.distribution('CHROMEINSPECTOR'),
             mx.distribution('TRUFFLE_PROFILER')
         ]
+
+
+mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
+    suite=_suite,
+    name='TruffleRuby',
+    short_name='rby',
+    dir_name='ruby',
+    license_files=['GraalCE_Ruby_license_3rd_party_license.txt'],
+    third_party_license_files=[],
+    truffle_jars=[
+        'truffleruby:TRUFFLERUBY',
+        'truffleruby:TRUFFLERUBY-SHARED',
+        'truffleruby:TRUFFLERUBY-ANNOTATIONS'
+    ],
+    support_distributions=[
+        'truffleruby:TRUFFLERUBY_GRAALVM_SUPPORT',
+    ],
+    provided_executables=[
+        'bin/gem',
+        'bin/irb',
+        'bin/rake',
+        'bin/rdoc',
+        'bin/ri',
+        'bin/testrb',
+    ],
+    launcher_configs=[
+        mx_sdk.LanguageLauncherConfig(
+            destination='bin/<exe:truffleruby>',
+            jar_distributions=['truffleruby:TRUFFLERUBY-LAUNCHER'],
+            main_class='org.truffleruby.launcher.RubyLauncher',
+            build_args=[
+                '--language:llvm',
+                '--language:ruby',
+                '-Dorg.graalvm.launcher.standalone=false',
+            ],
+            links=['bin/<exe:ruby>'],
+        )
+    ],
+))
 
 mx.update_commands(_suite, {
     'ruby': [ruby_run_ruby, ''],
