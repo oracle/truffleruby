@@ -750,7 +750,6 @@ public class RubyContext {
             if (isRubyHome(candidate)) {
                 return candidate.getCanonicalPath();
             } else {
-                Log.LOGGER.warning(candidate + " does not look like TruffleRuby's home");
                 Log.LOGGER.warning(String.format("home %s guessed from executable %s does not look like TruffleRuby's home", candidate, options.LAUNCHER));
             }
         } else {
