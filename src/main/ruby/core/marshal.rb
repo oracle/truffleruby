@@ -218,7 +218,7 @@ module Marshal
 
     def construct_string
       obj = get_byte_sequence
-      Truffle::Unsafe.set_class(obj, get_user_class) if @user_class
+      Truffle::Internal::Unsafe.set_class(obj, get_user_class) if @user_class
 
       set_object_encoding(obj, Encoding::ASCII_8BIT)
 
@@ -659,7 +659,7 @@ module Marshal
       if @user_class
         cls = get_user_class()
         if cls < Array
-          Truffle::Unsafe.set_class obj, cls
+          Truffle::Internal::Unsafe.set_class obj, cls
         else
           # This is what MRI does, it's weird.
           return cls.allocate

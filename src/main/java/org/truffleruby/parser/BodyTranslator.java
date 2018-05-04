@@ -867,7 +867,7 @@ public class BodyTranslator extends Translator {
                     method = "===";
                     arguments = new RubyNode[]{ NodeUtil.cloneNode(readTemp) };
                 } else {
-                    receiver = new ObjectLiteralNode(context.getCoreLibrary().getTruffleModule());
+                    receiver = new ObjectLiteralNode(context.getCoreLibrary().getTruffleInternalModule());
                     receiver.unsafeSetSourceSection(sourceSection);
                     method = "when_splat";
                     arguments = new RubyNode[]{ rubyExpression, NodeUtil.cloneNode(readTemp) };

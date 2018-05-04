@@ -20,9 +20,11 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.shared.BuildInformationImpl;
 
 @CoreClass("Truffle")
@@ -76,6 +78,18 @@ public abstract class TruffleNodes {
         public DynamicObject revision() {
             return StringOperations.createFrozenString(getContext(),
                     RopeOperations.encodeAscii(BuildInformationImpl.INSTANCE.getRevision(), USASCIIEncoding.INSTANCE));
+        }
+
+    }
+
+    @CoreMethod(names = "full_memory_barrier", isModuleFunction = true)
+    public abstract static class FullMemoryBarrierPrimitiveNode extends CoreMethodNode {
+
+        @Specialization
+        public Object fullMemoryBarrier() {
+            Pointer.UNSAFE.fullFence();
+
+            return nil();
         }
 
     }

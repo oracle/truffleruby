@@ -204,7 +204,7 @@ class IO
     #
     # Returns the number of bytes in the buffer.
     def fill_from(io, skip = nil)
-      Truffle.synchronize(self) do
+      Truffle::System.synchronized(self) do
         empty_to io
         discard skip if skip
 
@@ -266,7 +266,7 @@ class IO
     end
 
     def unseek!(io)
-      Truffle.synchronize(self) do
+      Truffle::System.synchronized(self) do
         # Unseek the still buffered amount
         return unless write_synced?
         unless empty?
@@ -281,7 +281,7 @@ class IO
     # Returns +count+ bytes from the +start+ of the buffer as a new String.
     # If +count+ is +nil+, returns all available bytes in the buffer.
     def shift(count=nil, encoding=Encoding::ASCII_8BIT)
-      Truffle.synchronize(self) do
+      Truffle::System.synchronized(self) do
         total = size
         total = count if count and count < total
 
@@ -318,7 +318,7 @@ class IO
     def getbyte(io)
       return if size == 0 and fill_from(io) == 0
 
-      Truffle.synchronize(self) do
+      Truffle::System.synchronized(self) do
         byte = @storage[@start]
         @start += 1
         byte
@@ -329,7 +329,7 @@ class IO
     def getchar(io)
       return if size == 0 and fill_from(io) == 0
 
-      Truffle.synchronize(self) do
+      Truffle::System.synchronized(self) do
         char = ''
         while size > 0
           char.force_encoding Encoding::ASCII_8BIT
@@ -906,7 +906,7 @@ class IO
     if readable and writable
       # Transmogrify pa_read into a BidirectionalPipe object,
       # and then tell it about its pid and pa_write
-      Truffle::Unsafe.set_class pa_read, IO::BidirectionalPipe
+      Truffle::Internal::Unsafe.set_class pa_read, IO::BidirectionalPipe
       pipe = pa_read
       pipe.set_pipe_info(pa_write)
     elsif readable
@@ -2270,7 +2270,7 @@ class IO
       Errno.handle if mode < 0
       @mode = mode
 
-      Truffle::Unsafe.set_class self, io.class
+      Truffle::Internal::Unsafe.set_class self, io.class
       if io.respond_to?(:path)
         @path = io.path
       end
