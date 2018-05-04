@@ -18,6 +18,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
@@ -44,6 +45,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -258,19 +260,56 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "instance_eval", needsBlock = true, optional = 3, lowerFixnum = 3, unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
     public abstract static class InstanceEvalNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })
-        public Object instanceEval(Object receiver, DynamicObject string, DynamicObject fileName, int line, NotProvided block,
+        public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName, int line, NotProvided block,
+                @Cached("create()") ReadCallerFrameNode callerFrameNode,
                 @Cached("create()") IndirectCallNode callNode) {
+            final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
+
+            return instanceEvalHelper(callerFrame, receiver, string, fileName, line, callerFrameNode, callNode);
+        }
+
+        @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })
+        public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName, NotProvided line, NotProvided block,
+                @Cached("create()") ReadCallerFrameNode callerFrameNode,
+                @Cached("create()") IndirectCallNode callNode) {
+            final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
+
+            return instanceEvalHelper(callerFrame, receiver, string, fileName, 1, callerFrameNode, callNode);
+        }
+
+        @Specialization(guards = { "isRubyString(string)" })
+        public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, NotProvided fileName, NotProvided line, NotProvided block,
+                @Cached("create()") ReadCallerFrameNode callerFrameNode,
+                @Cached("create()") IndirectCallNode callNode) {
+            final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
+
+            return instanceEvalHelper(callerFrame, receiver, string, coreStrings().EVAL_FILENAME_STRING.createInstance(), 1, callerFrameNode, callNode);
+        }
+
+        @Specialization
+        public Object instanceEval(Object receiver, NotProvided string, NotProvided fileName, NotProvided line, DynamicObject block,
+                @Cached("create()") InstanceExecNode instanceExecNode) {
+            return instanceExecNode.executeInstanceExec(receiver, new Object[]{ receiver }, block);
+        }
+
+        @TruffleBoundary
+        private Object instanceEvalHelper(MaterializedFrame callerFrame, Object receiver, DynamicObject string,
+                DynamicObject fileName, int line, ReadCallerFrameNode callerFrameNode, IndirectCallNode callNode) {
             final Rope code = StringOperations.rope(string);
             final String fileNameString = RopeOperations.decodeRope(StringOperations.rope(fileName));
 
-            final Source source = KernelNodes.EvalNode.createEvalSource(KernelNodes.EvalNode.offsetSource("instance_eval", RopeOperations.decodeRope(code), fileNameString, line), fileNameString);
+            final Source source = KernelNodes.EvalNode.createEvalSource(
+                    KernelNodes.EvalNode.offsetSource(
+                            "instance_eval", RopeOperations.decodeRope(code), fileNameString, line), fileNameString);
+
+
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source,
                     code.getEncoding(),
                     ParserContext.EVAL,
-                    null,
+                    callerFrame.getFrameDescriptor(),
+                    callerFrame,
                     true,
                     this);
 
@@ -280,28 +319,10 @@ public abstract class BasicObjectNodes {
                     ParserContext.EVAL,
                     declarationContext,
                     rootNode,
-                    null,
+                    callerFrame,
                     receiver);
 
             return deferredCall.call(callNode);
-        }
-
-        @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })
-        public Object instanceEval(Object receiver, DynamicObject string, DynamicObject fileName, NotProvided line, NotProvided block,
-                @Cached("create()") IndirectCallNode callNode) {
-            return instanceEval(receiver, string, fileName, 1, block, callNode);
-        }
-
-        @Specialization(guards = { "isRubyString(string)" })
-        public Object instanceEval(Object receiver, DynamicObject string, NotProvided fileName, NotProvided line, NotProvided block,
-                @Cached("create()") IndirectCallNode callNode) {
-            return instanceEval(receiver, string, coreStrings().EVAL_FILENAME_STRING.createInstance(), 1, block, callNode);
-        }
-
-        @Specialization
-        public Object instanceEval(Object receiver, NotProvided string, NotProvided fileName, NotProvided line, DynamicObject block,
-                @Cached("create()") InstanceExecNode instanceExecNode) {
-            return instanceExecNode.executeInstanceExec(receiver, new Object[]{ receiver }, block);
         }
 
     }
