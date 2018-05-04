@@ -35,6 +35,11 @@ public class BacktraceInterleaver {
             interleaved.add(rubyLine);
         }
 
+        while (javaIndex < javaStacktrace.length) {
+            interleaved.add(format(javaStacktrace[javaIndex]));
+            javaIndex++;
+        }
+
         return interleaved;
     }
 

@@ -27,6 +27,8 @@ Changes:
 * The `READ` interop message will not call `#[]` on `Proc` or `Method` objects,
   to avoid executing the method.
 
+* `-Xbacktraces.interleave_java` now includes all the trailing Java frames.
+
 Bug fixes:
 
 * TruffleRuby on SubstrateVM now correctly determines the system timezone.
