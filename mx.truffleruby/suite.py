@@ -407,6 +407,12 @@ suite = {
                     "file:doc/user",
                 ],
             },
+            "license": [
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "MIT",              # minitest, did_you_mean, rake
+                "BSD-simplified",   # MRI
+                "BSD-new",          # Rubinius, FFI
+            ],
         },
 
         "TRUFFLERUBY-TEST": {
