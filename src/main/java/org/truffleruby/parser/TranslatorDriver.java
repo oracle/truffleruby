@@ -295,7 +295,7 @@ public class TranslatorDriver {
                 case UNKNOWN_ENCODING:
                 case NOT_ASCII_COMPATIBLE:
                     if (context != null) {
-                        throw new RaiseException(context,context.getCoreExceptions().argumentError(e.getMessage(), null));
+                        throw new RaiseException(context, context.getCoreExceptions().argumentError(e.getMessage(), null));
                     } else {
                         throw e;
                     }
