@@ -3139,11 +3139,11 @@ states[518] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[519] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new TrueParseNode(lexer.getPosition());
+    yyVal = new TrueParseNode((SourceIndexLength) yyVal);
     return yyVal;
 };
 states[520] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new FalseParseNode(lexer.getPosition());
+    yyVal = new FalseParseNode((SourceIndexLength) yyVal);
     return yyVal;
 };
 states[521] = (support, lexer, yyVal, yyVals, yyTop) -> {
