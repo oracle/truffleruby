@@ -246,6 +246,7 @@ public class MethodTranslator extends BodyTranslator {
         final SourceIndexLength bodySourceSection = body.getSourceIndexLength();
 
         final RubyNode checkArity = createCheckArityNode(arity);
+        checkArity.unsafeSetSourceSection(sourceSection);
 
         if (isPrimitive) {
             // Arguments are loaded on the fallback path
