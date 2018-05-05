@@ -537,6 +537,8 @@ struct zstream {
     } *func;
 };
 
+POLYGLOT_DECLARE_STRUCT(zstream);
+
 #define ZSTREAM_FLAG_READY      0x1
 #define ZSTREAM_FLAG_IN_STREAM  0x2
 #define ZSTREAM_FLAG_FINISHED   0x4
@@ -2268,6 +2270,7 @@ static const rb_data_type_t gzfile_data_type = {
 static void
 gzfile_init(struct gzfile *gz, const struct zstream_funcs *funcs, void (*endfunc)(struct gzfile *))
 {
+    polyglot_put_member(gz, "z", rb_hash_new());
     zstream_init(&gz->z, funcs);
     gz->z.flags |= ZSTREAM_FLAG_GZFILE;
     gz->io = rb_tr_handle_for_managed_leaking(Qnil);
@@ -2296,6 +2299,8 @@ gzfile_new(VALUE klass, const struct zstream_funcs *funcs, void (*endfunc)(struc
     struct gzfile *gz;
 
     obj = TypedData_Make_Struct(klass, struct gzfile, &gzfile_data_type, gz);
+    free(DATA_PTR(obj));
+    gz = DATA_PTR(obj) = rb_hash_new();
     gzfile_init(gz, funcs, endfunc);
     return obj;
 }
