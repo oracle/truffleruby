@@ -105,6 +105,12 @@ public abstract class ExceptionOperations {
 
     // because the factory is not constant
     @TruffleBoundary
+    public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Node node, Throwable javaException) {
+        return createRubyException(context, rubyClass, message, node, null, javaException);
+    }
+
+    // because the factory is not constant
+    @TruffleBoundary
     public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Node node, SourceSection sourceLocation, Throwable javaException) {
         Backtrace backtrace = context.getCallStack().getBacktraceForException(node, sourceLocation, rubyClass, javaException);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
