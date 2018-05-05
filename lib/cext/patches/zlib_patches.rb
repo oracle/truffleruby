@@ -14,8 +14,8 @@ class ZLibPatches < CommonPatches
     patches: {
       'zlib.c' => [
         {
-          match: /&z->stream(?=[,);])/,
-          replacement: 'polyglot_get_member(z, "stream")'
+          match: /&(z|z1|z2)->stream(?=[,);])/,
+          replacement: 'polyglot_get_member(\1, "stream")'
         },
         {
           match: /&gz->z\.stream(?=[,);])/,
