@@ -2223,7 +2223,7 @@ gzfile_mark(void *p)
 {
     struct gzfile *gz = p;
 
-    rb_gc_mark(rb_tr_managed_from_handle(gz->io));
+    rb_gc_mark(gz->io);
     rb_gc_mark(rb_tr_managed_from_handle(gz->orig_name));
     rb_gc_mark(rb_tr_managed_from_handle(gz->comment));
     zstream_mark(&gz->z);
@@ -2273,7 +2273,7 @@ gzfile_init(struct gzfile *gz, const struct zstream_funcs *funcs, void (*endfunc
     polyglot_put_member(gz, "z", rb_hash_new());
     zstream_init(&gz->z, funcs);
     gz->z.flags |= ZSTREAM_FLAG_GZFILE;
-    gz->io = rb_tr_handle_for_managed_leaking(Qnil);
+    gz->io = Qnil;
     gz->level = 0;
     gz->mtime = 0;
     gz->os_code = OS_CODE;
@@ -2328,10 +2328,10 @@ gzfile_reset(struct gzfile *gz)
 static void
 gzfile_close(struct gzfile *gz, int closeflag)
 {
-    VALUE io = rb_tr_managed_from_handle(gz->io);
+    VALUE io = gz->io;
 
     gz->end(gz);
-    gz->io = rb_tr_handle_for_managed_leaking(Qnil);
+    gz->io = Qnil;
     gz->orig_name = rb_tr_handle_for_managed_leaking(Qnil);
     gz->comment = rb_tr_handle_for_managed_leaking(Qnil);
     if (closeflag && rb_respond_to(io, id_close)) {
@@ -2347,10 +2347,10 @@ gzfile_write_raw(struct gzfile *gz)
     if (ZSTREAM_BUF_FILLED(&gz->z) > 0) {
 	str = zstream_detach_buffer(&gz->z);
 	OBJ_TAINT(str);  /* for safe */
-	rb_funcall(rb_tr_managed_from_handle(gz->io), id_write, 1, str);
+	rb_funcall(gz->io, id_write, 1, str);
 	if ((gz->z.flags & GZFILE_FLAG_SYNC)
-	    && rb_respond_to(rb_tr_managed_from_handle(gz->io), id_flush))
-	    rb_funcall(rb_tr_managed_from_handle(gz->io), id_flush, 0);
+	    && rb_respond_to(gz->io, id_flush))
+	    rb_funcall(gz->io, id_flush, 0);
     }
 }
 
@@ -2360,7 +2360,7 @@ gzfile_read_raw_partial(VALUE arg)
     struct gzfile *gz = (struct gzfile*)arg;
     VALUE str;
 
-    str = rb_funcall(rb_tr_managed_from_handle(gz->io), id_readpartial, 1, INT2FIX(GZFILE_READ_SIZE));
+    str = rb_funcall(gz->io, id_readpartial, 1, INT2FIX(GZFILE_READ_SIZE));
     Check_Type(str, T_STRING);
     return str;
 }
@@ -2371,7 +2371,7 @@ gzfile_read_raw_rescue(VALUE arg)
     struct gzfile *gz = (struct gzfile*)arg;
     VALUE str = Qnil;
     if (rb_obj_is_kind_of(rb_errinfo(), rb_eNoMethodError)) {
-        str = rb_funcall(rb_tr_managed_from_handle(gz->io), id_read, 1, INT2FIX(GZFILE_READ_SIZE));
+        str = rb_funcall(gz->io, id_read, 1, INT2FIX(GZFILE_READ_SIZE));
         if (!NIL_P(str)) {
             Check_Type(str, T_STRING);
         }
@@ -2929,7 +2929,7 @@ gzfile_reader_rewind(struct gzfile *gz)
 	n += RSTRING_LEN(gz->z.input);
     }
 
-    rb_funcall(rb_tr_managed_from_handle(gz->io), id_seek, 2, rb_int2inum(-n), INT2FIX(1));
+    rb_funcall(gz->io, id_seek, 2, rb_int2inum(-n), INT2FIX(1));
     gzfile_reset(gz);
 }
 
@@ -3103,7 +3103,7 @@ gzfile_s_open(int argc, VALUE *argv, VALUE klass, const char *mode)
 static VALUE
 rb_gzfile_to_io(VALUE obj)
 {
-    return rb_tr_managed_from_handle(get_gzfile(obj)->io);
+    return get_gzfile(obj)->io;
 }
 
 /*
@@ -3307,7 +3307,7 @@ rb_gzfile_close(VALUE obj)
     if (!ZSTREAM_IS_READY(&gz->z)) {
         return Qnil;
     }
-    io = rb_tr_managed_from_handle(gz->io);
+    io = gz->io;
     gzfile_close(gz, 1);
     return io;
 }
@@ -3325,7 +3325,7 @@ rb_gzfile_finish(VALUE obj)
     struct gzfile *gz = get_gzfile(obj);
     VALUE io;
 
-    io = rb_tr_managed_from_handle(gz->io);
+    io = gz->io;
     gzfile_close(gz, 0);
     return io;
 }
@@ -3341,7 +3341,7 @@ rb_gzfile_closed_p(VALUE obj)
 {
     struct gzfile *gz;
     TypedData_Get_Struct(obj, struct gzfile, &gzfile_data_type, gz);
-    return NIL_P(rb_tr_managed_from_handle(gz->io)) ? Qtrue : Qfalse;
+    return NIL_P(gz->io) ? Qtrue : Qfalse;
 }
 
 /*
@@ -3545,12 +3545,12 @@ rb_gzwriter_initialize(int argc, VALUE *argv, VALUE obj)
     if (err != Z_OK) {
 	raise_zlib_error(err, gz->z.stream.msg);
     }
-    gz->io = rb_tr_handle_for_managed_leaking(io);
+    gz->io = io;
     ZSTREAM_READY(&gz->z);
     rb_gzfile_ecopts(gz, opt);
 
     if (rb_respond_to(io, id_path)) {
-	gz->path = rb_tr_handle_for_managed_leaking(rb_funcall(rb_tr_managed_from_handle(gz->io), id_path, 0));
+	gz->path = rb_tr_handle_for_managed_leaking(rb_funcall(gz->io, id_path, 0));
 	rb_define_singleton_method(obj, "path", rb_gzfile_path, 0);
     }
 
@@ -3579,8 +3579,8 @@ rb_gzwriter_flush(int argc, VALUE *argv, VALUE obj)
     }
 
     gzfile_write_raw(gz);
-    if (rb_respond_to(rb_tr_managed_from_handle(gz->io), id_flush)) {
-	rb_funcall(rb_tr_managed_from_handle(gz->io), id_flush, 0);
+    if (rb_respond_to(gz->io, id_flush)) {
+	rb_funcall(gz->io, id_flush, 0);
     }
     return obj;
 }
@@ -3747,13 +3747,13 @@ rb_gzreader_initialize(int argc, VALUE *argv, VALUE obj)
     if (err != Z_OK) {
 	raise_zlib_error(err, gz->z.stream.msg);
     }
-    gz->io = rb_tr_handle_for_managed_leaking(io);
+    gz->io = io;
     ZSTREAM_READY(&gz->z);
     gzfile_read_header(gz);
     rb_gzfile_ecopts(gz, opt);
 
     if (rb_respond_to(io, id_path)) {
-	gz->path = rb_tr_handle_for_managed_leaking(rb_funcall(rb_tr_managed_from_handle(gz->io), id_path, 0));
+	gz->path = rb_tr_handle_for_managed_leaking(rb_funcall(gz->io, id_path, 0));
 	rb_define_singleton_method(obj, "path", rb_gzfile_path, 0);
     }
 
