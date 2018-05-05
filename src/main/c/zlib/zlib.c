@@ -2246,7 +2246,7 @@ gzfile_free(void *p)
     if (gz->cbuf) {
 	xfree(gz->cbuf);
     }
-    xfree(gz);
+    // xfree(gz);
 }
 
 static size_t
