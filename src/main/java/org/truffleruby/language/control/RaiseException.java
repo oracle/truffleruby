@@ -77,7 +77,11 @@ public class RaiseException extends ControlFlowException implements TruffleExcep
 
     @Override
     public SourceSection getSourceLocation() {
-        return Layouts.EXCEPTION.getBacktrace(exception).getSourceLocation();
+        if (isSyntaxError()) {
+            return Layouts.EXCEPTION.getBacktrace(exception).getSourceLocation();
+        } else {
+            return TruffleException.super.getSourceLocation();
+        }
     }
 
     @Override
