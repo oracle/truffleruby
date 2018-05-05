@@ -18,6 +18,7 @@ require_relative 'patches/puma_patches'
 require_relative 'patches/sqlite3_patches'
 require_relative 'patches/websocket_driver_patches'
 require_relative 'patches/racc_patches'
+require_relative 'patches/zlib_patches'
 
 class Preprocessor
 
@@ -51,6 +52,7 @@ class Preprocessor
   add_gem_patches(PATCHED_FILES, ::SQLite3Patches::PATCHES)
   add_gem_patches(PATCHED_FILES, ::WebsocketDriverPatches::PATCHES)
   add_gem_patches(PATCHED_FILES, ::RaccPatches::PATCHES)
+  add_gem_patches(PATCHED_FILES, ::ZLibPatches::PATCHES)
 
   LOCAL = /\w+\s*(\[\s*\d+\s*\])?/
   VALUE_LOCALS = /^(?<before>\s+)VALUE\s+(?<locals>#{LOCAL}(\s*,\s*#{LOCAL})*);(?<after>\s*(\/\/.+)?)$/
