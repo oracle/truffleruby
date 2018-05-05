@@ -2862,10 +2862,10 @@ int rb_io_extract_encoding_option(VALUE opt, rb_encoding **enc_p, rb_encoding **
   VALUE external_encoding = polyglot_invoke(encoding, "default_external");
   VALUE internal_encoding = polyglot_invoke(encoding, "default_internal");
   if (!NIL_P(external_encoding)) {
-    *enc_p = rb_tr_handle_for_managed_leaking(rb_to_encoding(external_encoding));
+    *enc_p = rb_to_encoding(external_encoding);
   }
   if (!NIL_P(internal_encoding)) {
-    *enc2_p = rb_tr_handle_for_managed_leaking(rb_to_encoding(internal_encoding));
+    *enc2_p = rb_to_encoding(internal_encoding);
   }
   return 1;
 }
