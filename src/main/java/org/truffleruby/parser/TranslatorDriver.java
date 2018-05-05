@@ -63,6 +63,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.exceptions.TopLevelRaiseHandler;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
+import org.truffleruby.language.methods.CatchForMethodNode;
 import org.truffleruby.language.methods.CatchNextNode;
 import org.truffleruby.language.methods.CatchRetryAsErrorNode;
 import org.truffleruby.language.methods.CatchReturnAsErrorNode;
@@ -246,7 +247,9 @@ public class TranslatorDriver {
 
         // Catch return
 
-        if (parserContext != ParserContext.INLINE) {
+        if (parserContext == ParserContext.TOP_LEVEL || parserContext == ParserContext.TOP_LEVEL_FIRST) {
+            truffleNode = new CatchForMethodNode(environment.getReturnID(), truffleNode);
+        } else if (parserContext != ParserContext.INLINE) {
             truffleNode = new CatchReturnAsErrorNode(truffleNode);
         }
 
