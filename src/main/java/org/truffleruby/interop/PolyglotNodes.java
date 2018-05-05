@@ -88,12 +88,10 @@ public abstract class PolyglotNodes {
             try {
                 final Source sourceObject = Source.newBuilder(new File(fileName.toString().intern()))
                         .build();
-                getContext().getEnv().parse(sourceObject).call();
+                return getContext().getEnv().parse(sourceObject).call();
             } catch (IOException e) {
                 throw new JavaException(e);
             }
-
-            return nil();
         }
 
         @TruffleBoundary
@@ -104,12 +102,10 @@ public abstract class PolyglotNodes {
                 final Source sourceObject = Source.newBuilder(new File(fileName.toString().intern()))
                         .language(idString)
                         .build();
-                getContext().getEnv().parse(sourceObject).call();
+                return getContext().getEnv().parse(sourceObject).call();
             } catch (IOException e) {
                 throw new JavaException(e);
             }
-
-            return nil();
         }
 
     }
