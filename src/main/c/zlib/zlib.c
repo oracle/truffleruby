@@ -2318,9 +2318,7 @@ gzfile_reset(struct gzfile *gz)
     gz->ungetc = 0;
     if (gz->ec) {
 	rb_econv_close(gz->ec);
-        rb_encoding *enc = gz->enc;
-        rb_encoding *enc2 = gz->enc2;
-	gz->ec = rb_econv_open_opts(enc2->name, enc->name,
+	gz->ec = rb_econv_open_opts(gz->enc2->name, gz->enc->name,
 				    gz->ecflags, gz->ecopts);
     }
 }
@@ -2709,8 +2707,7 @@ gzfile_newstr(struct gzfile *gz, VALUE str)
 	OBJ_TAINT(str);
 	return str;
     }
-    return rb_str_conv_enc_opts(str, gz->enc2,
-                                gz->enc,
+    return rb_str_conv_enc_opts(str, gz->enc2, gz->enc,
 				gz->ecflags, gz->ecopts);
 }
 
@@ -3441,7 +3438,7 @@ static void
 rb_gzfile_ecopts(struct gzfile *gz, VALUE opts)
 {
     if (!NIL_P(opts)) {
-        rb_io_extract_encoding_option(opts, &gz->enc, &gz->enc2, NULL);
+	rb_io_extract_encoding_option(opts, &gz->enc, &gz->enc2, NULL);
     }
     if (gz->enc2) {
         // TODO not supported, when uncommented the method fails to execute
