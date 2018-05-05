@@ -597,7 +597,7 @@ zlib_mem_free(voidpf opaque, voidpf address)
     xfree(address);
 }
 
-POLYGLOT_DECLARE_STRUCT(z_stream_s);
+POLYGLOT_DECLARE_TYPE(z_stream);
 
 static void
 zstream_init(struct zstream *z, const struct zstream_funcs *func)
@@ -606,7 +606,7 @@ zstream_init(struct zstream *z, const struct zstream_funcs *func)
     z->buf = Qnil;
     z->input = Qnil;
     z_stream *stream = malloc(sizeof(z_stream));
-    polyglot_put_member(z, "stream", polyglot_from_z_stream_s(stream));
+    polyglot_put_member(z, "stream", polyglot_from_z_stream(stream));
     z->stream.zalloc = (void *(*)(void *, uint32_t, uint32_t)) zlib_mem_alloc;
     z->stream.zfree = (void (*)(void *, void *)) zlib_mem_free;
     z->stream.opaque = Z_NULL;
