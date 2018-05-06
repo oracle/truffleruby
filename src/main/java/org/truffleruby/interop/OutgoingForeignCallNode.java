@@ -116,7 +116,8 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             return new IsReferenceEqualOutgoingNode();
         } else if (name.equals("delete")
                 || name.equals("size")
-                || name.equals("keys")) {
+                || name.equals("keys")
+                || name.equals("class")) {
             final int expectedArgsLength;
 
             switch (name) {

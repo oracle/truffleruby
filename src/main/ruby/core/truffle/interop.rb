@@ -153,7 +153,7 @@ module Truffle
       when :keys
         Truffle::Interop.keys(receiver)
       when :class
-        if Truffle::Interop.java_class?(object)
+        if Truffle::Interop.java_class?(receiver)
           Truffle::Interop.read(receiver, :class)
         else
           Truffle::Interop.invoke(receiver, :class, *args)
