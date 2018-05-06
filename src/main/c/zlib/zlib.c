@@ -1151,9 +1151,7 @@ zstream_new(VALUE klass, const struct zstream_funcs *funcs)
     VALUE obj;
     struct zstream *z;
 
-    obj = TypedData_Make_Struct(klass, struct zstream, &zstream_data_type, z);
-    free(DATA_PTR(obj));
-    z = DATA_PTR(obj) = rb_tr_new_managed_struct();
+    obj = TypedData_Make_Managed_Struct(klass, struct zstream, &zstream_data_type, z);
     zstream_init(z, funcs);
     z->stream.opaque = (voidpf)rb_tr_handle_for_managed_leaking(obj);
     return obj;
@@ -2297,9 +2295,7 @@ gzfile_new(VALUE klass, const struct zstream_funcs *funcs, void (*endfunc)(struc
     VALUE obj;
     struct gzfile *gz;
 
-    obj = TypedData_Make_Struct(klass, struct gzfile, &gzfile_data_type, gz);
-    free(DATA_PTR(obj));
-    gz = DATA_PTR(obj) = rb_tr_new_managed_struct();
+    obj = TypedData_Make_Managed_Struct(klass, struct gzfile, &gzfile_data_type, gz);
     gzfile_init(gz, funcs, endfunc);
     return obj;
 }
