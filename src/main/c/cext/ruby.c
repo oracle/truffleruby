@@ -2937,14 +2937,13 @@ struct RData *RDATA(VALUE value) {
   return polyglot_as_RData(polyglot_invoke(RUBY_CEXT, "RDATA", value));
 }
 
-VALUE rb_data_object_wrap(VALUE klass, void *datap, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
-  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_data_object_wrap", klass, datap, dmark, to_free_function(dfree));
+VALUE rb_data_object_wrap(VALUE klass, void *data, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_data_object_wrap", klass, data, dmark, to_free_function(dfree));
 }
 
 VALUE rb_data_object_zalloc(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
-  VALUE obj = rb_data_object_wrap(klass, 0, dmark, dfree);
-  DATA_PTR(obj) = xcalloc(1, size);
-  return obj;
+  void *data = calloc(1, size);
+  return rb_data_object_wrap(klass, data, dmark, dfree);
 }
 
 // Typed data
@@ -2954,9 +2953,8 @@ VALUE rb_data_typed_object_wrap(VALUE ruby_class, void *data, const rb_data_type
 }
 
 VALUE rb_data_typed_object_zalloc(VALUE ruby_class, size_t size, const rb_data_type_t *data_type) {
-  VALUE obj = rb_data_typed_object_wrap(ruby_class, 0, data_type);
-  DATA_PTR(obj) = calloc(1, size);
-  return obj;
+  void *data = calloc(1, size);
+  return rb_data_typed_object_wrap(ruby_class, data, data_type);
 }
 
 VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, void **data_pointer, size_t size) {
