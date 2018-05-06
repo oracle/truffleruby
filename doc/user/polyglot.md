@@ -144,6 +144,34 @@ available in JVM mode (`--jvm`).
 `Java.type(name)` returns a Java class object, given a name such as
 `java.lang.Integer` or `int[]`.
 
+Java classes can be imported as Ruby constants in an import block.
+
+```
+Java.import {
+  import java.math.BigInteger
+  import org.w3c.dom.Document
+}
+```
+
+If names aren't expressible as Java you can use String names.
+
+```
+Java.import {
+  import 'com.foo.do'
+}
+```
+
+There are short-cuts for importing a single class.
+
+```
+Java.import { java.math.BigInteger }
+Java.import 'java.math.BigInteger'
+```
+
+When you have a Java class you can use it as any other interop object - `.new`
+will create an instance, `.foo` will call the method `foo`, `[:FOO]` will read
+the field `FOO`, and so on.
+
 Java `Class` objects give you the static members of a class. To access instance
 methods use `.class`.
 
