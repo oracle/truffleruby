@@ -3441,8 +3441,8 @@ rb_gzfile_ecopts(struct gzfile *gz, VALUE opts)
 	rb_io_extract_encoding_option(opts, &gz->enc, &gz->enc2, NULL);
     }
     if (gz->enc2) {
-        // TODO not supported, when uncommented the method fails to execute
-        // it tryes to convert opts to native because of &opts
+        // TODO TruffleRuby: not supported, when uncommented the method fails to
+        // execute as it tries to convert opts to native because of &opts
         // gz->ecflags = rb_econv_prepare_opts(opts, &opts);
         // rb_encoding *enc = gz->enc;
         // rb_encoding *enc2 = gz->enc2;
