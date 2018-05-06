@@ -1,0 +1,10 @@
+slow:Java.import returns the imported class
+slow:Java.import returns nil if nothing is imported
+slow:Java.import can import classes twice
+slow:Java.import raises an error if the constant is already defined
+slow:Java.import imports a class to the top-level when given a string
+slow:Java.import imports a class to the top-level when given a list of strings
+slow:Java.import imports a class to the top-level when given a block with a single class name
+slow:Java.import imports a class to the top-level when given a block with a single class name as a string
+slow:Java.import imports a class to the top-level when given a block with a list of class names
+slow:Java.import imports a class to the top-level when given a block with a list of class names as strings
