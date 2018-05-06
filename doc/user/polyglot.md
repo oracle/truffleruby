@@ -153,7 +153,7 @@ Java.import {
 }
 ```
 
-If names aren't expressible as Java you can use String names.
+If names aren't expressible as Ruby you can use string names.
 
 ```
 Java.import {
