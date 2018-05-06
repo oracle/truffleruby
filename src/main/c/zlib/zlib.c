@@ -605,8 +605,7 @@ zstream_init(struct zstream *z, const struct zstream_funcs *func)
     z->flags = 0;
     z->buf = Qnil;
     z->input = Qnil;
-    z_stream *stream = malloc(sizeof(z_stream));
-    polyglot_put_member(z, "stream", polyglot_from_z_stream(stream));
+    polyglot_put_member(z, "stream", polyglot_from_z_stream(malloc(sizeof(z_stream))));
     z->stream.zalloc = (void *(*)(void *, uint32_t, uint32_t)) zlib_mem_alloc;
     z->stream.zfree = (void (*)(void *, void *)) zlib_mem_free;
     z->stream.opaque = Z_NULL;
