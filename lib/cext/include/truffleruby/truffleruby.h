@@ -46,6 +46,10 @@ VALUE rb_tr_managed_if_handle(void *handle);
 void rb_tr_release_handle(void *handle);
 void rb_tr_release_if_handle(void *handle);
 
+// Managed Strucs
+
+void* rb_tr_new_managed_struct(void);
+
 bool rb_tr_obj_taintable_p(VALUE object);
 bool rb_tr_obj_tainted_p(VALUE object);
 void rb_tr_obj_infect(VALUE a, VALUE b);

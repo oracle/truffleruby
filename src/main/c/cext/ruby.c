@@ -3010,6 +3010,8 @@ VALUE rb_java_to_string(VALUE obj) {
   return polyglot_invoke(RUBY_CEXT, "rb_java_to_string", obj);
 }
 
+// Handles
+
 void *rb_tr_handle_for_managed(VALUE managed) {
   return truffle_handle_for_managed(managed);
 }
@@ -3063,6 +3065,12 @@ void rb_tr_release_if_handle(void *pointer) {
 
 void rb_tr_release_handle(void *handle) {
   truffle_release_handle(handle);
+}
+
+// Managed Strucs
+
+void* rb_tr_new_managed_struct(void) {
+  return rb_hash_new();
 }
 
 void rb_tr_load_library(VALUE library) {

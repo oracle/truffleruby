@@ -1154,7 +1154,7 @@ zstream_new(VALUE klass, const struct zstream_funcs *funcs)
 
     obj = TypedData_Make_Struct(klass, struct zstream, &zstream_data_type, z);
     free(DATA_PTR(obj));
-    z = DATA_PTR(obj) = rb_hash_new();
+    z = DATA_PTR(obj) = rb_tr_new_managed_struct();
     zstream_init(z, funcs);
     z->stream.opaque = (voidpf)rb_tr_handle_for_managed_leaking(obj);
     return obj;
@@ -1601,7 +1601,7 @@ rb_deflate_s_deflate(int argc, VALUE *argv, VALUE klass)
 
     rb_scan_args(argc, argv, "11", &src, &level);
 
-    z = rb_hash_new(); // malloc(sizeof(struct zstream));
+    z = rb_tr_new_managed_struct();
     lev = ARG_LEVEL(level);
     StringValue(src);
     zstream_init_deflate(z);
@@ -1919,7 +1919,7 @@ rb_inflate_s_inflate(VALUE obj, VALUE src)
     int err;
 
     StringValue(src);
-    z = rb_hash_new(); // malloc(sizeof(struct zstream));
+    z = rb_tr_new_managed_struct();
     zstream_init_inflate(z);
     err = inflateInit(&z->stream);
     if (err != Z_OK) {
@@ -2270,7 +2270,7 @@ static const rb_data_type_t gzfile_data_type = {
 static void
 gzfile_init(struct gzfile *gz, const struct zstream_funcs *funcs, void (*endfunc)(struct gzfile *))
 {
-    polyglot_put_member(gz, "z", rb_hash_new());
+    polyglot_put_member(gz, "z", rb_tr_new_managed_struct());
     zstream_init(&gz->z, funcs);
     gz->z.flags |= ZSTREAM_FLAG_GZFILE;
     gz->io = Qnil;
@@ -2300,7 +2300,7 @@ gzfile_new(VALUE klass, const struct zstream_funcs *funcs, void (*endfunc)(struc
 
     obj = TypedData_Make_Struct(klass, struct gzfile, &gzfile_data_type, gz);
     free(DATA_PTR(obj));
-    gz = DATA_PTR(obj) = rb_hash_new();
+    gz = DATA_PTR(obj) = rb_tr_new_managed_struct();
     gzfile_init(gz, funcs, endfunc);
     return obj;
 }
