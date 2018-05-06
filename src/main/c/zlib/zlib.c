@@ -3005,7 +3005,7 @@ static VALUE
 new_wrap(VALUE tmp)
 {
     new_wrap_arg_t *arg = (new_wrap_arg_t *)tmp;
-    return rb_class_new_instance(arg->argc, rb_tr_managed_from_handle(arg->argv), rb_tr_managed_from_handle(arg->klass));
+    return rb_class_new_instance(arg->argc, arg->argv, arg->klass);
 }
 
 static VALUE
@@ -3027,11 +3027,11 @@ gzfile_wrap(int argc, VALUE *argv, VALUE klass, int close_io_on_error)
 
     if (close_io_on_error) {
 	int state = 0;
-	new_wrap_arg_t arg;
-	arg.argc = argc;
-	arg.argv = rb_tr_handle_for_managed_leaking(argv);
-	arg.klass = rb_tr_handle_for_managed_leaking(klass);
-	obj = rb_protect(new_wrap, (VALUE)&arg, &state);
+	new_wrap_arg_t *arg = rb_tr_new_managed_struct();
+	arg->argc = argc;
+	arg->argv = argv;
+	arg->klass = klass;
+	obj = rb_protect(new_wrap, (VALUE)arg, &state);
 	if (state) {
 	    rb_io_close(argv[0]);
 	    rb_jump_tag(state);
