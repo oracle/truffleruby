@@ -2946,6 +2946,11 @@ VALUE rb_data_object_zalloc(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY
   return rb_data_object_wrap(klass, data, dmark, dfree);
 }
 
+VALUE rb_data_object_alloc_managed(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
+  void *data = rb_tr_new_managed_struct();
+  return rb_data_object_wrap(klass, data, dmark, dfree);
+}
+
 // Typed data
 
 VALUE rb_data_typed_object_wrap(VALUE ruby_class, void *data, const rb_data_type_t *data_type) {
@@ -2954,6 +2959,11 @@ VALUE rb_data_typed_object_wrap(VALUE ruby_class, void *data, const rb_data_type
 
 VALUE rb_data_typed_object_zalloc(VALUE ruby_class, size_t size, const rb_data_type_t *data_type) {
   void *data = calloc(1, size);
+  return rb_data_typed_object_wrap(ruby_class, data, data_type);
+}
+
+VALUE rb_data_typed_object_alloc_managed(VALUE ruby_class, size_t size, const rb_data_type_t *data_type) {
+  void *data = rb_tr_new_managed_struct();
   return rb_data_typed_object_wrap(ruby_class, data, data_type);
 }
 

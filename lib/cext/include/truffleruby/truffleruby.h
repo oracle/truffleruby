@@ -49,6 +49,26 @@ void rb_tr_release_if_handle(void *handle);
 // Managed Strucs
 
 void* rb_tr_new_managed_struct(void);
+VALUE rb_data_object_alloc_managed(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree);
+VALUE rb_data_typed_object_alloc_managed(VALUE ruby_class, size_t size, const rb_data_type_t *data_type);
+
+#define Data_Make_Managed_Struct0(result, klass, type, size, mark, free, sval) \
+    VALUE result = rb_data_object_wrap((klass), (size), (RUBY_DATA_FUNC)(mark), (RUBY_DATA_FUNC)(free)); \
+    (void)((sval) = (type *)DATA_PTR(result));
+
+#define Data_Make_Managed_Struct(klass,type,mark,free,sval) ({\
+    Data_Make_Managed_Struct0(data_struct_obj, klass, type, sizeof(type), mark, free, sval); \
+    data_struct_obj; \
+})
+
+#define TypedData_Make_Managed_Struct0(result, klass, type, size, data_type, sval) \
+    VALUE result = rb_data_typed_object_alloc_managed(klass, size, data_type); \
+    (void)((sval) = (type *)DATA_PTR(result));
+
+#define TypedData_Make_Managed_Struct(klass, type, data_type, sval) ({\
+    TypedData_Make_Managed_Struct0(data_struct_obj, klass, type, sizeof(type), data_type, sval); \
+    data_struct_obj; \
+})
 
 bool rb_tr_obj_taintable_p(VALUE object);
 bool rb_tr_obj_tainted_p(VALUE object);
