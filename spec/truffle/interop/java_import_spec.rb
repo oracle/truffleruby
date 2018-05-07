@@ -11,61 +11,13 @@ require_relative '../../ruby/spec_helper'
 guard -> { !Truffle.native? } do
   describe "Java.import" do
 
-    describe "imports a class to the top-level" do
-      
-      it "when given a string" do
-        ruby_exe(%{
-          Java.import 'java.math.BigInteger'
-          puts BigInteger.new('1234').toString
-        }).should == "1234\n"
-      end
-
-      it "when given a list of strings" do
-        ruby_exe(%{
-          Java.import(
-            'java.math.BigInteger',
-            'java.math.BigDecimal'
-          )
-          puts BigDecimal.new('1234').add(BigDecimal.new(BigInteger.new('1234'))).toString
-        }).should == "2468\n"
-      end
-
-      it "when given a block with a single class name" do
-        ruby_exe(%{
-          Java.import { java.math.BigInteger }
-          puts BigInteger.new('1234').toString
-        }).should == "1234\n"
-      end
-
-      it "when given a block with a single class name as a string" do
-        ruby_exe(%{
-          Java.import { 'java.math.BigInteger' }
-          puts BigInteger.new('1234').toString
-        }).should == "1234\n"
-      end
-
-      it "when given a block with a list of class names" do
-        ruby_exe(%{
-          Java.import {
-            import java.math.BigInteger
-            import java.math.BigDecimal
-          }
-          puts BigDecimal.new('1234').add(BigDecimal.new(BigInteger.new('1234'))).toString
-        }).should == "2468\n"
-      end
-
-      it "when given a block with a list of class names as strings" do
-        ruby_exe(%{
-          Java.import {
-            import 'java.math.BigInteger'
-            import 'java.math.BigDecimal'
-          }
-          puts BigDecimal.new('1234').add(BigDecimal.new(BigInteger.new('1234'))).toString
-        }).should == "2468\n"
-      end
-      
+    it "imports a class to the top-level" do
+      ruby_exe(%{
+        Java.import 'java.math.BigInteger'
+        puts BigInteger.new('1234').toString
+      }).should == "1234\n"
     end
-    
+  
     it "returns the imported class" do
       ruby_exe(%{
         puts Java.import('java.math.BigInteger').class.getName

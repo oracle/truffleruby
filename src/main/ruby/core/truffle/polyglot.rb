@@ -38,62 +38,21 @@ unless Truffle.native?
       Truffle::Interop.java_type(name)
     end
     
-    class ImportToken
-      
-      def initialize(name)
-        @name = name.to_s
-      end
-      
-      def method_missing(name)
-        ImportToken.new("#{self}.#{name}")
-      end
-      
-      def to_s
-        @name
-      end
-      
-    end
-    
-    class ImportScope
-      
-      def import(token)
-        Java.import(token.to_s)
-      end
-      
-      def method_missing(name)
-        ImportToken.new(name)
-      end
-  
-    end
-    
-    def self.import(*names, &block)
-      last = nil
-      
-      names.each do |name|
-        simple_name = name.split('.').last
-        type = Java.type(name)
-        if Object.send(:const_defined?, simple_name)
-          current = Object.send(:const_get, simple_name)
-          if current.equal?(type)
-            # Ignore - it's already set
-            last = type
-          else
-            raise NameError, "constant #{simple_name} already set"
-          end
+    def self.import(name)
+      name = name.to_s
+      simple_name = name.split('.').last
+      type = Java.type(name)
+      if Object.send(:const_defined?, simple_name)
+        current = Object.send(:const_get, simple_name)
+        if current.equal?(type)
+          # Ignore - it's already set
         else
-          Object.send :const_set, simple_name, type
-          last = type
+          raise NameError, "constant #{simple_name} already set"
         end
+      else
+        Object.send :const_set, simple_name, type
       end
-      
-      if block
-        last = ImportScope.new.instance_eval(&block)
-        unless last.nil? || last.respond_to?(:new)
-          last = Java.import(last.to_s)
-        end
-      end
-      
-      last
+      type
     end
 
   end

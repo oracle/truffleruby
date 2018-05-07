@@ -141,32 +141,10 @@ TruffleRuby's Java interop interface is similar to the interface from the
 Nashorn JavaScript implementation, as also implemented by Graal.js. It's only
 available in JVM mode (`--jvm`).
 
-`Java.type(name)` returns a Java class object, given a name such as
+`Java.type('name')` returns a Java class object, given a name such as
 `java.lang.Integer` or `int[]`.
 
-Java classes can be imported as top-level Ruby constants in an import block.
-
-```
-Java.import {
-  import java.math.BigInteger
-  import org.w3c.dom.Document
-}
-```
-
-If names aren't expressible as Ruby you can use string names.
-
-```
-Java.import {
-  import 'com.foo.do'
-}
-```
-
-There are short-cuts for importing a single class.
-
-```
-Java.import { java.math.BigInteger }
-Java.import 'java.math.BigInteger'
-```
+To import a Java class as a top-level constant, use `Java.import 'name'`.
 
 When you have a Java class you can use it as any other interop object - `.new`
 will create an instance, `.foo` will call the method `foo`, `[:FOO]` will read
