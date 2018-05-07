@@ -2152,10 +2152,10 @@ var_ref         : /*mri:user_variable*/ tIDENTIFIER {
                     $$ = new SelfParseNode(lexer.getPosition());
                 }
                 | kTRUE { 
-                    $$ = new TrueParseNode(lexer.getPosition());
+                    $$ = new TrueParseNode((SourceIndexLength) $$);
                 }
                 | kFALSE {
-                    $$ = new FalseParseNode(lexer.getPosition());
+                    $$ = new FalseParseNode((SourceIndexLength) $$);
                 }
                 | k__FILE__ {
                     Encoding encoding = support.getConfiguration().getContext() == null ? EncodingManager.getEncoding(Charset.defaultCharset().name()) : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding();
