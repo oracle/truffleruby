@@ -17,6 +17,8 @@ Changes:
   fine level) but the are shimmed by adding blank lines in front to get to the
   correct offset. Line numbers starting at `0` are also warned about at the fine
   level and set to `1` instead.
+  
+* The `erb` standard library has been patched to stop using a -1 line number.
 
 Bug fixes:
 

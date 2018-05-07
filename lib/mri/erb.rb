@@ -916,7 +916,7 @@ class ERB
   def def_method(mod, methodname, fname='(ERB)')
     src = self.src.sub(/^(?!#|$)/) {"def #{methodname}\n"} << "\nend\n"
     mod.module_eval do
-      eval(src, binding, fname, -1)
+      eval(src, binding, fname) # TruffleRuby: -1 line number offset removed
     end
   end
 
