@@ -92,6 +92,14 @@ your `-X` options looks like it was actually intended to be as in MRI.
 Setting the process title (via `$0` or `Process.setproctitle` in Ruby) is done
 as best-effort. It may not work, or the title you try to set may be truncated.
 
+#### Line numbers other than 1 work differently
+
+In an `eval` where a custom line number can be specified, line numbers below 1
+are treated as 1, and line numbers above 1 are implemented by inserting blank
+lines in front of the source before parsing it.
+
+The `erb` standard library has been modified to not use negative line numbers.
+
 ## Features with very low performance
 
 #### Keyword arguments
@@ -201,9 +209,9 @@ also see these values as truthy.
 
 #### Ruby to Java interop
 
-Calling Java code from Ruby (normal Java code, not JRuby's Java extensions which
-are covered below) is in development but not ready for use yet. We aim to
-provide the same interface as JRuby does for this functionality.
+JRuby's Java interop API is not implemented far enough to be used. We provide an
+alternate polyglot API for interoperating with multiple languages, including
+Java, instead.
 
 #### Java to Ruby interop
 
