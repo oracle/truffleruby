@@ -49,8 +49,10 @@ import java.nio.file.Paths;
 import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -104,31 +106,69 @@ public abstract class GetTimeZoneNode extends RubyNode {
             // TimeZone.getDefault() returns the image build time zone on SVM.
             final Path localtime = Paths.get("/etc/localtime");
             if (!Files.exists(localtime, LinkOption.NOFOLLOW_LINKS)) {
-                Log.LOGGER.warning("Could not find timezone (/etc/localtime does not exist), using UTC instead.");
-                return UTC;
-            }
-            if (!Files.isSymbolicLink(localtime)) {
-                Log.LOGGER.warning("Could not find timezone (/etc/localtime is not a symlink), using UTC instead.");
+                Log.LOGGER.warning("could not find timezone (/etc/localtime does not exist), using UTC instead");
                 return UTC;
             }
 
-            final String resolved;
+            String timeZoneID;
             try {
-                resolved = Files.readSymbolicLink(localtime).toString();
+                if (Files.isSymbolicLink(localtime)) {
+                    timeZoneID = getTimeZoneIDFromSymlink(localtime);
+                } else {
+                    timeZoneID = getTimeZoneIDByComparingFiles(localtime);
+                }
             } catch (IOException e) {
                 throw new JavaException(e);
             }
 
-            final int index = resolved.indexOf("zoneinfo/");
-            if (index == -1) {
-                Log.LOGGER.warning("Could not find timezone (The /etc/localtime symlink does not contain zoneinfo/), using UTC instead.");
-                return UTC;
+            if (timeZoneID.startsWith("posix/")) {
+                timeZoneID = timeZoneID.substring("posix/".length());
             }
 
-            final String timeZoneID = resolved.substring(index + "zoneinfo/".length());
             return ZoneId.of(timeZoneID);
         } else {
             return ZoneId.systemDefault();
+        }
+    }
+
+    private String getTimeZoneIDFromSymlink(Path localtime) throws IOException {
+        final String resolved = Files.readSymbolicLink(localtime).toString();
+
+        final int index = resolved.indexOf("zoneinfo/");
+        if (index == -1) {
+            Log.LOGGER.warning("could not find timezone (the /etc/localtime symlink does not contain zoneinfo/), using UTC instead");
+            return "UTC";
+        }
+
+        return resolved.substring(index + "zoneinfo/".length());
+    }
+
+    private String getTimeZoneIDByComparingFiles(Path localtime) throws IOException {
+        final byte[] bytes = Files.readAllBytes(localtime);
+
+        final Path zoneinfo = Paths.get("/usr/share/zoneinfo");
+        final Optional<Path> same = Files.walk(zoneinfo).filter(path -> {
+            final String filename = path.getFileName().toString();
+            if (filename.startsWith(".") || filename.equals("ROC") || filename.equals("posixrules") || filename.equals("localtime")) {
+                return false;
+            }
+
+            try {
+                if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) {
+                    return false;
+                }
+                final long size = Files.size(path);
+                return size == bytes.length && Arrays.equals(Files.readAllBytes(path), bytes);
+            } catch (IOException e) {
+                throw new JavaException(e);
+            }
+        }).findFirst();
+
+        if (same.isPresent()) {
+            return zoneinfo.relativize(same.get()).toString();
+        } else {
+            Log.LOGGER.warning("could not find timezone (no file in " + zoneinfo + " is the same as /etc/localtime), using UTC instead");
+            return "UTC";
         }
     }
 

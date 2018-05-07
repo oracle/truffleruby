@@ -546,7 +546,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   test_builds:
     {
       local ruby_deploy_and_spec = $.use.maven + $.jdk.labsjdk8 + $.use.common + $.use.build + $.cap.deploy +
-                                   $.cap.gate + $.run.deploy_and_spec + { timelimit: "30:00" },
+                                   $.cap.gate + $.run.deploy_and_spec + { timelimit: "35:00" },
 
       "ruby-deploy-and-specs-linux": $.platform.linux + ruby_deploy_and_spec,
       "ruby-deploy-and-specs-darwin": $.platform.darwin + ruby_deploy_and_spec,
@@ -728,7 +728,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   release_builds:
     {
-      local shared = $.use.common + { timelimit: "30:00" },
+      local shared = $.use.common + { timelimit: "35:00" },
       "ruby-test-native-distribution": $.platform.linux + $.cap.gate + $.jdk.openjdk8 + shared + $.run.test_make_native_distribution,
       "ruby-native-distribution-linux": $.platform.linux + $.cap.manual + $.jdk.openjdk8 + shared + $.run.make_native_distribution,
       "ruby-native-distribution-darwin": $.platform.darwin + $.cap.manual + $.jdk.labsjdk8 + shared + $.run.make_native_distribution,
