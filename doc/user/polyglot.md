@@ -144,7 +144,7 @@ available in JVM mode (`--jvm`).
 `Java.type(name)` returns a Java class object, given a name such as
 `java.lang.Integer` or `int[]`.
 
-Java classes can be imported as Ruby constants in an import block.
+Java classes can be imported as top-level Ruby constants in an import block.
 
 ```
 Java.import {
