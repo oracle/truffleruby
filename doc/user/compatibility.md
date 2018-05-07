@@ -209,9 +209,9 @@ also see these values as truthy.
 
 #### Ruby to Java interop
 
-Calling Java code from Ruby (normal Java code, not JRuby's Java extensions which
-are covered below) is in development but not ready for use yet. We aim to
-provide the same interface as JRuby does for this functionality.
+JRuby's Java interop API is not implemented far enough to be used. We provide an
+alternate polyglot API for interoperating with multiple languages, including
+Java, instead.
 
 #### Java to Ruby interop
 
