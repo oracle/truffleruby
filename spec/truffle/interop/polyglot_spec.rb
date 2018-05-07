@@ -31,6 +31,14 @@ describe Polyglot do
       $eval_file_id.should be_true
     end
     
+    it "returns the returned result of the eval" do
+      Polyglot.eval_file("ruby", File.join(File.dirname(__FILE__), "fixtures/eval_file_return.rb")).should == 14
+    end
+    
+    it "returns the implicit result of the eval" do
+      Polyglot.eval_file("ruby", File.join(File.dirname(__FILE__), "fixtures/eval_file_value.rb")).should == 14
+    end
+  
     it "doesn't work with MIME types" do
       lambda {
         Polyglot.eval_file("application/x-ruby", File.join(File.dirname(__FILE__), "fixtures/eval_file_id.rb"))

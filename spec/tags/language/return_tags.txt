@@ -2,15 +2,6 @@ fails:The return keyword in a Thread raises a LocalJumpError if used to exit a t
 slow:The return keyword at top level stops file execution
 slow:The return keyword at top level within a begin fires ensure block before returning
 slow:The return keyword at top level return with argument does not affect exit status
-fails:The return keyword at top level stops file execution
-fails:The return keyword at top level within if is allowed
-fails:The return keyword at top level within while loop is allowed
-fails:The return keyword at top level within a begin is allowed in begin block
-fails:The return keyword at top level within a begin is allowed in ensure block
-fails:The return keyword at top level within a begin is allowed in rescue block
-fails:The return keyword at top level within a begin fires ensure block before returning while loads file
-fails:The return keyword at top level within a begin swallows exception if returns in ensure block
-fails:The return keyword at top level within a block is allowed
 fails:The return keyword at top level within a class is allowed
 fails:The return keyword at top level file loading stops file loading and execution
 fails:The return keyword at top level file requiring stops file loading and execution
