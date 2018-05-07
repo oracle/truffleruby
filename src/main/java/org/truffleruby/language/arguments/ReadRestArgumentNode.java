@@ -87,7 +87,7 @@ public class ReadRestArgumentNode extends RubyNode {
                 kwargsHash = nil();
             }
 
-            addRejectedNode.call(frame, coreLibrary().getTruffleModule(), "add_rejected_kwargs_to_rest", rest, kwargsHash);
+            addRejectedNode.call(frame, coreLibrary().getTruffleInternalModule(), "add_rejected_kwargs_to_rest", rest, kwargsHash);
         }
 
         return rest;

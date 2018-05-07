@@ -160,6 +160,7 @@ public class CoreLibrary {
     private final DynamicObject truffleFFINullPointerErrorClass;
     private final DynamicObject truffleTypeModule;
     private final DynamicObject truffleModule;
+    private final DynamicObject truffleInternalModule;
     private final DynamicObject truffleBootModule;
     private final DynamicObject truffleExceptionOperationsModule;
     private final DynamicObject truffleInteropModule;
@@ -487,6 +488,7 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(encodingConverterClass, Layouts.ENCODING_CONVERTER.createEncodingConverterShape(encodingConverterClass, encodingConverterClass));
 
         truffleModule = defineModule("Truffle");
+        truffleInternalModule = defineModule(truffleModule, "Internal");
         graalErrorClass = defineClass(truffleModule, exceptionClass, "GraalError");
         truffleExceptionOperationsModule = defineModule(truffleModule, "ExceptionOperations");
         truffleInteropModule = defineModule(truffleModule, "Interop");
@@ -1325,6 +1327,10 @@ public class CoreLibrary {
         return truffleModule;
     }
 
+    public DynamicObject getTruffleInternalModule() {
+        return truffleInternalModule;
+    }
+
     public DynamicObject getTruffleBootModule() {
         return truffleBootModule;
     }
@@ -1378,7 +1384,7 @@ public class CoreLibrary {
             "/core/type.rb",
             "/core/weakref.rb",
             "/core/truffle/ffi/pointer.rb",
-            "/core/truffle/support.rb",
+            "/core/truffle/internal.rb",
             "/core/kernel.rb",
             "/core/truffle/boot.rb",
             "/core/truffle/debug.rb",
@@ -1388,6 +1394,7 @@ public class CoreLibrary {
             "/core/truffle/range_operations.rb",
             "/core/truffle/regexp_operations.rb",
             "/core/truffle/string_operations.rb",
+            "/core/truffle/backward.rb",
             "/core/splitter.rb",
             "/core/stat.rb",
             "/core/io.rb",

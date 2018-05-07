@@ -58,7 +58,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.SymbolTable;
-import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.FromJavaStringNode;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyGuards;
@@ -169,19 +168,6 @@ public abstract class TruffleSystemNodes {
                 return yield(block);
             }
         }
-    }
-
-    // Used by concurrent-ruby
-    @CoreMethod(names = "full_memory_barrier", isModuleFunction = true)
-    public abstract static class FullMemoryBarrierPrimitiveNode extends CoreMethodNode {
-
-        @Specialization
-        public Object fullMemoryBarrier() {
-            Pointer.UNSAFE.fullFence();
-
-            return nil();
-        }
-
     }
 
     @CoreMethod(names = "log", isModuleFunction = true, required = 2)

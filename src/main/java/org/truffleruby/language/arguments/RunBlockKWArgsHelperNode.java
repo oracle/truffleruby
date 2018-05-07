@@ -44,7 +44,7 @@ public class RunBlockKWArgsHelperNode extends RubyNode {
         final Object array = readArrayNode.executeRead(frame);
 
         final DynamicObject binding = BindingNodes.createBinding(getContext(), frame.materialize());
-        final Object remainingArray = callHelperNode.call(frame, coreLibrary().getTruffleModule(), "load_arguments_from_array_kw_helper", array, kwrestName, binding);
+        final Object remainingArray = callHelperNode.call(frame, coreLibrary().getTruffleInternalModule(), "load_arguments_from_array_kw_helper", array, kwrestName, binding);
 
         writeArrayNode.executeWrite(frame, remainingArray);
 

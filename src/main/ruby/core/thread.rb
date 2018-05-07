@@ -244,7 +244,7 @@ class Thread
   end
 
   def freeze
-    Truffle.synchronize(self) { @thread_local_variables.freeze }
+    Truffle::System.synchronized(self) { @thread_local_variables.freeze }
     super
   end
 
@@ -342,7 +342,7 @@ class Thread
 
   def [](name)
     var = convert_to_local_name(name)
-    Truffle.synchronize(self) do
+    Truffle::System.synchronized(self) do
       locals = Truffle.invoke_primitive :thread_get_fiber_locals, self
       Truffle.invoke_primitive :object_ivar_get, locals, var
     end
@@ -350,7 +350,7 @@ class Thread
 
   def []=(name, value)
     var = convert_to_local_name(name)
-    Truffle.synchronize(self) do
+    Truffle::System.synchronized(self) do
       Truffle.check_frozen
       locals = Truffle.invoke_primitive :thread_get_fiber_locals, self
       Truffle.invoke_primitive :object_ivar_set, locals, var, value
@@ -359,14 +359,14 @@ class Thread
 
   def key?(name)
     var = convert_to_local_name(name)
-    Truffle.synchronize(self) do
+    Truffle::System.synchronized(self) do
       locals = Truffle.invoke_primitive :thread_get_fiber_locals, self
       Truffle.invoke_primitive :object_ivar_defined?, locals, var
     end
   end
 
   def keys
-    Truffle.synchronize(self) do
+    Truffle::System.synchronized(self) do
       locals = Truffle.invoke_primitive :thread_get_fiber_locals, self
       locals.instance_variables
     end
@@ -376,21 +376,21 @@ class Thread
 
   def thread_variable_get(name)
     var = convert_to_local_name(name)
-    Truffle.synchronize(self) { @thread_local_variables[var] }
+    Truffle::System.synchronized(self) { @thread_local_variables[var] }
   end
 
   def thread_variable_set(name, value)
     var = convert_to_local_name(name)
-    Truffle.synchronize(self) { @thread_local_variables[var] = value }
+    Truffle::System.synchronized(self) { @thread_local_variables[var] = value }
   end
 
   def thread_variable?(name)
     var = convert_to_local_name(name)
-    Truffle.synchronize(self) { @thread_local_variables.key? var }
+    Truffle::System.synchronized(self) { @thread_local_variables.key? var }
   end
 
   def thread_variables
-    Truffle.synchronize(self) { @thread_local_variables.keys }
+    Truffle::System.synchronized(self) { @thread_local_variables.keys }
   end
 end
 
