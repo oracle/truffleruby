@@ -42,15 +42,15 @@ unless Truffle.native?
       name = name.to_s
       simple_name = name.split('.').last
       type = Java.type(name)
-      if Object.send(:const_defined?, simple_name)
-        current = Object.send(:const_get, simple_name)
+      if Object.const_defined?(simple_name)
+        current = Object.const_get(simple_name)
         if current.equal?(type)
           # Ignore - it's already set
         else
           raise NameError, "constant #{simple_name} already set"
         end
       else
-        Object.send :const_set, simple_name, type
+        Object.const_set simple_name, type
       end
       type
     end

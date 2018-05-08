@@ -13,7 +13,7 @@ New features:
 
 * `-Xbacktraces.raise` will print Ruby backtraces whenever an exception is
   raised.
-* `Java.import { import }` blocks for importing Java classes.
+
 * `Java.import name` imports Java classes as top-level constants.
 
 Changes:

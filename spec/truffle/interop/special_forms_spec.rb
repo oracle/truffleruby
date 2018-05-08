@@ -56,7 +56,7 @@ describe "Interop special form" do
   end
 
   guard -> { !Truffle.native? } do
-    it "#class sends READ(class) on Java class objects" do
+    it "#class sends READ('class') on Java class objects" do
       Java.type('java.math.BigInteger').class.getName.should == 'java.math.BigInteger'
     end
   end

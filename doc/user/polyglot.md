@@ -142,16 +142,12 @@ Nashorn JavaScript implementation, as also implemented by Graal.js. It's only
 available in JVM mode (`--jvm`).
 
 `Java.type('name')` returns a Java class object, given a name such as
-`java.lang.Integer` or `int[]`.
+`java.lang.Integer` or `int[]`. With the class object, `.new` will create an
+instance, `.foo` will call the static method `foo`, `[:FOO]` will read the field
+`FOO`, and so on. To access instance methods use `.class`, such as
+`MyClass.class.getName`.
 
 To import a Java class as a top-level constant, use `Java.import 'name'`.
-
-When you have a Java class you can use it as any other interop object - `.new`
-will create an instance, `.foo` will call the method `foo`, `[:FOO]` will read
-the field `FOO`, and so on.
-
-Java `Class` objects give you the static members of a class. To access instance
-methods use `.class`.
 
 Also see the separate document on
 [JRuby-compatible Java interop](jruby-java-interop.md).

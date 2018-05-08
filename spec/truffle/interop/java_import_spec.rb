@@ -24,12 +24,6 @@ guard -> { !Truffle.native? } do
       }).should == "java.math.BigInteger\n"
     end
     
-    it "returns nil if nothing is imported" do
-      ruby_exe(%{
-        p Java.import {}
-      }).should == "nil\n"
-    end
-    
     it "can import classes twice" do
       ruby_exe(%{
         Java.import 'java.math.BigInteger'
