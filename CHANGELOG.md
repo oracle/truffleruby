@@ -14,6 +14,8 @@ New features:
 * `-Xbacktraces.raise` will print Ruby backtraces whenever an exception is
   raised.
 
+* `Java.import name` imports Java classes as top-level constants.
+
 Changes:
 
 * The inline JavaScript functionality `-Xinline_js` has been removed.

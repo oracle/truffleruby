@@ -37,6 +37,23 @@ unless Truffle.native?
     def self.type(name)
       Truffle::Interop.java_type(name)
     end
+    
+    def self.import(name)
+      name = name.to_s
+      simple_name = name.split('.').last
+      type = Java.type(name)
+      if Object.const_defined?(simple_name)
+        current = Object.const_get(simple_name)
+        if current.equal?(type)
+          # Ignore - it's already set
+        else
+          raise NameError, "constant #{simple_name} already set"
+        end
+      else
+        Object.const_set simple_name, type
+      end
+      type
+    end
 
   end
   
