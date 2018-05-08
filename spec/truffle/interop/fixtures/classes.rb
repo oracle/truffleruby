@@ -24,6 +24,22 @@ module TruffleInteropSpecs
     end
   end
 
+  class InteropKeysIndexClass
+    def initialize
+      @a = 1
+      @b = 2
+      @c = 3
+    end
+    
+    def [](n)
+      instance_variable_get(:"@#{n}")
+    end
+    
+    def foo
+      14
+    end
+  end
+
   class NewTestClass
     attr_reader :x
 
@@ -63,6 +79,24 @@ module TruffleInteropSpecs
 
   class WriteHasIndexSet
     attr_reader :key, :value, :called
+
+    def []=(n, value)
+      @key = n
+      @value = value
+      @called = true
+    end
+    
+    def bob
+      14
+    end
+  end
+
+  class WriteHasIndexSetAndIndex
+    attr_reader :key, :value, :called
+    
+    def [](n)
+      @value = n
+    end
 
     def []=(n, value)
       @key = n

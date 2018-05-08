@@ -90,12 +90,16 @@ Returns true only for the `nil` object.
 
 ### `HAS_KEYS`
 
-Returns true.
+Returns true, except for `Array` and `String`.
 
 ### `KEYS`
 
-If the receiver is a Ruby `Hash`, return the hash keys converted to
-strings.
+If the receiver is a Ruby `Hash`, return the hash keys converted to strings.
+
+Otherwise, if there is a method `[]` defined, return an empty array.
+
+(The convention is that every value returned from `KEYS` could be `READ`, which
+we can't guarantee for a user `[]` method, so we don't return any `KEYS`.)
 
 Otherwise, return all method names via `receiver.methods`, and instance
 variable names if the `internal` flag is set.
@@ -105,16 +109,7 @@ integers.
 
 ### `KEY_INFO`
 
-If the receiver is a Ruby `Array`:
-
-- `READABLE` will set if the name is an integer and in bounds.
-
-- `INSERTABLE` and `MODIFIABLE` will be set if the index is an integer, in
-  bounds and the array is not frozen.
-
-- `REMOVABLE`, `INVOCABLE` and `INTERNAL` will not be set.
-
-Otherwise, if the receiver is a Ruby `Hash`:
+If the receiver is a Ruby `Hash`:
 
 - `READABLE` will be set if the key is found.
 
@@ -124,6 +119,17 @@ Otherwise, if the receiver is a Ruby `Hash`:
   not frozen.
 
 - `INVOCABLE` and `INTERNAL` will not be set.
+
+Otherwise, if there is a method called `[]` defined:
+
+- `READABLE` will set if the name is an integer and in bounds.
+
+- `INSERTABLE` and `MODIFIABLE` will be set if the index is an integer, in
+  bounds and the array is not frozen.
+
+- `REMOVABLE`, `INVOCABLE` and `INTERNAL` will not be set.
+
+(See bracketed note in `KEYS` for objects with a `[]` method.)
 
 Otherwise if the name starts with an `@`:
 
@@ -160,8 +166,8 @@ If the receiver is a Ruby `Array` or `Hash`, call `receiver[name/index]`.
 
 Otherwise if the name starts with an `@` it is read as an instance variable.
 
-Otherwise, if the receiver is not a `Proc` or `Method` and there is a method `[]`
-defined on the receiver, call `receiver[name/index]`.
+Otherwise, if there is a method `[]` defined on the receiver, call
+`receiver[name/index]`.
 
 Otherwise, if there is a method defined on the object with the same name, return
 it as a (bound) `Method`.

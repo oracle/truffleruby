@@ -27,6 +27,37 @@ describe "Truffle::Interop.keys" do
     Truffle::Interop.java_string?(key).should be_true
   end
   
+  it "returns an empty array for an array" do
+    Truffle::Interop.keys([1, 2, 3]).should == []
+  end
+  
+  it "returns an empty array for a big integer" do
+    Truffle::Interop.keys(bignum_value).should == []
+  end
+  
+  it "returns an empty array for a big integer" do
+    Truffle::Interop.keys(bignum_value).should == []
+  end
+  
+  it "returns an empty array for a proc" do
+    Truffle::Interop.keys(proc {}).should == []
+  end
+  
+  it "returns an empty array for a lambda" do
+    Truffle::Interop.keys(lambda {}).should == []
+  end
+  
+  it "returns an empty array for a method" do
+    object = TruffleInteropSpecs::ReadHasMethod.new
+    method = object.method(:foo)
+    Truffle::Interop.keys(method).should == []
+  end
+  
+  it "returns an empty array for an object with a custom #[] method" do
+    object = TruffleInteropSpecs::ReadHasIndex.new
+    Truffle::Interop.keys(object).should == []
+  end
+  
   it "returns the keys of a hash" do
     Truffle::Interop.keys({'a' => 1, 'b' => 2, 'c' => 3}).should == ['a', 'b', 'c']
   end

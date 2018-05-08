@@ -29,7 +29,9 @@ module Truffle
 
     def self.object_keys(object, internal)
       if object.is_a?(Hash)
-        object.keys.map(&:to_s).map { |s| Truffle::Interop.to_java_string(s) }
+        keys = object.keys
+      elsif object.respond_to?(:[])
+        keys = []
       else
         keys = object.methods.map(&:to_s)
         if internal
@@ -37,8 +39,8 @@ module Truffle
             .map(&:to_s)
             .select { |ivar| ivar.start_with?('@') }
         end
-        keys.map { |s| Truffle::Interop.to_java_string(s) }
       end
+      keys.map { |s| Truffle::Interop.to_java_string(s) }
     end
     
     def self.key_info(object, name)
@@ -48,19 +50,19 @@ module Truffle
     def self.object_key_info(object, name)
       readable, invocable, internal, insertable, modifiable, removable = false, false, false, false, false, false
       
-      if object.is_a?(::Array)
-        in_bounds = name.is_a?(Integer) && name >= 0 && name < object.size
-        readable = in_bounds
-        insertable = in_bounds && !object.frozen?
-        modifiable = insertable
-      elsif object.is_a?(Hash)
+      if object.is_a?(Hash)
         frozen = object.frozen?
         has_key = object.has_key?(name)
         readable = has_key
         modifiable = has_key && !frozen
         removable = modifiable
         insertable = !frozen
-      elsif name.start_with?('@')
+      elsif object.respond_to?(:[])
+        in_bounds = name.is_a?(Integer) && name >= 0 && name < object.size
+        readable = in_bounds
+        insertable = in_bounds && !object.frozen?
+        modifiable = insertable
+      elsif name.is_a?(String) && name.start_with?('@')
         frozen = object.frozen?
         exists = object.instance_variable_defined?(name)
         readable = exists

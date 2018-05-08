@@ -28,10 +28,14 @@ Changes:
   
 * The `erb` standard library has been patched to stop using a -1 line number.
 
-* The `READ` interop message will not call `#[]` on `Proc` or `Method` objects,
-  to avoid executing the method.
-
 * `-Xbacktraces.interleave_java` now includes all the trailing Java frames.
+
+* Objects with a `[]` method, except for `Hash`, now do not return anything
+  for `KEYS`, to avoid the impression that you could `READ` them. `KEYINFO`
+  also returns nothing for these objects, except for `Array` where it returns
+  information on indices.
+
+* `String` now returns `false` for `HAS_KEYS`.
 
 Bug fixes:
 
