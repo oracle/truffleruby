@@ -12,9 +12,9 @@ module Truffle
       Truffle::Type.object_class(receiver).name
     end
 
-    NO_METHOD_ERROR = Proc.new do |exception|
+    def self.receiver_string(exception)
       receiver = exception.receiver
-      receiver_string = begin
+      ret = begin
         if Truffle::Type.object_respond_to?(receiver, :inspect)
           if class_name = class_name(receiver)
             "#{receiver.inspect}:#{class_name}"
@@ -27,7 +27,15 @@ module Truffle
       rescue Exception # rubocop:disable Lint/RescueException
         Truffle::Type.rb_any_to_s(receiver)
       end
-      format("undefined method `%s' for %s", exception.name, receiver_string)
+      ret
+    end
+
+    NO_METHOD_ERROR = Proc.new do |exception|
+      format("undefined method `%s' for %s", exception.name, receiver_string(exception))
+    end
+
+    NO_LOCAL_VARIABLE_OR_METHOD_ERROR = Proc.new do |exception|
+      format("undefined local variable or method `%s' for %s", exception.name, receiver_string(exception))
     end
 
     PRIVATE_METHOD_ERROR = Proc.new do |exception|

@@ -520,13 +520,6 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorUndefinedLocalVariableOrMethod(String name, Object receiver, Node currentNode) {
-        // TODO: should not be just the class, but rather sth like name_err_mesg_to_str() in MRI error.c
-        String className = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(receiver)).getName();
-        return nameError(StringUtils.format("undefined local variable or method `%s' for %s", name, className), receiver,  name, currentNode);
-    }
-
-    @TruffleBoundary
     public DynamicObject nameErrorUndefinedMethod(String name, DynamicObject module, Node currentNode) {
         assert RubyGuards.isRubyModule(module);
         return nameError(StringUtils.format("undefined method `%s' for %s", name, Layouts.MODULE.getFields(module).getName()), module, name, currentNode);
@@ -583,6 +576,21 @@ public class CoreExceptions {
                 backtrace,
                 receiver,
                 context.getSymbolTable().getSymbol(name));
+    }
+
+    @TruffleBoundary
+    public DynamicObject nameError(DynamicObject formatter, Object receiver, String name, Node currentNode) {
+        final DynamicObject exceptionClass = context.getCoreLibrary().getNameErrorClass();
+        final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, exceptionClass);
+        final DynamicObject exception = Layouts.NAME_ERROR.createNameError(
+                context.getCoreLibrary().getNameErrorFactory(),
+                null,
+                formatter,
+                backtrace,
+                receiver,
+                context.getSymbolTable().getSymbol(name));
+        showExceptionIfDebug(exception, backtrace);
+        return exception;
     }
 
     // NoMethodError

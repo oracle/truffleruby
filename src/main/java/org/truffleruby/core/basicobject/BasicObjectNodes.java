@@ -371,7 +371,8 @@ public abstract class BasicObjectNodes {
                     return coreExceptions().noMethodError(formatter, self, name, args, this);
                 }
             } else if (lastCallWasVCall(relevantCallerFrame)) {
-                return coreExceptions().nameErrorUndefinedLocalVariableOrMethod(name, self, this);
+                formatter = ExceptionOperations.getFormatter(ExceptionOperations.NO_LOCAL_VARIABLE_OR_METHOD_ERROR, getContext());
+                return coreExceptions().nameError(formatter, self, name, this);
             } else {
                 formatter = ExceptionOperations.getFormatter(ExceptionOperations.NO_METHOD_ERROR, getContext());
                 return coreExceptions().noMethodError(formatter, self, name, args, this);
