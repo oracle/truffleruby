@@ -47,7 +47,7 @@ public abstract class ToProcNode extends RubyNode {
         } catch (RaiseException e) {
             errorProfile.enter();
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {
-                throw new RaiseException(coreExceptions().typeErrorNoImplicitConversion(object, "Proc", this));
+                throw new RaiseException(getContext(), coreExceptions().typeErrorNoImplicitConversion(object, "Proc", this));
             } else {
                 throw e;
             }
@@ -57,7 +57,7 @@ public abstract class ToProcNode extends RubyNode {
             return (DynamicObject) coerced;
         } else {
             errorProfile.enter();
-            throw new RaiseException(coreExceptions().typeErrorBadCoercion(object, "Proc", "to_proc", coerced, this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorBadCoercion(object, "Proc", "to_proc", coerced, this));
         }
     }
 

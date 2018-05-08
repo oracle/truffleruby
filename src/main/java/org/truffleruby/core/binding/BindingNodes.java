@@ -206,7 +206,7 @@ public abstract class BindingNodes {
         @TruffleBoundary
         @Specialization(guards = "hiddenVariable(name)")
         public Object localVariableDefinedLastLine(DynamicObject binding, String name) {
-            throw new RaiseException(coreExceptions().nameError("Bad local variable name", binding, name, this));
+            throw new RaiseException(getContext(), coreExceptions().nameError("Bad local variable name", binding, name, this));
         }
 
         protected int getCacheLimit() {
@@ -251,14 +251,14 @@ public abstract class BindingNodes {
             if (frameSlot != null) {
                 return RubyArguments.getDeclarationFrame(frame, frameSlot.depth).getValue(frameSlot.slot);
             } else {
-                throw new RaiseException(coreExceptions().nameErrorLocalVariableNotDefined(name, binding, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorLocalVariableNotDefined(name, binding, this));
             }
         }
 
         @TruffleBoundary
         @Specialization(guards = "hiddenVariable(name)")
         public Object localVariableGetLastLine(DynamicObject binding, String name) {
-            throw new RaiseException(coreExceptions().nameError("Bad local variable name", binding, name, this));
+            throw new RaiseException(getContext(), coreExceptions().nameError("Bad local variable name", binding, name, this));
         }
 
         protected ReadFrameSlotNode createReadNode(FrameSlotAndDepth frameSlot) {
@@ -341,7 +341,7 @@ public abstract class BindingNodes {
         @TruffleBoundary
         @Specialization(guards = "hiddenVariable(name)")
         public Object localVariableSetLastLine(DynamicObject binding, String name, Object value) {
-            throw new RaiseException(coreExceptions().nameError("Bad local variable name", binding, name, this));
+            throw new RaiseException(getContext(), coreExceptions().nameError("Bad local variable name", binding, name, this));
         }
 
         protected WriteFrameSlotNode createWriteNode(FrameSlotAndDepth frameSlot) {
@@ -410,7 +410,7 @@ public abstract class BindingNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
-            throw new RaiseException(coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 
     }

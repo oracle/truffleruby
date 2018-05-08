@@ -167,9 +167,9 @@ public class FiberManager {
         } catch (FiberShutdownException e) {
             // Ends execution of the Fiber
         } catch (BreakException e) {
-            sendExceptionToParentFiber(fiber, new RaiseException(context.getCoreExceptions().breakFromProcClosure(currentNode)), currentNode);
+            sendExceptionToParentFiber(fiber, new RaiseException(context, context.getCoreExceptions().breakFromProcClosure(currentNode)), currentNode);
         } catch (ReturnException e) {
-            sendExceptionToParentFiber(fiber, new RaiseException(context.getCoreExceptions().unexpectedReturn(currentNode)), currentNode);
+            sendExceptionToParentFiber(fiber, new RaiseException(context, context.getCoreExceptions().unexpectedReturn(currentNode)), currentNode);
         } finally {
             cleanup(fiber, thread);
             thread.setName(oldName);
@@ -185,7 +185,7 @@ public class FiberManager {
 
         if (currentFiber == rootFiber) {
             errorProfile.enter();
-            throw new RaiseException(context.getCoreExceptions().yieldFromRootFiberError(currentNode));
+            throw new RaiseException(context, context.getCoreExceptions().yieldFromRootFiberError(currentNode));
         }
 
         final DynamicObject parentFiber = Layouts.FIBER.getLastResumedByFiber(currentFiber);

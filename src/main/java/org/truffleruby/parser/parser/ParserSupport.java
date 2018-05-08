@@ -1123,7 +1123,7 @@ public class ParserSupport {
 
     private void checkSymbolCodeRange(SymbolParseNode symbolParseNode) {
         if (symbolParseNode.getRope().getCodeRange() == CR_BROKEN) {
-            throw new RaiseException(getConfiguration().getContext().getCoreExceptions().encodingError("invalid encoding symbol", null));
+            throw new RaiseException(getContext(), getConfiguration().getContext().getCoreExceptions().encodingError("invalid encoding symbol", null));
         }
     }
 
@@ -1368,7 +1368,7 @@ public class ParserSupport {
      * @param expected list of acceptable tokens, if available.
      */
     public void yyerror(String message, String[] expected, String found) {
-        lexer.compile_error(PID.GRAMMAR_ERROR, message + ", unexpected " + found + "\n");
+        lexer.compile_error(PID.GRAMMAR_ERROR, message + ", unexpected " + found);
     }
 
     public SourceIndexLength getPosition(ParseNode start) {
@@ -1581,7 +1581,7 @@ public class ParserSupport {
             message += (addNewline ? "\n" : "") + line;
         }
 
-        throw new RaiseException(getConfiguration().getContext().getCoreExceptions().syntaxError(errorMessage + message, null));
+        throw new RaiseException(getContext(), getConfiguration().getContext().getCoreExceptions().syntaxError(errorMessage + message, null, position.toSourceSection(lexer.getSource())));
     }
 
     protected void compileError(Encoding optionEncoding, Encoding encoding) {

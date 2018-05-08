@@ -63,7 +63,7 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
     }
 
     @Specialization(guards = {
-            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isIVar",
+            "!isRubyArray(receiver)", "!isRubyHash(receiver)", "!isRubyProc(receiver)", "!isRubyMethod(receiver)", "!isIVar",
             "methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())"
     })
     public Object callIndex(
@@ -81,7 +81,21 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
             "!methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())",
             "methodDefined(frame, receiver, stringName, getDefinedNode())"
     })
-    public Object callMethod(
+    public Object getBoundMethod(
+            VirtualFrame frame,
+            DynamicObject receiver,
+            Object name,
+            Object stringName,
+            boolean isIVar,
+            @Cached("create()") ForeignToRubyNode nameToRubyNode) {
+        return getCallNode().call(frame, receiver, METHOD_NAME, nameToRubyNode.executeConvert(name));
+    }
+
+    @Specialization(guards = {
+            "isRubyProc(receiver) || isRubyMethod(receiver)", "!isIVar",
+            "methodDefined(frame, receiver, stringName, getDefinedNode())"
+    })
+    public Object getBoundMethodProcMethod(
             VirtualFrame frame,
             DynamicObject receiver,
             Object name,

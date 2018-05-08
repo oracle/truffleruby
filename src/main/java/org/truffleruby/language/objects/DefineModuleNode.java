@@ -50,7 +50,7 @@ public abstract class DefineModuleNode extends RubyNode {
 
             if (!RubyGuards.isRubyModule(constantValue) || RubyGuards.isRubyClass(constantValue)) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().typeErrorIsNotA(name, "module", this));
+                throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotA(name, "module", this));
             }
 
             definingModule = (DynamicObject) constantValue;
@@ -61,7 +61,7 @@ public abstract class DefineModuleNode extends RubyNode {
 
     @Specialization(guards = "!isRubyModule(lexicalParentObject)")
     public Object defineModuleWrongParent(VirtualFrame frame, Object lexicalParentObject) {
-        throw new RaiseException(coreExceptions().typeErrorIsNotA(lexicalParentObject, "module", this));
+        throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotA(lexicalParentObject, "module", this));
     }
 
     private RubyConstant lookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent) {

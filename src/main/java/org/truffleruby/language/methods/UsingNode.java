@@ -35,7 +35,7 @@ public abstract class UsingNode extends RubyBaseNode {
     @Specialization(guards = "isRubyModule(module)")
     protected void using(DynamicObject module) {
         if (RubyGuards.isRubyClass(module)) {
-            throw new RaiseException(coreExceptions().typeErrorWrongArgumentType(module, "Module", this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorWrongArgumentType(module, "Module", this));
         }
 
         final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_WRITE);

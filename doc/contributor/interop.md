@@ -160,8 +160,8 @@ If the receiver is a Ruby `Array` or `Hash`, call `receiver[name/index]`.
 
 Otherwise if the name starts with an `@` it is read as an instance variable.
 
-Otherwise, if there is a method `[]` defined on the receiver, call
-`receiver[name/index]`.
+Otherwise, if the receiver is not a `Proc` or `Method` and there is a method `[]`
+defined on the receiver, call `receiver[name/index]`.
 
 Otherwise, if there is a method defined on the object with the same name, return
 it as a (bound) `Method`.

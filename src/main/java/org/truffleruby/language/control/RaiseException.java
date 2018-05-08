@@ -14,11 +14,13 @@ import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.module.ModuleFields;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 
 /**
@@ -31,13 +33,18 @@ public class RaiseException extends ControlFlowException implements TruffleExcep
     private final DynamicObject exception;
     private final boolean internal;
 
-    public RaiseException(DynamicObject exception) {
-        this(exception, false);
+    public RaiseException(RubyContext context, DynamicObject exception) {
+        this(context, exception, false);
     }
 
-    public RaiseException(DynamicObject exception, boolean internal) {
+    public RaiseException(RubyContext context, DynamicObject exception, boolean internal) {
         this.exception = exception;
         this.internal = internal;
+        assert !isSyntaxError() || getSourceLocation() != null;
+
+        if (context.getOptions().BACKTRACE_ON_RAISE) {
+            BacktraceFormatter.createDefaultFormatter(context).printBacktrace(context, exception);
+        }
     }
 
     public DynamicObject getException() {
@@ -66,6 +73,15 @@ public class RaiseException extends ControlFlowException implements TruffleExcep
     public boolean isSyntaxError() {
         final RubyContext context = RubyLanguage.getCurrentContext();
         return isA(context, context.getCoreLibrary().getSyntaxErrorClass());
+    }
+
+    @Override
+    public SourceSection getSourceLocation() {
+        if (isSyntaxError()) {
+            return Layouts.EXCEPTION.getBacktrace(exception).getSourceLocation();
+        } else {
+            return TruffleException.super.getSourceLocation();
+        }
     }
 
     @Override

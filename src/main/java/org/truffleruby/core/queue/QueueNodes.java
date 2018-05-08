@@ -94,7 +94,7 @@ public abstract class QueueNodes {
             final Object value = queue.poll();
             if (value == null) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().threadError("queue empty", this));
+                throw new RaiseException(getContext(), coreExceptions().threadError("queue empty", this));
             }
 
             return value;
@@ -186,7 +186,7 @@ public abstract class QueueNodes {
 
         @Specialization
         public Object marshal_dump(DynamicObject self) {
-            throw new RaiseException(coreExceptions().typeErrorCantDump(self, this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorCantDump(self, this));
         }
 
     }

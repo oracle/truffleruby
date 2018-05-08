@@ -44,7 +44,7 @@ public abstract class RescueNode extends RubyNode {
     protected boolean matches(VirtualFrame frame, Object exception, Object handlingClass) {
         if (!RubyGuards.isRubyModule(handlingClass)) {
             errorProfile.enter();
-            throw new RaiseException(coreExceptions().typeErrorRescueInvalidClause(this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorRescueInvalidClause(this));
         }
 
         if (callTripleEqualsNode == null) {

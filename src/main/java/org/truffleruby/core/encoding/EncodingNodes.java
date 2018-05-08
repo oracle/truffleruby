@@ -431,7 +431,7 @@ public abstract class EncodingNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
-            throw new RaiseException(coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 
     }
@@ -505,7 +505,7 @@ public abstract class EncodingNodes {
 
         @Specialization(guards = "isNil(nil)")
         public DynamicObject noDefaultExternal(DynamicObject nil) {
-            throw new RaiseException(coreExceptions().argumentError("default external can not be nil", this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError("default external can not be nil", this));
         }
 
     }
@@ -582,7 +582,7 @@ public abstract class EncodingNodes {
 
             final DynamicObject newEncoding = replicate(name, encoding);
             if (newEncoding == null) {
-                throw new RaiseException(coreExceptions().argumentErrorEncodingAlreadyRegistered(name, this));
+                throw new RaiseException(getContext(), coreExceptions().argumentErrorEncodingAlreadyRegistered(name, this));
             }
 
             final int index = getContext().getEncodingManager().getEncodingListIndex(newEncoding);
@@ -636,7 +636,7 @@ public abstract class EncodingNodes {
         }
 
         private void raiseException(Rope first, Rope second) {
-            throw new RaiseException(coreExceptions().encodingCompatibilityErrorIncompatible(
+            throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatible(
                     first.getEncoding(), second.getEncoding(), this));
         }
 
@@ -682,7 +682,7 @@ public abstract class EncodingNodes {
                 toEncodingNode = insert(ToEncodingNode.create());
             }
 
-            throw new RaiseException(coreExceptions().encodingCompatibilityErrorIncompatible(
+            throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatible(
                     toEncodingNode.executeToEncoding(first), toEncodingNode.executeToEncoding(second), this));
         }
 

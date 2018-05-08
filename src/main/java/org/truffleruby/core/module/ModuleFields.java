@@ -206,7 +206,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     // TODO (eregon, 12 May 2015): ideally all callers would be nodes and check themselves.
     public void checkFrozen(RubyContext context, Node currentNode) {
         if (context.getCoreLibrary() != null && IsFrozenNode.isFrozen(rubyModuleObject)) {
-            throw new RaiseException(context.getCoreExceptions().frozenError(rubyModuleObject, currentNode));
+            throw new RaiseException(context, context.getCoreExceptions().frozenError(rubyModuleObject, currentNode));
         }
     }
 
@@ -222,7 +222,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
 
         // If the module we want to include already includes us, it is cyclic
         if (ModuleOperations.includesModule(module, rubyModuleObject)) {
-            throw new RaiseException(context.getCoreExceptions().argumentError("cyclic include detected", currentNode));
+            throw new RaiseException(context, context.getCoreExceptions().argumentError("cyclic include detected", currentNode));
         }
 
         SharedObjects.propagate(context, rubyModuleObject, module);
@@ -283,7 +283,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
 
         // If the module we want to prepend already includes us, it is cyclic
         if (ModuleOperations.includesModule(module, rubyModuleObject)) {
-            throw new RaiseException(context.getCoreExceptions().argumentError("cyclic prepend detected", currentNode));
+            throw new RaiseException(context, context.getCoreExceptions().argumentError("cyclic prepend detected", currentNode));
         }
 
         SharedObjects.propagate(context, rubyModuleObject, module);
@@ -427,7 +427,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     public void undefMethod(RubyContext context, Node currentNode, String methodName) {
         final InternalMethod method = ModuleOperations.lookupMethodUncached(rubyModuleObject, methodName, null);
         if (method == null || method.isUndefined()) {
-            throw new RaiseException(context.getCoreExceptions().nameErrorUndefinedMethod(
+            throw new RaiseException(context, context.getCoreExceptions().nameErrorUndefinedMethod(
                     methodName,
                     rubyModuleObject,
                     currentNode));
@@ -464,7 +464,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         InternalMethod method = deepMethodSearch(context, oldName);
 
         if (method == null) {
-            throw new RaiseException(context.getCoreExceptions().nameErrorUndefinedMethod(
+            throw new RaiseException(context, context.getCoreExceptions().nameErrorUndefinedMethod(
                     oldName,
                     rubyModuleObject,
                     currentNode));
@@ -490,7 +490,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
             final RubyConstant previous = constants.get(name);
 
             if (previous == null) {
-                throw new RaiseException(context.getCoreExceptions().nameErrorUninitializedConstant(rubyModuleObject, name, currentNode));
+                throw new RaiseException(context, context.getCoreExceptions().nameErrorUninitializedConstant(rubyModuleObject, name, currentNode));
             }
 
             if (constants.replace(name, previous, previous.withPrivate(isPrivate))) {
@@ -506,7 +506,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
             final RubyConstant previous = constants.get(name);
 
             if (previous == null) {
-                throw new RaiseException(context.getCoreExceptions().nameErrorUninitializedConstant(rubyModuleObject, name, currentNode));
+                throw new RaiseException(context, context.getCoreExceptions().nameErrorUninitializedConstant(rubyModuleObject, name, currentNode));
             }
 
             if (constants.replace(name, previous, previous.withDeprecated())) {

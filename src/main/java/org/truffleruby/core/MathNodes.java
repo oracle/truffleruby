@@ -65,7 +65,7 @@ public abstract class MathNodes {
         protected double doFunction(double a) {
             if (a < -1.0 || a > 1.0) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().mathDomainErrorAcos(this));
+                throw new RaiseException(getContext(), coreExceptions().mathDomainErrorAcos(this));
             }
 
             return Math.acos(a);
@@ -82,7 +82,7 @@ public abstract class MathNodes {
                 return Double.NaN;
             } else if (a < 1) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().mathDomainErrorAcosh(this));
+                throw new RaiseException(getContext(), coreExceptions().mathDomainErrorAcosh(this));
             } else if (a < 94906265.62) {
                 return Math.log(a + Math.sqrt(a * a - 1.0));
             } else {
@@ -99,7 +99,7 @@ public abstract class MathNodes {
         protected double doFunction(double a) {
             if (a < -1.0 || a > 1.0) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().mathDomainErrorAsin(this));
+                throw new RaiseException(getContext(), coreExceptions().mathDomainErrorAsin(this));
             }
 
             return Math.asin(a);
@@ -160,7 +160,7 @@ public abstract class MathNodes {
         protected double doFunction(double a) {
             if (a < -1.0 || a > 1.0) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().mathDomainErrorAtanh(this));
+                throw new RaiseException(getContext(), coreExceptions().mathDomainErrorAtanh(this));
             }
 
             final double y = Math.abs(a);
@@ -329,7 +329,7 @@ public abstract class MathNodes {
         protected double doFunction(double a) {
             if (a == -1) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().mathDomainErrorGamma(this));
+                throw new RaiseException(getContext(), coreExceptions().mathDomainErrorGamma(this));
             }
 
             if (Double.isNaN(a)) {
@@ -341,7 +341,7 @@ public abstract class MathNodes {
                     return Double.POSITIVE_INFINITY;
                 } else {
                     exceptionProfile.enter();
-                    throw new RaiseException(coreExceptions().mathDomainErrorGamma(this));
+                    throw new RaiseException(getContext(), coreExceptions().mathDomainErrorGamma(this));
                 }
             }
 
@@ -361,7 +361,7 @@ public abstract class MathNodes {
 
             if (Double.isNaN(a)) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().mathDomainErrorGamma(this));
+                throw new RaiseException(getContext(), coreExceptions().mathDomainErrorGamma(this));
             }
 
             return result;
@@ -421,7 +421,7 @@ public abstract class MathNodes {
         public DynamicObject lgamma(double a) {
             if (a < 0 && Double.isInfinite(a)) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().mathDomainErrorLog2(this));
+                throw new RaiseException(getContext(), coreExceptions().mathDomainErrorLog2(this));
             }
 
             final NemesLogGamma l = new NemesLogGamma(a);
@@ -433,7 +433,7 @@ public abstract class MathNodes {
         public DynamicObject lgamma(VirtualFrame frame, Object a) {
             if (!isANode.executeIsA(a, coreLibrary().getNumericClass())) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().typeErrorCantConvertInto(a, "Float", this));
+                throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));
             }
 
             return lgamma(toFNode.doDouble(frame, a));
@@ -469,7 +469,7 @@ public abstract class MathNodes {
                         @Cached("create()") ToFNode toFNode) {
             if (!isANode.executeIsA(a, coreLibrary().getNumericClass())) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().typeErrorCantConvertInto(a, "Float", this));
+                throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));
             }
             return doFunction(toFNode.doDouble(frame, a));
         }
@@ -477,7 +477,7 @@ public abstract class MathNodes {
         private double doFunction(double a) {
             if (a < 0) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().mathDomainErrorLog(this));
+                throw new RaiseException(getContext(), coreExceptions().mathDomainErrorLog(this));
             }
 
             return Math.log(a);
@@ -487,7 +487,7 @@ public abstract class MathNodes {
         protected double doFunction(double a, double b) {
             if (a < 0) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().mathDomainErrorLog(this));
+                throw new RaiseException(getContext(), coreExceptions().mathDomainErrorLog(this));
             }
 
             return Math.log(a) / Math.log(b);
@@ -502,7 +502,7 @@ public abstract class MathNodes {
         protected double doFunction(double a) {
             if (a < 0) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().mathDomainErrorLog10(this));
+                throw new RaiseException(getContext(), coreExceptions().mathDomainErrorLog10(this));
             }
 
             return Math.log10(a);
@@ -519,7 +519,7 @@ public abstract class MathNodes {
         protected double doFunction(double a) {
             if (a < 0) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().mathDomainErrorLog2(this));
+                throw new RaiseException(getContext(), coreExceptions().mathDomainErrorLog2(this));
             }
 
             return Math.log(a) / LOG2;
@@ -614,7 +614,7 @@ public abstract class MathNodes {
         public double function(VirtualFrame frame, Object a) {
             if (!isANode.executeIsA(a, coreLibrary().getNumericClass())) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().typeErrorCantConvertInto(a, "Float", this));
+                throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));
             }
 
             return doFunction(toFNode.doDouble(frame, a));
@@ -721,7 +721,7 @@ public abstract class MathNodes {
             if (!(isANode.executeIsA(a, coreLibrary().getNumericClass()) &&
                     isANode.executeIsA(b, coreLibrary().getNumericClass()))) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().typeErrorCantConvertInto(a, "Float", this));
+                throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));
             }
 
             return doFunction(floatANode.doDouble(frame, a), floatBNode.doDouble(frame, b));

@@ -318,7 +318,7 @@ public class TruffleRegexpNodes {
             if (fixedEnc[0] != null) {
                 if ((fixedEnc[0] != enc && options.isFixed()) ||
                         (fixedEnc[0] != ASCIIEncoding.INSTANCE && options.isEncodingNone())) {
-                    throw new RaiseException(context.getCoreExceptions().regexpError("incompatible character encoding", null));
+                    throw new RaiseException(context, context.getCoreExceptions().regexpError("incompatible character encoding", null));
                 }
                 if (fixedEnc[0] != ASCIIEncoding.INSTANCE) {
                     options.setFixed(true);
@@ -344,9 +344,9 @@ public class TruffleRegexpNodes {
 
             return regexp;
         } catch (ValueException e) {
-            throw new RaiseException(context.getCoreExceptions().regexpError(e.getMessage() + ": " + '/' + RopeOperations.decodeRope(bytes) + '/', currentNode));
+            throw new RaiseException(context, context.getCoreExceptions().regexpError(e.getMessage() + ": " + '/' + RopeOperations.decodeRope(bytes) + '/', currentNode));
         } catch (SyntaxException e) {
-            throw new RaiseException(context.getCoreExceptions().regexpError(e.getMessage(), currentNode));
+            throw new RaiseException(context, context.getCoreExceptions().regexpError(e.getMessage(), currentNode));
         }
     }
 

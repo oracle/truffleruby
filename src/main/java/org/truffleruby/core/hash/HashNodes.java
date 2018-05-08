@@ -535,7 +535,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "wasProvided(defaultValue)")
         public Object initialize(DynamicObject hash, Object defaultValue, DynamicObject block) {
-            throw new RaiseException(coreExceptions().argumentError("wrong number of arguments (1 for 0)", this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError("wrong number of arguments (1 for 0)", this));
         }
 
     }

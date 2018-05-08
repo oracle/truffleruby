@@ -39,7 +39,7 @@ public abstract class TruffleGraalNodes {
 
         @Specialization
         public DynamicObject assertConstant(Object value) {
-            throw new RaiseException(coreExceptions().runtimeErrorNotConstant(this));
+            throw new RaiseException(getContext(), coreExceptions().runtimeErrorNotConstant(this));
         }
 
     }
@@ -49,7 +49,7 @@ public abstract class TruffleGraalNodes {
 
         @Specialization
         public DynamicObject assertNotCompiled() {
-            throw new RaiseException(coreExceptions().runtimeErrorCompiled(this));
+            throw new RaiseException(getContext(), coreExceptions().runtimeErrorCompiled(this));
         }
 
     }

@@ -93,7 +93,7 @@ public abstract class FormatCharacterNode extends FormatNode {
             final String resultString = StringUtils.create((byte[]) toStrResult);
             final int size = resultString.length();
             if (size > 1) {
-                throw new RaiseException(getContext().getCoreExceptions().argumentErrorCharacterRequired(this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentErrorCharacterRequired(this));
             }
             charString = resultString;
         }

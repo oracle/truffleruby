@@ -198,7 +198,7 @@ public abstract class TruffleSystemNodes {
                 }
             }
 
-            throw new RaiseException(getContext().getCoreExceptions().argumentError(
+            throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(
                             "Could not find log level for: " + level + " known errors are: " + Arrays.toString(Log.LEVELS),
                             this));
         }

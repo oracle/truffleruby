@@ -101,7 +101,7 @@ public abstract class SplatCastNode extends RubyNode {
             return createArray(new Object[]{object}, 1);
         } else {
             errorProfile.enter();
-            throw new RaiseException(coreExceptions().typeErrorCantConvertTo(object, "Array",
+            throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertTo(object, "Array",
                 Layouts.SYMBOL.getString(conversionMethod), array, this));
         }
     }

@@ -87,7 +87,7 @@ public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode
 
         if (constant != null && !(constant.isVisibleTo(getContext(), lexicalScope, lexicalScope.getLiveModule()) ||
                 constant.isVisibleTo(getContext(), LexicalScope.NONE, lexicalParent))) {
-            throw new RaiseException(getContext().getCoreExceptions().
+            throw new RaiseException(getContext(), getContext().getCoreExceptions().
                     nameErrorPrivateConstant(lexicalParent, name, this));
         }
 

@@ -168,7 +168,7 @@ public abstract class ReadlineNodes {
             try {
                 value = readline.readLine(prompt);
             } catch (IOException e) {
-                throw new RaiseException(coreExceptions().ioError(e.getMessage(), this));
+                throw new RaiseException(getContext(), coreExceptions().ioError(e.getMessage(), this));
             }
 
             if (value == null) { // EOF
@@ -263,7 +263,7 @@ public abstract class ReadlineNodes {
             try {
                 getContext().getConsoleHolder().getReadline().redrawLine();
             } catch (IOException e) {
-                throw new RaiseException(coreExceptions().ioError(e.getMessage(), this));
+                throw new RaiseException(getContext(), coreExceptions().ioError(e.getMessage(), this));
             }
 
             return nil();

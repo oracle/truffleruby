@@ -47,7 +47,7 @@ public abstract class ProcNodes {
 
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
-            throw new RaiseException(coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 
     }
@@ -76,7 +76,7 @@ public abstract class ProcNodes {
             }
 
             if (parentBlock == null) {
-                throw new RaiseException(coreExceptions().argumentErrorProcWithoutBlock(this));
+                throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
             }
 
             return executeProcNew(frame, procClass, args, parentBlock);

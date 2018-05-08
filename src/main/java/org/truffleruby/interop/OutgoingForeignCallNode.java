@@ -186,7 +186,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                 foreign = ForeignAccess.sendRead(node, receiver, name);
             } catch (UnknownIdentifierException e) {
                 unknownIdentifierProfile();
-                throw new RaiseException(coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
             } catch (UnsupportedMessageException e) {
                 exceptionProfile();
                 throw new JavaException(e);
@@ -222,7 +222,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                         valueToForeignNode.executeConvert(args[1]));
             } catch (UnknownIdentifierException e) {
                 unknownIdentifierProfile();
-                throw new RaiseException(coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
             } catch (UnsupportedMessageException | UnsupportedTypeException e) {
                 exceptionProfile();
                 throw new JavaException(e);
@@ -275,7 +275,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length < 1) {
                 CompilerDirectives.transferToInterpreter();
-                throw new RaiseException(getContext().getCoreExceptions().argumentError(args.length, 1, this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
             }
 
             final Object name = args[0];
@@ -332,7 +332,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length > 0) {
                 CompilerDirectives.transferToInterpreter();
-                throw new RaiseException(getContext().getCoreExceptions().argumentError(args.length, 0, this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 0, this));
             }
 
             return callToArray.call(frame, coreLibrary().getTruffleInteropModule(), "to_array", receiver);
@@ -348,7 +348,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != 1) {
                 CompilerDirectives.transferToInterpreter();
-                throw new RaiseException(getContext().getCoreExceptions().argumentError(args.length, 1, this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
             }
 
             return callRespondTo.call(frame, coreLibrary().getTruffleInteropModule(), "respond_to?", receiver, args[0]);
@@ -372,7 +372,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != argsLength) {
                 CompilerDirectives.transferToInterpreter();
-                throw new RaiseException(getContext().getCoreExceptions().argumentError(args.length, 1, this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
             }
 
             final Object[] prependedArgs = new Object[args.length + 2];
@@ -540,7 +540,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                         arguments);
             } catch (UnknownIdentifierException e) {
                 unknownIdentifierProfile();
-                throw new RaiseException(coreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
+                throw new RaiseException(getContext(), coreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                 exceptionProfile();
                 throw new JavaException(e);

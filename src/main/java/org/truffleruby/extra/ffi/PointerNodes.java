@@ -49,7 +49,8 @@ public abstract class PointerNodes {
     public static void checkNull(Pointer ptr, RubyNode node, BranchProfile nullPointerProfile) {
         if (ptr.isNull()) {
             nullPointerProfile.enter();
-            throw new RaiseException(node.getContext().getCoreExceptions().ffiNullPointerError("invalid memory access at address=0x0", node));
+            final RubyContext context = node.getContext();
+            throw new RaiseException(context, context.getCoreExceptions().ffiNullPointerError("invalid memory access at address=0x0", node));
         }
     }
 

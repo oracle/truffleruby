@@ -81,6 +81,11 @@ public class BacktraceFormatter {
     }
 
     @TruffleBoundary
+    public void printBacktrace(RubyContext context, DynamicObject exception) {
+        printBacktrace(context, exception, Layouts.EXCEPTION.getBacktrace(exception));
+    }
+
+    @TruffleBoundary
     public void printBacktrace(RubyContext context, DynamicObject exception, Backtrace backtrace) {
         printBacktrace(context, exception, backtrace, new PrintWriter(context.getEnv().err(), true));
     }
@@ -123,7 +128,7 @@ public class BacktraceFormatter {
         }
 
         if (backtrace.getJavaThrowable() != null && flags.contains(FormattingFlags.INTERLEAVE_JAVA)) {
-            final List<String> interleaved = BacktraceInterleaver.interleave(lines, backtrace.getJavaThrowable().getStackTrace());
+            final List<String> interleaved = BacktraceInterleaver.interleave(lines, backtrace.getJavaThrowable().getStackTrace(), backtrace.getOmitted());
             return interleaved.toArray(new String[interleaved.size()]);
         }
 
@@ -198,7 +203,7 @@ public class BacktraceFormatter {
         // Show the exception class at the end of the first line of the message
         final int firstLn = message.indexOf('\n');
         if (firstLn >= 0) {
-            builder.append(message.substring(0, firstLn));
+            builder.append(message, 0, firstLn);
             builder.append(" (").append(exceptionClass).append(")");
             builder.append(message.substring(firstLn));
         } else {

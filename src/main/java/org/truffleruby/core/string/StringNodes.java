@@ -304,7 +304,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "times < 0")
         public DynamicObject multiplyTimesNegative(DynamicObject string, long times) {
-            throw new RaiseException(coreExceptions().argumentError("negative argument", this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError("negative argument", this));
         }
 
         @Specialization(guards = { "times >= 0", "!isEmpty(string)" })
@@ -317,7 +317,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "times >= 0", "!isEmpty(string)", "!fitsInInteger(times)" })
         public DynamicObject multiply(DynamicObject string, long times) {
-            throw new RaiseException(coreExceptions().argumentError("'long' is too big to convert into 'int'", this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError("'long' is too big to convert into 'int'", this));
         }
 
         @Specialization(guards = { "times >= 0", "isEmpty(string)" })
@@ -330,7 +330,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isRubyBignum(times)")
         public DynamicObject multiply(DynamicObject string, DynamicObject times) {
-            throw new RaiseException(coreExceptions().rangeError("bignum too big to convert into `int'", this));
+            throw new RaiseException(getContext(), coreExceptions().rangeError("bignum too big to convert into `int'", this));
         }
 
         @Specialization(guards = { "!isRubyBignum(times)", "!isInteger(times)", "!isLong(times)" })
@@ -885,7 +885,7 @@ public abstract class StringNodes {
                 @Cached("create()") BranchProfile errorProfile) {
             if (ropes.length == 0) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().argumentErrorEmptyVarargs(this));
+                throw new RaiseException(getContext(), coreExceptions().argumentErrorEmptyVarargs(this));
             }
 
             Encoding enc = findEncoding(string, ropes);
@@ -1036,7 +1036,7 @@ public abstract class StringNodes {
                 @Cached("create()") BranchProfile errorProfile) {
             if (args.length == 0) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().argumentErrorEmptyVarargs(this));
+                throw new RaiseException(getContext(), coreExceptions().argumentErrorEmptyVarargs(this));
             }
 
             Encoding enc = findEncoding(string, args);
@@ -1087,7 +1087,7 @@ public abstract class StringNodes {
             final Encoding encoding = rope.getEncoding();
 
             if (dummyEncodingProfile.profile(encoding.isDummy())) {
-                throw new RaiseException(coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
+                throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
             }
 
             final byte[] outputBytes = rope.getBytesCopy();
@@ -1287,7 +1287,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isNil(encoding)")
         public DynamicObject initializeJavaStringNoEncoding(DynamicObject self, String from, DynamicObject encoding) {
-            throw new RaiseException(coreExceptions().argumentError("String.new(javaString) needs to be called with an Encoding like String.new(javaString, encoding: someEncoding)", this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError("String.new(javaString) needs to be called with an Encoding like String.new(javaString, encoding: someEncoding)", this));
         }
 
         @Specialization(guards = "isRubyString(from)")
@@ -1418,7 +1418,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isEmpty(string)")
         public int ordEmpty(DynamicObject string) {
-            throw new RaiseException(coreExceptions().argumentError("empty string", this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError("empty string", this));
         }
 
         @Specialization(guards = "!isEmpty(string)")
@@ -1507,7 +1507,7 @@ public abstract class StringNodes {
             final Encoding enc = RopeOperations.STR_ENC_GET(rope);
 
             if (dummyEncodingProfile.profile(enc.isDummy())) {
-                throw new RaiseException(coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
+                throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
             }
 
             final byte[] bytes = rope.getBytes();
@@ -1705,7 +1705,7 @@ public abstract class StringNodes {
             final Encoding enc = rope.getEncoding();
 
             if (dummyEncodingProfile.profile(enc.isDummy())) {
-                throw new RaiseException(coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
+                throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
             }
 
             final int s = 0;
@@ -1905,7 +1905,7 @@ public abstract class StringNodes {
             try {
                 return StringSupport.codePoint(enc, bytes, p, end);
             } catch (IllegalArgumentException e) {
-                throw new RaiseException(getContext().getCoreExceptions().argumentError(e.getMessage(), this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(e.getMessage(), this));
             }
         }
     }
@@ -1959,14 +1959,14 @@ public abstract class StringNodes {
                                  @Cached("create()") BranchProfile errorProfile) {
             if (index >= length) {
                 errorProfile.enter();
-                throw new RaiseException(getContext().getCoreExceptions().indexErrorOutOfString(index, this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().indexErrorOutOfString(index, this));
             }
 
             if (negativeIndexProfile.profile(index < 0)) {
                 index += length;
                 if (index < 0) {
                     errorProfile.enter();
-                    throw new RaiseException(getContext().getCoreExceptions().indexErrorOutOfString(index, this));
+                    throw new RaiseException(getContext(), getContext().getCoreExceptions().indexErrorOutOfString(index, this));
                 }
             }
 
@@ -2258,7 +2258,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isBrokenCodeRange(string)")
         public DynamicObject toSymBroken(DynamicObject string) {
-            throw new RaiseException(coreExceptions().encodingError("invalid encoding symbol", this));
+            throw new RaiseException(getContext(), coreExceptions().encodingError("invalid encoding symbol", this));
         }
 
         protected int getLimit() {
@@ -2645,7 +2645,7 @@ public abstract class StringNodes {
             final Encoding encoding = rope.getEncoding();
 
             if (dummyEncodingProfile.profile(encoding.isDummy())) {
-                throw new RaiseException(coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
+                throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
             }
 
             final RopeBuilder bytes = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
@@ -2737,7 +2737,7 @@ public abstract class StringNodes {
             final Encoding enc = rope.getEncoding();
 
             if (enc.isDummy()) {
-                throw new RaiseException(coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
+                throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
             }
 
             if (rope.isEmpty()) {
@@ -3370,22 +3370,22 @@ public abstract class StringNodes {
             try {
                 length = encoding.codeToMbcLength((int) code);
             } catch (EncodingException e) {
-                throw new RaiseException(coreExceptions().rangeError(code, rubyEncoding, this));
+                throw new RaiseException(getContext(), coreExceptions().rangeError(code, rubyEncoding, this));
             }
 
             if (length <= 0) {
-                throw new RaiseException(coreExceptions().rangeError(code, rubyEncoding, this));
+                throw new RaiseException(getContext(), coreExceptions().rangeError(code, rubyEncoding, this));
             }
 
             final byte[] bytes = new byte[length];
 
             final int codeToMbc = encoding.codeToMbc((int) code, bytes, 0);
             if (codeToMbc < 0) {
-                throw new RaiseException(coreExceptions().rangeError(code, rubyEncoding, this));
+                throw new RaiseException(getContext(), coreExceptions().rangeError(code, rubyEncoding, this));
             }
 
             if (preciseLengthNode.executeLength(encoding, bytes, 0, length) != length) {
-                throw new RaiseException(coreExceptions().rangeError(code, rubyEncoding, this));
+                throw new RaiseException(getContext(), coreExceptions().rangeError(code, rubyEncoding, this));
             }
 
             return makeStringNode.executeMake(bytes, encoding, CodeRange.CR_VALID);
@@ -3413,7 +3413,7 @@ public abstract class StringNodes {
                                 @Cached("create(getSourceIndexLength())") FixnumOrBignumNode fixnumOrBignumNode) {
             final Rope rope = rope(string);
             if (rope.isEmpty()) {
-                throw new RaiseException(coreExceptions().argumentError(coreStrings().INVALID_VALUE_FOR_FLOAT.getRope(), this));
+                throw new RaiseException(getContext(), coreExceptions().argumentError(coreStrings().INVALID_VALUE_FOR_FLOAT.getRope(), this));
             }
             if (string.toString().startsWith("0x")) {
                 try {
@@ -3436,7 +3436,7 @@ public abstract class StringNodes {
                 return new DoubleConverter().parse(rope, strict, true);
             } catch (NumberFormatException e) {
                 if (strict) {
-                    throw new RaiseException(coreExceptions().argumentError(coreStrings().INVALID_VALUE_FOR_FLOAT.getRope(), this));
+                    throw new RaiseException(getContext(), coreExceptions().argumentError(coreStrings().INVALID_VALUE_FOR_FLOAT.getRope(), this));
                 }
                 return 0.0;
             }
@@ -3877,7 +3877,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "index < 0")
         public Object negativeIndex(DynamicObject string, int index) {
-            throw new RaiseException(coreExceptions().argumentError("negative index given", this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError("negative index given", this));
         }
 
         @Specialization(guards = "index == 0")

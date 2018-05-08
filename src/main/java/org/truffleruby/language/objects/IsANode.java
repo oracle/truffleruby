@@ -63,7 +63,7 @@ public abstract class IsANode extends RubyNode {
 
     @Specialization(guards = "!isRubyModule(module)")
     public boolean isATypeError(Object self, DynamicObject module) {
-        throw new RaiseException(coreExceptions().typeError("class or module required", this));
+        throw new RaiseException(getContext(), coreExceptions().typeError("class or module required", this));
     }
 
     @TruffleBoundary

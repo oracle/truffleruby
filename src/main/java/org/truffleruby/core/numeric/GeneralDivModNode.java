@@ -124,7 +124,7 @@ public class GeneralDivModNode extends RubyBaseNode {
 
         if (Double.isNaN(mod)) {
             nanProfile.enter();
-            throw new RaiseException(coreExceptions().floatDomainError("NaN", this));
+            throw new RaiseException(getContext(), coreExceptions().floatDomainError("NaN", this));
         }
 
         final double div = Math.floor(a / b);

@@ -66,7 +66,7 @@ public abstract class MainNodes {
                 @Cached("create()") BranchProfile errorProfile) {
             if (!isCalledFromTopLevel()) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().runtimeError("main.using is permitted only at toplevel", this));
+                throw new RaiseException(getContext(), coreExceptions().runtimeError("main.using is permitted only at toplevel", this));
             }
             usingNode.executeUsing(refinementModule);
             return nil();

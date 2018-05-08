@@ -203,7 +203,7 @@ public abstract class ReadlineHistoryNodes {
 
                 return taintNode.executeTaint(ret);
             } catch (IndexOutOfBoundsException e) {
-                throw new RaiseException(coreExceptions().indexErrorInvalidIndex(this));
+                throw new RaiseException(getContext(), coreExceptions().indexErrorInvalidIndex(this));
             }
         }
 
@@ -236,7 +236,7 @@ public abstract class ReadlineHistoryNodes {
 
                 return nil();
             } catch (IndexOutOfBoundsException e) {
-                throw new RaiseException(coreExceptions().indexErrorInvalidIndex(this));
+                throw new RaiseException(getContext(), coreExceptions().indexErrorInvalidIndex(this));
             }
         }
 
@@ -261,7 +261,7 @@ public abstract class ReadlineHistoryNodes {
 
                 return taintNode.executeTaint(ret);
             } catch (IndexOutOfBoundsException e) {
-                throw new RaiseException(coreExceptions().indexErrorInvalidIndex(this));
+                throw new RaiseException(getContext(), coreExceptions().indexErrorInvalidIndex(this));
             }
         }
 

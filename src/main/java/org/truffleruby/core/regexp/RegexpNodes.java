@@ -378,12 +378,12 @@ public abstract class RegexpNodes {
 
         @Specialization(guards = { "isRegexpLiteral(regexp)", "isRubyString(pattern)" })
         public DynamicObject initializeRegexpLiteral(DynamicObject regexp, DynamicObject pattern, int options) {
-            throw new RaiseException(coreExceptions().securityError("can't modify literal regexp", this));
+            throw new RaiseException(getContext(), coreExceptions().securityError("can't modify literal regexp", this));
         }
 
         @Specialization(guards = { "!isRegexpLiteral(regexp)", "isInitialized(regexp)", "isRubyString(pattern)" })
         public DynamicObject initializeAlreadyInitialized(DynamicObject regexp, DynamicObject pattern, int options) {
-            throw new RaiseException(coreExceptions().typeError("already initialized regexp", this));
+            throw new RaiseException(getContext(), coreExceptions().typeError("already initialized regexp", this));
         }
 
         @Specialization(guards = { "!isRegexpLiteral(regexp)", "!isInitialized(regexp)", "isRubyString(pattern)" })
@@ -399,12 +399,12 @@ public abstract class RegexpNodes {
 
         @Specialization(guards = { "isRegexpLiteral(regexp)", "isRubyRegexp(other)" })
         public DynamicObject initializeRegexpLiteral(DynamicObject regexp, DynamicObject other) {
-            throw new RaiseException(coreExceptions().securityError("can't modify literal regexp", this));
+            throw new RaiseException(getContext(), coreExceptions().securityError("can't modify literal regexp", this));
         }
 
         @Specialization(guards = { "!isRegexpLiteral(regexp)", "isInitialized(regexp)", "isRubyRegexp(other)" })
         public DynamicObject initializeAlreadyInitialized(DynamicObject regexp, DynamicObject other) {
-            throw new RaiseException(coreExceptions().typeError("already initialized regexp", this));
+            throw new RaiseException(getContext(), coreExceptions().typeError("already initialized regexp", this));
         }
 
         @Specialization(guards = { "!isRegexpLiteral(regexp)", "!isInitialized(regexp)", "isRubyRegexp(other)" })
@@ -428,7 +428,7 @@ public abstract class RegexpNodes {
 
         @Specialization(guards = "!isInitialized(regexp)")
         public int optionsNotInitialized(DynamicObject regexp) {
-            throw new RaiseException(coreExceptions().typeError("uninitialized Regexp", this));
+            throw new RaiseException(getContext(), coreExceptions().typeError("uninitialized Regexp", this));
         }
 
     }
@@ -439,12 +439,12 @@ public abstract class RegexpNodes {
 
         @Specialization(guards = { "!isInitialized(regexp)", "isRubyString(string)" })
         public Object searchRegionNotInitialized(DynamicObject regexp, DynamicObject string, int start, int end, boolean forward) {
-            throw new RaiseException(coreExceptions().typeError("uninitialized Regexp", this));
+            throw new RaiseException(getContext(), coreExceptions().typeError("uninitialized Regexp", this));
         }
 
         @Specialization(guards = { "isRubyString(string)", "!isValidEncoding(string)" })
         public Object searchRegionInvalidEncoding(DynamicObject regexp, DynamicObject string, int start, int end, boolean forward) {
-            throw new RaiseException(coreExceptions().argumentError(formatError(string), this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError(formatError(string), this));
         }
 
         @TruffleBoundary

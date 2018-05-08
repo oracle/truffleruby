@@ -226,7 +226,7 @@ public abstract class InteropNodes {
                         arguments);
             } catch (UnknownIdentifierException e) {
                 unknownIdentifierProfile.enter();
-                throw new RaiseException(coreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
+                throw new RaiseException(getContext(), coreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
             } catch (UnsupportedTypeException
                     | ArityException
                     | UnsupportedMessageException e) {
@@ -259,7 +259,7 @@ public abstract class InteropNodes {
                         arguments);
             } catch (UnknownIdentifierException e) {
                 unknownIdentifierProfile.enter();
-                throw new RaiseException(coreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
+                throw new RaiseException(getContext(), coreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
             } catch (UnsupportedTypeException
                     | ArityException
                     | UnsupportedMessageException e) {
@@ -434,7 +434,7 @@ public abstract class InteropNodes {
                 foreign = ForeignAccess.sendUnbox(unboxNode, receiver);
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this, e));
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
             }
 
             return foreignToRubyNode.executeConvert(foreign);
@@ -469,7 +469,7 @@ public abstract class InteropNodes {
                 return ForeignAccess.sendUnbox(unboxNode, receiver);
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this, e));
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
             }
         }
 
@@ -528,7 +528,7 @@ public abstract class InteropNodes {
                 return ForeignAccess.sendAsPointer(asPointerNode, receiver);
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this, e));
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
             }
         }
 
@@ -547,7 +547,7 @@ public abstract class InteropNodes {
                 return ForeignAccess.sendToNative(toNativeNode, receiver);
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
-                throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this, e));
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
             }
         }
 
@@ -573,7 +573,7 @@ public abstract class InteropNodes {
                         name);
             } catch (UnknownIdentifierException e) {
                 unknownIdentifierProfile.enter();
-                throw new RaiseException(coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -602,7 +602,7 @@ public abstract class InteropNodes {
                         name);
             } catch (UnknownIdentifierException e) {
                 unknownIdentifierProfile.enter();
-                throw new RaiseException(coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -633,7 +633,7 @@ public abstract class InteropNodes {
                         valueToForeignNode.executeConvert(value));
             } catch (UnknownIdentifierException e) {
                 unknownIdentifierProfile.enter();
-                throw new RaiseException(coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
             } catch (UnsupportedTypeException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -660,7 +660,7 @@ public abstract class InteropNodes {
                 foreign = ForeignAccess.sendRemove(removeNode, receiver, name);
             } catch (UnknownIdentifierException e) {
                 unknownIdentifierProfile.enter();
-                throw new RaiseException(coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -756,7 +756,7 @@ public abstract class InteropNodes {
                 return value;
             } else {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().nameErrorImportNotFound(name, this));
+                throw new RaiseException(getContext(), coreExceptions().nameErrorImportNotFound(name, this));
             }
         }
 
@@ -1076,7 +1076,7 @@ public abstract class InteropNodes {
             final TruffleLanguage.Env env = getContext().getEnv();
 
             if (!env.isHostLookupAllowed()) {
-                throw new RaiseException(getContext().getCoreExceptions().securityError("host access is not allowed", this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().securityError("host access is not allowed", this));
             }
 
             return env.lookupHostSymbol(name);

@@ -58,7 +58,7 @@ public abstract class SizedQueueNodes {
                 @Cached("create()") BranchProfile errorProfile) {
             if (capacity <= 0) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().argumentError("queue size must be positive", this));
+                throw new RaiseException(getContext(), coreExceptions().argumentError("queue size must be positive", this));
             }
 
             final SizedQueue blockingQueue = new SizedQueue(capacity);
@@ -76,7 +76,7 @@ public abstract class SizedQueueNodes {
                 @Cached("create()") BranchProfile errorProfile) {
             if (newCapacity <= 0) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().argumentError("queue size must be positive", this));
+                throw new RaiseException(getContext(), coreExceptions().argumentError("queue size must be positive", this));
             }
 
             final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
@@ -139,7 +139,7 @@ public abstract class SizedQueueNodes {
             final boolean pushed = queue.offer(value);
             if (!pushed) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().threadError("queue full", this));
+                throw new RaiseException(getContext(), coreExceptions().threadError("queue full", this));
             }
 
             return self;
@@ -179,7 +179,7 @@ public abstract class SizedQueueNodes {
             final Object value = queue.poll();
             if (value == null) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().threadError("queue empty", this));
+                throw new RaiseException(getContext(), coreExceptions().threadError("queue empty", this));
             }
 
             return value;

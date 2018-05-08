@@ -118,7 +118,7 @@ public class ThreadManager {
 
     public Thread createJavaThread(Runnable runnable) {
         if (context.getOptions().SINGLE_THREADED) {
-            throw new RaiseException(context.getCoreExceptions().securityError("threads not allowed in single-threaded mode", null));
+            throw new RaiseException(context, context.getCoreExceptions().securityError("threads not allowed in single-threaded mode", null));
         }
 
         if (context.isPreInitializing()) {
@@ -583,7 +583,7 @@ public class ThreadManager {
                 break; // Successfully executed the safepoint and sent the exceptions.
             } catch (RaiseException e) {
                 final DynamicObject rubyException = e.getException();
-                BacktraceFormatter.createDefaultFormatter(context).printBacktrace(context, rubyException, Layouts.EXCEPTION.getBacktrace(rubyException));
+                BacktraceFormatter.createDefaultFormatter(context).printBacktrace(context, rubyException);
             }
         }
     }

@@ -692,6 +692,7 @@ public class RubyContext {
     @TruffleBoundary
     private String searchRubyHome(Options options) throws IOException {
         if (options.NO_HOME_PROVIDED) {
+            Log.LOGGER.config("-Xruby.no_home_provided set");
             return null;
         }
 
@@ -699,10 +700,13 @@ public class RubyContext {
 
         if (!options.HOME.isEmpty()) {
             final File home = new File(options.HOME);
+            Log.LOGGER.config(() -> String.format("trying -Xhome=%s, expanded to %s, as the Ruby home", options.HOME, home));
             if (!isRubyHome(home)) {
-                Log.LOGGER.warning(home + " from -Xhome does not look like TruffleRuby's home");
+                Log.LOGGER.warning(String.format("-Xhome=%s does not look like TruffleRuby's home", options.HOME));
             }
             return home.getCanonicalPath();
+        } else {
+            Log.LOGGER.config("-Xhome not set, cannot determine home from it");
         }
 
         // We need a home for context pre-initialization but the Context is built without arguments.
@@ -710,49 +714,46 @@ public class RubyContext {
         final String fromProperty = System.getProperty("truffleruby.preinitialization.home");
         if (fromProperty != null && !fromProperty.isEmpty()) {
             final File home = new File(fromProperty);
+            Log.LOGGER.config(() -> String.format("trying -Dtruffleruby.preinitialization.home=%s, expanded to %s, as the Ruby home", fromProperty, home));
             if (!isRubyHome(home)) {
-                Log.LOGGER.warning(home + " does not look like TruffleRuby's home");
+                Log.LOGGER.warning(String.format("-Dtruffleruby.preinitialization.home=%s does not look like TruffleRuby's home", fromProperty));
             }
             return home.getCanonicalPath();
+        } else {
+            Log.LOGGER.config("-Dtruffleruby.preinitialization.home not set, cannot determine home from it");
         }
 
         // Use the Truffle reported home
-
-        final StringBuilder warning = new StringBuilder("home locations tried:\n");
-
-        warning.append("* -Xhome was not set\n");
-        warning.append("* truffleruby.preinitialization.home system property was not set (for internal use only)\n");
 
         final String truffleReported = language.getTruffleLanguageHome();
 
         if (truffleReported != null) {
             final File home = new File(truffleReported);
+            Log.LOGGER.config(() -> String.format("trying Truffle-reported home %s, expanded to %s, as the Ruby home", truffleReported, home));
             if (isRubyHome(home)) {
                 return truffleReported;
             } else {
-                warning.append("* path '").
-                        append(truffleReported).
-                        append("' reported by Truffle does not look like TruffleRuby's home\n");
+                Log.LOGGER.warning(String.format("Truffle-reported home %s does not look like TruffleRuby's home", truffleReported));
             }
+        } else {
+            Log.LOGGER.config("Truffle-reported home not set, cannot determine home from it");
         }
 
         // All the following methods to find home should go away longer term
 
+        // Use the path relative to the launcher
 
         if (!options.LAUNCHER.isEmpty()) {
             final Path canonicalLauncherPath = Paths.get(new File(options.LAUNCHER).getCanonicalPath());
             final File candidate = canonicalLauncherPath.getParent().getParent().toFile();
+            Log.LOGGER.config(() -> String.format("trying home %s guessed from executable %s, as the Ruby home", candidate, options.LAUNCHER));
             if (isRubyHome(candidate)) {
                 return candidate.getCanonicalPath();
             } else {
-                warning.append("* default path '").
-                        append(candidate).
-                        append("' derived from executable '").
-                        append(options.LAUNCHER).
-                        append("' does not look like TruffleRuby's home\n");
+                Log.LOGGER.warning(String.format("home %s guessed from executable %s does not look like TruffleRuby's home", candidate, options.LAUNCHER));
             }
         } else {
-            warning.append("* launcher not set, home path could not be derived\n");
+            Log.LOGGER.config("no launcher set, cannot determine home from it");
         }
 
         // graalvm.home is what Truffle does, but we'll leave this in for now in case something differs
@@ -761,32 +762,32 @@ public class RubyContext {
 
         if (graalVMHome != null) {
             final File candidate = Paths.get(graalVMHome).resolve("jre/languages/ruby").toFile();
+            Log.LOGGER.config(() -> String.format("trying -Dorg.graalvm.home=%s, expanded to %s, as the Ruby home", graalVMHome, candidate));
             if (isRubyHome(candidate)) {
                 return candidate.getCanonicalPath();
             } else {
-                warning.append("* path '").
-                        append(candidate).
-                        append("' derived from the org.graalvm.home system property home '").
-                        append(graalVMHome).
-                        append("' does not look like TruffleRuby's home\n");
-
+                Log.LOGGER.warning(String.format("-Dorg.graalvm.home=%s does not look like TruffleRuby's home", candidate));
             }
         } else {
-            warning.append("* GraalVM home not found.\n");
+            Log.LOGGER.config("-Dorg.graalvm.home not set, cannot determine home from it");
         }
 
-        warning.append("* try to set home using -Xhome=PATH option");
+        // Try the Truffle reported home, but two directories up, which is from where the jar lives in the development repository
+
+        if (truffleReported != null) {
+            final File home = new File(truffleReported).getParentFile().getParentFile();
+            Log.LOGGER.config(() -> String.format("trying Truffle-reported home %s/../.., expanded to %s, as the Ruby home", truffleReported, home));
+            if (isRubyHome(home)) {
+                return home.getPath();
+            } else {
+                Log.LOGGER.config(String.format("Truffle-reported home %s/../.. does not look like TruffleRuby's home", home));
+            }
+            return home.getAbsolutePath();
+        }
 
         if (!LIBPOLYGLOT) {
             // We have no way to ever find home automatically in libpolyglot, so don't clutter with warnings
-            Log.LOGGER.warning("could not determine TruffleRuby's home - the standard library will not be available");
-        }
-
-        if (options.EMBEDDED) {
-            Log.LOGGER.config(warning.toString());
-        } else {
-            // This information is more immediately needed in a non-embedded configuration
-            Log.LOGGER.warning(warning.toString());
+            Log.LOGGER.warning("could not determine TruffleRuby's home - the standard library will not be available - set -Xhome= or use -Xlog=config to see details");
         }
 
         return null;

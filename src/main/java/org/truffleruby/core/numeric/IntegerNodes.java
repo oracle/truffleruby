@@ -338,7 +338,7 @@ public abstract class IntegerNodes {
         public Object divIntFallback(int a, int b,
                 @Cached("createBinaryProfile()") ConditionProfile zeroProfile) {
             if (zeroProfile.profile(b == 0)) {
-                throw new RaiseException(coreExceptions().zeroDivisionError(this));
+                throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else {
                 return divInt(a, b);
             }
@@ -379,7 +379,7 @@ public abstract class IntegerNodes {
         public Object divLongFallback(long a, long b,
                 @Cached("createBinaryProfile()") ConditionProfile zeroProfile) {
             if (zeroProfile.profile(b == 0)) {
-                throw new RaiseException(coreExceptions().zeroDivisionError(this));
+                throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else {
                 return divLong(a, b);
             }
@@ -406,7 +406,7 @@ public abstract class IntegerNodes {
         @Specialization
         public Object div(DynamicObject a, long b) {
             if (b == 0) {
-                throw new RaiseException(coreExceptions().zeroDivisionError(this));
+                throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             }
             final BigInteger bBigInt = BigInteger.valueOf(b);
             final BigInteger aBigInt = Layouts.BIGNUM.getValue(a);
@@ -462,7 +462,7 @@ public abstract class IntegerNodes {
             Object quotient = divNode.executeDiv(a, b);
             if (quotient instanceof Double) {
                 if (zeroProfile.profile((double) b == 0.0)) {
-                    throw new RaiseException(coreExceptions().zeroDivisionError(this));
+                    throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
                 }
                 return floorNode.executeFloor((double) quotient);
             } else {
@@ -1458,7 +1458,7 @@ public abstract class IntegerNodes {
             }
 
             if (base < 2 || base > 36) {
-                throw new RaiseException(coreExceptions().argumentErrorInvalidRadix(base, this));
+                throw new RaiseException(getContext(), coreExceptions().argumentErrorInvalidRadix(base, this));
             }
 
             return makeStringNode.executeMake(Long.toString(n, base), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
@@ -1468,7 +1468,7 @@ public abstract class IntegerNodes {
         @Specialization
         public DynamicObject toS(DynamicObject value, int base) {
             if (base < 2 || base > 36) {
-                throw new RaiseException(coreExceptions().argumentErrorInvalidRadix(base, this));
+                throw new RaiseException(getContext(), coreExceptions().argumentErrorInvalidRadix(base, this));
             }
 
             return makeStringNode.executeMake(Layouts.BIGNUM.getValue(value).toString(base), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);

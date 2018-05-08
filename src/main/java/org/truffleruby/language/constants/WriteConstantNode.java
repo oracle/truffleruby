@@ -43,7 +43,7 @@ public class WriteConstantNode extends RubyNode {
         final Object moduleObject = moduleNode.execute(frame);
 
         if (!moduleProfile.profile(RubyGuards.isRubyModule(moduleObject))) {
-            throw new RaiseException(coreExceptions().typeErrorIsNotAClassModule(moduleObject, this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotAClassModule(moduleObject, this));
         }
 
         final RubyConstant previous = Layouts.MODULE.getFields((DynamicObject) moduleObject).setConstant(getContext(), this, name, value);

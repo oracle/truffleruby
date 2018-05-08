@@ -227,43 +227,44 @@ public class CallStackManager {
     }
 
     public Backtrace getBacktraceForException(Node currentNode, DynamicObject exceptionClass) {
-        return getBacktraceForException(currentNode, 0, exceptionClass, null);
+        return getBacktraceForException(currentNode, null, 0, exceptionClass, null);
     }
 
     public Backtrace getBacktraceForException(Node currentNode, int omit, DynamicObject exceptionClass) {
-        return getBacktraceForException(currentNode, omit, exceptionClass, null);
+        return getBacktraceForException(currentNode, null, omit, exceptionClass, null);
     }
 
-    public Backtrace getBacktraceForException(Node currentNode, DynamicObject exceptionClass, Throwable javaThrowable) {
-        return getBacktraceForException(currentNode, 0, exceptionClass, javaThrowable);
+    public Backtrace getBacktraceForException(Node currentNode, SourceSection sourceLocation, DynamicObject exceptionClass, Throwable javaThrowable) {
+        return getBacktraceForException(currentNode, sourceLocation, 0, exceptionClass, javaThrowable);
     }
 
     @TruffleBoundary
     public Backtrace getBacktraceForException(Node currentNode,
-                                  final int omit,
-                                  DynamicObject exceptionClass,
-                                  Throwable javaThrowable) {
+                                              SourceSection sourceLocation,
+                                              int omit,
+                                              DynamicObject exceptionClass,
+                                              Throwable javaThrowable) {
         assert exceptionClass != null;
         if (context.getOptions().BACKTRACES_OMIT_UNUSED
                 && DisablingBacktracesNode.areBacktracesDisabled()
                 && ModuleOperations.assignableTo(exceptionClass, context.getCoreLibrary().getStandardErrorClass())) {
-            return new Backtrace(currentNode, new Activation[] { Activation.OMITTED_UNUSED }, null);
+            return new Backtrace(currentNode, null, new Activation[] { Activation.OMITTED_UNUSED }, omit, null);
         }
-        return getBacktrace(currentNode, omit, false, javaThrowable);
+        return getBacktrace(currentNode, sourceLocation, omit, false, javaThrowable);
     }
 
     public Backtrace getBacktrace(Node currentNode) {
-        return getBacktrace(currentNode, 0, false, null);
+        return getBacktrace(currentNode, null, 0, false, null);
     }
 
     public Backtrace getBacktrace(Node currentNode,
             final int omit,
             final boolean filterNullSourceSection) {
-        return getBacktrace(currentNode, omit, filterNullSourceSection, null);
+        return getBacktrace(currentNode, null, omit, filterNullSourceSection, null);
     }
 
     @TruffleBoundary
-    public Backtrace getBacktrace(Node currentNode, int omit, boolean filterNullSourceSection, Throwable javaThrowable) {
+    public Backtrace getBacktrace(Node currentNode, SourceSection sourceLocation, int omit, boolean filterNullSourceSection, Throwable javaThrowable) {
         final Activation[] activations = createActivations(currentNode, omit, filterNullSourceSection);
 
         if (context.getOptions().EXCEPTIONS_STORE_JAVA || context.getOptions().BACKTRACES_INTERLEAVE_JAVA) {
@@ -272,7 +273,7 @@ public class CallStackManager {
             }
         }
 
-        return new Backtrace(currentNode, activations, javaThrowable);
+        return new Backtrace(currentNode, sourceLocation, activations, omit, javaThrowable);
     }
 
     public Activation[] createActivations(Node currentNode, int omit, boolean filterNullSourceSection) {

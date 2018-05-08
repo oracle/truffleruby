@@ -181,8 +181,7 @@ public class ConvertBytes {
                 break;
             default:
                 if (base < 2 || 36 < base) {
-                    throw new RaiseException(
-                            context.getCoreExceptions().argumentErrorInvalidRadix(base, node));
+                    throw new RaiseException(context, context.getCoreExceptions().argumentErrorInvalidRadix(base, node));
                 }
                 if (base <= 32) {
                     len = 5;
@@ -526,8 +525,7 @@ public class ConvertBytes {
      *
      */
     private void invalidString() {
-        throw new RaiseException(
-                context.getCoreExceptions().argumentErrorInvalidStringToInteger(_str, node));
+        throw new RaiseException(context, context.getCoreExceptions().argumentErrorInvalidStringToInteger(_str, node));
     }
 
     public static final byte[] intToBinaryBytes(int i) {

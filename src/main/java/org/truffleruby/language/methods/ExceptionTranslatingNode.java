@@ -63,28 +63,28 @@ public class ExceptionTranslatingNode extends RubyNode {
             throw exception;
         } catch (ArithmeticException exception) {
             arithmeticProfile.enter();
-            throw new RaiseException(translateArithmeticException(exception));
+            throw new RaiseException(getContext(), translateArithmeticException(exception));
         } catch (UnsupportedSpecializationException exception) {
             unsupportedProfile.enter();
-            throw new RaiseException(translateUnsupportedSpecialization(exception));
+            throw new RaiseException(getContext(), translateUnsupportedSpecialization(exception));
         } catch (TruffleFatalException exception) {
             errorProfile.enter();
             throw exception;
         } catch (StackOverflowError error) {
             errorProfile.enter();
-            throw new RaiseException(translateStackOverflow(error));
+            throw new RaiseException(getContext(), translateStackOverflow(error));
         } catch (OutOfMemoryError error) {
             errorProfile.enter();
-            throw new RaiseException(translateOutOfMemory(error));
+            throw new RaiseException(getContext(), translateOutOfMemory(error));
         } catch (ThreadDeath death) {
             errorProfile.enter();
             throw death;
         } catch (IllegalArgumentException e) {
             errorProfile.enter();
-            throw new RaiseException(translateIllegalArgument(e));
+            throw new RaiseException(getContext(), translateIllegalArgument(e));
         } catch (Throwable exception) {
             errorProfile.enter();
-            throw new RaiseException(translateThrowable(exception), true);
+            throw new RaiseException(getContext(), translateThrowable(exception), true);
         }
     }
 

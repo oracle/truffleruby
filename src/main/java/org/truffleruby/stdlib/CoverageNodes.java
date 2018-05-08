@@ -63,7 +63,7 @@ public abstract class CoverageNodes {
             final Map<Source, long[]> counts = getContext().getCoverageManager().getCounts();
 
             if (counts == null) {
-                throw new RaiseException(coreExceptions().runtimeErrorCoverageNotEnabled(this));
+                throw new RaiseException(getContext(), coreExceptions().runtimeErrorCoverageNotEnabled(this));
             }
 
             for (Map.Entry<Source, long[]> source : counts.entrySet()) {

@@ -546,6 +546,11 @@ public class OptionsCatalog {
             "Show the backtraces of all Threads on SIGALRM",
             null,
             true);
+    public static final BooleanOptionDescription BACKTRACE_ON_RAISE = new BooleanOptionDescription(
+            "ruby.backtraces.raise",
+            "Show the backtraces of exceptions at the point of them being raised",
+            null,
+            false);
     public static final BooleanOptionDescription BASICOPS_INLINE = new BooleanOptionDescription(
             "ruby.basic_ops.inline",
             "Inline basic operations (like Fixnum operators) in the AST without a call",
@@ -841,6 +846,8 @@ public class OptionsCatalog {
                 return BACKTRACE_ON_INTERRUPT;
             case "ruby.backtraces.sigalrm":
                 return BACKTRACE_ON_SIGALRM;
+            case "ruby.backtraces.raise":
+                return BACKTRACE_ON_RAISE;
             case "ruby.basic_ops.inline":
                 return BASICOPS_INLINE;
             case "ruby.regexp.instrument-creation":
@@ -892,6 +899,7 @@ public class OptionsCatalog {
             BACKTRACES_LIMIT,
             BACKTRACES_OMIT_UNUSED,
             BACKTRACE_ON_INTERRUPT,
+            BACKTRACE_ON_RAISE,
             BACKTRACE_ON_SIGALRM,
             BASICOPS_INLINE,
             BIND_CACHE,

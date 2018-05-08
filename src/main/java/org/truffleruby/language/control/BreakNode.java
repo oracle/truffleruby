@@ -36,7 +36,7 @@ public class BreakNode extends RubyNode {
 
             if (marker != null && !marker.isOnStack()) {
                 breakFromProcClosureProfile.enter();
-                throw new RaiseException(coreExceptions().breakFromProcClosure(this));
+                throw new RaiseException(getContext(), coreExceptions().breakFromProcClosure(this));
             }
         }
 

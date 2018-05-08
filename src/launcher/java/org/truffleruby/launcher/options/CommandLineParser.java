@@ -53,7 +53,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
-import java.util.logging.Level;
 
 public class CommandLineParser {
 
@@ -367,16 +366,7 @@ public class CommandLineParser {
                         config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                     } else if (extendedOption.startsWith("log=")) {
                         final String levelString = extendedOption.substring("log=".length());
-
-                        final Level level;
-
-                        if (levelString.equals("PERFORMANCE")) {
-                            level = RubyLogger.PERFORMANCE;
-                        } else {
-                            level = Level.parse(levelString.toUpperCase());
-                        }
-
-                        RubyLogger.LOGGER.setLevel(level);
+                        RubyLogger.setLevel(levelString);
                     } else {
                         // Turn extra options into polyglot options and let
                         // org.graalvm.launcher.Launcher.parsePolyglotOption

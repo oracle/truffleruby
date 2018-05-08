@@ -63,10 +63,10 @@ public class JavaUtilitiesNodes {
                     return klass;
                 } catch (Exception e) {
                     errorProfile.enter();
-                    throw new RaiseException(coreExceptions().nameErrorImportNotFound(name, this));
+                    throw new RaiseException(getContext(), coreExceptions().nameErrorImportNotFound(name, this));
                 }
             } else {
-                throw new RaiseException(coreExceptions().runtimeError("Not available on SVM.", this));
+                throw new RaiseException(getContext(), coreExceptions().runtimeError("Not available on SVM.", this));
             }
         }
     }
@@ -110,10 +110,10 @@ public class JavaUtilitiesNodes {
                         return MethodHandles.lookup().findVirtual(klass, methodName, MethodType.methodType(returnClass, args));
                     }
                 } catch (Exception e) {
-                    throw new RaiseException(coreExceptions().nameError(StringUtils.format("Method %s cannot be accessed.", methodName), null, methodName, this));
+                    throw new RaiseException(getContext(), coreExceptions().nameError(StringUtils.format("Method %s cannot be accessed.", methodName), null, methodName, this));
                 }
             } else {
-                throw new RaiseException(coreExceptions().runtimeError("Not available on SVM.", this));
+                throw new RaiseException(getContext(), coreExceptions().runtimeError("Not available on SVM.", this));
             }
         }
     }
@@ -126,7 +126,7 @@ public class JavaUtilitiesNodes {
             if (!TruffleOptions.AOT) {
                 return MethodHandles.lookup();
             } else {
-                throw new RaiseException(coreExceptions().runtimeError("Not available on SVM.", this));
+                throw new RaiseException(getContext(), coreExceptions().runtimeError("Not available on SVM.", this));
             }
         }
     }
@@ -150,7 +150,7 @@ public class JavaUtilitiesNodes {
                     throw new ThrowException(tag, e);
                 }
             } else {
-                throw new RaiseException(coreExceptions().runtimeError("Not available on SVM.", this));
+                throw new RaiseException(getContext(), coreExceptions().runtimeError("Not available on SVM.", this));
             }
         }
     }
@@ -162,7 +162,7 @@ public class JavaUtilitiesNodes {
         @Specialization
         public Object createJavaProxyClass(Object loader, Object[] rest) {
             if (TruffleOptions.AOT) {
-                throw new RaiseException(coreExceptions().runtimeError("Not available on SVM.", this));
+                throw new RaiseException(getContext(), coreExceptions().runtimeError("Not available on SVM.", this));
             }
 
             Class<?>[] interfaces = new Class<?>[rest.length];
@@ -175,7 +175,7 @@ public class JavaUtilitiesNodes {
             } else if (loader == nil()) {
                 cl = null;
             } else {
-                throw new RaiseException(coreExceptions().typeError("loader must be a java class loader or null", this));
+                throw new RaiseException(getContext(), coreExceptions().typeError("loader must be a java class loader or null", this));
             }
             return Proxy.getProxyClass(cl, interfaces);
         }

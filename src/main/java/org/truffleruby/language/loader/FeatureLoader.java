@@ -231,7 +231,7 @@ public class FeatureLoader {
             }
 
             if (!TruffleNodes.SulongNode.isSulongAvailable(context)) {
-                throw new RaiseException(context.getCoreExceptions().loadError("Sulong is required to support C extensions, and it doesn't appear to be available", feature, null));
+                throw new RaiseException(context, context.getCoreExceptions().loadError("Sulong is required to support C extensions, and it doesn't appear to be available", feature, null));
             }
 
             requireNode.executeRequire(context.getRubyHome() + "/lib/truffle/truffle/cext.rb");
@@ -251,7 +251,7 @@ public class FeatureLoader {
         }
 
         if (!new File(rubySUpath).exists()) {
-            throw new RaiseException(context.getCoreExceptions().loadError("this TruffleRuby distribution does not have the C extension implementation file ruby.su", feature, null));
+            throw new RaiseException(context, context.getCoreExceptions().loadError("this TruffleRuby distribution does not have the C extension implementation file ruby.su", feature, null));
         }
 
         return loadCExtLibrary(rubySUpath);
@@ -262,7 +262,7 @@ public class FeatureLoader {
         File file = new File(path);
 
         if (!new File(path).exists()) {
-            throw new RaiseException(context.getCoreExceptions().loadError(path + " does not exists", path, null));
+            throw new RaiseException(context, context.getCoreExceptions().loadError(path + " does not exists", path, null));
         }
 
         final List<TruffleObject> libraries = new ArrayList<>();
@@ -278,7 +278,7 @@ public class FeatureLoader {
                 }
 
                 if (!(result instanceof TruffleObject)) {
-                    throw new RaiseException(context.getCoreExceptions().loadError(String.format("%s returned a %s rather than a TruffleObject", file, result.getClass().getSimpleName()), path, null));
+                    throw new RaiseException(context, context.getCoreExceptions().loadError(String.format("%s returned a %s rather than a TruffleObject", file, result.getClass().getSimpleName()), path, null));
                 }
 
                 libraries.add((TruffleObject) result);

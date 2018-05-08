@@ -13,6 +13,7 @@ import static org.truffleruby.core.array.ArrayHelpers.createArray;
 
 import java.util.EnumSet;
 
+import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -689,14 +690,14 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject syntaxErrorInvalidRetry(Node currentNode) {
-        return syntaxError("Invalid retry", currentNode);
+        return syntaxError("Invalid retry", currentNode, currentNode.getEncapsulatingSourceSection());
     }
 
     @TruffleBoundary
-    public DynamicObject syntaxError(String message, Node currentNode) {
+    public DynamicObject syntaxError(String message, Node currentNode, SourceSection sourceLocation) {
         DynamicObject exceptionClass = context.getCoreLibrary().getSyntaxErrorClass();
         DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
-        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, sourceLocation, null);
     }
 
     // FloatDomainError

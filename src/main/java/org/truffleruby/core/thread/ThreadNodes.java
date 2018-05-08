@@ -92,7 +92,7 @@ public abstract class ThreadNodes {
 
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
-            throw new RaiseException(coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
+            throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 
     }
@@ -164,7 +164,7 @@ public abstract class ThreadNodes {
 
             getContext().getSafepointManager().pauseRubyThreadAndExecute(rubyThread, this, (thread, currentNode) -> {
                 if (thread == rootThread) {
-                    throw new RaiseException(coreExceptions().systemExit(0, currentNode));
+                    throw new RaiseException(getContext(), coreExceptions().systemExit(0, currentNode));
                 } else {
                     Layouts.THREAD.setStatus(thread, ThreadStatus.ABORTING);
                     throw new KillException();
@@ -208,7 +208,7 @@ public abstract class ThreadNodes {
                 return InterruptMode.NEVER;
             } else {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().argumentError("invalid timing symbol", this));
+                throw new RaiseException(getContext(), coreExceptions().argumentError("invalid timing symbol", this));
             }
         }
 
@@ -308,15 +308,16 @@ public abstract class ThreadNodes {
 
         @TruffleBoundary
         public static void doJoin(RubyNode currentNode, final DynamicObject thread) {
-            currentNode.getContext().getThreadManager().runUntilResult(currentNode, () -> {
+            final RubyContext context = currentNode.getContext();
+            context.getThreadManager().runUntilResult(currentNode, () -> {
                 Layouts.THREAD.getFinishedLatch(thread).await();
                 return ThreadManager.BlockingAction.SUCCESS;
             });
 
             final DynamicObject exception = Layouts.THREAD.getException(thread);
             if (exception != null) {
-                currentNode.getContext().getCoreExceptions().showExceptionIfDebug(exception);
-                throw new RaiseException(exception);
+                context.getCoreExceptions().showExceptionIfDebug(exception);
+                throw new RaiseException(context, exception);
             }
         }
 
@@ -338,7 +339,7 @@ public abstract class ThreadNodes {
                 final DynamicObject exception = Layouts.THREAD.getException(thread);
                 if (exception != null) {
                     getContext().getCoreExceptions().showExceptionIfDebug(exception);
-                    throw new RaiseException(exception);
+                    throw new RaiseException(getContext(), exception);
                 }
             }
 
@@ -424,7 +425,7 @@ public abstract class ThreadNodes {
             final DynamicObject currentFiber = Layouts.THREAD.getFiberManager(rubyThread).getCurrentFiberRacy();
             final Thread thread = Layouts.FIBER.getThread(currentFiber);
             if (thread == null) {
-                throw new RaiseException(coreExceptions().threadErrorKilledThread(this));
+                throw new RaiseException(getContext(), coreExceptions().threadErrorKilledThread(this));
             }
 
             Layouts.THREAD.getWakeUp(rubyThread).set(true);
@@ -514,7 +515,7 @@ public abstract class ThreadNodes {
                     Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode1, exceptionClass);
                     Layouts.EXCEPTION.setBacktrace(exception, backtrace);
                 }
-                throw new RaiseException(exception);
+                throw new RaiseException(context, exception);
             });
         }
 

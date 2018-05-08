@@ -48,7 +48,7 @@ public class CheckKeywordArityNode extends RubyNode {
 
         if (!CheckArityNode.checkArity(arity, given)) {
             basicArityCheckFailedProfile.enter();
-            throw new RaiseException(coreExceptions().argumentError(given, arity.getRequired(), this));
+            throw new RaiseException(getContext(), coreExceptions().argumentError(given, arity.getRequired(), this));
         }
 
         if (keywordArguments != null) {
@@ -76,7 +76,7 @@ public class CheckKeywordArityNode extends RubyNode {
             } else {
                 if (RubyGuards.isRubySymbol(keyValue.getKey())) {
                     if (!keywordAllowed(keyValue.getKey().toString())) {
-                        throw new RaiseException(coreExceptions().argumentErrorUnknownKeyword(
+                        throw new RaiseException(getContext(), coreExceptions().argumentErrorUnknownKeyword(
                                 keyValue.getKey(), this));
                     }
 
@@ -87,7 +87,7 @@ public class CheckKeywordArityNode extends RubyNode {
             given++;
 
             if (given > arity.getRequired() && !arity.hasRest() && arity.getOptional() == 0) {
-                throw new RaiseException(coreExceptions().argumentError(given, arity.getRequired(), this));
+                throw new RaiseException(getContext(), coreExceptions().argumentError(given, arity.getRequired(), this));
             }
         }
     }

@@ -328,12 +328,12 @@ public class CExtNodes {
                               @Cached("create()") BranchProfile errorProfile) {
             if (Double.isInfinite(num)) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().floatDomainError("Infinity", this));
+                throw new RaiseException(getContext(), coreExceptions().floatDomainError("Infinity", this));
             }
 
             if (Double.isNaN(num)) {
                 errorProfile.enter();
-                throw new RaiseException(coreExceptions().floatDomainError("NaN", this));
+                throw new RaiseException(getContext(), coreExceptions().floatDomainError("NaN", this));
             }
 
             return fixnumOrBignum.fixnumOrBignum(num);
@@ -377,7 +377,7 @@ public class CExtNodes {
 
         @Specialization(guards = "!fitsIntoInteger(num)")
         public int long2fixOutOfRange(long num) {
-            throw new RaiseException(coreExceptions().rangeErrorConvertToInt(num, this));
+            throw new RaiseException(getContext(), coreExceptions().rangeErrorConvertToInt(num, this));
         }
 
         protected boolean fitsIntoInteger(long num) {
@@ -397,7 +397,7 @@ public class CExtNodes {
             final Encoding enc = Layouts.ENCODING.getEncoding(encoding);
             final int r = preciseLengthNode.executeLength(enc, bytes, 0, bytes.length);
             if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
-                throw new RaiseException(coreExceptions().argumentError("invalid byte sequence in " + enc, this));
+                throw new RaiseException(getContext(), coreExceptions().argumentError("invalid byte sequence in " + enc, this));
             }
             final int len_p = StringSupport.MBCLEN_CHARFOUND_LEN(r);
             final int codePoint = StringSupport.preciseCodePoint(enc, bytes, 0, bytes.length);
@@ -748,12 +748,12 @@ public class CExtNodes {
 
         @Specialization(guards = "isNil(nil)")
         public Object rbSysErrFailNoMessage(int errno, DynamicObject nil) {
-            throw new RaiseException(coreExceptions().errnoError(errno, "", this));
+            throw new RaiseException(getContext(), coreExceptions().errnoError(errno, "", this));
         }
 
         @Specialization(guards = "isRubyString(message)")
         public Object rbSysErrFail(int errno, DynamicObject message) {
-            throw new RaiseException(coreExceptions().errnoError(errno, StringOperations.getString(message), this));
+            throw new RaiseException(getContext(), coreExceptions().errnoError(errno, StringOperations.getString(message), this));
         }
 
     }

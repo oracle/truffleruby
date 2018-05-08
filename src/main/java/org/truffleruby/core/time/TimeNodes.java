@@ -118,7 +118,7 @@ public abstract class TimeNodes {
             try {
                 return ZoneId.ofOffset("", ZoneOffset.ofTotalSeconds(offset));
             } catch (DateTimeException e) {
-                throw new RaiseException(getContext().getCoreExceptions().argumentError(e.getMessage(), this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(e.getMessage(), this));
             }
         }
 
@@ -207,7 +207,7 @@ public abstract class TimeNodes {
                 return ZonedDateTime.ofInstant(Instant.ofEpochSecond(seconds, nanoseconds), timeZone);
             } catch (DateTimeException e) {
                 String message = StringUtils.format("UNIX epoch + %d seconds out of range for Time (java.time limitation)", seconds);
-                throw new RaiseException(coreExceptions().rangeError(message, this));
+                throw new RaiseException(getContext(), coreExceptions().rangeError(message, this));
             }
         }
 
@@ -455,7 +455,7 @@ public abstract class TimeNodes {
                     hour < 0 || hour > 23 ||
                     mday < 1 || mday > 31 ||
                     month < 1 || month > 12) {
-                throw new RaiseException(coreExceptions().argumentErrorOutOfRange(this));
+                throw new RaiseException(getContext(), coreExceptions().argumentErrorOutOfRange(this));
             }
 
             final ZoneId zone;
@@ -531,7 +531,7 @@ public abstract class TimeNodes {
             try {
                 return ZoneOffset.ofTotalSeconds(offset);
             } catch (DateTimeException e) {
-                throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
         }
 

@@ -122,6 +122,7 @@ public class Options {
     public final boolean BACKTRACES_OMIT_UNUSED;
     public final boolean BACKTRACE_ON_INTERRUPT;
     public final boolean BACKTRACE_ON_SIGALRM;
+    public final boolean BACKTRACE_ON_RAISE;
     public final boolean BASICOPS_INLINE;
     public final boolean REGEXP_INSTRUMENT_CREATION;
     public final boolean REGEXP_INSTRUMENT_MATCH;
@@ -246,6 +247,7 @@ public class Options {
         BACKTRACES_OMIT_UNUSED = builder.getOrDefault(OptionsCatalog.BACKTRACES_OMIT_UNUSED);
         BACKTRACE_ON_INTERRUPT = builder.getOrDefault(OptionsCatalog.BACKTRACE_ON_INTERRUPT);
         BACKTRACE_ON_SIGALRM = builder.getOrDefault(OptionsCatalog.BACKTRACE_ON_SIGALRM);
+        BACKTRACE_ON_RAISE = builder.getOrDefault(OptionsCatalog.BACKTRACE_ON_RAISE);
         BASICOPS_INLINE = builder.getOrDefault(OptionsCatalog.BASICOPS_INLINE);
         REGEXP_INSTRUMENT_CREATION = builder.getOrDefault(OptionsCatalog.REGEXP_INSTRUMENT_CREATION);
         REGEXP_INSTRUMENT_MATCH = builder.getOrDefault(OptionsCatalog.REGEXP_INSTRUMENT_MATCH);
@@ -478,6 +480,8 @@ public class Options {
                 return BACKTRACE_ON_INTERRUPT;
             case "ruby.backtraces.sigalrm":
                 return BACKTRACE_ON_SIGALRM;
+            case "ruby.backtraces.raise":
+                return BACKTRACE_ON_RAISE;
             case "ruby.basic_ops.inline":
                 return BASICOPS_INLINE;
             case "ruby.regexp.instrument-creation":

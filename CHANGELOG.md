@@ -8,6 +8,12 @@ New features:
   can call instance methods, rather than static methods which is what you get by
   default.
 
+* The log level can now also be set with `-Dtruffleruby.log=info` or
+  `TRUFFLERUBY_LOG=info`.
+
+* `-Xbacktraces.raise` will print Ruby backtraces whenever an exception is
+  raised.
+
 Changes:
 
 * The inline JavaScript functionality `-Xinline_js` has been removed.
@@ -19,6 +25,11 @@ Changes:
   level and set to `1` instead.
   
 * The `erb` standard library has been patched to stop using a -1 line number.
+
+* The `READ` interop message will not call `#[]` on `Proc` or `Method` objects,
+  to avoid executing the method.
+
+* `-Xbacktraces.interleave_java` now includes all the trailing Java frames.
 
 Bug fixes:
 

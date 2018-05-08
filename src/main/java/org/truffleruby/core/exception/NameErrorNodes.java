@@ -56,7 +56,7 @@ public abstract class NameErrorNodes {
             // TODO BJF July 21, 2016 Implement name error in message field
 
             if (receiver == null) {
-                throw new RaiseException(coreExceptions().argumentErrorNoReceiver(this));
+                throw new RaiseException(getContext(), coreExceptions().argumentErrorNoReceiver(this));
             }
             return receiver;
         }

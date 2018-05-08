@@ -50,7 +50,7 @@ public abstract class LookupConstantWithLexicalScopeNode extends LookupConstantB
             @Cached("doLookup()") ConstantLookupResult constant,
             @Cached("isVisible(constant)") boolean isVisible) {
         if (!isVisible) {
-            throw new RaiseException(coreExceptions().nameErrorPrivateConstant(getModule(), name, this));
+            throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(getModule(), name, this));
         }
         if (constant.isDeprecated()) {
             warnDeprecatedConstant(constant.getConstant(), name);
@@ -64,7 +64,7 @@ public abstract class LookupConstantWithLexicalScopeNode extends LookupConstantB
             @Cached("createBinaryProfile()") ConditionProfile isDeprecatedProfile) {
         ConstantLookupResult constant = doLookup();
         if (isVisibleProfile.profile(!isVisible(constant))) {
-            throw new RaiseException(coreExceptions().nameErrorPrivateConstant(getModule(), name, this));
+            throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(getModule(), name, this));
         }
         if (isDeprecatedProfile.profile(constant.isDeprecated())) {
             warnDeprecatedConstant(constant.getConstant(), name);

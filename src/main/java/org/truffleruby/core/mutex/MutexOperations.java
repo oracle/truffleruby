@@ -27,7 +27,7 @@ public abstract class MutexOperations {
         final RubyContext context = currentNode.getContext();
 
         if (lock.isHeldByCurrentThread()) {
-            throw new RaiseException(context.getCoreExceptions().threadErrorRecursiveLocking(currentNode));
+            throw new RaiseException(context, context.getCoreExceptions().threadErrorRecursiveLocking(currentNode));
         }
 
         context.getThreadManager().runUntilResult(currentNode, () -> {
@@ -42,7 +42,7 @@ public abstract class MutexOperations {
         final RubyContext context = currentNode.getContext();
 
         if (lock.isHeldByCurrentThread()) {
-            throw new RaiseException(context.getCoreExceptions().threadErrorRecursiveLocking(currentNode));
+            throw new RaiseException(context, context.getCoreExceptions().threadErrorRecursiveLocking(currentNode));
         }
 
         // We need to re-lock this lock after a Mutex#sleep, no matter what, even if another thread throw us an exception.
@@ -84,9 +84,9 @@ public abstract class MutexOperations {
 
         if (!lock.isHeldByCurrentThread()) {
             if (!lock.isLocked()) {
-                throw new RaiseException(context.getCoreExceptions().threadErrorUnlockNotLocked(currentNode));
+                throw new RaiseException(context, context.getCoreExceptions().threadErrorUnlockNotLocked(currentNode));
             } else {
-                throw new RaiseException(context.getCoreExceptions().threadErrorAlreadyLocked(currentNode));
+                throw new RaiseException(context, context.getCoreExceptions().threadErrorAlreadyLocked(currentNode));
             }
         }
 
