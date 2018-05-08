@@ -581,7 +581,9 @@ public class CoreExceptions {
     @TruffleBoundary
     public DynamicObject nameError(DynamicObject formatter, Object receiver, String name, Node currentNode) {
         final DynamicObject exceptionClass = context.getCoreLibrary().getNameErrorClass();
-        final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, exceptionClass);
+
+        // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
+        final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, 1, exceptionClass);
         final DynamicObject exception = Layouts.NAME_ERROR.createNameError(
                 context.getCoreLibrary().getNameErrorFactory(),
                 null,
@@ -616,7 +618,9 @@ public class CoreExceptions {
     public DynamicObject noMethodError(DynamicObject formatter, Object receiver, String name, Object[] args, Node currentNode) {
         final DynamicObject argsArray = createArray(context, args, args.length);
         final DynamicObject exceptionClass = context.getCoreLibrary().getNoMethodErrorClass();
-        final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, exceptionClass);
+
+        // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
+        final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, 1, exceptionClass);
         final DynamicObject exception = Layouts.NO_METHOD_ERROR.createNoMethodError(
                 context.getCoreLibrary().getNoMethodErrorFactory(),
                 null,
