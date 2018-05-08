@@ -22,7 +22,7 @@ public class BacktraceInterleaver {
         int toOmit = omitted;
 
         while (javaIndex < javaStacktrace.length || rubyIndex < rubyBacktrace.size()) {
-            if (isCallBoundary(javaStacktrace[javaIndex]) && rubyIndex < rubyBacktrace.size()) {
+            if (javaIndex >= javaStacktrace.length || (isCallBoundary(javaStacktrace[javaIndex]) && rubyIndex < rubyBacktrace.size())) {
                 if (toOmit == 0) {
                     interleaved.add(rubyBacktrace.get(rubyIndex));
                     rubyIndex++;
@@ -31,17 +31,19 @@ public class BacktraceInterleaver {
                 }
             }
 
-            interleaved.add(String.format("\t\t%s", javaStacktrace[javaIndex]));
+            if (javaIndex < javaStacktrace.length) {
+                interleaved.add(String.format("\t\t%s", javaStacktrace[javaIndex]));
 
-            if (isIntoRuby(javaStacktrace, javaIndex)) {
-                interleaved.add("\t\t\tforeign call goes into Ruby");
+                if (isIntoRuby(javaStacktrace, javaIndex)) {
+                    interleaved.add("\t\t\tforeign call goes into Ruby");
+                }
+
+                if (isForeignCall(javaStacktrace[javaIndex])) {
+                    interleaved.add("\t\t\tforeign call being made");
+                }
+
+                javaIndex++;
             }
-
-            if (isForeignCall(javaStacktrace[javaIndex])) {
-                interleaved.add("\t\t\tforeign call being made");
-            }
-
-            javaIndex++;
         }
 
         return interleaved;
