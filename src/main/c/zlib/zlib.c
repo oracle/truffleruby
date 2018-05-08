@@ -537,6 +537,8 @@ struct zstream {
     } *func;
 };
 
+POLYGLOT_DECLARE_STRUCT(zstream);
+
 #define ZSTREAM_FLAG_READY      0x1
 #define ZSTREAM_FLAG_IN_STREAM  0x2
 #define ZSTREAM_FLAG_FINISHED   0x4
@@ -550,7 +552,7 @@ struct zstream {
 #define ZSTREAM_IS_FINISHED(z) ((z)->flags & ZSTREAM_FLAG_FINISHED)
 #define ZSTREAM_IS_CLOSING(z)  ((z)->flags & ZSTREAM_FLAG_CLOSING)
 #define ZSTREAM_IS_GZFILE(z)   ((z)->flags & ZSTREAM_FLAG_GZFILE)
-#define ZSTREAM_BUF_FILLED(z)  (NIL_P(rb_tr_managed_from_handle((z)->buf)) ? 0 : RSTRING_LEN(rb_tr_managed_from_handle((z)->buf)))
+#define ZSTREAM_BUF_FILLED(z)  (NIL_P((z)->buf) ? 0 : RSTRING_LEN((z)->buf))
 
 #define ZSTREAM_EXPAND_BUFFER_OK          0
 
@@ -595,12 +597,15 @@ zlib_mem_free(voidpf opaque, voidpf address)
     xfree(address);
 }
 
+POLYGLOT_DECLARE_TYPE(z_stream);
+
 static void
 zstream_init(struct zstream *z, const struct zstream_funcs *func)
 {
     z->flags = 0;
-    z->buf = rb_tr_handle_for_managed_leaking(Qnil);
-    z->input = rb_tr_handle_for_managed_leaking(Qnil);
+    z->buf = Qnil;
+    z->input = Qnil;
+    polyglot_put_member(z, "stream", polyglot_from_z_stream(malloc(sizeof(z_stream))));
     z->stream.zalloc = (void *(*)(void *, uint32_t, uint32_t)) zlib_mem_alloc;
     z->stream.zfree = (void (*)(void *, void *)) zlib_mem_free;
     z->stream.opaque = Z_NULL;
@@ -618,7 +623,7 @@ zstream_init(struct zstream *z, const struct zstream_funcs *func)
 static void
 zstream_expand_buffer(struct zstream *z)
 {
-    if (NIL_P(rb_tr_managed_from_handle(z->buf))) {
+    if (NIL_P(z->buf)) {
 	zstream_expand_buffer_into(z, ZSTREAM_INITIAL_BUFSIZE);
 	return;
     }
@@ -629,12 +634,12 @@ zstream_expand_buffer(struct zstream *z)
 	    int state = 0;
 	    VALUE self = (VALUE)rb_tr_managed_from_handle_or_null(z->stream.opaque);
 
-	    rb_obj_reveal(rb_tr_managed_from_handle(z->buf), rb_cString);
-	    OBJ_INFECT(rb_tr_managed_from_handle(z->buf), self);
+	    rb_obj_reveal(z->buf, rb_cString);
+	    OBJ_INFECT(z->buf, self);
 
-	    rb_protect(rb_yield, rb_tr_managed_from_handle(z->buf), &state);
+	    rb_protect(rb_yield, z->buf, &state);
 
-	    z->buf = rb_tr_handle_for_managed_leaking(Qnil);
+	    z->buf = Qnil;
 	    zstream_expand_buffer_into(z, ZSTREAM_AVAIL_OUT_STEP_MAX);
 
 	    if (state)
@@ -655,17 +660,17 @@ zstream_expand_buffer(struct zstream *z)
 static void
 zstream_expand_buffer_into(struct zstream *z, unsigned long size)
 {
-    if (NIL_P(rb_tr_managed_from_handle(z->buf))) {
+    if (NIL_P(z->buf)) {
 	/* I uses rb_str_new here not rb_str_buf_new because
 	   rb_str_buf_new makes a zero-length string. */
-	z->buf = rb_tr_handle_for_managed_leaking(rb_str_buf_new(size));
-	z->stream.next_out = (Bytef*)RSTRING_PTR(rb_tr_managed_from_handle(z->buf));
+	z->buf = rb_str_buf_new(size);
+	z->stream.next_out = (Bytef*)RSTRING_PTR(z->buf);
 	z->stream.avail_out = MAX_UINT(size);
-	rb_obj_hide(rb_tr_managed_from_handle(z->buf));
+	rb_obj_hide(z->buf);
     }
     else if (z->stream.avail_out != size) {
-	rb_str_modify_expand(rb_tr_managed_from_handle(z->buf), size);
-	z->stream.next_out = (Bytef*)RSTRING_END(rb_tr_managed_from_handle(z->buf));
+	rb_str_modify_expand(z->buf, size);
+	z->stream.next_out = (Bytef*)RSTRING_END(z->buf);
 	z->stream.avail_out = MAX_UINT(size);
     }
 }
@@ -686,7 +691,7 @@ zstream_expand_buffer_non_stream(struct zstream *z)
 {
     long inc, len = ZSTREAM_BUF_FILLED(z);
 
-    if (rb_str_capacity(rb_tr_managed_from_handle(z->buf)) - len >= ZSTREAM_AVAIL_OUT_STEP_MAX) {
+    if (rb_str_capacity(z->buf) - len >= ZSTREAM_AVAIL_OUT_STEP_MAX) {
 	z->stream.avail_out = ZSTREAM_AVAIL_OUT_STEP_MAX;
     }
     else {
@@ -695,11 +700,11 @@ zstream_expand_buffer_non_stream(struct zstream *z)
 	    inc = ZSTREAM_AVAIL_OUT_STEP_MIN;
 	}
 
-	rb_str_modify_expand(rb_tr_managed_from_handle(z->buf), inc);
+	rb_str_modify_expand(z->buf, inc);
 	z->stream.avail_out = (inc < ZSTREAM_AVAIL_OUT_STEP_MAX) ?
 	    (int)inc : ZSTREAM_AVAIL_OUT_STEP_MAX;
     }
-    z->stream.next_out = (Bytef*)RSTRING_END(rb_tr_managed_from_handle(z->buf));
+    z->stream.next_out = (Bytef*)RSTRING_END(z->buf);
 
     return ZSTREAM_EXPAND_BUFFER_OK;
 }
@@ -707,17 +712,17 @@ zstream_expand_buffer_non_stream(struct zstream *z)
 static void
 zstream_append_buffer(struct zstream *z, const Bytef *src, long len)
 {
-    if (NIL_P(rb_tr_managed_from_handle(z->buf))) {
-	z->buf = rb_tr_handle_for_managed_leaking(rb_str_buf_new(len));
-	rb_str_buf_cat(rb_tr_managed_from_handle(z->buf), (const char*)src, len);
-	z->stream.next_out = (Bytef*)RSTRING_PTR(rb_tr_managed_from_handle(z->buf));
+    if (NIL_P(z->buf)) {
+	z->buf = rb_str_buf_new(len);
+	rb_str_buf_cat(z->buf, (const char*)src, len);
+	z->stream.next_out = (Bytef*)RSTRING_PTR(z->buf);
 	z->stream.avail_out = 0;
-	rb_obj_hide(rb_tr_managed_from_handle(z->buf));
+	rb_obj_hide(z->buf);
 	return;
     }
 
-    if ((long)rb_str_capacity(rb_tr_managed_from_handle(z->buf)) < ZSTREAM_BUF_FILLED(z) + len) {
-	rb_str_modify_expand(rb_tr_managed_from_handle(z->buf), len);
+    if ((long)rb_str_capacity(z->buf) < ZSTREAM_BUF_FILLED(z) + len) {
+	rb_str_modify_expand(z->buf, len);
 	z->stream.avail_out = 0;
     }
     else {
@@ -728,8 +733,8 @@ zstream_append_buffer(struct zstream *z, const Bytef *src, long len)
 	    z->stream.avail_out = 0;
 	}
     }
-    rb_str_cat(rb_tr_managed_from_handle(z->buf), (const char *)src, len);
-    z->stream.next_out = (Bytef*)RSTRING_END(rb_tr_managed_from_handle(z->buf));
+    rb_str_cat(z->buf, (const char *)src, len);
+    z->stream.next_out = (Bytef*)RSTRING_END(z->buf);
 }
 
 #define zstream_append_buffer2(z,v) \
@@ -747,17 +752,17 @@ zstream_detach_buffer(struct zstream *z)
 	return Qnil;
     }
 
-    if (NIL_P(rb_tr_managed_from_handle(z->buf))) {
+    if (NIL_P(z->buf)) {
 	dst = rb_str_new(0, 0);
     }
     else {
-	dst = rb_tr_managed_from_handle(z->buf);
+	dst = z->buf;
 	rb_obj_reveal(dst, rb_cString);
     }
 
     OBJ_INFECT(dst, self);
 
-    z->buf = rb_tr_handle_for_managed_leaking(Qnil);
+    z->buf = Qnil;
     z->stream.next_out = 0;
     z->stream.avail_out = 0;
 
@@ -780,13 +785,13 @@ zstream_shift_buffer(struct zstream *z, long len)
 	return zstream_detach_buffer(z);
     }
 
-    bufptr = RSTRING_PTR(rb_tr_managed_from_handle(z->buf));
+    bufptr = RSTRING_PTR(z->buf);
     dst = rb_str_new(bufptr, len);
     buflen -= len;
     memmove(bufptr, bufptr + len, buflen);
-    rb_str_set_len(rb_tr_managed_from_handle(z->buf), buflen);
-    z->stream.next_out = (Bytef*)RSTRING_END(rb_tr_managed_from_handle(z->buf));
-    buflen = (long)rb_str_capacity(rb_tr_managed_from_handle(z->buf)) - ZSTREAM_BUF_FILLED(z);
+    rb_str_set_len(z->buf, buflen);
+    z->stream.next_out = (Bytef*)RSTRING_END(z->buf);
+    buflen = (long)rb_str_capacity(z->buf) - ZSTREAM_BUF_FILLED(z);
     if (buflen > ZSTREAM_AVAIL_OUT_STEP_MAX) {
 	buflen = ZSTREAM_AVAIL_OUT_STEP_MAX;
     }
@@ -801,14 +806,14 @@ zstream_buffer_ungets(struct zstream *z, const Bytef *b, unsigned long len)
     char *bufptr;
     long filled;
 
-    if (NIL_P(rb_tr_managed_from_handle(z->buf)) || (long)rb_str_capacity(rb_tr_managed_from_handle(z->buf)) <= ZSTREAM_BUF_FILLED(z)) {
+    if (NIL_P(z->buf) || (long)rb_str_capacity(z->buf) <= ZSTREAM_BUF_FILLED(z)) {
 	zstream_expand_buffer_into(z, len);
     }
 
-    RSTRING_GETMEM(rb_tr_managed_from_handle(z->buf), bufptr, filled);
+    RSTRING_GETMEM(z->buf, bufptr, filled);
     memmove(bufptr + len, bufptr, filled);
     memmove(bufptr, b, len);
-    rb_str_set_len(rb_tr_managed_from_handle(z->buf), filled + len);
+    rb_str_set_len(z->buf, filled + len);
     if (z->stream.avail_out > 0) {
 	if (len > z->stream.avail_out) len = z->stream.avail_out;
 	z->stream.next_out+=len;
@@ -828,13 +833,13 @@ zstream_append_input(struct zstream *z, const Bytef *src, long len)
 {
     if (len <= 0) return;
 
-    if (NIL_P(rb_tr_managed_from_handle(z->input))) {
-	z->input = rb_tr_handle_for_managed_leaking(rb_str_buf_new(len));
-	rb_str_buf_cat(rb_tr_managed_from_handle(z->input), (const char*)src, len);
-	rb_obj_hide(rb_tr_managed_from_handle(z->input));
+    if (NIL_P(z->input)) {
+	z->input = rb_str_buf_new(len);
+	rb_str_buf_cat(z->input, (const char*)src, len);
+	rb_obj_hide(z->input);
     }
     else {
-	rb_str_buf_cat(rb_tr_managed_from_handle(z->input), (const char*)src, len);
+	rb_str_buf_cat(z->input, (const char*)src, len);
     }
 }
 
@@ -845,27 +850,27 @@ zstream_append_input(struct zstream *z, const Bytef *src, long len)
 static void
 zstream_discard_input(struct zstream *z, long len)
 {
-    if (NIL_P(rb_tr_managed_from_handle(z->input)) || RSTRING_LEN(rb_tr_managed_from_handle(z->input)) <= len) {
-	z->input = rb_tr_handle_for_managed_leaking(Qnil);
+    if (NIL_P(z->input) || RSTRING_LEN(z->input) <= len) {
+	z->input = Qnil;
     }
     else {
-	z->input = rb_tr_handle_for_managed_leaking(rb_str_substr(rb_tr_managed_from_handle(z->input), len,
-				 RSTRING_LEN(rb_tr_managed_from_handle(z->input)) - len));
+	z->input = rb_str_substr(z->input, len,
+				 RSTRING_LEN(z->input) - len);
     }
 }
 
 static void
 zstream_reset_input(struct zstream *z)
 {
-    z->input = rb_tr_handle_for_managed_leaking(Qnil);
+    z->input = Qnil;
 }
 
 static void
 zstream_passthrough_input(struct zstream *z)
 {
-    if (!NIL_P(rb_tr_managed_from_handle(z->input))) {
-	zstream_append_buffer2(z, rb_tr_managed_from_handle(z->input));
-	z->input = rb_tr_handle_for_managed_leaking(Qnil);
+    if (!NIL_P(z->input)) {
+	zstream_append_buffer2(z, z->input);
+	z->input = Qnil;
     }
 }
 
@@ -874,14 +879,14 @@ zstream_detach_input(struct zstream *z)
 {
     VALUE dst;
 
-    if (NIL_P(rb_tr_managed_from_handle(z->input))) {
+    if (NIL_P(z->input)) {
 	dst = rb_str_new(0, 0);
     }
     else {
-	dst = rb_tr_managed_from_handle(z->input);
+	dst = z->input;
 	rb_obj_reveal(dst, rb_cString);
     }
-    z->input = rb_tr_handle_for_managed_leaking(Qnil);
+    z->input = Qnil;
     rb_obj_reveal(dst, rb_cString);
     return dst;
 }
@@ -896,7 +901,7 @@ zstream_reset(struct zstream *z)
 	raise_zlib_error(err, z->stream.msg);
     }
     z->flags = ZSTREAM_FLAG_READY;
-    z->buf = rb_tr_handle_for_managed_leaking(Qnil);
+    z->buf = Qnil;
     z->stream.next_out = 0;
     z->stream.avail_out = 0;
     zstream_reset_input(z);
@@ -930,14 +935,14 @@ zstream_run_func(void *ptr)
 {
     struct zstream_run_args *args = (struct zstream_run_args *)ptr;
     int err, state, flush = args->flush;
-    struct zstream *z = args->z;
+    struct zstream *z = rb_tr_managed_from_handle(args->z);
     uInt n;
 
     err = Z_OK;
     while (!args->interrupt) {
 	n = z->stream.avail_out;
 	err = z->func->run(&z->stream, flush);
-	rb_str_set_len(rb_tr_managed_from_handle(z->buf), ZSTREAM_BUF_FILLED(z) + (n - z->stream.avail_out));
+	rb_str_set_len(z->buf, ZSTREAM_BUF_FILLED(z) + (n - z->stream.avail_out));
 
 	if (err == Z_STREAM_END) {
 	    z->flags &= ~ZSTREAM_FLAG_IN_STREAM;
@@ -997,24 +1002,24 @@ zstream_run(struct zstream *z, Bytef *src, long len, int flush)
     int err;
     VALUE guard = Qnil;
 
-    args.z = z;
+    args.z = rb_tr_handle_for_managed_leaking(z);
     args.flush = flush;
     args.interrupt = 0;
     args.jump_state = 0;
     args.stream_output = !ZSTREAM_IS_GZFILE(z) && rb_block_given_p();
 
-    if (NIL_P(rb_tr_managed_from_handle(z->input)) && len == 0) {
+    if (NIL_P(z->input) && len == 0) {
 	z->stream.next_in = (Bytef*)"";
 	z->stream.avail_in = 0;
     }
     else {
 	zstream_append_input(z, src, len);
-	z->stream.next_in = (Bytef*)RSTRING_PTR(rb_tr_managed_from_handle(z->input));
-	z->stream.avail_in = MAX_UINT(RSTRING_LEN(rb_tr_managed_from_handle(z->input)));
+	z->stream.next_in = (Bytef*)RSTRING_PTR(z->input);
+	z->stream.avail_in = MAX_UINT(RSTRING_LEN(z->input));
 	/* keep reference to `z->input' so as not to be garbage collected
 	   after zstream_reset_input() and prevent `z->stream.next_in'
 	   from dangling. */
-	guard = rb_tr_managed_from_handle(z->input);
+	guard = z->input;
     }
 
     if (z->stream.avail_out == 0) {
@@ -1065,13 +1070,13 @@ zstream_sync(struct zstream *z, Bytef *src, long len)
     /* VALUE rest; */
     int err;
 
-    if (!NIL_P(rb_tr_managed_from_handle(z->input))) {
-	z->stream.next_in = (Bytef*)RSTRING_PTR(rb_tr_managed_from_handle(z->input));
-	z->stream.avail_in = MAX_UINT(RSTRING_LEN(rb_tr_managed_from_handle(z->input)));
+    if (!NIL_P(z->input)) {
+	z->stream.next_in = (Bytef*)RSTRING_PTR(z->input);
+	z->stream.avail_in = MAX_UINT(RSTRING_LEN(z->input));
 	err = inflateSync(&z->stream);
 	if (err == Z_OK) {
 	    zstream_discard_input(z,
-				  RSTRING_LEN(rb_tr_managed_from_handle(z->input)) - z->stream.avail_in);
+				  RSTRING_LEN(z->input) - z->stream.avail_in);
 	    zstream_append_input(z, src, len);
 	    return Qtrue;
 	}
@@ -1102,8 +1107,8 @@ static void
 zstream_mark(void *p)
 {
     struct zstream *z = p;
-    rb_gc_mark(rb_tr_managed_from_handle(z->buf));
-    rb_gc_mark(rb_tr_managed_from_handle(z->input));
+    rb_gc_mark(z->buf);
+    rb_gc_mark(z->input);
 }
 
 static void
@@ -1146,7 +1151,7 @@ zstream_new(VALUE klass, const struct zstream_funcs *funcs)
     VALUE obj;
     struct zstream *z;
 
-    obj = TypedData_Make_Struct(klass, struct zstream, &zstream_data_type, z);
+    obj = TypedData_Make_Managed_Struct(klass, struct zstream, &zstream_data_type, z);
     zstream_init(z, funcs);
     z->stream.opaque = (voidpf)rb_tr_handle_for_managed_leaking(obj);
     return obj;
@@ -1343,7 +1348,7 @@ rb_zstream_avail_in(VALUE obj)
 {
     struct zstream *z;
     TypedData_Get_Struct(obj, struct zstream, &zstream_data_type, z);
-    return INT2FIX(NIL_P(rb_tr_managed_from_handle(z->input)) ? 0 : (int)(RSTRING_LEN(rb_tr_managed_from_handle(z->input))));
+    return INT2FIX(NIL_P(z->input) ? 0 : (int)(RSTRING_LEN(z->input)));
 }
 
 /*
@@ -1544,8 +1549,8 @@ rb_deflate_init_copy(VALUE self, VALUE orig)
     if (err != Z_OK) {
 	raise_zlib_error(err, 0);
     }
-    z1->input = rb_tr_handle_for_managed_leaking(NIL_P(rb_tr_managed_from_handle(z2->input)) ? Qnil : rb_str_dup(rb_tr_managed_from_handle(z2->input)));
-    z1->buf   = rb_tr_handle_for_managed_leaking(NIL_P(rb_tr_managed_from_handle(z2->buf))   ? Qnil : rb_str_dup(rb_tr_managed_from_handle(z2->buf)));
+    z1->input = NIL_P(z2->input) ? Qnil : rb_str_dup(z2->input);
+    z1->buf   = NIL_P(z2->buf)   ? Qnil : rb_str_dup(z2->buf);
     z1->flags = z2->flags;
 
     return self;
@@ -1587,24 +1592,25 @@ deflate_run(VALUE args)
 static VALUE
 rb_deflate_s_deflate(int argc, VALUE *argv, VALUE klass)
 {
-    struct zstream z;
+    struct zstream *z;
     VALUE src, level, dst, args[2];
     int err, lev;
 
     rb_scan_args(argc, argv, "11", &src, &level);
 
+    z = rb_tr_new_managed_struct();
     lev = ARG_LEVEL(level);
     StringValue(src);
-    zstream_init_deflate(&z);
-    err = deflateInit(&z.stream, lev);
+    zstream_init_deflate(z);
+    err = deflateInit(&z->stream, lev);
     if (err != Z_OK) {
-	raise_zlib_error(err, z.stream.msg);
+	raise_zlib_error(err, z->stream.msg);
     }
-    ZSTREAM_READY(&z);
+    ZSTREAM_READY(z);
 
-    args[0] = (VALUE)&z;
+    args[0] = (VALUE)z;
     args[1] = src;
-    dst = rb_ensure(deflate_run, (VALUE)args, zstream_end, (VALUE)&z);
+    dst = rb_ensure(deflate_run, (VALUE)args, zstream_end, (VALUE)z);
 
     OBJ_INFECT(dst, src);
     return dst;
@@ -1740,7 +1746,7 @@ rb_deflate_params(VALUE obj, VALUE v_level, VALUE v_strategy)
     while (err == Z_BUF_ERROR) {
 	rb_warning("deflateParams() returned Z_BUF_ERROR");
 	zstream_expand_buffer(z);
-	rb_str_set_len(rb_tr_managed_from_handle(z->buf), RSTRING_LEN(rb_tr_managed_from_handle(z->buf)) + filled);
+	rb_str_set_len(z->buf, RSTRING_LEN(z->buf) + filled);
 	n = z->stream.avail_out;
 	err = deflateParams(&z->stream, level, strategy);
 	filled = n - z->stream.avail_out;
@@ -1748,7 +1754,7 @@ rb_deflate_params(VALUE obj, VALUE v_level, VALUE v_strategy)
     if (err != Z_OK) {
 	raise_zlib_error(err, z->stream.msg);
     }
-    rb_str_set_len(rb_tr_managed_from_handle(z->buf), RSTRING_LEN(rb_tr_managed_from_handle(z->buf)) + filled);
+    rb_str_set_len(z->buf, RSTRING_LEN(z->buf) + filled);
 
     return Qnil;
 }
@@ -1905,21 +1911,22 @@ inflate_run(VALUE args)
 static VALUE
 rb_inflate_s_inflate(VALUE obj, VALUE src)
 {
-    struct zstream z;
+    struct zstream *z;
     VALUE dst, args[2];
     int err;
 
     StringValue(src);
-    zstream_init_inflate(&z);
-    err = inflateInit(&z.stream);
+    z = rb_tr_new_managed_struct();
+    zstream_init_inflate(z);
+    err = inflateInit(&z->stream);
     if (err != Z_OK) {
-	raise_zlib_error(err, z.stream.msg);
+	raise_zlib_error(err, z->stream.msg);
     }
-    ZSTREAM_READY(&z);
+    ZSTREAM_READY(z);
 
-    args[0] = (VALUE)&z;
+    args[0] = (VALUE)z;
     args[1] = src;
-    dst = rb_ensure(inflate_run, (VALUE)args, zstream_end, (VALUE)&z);
+    dst = rb_ensure(inflate_run, (VALUE)args, zstream_end, (VALUE)z);
 
     OBJ_INFECT(dst, src);
     return dst;
@@ -2213,12 +2220,12 @@ gzfile_mark(void *p)
 {
     struct gzfile *gz = p;
 
-    rb_gc_mark(rb_tr_managed_from_handle(gz->io));
-    rb_gc_mark(rb_tr_managed_from_handle(gz->orig_name));
-    rb_gc_mark(rb_tr_managed_from_handle(gz->comment));
+    rb_gc_mark(gz->io);
+    rb_gc_mark(gz->orig_name);
+    rb_gc_mark(gz->comment);
     zstream_mark(&gz->z);
-    rb_gc_mark(rb_tr_managed_from_handle(gz->ecopts));
-    rb_gc_mark(rb_tr_managed_from_handle(gz->path));
+    rb_gc_mark(gz->ecopts);
+    rb_gc_mark(gz->path);
 }
 
 static void
@@ -2236,7 +2243,7 @@ gzfile_free(void *p)
     if (gz->cbuf) {
 	xfree(gz->cbuf);
     }
-    xfree(gz);
+    // xfree(gz);
 }
 
 static size_t
@@ -2260,25 +2267,26 @@ static const rb_data_type_t gzfile_data_type = {
 static void
 gzfile_init(struct gzfile *gz, const struct zstream_funcs *funcs, void (*endfunc)(struct gzfile *))
 {
+    polyglot_put_member(gz, "z", rb_tr_new_managed_struct());
     zstream_init(&gz->z, funcs);
     gz->z.flags |= ZSTREAM_FLAG_GZFILE;
-    gz->io = rb_tr_handle_for_managed_leaking(Qnil);
+    gz->io = Qnil;
     gz->level = 0;
     gz->mtime = 0;
     gz->os_code = OS_CODE;
-    gz->orig_name = rb_tr_handle_for_managed_leaking(Qnil);
-    gz->comment = rb_tr_handle_for_managed_leaking(Qnil);
+    gz->orig_name = Qnil;
+    gz->comment = Qnil;
     gz->crc = crc32(0, Z_NULL, 0);
     gz->lineno = 0;
     gz->ungetc = 0;
     gz->end = endfunc;
-    gz->enc = rb_tr_handle_for_managed_leaking(rb_default_external_encoding());
+    gz->enc = rb_default_external_encoding();
     gz->enc2 = 0;
     gz->ec = NULL;
     gz->ecflags = 0;
-    gz->ecopts = rb_tr_handle_for_managed_leaking(Qnil);
+    gz->ecopts = Qnil;
     gz->cbuf = 0;
-    gz->path = rb_tr_handle_for_managed_leaking(Qnil);
+    gz->path = Qnil;
 }
 
 static VALUE
@@ -2287,7 +2295,7 @@ gzfile_new(VALUE klass, const struct zstream_funcs *funcs, void (*endfunc)(struc
     VALUE obj;
     struct gzfile *gz;
 
-    obj = TypedData_Make_Struct(klass, struct gzfile, &gzfile_data_type, gz);
+    obj = TypedData_Make_Managed_Struct(klass, struct gzfile, &gzfile_data_type, gz);
     gzfile_init(gz, funcs, endfunc);
     return obj;
 }
@@ -2305,22 +2313,20 @@ gzfile_reset(struct gzfile *gz)
     gz->ungetc = 0;
     if (gz->ec) {
 	rb_econv_close(gz->ec);
-        rb_encoding *enc = rb_tr_managed_from_handle(gz->enc);
-        rb_encoding *enc2 = rb_tr_managed_from_handle(gz->enc2);
-	gz->ec = rb_econv_open_opts(enc2->name, enc->name,
-				    gz->ecflags, rb_tr_managed_from_handle(gz->ecopts));
+	gz->ec = rb_econv_open_opts(gz->enc2->name, gz->enc->name,
+				    gz->ecflags, gz->ecopts);
     }
 }
 
 static void
 gzfile_close(struct gzfile *gz, int closeflag)
 {
-    VALUE io = rb_tr_managed_from_handle(gz->io);
+    VALUE io = gz->io;
 
     gz->end(gz);
-    gz->io = rb_tr_handle_for_managed_leaking(Qnil);
-    gz->orig_name = rb_tr_handle_for_managed_leaking(Qnil);
-    gz->comment = rb_tr_handle_for_managed_leaking(Qnil);
+    gz->io = Qnil;
+    gz->orig_name = Qnil;
+    gz->comment = Qnil;
     if (closeflag && rb_respond_to(io, id_close)) {
 	rb_funcall(io, id_close, 0);
     }
@@ -2334,10 +2340,10 @@ gzfile_write_raw(struct gzfile *gz)
     if (ZSTREAM_BUF_FILLED(&gz->z) > 0) {
 	str = zstream_detach_buffer(&gz->z);
 	OBJ_TAINT(str);  /* for safe */
-	rb_funcall(rb_tr_managed_from_handle(gz->io), id_write, 1, str);
+	rb_funcall(gz->io, id_write, 1, str);
 	if ((gz->z.flags & GZFILE_FLAG_SYNC)
-	    && rb_respond_to(rb_tr_managed_from_handle(gz->io), id_flush))
-	    rb_funcall(rb_tr_managed_from_handle(gz->io), id_flush, 0);
+	    && rb_respond_to(gz->io, id_flush))
+	    rb_funcall(gz->io, id_flush, 0);
     }
 }
 
@@ -2347,7 +2353,7 @@ gzfile_read_raw_partial(VALUE arg)
     struct gzfile *gz = (struct gzfile*)arg;
     VALUE str;
 
-    str = rb_funcall(rb_tr_managed_from_handle(gz->io), id_readpartial, 1, INT2FIX(GZFILE_READ_SIZE));
+    str = rb_funcall(gz->io, id_readpartial, 1, INT2FIX(GZFILE_READ_SIZE));
     Check_Type(str, T_STRING);
     return str;
 }
@@ -2358,7 +2364,7 @@ gzfile_read_raw_rescue(VALUE arg)
     struct gzfile *gz = (struct gzfile*)arg;
     VALUE str = Qnil;
     if (rb_obj_is_kind_of(rb_errinfo(), rb_eNoMethodError)) {
-        str = rb_funcall(rb_tr_managed_from_handle(gz->io), id_read, 1, INT2FIX(GZFILE_READ_SIZE));
+        str = rb_funcall(gz->io, id_read, 1, INT2FIX(GZFILE_READ_SIZE));
         if (!NIL_P(str)) {
             Check_Type(str, T_STRING);
         }
@@ -2380,10 +2386,10 @@ gzfile_read_raw_ensure(struct gzfile *gz, long size)
     VALUE str;
 
     if (gz->io == Qundef) { /* Zlib.gunzip */
-	if (NIL_P(rb_tr_managed_from_handle(gz->z.input)) || RSTRING_LEN(rb_tr_managed_from_handle(gz->z.input)) < size)
+	if (NIL_P(gz->z.input) || RSTRING_LEN(gz->z.input) < size)
 	    rb_raise(cGzError, "unexpected end of string");
     }
-    while (NIL_P(rb_tr_managed_from_handle(gz->z.input)) || RSTRING_LEN(rb_tr_managed_from_handle(gz->z.input)) < size) {
+    while (NIL_P(gz->z.input) || RSTRING_LEN(gz->z.input) < size) {
 	str = gzfile_read_raw(gz);
 	if (NIL_P(str)) return 0;
 	zstream_append_input2(&gz->z, str);
@@ -2398,14 +2404,14 @@ gzfile_read_raw_until_zero(struct gzfile *gz, long offset)
     char *p;
 
     for (;;) {
-	p = memchr(RSTRING_PTR(rb_tr_managed_from_handle(gz->z.input)) + offset, '\0',
-		   RSTRING_LEN(rb_tr_managed_from_handle(gz->z.input)) - offset);
+	p = memchr(RSTRING_PTR(gz->z.input) + offset, '\0',
+		   RSTRING_LEN(gz->z.input) - offset);
 	if (p) break;
 	str = gzfile_read_raw(gz);
 	if (NIL_P(str)) {
 	    rb_raise(cGzError, "unexpected end of file");
 	}
-	offset = RSTRING_LEN(rb_tr_managed_from_handle(gz->z.input));
+	offset = RSTRING_LEN(gz->z.input);
 	zstream_append_input2(&gz->z, str);
     }
     return p;
@@ -2444,8 +2450,8 @@ static void
 gzfile_raise(struct gzfile *gz, VALUE klass, const char *message)
 {
     VALUE exc = rb_exc_new2(klass, message);
-    if (!NIL_P(rb_tr_managed_from_handle(gz->z.input))) {
-	rb_ivar_set(exc, id_input, rb_str_resurrect(rb_tr_managed_from_handle(gz->z.input)));
+    if (!NIL_P(gz->z.input)) {
+	rb_ivar_set(exc, id_input, rb_str_resurrect(gz->z.input));
     }
     rb_exc_raise(exc);
 }
@@ -2476,10 +2482,10 @@ gzfile_make_header(struct gzfile *gz)
     Bytef buf[10];  /* the size of gzip header */
     unsigned char flags = 0, extraflags = 0;
 
-    if (!NIL_P(rb_tr_managed_from_handle(gz->orig_name))) {
+    if (!NIL_P(gz->orig_name)) {
 	flags |= GZ_FLAG_ORIG_NAME;
     }
-    if (!NIL_P(rb_tr_managed_from_handle(gz->comment))) {
+    if (!NIL_P(gz->comment)) {
 	flags |= GZ_FLAG_COMMENT;
     }
     if (gz->mtime == 0) {
@@ -2502,12 +2508,12 @@ gzfile_make_header(struct gzfile *gz)
     buf[9] = gz->os_code;
     zstream_append_buffer(&gz->z, buf, (long)sizeof(buf));
 
-    if (!NIL_P(rb_tr_managed_from_handle(gz->orig_name))) {
-	zstream_append_buffer2(&gz->z, rb_tr_managed_from_handle(gz->orig_name));
+    if (!NIL_P(gz->orig_name)) {
+	zstream_append_buffer2(&gz->z, gz->orig_name);
 	zstream_append_buffer(&gz->z, (Bytef*)"\0", 1);
     }
-    if (!NIL_P(rb_tr_managed_from_handle(gz->comment))) {
-	zstream_append_buffer2(&gz->z, rb_tr_managed_from_handle(gz->comment));
+    if (!NIL_P(gz->comment)) {
+	zstream_append_buffer2(&gz->z, gz->comment);
 	zstream_append_buffer(&gz->z, (Bytef*)"\0", 1);
     }
 
@@ -2536,7 +2542,7 @@ gzfile_read_header(struct gzfile *gz)
 	gzfile_raise(gz, cGzError, "not in gzip format");
     }
 
-    head = (unsigned char*)RSTRING_PTR(rb_tr_managed_from_handle(gz->z.input));
+    head = (unsigned char*)RSTRING_PTR(gz->z.input);
 
     if (head[0] != GZ_MAGIC1 || head[1] != GZ_MAGIC2) {
 	gzfile_raise(gz, cGzError, "not in gzip format");
@@ -2574,7 +2580,7 @@ gzfile_read_header(struct gzfile *gz)
 	if (!gzfile_read_raw_ensure(gz, 2)) {
 	    rb_raise(cGzError, "unexpected end of file");
 	}
-	len = gzfile_get16((Bytef*)RSTRING_PTR(rb_tr_managed_from_handle(gz->z.input)));
+	len = gzfile_get16((Bytef*)RSTRING_PTR(gz->z.input));
 	if (!gzfile_read_raw_ensure(gz, 2 + len)) {
 	    rb_raise(cGzError, "unexpected end of file");
 	}
@@ -2585,9 +2591,9 @@ gzfile_read_header(struct gzfile *gz)
 	    rb_raise(cGzError, "unexpected end of file");
 	}
 	p = gzfile_read_raw_until_zero(gz, 0);
-	len = p - RSTRING_PTR(rb_tr_managed_from_handle(gz->z.input));
-	gz->orig_name = rb_tr_handle_for_managed_leaking(rb_str_new(RSTRING_PTR(rb_tr_managed_from_handle(gz->z.input)), len));
-	OBJ_TAINT(rb_tr_managed_from_handle(gz->orig_name));  /* for safe */
+	len = p - RSTRING_PTR(gz->z.input);
+	gz->orig_name = rb_str_new(RSTRING_PTR(gz->z.input), len);
+	OBJ_TAINT(gz->orig_name);  /* for safe */
 	zstream_discard_input(&gz->z, len + 1);
     }
     if (flags & GZ_FLAG_COMMENT) {
@@ -2595,13 +2601,13 @@ gzfile_read_header(struct gzfile *gz)
 	    rb_raise(cGzError, "unexpected end of file");
 	}
 	p = gzfile_read_raw_until_zero(gz, 0);
-	len = p - RSTRING_PTR(rb_tr_managed_from_handle(gz->z.input));
-	gz->comment = rb_tr_handle_for_managed_leaking(rb_str_new(RSTRING_PTR(rb_tr_managed_from_handle(gz->z.input)), len));
-	OBJ_TAINT(rb_tr_managed_from_handle(gz->comment));  /* for safe */
+	len = p - RSTRING_PTR(gz->z.input);
+	gz->comment = rb_str_new(RSTRING_PTR(gz->z.input), len);
+	OBJ_TAINT(gz->comment);  /* for safe */
 	zstream_discard_input(&gz->z, len + 1);
     }
 
-    if (rb_tr_managed_from_handle(gz->z.input) != Qnil && RSTRING_LEN(rb_tr_managed_from_handle(gz->z.input)) > 0) {
+    if (gz->z.input != Qnil && RSTRING_LEN(gz->z.input) > 0) {
 	zstream_run(&gz->z, 0, 0, Z_SYNC_FLUSH);
     }
 }
@@ -2617,8 +2623,8 @@ gzfile_check_footer(struct gzfile *gz)
 	gzfile_raise(gz, cNoFooter, "footer is not found");
     }
 
-    crc = gzfile_get32((Bytef*)RSTRING_PTR(rb_tr_managed_from_handle(gz->z.input)));
-    length = gzfile_get32((Bytef*)RSTRING_PTR(rb_tr_managed_from_handle(gz->z.input)) + 4);
+    crc = gzfile_get32((Bytef*)RSTRING_PTR(gz->z.input));
+    length = gzfile_get32((Bytef*)RSTRING_PTR(gz->z.input) + 4);
 
     gz->z.stream.total_in += 8;  /* to rewind correctly */
     zstream_discard_input(&gz->z, 8);
@@ -2686,19 +2692,18 @@ static VALUE
 gzfile_newstr(struct gzfile *gz, VALUE str)
 {
     if (!gz->enc2) {
-	rb_enc_associate(str, rb_tr_managed_from_handle(gz->enc));
+	rb_enc_associate(str, gz->enc);
 	OBJ_TAINT(str);  /* for safe */
 	return str;
     }
     if (gz->ec && rb_enc_dummy_p(gz->enc2)) {
         str = rb_econv_str_convert(gz->ec, str, ECONV_PARTIAL_INPUT);
-	rb_enc_associate(str, rb_tr_managed_from_handle(gz->enc));
+	rb_enc_associate(str, gz->enc);
 	OBJ_TAINT(str);
 	return str;
     }
-    return rb_str_conv_enc_opts(str, rb_tr_managed_from_handle(gz->enc2),
-                                rb_tr_managed_from_handle(gz->enc),
-				gz->ecflags, rb_tr_managed_from_handle(gz->ecopts));
+    return rb_str_conv_enc_opts(str, gz->enc2, gz->enc,
+				gz->ecflags, gz->ecopts);
 }
 
 static long
@@ -2805,7 +2810,7 @@ gzfile_getc(struct gzfile *gz)
     VALUE buf, dst = 0;
     int len;
 
-    len = rb_enc_mbmaxlen(rb_tr_managed_from_handle(gz->enc));
+    len = rb_enc_mbmaxlen(gz->enc);
     while (!ZSTREAM_IS_FINISHED(&gz->z) && ZSTREAM_BUF_FILLED(&gz->z) < len) {
 	gzfile_read_more(gz);
     }
@@ -2816,14 +2821,14 @@ gzfile_getc(struct gzfile *gz)
 	return Qnil;
     }
 
-    if (gz->ec && rb_enc_dummy_p(rb_tr_managed_from_handle(gz->enc2))) {
+    if (gz->ec && rb_enc_dummy_p(gz->enc2)) {
 	const unsigned char *ss, *sp, *se;
 	unsigned char *ds, *dp, *de;
 
 	if (!gz->cbuf) {
 	    gz->cbuf = ALLOC_N(char, GZFILE_CBUF_CAPA);
 	}
-        ss = sp = (const unsigned char*)RSTRING_PTR(rb_tr_managed_from_handle(gz->z.buf));
+        ss = sp = (const unsigned char*)RSTRING_PTR(gz->z.buf);
         se = sp + ZSTREAM_BUF_FILLED(&gz->z);
         ds = dp = (unsigned char *)gz->cbuf;
         de = (unsigned char *)ds + GZFILE_CBUF_CAPA;
@@ -2832,13 +2837,13 @@ gzfile_getc(struct gzfile *gz)
 	dst = zstream_shift_buffer(&gz->z, sp - ss);
 	gzfile_calc_crc(gz, dst);
 	dst = rb_str_new(gz->cbuf, dp - ds);
-	rb_enc_associate(dst, rb_tr_managed_from_handle(gz->enc));
+	rb_enc_associate(dst, gz->enc);
 	OBJ_TAINT(dst);
 	return dst;
     }
     else {
-	buf = rb_tr_managed_from_handle(gz->z.buf);
-	len = rb_enc_mbclen(RSTRING_PTR(buf), RSTRING_END(buf), rb_tr_managed_from_handle(gz->enc));
+	buf = gz->z.buf;
+	len = rb_enc_mbclen(RSTRING_PTR(buf), RSTRING_END(buf), gz->enc);
 	dst = gzfile_read(gz, len);
 	if (NIL_P(dst)) return dst;
 	return gzfile_newstr(gz, dst);
@@ -2912,11 +2917,11 @@ gzfile_reader_rewind(struct gzfile *gz)
     long n;
 
     n = gz->z.stream.total_in;
-    if (!NIL_P(rb_tr_managed_from_handle(gz->z.input))) {
-	n += RSTRING_LEN(rb_tr_managed_from_handle(gz->z.input));
+    if (!NIL_P(gz->z.input)) {
+	n += RSTRING_LEN(gz->z.input);
     }
 
-    rb_funcall(rb_tr_managed_from_handle(gz->io), id_seek, 2, rb_int2inum(-n), INT2FIX(1));
+    rb_funcall(gz->io, id_seek, 2, rb_int2inum(-n), INT2FIX(1));
     gzfile_reset(gz);
 }
 
@@ -2930,9 +2935,9 @@ gzfile_reader_get_unused(struct gzfile *gz)
     if (!(gz->z.flags & GZFILE_FLAG_FOOTER_FINISHED)) {
 	gzfile_check_footer(gz);
     }
-    if (NIL_P(rb_tr_managed_from_handle(gz->z.input))) return Qnil;
+    if (NIL_P(gz->z.input)) return Qnil;
 
-    str = rb_str_resurrect(rb_tr_managed_from_handle(gz->z.input));
+    str = rb_str_resurrect(gz->z.input);
     OBJ_TAINT(str);  /* for safe */
     return str;
 }
@@ -3000,7 +3005,7 @@ static VALUE
 new_wrap(VALUE tmp)
 {
     new_wrap_arg_t *arg = (new_wrap_arg_t *)tmp;
-    return rb_class_new_instance(arg->argc, rb_tr_managed_from_handle(arg->argv), rb_tr_managed_from_handle(arg->klass));
+    return rb_class_new_instance(arg->argc, arg->argv, arg->klass);
 }
 
 static VALUE
@@ -3022,11 +3027,11 @@ gzfile_wrap(int argc, VALUE *argv, VALUE klass, int close_io_on_error)
 
     if (close_io_on_error) {
 	int state = 0;
-	new_wrap_arg_t arg;
-	arg.argc = argc;
-	arg.argv = rb_tr_handle_for_managed_leaking(argv);
-	arg.klass = rb_tr_handle_for_managed_leaking(klass);
-	obj = rb_protect(new_wrap, (VALUE)&arg, &state);
+	new_wrap_arg_t *arg = rb_tr_new_managed_struct();
+	arg->argc = argc;
+	arg->argv = argv;
+	arg->klass = klass;
+	obj = rb_protect(new_wrap, (VALUE)arg, &state);
 	if (state) {
 	    rb_io_close(argv[0]);
 	    rb_jump_tag(state);
@@ -3090,7 +3095,7 @@ gzfile_s_open(int argc, VALUE *argv, VALUE klass, const char *mode)
 static VALUE
 rb_gzfile_to_io(VALUE obj)
 {
-    return rb_tr_managed_from_handle(get_gzfile(obj)->io);
+    return get_gzfile(obj)->io;
 }
 
 /*
@@ -3146,7 +3151,7 @@ rb_gzfile_os_code(VALUE obj)
 static VALUE
 rb_gzfile_orig_name(VALUE obj)
 {
-    VALUE str = rb_tr_managed_from_handle(get_gzfile(obj)->orig_name);
+    VALUE str = get_gzfile(obj)->orig_name;
     if (!NIL_P(str)) {
 	str = rb_str_dup(str);
     }
@@ -3163,7 +3168,7 @@ rb_gzfile_orig_name(VALUE obj)
 static VALUE
 rb_gzfile_comment(VALUE obj)
 {
-    VALUE str = rb_tr_managed_from_handle(get_gzfile(obj)->comment);
+    VALUE str = get_gzfile(obj)->comment;
     if (!NIL_P(str)) {
 	str = rb_str_dup(str);
     }
@@ -3250,7 +3255,7 @@ rb_gzfile_set_orig_name(VALUE obj, VALUE str)
     if (p) {
 	rb_str_resize(s, p - RSTRING_PTR(s));
     }
-    gz->orig_name = rb_tr_handle_for_managed_leaking(s);
+    gz->orig_name = s;
     return str;
 }
 
@@ -3274,7 +3279,7 @@ rb_gzfile_set_comment(VALUE obj, VALUE str)
     if (p) {
 	rb_str_resize(s, p - RSTRING_PTR(s));
     }
-    gz->comment = rb_tr_handle_for_managed_leaking(s);
+    gz->comment = s;
     return str;
 }
 
@@ -3294,7 +3299,7 @@ rb_gzfile_close(VALUE obj)
     if (!ZSTREAM_IS_READY(&gz->z)) {
         return Qnil;
     }
-    io = rb_tr_managed_from_handle(gz->io);
+    io = gz->io;
     gzfile_close(gz, 1);
     return io;
 }
@@ -3312,7 +3317,7 @@ rb_gzfile_finish(VALUE obj)
     struct gzfile *gz = get_gzfile(obj);
     VALUE io;
 
-    io = rb_tr_managed_from_handle(gz->io);
+    io = gz->io;
     gzfile_close(gz, 0);
     return io;
 }
@@ -3328,7 +3333,7 @@ rb_gzfile_closed_p(VALUE obj)
 {
     struct gzfile *gz;
     TypedData_Get_Struct(obj, struct gzfile, &gzfile_data_type, gz);
-    return NIL_P(rb_tr_managed_from_handle(gz->io)) ? Qtrue : Qfalse;
+    return NIL_P(gz->io) ? Qtrue : Qfalse;
 }
 
 /*
@@ -3421,21 +3426,21 @@ rb_gzfile_path(VALUE obj)
 {
     struct gzfile *gz;
     TypedData_Get_Struct(obj, struct gzfile, &gzfile_data_type, gz);
-    return rb_tr_managed_from_handle(gz->path);
+    return gz->path;
 }
 
 static void
 rb_gzfile_ecopts(struct gzfile *gz, VALUE opts)
 {
     if (!NIL_P(opts)) {
-        rb_io_extract_encoding_option(opts, &gz->enc, &gz->enc2, NULL);
+	rb_io_extract_encoding_option(opts, &gz->enc, &gz->enc2, NULL);
     }
     if (gz->enc2) {
-        // TODO not supported, when uncommented the method fails to execute
-        // it tryes to convert opts to native because of &opts
+        // TODO TruffleRuby: not supported, when uncommented the method fails to
+        // execute as it tries to convert opts to native because of &opts
         // gz->ecflags = rb_econv_prepare_opts(opts, &opts);
-        // rb_encoding *enc = rb_tr_managed_from_handle(gz->enc);
-        // rb_encoding *enc2 = rb_tr_managed_from_handle(gz->enc2);
+        // rb_encoding *enc = gz->enc;
+        // rb_encoding *enc2 = gz->enc2;
         // gz->ec = rb_econv_open_opts(enc2->name, enc->name,
         //                             gz->ecflags, opts);
         // gz->ecopts = opts;
@@ -3532,12 +3537,12 @@ rb_gzwriter_initialize(int argc, VALUE *argv, VALUE obj)
     if (err != Z_OK) {
 	raise_zlib_error(err, gz->z.stream.msg);
     }
-    gz->io = rb_tr_handle_for_managed_leaking(io);
+    gz->io = io;
     ZSTREAM_READY(&gz->z);
     rb_gzfile_ecopts(gz, opt);
 
     if (rb_respond_to(io, id_path)) {
-	gz->path = rb_tr_handle_for_managed_leaking(rb_funcall(rb_tr_managed_from_handle(gz->io), id_path, 0));
+	gz->path = rb_funcall(gz->io, id_path, 0);
 	rb_define_singleton_method(obj, "path", rb_gzfile_path, 0);
     }
 
@@ -3566,8 +3571,8 @@ rb_gzwriter_flush(int argc, VALUE *argv, VALUE obj)
     }
 
     gzfile_write_raw(gz);
-    if (rb_respond_to(rb_tr_managed_from_handle(gz->io), id_flush)) {
-	rb_funcall(rb_tr_managed_from_handle(gz->io), id_flush, 0);
+    if (rb_respond_to(gz->io, id_flush)) {
+	rb_funcall(gz->io, id_flush, 0);
     }
     return obj;
 }
@@ -3582,8 +3587,8 @@ rb_gzwriter_write(VALUE obj, VALUE str)
 
     if (!RB_TYPE_P(str, T_STRING))
 	str = rb_obj_as_string(str);
-    if (gz->enc2 && rb_tr_managed_from_handle(gz->enc2) != rb_ascii8bit_encoding()) {
-	str = rb_str_conv_enc(str, rb_enc_get(str), rb_tr_managed_from_handle(gz->enc2));
+    if (gz->enc2 && gz->enc2 != rb_ascii8bit_encoding()) {
+	str = rb_str_conv_enc(str, rb_enc_get(str), gz->enc2);
     }
     gzfile_write(gz, (Bytef*)RSTRING_PTR(str), RSTRING_LEN(str));
     RB_GC_GUARD(str);
@@ -3734,13 +3739,13 @@ rb_gzreader_initialize(int argc, VALUE *argv, VALUE obj)
     if (err != Z_OK) {
 	raise_zlib_error(err, gz->z.stream.msg);
     }
-    gz->io = rb_tr_handle_for_managed_leaking(io);
+    gz->io = io;
     ZSTREAM_READY(&gz->z);
     gzfile_read_header(gz);
     rb_gzfile_ecopts(gz, opt);
 
     if (rb_respond_to(io, id_path)) {
-	gz->path = rb_tr_handle_for_managed_leaking(rb_funcall(rb_tr_managed_from_handle(gz->io), id_path, 0));
+	gz->path = rb_funcall(gz->io, id_path, 0);
 	rb_define_singleton_method(obj, "path", rb_gzfile_path, 0);
     }
 
@@ -3956,8 +3961,8 @@ rb_gzreader_ungetc(VALUE obj, VALUE s)
 	return rb_gzreader_ungetbyte(obj, s);
     gz = get_gzfile(obj);
     StringValue(s);
-    if (gz->enc2 && rb_tr_managed_from_handle(gz->enc2) != rb_ascii8bit_encoding()) {
-	s = rb_str_conv_enc(s, rb_enc_get(s), rb_tr_managed_from_handle(gz->enc2));
+    if (gz->enc2 && gz->enc2 != rb_ascii8bit_encoding()) {
+	s = rb_str_conv_enc(s, rb_enc_get(s), gz->enc2);
     }
     gzfile_ungets(gz, (const Bytef*)RSTRING_PTR(s), RSTRING_LEN(s));
     RB_GC_GUARD(s);
@@ -3989,7 +3994,7 @@ gzreader_skip_linebreaks(struct gzfile *gz)
 	gzfile_read_more(gz);
     }
     n = 0;
-    p = RSTRING_PTR(rb_tr_managed_from_handle(gz->z.buf));
+    p = RSTRING_PTR(gz->z.buf);
 
     while (n++, *(p++) == '\n') {
 	if (n >= ZSTREAM_BUF_FILLED(&gz->z)) {
@@ -4000,7 +4005,7 @@ gzreader_skip_linebreaks(struct gzfile *gz)
 		gzfile_read_more(gz);
 	    }
 	    n = 0;
-	    p = RSTRING_PTR(rb_tr_managed_from_handle(gz->z.buf));
+	    p = RSTRING_PTR(gz->z.buf);
 	}
     }
 
@@ -4018,12 +4023,12 @@ rscheck(const char *rsptr, long rslen, VALUE rs)
 static long
 gzreader_charboundary(struct gzfile *gz, long n)
 {
-    char *s = RSTRING_PTR(rb_tr_managed_from_handle(gz->z.buf));
+    char *s = RSTRING_PTR(gz->z.buf);
     char *e = s + ZSTREAM_BUF_FILLED(&gz->z);
-    char *p = rb_enc_left_char_head(s, s + n, e, rb_tr_managed_from_handle(gz->enc));
+    char *p = rb_enc_left_char_head(s, s + n, e, gz->enc);
     long l = p - s;
     if (l < n) {
-	n = rb_enc_precise_mbclen(p, e, rb_tr_managed_from_handle(gz->enc));
+	n = rb_enc_precise_mbclen(p, e, gz->enc);
 	if (MBCLEN_NEEDMORE_P(n)) {
 	    if ((l = gzfile_fill(gz, l + MBCLEN_NEEDMORE_LEN(n))) > 0) {
 		return l;
@@ -4046,7 +4051,7 @@ gzreader_gets(int argc, VALUE *argv, VALUE obj)
     char *p, *res;
     long rslen, n, limit = -1;
     int rspara;
-    rb_encoding *enc = rb_tr_managed_from_handle(gz->enc);
+    rb_encoding *enc = gz->enc;
     int maxlen = rb_enc_mbmaxlen(enc);
 
     if (argc == 0) {
@@ -4122,14 +4127,14 @@ gzreader_gets(int argc, VALUE *argv, VALUE obj)
 	gzfile_read_more(gz);
     }
 
-    p = RSTRING_PTR(rb_tr_managed_from_handle(gz->z.buf));
+    p = RSTRING_PTR(gz->z.buf);
     n = rslen;
     for (;;) {
 	long filled;
 	if (n > ZSTREAM_BUF_FILLED(&gz->z)) {
 	    if (ZSTREAM_IS_FINISHED(&gz->z)) break;
 	    gzfile_read_more(gz);
-	    p = RSTRING_PTR(rb_tr_managed_from_handle(gz->z.buf)) + n - rslen;
+	    p = RSTRING_PTR(gz->z.buf) + n - rslen;
 	}
 	if (!rspara) rscheck(rsptr, rslen, rs);
 	filled = ZSTREAM_BUF_FILLED(&gz->z);
@@ -4252,7 +4257,7 @@ rb_gzreader_readlines(int argc, VALUE *argv, VALUE obj)
 static VALUE
 rb_gzreader_external_encoding(VALUE self)
 {
-    return rb_enc_from_encoding(rb_tr_managed_from_handle(get_gzfile(self)->enc));
+    return rb_enc_from_encoding(get_gzfile(self)->enc);
 }
 
 static VALUE

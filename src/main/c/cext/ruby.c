@@ -2862,10 +2862,10 @@ int rb_io_extract_encoding_option(VALUE opt, rb_encoding **enc_p, rb_encoding **
   VALUE external_encoding = polyglot_invoke(encoding, "default_external");
   VALUE internal_encoding = polyglot_invoke(encoding, "default_internal");
   if (!NIL_P(external_encoding)) {
-    *enc_p = rb_tr_handle_for_managed_leaking(rb_to_encoding(external_encoding));
+    *enc_p = rb_to_encoding(external_encoding);
   }
   if (!NIL_P(internal_encoding)) {
-    *enc2_p = rb_tr_handle_for_managed_leaking(rb_to_encoding(internal_encoding));
+    *enc2_p = rb_to_encoding(internal_encoding);
   }
   return 1;
 }
@@ -2937,14 +2937,18 @@ struct RData *RDATA(VALUE value) {
   return polyglot_as_RData(polyglot_invoke(RUBY_CEXT, "RDATA", value));
 }
 
-VALUE rb_data_object_wrap(VALUE klass, void *datap, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
-  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_data_object_wrap", klass, datap, dmark, to_free_function(dfree));
+VALUE rb_data_object_wrap(VALUE klass, void *data, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_data_object_wrap", klass, data, dmark, to_free_function(dfree));
 }
 
 VALUE rb_data_object_zalloc(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
-  VALUE obj = rb_data_object_wrap(klass, 0, dmark, dfree);
-  DATA_PTR(obj) = xcalloc(1, size);
-  return obj;
+  void *data = calloc(1, size);
+  return rb_data_object_wrap(klass, data, dmark, dfree);
+}
+
+VALUE rb_data_object_alloc_managed(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
+  void *data = rb_tr_new_managed_struct();
+  return rb_data_object_wrap(klass, data, dmark, dfree);
 }
 
 // Typed data
@@ -2954,9 +2958,13 @@ VALUE rb_data_typed_object_wrap(VALUE ruby_class, void *data, const rb_data_type
 }
 
 VALUE rb_data_typed_object_zalloc(VALUE ruby_class, size_t size, const rb_data_type_t *data_type) {
-  VALUE obj = rb_data_typed_object_wrap(ruby_class, 0, data_type);
-  DATA_PTR(obj) = calloc(1, size);
-  return obj;
+  void *data = calloc(1, size);
+  return rb_data_typed_object_wrap(ruby_class, data, data_type);
+}
+
+VALUE rb_data_typed_object_alloc_managed(VALUE ruby_class, size_t size, const rb_data_type_t *data_type) {
+  void *data = rb_tr_new_managed_struct();
+  return rb_data_typed_object_wrap(ruby_class, data, data_type);
 }
 
 VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, void **data_pointer, size_t size) {
@@ -3009,6 +3017,8 @@ VALUE rb_java_class_of(VALUE obj) {
 VALUE rb_java_to_string(VALUE obj) {
   return polyglot_invoke(RUBY_CEXT, "rb_java_to_string", obj);
 }
+
+// Handles
 
 void *rb_tr_handle_for_managed(VALUE managed) {
   return truffle_handle_for_managed(managed);
@@ -3063,6 +3073,12 @@ void rb_tr_release_if_handle(void *pointer) {
 
 void rb_tr_release_handle(void *handle) {
   truffle_release_handle(handle);
+}
+
+// Managed Strucs
+
+void* rb_tr_new_managed_struct(void) {
+  return rb_hash_new();
 }
 
 void rb_tr_load_library(VALUE library) {

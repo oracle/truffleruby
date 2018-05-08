@@ -13,10 +13,10 @@ TRUFFLE_POSIX := $(ROOT)/lib/cext/truffleposix.$(DLEXT)
 TRUFFLE_MOCK := $(ROOT)/lib/cext/sulongmock.bc
 RUBY_LIBRARY := $(ROOT)/lib/cext/ruby.su
 
-RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/include/*.h) $(wildcard $(ROOT)/lib/cext/include/ruby/*.h)
+RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/include/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*.h)
 RBCONFIG := $(ROOT)/lib/truffle/rbconfig.rb
 RBCONFIG_MKMF := $(ROOT)/lib/truffle/rbconfig-for-mkmf.rb
-PREPROCESS := $(ROOT)/lib/cext/preprocess.rb $(wildcard $(ROOT)/lib/cext/patches/*.rb)
+PREPROCESS := $(ROOT)/lib/cext/preprocess.rb
 MKMF := $(ROOT)/lib/mri/mkmf.rb
 BASIC_EXTCONF_DEPS := $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(RBCONFIG) $(RBCONFIG_MKMF) $(PREPROCESS) $(MKMF)
 # These 2 libraries are needed for try_link() in extconf.rb
@@ -95,7 +95,7 @@ $(CEXTS_DIR)/openssl.su: openssl/openssl.su
 	cp $< $@
 
 # zlib.su
-zlib/Makefile: zlib/extconf.rb $(EXTCONF_DEPS)
+zlib/Makefile: zlib/extconf.rb $(EXTCONF_DEPS) $(ROOT)/lib/cext/patches/zlib_patches.rb
 	cd zlib && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
 zlib/zlib.su: zlib/Makefile zlib/zlib.c
