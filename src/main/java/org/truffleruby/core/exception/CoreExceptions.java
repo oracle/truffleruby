@@ -579,7 +579,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameError(DynamicObject formatter, Object receiver, String name, Node currentNode) {
+    public DynamicObject nameErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name, Node currentNode) {
         final DynamicObject exceptionClass = context.getCoreLibrary().getNameErrorClass();
 
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
@@ -615,7 +615,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject noMethodError(DynamicObject formatter, Object receiver, String name, Object[] args, Node currentNode) {
+    public DynamicObject noMethodErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name, Object[] args, Node currentNode) {
         final DynamicObject argsArray = createArray(context, args, args.length);
         final DynamicObject exceptionClass = context.getCoreLibrary().getNoMethodErrorClass();
 

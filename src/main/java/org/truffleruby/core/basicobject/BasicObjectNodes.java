@@ -361,21 +361,21 @@ public abstract class BasicObjectNodes {
             final DynamicObject formatter;
             if (lastCallWasSuper(relevantCallerFrame)) {
                 formatter = ExceptionOperations.getFormatter(ExceptionOperations.SUPER_METHOD_ERROR, getContext());
-                return coreExceptions().noMethodError(formatter, self, name, args, this);
+                return coreExceptions().noMethodErrorFromMethodMissing(formatter, self, name, args, this);
             } else if ((visibility = lastCallWasCallingPrivateOrProtectedMethod(self, name, relevantCallerFrame)) != null) {
                 if (visibility.isPrivate()) {
                     formatter = ExceptionOperations.getFormatter(ExceptionOperations.PRIVATE_METHOD_ERROR, getContext());
-                    return coreExceptions().noMethodError(formatter, self, name, args, this);
+                    return coreExceptions().noMethodErrorFromMethodMissing(formatter, self, name, args, this);
                 } else {
                     formatter = ExceptionOperations.getFormatter(ExceptionOperations.PROTECTED_METHOD_ERROR, getContext());
-                    return coreExceptions().noMethodError(formatter, self, name, args, this);
+                    return coreExceptions().noMethodErrorFromMethodMissing(formatter, self, name, args, this);
                 }
             } else if (lastCallWasVCall(relevantCallerFrame)) {
                 formatter = ExceptionOperations.getFormatter(ExceptionOperations.NO_LOCAL_VARIABLE_OR_METHOD_ERROR, getContext());
-                return coreExceptions().nameError(formatter, self, name, this);
+                return coreExceptions().nameErrorFromMethodMissing(formatter, self, name, this);
             } else {
                 formatter = ExceptionOperations.getFormatter(ExceptionOperations.NO_METHOD_ERROR, getContext());
-                return coreExceptions().noMethodError(formatter, self, name, args, this);
+                return coreExceptions().noMethodErrorFromMethodMissing(formatter, self, name, args, this);
             }
         }
 
