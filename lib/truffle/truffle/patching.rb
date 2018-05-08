@@ -59,9 +59,22 @@ module Truffle::Patching
     name = relative_path[0...slash]
     require_path = relative_path[slash+1..-1]
 
-    original = ORIGINALS.fetch(name).find do |original_path|
-      path = "#{original_path}/#{require_path}"
-      break path if File.file?(path)
+    begin
+      original = ORIGINALS.fetch(name).find do |original_path|
+        path = "#{original_path}/#{require_path}"
+        break path if File.file?(path)
+      end
+    rescue KeyError
+      # Somehow we've encountered a patch on the $LOAD_PATH for a gem that hasn't been registered.
+      # RSpec does this, for instance, by taking the $LOAD_PATH and passing it as an "-I" argument to a Ruby
+      # subprocess. Since registered patches should always directly precede the library being patched on
+      # the $LOAD_PATH, assume this invariant is held and construct the filename to load from the next
+      # entry on the $LOAD_PATH. If this invariant isn't held, `require` will simply fail.
+      pos = $LOAD_PATH.find_index("#{DIR}/#{name}")
+      original_gem_path = $LOAD_PATH[pos + 1]
+      ORIGINALS[name] = [original_gem_path]
+
+      retry
     end
 
     Kernel.require original
