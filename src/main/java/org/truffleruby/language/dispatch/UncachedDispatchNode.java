@@ -115,7 +115,8 @@ public class UncachedDispatchNode extends DispatchNode {
             } else {
                 methodMissingNotFoundProfile.enter();
                 final DynamicObject formatter = ExceptionOperations.getFormatter(ExceptionOperations.NO_METHOD_ERROR, getContext());
-                throw new RaiseException(getContext(), coreExceptions().noMethodError(formatter, receiver, methodName, arguments, this));
+                throw new RaiseException(getContext(), coreExceptions().noMethodErrorFromMethodMissing(
+                        formatter, receiver, methodName, arguments, this));
             }
         }
 

@@ -133,7 +133,7 @@ module Truffle
       unless skip
         exc.set_context ctx if ctx
         exc.capture_backtrace!(3) unless exc.backtrace?
-        exc.instance_variable_set(:@cause, $!)
+        Truffle.invoke_primitive :object_ivar_set, exc, :@cause, $!
       end
 
       if $DEBUG

@@ -35,6 +35,7 @@ public abstract class ExceptionOperations {
     public static final String PROTECTED_METHOD_ERROR = "PROTECTED_METHOD_ERROR";
     public static final String PRIVATE_METHOD_ERROR = "PRIVATE_METHOD_ERROR";
     public static final String NO_METHOD_ERROR = "NO_METHOD_ERROR";
+    public static final String NO_LOCAL_VARIABLE_OR_METHOD_ERROR = "NO_LOCAL_VARIABLE_OR_METHOD_ERROR";
 
     private static final EnumSet<BacktraceFormatter.FormattingFlags> FORMAT_FLAGS = EnumSet.of(
             FormattingFlags.OMIT_FROM_PREFIX,

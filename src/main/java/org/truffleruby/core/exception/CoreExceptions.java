@@ -520,13 +520,6 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorUndefinedLocalVariableOrMethod(String name, Object receiver, Node currentNode) {
-        // TODO: should not be just the class, but rather sth like name_err_mesg_to_str() in MRI error.c
-        String className = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(receiver)).getName();
-        return nameError(StringUtils.format("undefined local variable or method `%s' for %s", name, className), receiver,  name, currentNode);
-    }
-
-    @TruffleBoundary
     public DynamicObject nameErrorUndefinedMethod(String name, DynamicObject module, Node currentNode) {
         assert RubyGuards.isRubyModule(module);
         return nameError(StringUtils.format("undefined method `%s' for %s", name, Layouts.MODULE.getFields(module).getName()), module, name, currentNode);
@@ -585,6 +578,23 @@ public class CoreExceptions {
                 context.getSymbolTable().getSymbol(name));
     }
 
+    @TruffleBoundary
+    public DynamicObject nameErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name, Node currentNode) {
+        final DynamicObject exceptionClass = context.getCoreLibrary().getNameErrorClass();
+
+        // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
+        final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, 1, exceptionClass);
+        final DynamicObject exception = Layouts.NAME_ERROR.createNameError(
+                context.getCoreLibrary().getNameErrorFactory(),
+                null,
+                formatter,
+                backtrace,
+                receiver,
+                context.getSymbolTable().getSymbol(name));
+        showExceptionIfDebug(exception, backtrace);
+        return exception;
+    }
+
     // NoMethodError
 
     @TruffleBoundary
@@ -605,10 +615,12 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject noMethodError(DynamicObject formatter, Object receiver, String name, Object[] args, Node currentNode) {
+    public DynamicObject noMethodErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name, Object[] args, Node currentNode) {
         final DynamicObject argsArray = createArray(context, args, args.length);
         final DynamicObject exceptionClass = context.getCoreLibrary().getNoMethodErrorClass();
-        final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, exceptionClass);
+
+        // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
+        final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, 1, exceptionClass);
         final DynamicObject exception = Layouts.NO_METHOD_ERROR.createNoMethodError(
                 context.getCoreLibrary().getNoMethodErrorFactory(),
                 null,
