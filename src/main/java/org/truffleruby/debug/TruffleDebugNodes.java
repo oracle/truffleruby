@@ -60,9 +60,9 @@ public abstract class TruffleDebugNodes {
     public abstract static class DebugPrintNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(string)")
-        public DynamicObject debugPrint(DynamicObject string) {
-            System.err.println(StringOperations.getString(string));
+        @Specialization
+        public DynamicObject debugPrint(Object string) {
+            System.err.println(string.toString());
             return nil();
         }
 
