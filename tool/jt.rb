@@ -425,7 +425,6 @@ module Commands
       jt puts 14 + 2                                 evaluate and print an expression
       jt cextc directory clang-args                  compile the C extension in directory, with optional extra clang arguments
       jt test                                        run all mri tests, specs and integration tests
-      jt test tck                                    run the Truffle Compatibility Kit tests
       jt test mri                                    run mri tests
           --cext          runs MRI C extension tests
           --syslog        runs syslog tests
@@ -845,7 +844,7 @@ module Commands
     case path
     when nil
       ENV['HAS_REDIS'] = 'true'
-      %w[specs mri tck bundle cexts integration gems ecosystem compiler].each do |kind|
+      %w[specs mri bundle cexts integration gems ecosystem compiler].each do |kind|
         jt('test', kind)
       end
     when 'bundle' then test_bundle(*rest)
@@ -856,7 +855,6 @@ module Commands
     when 'gems' then test_gems(*rest)
     when 'ecosystem' then test_ecosystem(*rest)
     when 'specs' then test_specs('run', *rest)
-    when 'tck' then test_tck(*rest)
     when 'mri' then test_mri(*rest)
     else
       if File.expand_path(path, TRUFFLERUBY_DIR).start_with?("#{TRUFFLERUBY_DIR}/test")
@@ -1293,13 +1291,6 @@ EOS
     mspec env_vars, command, *options, *args
   end
   private :test_specs
-
-  def test_tck(*args)
-    debug = ['-d'] if args.delete '--jdebug'
-    mx *debug, 'rubytck', *args
-    mx *debug, 'tck', *args
-  end
-  private :test_tck
 
   def gem_test_pack
     name = "truffleruby-gem-test-pack"
