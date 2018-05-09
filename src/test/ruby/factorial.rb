@@ -6,7 +6,7 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
-# Beware, RubyDebutTest use hard-coded line numbers from this file!
+# Beware, RubyDebugTest use hard-coded line numbers from this file!
 
 def fac(n)
   if n <= 1

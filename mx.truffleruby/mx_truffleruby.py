@@ -212,18 +212,6 @@ def build_truffleruby():
 def run_unittest(*args):
     mx_unittest.unittest(['-Dpolyglot.ruby.home='+root, '--verbose', '--suite', 'truffleruby'] + list(args))
 
-def ruby_tck(args):
-    """Run the TCK and other Java unit tests"""
-    for var in ['GEM_HOME', 'GEM_PATH', 'GEM_ROOT']:
-        if var in os.environ:
-            del os.environ[var]
-    if args:
-        run_unittest(*args)
-    else:
-        # Run the TCK in isolation
-        run_unittest('--blacklist', 'mx.truffleruby/tck.blacklist')
-        run_unittest('RubyTckTest')
-
 def deploy_binary_if_master_or_release(args):
     """If the active branch is 'master' or starts with 'release', deploy binaries for the primary suite."""
     assert len(args) == 0
@@ -372,7 +360,6 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
 
 mx.update_commands(_suite, {
     'ruby': [ruby_run_ruby, ''],
-    'rubytck': [ruby_tck, ''],
     'deploy-binary-if-master-or-release': [deploy_binary_if_master_or_release, ''],
     'ruby_download_binary_suite': [download_binary_suite, 'name [revision]'],
     'ruby_testdownstream': [ruby_testdownstream, ''],
