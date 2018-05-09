@@ -70,7 +70,6 @@ public class GeneralDivModNode extends RubyBaseNode {
      * and contributors there.
      */
 
-    @TruffleBoundary
     private DynamicObject divMod(long a, long b) {
         if (b == 0) {
             bZeroProfile.enter();
