@@ -27,8 +27,6 @@ import org.truffleruby.shared.RubyLogger;
 import java.io.File;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -106,16 +104,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 }
             }
 
-            final String launcher = isAOT() ? setRubyLauncher() : null;
-            if (isAOT() && IN_GRAALVM) {
-                // if applied store the options in polyglotOptions otherwise it would be lost when
-                // switched to --jvm
-                if (config.getOption(OptionsCatalog.HOME).isEmpty()) {
-                    final String rubyHome = getGraalVMHome().resolve(Paths.get("jre", "languages", "ruby")).toString();
-                    config.setOption(OptionsCatalog.HOME, rubyHome);
-                    polyglotOptions.put(OptionsCatalog.HOME.getName(), rubyHome);
-                }
-
+            if (isAOT()) {
+                final String launcher = setRubyLauncher();
                 if (launcher != null) {
                     polyglotOptions.put(OptionsCatalog.LAUNCHER.getName(), launcher);
                 }
@@ -276,12 +266,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             return launcher;
         }
         return null;
-    }
-
-    private static Path getGraalVMHome() {
-        final String graalVMHome = System.getProperty("org.graalvm.home");
-        assert graalVMHome != null;
-        return Paths.get(graalVMHome);
     }
 
     private static void printPreRunInformation(CommandLineOptions config) {
