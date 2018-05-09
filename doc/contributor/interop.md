@@ -433,8 +433,7 @@ sends `HAS_SIZE`.
 
 `object.respond_to?(:to_s)` is `true`.
 
-`object.respond_to?(:to_str)` is `true` if the object `UNBOXes` to a Ruby
-`String`.
+`object.respond_to?(:to_str)` is `true` if the object `UNBOXes` to a `String`.
 
 `object.__send__(name, *args)` works in the same way as literal method call on
 the foreign object, including allowing the special-forms listed above (see
