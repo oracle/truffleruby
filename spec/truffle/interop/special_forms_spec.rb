@@ -106,6 +106,15 @@ describe "Interop special form" do
     @object.respond_to?(:inspect).should be_true
   end
 
+  it "#respond_to?(:to_s) is true" do
+    @object.respond_to?(:to_s).should be_true
+  end
+
+  it "#respond_to?(:to_str) sends IS_BOXED" do
+    @object.respond_to?(:to_str)
+    @object.log.should include("IS_BOXED")
+  end
+
   it "#respond_to?(:call) sends IS_EXECUTABLE" do
     @object.respond_to?(:call)
     @object.log.should include("IS_EXECUTABLE")

@@ -413,7 +413,12 @@ reference equality, like `BasicObject#equal?`. For Java interop objects it
 looks at the underlying Java object.
 
 `object.inspect` produces a simple string of the format
-`#<Truffle::Interop::Foreign:system-identity-hash-code>`
+`#<Truffle::Interop::Foreign:system-identity-hash-code>`.
+
+`object.to_s` calls Java's `toString`.
+
+`object.to_str` will try to `UNBOX` the object and then retry `to_str` if it's
+now a Ruby `String`.
 
 `object.respond_to?(:to_a)`, `respond_to?(:to_ary)` and `respond_to?(:size)`
 sends `HAS_SIZE`.
@@ -427,6 +432,11 @@ sends `HAS_SIZE`.
 `object.respond_to?(name)` for other names returns `false`.
 
 `object.respond_to?(:inspect)` is `true`.
+
+`object.respond_to?(:to_s)` is `true`.
+
+`object.respond_to?(:to_str)` is `true` if the object `UNBOXes` to a Ruby
+`String`.
 
 `object.__send__(name, *args)` works in the same way as literal method call on
 the foreign object, including allowing the special-forms listed above (see

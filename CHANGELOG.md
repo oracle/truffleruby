@@ -20,6 +20,11 @@ New features:
 
 * Coercion of foreign numbers to Ruby numbers now works.
 
+* `to_s` works on all foreign objects and calls the Java `toString`.
+
+* `to_str` will try to `UNBOX` and then re-try `to_str`, in order to provoke
+  the unboxing of foreign strings.
+
 Changes:
 
 * The inline JavaScript functionality `-Xinline_js` has been removed.

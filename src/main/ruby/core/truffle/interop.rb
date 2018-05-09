@@ -160,6 +160,15 @@ module Truffle
         else
           Truffle::Interop.invoke(receiver, :class, *args)
         end
+      when :to_s
+        Truffle::Interop.to_string(receiver)
+      when :to_str
+        receiver = Truffle::Interop.unbox_if_needed(receiver)
+        if receiver.is_a?(String)
+          receiver.to_str
+        else
+          raise 'no method to_str'
+        end
       else
         raise
       end
@@ -181,6 +190,11 @@ module Truffle
         Truffle::Interop.java_class?(object)
       when :inspect
         true
+      when :to_s
+        true
+      when :to_str
+        object = Truffle::Interop.unbox_if_needed(object)
+        !Truffle::Interop.foreign?(object) && object.is_a?(String)
       else
         false
       end
