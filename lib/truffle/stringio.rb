@@ -768,4 +768,8 @@ class StringIO
 
     line
   end
+
+  def marshal_dump
+    raise TypeError, "can't dump #{self.class}"
+  end
 end
