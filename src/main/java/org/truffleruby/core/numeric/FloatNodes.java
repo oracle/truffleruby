@@ -392,7 +392,7 @@ public abstract class FloatNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        public Object equal(VirtualFrame frame, double a, Object b) {
+        public Object equal(VirtualFrame frame, double a, TruffleObject b) {
             if (fallbackCallNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 fallbackCallNode = insert(CallDispatchHeadNode.createOnSelf());
