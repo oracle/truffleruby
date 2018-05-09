@@ -526,6 +526,8 @@ describes the object (unrelated to the metaclass).
 `Truffle::Interop.unbox_if_needed(object)` calls `UNBOX` on an object if
 `IS_BOXED` and it's a foreign object.
 
+`Truffle::Interop.to_string(object)` calls the Java `toString` on the object.
+
 ## Notes on method resolution
 
 Method calls on foreign objects are usually translated exactly into foreign

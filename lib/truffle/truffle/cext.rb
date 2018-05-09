@@ -1663,7 +1663,7 @@ module Truffle::CExt
   end
 
   def rb_java_to_string(object)
-    Truffle::Debug.java_to_string(object)
+    Truffle::Interop.to_string(object)
   end
 
   def rb_sprintf(format, *args)

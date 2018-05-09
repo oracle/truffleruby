@@ -125,19 +125,6 @@ public abstract class TruffleDebugNodes {
 
     }
 
-    @CoreMethod(names = "java_to_string", onSingleton = true, required = 1)
-    public abstract static class JavaToStringNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
-        @TruffleBoundary
-        @Specialization
-        public DynamicObject javaToString(Object value) {
-            return makeStringNode.executeMake(String.valueOf(value), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        }
-
-    }
-
     @CoreMethod(names = "print_backtrace", onSingleton = true)
     public abstract static class PrintBacktraceNode extends CoreMethodNode {
 
