@@ -14,6 +14,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -157,8 +158,8 @@ public abstract class IntegerNodes {
             return fixnumOrBignum(Layouts.BIGNUM.getValue(a).add(Layouts.BIGNUM.getValue(b)));
         }
 
-        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isDouble(b)", "!isRubyBignum(b)" })
-        public Object addCoerced(Object a, Object b,
+        @Specialization(guards = "!isRubyBignum(b)")
+        public Object addCoerced(Object a, TruffleObject b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(null, a, "redo_coerced", coreStrings().PLUS.getSymbol(), b);
         }
@@ -215,8 +216,8 @@ public abstract class IntegerNodes {
             return fixnumOrBignum(Layouts.BIGNUM.getValue(a).subtract(Layouts.BIGNUM.getValue(b)));
         }
 
-        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isDouble(b)", "!isRubyBignum(b)" })
-        public Object subCoerced(Object a, Object b,
+        @Specialization(guards = "!isRubyBignum(b)")
+        public Object subCoerced(Object a, TruffleObject b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(null, a, "redo_coerced", coreStrings().MINUS.getSymbol(), b);
         }
@@ -281,8 +282,8 @@ public abstract class IntegerNodes {
             return fixnumOrBignum(Layouts.BIGNUM.getValue(a).multiply(Layouts.BIGNUM.getValue(b)));
         }
 
-        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isDouble(b)", "!isRubyBignum(b)" })
-        public Object mul(Object a, Object b,
+        @Specialization(guards = "!isRubyBignum(b)")
+        public Object mul(Object a, TruffleObject b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(null, a, "redo_coerced", coreStrings().MULTIPLY.getSymbol(), b);
         }
@@ -438,7 +439,7 @@ public abstract class IntegerNodes {
         }
 
         @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isDouble(b)", "!isRubyBignum(b)" })
-        public Object divCoerced(Object a, Object b,
+        public Object divCoerced(Object a, TruffleObject b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(null, a, "redo_coerced", coreStrings().DIVIDE.getSymbol(), b);
         }
@@ -587,7 +588,7 @@ public abstract class IntegerNodes {
         }
 
         @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isDouble(b)", "!isRubyBignum(b)" })
-        public Object modCoerced(Object a, Object b,
+        public Object modCoerced(Object a, TruffleObject b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(null, a, "redo_coerced", coreStrings().MODULO.getSymbol(), b);
         }
@@ -679,8 +680,8 @@ public abstract class IntegerNodes {
             return Layouts.BIGNUM.getValue(a).compareTo(Layouts.BIGNUM.getValue(b)) < 0;
         }
 
-        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isDouble(b)", "!isRubyBignum(b)" })
-        public Object lessCoerced(Object a, Object b,
+        @Specialization(guards = "!isRubyBignum(b)")
+        public Object lessCoerced(Object a, TruffleObject b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(null, a, "redo_compare", coreStrings().LESS_THAN.getSymbol(), b);
         }
@@ -729,8 +730,8 @@ public abstract class IntegerNodes {
             return Layouts.BIGNUM.getValue(a).compareTo(Layouts.BIGNUM.getValue(b)) <= 0;
         }
 
-        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isDouble(b)", "!isRubyBignum(b)" })
-        public Object lessEqualCoerced(Object a, Object b,
+        @Specialization(guards = "!isRubyBignum(b)")
+        public Object lessEqualCoerced(Object a, TruffleObject b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(null, a, "redo_compare", coreStrings().LESS_OR_EQUAL.getSymbol(), b);
         }
@@ -868,12 +869,8 @@ public abstract class IntegerNodes {
             return Layouts.BIGNUM.getValue(a).compareTo(Layouts.BIGNUM.getValue(b));
         }
 
-        @Specialization(guards = {
-                "!isInteger(b)",
-                "!isLong(b)",
-                "!isDouble(b)",
-                "!isRubyBignum(b)" })
-        public Object compare(Object a, Object b,
+        @Specialization(guards = "!isRubyBignum(b)")
+        public Object compare(Object a, TruffleObject b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(null, a, "redo_compare_no_error", b);
         }
@@ -923,8 +920,8 @@ public abstract class IntegerNodes {
             return Layouts.BIGNUM.getValue(a).compareTo(Layouts.BIGNUM.getValue(b)) >= 0;
         }
 
-        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isDouble(b)", "!isRubyBignum(b)" })
-        public Object greaterEqualCoerced(Object a, Object b,
+        @Specialization(guards = "!isRubyBignum(b)")
+        public Object greaterEqualCoerced(Object a, TruffleObject b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(null, a, "redo_compare", coreStrings().GREATER_OR_EQUAL.getSymbol(), b);
         }
@@ -974,8 +971,8 @@ public abstract class IntegerNodes {
             return Layouts.BIGNUM.getValue(a).compareTo(Layouts.BIGNUM.getValue(b)) > 0;
         }
 
-        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isDouble(b)", "!isRubyBignum(b)" })
-        public Object greaterCoerced(Object a, Object b,
+        @Specialization(guards = "!isRubyBignum(b)")
+        public Object greaterCoerced(Object a, TruffleObject b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(null, a, "redo_compare", coreStrings().GREATER_THAN.getSymbol(), b);
         }
@@ -1047,8 +1044,8 @@ public abstract class IntegerNodes {
             return fixnumOrBignum(Layouts.BIGNUM.getValue(a).and(Layouts.BIGNUM.getValue(b)));
         }
 
-        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isRubyBignum(b)" })
-        public Object bitAndCoerced(Object a, Object b,
+        @Specialization(guards = "!isRubyBignum(b)")
+        public Object bitAndCoerced(Object a, TruffleObject b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().AMPERSAND.getSymbol(), b);
         }
@@ -1085,8 +1082,8 @@ public abstract class IntegerNodes {
             return fixnumOrBignum(Layouts.BIGNUM.getValue(a).or(Layouts.BIGNUM.getValue(b)));
         }
 
-        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isRubyBignum(b)" })
-        public Object bitOrCoerced(Object a, Object b,
+        @Specialization(guards = "!isRubyBignum(b)")
+        public Object bitOrCoerced(Object a, TruffleObject b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().PIPE.getSymbol(), b);
         }
@@ -1121,8 +1118,8 @@ public abstract class IntegerNodes {
             return fixnumOrBignum(Layouts.BIGNUM.getValue(a).xor(Layouts.BIGNUM.getValue(b)));
         }
 
-        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isRubyBignum(b)" })
-        public Object bitXOrCoerced(Object a, Object b,
+        @Specialization(guards = "!isRubyBignum(b)")
+        public Object bitXOrCoerced(Object a, TruffleObject b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().CIRCUMFLEX.getSymbol(), b);
         }
@@ -1203,8 +1200,8 @@ public abstract class IntegerNodes {
             }
         }
 
-        @Specialization(guards = { "!isRubyBignum(b)", "!isInteger(b)", "!isLong(b)" })
-        public Object leftShiftCoerced(Object a, Object b,
+        @Specialization(guards = "!isRubyBignum(b)")
+        public Object leftShiftCoerced(Object a, TruffleObject b,
                 @Cached("create()") ToIntNode toIntNode) {
             return executeLeftShift(a, toIntNode.doInt(b));
         }
@@ -1310,8 +1307,8 @@ public abstract class IntegerNodes {
             return 0;
         }
 
-        @Specialization(guards = { "!isRubyBignum(b)", "!isInteger(b)", "!isLong(b)" })
-        public Object rightShiftCoerced(Object a, Object b,
+        @Specialization(guards = "!isRubyBignum(b)")
+        public Object rightShiftCoerced(Object a, TruffleObject b,
                 @Cached("create()") ToIntNode toIntNode) {
             return executeRightShift(a, toIntNode.doInt(b));
         }

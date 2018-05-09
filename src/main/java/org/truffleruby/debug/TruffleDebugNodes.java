@@ -470,6 +470,40 @@ public abstract class TruffleDebugNodes {
 
     }
 
+    @CoreMethod(names = "foreign_boxed_number", onSingleton = true, required = 1)
+    public abstract static class ForeignBoxedNumberNode extends CoreMethodArrayArgumentsNode {
+
+        public static class ForeignBoxedNumberObjectType extends ObjectType {
+
+        }
+
+        public static class ForeignBoxedNumber implements TruffleObject {
+
+            private final Number number;
+
+            public ForeignBoxedNumber(Number number) {
+                this.number = number;
+            }
+
+            public Number getNumber() {
+                return number;
+            }
+
+            @Override
+            public ForeignAccess getForeignAccess() {
+                return ForeignBoxedNumberMessageResolutionForeign.ACCESS;
+            }
+
+        }
+
+        @TruffleBoundary
+        @Specialization
+        public Object foreignBoxedNumber(Number number) {
+            return new ForeignBoxedNumber(number);
+        }
+
+    }
+
     @CoreMethod(names = "thread_info", onSingleton = true)
     public abstract static class ThreadInfoNode extends CoreMethodArrayArgumentsNode {
 

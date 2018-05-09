@@ -538,3 +538,9 @@ use it to get the method for `#to_a` on a foreign object, as it is a
 special-form, not a method.
 
 Interop ignores visibility entirely.
+
+## Notes on coercion
+
+Methods such as `Kernel.Integer`, `Kernel.Float`, `Numeric#coerce` will call
+`Truffle::Interop.unbox_if_needed` on objects, in order to unbox any boxed
+foreign objects, before continuing with the normal coercion routine.

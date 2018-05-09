@@ -18,6 +18,8 @@ New features:
 
 * Big `Integer` values are now `IS_BOXED` and `UNBOX` to a `double` value.
 
+* Coercion of foreign numbers to Ruby numbers now works.
+
 Changes:
 
 * The inline JavaScript functionality `-Xinline_js` has been removed.
