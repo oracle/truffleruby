@@ -57,7 +57,7 @@ module Truffle
         modifiable = has_key && !frozen
         removable = modifiable
         insertable = !frozen
-      elsif object.respond_to?(:[])
+      elsif object.is_a?(::Array)
         in_bounds = name.is_a?(Integer) && name >= 0 && name < object.size
         readable = in_bounds
         insertable = in_bounds && !object.frozen?
@@ -164,11 +164,8 @@ module Truffle
         Truffle::Interop.to_string(receiver)
       when :to_str
         receiver = Truffle::Interop.unbox_if_needed(receiver)
-        if receiver.is_a?(String)
-          receiver.to_str
-        else
-          raise 'no method to_str'
-        end
+        raise NameError, 'no method to_str' unless receiver.is_a?(String)
+        receiver
       else
         raise
       end

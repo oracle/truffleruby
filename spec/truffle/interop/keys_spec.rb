@@ -35,10 +35,6 @@ describe "Truffle::Interop.keys" do
     Truffle::Interop.keys(bignum_value).should == []
   end
   
-  it "returns an empty array for a big integer" do
-    Truffle::Interop.keys(bignum_value).should == []
-  end
-  
   it "returns an empty array for a proc" do
     Truffle::Interop.keys(proc {}).should == []
   end

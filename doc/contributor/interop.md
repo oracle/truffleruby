@@ -121,7 +121,7 @@ If the receiver is a Ruby `Hash`:
 
 - `INVOCABLE` and `INTERNAL` will not be set.
 
-Otherwise, if there is a method called `[]` defined:
+Otherwise, if the receiver is a Ruby `Array`:
 
 - `READABLE` will set if the name is an integer and in bounds.
 
@@ -129,8 +129,6 @@ Otherwise, if there is a method called `[]` defined:
   bounds and the array is not frozen.
 
 - `REMOVABLE`, `INVOCABLE` and `INTERNAL` will not be set.
-
-(See bracketed note in `KEYS` for objects with a `[]` method.)
 
 Otherwise if the name starts with an `@`:
 
@@ -417,8 +415,8 @@ looks at the underlying Java object.
 
 `object.to_s` calls Java's `toString`.
 
-`object.to_str` will try to `UNBOX` the object and then retry `to_str` if it's
-now a Ruby `String`.
+`object.to_str` will try to `UNBOX` the object and return it if it's a `String`,
+or will raise `NoMethodError` if it isn't.
 
 `object.respond_to?(:to_a)`, `respond_to?(:to_ary)` and `respond_to?(:size)`
 sends `HAS_SIZE`.

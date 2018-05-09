@@ -516,11 +516,15 @@ describe "Truffle::Interop.key_info" do
   
       describe "has READABLE" do
         
-        describe "not set" do
+        describe "set" do
           
           it "if the variable exists" do
-            Truffle::Interop.key_info(@object, :@a).should_not include(:readable)
+            Truffle::Interop.key_info(@object, :@a).should include(:readable)
           end
+        
+        end
+        
+        describe "not set" do
 
           it "if the variable does not exist" do
             Truffle::Interop.key_info(@object, :@foo).should_not include(:readable)
@@ -532,11 +536,15 @@ describe "Truffle::Interop.key_info" do
   
       describe "has INSERTABLE" do
         
-        describe "not set" do
+        describe "set" do
           
           it "if the object is not frozen" do
-            Truffle::Interop.key_info(@object, :@a).should_not include(:insertable)
+            Truffle::Interop.key_info(@object, :@a).should include(:insertable)
           end
+        
+        end
+        
+        describe "not set" do
 
           it "if the object is frozen" do
             @object.freeze
@@ -549,11 +557,15 @@ describe "Truffle::Interop.key_info" do
 
       describe "has MODIFIABLE and REMOVABLE" do
         
-        describe "not set" do
+        describe "set" do
           
           it "if the variable exists and the object is not frozen" do
-            Truffle::Interop.key_info(@object, :@a).should_not include(:modifiable, :removable)
+            Truffle::Interop.key_info(@object, :@a).should include(:modifiable, :removable)
           end
+        
+        end
+        
+        describe "not set" do
           
           it "if the variable exists and the object is frozen" do
             @object.freeze
@@ -601,26 +613,26 @@ describe "Truffle::Interop.key_info" do
 
       describe "has INTERNAL" do
         
-        describe "not set" do
+        describe "set" do
           
           it "if the variable exists and the object is not frozen" do
-            Truffle::Interop.key_info(@object, :@a).should_not include(:internal)
+            Truffle::Interop.key_info(@object, :@a).should include(:internal)
           end
           
           it "if the variable exists and the object is frozen" do
             @object.freeze
-            Truffle::Interop.key_info(@object, :@a).should_not include(:internal)
+            Truffle::Interop.key_info(@object, :@a).should include(:internal)
           end
 
           it "if the variable does not exist and the object is not frozen" do
-            Truffle::Interop.key_info(@object, :@foo).should_not include(:internal)
+            Truffle::Interop.key_info(@object, :@foo).should include(:internal)
           end
 
           it "if the variable does not exist and the object is frozen" do
             @object.freeze
-            Truffle::Interop.key_info(@object, :@foo).should_not include(:internal)
+            Truffle::Interop.key_info(@object, :@foo).should include(:internal)
           end
-      
+    
         end
         
       end
@@ -631,20 +643,20 @@ describe "Truffle::Interop.key_info" do
       
       describe "has READABLE" do
         
-        describe "not set" do
+        it "set" do
           @object = TruffleInteropSpecs::ReadHasIndex.new
-          Truffle::Interop.key_info(@object, :foo).should_not include(:readable)
+          Truffle::Interop.key_info(@object, :foo).should include(:readable)
         end
         
       end
       
       describe "has INSERTABLE and MODIFIABLE" do
         
-        describe "not set" do
+        describe "set" do
           
           it "if the object has a index set method" do
             @object = TruffleInteropSpecs::WriteHasIndexSetAndIndex.new
-            Truffle::Interop.key_info(@object, :foo).should_not include(:insertable, :modifiable)
+            Truffle::Interop.key_info(@object, :foo).should include(:insertable, :modifiable)
           end
         
         end
@@ -666,7 +678,7 @@ describe "Truffle::Interop.key_info" do
       
       describe "has INVOCABLE" do
         
-        describe "not set" do
+        it "not set" do
           @object = TruffleInteropSpecs::ReadHasIndex.new
           Truffle::Interop.key_info(@object, :foo).should_not include(:invocable)
         end
