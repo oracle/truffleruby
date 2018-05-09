@@ -54,6 +54,10 @@ public abstract class RubyGuards {
         return value instanceof String;
     }
 
+    public static boolean isBasicInteger(Object object) {
+        return isByte(object) || isShort(object) || isInteger(object) || isLong(object);
+    }
+
     public static boolean isBasicNumber(Object object) {
         return isByte(object) || isShort(object) || isInteger(object) || isLong(object) || isFloat(object) || isDouble(object);
     }
@@ -242,6 +246,10 @@ public abstract class RubyGuards {
 
     public static boolean isNullPointer(DynamicObject pointer) {
         return Layouts.POINTER.getPointer(pointer).getAddress() == 0;
+    }
+
+    public static boolean isRubyInteger(Object object) {
+        return isBasicInteger(object) || isRubyBignum(object);
     }
 
     public static boolean isRubyNumber(Object object) {

@@ -1038,7 +1038,7 @@ public abstract class IntegerNodes {
             return fixnumOrBignum(Layouts.BIGNUM.getValue(a).and(Layouts.BIGNUM.getValue(b)));
         }
 
-        @Specialization(guards = "!isRubyNumber(b)")
+        @Specialization(guards = "!isRubyInteger(b)")
         public Object bitAndCoerced(Object a, Object b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().AMPERSAND.getSymbol(), b);
@@ -1194,7 +1194,7 @@ public abstract class IntegerNodes {
             }
         }
 
-        @Specialization(guards = "!isRubyNumber(b)")
+        @Specialization(guards = "!isRubyInteger(b)")
         public Object leftShiftCoerced(Object a, Object b,
                 @Cached("create()") ToIntNode toIntNode) {
             return executeLeftShift(a, toIntNode.doInt(b));
@@ -1301,7 +1301,7 @@ public abstract class IntegerNodes {
             return 0;
         }
 
-        @Specialization(guards = "!isRubyNumber(b)")
+        @Specialization(guards = "!isRubyInteger(b)")
         public Object rightShiftCoerced(Object a, Object b,
                 @Cached("create()") ToIntNode toIntNode) {
             return executeRightShift(a, toIntNode.doInt(b));
