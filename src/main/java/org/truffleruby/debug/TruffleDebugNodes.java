@@ -491,6 +491,27 @@ public abstract class TruffleDebugNodes {
 
     }
 
+    @CoreMethod(names = "float", onSingleton = true, required = 1)
+    public abstract static class FloatNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public float foreignBoxedNumber(long value) {
+            return (float) value;
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyBignum(value)")
+        public float foreignBoxedNumber(DynamicObject value) {
+            return (float) Layouts.BIGNUM.getValue(value).doubleValue();
+        }
+
+        @Specialization
+        public float foreignBoxedNumber(double value) {
+            return (float) value;
+        }
+
+    }
+
     @CoreMethod(names = "thread_info", onSingleton = true)
     public abstract static class ThreadInfoNode extends CoreMethodArrayArgumentsNode {
 

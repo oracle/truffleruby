@@ -12,6 +12,15 @@ describe "Interop coercion" do
   
   describe "in a numerical operation" do
     
+    it "does't interfere with normal coercion" do
+      lambda { 14 + true }.should raise_error(TypeError, /can't be coerced into Integer/)
+      lambda { 14 * true }.should raise_error(TypeError, /can't be coerced into Integer/)
+      lambda { 14.2 + true }.should raise_error(TypeError, /can't be coerced into Float/)
+      lambda { 14.2 * true }.should raise_error(TypeError, /can't be coerced into Float/)
+      (14 + Truffle::Debug.float(2)).should == 16.0
+      (14.0 + Truffle::Debug.float(2.0)).should == 16.0
+    end
+    
     it "unboxes a LHS operand" do
       (Truffle::Debug.foreign_boxed_number(2) + 14).should == 16
     end
