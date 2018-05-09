@@ -61,14 +61,15 @@ Call `size` on the object.
 
 ### `IS_BOXED`
 
-Returns true only for instances of `String`, `Symbol`,
+Returns true only for instances of `String`, `Symbol`, big `Integer` values,
 `Truffle::FFI::Pointer` and objects that respond to `unbox`.
 
 ### `UNBOX`
 
 For a `String` or `Symbol`, produces a `java.lang.String`, similar to
-`Truffle::Interop.to_java_string`. For a `Truffle::FFI::Pointer`,
-produces the address as a `long`. For all other objects calls `unbox`.
+`Truffle::Interop.to_java_string`. For a big `Integer` returns a `double` value.
+For a `Truffle::FFI::Pointer`, produces the address as a `long`. For all other
+objects calls `unbox`.
 
 ### `IS_POINTER`
 

@@ -16,6 +16,8 @@ New features:
 
 * `Java.import name` imports Java classes as top-level constants.
 
+* Big `Integer` values are now `IS_BOXED` and `UNBOX` to a `double` value.
+
 Changes:
 
 * The inline JavaScript functionality `-Xinline_js` has been removed.

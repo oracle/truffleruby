@@ -17,6 +17,18 @@ describe "Truffle::Interop.boxed?" do
   it "returns true for symbols" do
     Truffle::Interop.boxed?(:test).should be_true
   end
+  
+  it "returns false for small integers" do
+    Truffle::Interop.boxed?(14).should be_false
+  end
+  
+  it "returns true for big integers" do
+    Truffle::Interop.boxed?(bignum_value).should be_true
+  end
+  
+  it "returns false for floats" do
+    Truffle::Interop.boxed?(14.2).should be_false
+  end
 
   it "returns true for Truffle::FFI::Pointer objects" do
     Truffle::Interop.boxed?(Truffle::FFI::Pointer.new(0)).should be_true
