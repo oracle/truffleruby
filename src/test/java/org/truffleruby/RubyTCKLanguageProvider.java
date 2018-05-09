@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.tck;
+package org.truffleruby;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
