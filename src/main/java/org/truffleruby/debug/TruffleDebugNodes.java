@@ -496,7 +496,7 @@ public abstract class TruffleDebugNodes {
 
         @Specialization
         public float foreignBoxedNumber(long value) {
-            return (float) value;
+            return value;
         }
 
         @TruffleBoundary
