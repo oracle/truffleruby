@@ -523,6 +523,9 @@ from the Ruby array.
 `Truffle::Interop.meta_object(object)` returns the Truffle meta-object that
 describes the object (unrelated to the metaclass).
 
+`Truffle::Interop.unbox_if_needed(object)` calls `UNBOX` on an object if
+`IS_BOXED` and it's a foreign object.
+
 ## Notes on method resolution
 
 Method calls on foreign objects are usually translated exactly into foreign

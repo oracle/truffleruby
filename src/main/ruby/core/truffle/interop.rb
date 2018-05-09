@@ -198,6 +198,14 @@ module Truffle
       to_array(array)
     end
     
+    def self.unbox_if_needed(object)
+      if Truffle::Interop.foreign?(object) && Truffle::Interop.boxed?(object)
+        Truffle::Interop.unbox(object)
+      else
+        object
+      end
+    end
+    
   end
 
 end
