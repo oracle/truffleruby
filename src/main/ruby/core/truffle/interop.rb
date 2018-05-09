@@ -179,6 +179,8 @@ module Truffle
         Truffle::Interop.executable?(object)
       when :class
         Truffle::Interop.java_class?(object)
+      when :inspect
+        true
       else
         false
       end

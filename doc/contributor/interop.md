@@ -426,6 +426,8 @@ sends `HAS_SIZE`.
 
 `object.respond_to?(name)` for other names returns `false`.
 
+`object.respond_to?(:inspect)` is `true`.
+
 `object.__send__(name, *args)` works in the same way as literal method call on
 the foreign object, including allowing the special-forms listed above (see
 [notes on method resolution](#notes-on-method-resolution)).

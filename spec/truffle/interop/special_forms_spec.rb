@@ -102,6 +102,10 @@ describe "Interop special form" do
     @object.log.should include("HAS_KEYS")
   end
 
+  it "#respond_to?(:inspect) is true" do
+    @object.respond_to?(:inspect).should be_true
+  end
+
   it "#respond_to?(:call) sends IS_EXECUTABLE" do
     @object.respond_to?(:call)
     @object.log.should include("IS_EXECUTABLE")
