@@ -14,10 +14,6 @@ describe "Truffle::Interop.unbox" do
     Truffle::Interop.unbox(14).should == 14
   end
   
-  it "converts a big integer to a float" do
-    Truffle::Interop.unbox(bignum_value).should be_an_instance_of(Float)
-  end
-
   it "passes through floats" do
     Truffle::Interop.unbox(14.2).should == 14.2
   end
@@ -29,12 +25,7 @@ describe "Truffle::Interop.unbox" do
   it "passes through false" do
     Truffle::Interop.unbox(false).should == false
   end
-  
-  it "unboxes a foreign boxed number" do
-    Truffle::Interop.unbox(Truffle::Debug.foreign_boxed_number(2)).should == 2
-    Truffle::Interop.unbox(Truffle::Debug.foreign_boxed_number(14.2)).should == 14.2
-  end
-  
+    
   it "unboxes a Ruby string to a Java string" do
     unboxed = Truffle::Interop.unbox_without_conversion('test')
     Truffle::Interop.java_string?(unboxed).should be_true

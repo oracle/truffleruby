@@ -32,8 +32,6 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 
-import java.math.BigInteger;
-
 @MessageResolution(receiverType = RubyObjectType.class)
 public class RubyMessageResolution {
 
@@ -93,7 +91,6 @@ public class RubyMessageResolution {
 
         private final ConditionProfile stringProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile symbolProfile = ConditionProfile.createBinaryProfile();
-        private final ConditionProfile bignumProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile pointerProfile = ConditionProfile.createBinaryProfile();
 
         @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
@@ -102,8 +99,6 @@ public class RubyMessageResolution {
             if (stringProfile.profile(RubyGuards.isRubyString(object))) {
                 return true;
             } else if (symbolProfile.profile(RubyGuards.isRubySymbol(object))) {
-                return true;
-            } else if (bignumProfile.profile(RubyGuards.isRubyBignum(object))) {
                 return true;
             } else if (pointerProfile.profile(Layouts.POINTER.isPointer(object))) {
                 return true;
@@ -118,7 +113,6 @@ public class RubyMessageResolution {
     public static abstract class ForeignUnboxNode extends Node {
 
         private final ConditionProfile stringSymbolProfile = ConditionProfile.createBinaryProfile();
-        private final ConditionProfile bignumProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile pointerProfile = ConditionProfile.createBinaryProfile();
 
         @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
@@ -133,8 +127,6 @@ public class RubyMessageResolution {
                 }
 
                 return toJavaStringNode.executeToJavaString(object);
-            } else if (bignumProfile.profile(Layouts.BIGNUM.isBignum(object))) {
-                return doubleValue(Layouts.BIGNUM.getValue(object));
             } else if (pointerProfile.profile(Layouts.POINTER.isPointer(object))) {
                 return Layouts.POINTER.getPointer(object).getAddress();
             } else if (doesRespond.doesRespondTo(frame, "unbox", object)) {
@@ -142,11 +134,6 @@ public class RubyMessageResolution {
             } else {
                 throw UnsupportedMessageException.raise(Message.UNBOX);
             }
-        }
-
-        @CompilerDirectives.TruffleBoundary
-        private double doubleValue(BigInteger bigInteger) {
-            return bigInteger.doubleValue();
         }
 
     }
