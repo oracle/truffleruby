@@ -196,6 +196,8 @@ class Numeric
   end
 
   def coerce(other)
+    other = Truffle::Interop.unbox_if_needed(other)
+    
     if other.instance_of? self.class
       return [other, self]
     end
@@ -213,6 +215,8 @@ class Numeric
   # See also Integer#coerce
 
   def math_coerce(other, error=:coerce_error)
+    other = Truffle::Interop.unbox_if_needed(other)
+    
     unless other.respond_to? :coerce
       if error == :coerce_error
         raise TypeError, "#{other.class} can't be coerced into #{self.class}"

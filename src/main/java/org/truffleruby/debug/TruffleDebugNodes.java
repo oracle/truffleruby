@@ -60,9 +60,9 @@ public abstract class TruffleDebugNodes {
     public abstract static class DebugPrintNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(string)")
-        public DynamicObject debugPrint(DynamicObject string) {
-            System.err.println(StringOperations.getString(string));
+        @Specialization
+        public DynamicObject debugPrint(Object string) {
+            System.err.println(string.toString());
             return nil();
         }
 
@@ -121,19 +121,6 @@ public abstract class TruffleDebugNodes {
         @Specialization
         public DynamicObject javaClassOf(Object value) {
             return makeStringNode.executeMake(value.getClass().getSimpleName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        }
-
-    }
-
-    @CoreMethod(names = "java_to_string", onSingleton = true, required = 1)
-    public abstract static class JavaToStringNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
-        @TruffleBoundary
-        @Specialization
-        public DynamicObject javaToString(Object value) {
-            return makeStringNode.executeMake(String.valueOf(value), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -466,6 +453,61 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "isRubyString(string)")
         public Object foreignString(DynamicObject string) {
             return new ForeignString(string.toString());
+        }
+
+    }
+
+    @CoreMethod(names = "foreign_boxed_number", onSingleton = true, required = 1)
+    public abstract static class ForeignBoxedNumberNode extends CoreMethodArrayArgumentsNode {
+
+        public static class ForeignBoxedNumberObjectType extends ObjectType {
+
+        }
+
+        public static class ForeignBoxedNumber implements TruffleObject {
+
+            private final Number number;
+
+            public ForeignBoxedNumber(Number number) {
+                this.number = number;
+            }
+
+            public Number getNumber() {
+                return number;
+            }
+
+            @Override
+            public ForeignAccess getForeignAccess() {
+                return ForeignBoxedNumberMessageResolutionForeign.ACCESS;
+            }
+
+        }
+
+        @TruffleBoundary
+        @Specialization
+        public Object foreignBoxedNumber(Number number) {
+            return new ForeignBoxedNumber(number);
+        }
+
+    }
+
+    @CoreMethod(names = "float", onSingleton = true, required = 1)
+    public abstract static class FloatNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public float foreignBoxedNumber(long value) {
+            return value;
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyBignum(value)")
+        public float foreignBoxedNumber(DynamicObject value) {
+            return (float) Layouts.BIGNUM.getValue(value).doubleValue();
+        }
+
+        @Specialization
+        public float foreignBoxedNumber(double value) {
+            return (float) value;
         }
 
     }

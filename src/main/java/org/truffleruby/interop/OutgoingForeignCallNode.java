@@ -117,7 +117,9 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         } else if (name.equals("delete")
                 || name.equals("size")
                 || name.equals("keys")
-                || name.equals("class")) {
+                || name.equals("class")
+                || name.equals("to_s")
+                || name.equals("to_str")) {
             final int expectedArgsLength;
 
             switch (name) {
@@ -127,6 +129,8 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                 case "size":
                 case "keys":
                 case "class":
+                case "to_s":
+                case "to_str":
                     expectedArgsLength = 0;
                     break;
                 default:

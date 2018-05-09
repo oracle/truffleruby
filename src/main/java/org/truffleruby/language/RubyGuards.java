@@ -38,6 +38,10 @@ public abstract class RubyGuards {
         return value instanceof Long;
     }
 
+    public static boolean isFloat(Object value) {
+        return value instanceof Float;
+    }
+
     public static boolean isDouble(Object value) {
         return value instanceof Double;
     }
@@ -48,6 +52,14 @@ public abstract class RubyGuards {
 
     public static boolean isString(Object value) {
         return value instanceof String;
+    }
+
+    public static boolean isBasicInteger(Object object) {
+        return isByte(object) || isShort(object) || isInteger(object) || isLong(object);
+    }
+
+    public static boolean isBasicNumber(Object object) {
+        return isByte(object) || isShort(object) || isInteger(object) || isLong(object) || isFloat(object) || isDouble(object);
     }
 
     // Ruby types
@@ -234,6 +246,15 @@ public abstract class RubyGuards {
 
     public static boolean isNullPointer(DynamicObject pointer) {
         return Layouts.POINTER.getPointer(pointer).getAddress() == 0;
+    }
+
+    public static boolean isRubyInteger(Object object) {
+        return isBasicInteger(object) || isRubyBignum(object);
+    }
+
+    public static boolean isRubyNumber(Object object) {
+        // Doesn't include classes like BigDecimal
+        return isBasicNumber(object) || isRubyBignum(object);
     }
 
     // Internal types

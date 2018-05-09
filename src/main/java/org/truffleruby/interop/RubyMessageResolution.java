@@ -266,8 +266,10 @@ public class RubyMessageResolution {
     @Resolve(message = "HAS_KEYS")
     public static abstract class ForeignHasKeysNode extends Node {
 
+        private final ConditionProfile hasKeysProfile = ConditionProfile.createBinaryProfile();
+
         protected Object access(VirtualFrame frame, DynamicObject object) {
-            return true;
+            return !hasKeysProfile.profile(RubyGuards.isRubyArray(object) || RubyGuards.isRubyString(object));
         }
 
     }

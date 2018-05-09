@@ -54,6 +54,8 @@ module Kernel
   module_function :Complex
 
   def Float(obj)
+    obj = Truffle::Interop.unbox_if_needed(obj)
+    
     case obj
     when String
       value = Truffle.invoke_primitive :string_to_f, obj, true
@@ -87,6 +89,8 @@ module Kernel
   module_function :Hash
 
   def Integer(obj, base=nil)
+    obj = Truffle::Interop.unbox_if_needed(obj)
+    
     if obj.kind_of? String
       if obj.empty?
         raise ArgumentError, 'invalid value for Integer: (empty string)'

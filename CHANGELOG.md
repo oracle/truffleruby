@@ -16,6 +16,13 @@ New features:
 
 * `Java.import name` imports Java classes as top-level constants.
 
+* Coercion of foreign numbers to Ruby numbers now works.
+
+* `to_s` works on all foreign objects and calls the Java `toString`.
+
+* `to_str` will try to `UNBOX` and then re-try `to_str`, in order to provoke
+  the unboxing of foreign strings.
+
 Changes:
 
 * The inline JavaScript functionality `-Xinline_js` has been removed.
@@ -28,10 +35,14 @@ Changes:
   
 * The `erb` standard library has been patched to stop using a -1 line number.
 
-* The `READ` interop message will not call `#[]` on `Proc` or `Method` objects,
-  to avoid executing the method.
-
 * `-Xbacktraces.interleave_java` now includes all the trailing Java frames.
+
+* Objects with a `[]` method, except for `Hash`, now do not return anything
+  for `KEYS`, to avoid the impression that you could `READ` them. `KEYINFO`
+  also returns nothing for these objects, except for `Array` where it returns
+  information on indices.
+
+* `String` now returns `false` for `HAS_KEYS`.
 
 Bug fixes:
 

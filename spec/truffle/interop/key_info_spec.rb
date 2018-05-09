@@ -286,8 +286,8 @@ describe "Truffle::Interop.key_info" do
     end
 
   end
-
-  describe "for an object" do
+  
+  describe "for an object without an #[] method" do
     
     describe "with a name that starts with an @" do
       
@@ -430,17 +430,12 @@ describe "Truffle::Interop.key_info" do
             @object = TruffleInteropSpecs::ReadHasMethod.new
             Truffle::Interop.key_info(@object, :foo).should include(:readable)
           end
-          
-          it "if the object has a index method" do
-            @object = TruffleInteropSpecs::ReadHasIndex.new
-            Truffle::Interop.key_info(@object, :foo).should include(:readable)
-          end
         
         end
         
         describe "not set" do
 
-          it "if the object does not have a method of that name or an index method" do
+          it "if the object does not have a method of that name" do
             @object = Object.new
             Truffle::Interop.key_info(@object, :foo).should_not include(:readable)
           end
@@ -451,15 +446,6 @@ describe "Truffle::Interop.key_info" do
       
       describe "has INSERTABLE and MODIFIABLE" do
         
-        describe "set" do
-          
-          it "if the object has a index set method" do
-            @object = TruffleInteropSpecs::WriteHasIndexSet.new
-            Truffle::Interop.key_info(@object, :foo).should include(:insertable, :modifiable)
-          end
-        
-        end
-        
         describe "not set" do
           
           it "if the object has a method of that name" do
@@ -467,7 +453,7 @@ describe "Truffle::Interop.key_info" do
             Truffle::Interop.key_info(@object, :foo).should_not include_any_of(:insertable, :modifiable)
           end
 
-          it "if the object does not have a method of that name or an index set method" do
+          it "if the object does not have a method of that name" do
             @object = Object.new
             Truffle::Interop.key_info(@object, :foo).should_not include_any_of(:insertable, :modifiable)
           end
@@ -480,17 +466,12 @@ describe "Truffle::Interop.key_info" do
         
         describe "not set" do
           
-          it "if the object has a index set method" do
-            @object = TruffleInteropSpecs::WriteHasIndexSet.new
-            Truffle::Interop.key_info(@object, :foo).should_not include_any_of(:removable, :internal)
-          end
-          
           it "if the object has a method of that name" do
             @object = TruffleInteropSpecs::WriteHasMethod.new
             Truffle::Interop.key_info(@object, :foo).should_not include_any_of(:removable, :internal)
           end
 
-          it "if the object does not have a method of that name or an index set method" do
+          it "if the object does not have a method of that name" do
             @object = Object.new
             Truffle::Interop.key_info(@object, :foo).should_not include_any_of(:removable, :internal)
           end
@@ -511,13 +492,8 @@ describe "Truffle::Interop.key_info" do
         end
         
         describe "not set" do
-          
-          it "if the object has a index method" do
-            @object = TruffleInteropSpecs::ReadHasIndex.new
-            Truffle::Interop.key_info(@object, :foo).should_not include(:invocable)
-          end
 
-          it "if the object does not have a method of that name or an index method" do
+          it "if the object does not have a method of that name" do
             @object = Object.new
             Truffle::Interop.key_info(@object, :foo).should_not include(:invocable)
           end
@@ -529,5 +505,189 @@ describe "Truffle::Interop.key_info" do
     end
     
   end
+
+  describe "for an object with an #[] method" do
+    
+    describe "with a name that starts with an @" do
+      
+      before :each do
+        @object = TruffleInteropSpecs::InteropKeysIndexClass.new
+      end
+  
+      describe "has READABLE" do
+        
+        describe "set" do
+          
+          it "if the variable exists" do
+            Truffle::Interop.key_info(@object, :@a).should include(:readable)
+          end
+        
+        end
+        
+        describe "not set" do
+
+          it "if the variable does not exist" do
+            Truffle::Interop.key_info(@object, :@foo).should_not include(:readable)
+          end
+        
+        end
+        
+      end
+  
+      describe "has INSERTABLE" do
+        
+        describe "set" do
+          
+          it "if the object is not frozen" do
+            Truffle::Interop.key_info(@object, :@a).should include(:insertable)
+          end
+        
+        end
+        
+        describe "not set" do
+
+          it "if the object is frozen" do
+            @object.freeze
+            Truffle::Interop.key_info(@object, :@a).should_not include(:insertable)
+          end
+        
+        end
+        
+      end
+
+      describe "has MODIFIABLE and REMOVABLE" do
+        
+        describe "set" do
+          
+          it "if the variable exists and the object is not frozen" do
+            Truffle::Interop.key_info(@object, :@a).should include(:modifiable, :removable)
+          end
+        
+        end
+        
+        describe "not set" do
+          
+          it "if the variable exists and the object is frozen" do
+            @object.freeze
+            Truffle::Interop.key_info(@object, :@a).should_not include_any_of(:modifiable, :removable)
+          end
+
+          it "if the variable does not exist and the object is not frozen" do
+            Truffle::Interop.key_info(@object, :@foo).should_not include_any_of(:modifiable, :removable)
+          end
+
+          it "if the variable does not exist and the object is frozen" do
+            @object.freeze
+            Truffle::Interop.key_info(@object, :@foo).should_not include_any_of(:modifiable, :removable)
+          end
+      
+        end
+        
+      end
+
+      describe "has INVOCABLE" do
+        
+        describe "not set" do
+          
+          it "if the variable exists and the object is not frozen" do
+            Truffle::Interop.key_info(@object, :@a).should_not include(:invocable)
+          end
+          
+          it "if the variable exists and the object is frozen" do
+            @object.freeze
+            Truffle::Interop.key_info(@object, :@a).should_not include(:invocable)
+          end
+
+          it "if the variable does not exist and the object is not frozen" do
+            Truffle::Interop.key_info(@object, :@foo).should_not include(:invocable)
+          end
+
+          it "if the variable does not exist and the object is frozen" do
+            @object.freeze
+            Truffle::Interop.key_info(@object, :@foo).should_not include(:invocable)
+          end
+      
+        end
+        
+      end
+
+      describe "has INTERNAL" do
+        
+        describe "set" do
+          
+          it "if the variable exists and the object is not frozen" do
+            Truffle::Interop.key_info(@object, :@a).should include(:internal)
+          end
+          
+          it "if the variable exists and the object is frozen" do
+            @object.freeze
+            Truffle::Interop.key_info(@object, :@a).should include(:internal)
+          end
+
+          it "if the variable does not exist and the object is not frozen" do
+            Truffle::Interop.key_info(@object, :@foo).should include(:internal)
+          end
+
+          it "if the variable does not exist and the object is frozen" do
+            @object.freeze
+            Truffle::Interop.key_info(@object, :@foo).should include(:internal)
+          end
+    
+        end
+        
+      end
+
+    end
+    
+    describe "with a name that doesn't start with an @" do
+      
+      describe "has READABLE" do
+        
+        it "set" do
+          @object = TruffleInteropSpecs::ReadHasIndex.new
+          Truffle::Interop.key_info(@object, :foo).should include(:readable)
+        end
+        
+      end
+      
+      describe "has INSERTABLE and MODIFIABLE" do
+        
+        describe "set" do
+          
+          it "if the object has a index set method" do
+            @object = TruffleInteropSpecs::WriteHasIndexSetAndIndex.new
+            Truffle::Interop.key_info(@object, :foo).should include(:insertable, :modifiable)
+          end
+        
+        end
+        
+      end
+      
+      describe "has REMOVABLE and INTERNAL" do
+        
+        describe "not set" do
+          
+          it "if the object has a index set method" do
+            @object = TruffleInteropSpecs::WriteHasIndexSetAndIndex.new
+            Truffle::Interop.key_info(@object, :foo).should_not include_any_of(:removable, :internal)
+          end
+        
+        end
+        
+      end
+      
+      describe "has INVOCABLE" do
+        
+        it "not set" do
+          @object = TruffleInteropSpecs::ReadHasIndex.new
+          Truffle::Interop.key_info(@object, :foo).should_not include(:invocable)
+        end
+        
+      end
+  
+    end
+    
+  end
+
 
 end

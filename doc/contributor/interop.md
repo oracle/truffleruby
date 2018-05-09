@@ -90,12 +90,16 @@ Returns true only for the `nil` object.
 
 ### `HAS_KEYS`
 
-Returns true.
+Returns true, except for `Array` and `String`.
 
 ### `KEYS`
 
-If the receiver is a Ruby `Hash`, return the hash keys converted to
-strings.
+If the receiver is a Ruby `Hash`, return the hash keys converted to strings.
+
+Otherwise, if there is a method `[]` defined, return an empty array.
+
+(The convention is that every value returned from `KEYS` could be `READ`, which
+we can't guarantee for a user `[]` method, so we don't return any `KEYS`.)
 
 Otherwise, return all method names via `receiver.methods`, and instance
 variable names if the `internal` flag is set.
@@ -105,16 +109,7 @@ integers.
 
 ### `KEY_INFO`
 
-If the receiver is a Ruby `Array`:
-
-- `READABLE` will set if the name is an integer and in bounds.
-
-- `INSERTABLE` and `MODIFIABLE` will be set if the index is an integer, in
-  bounds and the array is not frozen.
-
-- `REMOVABLE`, `INVOCABLE` and `INTERNAL` will not be set.
-
-Otherwise, if the receiver is a Ruby `Hash`:
+If the receiver is a Ruby `Hash`:
 
 - `READABLE` will be set if the key is found.
 
@@ -124,6 +119,15 @@ Otherwise, if the receiver is a Ruby `Hash`:
   not frozen.
 
 - `INVOCABLE` and `INTERNAL` will not be set.
+
+Otherwise, if the receiver is a Ruby `Array`:
+
+- `READABLE` will set if the name is an integer and in bounds.
+
+- `INSERTABLE` and `MODIFIABLE` will be set if the index is an integer, in
+  bounds and the array is not frozen.
+
+- `REMOVABLE`, `INVOCABLE` and `INTERNAL` will not be set.
 
 Otherwise if the name starts with an `@`:
 
@@ -160,8 +164,8 @@ If the receiver is a Ruby `Array` or `Hash`, call `receiver[name/index]`.
 
 Otherwise if the name starts with an `@` it is read as an instance variable.
 
-Otherwise, if the receiver is not a `Proc` or `Method` and there is a method `[]`
-defined on the receiver, call `receiver[name/index]`.
+Otherwise, if there is a method `[]` defined on the receiver, call
+`receiver[name/index]`.
 
 Otherwise, if there is a method defined on the object with the same name, return
 it as a (bound) `Method`.
@@ -406,7 +410,12 @@ reference equality, like `BasicObject#equal?`. For Java interop objects it
 looks at the underlying Java object.
 
 `object.inspect` produces a simple string of the format
-`#<Truffle::Interop::Foreign:system-identity-hash-code>`
+`#<Truffle::Interop::Foreign:system-identity-hash-code>`.
+
+`object.to_s` calls Java's `toString`.
+
+`object.to_str` will try to `UNBOX` the object and return it if it's a `String`,
+or will raise `NoMethodError` if it isn't.
 
 `object.respond_to?(:to_a)`, `respond_to?(:to_ary)` and `respond_to?(:size)`
 sends `HAS_SIZE`.
@@ -418,6 +427,12 @@ sends `HAS_SIZE`.
 `object.respond_to?(:class)` calls `Truffle::Interop.java_class?(object)`.
 
 `object.respond_to?(name)` for other names returns `false`.
+
+`object.respond_to?(:inspect)` is `true`.
+
+`object.respond_to?(:to_s)` is `true`.
+
+`object.respond_to?(:to_str)` is `true` if the object `UNBOXes` to a `String`.
 
 `object.__send__(name, *args)` works in the same way as literal method call on
 the foreign object, including allowing the special-forms listed above (see
@@ -516,6 +531,11 @@ from the Ruby array.
 `Truffle::Interop.meta_object(object)` returns the Truffle meta-object that
 describes the object (unrelated to the metaclass).
 
+`Truffle::Interop.unbox_if_needed(object)` calls `UNBOX` on an object if
+`IS_BOXED` and it's a foreign object.
+
+`Truffle::Interop.to_string(object)` calls the Java `toString` on the object.
+
 ## Notes on method resolution
 
 Method calls on foreign objects are usually translated exactly into foreign
@@ -528,3 +548,9 @@ use it to get the method for `#to_a` on a foreign object, as it is a
 special-form, not a method.
 
 Interop ignores visibility entirely.
+
+## Notes on coercion
+
+Methods such as `Kernel.Integer`, `Kernel.Float`, `Numeric#coerce` will call
+`Truffle::Interop.unbox_if_needed` on objects, in order to unbox any boxed
+foreign objects, before continuing with the normal coercion routine.

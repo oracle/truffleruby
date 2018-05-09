@@ -50,6 +50,58 @@ describe "Truffle::Interop.respond_to?" do
 
   end
   
+  describe "for :to_s" do
+    
+    it "and a Java class returns true" do
+      Truffle::Interop.respond_to?(Truffle::Debug.java_class, :to_s).should be_true
+    end
+    
+    it "and a Java object returns true" do
+      Truffle::Interop.respond_to?(Truffle::Debug.java_object, :to_s).should be_true
+    end
+    
+    it "and a Ruby object returns true" do
+      Truffle::Interop.respond_to?(Object.new, :to_s).should be_true
+    end
+    
+    describe "via a direct call" do
+  
+      it "and a Java array returns true" do
+        Truffle::Interop.java_array(1, 2, 3).respond_to?(:to_s).should be_true
+      end
+  
+    end
+
+  end
+  
+  describe "for :to_str" do
+    
+    it "and a Java class returns false" do
+      Truffle::Interop.respond_to?(Truffle::Debug.java_class, :to_str).should be_false
+    end
+    
+    it "and a Java object returns false" do
+      Truffle::Interop.respond_to?(Truffle::Debug.java_object, :to_str).should be_false
+    end
+    
+    it "and a boxed string returns true" do
+      Truffle::Interop.respond_to?(Truffle::Debug.foreign_string('test'), :to_str).should be_true
+    end
+  
+    it "and a Ruby object returns false" do
+      Truffle::Interop.respond_to?(Object.new, :to_str).should be_false
+    end
+    
+    describe "via a direct call" do
+  
+      it "and a Java array returns false" do
+        Truffle::Interop.java_array(1, 2, 3).respond_to?(:to_str).should be_false
+      end
+  
+    end
+
+  end
+  
   describe "for :class" do
     
     it "and a Java class returns true" do

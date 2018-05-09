@@ -74,7 +74,8 @@ has a method `[]=`, or sets an instance variable if the name starts with `@`.
 
 `Object.keys(hash)` gives the hash keys as strings.
 
-`Object.keys(object)` gives the methods of an object as functions.
+`Object.keys(object)` gives the methods of an object as functions, unless the
+object has a `[]` method, in which case it returns an empty array.
 
 `object(args...)` calls a Ruby `Proc`, `Method`, `UnboundMethod`, etc.
 
