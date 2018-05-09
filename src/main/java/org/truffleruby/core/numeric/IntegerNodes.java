@@ -1076,7 +1076,7 @@ public abstract class IntegerNodes {
             return fixnumOrBignum(Layouts.BIGNUM.getValue(a).or(Layouts.BIGNUM.getValue(b)));
         }
 
-        @Specialization(guards = "!isRubyNumber(b)")
+        @Specialization(guards = "!isRubyInteger(b)")
         public Object bitOrCoerced(Object a, Object b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().PIPE.getSymbol(), b);
@@ -1112,7 +1112,7 @@ public abstract class IntegerNodes {
             return fixnumOrBignum(Layouts.BIGNUM.getValue(a).xor(Layouts.BIGNUM.getValue(b)));
         }
 
-        @Specialization(guards = "!isRubyNumber(b)")
+        @Specialization(guards = "!isRubyInteger(b)")
         public Object bitXOrCoerced(Object a, Object b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().CIRCUMFLEX.getSymbol(), b);

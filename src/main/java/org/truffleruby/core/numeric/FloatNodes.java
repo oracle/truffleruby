@@ -254,7 +254,7 @@ public abstract class FloatNodes {
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
-        public Object modCoerced(double a, DynamicObject b,
+        public Object modCoerced(double a, Object b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(null, a, "redo_coerced", coreStrings().MODULO.getSymbol(), b);
         }
@@ -379,7 +379,7 @@ public abstract class FloatNodes {
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
-        public Object equal(VirtualFrame frame, double a, DynamicObject b) {
+        public Object equal(VirtualFrame frame, double a, Object b) {
             if (fallbackCallNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 fallbackCallNode = insert(CallDispatchHeadNode.createOnSelf());

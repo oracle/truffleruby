@@ -16,8 +16,6 @@ New features:
 
 * `Java.import name` imports Java classes as top-level constants.
 
-* Big `Integer` values are now `IS_BOXED` and `UNBOX` to a `double` value.
-
 * Coercion of foreign numbers to Ruby numbers now works.
 
 * `to_s` works on all foreign objects and calls the Java `toString`.
