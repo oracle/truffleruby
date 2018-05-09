@@ -30,7 +30,7 @@ public class ArrayStrategyTest {
     public void testGeneraliseIntToObjectGeneralizationArrayStrategyRHS() {
         ArrayStrategy intStrategy = ArrayStrategy.ofStore(new int[1]);
         ArrayStrategy objectStrategy = ArrayStrategy.ofStore(new Object[1]);
-        ArrayStrategy longStrategy = ArrayStrategy.ofStore(new int[1]);
+        ArrayStrategy longStrategy = ArrayStrategy.ofStore(new long[1]);
         ArrayStrategy intToObjectStrategy = intStrategy.generalize(objectStrategy);
         ArrayStrategy generaliedStrategy = longStrategy.generalize(intToObjectStrategy);
         assertEquals(objectStrategy, generaliedStrategy);
