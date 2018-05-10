@@ -12,6 +12,8 @@ package org.truffleruby.core.numeric;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -70,7 +72,6 @@ public class GeneralDivModNode extends RubyBaseNode {
      * and contributors there.
      */
 
-    @TruffleBoundary
     private DynamicObject divMod(long a, long b) {
         if (b == 0) {
             bZeroProfile.enter();
@@ -99,17 +100,18 @@ public class GeneralDivModNode extends RubyBaseNode {
             integerDiv = div;
         }
 
-        if (integerDiv instanceof Long && ((long) integerDiv) >= Integer.MIN_VALUE && ((long) integerDiv) <= Integer.MAX_VALUE && mod >= Integer.MIN_VALUE && mod <= Integer.MAX_VALUE) {
+        if (integerDiv instanceof Long && CoreLibrary.fitsIntoInteger((long) integerDiv) && CoreLibrary.fitsIntoInteger(mod)) {
             useFixnumPairProfile.enter();
             return createArray(new int[] { (int) (long) integerDiv, (int) mod }, 2);
         } else if (integerDiv instanceof Long) {
             useObjectPairProfile.enter();
-            return createArray(new Object[] { integerDiv, mod }, 2);
+            return createArray(new long[]{ (long) integerDiv, mod }, 2);
         } else {
             useObjectPairProfile.enter();
             return createArray(new Object[] {
-                        fixnumOrBignumQuotient.fixnumOrBignum((BigInteger) integerDiv),
-                        mod}, 2);
+                    fixnumOrBignumQuotient.fixnumOrBignum((BigInteger) integerDiv),
+                    mod
+            }, 2);
         }
     }
 

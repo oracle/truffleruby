@@ -125,7 +125,7 @@ public class RubyContext {
     private final PathToRopeCache pathToRopeCache = new PathToRopeCache(this);
     @CompilationFinal private TruffleNFIPlatform truffleNFIPlatform;
     private final CoreLibrary coreLibrary;
-    private CoreMethods coreMethods;
+    @CompilationFinal private CoreMethods coreMethods;
     private final ThreadManager threadManager;
     private final LexicalScope rootLexicalScope;
     private final CoverageManager coverageManager;
