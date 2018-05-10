@@ -71,8 +71,8 @@ if Truffle::Boot.ruby_home
           # chruby stores gem in ~/.gem/<ruby>/<version>
           bad_gem_home ||= gem_home.include?('.gem') && !gem_home.include?('.gem/truffleruby')
 
-          warn "[ruby] WARN A nonstandard GEM_HOME is set #{gem_home}" if $VERBOSE || bad_gem_home
           if bad_gem_home
+            warn "[ruby] WARN A nonstandard GEM_HOME is set #{gem_home}"
             warn "[ruby] WARN The bad GEM_HOME may come from a ruby manager, make sure you've called one of: " +
                      '`rvm use system`, `rbenv system`, or `chruby system` to clear the environment.'
           end
