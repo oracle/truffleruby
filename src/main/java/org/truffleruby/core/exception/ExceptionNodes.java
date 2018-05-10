@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2017 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2018 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -58,6 +58,26 @@ public abstract class ExceptionNodes {
         public DynamicObject initialize(DynamicObject exception, Object message) {
             Layouts.EXCEPTION.setMessage(exception, message);
             return exception;
+        }
+
+    }
+
+    @CoreMethod(names = "initialize_copy", required = 1)
+    public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "self == from")
+        public Object initializeCopySelfIsSameAsFrom(DynamicObject self, DynamicObject from) {
+            return self;
+        }
+
+
+        @Specialization(guards = { "self != from", "isRubyException(from)" })
+        public Object initializeCopy(DynamicObject self, DynamicObject from) {
+            Layouts.EXCEPTION.setBacktrace(self, Layouts.EXCEPTION.getBacktrace(from));
+            Layouts.EXCEPTION.setFormatter(self, Layouts.EXCEPTION.getFormatter(from));
+            Layouts.EXCEPTION.setMessage(self, Layouts.EXCEPTION.getMessage(from));
+
+            return self;
         }
 
     }
