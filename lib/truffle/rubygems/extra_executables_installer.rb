@@ -5,8 +5,8 @@ module Gem
     def install_hooks_for(extra_bin_dirs)
       install_hook   = -> tool { hook(extra_bin_dirs, tool, :generate_bin) }
       uninstall_hook = -> tool { hook(extra_bin_dirs, tool, :remove_executables, tool.spec) }
-      Gem.post_install_hooks.push(install_hook)
-      Gem.pre_uninstall_hooks.push(uninstall_hook)
+      Gem.post_install(&install_hook)
+      Gem.pre_uninstall(&uninstall_hook)
       [install_hook, uninstall_hook]
     end
 
