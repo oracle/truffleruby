@@ -1374,3 +1374,8 @@ unless RbConfig::CONFIG['extra_bindirs'].empty?
   require 'rubygems/extra_executables_installer'
   Gem::ExtraExecutablesInstaller.install_hooks_for RbConfig::CONFIG['extra_bindirs']
 end
+
+require 'rubygems/gem_home_dirs_marker'
+Gem::GemHomeDirsMarker.verify(Gem.path)
+Gem::GemHomeDirsMarker.install_hook
+
