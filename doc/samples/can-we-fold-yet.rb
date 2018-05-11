@@ -10,7 +10,7 @@
 
 require 'readline'
 
-unless Truffle.graal?
+unless TruffleRuby.graal?
   puts 'You need Graal to run this'
   exit
 end

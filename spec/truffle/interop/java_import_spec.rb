@@ -8,7 +8,7 @@
 
 require_relative '../../ruby/spec_helper'
 
-guard -> { !Truffle.native? } do
+guard -> { !TruffleRuby.native? } do
   describe "Java.import" do
 
     it "imports a class to the top-level" do

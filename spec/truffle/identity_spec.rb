@@ -61,8 +61,8 @@ describe "Identifying features such as" do
     RbConfig::CONFIG['RUBY_BASE_NAME'].should == 'ruby'
   end
 
-  it 'Truffle.revision matches /\A\h+\z/' do
-    Truffle.revision.should =~ /\A\h+\z/
+  it 'TruffleRuby.revision matches /\A\h+\z/' do
+    TruffleRuby.revision.should =~ /\A\h+\z/
   end
 
   describe "the Rubinius module" do

@@ -1,6 +1,6 @@
 class ApplicationController < ActionController::Base
   PLATFORM = if defined? Truffle
-               Truffle.graal? ? :graal : :truffle
+               TruffleRuby.graal? ? :graal : :truffle
              else
                :jruby
              end

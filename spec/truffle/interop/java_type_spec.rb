@@ -9,7 +9,7 @@
 
 require_relative '../../ruby/spec_helper'
 
-guard -> { !Truffle.native? } do
+guard -> { !TruffleRuby.native? } do
   describe "Truffle::Interop.java_type" do
 
     it "returns a Java class for a known primitive name" do

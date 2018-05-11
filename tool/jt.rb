@@ -1753,7 +1753,7 @@ EOS
     end
 
     puts "Running with Graal"
-    run_ruby "--graal", "-e", "p Truffle.graal?"
+    run_ruby "--graal", "-e", "p TruffleRuby.graal?"
 
     puts
     puts "To run TruffleRuby with Graal, use:"

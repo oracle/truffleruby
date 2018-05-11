@@ -8,10 +8,10 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "Truffle" do
+describe "TruffleRuby" do
 
   it "contains no other public methods" do
-    (Truffle.methods - Module.new.methods).sort.should == %i{
+    (TruffleRuby.methods - Module.new.methods).sort.should == %i{
       full_memory_barrier graal? native? revision sulong?
     }.sort
   end

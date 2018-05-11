@@ -8,7 +8,7 @@
 
 require_relative '../../ruby/spec_helper'
 
-guard -> { Truffle.native? } do
+guard -> { TruffleRuby.native? } do
   describe "Java" do
     
     it "is not defined" do
@@ -18,7 +18,7 @@ guard -> { Truffle.native? } do
   end
 end
 
-guard -> { !Truffle.native? } do
+guard -> { !TruffleRuby.native? } do
   describe "Java" do
     
     it "is defined" do

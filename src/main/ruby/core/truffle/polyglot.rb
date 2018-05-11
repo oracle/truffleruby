@@ -30,7 +30,7 @@ module Polyglot
 
 end
 
-unless Truffle.native?
+unless TruffleRuby.native?
   
   module Java
 

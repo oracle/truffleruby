@@ -56,7 +56,7 @@ describe "The launcher" do
     $?.success?.should == true
   end
 
-  guard -> { !Truffle.native? } do
+  guard -> { !TruffleRuby.native? } do
     it "prints the full java command with -J-cmd" do
       should_print_full_java_command "-J-cmd --version"
     end
@@ -80,7 +80,7 @@ describe "The launcher" do
 
   it "preserve spaces in options" do
     out = ruby_exe("print Truffle::System.get_java_property('foo')",
-                   options: (Truffle.native? ? '--native.' : '-J-') + 'Dfoo="value with spaces"')
+                   options: (TruffleRuby.native? ? '--native.' : '-J-') + 'Dfoo="value with spaces"')
     $?.success?.should == true
     out.should == "value with spaces"
   end
@@ -97,7 +97,7 @@ describe "The launcher" do
     out.should == "true\n"
   end
 
-  guard -> { !Truffle.native? } do
+  guard -> { !TruffleRuby.native? } do
     it "takes options from system properties set in JAVA_OPTS" do
       out = ruby_exe("puts $VERBOSE", env: { "JAVA_OPTS" => "-Dpolyglot.ruby.verbosity=true" })
       $?.success?.should == true
@@ -117,7 +117,7 @@ describe "The launcher" do
     end
   end
 
-  guard -> { Truffle.native? } do
+  guard -> { TruffleRuby.native? } do
     it "takes options from system properties set on the command line using --native" do
       out = ruby_exe("puts $VERBOSE", options: "--native.Dpolyglot.ruby.verbosity=true")
       $?.success?.should == true
@@ -143,7 +143,7 @@ describe "The launcher" do
     out.should == "true\n"
   end
 
-  guard -> { !Truffle.native? } do
+  guard -> { !TruffleRuby.native? } do
     it "allows -cp in JAVA_OPTS" do
       out = ruby_exe("puts 14", options: "-J-cmd", env: { "JAVA_OPTS" => "-cp does-not-exist.jar" })
       $?.success?.should == true
@@ -241,7 +241,7 @@ describe "The launcher" do
     out.should include("--ruby.load_paths=")
   end
 
-  guard -> { Truffle.sulong? } do
+  guard -> { TruffleRuby.sulong? } do
     it "prints help:languages containing llvm language options" do
       out = ruby_exe(nil, options: "--help:languages", args: "2>&1")
       $?.success?.should == true

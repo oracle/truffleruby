@@ -44,6 +44,10 @@ Changes:
 
 * `String` now returns `false` for `HAS_KEYS`.
 
+* The supported additional functionality module has been renamed from `Truffle`
+  to `TruffleRuby`. Anything not documented in
+  `doc/user/truffleruby-additions.md` should not be used.
+
 Bug fixes:
 
 * TruffleRuby on SubstrateVM now correctly determines the system timezone.
