@@ -29,7 +29,7 @@ TruffleReport defines these constants for identification:
 
 Additionally, TruffleRuby defines
 
-- `Truffle.revision` which is the Git commit hash
+- `TruffleRuby.revision` which is the Git commit hash
 
 ## Features entirely missing
 

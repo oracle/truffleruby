@@ -11,7 +11,7 @@ module Truffle::System
   # Used by old versions of concurrent-ruby
 
   def self.full_memory_barrier
-    Truffle.full_memory_barrier
+    TruffleRuby.full_memory_barrier
   end
 
 end

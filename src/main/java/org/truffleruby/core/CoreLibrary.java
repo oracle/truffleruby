@@ -37,7 +37,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
-import org.truffleruby.extra.TruffleNodes;
+import org.truffleruby.extra.TruffleRubyNodes;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -487,6 +487,7 @@ public class CoreLibrary {
         encodingConverterClass = defineClass(encodingClass, objectClass, "Converter");
         Layouts.CLASS.setInstanceFactoryUnsafe(encodingConverterClass, Layouts.ENCODING_CONVERTER.createEncodingConverterShape(encodingConverterClass, encodingConverterClass));
 
+        defineModule("TruffleRuby");
         truffleModule = defineModule("Truffle");
         truffleInternalModule = defineModule(truffleModule, "Internal");
         graalErrorClass = defineClass(truffleModule, exceptionClass, "GraalError");
@@ -671,7 +672,7 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PLATFORM", frozenUSASCIIString(RubyLanguage.PLATFORM));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_RELEASE_DATE", frozenUSASCIIString(BuildInformationImpl.INSTANCE.getCompileDate()));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_DESCRIPTION", frozenUSASCIIString(
-                TruffleRuby.getVersionString(TruffleNodes.GraalNode.isGraal(), TruffleOptions.AOT)));
+                TruffleRuby.getVersionString(TruffleRubyNodes.GraalNode.isGraal(), TruffleOptions.AOT)));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_COPYRIGHT", frozenUSASCIIString(
                 TruffleRuby.RUBY_COPYRIGHT));
 

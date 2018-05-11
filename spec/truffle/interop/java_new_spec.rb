@@ -8,7 +8,7 @@
 
 require_relative '../../ruby/spec_helper'
 
-guard -> { !Truffle.native? } do
+guard -> { !TruffleRuby.native? } do
   describe "java_class.new" do
 
     it "creates basic objects" do

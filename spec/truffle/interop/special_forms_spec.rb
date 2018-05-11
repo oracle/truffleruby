@@ -55,7 +55,7 @@ describe "Interop special form" do
     @object.log.should include("KEYS")
   end
 
-  guard -> { !Truffle.native? } do
+  guard -> { !TruffleRuby.native? } do
     it "#class sends READ('class') on Java class objects" do
       Java.type('java.math.BigInteger').class.getName.should == 'java.math.BigInteger'
     end

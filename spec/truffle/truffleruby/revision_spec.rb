@@ -8,10 +8,10 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "Truffle.sulong?" do
+describe "TruffleRuby.revision" do
   
-  it "returns a Boolean value" do
-    Truffle.sulong?.should be_true_or_false
+  it "returns a hexadecimal number" do
+    TruffleRuby.revision.should =~ /\h+/
   end
   
 end

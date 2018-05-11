@@ -8,7 +8,7 @@
 
 require_relative '../../ruby/spec_helper'
 
-guard -> { !Truffle.native? } do
+guard -> { !TruffleRuby.native? } do
   describe "java_object.getClass" do
 
     it "produces the same class as java_type for objects" do

@@ -19,7 +19,7 @@ $ bin/truffleruby \
     -J-XX:+EnableJVMCI \
     -J--module-path=$GRAAL_REPO/sdk/mxbuild/modules/org.graalvm.graal_sdk.jar:$GRAAL_REPO/truffle/mxbuild/modules/com.oracle.truffle.truffle_api.jar \
     -J--upgrade-module-path=$GRAAL_REPO/compiler/mxbuild/modules/jdk.internal.vm.compiler.jar \
-    -e 'p Truffle.graal?'
+    -e 'p TruffleRuby.graal?'
 ```
 
 This should print `true` to say that compilation with Graal is enabled.

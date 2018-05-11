@@ -8,10 +8,10 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "Truffle.revision" do
+describe "TruffleRuby.full_memory_barrier" do
   
-  it "returns a hexadecimal number" do
-    Truffle.revision.should =~ /\h+/
+  it "can be called" do
+    TruffleRuby.full_memory_barrier.should be_nil
   end
   
 end

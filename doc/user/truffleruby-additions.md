@@ -33,21 +33,21 @@ standard `RUBY_ENGINE_VERSION` constant.
 ## Truffle methods
 
 TruffleRuby provides these non-standard methods that provide additional
-functionality.
+functionality in the `TruffleRuby` module.
 
-`Truffle.graal?` reports if the Graal compiler is available and will be
+`TruffleRuby.graal?` reports if the Graal compiler is available and will be
 used.
 
-`Truffle.native?` reports if TruffleRuby has been ahead-of-time compiled.
+`TruffleRuby.native?` reports if TruffleRuby has been ahead-of-time compiled.
 In practice this implies that the SubstrateVM is being used.
 
-`Truffle.sulong?` reports if TruffleRuby has the Sulong interpreter for C
+`TruffleRuby.sulong?` reports if TruffleRuby has the Sulong interpreter for C
 extensions available.
 
-`Truffle.revision` reports the source control revision used to build
+`TruffleRuby.revision` reports the source control revision used to build
 TruffleRuby.
 
-`Truffle.full_memory_barrier` ensures lack of reordering of loads or stores
+`TruffleRuby.full_memory_barrier` ensures lack of reordering of loads or stores
 before the barrier with loads or stores after the barrier.
 
 ## Polyglot programming

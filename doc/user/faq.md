@@ -85,7 +85,7 @@ chris.seaton@oracle.com.
 
 ### How do I know if I’m using a VM that has Graal?
 
-`Truffle.graal?` will tell you if you are also running with the Graal
+`TruffleRuby.graal?` will tell you if you are also running with the Graal
 dynamic compiler.
 
 ### How can I see that Truffle and Graal are working?

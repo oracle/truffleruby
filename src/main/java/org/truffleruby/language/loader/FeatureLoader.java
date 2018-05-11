@@ -30,7 +30,7 @@ import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.support.IONodes.GetThreadBufferNode;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.extra.TruffleNodes;
+import org.truffleruby.extra.TruffleRubyNodes;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
@@ -230,7 +230,7 @@ public class FeatureLoader {
                 return;
             }
 
-            if (!TruffleNodes.SulongNode.isSulongAvailable(context)) {
+            if (!TruffleRubyNodes.SulongNode.isSulongAvailable(context)) {
                 throw new RaiseException(context, context.getCoreExceptions().loadError("Sulong is required to support C extensions, and it doesn't appear to be available", feature, null));
             }
 

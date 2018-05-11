@@ -8,7 +8,7 @@
 
 require_relative '../../ruby/spec_helper'
 
-guard -> { !Truffle.native? } do
+guard -> { !TruffleRuby.native? } do
   describe "Truffle::Interop.from_java_array" do
 
     it "converts a byte[]" do

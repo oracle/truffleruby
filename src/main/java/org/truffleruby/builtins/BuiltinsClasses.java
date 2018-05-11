@@ -126,10 +126,10 @@ import org.truffleruby.debug.TruffleDebugNodesBuiltins;
 import org.truffleruby.debug.TruffleDebugNodesFactory;
 import org.truffleruby.extra.TruffleGraalNodesBuiltins;
 import org.truffleruby.extra.TruffleGraalNodesFactory;
-import org.truffleruby.extra.TruffleNodesBuiltins;
-import org.truffleruby.extra.TruffleNodesFactory;
 import org.truffleruby.extra.TrufflePosixNodesBuiltins;
 import org.truffleruby.extra.TrufflePosixNodesFactory;
+import org.truffleruby.extra.TruffleRubyNodesBuiltins;
+import org.truffleruby.extra.TruffleRubyNodesFactory;
 import org.truffleruby.extra.ffi.PointerNodesBuiltins;
 import org.truffleruby.extra.ffi.PointerNodesFactory;
 import org.truffleruby.gem.bcrypt.BCryptNodesBuiltins;
@@ -225,12 +225,12 @@ public abstract class BuiltinsClasses {
         TruffleBootNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleDebugNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleGCNodesBuiltins.setup(coreManager, primitiveManager);
-        TruffleNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleGraalNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleKernelNodesBuiltins.setup(coreManager, primitiveManager);
         TrufflePosixNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleRegexpNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleRopesNodesBuiltins.setup(coreManager, primitiveManager);
+        TruffleRubyNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleStringNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleSystemNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleThreadNodesBuiltins.setup(coreManager, primitiveManager);
@@ -302,12 +302,12 @@ public abstract class BuiltinsClasses {
             TruffleBootNodesFactory.getFactories(),
             TruffleDebugNodesFactory.getFactories(),
             TruffleGCNodesFactory.getFactories(),
-            TruffleNodesFactory.getFactories(),
             TruffleGraalNodesFactory.getFactories(),
             TruffleKernelNodesFactory.getFactories(),
             TrufflePosixNodesFactory.getFactories(),
             TruffleRegexpNodesFactory.getFactories(),
             TruffleRopesNodesFactory.getFactories(),
+            TruffleRubyNodesFactory.getFactories(),
             TruffleStringNodesFactory.getFactories(),
             TruffleSystemNodesFactory.getFactories(),
             TruffleThreadNodesFactory.getFactories(),

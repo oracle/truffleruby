@@ -27,8 +27,8 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.shared.BuildInformationImpl;
 
-@CoreClass("Truffle")
-public abstract class TruffleNodes {
+@CoreClass("TruffleRuby")
+public abstract class TruffleRubyNodes {
 
     @CoreMethod(names = "graal?", onSingleton = true)
     public abstract static class GraalNode extends CoreMethodArrayArgumentsNode {
