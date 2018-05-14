@@ -228,9 +228,13 @@ describe "The launcher" do
   it "prints help containing runtime options" do
     out = ruby_exe(nil, options: "--help", args: "2>&1")
     $?.success?.should == true
-    out.should include("--polyglot")
     out.should include("--native")
-    out.should include("--jvm")
+
+    if Truffle::System.get_java_property 'org.graalvm.home'
+      # These options are only shown in GraalVM, as they are not available in a standalone distribution
+      out.should include("--polyglot")
+      out.should include("--jvm")
+    end
   end
 
   it "prints help:languages containing ruby language options" do
