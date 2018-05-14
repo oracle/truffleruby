@@ -425,8 +425,8 @@ suite = {
                     "file:CHANGELOG.md",
                     "file:mx.truffleruby/GraalCE_Ruby_license_3rd_party_license.txt",
                     "file:README.md",
+                    "file:mx.truffleruby/native-image.properties",
                 ],
-                "native-image.properties" : ["file:mx.truffleruby/graalvm.properties"],
                 "bin/" : [
                     "file:bin/gem",
                     "file:bin/irb",
