@@ -10,6 +10,7 @@
 package org.truffleruby;
 
 import com.oracle.truffle.api.debug.Breakpoint;
+import com.oracle.truffle.api.debug.DebugException;
 import com.oracle.truffle.api.debug.DebugStackFrame;
 import com.oracle.truffle.api.debug.DebugValue;
 import com.oracle.truffle.api.debug.Debugger;
@@ -21,7 +22,6 @@ import org.graalvm.polyglot.Instrument;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.junit.Ignore;
-import org.truffleruby.RubyTest;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.junit.After;
 import org.junit.Assert;
@@ -180,6 +180,40 @@ public class RubyDebugTest {
         int n = value.asInt();
         assertEquals("Factorial computed OK", 2, n);
         assertExecutedOK("Stepping went OK");
+    }
+
+    @Test
+    public void testEvalThrow() throws Throwable {
+        Source source = getSource("src/test/ruby/raise_ex.rb");
+        run.addLast(() -> {
+            assertNull(suspendedEvent);
+            assertNotNull(debuggerSession);
+            debuggerSession.suspendNextExecution();
+        });
+        run.addLast(() -> {
+            assertNotNull(suspendedEvent);
+            int currentLine = suspendedEvent.getSourceSection().getStartLine();
+            assertEquals(11, currentLine);
+            run.removeFirst().run();
+        });
+        stepOver(2);
+        assertLocation(21, "shortArg 10");
+        run.addLast(() -> {
+            assertNotNull(suspendedEvent);
+            try {
+                suspendedEvent.getTopStackFrame().eval("shortArg(90000)");
+                Assert.fail("DebugException is expected.");
+            } catch (DebugException dex) {
+                assertNull(dex.getCatchLocation());
+                Assert.assertFalse(dex.isInternalError());
+                dex.getThrowLocation();
+            }
+            run.removeFirst().run();
+        });
+        continueExecution();
+        performWork();
+        context.eval(source);
+        assertExecutedOK("OK");
     }
 
     private void performWork() {
