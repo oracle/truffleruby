@@ -84,7 +84,8 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
         vals.add(createValueConstructor(context, "{ name: 'test' }", OBJECT));
         vals.add(createValueConstructor(context, "Struct.new(:foo, :bar).new(1, 'two')", OBJECT));
         vals.add(createValueConstructor(context, "Object.new.tap { |obj| obj.instance_variable_set(:@name, 'test') }", OBJECT));
-        vals.add(createValueConstructor(context, "proc { }", intersection(OBJECT, executable(ANY, false))));
+        vals.add(createValueConstructor(context, "proc { }", intersection(OBJECT, executable(ANY, true))));
+        vals.add(createValueConstructor(context, "lambda { }", intersection(OBJECT, executable(ANY, false))));
         return Collections.unmodifiableList(vals);
     }
 
