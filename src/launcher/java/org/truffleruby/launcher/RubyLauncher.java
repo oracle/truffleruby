@@ -260,8 +260,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     private String setRubyLauncher() {
         if (config.getOption(OptionsCatalog.LAUNCHER).isEmpty()) {
-            final String launcher = (String) Compiler.
-                    command(new Object[]{ "com.oracle.svm.core.posix.GetExecutableName" });
+            final String launcher = (String) Compiler.command(new Object[]{ "com.oracle.svm.core.posix.GetExecutableName" });
             config.setOption(OptionsCatalog.LAUNCHER, launcher);
             return launcher;
         }
@@ -270,9 +269,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     private static void printPreRunInformation(CommandLineOptions config) {
         if (config.isIrbInsteadOfInputUsed()) {
-            RubyLogger.LOGGER.warning(
-                    "by default truffleruby drops into IRB instead of reading stdin as MRI - " +
-                            "use '-' to explicitly read from stdin");
+            RubyLogger.LOGGER.warning("by default truffleruby drops into IRB instead of reading stdin as MRI - use '-' to explicitly read from stdin");
         }
 
         if (config.getOption(OptionsCatalog.SHOW_VERSION)) {
