@@ -50,6 +50,14 @@ public class Backtrace {
         return activations;
     }
 
+    public int getActivationCount() {
+        return activations.length;
+    }
+
+    public Activation getActivation(int index) {
+        return activations[index];
+    }
+
     public int getOmitted() {
         return omitted;
     }

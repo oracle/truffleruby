@@ -302,8 +302,7 @@ public abstract class KernelNodes {
             // methods.
             final String[] descriptions = ExceptionOperations.format(getContext(), null, backtrace);
 
-            final Activation[] activations = backtrace.getActivations();
-            int locationsCount = activations.length;
+            int locationsCount = backtrace.getActivationCount();
 
             if (length != UNLIMITED && length < locationsCount) {
                 locationsCount = length;
@@ -312,10 +311,10 @@ public abstract class KernelNodes {
             final Object[] locations = new Object[locationsCount];
 
             for (int n = 0; n < locationsCount; n++) {
-                Activation activation = activations[n];
                 locations[n] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(
                         coreLibrary().getThreadBacktraceLocationFactory(),
-                        activation,
+                        backtrace,
+                        n,
                         descriptions[n]);
             }
 
