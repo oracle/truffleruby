@@ -8,7 +8,7 @@
 
 def shortArg(n)
   if n > 65535
-    raise ArgumentError, "Number too big", caller # Using a custom backtrace
+    raise ArgumentError, 'Number too big', caller # Using a custom backtrace
   end
 end
 
