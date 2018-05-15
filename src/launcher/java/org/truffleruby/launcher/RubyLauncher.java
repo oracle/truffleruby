@@ -112,6 +112,20 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 if (launcher != null) {
                     polyglotOptions.put(OptionsCatalog.LAUNCHER.getName(), launcher);
                 }
+
+                // In a native standalone distribution outside of GraalVM, we need to give the path to libsulong
+                if (!isGraalVMAvailable() && isSulongAvailable()) {
+                    final String rubyHome = new File(launcher).getParentFile().getParent();
+                    final String libSulongPath = rubyHome + "/lib/cext/sulong-libs";
+
+                    String libraryPath = System.getProperty("polyglot.llvm.libraryPath");
+                    if (libraryPath == null || libraryPath.isEmpty()) {
+                        libraryPath = libSulongPath;
+                    } else {
+                        libraryPath = libraryPath + ":" + libSulongPath;
+                    }
+                    polyglotOptions.put("llvm.libraryPath", libraryPath);
+                }
             }
 
         } catch (CommandLineException commandLineException) {
@@ -229,21 +243,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         builder.allowHostAccess(true);
 
         builder.option(OptionsCatalog.EMBEDDED.getName(), Boolean.FALSE.toString());
-
-        // In a native standalone distribution outside of GraalVM, we need to give the path to libsulong
-        if (isAOT() && !isGraalVMAvailable() && isSulongAvailable()) {
-            final String launcher = config.getOption(OptionsCatalog.LAUNCHER);
-            final String rubyHome = new File(launcher).getParentFile().getParent();
-            final String libSulongPath = rubyHome + "/lib/cext/sulong-libs";
-
-            String libraryPath = System.getProperty("polyglot.llvm.libraryPath");
-            if (libraryPath == null || libraryPath.isEmpty()) {
-                libraryPath = libSulongPath;
-            } else {
-                libraryPath = libraryPath + ":" + libSulongPath;
-            }
-            builder.option("llvm.libraryPath", libraryPath);
-        }
 
         builder.arguments(TruffleRuby.LANGUAGE_ID, config.getArguments());
 
