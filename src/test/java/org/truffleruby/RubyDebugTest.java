@@ -184,7 +184,7 @@ public class RubyDebugTest {
 
     @Test
     public void testEvalThrow() throws Throwable {
-        Source source = getSource("src/test/ruby/raiseEx.rb");
+        Source source = getSource("src/test/ruby/raise_ex.rb");
         run.addLast(() -> {
             assertNull(suspendedEvent);
             assertNotNull(debuggerSession);
