@@ -1780,11 +1780,7 @@ EOS
          java_home: java_home
 
       languages = %w[--language:ruby]
-
-      if sulong
-        languages.unshift '--language:llvm'
-        options.unshift '-Dtruffleruby.native.libsulong_dir=lib/cext/sulong-libs'
-      end
+      languages.unshift '--language:llvm' if sulong
       if tools
         languages.push '--tool:chromeinspector', '--tool:profiler'
       end

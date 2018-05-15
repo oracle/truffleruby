@@ -259,7 +259,7 @@ suite = {
 
         # Copy the files from SULONG_LIBS to lib/cext/sulong-libs.
         # Used by native images, which need a relative path from the Ruby home
-        # to these libraries to pass to Sulong so it can find them.
+        # to these libraries to pass to Sulong so it can find them outside GraalVM.
         "truffleruby-sulong-libs": {
             "class": "TruffleRubySulongLibsProject",
             "outputDir": "lib/cext/sulong-libs",

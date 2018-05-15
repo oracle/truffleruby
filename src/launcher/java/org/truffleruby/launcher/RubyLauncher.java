@@ -36,9 +36,6 @@ import java.util.Set;
 
 public class RubyLauncher extends AbstractLanguageLauncher {
 
-    // Properties set directly on the java command-line with -D for image building
-    private static final String LIBSULONG_DIR = isAOT() ? System.getProperty("truffleruby.native.libsulong_dir") : null;
-
     private CommandLineOptions config;
 
     public static void main(String[] args) {
@@ -48,6 +45,12 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     static boolean isGraal() {
         try (Engine engine = Engine.create()) {
             return engine.getImplementationName().contains("Graal");
+        }
+    }
+
+    static boolean isSulongAvailable() {
+        try (Engine engine = Engine.create()) {
+            return engine.getLanguages().containsKey("llvm");
         }
     }
 
@@ -186,7 +189,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         throw abortInvalidArgument(argument, "truffleruby: invalid option " + description + "  (Use --help for usage instructions.)");
     }
 
-    private static int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {
+    private int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {
         if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.NONE) {
             return 0;
         }
@@ -221,17 +224,17 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         }
     }
 
-    private static Context createContext(Context.Builder builder, CommandLineOptions config) {
+    private Context createContext(Context.Builder builder, CommandLineOptions config) {
         builder.allowCreateThread(true);
         builder.allowHostAccess(true);
 
         builder.option(OptionsCatalog.EMBEDDED.getName(), Boolean.FALSE.toString());
 
-        // When building a native image outside of GraalVM, we need to give the path to libsulong
-        if (LIBSULONG_DIR != null) {
+        // In a native standalone distribution outside of GraalVM, we need to give the path to libsulong
+        if (isAOT() && !isGraalVMAvailable() && isSulongAvailable()) {
             final String launcher = config.getOption(OptionsCatalog.LAUNCHER);
             final String rubyHome = new File(launcher).getParentFile().getParent();
-            final String libSulongPath = rubyHome + File.separator + LIBSULONG_DIR;
+            final String libSulongPath = rubyHome + "/lib/cext/sulong-libs";
 
             String libraryPath = System.getProperty("polyglot.llvm.libraryPath");
             if (libraryPath == null || libraryPath.isEmpty()) {
