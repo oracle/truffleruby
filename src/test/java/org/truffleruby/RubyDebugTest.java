@@ -193,11 +193,11 @@ public class RubyDebugTest {
         run.addLast(() -> {
             assertNotNull(suspendedEvent);
             int currentLine = suspendedEvent.getSourceSection().getStartLine();
-            assertEquals(1, currentLine);
+            assertEquals(11, currentLine);
             run.removeFirst().run();
         });
         stepOver(2);
-        assertLocation(9, "shortArg(10)");
+        assertLocation(21, "shortArg 10");
         run.addLast(() -> {
             assertNotNull(suspendedEvent);
             try {
