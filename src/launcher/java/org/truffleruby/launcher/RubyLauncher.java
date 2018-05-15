@@ -239,9 +239,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     private Context createContext(Context.Builder builder, CommandLineOptions config) {
-        builder.allowCreateThread(true);
-        builder.allowHostAccess(true);
-
         builder.option(OptionsCatalog.EMBEDDED.getName(), Boolean.FALSE.toString());
 
         builder.arguments(TruffleRuby.LANGUAGE_ID, config.getArguments());
