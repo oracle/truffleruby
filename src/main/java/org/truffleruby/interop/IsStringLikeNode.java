@@ -24,17 +24,17 @@ public abstract class IsStringLikeNode extends RubyNode {
     public abstract boolean executeIsStringLike(Object value);
 
     @Specialization(guards = "isRubyString(value)")
-    boolean isRubyString(DynamicObject value) {
+    boolean isRubyStringStringLike(DynamicObject value) {
         return true;
     }
 
     @Specialization(guards = "isRubySymbol(value)")
-    public boolean isRubySymbol(DynamicObject value) {
+    public boolean isRubySymbolStringLike(DynamicObject value) {
         return true;
     }
 
     @Specialization
-    public boolean isJavaString(String value) {
+    public boolean isJavaStringStringLike(String value) {
         return true;
     }
 

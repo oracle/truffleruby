@@ -17,7 +17,6 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.language.RubyNode;
 
@@ -58,10 +57,6 @@ abstract class ForeignReadStringCachingHelperNode extends RubyNode {
 
     protected boolean isIVar(String name) {
         return !name.isEmpty() && name.charAt(0) == '@';
-    }
-
-    protected boolean inRange(DynamicObject string, int index) {
-        return index >= 0 && index < Layouts.STRING.getRope(string).byteLength();
     }
 
     protected ForeignReadStringCachedHelperNode createNextHelper() {
