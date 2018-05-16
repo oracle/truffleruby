@@ -1033,7 +1033,7 @@ VALUE rb_str_new(const char *string, long length) {
     // - unmanaged pointer, foreign object, foreign object plus offset, etc.
     // TODO CS 24-Oct-17 work with Sulong to make this copying not needed
 
-    const char* copy = malloc(length);
+    char* copy = malloc(length);
     memcpy(copy, string, length);
     VALUE ruby_string = (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_cstr", copy, length);
     free(copy);
