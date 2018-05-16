@@ -9,8 +9,13 @@ ROOT := $(realpath ../../..)
 CEXTS_DIR := $(ROOT)/lib/mri
 RUBY := $(ROOT)/bin/truffleruby
 
+CC := clang
+CFLAGS := -Wall -Werror -Wno-unused-function -fPIC -std=c99
+LDFLAGS := -m64
+
 TRUFFLE_POSIX := $(ROOT)/lib/cext/truffleposix.$(DLEXT)
-TRUFFLE_MOCK := $(ROOT)/lib/cext/sulongmock.bc
+SULONG_MOCK := $(ROOT)/lib/cext/sulongmock.o
+RUBY_O := $(ROOT)/lib/cext/ruby.o
 RUBY_LIBRARY := $(ROOT)/lib/cext/ruby.su
 
 RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/include/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*.h)
@@ -20,7 +25,7 @@ PREPROCESS := $(ROOT)/lib/cext/preprocess.rb
 MKMF := $(ROOT)/lib/mri/mkmf.rb
 BASIC_EXTCONF_DEPS := $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(RBCONFIG) $(RBCONFIG_MKMF) $(PREPROCESS) $(MKMF)
 # These 2 libraries are needed for try_link() in extconf.rb
-EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) $(TRUFFLE_MOCK) $(RUBY_LIBRARY)
+EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) $(SULONG_MOCK) $(RUBY_O) $(RUBY_LIBRARY)
 
 IF_EXTCONF_FAIL := ( echo "`pwd`/extconf.rb failed:" 1>&2 && cat mkmf.log && false )
 
@@ -42,10 +47,10 @@ clean_truffleposix:
 	rm -f truffleposix/*.o truffleposix/truffleposix.$(DLEXT)
 
 clean_cexts:
-	rm -f sulongmock/Makefile sulongmock/*.bc sulongmock/sulongmock.su
-	rm -f $(ROOT)/lib/cext/sulongmock.bc
+	rm -f $(SULONG_MOCK)
+	rm -f $(RUBY_O)
 	rm -f $(RUBY_LIBRARY)
-	rm -f $(ROOT)/lib/cext/ruby.bc
+	rm -f $(ROOT)/lib/cext/ruby.o
 	rm -f cext/Makefile cext/*.bc cext/ruby.su
 	rm -f $(CEXTS_DIR)/openssl.su
 	rm -f openssl/Makefile openssl/*.bc openssl/openssl.su
@@ -63,15 +68,13 @@ truffleposix/truffleposix.$(DLEXT): truffleposix/Makefile truffleposix/trufflepo
 $(TRUFFLE_POSIX): truffleposix/truffleposix.$(DLEXT)
 	cp $< $@
 
-# sulongmock.bc
-sulongmock/Makefile: sulongmock/extconf.rb $(BASIC_EXTCONF_DEPS)
-	cd sulongmock && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
+# sulongmock.o
+$(SULONG_MOCK): sulongmock/sulongmock.c
+	$(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(ROOT)/lib/cext/include $<
 
-sulongmock/sulongmock.bc: sulongmock/Makefile sulongmock/sulongmock.c
-	cd sulongmock && $(MAKE)
-
-$(ROOT)/lib/cext/sulongmock.bc: sulongmock/sulongmock.bc
-	cp $< $@
+# ruby.o
+$(RUBY_O): cext/ruby.c
+	$(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(ROOT)/lib/cext/include $<
 
 # ruby.su
 cext/Makefile: cext/extconf.rb $(BASIC_EXTCONF_DEPS)
@@ -82,7 +85,6 @@ cext/ruby.su: cext/Makefile cext/ruby.c
 
 $(RUBY_LIBRARY): cext/ruby.su
 	cp $< $@
-	cp cext/ruby.bc $(ROOT)/lib/cext/ruby.bc
 
 # openssl.su
 openssl/Makefile: openssl/extconf.rb $(EXTCONF_DEPS)
