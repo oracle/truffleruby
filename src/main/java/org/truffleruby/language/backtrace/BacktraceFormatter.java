@@ -221,7 +221,7 @@ public class BacktraceFormatter {
         }
     }
 
-    private SourceSection nextUserSourceSection(Activation[] activations, int n) {
+    public SourceSection nextUserSourceSection(Activation[] activations, int n) {
         while (n < activations.length) {
             final Node callNode = activations[n].getCallNode();
 

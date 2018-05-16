@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2018 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -13,7 +13,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
-import org.truffleruby.language.backtrace.Activation;
+import org.truffleruby.language.backtrace.Backtrace;
 
 @Layout
 public interface ThreadBacktraceLocationLayout extends BasicObjectLayout {
@@ -24,10 +24,13 @@ public interface ThreadBacktraceLocationLayout extends BasicObjectLayout {
 
     DynamicObject createThreadBacktraceLocation(
             DynamicObjectFactory factory,
-            Activation activation,
+            Backtrace backtrace,
+            int activationIndex,
             String description);
 
-    Activation getActivation(DynamicObject object);
+    Backtrace getBacktrace(DynamicObject object);
+
+    int getActivationIndex(DynamicObject object);
 
     String getDescription(DynamicObject object);
 
