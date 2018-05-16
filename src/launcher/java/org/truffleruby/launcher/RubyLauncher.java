@@ -269,7 +269,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     private static void printPreRunInformation(CommandLineOptions config) {
         if (config.isIrbInsteadOfInputUsed()) {
-            RubyLogger.LOGGER.warning("by default truffleruby drops into IRB instead of reading stdin as MRI - use '-' to explicitly read from stdin");
+            RubyLogger.LOGGER.warning("truffleruby starts IRB when stdin is a TTY instead of reading from stdin, use '-' to read from stdin");
         }
 
         if (config.getOption(OptionsCatalog.SHOW_VERSION)) {
