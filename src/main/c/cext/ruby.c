@@ -865,7 +865,6 @@ static int endian_swap(int flags) {
 
 int rb_integer_pack(VALUE value, void *words, size_t numwords, size_t wordsize, size_t nails, int flags) {
   long i;
-  long j;
   VALUE msw_first, twosComp, swap, bytes;
   int sign, size, bytes_needed, words_needed, result;
   uint8_t *buf;
@@ -1033,7 +1032,7 @@ VALUE rb_str_new(const char *string, long length) {
     // - unmanaged pointer, foreign object, foreign object plus offset, etc.
     // TODO CS 24-Oct-17 work with Sulong to make this copying not needed
 
-    const char* copy = malloc(length);
+    char* copy = malloc(length);
     memcpy(copy, string, length);
     VALUE ruby_string = (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_cstr", copy, length);
     free(copy);
@@ -2895,7 +2894,6 @@ VALUE rb_struct_new(VALUE klass, ...) {
   int members = polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_struct_size", klass));
   VALUE *ary = rb_ary_new();
   int i = 0;
-  char *arg = NULL;
   while (i < members) {
     VALUE arg = polyglot_get_arg(i + 1);
     rb_ary_store(ary, i++, arg);

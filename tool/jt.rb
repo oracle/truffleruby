@@ -539,10 +539,18 @@ module Commands
     File.write(env_path, env_lines.join("\n") + "\n")
   end
 
-  def clean
-    mx 'clean'
-    sh 'rm', '-rf', 'mxbuild'
-    sh 'rm', '-rf', 'spec/ruby/ext'
+  def clean(*options)
+    project = options.shift
+    case project
+    when 'cexts'
+      raw_sh "make", "clean", chdir: "#{TRUFFLERUBY_DIR}/src/main/c"
+    when nil
+      mx 'clean'
+      sh 'rm', '-rf', 'mxbuild'
+      sh 'rm', '-rf', 'spec/ruby/ext'
+    else
+      raise ArgumentError, project
+    end
   end
 
   def dis(file)
@@ -580,9 +588,9 @@ module Commands
     shell['java -version']
   end
 
-  def rebuild
-    clean
-    build
+  def rebuild(*options)
+    clean(*options)
+    build(*options)
   end
 
   def run_ruby(*args)

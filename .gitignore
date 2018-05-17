@@ -20,9 +20,9 @@ nbproject
 # C extensions
 lib/cext/truffleposix.so
 lib/cext/truffleposix.dylib
-lib/cext/sulongmock.bc
+lib/cext/sulongmock.o
 lib/cext/ruby.su
-lib/cext/ruby.bc
+lib/cext/ruby.o
 lib/cext/sulong-libs
 lib/cext/include/sulong/polyglot.h
 lib/mri/openssl.su

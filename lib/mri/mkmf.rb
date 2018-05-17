@@ -552,7 +552,7 @@ MSG
       end
     else
       try_do(src, cmd, *opts, &b)
-    end and File.exist?(CONFTEST+$EXEEXT) # TruffleRuby: TRY_LINK generates a non-executable file containing bitcode
+    end and File.executable?(CONFTEST+$EXEEXT)
   end
 
   # Returns whether or not the +src+ can be compiled as a C source and linked
