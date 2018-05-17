@@ -36,9 +36,6 @@ import java.util.Set;
 
 public class RubyLauncher extends AbstractLanguageLauncher {
 
-    // Properties set directly on the java command-line with -D for image building
-    private static final String LIBSULONG_DIR = isAOT() ? System.getProperty("truffleruby.native.libsulong_dir") : null;
-
     private CommandLineOptions config;
 
     public static void main(String[] args) {
@@ -48,6 +45,12 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     static boolean isGraal() {
         try (Engine engine = Engine.create()) {
             return engine.getImplementationName().contains("Graal");
+        }
+    }
+
+    static boolean isSulongAvailable() {
+        try (Engine engine = Engine.create()) {
+            return engine.getLanguages().containsKey("llvm");
         }
     }
 
@@ -108,6 +111,20 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 final String launcher = setRubyLauncher();
                 if (launcher != null) {
                     polyglotOptions.put(OptionsCatalog.LAUNCHER.getName(), launcher);
+                }
+
+                // In a native standalone distribution outside of GraalVM, we need to give the path to libsulong
+                if (!isGraalVMAvailable() && isSulongAvailable()) {
+                    final String rubyHome = new File(launcher).getParentFile().getParent();
+                    final String libSulongPath = rubyHome + "/lib/cext/sulong-libs";
+
+                    String libraryPath = System.getProperty("polyglot.llvm.libraryPath");
+                    if (libraryPath == null || libraryPath.isEmpty()) {
+                        libraryPath = libSulongPath;
+                    } else {
+                        libraryPath = libraryPath + ":" + libSulongPath;
+                    }
+                    polyglotOptions.put("llvm.libraryPath", libraryPath);
                 }
             }
 
@@ -187,7 +204,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 "truffleruby: invalid option " + description + "  (Use --help for usage instructions.)");
     }
 
-    private static int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {
+    private int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {
         if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.NONE) {
             return 0;
         }
@@ -222,26 +239,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         }
     }
 
-    private static Context createContext(Context.Builder builder, CommandLineOptions config) {
-        builder.allowCreateThread(true);
-        builder.allowHostAccess(true);
-
+    private Context createContext(Context.Builder builder, CommandLineOptions config) {
         builder.option(OptionsCatalog.EMBEDDED.getName(), Boolean.FALSE.toString());
-
-        // When building a native image outside of GraalVM, we need to give the path to libsulong
-        if (LIBSULONG_DIR != null) {
-            final String launcher = config.getOption(OptionsCatalog.LAUNCHER);
-            final String rubyHome = new File(launcher).getParentFile().getParent();
-            final String libSulongPath = rubyHome + File.separator + LIBSULONG_DIR;
-
-            String libraryPath = System.getProperty("polyglot.llvm.libraryPath");
-            if (libraryPath == null || libraryPath.isEmpty()) {
-                libraryPath = libSulongPath;
-            } else {
-                libraryPath = libraryPath + ":" + libSulongPath;
-            }
-            builder.option("llvm.libraryPath", libraryPath);
-        }
 
         builder.arguments(TruffleRuby.LANGUAGE_ID, config.getArguments());
 
