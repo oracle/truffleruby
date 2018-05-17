@@ -1,5 +1,5 @@
 module Gem
-  module GemHomeDirsMarker
+  module GemDirsVerification
     extend self
 
     MARKER_NAME = 'truffleruby_gem_dir_marker.txt'

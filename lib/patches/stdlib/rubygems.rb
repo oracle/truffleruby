@@ -18,7 +18,7 @@ unless RbConfig::CONFIG['extra_bindirs'].empty?
 end
 
 # Make sure we don't use foreign gem directories
-require 'rubygems/gem_home_dirs_marker'
-Gem::GemHomeDirsMarker.verify(Gem.path)
-Gem::GemHomeDirsMarker.install_hook
+require 'rubygems/gem_dirs_verification'
+Gem::GemDirsVerification.verify(Gem.path)
+Gem::GemDirsVerification.install_hook
 
