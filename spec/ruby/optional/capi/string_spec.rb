@@ -135,6 +135,10 @@ describe "C-API String function" do
   end
 
   describe "rb_str_new" do
+    it "creates a new String with ASCII-8BIT Encoding" do
+      @s.rb_str_new("", 0).encoding.should == Encoding::ASCII_8BIT
+    end
+
     it "returns a new string object from a char buffer of len characters" do
       @s.rb_str_new("hello", 3).should == "hel"
     end
@@ -150,12 +154,6 @@ describe "C-API String function" do
 
   describe "rb_str_new2" do
     it_behaves_like :rb_str_new2, :rb_str_new2
-  end
-
-  describe "rb_str_new" do
-    it "creates a new String with ASCII-8BIT Encoding" do
-      @s.rb_str_new("", 0).encoding.should == Encoding::ASCII_8BIT
-    end
   end
 
   describe "rb_str_new_cstr" do
