@@ -778,11 +778,10 @@ public class RubyContext {
             final File home = new File(truffleReported).getParentFile().getParentFile();
             Log.LOGGER.config(() -> String.format("trying Truffle-reported home %s/../.., expanded to %s, as the Ruby home", truffleReported, home));
             if (isRubyHome(home)) {
-                return home.getPath();
+                return home.getCanonicalPath();
             } else {
                 Log.LOGGER.config(String.format("Truffle-reported home %s/../.. does not look like TruffleRuby's home", home));
             }
-            return home.getAbsolutePath();
         }
 
         if (!LIBPOLYGLOT) {
