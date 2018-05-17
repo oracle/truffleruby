@@ -149,6 +149,7 @@ describe "C-API String function" do
 
     it "copy length bytes and does not stop at the first \\0 byte" do
       @s.rb_str_new("he\x00llo", 6).should == "he\x00llo"
+      @s.rb_str_new_native("he\x00llo", 6).should == "he\x00llo"
     end
 
     it "returns a string from an offset char buffer" do
