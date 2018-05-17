@@ -147,6 +147,10 @@ describe "C-API String function" do
       @s.rb_str_new("hello", 0).should == ""
     end
 
+    it "copy length bytes and does not stop at the first \\0 byte" do
+      @s.rb_str_new("he\x00llo", 6).should == "he\x00llo"
+    end
+
     it "returns a string from an offset char buffer" do
       @s.rb_str_new_offset("hello", 1, 3).should == "ell"
     end
