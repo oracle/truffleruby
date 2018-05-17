@@ -975,11 +975,11 @@ class String
     self
   end
 
-  def lines(sep=$/, &block)
+  def lines(sep=$/, chomp: undefined, &block)
     if block_given?
-      each_line(sep, &block)
+      each_line(sep, chomp: chomp, &block)
     else
-      each_line(sep).to_a
+      each_line(sep, chomp: chomp).to_a
     end
   end
 
