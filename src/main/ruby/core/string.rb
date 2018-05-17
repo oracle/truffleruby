@@ -1359,7 +1359,7 @@ class String
     Truffle.invoke_primitive(:string_character_index, self, str, start)
   end
 
-  def initialize(other = undefined, encoding: nil)
+  def initialize(other = undefined, capacity: nil, encoding: nil)
     unless undefined.equal?(other)
       Truffle.check_frozen
       Truffle.invoke_primitive(:string_initialize, self, other, encoding)

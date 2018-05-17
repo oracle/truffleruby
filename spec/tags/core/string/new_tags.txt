@@ -1,1 +1,0 @@
-fails:String.new accepts a capacity argument
