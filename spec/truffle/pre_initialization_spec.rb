@@ -41,20 +41,8 @@ guard -> { TruffleRuby.native? } do
     end
 
     it "is not used when the home is unset but was set at build time" do
-      subdir = tmp("subdir")
-      moved_ruby = "#{subdir}/pre-init-spec-ruby"
-      mkdir_p subdir
-      cp RbConfig.ruby, moved_ruby
-      begin
-        File.chmod(0755, moved_ruby)
-        _, *flags = *ruby_exe
-        flags.delete_if { |arg| arg.start_with?("-Xhome") }
-        args = [moved_ruby, *flags]
-        code = "p [Truffle::Boot.ruby_home, Truffle::Boot.was_preinitialized?]"
-        out = `#{args.join(' ')} -Xlog=fine -e #{code.inspect} 2>&1`
-      ensure
-        rm_r subdir
-      end
+      code = "p [Truffle::Boot.ruby_home, Truffle::Boot.was_preinitialized?]"
+      out = ruby_exe(code, options: "-Xlog=fine -Xno_home_provided=true", args: "2>&1")
       out.should include("[nil, false]\n")
       out.should include("not reusing pre-initialized context: Ruby home is unset")
     end
