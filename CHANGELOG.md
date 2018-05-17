@@ -47,6 +47,10 @@ Changes:
 * The supported additional functionality module has been renamed from `Truffle`
   to `TruffleRuby`. Anything not documented in
   `doc/user/truffleruby-additions.md` should not be used.
+  
+* Imprecise wrong gem directory detection was replaced. TruffleRuby newly marks
+  its gem directories with a marker file, and warns if you try to use 
+  TruffleRuby with a gem directory which is lacking the marker. 
 
 Bug fixes:
 
