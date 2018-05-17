@@ -183,7 +183,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             description = argument;
         }
 
-        throw abortInvalidArgument(argument, "truffleruby: invalid option " + description + "  (Use --help for usage instructions.)");
+        throw abortInvalidArgument(argument,
+                "truffleruby: invalid option " + description + "  (Use --help for usage instructions.)");
     }
 
     private static int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {
@@ -260,8 +261,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     private String setRubyLauncher() {
         if (config.getOption(OptionsCatalog.LAUNCHER).isEmpty()) {
-            final String launcher = (String) Compiler.
-                    command(new Object[]{ "com.oracle.svm.core.posix.GetExecutableName" });
+            final String launcher = (String) Compiler.command(
+                    new Object[]{ "com.oracle.svm.core.posix.GetExecutableName" });
             config.setOption(OptionsCatalog.LAUNCHER, launcher);
             return launcher;
         }
@@ -271,8 +272,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     private static void printPreRunInformation(CommandLineOptions config) {
         if (config.isIrbInsteadOfInputUsed()) {
             RubyLogger.LOGGER.warning(
-                    "by default truffleruby drops into IRB instead of reading stdin as MRI - " +
-                            "use '-' to explicitly read from stdin");
+                    "truffleruby starts IRB when stdin is a TTY instead of reading from stdin, use '-' to read from stdin");
         }
 
         if (config.getOption(OptionsCatalog.SHOW_VERSION)) {
