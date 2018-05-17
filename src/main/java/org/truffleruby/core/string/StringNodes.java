@@ -78,6 +78,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jcodings.Config;
 import org.jcodings.Encoding;
 import org.jcodings.exception.EncodingException;
 import org.jcodings.specific.ASCIIEncoding;
@@ -2625,22 +2626,22 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "upcase!", raiseIfFrozenSelf = true)
-    @ImportStatic(StringGuards.class)
-    public abstract static class UpcaseBangNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "upcase!", raiseIfFrozenSelf = true, lowerFixnum = 1)
+    @ImportStatic({ StringGuards.class, Config.class })
+    public abstract static class StringUpcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isSingleByteOptimizable(string)")
-        public DynamicObject upcaseSingleByte(DynamicObject string,
+        public DynamicObject upcaseSingleByte(DynamicObject string, int caseMappingOptions,
                                               @Cached("createLowerToUpper()") InvertAsciiCaseNode invertAsciiCaseNode) {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
-        @Specialization(guards = "!isSingleByteOptimizable(string)")
-        public DynamicObject upcase(DynamicObject string,
-                                    @Cached("create()") RopeNodes.BytesNode bytesNode,
-                                    @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                                    @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
-                                    @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+        @Specialization(guards = { "!isSingleByteOptimizable(string)", "caseMappingOptions == CASE_ASCII_ONLY" })
+        public DynamicObject upcaseAsciiOnly(DynamicObject string, int caseMappingOptions,
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
+                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
             final Encoding encoding = rope.getEncoding();
 

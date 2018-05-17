@@ -1493,9 +1493,14 @@ class String
     s
   end
 
-  def upcase
+  def upcase!(*options)
+    mapped_options = Truffle::StringOperations.validate_case_mapping_options(options, false)
+    Truffle.invoke_primitive :upcase!, self, mapped_options
+  end
+
+  def upcase(*options)
     s = dup
-    s.upcase!
+    s.upcase!(*options)
     s
   end
 
