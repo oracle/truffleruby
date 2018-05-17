@@ -893,14 +893,22 @@ class String
     substring 0, 1
   end
 
-  def each_line(sep=$/)
-    return to_enum(:each_line, sep) unless block_given?
+  def each_line(sep=$/, chomp: undefined)
+    unless block_given?
+      if undefined.equal?(chomp)
+        return to_enum(:each_line, sep)
+      else
+        return to_enum(:each_line, sep, chomp: chomp)
+      end
+    end
 
     # weird edge case.
     if sep.nil?
       yield self
       return self
     end
+
+    maybe_chomp = ->(str) { undefined.equal?(chomp) ? str : str.chomp(sep) }
 
     sep = StringValue(sep)
 
@@ -929,7 +937,7 @@ class String
         break if pos == bytesize
 
         str = byteslice pos, match_size
-        yield str unless str.empty?
+        yield maybe_chomp.call(str) unless str.empty?
 
         # detect mutation within the block
         if duped != self
@@ -941,8 +949,7 @@ class String
 
       # No more separates, but we need to grab the last part still.
       fin = byteslice pos, bytesize - pos
-      yield fin if fin and !fin.empty?
-
+      yield maybe_chomp.call(fin) if fin and !fin.empty?
     else
 
       # This is the normal case.
@@ -955,14 +962,14 @@ class String
 
         match_size = nxt - pos
         str = unmodified_self.byteslice pos, match_size + pat_size
-        yield str unless str.empty?
+        yield maybe_chomp.call(str) unless str.empty?
 
         pos = nxt + pat_size
       end
 
       # No more separates, but we need to grab the last part still.
       fin = unmodified_self.byteslice pos, bytesize - pos
-      yield fin unless fin.empty?
+      yield maybe_chomp.call(fin) unless fin.empty?
     end
 
     self
