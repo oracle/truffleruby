@@ -1345,9 +1345,8 @@ public final class StringSupport {
                     } else {
                         final int tailLength = end - (s + clen);
                         final int newBufferLength = s + newByteLength + tailLength;
-                        final byte[] newBuffer = new byte[newBufferLength];
+                        final byte[] newBuffer = Arrays.copyOf(bytes, newBufferLength);
 
-                        System.arraycopy(bytes, 0, newBuffer, 0, s);
                         System.arraycopy(buf, 0, newBuffer, s, newByteLength);
                         System.arraycopy(bytes, s + clen, newBuffer, s + newByteLength, tailLength);
 
