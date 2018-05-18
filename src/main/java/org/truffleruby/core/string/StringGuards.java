@@ -11,6 +11,7 @@
 package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.object.DynamicObject;
+import org.jcodings.Config;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -67,6 +68,15 @@ public class StringGuards {
 
         return (sourceRope.isSingleByteOptimizable() || sourceRope.getEncoding().isUTF8()) &&
                 (patternRope.isSingleByteOptimizable() || patternRope.getEncoding().isUTF8());
+    }
+
+    public static boolean isAsciiCompatMapping(int caseMappingOptions) {
+        return caseMappingOptions == 0 || caseMappingOptions == Config.CASE_ASCII_ONLY;
+    }
+
+    public static boolean isFullCaseMapping(DynamicObject string, int caseMappingOptions) {
+        return (StringGuards.isSingleByteOptimizable(string) && !isAsciiCompatMapping(caseMappingOptions)) ||
+                (!StringGuards.isSingleByteOptimizable(string) && caseMappingOptions != Config.CASE_ASCII_ONLY);
     }
 
 }

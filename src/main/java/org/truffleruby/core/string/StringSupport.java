@@ -1257,7 +1257,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteDowncase(Encoding enc, byte[] bytes, int s, int end) {
+    public static boolean multiByteDowncaseAsciiOnly(Encoding enc, byte[] bytes, int s, int end) {
         boolean modify = false;
         int c;
         while (s < end) {
@@ -1274,6 +1274,68 @@ public final class StringSupport {
                     modify = true;
                 }
                 s += codeLength(enc, c);
+            }
+        }
+
+        return modify;
+    }
+
+    @TruffleBoundary
+    public static boolean multiByteDowncase(Encoding enc, RopeBuilder builder, int caseMappingOptions) {
+        byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
+
+        final IntHolder flagP = new IntHolder();
+        flagP.value = caseMappingOptions | Config.CASE_DOWNCASE;
+
+        boolean modify = false;
+        int c;
+
+        int s = 0;
+        int end = builder.getLength();
+        byte[] bytes = builder.getUnsafeBytes();
+
+        while (s < end) {
+            if (enc.isAsciiCompatible() &&
+                    (caseMappingOptions & Config.CASE_FOLD_TURKISH_AZERI) == 0 &&
+                    Encoding.isAscii(c = bytes[s] & 0xff)) {
+                if (ASCIIEncoding.INSTANCE.isUpper(c)) {
+                    bytes[s] = AsciiTables.ToLowerCaseTable[c];
+                    modify = true;
+                }
+                s++;
+            } else {
+                c = codePoint(enc, bytes, s, end);
+
+                if (enc.isUpper(c)) {
+                    final IntHolder fromP = new IntHolder();
+                    fromP.value = s;
+
+                    int clen = enc.codeToMbcLength(c);
+                    int newByteLength;
+
+                    newByteLength = enc.caseMap(flagP, bytes, fromP, fromP.value + clen, buf, 0, buf.length);
+
+                    if (clen == newByteLength) {
+                        System.arraycopy(buf, 0, bytes, s, newByteLength);
+                    } else {
+                        final int tailLength = end - (s + clen);
+                        final int newBufferLength = s + newByteLength + tailLength;
+                        final byte[] newBuffer = Arrays.copyOf(bytes, newBufferLength);
+
+                        System.arraycopy(buf, 0, newBuffer, s, newByteLength);
+                        System.arraycopy(bytes, s + clen, newBuffer, s + newByteLength, tailLength);
+
+                        builder.unsafeReplace(newBuffer, newBufferLength);
+                        bytes = newBuffer;
+                        end = newBufferLength;
+                    }
+
+
+                    modify = true;
+                    s += newByteLength;
+                } else {
+                    s += codeLength(enc, c);
+                }
             }
         }
 

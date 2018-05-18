@@ -1069,21 +1069,21 @@ public abstract class StringNodes {
         }
     }
 
-    @CoreMethod(names = "downcase!", raiseIfFrozenSelf = true)
-    @ImportStatic(StringGuards.class)
-    public abstract static class DowncaseBangNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "downcase!", raiseIfFrozenSelf = true, lowerFixnum = 1)
+    @ImportStatic({ StringGuards.class, Config.class })
+    public abstract static class StringDowncaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isSingleByteOptimizable(string)")
-        public DynamicObject downcaseSingleByte(DynamicObject string,
+        @Specialization(guards = { "isSingleByteOptimizable(string)", "isAsciiCompatMapping(caseMappingOptions)" })
+        public DynamicObject downcaseSingleByte(DynamicObject string, int caseMappingOptions,
                                               @Cached("createUpperToLower()") InvertAsciiCaseNode invertAsciiCaseNode) {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
-        @Specialization(guards = "!isSingleByteOptimizable(string)")
-        public DynamicObject downcase(DynamicObject string,
-                                      @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                                      @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
-                                      @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+        @Specialization(guards = { "!isSingleByteOptimizable(string)", "caseMappingOptions == CASE_ASCII_ONLY" })
+        public DynamicObject downcaseMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
+                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
+                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
             final Encoding encoding = rope.getEncoding();
 
@@ -1092,10 +1092,35 @@ public abstract class StringNodes {
             }
 
             final byte[] outputBytes = rope.getBytesCopy();
-            final boolean modified = StringSupport.multiByteDowncase(encoding, outputBytes, 0, outputBytes.length);
+            final boolean modified = StringSupport.multiByteDowncaseAsciiOnly(encoding, outputBytes, 0, outputBytes.length);
 
             if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(string, makeLeafRopeNode.executeMake(outputBytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
+
+                return string;
+            } else {
+                return nil();
+            }
+        }
+
+        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions)")
+        public DynamicObject downcaseMBC(DynamicObject string, int caseMappingOptions,
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
+                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+            final Rope rope = rope(string);
+            final Encoding encoding = rope.getEncoding();
+
+            if (dummyEncodingProfile.profile(encoding.isDummy())) {
+                throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
+            }
+
+            final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
+            final boolean modified = StringSupport.multiByteDowncase(encoding, builder, caseMappingOptions);
+
+            if (modifiedProfile.profile(modified)) {
+                StringOperations.setRope(string, makeLeafRopeNode.executeMake(builder.getBytes(), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE));
 
                 return string;
             } else {
@@ -2660,7 +2685,7 @@ public abstract class StringNodes {
             }
         }
 
-        @Specialization(guards = "isFallback(string, caseMappingOptions)")
+        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions)")
         public DynamicObject upcaseMBC(DynamicObject string, int caseMappingOptions,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
@@ -2684,29 +2709,20 @@ public abstract class StringNodes {
             }
         }
 
-        protected static boolean isAsciiCompatMapping(int caseMappingOptions) {
-            return caseMappingOptions == 0 || caseMappingOptions == Config.CASE_ASCII_ONLY;
-        }
-
-        protected static boolean isFallback(DynamicObject string, int caseMappingOptions) {
-            return (StringGuards.isSingleByteOptimizable(string) && !isAsciiCompatMapping(caseMappingOptions)) ||
-                   (!StringGuards.isSingleByteOptimizable(string) && caseMappingOptions != Config.CASE_ASCII_ONLY);
-        }
-
     }
 
     @CoreMethod(names = "valid_encoding?")
     @ImportStatic(StringGuards.class)
     public abstract static class ValidEncodingQueryNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isBrokenCodeRange(string)")
-        public boolean validEncodingQueryBroken(DynamicObject string) {
-            return false;
-        }
-
         @Specialization(guards = "!isBrokenCodeRange(string)")
         public boolean validEncodingQuery(DynamicObject string) {
             return true;
+        }
+
+        @Specialization(guards = "isBrokenCodeRange(string)")
+        public boolean validEncodingQueryBroken(DynamicObject string) {
+            return false;
         }
 
     }
