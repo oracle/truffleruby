@@ -1257,28 +1257,6 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteDowncaseAsciiOnly(Encoding enc, byte[] bytes, int s, int end) {
-        boolean modify = false;
-
-        while (s < end) {
-            if (enc.isAsciiCompatible() && isAsciiUppercase(bytes[s])) {
-                bytes[s] ^= 0x20;
-                modify = true;
-                s++;
-            } else {
-                final int c = codePoint(enc, bytes, s, end);
-                if (enc.isUpper(c)) {
-                    enc.codeToMbc(toLower(enc, c), bytes, s);
-                    modify = true;
-                }
-                s += codeLength(enc, c);
-            }
-        }
-
-        return modify;
-    }
-
-    @TruffleBoundary
     private static int caseMapChar(int codePoint, Encoding enc, byte[] stringBytes, int stringByteOffset,
             RopeBuilder builder, IntHolder flags, byte[] workBuffer) {
         final IntHolder fromP = new IntHolder();
@@ -1302,6 +1280,28 @@ public final class StringSupport {
         }
 
         return newByteLength;
+    }
+
+    @TruffleBoundary
+    public static boolean multiByteDowncaseAsciiOnly(Encoding enc, byte[] bytes, int s, int end) {
+        boolean modify = false;
+
+        while (s < end) {
+            if (enc.isAsciiCompatible() && isAsciiUppercase(bytes[s])) {
+                bytes[s] ^= 0x20;
+                modify = true;
+                s++;
+            } else {
+                final int c = codePoint(enc, bytes, s, end);
+                if (enc.isUpper(c)) {
+                    enc.codeToMbc(toLower(enc, c), bytes, s);
+                    modify = true;
+                }
+                s += codeLength(enc, c);
+            }
+        }
+
+        return modify;
     }
 
     @TruffleBoundary
