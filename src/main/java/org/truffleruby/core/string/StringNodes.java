@@ -1092,7 +1092,7 @@ public abstract class StringNodes {
             }
 
             final byte[] outputBytes = rope.getBytesCopy();
-            final boolean modified = StringSupport.multiByteDowncaseAsciiOnly(encoding, outputBytes, 0, outputBytes.length);
+            final boolean modified = StringSupport.multiByteDowncaseAsciiOnly(encoding, outputBytes);
 
             if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(string, makeLeafRopeNode.executeMake(outputBytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
@@ -2675,7 +2675,7 @@ public abstract class StringNodes {
             }
 
             final RopeBuilder bytes = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
-            final boolean modified = StringSupport.multiByteUpcaseAsciiOnly(encoding, bytes.getUnsafeBytes(), 0, bytes.getLength());
+            final boolean modified = StringSupport.multiByteUpcaseAsciiOnly(encoding, bytes.getUnsafeBytes());
             if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(string, makeLeafRopeNode.executeMake(bytes.getBytes(), rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
 

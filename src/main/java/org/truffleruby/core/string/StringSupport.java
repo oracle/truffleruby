@@ -1283,16 +1283,17 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteDowncaseAsciiOnly(Encoding enc, byte[] bytes, int s, int end) {
+    public static boolean multiByteDowncaseAsciiOnly(Encoding enc, byte[] bytes) {
         boolean modify = false;
+        int s = 0;
 
-        while (s < end) {
+        while (s < bytes.length) {
             if (enc.isAsciiCompatible() && isAsciiUppercase(bytes[s])) {
                 bytes[s] ^= 0x20;
                 modify = true;
                 s++;
             } else {
-                final int c = codePoint(enc, bytes, s, end);
+                final int c = codePoint(enc, bytes, s, bytes.length);
                 if (enc.isUpper(c)) {
                     enc.codeToMbc(toLower(enc, c), bytes, s);
                     modify = true;
@@ -1341,16 +1342,17 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteUpcaseAsciiOnly(Encoding enc, byte[] bytes, int s, int end) {
+    public static boolean multiByteUpcaseAsciiOnly(Encoding enc, byte[] bytes) {
         boolean modify = false;
+        int s = 0;
 
-        while (s < end) {
+        while (s < bytes.length) {
             if (enc.isAsciiCompatible() && isAsciiLowercase(bytes[s])) {
                 bytes[s] ^= 0x20;
                 modify = true;
                 s++;
             } else {
-                final int c = codePoint(enc, bytes, s, end);
+                final int c = codePoint(enc, bytes, s, bytes.length);
                 if (enc.isLower(c)) {
                     enc.codeToMbc(toUpper(enc, c), bytes, s);
                     modify = true;
