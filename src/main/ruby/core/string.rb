@@ -893,13 +893,9 @@ class String
     substring 0, 1
   end
 
-  def each_line(sep=$/, chomp: undefined)
+  def each_line(sep=$/, chomp: false)
     unless block_given?
-      if undefined.equal?(chomp)
-        return to_enum(:each_line, sep)
-      else
-        return to_enum(:each_line, sep, chomp: chomp)
-      end
+      return to_enum(:each_line, sep, chomp: chomp)
     end
 
     # weird edge case.
@@ -908,7 +904,7 @@ class String
       return self
     end
 
-    maybe_chomp = ->(str) { undefined.equal?(chomp) ? str : str.chomp(sep) }
+    maybe_chomp = ->(str) { chomp ? str.chomp(sep) : str }
 
     sep = StringValue(sep)
 
@@ -975,7 +971,7 @@ class String
     self
   end
 
-  def lines(sep=$/, chomp: undefined, &block)
+  def lines(sep=$/, chomp: false, &block)
     if block_given?
       each_line(sep, chomp: chomp, &block)
     else
