@@ -1081,6 +1081,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "!isSingleByteOptimizable(string)", "caseMappingOptions == CASE_ASCII_ONLY" })
         public DynamicObject downcaseMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
                 @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
                 @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
@@ -1091,7 +1092,7 @@ public abstract class StringNodes {
                 throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
             }
 
-            final byte[] outputBytes = rope.getBytesCopy();
+            final byte[] outputBytes = bytesNode.execute(rope);
             final boolean modified = StringSupport.multiByteDowncaseAsciiOnly(encoding, outputBytes);
 
             if (modifiedProfile.profile(modified)) {
