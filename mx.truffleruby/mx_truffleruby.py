@@ -351,7 +351,6 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
             build_args=[
                 '--language:llvm',
                 '--language:ruby',
-                '-Dorg.graalvm.launcher.standalone=false',
             ],
             links=['bin/<exe:ruby>'],
         )
