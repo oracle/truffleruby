@@ -2675,10 +2675,10 @@ public abstract class StringNodes {
                 throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
             }
 
-            final RopeBuilder bytes = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
-            final boolean modified = StringSupport.multiByteUpcaseAsciiOnly(encoding, bytes.getUnsafeBytes());
+            final byte[] outputBytes = bytesNode.execute(rope);
+            final boolean modified = StringSupport.multiByteUpcaseAsciiOnly(encoding, outputBytes);
             if (modifiedProfile.profile(modified)) {
-                StringOperations.setRope(string, makeLeafRopeNode.executeMake(bytes.getBytes(), rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
+                StringOperations.setRope(string, makeLeafRopeNode.executeMake(outputBytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
 
                 return string;
             } else {
