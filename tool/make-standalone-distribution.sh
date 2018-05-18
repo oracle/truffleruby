@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# This script creates a distribution of TruffleRuby and Sulong
-# compiled to a native image by Substrate VM.
+# This script creates a standalone native distribution of TruffleRuby and Sulong
+# by using the vm suite and the Ruby installable.
+
+# To ensure Bash reads the file at once and allow concurrent editing, run with:
+# cat tool/make-standalone-distribution.sh | JAVA_HOME=... bash
 
 set -e
 set -x
@@ -9,7 +12,7 @@ set -x
 # Tag to use for the different repositories
 # If empty, take the current truffleruby revision and imports from suite.py
 TAG=""
-# TAG=vm-enterprise-32
+# TAG=vm-1.0.0-rc2
 
 # In which directory to create the release, will contain the final archive
 PREFIX="../release"
@@ -39,6 +42,11 @@ case $(uname -m) in
     ;;
 esac
 
+if [ -z "$JAVA_HOME" ]; then
+  echo "JAVA_HOME should be set" 1>&2
+  exit 1
+fi
+
 original_repo=$(pwd -P)
 revision=$(git rev-parse --short HEAD)
 
@@ -51,10 +59,7 @@ PREFIX=$(cd "$PREFIX" && pwd -P)
 mkdir -p "$PREFIX/build"
 cd "$PREFIX/build"
 
-build_native_opts=()
-
 if [ -n "$TAG" ]; then
-  build_native_opts+=("--no-sforceimports")
   git clone --depth 1 --branch $TAG "$(mx urlrewrite https://github.com/oracle/truffleruby.git)"
   git clone --depth 1 --branch $TAG "$(mx urlrewrite https://github.com/graalvm/sulong.git)"
   git clone --depth 1 --branch $TAG "$(mx urlrewrite https://github.com/oracle/graal.git)"
@@ -65,12 +70,10 @@ else
     # Building locally (not in CI), copy from local repositories to gain time
     git clone "$original_repo/../graal" graal
     git clone "$original_repo/../sulong" sulong
-    mx -p truffleruby sforceimports
   fi
-fi
 
-release_home="$PREFIX/truffleruby"
-mkdir -p "$release_home"
+  mx -p truffleruby sforceimports
+fi
 
 # Use our own GEM_HOME when building
 export TRUFFLERUBY_RESILIENT_GEM_HOME=true
@@ -78,20 +81,18 @@ export TRUFFLERUBY_RESILIENT_GEM_HOME=true
 # Build
 cd truffleruby
 build_home=$(pwd -P)
+
+cd ../graal/vm
 mx sversions
+mx --disable-polyglot --disable-libpolyglot --dy truffleruby,/substratevm build
 
-# Build the image
-tool/jt.rb build native --no-jvmci "${build_native_opts[@]}" \
-  -Dtruffleruby.native.resilient_gem_home=true
+release_home="$PREFIX/truffleruby"
+cd "mxbuild/$os-$arch/RUBY_INSTALLABLE_SVM"
+cp -R jre/languages/ruby "$release_home"
 
-# Copy TruffleRuby tar distribution
-cp "$build_home/mxbuild/$os-$arch/dists/truffleruby-zip.tar" "$release_home"
-cd "$release_home"
-tar xf truffleruby-zip.tar
-rm truffleruby-zip.tar
-
-# Copy the image
-cp "$build_home/bin/native-ruby" bin/truffleruby
+# Remove unused files in a native-only distribution
+rm "$release_home/native-image.properties"
+rm "$release_home"/*.jar
 
 # Create archive
 cd "$PREFIX"

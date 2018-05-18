@@ -438,15 +438,15 @@ local part_definitions = {
       ],
     },
 
-    make_native_distribution: {
+    make_standalone_distribution: {
       run+: [
-        ["tool/make-native-distribution.sh"],
+        ["tool/make-standalone-distribution.sh"],
       ],
     },
 
-    test_make_native_distribution: {
+    test_make_standalone_distribution: {
       run+: [
-        ["env", "UPLOAD_URL=", "tool/make-native-distribution.sh"],
+        ["env", "UPLOAD_URL=", "tool/make-standalone-distribution.sh"],
       ],
     },
   },
@@ -730,9 +730,9 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   release_builds:
     {
       local shared = $.use.common + { timelimit: "35:00" },
-      "ruby-test-native-distribution": $.platform.linux + $.cap.gate + $.jdk.openjdk8 + shared + $.run.test_make_native_distribution,
-      "ruby-native-distribution-linux": $.platform.linux + $.cap.manual + $.jdk.openjdk8 + shared + $.run.make_native_distribution,
-      "ruby-native-distribution-darwin": $.platform.darwin + $.cap.manual + $.jdk.labsjdk8 + shared + $.run.make_native_distribution,
+      "ruby-test-standalone-distribution": $.platform.linux + $.cap.gate + $.jdk.openjdk8 + shared + $.run.test_make_standalone_distribution,
+      "ruby-standalone-distribution-linux": $.platform.linux + $.cap.manual + $.jdk.openjdk8 + shared + $.run.make_standalone_distribution,
+      "ruby-standalone-distribution-darwin": $.platform.darwin + $.cap.manual + $.jdk.labsjdk8 + shared + $.run.make_standalone_distribution,
     },
 
   builds:
