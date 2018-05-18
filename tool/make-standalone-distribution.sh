@@ -88,7 +88,7 @@ mx --disable-polyglot --disable-libpolyglot --dy truffleruby,/substratevm build
 
 release_home="$PREFIX/truffleruby"
 cd "mxbuild/$os-$arch/RUBY_INSTALLABLE_SVM"
-cp -r jre/languages/ruby "$release_home"
+cp -R jre/languages/ruby "$release_home"
 
 # Create archive
 cd "$PREFIX"
