@@ -1312,7 +1312,9 @@ public final class StringSupport {
         final IntHolder flagP = new IntHolder();
         flagP.value = caseMappingOptions | Config.CASE_DOWNCASE;
 
+        final boolean isFold = (caseMappingOptions & Config.CASE_FOLD) != 0;
         final boolean isTurkic = (caseMappingOptions & Config.CASE_FOLD_TURKISH_AZERI) != 0;
+
         boolean modify = false;
         int s = 0;
         byte[] bytes = builder.getUnsafeBytes();
@@ -1325,7 +1327,7 @@ public final class StringSupport {
             } else {
                 final int c = codePoint(enc, bytes, s, bytes.length);
 
-                if (enc.isUpper(c)) {
+                if (isFold || enc.isUpper(c)) {
                     s += caseMapChar(c, enc, bytes, s, builder, flagP, buf);
                     modify = true;
 
