@@ -26,7 +26,9 @@
 package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.jcodings.Config;
 import org.jcodings.Encoding;
+import org.jcodings.IntHolder;
 import org.jcodings.ascii.AsciiTables;
 import org.jcodings.constants.CharacterType;
 import org.jcodings.specific.ASCIIEncoding;
@@ -1274,7 +1276,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteUpcase(Encoding enc, byte[] bytes, int s, int end) {
+    public static boolean multiByteUpcaseAsciiOnly(Encoding enc, byte[] bytes, int s, int end) {
         boolean modify = false;
         int c;
 
@@ -1292,6 +1294,69 @@ public final class StringSupport {
                     modify = true;
                 }
                 s += codeLength(enc, c);
+            }
+        }
+
+        return modify;
+    }
+
+    @TruffleBoundary
+    public static boolean multiByteUpcase(Encoding enc, RopeBuilder builder, int caseMappingOptions) {
+        byte[] buf = new byte[128];
+
+        final IntHolder flagP = new IntHolder();
+        flagP.value = caseMappingOptions | Config.CASE_UPCASE;
+
+        boolean modify = false;
+        int c;
+
+        int s = 0;
+        int end = builder.getLength();
+        byte[] bytes = builder.getUnsafeBytes();
+
+        while (s < end) {
+            if (enc.isAsciiCompatible() &&
+                    (caseMappingOptions & Config.CASE_FOLD_TURKISH_AZERI) == 0 &&
+                    Encoding.isAscii(c = bytes[s] & 0xff)) {
+                if (ASCIIEncoding.INSTANCE.isLower(c)) {
+                    bytes[s] = AsciiTables.ToUpperCaseTable[c];
+                    modify = true;
+                }
+                s++;
+            } else {
+                c = codePoint(enc, bytes, s, end);
+
+                if (enc.isLower(c)) {
+                    final IntHolder fromP = new IntHolder();
+                    fromP.value = s;
+
+                    int clen = enc.codeToMbcLength(c);
+                    int newByteLength;
+
+                    newByteLength = enc.caseMap(flagP, bytes, fromP, fromP.value + clen, buf, 0, buf.length);
+
+                    if (clen == newByteLength) {
+                        System.arraycopy(buf, 0, bytes, s, newByteLength);
+                    } else {
+                        final int tailLength = end - (s + clen);
+                        final int newBufferLength = s + newByteLength + tailLength;
+                        final byte[] newBuffer = new byte[newBufferLength];
+
+                        System.arraycopy(bytes, 0, newBuffer, 0, s);
+                        System.arraycopy(buf, 0, newBuffer, s, newByteLength);
+                        System.arraycopy(bytes, s + clen, newBuffer, s + newByteLength, tailLength);
+
+                        builder.unsafeReplace(newBuffer, newBufferLength);
+                        bytes = newBuffer;
+                        end = newBufferLength;
+                    }
+
+
+                    modify = true;
+                    s += newByteLength;
+                } else {
+                    s += codeLength(enc, c);
+                }
             }
         }
 
