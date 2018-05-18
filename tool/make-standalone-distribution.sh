@@ -90,6 +90,10 @@ release_home="$PREFIX/truffleruby"
 cd "mxbuild/$os-$arch/RUBY_INSTALLABLE_SVM"
 cp -R jre/languages/ruby "$release_home"
 
+# Remove unused files in a native-only distribution
+rm "$release_home/native-image.properties"
+rm "$release_home"/*.jar
+
 # Create archive
 cd "$PREFIX"
 archive_name="truffleruby-native-$TAG-$os-$arch-$revision.tar.gz"
