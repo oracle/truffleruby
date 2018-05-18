@@ -78,6 +78,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jcodings.Config;
 import org.jcodings.Encoding;
 import org.jcodings.exception.EncodingException;
 import org.jcodings.specific.ASCIIEncoding;
@@ -2625,22 +2626,22 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "upcase!", raiseIfFrozenSelf = true)
-    @ImportStatic(StringGuards.class)
-    public abstract static class UpcaseBangNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "upcase!", raiseIfFrozenSelf = true, lowerFixnum = 1)
+    @ImportStatic({ StringGuards.class, Config.class })
+    public abstract static class StringUpcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isSingleByteOptimizable(string)")
-        public DynamicObject upcaseSingleByte(DynamicObject string,
+        @Specialization(guards = { "isSingleByteOptimizable(string)", "isAsciiCompatMapping(caseMappingOptions)" })
+        public DynamicObject upcaseSingleByte(DynamicObject string, int caseMappingOptions,
                                               @Cached("createLowerToUpper()") InvertAsciiCaseNode invertAsciiCaseNode) {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
-        @Specialization(guards = "!isSingleByteOptimizable(string)")
-        public DynamicObject upcase(DynamicObject string,
-                                    @Cached("create()") RopeNodes.BytesNode bytesNode,
-                                    @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                                    @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
-                                    @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+        @Specialization(guards = { "!isSingleByteOptimizable(string)", "caseMappingOptions == CASE_ASCII_ONLY" })
+        public DynamicObject upcaseMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
+                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
             final Encoding encoding = rope.getEncoding();
 
@@ -2649,7 +2650,7 @@ public abstract class StringNodes {
             }
 
             final RopeBuilder bytes = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
-            final boolean modified = StringSupport.multiByteUpcase(encoding, bytes.getUnsafeBytes(), 0, bytes.getLength());
+            final boolean modified = StringSupport.multiByteUpcaseAsciiOnly(encoding, bytes.getUnsafeBytes(), 0, bytes.getLength());
             if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(string, makeLeafRopeNode.executeMake(bytes.getBytes(), rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
 
@@ -2657,6 +2658,39 @@ public abstract class StringNodes {
             } else {
                 return nil();
             }
+        }
+
+        @Specialization(guards = "isFallback(string, caseMappingOptions)")
+        public DynamicObject upcaseMBC(DynamicObject string, int caseMappingOptions,
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
+                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+            final Rope rope = rope(string);
+            final Encoding encoding = rope.getEncoding();
+
+            if (dummyEncodingProfile.profile(encoding.isDummy())) {
+                throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
+            }
+
+            final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
+            final boolean modified = StringSupport.multiByteUpcase(encoding, builder, caseMappingOptions);
+            if (modifiedProfile.profile(modified)) {
+                StringOperations.setRope(string, makeLeafRopeNode.executeMake(builder.getBytes(), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE));
+
+                return string;
+            } else {
+                return nil();
+            }
+        }
+
+        protected static boolean isAsciiCompatMapping(int caseMappingOptions) {
+            return caseMappingOptions == 0 || caseMappingOptions == Config.CASE_ASCII_ONLY;
+        }
+
+        protected static boolean isFallback(DynamicObject string, int caseMappingOptions) {
+            return (StringGuards.isSingleByteOptimizable(string) && !isAsciiCompatMapping(caseMappingOptions)) ||
+                   (!StringGuards.isSingleByteOptimizable(string) && caseMappingOptions != Config.CASE_ASCII_ONLY);
         }
 
     }

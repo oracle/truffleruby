@@ -115,5 +115,55 @@ module Truffle
       replacement = other.byteslice(other_offset, byte_count_to_copy)
       Truffle.invoke_primitive(:string_splice, string, replacement, dest_offset, byte_count_to_copy, string.encoding)
     end
+
+    def self.case_mapping_option_to_int(option, downcasing=false)
+      case option
+      when :ascii
+        1 << 22 # CASE_ASCII_ONLY
+      when :turkic
+        1 << 20 # CASE_FOLD_TURKISH_AZERI
+      when :lithuanian
+        1 << 21 # CASE_FOLD_LITHUANIAN
+      when :fold then
+        if downcasing
+          1 << 19 # CASE_FOLD
+        else
+          raise ArgumentError, 'option :fold only allowed for downcasing'
+        end
+      else
+        raise ArgumentError, 'invalid option'
+      end
+    end
+
+    def self.validate_case_mapping_options(options, downcasing)
+      if options.size > 2
+        raise ArgumentError, 'too many options'
+      end
+
+      if options.size == 0
+        0
+      elsif options.size == 1
+        case_mapping_option_to_int(options.first, downcasing)
+      elsif options.size == 2
+        first = options[0]
+        second = options[1]
+
+        case first
+        when :turkic then
+          if second == :lithuanian
+            case_mapping_option_to_int(:turkic) | case_mapping_option_to_int(:lithuanian)
+          else
+            raise ArgumentError, 'invalid second option'
+          end
+        when :lithuanian
+          if second == :turkic
+            case_mapping_option_to_int(:lithuanian) | case_mapping_option_to_int(:turkic)
+          else
+            raise ArgumentError, 'invalid second option'
+          end
+        else raise ArgumentError, 'too many options'
+        end
+      end
+    end
   end
 end
