@@ -50,6 +50,11 @@ import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 public final class StringSupport {
     public static final int TRANS_SIZE = 256;
 
+    // We don't know how many characters the case map operation will produce and it requires a non-exposed
+    // minimum buffer size for its internal operations. We create a buffer larger than expected to avoid
+    // exceeding the buffer size.
+    private static final int CASE_MAP_BUFFER_SIZE = 32;
+
     public static final String[] EMPTY_STRING_ARRAY = new String[0];
 
     // rb_enc_fast_mbclen
@@ -1302,7 +1307,7 @@ public final class StringSupport {
 
     @TruffleBoundary
     public static boolean multiByteUpcase(Encoding enc, RopeBuilder builder, int caseMappingOptions) {
-        byte[] buf = new byte[128];
+        byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
         final IntHolder flagP = new IntHolder();
         flagP.value = caseMappingOptions | Config.CASE_UPCASE;
