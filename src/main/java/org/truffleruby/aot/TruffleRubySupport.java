@@ -40,7 +40,7 @@ public final class TruffleRubySupport {
         final CaseInsensitiveBytesHash<EncodingDB.Entry> encodingdb = EncodingDB.getEncodings();
         for (EncodingDB.Entry entry : encodingdb) {
             final String encodingClassName = entry.getEncodingClass();
-            final Encoding encoding = Encoding.load(encodingClassName);
+            final Encoding encoding = entry.getEncoding();
             encodings.put(encodingClassName, new EncodingInstance(encoding, encoding));
         }
 
