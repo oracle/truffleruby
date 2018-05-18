@@ -118,16 +118,20 @@ module Truffle
 
     def self.case_mapping_option_to_int(option, downcasing=false)
       case option
-      when :ascii then 1 << 22 # CASE_ASCII_ONLY
-      when :turkic then 1 << 20 # CASE_FOLD_TURKISH_AZERI
-      when :lithuanian then 1 << 21 # CASE_FOLD_LITHUANIAN
+      when :ascii
+        1 << 22 # CASE_ASCII_ONLY
+      when :turkic
+        1 << 20 # CASE_FOLD_TURKISH_AZERI
+      when :lithuanian
+        1 << 21 # CASE_FOLD_LITHUANIAN
       when :fold then
         if downcasing
           1 << 19 # CASE_FOLD
         else
           raise ArgumentError, 'option :fold only allowed for downcasing'
         end
-      else raise ArgumentError, 'invalid option'
+      else
+        raise ArgumentError, 'invalid option'
       end
     end
 
