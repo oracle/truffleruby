@@ -104,7 +104,7 @@ public class BuildInformationProcessor extends AbstractProcessor {
     }
 
     public String getRevision() throws Exception {
-        return runGitCommand("git rev-parse --short HEAD");
+        return runGitCommand("git rev-parse --short=8 HEAD");
     }
 
     public String getCompileDate() throws Exception {

@@ -48,7 +48,7 @@ if [ -z "$JAVA_HOME" ]; then
 fi
 
 original_repo=$(pwd -P)
-revision=$(git rev-parse --short HEAD)
+revision=$(git rev-parse --short=8 HEAD)
 
 if [ -n "$TAG" ]; then
   version="${TAG#vm-}" # Remove the leading "vm-"
