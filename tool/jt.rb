@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-# Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2015, 2018 Oracle and/or its affiliates. All rights reserved.
 # This code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -474,6 +474,7 @@ module Commands
       jt pr clean [--dry-run]                       delete all github/pr/<number> branches from BB whose GitHub PRs are closed
       jt install jvmci                              install a JVMCI JDK in the parent directory
       jt install graal [--no-jvmci]                 install Graal in the parent directory (--no-jvmci to use the system Java)
+      jt docker                                     build a Docker image - see doc/contributor/docker.md
 
       you can also put --build or --rebuild in front of any command to build or rebuild first
 
@@ -1869,6 +1870,261 @@ EOS
     unless File.exist?(Utilities.find_launcher(true))
       raise "Could not find native image -- either build with 'jt build native' or set AOT_BIN to an image location"
     end
+  end
+  
+  def docker(*args)
+    case args.first
+    when 'build'
+      docker_build *args.drop(1)
+    when 'test'
+      docker_test *args.drop(1)
+    when 'print'
+      docker_print *args.drop(1)
+    when nil
+      abort "No jt docker command"
+    else
+      abort "Unkown jt docker command #{args.first}"
+    end
+  end
+  
+  private def docker_build(*args)
+    if args.first.nil? || args.first.start_with?('--')
+      image_name = 'truffleruby-test'
+    else
+      image_name = args.pop
+    end
+    File.write(File.join(TRUFFLERUBY_DIR, 'Dockerfile'), dockerfile(*args))
+    sh 'docker', 'build', '-t', image_name, '.'
+  end
+  
+  private def docker_test(*args)
+    distros = ['--ol7', '--ubuntu1604', '--fedora25']
+    managers = ['--no-manager', '--rbenv', '--chruby', '--rvm']
+    
+    distros.each do |distro|
+      managers.each do |manager|
+        docker 'build', distro, manager, *args
+      end
+    end
+  end
+  
+  private def docker_print(*args)
+    puts dockerfile(*args)
+  end
+  
+  private def dockerfile(*args)
+    config = @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
+    
+    truffleruby_repo = 'https://github.com/oracle/truffleruby.git'
+    distro = 'ubuntu1604'
+    install_method = :public
+    public_version = '1.0.0-rc1'
+    rebuild_images = false
+    manager = :none
+    basic_test = false
+    full_test = false
+    
+    until args.empty?
+      arg = args.shift
+      case arg
+      when '--repo'
+        truffleruby_repo = args.shift
+      when '--ol7', '--ubuntu1604', '--fedora25'
+        distro = arg[2..-1]
+      when '--public'
+        install_method = :public
+        public_version = args.shift
+      when '--graalvm'
+        install_method = :graalvm
+        graalvm_tarball = args.shift
+        graalvm_component = args.shift
+      when '--source'
+        install_method = :source
+        source_branch = args.shift
+      when '--rebuild-images'
+        rebuild_images = true
+      when '--no-manager'
+        manager = :none
+      when '--rbenv', '--chruby', '--rvm'
+        manager = arg[2..-1].to_sym
+      when '--basic-test'
+        basic_test = true
+      when '--test'
+        full_test = true
+        test_branch = args.shift
+      else
+        abort "unknown option #{arg}"
+      end
+    end
+    
+    distro = config[distro]
+    
+    lines = []
+    
+    lines.push "FROM #{distro['base']}"
+    lines.push "MAINTAINER chris.seaton@oracle.com"
+    
+    lines.push *distro['setup']
+    
+    lines.push *distro['locale']
+    
+    lines.push *distro['curl'] if install_method == :public
+    lines.push *distro['git'] if install_method == :source || manager != :none || full_test
+    lines.push *distro['which'] if manager == :rvm || full_test
+    lines.push *distro['rvm'] if manager == :rvm
+    lines.push *distro['source'] if install_method == :source
+    
+    lines.push *distro['openssl']
+    lines.push *distro['cext']
+    lines.push *distro['cppext']
+    
+    lines.push *distro['user']
+    
+    case install_method
+    when :public
+      lines.push "RUN curl -OL https://github.com/oracle/graal/releases/download/vm-#{public_version}/graalvm-ce-#{public_version}-linux-amd64.tar.gz"
+      lines.push "RUN tar -zxf graalvm-ce-#{public_version}-linux-amd64.tar.gz"
+      lines.push "ENV GRAALVM_BASE=/test/graalvm-#{public_version}"
+      lines.push "RUN $GRAALVM_BASE/bin/gu install -c org.graalvm.ruby"
+      lines.push "ENV D_RUBY_BASE=$GRAALVM_BASE/jre/languages/ruby"
+      lines.push "ENV D_RUBY_BIN=$GRAALVM_BASE/bin"
+    when :graalvm
+      FileUtils.copy graalvm_tarball, TRUFFLERUBY_DIR
+      FileUtils.copy graalvm_component, TRUFFLERUBY_DIR
+      graalvm_tarball = File.basename(graalvm_tarball)
+      graalvm_component = File.basename(graalvm_component)
+      lines.push "COPY #{graalvm_tarball} /test/"
+      lines.push "COPY #{graalvm_component} /test/"
+      graalvm_version = /\d+(\.\d+)*(-[a-z0-9]+)?/.match(graalvm_tarball).to_s
+      lines.push "RUN tar -zxf #{graalvm_tarball}"
+      lines.push "ENV D_GRAALVM_BASE=/test/graalvm-#{graalvm_version}"
+      lines.push "RUN $D_GRAALVM_BASE/bin/gu install /test/#{graalvm_component}"
+      lines.push "ENV D_RUBY_BASE=$D_GRAALVM_BASE/jre/languages/ruby"
+      lines.push "ENV D_RUBY_BIN=$D_GRAALVM_BASE/bin"
+    when :source
+      lines.push "RUN git clone --depth 1 https://github.com/graalvm/mx.git"
+      lines.push "ENV PATH=$PATH:/test/mx"
+      lines.push "RUN git clone --depth 1 https://github.com/graalvm/graal-jvmci-8.git"
+      lines.push "RUN cd graal-jvmci-8 && mx build"
+      lines.push "ENV JAVA_HOME=/test/graal-jvmci-8/#{distro['jdk']}/linux-amd64/product"
+      lines.push "ENV JAVA_BIN=$JAVA_HOME/bin/java"
+      lines.push "ENV JVMCI_VERSION_CHECK=ignore"
+      lines.push "RUN $JAVA_HOME/bin/java -version"
+      lines.push "RUN git clone --depth 1 --branch #{source_branch} #{truffleruby_repo}"
+      lines.push "RUN cd truffleruby && mx build"
+      lines.push "RUN cd graal/compiler && mx build"
+      lines.push "RUN mkdir -p installed/bin"
+      lines.push "RUN echo '#!/bin/bash' > installed/bin/ruby"
+      lines.push "RUN echo 'exec /usr/bin/ruby /test/truffleruby/tool/jt.rb ruby --graal \"$@\"' >> installed/bin/ruby"
+      lines.push "RUN chmod +x installed/bin/ruby"
+      lines.push "RUN ln -s /test/truffleruby/lib /test/installed"
+      lines.push "ENV D_RUBY_BASE=/test/installed"
+      lines.push "ENV D_RUBY_BIN=$D_RUBY_BASE/bin"
+    end
+    
+    if [:public, :graalvm].include?(install_method)
+      lines.push "RUN $D_GRAALVM_BASE/jre/lib/svm/bin/rebuild-images ruby" if rebuild_images
+    elsif rebuild_images
+      abort "can't rebuild images for a build not from public or from local GraalVM components"
+    end
+    
+    case manager
+    when :none
+      lines.push "ENV PATH=$D_RUBY_BASE/bin:$PATH"
+      
+      setup_env = lambda do |command|
+        command
+      end
+    when :rbenv
+      lines.push "RUN git clone --depth 1 https://github.com/rbenv/rbenv.git /home/test/.rbenv"
+      lines.push "RUN mkdir /home/test/.rbenv/versions"
+      lines.push "ENV PATH=/home/test/.rbenv/bin:$PATH"
+      lines.push "RUN rbenv --version"
+
+      lines.push "RUN ln -s $D_RUBY_BASE /home/test/.rbenv/versions/truffleruby"
+      lines.push "RUN rbenv versions"
+      
+      prefix = 'eval "$(rbenv init -)" && rbenv shell truffleruby'
+      
+      setup_env = lambda do |command|
+        "eval \"$(rbenv init -)\" && rbenv shell truffleruby && #{command}"
+      end
+    when :chruby
+      lines.push "RUN git clone --depth 1 https://github.com/postmodern/chruby.git"
+      lines.push "ENV CRUBY_SH=/test/chruby/share/chruby/chruby.sh"
+      lines.push "RUN bash -c 'source $CRUBY_SH && chruby --version'"
+
+      lines.push "RUN mkdir /home/test/.rubies"
+      lines.push "RUN ln -s $D_RUBY_BASE /home/test/.rubies/truffleruby"
+      lines.push "RUN bash -c 'source $CRUBY_SH && chruby'"
+
+      setup_env = lambda do |command|
+        "bash -c 'source $CRUBY_SH && chruby truffleruby && #{command.gsub("'", "'\\\\''")}'"
+      end
+    when :rvm
+      lines.push "RUN git clone --depth 1 https://github.com/rvm/rvm.git"
+      lines.push "ENV RVM_SCRIPT=/test/rvm/scripts/rvm"
+      lines.push "RUN bash -c 'source $RVM_SCRIPT && rvm --version'"
+
+      lines.push "RUN bash -c 'source $RVM_SCRIPT && rvm mount $D_RUBY_BASE -n truffleruby'"
+      lines.push "RUN bash -c 'source $RVM_SCRIPT && rvm list'"
+
+      setup_env = lambda do |command|
+        "bash -c 'source $RVM_SCRIPT && rvm use ext-truffleruby && #{command.gsub("'", "'\\\\''")}'"
+      end
+    end
+    
+    configs = ['']
+    configs += ['--jvm', '--native'] if [:public, :graalvm].include?(install_method)
+    
+    configs.each do |config|
+      lines.push "RUN " + setup_env["ruby #{config} --version"]
+    end
+    
+    if basic_test || full_test
+      configs.each do |config|
+        lines.push "RUN cp -r $D_RUBY_BASE/lib/ruby/gems /test/clean-gems"
+        
+        if config == '' && install_method != :source
+          gem = "gem"
+        else
+          gem = "ruby #{config} -Sgem"
+        end
+        
+        lines.push "RUN " + setup_env["#{gem} install color"]
+        lines.push "RUN " + setup_env["ruby #{config} -rcolor -e 'raise unless defined?(Color)'"]
+
+        lines.push "RUN " + setup_env["#{gem} install oily_png"]
+        lines.push "RUN " + setup_env["ruby #{config} -roily_png -e 'raise unless defined?(OilyPNG::Color)'"]
+
+        lines.push "RUN " + setup_env["#{gem} install unf"]
+        lines.push "RUN " + setup_env["ruby #{config} -runf -e 'raise unless defined?(UNF)'"]
+        
+        lines.push "RUN rm -rf $D_RUBY_BASE/lib/ruby/gems"
+        lines.push "RUN mv /test/clean-gems $D_RUBY_BASE/lib/ruby/gems"
+      end
+    end
+    
+    if full_test
+      lines.push "RUN git clone --depth 1 --branch #{test_branch} #{truffleruby_repo} truffleruby-tests"
+      lines.push "RUN cp -r truffleruby-tests/spec ."
+      lines.push "RUN rm -rf truffleruby-tests"
+      
+      configs.each do |config|
+        excludes = ['fails', 'slow', 'ci']
+        excludes += ['graalvm'] if [:public, :graalvm].include?(install_method)
+        excludes += ['aot'] if ['', '-T--native'].include?(config)
+      
+        [':command_line', ':security', ':language', ':core', ':library', ':capi', ':library_cext', ':truffle'].each do |set|
+          extra = [':core', ':capi', ':truffle'].include?(set) ? ' || true' : ''
+          lines.push "RUN " + setup_env["ruby spec/mspec/bin/mspec --config spec/truffle.mspec -t $D_RUBY_BIN/ruby #{config.empty? ? '' : '-T' + config} #{excludes.map { |e| '--excl-tag ' + e }.join(' ')} #{set} #{extra}"]
+        end
+      end
+    end
+    
+    lines.push "CMD " + setup_env["bash"]
+    
+    lines.join("\n") + "\n"
   end
 
 end

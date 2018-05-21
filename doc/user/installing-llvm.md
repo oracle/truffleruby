@@ -78,8 +78,7 @@ you are on macOS. We would recommend that you install LLVM 4 via
 
 For building and using C and C++ extensions on macOS we recommend just
 installing the full `llvm` package. Make sure you have also installed the
-standard C headers from Xcode via `xcode-select --install`. We give more
-specific advice above for Linux to support use in containers such as Docker.
+standard C headers from Xcode via `xcode-select --install`.
 
 ```bash
 xcode-select --install
