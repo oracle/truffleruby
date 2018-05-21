@@ -1711,21 +1711,21 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "swapcase!", raiseIfFrozenSelf = true)
-    @ImportStatic(StringGuards.class)
-    public abstract static class SwapcaseBangNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "swapcase!", raiseIfFrozenSelf = true, lowerFixnum = 1)
+    @ImportStatic({ StringGuards.class, Config.class })
+    public abstract static class StringSwapcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isSingleByteOptimizable(string)")
-        public DynamicObject swapcaseSingleByte(DynamicObject string,
+        @Specialization(guards = { "isSingleByteOptimizable(string)", "isAsciiCompatMapping(caseMappingOptions)" })
+        public DynamicObject swapcaseSingleByte(DynamicObject string, int caseMappingOptions,
                                                 @Cached("createSwapCase()") InvertAsciiCaseNode invertAsciiCaseNode) {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
-        @Specialization(guards = "!isSingleByteOptimizable(string)")
-        public DynamicObject swapcase(DynamicObject string,
-                                      @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                                      @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
-                                      @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+        @Specialization(guards = { "!isSingleByteOptimizable(string)", "caseMappingOptions == CASE_ASCII_ONLY" })
+        public DynamicObject swapcaseMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
+                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
+                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             // Taken from org.jruby.RubyString#swapcase_bang19.
 
             final Rope rope = rope(string);
@@ -1738,10 +1738,37 @@ public abstract class StringNodes {
             final int s = 0;
             final int end = s + rope.byteLength();
             final byte[] bytes = rope.getBytesCopy();
-            final boolean modified = StringSupport.multiByteSwapcase(enc, bytes, s, end);
+            final boolean modified = StringSupport.multiByteSwapcaseAsciiOnly(enc, bytes, s, end);
 
             if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(string, makeLeafRopeNode.executeMake(bytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
+
+                return string;
+            } else {
+                return nil();
+            }
+        }
+
+        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions)")
+        public DynamicObject swapcase(DynamicObject string, int caseMappingOptions,
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
+                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+            // Taken from org.jruby.RubyString#swapcase_bang19.
+
+            final Rope rope = rope(string);
+            final Encoding enc = rope.getEncoding();
+
+            if (dummyEncodingProfile.profile(enc.isDummy())) {
+                throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
+            }
+
+            final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
+            final boolean modified = StringSupport.multiByteSwapcase(enc, builder, caseMappingOptions);
+
+            if (modifiedProfile.profile(modified)) {
+                StringOperations.setRope(string, makeLeafRopeNode.executeMake(builder.getBytes(), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE));
 
                 return string;
             } else {

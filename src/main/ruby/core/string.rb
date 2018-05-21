@@ -251,9 +251,14 @@ class String
     dup.succ!
   end
 
-  def swapcase
+  def swapcase!(*options)
+    mapped_options = Truffle::StringOperations.validate_case_mapping_options(options, false)
+    Truffle.invoke_primitive :swapcase!, self, mapped_options
+  end
+
+  def swapcase(*options)
     str = dup
-    str.swapcase! || str
+    str.swapcase!(*options) || str
   end
 
   def to_i(base=10)

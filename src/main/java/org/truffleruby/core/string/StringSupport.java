@@ -1239,7 +1239,7 @@ public final class StringSupport {
      */
 
     @TruffleBoundary
-    public static boolean multiByteSwapcase(Encoding enc, byte[] bytes, int s, int end) {
+    public static boolean multiByteSwapcaseAsciiOnly(Encoding enc, byte[] bytes, int s, int end) {
         boolean modify = false;
         while (s < end) {
             int c = codePoint(enc, bytes, s, end);
@@ -1251,6 +1251,34 @@ public final class StringSupport {
                 modify = true;
             }
             s += codeLength(enc, c);
+        }
+
+        return modify;
+    }
+
+    @TruffleBoundary
+    public static boolean multiByteSwapcase(Encoding enc, RopeBuilder builder, int caseMappingOptions) {
+        byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
+
+        final IntHolder flagP = new IntHolder();
+        flagP.value = caseMappingOptions | Config.CASE_UPCASE | Config.CASE_DOWNCASE;
+
+        boolean modify = false;
+        int s = 0;
+        byte[] bytes = builder.getUnsafeBytes();
+
+        while (s < bytes.length) {
+            int c = codePoint(enc, bytes, s, bytes.length);
+            if (enc.isUpper(c) || enc.isLower(c)) {
+                s += caseMapChar(c, enc, bytes, s, builder, flagP, buf);
+                modify = true;
+
+                if (bytes != builder.getUnsafeBytes()) {
+                    bytes = builder.getUnsafeBytes();
+                }
+            } else {
+                s += codeLength(enc, c);
+            }
         }
 
         return modify;
