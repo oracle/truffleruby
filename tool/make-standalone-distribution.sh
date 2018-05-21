@@ -48,7 +48,13 @@ if [ -z "$JAVA_HOME" ]; then
 fi
 
 original_repo=$(pwd -P)
-revision=$(git rev-parse --short HEAD)
+revision=$(git rev-parse --short=8 HEAD)
+
+if [ -n "$TAG" ]; then
+  version="${TAG#vm-}" # Remove the leading "vm-"
+else
+  version="$revision"
+fi
 
 rm -rf "${PREFIX:?}"/*
 mkdir -p "$PREFIX"
@@ -86,7 +92,11 @@ cd ../graal/vm
 mx sversions
 mx --disable-polyglot --disable-libpolyglot --dy truffleruby,/substratevm build
 
-release_home="$PREFIX/truffleruby"
+# The archive basename should be inferable from the version and platform,
+# so that Ruby installers know how to find the archive of a given version.
+archive_basename="truffleruby-$version-$os-$arch"
+
+release_home="$PREFIX/$archive_basename"
 cd "mxbuild/$os-$arch/RUBY_INSTALLABLE_SVM"
 cp -R jre/languages/ruby "$release_home"
 
@@ -96,8 +106,8 @@ rm "$release_home"/*.jar
 
 # Create archive
 cd "$PREFIX"
-archive_name="truffleruby-native-$TAG-$os-$arch-$revision.tar.gz"
-tar czf "$archive_name" truffleruby
+archive_name="$archive_basename.tar.gz"
+tar czf "$archive_name" "$archive_basename"
 
 # Upload the archive
 if [ -n "$UPLOAD_URL" ]; then
