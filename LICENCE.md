@@ -5,7 +5,7 @@ affiliates, and is made available to you under the terms of three licenses:
 
 * Eclipse Public License version 1.0, or
 * GNU General Public License version 2, or
-* GNU Lesser General Public License version 2.1
+* GNU Lesser General Public License version 2.1.
 
 TruffleRuby contains additional code not always covered by these licences, and
 with copyright owned by other people. See
