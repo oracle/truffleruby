@@ -1257,18 +1257,43 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteDowncase(Encoding enc, byte[] bytes, int s, int end) {
+    private static int caseMapChar(int codePoint, Encoding enc, byte[] stringBytes, int stringByteOffset,
+            RopeBuilder builder, IntHolder flags, byte[] workBuffer) {
+        final IntHolder fromP = new IntHolder();
+        fromP.value = stringByteOffset;
+
+        final int clen = enc.codeToMbcLength(codePoint);
+
+        final int newByteLength = enc.caseMap(flags, stringBytes, fromP, fromP.value + clen, workBuffer, 0, workBuffer.length);
+
+        if (clen == newByteLength) {
+            System.arraycopy(workBuffer, 0, stringBytes, stringByteOffset, newByteLength);
+        } else {
+            final int tailLength = stringBytes.length - (stringByteOffset + clen);
+            final int newBufferLength = stringByteOffset + newByteLength + tailLength;
+            final byte[] newBuffer = Arrays.copyOf(stringBytes, newBufferLength);
+
+            System.arraycopy(workBuffer, 0, newBuffer, stringByteOffset, newByteLength);
+            System.arraycopy(stringBytes, stringByteOffset + clen, newBuffer, stringByteOffset + newByteLength, tailLength);
+
+            builder.unsafeReplace(newBuffer, newBufferLength);
+        }
+
+        return newByteLength;
+    }
+
+    @TruffleBoundary
+    public static boolean multiByteDowncaseAsciiOnly(Encoding enc, byte[] bytes) {
         boolean modify = false;
-        int c;
-        while (s < end) {
-            if (enc.isAsciiCompatible() && Encoding.isAscii(c = bytes[s] & 0xff)) {
-                if (ASCIIEncoding.INSTANCE.isUpper(c)) {
-                    bytes[s] = AsciiTables.ToLowerCaseTable[c];
-                    modify = true;
-                }
+        int s = 0;
+
+        while (s < bytes.length) {
+            if (enc.isAsciiCompatible() && isAsciiUppercase(bytes[s])) {
+                bytes[s] ^= 0x20;
+                modify = true;
                 s++;
             } else {
-                c = codePoint(enc, bytes, s, end);
+                final int c = codePoint(enc, bytes, s, bytes.length);
                 if (enc.isUpper(c)) {
                     enc.codeToMbc(toLower(enc, c), bytes, s);
                     modify = true;
@@ -1281,19 +1306,55 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteUpcaseAsciiOnly(Encoding enc, byte[] bytes, int s, int end) {
-        boolean modify = false;
-        int c;
+    public static boolean multiByteDowncase(Encoding enc, RopeBuilder builder, int caseMappingOptions) {
+        byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
-        while (s < end) {
-            if (enc.isAsciiCompatible() && Encoding.isAscii(c = bytes[s] & 0xff)) {
-                if (ASCIIEncoding.INSTANCE.isLower(c)) {
-                    bytes[s] = AsciiTables.ToUpperCaseTable[c];
-                    modify = true;
-                }
+        final IntHolder flagP = new IntHolder();
+        flagP.value = caseMappingOptions | Config.CASE_DOWNCASE;
+
+        final boolean isFold = (caseMappingOptions & Config.CASE_FOLD) != 0;
+        final boolean isTurkic = (caseMappingOptions & Config.CASE_FOLD_TURKISH_AZERI) != 0;
+
+        boolean modify = false;
+        int s = 0;
+        byte[] bytes = builder.getUnsafeBytes();
+
+        while (s < bytes.length) {
+            if (!isTurkic && enc.isAsciiCompatible() && isAsciiUppercase(bytes[s])) {
+                bytes[s] ^= 0x20;
+                modify = true;
                 s++;
             } else {
-                c = codePoint(enc, bytes, s, end);
+                final int c = codePoint(enc, bytes, s, bytes.length);
+
+                if (isFold || enc.isUpper(c)) {
+                    s += caseMapChar(c, enc, bytes, s, builder, flagP, buf);
+                    modify = true;
+
+                    if (bytes != builder.getUnsafeBytes()) {
+                        bytes = builder.getUnsafeBytes();
+                    }
+                } else {
+                    s += codeLength(enc, c);
+                }
+            }
+        }
+
+        return modify;
+    }
+
+    @TruffleBoundary
+    public static boolean multiByteUpcaseAsciiOnly(Encoding enc, byte[] bytes) {
+        boolean modify = false;
+        int s = 0;
+
+        while (s < bytes.length) {
+            if (enc.isAsciiCompatible() && isAsciiLowercase(bytes[s])) {
+                bytes[s] ^= 0x20;
+                modify = true;
+                s++;
+            } else {
+                final int c = codePoint(enc, bytes, s, bytes.length);
                 if (enc.isLower(c)) {
                     enc.codeToMbc(toUpper(enc, c), bytes, s);
                     modify = true;
@@ -1312,52 +1373,26 @@ public final class StringSupport {
         final IntHolder flagP = new IntHolder();
         flagP.value = caseMappingOptions | Config.CASE_UPCASE;
 
+        final boolean isTurkic = (caseMappingOptions & Config.CASE_FOLD_TURKISH_AZERI) != 0;
         boolean modify = false;
-        int c;
-
         int s = 0;
-        int end = builder.getLength();
         byte[] bytes = builder.getUnsafeBytes();
 
-        while (s < end) {
-            if (enc.isAsciiCompatible() &&
-                    (caseMappingOptions & Config.CASE_FOLD_TURKISH_AZERI) == 0 &&
-                    Encoding.isAscii(c = bytes[s] & 0xff)) {
-                if (ASCIIEncoding.INSTANCE.isLower(c)) {
-                    bytes[s] = AsciiTables.ToUpperCaseTable[c];
-                    modify = true;
-                }
+        while (s < bytes.length) {
+            if (!isTurkic && enc.isAsciiCompatible() && isAsciiLowercase(bytes[s])) {
+                bytes[s] ^= 0x20;
+                modify = true;
                 s++;
             } else {
-                c = codePoint(enc, bytes, s, end);
+                final int c = codePoint(enc, bytes, s, bytes.length);
 
                 if (enc.isLower(c)) {
-                    final IntHolder fromP = new IntHolder();
-                    fromP.value = s;
-
-                    int clen = enc.codeToMbcLength(c);
-                    int newByteLength;
-
-                    newByteLength = enc.caseMap(flagP, bytes, fromP, fromP.value + clen, buf, 0, buf.length);
-
-                    if (clen == newByteLength) {
-                        System.arraycopy(buf, 0, bytes, s, newByteLength);
-                    } else {
-                        final int tailLength = end - (s + clen);
-                        final int newBufferLength = s + newByteLength + tailLength;
-                        final byte[] newBuffer = Arrays.copyOf(bytes, newBufferLength);
-
-                        System.arraycopy(buf, 0, newBuffer, s, newByteLength);
-                        System.arraycopy(bytes, s + clen, newBuffer, s + newByteLength, tailLength);
-
-                        builder.unsafeReplace(newBuffer, newBufferLength);
-                        bytes = newBuffer;
-                        end = newBufferLength;
-                    }
-
-
+                    s += caseMapChar(c, enc, bytes, s, builder, flagP, buf);
                     modify = true;
-                    s += newByteLength;
+
+                    if (bytes != builder.getUnsafeBytes()) {
+                        bytes = builder.getUnsafeBytes();
+                    }
                 } else {
                     s += codeLength(enc, c);
                 }

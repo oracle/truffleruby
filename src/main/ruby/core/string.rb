@@ -1483,9 +1483,14 @@ class String
     s
   end
 
-  def downcase
+  def downcase!(*options)
+    mapped_options = Truffle::StringOperations.validate_case_mapping_options(options, true)
+    Truffle.invoke_primitive :downcase!, self, mapped_options
+  end
+
+  def downcase(*options)
     s = dup
-    s.downcase!
+    s.downcase!(*options)
     s
   end
 
