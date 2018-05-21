@@ -19,6 +19,8 @@ import org.truffleruby.language.RubyGuards;
 
 public class StringGuards {
 
+    private static final int CASE_FULL_UNICODE = 0;
+
     public static boolean isSingleByteOptimizable(DynamicObject string) {
         assert RubyGuards.isRubyString(string);
         return Layouts.STRING.getRope(string).isSingleByteOptimizable();
@@ -71,7 +73,7 @@ public class StringGuards {
     }
 
     public static boolean isAsciiCompatMapping(int caseMappingOptions) {
-        return caseMappingOptions == 0 || caseMappingOptions == Config.CASE_ASCII_ONLY;
+        return caseMappingOptions == CASE_FULL_UNICODE || caseMappingOptions == Config.CASE_ASCII_ONLY;
     }
 
     public static boolean isFullCaseMapping(DynamicObject string, int caseMappingOptions) {
