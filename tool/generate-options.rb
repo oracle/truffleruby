@@ -4,9 +4,9 @@
 # This code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
-# Eclipse Public License version 1.0
-# GNU General Public License version 2
-# GNU Lesser General Public License version 2.1
+# Eclipse Public License version 1.0, or
+# GNU General Public License version 2, or
+# GNU Lesser General Public License version 2.1.
 
 require 'ostruct'
 require 'yaml'
@@ -70,9 +70,9 @@ File.write('src/shared/java/org/truffleruby/shared/options/Options.java', ERB.ne
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
- * Eclipse Public License version 1.0
- * GNU General Public License version 2
- * GNU Lesser General Public License version 2.1
+ * Eclipse Public License version 1.0, or
+ * GNU General Public License version 2, or
+ * GNU Lesser General Public License version 2.1.
  */
 package org.truffleruby.shared.options;
 
@@ -106,9 +106,9 @@ File.write('src/shared/java/org/truffleruby/shared/options/OptionsCatalog.java',
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
- * Eclipse Public License version 1.0
- * GNU General Public License version 2
- * GNU Lesser General Public License version 2.1
+ * Eclipse Public License version 1.0, or
+ * GNU General Public License version 2, or
+ * GNU Lesser General Public License version 2.1.
  */
 package org.truffleruby.shared.options;
 

@@ -4,9 +4,9 @@
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
-# Eclipse Public License version 1.0
-# GNU General Public License version 2
-# GNU Lesser General Public License version 2.1
+# Eclipse Public License version 1.0, or
+# GNU General Public License version 2, or
+# GNU Lesser General Public License version 2.1.
 
 test_ruby = ENV['TEST_RUBY'] || 'ruby'
 version = RUBY_VERSION.split('.').first(2).map(&:to_i)
