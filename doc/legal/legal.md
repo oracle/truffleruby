@@ -8,8 +8,8 @@ GraalVM, which is the only supported way to use TruffleRuby.
 TruffleRuby is copyright (c) 2013-2018 Oracle and/or its
 affiliates, and is made available to you under the terms of three licenses:
 
-* Eclipse Public License version 1.0
-* GNU General Public License version 2
+* Eclipse Public License version 1.0, or
+* GNU General Public License version 2, or
 * GNU Lesser General Public License version 2.1
 
 See `epl-1.0.txt`, `gpl-2.txt`, `lgpl-2.1.txt`.
