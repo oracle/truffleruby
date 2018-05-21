@@ -30,7 +30,7 @@ class MSpecScript
   set :target, "#{TRUFFLERUBY_DIR}/bin/truffleruby"
 
   # No flags set if a Ruby binary is specified via -t
-  if !child_process? and !ARGV.include?('-t')
+  if !child_process? and !ARGV.include?('-t') # note this is broken if you write for example -truby
     flags = %w[
       -J-ea
       -J-esa
