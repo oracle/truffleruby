@@ -52,15 +52,6 @@ void *truffle_managed_from_handle(void *nativeHandle);
 bool truffle_is_handle_to_managed(void *nativeHandle);
 void *truffle_assign_managed(void *dst, void *managed);
 
-/*
- * All function below here are deprecated and will be removed in a future release.
- * Use the equivalent functions from <polyglot.h> instead.
- */
-
-// Functions not used in TruffleRuby have been removed
-
-void *truffle_address_to_function(void *address);
-
 #if defined(__cplusplus)
 }
 #endif
