@@ -1515,6 +1515,21 @@ class String
     s
   end
 
+  def casecmp?(other)
+    other = StringValue(other)
+
+    enc = Encoding.compatible?(encoding, other.encoding)
+    if enc.nil?
+      return nil
+    end
+
+    if ascii_only? && other.ascii_only?
+      casecmp(other) == 0
+    else
+      downcase(:fold).casecmp(other.downcase(:fold)) == 0
+    end
+  end
+
   def +@
     frozen? ? dup : self
   end
