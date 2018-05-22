@@ -625,8 +625,13 @@ class String
     result.force_encoding result_encoding
   end
 
-  def prepend(other)
-    replace(StringValue(other) + self)
+  def prepend(*others)
+    if others.size == 1
+      replace(StringValue(others.first) + self)
+    else
+      reduced = others.reduce(''.encode(self.encoding)) { |memo, other| memo + StringValue(other) }
+      replace(StringValue(reduced) + self)
+    end
   end
 
   def upto(stop, exclusive=false)
