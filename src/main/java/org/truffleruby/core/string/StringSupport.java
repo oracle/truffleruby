@@ -1242,17 +1242,16 @@ public final class StringSupport {
     public static boolean multiByteSwapcaseAsciiOnly(Encoding enc, byte[] bytes) {
         boolean modify = false;
         int s = 0;
+        final int end = bytes.length;
 
-        while (s < bytes.length) {
-            int c = codePoint(enc, bytes, s, bytes.length);
-            if (enc.isUpper(c)) {
-                enc.codeToMbc(toLower(enc, c), bytes, s);
+        while (s < end) {
+            if (enc.isAsciiCompatible() && isAsciiAlpha(bytes[s])) {
+                bytes[s] ^= 0x20;
                 modify = true;
-            } else if (enc.isLower(c)) {
-                enc.codeToMbc(toUpper(enc, c), bytes, s);
-                modify = true;
+                s++;
+            } else {
+                s += encLength(enc, bytes, s, end);
             }
-            s += codeLength(enc, c);
         }
 
         return modify;
@@ -1446,6 +1445,10 @@ public final class StringSupport {
 
     public static boolean isAsciiPrintable(int c) {
         return c == ' ' || (c >= '!' && c <= '~');
+    }
+
+    public static boolean isAsciiAlpha(byte c) {
+        return isAsciiUppercase(c) || isAsciiLowercase(c);
     }
 
 }
