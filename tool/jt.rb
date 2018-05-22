@@ -1700,8 +1700,8 @@ EOS
         dir_pattern = "#{dir}/openjdk1.8.0*#{jvmci_version}"
         if Dir[dir_pattern].empty?
           puts "Downloading JDK8 with JVMCI"
-          jvmci_releases = "https://github.com/dougxc/openjdk8-jvmci-builder/releases/download"
-          filename = "openjdk1.8.0_141-#{jvmci_version}-linux-amd64.tar.gz"
+          jvmci_releases = "https://github.com/graalvm/openjdk8-jvmci-builder/releases/download"
+          filename = "openjdk-8u171-#{jvmci_version}-linux-amd64.tar.gz"
           raw_sh "curl", "-L", "#{jvmci_releases}/#{jvmci_version}/#{filename}", "-o", filename
           raw_sh "tar", "xf", filename
         end
