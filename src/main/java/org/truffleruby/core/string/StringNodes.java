@@ -2804,38 +2804,41 @@ public abstract class StringNodes {
             return string;
         }
 
-        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = { "!isSingleByteOptimizable(string)", "caseMappingOptions == CASE_ASCII_ONLY" })
-        public DynamicObject capitalizeBangMBCAsciiOnly(DynamicObject string, int caseMappingOptions) {
+        public DynamicObject capitalizeBangMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
+                @Cached("create()") BranchProfile dummyEncodingProfile,
+                @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
+                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             // Taken from org.jruby.RubyString#capitalize_bang19.
 
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
 
             if (enc.isDummy()) {
+                dummyEncodingProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
             }
 
-            if (rope.isEmpty()) {
+            if (emptyStringProfile.profile(rope.isEmpty())) {
                 return nil();
             }
 
             int s = 0;
             int end = rope.byteLength();
             byte[] bytes = bytesNode.execute(rope);
-            boolean modify = false;
+            boolean modified = false;
 
             while (s < end) {
                 if (enc.isAsciiCompatible() && StringSupport.isAsciiAlpha(bytes[s])) {
                     bytes[s] ^= 0x20;
-                    modify = true;
+                    modified = true;
                     s++;
                 } else {
                     s += StringSupport.encLength(enc, bytes, s, end);
                 }
             }
 
-            if (modify) {
+            if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(string, makeLeafRopeNode.executeMake(bytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
                 return string;
             }
@@ -2845,15 +2848,18 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions)")
         public DynamicObject capitalizeBang(DynamicObject string, int caseMappingOptions,
+                @Cached("create()") BranchProfile dummyEncodingProfile,
+                @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
                 @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
 
             if (enc.isDummy()) {
+                dummyEncodingProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
             }
 
-            if (rope.isEmpty()) {
+            if (emptyStringProfile.profile(rope.isEmpty())) {
                 return nil();
             }
 
