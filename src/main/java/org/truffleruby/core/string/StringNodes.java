@@ -1735,10 +1735,8 @@ public abstract class StringNodes {
                 throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
             }
 
-            final int s = 0;
-            final int end = s + rope.byteLength();
             final byte[] bytes = rope.getBytesCopy();
-            final boolean modified = StringSupport.multiByteSwapcaseAsciiOnly(enc, bytes, s, end);
+            final boolean modified = StringSupport.multiByteSwapcaseAsciiOnly(enc, bytes);
 
             if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(string, makeLeafRopeNode.executeMake(bytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));

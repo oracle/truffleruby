@@ -1239,10 +1239,12 @@ public final class StringSupport {
      */
 
     @TruffleBoundary
-    public static boolean multiByteSwapcaseAsciiOnly(Encoding enc, byte[] bytes, int s, int end) {
+    public static boolean multiByteSwapcaseAsciiOnly(Encoding enc, byte[] bytes) {
         boolean modify = false;
-        while (s < end) {
-            int c = codePoint(enc, bytes, s, end);
+        int s = 0;
+
+        while (s < bytes.length) {
+            int c = codePoint(enc, bytes, s, bytes.length);
             if (enc.isUpper(c)) {
                 enc.codeToMbc(toLower(enc, c), bytes, s);
                 modify = true;
