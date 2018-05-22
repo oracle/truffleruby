@@ -2821,24 +2821,18 @@ public abstract class StringNodes {
             }
 
             int s = 0;
-            int end = s + rope.byteLength();
+            int end = rope.byteLength();
             byte[] bytes = bytesNode.execute(rope);
             boolean modify = false;
 
-            int c = getCodePointNode.executeGetCodePoint(rope, s);
-            if (enc.isLower(c)) {
-                enc.codeToMbc(StringSupport.toUpper(enc, c), bytes, s);
-                modify = true;
-            }
-
-            s += StringSupport.codeLength(enc, c);
             while (s < end) {
-                c = getCodePointNode.executeGetCodePoint(rope, s);
-                if (enc.isUpper(c)) {
-                    enc.codeToMbc(StringSupport.toLower(enc, c), bytes, s);
+                if (enc.isAsciiCompatible() && StringSupport.isAsciiAlpha(bytes[s])) {
+                    bytes[s] ^= 0x20;
                     modify = true;
+                    s++;
+                } else {
+                    s += StringSupport.encLength(enc, bytes, s, end);
                 }
-                s += StringSupport.codeLength(enc, c);
             }
 
             if (modify) {
