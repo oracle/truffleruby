@@ -2925,18 +2925,12 @@ VALUE rb_struct_define_under(VALUE outer, const char *name, ...) {
 
 POLYGLOT_DECLARE_STRUCT(RData)
 
-static void *to_free_function(RUBY_DATA_FUNC dfree) {
-  // TODO CS 26-Mar-18 we should be able to write this but it doesn't work - you get an LLVMTruffleAddress
-  // return (RUBY_DATA_FUNC) dfree;
-  return truffle_address_to_function(dfree);
-}
-
 struct RData *RDATA(VALUE value) {
   return polyglot_as_RData(polyglot_invoke(RUBY_CEXT, "RDATA", value));
 }
 
 VALUE rb_data_object_wrap(VALUE klass, void *data, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
-  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_data_object_wrap", klass, data, dmark, to_free_function(dfree));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_data_object_wrap", klass, data, dmark, dfree);
 }
 
 VALUE rb_data_object_zalloc(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
@@ -2952,7 +2946,7 @@ VALUE rb_data_object_alloc_managed(VALUE klass, size_t size, RUBY_DATA_FUNC dmar
 // Typed data
 
 VALUE rb_data_typed_object_wrap(VALUE ruby_class, void *data, const rb_data_type_t *data_type) {
-  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_data_typed_object_wrap", ruby_class, data, data_type, to_free_function(data_type->function.dfree));
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_data_typed_object_wrap", ruby_class, data, data_type, data_type->function.dfree);
 }
 
 VALUE rb_data_typed_object_zalloc(VALUE ruby_class, size_t size, const rb_data_type_t *data_type) {
