@@ -1482,9 +1482,14 @@ class String
   end
   Truffle::Graal.always_split instance_method(:%)
 
-  def capitalize
+  def capitalize!(*options)
+    mapped_options = Truffle::StringOperations.validate_case_mapping_options(options, false)
+    Truffle.invoke_primitive :capitalize!, self, mapped_options
+  end
+
+  def capitalize(*options)
     s = dup
-    s.capitalize!
+    s.capitalize!(*options)
     s
   end
 

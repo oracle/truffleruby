@@ -2753,17 +2753,17 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "capitalize!", raiseIfFrozenSelf = true)
-    @ImportStatic(StringGuards.class)
-    public abstract static class CapitalizeBangNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "capitalize!", raiseIfFrozenSelf = true, lowerFixnum = 1)
+    @ImportStatic({ StringGuards.class, Config.class })
+    public abstract static class StringCapitalizeBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
         @Child private RopeNodes.GetCodePointNode getCodePointNode = RopeNodes.GetCodePointNode.create();
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
 
-        @Specialization(guards = "isSingleByteOptimizable(string)")
-        public DynamicObject capitalizeSingleByte(DynamicObject string,
+        @Specialization(guards = { "isSingleByteOptimizable(string)", "isAsciiCompatMapping(caseMappingOptions)" })
+        public DynamicObject capitalizeSingleByte(DynamicObject string, int caseMappingOptions,
                                                   @Cached("createUpperToLower()") InvertAsciiCaseBytesNode invertAsciiCaseNode,
-                                                  @Cached("create()") RopeNodes.BytesNode bytesNode,
                                                   @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
                                                   @Cached("createBinaryProfile()") ConditionProfile firstCharIsLowerProfile,
                                                   @Cached("createBinaryProfile()") ConditionProfile otherCharsAlreadyLowerProfile,
@@ -2805,8 +2805,8 @@ public abstract class StringNodes {
         }
 
         @TruffleBoundary(transferToInterpreterOnException = false)
-        @Specialization(guards = "!isSingleByteOptimizable(string)")
-        public DynamicObject capitalizeBang(DynamicObject string) {
+        @Specialization(guards = { "!isSingleByteOptimizable(string)", "caseMappingOptions == CASE_ASCII_ONLY" })
+        public DynamicObject capitalizeBangMBCAsciiOnly(DynamicObject string, int caseMappingOptions) {
             // Taken from org.jruby.RubyString#capitalize_bang19.
 
             final Rope rope = rope(string);
@@ -2822,7 +2822,7 @@ public abstract class StringNodes {
 
             int s = 0;
             int end = s + rope.byteLength();
-            byte[] bytes = rope.getBytesCopy();
+            byte[] bytes = bytesNode.execute(rope);
             boolean modify = false;
 
             int c = getCodePointNode.executeGetCodePoint(rope, s);
@@ -2848,6 +2848,32 @@ public abstract class StringNodes {
 
             return nil();
         }
+
+        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions)")
+        public DynamicObject capitalizeBang(DynamicObject string, int caseMappingOptions,
+                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+            final Rope rope = rope(string);
+            final Encoding enc = rope.getEncoding();
+
+            if (enc.isDummy()) {
+                throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
+            }
+
+            if (rope.isEmpty()) {
+                return nil();
+            }
+
+            final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
+            final boolean modified = StringSupport.multiByteCapitalize(enc, builder, caseMappingOptions);
+            if (modifiedProfile.profile(modified)) {
+                StringOperations.setRope(string, makeLeafRopeNode.executeMake(builder.getBytes(), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE));
+
+                return string;
+            } else {
+                return nil();
+            }
+        }
+
     }
 
     @CoreMethod(names = "clear", raiseIfFrozenSelf = true)

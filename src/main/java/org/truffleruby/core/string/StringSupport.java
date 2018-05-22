@@ -1423,6 +1423,48 @@ public final class StringSupport {
         return modify;
     }
 
+    @TruffleBoundary
+    public static boolean multiByteCapitalize(Encoding enc, RopeBuilder builder, int caseMappingOptions) {
+        byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
+
+        final IntHolder flagP = new IntHolder();
+        flagP.value = caseMappingOptions | Config.CASE_UPCASE | Config.CASE_TITLECASE;
+
+        final boolean isTurkic = (caseMappingOptions & Config.CASE_FOLD_TURKISH_AZERI) != 0;
+        boolean modify = false;
+        int s = 0;
+        byte[] bytes = builder.getUnsafeBytes();
+        boolean upcasing = true;
+
+        while (s < bytes.length) {
+            if (!isTurkic && enc.isAsciiCompatible() && ((upcasing && isAsciiLowercase(bytes[s])) || (!upcasing && isAsciiUppercase(bytes[s])))) {
+                bytes[s] ^= 0x20;
+                modify = true;
+                s++;
+            } else {
+                final int c = codePoint(enc, bytes, s, bytes.length);
+
+                if ((upcasing && enc.isLower(c)) || (!upcasing && enc.isUpper(c))) {
+                    s += caseMapChar(c, enc, bytes, s, builder, flagP, buf);
+                    modify = true;
+
+                    if (bytes != builder.getUnsafeBytes()) {
+                        bytes = builder.getUnsafeBytes();
+                    }
+                } else {
+                    s += codeLength(enc, c);
+                }
+            }
+
+            if (upcasing) {
+                upcasing = false;
+                flagP.value = caseMappingOptions | Config.CASE_DOWNCASE;
+            }
+        }
+
+        return modify;
+    }
+
     public static boolean isAsciiLowercase(byte c) {
         return c >= 'a' && c <= 'z';
     }
