@@ -1711,21 +1711,21 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "swapcase!", raiseIfFrozenSelf = true)
-    @ImportStatic(StringGuards.class)
-    public abstract static class SwapcaseBangNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "swapcase!", raiseIfFrozenSelf = true, lowerFixnum = 1)
+    @ImportStatic({ StringGuards.class, Config.class })
+    public abstract static class StringSwapcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isSingleByteOptimizable(string)")
-        public DynamicObject swapcaseSingleByte(DynamicObject string,
+        @Specialization(guards = { "isSingleByteOptimizable(string)", "isAsciiCompatMapping(caseMappingOptions)" })
+        public DynamicObject swapcaseSingleByte(DynamicObject string, int caseMappingOptions,
                                                 @Cached("createSwapCase()") InvertAsciiCaseNode invertAsciiCaseNode) {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
-        @Specialization(guards = "!isSingleByteOptimizable(string)")
-        public DynamicObject swapcase(DynamicObject string,
-                                      @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                                      @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
-                                      @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+        @Specialization(guards = { "!isSingleByteOptimizable(string)", "caseMappingOptions == CASE_ASCII_ONLY" })
+        public DynamicObject swapcaseMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
+                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
+                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             // Taken from org.jruby.RubyString#swapcase_bang19.
 
             final Rope rope = rope(string);
@@ -1735,13 +1735,38 @@ public abstract class StringNodes {
                 throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
             }
 
-            final int s = 0;
-            final int end = s + rope.byteLength();
             final byte[] bytes = rope.getBytesCopy();
-            final boolean modified = StringSupport.multiByteSwapcase(enc, bytes, s, end);
+            final boolean modified = StringSupport.multiByteSwapcaseAsciiOnly(enc, bytes);
 
             if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(string, makeLeafRopeNode.executeMake(bytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
+
+                return string;
+            } else {
+                return nil();
+            }
+        }
+
+        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions)")
+        public DynamicObject swapcase(DynamicObject string, int caseMappingOptions,
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
+                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+            // Taken from org.jruby.RubyString#swapcase_bang19.
+
+            final Rope rope = rope(string);
+            final Encoding enc = rope.getEncoding();
+
+            if (dummyEncodingProfile.profile(enc.isDummy())) {
+                throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
+            }
+
+            final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
+            final boolean modified = StringSupport.multiByteSwapcase(enc, builder, caseMappingOptions);
+
+            if (modifiedProfile.profile(modified)) {
+                StringOperations.setRope(string, makeLeafRopeNode.executeMake(builder.getBytes(), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE));
 
                 return string;
             } else {
@@ -2728,17 +2753,17 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "capitalize!", raiseIfFrozenSelf = true)
-    @ImportStatic(StringGuards.class)
-    public abstract static class CapitalizeBangNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "capitalize!", raiseIfFrozenSelf = true, lowerFixnum = 1)
+    @ImportStatic({ StringGuards.class, Config.class })
+    public abstract static class StringCapitalizeBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
         @Child private RopeNodes.GetCodePointNode getCodePointNode = RopeNodes.GetCodePointNode.create();
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
 
-        @Specialization(guards = "isSingleByteOptimizable(string)")
-        public DynamicObject capitalizeSingleByte(DynamicObject string,
+        @Specialization(guards = { "isSingleByteOptimizable(string)", "isAsciiCompatMapping(caseMappingOptions)" })
+        public DynamicObject capitalizeSingleByte(DynamicObject string, int caseMappingOptions,
                                                   @Cached("createUpperToLower()") InvertAsciiCaseBytesNode invertAsciiCaseNode,
-                                                  @Cached("create()") RopeNodes.BytesNode bytesNode,
                                                   @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
                                                   @Cached("createBinaryProfile()") ConditionProfile firstCharIsLowerProfile,
                                                   @Cached("createBinaryProfile()") ConditionProfile otherCharsAlreadyLowerProfile,
@@ -2779,50 +2804,76 @@ public abstract class StringNodes {
             return string;
         }
 
-        @TruffleBoundary(transferToInterpreterOnException = false)
-        @Specialization(guards = "!isSingleByteOptimizable(string)")
-        public DynamicObject capitalizeBang(DynamicObject string) {
+        @Specialization(guards = { "!isSingleByteOptimizable(string)", "caseMappingOptions == CASE_ASCII_ONLY" })
+        public DynamicObject capitalizeBangMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
+                @Cached("create()") BranchProfile dummyEncodingProfile,
+                @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
+                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             // Taken from org.jruby.RubyString#capitalize_bang19.
 
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
 
             if (enc.isDummy()) {
+                dummyEncodingProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
             }
 
-            if (rope.isEmpty()) {
+            if (emptyStringProfile.profile(rope.isEmpty())) {
                 return nil();
             }
 
             int s = 0;
-            int end = s + rope.byteLength();
-            byte[] bytes = rope.getBytesCopy();
-            boolean modify = false;
+            int end = rope.byteLength();
+            byte[] bytes = bytesNode.execute(rope);
+            boolean modified = false;
 
-            int c = getCodePointNode.executeGetCodePoint(rope, s);
-            if (enc.isLower(c)) {
-                enc.codeToMbc(StringSupport.toUpper(enc, c), bytes, s);
-                modify = true;
-            }
-
-            s += StringSupport.codeLength(enc, c);
             while (s < end) {
-                c = getCodePointNode.executeGetCodePoint(rope, s);
-                if (enc.isUpper(c)) {
-                    enc.codeToMbc(StringSupport.toLower(enc, c), bytes, s);
-                    modify = true;
+                if (enc.isAsciiCompatible() && StringSupport.isAsciiAlpha(bytes[s])) {
+                    bytes[s] ^= 0x20;
+                    modified = true;
+                    s++;
+                } else {
+                    s += StringSupport.encLength(enc, bytes, s, end);
                 }
-                s += StringSupport.codeLength(enc, c);
             }
 
-            if (modify) {
+            if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(string, makeLeafRopeNode.executeMake(bytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
                 return string;
             }
 
             return nil();
         }
+
+        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions)")
+        public DynamicObject capitalizeBang(DynamicObject string, int caseMappingOptions,
+                @Cached("create()") BranchProfile dummyEncodingProfile,
+                @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
+                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+            final Rope rope = rope(string);
+            final Encoding enc = rope.getEncoding();
+
+            if (enc.isDummy()) {
+                dummyEncodingProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
+            }
+
+            if (emptyStringProfile.profile(rope.isEmpty())) {
+                return nil();
+            }
+
+            final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
+            final boolean modified = StringSupport.multiByteCapitalize(enc, builder, caseMappingOptions);
+            if (modifiedProfile.profile(modified)) {
+                StringOperations.setRope(string, makeLeafRopeNode.executeMake(builder.getBytes(), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE));
+
+                return string;
+            } else {
+                return nil();
+            }
+        }
+
     }
 
     @CoreMethod(names = "clear", raiseIfFrozenSelf = true)

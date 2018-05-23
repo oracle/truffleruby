@@ -251,9 +251,14 @@ class String
     dup.succ!
   end
 
-  def swapcase
+  def swapcase!(*options)
+    mapped_options = Truffle::StringOperations.validate_case_mapping_options(options, false)
+    Truffle.invoke_primitive :swapcase!, self, mapped_options
+  end
+
+  def swapcase(*options)
     str = dup
-    str.swapcase! || str
+    str.swapcase!(*options) || str
   end
 
   def to_i(base=10)
@@ -1482,9 +1487,14 @@ class String
   end
   Truffle::Graal.always_split instance_method(:%)
 
-  def capitalize
+  def capitalize!(*options)
+    mapped_options = Truffle::StringOperations.validate_case_mapping_options(options, false)
+    Truffle.invoke_primitive :capitalize!, self, mapped_options
+  end
+
+  def capitalize(*options)
     s = dup
-    s.capitalize!
+    s.capitalize!(*options)
     s
   end
 
@@ -1508,6 +1518,21 @@ class String
     s = dup
     s.upcase!(*options)
     s
+  end
+
+  def casecmp?(other)
+    other = StringValue(other)
+
+    enc = Encoding.compatible?(encoding, other.encoding)
+    if enc.nil?
+      return nil
+    end
+
+    if ascii_only? && other.ascii_only?
+      casecmp(other) == 0
+    else
+      downcase(:fold).casecmp(other.downcase(:fold)) == 0
+    end
   end
 
   def +@

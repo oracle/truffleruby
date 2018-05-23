@@ -1239,18 +1239,47 @@ public final class StringSupport {
      */
 
     @TruffleBoundary
-    public static boolean multiByteSwapcase(Encoding enc, byte[] bytes, int s, int end) {
+    public static boolean multiByteSwapcaseAsciiOnly(Encoding enc, byte[] bytes) {
         boolean modify = false;
+        int s = 0;
+        final int end = bytes.length;
+
         while (s < end) {
-            int c = codePoint(enc, bytes, s, end);
-            if (enc.isUpper(c)) {
-                enc.codeToMbc(toLower(enc, c), bytes, s);
+            if (enc.isAsciiCompatible() && isAsciiAlpha(bytes[s])) {
+                bytes[s] ^= 0x20;
                 modify = true;
-            } else if (enc.isLower(c)) {
-                enc.codeToMbc(toUpper(enc, c), bytes, s);
-                modify = true;
+                s++;
+            } else {
+                s += encLength(enc, bytes, s, end);
             }
-            s += codeLength(enc, c);
+        }
+
+        return modify;
+    }
+
+    @TruffleBoundary
+    public static boolean multiByteSwapcase(Encoding enc, RopeBuilder builder, int caseMappingOptions) {
+        byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
+
+        final IntHolder flagP = new IntHolder();
+        flagP.value = caseMappingOptions | Config.CASE_UPCASE | Config.CASE_DOWNCASE;
+
+        boolean modify = false;
+        int s = 0;
+        byte[] bytes = builder.getUnsafeBytes();
+
+        while (s < bytes.length) {
+            int c = codePoint(enc, bytes, s, bytes.length);
+            if (enc.isUpper(c) || enc.isLower(c)) {
+                s += caseMapChar(c, enc, bytes, s, builder, flagP, buf);
+                modify = true;
+
+                if (bytes != builder.getUnsafeBytes()) {
+                    bytes = builder.getUnsafeBytes();
+                }
+            } else {
+                s += codeLength(enc, c);
+            }
         }
 
         return modify;
@@ -1286,19 +1315,15 @@ public final class StringSupport {
     public static boolean multiByteDowncaseAsciiOnly(Encoding enc, byte[] bytes) {
         boolean modify = false;
         int s = 0;
+        final int end = bytes.length;
 
-        while (s < bytes.length) {
+        while (s < end) {
             if (enc.isAsciiCompatible() && isAsciiUppercase(bytes[s])) {
                 bytes[s] ^= 0x20;
                 modify = true;
                 s++;
             } else {
-                final int c = codePoint(enc, bytes, s, bytes.length);
-                if (enc.isUpper(c)) {
-                    enc.codeToMbc(toLower(enc, c), bytes, s);
-                    modify = true;
-                }
-                s += codeLength(enc, c);
+                s += encLength(enc, bytes, s, end);
             }
         }
 
@@ -1347,19 +1372,15 @@ public final class StringSupport {
     public static boolean multiByteUpcaseAsciiOnly(Encoding enc, byte[] bytes) {
         boolean modify = false;
         int s = 0;
+        final int end = bytes.length;
 
-        while (s < bytes.length) {
+        while (s < end) {
             if (enc.isAsciiCompatible() && isAsciiLowercase(bytes[s])) {
                 bytes[s] ^= 0x20;
                 modify = true;
                 s++;
             } else {
-                final int c = codePoint(enc, bytes, s, bytes.length);
-                if (enc.isLower(c)) {
-                    enc.codeToMbc(toUpper(enc, c), bytes, s);
-                    modify = true;
-                }
-                s += codeLength(enc, c);
+                s += encLength(enc, bytes, s, end);
             }
         }
 
@@ -1402,6 +1423,48 @@ public final class StringSupport {
         return modify;
     }
 
+    @TruffleBoundary
+    public static boolean multiByteCapitalize(Encoding enc, RopeBuilder builder, int caseMappingOptions) {
+        byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
+
+        final IntHolder flagP = new IntHolder();
+        flagP.value = caseMappingOptions | Config.CASE_UPCASE | Config.CASE_TITLECASE;
+
+        final boolean isTurkic = (caseMappingOptions & Config.CASE_FOLD_TURKISH_AZERI) != 0;
+        boolean modify = false;
+        int s = 0;
+        byte[] bytes = builder.getUnsafeBytes();
+        boolean upcasing = true;
+
+        while (s < bytes.length) {
+            if (!isTurkic && enc.isAsciiCompatible() && ((upcasing && isAsciiLowercase(bytes[s])) || (!upcasing && isAsciiUppercase(bytes[s])))) {
+                bytes[s] ^= 0x20;
+                modify = true;
+                s++;
+            } else {
+                final int c = codePoint(enc, bytes, s, bytes.length);
+
+                if ((upcasing && enc.isLower(c)) || (!upcasing && enc.isUpper(c))) {
+                    s += caseMapChar(c, enc, bytes, s, builder, flagP, buf);
+                    modify = true;
+
+                    if (bytes != builder.getUnsafeBytes()) {
+                        bytes = builder.getUnsafeBytes();
+                    }
+                } else {
+                    s += codeLength(enc, c);
+                }
+            }
+
+            if (upcasing) {
+                upcasing = false;
+                flagP.value = caseMappingOptions | Config.CASE_DOWNCASE;
+            }
+        }
+
+        return modify;
+    }
+
     public static boolean isAsciiLowercase(byte c) {
         return c >= 'a' && c <= 'z';
     }
@@ -1416,6 +1479,10 @@ public final class StringSupport {
 
     public static boolean isAsciiPrintable(int c) {
         return c == ' ' || (c >= '!' && c <= '~');
+    }
+
+    public static boolean isAsciiAlpha(byte c) {
+        return isAsciiUppercase(c) || isAsciiLowercase(c);
     }
 
 }

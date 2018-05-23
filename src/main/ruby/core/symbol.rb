@@ -43,6 +43,12 @@ class Symbol
     to_s.casecmp(other.to_s)
   end
 
+  def casecmp?(other)
+    return unless other.kind_of? Symbol
+
+    to_s.casecmp?(other.to_s)
+  end
+
   def downcase
     to_s.downcase.to_sym
   end
