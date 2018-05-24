@@ -52,10 +52,6 @@ module ImmediateValue
   end
   private :protected_singleton_methods
 
-  def dup
-    raise TypeError, "can't dup #{self.class.name}"
-  end
-
   def clone
     raise TypeError, "can't clone #{self.class.name}"
   end

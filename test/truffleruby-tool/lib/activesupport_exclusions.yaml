@@ -22,3 +22,5 @@ MessageEncryptorTest:
 - test_signed_round_tripping
 EnumerableTests:
 - test_sums
+DuplicableTest:
+- test_duplicable
