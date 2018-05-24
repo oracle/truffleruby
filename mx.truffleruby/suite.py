@@ -439,6 +439,16 @@ suite = {
                     "file:doc/legal",
                     "file:doc/user",
                 ],
+                "src/main/c/openssl/": [
+                    "file:src/main/c/openssl/deprecation.rb",
+                    "file:src/main/c/openssl/extconf.rb",
+                    "file:src/main/c/openssl/*.c",
+                    {
+                        "source_type": "file",
+                        "path": "src/main/c/openssl/*.h",
+                        "exclude": ["src/main/c/openssl/extconf.h"]
+                    },
+                ],
             },
             "license": [
                 "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
