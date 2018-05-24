@@ -24,7 +24,6 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.TruffleFatalException;
 
-import java.util.Arrays;
 import java.util.EnumSet;
 
 public class ExceptionTranslatingNode extends RubyNode {
@@ -255,11 +254,6 @@ public class ExceptionTranslatingNode extends RubyNode {
         final StringBuilder builder = new StringBuilder();
         boolean firstException = true;
 
-        if (t.getClass().getSimpleName().equals("SulongRuntimeException")) {
-            t = translateCExtException(t, builder);
-            firstException = false;
-        }
-
         while (t != null) {
             if (t.getClass().getSimpleName().equals("LazyStackTrace")) {
                 // Truffle's lazy stracktrace support, not a real exception
@@ -303,45 +297,6 @@ public class ExceptionTranslatingNode extends RubyNode {
         builder.append("Translated to internal error");
 
         return coreExceptions().runtimeError(builder.toString(), this, throwable);
-    }
-
-    private Throwable translateCExtException(Throwable t, StringBuilder builder) {
-        builder.append("Error in C extension code (SulongRuntimeException):\n");
-
-        final String[] lines = Arrays.stream(t.getMessage().split("\n"))
-                .map(String::trim)
-                .filter(line -> !line.isEmpty()) // Empty lines
-                .toArray(String[]::new);
-
-        // The first line is the exception message + class
-        // Print the exception class Ruby-style
-        if (lines[0].startsWith("IllegalStateException ")) {
-            lines[0] = lines[0].substring("IllegalStateException ".length()) + " (IllegalStateException)";
-        }
-        builder.append(lines[0]).append('\n');
-
-        // Make the C stacktrace look Ruby-like
-        if (lines[1].equals("C stack trace:")) {
-            lines[1] = null;
-            for (int i = 2; i < lines.length; i++) {
-                lines[i] = "from " + lines[i];
-            }
-        }
-
-        Arrays.stream(lines, 1, lines.length)
-                .filter(line -> line != null) // Lines we removed
-                .forEach(line -> builder.append('\t').append(line).append('\n'));
-
-        // Add the first line of the wrapped exception,
-        // the rest is the Sulong interpreter which is not relevant.
-        final Throwable cause = t.getCause();
-        final StackTraceElement[] stackTrace = cause.getStackTrace();
-        if (stackTrace.length > 0) {
-            stackTraceElementToRuby(builder, stackTrace[0]);
-        }
-
-        // We already printed the message and backtrace of the wrapped exception, skip it
-        return cause.getCause();
     }
 
     private void stackTraceElementToRuby(StringBuilder builder, StackTraceElement stackTraceElement) {
