@@ -222,36 +222,65 @@ public abstract class RequireNode extends RubyNode {
     @TruffleBoundary
     private void handleCExtensionException(String feature, Exception e) {
         final UnsatisfiedLinkError linkErrorException = searchForException(UnsatisfiedLinkError.class, e);
+        if (linkErrorException != null) {
+            final String linkError = linkErrorException.getMessage();
 
-        if (linkErrorException == null) {
-            return;
+            if (getContext().getOptions().CEXTS_LOG_LOAD) {
+                Log.LOGGER.info("unsatisfied link error " + linkError);
+            }
+
+            final String message;
+
+            if (linkError.contains("libc++.")) {
+                message = String.format("%s (%s)", "you may need to install LLVM and libc++ - see doc/user/installing-llvm.md", linkError);
+            } else if (linkError.contains("libc++abi.")) {
+                message = String.format("%s (%s)", "you may need to install LLVM and libc++abi - see doc/user/installing-llvm.md", linkError);
+            } else if (feature.equals("openssl.so")) {
+                message = String.format("%s (%s)", "you may need to install the system OpenSSL library libssl - see doc/user/installing-libssl.md", linkError);
+            } else {
+                message = linkError;
+            }
+
+            throw new RaiseException(getContext(), getContext().getCoreExceptions().runtimeError(message, this));
         }
 
-        final String linkError = linkErrorException.getMessage();
+        final Throwable linkerException = searchForException("LLVMLinkerException", e);
+        if (linkerException != null) {
+            final String linkError = linkerException.getMessage();
+            final String message;
+            final String home = getContext().getRubyHome();
+            final String postInstallHook = (home != null ? home + "/" : "") + "lib/truffle/post_install_hook.sh";
+            if (linkError.contains("SSLv23_method cannot be found")) {
+                message = String.format("%s (%s)",
+                        "the OpenSSL C extension was compiled against libssl 1.0.2, but a newer libssl is used - recompile by running " + postInstallHook,
+                        linkError);
+            } else if (linkError.contains("TLS_method cannot be found")) {
+                message = String.format("%s (%s)",
+                        "the OpenSSL C extension was compiled against libssl 1.1.0, but an older libssl is used - recompile by running " + postInstallHook,
+                        linkError);
+            } else {
+                message = linkError;
+            }
 
-        if (getContext().getOptions().CEXTS_LOG_LOAD) {
-            Log.LOGGER.info("unsatisfied link error " + linkError);
+            throw new RaiseException(getContext(), getContext().getCoreExceptions().runtimeError(message, this));
         }
-
-        final String message;
-
-        if (linkError.contains("libc++.")) {
-            message = String.format("%s (%s)", "you may need to install LLVM and libc++ - see doc/user/installing-llvm.md", linkError);
-        } else if (linkError.contains("libc++abi.")) {
-            message = String.format("%s (%s)", "you may need to install LLVM and libc++abi - see doc/user/installing-llvm.md", linkError);
-        } else if (feature.equals("openssl.so")) {
-            message = String.format("%s (%s)", "you may need to install the system OpenSSL library libssl - see doc/user/installing-libssl.md", linkError);
-        } else {
-            message = linkError;
-        }
-
-        throw new RaiseException(getContext(), getContext().getCoreExceptions().runtimeError(message, this));
     }
 
     private <T extends Throwable> T searchForException(Class<T> exceptionClass, Throwable exception) {
         while (exception != null) {
             if (exceptionClass.isInstance(exception)) {
                 return exceptionClass.cast(exception);
+            }
+            exception = exception.getCause();
+        }
+
+        return null;
+    }
+
+    private Throwable searchForException(String exceptionClass, Throwable exception) {
+        while (exception != null) {
+            if (exception.getClass().getSimpleName().equals(exceptionClass)) {
+                return exception;
             }
             exception = exception.getCause();
         }
