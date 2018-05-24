@@ -27,7 +27,7 @@ extra_cflags = nil
     major, minor, _patch = $1.split('.').map(&:to_i)
     if (major == 3 && minor >= 8) || (major == 4 && minor == 0)
       # OK
-    elsif major == 5 && minor == 0
+    elsif major >= 5
       extra_cflags = '-Xclang -disable-O0-optnone'
     else
       raise "unsupported #{tool} version: #{$1} - see doc/user/installing-llvm.md"
