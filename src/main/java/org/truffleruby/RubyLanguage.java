@@ -19,8 +19,6 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.core.kernel.TraceManager;
-import org.truffleruby.core.module.ModuleFields;
-import org.truffleruby.interop.MetaObject;
 import org.truffleruby.language.LazyRubyRootNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.shared.TruffleRuby;
@@ -150,9 +148,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     public Object findMetaObject(RubyContext context, Object value) {
-        final DynamicObject rubyClass = context.getCoreLibrary().getLogicalClass(value);
-        final ModuleFields rubyClassFields = Layouts.CLASS.getFields(rubyClass);
-        return new MetaObject(rubyClassFields.getName(), rubyClassFields.getName(), toString(context, value));
+        return context.getCoreLibrary().getLogicalClass(value);
     }
 
     @Override
