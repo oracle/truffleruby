@@ -51,11 +51,6 @@ Test error in the callback to the Sulong-instrinsified qsort()
 
 Test error in callback from a native function
 42
-/lib/truffle/truffle/cext.rb:n:in `execute_without_conversion': Error in C extension code (SulongRuntimeException):
-Exception thrown by a callback during the native call com.oracle.truffle.nfi.impl.LibFFIFunction@HEXA(function@HEXA '@sulong_callback') (IllegalStateException)
-	from native_callback in backtraces.c:43:17 (LLVM IR Function native_callback in /lib/backtraces/backtraces.su@HEXA_out.bc in Block BLOCKINFO)
-	from com.oracle.truffle.llvm.nodes.func.LLVMNativeCallUtils.callNativeFunction(LLVMNativeCallUtils.java:72)
-Caused by:
 /bin/backtraces:88:in `error_helper': error from Ruby called from Sulong called from native callback (RuntimeError)
 	from /bin/backtraces:93:in `lambda'
 	from /lib/truffle/truffle/cext.rb:n:in `call'
@@ -64,10 +59,6 @@ Caused by:
 	from /ext/backtraces/backtraces.c:38:in `sulong_callback'
 	from /ext/backtraces/backtraces.c:44:in `native_callback'
 	from /lib/truffle/truffle/cext.rb:n:in `execute_without_conversion'
-	from /lib/truffle/truffle/cext.rb:n:in `execute_with_mutex'
-	from /lib/truffle/truffle/cext_ruby.rb:n:in `native_callback'
-	from /bin/backtraces:92:in `<main>'
-Translated to internal error (RuntimeError)
 	from /lib/truffle/truffle/cext.rb:n:in `execute_with_mutex'
 	from /lib/truffle/truffle/cext_ruby.rb:n:in `native_callback'
 	from /bin/backtraces:92:in `<main>'

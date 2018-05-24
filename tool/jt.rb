@@ -233,7 +233,7 @@ module Utilities
   end
 
   def self.diff(expected, actual)
-    `diff #{expected} #{actual}`
+    `diff -u #{expected} #{actual}`
   end
 
 end
