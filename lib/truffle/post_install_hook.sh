@@ -3,7 +3,18 @@
 # Useful to perform tasks that depend on the user machine and
 # cannot be generally done in advance before building the release tarball.
 
+set -e
+
 lib_truffle=$(cd "$(dirname "$0")" && pwd -P)
 root=$(dirname "$(dirname "$lib_truffle")")
+
+cd "$root"
+
+# Recompile the OpenSSL C extension to adapt to the system version of OpenSSL
+echo "Compiling the OpenSSL C extension"
+cd src/main/c/openssl
+"$root/bin/truffleruby" -w extconf.rb
+make
+cp openssl.su "$root/lib/mri"
 
 echo "TruffleRuby was sucessfully installed in $root"

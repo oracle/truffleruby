@@ -114,6 +114,9 @@ if [ -n "$UPLOAD_URL" ]; then
   curl -X PUT --netrc -T "$archive_name" "$UPLOAD_URL/$archive_name"
 fi
 
+# Test the post-install hook
+"$release_home/lib/truffle/post_install_hook.sh"
+
 # Test it
 "$release_home/bin/ruby" -v
 
