@@ -247,13 +247,7 @@ class Truffle::BigDecimal < Numeric
   end
 
   def inspect
-    sig, max_sig = precs
-
-    format "#<BigDecimal:%s,'%s',%d(%d)>",
-           object_id.to_s(16),
-           to_s,
-           sig,
-           max_sig
+    to_s.downcase
   end
 
   def _dump(level=nil)
