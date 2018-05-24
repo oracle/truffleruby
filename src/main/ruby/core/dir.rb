@@ -216,7 +216,7 @@ class Dir
 
         total = matches.size
         while index < total
-          Truffle::Type.encode_string matches[index], enc
+          matches[index] = matches[index].encode(enc) unless matches[index].encoding == enc
           index += 1
         end
       end
