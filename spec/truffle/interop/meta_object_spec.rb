@@ -9,23 +9,25 @@
 require_relative '../../ruby/spec_helper'
 
 describe "Truffle::Interop.meta_object" do
-  
-  it "has a type property" do
-    Truffle::Interop.meta_object(14)[:type].should == "Integer"
-    Truffle::Interop.meta_object(Object.new)[:type].should == "Object"
-    Truffle::Interop.meta_object({})[:type].should == "Hash"
+
+  it "returns Integer class for an integer" do
+    Truffle::Interop.meta_object(14).should == Integer
   end
-  
-  it "has a className property" do
-    Truffle::Interop.meta_object(14)[:className].should == "Integer"
-    Truffle::Interop.meta_object(Object.new)[:className].should == "Object"
-    Truffle::Interop.meta_object({})[:className].should == "Hash"
+
+  it "returns TrueClass class for a true boolean" do
+    Truffle::Interop.meta_object(true).should == TrueClass
   end
-  
-  it "has a description property" do
-    Truffle::Interop.meta_object(14)[:description].should == "14"
-    Truffle::Interop.meta_object(Object.new)[:description].should =~ /#<Object:0x\h+>/
-    Truffle::Interop.meta_object({})[:description].should == "{}"
+
+  it "returns Object class for an object" do
+    Truffle::Interop.meta_object(Object.new).should == Object
   end
-  
+
+  it "returns Hash class for a hash" do
+    Truffle::Interop.meta_object({}).should == Hash
+  end
+
+  it "returns Array class for an array" do
+    Truffle::Interop.meta_object([1, 2, 3]).should == Array
+  end
+
 end
