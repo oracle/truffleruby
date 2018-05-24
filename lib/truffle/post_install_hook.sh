@@ -10,11 +10,13 @@ root=$(dirname "$(dirname "$lib_truffle")")
 
 cd "$root"
 
-# Recompile the OpenSSL C extension to adapt to the system version of OpenSSL
-echo "Compiling the OpenSSL C extension"
-cd src/main/c/openssl
-"$root/bin/truffleruby" -w extconf.rb
-make
-cp openssl.su "$root/lib/mri"
+if [ "$TRUFFLERUBY_RECOMPILE_OPENSSL" != "false" ]; then
+  # Recompile the OpenSSL C extension to adapt to the system version of OpenSSL
+  echo "Compiling the OpenSSL C extension"
+  cd src/main/c/openssl
+  "$root/bin/truffleruby" -w extconf.rb
+  make
+  cp openssl.su "$root/lib/mri"
+fi
 
 echo "TruffleRuby was sucessfully installed in $root"
