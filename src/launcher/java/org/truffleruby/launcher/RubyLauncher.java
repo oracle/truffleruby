@@ -42,12 +42,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         new RubyLauncher().launch(args);
     }
 
-    static boolean isGraal() {
-        try (Engine engine = Engine.create()) {
-            return engine.getImplementationName().contains("Graal");
-        }
-    }
-
     static boolean isSulongAvailable() {
         try (Engine engine = Engine.create()) {
             return engine.getLanguages().containsKey("llvm");
@@ -70,7 +64,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected void printVersion() {
-        System.out.println(TruffleRuby.getVersionString(isGraal(), isAOT()));
+        System.out.println(TruffleRuby.getVersionString(isAOT()));
         System.out.println();
         printPolyglotVersions();
     }
@@ -275,7 +269,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         }
 
         if (config.getOption(OptionsCatalog.SHOW_VERSION)) {
-            System.out.println(TruffleRuby.getVersionString(isGraal(), isAOT()));
+            System.out.println(TruffleRuby.getVersionString(isAOT()));
         }
 
         if (config.getOption(OptionsCatalog.SHOW_COPYRIGHT)) {
