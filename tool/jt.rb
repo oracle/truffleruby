@@ -1894,8 +1894,9 @@ EOS
     else
       image_name = args.pop
     end
-    File.write(File.join(TRUFFLERUBY_DIR, 'Dockerfile'), dockerfile(*args))
-    sh 'docker', 'build', '-t', image_name, '.'
+    docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
+    File.write(File.join(docker_dir, 'Dockerfile'), dockerfile(*args))
+    sh 'docker', 'build', '-t', image_name, '.', chdir: docker_dir
   end
   
   private def docker_test(*args)
@@ -1991,7 +1992,7 @@ EOS
       lines.push "ENV D_RUBY_BASE=$GRAALVM_BASE/jre/languages/ruby"
       lines.push "ENV D_RUBY_BIN=$GRAALVM_BASE/bin"
     when :graalvm
-      docker_dir = File.join(TRUFFLERUBY_DIRm 'tool', 'docker')
+      docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
       FileUtils.copy graalvm_tarball, docker_dir
       FileUtils.copy graalvm_component, docker_dir
       graalvm_tarball = File.basename(graalvm_tarball)
