@@ -70,6 +70,8 @@ ol7:
     - RUN yum install -y git
   source:
     - RUN yum install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk-openjfx java-atk-wrapper gcc libstdc++-static python ruby
+  images:
+    - RUN yum install -y gcc
   jdk: openjdk1.8.0_171
   openssl:
     - RUN yum install -y openssl-devel
@@ -97,6 +99,8 @@ ubuntu1604:
     - RUN apt-get install -y git  
   source:
     - RUN apt-get install -y openjdk-8-jdk openjdk-8-source make gcc g++ python ruby
+  images:
+    - RUN apt-get install -y gcc
   jdk: openjdk1.8.0_171
   openssl:
     - RUN apt-get install -y libssl-dev
@@ -123,6 +127,8 @@ fedora25:
     - RUN dnf install -y which
   source:
     - RUN dnf install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk-openjfx java-atk-wrapper make gcc libstdc++-static python ruby rubygem-json
+  images:
+    - RUN dnf install -y gcc
   jdk: openjdk1.8.0_151
   openssl:
     - RUN dnf install -y openssl-devel

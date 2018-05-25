@@ -1974,6 +1974,7 @@ EOS
     lines.push *distro['which'] if manager == :rvm || full_test
     lines.push *distro['rvm'] if manager == :rvm
     lines.push *distro['source'] if install_method == :source
+    lines.push *distro['images'] if rebuild_images
     
     lines.push *distro['openssl']
     lines.push *distro['cext']
@@ -1990,8 +1991,9 @@ EOS
       lines.push "ENV D_RUBY_BASE=$GRAALVM_BASE/jre/languages/ruby"
       lines.push "ENV D_RUBY_BIN=$GRAALVM_BASE/bin"
     when :graalvm
-      FileUtils.copy graalvm_tarball, TRUFFLERUBY_DIR
-      FileUtils.copy graalvm_component, TRUFFLERUBY_DIR
+      docker_dir = File.join(TRUFFLERUBY_DIRm 'tool', 'docker')
+      FileUtils.copy graalvm_tarball, docker_dir
+      FileUtils.copy graalvm_component, docker_dir
       graalvm_tarball = File.basename(graalvm_tarball)
       graalvm_component = File.basename(graalvm_component)
       lines.push "COPY #{graalvm_tarball} /test/"
