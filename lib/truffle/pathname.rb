@@ -193,12 +193,8 @@
 class Pathname
 
   # :stopdoc:
-  if RUBY_VERSION < '1.9'
-    TO_PATH = :to_str
-  else
-    # to_path is implemented so Pathname objects are usable with File.open, etc.
-    TO_PATH = :to_path
-  end
+  # to_path is implemented so Pathname objects are usable with File.open, etc.
+  TO_PATH = :to_path
 
   SAME_PATHS = if File::FNM_SYSCASE.nonzero?
                  proc {|a, b| a.casecmp(b).zero?}
@@ -213,17 +209,19 @@ class Pathname
   # If +path+ contains a NUL character (<tt>\0</tt>), an ArgumentError is raised.
   #
   def initialize(path)
-    if path.respond_to? TO_PATH
-      path = path.__send__(TO_PATH)
-    elsif path.respond_to? :to_str
-      path = path.__send__(:to_str)
+    unless String === path
+      if path.respond_to? TO_PATH
+        path = path.__send__(TO_PATH)
+      end
+
+      path = StringValue(path)
+    end
+
+    if path.include? "\0"
+      raise ArgumentError, "pathname contains \\0: #{@path.inspect}"
     end
 
     @path = path.dup
-
-    if /\0/ =~ @path
-      raise ArgumentError, "pathname contains \\0: #{@path.inspect}"
-    end
 
     self.taint if @path.tainted?
   end
