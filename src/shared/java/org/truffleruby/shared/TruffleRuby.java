@@ -33,10 +33,7 @@ public class TruffleRuby {
         if (isAOT) {
             vm = implementationName + " Native";
         } else {
-            final String javaVM = System.getProperty("java.vm.name", "unknown JVM");
-            final String javaVersion = System.getProperty("java.runtime.version",
-                    System.getProperty("java.version", "unknown runtime version"));
-            vm = implementationName + " " + javaVM + " " + javaVersion;
+            vm = implementationName;
         }
 
         return String.format(
