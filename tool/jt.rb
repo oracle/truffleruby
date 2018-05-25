@@ -1874,15 +1874,14 @@ EOS
   end
   
   def docker(*args)
-    case args.first
+    command = args.shift
+    case command
     when 'build'
-      docker_build *args.drop(1)
-    when 'test'
-      docker_test *args.drop(1)
+      docker_build *args
+    when nil, 'test'
+      docker_test *args
     when 'print'
-      docker_print *args.drop(1)
-    when nil
-      abort "No jt docker command"
+      docker_print *args
     else
       abort "Unkown jt docker command #{args.first}"
     end
