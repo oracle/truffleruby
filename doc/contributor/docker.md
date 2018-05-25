@@ -43,7 +43,7 @@ Pick one of:
 Pick one of:
 
 * From the public GraalVM CE binary tarball, and the public Ruby component, `--public 1.0.0rc-1` (default)
-* From a GraalVM binary tarball and Ruby component you have locally, `--graalvm graalvm.tar.gz ruby.jar`
+* From a GraalVM binary tarball and Ruby component you have locally, `--graalvm graalvm.tar.gz ruby-installable.jar`
 * From source, `--source master`
 
 ## Ruby manager
