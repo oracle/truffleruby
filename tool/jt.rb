@@ -2121,7 +2121,9 @@ EOS
       
         [':command_line', ':security', ':language', ':core', ':library', ':capi', ':library_cext', ':truffle'].each do |set|
           extra = [':core', ':capi', ':truffle'].include?(set) ? ' || true' : ''
-          lines.push "RUN " + setup_env["ruby spec/mspec/bin/mspec --config spec/truffle.mspec -t $D_RUBY_BIN/ruby #{config.empty? ? '' : '-T' + config} #{excludes.map { |e| '--excl-tag ' + e }.join(' ')} #{set} #{extra}"]
+          t_config = config.empty? ? '' : '-T' + config
+          t_excludes = excludes.map { |e| '--excl-tag ' + e }.join(' ')
+          lines.push "RUN " + setup_env["ruby spec/mspec/bin/mspec --config spec/truffle.mspec -t $D_RUBY_BIN/ruby #{t_config} #{t_excludes} #{set} #{extra}"]
         end
       end
     end
