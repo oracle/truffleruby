@@ -293,9 +293,12 @@ local part_definitions = {
       downloads+: {
         JAVA_HOME: {
           name: "oraclejdk",
-          version: "10+46",       // 46 is the GA of Java 10
+          version: "10+46", # 46 is the GA of Java 10
           platformspecific: true,
         },
+
+        # We need a JDK 8 to compile TruffleRuby
+        EXTRA_JAVA_HOMES: $.jdk.labsjdk8.downloads["JAVA_HOME"],
       },
 
       environment+: {
