@@ -37,7 +37,7 @@ public class TruffleRuby {
         }
 
         return String.format(
-                "%s %s, like ruby %s <%s> [%s-%s]",
+                "%s %s, like ruby %s, %s [%s-%s]",
                 ENGINE_ID,
                 getEngineVersion(),
                 LANGUAGE_VERSION,
