@@ -2026,10 +2026,12 @@ EOS
       lines.push "ENV D_RUBY_BIN=$D_RUBY_BASE/bin"
     end
     
-    if [:public, :graalvm].include?(install_method)
-      lines.push "RUN $D_GRAALVM_BASE/jre/lib/svm/bin/rebuild-images ruby" if rebuild_images
-    elsif rebuild_images
-      abort "can't rebuild images for a build not from public or from local GraalVM components"
+    if rebuild_images
+      if [:public, :graalvm].include?(install_method)
+        lines.push "RUN $D_GRAALVM_BASE/jre/lib/svm/bin/rebuild-images ruby"
+      else
+        abort "can't rebuild images for a build not from public or from local GraalVM components"
+      end
     end
     
     case manager
