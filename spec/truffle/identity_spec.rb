@@ -37,6 +37,20 @@ describe "Identifying features such as" do
     ((year-1..year) === RUBY_RELEASE_DATE.to_i).should be_true
   end
 
+  guard -> { !TruffleRuby.native? } do
+    it "RUBY_DESCRIPTION indicates which VM TruffleRuby runs on and which edition" do
+      RUBY_DESCRIPTION.should =~ /\b(Interpreted|GraalVM CE|GraalVM EE)\b/
+      RUBY_DESCRIPTION.should_not include("Native")
+      RUBY_DESCRIPTION.should_not include("native")
+    end
+  end
+
+  guard -> { TruffleRuby.native? } do
+    it "RUBY_DESCRIPTION indicates TruffleRuby runs on SVM and which edition" do
+      RUBY_DESCRIPTION.should =~ /\b(GraalVM CE Native|GraalVM EE Native)\b/
+    end
+  end
+
   it "Gem.ruby_engine matches RUBY_ENGINE" do
     Gem.ruby_engine.should == RUBY_ENGINE
   end
