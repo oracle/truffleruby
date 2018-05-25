@@ -1998,7 +1998,7 @@ EOS
       graalvm_component = File.basename(graalvm_component)
       lines.push "COPY #{graalvm_tarball} /test/"
       lines.push "COPY #{graalvm_component} /test/"
-      graalvm_version = /\d+(\.\d+)*(-[a-z0-9]+)?/.match(graalvm_tarball).to_s
+      graalvm_version = /\d+(\.\d+)*(-rc\d+)?(\-dev)?(-\h+)?/.match(graalvm_tarball).to_s
       lines.push "RUN tar -zxf #{graalvm_tarball}"
       lines.push "ENV D_GRAALVM_BASE=/test/graalvm-#{graalvm_version}"
       lines.push "RUN $D_GRAALVM_BASE/bin/gu install /test/#{graalvm_component}"
