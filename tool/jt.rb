@@ -1958,27 +1958,27 @@ EOS
       end
     end
     
-    distro = config[distro]
+    distro = config.fetch(distro)
     
     lines = []
     
-    lines.push "FROM #{distro['base']}"
+    lines.push "FROM #{distro.fetch('base')}"
     lines.push "MAINTAINER chris.seaton@oracle.com"
     
-    lines.push *distro['setup']
+    lines.push *distro.fetch('setup')
     
-    lines.push *distro['locale']
+    lines.push *distro.fetch('locale')
     
-    lines.push *distro['curl'] if install_method == :public
-    lines.push *distro['git'] if install_method == :source || manager != :none || full_test
-    lines.push *distro['which'] if manager == :rvm || full_test
-    lines.push *distro['rvm'] if manager == :rvm
-    lines.push *distro['source'] if install_method == :source
-    lines.push *distro['images'] if rebuild_images
+    lines.push *distro.fetch('curl') if install_method == :public
+    lines.push *distro.fetch('git') if install_method == :source || manager != :none || full_test
+    lines.push *distro.fetch('which') if manager == :rvm || full_test
+    lines.push *distro.fetch('rvm') if manager == :rvm
+    lines.push *distro.fetch('source') if install_method == :source
+    lines.push *distro.fetch('images') if rebuild_images
     
-    lines.push *distro['openssl']
-    lines.push *distro['cext']
-    lines.push *distro['cppext']
+    lines.push *distro.fetch('openssl')
+    lines.push *distro.fetch('cext')
+    lines.push *distro.fetch('cppext')
     
     lines.push "WORKDIR /test"
     lines.push "RUN useradd -ms /bin/bash test"
@@ -2012,7 +2012,7 @@ EOS
       lines.push "ENV PATH=$PATH:/test/mx"
       lines.push "RUN git clone --depth 1 https://github.com/graalvm/graal-jvmci-8.git"
       lines.push "RUN cd graal-jvmci-8 && mx build"
-      lines.push "ENV JAVA_HOME=/test/graal-jvmci-8/#{distro['jdk']}/linux-amd64/product"
+      lines.push "ENV JAVA_HOME=/test/graal-jvmci-8/#{distro.fetch('jdk')}/linux-amd64/product"
       lines.push "ENV JAVA_BIN=$JAVA_HOME/bin/java"
       lines.push "ENV JVMCI_VERSION_CHECK=ignore"
       lines.push "RUN $JAVA_HOME/bin/java -version"
