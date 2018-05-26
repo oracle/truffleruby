@@ -23,7 +23,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.shared.BuildInformationImpl;
 
@@ -34,13 +33,9 @@ public abstract class TruffleRubyNodes {
     public abstract static class GraalNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        public static boolean isGraal() {
-            return StringUtils.toLowerCase(Truffle.getRuntime().getName()).contains("graal");
-        }
-
         @Specialization
-        public boolean graal() {
-            return isGraal();
+        public static boolean isGraal() {
+            return Truffle.getRuntime().getName().contains("Graal");
         }
 
     }

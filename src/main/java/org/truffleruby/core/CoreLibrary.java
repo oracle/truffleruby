@@ -37,7 +37,6 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
-import org.truffleruby.extra.TruffleRubyNodes;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -640,63 +639,59 @@ public class CoreLibrary {
     }
 
     private void initializeConstants() {
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_CHAR", NativeTypes.TYPE_CHAR);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_UCHAR", NativeTypes.TYPE_UCHAR);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_BOOL", NativeTypes.TYPE_BOOL);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_SHORT", NativeTypes.TYPE_SHORT);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_USHORT", NativeTypes.TYPE_USHORT);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_INT", NativeTypes.TYPE_INT);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_UINT", NativeTypes.TYPE_UINT);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_LONG", NativeTypes.TYPE_LONG);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_ULONG", NativeTypes.TYPE_ULONG);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_LL", NativeTypes.TYPE_LL);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_ULL", NativeTypes.TYPE_ULL);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_FLOAT", NativeTypes.TYPE_FLOAT);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_DOUBLE", NativeTypes.TYPE_DOUBLE);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_PTR", NativeTypes.TYPE_PTR);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_VOID", NativeTypes.TYPE_VOID);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_STRING", NativeTypes.TYPE_STRING);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_STRPTR", NativeTypes.TYPE_STRPTR);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_CHARARR", NativeTypes.TYPE_CHARARR);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_ENUM", NativeTypes.TYPE_ENUM);
-        Layouts.MODULE.getFields(truffleFFIModule).setConstant(context, node, "TYPE_VARARGS", NativeTypes.TYPE_VARARGS);
+        setConstant(truffleFFIModule, "TYPE_CHAR", NativeTypes.TYPE_CHAR);
+        setConstant(truffleFFIModule, "TYPE_UCHAR", NativeTypes.TYPE_UCHAR);
+        setConstant(truffleFFIModule, "TYPE_BOOL", NativeTypes.TYPE_BOOL);
+        setConstant(truffleFFIModule, "TYPE_SHORT", NativeTypes.TYPE_SHORT);
+        setConstant(truffleFFIModule, "TYPE_USHORT", NativeTypes.TYPE_USHORT);
+        setConstant(truffleFFIModule, "TYPE_INT", NativeTypes.TYPE_INT);
+        setConstant(truffleFFIModule, "TYPE_UINT", NativeTypes.TYPE_UINT);
+        setConstant(truffleFFIModule, "TYPE_LONG", NativeTypes.TYPE_LONG);
+        setConstant(truffleFFIModule, "TYPE_ULONG", NativeTypes.TYPE_ULONG);
+        setConstant(truffleFFIModule, "TYPE_LL", NativeTypes.TYPE_LL);
+        setConstant(truffleFFIModule, "TYPE_ULL", NativeTypes.TYPE_ULL);
+        setConstant(truffleFFIModule, "TYPE_FLOAT", NativeTypes.TYPE_FLOAT);
+        setConstant(truffleFFIModule, "TYPE_DOUBLE", NativeTypes.TYPE_DOUBLE);
+        setConstant(truffleFFIModule, "TYPE_PTR", NativeTypes.TYPE_PTR);
+        setConstant(truffleFFIModule, "TYPE_VOID", NativeTypes.TYPE_VOID);
+        setConstant(truffleFFIModule, "TYPE_STRING", NativeTypes.TYPE_STRING);
+        setConstant(truffleFFIModule, "TYPE_STRPTR", NativeTypes.TYPE_STRPTR);
+        setConstant(truffleFFIModule, "TYPE_CHARARR", NativeTypes.TYPE_CHARARR);
+        setConstant(truffleFFIModule, "TYPE_ENUM", NativeTypes.TYPE_ENUM);
+        setConstant(truffleFFIModule, "TYPE_VARARGS", NativeTypes.TYPE_VARARGS);
 
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_VERSION", frozenUSASCIIString(TruffleRuby.LANGUAGE_VERSION));
-        Layouts.MODULE.getFields(truffleModule).setConstant(context, node, "RUBY_BASE_VERSION", frozenUSASCIIString(
-                TruffleRuby.LANGUAGE_BASE_VERSION));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PATCHLEVEL", 0);
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_REVISION", TruffleRuby.LANGUAGE_REVISION);
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE", frozenUSASCIIString(TruffleRuby.ENGINE_ID));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE_VERSION", frozenUSASCIIString(
-                TruffleRuby.getEngineVersion()));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PLATFORM", frozenUSASCIIString(RubyLanguage.PLATFORM));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_RELEASE_DATE", frozenUSASCIIString(BuildInformationImpl.INSTANCE.getCompileDate()));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_DESCRIPTION", frozenUSASCIIString(
-                TruffleRuby.getVersionString(TruffleRubyNodes.GraalNode.isGraal(), TruffleOptions.AOT)));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_COPYRIGHT", frozenUSASCIIString(
-                TruffleRuby.RUBY_COPYRIGHT));
+        setConstant(objectClass, "RUBY_VERSION", frozenUSASCIIString(TruffleRuby.LANGUAGE_VERSION));
+        setConstant(truffleModule, "RUBY_BASE_VERSION", frozenUSASCIIString(TruffleRuby.LANGUAGE_BASE_VERSION));
+        setConstant(objectClass, "RUBY_PATCHLEVEL", 0);
+        setConstant(objectClass, "RUBY_REVISION", TruffleRuby.LANGUAGE_REVISION);
+        setConstant(objectClass, "RUBY_ENGINE", frozenUSASCIIString(TruffleRuby.ENGINE_ID));
+        setConstant(objectClass, "RUBY_ENGINE_VERSION", frozenUSASCIIString(TruffleRuby.getEngineVersion()));
+        setConstant(objectClass, "RUBY_PLATFORM", frozenUSASCIIString(RubyLanguage.PLATFORM));
+        setConstant(objectClass, "RUBY_RELEASE_DATE", frozenUSASCIIString(BuildInformationImpl.INSTANCE.getCompileDate()));
+        setConstant(objectClass, "RUBY_DESCRIPTION", frozenUSASCIIString(TruffleRuby.getVersionString(TruffleOptions.AOT)));
+        setConstant(objectClass, "RUBY_COPYRIGHT", frozenUSASCIIString(TruffleRuby.RUBY_COPYRIGHT));
 
         // BasicObject knows itself
-        Layouts.MODULE.getFields(basicObjectClass).setConstant(context, node, "BasicObject", basicObjectClass);
+        setConstant(basicObjectClass, "BasicObject", basicObjectClass);
 
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "ARGV", argv);
+        setConstant(objectClass, "ARGV", argv);
 
-        Layouts.MODULE.getFields(truffleModule).setConstant(context, node, "UNDEFINED", supportUndefined);
-        Layouts.MODULE.getFields(truffleModule).setConstant(context, node, "LIBC", frozenUSASCIIString(Platform.LIBC));
+        setConstant(truffleModule, "UNDEFINED", supportUndefined);
+        setConstant(truffleModule, "LIBC", frozenUSASCIIString(Platform.LIBC));
 
-        Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "INVALID_MASK", EConvFlags.INVALID_MASK);
-        Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "INVALID_REPLACE", EConvFlags.INVALID_REPLACE);
-        Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "UNDEF_MASK", EConvFlags.UNDEF_MASK);
-        Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "UNDEF_REPLACE", EConvFlags.UNDEF_REPLACE);
-        Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "UNDEF_HEX_CHARREF", EConvFlags.UNDEF_HEX_CHARREF);
-        Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "PARTIAL_INPUT", EConvFlags.PARTIAL_INPUT);
-        Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "AFTER_OUTPUT", EConvFlags.AFTER_OUTPUT);
-        Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "UNIVERSAL_NEWLINE_DECORATOR", EConvFlags.UNIVERSAL_NEWLINE_DECORATOR);
-        Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "CRLF_NEWLINE_DECORATOR", EConvFlags.CRLF_NEWLINE_DECORATOR);
-        Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "CR_NEWLINE_DECORATOR", EConvFlags.CR_NEWLINE_DECORATOR);
-        Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "XML_TEXT_DECORATOR", EConvFlags.XML_TEXT_DECORATOR);
-        Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "XML_ATTR_CONTENT_DECORATOR", EConvFlags.XML_ATTR_CONTENT_DECORATOR);
-        Layouts.MODULE.getFields(encodingConverterClass).setConstant(context, node, "XML_ATTR_QUOTE_DECORATOR", EConvFlags.XML_ATTR_QUOTE_DECORATOR);
+        setConstant(encodingConverterClass, "INVALID_MASK", EConvFlags.INVALID_MASK);
+        setConstant(encodingConverterClass, "INVALID_REPLACE", EConvFlags.INVALID_REPLACE);
+        setConstant(encodingConverterClass, "UNDEF_MASK", EConvFlags.UNDEF_MASK);
+        setConstant(encodingConverterClass, "UNDEF_REPLACE", EConvFlags.UNDEF_REPLACE);
+        setConstant(encodingConverterClass, "UNDEF_HEX_CHARREF", EConvFlags.UNDEF_HEX_CHARREF);
+        setConstant(encodingConverterClass, "PARTIAL_INPUT", EConvFlags.PARTIAL_INPUT);
+        setConstant(encodingConverterClass, "AFTER_OUTPUT", EConvFlags.AFTER_OUTPUT);
+        setConstant(encodingConverterClass, "UNIVERSAL_NEWLINE_DECORATOR", EConvFlags.UNIVERSAL_NEWLINE_DECORATOR);
+        setConstant(encodingConverterClass, "CRLF_NEWLINE_DECORATOR", EConvFlags.CRLF_NEWLINE_DECORATOR);
+        setConstant(encodingConverterClass, "CR_NEWLINE_DECORATOR", EConvFlags.CR_NEWLINE_DECORATOR);
+        setConstant(encodingConverterClass, "XML_TEXT_DECORATOR", EConvFlags.XML_TEXT_DECORATOR);
+        setConstant(encodingConverterClass, "XML_ATTR_CONTENT_DECORATOR", EConvFlags.XML_ATTR_CONTENT_DECORATOR);
+        setConstant(encodingConverterClass, "XML_ATTR_QUOTE_DECORATOR", EConvFlags.XML_ATTR_QUOTE_DECORATOR);
 
         // Errno classes and constants
         for (Entry<String, Object> entry : context.getNativeConfiguration().getSection(ERRNO_CONFIG_PREFIX)) {
@@ -706,13 +701,17 @@ public class CoreLibrary {
             }
             errnoValueToNames.put((int) entry.getValue(), name);
             final DynamicObject rubyClass = defineClass(errnoModule, systemCallErrorClass, name);
-            Layouts.MODULE.getFields(rubyClass).setConstant(context, node, "Errno", entry.getValue());
+            setConstant(rubyClass, "Errno", entry.getValue());
             errnoClasses.put(name, rubyClass);
         }
 
         if (getErrnoValue("EWOULDBLOCK") == getErrnoValue("EAGAIN")) {
-            Layouts.MODULE.getFields(errnoModule).setConstant(context, node, "EWOULDBLOCK", errnoClasses.get("EAGAIN"));
+            setConstant(errnoModule, "EWOULDBLOCK", errnoClasses.get("EAGAIN"));
         }
+    }
+
+    private void setConstant(DynamicObject module, String name, Object value) {
+        Layouts.MODULE.getFields(module).setConstant(context, node, name, value);
     }
 
     private DynamicObject frozenUSASCIIString(String string) {

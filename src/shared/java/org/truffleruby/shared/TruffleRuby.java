@@ -10,6 +10,8 @@
 
 package org.truffleruby.shared;
 
+import org.graalvm.polyglot.Engine;
+
 public class TruffleRuby {
 
     public static final String LANGUAGE_ID = "ruby";
@@ -21,17 +23,25 @@ public class TruffleRuby {
     public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2018 Oracle and/or its affiliates";
     public static final boolean PRE_INITIALIZE_CONTEXTS = System.getProperty("polyglot.engine.PreinitializeContexts") != null;
 
-    public static String getVersionString(boolean isGraal, boolean isAOT) {
+    public static String getVersionString(boolean isAOT) {
+        final String implementationName;
+        try (Engine engine = Engine.create()) {
+            implementationName = engine.getImplementationName();
+        }
+
+        final String vm;
+        if (isAOT) {
+            vm = implementationName + " Native";
+        } else {
+            vm = implementationName;
+        }
+
         return String.format(
-                "%s %s, like ruby %s <%s %s %s> [%s-%s]",
+                "%s %s, like ruby %s, %s [%s-%s]",
                 ENGINE_ID,
                 getEngineVersion(),
                 LANGUAGE_VERSION,
-                isAOT ? "native" : System.getProperty("java.vm.name", "unknown JVM"),
-                isAOT ? "build" : System.getProperty(
-                        "java.runtime.version",
-                        System.getProperty("java.version", "unknown runtime version")),
-                isGraal ? "with Graal" : "without Graal",
+                vm,
                 BasicPlatform.getArchitecture(),
                 BasicPlatform.getOSName()
         );
