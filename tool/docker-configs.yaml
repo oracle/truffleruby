@@ -79,11 +79,6 @@ ol7:
   cppext:
     - RUN yum install -y libcxx libcxx-devel
   rvm:
-  user:
-    - WORKDIR /test
-    - RUN useradd -ms /bin/bash test
-    - RUN chown test /test
-    - USER test
 ubuntu1604:
   base: ubuntu:16.04
   setup:
@@ -109,11 +104,6 @@ ubuntu1604:
   cppext:
     - RUN apt-get install -y libc++-dev
   rvm:
-  user:
-    - WORKDIR /test
-    - RUN useradd -ms /bin/bash test
-    - RUN chown test /test
-    - USER test
 fedora25:
   base: fedora:25
   setup:
@@ -139,8 +129,3 @@ fedora25:
     - RUN dnf install -y libcxx
   rvm:
     - RUN dnf install -y procps
-  user:
-    - WORKDIR /test
-    - RUN useradd -ms /bin/bash test
-    - RUN chown test /test
-    - USER test

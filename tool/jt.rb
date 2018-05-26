@@ -1979,7 +1979,10 @@ EOS
     lines.push *distro['cext']
     lines.push *distro['cppext']
     
-    lines.push *distro['user']
+    lines.push "WORKDIR /test"
+    lines.push "RUN useradd -ms /bin/bash test"
+    lines.push "RUN chown test /test"
+    lines.push "USER test"
     
     case install_method
     when :public
