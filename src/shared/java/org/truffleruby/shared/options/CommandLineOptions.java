@@ -37,13 +37,11 @@ public class CommandLineOptions {
     private Map<String, String> options;
     private String[] arguments;
     private final List<String> unknownArguments;
-    private boolean irbInsteadOfInputUsed;
 
     public CommandLineOptions(Map<String, String> options) {
         this.options = options;
         this.arguments = new String[]{};
         this.unknownArguments = new ArrayList<>(0);
-        this.irbInsteadOfInputUsed = false;
     }
 
     public Map<String, String> getOptions() {
@@ -84,13 +82,5 @@ public class CommandLineOptions {
 
     public List<String> getUnknownArguments() {
         return unknownArguments;
-    }
-
-    public boolean isIrbInsteadOfInputUsed() {
-        return irbInsteadOfInputUsed;
-    }
-
-    public void setIrbInsteadOfInputUsed(boolean irbInsteadOfInputUsed) {
-        this.irbInsteadOfInputUsed = irbInsteadOfInputUsed;
     }
 }

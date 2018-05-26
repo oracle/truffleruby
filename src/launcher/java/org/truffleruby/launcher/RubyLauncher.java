@@ -263,11 +263,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     private static void printPreRunInformation(CommandLineOptions config) {
-        if (config.isIrbInsteadOfInputUsed()) {
-            RubyLogger.LOGGER.warning(
-                    "truffleruby starts IRB when stdin is a TTY instead of reading from stdin, use '-' to read from stdin");
-        }
-
         if (config.getOption(OptionsCatalog.SHOW_VERSION)) {
             System.out.println(TruffleRuby.getVersionString(isAOT()));
         }
