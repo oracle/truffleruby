@@ -35,6 +35,7 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.shared.Metrics;
+import org.truffleruby.shared.RubyLogger;
 import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionDescription;
 import org.truffleruby.shared.options.OptionsCatalog;
@@ -188,6 +189,8 @@ public abstract class TruffleBootNodes {
                                 return loadMainSourceSettingDollarZero(findSFile, makeStringNode, ExecutionAction.STDIN, toExecute);
                             case IRB:
                                 if (System.console() != null) {
+                                    RubyLogger.LOGGER.warning(
+                                            "truffleruby starts IRB when stdin is a TTY instead of reading from stdin, use '-' to read from stdin");
                                     return loadMainSourceSettingDollarZero(findSFile, makeStringNode, ExecutionAction.PATH, "irb");
                                 } else {
                                     return loadMainSourceSettingDollarZero(findSFile, makeStringNode, ExecutionAction.STDIN, toExecute);

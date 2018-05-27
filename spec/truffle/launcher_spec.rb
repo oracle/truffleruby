@@ -8,6 +8,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 require_relative '../ruby/spec_helper'
+require 'benchmark'
 
 describe "The launcher" do
 
@@ -76,6 +77,15 @@ describe "The launcher" do
       parts.find { |part| part =~ /^#{option}$/ }.should_not be_nil
       $?.success?.should == true
     end
+  end
+
+  it "does not create context on --version and -v" do
+    short = Benchmark.realtime { ruby_exe(nil, options: "--help:languages") }
+    version = Benchmark.realtime { ruby_exe(nil, options: "--version") }
+    v = Benchmark.realtime { ruby_exe(nil, options: "-v") }
+
+    version.should <= short + 0.5
+    v.should <= short + 0.5
   end
 
   it "preserve spaces in options" do

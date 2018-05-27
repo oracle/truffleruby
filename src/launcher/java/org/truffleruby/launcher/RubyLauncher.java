@@ -18,11 +18,11 @@ import org.graalvm.polyglot.Source;
 import org.truffleruby.launcher.options.CommandLineException;
 import org.truffleruby.shared.options.CommandLineOptions;
 import org.truffleruby.launcher.options.CommandLineParser;
+import org.truffleruby.shared.options.DefaultExecutionAction;
 import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.Metrics;
-import org.truffleruby.shared.RubyLogger;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -203,6 +203,11 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             return 0;
         }
 
+        if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET &&
+                config.getOption(OptionsCatalog.DEFAULT_EXECUTION_ACTION) == DefaultExecutionAction.NONE) {
+            return 0;
+        }
+
         try (Context context = createContext(contextBuilder, config)) {
             Metrics.printTime("before-run");
             final Source source = Source.newBuilder(
@@ -263,11 +268,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     private static void printPreRunInformation(CommandLineOptions config) {
-        if (config.isIrbInsteadOfInputUsed()) {
-            RubyLogger.LOGGER.warning(
-                    "truffleruby starts IRB when stdin is a TTY instead of reading from stdin, use '-' to read from stdin");
-        }
-
         if (config.getOption(OptionsCatalog.SHOW_VERSION)) {
             System.out.println(TruffleRuby.getVersionString(isAOT()));
         }
