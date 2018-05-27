@@ -2019,12 +2019,9 @@ EOS
       lines.push "RUN git clone --depth 1 --branch #{source_branch} #{truffleruby_repo}"
       lines.push "RUN cd truffleruby && mx build"
       lines.push "RUN cd graal/compiler && mx build"
-      lines.push "RUN mkdir -p installed/bin"
-      lines.push "RUN echo '#!/bin/bash' > installed/bin/ruby"
-      lines.push "RUN echo 'exec /usr/bin/ruby /test/truffleruby/tool/jt.rb ruby --graal \"$@\"' >> installed/bin/ruby"
-      lines.push "RUN chmod +x installed/bin/ruby"
-      lines.push "RUN ln -s /test/truffleruby/lib /test/installed"
-      lines.push "ENV D_RUBY_BASE=/test/installed"
+      lines.push "ENV JAVACMD=$JAVA_BIN"
+      lines.push "ENV JAVA_OPTS='-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -Djvmci.class.path.append=/test/graal/compiler/mxbuild/dists/graal.jar'"
+      lines.push "ENV D_RUBY_BASE=/test/truffleruby"
       lines.push "ENV D_RUBY_BIN=$D_RUBY_BASE/bin"
     end
     
