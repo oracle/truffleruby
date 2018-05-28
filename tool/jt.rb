@@ -1883,22 +1883,22 @@ EOS
     when 'print'
       docker_print *args
     else
-      abort "Unkown jt docker command #{args.first}"
+      abort "Unkown jt docker command #{command}"
     end
   end
   
-  private def docker_build(*args)
+  def docker_build(*args)
     if args.first.nil? || args.first.start_with?('--')
       image_name = 'truffleruby-test'
     else
-      image_name = args.pop
+      image_name = args.shift
     end
     docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
     File.write(File.join(docker_dir, 'Dockerfile'), dockerfile(*args))
     sh 'docker', 'build', '-t', image_name, '.', chdir: docker_dir
   end
   
-  private def docker_test(*args)
+  def docker_test(*args)
     distros = ['--ol7', '--ubuntu1604', '--fedora25']
     managers = ['--no-manager', '--rbenv', '--chruby', '--rvm']
     
@@ -1909,11 +1909,11 @@ EOS
     end
   end
   
-  private def docker_print(*args)
+  def docker_print(*args)
     puts dockerfile(*args)
   end
   
-  private def dockerfile(*args)
+  def dockerfile(*args)
     config = @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
     
     truffleruby_repo = 'https://github.com/oracle/truffleruby.git'
@@ -2133,6 +2133,8 @@ EOS
     
     lines.join("\n") + "\n"
   end
+  
+  private :docker_build, :docker_test, :docker_print, :dockerfile
 
 end
 
