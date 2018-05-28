@@ -3067,7 +3067,7 @@ void rb_tr_release_handle(void *handle) {
   truffle_release_handle(handle);
 }
 
-// Managed Strucs
+// Managed Structs
 
 void* rb_tr_new_managed_struct(void) {
   return rb_hash_new();
