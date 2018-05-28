@@ -1793,13 +1793,12 @@ EOS
         languages.push '--tool:chromeinspector', '--tool:profiler'
       end
 
-      env = java_home ? { "JAVA_HOME" => java_home } : {}
       output_options = [
           "-H:Path=#{TRUFFLERUBY_DIR}/bin",
           '-H:Name=native-ruby',
           '-H:Class=org.truffleruby.launcher.RubyLauncher']
 
-      raw_sh env, './native-image', '--no-server', *languages, *output_options, *options
+      mx 'native-image', *languages, *output_options, *options, java_home: java_home
     end
   end
 
