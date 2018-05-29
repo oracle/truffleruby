@@ -35,7 +35,7 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.Metrics;
-import org.truffleruby.shared.RubyLogger;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionDescription;
 import org.truffleruby.shared.options.OptionsCatalog;

@@ -34,7 +34,6 @@
  */
 package org.truffleruby.launcher.options;
 
-import org.truffleruby.shared.RubyLogger;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.CommandLineOptions;
 import org.truffleruby.shared.options.DefaultExecutionAction;
@@ -252,7 +251,7 @@ public class CommandLineParser {
                     break FOR;
                 case 'y':
                     disallowedInRubyOpts(argument);
-                    RubyLogger.LOGGER.warning("the -y switch is silently ignored as it is an internal development tool");
+                    //RubyLogger.LOGGER.warning("the -y switch is silently ignored as it is an internal development tool");
                     break FOR;
                 case 'J':
                     String javaOption = grabOptionalValue();
@@ -352,7 +351,7 @@ public class CommandLineParser {
                     disallowedInRubyOpts(argument);
                     final String extendedOption = grabValue("-X must be followed by an option");
                     if (new File(extendedOption).isDirectory()) {
-                        RubyLogger.LOGGER.warning("the -X option supplied also appears to be a directory name - did you intend to use -X like -C?");
+                        //RubyLogger.LOGGER.warning("the -X option supplied also appears to be a directory name - did you intend to use -X like -C?");
                     }
                     if (extendedOption.equals("options")) {
                         System.out.println("TruffleRuby options and their default values:");
@@ -366,7 +365,7 @@ public class CommandLineParser {
                         config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                     } else if (extendedOption.startsWith("log=")) {
                         final String levelString = extendedOption.substring("log=".length());
-                        RubyLogger.setLevel(levelString);
+                        //RubyLogger.setLevel(levelString);
                     } else {
                         // Turn extra options into polyglot options and let
                         // org.graalvm.launcher.Launcher.parsePolyglotOption
@@ -385,7 +384,7 @@ public class CommandLineParser {
                         throw notImplemented("--debug");
                     } else if (argument.equals("--yydebug")) {
                         disallowedInRubyOpts(argument);
-                        RubyLogger.LOGGER.warning("the --yydebug switch is silently ignored as it is an internal development tool");
+                        //RubyLogger.LOGGER.warning("the --yydebug switch is silently ignored as it is an internal development tool");
                         break FOR;
                     } else if (rubyOpts && argument.equals("--help")) {
                         disallowedInRubyOpts(argument);
@@ -428,7 +427,7 @@ public class CommandLineParser {
                         config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
                         break FOR;
                     } else if (argument.startsWith("--dump=")) {
-                        RubyLogger.LOGGER.warning("the --dump= switch is silently ignored as it is an internal development tool");
+                        //RubyLogger.LOGGER.warning("the --dump= switch is silently ignored as it is an internal development tool");
                         break FOR;
                     } else {
                         if (argument.equals("--")) {
@@ -451,7 +450,7 @@ public class CommandLineParser {
         final BiConsumer<CommandLineParser, Boolean> feature = FEATURES.get(name);
 
         if (feature == null) {
-            RubyLogger.LOGGER.warning("warning: unknown argument for --" + (enable ? "enable" : "disable") + ": `" + name + "'");
+            //RubyLogger.LOGGER.warning("warning: unknown argument for --" + (enable ? "enable" : "disable") + ": `" + name + "'");
         } else {
             feature.accept(this, enable);
         }
