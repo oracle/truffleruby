@@ -1,4 +1,4 @@
-# 1.0
+# 1.0 RC 2, May 2018
 
 New features:
 
