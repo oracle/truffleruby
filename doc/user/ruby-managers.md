@@ -61,9 +61,9 @@ It can also be fixed just for the current terminal by clearing
 the environment with one of the following commands:
 
 ```bash
-$ rvm use system
 $ rbenv system
 $ chruby system
+$ rvm use system
 # Or manually:
 $ unset GEM_HOME GEM_PATH GEM_ROOT
 ```
