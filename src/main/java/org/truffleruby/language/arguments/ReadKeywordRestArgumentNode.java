@@ -14,7 +14,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
-import org.truffleruby.Log;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.core.hash.BucketsStrategy;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.KeyValue;
@@ -49,7 +49,7 @@ public class ReadKeywordRestArgumentNode extends RubyNode {
             return coreLibrary().getHashFactory().newInstance(Layouts.HASH.build(null, 0, null, null, nil(), nil(), false));
         }
 
-        Log.notOptimizedOnce(Log.KWARGS_NOT_OPTIMIZED_YET);
+        RubyLogger.notOptimizedOnce(RubyLogger.KWARGS_NOT_OPTIMIZED_YET);
 
         return extractKeywordHash(hash);
     }

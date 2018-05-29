@@ -17,7 +17,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import org.truffleruby.Log;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToSymbolNode;
@@ -80,7 +80,7 @@ public class UncachedDispatchNode extends DispatchNode {
         if (dispatchAction == DispatchAction.CALL_METHOD) {
             if (metaClassNode.executeMetaClass(receiver) == coreLibrary().getTruffleInteropForeignClass()) {
                 foreignProfile.enter();
-                Log.notOptimizedOnce("megamorphic dispatch on foreign object");
+                RubyLogger.notOptimizedOnce("megamorphic dispatch on foreign object");
                 return createOutgoingForeignCallNode(methodName).executeCall(frame, (TruffleObject) receiver, arguments);
             }
         } else {

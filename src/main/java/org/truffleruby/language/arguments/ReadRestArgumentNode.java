@@ -12,7 +12,7 @@ package org.truffleruby.language.arguments;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.Log;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -79,7 +79,7 @@ public class ReadRestArgumentNode extends RubyNode {
         final DynamicObject rest = createArray(resultStore, resultLength);
 
         if (keywordArguments) {
-            Log.notOptimizedOnce(Log.KWARGS_NOT_OPTIMIZED_YET);
+            RubyLogger.notOptimizedOnce(RubyLogger.KWARGS_NOT_OPTIMIZED_YET);
 
             Object kwargsHash = readUserKeywordsHashNode.execute(frame);
 

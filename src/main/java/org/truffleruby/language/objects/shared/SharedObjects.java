@@ -15,7 +15,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Layouts;
-import org.truffleruby.Log;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.objects.ObjectGraph;
 
@@ -65,7 +65,7 @@ public class SharedObjects {
         long t0 = System.currentTimeMillis();
         shareObjects(context, stack);
         if (context.getOptions().SHARED_OBJECTS_DEBUG) {
-            Log.LOGGER.info("sharing roots took " + (System.currentTimeMillis() - t0) + " ms");
+            RubyLogger.LOGGER.info("sharing roots took " + (System.currentTimeMillis() - t0) + " ms");
         }
     }
 
@@ -74,7 +74,7 @@ public class SharedObjects {
 
         if (context.getOptions().SHARED_OBJECTS_DEBUG) {
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
-            Log.LOGGER.info("sharing decl frame of " + context.getSourceLoader().fileLine(sourceSection));
+            RubyLogger.LOGGER.info("sharing decl frame of " + context.getSourceLoader().fileLine(sourceSection));
         }
 
         final MaterializedFrame declarationFrame = Layouts.PROC.getDeclarationFrame(block);

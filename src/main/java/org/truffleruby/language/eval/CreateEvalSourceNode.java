@@ -12,8 +12,8 @@ package org.truffleruby.language.eval;
 import java.util.Arrays;
 
 import org.jcodings.Encoding;
-import org.truffleruby.Log;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.Rope;
@@ -70,14 +70,14 @@ public class CreateEvalSourceNode extends RubyBaseNode {
         // TODO CS 23-Apr-18 Truffle doesn't support line numbers starting at anything but 1
         if (line == 0) {
             // fine instead of warning because these seem common
-            Log.LOGGER.fine(() -> String.format("zero line number %s:%d not supported in #%s - will be reported as starting at 1", file, line, method));
+            RubyLogger.LOGGER.fine(() -> String.format("zero line number %s:%d not supported in #%s - will be reported as starting at 1", file, line, method));
             return source;
         } else if (line < 1) {
-            Log.LOGGER.warning(String.format("negative line number %s:%d not supported in #%s - will be reported as starting at 1", file, line, method));
+            RubyLogger.LOGGER.warning(String.format("negative line number %s:%d not supported in #%s - will be reported as starting at 1", file, line, method));
             return source;
         } else if (line > 1) {
             // fine instead of warning because we can simulate these
-            Log.LOGGER.fine(() -> String.format("offset line number %s:%d are simulated in #%s by adding blank lines", file, line, method));
+            RubyLogger.LOGGER.fine(() -> String.format("offset line number %s:%d are simulated in #%s by adding blank lines", file, line, method));
             if (!source.getEncoding().isAsciiCompatible()) {
                 throw new UnsupportedOperationException("Cannot prepend newlines in an ASCII incompatible encoding");
             }

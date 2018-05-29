@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.Log;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -39,7 +39,7 @@ public class RunBlockKWArgsHelperNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        Log.notOptimizedOnce(Log.KWARGS_NOT_OPTIMIZED_YET);
+        RubyLogger.notOptimizedOnce(RubyLogger.KWARGS_NOT_OPTIMIZED_YET);
 
         final Object array = readArrayNode.executeRead(frame);
 

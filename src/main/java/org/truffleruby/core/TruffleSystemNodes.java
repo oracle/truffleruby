@@ -46,7 +46,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Log;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -192,20 +192,20 @@ public abstract class TruffleSystemNodes {
             assert RubyGuards.isRubySymbol(level);
             final SymbolTable symbolTable = getContext().getSymbolTable();
 
-            for (Level javaLevel : Log.LEVELS) {
+            for (Level javaLevel : RubyLogger.LEVELS) {
                 if (symbolTable.getSymbol(javaLevel.toString()) == level) {
                     return javaLevel;
                 }
             }
 
             throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(
-                            "Could not find log level for: " + level + " known errors are: " + Arrays.toString(Log.LEVELS),
+                            "Could not find log level for: " + level + " known errors are: " + Arrays.toString(RubyLogger.LEVELS),
                             this));
         }
 
         @TruffleBoundary
         public static void log(Level level, String message) {
-            Log.LOGGER.log(level, message);
+            RubyLogger.LOGGER.log(level, message);
         }
 
     }

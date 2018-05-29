@@ -14,7 +14,7 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
-import org.truffleruby.Log;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringUtils;
@@ -173,7 +173,7 @@ public class SourceLoader {
     @TruffleBoundary
     public RubySource load(String feature) throws IOException {
         if (context.getOptions().LOG_LOAD) {
-            Log.LOGGER.info("loading " + feature);
+            RubyLogger.LOGGER.info("loading " + feature);
         }
 
         return loadNoLogging(context, feature, isInternal(feature));

@@ -9,9 +9,13 @@
  */
 package org.truffleruby;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.Truffle;
 import org.truffleruby.shared.TruffleRuby;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,4 +53,34 @@ public class RubyLogger {
         logger.setLevel(level);
     }
 
+
+    /**
+     * Warn about code that works but is not yet optimized as Truffle code normally would be. Only
+     * prints the warning once, and only if called from compiled code. Don't call this method from
+     * behind a boundary, as it will never print the warning because it will never be called from
+     * compiled code. Use {@link #performanceOnce} instead if you need to warn in code that is never
+     * compiled.
+     */
+    public static void notOptimizedOnce(String message) {
+        if (CompilerDirectives.inCompiledCode()) {
+            performanceOnce(message);
+        }
+    }
+
+    private static final Set<String> DISPLAYED_WARNINGS = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+    public static final String KWARGS_NOT_OPTIMIZED_YET = "keyword arguments are not yet optimized";
+    public static final String UNSTABLE_INTERPOLATED_REGEXP = "unstable interpolated regexps are not optimized";
+
+    /**
+     * Warn about something that has lower performance than might be expected. Only prints the
+     * warning once.
+     */
+    @CompilerDirectives.TruffleBoundary
+    public static void performanceOnce(String message) {
+        if (DISPLAYED_WARNINGS.add(message)) {
+            LOGGER.log(PERFORMANCE, message);
+        }
+    }
+    
 }
