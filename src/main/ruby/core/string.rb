@@ -283,13 +283,11 @@ class String
   end
 
   def to_sub_replacement(result, match)
-    data = bytes
     index = 0
     while index < bytesize
-      current = index
-      while current < bytesize && data[current] != 92  # ?\\
-        current += 1
-      end
+      current = Truffle.invoke_primitive(:find_string, self, '\\', index)
+      current = bytesize if current.nil?
+
       result.append(byteslice(index, current - index))
       break if current == bytesize
 
@@ -300,7 +298,7 @@ class String
       end
       index = current + 1
 
-      cap = data[index]
+      cap = getbyte(index)
 
       additional = case cap
                    when 38   # ?&
@@ -316,9 +314,10 @@ class String
                    when 92 # ?\\ escaped backslash
                      '\\'
                    when 107 # \k named capture
-                     if data[index + 1] == 60
+                     if getbyte(index + 1) == 60
                        name = ''
                        i = index + 2
+                       data = bytes
                        while i < bytesize && data[i] != 62
                          name << data[i]
                          i += 1
