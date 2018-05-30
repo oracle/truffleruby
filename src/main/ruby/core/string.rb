@@ -719,9 +719,8 @@ class String
     Truffle::RegexpOperations.set_last_match(match, block.binding) if block
     Truffle::RegexpOperations.set_last_match(match, Truffle.invoke_primitive(:caller_binding))
 
-    ret = byteslice(0, 0) # Empty string and string subclass
-
     if match
+      ret = byteslice(0, 0) # Empty string and string subclass
       ret.append match.pre_match
 
       if use_yield || hash
@@ -746,15 +745,15 @@ class String
 
       ret.append(match.post_match)
       tainted ||= val.tainted?
+
+      ret.taint if tainted
+      ret.untrust if untrusted
+
+      replace(ret)
+      self
     else
-      return nil
+      nil
     end
-
-    ret.taint if tainted
-    ret.untrust if untrusted
-
-    replace(ret)
-    self
   end
 
   def slice!(one, two=undefined)
