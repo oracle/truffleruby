@@ -719,8 +719,7 @@ class String
     Truffle::RegexpOperations.set_last_match(match, Truffle.invoke_primitive(:caller_binding))
 
     if match
-      ret = dup.clear # Empty string and string subclass
-      ret.append match.pre_match
+      ret = match.pre_match
 
       if use_yield || hash
         duped = dup
