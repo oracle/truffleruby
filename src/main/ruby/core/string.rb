@@ -720,7 +720,7 @@ class String
     Truffle::RegexpOperations.set_last_match(match, Truffle.invoke_primitive(:caller_binding))
 
     if match
-      ret = byteslice(0, 0) # Empty string and string subclass
+      ret = dup.clear # Empty string and string subclass
       ret.append match.pre_match
 
       if use_yield || hash
