@@ -2118,6 +2118,7 @@ EOS
     if full_test
       lines.push "RUN git clone --depth 1 --branch #{test_branch} #{truffleruby_repo} truffleruby-tests"
       lines.push "RUN cp -r truffleruby-tests/spec ."
+      lines.push "RUN cp -r truffleruby-tests/test/truffle/compiler/pe ."
       lines.push "RUN rm -rf truffleruby-tests"
       
       configs.each do |config|
@@ -2132,6 +2133,8 @@ EOS
           lines.push "RUN " + setup_env["ruby spec/mspec/bin/mspec --config spec/truffle.mspec -t $D_RUBY_BIN/ruby #{t_config} #{t_excludes} #{set} #{extra}"]
         end
       end
+      
+      lines.push "RUN ruby --jvm -J-Dgraal.TruffleCompilationExceptionsAreThrown=true -J-Dgraal.TruffleIterativePartialEscape=true -Xbasic_ops.inline=false pe/pe.rb"
     end
     
     lines.push "CMD " + setup_env["bash"]
