@@ -85,8 +85,24 @@ chris.seaton@oracle.com.
 
 ### How do I know if I’m using a VM that has Graal?
 
+`ruby --version` will report `GraalVM CE` or `EE`.
+
 `TruffleRuby.graal?` will tell you if you are also running with the Graal
 dynamic compiler.
+
+### How do I know that I'm using the Community Edition of GraalVM?
+
+`ruby --version` will report `GraalVM CE`.
+
+### How do I know that I'm using the Enterprise Edition of GraalVM?
+
+`ruby --version` will report `GraalVM EE`.
+
+### How do I know that I'm using the native version of TruffleRuby?
+
+`ruby --version` will report `Native`.
+
+`TruffleRuby.native?` will return `true`.
 
 ### How can I see that Truffle and Graal are working?
 
