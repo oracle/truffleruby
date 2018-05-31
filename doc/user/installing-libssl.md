@@ -22,6 +22,10 @@ We recommend `libssl-dev` instead of `libssl1.0.0`, even though we aren't using
 it for development because the latter doesn't seem to put the shared library in
 a place where we can find it.
 
+After installing GraalVM and Ruby you will need to rebuild `openssl` for the
+version in Ubuntu - run `lib/truffle/post_install_hook.sh`. Make sure you run
+it with TruffleRuby on your `$PATH`.
+
 ## Fedora
 
 On Fedora 25 or older, the default openssl is correct, so you only need to

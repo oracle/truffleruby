@@ -2006,6 +2006,7 @@ EOS
       lines.push "RUN $D_GRAALVM_BASE/bin/gu install /test/#{graalvm_component}"
       lines.push "ENV D_RUBY_BASE=$D_GRAALVM_BASE/jre/languages/ruby"
       lines.push "ENV D_RUBY_BIN=$D_GRAALVM_BASE/bin"
+      lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if distro.fetch('post-install')
     when :source
       lines.push "RUN git clone --depth 1 https://github.com/graalvm/mx.git"
       lines.push "ENV PATH=$PATH:/test/mx"

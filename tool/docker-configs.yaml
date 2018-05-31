@@ -79,6 +79,7 @@ ol7:
   cppext:
     - RUN yum install -y libcxx libcxx-devel
   rvm:
+  post-install: false
 ubuntu1604:
   base: ubuntu:16.04
   setup:
@@ -104,6 +105,7 @@ ubuntu1604:
   cppext:
     - RUN apt-get install -y libc++-dev
   rvm:
+  post-install: true
 fedora25:
   base: fedora:25
   setup:
@@ -129,3 +131,4 @@ fedora25:
     - RUN dnf install -y libcxx
   rvm:
     - RUN dnf install -y procps
+  post-install: false
