@@ -54,7 +54,7 @@ This is done using the `gu` command. The Ruby package is the same for both
 editions of GraalVM and comes from GitHub.
 
 ```
-$ gu install -c org.graalvm.ruby
+$ gu install org.graalvm.ruby
 ```
 
 Or download manually from https://github.com/oracle/truffleruby/releases.
