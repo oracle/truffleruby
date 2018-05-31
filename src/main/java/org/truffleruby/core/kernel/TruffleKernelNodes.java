@@ -11,6 +11,7 @@ package org.truffleruby.core.kernel;
 
 import java.io.IOException;
 
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
@@ -170,8 +171,9 @@ public abstract class TruffleKernelNodes {
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode = FindThreadAndFrameLocalStorageNodeGen.create();
 
         @Specialization(guards = { "isRubySymbol(name)", "isRubyBinding(binding)" })
-        public Object executeGetValue(DynamicObject name, DynamicObject binding) {
-            return threadLocalNode.execute(name, Layouts.BINDING.getFrame(binding)).get();
+        public Object executeGetValue(DynamicObject name, DynamicObject binding,
+                @Cached("createBinaryProfile()") ConditionProfile sameThreadProfile) {
+            return threadLocalNode.execute(name, Layouts.BINDING.getFrame(binding)).get(sameThreadProfile);
         }
 
     }
@@ -182,8 +184,9 @@ public abstract class TruffleKernelNodes {
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode = FindThreadAndFrameLocalStorageNodeGen.create();
 
         @Specialization(guards = { "isRubySymbol(name)", "isRubyBinding(binding)" })
-        public Object executeGetValue(DynamicObject name, DynamicObject binding, Object value) {
-            threadLocalNode.execute(name, Layouts.BINDING.getFrame(binding)).set(value);
+        public Object executeGetValue(DynamicObject name, DynamicObject binding, Object value,
+                @Cached("createBinaryProfile()") ConditionProfile sameThreadProfile) {
+            threadLocalNode.execute(name, Layouts.BINDING.getFrame(binding)).set(value, sameThreadProfile);
             return value;
         }
 
