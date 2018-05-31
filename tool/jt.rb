@@ -2000,7 +2000,11 @@ EOS
       graalvm_component = File.basename(graalvm_component)
       lines.push "COPY #{graalvm_tarball} /test/"
       lines.push "COPY #{graalvm_component} /test/"
-      graalvm_version = /\d+(\.\d+)*(-rc\d+)?(\-dev)?(-\h+)?/.match(graalvm_tarball).to_s
+      graalvm_version = /([ce]e-)?\d+(\.\d+)*(-rc\d+)?(\-dev)?(-\h+)?/.match(graalvm_tarball).to_s
+      
+      # Test build tarballs may have a -bn suffix, which isn't really part of the version string but matches the hex part in some cases
+      graalvm_version = graalvm_version.gsub(/-b\d+\Z/, '')
+      
       lines.push "RUN tar -zxf #{graalvm_tarball}"
       lines.push "ENV D_GRAALVM_BASE=/test/graalvm-#{graalvm_version}"
       lines.push "RUN $D_GRAALVM_BASE/bin/gu install --file /test/#{graalvm_component}"
