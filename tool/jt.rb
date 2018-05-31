@@ -2004,7 +2004,7 @@ EOS
       graalvm_version = /\d+(\.\d+)*(-rc\d+)?(\-dev)?(-\h+)?/.match(graalvm_tarball).to_s
       lines.push "RUN tar -zxf #{graalvm_tarball}"
       lines.push "ENV D_GRAALVM_BASE=/test/graalvm-#{graalvm_version}"
-      lines.push "RUN $D_GRAALVM_BASE/bin/gu install /test/#{graalvm_component}"
+      lines.push "RUN $D_GRAALVM_BASE/bin/gu install --file /test/#{graalvm_component}"
       lines.push "ENV D_RUBY_BASE=$D_GRAALVM_BASE/jre/languages/ruby"
       lines.push "ENV D_RUBY_BIN=$D_GRAALVM_BASE/bin"
       lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if distro.fetch('post-install')
