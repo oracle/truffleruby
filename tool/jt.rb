@@ -1989,7 +1989,7 @@ EOS
       lines.push "RUN curl -OL https://github.com/oracle/graal/releases/download/vm-#{public_version}/graalvm-ce-#{public_version}-linux-amd64.tar.gz"
       lines.push "RUN tar -zxf graalvm-ce-#{public_version}-linux-amd64.tar.gz"
       lines.push "ENV GRAALVM_BASE=/test/graalvm-#{public_version}"
-      lines.push "RUN $GRAALVM_BASE/bin/gu install -c org.graalvm.ruby"
+      lines.push "RUN $GRAALVM_BASE/bin/gu install org.graalvm.ruby"
       lines.push "ENV D_RUBY_BASE=$GRAALVM_BASE/jre/languages/ruby"
       lines.push "ENV D_RUBY_BIN=$GRAALVM_BASE/bin"
     when :graalvm
