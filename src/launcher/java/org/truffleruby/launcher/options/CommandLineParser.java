@@ -52,8 +52,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 public class CommandLineParser {
+
+    private static final Logger LOGGER = createLogger();
 
     private final List<String> arguments;
     private int argumentIndex;
@@ -251,7 +256,7 @@ public class CommandLineParser {
                     break FOR;
                 case 'y':
                     disallowedInRubyOpts(argument);
-                    //RubyLogger.LOGGER.warning("the -y switch is silently ignored as it is an internal development tool");
+                    LOGGER.warning("the -y switch is silently ignored as it is an internal development tool");
                     break FOR;
                 case 'J':
                     String javaOption = grabOptionalValue();
@@ -351,7 +356,7 @@ public class CommandLineParser {
                     disallowedInRubyOpts(argument);
                     final String extendedOption = grabValue("-X must be followed by an option");
                     if (new File(extendedOption).isDirectory()) {
-                        //RubyLogger.LOGGER.warning("the -X option supplied also appears to be a directory name - did you intend to use -X like -C?");
+                        LOGGER.warning("the -X option supplied also appears to be a directory name - did you intend to use -X like -C?");
                     }
                     if (extendedOption.equals("options")) {
                         System.out.println("TruffleRuby options and their default values:");
@@ -384,7 +389,7 @@ public class CommandLineParser {
                         throw notImplemented("--debug");
                     } else if (argument.equals("--yydebug")) {
                         disallowedInRubyOpts(argument);
-                        //RubyLogger.LOGGER.warning("the --yydebug switch is silently ignored as it is an internal development tool");
+                        LOGGER.warning("the --yydebug switch is silently ignored as it is an internal development tool");
                         break FOR;
                     } else if (rubyOpts && argument.equals("--help")) {
                         disallowedInRubyOpts(argument);
@@ -427,7 +432,7 @@ public class CommandLineParser {
                         config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
                         break FOR;
                     } else if (argument.startsWith("--dump=")) {
-                        //RubyLogger.LOGGER.warning("the --dump= switch is silently ignored as it is an internal development tool");
+                        LOGGER.warning("the --dump= switch is silently ignored as it is an internal development tool");
                         break FOR;
                     } else {
                         if (argument.equals("--")) {
@@ -450,7 +455,7 @@ public class CommandLineParser {
         final BiConsumer<CommandLineParser, Boolean> feature = FEATURES.get(name);
 
         if (feature == null) {
-            //RubyLogger.LOGGER.warning("warning: unknown argument for --" + (enable ? "enable" : "disable") + ": `" + name + "'");
+            LOGGER.warning("warning: unknown argument for --" + (enable ? "enable" : "disable") + ": `" + name + "'");
         } else {
             feature.accept(this, enable);
         }
@@ -590,4 +595,31 @@ public class CommandLineParser {
         FEATURES.put("rubyopt",
                 (processor, enable) -> processor.config.setOption(OptionsCatalog.READ_RUBYOPT, enable));
     }
+
+    private static Logger createLogger() {
+        final Logger logger = Logger.getLogger("ruby-launcher");
+
+        logger.setUseParentHandlers(false);
+
+        logger.addHandler(new Handler() {
+
+            @Override
+            public void publish(LogRecord record) {
+                System.err.printf("[ruby] %s %s%n", record.getLevel().getName(), record.getMessage());
+            }
+
+            @Override
+            public void flush() {
+
+            }
+
+            @Override
+            public void close() throws SecurityException {
+            }
+
+        });
+
+        return logger;
+    }
+
 }
