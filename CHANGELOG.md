@@ -55,9 +55,11 @@ Performance:
 * Use the byte[] of the given Ruby String when calling eval() directly for parsing.
 Changes:
 
-* The custom log levels `PERFORMANCE` and `PATCH` have been removed.
+* `-Xlog=` is now `--log.ruby.level=`.
 
 * The log format, handlers, etc are now managed by the Truffle log system.
+
+* The custom log levels `PERFORMANCE` and `PATCH` have been removed.
 
 # 1.0 RC 2, May 2018
 
