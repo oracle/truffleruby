@@ -368,9 +368,6 @@ public class CommandLineParser {
                         }
                         // cancel other execution actions
                         config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
-                    } else if (extendedOption.startsWith("log=")) {
-                        final String levelString = extendedOption.substring("log=".length());
-                        //RubyLogger.setLevel(levelString);
                     } else {
                         // Turn extra options into polyglot options and let
                         // org.graalvm.launcher.Launcher.parsePolyglotOption
