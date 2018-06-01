@@ -62,6 +62,7 @@ import org.truffleruby.language.loader.SourceLoader;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.shared.Metrics;
+import org.truffleruby.shared.options.OptionDescription;
 import org.truffleruby.shared.options.Options;
 import org.truffleruby.shared.options.OptionsBuilder;
 import org.truffleruby.shared.options.OptionsCatalog;
@@ -392,7 +393,17 @@ public class RubyContext {
         final OptionsBuilder optionsBuilder = new OptionsBuilder();
         optionsBuilder.set(env.getConfig()); // Legacy config - used by unit tests for example
         optionsBuilder.set(env.getOptions()); // SDK options
+
         final Options options = optionsBuilder.build();
+
+        if (options.OPTIONS_LOG && RubyLogger.LOGGER.isLoggable(Level.CONFIG)) {
+            for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
+                assert option.getName().startsWith(TruffleRuby.LANGUAGE_ID);
+                final String xName = option.getName().substring(TruffleRuby.LANGUAGE_ID.length() + 1);
+                RubyLogger.LOGGER.config("option " + xName + "=" + option.valueToString(options.fromDescription(option)));
+            }
+        }
+
         Metrics.printTime("after-options");
         return options;
     }
