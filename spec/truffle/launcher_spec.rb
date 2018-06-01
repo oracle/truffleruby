@@ -192,7 +192,7 @@ describe "The launcher" do
   it "logs options if -Xoptions.log is set" do
     out = ruby_exe("14", options: "-Xoptions.log --log.ruby.level=CONFIG", args: "2>&1")
     $?.success?.should == true
-    out.should include("CONFIG option home=")
+    out.should include("CONFIG: option home=")
   end
 
   it "prints an error for an unknown option" do
@@ -232,7 +232,7 @@ describe "The launcher" do
   it "enables deterministic hashing if -Xhashing.deterministic is set" do
     out = ruby_exe("puts 14.hash", options: "-Xhashing.deterministic", args: "2>&1")
     $?.success?.should == true
-    out.should include("SEVERE deterministic hashing is enabled - this may make you vulnerable to denial of service attacks")
+    out.should include("SEVERE: deterministic hashing is enabled - this may make you vulnerable to denial of service attacks")
     out.should include("7141275149799654099")
   end
 
