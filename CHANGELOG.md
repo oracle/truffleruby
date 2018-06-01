@@ -25,7 +25,8 @@ New features:
 
 Changes:
 
-* The version string now mentions `GraalVM CE` or `EE`.
+* The version string now mentions if you're running GraalVM Community Edition
+  (`GraalVM CE`) or GraalVM Enterprise Edition (`GraalVM EE`).
 
 * The inline JavaScript functionality `-Xinline_js` has been removed.
 

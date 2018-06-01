@@ -64,8 +64,8 @@ rebuild the Ruby executable images using the runtime from the Enterprise
 Edition. The version of the Ruby executable images you install by default uses
 the Community Edition runtime until you rebuild.
 
-To get the best performance you want to rebuild the images. Check with `ruby
---version` that it says you are running `EE` rather than `CE`.
+To get the best performance you want to rebuild the images. Check that `ruby
+--version` reports that you are running `GraalVM EE` rather than `GraalVM CE`.
 
 Rebuilding the executable images can take a few minutes and you should have
 about 8 GB of RAM available.
