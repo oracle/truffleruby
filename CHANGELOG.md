@@ -25,6 +25,8 @@ New features:
 
 Changes:
 
+* The version string now mentions `GraalVM CE` or `EE`.
+
 * The inline JavaScript functionality `-Xinline_js` has been removed.
 
 * Line numbers `< 0`, in the various eval methods, are now warned about, because

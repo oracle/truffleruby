@@ -1989,7 +1989,7 @@ EOS
       lines.push "RUN curl -OL https://github.com/oracle/graal/releases/download/vm-#{public_version}/graalvm-ce-#{public_version}-linux-amd64.tar.gz"
       lines.push "RUN tar -zxf graalvm-ce-#{public_version}-linux-amd64.tar.gz"
       lines.push "ENV GRAALVM_BASE=/test/graalvm-#{public_version}"
-      lines.push "RUN $GRAALVM_BASE/bin/gu install -c org.graalvm.ruby"
+      lines.push "RUN $GRAALVM_BASE/bin/gu install org.graalvm.ruby"
       lines.push "ENV D_RUBY_BASE=$GRAALVM_BASE/jre/languages/ruby"
       lines.push "ENV D_RUBY_BIN=$GRAALVM_BASE/bin"
     when :graalvm
@@ -2000,12 +2000,17 @@ EOS
       graalvm_component = File.basename(graalvm_component)
       lines.push "COPY #{graalvm_tarball} /test/"
       lines.push "COPY #{graalvm_component} /test/"
-      graalvm_version = /\d+(\.\d+)*(-rc\d+)?(\-dev)?(-\h+)?/.match(graalvm_tarball).to_s
+      graalvm_version = /([ce]e-)?\d+(\.\d+)*(-rc\d+)?(\-dev)?(-\h+)?/.match(graalvm_tarball).to_s
+      
+      # Test build tarballs may have a -bn suffix, which isn't really part of the version string but matches the hex part in some cases
+      graalvm_version = graalvm_version.gsub(/-b\d+\Z/, '')
+      
       lines.push "RUN tar -zxf #{graalvm_tarball}"
       lines.push "ENV D_GRAALVM_BASE=/test/graalvm-#{graalvm_version}"
-      lines.push "RUN $D_GRAALVM_BASE/bin/gu install /test/#{graalvm_component}"
+      lines.push "RUN $D_GRAALVM_BASE/bin/gu install --file /test/#{graalvm_component}"
       lines.push "ENV D_RUBY_BASE=$D_GRAALVM_BASE/jre/languages/ruby"
       lines.push "ENV D_RUBY_BIN=$D_GRAALVM_BASE/bin"
+      lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if distro.fetch('post-install')
     when :source
       lines.push "RUN git clone --depth 1 https://github.com/graalvm/mx.git"
       lines.push "ENV PATH=$PATH:/test/mx"
@@ -2112,6 +2117,7 @@ EOS
     if full_test
       lines.push "RUN git clone --depth 1 --branch #{test_branch} #{truffleruby_repo} truffleruby-tests"
       lines.push "RUN cp -r truffleruby-tests/spec ."
+      lines.push "RUN cp -r truffleruby-tests/test/truffle/compiler/pe ."
       lines.push "RUN rm -rf truffleruby-tests"
       
       configs.each do |config|
@@ -2126,6 +2132,8 @@ EOS
           lines.push "RUN " + setup_env["ruby spec/mspec/bin/mspec --config spec/truffle.mspec -t $D_RUBY_BIN/ruby #{t_config} #{t_excludes} #{set} #{extra}"]
         end
       end
+      
+      lines.push "RUN ruby --jvm -J-Dgraal.TruffleCompilationExceptionsAreThrown=true -J-Dgraal.TruffleIterativePartialEscape=true -Xbasic_ops.inline=false pe/pe.rb"
     end
     
     lines.push "CMD " + setup_env["bash"]
