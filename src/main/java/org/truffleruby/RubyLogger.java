@@ -22,38 +22,7 @@ import java.util.logging.Logger;
 
 public class RubyLogger {
 
-    private static class RubyLevel extends Level {
-
-        private static final long serialVersionUID = 3759389129096588683L;
-
-        public RubyLevel(String name, Level parent) {
-            super(name, parent.intValue(), parent.getResourceBundleName());
-        }
-
-    }
-
-    public static final Level PERFORMANCE = new RubyLevel("PERFORMANCE", Level.WARNING);
-    public static final Level PATCH = new RubyLevel("PATCH", Level.CONFIG);
-    public static final Level[] LEVELS = new Level[]{PERFORMANCE, PATCH};
-
     public static final Logger LOGGER = Truffle.getLogger(TruffleRuby.LANGUAGE_ID, "ruby");
-
-    public static void setLevel(String levelString) {
-        setLevel(LOGGER, levelString);
-    }
-
-    private static void setLevel(Logger logger, String levelString) {
-        final Level level;
-
-        if (levelString.equals("PERFORMANCE")) {
-            level = RubyLogger.PERFORMANCE;
-        } else {
-            level = Level.parse(levelString.toUpperCase());
-        }
-
-        logger.setLevel(level);
-    }
-
 
     /**
      * Warn about code that works but is not yet optimized as Truffle code normally would be. Only
@@ -70,7 +39,7 @@ public class RubyLogger {
     @TruffleBoundary
     private static void notOptimizedOnceBoundary(String message) {
         if (DISPLAYED_WARNINGS.add(message)) {
-            LOGGER.log(PERFORMANCE, message);
+            LOGGER.log(Level.WARNING, message);
         }
     }
 

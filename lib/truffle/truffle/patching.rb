@@ -33,7 +33,7 @@ module Truffle::Patching
   end
 
   def log(name, path)
-    Truffle::System.log :PATCH,
+    Truffle::System.log :CONFIG,
                         "patching '#{name}' by inserting directory '#{path}' in LOAD_PATH before the original paths"
   end
 

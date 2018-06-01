@@ -53,6 +53,11 @@ Performance:
   a delimiter (e.g., `IO#each`), leading to overall improved `IO` reading for common
   use cases such as iterating through lines in a `File`.
 * Use the byte[] of the given Ruby String when calling eval() directly for parsing.
+Changes:
+
+* The custom log levels `PERFORMANCE` and `PATCH` have been removed.
+
+* The log format, handlers, etc are now managed by the Truffle log system.
 
 # 1.0 RC 2, May 2018
 

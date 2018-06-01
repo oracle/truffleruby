@@ -6,7 +6,7 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-Truffle::System.log :PATCH, 'applying nokogiri-stubs'
+Truffle::System.log :CONFIG, 'applying nokogiri-stubs'
 
 dir = File.join File.dirname(__FILE__),
                 File.basename(__FILE__, '.*')

@@ -192,15 +192,13 @@ public abstract class TruffleSystemNodes {
             assert RubyGuards.isRubySymbol(level);
             final SymbolTable symbolTable = getContext().getSymbolTable();
 
-            for (Level javaLevel : RubyLogger.LEVELS) {
-                if (symbolTable.getSymbol(javaLevel.toString()) == level) {
-                    return javaLevel;
-                }
+            try {
+                return Level.parse(level.toString());
+            } catch (IllegalArgumentException e) {
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(
+                        "Could not find log level for: " + level,
+                        this));
             }
-
-            throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(
-                            "Could not find log level for: " + level + " known errors are: " + Arrays.toString(RubyLogger.LEVELS),
-                            this));
         }
 
         @TruffleBoundary
