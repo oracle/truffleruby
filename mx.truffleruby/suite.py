@@ -423,10 +423,11 @@ suite = {
                 "./" : [
                     "file:lib",  # contains some results from truffleruby-cext
                     "file:CHANGELOG.md",
-                    "file:mx.truffleruby/GraalCE_Ruby_license_3rd_party_license.txt",
                     "file:README.md",
                     "file:mx.truffleruby/native-image.properties",
                 ],
+                "LICENSE_TRUFFLERUBY.md" : "file:LICENCE.md",
+                "3rd_party_licenses_truffleruby.txt" : "file:3rd_party_licenses.txt",
                 "bin/" : [
                     "file:bin/gem",
                     "file:bin/irb",
