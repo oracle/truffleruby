@@ -2133,7 +2133,7 @@ EOS
         end
       end
       
-      lines.push "RUN ruby --jvm -J-Dgraal.TruffleCompilationExceptionsAreThrown=true -J-Dgraal.TruffleIterativePartialEscape=true -Xbasic_ops.inline=false pe/pe.rb"
+      lines.push "RUN " + setup_env["ruby --jvm -J-Dgraal.TruffleCompilationExceptionsAreThrown=true -J-Dgraal.TruffleIterativePartialEscape=true -Xbasic_ops.inline=false pe/pe.rb"]
     end
     
     lines.push "CMD " + setup_env["bash"]
