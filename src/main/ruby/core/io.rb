@@ -1402,17 +1402,20 @@ class IO
         break unless available > 0
 
         if count = @buffer.find(@separator)
-          str << @buffer.shift(count)
+          s = @buffer.shift(count)
 
-          str = IO.read_encode(@io, str)
-          str.taint
+          unless str.empty?
+            s.prepend(str)
+            str.clear
+          end
+
+          s = IO.read_encode(@io, s)
+          s.taint
 
           $. = @io.increment_lineno
           @buffer.discard @skip if @skip
 
-          yield str
-
-          str = ''
+          yield s
         else
           str << @buffer.shift
         end
