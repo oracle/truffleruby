@@ -400,8 +400,8 @@ public abstract class RopeNodes {
             return executeConcat(left, right.toLeafRope(), encoding);
         }
 
-        @Specialization(guards = { "!isNativeRope(left)", "!isNativeRope(right)", "!isCodeRangeBroken(left, right)" })
-        public Rope concat(Rope left, Rope right, Encoding encoding,
+        @Specialization(guards = "!isCodeRangeBroken(left, right)")
+        public Rope concat(ManagedRope left, ManagedRope right, Encoding encoding,
                            @Cached("createBinaryProfile()") ConditionProfile sameCodeRangeProfile,
                            @Cached("createBinaryProfile()") ConditionProfile brokenCodeRangeProfile,
                            @Cached("createBinaryProfile()") ConditionProfile isLeftSingleByteOptimizableProfile,
@@ -467,18 +467,18 @@ public abstract class RopeNodes {
         }
 
         @TruffleBoundary
-        private Rope rebalance(ConcatRope rope, int depthThreshold, FlattenNode flattenNode) {
-            Deque<Rope> currentRopeQueue = new ArrayDeque<>();
-            Deque<Rope> nextLevelQueue = new ArrayDeque<>();
+        private ManagedRope rebalance(ConcatRope rope, int depthThreshold, FlattenNode flattenNode) {
+            Deque<ManagedRope> currentRopeQueue = new ArrayDeque<>();
+            Deque<ManagedRope> nextLevelQueue = new ArrayDeque<>();
 
             linearizeTree(rope.getLeft(), currentRopeQueue);
             linearizeTree(rope.getRight(), currentRopeQueue);
 
             final int flattenThreshold = depthThreshold / 2;
 
-            Rope root = null;
+            ManagedRope root = null;
             while (!currentRopeQueue.isEmpty()) {
-                Rope left = currentRopeQueue.pop();
+                ManagedRope left = currentRopeQueue.pop();
 
                 if (left.depth() >= flattenThreshold) {
                     left = flattenNode.executeFlatten(left);
@@ -489,20 +489,20 @@ public abstract class RopeNodes {
                         root = left;
                     } else {
                         // If a rope can't be paired with another rope at the current level (i.e., odd numbers of ropes),
-                        // it needs to be promoted to the next level where it be tried again. Since by definition every
-                        // rope already present in the next level must have occurred before this rope in the current
+                        // it needs to be promoted to the next level where it will be tried again. Since by definition
+                        // every rope already present in the next level must have occurred before this rope in the current
                         // level, this rope must be added to the end of the list in the next level to maintain proper
                         // position.
                         nextLevelQueue.add(left);
                     }
                 } else {
-                    Rope right = currentRopeQueue.pop();
+                    ManagedRope right = currentRopeQueue.pop();
 
                     if (right.depth() >= flattenThreshold) {
                         right = flattenNode.executeFlatten(right);
                     }
 
-                    final Rope child = new ConcatRope(left, right, rope.getEncoding(),
+                    final ManagedRope child = new ConcatRope(left, right, rope.getEncoding(),
                                                       commonCodeRange(left.getCodeRange(), right.getCodeRange()),
                                     left.isSingleByteOptimizable() && right.isSingleByteOptimizable(),
                                                       depth(left, right), isBalanced(left, right));
@@ -520,7 +520,7 @@ public abstract class RopeNodes {
         }
 
         @TruffleBoundary
-        private void linearizeTree(Rope rope, Deque<Rope> ropeQueue) {
+        private void linearizeTree(ManagedRope rope, Deque<ManagedRope> ropeQueue) {
             if (rope instanceof ConcatRope) {
                 final ConcatRope concatRope = (ConcatRope) rope;
 
@@ -537,8 +537,8 @@ public abstract class RopeNodes {
             }
         }
 
-        @Specialization(guards = { "!isNativeRope(left)", "!isNativeRope(right)", "isCodeRangeBroken(left, right)" })
-        public Rope concatCrBroken(Rope left, Rope right, Encoding encoding,
+        @Specialization(guards = "isCodeRangeBroken(left, right)")
+        public Rope concatCrBroken(ManagedRope left, ManagedRope right, Encoding encoding,
                                    @Cached("create()") MakeLeafRopeNode makeLeafRopeNode) {
             // This specialization was added to a special case where broken code range(s),
             // may concat to form a valid code range.
