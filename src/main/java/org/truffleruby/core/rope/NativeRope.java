@@ -101,6 +101,7 @@ public class NativeRope extends Rope {
         return pointer;
     }
 
+    @TruffleBoundary
     public LeafRope toLeafRope() {
         return RopeOperations.create(getBytes(), getEncoding(), CodeRange.CR_UNKNOWN);
     }

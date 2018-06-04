@@ -388,13 +388,11 @@ public abstract class RopeNodes {
 
         public abstract Rope executeConcat(Rope left, Rope right, Encoding encoding);
 
-        @TruffleBoundary
         @Specialization
         public Rope concatNativeRopeLeft(NativeRope left, Rope right, Encoding encoding) {
             return executeConcat(left.toLeafRope(), right, encoding);
         }
 
-        @TruffleBoundary
         @Specialization
         public Rope concatNativeRopeRight(Rope left, NativeRope right, Encoding encoding) {
             return executeConcat(left, right.toLeafRope(), encoding);
