@@ -132,6 +132,7 @@ public final class StringSupport {
     }
 
     // MRI: enc_strlen
+    @TruffleBoundary
     public static int strLength(Encoding enc, byte[]bytes, int p, int e, CodeRange cr) {
         int c;
         if (enc.isFixedWidth()) {
