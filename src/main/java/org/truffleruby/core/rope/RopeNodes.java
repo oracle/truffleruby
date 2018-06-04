@@ -91,7 +91,7 @@ public abstract class RopeNodes {
                 return RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[index];
             }
 
-            return withEncodingNode.executeWithEncoding(RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[index], base.getEncoding(), CR_UNKNOWN);
+            return withEncodingNode.executeWithEncoding(RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[index], base.getEncoding());
         }
 
         @Specialization(guards = { "byteLength > 1", "sameAsBase(base, byteLength)" })
@@ -790,7 +790,7 @@ public abstract class RopeNodes {
         @Specialization(guards = "times == 0")
         public Rope repeatZero(Rope base, int times,
                                @Cached("create()") WithEncodingNode withEncodingNode) {
-            return withEncodingNode.executeWithEncoding(RopeConstants.EMPTY_UTF8_ROPE, base.getEncoding(), CodeRange.CR_7BIT);
+            return withEncodingNode.executeWithEncoding(RopeConstants.EMPTY_UTF8_ROPE, base.getEncoding());
         }
 
         @Specialization(guards = "times == 1")
@@ -967,29 +967,28 @@ public abstract class RopeNodes {
 
     @NodeChildren({
             @NodeChild(type = RubyNode.class, value = "rope"),
-            @NodeChild(type = RubyNode.class, value = "encoding"),
-            @NodeChild(type = RubyNode.class, value = "codeRange")
+            @NodeChild(type = RubyNode.class, value = "encoding")
     })
     public abstract static class WithEncodingNode extends RubyNode {
 
         public static WithEncodingNode create() {
-            return RopeNodesFactory.WithEncodingNodeGen.create(null, null, null);
+            return RopeNodesFactory.WithEncodingNodeGen.create(null, null);
         }
 
-        public abstract Rope executeWithEncoding(Rope rope, Encoding encoding, CodeRange codeRange);
+        public abstract Rope executeWithEncoding(Rope rope, Encoding encoding);
 
         @Specialization(guards = "rope.getEncoding() == encoding")
-        public Rope withEncodingSameEncoding(Rope rope, Encoding encoding, CodeRange codeRange) {
+        public Rope withEncodingSameEncoding(Rope rope, Encoding encoding) {
             return rope;
         }
 
         @Specialization(guards = {
                 "rope.getEncoding() != encoding"
         })
-        public Rope nativeRopeWithEncoding(NativeRope rope, Encoding encoding, CodeRange codeRange,
+        public Rope nativeRopeWithEncoding(NativeRope rope, Encoding encoding,
                 @Cached("create()") MakeLeafRopeNode makeLeafRopeNode,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
-            return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, codeRange, NotProvided.INSTANCE);
+            return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, CR_UNKNOWN, NotProvided.INSTANCE);
         }
 
         @Specialization(guards = {
@@ -997,7 +996,7 @@ public abstract class RopeNodes {
                 "asciiCompatibleChange(rope, encoding)",
                 "rope.getClass() == cachedRopeClass",
         }, limit = "getCacheLimit()")
-        public Rope withEncodingAsciiCompatible(ManagedRope rope, Encoding encoding, CodeRange codeRange,
+        public Rope withEncodingAsciiCompatible(ManagedRope rope, Encoding encoding,
                 @Cached("rope.getClass()") Class<? extends Rope> cachedRopeClass,
                 @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile) {
             if (asciiOnlyProfile.profile(rope.isAsciiOnly())) {
@@ -1012,10 +1011,10 @@ public abstract class RopeNodes {
                 "rope.getEncoding() != encoding",
                 "!asciiCompatibleChange(rope, encoding)"
         })
-        public Rope withSlowEncoding(ManagedRope rope, Encoding encoding, CodeRange codeRange,
+        public Rope withSlowEncoding(ManagedRope rope, Encoding encoding,
                 @Cached("create()") MakeLeafRopeNode makeLeafRopeNode,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
-            return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, codeRange, NotProvided.INSTANCE);
+            return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, CR_UNKNOWN, NotProvided.INSTANCE);
         }
 
         protected static boolean asciiCompatibleChange(Rope rope, Encoding encoding) {

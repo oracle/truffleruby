@@ -679,12 +679,12 @@ public abstract class StringNodes {
     @CoreMethod(names = "b", taintFrom = 0)
     public abstract static class BNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.WithEncodingNode withEncodingNode = RopeNodesFactory.WithEncodingNodeGen.create(null, null, null);
+        @Child private RopeNodes.WithEncodingNode withEncodingNode = RopeNodesFactory.WithEncodingNodeGen.create(null, null);
 
         @Specialization
         public DynamicObject b(DynamicObject string,
                                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-            final Rope newRope = withEncodingNode.executeWithEncoding(rope(string), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
+            final Rope newRope = withEncodingNode.executeWithEncoding(rope(string), ASCIIEncoding.INSTANCE);
 
             return makeStringNode.fromRope(newRope);
         }
@@ -1217,7 +1217,7 @@ public abstract class StringNodes {
     @CoreMethod(names = "force_encoding", required = 1, raiseIfFrozenSelf = true)
     public abstract static class ForceEncodingNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.WithEncodingNode withEncodingNode = RopeNodesFactory.WithEncodingNodeGen.create(null, null, null);
+        @Child private RopeNodes.WithEncodingNode withEncodingNode = RopeNodesFactory.WithEncodingNodeGen.create(null, null);
         private final ConditionProfile differentEncodingProfile = ConditionProfile.createBinaryProfile();
 
         @Specialization(guards = "isRubyString(encodingName)")
@@ -1232,7 +1232,7 @@ public abstract class StringNodes {
             final Rope rope = rope(string);
 
             if (differentEncodingProfile.profile(rope.getEncoding() != encoding)) {
-                final Rope newRope = withEncodingNode.executeWithEncoding(rope, encoding, CodeRange.CR_UNKNOWN);
+                final Rope newRope = withEncodingNode.executeWithEncoding(rope, encoding);
                 StringOperations.setRope(string, newRope);
             }
 

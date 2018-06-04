@@ -32,7 +32,7 @@ public class ParserRopeOperations {
 
             return RopeOperations.create(rope.getBytes(), encoding, CR_UNKNOWN);
         } else {
-            return ropeNode.getWithEncodingNode().executeWithEncoding(rope, encoding, CR_UNKNOWN);
+            return ropeNode.getWithEncodingNode().executeWithEncoding(rope, encoding);
         }
     }
 
