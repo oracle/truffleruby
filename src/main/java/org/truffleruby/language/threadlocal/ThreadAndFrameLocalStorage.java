@@ -10,6 +10,7 @@
 package org.truffleruby.language.threadlocal;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 
 import java.lang.ref.WeakReference;
@@ -28,8 +29,8 @@ public class ThreadAndFrameLocalStorage {
         originalThreadValue = initialValue();
     }
 
-    public Object get() {
-        if (Thread.currentThread() == originalThread.get()) {
+    public Object get(ConditionProfile sameThreadProfile) {
+        if (sameThreadProfile.profile(Thread.currentThread() == originalThread.get())) {
             return originalThreadValue;
         } else {
             return fallbackGet();
@@ -56,8 +57,8 @@ public class ThreadAndFrameLocalStorage {
         return getOtherThreadValues().get();
     }
 
-    public void set(Object value) {
-        if (Thread.currentThread() == originalThread.get()) {
+    public void set(Object value, ConditionProfile sameThreadProfile) {
+        if (sameThreadProfile.profile(Thread.currentThread() == originalThread.get())) {
             originalThreadValue = value;
         } else {
             fallbackSet(value);

@@ -21,6 +21,7 @@ package org.truffleruby.core.regexp;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -454,12 +455,13 @@ public abstract class RegexpNodes {
 
         @Specialization(guards = { "isInitialized(regexp)", "isRubyString(string)", "isValidEncoding(string)" })
         public Object searchRegion(DynamicObject regexp, DynamicObject string, int start, int end, boolean forward,
+                @Cached("createBinaryProfile()") ConditionProfile forwardSearchProfile,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") TruffleRegexpNodes.MatchNode matchNode) {
             final Rope rope = StringOperations.rope(string);
             final Matcher matcher = RegexpNodes.createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true);
 
-            if (forward) {
+            if (forwardSearchProfile.profile(forward)) {
                 // Search forward through the string.
                 return matchNode.execute(regexp, string, matcher, start, end, false);
             } else {
