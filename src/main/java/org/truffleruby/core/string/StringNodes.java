@@ -683,29 +683,8 @@ public abstract class StringNodes {
 
         @Specialization
         public DynamicObject b(DynamicObject string,
-                               @Cached("create()") StringNodes.MakeStringNode makeStringNode,
-                               @Cached("createBinaryProfile()") ConditionProfile is7BitProfile,
-                               @Cached("createBinaryProfile()") ConditionProfile isAsciiCompatibleProfile) {
-            final Rope rope = rope(string);
-            final CodeRange newCodeRange;
-
-            if (is7BitProfile.profile(rope.getCodeRange() == CodeRange.CR_7BIT)) {
-                // If the rope is already known to be 7-bit, it'll continue to be 7-bit in ASCII 8-bit.
-                newCodeRange = CodeRange.CR_7BIT;
-            } else {
-                if (isAsciiCompatibleProfile.profile(rope.getEncoding().isAsciiCompatible())) {
-                    // If the rope is not 7-bit, but has an ASCII-compatible encoding, then whatever byte sequence it has
-                    // (broken or valid) can only be valid in ASCII 8-bit as it's impossible to have a broken binary string.
-                    newCodeRange = CodeRange.CR_VALID;
-                } else {
-                    // If the rope doesn't have an ASCII-compatible encoding, we can't make any guarantees about the code
-                    // range in ASCII 8-bit. The byte sequence for this rope may end up being either 7-bit or valid. We
-                    // must perform a byte scan to figure it out.
-                    newCodeRange = CodeRange.CR_UNKNOWN;
-                }
-            }
-
-            final Rope newRope = withEncodingNode.executeWithEncoding(rope, ASCIIEncoding.INSTANCE, newCodeRange);
+                               @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+            final Rope newRope = withEncodingNode.executeWithEncoding(rope(string), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
 
             return makeStringNode.fromRope(newRope);
         }

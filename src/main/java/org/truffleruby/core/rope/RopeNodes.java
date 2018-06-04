@@ -994,29 +994,23 @@ public abstract class RopeNodes {
 
         @Specialization(guards = {
                 "rope.getEncoding() != encoding",
-                "rope.getCodeRange() == codeRange",
-                "rope.getClass() == cachedRopeClass"
+                "asciiCompatibleChange(rope, encoding)",
+                "rope.getClass() == cachedRopeClass",
         }, limit = "getCacheLimit()")
-        public Rope withEncodingSameCodeRange(ManagedRope rope, Encoding encoding, CodeRange codeRange,
-                @Cached("rope.getClass()") Class<? extends Rope> cachedRopeClass) {
-            return cachedRopeClass.cast(rope).withEncoding(encoding, codeRange);
+        public Rope withEncodingAsciiCompatible(ManagedRope rope, Encoding encoding, CodeRange codeRange,
+                @Cached("rope.getClass()") Class<? extends Rope> cachedRopeClass,
+                @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile) {
+            if (asciiOnlyProfile.profile(rope.isAsciiOnly())) {
+                return cachedRopeClass.cast(rope).withEncoding(encoding, CR_7BIT);
+            } else {
+                // The guards and asciiOnlyProfile guarantee this branch must be for ASCIIEncoding and CR_VALID.
+                return cachedRopeClass.cast(rope).withEncoding(ASCIIEncoding.INSTANCE, CR_VALID);
+            }
         }
 
         @Specialization(guards = {
                 "rope.getEncoding() != encoding",
-                "rope.getCodeRange() != codeRange",
-                "isAsciiCompatibleChange(rope, encoding)",
-                "rope.getClass() == cachedRopeClass"
-        }, limit = "getCacheLimit()")
-        public Rope withEncodingCr7Bit(ManagedRope rope, Encoding encoding, CodeRange codeRange,
-                @Cached("rope.getClass()") Class<? extends Rope> cachedRopeClass) {
-            return cachedRopeClass.cast(rope).withEncoding(encoding, CodeRange.CR_7BIT);
-        }
-
-        @Specialization(guards = {
-                "rope.getEncoding() != encoding",
-                "rope.getCodeRange() != codeRange",
-                "!isAsciiCompatibleChange(rope, encoding)"
+                "!asciiCompatibleChange(rope, encoding)"
         })
         public Rope withSlowEncoding(ManagedRope rope, Encoding encoding, CodeRange codeRange,
                 @Cached("create()") MakeLeafRopeNode makeLeafRopeNode,
@@ -1024,8 +1018,10 @@ public abstract class RopeNodes {
             return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, codeRange, NotProvided.INSTANCE);
         }
 
-        protected static boolean isAsciiCompatibleChange(Rope rope, Encoding encoding) {
-            return rope.getCodeRange() == CR_7BIT && encoding.isAsciiCompatible();
+        protected static boolean asciiCompatibleChange(Rope rope, Encoding encoding) {
+            return rope.getEncoding().isAsciiCompatible() &&
+                    encoding.isAsciiCompatible() &&
+                    (rope.isAsciiOnly() || (encoding == ASCIIEncoding.INSTANCE && rope.getCodeRange() != CR_BROKEN));
         }
 
         protected int getCacheLimit() {
