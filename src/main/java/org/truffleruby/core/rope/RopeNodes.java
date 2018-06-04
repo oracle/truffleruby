@@ -994,10 +994,12 @@ public abstract class RopeNodes {
 
         @Specialization(guards = {
                 "rope.getEncoding() != encoding",
-                "rope.getCodeRange() == codeRange"
-        })
-        public Rope withEncodingSameCodeRange(ManagedRope rope, Encoding encoding, CodeRange codeRange) {
-            return rope.withEncoding(encoding, codeRange);
+                "rope.getCodeRange() == codeRange",
+                "rope.getClass() == cachedRopeClass"
+        }, limit = "getCacheLimit()")
+        public Rope withEncodingSameCodeRange(ManagedRope rope, Encoding encoding, CodeRange codeRange,
+                @Cached("rope.getClass()") Class<? extends Rope> cachedRopeClass) {
+            return cachedRopeClass.cast(rope).withEncoding(encoding, codeRange);
         }
 
         @Specialization(guards = {
