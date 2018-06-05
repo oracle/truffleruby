@@ -2031,7 +2031,7 @@ EOS
     
     if rebuild_images
       if [:public, :graalvm].include?(install_method)
-        lines.push "RUN $D_GRAALVM_BASE/jre/lib/svm/bin/rebuild-images ruby"
+        lines.push "RUN $GRAALVM_BASE/bin/gu rebuild-images ruby"
       else
         abort "can't rebuild images for a build not from public or from local GraalVM components"
       end

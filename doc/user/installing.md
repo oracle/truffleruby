@@ -71,7 +71,7 @@ Rebuilding the executable images can take a few minutes and you should have
 about 8 GB of RAM available.
 
 ```
-$ graalvm/jre/lib/svm/bin/rebuild-images ruby
+$ gu rebuild-images ruby
 ```
 
 ## Using a Ruby package manager
