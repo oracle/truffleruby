@@ -17,10 +17,10 @@ import org.jcodings.Encoding;
  */
 public class RepeatingRope extends ManagedRope {
 
-    private final Rope child;
+    private final ManagedRope child;
     private final int times;
 
-    public RepeatingRope(Rope child, int times) {
+    public RepeatingRope(ManagedRope child, int times) {
         super(child.getEncoding(), child.getCodeRange(), child.isSingleByteOptimizable(), child.byteLength() * times, child.characterLength() * times, child.depth() + 1, null);
         this.child = child;
         this.times = times;
@@ -28,7 +28,7 @@ public class RepeatingRope extends ManagedRope {
 
     @Override
     public Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange) {
-        return new RepeatingRope(child.withEncoding(newEncoding, newCodeRange), times);
+        return new RepeatingRope((ManagedRope) child.withEncoding(newEncoding, newCodeRange), times);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class RepeatingRope extends ManagedRope {
         return child.getByteSlow(index % child.byteLength());
     }
 
-    public Rope getChild() {
+    public ManagedRope getChild() {
         return child;
     }
 
