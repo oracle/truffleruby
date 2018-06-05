@@ -138,8 +138,9 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
-        public Rope substringNativeRope(NativeRope base, int byteOffset, int byteLength) {
-            return makeSubstringRopeNode.executeMake(base.getEncoding(), base.toLeafRope(), byteOffset, byteLength);
+        public Rope substringNativeRope(NativeRope base, int byteOffset, int byteLength,
+                @Cached("create()") NativeToManagedNode nativeToManagedNode) {
+            return makeSubstringRopeNode.executeMake(base.getEncoding(), nativeToManagedNode.execute(base), byteOffset, byteLength);
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
@@ -410,13 +411,15 @@ public abstract class RopeNodes {
         public abstract Rope executeConcat(Rope left, Rope right, Encoding encoding);
 
         @Specialization
-        public Rope concatNativeRopeLeft(NativeRope left, Rope right, Encoding encoding) {
-            return executeConcat(left.toLeafRope(), right, encoding);
+        public Rope concatNativeRopeLeft(NativeRope left, Rope right, Encoding encoding,
+                @Cached("create()") NativeToManagedNode nativeToManagedNode) {
+            return executeConcat(nativeToManagedNode.execute(left), right, encoding);
         }
 
         @Specialization
-        public Rope concatNativeRopeRight(Rope left, NativeRope right, Encoding encoding) {
-            return executeConcat(left, right.toLeafRope(), encoding);
+        public Rope concatNativeRopeRight(Rope left, NativeRope right, Encoding encoding,
+                @Cached("create()") NativeToManagedNode nativeToManagedNode) {
+            return executeConcat(left, nativeToManagedNode.execute(right), encoding);
         }
 
         @Specialization(guards = "left.isEmpty()")
@@ -855,8 +858,9 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "!isSingleByteString(base)", "times > 1" })
-        public Rope repeatNative(NativeRope base, int times) {
-            return executeRepeat(base.toLeafRope(), times);
+        public Rope repeatNative(NativeRope base, int times,
+                @Cached("create()") NativeToManagedNode nativeToManagedNode) {
+            return executeRepeat(nativeToManagedNode.execute(base), times);
         }
 
     }
@@ -1550,6 +1554,28 @@ public abstract class RopeNodes {
             }
 
             return n;
+        }
+
+    }
+
+    @NodeChild(type = RubyNode.class, value = "rope")
+    public abstract static class NativeToManagedNode extends RubyNode {
+
+        public static NativeToManagedNode create() {
+            return RopeNodesFactory.NativeToManagedNodeGen.create(null);
+        }
+
+        public abstract LeafRope execute(NativeRope rope);
+
+        @Specialization
+        protected LeafRope nativeToManaged(NativeRope rope,
+                @Cached("create()") BytesNode bytesNode,
+                @Cached("create()") MakeLeafRopeNode makeLeafRopeNode) {
+            // Ideally, a NativeRope would always have an accurate code range and character length. However, in practice,
+            // it's possible for a bad code range to be associated with the rope due to native memory being updated by
+            // 3rd party libraries. So, we must re-calculate the code range and character length values upon conversion
+            // to a ManagedRope.
+            return makeLeafRopeNode.executeMake(bytesNode.execute(rope), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE);
         }
 
     }
