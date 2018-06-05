@@ -484,6 +484,10 @@ class String
     self
   end
 
+  def b
+    dup.force_encoding(Encoding::BINARY)
+  end
+
   def encode(to=undefined, from=undefined, options=undefined)
     dup.encode! to, from, options
   end

@@ -11,6 +11,7 @@
 package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
+import org.truffleruby.core.string.StringSupport;
 
 public class ValidLeafRope extends LeafRope {
 
@@ -27,7 +28,8 @@ public class ValidLeafRope extends LeafRope {
             throw new UnsupportedOperationException("Cannot fast-path updating encoding with different code range.");
         }
 
-        // TODO (nirvdrum 08-Mar-16): This should recalculate the character length since the new encoding may treat the bytes differently.
-        return new ValidLeafRope(getRawBytes(), newEncoding, characterLength());
+        final int newCharacterLength = StringSupport.strLength(newEncoding, getRawBytes(), 0, byteLength(), newCodeRange);
+
+        return new ValidLeafRope(getRawBytes(), newEncoding, newCharacterLength);
     }
 }
