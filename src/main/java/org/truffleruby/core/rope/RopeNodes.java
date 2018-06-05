@@ -207,7 +207,7 @@ public abstract class RopeNodes {
         public abstract Rope executeMake(Encoding encoding, Rope base, int byteOffset, int byteLength);
 
         @Specialization(guards = "is7Bit(base.getCodeRange())")
-        public Rope makeSubstring7Bit(Encoding encoding, Rope base, int byteOffset, int byteLength) {
+        public Rope makeSubstring7Bit(Encoding encoding, ManagedRope base, int byteOffset, int byteLength) {
             if (getContext().getOptions().ROPE_LAZY_SUBSTRINGS) {
                 return new SubstringRope(encoding, base, true, byteOffset, byteLength, byteLength, CR_7BIT);
             } else {
@@ -216,7 +216,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = "!is7Bit(base.getCodeRange())")
-        public Rope makeSubstringNon7Bit(Encoding encoding, Rope base, int byteOffset, int byteLength,
+        public Rope makeSubstringNon7Bit(Encoding encoding, ManagedRope base, int byteOffset, int byteLength,
                 @Cached("create()") CalculateAttributesNode calculateAttributesNode) {
 
             final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(encoding, RopeOperations.extractRange(base, byteOffset, byteLength));
@@ -237,6 +237,27 @@ public abstract class RopeNodes {
 
                 return makeLeafRopeNode.executeMake(bytes, encoding, codeRange, characterLength);
             }
+        }
+
+        @Specialization
+        public Rope makeSubstringNativeRope(Encoding encoding, NativeRope base, int byteOffset, int byteLength,
+                @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile,
+                @Cached("create()") MakeLeafRopeNode makeLeafRopeNode) {
+            final byte[] bytes = new byte[byteLength];
+            base.copyTo(byteOffset, bytes, 0, byteLength);
+
+            final CodeRange codeRange;
+            final Object characterLength;
+
+            if (asciiOnlyProfile.profile(base.isAsciiOnly())) {
+                codeRange = CR_7BIT;
+                characterLength = byteLength;
+            } else {
+                codeRange = CR_UNKNOWN;
+                characterLength = NotProvided.INSTANCE;
+            }
+
+            return makeLeafRopeNode.executeMake(bytes, encoding, codeRange, characterLength);
         }
 
         protected static boolean is7Bit(CodeRange codeRange) {

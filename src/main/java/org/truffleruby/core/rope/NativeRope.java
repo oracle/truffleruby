@@ -55,13 +55,13 @@ public class NativeRope extends Rope {
     public byte[] getBytes() {
         // Always re-read bytes from the native pointer as they might have changed.
         final byte[] bytes = new byte[byteLength()];
-        copyTo(0, bytes, 0);
+        copyTo(0, bytes, 0, byteLength());
         return bytes;
     }
 
     @TruffleBoundary
-    public void copyTo(int from, byte[] buffer, int bufferPos) {
-        pointer.readBytes(from, buffer, bufferPos, byteLength());
+    public void copyTo(int byteOffset, byte[] dest, int bufferPos, int byteLength) {
+        pointer.readBytes(byteOffset, dest, bufferPos, byteLength);
     }
 
     @Override
