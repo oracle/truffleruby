@@ -398,7 +398,19 @@ public abstract class RopeNodes {
             return executeConcat(left, right.toLeafRope(), encoding);
         }
 
-        @Specialization(guards = "!isCodeRangeBroken(left, right)")
+        @Specialization(guards = "left.isEmpty()")
+        public Rope concatLeftEmpty(Rope left, ManagedRope right, Encoding encoding,
+                @Cached("create()") WithEncodingNode withEncodingNode) {
+            return withEncodingNode.executeWithEncoding(right, encoding);
+        }
+
+        @Specialization(guards = "right.isEmpty()")
+        public Rope concatRightEmpty(ManagedRope left, Rope right, Encoding encoding,
+                @Cached("create()") WithEncodingNode withEncodingNode) {
+            return withEncodingNode.executeWithEncoding(left, encoding);
+        }
+
+        @Specialization(guards = { "!left.isEmpty()", "!right.isEmpty()", "!isCodeRangeBroken(left, right)" })
         public Rope concat(ManagedRope left, ManagedRope right, Encoding encoding,
                            @Cached("createBinaryProfile()") ConditionProfile sameCodeRangeProfile,
                            @Cached("createBinaryProfile()") ConditionProfile brokenCodeRangeProfile,
@@ -535,7 +547,7 @@ public abstract class RopeNodes {
             }
         }
 
-        @Specialization(guards = "isCodeRangeBroken(left, right)")
+        @Specialization(guards = { "!left.isEmpty()", "!right.isEmpty()", "isCodeRangeBroken(left, right)" })
         public Rope concatCrBroken(ManagedRope left, ManagedRope right, Encoding encoding,
                                    @Cached("create()") MakeLeafRopeNode makeLeafRopeNode) {
             // This specialization was added to a special case where broken code range(s),
