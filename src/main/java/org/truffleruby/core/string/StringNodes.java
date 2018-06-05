@@ -676,21 +676,6 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "b", taintFrom = 0)
-    public abstract static class BNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private RopeNodes.WithEncodingNode withEncodingNode = RopeNodesFactory.WithEncodingNodeGen.create(null, null);
-
-        @Specialization
-        public DynamicObject b(DynamicObject string,
-                               @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-            final Rope newRope = withEncodingNode.executeWithEncoding(rope(string), ASCIIEncoding.INSTANCE);
-
-            return makeStringNode.fromRope(newRope);
-        }
-
-    }
-
     @CoreMethod(names = "bytes", needsBlock = true)
     public abstract static class BytesNode extends YieldingCoreMethodNode {
 
