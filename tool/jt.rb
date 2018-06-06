@@ -1988,10 +1988,10 @@ EOS
     when :public
       lines.push "RUN curl -OL https://github.com/oracle/graal/releases/download/vm-#{public_version}/graalvm-ce-#{public_version}-linux-amd64.tar.gz"
       lines.push "RUN tar -zxf graalvm-ce-#{public_version}-linux-amd64.tar.gz"
-      lines.push "ENV GRAALVM_BASE=/test/graalvm-#{public_version}"
-      lines.push "RUN $GRAALVM_BASE/bin/gu install org.graalvm.ruby"
-      lines.push "ENV D_RUBY_BASE=$GRAALVM_BASE/jre/languages/ruby"
-      lines.push "ENV D_RUBY_BIN=$GRAALVM_BASE/bin"
+      lines.push "ENV D_GRAALVM_BASE=/test/graalvm-#{public_version}"
+      lines.push "RUN $D_GRAALVM_BASE/bin/gu install org.graalvm.ruby"
+      lines.push "ENV D_RUBY_BASE=$D_GRAALVM_BASE/jre/languages/ruby"
+      lines.push "ENV D_RUBY_BIN=$D_GRAALVM_BASE/bin"
     when :graalvm
       docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
       FileUtils.copy graalvm_tarball, docker_dir
@@ -2031,7 +2031,7 @@ EOS
     
     if rebuild_images
       if [:public, :graalvm].include?(install_method)
-        lines.push "RUN $D_GRAALVM_BASE/jre/lib/svm/bin/rebuild-images ruby"
+        lines.push "RUN $D_GRAALVM_BASE/bin/gu rebuild-images ruby"
       else
         abort "can't rebuild images for a build not from public or from local GraalVM components"
       end
