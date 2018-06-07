@@ -11,11 +11,13 @@ package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.language.RubyBaseNode;
 
+@ReportPolymorphism
 public abstract class ObjectIVarGetNode extends RubyBaseNode {
 
     private final boolean checkName;

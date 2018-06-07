@@ -11,6 +11,7 @@ package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
@@ -34,6 +35,7 @@ import org.truffleruby.language.objects.MetaClassNode;
  * Caches {@link ModuleOperations#lookupMethodCached(DynamicObject, String, DeclarationContext)}
  * on an actual instance.
  */
+@ReportPolymorphism
 public abstract class LookupMethodNode extends RubyBaseNode {
 
     private final boolean ignoreVisibility;
