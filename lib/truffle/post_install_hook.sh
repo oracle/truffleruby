@@ -8,6 +8,9 @@ set -e
 lib_truffle=$(cd "$(dirname "$0")" && pwd -P)
 root=$(dirname "$(dirname "$lib_truffle")")
 
+# In case the script shells out to ruby, make sure to use truffleruby and not rely on system ruby
+export PATH="$root/bin:$PATH"
+
 cd "$root"
 
 if [ "$TRUFFLERUBY_RECOMPILE_OPENSSL" != "false" ]; then

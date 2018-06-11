@@ -1,5 +1,11 @@
 # 1.0
 
+# 1.0 RC 3
+
+Bug fixes:
+
+* It is no longer needed to have `ruby` in `$PATH` to run the post-install hook.
+
 # 1.0 RC 2, May 2018
 
 New features:
