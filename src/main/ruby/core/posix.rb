@@ -168,6 +168,7 @@ module Truffle::POSIX
   attach_function :truffleposix_flock, [:int, :int], :int, LIBTRUFFLEPOSIX, true
   attach_function :truffleposix_fstat, [:int, :pointer], :int, LIBTRUFFLEPOSIX
   attach_function :truffleposix_fstat_mode, [:int], :long, LIBTRUFFLEPOSIX
+  attach_function :truffleposix_fstat_size, [:int], :long, LIBTRUFFLEPOSIX
   attach_function :fsync, [:int], :int
   attach_function :ftruncate, [:int, :off_t], :int
   attach_function :getcwd, [:pointer, :size_t], :string
@@ -195,6 +196,7 @@ module Truffle::POSIX
   attach_function :truffleposix_select, [:int, :pointer, :int, :pointer, :int, :pointer, :long], :int, LIBTRUFFLEPOSIX
   attach_function :truffleposix_stat, [:string, :pointer], :int, LIBTRUFFLEPOSIX
   attach_function :truffleposix_stat_mode, [:string], :long, LIBTRUFFLEPOSIX
+  attach_function :truffleposix_stat_size, [:string], :long, LIBTRUFFLEPOSIX
   attach_function :symlink, [:string, :string], :int
   attach_function :telldir, [:pointer], :long
   attach_function :truncate, [:string, :off_t], :int

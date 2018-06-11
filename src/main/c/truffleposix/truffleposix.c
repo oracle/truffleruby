@@ -311,6 +311,15 @@ int64_t truffleposix_stat_mode(const char *path) {
   return result;
 }
 
+int64_t truffleposix_stat_size(const char *path) {
+  struct stat native_stat;
+  int result = stat(path, &native_stat);
+  if (result == 0) {
+    return native_stat.st_size;
+  }
+  return result;
+}
+
 int truffleposix_fstat(int fd, struct truffleposix_stat *buffer) {
   struct stat native_stat;
   int result = fstat(fd, &native_stat);
@@ -325,6 +334,15 @@ int64_t truffleposix_fstat_mode(int fd) {
   int result = fstat(fd, &native_stat);
   if (result == 0) {
     return native_stat.st_mode;
+  }
+  return result;
+}
+
+int64_t truffleposix_fstat_size(int fd) {
+  struct stat native_stat;
+  int result = fstat(fd, &native_stat);
+  if (result == 0) {
+    return native_stat.st_size;
   }
   return result;
 }

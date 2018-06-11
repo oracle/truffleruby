@@ -996,9 +996,20 @@ class File < IO
     io = Truffle::Type.try_convert io_or_path, IO, :to_io
 
     if io.is_a? IO
-      Stat.fstat(io.fileno).size
+      s = Truffle::POSIX.truffleposix_fstat_size(io.fileno)
+      if s >= 0
+        s
+      else
+        Errno.handle "file descriptor #{io.fileno}"
+      end
     else
-      stat(io_or_path).size
+      path = Truffle::Type.coerce_to_path(io_or_path)
+      s = Truffle::POSIX.truffleposix_stat_size(path)
+      if s >= 0
+        s
+      else
+        Errno.handle path
+      end
     end
   end
 
@@ -1006,16 +1017,14 @@ class File < IO
   # Returns nil if file_name doesn't exist or has zero size,
   # the size of the file otherwise.
   def self.size?(io_or_path)
-    s = 0
-
     io = Truffle::Type.try_convert io_or_path, IO, :to_io
 
-    if io.is_a? IO
-      s = Stat.fstat(io.fileno).size
-    else
-      st = Stat.stat io_or_path
-      s = st.size if st
-    end
+    s = if io.is_a? IO
+          Truffle::POSIX.truffleposix_fstat_size(io.fileno)
+        else
+          path = Truffle::Type.coerce_to_path(io_or_path)
+          Truffle::POSIX.truffleposix_stat_size(path)
+        end
 
     s > 0 ? s : nil
   end
@@ -1185,8 +1194,10 @@ class File < IO
   ##
   # Returns true if the named file exists and has a zero size.
   def self.zero?(path)
-    st = Stat.stat path
-    st ? st.zero? : false
+    path = Truffle::Type.coerce_to_path(path)
+    s = Truffle::POSIX.truffleposix_stat_size(path)
+
+    s == 0
   end
 
   ##
@@ -1330,7 +1341,13 @@ class File < IO
 
   def size
     raise IOError, 'closed stream' if closed?
-    stat.size
+    s = Truffle::POSIX.truffleposix_fstat_size(@descriptor)
+
+    if s >= 0
+      s
+    else
+      Errno.handle "file descriptor #{@descriptor}"
+    end
   end
 end     # File
 
