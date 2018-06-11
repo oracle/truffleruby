@@ -42,8 +42,9 @@ Pick one of:
 
 Pick one of:
 
-* From the public GraalVM CE binary tarball, and the public Ruby component, `--public 1.0.0rc-1` (default)
+* From the public GraalVM CE binary tarball, and the public Ruby component, `--public 1.0.0` (default)
 * From a GraalVM binary tarball and Ruby component you have locally, `--graalvm graalvm.tar.gz ruby-installable.jar`
+* From a TruffleRuby standalone distribution you have locally, `--standalone truffleruby-1.0.0-linux-amd64.tar.gz`
 * From source, `--source master`
 
 ## Ruby manager
@@ -71,6 +72,11 @@ Pick any of:
 * Use a custom TruffleRuby repo, `--repo url`
 
 When using `test` you need to specify the method of installing, and what to do.
+
+## Extracting a standalone image
+
+To extract a standalone image, use `jt docker extract-standalone ~/Downloads/ruby-installable-linux-amd64-rc2.jar 1.0.0-rc2`.
+The file name needs to have the platform in it, as it is on GitHub.
 
 ## Docker cache
 

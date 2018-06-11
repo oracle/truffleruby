@@ -1881,6 +1881,8 @@ EOS
       docker_test *args
     when 'print'
       docker_print *args
+    when 'extract-standalone'
+      docker_extract_standalone *args
     else
       abort "Unkown jt docker command #{command}"
     end
@@ -1938,6 +1940,9 @@ EOS
         install_method = :graalvm
         graalvm_tarball = args.shift
         graalvm_component = args.shift
+      when '--standalone'
+        install_method = :standalone
+        standalone_tarball = args.shift
       when '--source'
         install_method = :source
         source_branch = args.shift
@@ -1962,7 +1967,6 @@ EOS
     lines = []
     
     lines.push "FROM #{distro.fetch('base')}"
-    lines.push "MAINTAINER chris.seaton@oracle.com"
     
     lines.push *distro.fetch('setup')
     
@@ -1984,6 +1988,22 @@ EOS
     lines.push "RUN chown test /test"
     lines.push "USER test"
     
+    docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
+    
+    case install_method
+    when :graalvm
+      tarball = graalvm_tarball
+    when :standalone
+      tarball = standalone_tarball
+    end
+    
+    if defined?(tarball)
+      graalvm_version = /([ce]e-)?\d+(\.\d+)*(-rc\d+)?(\-dev)?(-\h+)?/.match(tarball).to_s
+      
+      # Test build tarballs may have a -bn suffix, which isn't really part of the version string but matches the hex part in some cases
+      graalvm_version = graalvm_version.gsub(/-b\d+\Z/, '')
+    end
+    
     case install_method
     when :public
       lines.push "RUN curl -OL https://github.com/oracle/graal/releases/download/vm-#{public_version}/graalvm-ce-#{public_version}-linux-amd64.tar.gz"
@@ -1993,23 +2013,25 @@ EOS
       lines.push "ENV D_RUBY_BASE=$D_GRAALVM_BASE/jre/languages/ruby"
       lines.push "ENV D_RUBY_BIN=$D_GRAALVM_BASE/bin"
     when :graalvm
-      docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
       FileUtils.copy graalvm_tarball, docker_dir
       FileUtils.copy graalvm_component, docker_dir
       graalvm_tarball = File.basename(graalvm_tarball)
       graalvm_component = File.basename(graalvm_component)
       lines.push "COPY #{graalvm_tarball} /test/"
       lines.push "COPY #{graalvm_component} /test/"
-      graalvm_version = /([ce]e-)?\d+(\.\d+)*(-rc\d+)?(\-dev)?(-\h+)?/.match(graalvm_tarball).to_s
-      
-      # Test build tarballs may have a -bn suffix, which isn't really part of the version string but matches the hex part in some cases
-      graalvm_version = graalvm_version.gsub(/-b\d+\Z/, '')
-      
       lines.push "RUN tar -zxf #{graalvm_tarball}"
       lines.push "ENV D_GRAALVM_BASE=/test/graalvm-#{graalvm_version}"
       lines.push "RUN $D_GRAALVM_BASE/bin/gu install --file /test/#{graalvm_component}"
       lines.push "ENV D_RUBY_BASE=$D_GRAALVM_BASE/jre/languages/ruby"
       lines.push "ENV D_RUBY_BIN=$D_GRAALVM_BASE/bin"
+      lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if distro.fetch('post-install')
+    when :standalone
+      FileUtils.copy standalone_tarball, docker_dir
+      standalone_tarball = File.basename(standalone_tarball)
+      lines.push "COPY #{standalone_tarball} /test/"
+      lines.push "RUN tar -zxf #{standalone_tarball}"
+      lines.push "ENV D_RUBY_BASE=/test/#{File.basename(standalone_tarball, '.tar.gz')}"
+      lines.push "ENV D_RUBY_BIN=$D_RUBY_BASE/bin"
       lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if distro.fetch('post-install')
     when :source
       lines.push "RUN git clone --depth 1 https://github.com/graalvm/mx.git"
@@ -2084,7 +2106,8 @@ EOS
     end
     
     configs = ['']
-    configs += ['--jvm', '--native'] if [:public, :graalvm].include?(install_method)
+    configs += ['--jvm'] if [:public, :graalvm].include?(install_method)
+    configs += ['--native'] if [:public, :graalvm, :standalone].include?(install_method)
     
     configs.each do |config|
       lines.push "RUN " + setup_env["ruby #{config} --version"]
@@ -2141,7 +2164,44 @@ EOS
     lines.join("\n") + "\n"
   end
   
-  private :docker_build, :docker_test, :docker_print, :dockerfile
+  def docker_extract_standalone(*args)
+    graalvm_component = args.shift
+    version = args.shift
+    if graalvm_component.include?('linux-amd64')
+      platform = 'linux-amd64'
+    elsif graalvm_component.include?('macos-amd64')
+      platform = 'macos-amd64'
+    else
+      abort "cannot find platform in #{graalvm_component}"
+    end
+    target = "truffleruby-#{version}-#{platform}.tar.gz"
+    docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
+    lines = []
+    lines.push "FROM ubuntu:16.04"
+    lines.push "RUN apt-get update"
+    lines.push "RUN apt-get install -y ruby unzip"
+    lines.push "WORKDIR /test"
+    lines.push "RUN useradd -ms /bin/bash test"
+    lines.push "RUN chown test /test"
+    lines.push "USER test"
+    lines.push "RUN mkdir tool"
+    docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
+    FileUtils.copy graalvm_component, docker_dir
+    graalvm_component = File.basename(graalvm_component)
+    lines.push "COPY #{graalvm_component} /test/"
+    ['extract-standalone-distribution.sh', 'restore-perms-symlinks.rb'].each do |file|
+      FileUtils.copy File.join(TRUFFLERUBY_DIR, 'tool', file), docker_dir
+      lines.push "ADD #{file} /test/tool"
+    end
+    lines.push "RUN tool/extract-standalone-distribution.sh /test/#{graalvm_component} #{version}"
+    File.write(File.join(docker_dir, 'Dockerfile'), lines.join("\n") + "\n")
+    sh 'docker', 'build', '-t', 'extract_standalone', '.', chdir: docker_dir
+    sh 'docker', 'run', 'extract_standalone'
+    out, _err = sh 'docker', 'run', 'extract_standalone', 'cat', "/test/#{target}", capture: true
+    File.write(File.join(TRUFFLERUBY_DIR, target), out)
+  end
+
+  private :docker_build, :docker_test, :docker_print, :dockerfile, :docker_extract_standalone
 
 end
 
