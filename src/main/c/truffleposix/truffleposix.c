@@ -329,6 +329,15 @@ int truffleposix_lstat(const char *path, struct truffleposix_stat *buffer) {
   return result;
 }
 
+int64_t truffleposix_lstat_mode(const char *path) {
+  struct stat native_stat;
+  int result = lstat(path, &native_stat);
+  if (result == 0) {
+    return native_stat.st_mode;
+  }
+  return result;
+}
+
 unsigned int truffleposix_major(dev_t dev) {
   return major(dev);
 }

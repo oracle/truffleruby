@@ -1054,11 +1054,9 @@ class File < IO
   ##
   # Returns true if the named file is a symbolic link.
   def self.symlink?(path)
-    if stat = Stat.lstat?(path)
-      stat.symlink?
-    else
-      false
-    end
+    path = Truffle::Type.coerce_to_path(path)
+    mode = Truffle::POSIX.truffleposix_lstat_mode(path)
+    Truffle::StatOperations.symlink?(mode)
   end
 
   ##
