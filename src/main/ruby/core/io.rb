@@ -2428,7 +2428,8 @@ class IO
   end
 
   def strip_bom
-    return unless File::Stat.fstat(@descriptor).file?
+    mode = Truffle::POSIX.truffleposix_fstat_mode(@descriptor)
+    return unless Truffle::StatOperations.file?(mode)
 
     case b1 = getbyte
     when 0x00

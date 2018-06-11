@@ -320,6 +320,15 @@ int truffleposix_fstat(int fd, struct truffleposix_stat *buffer) {
   return result;
 }
 
+int64_t truffleposix_fstat_mode(int fd) {
+  struct stat native_stat;
+  int result = fstat(fd, &native_stat);
+  if (result == 0) {
+    return native_stat.st_mode;
+  }
+  return result;
+}
+
 int truffleposix_lstat(const char *path, struct truffleposix_stat *buffer) {
   struct stat native_stat;
   int result = lstat(path, &native_stat);

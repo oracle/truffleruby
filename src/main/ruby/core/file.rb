@@ -359,13 +359,14 @@ class File < IO
   def self.directory?(io_or_path)
     io = Truffle::Type.try_convert io_or_path, IO, :to_io
 
-    if io.is_a? IO
-      Stat.fstat(io.fileno).directory?
-    else
-      path = Truffle::Type.coerce_to_path(io_or_path)
-      mode = Truffle::POSIX.truffleposix_stat_mode(path)
-      Truffle::StatOperations.directory?(mode)
-    end
+    mode = if io.is_a? IO
+             Truffle::POSIX.truffleposix_fstat_mode(io.fileno)
+           else
+             path = Truffle::Type.coerce_to_path(io_or_path)
+             Truffle::POSIX.truffleposix_stat_mode(path)
+           end
+
+    Truffle::StatOperations.directory?(mode)
   end
 
   def self.last_nonslash(path, start=nil)
