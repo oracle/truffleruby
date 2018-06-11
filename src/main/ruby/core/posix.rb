@@ -192,6 +192,7 @@ module Truffle::POSIX
   attach_function :seekdir, [:pointer, :long], :void
   attach_function :truffleposix_select, [:int, :pointer, :int, :pointer, :int, :pointer, :long], :int, LIBTRUFFLEPOSIX
   attach_function :truffleposix_stat, [:string, :pointer], :int, LIBTRUFFLEPOSIX
+  attach_function :truffleposix_stat_mode, [:string], :long, LIBTRUFFLEPOSIX
   attach_function :symlink, [:string, :string], :int
   attach_function :telldir, [:pointer], :long
   attach_function :truncate, [:string, :off_t], :int

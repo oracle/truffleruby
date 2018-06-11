@@ -1393,6 +1393,7 @@ public class CoreLibrary {
             "/core/truffle/proc_operations.rb",
             "/core/truffle/range_operations.rb",
             "/core/truffle/regexp_operations.rb",
+            "/core/truffle/stat_operations.rb",
             "/core/truffle/string_operations.rb",
             "/core/truffle/backward.rb",
             "/core/splitter.rb",
