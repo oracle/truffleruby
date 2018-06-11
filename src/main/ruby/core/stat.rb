@@ -145,23 +145,7 @@ class File
     end
 
     def ftype
-      if file?
-        'file'
-      elsif directory?
-        'directory'
-      elsif chardev?
-        'characterSpecial'
-      elsif blockdev?
-        'blockSpecial'
-      elsif pipe?
-        'fifo'
-      elsif socket?
-        'socket'
-      elsif symlink?
-        'link'
-      else
-        'unknown'
-      end
+      Truffle::StatOperations.ftype(mode)
     end
 
     def owned?

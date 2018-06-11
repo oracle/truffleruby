@@ -89,5 +89,25 @@ module Truffle
       end
     end
 
+    def self.ftype(mode)
+      if file?(mode)
+        'file'
+      elsif directory?(mode)
+        'directory'
+      elsif chardev?(mode)
+        'characterSpecial'
+      elsif blockdev?(mode)
+        'blockSpecial'
+      elsif pipe?(mode)
+        'fifo'
+      elsif socket?(mode)
+        'socket'
+      elsif symlink?(mode)
+        'link'
+      else
+        'unknown'
+      end
+    end
+
   end
 end

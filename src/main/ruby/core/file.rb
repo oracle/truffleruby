@@ -739,7 +739,13 @@ class File < IO
   #  File.ftype("/dev/tty")            #=> "characterSpecial"
   #  File.ftype("/tmp/.X11-unix/X0")   #=> "socket"
   def self.ftype(path)
-    lstat(path).ftype
+    mode = Truffle::POSIX.truffleposix_lstat_mode(path)
+
+    if mode >= 0
+      Truffle::StatOperations.ftype(mode)
+    else
+      Errno.handle(path)
+    end
   end
 
   ##
