@@ -1940,6 +1940,9 @@ EOS
         install_method = :graalvm
         graalvm_tarball = args.shift
         graalvm_component = args.shift
+      when '--standalone'
+        install_method = :standalone
+        standalone_tarball = args.shift
       when '--source'
         install_method = :source
         source_branch = args.shift
@@ -1985,6 +1988,22 @@ EOS
     lines.push "RUN chown test /test"
     lines.push "USER test"
     
+    docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
+    
+    case install_method
+    when :graalvm
+      tarball = graalvm_tarball
+    when :standalone
+      tarball = standalone_tarball
+    end
+    
+    if defined?(tarball)
+      graalvm_version = /([ce]e-)?\d+(\.\d+)*(-rc\d+)?(\-dev)?(-\h+)?/.match(tarball).to_s
+      
+      # Test build tarballs may have a -bn suffix, which isn't really part of the version string but matches the hex part in some cases
+      graalvm_version = graalvm_version.gsub(/-b\d+\Z/, '')
+    end
+    
     case install_method
     when :public
       lines.push "RUN curl -OL https://github.com/oracle/graal/releases/download/vm-#{public_version}/graalvm-ce-#{public_version}-linux-amd64.tar.gz"
@@ -1994,23 +2013,25 @@ EOS
       lines.push "ENV D_RUBY_BASE=$D_GRAALVM_BASE/jre/languages/ruby"
       lines.push "ENV D_RUBY_BIN=$D_GRAALVM_BASE/bin"
     when :graalvm
-      docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
       FileUtils.copy graalvm_tarball, docker_dir
       FileUtils.copy graalvm_component, docker_dir
       graalvm_tarball = File.basename(graalvm_tarball)
       graalvm_component = File.basename(graalvm_component)
       lines.push "COPY #{graalvm_tarball} /test/"
       lines.push "COPY #{graalvm_component} /test/"
-      graalvm_version = /([ce]e-)?\d+(\.\d+)*(-rc\d+)?(\-dev)?(-\h+)?/.match(graalvm_tarball).to_s
-      
-      # Test build tarballs may have a -bn suffix, which isn't really part of the version string but matches the hex part in some cases
-      graalvm_version = graalvm_version.gsub(/-b\d+\Z/, '')
-      
       lines.push "RUN tar -zxf #{graalvm_tarball}"
       lines.push "ENV D_GRAALVM_BASE=/test/graalvm-#{graalvm_version}"
       lines.push "RUN $D_GRAALVM_BASE/bin/gu install --file /test/#{graalvm_component}"
       lines.push "ENV D_RUBY_BASE=$D_GRAALVM_BASE/jre/languages/ruby"
       lines.push "ENV D_RUBY_BIN=$D_GRAALVM_BASE/bin"
+      lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if distro.fetch('post-install')
+    when :standalone
+      FileUtils.copy standalone_tarball, docker_dir
+      standalone_tarball = File.basename(standalone_tarball)
+      lines.push "COPY #{standalone_tarball} /test/"
+      lines.push "RUN tar -zxf #{standalone_tarball}"
+      lines.push "ENV D_RUBY_BASE=/test/#{File.basename(standalone_tarball, '.tar.gz')}"
+      lines.push "ENV D_RUBY_BIN=$D_RUBY_BASE/bin"
       lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if distro.fetch('post-install')
     when :source
       lines.push "RUN git clone --depth 1 https://github.com/graalvm/mx.git"
@@ -2085,7 +2106,8 @@ EOS
     end
     
     configs = ['']
-    configs += ['--jvm', '--native'] if [:public, :graalvm].include?(install_method)
+    configs += ['--jvm'] if [:public, :graalvm].include?(install_method)
+    configs += ['--native'] if [:public, :graalvm, :standalone].include?(install_method)
     
     configs.each do |config|
       lines.push "RUN " + setup_env["ruby #{config} --version"]
