@@ -20,7 +20,7 @@ rm -rf tmp
 mkdir tmp
 
 cd tmp
-jar xf "$file"
+unzip "$file"
 cd ..
 
 ruby tool/restore-perms-symlinks.rb tmp
