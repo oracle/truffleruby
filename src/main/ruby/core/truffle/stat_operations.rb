@@ -56,15 +56,15 @@ module Truffle
     end
 
     def self.setgid?(mode)
-      mode >= 0 ? mode & File::Stat::S_ISGID != 0 : false
+      mode > 0 ? mode & File::Stat::S_ISGID != 0 : false
     end
 
     def self.setuid?(mode)
-      mode >= 0 ? mode & File::Stat::S_ISUID != 0 : false
+      mode > 0 ? mode & File::Stat::S_ISUID != 0 : false
     end
 
     def self.sticky?(mode)
-      mode >= 0 ? mode & File::Stat::S_ISVTX != 0 : false
+      mode > 0 ? mode & File::Stat::S_ISVTX != 0 : false
     end
 
     def self.socket?(mode)
@@ -79,6 +79,8 @@ module Truffle
       if mode & File::Stat::S_IROTH == File::Stat::S_IROTH
         tmp = mode & (File::Stat::S_IRUGO | File::Stat::S_IWUGO | File::Stat::S_IXUGO)
         Truffle::Type.coerce_to_int tmp
+      else
+        nil
       end
     end
 
@@ -86,6 +88,8 @@ module Truffle
       if mode & File::Stat::S_IWOTH == File::Stat::S_IWOTH
         tmp = mode & (File::Stat::S_IRUGO | File::Stat::S_IWUGO | File::Stat::S_IXUGO)
         Truffle::Type.coerce_to_int tmp
+      else
+        nil
       end
     end
 

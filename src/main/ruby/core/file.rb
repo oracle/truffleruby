@@ -443,7 +443,7 @@ class File < IO
   def self.exist?(path)
     path = Truffle::Type.coerce_to_path(path)
     mode = Truffle::POSIX.truffleposix_stat_mode(path)
-    mode >= 0
+    mode > 0
   end
 
   # Pull a constant for Dir local to File so that we don't have to depend
@@ -741,10 +741,10 @@ class File < IO
   def self.ftype(path)
     mode = Truffle::POSIX.truffleposix_lstat_mode(path)
 
-    if mode >= 0
-      Truffle::StatOperations.ftype(mode)
-    else
+    if mode == 0
       Errno.handle(path)
+    else
+      Truffle::StatOperations.ftype(mode)
     end
   end
 
@@ -1157,22 +1157,14 @@ class File < IO
     path = Truffle::Type.coerce_to_path path
     mode = Truffle::POSIX.truffleposix_stat_mode(path)
 
-    if mode >= 0
-      return Truffle::StatOperations.world_readable?(mode)
-    end
-
-    nil
+    Truffle::StatOperations.world_readable?(mode)
   end
 
   def self.world_writable?(path)
     path = Truffle::Type.coerce_to_path path
     mode = Truffle::POSIX.truffleposix_stat_mode(path)
 
-    if mode >= 0
-      return Truffle::StatOperations.world_writable?(mode)
-    end
-
-    nil
+    Truffle::StatOperations.world_writable?(mode)
   end
 
   ##
