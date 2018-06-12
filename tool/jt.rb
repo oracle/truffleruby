@@ -1920,7 +1920,7 @@ EOS
     truffleruby_repo = 'https://github.com/oracle/truffleruby.git'
     distro = 'ubuntu1604'
     install_method = :public
-    public_version = '1.0.0-rc1'
+    public_version = '1.0.0-rc2'
     rebuild_images = false
     manager = :none
     basic_test = false
@@ -2008,10 +2008,11 @@ EOS
     when :public
       lines.push "RUN curl -OL https://github.com/oracle/graal/releases/download/vm-#{public_version}/graalvm-ce-#{public_version}-linux-amd64.tar.gz"
       lines.push "RUN tar -zxf graalvm-ce-#{public_version}-linux-amd64.tar.gz"
-      lines.push "ENV D_GRAALVM_BASE=/test/graalvm-#{public_version}"
+      lines.push "ENV D_GRAALVM_BASE=/test/graalvm-ce-#{public_version}"
       lines.push "RUN $D_GRAALVM_BASE/bin/gu install org.graalvm.ruby"
       lines.push "ENV D_RUBY_BASE=$D_GRAALVM_BASE/jre/languages/ruby"
       lines.push "ENV D_RUBY_BIN=$D_GRAALVM_BASE/bin"
+      lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if distro.fetch('post-install')
     when :graalvm
       FileUtils.copy graalvm_tarball, docker_dir
       FileUtils.copy graalvm_component, docker_dir
