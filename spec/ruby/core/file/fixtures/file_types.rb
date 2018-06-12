@@ -5,17 +5,11 @@ module FileSpecs
     @file   = tmp("test.txt")
     @dir    = Dir.pwd
     @fifo   = tmp("test_fifo")
+    @link   = tmp("test_link")
 
     platform_is_not :windows do
       @block  = `find /dev /devices -type b 2> /dev/null`.split("\n").first
       @char   = `{ tty || find /dev /devices -type c; } 2> /dev/null`.split("\n").last
-
-      %w[/dev /usr/bin /usr/local/bin].each do |dir|
-        links = `find #{dir} -type l 2> /dev/null`.split("\n")
-        next if links.empty?
-        @link = links.first
-        break
-      end
     end
 
     @configured = true
@@ -49,7 +43,11 @@ module FileSpecs
   end
 
   def self.symlink
+    touch(@file)
+    File.symlink(@file, @link)
     yield @link
+  ensure
+    rm_r @file, @link
   end
 
   def self.socket
