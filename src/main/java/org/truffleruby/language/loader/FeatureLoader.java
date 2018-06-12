@@ -241,6 +241,14 @@ public class FeatureLoader {
 
             sulongLoadLibraryFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_load_library", rubySUpath);
 
+            final TruffleObject initFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_init", rubySUpath);
+            final Node executeInitNode = Message.createExecute(0).createNode();
+            try {
+                ForeignAccess.sendExecute(executeInitNode, initFunction);
+            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+
             cextImplementationLoaded = true;
         }
     }
