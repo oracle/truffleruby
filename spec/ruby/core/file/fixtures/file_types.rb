@@ -26,9 +26,8 @@ module FileSpecs
     yield @dir
   end
 
-  # TODO: need a platform-independent helper here
   def self.fifo
-    system "mkfifo #{@fifo} 2> /dev/null"
+    File.mkfifo(@fifo)
     yield @fifo
   ensure
     rm_r @fifo
