@@ -425,11 +425,6 @@ extern void* rb_tr_true;
 extern void* rb_tr_false;
 extern void* rb_tr_nil;
 
-VALUE rb_tr_get_undef(void);
-VALUE rb_tr_get_true(void);
-VALUE rb_tr_get_false(void);
-VALUE rb_tr_get_nil(void);
-
 #define Qfalse ((VALUE)(&rb_tr_false))
 #define Qtrue ((VALUE)(&rb_tr_true))
 #define Qnil ((VALUE)(&rb_tr_nil))
