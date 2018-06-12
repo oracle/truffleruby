@@ -24,10 +24,12 @@ Fedora 25 using RVM:
 $ jt docker print --fedora25 --source --rvm
 ```
 
-Or, to run a full set of tests on a new release candidate:
+Or, to run a full set of tests on a set of new release candidate tarballs:
 
 ```
-$ jt docker test --graalvm graalvm.tar.gz ruby.jar --test release_branch
+$ jt docker test --graalvm graalvm-ce.tar.gz ruby-installable.jar --test release_branch
+$ jt docker test --graalvm graalvm-ee.tar.gz ruby-installable.jar --test release_branch
+$ jt docker test --graalvm graalvm-ee.tar.gz ruby-installable.jar --rebuild-images --test release_branch
 ```
 
 ## Distributions
