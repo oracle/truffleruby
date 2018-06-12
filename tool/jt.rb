@@ -2146,7 +2146,7 @@ EOS
       configs.each do |config|
         excludes = ['fails', 'slow', 'ci']
         excludes += ['graalvm'] if [:public, :graalvm].include?(install_method)
-        excludes += ['aot'] if ['', '-T--native'].include?(config)
+        excludes += ['aot'] if ['', '--native'].include?(config)
       
         [':command_line', ':security', ':language', ':core', ':library', ':capi', ':library_cext', ':truffle'].each do |set|
           extra = [':core', ':capi', ':truffle'].include?(set) ? ' || true' : ''
