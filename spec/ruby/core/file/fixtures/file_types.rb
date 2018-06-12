@@ -8,8 +8,8 @@ module FileSpecs
     @link   = tmp("test_link")
 
     platform_is_not :windows do
-      @block  = `find /dev /devices -type b 2> /dev/null`.split("\n").first
-      @char   = `{ tty || find /dev /devices -type c; } 2> /dev/null`.split("\n").last
+      @block  = `find /dev /devices -type b 2>/dev/null`.split("\n").first
+      @char   = `{ tty || find /dev /devices -type c; } 2>/dev/null`.split("\n").last
     end
 
     @configured = true
@@ -35,10 +35,12 @@ module FileSpecs
   end
 
   def self.block_device
+    raise "Could not find a block device" unless @block
     yield @block
   end
 
   def self.character_device
+    raise "Could not find a character device" unless @char
     yield @char
   end
 
