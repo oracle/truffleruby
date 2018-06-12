@@ -57,8 +57,11 @@ module FileSpecs
     name = tmp("ftype_socket.socket")
     rm_r name
     socket = UNIXServer.new name
-    yield name
-    socket.close
-    rm_r name
+    begin
+      yield name
+    ensure
+      socket.close
+      rm_r name
+    end
   end
 end
