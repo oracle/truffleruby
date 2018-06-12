@@ -1975,6 +1975,7 @@ EOS
     lines.push *distro.fetch('curl') if install_method == :public
     lines.push *distro.fetch('git') if install_method == :source || manager != :none || full_test
     lines.push *distro.fetch('which') if manager == :rvm || full_test
+    lines.push *distro.fetch('find') if full_test
     lines.push *distro.fetch('rvm') if manager == :rvm
     lines.push *distro.fetch('source') if install_method == :source
     lines.push *distro.fetch('images') if rebuild_images
@@ -2150,10 +2151,9 @@ EOS
         excludes += ['aot'] if ['', '--native'].include?(config)
       
         [':command_line', ':security', ':language', ':core', ':library', ':capi', ':library_cext', ':truffle'].each do |set|
-          extra = [':core', ':capi', ':truffle'].include?(set) ? ' || true' : ''
           t_config = config.empty? ? '' : '-T' + config
           t_excludes = excludes.map { |e| '--excl-tag ' + e }.join(' ')
-          lines.push "RUN " + setup_env["ruby spec/mspec/bin/mspec --config spec/truffle.mspec -t $D_RUBY_BIN/ruby #{t_config} #{t_excludes} #{set} #{extra}"]
+          lines.push "RUN " + setup_env["ruby spec/mspec/bin/mspec --config spec/truffle.mspec -t $D_RUBY_BIN/ruby #{t_config} #{t_excludes} #{set}"]
         end
       end
       
