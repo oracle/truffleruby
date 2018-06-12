@@ -56,15 +56,15 @@ module Truffle
     end
 
     def self.setgid?(mode)
-      mode > 0 ? mode & File::Stat::S_ISGID != 0 : false
+      mode & File::Stat::S_ISGID != 0
     end
 
     def self.setuid?(mode)
-      mode > 0 ? mode & File::Stat::S_ISUID != 0 : false
+      mode & File::Stat::S_ISUID != 0
     end
 
     def self.sticky?(mode)
-      mode > 0 ? mode & File::Stat::S_ISVTX != 0 : false
+      mode & File::Stat::S_ISVTX != 0
     end
 
     def self.socket?(mode)
