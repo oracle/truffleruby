@@ -166,6 +166,13 @@ module Truffle
         receiver = Truffle::Interop.unbox_if_needed(receiver)
         raise NameError, 'no method to_str' unless receiver.is_a?(String)
         receiver
+      when :is_a?
+        java_class = args.first
+        if Truffle::Interop.java_class?(java_class)
+          Truffle::Interop.java_instanceof?(receiver, java_class)
+        else
+          false
+        end
       else
         raise
       end
@@ -185,13 +192,11 @@ module Truffle
         Truffle::Interop.executable?(object)
       when :class
         Truffle::Interop.java_class?(object)
-      when :inspect
-        true
-      when :to_s
-        true
       when :to_str
         object = Truffle::Interop.unbox_if_needed(object)
         !Truffle::Interop.foreign?(object) && object.is_a?(String)
+      when :inspect, :to_s, :is_a?
+        true
       else
         false
       end
