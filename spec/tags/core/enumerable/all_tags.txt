@@ -1,0 +1,1 @@
+fails:Enumerable#all? raises an ArgumentError when any arguments provided
