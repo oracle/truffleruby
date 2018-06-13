@@ -30,7 +30,7 @@ TruffleRuby outside of GraalVM, such as a standard JVM, the version will be
 `'0.0'`. You can find the version number of GraalVM and TruffleRuby using the
 standard `RUBY_ENGINE_VERSION` constant.
 
-## Truffle methods
+## TruffleRuby methods
 
 TruffleRuby provides these non-standard methods that provide additional
 functionality in the `TruffleRuby` module.
