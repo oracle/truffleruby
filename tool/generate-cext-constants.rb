@@ -124,7 +124,7 @@ File.open("lib/cext/include/truffleruby/constants.h", "w") do |f|
   f.puts
 
   constants.each do |macro_name, name, _|
-    f.puts "VALUE rb_tr_get_#{name}(void);" unless macro_name[0] == 'Q'
+    f.puts "VALUE rb_tr_get_#{name}(void);"
   end
 
   f.puts

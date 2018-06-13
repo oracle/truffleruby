@@ -8,15 +8,12 @@
 
 require_relative 'patches/common_patches'
 
-require_relative 'patches/byebug_patches'
 require_relative 'patches/json_patches'
 require_relative 'patches/mysql2_patches'
-require_relative 'patches/nio4r_patches'
 require_relative 'patches/nokogiri_patches'
 require_relative 'patches/pg_patches'
 require_relative 'patches/puma_patches'
 require_relative 'patches/sqlite3_patches'
-require_relative 'patches/websocket_driver_patches'
 require_relative 'patches/racc_patches'
 require_relative 'patches/zlib_patches'
 
@@ -45,12 +42,9 @@ class Preprocessor
   add_gem_patches(PATCHED_FILES, ::JsonPatches::PATCHES)
   add_gem_patches(PATCHED_FILES, ::NokogiriPatches::PATCHES)
   add_gem_patches(PATCHED_FILES, ::PgPatches::PATCHES)
-  add_gem_patches(PATCHED_FILES, ::Nio4RPatches::PATCHES)
   add_gem_patches(PATCHED_FILES, ::MySQL2Patches::PATCHES)
-  add_gem_patches(PATCHED_FILES, ::ByeBugPatches::PATCHES)
   add_gem_patches(PATCHED_FILES, ::PumaPatches::PATCHES)
   add_gem_patches(PATCHED_FILES, ::SQLite3Patches::PATCHES)
-  add_gem_patches(PATCHED_FILES, ::WebsocketDriverPatches::PATCHES)
   add_gem_patches(PATCHED_FILES, ::RaccPatches::PATCHES)
   add_gem_patches(PATCHED_FILES, ::ZLibPatches::PATCHES)
 

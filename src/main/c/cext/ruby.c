@@ -25,6 +25,20 @@
 #include <errno.h>
 #include <fcntl.h>
 
+void* rb_tr_undef;
+void* rb_tr_true;
+void* rb_tr_false;
+void* rb_tr_nil;
+
+// Run when loading C-extension support
+
+void rb_tr_init(void) {
+  truffle_assign_managed(&rb_tr_undef, rb_tr_get_undef());
+  truffle_assign_managed(&rb_tr_true, rb_tr_get_true());
+  truffle_assign_managed(&rb_tr_false, rb_tr_get_false());
+  truffle_assign_managed(&rb_tr_nil, rb_tr_get_nil());
+}
+
 // Private helper macros just for ruby.c
 
 #define rb_boolean(c) ((c) ? Qtrue : Qfalse)

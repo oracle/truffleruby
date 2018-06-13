@@ -732,7 +732,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   release_builds:
     {
-      local shared = $.use.common + { timelimit: "35:00" },
+      local shared = $.use.common + { timelimit: "40:00" },
       "ruby-test-standalone-distribution": $.platform.linux + $.cap.gate + $.jdk.openjdk8 + shared + $.run.test_make_standalone_distribution,
       "ruby-standalone-distribution-linux": $.platform.linux + $.cap.manual + $.jdk.openjdk8 + shared + $.run.make_standalone_distribution,
       "ruby-standalone-distribution-darwin": $.platform.darwin + $.cap.manual + $.jdk.labsjdk8 + shared + $.run.make_standalone_distribution,
