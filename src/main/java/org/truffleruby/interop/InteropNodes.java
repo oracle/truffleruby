@@ -832,6 +832,40 @@ public abstract class InteropNodes {
 
     }
 
+    @CoreMethod(names = "java_instanceof?", isModuleFunction = true, required = 2)
+    public abstract static class InteropJavaInstanceOfNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = {
+                "isJavaObject(boxedInstance)",
+                "isJavaObject(boxedJavaClass)",
+                "isJavaClassOrInterface(boxedJavaClass)"
+        })
+        public boolean javaInstanceOfJava(Object boxedInstance, TruffleObject boxedJavaClass) {
+            final Object hostInstance = getContext().getEnv().asHostObject(boxedInstance);
+            final Class<?> javaClass = (Class<?>) getContext().getEnv().asHostObject(boxedJavaClass);
+            return javaClass.isAssignableFrom(hostInstance.getClass());
+        }
+
+        @Specialization(guards = {
+                "!isJavaObject(instance)",
+                "isJavaObject(boxedJavaClass)",
+                "isJavaClassOrInterface(boxedJavaClass)"
+        })
+        public boolean javaInstanceOfNotJava(Object instance, TruffleObject boxedJavaClass) {
+            final Class<?> javaClass = (Class<?>) getContext().getEnv().asHostObject(boxedJavaClass);
+            return javaClass.isAssignableFrom(instance.getClass());
+        }
+
+        protected boolean isJavaObject(Object object) {
+            return object instanceof TruffleObject && getContext().getEnv().isHostObject(object);
+        }
+
+        protected boolean isJavaClassOrInterface(TruffleObject object) {
+            return getContext().getEnv().asHostObject(object) instanceof Class<?>;
+        }
+
+    }
+
     @CoreMethod(names = "to_java_string", isModuleFunction = true, required = 1)
     public abstract static class InteropToJavaStringNode extends CoreMethodArrayArgumentsNode {
 
