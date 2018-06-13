@@ -170,7 +170,7 @@ module Truffle
         receiver = Truffle::Interop.unbox_if_needed(receiver)
         check_class = args.first
         if Truffle::Interop.foreign?(receiver)
-          if Truffle::Interop.java_class?(check_class)
+          if !TruffleRuby.native? && Truffle::Interop.java_class?(check_class)
             # Checking against a Java class
             Truffle::Interop.java_instanceof?(receiver, check_class)
           elsif Truffle::Interop.foreign?(check_class)

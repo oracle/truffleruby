@@ -81,8 +81,9 @@ describe "Interop special form" do
     Truffle::Debug.foreign_object.inspect.should =~ /#<Truffle::Interop::Foreign@\h+>/
   end
 
-  guard -> { !TruffleRuby.native? } do
-    describe "#is_a?" do
+  describe "#is_a?" do
+      
+    guard -> { !TruffleRuby.native? } do
       
       it "returns true for a directly matching Java object and class" do
         big_integer_class = Truffle::Interop.java_type("java.math.BigInteger")
@@ -115,11 +116,7 @@ describe "Interop special form" do
         java_hash = Truffle::Interop.java_type("java.util.HashMap").new
         java_hash.is_a?(Hash).should be_false
       end
-
-      it "returns false for a non-Java foreign object and a Ruby class" do
-        Truffle::Debug.foreign_object.is_a?(Hash).should be_false
-      end
-
+      
       it "raises a type error for a non-Java foreign object and a non-Java foreign class" do
         lambda {
           Truffle::Debug.foreign_object.is_a?(Truffle::Debug.foreign_object)
@@ -135,8 +132,13 @@ describe "Interop special form" do
         boxed = Truffle::Debug.foreign_boxed_number(14.2)
         boxed.is_a?(Float).should be_true
       end
-
+      
     end
+
+    it "returns false for a non-Java foreign object and a Ruby class" do
+      Truffle::Debug.foreign_object.is_a?(Hash).should be_false
+    end
+
   end
 
   it "#respond_to?(:to_a) sends HAS_SIZE" do
