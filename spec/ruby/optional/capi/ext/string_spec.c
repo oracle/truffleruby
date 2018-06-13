@@ -393,8 +393,6 @@ VALUE string_spec_RSTRING_PTR_after_funcall(VALUE self, VALUE str, VALUE cb) {
   return rb_str_new2(RSTRING_PTR(str));
 }
 
-bool is_managed_rstring_ptr(VALUE ptr);
-
 VALUE string_spec_RSTRING_PTR_after_yield(VALUE self, VALUE str) {
   char* ptr = NATIVE_RSTRING_PTR(str);
   long len = RSTRING_LEN(str);
