@@ -417,9 +417,15 @@ looks at the underlying Java object.
 `object.to_str` will try to `UNBOX` the object and return it if it's a `String`,
 or will raise `NoMethodError` if it isn't.
 
-`object.is_a?(class)` does `object instanceof class` if given a Java class, and
-for other foreign objects returns `false` (returns if the object is an instance
-of the class, which it will never be if the object is foreign).
+`java_object.is_a?(java_class)` does `java_object instanceof java_class`, using
+the host object instance, rather than any runtime interop wrapper.
+
+`object.is_a?(java_class)` does `object instanceof java_class`, using the
+runtime object instance.
+
+`foreign_object.is_a?(ruby_class)` returns `false`.
+
+`foreign_object.is_a?(foreign_class)` raises a `TypeError`.
 
 `object.respond_to?(:to_a)`, `respond_to?(:to_ary)` and `respond_to?(:size)`
 sends `HAS_SIZE`.

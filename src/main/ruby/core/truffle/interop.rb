@@ -167,11 +167,22 @@ module Truffle
         raise NameError, 'no method to_str' unless receiver.is_a?(String)
         receiver
       when :is_a?
-        java_class = args.first
-        if Truffle::Interop.java_class?(java_class)
-          Truffle::Interop.java_instanceof?(receiver, java_class)
+        receiver = Truffle::Interop.unbox_if_needed(receiver)
+        check_class = args.first
+        if Truffle::Interop.foreign?(receiver)
+          if Truffle::Interop.java_class?(check_class)
+            # Checking against a Java class
+            Truffle::Interop.java_instanceof?(receiver, check_class)
+          elsif Truffle::Interop.foreign?(check_class)
+            # Checking a foreign (not Java) object against a foreign (not Java) class
+            raise TypeError, 'cannot check if a foreign object is an instance of a foreign class'
+          else
+            # Checking a foreign or Java object against a Ruby class
+            false
+          end
         else
-          false
+          # The receiver unboxed to a Ruby object or a primitive
+          receiver.is_a?(check_class)
         end
       else
         raise

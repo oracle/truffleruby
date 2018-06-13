@@ -853,7 +853,7 @@ public abstract class InteropNodes {
         })
         public boolean javaInstanceOfNotJava(Object instance, TruffleObject boxedJavaClass) {
             final Class<?> javaClass = (Class<?>) getContext().getEnv().asHostObject(boxedJavaClass);
-            return javaClass.isAssignableFrom(instance.getClass());
+            return javaClass.isInstance(instance);
         }
 
         protected boolean isJavaObject(Object object) {

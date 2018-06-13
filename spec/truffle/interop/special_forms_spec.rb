@@ -111,16 +111,29 @@ describe "Interop special form" do
         big_integer.is_a?(big_decimal_class).should be_false
       end
 
-      it "returns false for a Java object if passed something that is not a Java class" do
-        Truffle::Debug.java_object.is_a?(nil).should be_false
-        Truffle::Debug.java_object.is_a?(String).should be_false
-        Truffle::Debug.java_object.is_a?(Truffle::Debug.java_object).should be_false
+      it "returns false for a Java object and a Ruby class" do
+        java_hash = Truffle::Interop.java_type("java.util.HashMap").new
+        java_hash.is_a?(Hash).should be_false
       end
 
-      it "returns false for a non-Java foreign object" do
-        Truffle::Debug.foreign_object.is_a?(nil).should be_false
-        Truffle::Debug.foreign_object.is_a?(String).should be_false
-        Truffle::Debug.foreign_object.is_a?(Truffle::Debug.java_class).should be_false
+      it "returns false for a non-Java foreign object and a Ruby class" do
+        Truffle::Debug.foreign_object.is_a?(Hash).should be_false
+      end
+
+      it "raises a type error for a non-Java foreign object and a non-Java foreign class" do
+        lambda {
+          Truffle::Debug.foreign_object.is_a?(Truffle::Debug.foreign_object)
+        }.should raise_error(TypeError, /cannot check if a foreign object is an instance of a foreign class/)
+      end
+      
+      it "works with boxed primitives" do
+        boxed = Truffle::Debug.foreign_boxed_number(14)
+        boxed.is_a?(Integer).should be_true
+      end
+      
+      it "works with boxed primitives" do
+        boxed = Truffle::Debug.foreign_boxed_number(14.2)
+        boxed.is_a?(Float).should be_true
       end
 
     end
