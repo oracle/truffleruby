@@ -124,13 +124,10 @@ describe "Interop special form" do
       end
       
       it "works with boxed primitives" do
-        boxed = Truffle::Debug.foreign_boxed_number(14)
-        boxed.is_a?(Integer).should be_true
-      end
-      
-      it "works with boxed primitives" do
-        boxed = Truffle::Debug.foreign_boxed_number(14.2)
-        boxed.is_a?(Float).should be_true
+        boxed_integer = Truffle::Debug.foreign_boxed_number(14)
+        boxed_integer.is_a?(Integer).should be_true
+        boxed_double = Truffle::Debug.foreign_boxed_number(14.2)
+        boxed_double.is_a?(Float).should be_true
       end
       
     end
