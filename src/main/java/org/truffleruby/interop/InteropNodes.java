@@ -837,7 +837,6 @@ public abstract class InteropNodes {
 
         @Specialization(guards = {
                 "isJavaObject(boxedInstance)",
-                "isJavaObject(boxedJavaClass)",
                 "isJavaClassOrInterface(boxedJavaClass)"
         })
         public boolean javaInstanceOfJava(Object boxedInstance, TruffleObject boxedJavaClass) {
@@ -848,7 +847,6 @@ public abstract class InteropNodes {
 
         @Specialization(guards = {
                 "!isJavaObject(instance)",
-                "isJavaObject(boxedJavaClass)",
                 "isJavaClassOrInterface(boxedJavaClass)"
         })
         public boolean javaInstanceOfNotJava(Object instance, TruffleObject boxedJavaClass) {
@@ -861,7 +859,8 @@ public abstract class InteropNodes {
         }
 
         protected boolean isJavaClassOrInterface(TruffleObject object) {
-            return getContext().getEnv().asHostObject(object) instanceof Class<?>;
+            return getContext().getEnv().isHostObject(object)
+                && getContext().getEnv().asHostObject(object) instanceof Class<?>;
         }
 
     }
