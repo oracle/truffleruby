@@ -406,13 +406,13 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_object", onSingleton = true)
     public abstract static class ForeignObjectNode extends CoreMethodArrayArgumentsNode {
 
-        private static class ForeignObject implements TruffleObject {
+        public static class ForeignObject implements TruffleObject {
 
             @Override
             public ForeignAccess getForeignAccess() {
-                throw new UnsupportedOperationException();
+                return ForeignObjectMessageResolutionForeign.ACCESS;
             }
-            
+
         }
 
         @TruffleBoundary

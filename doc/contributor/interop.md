@@ -417,6 +417,16 @@ looks at the underlying Java object.
 `object.to_str` will try to `UNBOX` the object and return it if it's a `String`,
 or will raise `NoMethodError` if it isn't.
 
+`java_object.is_a?(java_class)` does `java_object instanceof java_class`, using
+the host object instance, rather than any runtime interop wrapper.
+
+`object.is_a?(java_class)` does `object instanceof java_class`, using the
+runtime object instance.
+
+`foreign_object.is_a?(ruby_class)` returns `false`.
+
+`foreign_object.is_a?(foreign_class)` raises a `TypeError`.
+
 `object.respond_to?(:to_a)`, `respond_to?(:to_ary)` and `respond_to?(:size)`
 sends `HAS_SIZE`.
 
@@ -426,13 +436,11 @@ sends `HAS_SIZE`.
 
 `object.respond_to?(:class)` calls `Truffle::Interop.java_class?(object)`.
 
-`object.respond_to?(name)` for other names returns `false`.
-
-`object.respond_to?(:inspect)` is `true`.
-
-`object.respond_to?(:to_s)` is `true`.
+`object.respond_to?(:inspect)`, `:to_s`, `:is_a?`, is `true`.
 
 `object.respond_to?(:to_str)` is `true` if the object `UNBOXes` to a `String`.
+
+`object.respond_to?(name)` for other names returns `false`.
 
 `object.__send__(name, *args)` works in the same way as literal method call on
 the foreign object, including allowing the special-forms listed above (see
@@ -508,6 +516,8 @@ type is supported for interop.
 `Truffle::Interop.java?(object)`
 
 `Truffle::Interop.java_class?(object)`
+
+`Truffle::Interop.java_instanceof?(object, class)`
 
 `Truffle::Interop.java_string?(object)`
 

@@ -2,6 +2,10 @@
 
 # 1.0 RC 3
 
+New features:
+
+* `is_a?` can be called on foreign objects.
+
 Bug fixes:
 
 * It is no longer needed to have `ruby` in `$PATH` to run the post-install hook.

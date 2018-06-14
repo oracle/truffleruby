@@ -102,6 +102,30 @@ describe "Truffle::Interop.respond_to?" do
 
   end
   
+  describe "for :is_a?" do
+    
+    it "and a Java class returns true" do
+      Truffle::Interop.respond_to?(Truffle::Debug.java_class, :is_a?).should be_true
+    end
+    
+    it "and a Java object returns true" do
+      Truffle::Interop.respond_to?(Truffle::Debug.java_object, :is_a?).should be_true
+    end
+    
+    it "and a Ruby object returns true" do
+      Truffle::Interop.respond_to?(Object.new, :is_a?).should be_true
+    end
+    
+    describe "via a direct call" do
+  
+      it "and a Java array returns true" do
+        Truffle::Interop.java_array(1, 2, 3).respond_to?(:is_a?).should be_true
+      end
+  
+    end
+
+  end
+  
   describe "for :class" do
     
     it "and a Java class returns true" do
