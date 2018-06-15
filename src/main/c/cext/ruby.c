@@ -3027,7 +3027,11 @@ VALUE rb_java_to_string(VALUE obj) {
 // Handles
 
 void *rb_tr_handle_for_managed(VALUE managed) {
-  return truffle_handle_for_managed(managed);
+  if (polyglot_is_number(managed)) {
+    return truffle_handle_for_managed(polyglot_invoke(RUBY_CEXT, "rb_tr_wrap_for_handle", managed));
+  } else {
+    return truffle_handle_for_managed(managed);
+  }
 }
 
 void *rb_tr_handle_for_managed_leaking(VALUE managed) {
@@ -3068,7 +3072,7 @@ VALUE rb_tr_managed_if_handle(void *pointer) {
 }
 
 VALUE rb_tr_managed_from_handle(void *handle) {
-  return truffle_managed_from_handle(handle);
+  return polyglot_invoke(RUBY_CEXT, "rb_tr_unwrap_from_handle", truffle_managed_from_handle(handle));
 }
 
 void rb_tr_release_if_handle(void *pointer) {
