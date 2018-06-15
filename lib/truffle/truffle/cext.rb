@@ -791,7 +791,11 @@ module Truffle::CExt
             -1
           # TODO BJF Mar-9-2017 Handle T_DATA
           else
-            0
+            if obj.instance_variable_defined?(:@encoding)
+              obj.instance_variable_get(:@encoding)
+            else
+              0
+            end
           end
     enc = rb_enc_to_index(enc) if enc.is_a?(Encoding)
     enc
