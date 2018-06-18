@@ -107,7 +107,7 @@ ubuntu1604:
   cppext:
     - RUN apt-get install -y libc++-dev
   rvm:
-  post-install: true
+  post-install: false
 fedora25:
   base: fedora:25
   setup:
