@@ -1922,7 +1922,7 @@ EOS
     install_method = :public
     public_version = '1.0.0-rc2'
     rebuild_images = false
-    no_rebuild_openssl = false
+    rebuild_openssl = true
     manager = :none
     basic_test = false
     full_test = false
@@ -1950,7 +1950,7 @@ EOS
       when '--rebuild-images'
         rebuild_images = true
       when '--no-rebuild-openssl'
-        no_rebuild_openssl = true
+        rebuild_openssl = false
       when '--no-manager'
         manager = :none
       when '--rbenv', '--chruby', '--rvm'
@@ -1966,7 +1966,8 @@ EOS
     end
     
     distro = config.fetch(distro)
-    
+    run_post_install_hook = rebuild_openssl && distro.fetch('post-install')
+
     lines = []
     
     lines.push "FROM #{distro.fetch('base')}"
@@ -2016,7 +2017,7 @@ EOS
       lines.push "RUN $D_GRAALVM_BASE/bin/gu install org.graalvm.ruby"
       lines.push "ENV D_RUBY_BASE=$D_GRAALVM_BASE/jre/languages/ruby"
       lines.push "ENV D_RUBY_BIN=$D_GRAALVM_BASE/bin"
-      lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if distro.fetch('post-install') && !no_rebuild_openssl
+      lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if run_post_install_hook
     when :graalvm
       FileUtils.copy graalvm_tarball, docker_dir
       FileUtils.copy graalvm_component, docker_dir
@@ -2029,7 +2030,7 @@ EOS
       lines.push "RUN $D_GRAALVM_BASE/bin/gu install --file /test/#{graalvm_component}"
       lines.push "ENV D_RUBY_BASE=$D_GRAALVM_BASE/jre/languages/ruby"
       lines.push "ENV D_RUBY_BIN=$D_GRAALVM_BASE/bin"
-      lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if distro.fetch('post-install') && !no_rebuild_openssl
+      lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if run_post_install_hook
     when :standalone
       FileUtils.copy standalone_tarball, docker_dir
       standalone_tarball = File.basename(standalone_tarball)
@@ -2037,7 +2038,7 @@ EOS
       lines.push "RUN tar -zxf #{standalone_tarball}"
       lines.push "ENV D_RUBY_BASE=/test/#{File.basename(standalone_tarball, '.tar.gz')}"
       lines.push "ENV D_RUBY_BIN=$D_RUBY_BASE/bin"
-      lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if distro.fetch('post-install') && !no_rebuild_openssl
+      lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if run_post_install_hook
     when :source
       lines.push "RUN git clone --depth 1 https://github.com/graalvm/mx.git"
       lines.push "ENV PATH=$PATH:/test/mx"
