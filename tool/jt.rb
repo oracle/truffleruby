@@ -522,22 +522,9 @@ module Commands
   def build_truffleruby(*options, sforceimports: true)
     mx 'sforceimports' if sforceimports
 
-    add_default_dynamic_imports
-
     mx 'build', '--force-javac', '--warning-as-error', '--force-deprecation-as-warning',
        # show more than default 100 errors not to hide actual errors under pile of missing symbols
        '-A-Xmaxerrs', '-A1000', *options
-  end
-
-  def add_default_dynamic_imports
-    env_path = "#{TRUFFLERUBY_DIR}/mx.truffleruby/env"
-    env_lines = (File.exist?(env_path) ? File.read(env_path) : '').lines.map(&:chomp)
-    dynamic_import_line = env_lines.find { |l| l.include? 'DEFAULT_DYNAMIC_IMPORTS' } || (env_lines[env_lines.size] = 'DEFAULT_DYNAMIC_IMPORTS=')
-    dynamic_imports = dynamic_import_line.split('=', 2).last.split(',')
-    return if dynamic_imports.include?('/tools')
-    dynamic_imports << '/tools'
-    dynamic_import_line.replace "DEFAULT_DYNAMIC_IMPORTS=#{dynamic_imports.join ','}"
-    File.write(env_path, env_lines.join("\n") + "\n")
   end
 
   def clean(*options)

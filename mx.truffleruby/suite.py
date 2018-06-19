@@ -4,8 +4,9 @@ suite = {
 
     "imports": {
         "suites": [
-            {
-                "name": "truffle",
+            { # Import only the tools suite which depends on truffle, to avoid duplicating import versions.
+              # We want tools to be reliably available with TruffleRuby, even with "mx build", so this is a static import.
+                "name": "tools",
                 "subdir": True,
                 "version": "f4658461494b50cafa3c89c6e2f0a11d8a3bfb15",
                 "urls": [
@@ -291,6 +292,8 @@ suite = {
                 "TRUFFLERUBY",
                 "TRUFFLERUBY-LAUNCHER",
                 "sulong:SULONG",
+                "tools:CHROMEINSPECTOR",
+                "tools:TRUFFLE_PROFILER",
             ],
             "outputDir": "bin",
             "prefix": "bin",
