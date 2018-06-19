@@ -694,10 +694,6 @@ module Truffle::CExt
     str.intern
   end
 
-  def rb_str_new(string, length)
-    string.to_s.byteslice(0, length).force_encoding(Encoding::BINARY)
-  end
-
   def rb_cstr_to_inum(string, base, raise)
     Truffle.invoke_primitive :string_to_inum, string, base, raise != 0
   end
@@ -710,7 +706,13 @@ module Truffle::CExt
     "\0".b * length
   end
 
+  def rb_str_new_rstring_ptr(rstring_ptr, length)
+    raise "#{rstring_ptr} not a RStringPtr" unless RStringPtr === rstring_ptr
+    rstring_ptr.string.byteslice(0, length).force_encoding(Encoding::BINARY)
+  end
+
   def rb_str_new_cstr(pointer, length)
+    raise "#{pointer} not a pointer" unless Truffle::Interop.pointer?(pointer)
     Truffle::FFI::Pointer.new(pointer).read_string(length)
   end
 

@@ -1026,8 +1026,12 @@ int rb_str_len(VALUE string) {
   return polyglot_as_i32(polyglot_invoke((void *)string, "bytesize"));
 }
 
+bool is_rstring_ptr(VALUE ptr) {
+  return polyglot_is_value(ptr);
+}
+
 bool is_managed_rstring_ptr(VALUE ptr) {
-  return polyglot_is_value(ptr) &&
+  return is_rstring_ptr(ptr) &&
     !polyglot_as_boolean(polyglot_invoke(ptr, "native?"));
 }
 
@@ -1039,18 +1043,9 @@ VALUE rb_str_new(const char *string, long length) {
   if (string == NULL) {
     return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_nul", length);
   } else if (is_managed_rstring_ptr((VALUE) string)) {
-    return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new", string, length);
+    return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_rstring_ptr", string, length);
   } else {
-    // Copy the string to a new unmanaged buffer, because otherwise it's very
-    // hard to accomodate all the different things this pointer could really be
-    // - unmanaged pointer, foreign object, foreign object plus offset, etc.
-    // TODO CS 24-Oct-17 work with Sulong to make this copying not needed
-
-    char* copy = malloc(length);
-    memcpy(copy, string, length);
-    VALUE ruby_string = (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_cstr", copy, length);
-    free(copy);
-    return ruby_string;
+    return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_cstr", string, length);
   }
 }
 
