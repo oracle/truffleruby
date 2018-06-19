@@ -90,7 +90,7 @@ build_home=$(pwd -P)
 
 cd ../graal/vm
 mx sversions
-mx --disable-polyglot --disable-libpolyglot --dy truffleruby,/substratevm build
+mx --disable-polyglot --disable-libpolyglot --force-bash-launchers=lli,native-image --dy truffleruby,/substratevm build
 
 # The archive basename should be inferable from the version and platform,
 # so that Ruby installers know how to find the archive of a given version.
