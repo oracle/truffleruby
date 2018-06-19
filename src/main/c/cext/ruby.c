@@ -1057,16 +1057,8 @@ VALUE rb_tainted_str_new(const char *ptr, long len) {
 }
 
 VALUE rb_str_new_cstr(const char *string) {
-  if (is_managed_rstring_ptr((VALUE) string)) {
-    VALUE ruby_string = (VALUE) polyglot_invoke((VALUE) string, "to_s");
-    int len = strlen(string);
-    ruby_string = rb_str_subseq(ruby_string, 0, len);
-    rb_enc_associate(ruby_string, rb_ascii8bit_encoding());
-    return ruby_string;
-  } else {
-    // TODO CS 24-Oct-17 would be nice to read in one go rather than strlen followed by read
-    return rb_str_new(string, strlen(string));
-  }
+  // TODO CS 24-Oct-17 would be nice to read in one go rather than strlen followed by read
+  return rb_str_new(string, strlen(string));
 }
 
 VALUE rb_str_new_shared(VALUE string) {
