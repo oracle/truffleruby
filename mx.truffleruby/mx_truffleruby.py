@@ -311,15 +311,6 @@ def ruby_testdownstream_sulong(args):
     jt('test', 'cexts')
     jt('test', 'bundle')
 
-
-def mx_post_parse_cmd_line(opts):
-    if mx.suite("tools", fatalIfMissing=False) and not _suite.isBinarySuite():
-        mx.project('truffleruby-bin').buildDependencies += [
-            mx.distribution('CHROMEINSPECTOR'),
-            mx.distribution('TRUFFLE_PROFILER')
-        ]
-
-
 mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     suite=_suite,
     name='TruffleRuby',
