@@ -711,7 +711,7 @@ module Truffle::CExt
     rstring_ptr.string.byteslice(0, length).force_encoding(Encoding::BINARY)
   end
 
-  def rb_str_new_cstr(pointer, length)
+  def rb_str_new_native(pointer, length)
     raise "#{pointer} not a pointer" unless Truffle::Interop.pointer?(pointer)
     Truffle::FFI::Pointer.new(pointer).read_string(length)
   end

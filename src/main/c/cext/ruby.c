@@ -1045,7 +1045,7 @@ VALUE rb_str_new(const char *string, long length) {
   } else if (is_managed_rstring_ptr((VALUE) string)) {
     return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_rstring_ptr", string, length);
   } else {
-    return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_cstr", string, length);
+    return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_native", string, length);
   }
 }
 
