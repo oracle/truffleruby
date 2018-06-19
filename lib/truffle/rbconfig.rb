@@ -126,7 +126,7 @@ module RbConfig
     common = {
       'prefix' => prefix,
       'bindir' => bindir,
-      'extra_bindirs' => extra_bindirs,
+      'extra_bindirs' => extra_bindirs.join(File::PATH_SEPARATOR),
       'hdrdir' => "#{prefix}/lib/cext/include",
       'rubyhdrdir' => "#{prefix}/lib/cext/include",
       'rubyarchhdrdir' => "#{prefix}/lib/cext/include",

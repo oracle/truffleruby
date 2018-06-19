@@ -28,6 +28,7 @@ describe "The launcher" do
 
   launchers.each do |launcher, (test, skip_success)|
     extra_bin_dirs_described = RbConfig::CONFIG['extra_bindirs'].
+        split(File::PATH_SEPARATOR).
         each_with_index.
         reduce({}) { |h, (dir, i)| h.update "RbConfig::CONFIG['extra_bindirs'][#{i}]" => dir }
     bin_dirs = { "RbConfig::CONFIG['bindir']" => RbConfig::CONFIG['bindir'] }.merge extra_bin_dirs_described
