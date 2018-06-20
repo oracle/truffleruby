@@ -10,6 +10,9 @@
 # GNU Lesser General Public License version 2.1.
 #
 
+TRUFFLERUBY_DIR = File.expand_path('../..', __FILE__)
+Dir.chdir(TRUFFLERUBY_DIR)
+
 require 'erb'
 
 types = {
