@@ -58,6 +58,7 @@ File.write('src/main/c/sulongmock/sulongmock.c', ERB.new(<<TRC).result)
 
 #include <stdio.h>
 #include <stdint.h>
+#include <sulong/polyglot.h>
 #include <sulong/truffle.h>
 
 void rb_tr_mock() {
