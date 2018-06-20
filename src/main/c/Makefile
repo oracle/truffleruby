@@ -14,11 +14,13 @@ CFLAGS := -Wall -Werror -Wno-unused-function -fPIC -std=c99
 LDFLAGS := -m64
 
 TRUFFLE_POSIX := $(ROOT)/lib/cext/truffleposix.$(DLEXT)
+SULONG_HEADERS := $(wildcard $(ROOT)/lib/cext/include/sulong/*.h)
+GENERATE_SULONG_MOCK := $(ROOT)/tool/generate-sulongmock.rb
 SULONG_MOCK := $(ROOT)/lib/cext/sulongmock.o
 RUBY_O := $(ROOT)/lib/cext/ruby.o
 RUBY_LIBRARY := $(ROOT)/lib/cext/ruby.su
 
-RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/include/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*.h)
+RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/include/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*/*.h)
 RBCONFIG := $(ROOT)/lib/truffle/rbconfig.rb
 RBCONFIG_MKMF := $(ROOT)/lib/truffle/rbconfig-for-mkmf.rb
 PREPROCESS := $(ROOT)/lib/cext/preprocess.rb
@@ -69,11 +71,14 @@ $(TRUFFLE_POSIX): truffleposix/truffleposix.$(DLEXT)
 	cp $< $@
 
 # sulongmock.o
+sulongmock/sulongmock.c: $(GENERATE_SULONG_MOCK) $(SULONG_HEADERS)
+	$(RUBY) $(GENERATE_SULONG_MOCK)
+
 $(SULONG_MOCK): sulongmock/sulongmock.c
 	$(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(ROOT)/lib/cext/include $<
 
 # ruby.o
-$(RUBY_O): cext/ruby.c
+$(RUBY_O): cext/ruby.c $(RUBY_HEADERS)
 	$(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(ROOT)/lib/cext/include $<
 
 # ruby.su

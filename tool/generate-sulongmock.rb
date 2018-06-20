@@ -10,16 +10,12 @@
 # GNU Lesser General Public License version 2.1.
 #
 
+TRUFFLERUBY_DIR = File.expand_path('../..', __FILE__)
+Dir.chdir(TRUFFLERUBY_DIR)
+
 require 'erb'
 
-types = {
-  'void*' => '0', 'void' => nil,
-  'bool' => 'false', 'int' => '0', 'long' => '0', 'char' => "'0'",
-  'int8_t' => '0', 'int16_t' => '0', 'int32_t' => '0', 'int64_t' => '0',
-  'uint8_t' => '0', 'uint16_t' => '0', 'uint32_t' => '0', 'uint64_t' => '0',
-  'float' => '0.0', 'double' => '0.0',
-  'constchar*' => '""',
-}
+types = { 'void' => nil, 'bool' => 'false', 'float' => '0.0', 'double' => '0.0' }
 
 methods = []
 
@@ -32,9 +28,7 @@ lines.each do |line|
   match = /^(\S.+?)\b(truffle|polyglot|__polyglot)(.+)\)(?=;)/.match(line)
   if match
     signature, return_type = match[0], match[1]
-    return_value = types.fetch(return_type.gsub(' ', '')) do
-      raise "unknown type: `#{return_type}` for line `#{line}`"
-    end
+    return_value = types.fetch(return_type.gsub(' ', ''), '0')
     methods << [signature, return_value]
   end
 end
@@ -55,6 +49,7 @@ File.write('src/main/c/sulongmock/sulongmock.c', ERB.new(<<TRC).result)
 
 #include <stdio.h>
 #include <stdint.h>
+#include <sulong/polyglot.h>
 #include <sulong/truffle.h>
 
 void rb_tr_mock() {
