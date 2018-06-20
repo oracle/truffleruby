@@ -78,7 +78,7 @@ $(SULONG_MOCK): sulongmock/sulongmock.c
 	$(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(ROOT)/lib/cext/include $<
 
 # ruby.o
-$(RUBY_O): cext/ruby.c
+$(RUBY_O): cext/ruby.c $(RUBY_HEADERS)
 	$(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(ROOT)/lib/cext/include $<
 
 # ruby.su
