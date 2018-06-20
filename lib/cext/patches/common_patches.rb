@@ -40,8 +40,8 @@ class CommonPatches
   def self.write_field(struct_var_name, field_name, leaking)
     leaking_str = leaking ? '_leaking': ''
     {
-      match: /\b#{struct_var_name}(\.|->)#{field_name}(\s*=\s*)(\w.+);\s*$/ ,
-      replacement: "#{struct_var_name}\\1#{field_name}\\2rb_tr_handle_for_managed#{leaking_str}(\\3);"
+      match: /\b#{struct_var_name}(\.|->)#{field_name}(\s*=\s*)(\w.+);\s*(\\\s*)?$/ ,
+      replacement: "#{struct_var_name}\\1#{field_name}\\2rb_tr_handle_for_managed#{leaking_str}(\\3);\\4"
     }
   end
 
