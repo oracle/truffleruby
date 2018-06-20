@@ -49,4 +49,21 @@ class CommonPatches
     [read_field(struct_var_name, field_name),
      write_field(struct_var_name, field_name, leaking)]
   end
+
+  def self.replace_reference_passing_with_array(var_name)
+    [
+      {
+        match: /VALUE\s+#{var_name};/,
+        replacement: "VALUE #{var_name}[1];"
+      },
+      {
+        match: /([^&*])#{var_name}([);,])/,
+        replacement: "\\1#{var_name}[0]\\2"
+      },
+      {
+        match: "&#{var_name}",
+        replacement: "#{var_name}"
+      }
+    ]
+  end
 end
