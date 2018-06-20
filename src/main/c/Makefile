@@ -20,7 +20,7 @@ SULONG_MOCK := $(ROOT)/lib/cext/sulongmock.o
 RUBY_O := $(ROOT)/lib/cext/ruby.o
 RUBY_LIBRARY := $(ROOT)/lib/cext/ruby.su
 
-RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/include/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*.h)
+RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/include/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*.h) $(wildcard $(ROOT)/lib/cext/include/*/*/*.h)
 RBCONFIG := $(ROOT)/lib/truffle/rbconfig.rb
 RBCONFIG_MKMF := $(ROOT)/lib/truffle/rbconfig-for-mkmf.rb
 PREPROCESS := $(ROOT)/lib/cext/preprocess.rb
