@@ -743,6 +743,38 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_frame_this_func", onSingleton = true, rest = true)
+    public abstract static class FrameThisFunctionNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object frameThisFunc(VirtualFrame frame, Object[] args) {
+            final Frame callingMethodFrame = findCallingMethodFrame();
+            final InternalMethod callingMethod = RubyArguments.getMethod(callingMethodFrame);
+            return getSymbol(callingMethod.getName());
+        }
+
+        @TruffleBoundary
+        private static Frame findCallingMethodFrame() {
+            return Truffle.getRuntime().iterateFrames(frameInstance -> {
+                final Frame frame = frameInstance.getFrame(FrameAccess.READ_ONLY);
+
+                final InternalMethod method = RubyArguments.tryGetMethod(frame);
+
+                if (method == null) {
+                    return null;
+                } else if (method.getName().equals(/* Truffle::Cext. */ "rb_frame_this_func")
+                        || method.getName().equals(/* Truffle::CExt. */ "execute_with_mutex")
+                        || method.getName().equals(/* Truffle::Interop  */ "execute_without_conversion")) {
+                    // TODO CS 11-Mar-17 must have a more precise check to skip these methods
+                    return null;
+                } else {
+                    return frame;
+                }
+            });
+        }
+
+    }
+
     @CoreMethod(names = "rb_syserr_fail", onSingleton = true, required = 2, lowerFixnum = 1)
     public abstract static class RbSysErrFail extends CoreMethodArrayArgumentsNode {
 

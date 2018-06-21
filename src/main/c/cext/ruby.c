@@ -3811,7 +3811,7 @@ void rb_backtrace(void) {
 }
 
 ID rb_frame_this_func(void) {
-  rb_tr_error("rb_frame_this_func not implemented");
+  return SYM2ID((VALUE)polyglot_invoke(RUBY_CEXT, "rb_frame_this_func"));
 }
 
 VALUE rb_obj_instance_exec(int argc, const VALUE *argv, VALUE self) {
