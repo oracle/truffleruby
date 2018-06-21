@@ -60,7 +60,7 @@ trap(:INT) {}
 module Utilities
   def self.truffle_version
     suite = File.read("#{TRUFFLERUBY_DIR}/mx.truffleruby/suite.py")
-    raise unless /"name": "truffle",.+?"version": "(\h{40})"/m =~ suite
+    raise unless /"name": "tools",.+?"version": "(\h{40})"/m =~ suite
     $1
   end
 
