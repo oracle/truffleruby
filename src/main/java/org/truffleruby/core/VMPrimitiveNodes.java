@@ -253,7 +253,7 @@ public abstract class VMPrimitiveNodes {
     public static abstract class VMWatchSignalPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyString(signalName)", "isRubyString(action)" })
-        public boolean watchSignal(DynamicObject signalName, DynamicObject action) {
+        public boolean restoreDefault(DynamicObject signalName, DynamicObject action) {
             if (!StringOperations.getString(action).equals("DEFAULT")) {
                 throw new UnsupportedOperationException();
             }
@@ -262,10 +262,8 @@ public abstract class VMPrimitiveNodes {
         }
 
         @Specialization(guards = { "isRubyString(signalName)", "isNil(nil)" })
-        public boolean watchSignal(DynamicObject signalName, Object nil) {
-            return handle(signalName, () -> {
-                // Empty handler
-            });
+        public boolean ignoreSignal(DynamicObject signalName, Object nil) {
+            return handle(signalName, null);
         }
 
         @Specialization(guards = { "isRubyString(signalName)", "isRubyProc(proc)" })
