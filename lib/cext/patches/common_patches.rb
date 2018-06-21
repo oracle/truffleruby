@@ -9,6 +9,7 @@
 class CommonPatches
 
   NO_ASSIGNMENT = /(?:[\),;]|==|!=)/
+  ID = /([a-zA-Z_][a-zA-Z0-9_]*)/
 
   def self.read_array(name)
     {
@@ -33,7 +34,7 @@ class CommonPatches
   def self.read_field(struct_var_name, field_name)
     {
       match: /\b#{struct_var_name}(\.|->)#{field_name}(\s*#{NO_ASSIGNMENT})/,
-      replacement: "rb_tr_managed_from_handle(#{struct_var_name}\\1#{field_name})\\2"
+      replacement: "rb_tr_managed_from_handle_or_null(#{struct_var_name}\\1#{field_name})\\2"
     }
   end
 
@@ -57,12 +58,8 @@ class CommonPatches
         replacement: "VALUE #{var_name}[1];"
       },
       {
-        match: /([^&*])#{var_name}([);,])/,
+        match: /([^*])#{var_name}\s*(#{NO_ASSIGNMENT})/,
         replacement: "\\1#{var_name}[0]\\2"
-      },
-      {
-        match: "&#{var_name}",
-        replacement: "#{var_name}"
       }
     ]
   end

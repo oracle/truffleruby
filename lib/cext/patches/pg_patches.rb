@@ -8,6 +8,7 @@
 
 require_relative 'common_patches'
 
+# Tested with pg version 0.21.0
 class PgPatches < CommonPatches
 
   PG_BINARY_ENCODER_PATCH = <<-EOF
@@ -30,50 +31,9 @@ pgconn_gc_free( t_pg_connection *this )
   rb_tr_release_handle(this->decoder_for_get_copy_data);
 EOF
 
-  PG_SET_ENCODING_ORIG = <<-EOF
-static VALUE
-pgconn_set_client_encoding_async1( VALUE args )
-{
-	VALUE self = ((VALUE*)args)[0];
-	VALUE encname = ((VALUE*)args)[1];
-	VALUE query_format = rb_str_new_cstr("set client_encoding to '%s'");
-	VALUE query = rb_funcall(query_format, rb_intern("%"), 1, encname);
-
-	pgconn_async_exec(1, &query, self);
-	return 0;
-}
-
-
-static VALUE
-pgconn_set_client_encoding_async2( VALUE arg )
-{
-	UNUSED(arg);
-	return 1;
-}
-EOF
-
-  PG_SET_ENCODING_NEW = <<-EOF
-static VALUE
-pgconn_set_client_encoding_async1( VALUE args )
-{
-	VALUE self = rb_ary_entry(args, 0);
-	VALUE encname = rb_ary_entry(args, 1);
-	VALUE query_format = rb_str_new_cstr("set client_encoding to '%s'");
-    VALUE query[1]; query[0] = rb_funcall(query_format, rb_intern("%"), 1, encname);
-
-	pgconn_exec(1, query, self);
-	return Qtrue;
-}
-
-
-static VALUE
-pgconn_set_client_encoding_async2( VALUE arg )
-{
-	UNUSED(arg);
-	return Qfalse;
-}
-EOF
-
+  # Using cached encodings requires more handle operations to store
+  # objects in the st_table, so we'll simply avoid use of the cache
+  # entirely.
   PG_GET_CACHED_ENCODING_ORIG = <<-EOF
 rb_encoding *
 pg_get_pg_encoding_as_rb_encoding( int enc_id )
@@ -106,12 +66,9 @@ pg_get_pg_encoding_as_rb_encoding( int enc_id )
 }
 EOF
 
-  PG_GET_CACHED_ENCODING_2_ORIG = <<-EOF
-EOF
-
-  PG_GET_CACHED_ENCODING_2_NEW = <<-EOF
-EOF
-
+  # Async execution requires better support for the MRI file
+  # descriptor API than we currently provide, so we'll substitute with
+  # synchronous execution for now.
   PG_ASYNC_EXEC_ORIG = <<-EOF
 static VALUE
 pgconn_async_exec(int argc, VALUE *argv, VALUE self)
@@ -165,7 +122,7 @@ EOF
 static VALUE
 pgconn_s_quote_ident(VALUE self, VALUE str_or_array)
 {
-	VALUE ret = 0;
+	VALUE ret[1];
 	int enc_idx;
 
 	if( rb_obj_is_kind_of(self, rb_cPGconn) ){
@@ -173,11 +130,11 @@ pgconn_s_quote_ident(VALUE self, VALUE str_or_array)
 	}else{
 		enc_idx = RB_TYPE_P(str_or_array, T_STRING) ? ENCODING_GET( str_or_array ) : rb_ascii8bit_encindex();
 	}
-	pg_text_enc_identifier(NULL, str_or_array, NULL, &ret, enc_idx);
+	pg_text_enc_identifier(NULL, str_or_array, NULL, ret, enc_idx);
 
-	OBJ_INFECT(rb_tr_managed_from_handle_or_null(ret), str_or_array);
+	OBJ_INFECT(ret[0], str_or_array);
 
-	return rb_tr_managed_from_handle_or_null(ret);
+	return ret[0];
 }
 EOF
 
@@ -232,18 +189,11 @@ EOF
         *read_write_field('this->typemap', 'default_typemap', false),
         *read_write_field('this', 'self', false),
         *read_write_field('this', 'klass_to_coder', false),
+        *read_write_field('p_ce', 'klass', false),
         {
           match: '#define CACHE_LOOKUP(this, klass) ( &this->cache_row[(klass >> 8) & 0xff] )',
-          replacement: '#define CACHE_LOOKUP(this, klass) ( &this->cache_row[(unsigned long)(rb_tr_handle_for_managed(klass)) & 0xff] )'
+          replacement: '#define CACHE_LOOKUP(this, klass) ( &this->cache_row[(unsigned long)(rb_tr_obj_id(klass)) & 0xff] )'
         },
-        {
-          match: 'if( p_ce->klass == klass )',
-          replacement: 'if( rb_tr_managed_from_handle_or_null(p_ce->klass) == klass )'
-        },
-        {
-          match: 'p_ce->klass = klass;',
-          replacement: 'p_ce->klass = rb_tr_handle_for_managed(klass);'
-        }
       ],
       'pg_text_encoder.c' => [
         *replace_reference_passing_with_array('subint'),
@@ -259,12 +209,13 @@ EOF
       ],
       'pg_type_map.c' => [
         *read_write_field('this', 'default_typemap', false),
+        # The result of rb_object_classname is used in an exception
+        # string, We turn it into a ruby string to work round a bug in
+        # our string formatting.
         {
           match: 'rb_obj_classname(self)',
           replacement: 'rb_str_new_cstr(rb_obj_classname(self))'
         }
-      ],
-      'pg_type_map_all_strings.c' => [
       ],
       'pg_type_map_by_mri_type.c' => [
         *read_write_field('this->typemap', 'default_typemap', false),
@@ -318,17 +269,17 @@ EOF
           match: 'rb_hash_aset( tuple, this->fnames[field_num], val )',
           replacement: 'rb_hash_aset( tuple, rb_tr_managed_from_handle_or_null(this->fnames[field_num]), val )'
         },
+        # Transform
+        #   PG_VARIABLE_LENGTH_ARRAY(VALUE, row_values, nfields, PG_MAX_COLUMNS)
+        # into
+        #   VALUE *row_values = truffle_managed_malloc(nfields * sizeof(VALUE));
         {
-          match: /PG_VARIABLE_LENGTH_ARRAY\(VALUE, ([a-zA-Z0-9_]+), ([a-zA-Z0-9_]+), ([a-zA-Z0-9_]+)\)/,
+          match: /PG_VARIABLE_LENGTH_ARRAY\(VALUE,\s*#{ID},\s*#{ID},\s*#{ID}\)/,
           replacement: 'VALUE *\1 = truffle_managed_malloc(\2 * sizeof(VALUE));'
         },
         {
 		  match: PG_RESULT_FIELDS_ORIG,
 		  replacement: PG_RESULT_FIELDS_NEW
-        },
-		{
-		  match: 'VALUE val = this->p_typemap->funcs.typecast_result_value(this->p_typemap, self, i, col);',
-		  replacement: 'VALUE val = this->p_typemap->funcs.typecast_result_value(this->p_typemap, self, i, col);'
         },
       ],
       'pg_connection.c' => [
@@ -344,7 +295,7 @@ EOF
         *replace_reference_passing_with_array('intermediate'),
         {
           match: 'PQsetNoticeProcessor(this->pgconn, gvl_notice_processor_proxy, (void *)self);',
-          replacement: 'PQsetNoticeProcessor(this->pgconn, gvl_notice_processor_proxy, (void *)rb_tr_handle_for_managed(self));'
+          replacement: 'PQsetNoticeProcessor(this->pgconn, gvl_notice_processor_proxy, rb_tr_handle_for_managed(self));'
         },
         {
           match: 'VALUE self = (VALUE)arg;',
@@ -355,14 +306,8 @@ EOF
           replacement: 'rb_tr_managed_from_handle_or_null(pg_get_connection(self)->type_map_for_queries);'
         },
         {
-          match: 'rb_scan_args(argc, argv, "13", &command, &paramsData.params, &in_res_fmt, &paramsData.typemap);',
-          replacement: 'VALUE tmp_params, tmp_typemap; rb_scan_args(argc, argv, "13", &command, &tmp_params, &in_res_fmt, &tmp_typemap);
-paramsData.params = tmp_params;
-paramsData.typemap = tmp_typemap;'
-        },
-        {
-          match: 'rb_scan_args(argc, argv, "13", &name, &paramsData.params, &in_res_fmt, &paramsData.typemap);',
-          replacement: 'VALUE tmp_params, tmp_typemap; rb_scan_args(argc, argv, "13", &name, &tmp_params, &in_res_fmt, &tmp_typemap);
+          match: /rb_scan_args\(argc, argv, "13", &(command|name), &paramsData.params, &in_res_fmt, &paramsData.typemap\);/,
+          replacement: 'VALUE tmp_params, tmp_typemap; rb_scan_args(argc, argv, "13", &\\1, &tmp_params, &in_res_fmt, &tmp_typemap);
 paramsData.params = tmp_params;
 paramsData.typemap = tmp_typemap;'
         },
@@ -380,12 +325,12 @@ paramsData.typemap = tmp_typemap;'
           replacement: PG_CONNECTION_FREE
         },
         {
-          match: PG_SET_ENCODING_ORIG,
-          replacement: PG_SET_ENCODING_NEW
-        },
-        {
           match: PG_ASYNC_EXEC_ORIG,
           replacement: PG_ASYNC_EXEC_NEW
+        },
+        {
+          match: /\(\(VALUE\*\)args\)\[([0-9]+)\]/,
+          replacement: 'rb_ary_entry(args, \\1)'
         },
         {
           match: 'VALUE args[] = { self, rb_str_new_cstr(encname) };',
@@ -394,10 +339,6 @@ paramsData.typemap = tmp_typemap;'
         {
           match: 'rb_rescue(pgconn_set_client_encoding_async1, (VALUE)&args, pgconn_set_client_encoding_async2, Qnil);',
           replacement: 'rb_rescue(pgconn_set_client_encoding_async1, args, pgconn_set_client_encoding_async2, Qnil);'
-        },
-        {
-          match: 'if ( pgconn_set_client_encoding_async(self, encname) != 0 )',
-          replacement: 'if ( pgconn_set_client_encoding_async(self, encname) != Qtrue )'
         },
         {
           match: PG_CONN_QUOTE_IDENT_ORIG,
