@@ -346,6 +346,13 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
             links=['bin/<exe:ruby>'],
         )
     ],
+    post_install_msg="""
+IMPORTANT NOTE:
+---------------
+The Ruby openssl C extension needs to be recompiled on your system to work with the installed libssl.
+Make sure headers for libssl are installed, see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-libssl.md for details.
+Then run the following command:
+        ${graalvm_home}/jre/languages/ruby/lib/truffle/post_install_hook.sh""",
 ))
 
 mx.update_commands(_suite, {
