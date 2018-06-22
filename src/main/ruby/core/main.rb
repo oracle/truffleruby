@@ -70,6 +70,10 @@ show_backtraces = -> {
 }
 
 Truffle::Boot.delay do
+  if TruffleRuby.native? # SIGPIPE is already ignored on JVM
+    Signal.trap('PIPE', 'IGNORE')
+  end
+
   if Truffle::Boot.get_option('platform.handle_interrupt')
     Signal.trap('INT') do
       if Truffle::Boot.get_option('backtraces.on_interrupt')

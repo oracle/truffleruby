@@ -21,7 +21,12 @@ public class Signals {
 
     public static void registerHandler(Runnable newHandler, String signalName) {
         final Signal signal = new Signal(signalName);
-        final sun.misc.SignalHandler oldSunHandler = Signal.handle(signal, s -> newHandler.run());
+        final sun.misc.SignalHandler oldSunHandler;
+        if (newHandler == null) {
+            oldSunHandler = Signal.handle(signal, sun.misc.SignalHandler.SIG_IGN);
+        } else {
+            oldSunHandler = Signal.handle(signal, s -> newHandler.run());
+        }
         DEFAULT_HANDLERS.putIfAbsent(signalName, oldSunHandler);
     }
 
