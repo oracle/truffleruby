@@ -1979,6 +1979,12 @@ VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_enumeratorize", obj, meth, rb_ary_new4(argc, argv));
 }
 
+#undef rb_enumeratorize_with_size
+VALUE
+rb_enumeratorize_with_size(VALUE obj, VALUE meth, int argc, const VALUE *argv, rb_enumerator_size_func * size_fn) {
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_enumeratorize_with_size", obj, meth, rb_ary_new4(argc, argv), size_fn);
+}
+
 void rb_check_arity(int argc, int min, int max) {
   polyglot_invoke(RUBY_CEXT, "rb_check_arity", argc, min, max);
 }

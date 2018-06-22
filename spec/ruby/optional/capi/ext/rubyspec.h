@@ -252,6 +252,7 @@
 
 /* Enumerable */
 #define HAVE_RB_ENUMERATORIZE              1
+#define HAVE_RB_ENUMERATORIZE_WITH_SIZE    1
 
 /* Exception */
 #define HAVE_RB_EXC_NEW                    1

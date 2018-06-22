@@ -1173,6 +1173,12 @@ module Truffle::CExt
     obj.to_enum(meth, *args)
   end
 
+  def rb_enumeratorize_with_size(obj, meth, args, size_fn)
+    return rb_enumeratorize(obj, meth, args) if size_fn.nil?
+    enum = obj.to_enum(meth, *args) { execute_with_mutex(size_fn, obj, args, enum) }
+    enum
+  end
+
   def rb_eval_string(str)
     eval(str)
   end
