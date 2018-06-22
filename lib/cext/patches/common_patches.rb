@@ -9,6 +9,7 @@
 class CommonPatches
 
   NO_ASSIGNMENT = /(?:[\),;]|==|!=)/
+  ID = /([a-zA-Z_][a-zA-Z0-9_]*)/
 
   def self.read_array(name)
     {
@@ -33,20 +34,33 @@ class CommonPatches
   def self.read_field(struct_var_name, field_name)
     {
       match: /\b#{struct_var_name}(\.|->)#{field_name}(\s*#{NO_ASSIGNMENT})/,
-      replacement: "rb_tr_managed_from_handle(#{struct_var_name}\\1#{field_name})\\2"
+      replacement: "rb_tr_managed_from_handle_or_null(#{struct_var_name}\\1#{field_name})\\2"
     }
   end
 
   def self.write_field(struct_var_name, field_name, leaking)
     leaking_str = leaking ? '_leaking': ''
     {
-      match: /\b#{struct_var_name}(\.|->)#{field_name}(\s*=\s*)(\w.+);\s*$/ ,
-      replacement: "#{struct_var_name}\\1#{field_name}\\2rb_tr_handle_for_managed#{leaking_str}(\\3);"
+      match: /\b#{struct_var_name}(\.|->)#{field_name}(\s*=\s*)(\w.+);\s*(\\\s*)?$/ ,
+      replacement: "#{struct_var_name}\\1#{field_name}\\2rb_tr_handle_for_managed#{leaking_str}(\\3);\\4"
     }
   end
 
   def self.read_write_field(struct_var_name, field_name, leaking)
     [read_field(struct_var_name, field_name),
      write_field(struct_var_name, field_name, leaking)]
+  end
+
+  def self.replace_reference_passing_with_array(var_name)
+    [
+      {
+        match: /VALUE\s+#{var_name};/,
+        replacement: "VALUE #{var_name}[1];"
+      },
+      {
+        match: /([^*])#{var_name}\s*(#{NO_ASSIGNMENT})/,
+        replacement: "\\1#{var_name}[0]\\2"
+      }
+    ]
   end
 end
