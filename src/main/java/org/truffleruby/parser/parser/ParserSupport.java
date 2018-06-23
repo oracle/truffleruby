@@ -134,7 +134,6 @@ import org.truffleruby.parser.scope.DynamicScope;
 import org.truffleruby.parser.scope.StaticScope;
 
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -1621,7 +1620,7 @@ public class ParserSupport {
     }    
 
     protected void checkRegexpSyntax(Rope value, RegexpOptions options) {
-        final String stringValue = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, value);
+        final String stringValue = RopeOperations.decodeRope(value);
         // Joni doesn't support these modifiers - but we can fix up in some cases - let the error delay until we try that
         if (stringValue.startsWith("(?u)") || stringValue.startsWith("(?a)") || stringValue.startsWith("(?d)")) {
             return;

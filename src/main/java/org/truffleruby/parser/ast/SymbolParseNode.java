@@ -70,7 +70,7 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
     // String path (e.g. [':', str_beg, str_content, str_end])
     public SymbolParseNode(SourceIndexLength position, Rope value) {
         super(position);
-        this.name = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, value).intern();
+        this.name = new String(value.getBytes(), StandardCharsets.ISO_8859_1).intern();
 
         if (value.getCodeRange() == CodeRange.CR_7BIT) {
             rope = RopeOperations.withEncoding(value, USASCIIEncoding.INSTANCE);

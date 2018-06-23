@@ -199,10 +199,6 @@ public class RopeOperations {
         return new String(bytes, byteOffset, byteLength, charset);
     }
 
-    public static String decodeRope(Charset charset, Rope rope) {
-        return new String(rope.getBytes(), charset);
-    }
-
     // MRI: get_actual_encoding
     @TruffleBoundary
     public static Encoding STR_ENC_GET(Rope rope) {

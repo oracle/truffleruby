@@ -36,8 +36,6 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.parser.parser.Tokens;
 
-import java.nio.charset.StandardCharsets;
-
 import static org.truffleruby.parser.lexer.RubyLexer.EOF;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_EXPAND;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_INDENT;
@@ -84,7 +82,7 @@ public class HeredocTerm extends StrTerm {
     }
 
     protected int error(RubyLexer lexer, Rope eos) {
-        lexer.compile_error("can't find string \"" + RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, eos) + "\" anywhere before EOF");
+        lexer.compile_error("can't find string \"" + RopeOperations.decodeRope(eos) + "\" anywhere before EOF");
         return -1;
     }
 
