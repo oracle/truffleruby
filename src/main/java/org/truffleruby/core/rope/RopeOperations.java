@@ -170,9 +170,9 @@ public class RopeOperations {
     public static String decodeRopeSegment(Rope value, int byteOffset, int byteLength) {
         if (value.isAsciiOnly()) {
             return decodeAscii(value.getBytes(), byteOffset, byteLength);
+        } else {
+            return decodeNonAscii(value.getEncoding(), value.getBytes(), byteOffset, byteLength);
         }
-
-        return decodeNonAscii(value.getEncoding(), value.getBytes(), byteOffset, byteLength);
     }
 
     @TruffleBoundary
