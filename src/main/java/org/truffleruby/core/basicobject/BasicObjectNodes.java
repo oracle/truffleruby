@@ -300,8 +300,7 @@ public abstract class BasicObjectNodes {
             final String fileNameString = RopeOperations.decodeRope(StringOperations.rope(fileName));
 
             final Source source = KernelNodes.EvalNode.createEvalSource(
-                    KernelNodes.EvalNode.offsetSource(
-                            "instance_eval", RopeOperations.decodeRope(code), fileNameString, line), fileNameString);
+                    KernelNodes.EvalNode.offsetSource("instance_eval", code, fileNameString, line), fileNameString);
 
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(

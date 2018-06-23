@@ -636,7 +636,7 @@ public abstract class KernelNodes {
 
         protected RubyRootNode buildRootNode(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line, boolean ownScopeForAssignments) {
             final String sourceFile = RopeOperations.decodeRope(file);
-            final Source source = createEvalSource(offsetSource("eval", RopeOperations.decodeRope(sourceText), sourceFile, line), sourceFile);
+            final Source source = createEvalSource(offsetSource("eval", sourceText, sourceFile, line), sourceFile);
             return new TranslatorDriver(getContext()).parse(
                     source,
                     sourceText.getEncoding(),
@@ -690,14 +690,14 @@ public abstract class KernelNodes {
             return descriptor.getSize() == 1 && SelfNode.SELF_IDENTIFIER.equals(descriptor.getSlots().get(0).getIdentifier());
         }
 
-        public static Source createEvalSource(String source, String file) {
-            return Source.newBuilder(source)
+        public static Source createEvalSource(Rope source, String file) {
+            return Source.newBuilder(RopeOperations.decodeRope(source))
                     .name(file)
                     .mimeType(RubyLanguage.MIME_TYPE)
                     .build();
         }
 
-        public static String offsetSource(String method, String source, String file, int line) {
+        public static Rope offsetSource(String method, Rope source, String file, int line) {
             // TODO CS 23-Apr-18 Truffle doesn't support line numbers starting at anything but 1
             if (line == 0) {
                 // fine instead of warning because these seem common
@@ -709,9 +709,14 @@ public abstract class KernelNodes {
             } else if (line > 1) {
                 // fine instead of warning because we can simulate these
                 Log.LOGGER.fine(() -> String.format("offset line number %s:%d are simulated in #%s by adding blank lines", file, line, method));
-                final char[] emptyLines = new char[line - 1];
-                Arrays.fill(emptyLines, '\n');
-                return new String(emptyLines) + source;
+                if (!source.getEncoding().isAsciiCompatible()) {
+                    throw new UnsupportedOperationException("Cannot prepend newlines in a ASCII incompatible encoding");
+                }
+                final int n = line - 1;
+                final byte[] bytes = new byte[n + source.byteLength()];
+                Arrays.fill(bytes, 0, n, (byte) '\n');
+                System.arraycopy(source.getBytes(), 0, bytes, n, source.byteLength());
+                return RopeOperations.create(bytes, source.getEncoding(), source.getCodeRange());
             } else {
                 return source;
             }

@@ -613,7 +613,7 @@ public abstract class ModuleNodes {
         private CodeLoader.DeferredCall classEvalSource(DynamicObject module, DynamicObject rubySource, String file, int line) {
             assert RubyGuards.isRubyString(rubySource);
 
-            final Source source = KernelNodes.EvalNode.createEvalSource(KernelNodes.EvalNode.offsetSource("class/module_eval", StringOperations.getString(rubySource), file, line), file);
+            final Source source = KernelNodes.EvalNode.createEvalSource(KernelNodes.EvalNode.offsetSource("class/module_eval", StringOperations.rope(rubySource), file, line), file);
 
             final MaterializedFrame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
                     .getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize();
