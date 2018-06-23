@@ -673,7 +673,7 @@ public class CExtNodes {
 
         @Specialization(guards = "isRubySymbol(symbol)")
         public boolean isConstId(DynamicObject symbol) {
-            return Identifiers.isValidConstantName19(Layouts.SYMBOL.getString(symbol));
+            return Identifiers.isValidConstantName(Layouts.SYMBOL.getString(symbol));
         }
 
     }

@@ -517,7 +517,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyString(filename)")
         public DynamicObject autoload(DynamicObject module, String name, DynamicObject filename) {
-            if (!Identifiers.isValidConstantName19(name)) {
+            if (!Identifiers.isValidConstantName(name)) {
                 throw new RaiseException(getContext(), coreExceptions().nameError(StringUtils.format("autoload must be constant name: %s", name), module, name, this));
             }
 
@@ -988,7 +988,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         public Object setConstant(DynamicObject module, String name, Object value) {
-            if (!Identifiers.isValidConstantName19(name)) {
+            if (!Identifiers.isValidConstantName(name)) {
                 throw new RaiseException(getContext(), coreExceptions().nameError(StringUtils.format("wrong constant name %s", name), module, name, this));
             }
 
