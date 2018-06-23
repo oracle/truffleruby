@@ -151,7 +151,7 @@ public class EncodingManager {
 
             final long address = nfi.asPointer((TruffleObject) nl_langinfo.call(codeset));
             final byte[] bytes = new Pointer(address).readZeroTerminatedByteArray(context, 0);
-            localeEncodingName = new String(bytes, StandardCharsets.ISO_8859_1);
+            localeEncodingName = new String(bytes, StandardCharsets.US_ASCII);
         } else {
             localeEncodingName = Charset.defaultCharset().name();
         }
