@@ -191,7 +191,11 @@ public class RopeOperations {
     }
 
     @TruffleBoundary
-    public static String decode(Charset charset, byte[] bytes, int byteOffset, int byteLength) {
+    public static String decode(Encoding encoding, byte[] bytes) {
+        return decode(EncodingManager.charsetForEncoding(encoding), bytes, 0, bytes.length);
+    }
+
+    private static String decode(Charset charset, byte[] bytes, int byteOffset, int byteLength) {
         return new String(bytes, byteOffset, byteLength, charset);
     }
 

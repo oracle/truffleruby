@@ -11,7 +11,6 @@ package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
 import org.truffleruby.core.Hashing;
-import org.truffleruby.core.encoding.EncodingManager;
 
 import java.util.Arrays;
 
@@ -46,7 +45,7 @@ public class BytesKey {
 
     @Override
     public String toString() {
-        return RopeOperations.decode(EncodingManager.charsetForEncoding(encoding), bytes, 0, bytes.length);
+        return RopeOperations.decode(encoding, bytes);
     }
 
 }
