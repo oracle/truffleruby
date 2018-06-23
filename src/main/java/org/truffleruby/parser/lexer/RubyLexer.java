@@ -85,6 +85,7 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.function.BiConsumer;
 
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
@@ -93,7 +94,7 @@ import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 /*
  * This is a port of the MRI lexer to Java.
  */
-public class RubyLexer {
+public class RubyLexer implements MagicCommentHandler {
 
     private final ParserRopeOperations parserRopeOperations = new ParserRopeOperations();
 
@@ -836,7 +837,7 @@ public class RubyLexer {
                 // no point in looking for them. However, if warnings are enabled, we do need to scan for the magic comment
                 // so we can report that it will be ignored.
                 if (!tokenSeen || (!TruffleOptions.AOT && parserSupport.getContext().getCoreLibrary().warningsEnabled())) {
-                    if (!parser_magic_comment(lexb, lex_p, lex_pend - lex_p)) {
+                    if (!parser_magic_comment(lexb, lex_p, lex_pend - lex_p, parserRopeOperations, this)) {
                             if (comment_at_top()) {
                                 set_file_encoding(lex_p, lex_pend);
                             }
@@ -1090,8 +1091,63 @@ public class RubyLexer {
         return c;
     }
 
+    private static boolean hasShebangLine(byte[] bytes) {
+        return bytes.length > 2 && bytes[0] == '#' && bytes[1] == '!';
+    }
+
+    private static boolean isWhitespace(byte b) {
+        switch (b) {
+            case ' ': case '\t': case '\f': case '\r':
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private static int newLineIndex(byte[] bytes, int start) {
+        for (int i = start; i < bytes.length; i++) {
+            if (bytes[i] == '\n') {
+                return i;
+            }
+        }
+
+        return bytes.length;
+    }
+
+    public static void parseMagicComment(Rope source, ParserRopeOperations parserRopeOperations, BiConsumer<String, Rope> magicCommentHandler) {
+        final byte[] bytes = source.getBytes();
+        final int length = source.byteLength();
+        int start = 0;
+
+        if (hasShebangLine(bytes)) {
+            start = newLineIndex(bytes, 2) + 1;
+        }
+
+        while (start < length && isWhitespace(bytes[start])) {
+            start++;
+        }
+
+        if (start < length && bytes[start] == '#') {
+            start++;
+
+            final int magicLineStart = start;
+            int endOfMagicLine = newLineIndex(bytes, magicLineStart);
+            if (endOfMagicLine < length) {
+                endOfMagicLine++;
+            }
+            int magicLineLength = endOfMagicLine - magicLineStart;
+
+            parser_magic_comment(source, magicLineStart, magicLineLength, parserRopeOperations, (name, value) -> {
+                magicCommentHandler.accept(name, value);
+                return isKnownMagicComment(name);
+            });
+        }
+    }
+
     // MRI: parser_magic_comment
-    public boolean parser_magic_comment(Rope magicLine, int magicLineOffset, int magicLineLength) {
+    public static boolean parser_magic_comment(Rope magicLine, int magicLineOffset, int magicLineLength,
+            ParserRopeOperations parserRopeOperations, MagicCommentHandler magicCommentHandler) {
+
         boolean indicator = false;
         int vbeg, vend;
         int length = magicLineLength;
@@ -1195,7 +1251,7 @@ public class RubyLexer {
             String name = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, magicLine).subSequence(beg, end).toString().replace('-', '_');
             Rope value = parserRopeOperations.makeShared(magicLine, vbeg, vend - vbeg);
 
-            if (!onMagicComment(name, value)) {
+            if (!magicCommentHandler.onMagicComment(name, value)) {
                 return false;
             }
         }
@@ -1203,8 +1259,9 @@ public class RubyLexer {
         return true;
     }
 
-    protected boolean onMagicComment(String name, Rope value) {
-        if ("coding".equalsIgnoreCase(name) || "encoding".equalsIgnoreCase(name)) {
+    @Override
+    public boolean onMagicComment(String name, Rope value) {
+        if (isMagicEncodingComment(name)) {
             magicCommentEncoding(value);
             return true;
         } else if ("frozen_string_literal".equalsIgnoreCase(name)) {
@@ -1215,6 +1272,22 @@ public class RubyLexer {
             return true;
         }
         return false;
+    }
+
+    private static boolean isKnownMagicComment(String name) {
+        if (isMagicEncodingComment(name)) {
+            return true;
+        } else if ("frozen_string_literal".equalsIgnoreCase(name)) {
+            return true;
+        } else if ("warn_indent".equalsIgnoreCase(name)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static boolean isMagicEncodingComment(String name) {
+        return "coding".equalsIgnoreCase(name) || "encoding".equalsIgnoreCase(name);
     }
 
     private int at() {

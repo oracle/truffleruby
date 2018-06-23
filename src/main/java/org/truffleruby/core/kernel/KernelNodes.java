@@ -37,6 +37,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+
+import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.Log;
@@ -65,6 +67,7 @@ import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
+import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
@@ -145,6 +148,8 @@ import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
+import org.truffleruby.parser.lexer.RubyLexer;
+import org.truffleruby.parser.parser.ParserRopeOperations;
 
 import java.io.File;
 import java.io.IOException;
@@ -636,7 +641,7 @@ public abstract class KernelNodes {
 
         protected RubyRootNode buildRootNode(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line, boolean ownScopeForAssignments) {
             final String sourceFile = RopeOperations.decodeRope(file);
-            final Source source = createEvalSource(offsetSource("eval", sourceText, sourceFile, line), sourceFile);
+            final Source source = createEvalSource(sourceText, "eval", sourceFile, line);
             return new TranslatorDriver(getContext()).parse(
                     source,
                     sourceText.getEncoding(),
@@ -690,14 +695,29 @@ public abstract class KernelNodes {
             return descriptor.getSize() == 1 && SelfNode.SELF_IDENTIFIER.equals(descriptor.getSlots().get(0).getIdentifier());
         }
 
-        public static Source createEvalSource(Rope source, String file) {
+        public static Source createEvalSource(Rope source, String method, String file, int line) {
+            final Encoding[] encoding = { source.getEncoding() };
+
+            RubyLexer.parseMagicComment(source, new ParserRopeOperations(), (name, value) -> {
+                if (RubyLexer.isMagicEncodingComment(name)) {
+                    encoding[0] = EncodingManager.getEncoding(value);
+                }
+            });
+
+            if (source.getEncoding() != encoding[0]) {
+                source = RopeOperations.withEncodingVerySlow(source, encoding[0]);
+            }
+
+            // Do padding after magic comment detection
+            source = offsetSource(method, source, file, line);
+
             return Source.newBuilder(RopeOperations.decodeRope(source))
                     .name(file)
                     .mimeType(RubyLanguage.MIME_TYPE)
                     .build();
         }
 
-        public static Rope offsetSource(String method, Rope source, String file, int line) {
+        private static Rope offsetSource(String method, Rope source, String file, int line) {
             // TODO CS 23-Apr-18 Truffle doesn't support line numbers starting at anything but 1
             if (line == 0) {
                 // fine instead of warning because these seem common
