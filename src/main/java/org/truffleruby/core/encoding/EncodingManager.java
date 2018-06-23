@@ -20,6 +20,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.EncodingDB.Entry;
+import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.jcodings.util.CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry;
@@ -260,6 +261,9 @@ public class EncodingManager {
 
     @TruffleBoundary
     public static Charset charsetForEncoding(Encoding encoding) {
+        if (encoding == ASCIIEncoding.INSTANCE) {
+            throw new UnsupportedOperationException("Cannot return a Charset for the BINARY Ruby Encoding");
+        }
         return encoding.getCharset();
     }
 

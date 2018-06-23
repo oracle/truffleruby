@@ -37,6 +37,7 @@ import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -158,7 +159,21 @@ public class RopeOperations {
 
     @TruffleBoundary
     public static String decodeNonAscii(Encoding encoding, byte[] bytes, int byteOffset, int byteLength) {
-        final Charset charset = EncodingManager.charsetForEncoding(encoding);
+        final Charset charset;
+
+        if (encoding == ASCIIEncoding.INSTANCE) {
+            for (int i = 0; i < byteLength; i++) {
+                if (bytes[byteOffset + i] < 0) {
+                    throw new UnsupportedOperationException("Cannot convert a String with BINARY encoding containing non-US-ASCII character " + (bytes[byteOffset + i] & 0xFF) + " to a Java String");
+                }
+            }
+
+            // Don't misinterpret non-ASCII bytes, use the replacement character to show the loss
+            charset = StandardCharsets.US_ASCII;
+        } else {
+            charset = EncodingManager.charsetForEncoding(encoding);
+        }
+
 
         return decode(charset, bytes, byteOffset, byteLength);
     }
