@@ -147,7 +147,6 @@ import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.ParserContext;
-import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.parser.ParserRopeOperations;
 
@@ -643,13 +642,11 @@ public abstract class KernelNodes {
             final String sourceFile = RopeOperations.decodeRope(file);
             final Rope sourceRope = createEvalRope(sourceText, "eval", sourceFile, line);
             final Source source = createEvalSource(sourceRope, sourceFile);
-            return new TranslatorDriver(getContext()).parse(
+            return getContext().getCodeLoader().parse(
                     source,
                     sourceRope,
                     sourceText.getEncoding(),
                     ParserContext.EVAL,
-                    null,
-                    null,
                     parentFrame,
                     ownScopeForAssignments,
                     this);

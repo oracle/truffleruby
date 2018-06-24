@@ -39,6 +39,7 @@ public class CodeLoader {
         this.context = context;
     }
 
+    // Additional argument: a FrameDescriptor
     @TruffleBoundary
     public RubyRootNode parse(Source source,
                               Rope sourceRope,

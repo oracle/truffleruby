@@ -33,7 +33,6 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
-import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.RubyLogger;
 import org.truffleruby.shared.options.ExecutionAction;
@@ -318,15 +317,10 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "inner_check_syntax", onSingleton = true, required = 1)
     public abstract static class InnerCheckSyntaxNode extends CoreMethodArrayArgumentsNode {
 
-        private static final String[] EMPTY_ARGUMENT_NAMES = new String[]{};
-
         @TruffleBoundary
         @Specialization
         public DynamicObject innerCheckSyntax(Source source) {
-            final TranslatorDriver translator = new TranslatorDriver(getContext());
-
-            translator.parse(source, null,
-                    UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, EMPTY_ARGUMENT_NAMES, null, null, true, null);
+            getContext().getCodeLoader().parse(source, null, UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, null);
 
             return nil();
         }
