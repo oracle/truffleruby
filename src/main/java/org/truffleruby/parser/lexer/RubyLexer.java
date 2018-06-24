@@ -2640,7 +2640,7 @@ public class RubyLexer {
             return false;
         }
         while (p < pend) {
-            if (!Character.isSpaceChar(p(p))) {
+            if (!Character.isWhitespace(p(p))) {
                 return false;
             }
             p++;
