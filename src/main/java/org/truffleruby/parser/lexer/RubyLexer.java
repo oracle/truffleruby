@@ -278,19 +278,15 @@ public class RubyLexer implements MagicCommentHandler {
         if (lex_p == lex_pend) {
             line_offset += lex_pend;
 
-            Rope v = lex_nextline;
-            lex_nextline = null;
+            if (eofp) {
+                return EOF;
+            }
 
-            if (v == null) {
-                if (eofp) {
-                    return EOF;
-                }
-
-                if (src == null || (v = src.gets()) == null) {
-                    eofp = true;
-                    lex_goto_eol();
-                    return EOF;
-                }
+            final Rope v;
+            if (src == null || (v = src.gets()) == null) {
+                eofp = true;
+                lex_goto_eol();
+                return EOF;
             }
 
             if (heredoc_end > 0) {
@@ -2749,7 +2745,6 @@ public class RubyLexer implements MagicCommentHandler {
     private int leftParenBegin = 0;
     public Rope lexb = null;
     public Rope lex_lastline = null;
-    protected Rope lex_nextline = null;
     public int lex_p = 0;                  // Where current position is in current line
     protected int lex_pbeg = 0;
     public int lex_pend = 0;               // Where line ends
