@@ -1095,15 +1095,6 @@ public class RubyLexer implements MagicCommentHandler {
         return bytes.length > 2 && bytes[0] == '#' && bytes[1] == '!';
     }
 
-    private static boolean isWhitespace(byte b) {
-        switch (b) {
-            case ' ': case '\t': case '\f': case '\r':
-                return true;
-            default:
-                return false;
-        }
-    }
-
     private static int newLineIndex(byte[] bytes, int start) {
         for (int i = start; i < bytes.length; i++) {
             if (bytes[i] == '\n') {
@@ -1123,7 +1114,8 @@ public class RubyLexer implements MagicCommentHandler {
             start = newLineIndex(bytes, 2) + 1;
         }
 
-        while (start < length && isWhitespace(bytes[start])) {
+        // Skip leading spaces but don't jump to another line
+        while (start < length && isSpace(bytes[start]) && bytes[start] != '\n') {
             start++;
         }
 
@@ -1178,7 +1170,7 @@ public class RubyLexer implements MagicCommentHandler {
             while (i < end) {
                 byte c = magicLine.get(i);
 
-                if (isIgnoredMagicLineCharacter(c) || Character.isWhitespace(c)) {
+                if (isIgnoredMagicLineCharacter(c) || isSpace(c)) {
                     i++;
                 } else {
                     break;
@@ -1191,7 +1183,7 @@ public class RubyLexer implements MagicCommentHandler {
             while (i < end) {
                 byte c = magicLine.get(i);
 
-                if (isIgnoredMagicLineCharacter(c) || Character.isWhitespace(c)) {
+                if (isIgnoredMagicLineCharacter(c) || isSpace(c)) {
                     break;
                 } else {
                     i++;
@@ -1201,7 +1193,7 @@ public class RubyLexer implements MagicCommentHandler {
             final int nameEnd = i;
 
             // Ignore whitespace
-            while (i < end && Character.isWhitespace(magicLine.get(i))) {
+            while (i < end && isSpace(magicLine.get(i))) {
                 i++;
             }
 
@@ -1221,7 +1213,7 @@ public class RubyLexer implements MagicCommentHandler {
             }
 
             // Ignore whitespace
-            while (i < end && Character.isWhitespace(magicLine.get(i))) {
+            while (i < end && isSpace(magicLine.get(i))) {
                 i++;
             }
 
@@ -1250,7 +1242,7 @@ public class RubyLexer implements MagicCommentHandler {
                 valueBegin = i;
                 while (i < end) {
                     byte c = magicLine.get(i);
-                    if (c != '"' && c != ';' && !Character.isWhitespace(c)) {
+                    if (c != '"' && c != ';' && !isSpace(c)) {
                         i++;
                     } else {
                         break;
@@ -1261,12 +1253,12 @@ public class RubyLexer implements MagicCommentHandler {
 
             if (emacsStyle) {
                 // Ignore trailing whitespace or ;
-                while (i < end && (magicLine.get(i) == ';' || Character.isWhitespace(magicLine.get(i)))) {
+                while (i < end && (magicLine.get(i) == ';' || isSpace(magicLine.get(i)))) {
                     i++;
                 }
             } else {
                 // Ignore trailing whitespace
-                while (i < end && Character.isWhitespace(magicLine.get(i))) {
+                while (i < end && isSpace(magicLine.get(i))) {
                     i++;
                 }
 
@@ -2777,6 +2769,7 @@ public class RubyLexer implements MagicCommentHandler {
     public int tokp = 0;                   // Where last token started
     protected Object yaccValue;               // Value of last token which had a value associated with it.
 
+    // MRI: comment_at_top
     protected boolean comment_at_top() {
         int p = lex_pbeg;
         int pend = lex_p - 1;
@@ -2784,7 +2777,7 @@ public class RubyLexer implements MagicCommentHandler {
             return false;
         }
         while (p < pend) {
-            if (!Character.isWhitespace(p(p))) {
+            if (!isSpace(p(p))) {
                 return false;
             }
             p++;
@@ -3492,6 +3485,12 @@ public class RubyLexer implements MagicCommentHandler {
 
     protected boolean isSpaceArg(int c, boolean spaceSeen) {
         return isARG() && spaceSeen && !Character.isWhitespace(c);
+    }
+
+    // MRI: ISSPACE() and rb_isspace()
+    // ' ', \t, \n, \v, \f, \r
+    private static boolean isSpace(int c) {
+        return c == ' ' || ('\t' <= c && c <= '\r');
     }
 
 }
