@@ -41,16 +41,12 @@ import org.truffleruby.collections.ByteArrayBuilder;
 
 public class EncodeUM {
 
-    private static final byte[] uu_table;
-    private static final byte[] b64_table;
-    public static final byte[] sHexDigits;
+    private static final byte[] uu_table = "`!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_".getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] b64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".getBytes(StandardCharsets.US_ASCII);
+    public static final byte[] sHexDigits = "0123456789abcdef0123456789ABCDEFx".getBytes(StandardCharsets.US_ASCII);
     public static final int[] b64_xtable = new int[256];
 
     static {
-        uu_table = "`!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_".getBytes(StandardCharsets.US_ASCII);
-        b64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".getBytes(StandardCharsets.US_ASCII);
-        sHexDigits = "0123456789abcdef0123456789ABCDEFx".getBytes(StandardCharsets.US_ASCII);
-
         // b64_xtable for decoding Base 64
         for (int i = 0; i < 256; i++) {
             b64_xtable[i] = -1;
