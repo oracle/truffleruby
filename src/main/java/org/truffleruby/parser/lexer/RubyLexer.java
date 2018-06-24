@@ -1149,14 +1149,13 @@ public class RubyLexer implements MagicCommentHandler {
             ParserRopeOperations parserRopeOperations, MagicCommentHandler magicCommentHandler) {
 
         boolean indicator = false;
-        int str = magicLineOffset;
-        int length = magicLineLength;
-        final int end = magicLineOffset + magicLineLength;
+        int i = magicLineOffset;
+        int end = magicLineOffset + magicLineLength;
 
         int nameBegin, nameEnd;
         int valueBegin, valueEnd;
 
-        if (length <= 7) {
+        if (magicLineLength <= 7) {
             return false;
         }
 
@@ -1167,56 +1166,52 @@ public class RubyLexer implements MagicCommentHandler {
                 return false;
             }
             indicator = true;
-            str = nameBegin;
-            length = nameEnd - nameBegin - 3; // -3 is to backup over end just found
+            i = nameBegin;
+            end = nameEnd - 3; // -3 is to backup over end just found
         }
 
-        while (length > 0) {
+        while (i < end) {
             // / [\s'":;]+ (?<name> [^\s'":;]+ ) \s* : \s* (?<value> "(?:\\.|[^"])*" | [^";\s]+ ) [\s;]* /x
 
             // Ignore leading whitespace or '":;
-            while (length > 0) {
-                byte c = magicLine.get(str);
+            while (i < end) {
+                byte c = magicLine.get(i);
 
                 if (isIgnoredMagicLineCharacter(c) || Character.isWhitespace(c)) {
-                    str++;
-                    --length;
+                    i++;
                 } else {
                     break;
                 }
             }
 
-            nameBegin = str;
+            nameBegin = i;
 
             // Consume anything except [\s'":;]
-            while (length > 0) {
-                byte c = magicLine.get(str);
+            while (i < end) {
+                byte c = magicLine.get(i);
 
                 if (isIgnoredMagicLineCharacter(c) || Character.isWhitespace(c)) {
                     break;
                 } else {
-                    str++;
-                    --length;
+                    i++;
                 }
             }
 
-            nameEnd = str;
+            nameEnd = i;
 
             // Ignore whitespace
-            while (length > 0 && Character.isWhitespace(magicLine.get(str))) {
-                str++;
-                --length;
+            while (i < end && Character.isWhitespace(magicLine.get(i))) {
+                i++;
             }
 
-            if (length == 0) {
+            if (i == end) {
                 break;
             }
 
             // Expect ':' between name and value
-            final byte sep = magicLine.get(str);
+            final byte sep = magicLine.get(i);
             if (sep == ':') {
-                str++;
-                --length;
+                i++;
             } else {
                 if (!indicator) {
                     return false;
@@ -1225,62 +1220,54 @@ public class RubyLexer implements MagicCommentHandler {
             }
 
             // Ignore whitespace
-            while (length > 0 && Character.isWhitespace(magicLine.get(str))) {
-                str++;
-                --length;
+            while (i < end && Character.isWhitespace(magicLine.get(i))) {
+                i++;
             }
 
-            if (length == 0) {
+            if (i == end) {
                 break;
             }
 
-            if (magicLine.get(str) == '"') { // quoted value
-                valueBegin = ++str;
-                --length;
-                while (length > 0 && magicLine.get(str) != '"') {
-                    if (magicLine.get(str) == '\\') {
-                        str += 2;
-                        length -= 2;
+            if (magicLine.get(i) == '"') { // quoted value
+                valueBegin = ++i;
+                while (i < end && magicLine.get(i) != '"') {
+                    if (magicLine.get(i) == '\\') {
+                        i += 2;
                     } else {
-                        str++;
-                        --length;
+                        i++;
                     }
                 }
-                valueEnd = str;
+                valueEnd = i;
 
                 // Skip the final "
-                if (length > 0) {
-                    str++;
-                    --length;
+                if (i < end) {
+                    i++;
                 }
             } else {
-                valueBegin = str;
-                while (length > 0) {
-                    byte c = magicLine.get(str);
+                valueBegin = i;
+                while (i < end) {
+                    byte c = magicLine.get(i);
                     if (c != '"' && c != ';' && !Character.isWhitespace(c)) {
-                        str++;
-                        --length;
+                        i++;
                     } else {
                         break;
                     }
                 }
-                valueEnd = str;
+                valueEnd = i;
             }
 
             if (indicator) {
                 // Ignore trailing whitespace or ;
-                while (length > 0 && (magicLine.get(str) == ';' || Character.isWhitespace(magicLine.get(str)))) {
-                    str++;
-                    --length;
+                while (i < end && (magicLine.get(i) == ';' || Character.isWhitespace(magicLine.get(i)))) {
+                    i++;
                 }
             } else {
                 // Ignore trailing whitespace
-                while (length > 0 && Character.isWhitespace(magicLine.get(str))) {
-                    str++;
-                    --length;
+                while (i < end && Character.isWhitespace(magicLine.get(i))) {
+                    i++;
                 }
 
-                if (length > 0) {
+                if (i < end) {
                     return false;
                 }
             }
