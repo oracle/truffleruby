@@ -178,6 +178,32 @@ public class RopeOperations {
         return decode(charset, bytes, byteOffset, byteLength);
     }
 
+    @TruffleBoundary
+    public static String decodeOrEscapeBinaryRope(Rope rope) {
+        if (rope.isAsciiOnly() || rope.getEncoding() != ASCIIEncoding.INSTANCE) {
+            return decodeRope(rope);
+        } else {
+            // A Rope with BINARY encoding cannot be converted faithfully to a Java String.
+            // (ISO_8859_1 would just show random characters for bytes above 128)
+            // Therefore we convert non-US-ASCII characters to "\xNN".
+            // MRI Symbol#inspect for binary symbols is similar: "\xff".b.to_sym => :"\xFF"
+
+            final StringBuilder builder = new StringBuilder(rope.byteLength());
+            final byte[] bytes = rope.getBytes();
+
+            for (int i = 0; i < bytes.length; i++) {
+                final byte c = bytes[i];
+                if (c >= 0) { // US-ASCII character
+                    builder.append((char) (c & 0xFF));
+                } else {
+                    builder.append("\\x").append(String.format("%02X", c & 0xFF));
+                }
+            }
+
+            return builder.toString();
+        }
+    }
+
     public static String decodeRope(Rope value) {
         return decodeRopeSegment(value, 0, value.byteLength());
     }
