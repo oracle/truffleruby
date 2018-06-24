@@ -29,7 +29,7 @@ public abstract class ManagedRope extends Rope {
     @Override
     public final String toString() {
         assert ALLOW_TO_STRING;
-        return RopeOperations.decodeRope(this);
+        return RopeOperations.decodeOrEscapeBinaryRope(this);
     }
 
 }
