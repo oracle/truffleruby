@@ -47,7 +47,6 @@ import org.truffleruby.language.RubyGuards;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 public abstract class StringOperations {
 
@@ -124,15 +123,6 @@ public abstract class StringOperations {
         assert RubyGuards.isRubyString(string);
 
         return rope(string).getCodeRange();
-    }
-
-    /**
-     * Create a byte[] from a String assuming a raw/ISO-8859-1 encoding
-     */
-    @TruffleBoundary
-    public static byte[] plain(String s) {
-        // Taken from org.jruby.util.ByteList.plain
-        return StandardCharsets.ISO_8859_1.encode(CharBuffer.wrap(s)).array();
     }
 
     public static boolean isASCIIOnly(String string) {
