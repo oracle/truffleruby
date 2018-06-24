@@ -756,7 +756,7 @@ public class CoreLibrary {
                     final Source source = context.getSourceLoader().load(getCoreLoadPath() + CORE_FILES[n]);
 
                     final RubyRootNode rootNode = context.getCodeLoader().parse(source,
-                            UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
+                            null, UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
 
                     final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                             ParserContext.TOP_LEVEL,
@@ -795,8 +795,9 @@ public class CoreLibrary {
         // Load code that can't be run until everything else is boostrapped, such as pre-loaded Ruby stdlib.
 
         try {
-            final RubyRootNode rootNode = context.getCodeLoader().parse(context.getSourceLoader().load(getCoreLoadPath() + "/post-boot/post-boot.rb"),
-                    UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
+            final Source source = context.getSourceLoader().load(getCoreLoadPath() + "/post-boot/post-boot.rb");
+            final RubyRootNode rootNode = context.getCodeLoader().parse(source,
+                    null, UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
             final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                     ParserContext.TOP_LEVEL, DeclarationContext.topLevel(context), rootNode, null, context.getCoreLibrary().getMainObject());
             deferredCall.callWithoutCallNode();

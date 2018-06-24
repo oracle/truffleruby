@@ -641,9 +641,11 @@ public abstract class KernelNodes {
 
         protected RubyRootNode buildRootNode(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line, boolean ownScopeForAssignments) {
             final String sourceFile = RopeOperations.decodeRope(file);
-            final Source source = createEvalSource(sourceText, "eval", sourceFile, line);
+            final Rope sourceRope = createEvalRope(sourceText, "eval", sourceFile, line);
+            final Source source = createEvalSource(sourceRope, sourceFile);
             return new TranslatorDriver(getContext()).parse(
                     source,
+                    sourceRope,
                     sourceText.getEncoding(),
                     ParserContext.EVAL,
                     null,
@@ -695,7 +697,7 @@ public abstract class KernelNodes {
             return descriptor.getSize() == 1 && SelfNode.SELF_IDENTIFIER.equals(descriptor.getSlots().get(0).getIdentifier());
         }
 
-        public static Source createEvalSource(Rope source, String method, String file, int line) {
+        public static Rope createEvalRope(Rope source, String method, String file, int line) {
             final Encoding[] encoding = { source.getEncoding() };
 
             RubyLexer.parseMagicComment(source, new ParserRopeOperations(), (name, value) -> {
@@ -709,9 +711,11 @@ public abstract class KernelNodes {
             }
 
             // Do padding after magic comment detection
-            source = offsetSource(method, source, file, line);
+            return offsetSource(method, source, file, line);
+        }
 
-            return Source.newBuilder(RopeOperations.decodeRope(source))
+        public static Source createEvalSource(Rope sourceRope, String file) {
+            return Source.newBuilder(RopeOperations.decodeRope(sourceRope))
                     .name(file)
                     .mimeType(RubyLanguage.MIME_TYPE)
                     .build();

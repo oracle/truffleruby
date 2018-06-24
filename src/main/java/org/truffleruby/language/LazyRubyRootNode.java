@@ -72,8 +72,8 @@ public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNo
 
             final TranslatorDriver translator = new TranslatorDriver(context);
 
-            final RubyRootNode rootNode = translator.parse(source, UTF8Encoding.INSTANCE,
-                    ParserContext.TOP_LEVEL, argumentNames.toArray(new String[argumentNames.size()]), null, null, true, null);
+            final RubyRootNode rootNode = translator.parse(source, null,
+                    UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, argumentNames.toArray(new String[argumentNames.size()]), null, null, true, null);
 
             final CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 

@@ -72,6 +72,7 @@ public abstract class DebugHelpers {
 
         final RubyRootNode rootNode = context.getCodeLoader().parse(
                 source,
+                null,
                 UTF8Encoding.INSTANCE,
                 ParserContext.INLINE,
                 evalFrame,

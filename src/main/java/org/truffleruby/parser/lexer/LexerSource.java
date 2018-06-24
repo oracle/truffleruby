@@ -56,11 +56,16 @@ public class LexerSource {
 
     private int byteOffset;
 
-    public LexerSource(Source source, int lineStartOffset, Encoding encoding) {
+    public LexerSource(Source source, Rope sourceRope, int lineStartOffset, Encoding encoding) {
         this.source = source;
         this.lineStartOffset = lineStartOffset;
-        // TODO CS 5-Sep-17 can we get the bytes directly rather than using getCharacters -> toString -> getBytes?
-        this.sourceBytes = RopeOperations.create(source.getCharacters().toString().getBytes(StandardCharsets.UTF_8), encoding, CR_UNKNOWN);
+
+        if (sourceRope != null) {
+            this.sourceBytes = sourceRope;
+        } else {
+            // TODO CS 5-Sep-17 can we get the bytes directly rather than using getCharacters ->  toString -> getBytes?
+            this.sourceBytes = RopeOperations.create(source.getCharacters().toString().getBytes(StandardCharsets.UTF_8), encoding, CR_UNKNOWN);
+        }
     }
 
     public Source getSource() {

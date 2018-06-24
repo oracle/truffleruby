@@ -12,6 +12,8 @@ package org.truffleruby.core.kernel;
 import java.io.IOException;
 
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.source.Source;
+
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
@@ -81,10 +83,9 @@ public abstract class TruffleKernelNodes {
             }
 
             try {
-                final RubyRootNode rootNode = getContext().getCodeLoader().parse(
-                        getContext().getSourceLoader().load(StringOperations.getString(file)),
-                        UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL,
-                        null, true, this);
+                final Source source = getContext().getSourceLoader().load(StringOperations.getString(file));
+                final RubyRootNode rootNode = getContext().getCodeLoader().parse(source,
+                        null, UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, this);
                 final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                         ParserContext.TOP_LEVEL, DeclarationContext.topLevel(getContext()), rootNode, null,
                         getContext().getCoreLibrary().getMainObject());

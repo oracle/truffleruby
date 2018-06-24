@@ -118,6 +118,7 @@ public abstract class RequireNode extends RubyNode {
                 if (RubyLanguage.MIME_TYPE.equals(mimeType)) {
                     final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                             source,
+                            null,
                             UTF8Encoding.INSTANCE,
                             ParserContext.TOP_LEVEL,
                             null,

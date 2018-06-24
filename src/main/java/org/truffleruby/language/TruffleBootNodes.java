@@ -138,6 +138,7 @@ public abstract class TruffleBootNodes {
             } else {
                 final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                         source,
+                        null,
                         UTF8Encoding.INSTANCE,
                         ParserContext.TOP_LEVEL_FIRST,
                         null,
@@ -324,8 +325,8 @@ public abstract class TruffleBootNodes {
         public DynamicObject innerCheckSyntax(Source source) {
             final TranslatorDriver translator = new TranslatorDriver(getContext());
 
-            translator.parse(source, UTF8Encoding.INSTANCE,
-                    ParserContext.TOP_LEVEL, EMPTY_ARGUMENT_NAMES, null, null, true, null);
+            translator.parse(source, null,
+                    UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, EMPTY_ARGUMENT_NAMES, null, null, true, null);
 
             return nil();
         }

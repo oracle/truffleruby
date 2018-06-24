@@ -51,7 +51,7 @@ import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
-import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.core.kernel.KernelNodes.EvalNode;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.module.ModuleNodesFactory.ClassExecNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen;
@@ -613,13 +613,15 @@ public abstract class ModuleNodes {
         private CodeLoader.DeferredCall classEvalSource(DynamicObject module, DynamicObject rubySource, String file, int line) {
             assert RubyGuards.isRubyString(rubySource);
 
-            final Source source = KernelNodes.EvalNode.createEvalSource(StringOperations.rope(rubySource), "class/module_eval", file, line);
+            final Rope sourceRope = EvalNode.createEvalRope(StringOperations.rope(rubySource), "class/module_eval", file, line);
+            final Source source = EvalNode.createEvalSource(sourceRope, file);
 
             final MaterializedFrame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
                     .getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize();
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source,
+                    sourceRope,
                     Layouts.STRING.getRope(rubySource).getEncoding(),
                     ParserContext.MODULE,
                     callerFrame,

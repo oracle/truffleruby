@@ -42,7 +42,7 @@ public abstract class RubyTest {
 
         testInContext(() -> {
             final TranslatorDriver translator = new TranslatorDriver(RubyLanguage.getCurrentContext());
-            final RubyRootNode rootNode = translator.parse(source, UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, null, null, true, null);
+            final RubyRootNode rootNode = translator.parse(source, null, UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, null, null, true, null);
             rootNode.adoptChildren();
             test.accept(rootNode);
         });

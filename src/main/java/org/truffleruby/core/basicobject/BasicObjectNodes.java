@@ -36,7 +36,7 @@ import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNode
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.exception.ExceptionOperations;
-import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.core.kernel.KernelNodes.EvalNode;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
@@ -299,11 +299,12 @@ public abstract class BasicObjectNodes {
             final Rope code = StringOperations.rope(string);
             final String fileNameString = RopeOperations.decodeRope(StringOperations.rope(fileName));
 
-            final Source source = KernelNodes.EvalNode.createEvalSource(code, "instance_eval", fileNameString, line);
-
+            final Rope sourceRope = EvalNode.createEvalRope(code, "instance_eval", fileNameString, line);
+            final Source source = EvalNode.createEvalSource(sourceRope, fileNameString);
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source,
+                    sourceRope,
                     code.getEncoding(),
                     ParserContext.EVAL,
                     callerFrame.getFrameDescriptor(),
