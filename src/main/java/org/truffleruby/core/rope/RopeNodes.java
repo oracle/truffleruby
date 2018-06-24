@@ -1018,12 +1018,12 @@ public abstract class RopeNodes {
         public abstract Rope executeWithEncoding(Rope rope, Encoding encoding);
 
         @Specialization(guards = "rope.getEncoding() == encoding")
-        public Rope withEncodingSameEncoding(Rope rope, Encoding encoding) {
+        protected Rope withEncodingSameEncoding(Rope rope, Encoding encoding) {
             return rope;
         }
 
         @Specialization(guards = "rope.getEncoding() != encoding")
-        public Rope nativeRopeWithEncoding(NativeRope rope, Encoding encoding) {
+        protected Rope nativeRopeWithEncoding(NativeRope rope, Encoding encoding) {
             return rescanBytesForEncoding(rope, encoding);
         }
 
@@ -1031,7 +1031,7 @@ public abstract class RopeNodes {
                 "rope.getEncoding() != encoding",
                 "rope.getClass() == cachedRopeClass",
         }, limit = "getCacheLimit()")
-        public Rope withEncodingAsciiCompatible(ManagedRope rope, Encoding encoding,
+        protected Rope withEncodingAsciiCompatible(ManagedRope rope, Encoding encoding,
                 @Cached("rope.getClass()") Class<? extends Rope> cachedRopeClass,
                 @Cached("createBinaryProfile()") ConditionProfile asciiCompatibleProfile,
                 @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile,
@@ -1058,6 +1058,25 @@ public abstract class RopeNodes {
                 // must perform a full code range scan and character length calculation.
                 return rescanBytesForEncoding(rope, encoding);
             }
+        }
+
+        // Version without a node
+        @TruffleBoundary
+        public static Rope withEncodingSlow(Rope originalRope, Encoding newEncoding) {
+            if (originalRope.getEncoding() == newEncoding) {
+                return originalRope;
+            }
+
+            if (originalRope.getCodeRange() == CR_7BIT && newEncoding.isAsciiCompatible()) {
+                return originalRope.withEncoding(newEncoding, CR_7BIT);
+            }
+
+            if (newEncoding == ASCIIEncoding.INSTANCE && originalRope.getCodeRange() == CR_VALID && originalRope.getEncoding().isAsciiCompatible()) {
+                // ASCII-compatible CR_VALID strings are also CR_VALID in binary.
+                return originalRope.withEncoding(newEncoding, CR_VALID);
+            }
+
+            return RopeOperations.create(originalRope.getBytes(), newEncoding, CR_UNKNOWN);
         }
 
         private Rope rescanBytesForEncoding(Rope rope, Encoding encoding) {
