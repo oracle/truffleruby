@@ -3356,7 +3356,7 @@ public class RubyLexer implements MagicCommentHandler {
 
     protected void warn_balanced(int c, boolean spaceSeen, String op, String syn) {
         if (!isLexState(last_state, EXPR_CLASS | EXPR_DOT | EXPR_FNAME | EXPR_ENDFN | EXPR_ENDARG) && spaceSeen &&
-                !Character.isWhitespace(c)) {
+                !isSpace(c)) {
             ambiguousOperator(op, syn);
         }
     }
@@ -3372,7 +3372,7 @@ public class RubyLexer implements MagicCommentHandler {
         if (indent) {
             for (int i = 0; i < lex_pend; i++) {
                 if (!Character.isWhitespace(p(i + p))) {
-                    p += i;
+                    p += i; // TODO (eregon, 24-Jun-2018): this looks wrong and doesn't seem to match MRI
                     break;
                 }
             }
