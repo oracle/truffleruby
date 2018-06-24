@@ -1295,6 +1295,41 @@ public class RubyLexer implements MagicCommentHandler {
         }
     }
 
+    /* MRI: magic_comment_marker
+     * Find -*-, as in emacs "file local variable" (special comment at the top of the file) */
+    private static int findEmacsStyleMarker(Rope str, int begin, int end) {
+        final byte[] bytes = str.getBytes();
+        int i = begin;
+
+        while (i < end) {
+            switch (bytes[i]) {
+                case '-':
+                    if (i >= 2 && bytes[i - 1] == '*' && bytes[i - 2] == '-') {
+                        return i + 1;
+                    }
+                    i += 2;
+                    break;
+                case '*':
+                    if (i + 1 >= end) {
+                        return -1;
+                    }
+
+                    if (bytes[i + 1] != '-') {
+                        i += 4;
+                    } else if (bytes[i - 1] != '-') {
+                        i += 2;
+                    } else {
+                        return i + 2;
+                    }
+                    break;
+                default:
+                    i += 3;
+                    break;
+            }
+        }
+        return -1;
+    }
+
     @Override
     public boolean onMagicComment(String name, Rope value) {
         if (isMagicEncodingComment(name)) {
@@ -3457,41 +3492,6 @@ public class RubyLexer implements MagicCommentHandler {
 
     protected boolean isSpaceArg(int c, boolean spaceSeen) {
         return isARG() && spaceSeen && !Character.isWhitespace(c);
-    }
-
-    /* MRI: magic_comment_marker
-     * Find -*-, as in emacs "file local variable" (special comment at the top of the file) */
-    public static int findEmacsStyleMarker(Rope str, int begin, int end) {
-        final byte[] bytes = str.getBytes();
-        int i = begin;
-
-        while (i < end) {
-            switch (bytes[i]) {
-                case '-':
-                    if (i >= 2 && bytes[i - 1] == '*' && bytes[i - 2] == '-') {
-                        return i + 1;
-                    }
-                    i += 2;
-                    break;
-                case '*':
-                    if (i + 1 >= end) {
-                        return -1;
-                    }
-
-                    if (bytes[i + 1] != '-') {
-                        i += 4;
-                    } else if (bytes[i - 1] != '-') {
-                        i += 2;
-                    } else {
-                        return i + 2;
-                    }
-                    break;
-                default:
-                    i += 3;
-                    break;
-            }
-        }
-        return -1;
     }
 
 }
