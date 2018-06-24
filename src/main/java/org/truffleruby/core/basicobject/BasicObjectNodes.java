@@ -296,16 +296,15 @@ public abstract class BasicObjectNodes {
         @TruffleBoundary
         private Object instanceEvalHelper(MaterializedFrame callerFrame, Object receiver, DynamicObject string,
                 DynamicObject fileName, int line, ReadCallerFrameNode callerFrameNode, IndirectCallNode callNode) {
-            final Rope code = StringOperations.rope(string);
             final String fileNameString = RopeOperations.decodeRope(StringOperations.rope(fileName));
 
-            final Rope sourceRope = EvalNode.createEvalRope(code, "instance_eval", fileNameString, line);
+            final Rope sourceRope = EvalNode.createEvalRope(StringOperations.rope(string), "instance_eval", fileNameString, line);
             final Source source = EvalNode.createEvalSource(sourceRope, fileNameString);
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source,
                     sourceRope,
-                    code.getEncoding(),
+                    sourceRope.getEncoding(),
                     ParserContext.EVAL,
                     callerFrame.getFrameDescriptor(),
                     callerFrame,

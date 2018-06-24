@@ -153,6 +153,7 @@ public class TranslatorDriver {
             parserConfiguration.setFrozenStringLiteral(true);
         }
 
+        assert sourceRope == null || defaultEncoding == sourceRope.getEncoding();
         parserConfiguration.setDefaultEncoding(defaultEncoding);
 
         // Parse to the JRuby AST

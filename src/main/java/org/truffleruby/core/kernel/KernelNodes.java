@@ -645,7 +645,7 @@ public abstract class KernelNodes {
             return getContext().getCodeLoader().parse(
                     source,
                     sourceRope,
-                    sourceText.getEncoding(),
+                    sourceRope.getEncoding(),
                     ParserContext.EVAL,
                     parentFrame,
                     ownScopeForAssignments,
