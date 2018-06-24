@@ -26,4 +26,10 @@ public abstract class ManagedRope extends Rope {
         return bytes;
     }
 
+    @Override
+    public final String toString() {
+        assert ALLOW_TO_STRING;
+        return RopeOperations.decodeRope(this);
+    }
+
 }

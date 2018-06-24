@@ -66,16 +66,4 @@ public class RepeatingRope extends ManagedRope {
         return times;
     }
 
-    @Override
-    public String toString() {
-        assert ALLOW_TO_STRING;
-        final String childString = child.toString();
-        final StringBuilder builder = new StringBuilder(childString.length() * times);
-
-        for (int i = 0; i < times; i++) {
-            builder.append(childString);
-        }
-
-        return builder.toString();
-    }
 }

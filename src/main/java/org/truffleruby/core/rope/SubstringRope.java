@@ -66,10 +66,4 @@ public class SubstringRope extends ManagedRope {
         return byteOffset;
     }
 
-    @Override
-    public String toString() {
-        assert ALLOW_TO_STRING;
-        return RopeOperations.decodeRopeSegment(child, byteOffset, byteLength());
-    }
-
 }

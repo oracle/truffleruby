@@ -66,10 +66,4 @@ public class ConcatRope extends ManagedRope {
         return balanced;
     }
 
-    @Override
-    public String toString() {
-        assert ALLOW_TO_STRING;
-        return left.toString() + right.toString();
-    }
-
 }
