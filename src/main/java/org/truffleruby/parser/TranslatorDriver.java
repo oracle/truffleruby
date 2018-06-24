@@ -45,7 +45,8 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jcodings.Encoding;
+
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.aot.ParserCache;
 import org.truffleruby.core.LoadRequiredLibrariesNode;
@@ -96,8 +97,8 @@ public class TranslatorDriver {
         parseEnvironment = new ParseEnvironment(context);
     }
 
-    public RubyRootNode parse(Source source, Rope sourceRope, Encoding defaultEncoding, ParserContext parserContext, String[] argumentNames,
-            FrameDescriptor frameDescriptor, MaterializedFrame parentFrame, boolean ownScopeForAssignments, Node currentNode) {
+    public RubyRootNode parse(Source source, Rope sourceRope, ParserContext parserContext, String[] argumentNames, FrameDescriptor frameDescriptor,
+            MaterializedFrame parentFrame, boolean ownScopeForAssignments, Node currentNode) {
 
         final StaticScope staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
 
@@ -153,8 +154,11 @@ public class TranslatorDriver {
             parserConfiguration.setFrozenStringLiteral(true);
         }
 
-        assert sourceRope == null || defaultEncoding == sourceRope.getEncoding();
-        parserConfiguration.setDefaultEncoding(defaultEncoding);
+        if (sourceRope != null) {
+            parserConfiguration.setDefaultEncoding(sourceRope.getEncoding());
+        } else {
+            parserConfiguration.setDefaultEncoding(UTF8Encoding.INSTANCE);
+        }
 
         // Parse to the JRuby AST
 

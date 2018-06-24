@@ -622,7 +622,6 @@ public abstract class ModuleNodes {
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source,
                     sourceRope,
-                    sourceRope.getEncoding(),
                     ParserContext.MODULE,
                     callerFrame,
                     true,

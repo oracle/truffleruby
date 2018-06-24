@@ -24,7 +24,6 @@ import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.USASCIIEncoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.jcodings.transcode.EConvFlags;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -755,8 +754,7 @@ public class CoreLibrary {
                 for (int n = 0; n < CORE_FILES.length; n++) {
                     final Source source = context.getSourceLoader().load(getCoreLoadPath() + CORE_FILES[n]);
 
-                    final RubyRootNode rootNode = context.getCodeLoader().parse(source,
-                            null, UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
+                    final RubyRootNode rootNode = context.getCodeLoader().parse(source, null, ParserContext.TOP_LEVEL, null, true, node);
 
                     final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                             ParserContext.TOP_LEVEL,
@@ -796,8 +794,7 @@ public class CoreLibrary {
 
         try {
             final Source source = context.getSourceLoader().load(getCoreLoadPath() + "/post-boot/post-boot.rb");
-            final RubyRootNode rootNode = context.getCodeLoader().parse(source,
-                    null, UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
+            final RubyRootNode rootNode = context.getCodeLoader().parse(source, null, ParserContext.TOP_LEVEL, null, true, node);
             final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                     ParserContext.TOP_LEVEL, DeclarationContext.topLevel(context), rootNode, null, context.getCoreLibrary().getMainObject());
             deferredCall.callWithoutCallNode();

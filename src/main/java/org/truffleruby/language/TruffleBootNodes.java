@@ -138,7 +138,6 @@ public abstract class TruffleBootNodes {
                 final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                         source,
                         null,
-                        UTF8Encoding.INSTANCE,
                         ParserContext.TOP_LEVEL_FIRST,
                         null,
                         true,
@@ -320,7 +319,7 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject innerCheckSyntax(Source source) {
-            getContext().getCodeLoader().parse(source, null, UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, null);
+            getContext().getCodeLoader().parse(source, null, ParserContext.TOP_LEVEL, null, true, null);
 
             return nil();
         }

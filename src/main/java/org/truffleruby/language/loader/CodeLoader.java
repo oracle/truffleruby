@@ -18,7 +18,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
-import org.jcodings.Encoding;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.LexicalScope;
@@ -43,26 +43,23 @@ public class CodeLoader {
     @TruffleBoundary
     public RubyRootNode parse(Source source,
                               Rope sourceRope,
-                              Encoding defaultEncoding,
                               ParserContext parserContext,
                               FrameDescriptor frameDescriptor,
                               MaterializedFrame parentFrame,
                               boolean ownScopeForAssignments,
                               Node currentNode) {
         final TranslatorDriver translator = new TranslatorDriver(context);
-        return translator.parse(source, sourceRope, defaultEncoding, parserContext, null, frameDescriptor,
-                parentFrame, ownScopeForAssignments, currentNode);
+        return translator.parse(source, sourceRope, parserContext, null, frameDescriptor, parentFrame, ownScopeForAssignments, currentNode);
     }
 
     @TruffleBoundary
     public RubyRootNode parse(Source source,
                               Rope sourceRope,
-                              Encoding defaultEncoding,
                               ParserContext parserContext,
                               MaterializedFrame parentFrame,
                               boolean ownScopeForAssignments,
                               Node currentNode) {
-        return parse(source, sourceRope, defaultEncoding, parserContext, null, parentFrame, ownScopeForAssignments, currentNode);
+        return parse(source, sourceRope, parserContext, null, parentFrame, ownScopeForAssignments, currentNode);
     }
 
     @TruffleBoundary

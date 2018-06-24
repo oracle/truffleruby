@@ -21,13 +21,14 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jcodings.specific.UTF8Encoding;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.InternalRootNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.parser.ParserContext;
@@ -72,8 +73,8 @@ public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNo
 
             final TranslatorDriver translator = new TranslatorDriver(context);
 
-            final RubyRootNode rootNode = translator.parse(source, null,
-                    UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, argumentNames.toArray(new String[argumentNames.size()]), null, null, true, null);
+            final String[] argumentsArray = argumentNames.toArray(new String[argumentNames.size()]);
+            final RubyRootNode rootNode = translator.parse(source, null, ParserContext.TOP_LEVEL, argumentsArray, null, null, true, null);
 
             final CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
@@ -81,8 +82,10 @@ public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNo
             callNode.forceInlining();
 
             mainObject = context.getCoreLibrary().getMainObject();
-            method = new InternalMethod(context, rootNode.getSharedMethodInfo(), rootNode.getSharedMethodInfo().getLexicalScope(), DeclarationContext.topLevel(context),
-                    rootNode.getSharedMethodInfo().getName(), context.getCoreLibrary().getObjectClass(), Visibility.PUBLIC, callTarget);
+
+            final SharedMethodInfo sharedMethodInfo = rootNode.getSharedMethodInfo();
+            method = new InternalMethod(context, sharedMethodInfo, sharedMethodInfo.getLexicalScope(), DeclarationContext.topLevel(context),
+                    sharedMethodInfo.getName(), context.getCoreLibrary().getObjectClass(), Visibility.PUBLIC, callTarget);
         }
 
         Object[] arguments = RubyArguments.pack(

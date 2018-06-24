@@ -16,7 +16,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.source.Source;
-import org.jcodings.specific.UTF8Encoding;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyNode;
@@ -73,7 +73,6 @@ public abstract class DebugHelpers {
         final RubyRootNode rootNode = context.getCodeLoader().parse(
                 source,
                 null,
-                UTF8Encoding.INSTANCE,
                 ParserContext.INLINE,
                 evalFrame,
                 true,
