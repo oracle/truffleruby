@@ -104,7 +104,9 @@ public class LexerSource {
 
         byteOffset = lineEnd;
 
-        return parserRopeOperations.makeShared(sourceBytes, start, length);
+        final Rope line = parserRopeOperations.makeShared(sourceBytes, start, length);
+        assert line.getEncoding() == sourceBytes.getEncoding();
+        return line;
     }
 
     private int nextNewLine() {

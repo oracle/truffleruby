@@ -57,6 +57,7 @@ public abstract class RopeNodes {
     public abstract static class SubstringNode extends RubyNode {
 
         @Child private MakeSubstringRopeNode makeSubstringRopeNode = MakeSubstringRopeNode.create();
+        @Child private WithEncodingNode withEncodingNode;
 
         public static SubstringNode create() {
             return RopeNodesFactory.SubstringNodeGen.create(null, null, null);
@@ -75,8 +76,7 @@ public abstract class RopeNodes {
                                      @Cached("createBinaryProfile()") ConditionProfile isUTF8,
                                      @Cached("createBinaryProfile()") ConditionProfile isUSAscii,
                                      @Cached("createBinaryProfile()") ConditionProfile isAscii8Bit,
-                                     @Cached("create()") GetByteNode getByteNode,
-                                     @Cached("create()") WithEncodingNode withEncodingNode) {
+                                     @Cached("create()") GetByteNode getByteNode) {
             final int index = getByteNode.executeGetByte(base, byteOffset);
 
             if (isUTF8.profile(base.getEncoding() == UTF8Encoding.INSTANCE)) {
@@ -91,7 +91,7 @@ public abstract class RopeNodes {
                 return RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[index];
             }
 
-            return withEncodingNode.executeWithEncoding(RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[index], base.getEncoding());
+            return withEncoding(RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[index], base.getEncoding());
         }
 
         @Specialization(guards = { "byteLength > 1", "sameAsBase(base, byteLength)" })
@@ -109,8 +109,8 @@ public abstract class RopeNodes {
             return substringSubstringRopeWithEncoding(base.getEncoding(), base, byteOffset, byteLength);
         }
 
-        private Rope substringSubstringRopeWithEncoding(Encoding encoding, SubstringRope base, int byteOffset, int byteLength) {
-            return makeSubstringRopeNode.executeMake(encoding, base.getChild(), byteOffset + base.getByteOffset(), byteLength);
+        private Rope substringSubstringRopeWithEncoding(Encoding encoding, SubstringRope rope, int byteOffset, int byteLength) {
+            return makeSubstringRopeNode.executeMake(encoding, rope.getChild(), byteOffset + rope.getByteOffset(), byteLength);
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
@@ -119,17 +119,17 @@ public abstract class RopeNodes {
             return substringRepeatingRopeWithEncoding(base.getEncoding(), base, byteOffset, byteLength, matchesChildProfile);
         }
 
-        private Rope substringRepeatingRopeWithEncoding(Encoding encoding, RepeatingRope base, int byteOffset, int byteLength, ConditionProfile matchesChildProfile) {
-            final boolean offsetFitsChild = byteOffset % base.getChild().byteLength() == 0;
-            final boolean byteLengthFitsChild = byteLength == base.getChild().byteLength();
+        private Rope substringRepeatingRopeWithEncoding(Encoding encoding, RepeatingRope rope, int byteOffset, int byteLength, ConditionProfile matchesChildProfile) {
+            final boolean offsetFitsChild = byteOffset % rope.getChild().byteLength() == 0;
+            final boolean byteLengthFitsChild = byteLength == rope.getChild().byteLength();
 
             // TODO (nirvdrum 07-Apr-16) We can specialize any number of children that fit perfectly into the length, not just count == 1. But we may need to create a new RepeatingNode to handle count > 1.
             if (matchesChildProfile.profile(offsetFitsChild && byteLengthFitsChild)) {
                 // A RepeatingRope encoding is always the same as its child, so no need to check it
-                return base.getChild();
+                return withEncoding(rope.getChild(), encoding);
             }
 
-            return makeSubstringRopeNode.executeMake(encoding, base, byteOffset, byteLength);
+            return makeSubstringRopeNode.executeMake(encoding, rope, byteOffset, byteLength);
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
@@ -168,7 +168,7 @@ public abstract class RopeNodes {
 
                 // CASE 3: Spans left and right.
                 if (byteLength == root.byteLength()) {
-                    return root;
+                    return withEncoding(root, base.getEncoding());
                 } else {
                     return makeSubstringRopeNode.executeMake(base.getEncoding(), root, byteOffset, byteLength);
                 }
@@ -181,6 +181,15 @@ public abstract class RopeNodes {
             }
 
             return makeSubstringRopeNode.executeMake(base.getEncoding(), root, byteOffset, byteLength);
+        }
+
+        private Rope withEncoding(Rope rope, Encoding encoding) {
+            if (withEncodingNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                withEncodingNode = insert(WithEncodingNode.create());
+            }
+
+            return withEncodingNode.executeWithEncoding(rope, encoding);
         }
 
         protected static boolean sameAsBase(Rope base, int byteLength) {
