@@ -730,7 +730,7 @@ public abstract class KernelNodes {
                 // fine instead of warning because we can simulate these
                 Log.LOGGER.fine(() -> String.format("offset line number %s:%d are simulated in #%s by adding blank lines", file, line, method));
                 if (!source.getEncoding().isAsciiCompatible()) {
-                    throw new UnsupportedOperationException("Cannot prepend newlines in a ASCII incompatible encoding");
+                    throw new UnsupportedOperationException("Cannot prepend newlines in an ASCII incompatible encoding");
                 }
                 final int n = line - 1;
                 final byte[] bytes = new byte[n + source.byteLength()];
