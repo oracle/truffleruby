@@ -1148,30 +1148,31 @@ public class RubyLexer implements MagicCommentHandler {
     public static boolean parser_magic_comment(Rope magicLine, int magicLineOffset, int magicLineLength,
             ParserRopeOperations parserRopeOperations, MagicCommentHandler magicCommentHandler) {
 
-        boolean indicator = false;
+        boolean emacsStyle = false;
         int i = magicLineOffset;
         int end = magicLineOffset + magicLineLength;
-
-        int nameBegin, nameEnd;
-        int valueBegin, valueEnd;
 
         if (magicLineLength <= 7) {
             return false;
         }
 
-        nameBegin = magicCommentMarker(magicLine, 0, end);
-        if (nameBegin >= 0) {
-            nameEnd = magicCommentMarker(magicLine, nameBegin, end);
-            if (nameEnd < 0) {
+        final int emacsBegin = findEmacsStyleMarker(magicLine, 0, end);
+        if (emacsBegin >= 0) {
+            final int emacsEnd = findEmacsStyleMarker(magicLine, emacsBegin, end);
+            if (emacsEnd < 0) {
                 return false;
             }
-            indicator = true;
-            i = nameBegin;
-            end = nameEnd - 3; // -3 is to backup over end just found
+            emacsStyle = true;
+            i = emacsBegin;
+            end = emacsEnd - 3; // -3 is to backup over the final -*- we just found
         }
 
-        while (i < end) {
-            // / [\s'":;]+ (?<name> [^\s'":;]+ ) \s* : \s* (?<value> "(?:\\.|[^"])*" | [^";\s]+ ) [\s;]* /x
+        while (i < end) { // in Emacs mode, there can be multiple name/value pairs on the same line
+
+            // Manual parsing corresponding to this Regexp.
+            // Done manually as we want to parse bytes and don't know the encoding yet, and to optimize speed.
+
+            // / [\s'":;]* (?<name> [^\s'":;]+ ) \s* : \s* (?<value> "(?:\\.|[^"])*" | [^";\s]+ ) [\s;]* /x
 
             // Ignore leading whitespace or '":;
             while (i < end) {
@@ -1184,7 +1185,7 @@ public class RubyLexer implements MagicCommentHandler {
                 }
             }
 
-            nameBegin = i;
+            final int nameBegin = i;
 
             // Consume anything except [\s'":;]
             while (i < end) {
@@ -1197,7 +1198,7 @@ public class RubyLexer implements MagicCommentHandler {
                 }
             }
 
-            nameEnd = i;
+            final int nameEnd = i;
 
             // Ignore whitespace
             while (i < end && Character.isWhitespace(magicLine.get(i))) {
@@ -1213,7 +1214,7 @@ public class RubyLexer implements MagicCommentHandler {
             if (sep == ':') {
                 i++;
             } else {
-                if (!indicator) {
+                if (!emacsStyle) {
                     return false;
                 }
                 continue;
@@ -1227,6 +1228,8 @@ public class RubyLexer implements MagicCommentHandler {
             if (i == end) {
                 break;
             }
+
+            final int valueBegin, valueEnd;
 
             if (magicLine.get(i) == '"') { // quoted value
                 valueBegin = ++i;
@@ -1256,7 +1259,7 @@ public class RubyLexer implements MagicCommentHandler {
                 valueEnd = i;
             }
 
-            if (indicator) {
+            if (emacsStyle) {
                 // Ignore trailing whitespace or ;
                 while (i < end && (magicLine.get(i) == ';' || Character.isWhitespace(magicLine.get(i)))) {
                     i++;
@@ -3456,11 +3459,9 @@ public class RubyLexer implements MagicCommentHandler {
         return isARG() && spaceSeen && !Character.isWhitespace(c);
     }
 
-    /* MRI: magic_comment_marker */
-    /* This impl is a little sucky.  We basically double scan the same bytelist twice.  Once here
-     * and once in parseMagicComment.
-     */
-    public static int magicCommentMarker(Rope str, int begin, int end) {
+    /* MRI: magic_comment_marker
+     * Find -*-, as in emacs "file local variable" (special comment at the top of the file) */
+    public static int findEmacsStyleMarker(Rope str, int begin, int end) {
         final byte[] bytes = str.getBytes();
         int i = begin;
 
