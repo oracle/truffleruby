@@ -1474,8 +1474,10 @@ public final class StringSupport {
         return c >= 'A' && c <= 'Z';
     }
 
-    public static boolean isAsciiSpace(byte c) {
-        return c == 0x20 || (c >= 0x09 && c <= 0x0d);
+    /** MRI: ISSPACE() and rb_isspace()
+     * True for ' ', \t, \n, \v, \f, and \r */
+    public static boolean isAsciiSpace(int c) {
+        return c == ' ' || ('\t' <= c && c <= '\r');
     }
 
     public static boolean isAsciiPrintable(int c) {

@@ -91,6 +91,8 @@ import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 
+import static org.truffleruby.core.string.StringSupport.isAsciiSpace;
+
 /*
  * This is a port of the MRI lexer to Java.
  */
@@ -1111,7 +1113,7 @@ public class RubyLexer implements MagicCommentHandler {
         }
 
         // Skip leading spaces but don't jump to another line
-        while (start < length && isSpace(bytes[start]) && bytes[start] != '\n') {
+        while (start < length && isAsciiSpace(bytes[start]) && bytes[start] != '\n') {
             start++;
         }
 
@@ -1166,7 +1168,7 @@ public class RubyLexer implements MagicCommentHandler {
             while (i < end) {
                 byte c = magicLine.get(i);
 
-                if (isIgnoredMagicLineCharacter(c) || isSpace(c)) {
+                if (isIgnoredMagicLineCharacter(c) || isAsciiSpace(c)) {
                     i++;
                 } else {
                     break;
@@ -1179,7 +1181,7 @@ public class RubyLexer implements MagicCommentHandler {
             while (i < end) {
                 byte c = magicLine.get(i);
 
-                if (isIgnoredMagicLineCharacter(c) || isSpace(c)) {
+                if (isIgnoredMagicLineCharacter(c) || isAsciiSpace(c)) {
                     break;
                 } else {
                     i++;
@@ -1189,7 +1191,7 @@ public class RubyLexer implements MagicCommentHandler {
             final int nameEnd = i;
 
             // Ignore whitespace
-            while (i < end && isSpace(magicLine.get(i))) {
+            while (i < end && isAsciiSpace(magicLine.get(i))) {
                 i++;
             }
 
@@ -1209,7 +1211,7 @@ public class RubyLexer implements MagicCommentHandler {
             }
 
             // Ignore whitespace
-            while (i < end && isSpace(magicLine.get(i))) {
+            while (i < end && isAsciiSpace(magicLine.get(i))) {
                 i++;
             }
 
@@ -1238,7 +1240,7 @@ public class RubyLexer implements MagicCommentHandler {
                 valueBegin = i;
                 while (i < end) {
                     byte c = magicLine.get(i);
-                    if (c != '"' && c != ';' && !isSpace(c)) {
+                    if (c != '"' && c != ';' && !isAsciiSpace(c)) {
                         i++;
                     } else {
                         break;
@@ -1249,12 +1251,12 @@ public class RubyLexer implements MagicCommentHandler {
 
             if (emacsStyle) {
                 // Ignore trailing whitespace or ;
-                while (i < end && (magicLine.get(i) == ';' || isSpace(magicLine.get(i)))) {
+                while (i < end && (magicLine.get(i) == ';' || isAsciiSpace(magicLine.get(i)))) {
                     i++;
                 }
             } else {
                 // Ignore trailing whitespace
-                while (i < end && isSpace(magicLine.get(i))) {
+                while (i < end && isAsciiSpace(magicLine.get(i))) {
                     i++;
                 }
 
@@ -2772,7 +2774,7 @@ public class RubyLexer implements MagicCommentHandler {
             return false;
         }
         while (p < pend) {
-            if (!isSpace(p(p))) {
+            if (!isAsciiSpace(p(p))) {
                 return false;
             }
             p++;
@@ -3351,7 +3353,7 @@ public class RubyLexer implements MagicCommentHandler {
 
     protected void warn_balanced(int c, boolean spaceSeen, String op, String syn) {
         if (!isLexState(last_state, EXPR_CLASS | EXPR_DOT | EXPR_FNAME | EXPR_ENDFN | EXPR_ENDARG) && spaceSeen &&
-                !isSpace(c)) {
+                !isAsciiSpace(c)) {
             ambiguousOperator(op, syn);
         }
     }
@@ -3480,12 +3482,6 @@ public class RubyLexer implements MagicCommentHandler {
 
     protected boolean isSpaceArg(int c, boolean spaceSeen) {
         return isARG() && spaceSeen && !Character.isWhitespace(c);
-    }
-
-    // MRI: ISSPACE() and rb_isspace()
-    // ' ', \t, \n, \v, \f, \r
-    private static boolean isSpace(int c) {
-        return c == ' ' || ('\t' <= c && c <= '\r');
     }
 
 }
