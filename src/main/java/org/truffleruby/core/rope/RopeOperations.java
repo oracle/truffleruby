@@ -126,7 +126,7 @@ public class RopeOperations {
         }
     }
 
-    public static Rope withEncodingVerySlow(Rope originalRope, Encoding newEncoding) {
+    public static Rope withEncoding(Rope originalRope, Encoding newEncoding) {
         return WithEncodingNode.withEncodingSlow(originalRope, newEncoding);
     }
 

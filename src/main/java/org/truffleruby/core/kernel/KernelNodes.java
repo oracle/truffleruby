@@ -705,7 +705,7 @@ public abstract class KernelNodes {
             });
 
             if (source.getEncoding() != encoding[0]) {
-                source = RopeOperations.withEncodingVerySlow(source, encoding[0]);
+                source = RopeOperations.withEncoding(source, encoding[0]);
             }
 
             // Do padding after magic comment detection

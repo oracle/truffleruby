@@ -549,7 +549,7 @@ public abstract class StringNodes {
                     final RopeBuilder builder = new RopeBuilder();
                     builder.setEncoding(encoding(string));
                     return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string),
-                            Layouts.STRING.build(false, false, RopeOperations.withEncodingVerySlow(RopeConstants.EMPTY_ASCII_8BIT_ROPE, encoding(string))));
+                            Layouts.STRING.build(false, false, RopeOperations.withEncoding(RopeConstants.EMPTY_ASCII_8BIT_ROPE, encoding(string))));
                 }
 
                 end = normalizeIndexNode.executeNormalize(end, stringLength);
