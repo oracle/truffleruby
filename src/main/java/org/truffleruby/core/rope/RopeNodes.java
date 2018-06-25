@@ -125,7 +125,6 @@ public abstract class RopeNodes {
 
             // TODO (nirvdrum 07-Apr-16) We can specialize any number of children that fit perfectly into the length, not just count == 1. But we may need to create a new RepeatingNode to handle count > 1.
             if (matchesChildProfile.profile(offsetFitsChild && byteLengthFitsChild)) {
-                // A RepeatingRope encoding is always the same as its child, so no need to check it
                 return withEncoding(rope.getChild(), encoding);
             }
 
