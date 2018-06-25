@@ -30,11 +30,11 @@
 package org.truffleruby.parser;
 
 public final class Identifiers {
-    public static boolean isValidConstantName19(String id) {
+    public static boolean isValidConstantName(String id) {
         char c;
         int len;
         if ((len = id.length()) > 0 && (c = id.charAt(0)) <= 'Z' && c >= 'A') {
-            return isNameString19(id, 1, len);
+            return isNameString(id, 1, len);
         }
         return false;
     }
@@ -43,7 +43,7 @@ public final class Identifiers {
         int len;
         if ((len = id.length()) > 2 && '@' == id.charAt(0) && '@' == id.charAt(1)) {
             if (isInitialCharacter(id.charAt(2))) {
-                return isNameString19(id, 3, len);
+                return isNameString(id, 3, len);
             }
         }
         return false;
@@ -59,7 +59,7 @@ public final class Identifiers {
     }
 
 
-    private static boolean isNameString19(String id, int start, int limit) {
+    private static boolean isNameString(String id, int start, int limit) {
         for (int i = start; i < limit; i++) {
             char c = id.charAt(i);
             if (!(Character.isLetterOrDigit(c) || c == '_')) {

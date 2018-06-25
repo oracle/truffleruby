@@ -45,7 +45,8 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jcodings.Encoding;
+
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.aot.ParserCache;
 import org.truffleruby.core.LoadRequiredLibrariesNode;
@@ -95,7 +96,11 @@ public class TranslatorDriver {
         parseEnvironment = new ParseEnvironment(context);
     }
 
-    public RubyRootNode parse(Source source, Encoding defaultEncoding, ParserContext parserContext, String[] argumentNames, FrameDescriptor frameDescriptor, MaterializedFrame parentFrame, boolean ownScopeForAssignments, Node currentNode) {
+    public RubyRootNode parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames, FrameDescriptor frameDescriptor,
+            MaterializedFrame parentFrame, boolean ownScopeForAssignments, Node currentNode) {
+
+        final Source source = rubySource.getSource();
+
         final StaticScope staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
 
         /*
@@ -150,7 +155,11 @@ public class TranslatorDriver {
             parserConfiguration.setFrozenStringLiteral(true);
         }
 
-        parserConfiguration.setDefaultEncoding(defaultEncoding);
+        if (rubySource.getRope() != null) {
+            parserConfiguration.setDefaultEncoding(rubySource.getRope().getEncoding());
+        } else {
+            parserConfiguration.setDefaultEncoding(UTF8Encoding.INSTANCE);
+        }
 
         // Parse to the JRuby AST
 
@@ -162,7 +171,7 @@ public class TranslatorDriver {
 
         if (node == null) {
             printParseTranslateExecuteMetric("before-parsing", context, source);
-            node = parseToJRubyAST(source, dynamicScope, parserConfiguration);
+            node = parseToJRubyAST(rubySource, dynamicScope, parserConfiguration);
             printParseTranslateExecuteMetric("after-parsing", context, source);
         }
 
@@ -280,8 +289,8 @@ public class TranslatorDriver {
         return new RubyRootNode(context, sourceIndexLength.toSourceSection(source), environment.getFrameDescriptor(), sharedMethodInfo, truffleNode);
     }
 
-    public RootParseNode parseToJRubyAST(Source source, DynamicScope blockScope, ParserConfiguration configuration) {
-        LexerSource lexerSource = new LexerSource(source, configuration.getLineNumber(), configuration.getDefaultEncoding());
+    public RootParseNode parseToJRubyAST(RubySource rubySource, DynamicScope blockScope, ParserConfiguration configuration) {
+        LexerSource lexerSource = new LexerSource(rubySource, configuration.getLineNumber(), configuration.getDefaultEncoding());
         // We only need to pass in current scope if we are evaluating as a block (which
         // is only done for evals).  We need to pass this in so that we can appropriately scope
         // down to captured scopes when we are parsing.
@@ -309,7 +318,7 @@ public class TranslatorDriver {
                     buffer.append(e.getMessage());
 
                     if (context != null) {
-                        throw new RaiseException(context, context.getCoreExceptions().syntaxError(buffer.toString(), null, source.createSection(e.getLine())));
+                        throw new RaiseException(context, context.getCoreExceptions().syntaxError(buffer.toString(), null, rubySource.getSource().createSection(e.getLine())));
                     } else {
                         throw new UnsupportedOperationException(buffer.toString(), e);
                     }

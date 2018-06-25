@@ -199,7 +199,7 @@ public abstract class ModuleOperations {
         }
 
         final String lastSegment = fullName.substring(start);
-        if (!Identifiers.isValidConstantName19(lastSegment)) {
+        if (!Identifiers.isValidConstantName(lastSegment)) {
             throw new RaiseException(context, context.getCoreExceptions().nameError(StringUtils.format("wrong constant name %s", fullName), module, fullName, currentNode));
         }
 
@@ -210,7 +210,7 @@ public abstract class ModuleOperations {
     public static ConstantLookupResult lookupConstantWithInherit(RubyContext context, DynamicObject module, String name, boolean inherit, Node currentNode) {
         assert RubyGuards.isRubyModule(module);
 
-        if (!Identifiers.isValidConstantName19(name)) {
+        if (!Identifiers.isValidConstantName(name)) {
             throw new RaiseException(context, context.getCoreExceptions().nameError(StringUtils.format("wrong constant name %s", name), module, name, currentNode));
         }
 

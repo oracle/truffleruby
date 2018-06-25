@@ -37,6 +37,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
 
 import java.io.File;
 import java.io.IOException;
@@ -106,19 +107,18 @@ public abstract class RequireNode extends RubyNode {
                     return false;
                 }
 
-                final Source source;
+                final RubySource source;
                 try {
                     source = getContext().getSourceLoader().load(expandedPath);
                 } catch (IOException e) {
                     return false;
                 }
 
-                final String mimeType = getSourceMimeType(source);
+                final String mimeType = getSourceMimeType(source.getSource());
 
                 if (RubyLanguage.MIME_TYPE.equals(mimeType)) {
                     final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                             source,
-                            UTF8Encoding.INSTANCE,
                             ParserContext.TOP_LEVEL,
                             null,
                             true,

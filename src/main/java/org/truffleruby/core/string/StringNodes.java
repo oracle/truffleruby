@@ -549,7 +549,7 @@ public abstract class StringNodes {
                     final RopeBuilder builder = new RopeBuilder();
                     builder.setEncoding(encoding(string));
                     return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string),
-                            Layouts.STRING.build(false, false, RopeOperations.withEncodingVerySlow(RopeConstants.EMPTY_ASCII_8BIT_ROPE, encoding(string))));
+                            Layouts.STRING.build(false, false, RopeOperations.withEncoding(RopeConstants.EMPTY_ASCII_8BIT_ROPE, encoding(string))));
                 }
 
                 end = normalizeIndexNode.executeNormalize(end, stringLength);
@@ -1357,7 +1357,7 @@ public abstract class StringNodes {
             // Check the first code point to see if it's a space. In the case of strings without leading spaces,
             // this check can avoid having to materialize the entire byte[] (a potentially expensive operation
             // for ropes) and can avoid having to compile the while loop.
-            if (noopProfile.profile(!StringSupport.isAsciiSpace((byte) firstCodePoint))) {
+            if (noopProfile.profile(!StringSupport.isAsciiSpace(firstCodePoint))) {
                 return nil();
             }
 
@@ -1470,7 +1470,7 @@ public abstract class StringNodes {
             // Check the last code point to see if it's a space or NULL. In the case of strings without leading spaces,
             // this check can avoid having to materialize the entire byte[] (a potentially expensive operation
             // for ropes) and can avoid having to compile the while loop.
-            final boolean willStrip = lastCodePoint == 0x00 || StringSupport.isAsciiSpace((byte) lastCodePoint);
+            final boolean willStrip = lastCodePoint == 0x00 || StringSupport.isAsciiSpace(lastCodePoint);
             if (noopProfile.profile(!willStrip)) {
                 return nil();
             }

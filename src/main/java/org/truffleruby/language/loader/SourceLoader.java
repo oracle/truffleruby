@@ -20,6 +20,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.parser.RubySource;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -82,20 +83,20 @@ public class SourceLoader {
     }
 
     @TruffleBoundary
-    public Source loadMainEval() {
-        return Source.newBuilder(context.getOptions().TO_EXECUTE).name(
-                "-e").mimeType(RubyLanguage.MIME_TYPE).build();
+    public RubySource loadMainEval() {
+        final Source source = Source.newBuilder(context.getOptions().TO_EXECUTE).name("-e").mimeType(RubyLanguage.MIME_TYPE).build();
+        return new RubySource(source);
     }
 
     @TruffleBoundary
-    public Source loadMainStdin(RubyNode currentNode, String path) throws IOException {
-        return Source.newBuilder(xOptionStrip(
-                currentNode,
+    public RubySource loadMainStdin(RubyNode currentNode, String path) throws IOException {
+        final Source source = Source.newBuilder(xOptionStrip(currentNode,
                 new InputStreamReader(System.in))).name(path).mimeType(RubyLanguage.MIME_TYPE).build();
+        return new RubySource(source);
     }
 
     @TruffleBoundary
-    public Source loadMainFile(RubyNode currentNode, String path) throws IOException {
+    public RubySource loadMainFile(RubyNode currentNode, String path) throws IOException {
         if (mainSourceAbsolutePath != null) {
             throw new UnsupportedOperationException("main file already loaded: " + mainSourceAbsolutePath);
         }
@@ -107,7 +108,7 @@ public class SourceLoader {
                 currentNode,
                 new FileReader(file))).mimeType(RubyLanguage.MIME_TYPE).build();
         mainSourceAbsolutePath = file.getPath();
-        return mainSource;
+        return new RubySource(mainSource);
     }
 
     private String xOptionStrip(RubyNode currentNode, Reader reader) throws IOException {
@@ -163,7 +164,7 @@ public class SourceLoader {
     }
 
     @TruffleBoundary
-    public Source load(String canonicalPath) throws IOException {
+    public RubySource load(String canonicalPath) throws IOException {
         if (context.getOptions().LOG_LOAD) {
             Log.LOGGER.info("loading " + canonicalPath);
         }
@@ -171,7 +172,7 @@ public class SourceLoader {
         return loadNoLogging(context, canonicalPath, isInternal(canonicalPath));
     }
 
-    public static Source loadNoLogging(RubyContext context, String canonicalPath, boolean internal) throws IOException {
+    public static RubySource loadNoLogging(RubyContext context, String canonicalPath, boolean internal) throws IOException {
         if (canonicalPath.startsWith(RESOURCE_SCHEME)) {
             return loadResource(canonicalPath);
         } else {
@@ -200,7 +201,7 @@ public class SourceLoader {
                 builder = builder.internal();
             }
 
-            return builder.build();
+            return new RubySource(builder.build());
         }
     }
 
@@ -216,7 +217,7 @@ public class SourceLoader {
         return false;
     }
 
-    private static Source loadResource(String path) throws IOException {
+    private static RubySource loadResource(String path) throws IOException {
         if (TruffleOptions.AOT) {
             final String canonicalPath = SourceLoaderSupport.canonicalizeResourcePath(path);
             final SourceLoaderSupport.CoreLibraryFile coreFile = SourceLoaderSupport.allCoreLibraryFiles.get(canonicalPath);
@@ -224,7 +225,8 @@ public class SourceLoader {
                 throw new FileNotFoundException(path);
             }
 
-            return Source.newBuilder(coreFile.code).name(path).mimeType(RubyLanguage.MIME_TYPE).internal().build();
+            final Source source = Source.newBuilder(coreFile.code).name(path).mimeType(RubyLanguage.MIME_TYPE).internal().build();
+            return new RubySource(source);
         } else {
             if (!path.toLowerCase(Locale.ENGLISH).endsWith(".rb")) {
                 throw new FileNotFoundException(path);
@@ -241,8 +243,9 @@ public class SourceLoader {
                 throw new FileNotFoundException(path);
             }
 
-            return Source.newBuilder(new InputStreamReader(stream, StandardCharsets.UTF_8)).name(path).
+            final Source source = Source.newBuilder(new InputStreamReader(stream, StandardCharsets.UTF_8)).name(path).
                     mimeType(RubyLanguage.MIME_TYPE).internal().build();
+            return new RubySource(source);
         }
     }
 
