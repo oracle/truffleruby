@@ -148,7 +148,6 @@ import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.lexer.RubyLexer;
-import org.truffleruby.parser.parser.ParserRopeOperations;
 
 import java.io.File;
 import java.io.IOException;
@@ -696,7 +695,7 @@ public abstract class KernelNodes {
         public static Rope createEvalRope(Rope source, String method, String file, int line) {
             final Encoding[] encoding = { source.getEncoding() };
 
-            RubyLexer.parseMagicComment(source, new ParserRopeOperations(), (name, value) -> {
+            RubyLexer.parseMagicComment(source, (name, value) -> {
                 if (RubyLexer.isMagicEncodingComment(name)) {
                     encoding[0] = EncodingManager.getEncoding(value);
                 }

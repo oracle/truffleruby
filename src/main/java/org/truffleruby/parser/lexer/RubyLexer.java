@@ -1103,7 +1103,11 @@ public class RubyLexer implements MagicCommentHandler {
         return bytes.length;
     }
 
-    public static void parseMagicComment(Rope source, ParserRopeOperations parserRopeOperations, BiConsumer<String, Rope> magicCommentHandler) {
+    /**
+     * Peak in source to see if there is a magic comment. This is used by eval() & friends to know
+     * the actual encoding of the source code, and be able to convert to a Java String faithfully.
+     */
+    public static void parseMagicComment(Rope source, BiConsumer<String, Rope> magicCommentHandler) {
         final byte[] bytes = source.getBytes();
         final int length = source.byteLength();
         int start = 0;
@@ -1127,7 +1131,7 @@ public class RubyLexer implements MagicCommentHandler {
             }
             int magicLineLength = endOfMagicLine - magicLineStart;
 
-            parser_magic_comment(source, magicLineStart, magicLineLength, parserRopeOperations, (name, value) -> {
+            parser_magic_comment(source, magicLineStart, magicLineLength, new ParserRopeOperations(), (name, value) -> {
                 magicCommentHandler.accept(name, value);
                 return isKnownMagicComment(name);
             });
@@ -1135,7 +1139,7 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     // MRI: parser_magic_comment
-    public static boolean parser_magic_comment(Rope magicLine, int magicLineOffset, int magicLineLength,
+    private static boolean parser_magic_comment(Rope magicLine, int magicLineOffset, int magicLineLength,
             ParserRopeOperations parserRopeOperations, MagicCommentHandler magicCommentHandler) {
 
         boolean emacsStyle = false;
