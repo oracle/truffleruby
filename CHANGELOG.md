@@ -16,6 +16,8 @@ Bug fixes:
 * `RbConfig::CONFIG['extra_bindirs']` is now a String as other RbConfig values.
 * `SIGPIPE` is correctly caught on SubstrateVM, and the corresponding write()
   raises `Errno::EPIPE` when the read end of a pipe or socket is closed.
+* Use the magic encoding comment for determining the source encoding when using eval().
+* Fixed a couple bugs where the encoding was not preserved correctly.
 
 Performance:
 
@@ -27,6 +29,7 @@ Performance:
 * Eliminated many unnecessary memory copy operations when reading from `IO` with
   a delimiter (e.g., `IO#each`), leading to overall improved `IO` reading for common
   use cases such as iterating through lines in a `File`.
+* Use the byte[] of the given Ruby String when calling eval() directly for parsing.
 
 # 1.0 RC 2, May 2018
 
