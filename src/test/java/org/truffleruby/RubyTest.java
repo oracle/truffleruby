@@ -17,6 +17,7 @@ import org.graalvm.polyglot.Context;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.TruffleRuby;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public abstract class RubyTest {
         final Source source = Source.newBuilder(text).name("test.rb").mimeType(RubyLanguage.MIME_TYPE).build();
 
         testInContext(() -> {
-            final RubyRootNode rootNode = RubyLanguage.getCurrentContext().getCodeLoader().parse(source, null, ParserContext.TOP_LEVEL, null, true, null);
+            final RubyRootNode rootNode = RubyLanguage.getCurrentContext().getCodeLoader().parse(new RubySource(source), ParserContext.TOP_LEVEL, null, true, null);
             rootNode.adoptChildren();
             test.accept(rootNode);
         });

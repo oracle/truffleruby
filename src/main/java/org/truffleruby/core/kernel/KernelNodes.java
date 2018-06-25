@@ -147,6 +147,7 @@ import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.lexer.RubyLexer;
 
 import java.io.File;
@@ -639,15 +640,8 @@ public abstract class KernelNodes {
 
         protected RubyRootNode buildRootNode(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line, boolean ownScopeForAssignments) {
             final String sourceFile = RopeOperations.decodeRope(file);
-            final Rope sourceRope = createEvalRope(sourceText, "eval", sourceFile, line);
-            final Source source = createEvalSource(sourceRope, sourceFile);
-            return getContext().getCodeLoader().parse(
-                    source,
-                    sourceRope,
-                    ParserContext.EVAL,
-                    parentFrame,
-                    ownScopeForAssignments,
-                    this);
+            final RubySource source = createEvalSource(sourceText, "eval", sourceFile, line);
+            return getContext().getCodeLoader().parse(source, ParserContext.EVAL, parentFrame, ownScopeForAssignments, this);
         }
 
         protected RootNodeWrapper compileSource(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line) {
@@ -692,7 +686,7 @@ public abstract class KernelNodes {
             return descriptor.getSize() == 1 && SelfNode.SELF_IDENTIFIER.equals(descriptor.getSlots().get(0).getIdentifier());
         }
 
-        public static Rope createEvalRope(Rope source, String method, String file, int line) {
+        private static Rope createEvalRope(Rope source, String method, String file, int line) {
             final Encoding[] encoding = { source.getEncoding() };
 
             RubyLexer.parseMagicComment(source, (name, value) -> {
@@ -709,11 +703,15 @@ public abstract class KernelNodes {
             return offsetSource(method, source, file, line);
         }
 
-        public static Source createEvalSource(Rope sourceRope, String file) {
-            return Source.newBuilder(RopeOperations.decodeRope(sourceRope))
+        public static RubySource createEvalSource(Rope code, String method, String file, int line) {
+            final Rope sourceRope = createEvalRope(code, method, file, line);
+
+            final Source source = Source.newBuilder(RopeOperations.decodeRope(sourceRope))
                     .name(file)
                     .mimeType(RubyLanguage.MIME_TYPE)
                     .build();
+
+            return new RubySource(source, sourceRope);
         }
 
         private static Rope offsetSource(String method, Rope source, String file, int line) {

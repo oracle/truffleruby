@@ -31,7 +31,6 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ValueProfile;
-import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -106,6 +105,7 @@ import org.truffleruby.language.objects.WriteInstanceVariableNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.Translator;
 
 import java.util.ArrayList;
@@ -613,15 +613,13 @@ public abstract class ModuleNodes {
         private CodeLoader.DeferredCall classEvalSource(DynamicObject module, DynamicObject rubySource, String file, int line) {
             assert RubyGuards.isRubyString(rubySource);
 
-            final Rope sourceRope = EvalNode.createEvalRope(StringOperations.rope(rubySource), "class/module_eval", file, line);
-            final Source source = EvalNode.createEvalSource(sourceRope, file);
+            final RubySource source = EvalNode.createEvalSource(StringOperations.rope(rubySource), "class/module_eval", file, line);
 
             final MaterializedFrame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
                     .getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize();
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source,
-                    sourceRope,
                     ParserContext.MODULE,
                     callerFrame,
                     true,

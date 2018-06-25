@@ -25,7 +25,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.source.Source;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -38,7 +37,6 @@ import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.kernel.KernelNodes.EvalNode;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
@@ -64,6 +62,7 @@ import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
 
 @CoreClass("BasicObject")
 public abstract class BasicObjectNodes {
@@ -298,12 +297,10 @@ public abstract class BasicObjectNodes {
                 DynamicObject fileName, int line, ReadCallerFrameNode callerFrameNode, IndirectCallNode callNode) {
             final String fileNameString = RopeOperations.decodeRope(StringOperations.rope(fileName));
 
-            final Rope sourceRope = EvalNode.createEvalRope(StringOperations.rope(string), "instance_eval", fileNameString, line);
-            final Source source = EvalNode.createEvalSource(sourceRope, fileNameString);
+            final RubySource source = EvalNode.createEvalSource(StringOperations.rope(string), "instance_eval", fileNameString, line);
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source,
-                    sourceRope,
                     ParserContext.EVAL,
                     callerFrame.getFrameDescriptor(),
                     callerFrame,

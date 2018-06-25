@@ -17,10 +17,8 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.Source;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -29,6 +27,7 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
 
 public class CodeLoader {
@@ -41,25 +40,23 @@ public class CodeLoader {
 
     // Additional argument: a FrameDescriptor
     @TruffleBoundary
-    public RubyRootNode parse(Source source,
-                              Rope sourceRope,
+    public RubyRootNode parse(RubySource source,
                               ParserContext parserContext,
                               FrameDescriptor frameDescriptor,
                               MaterializedFrame parentFrame,
                               boolean ownScopeForAssignments,
                               Node currentNode) {
         final TranslatorDriver translator = new TranslatorDriver(context);
-        return translator.parse(source, sourceRope, parserContext, null, frameDescriptor, parentFrame, ownScopeForAssignments, currentNode);
+        return translator.parse(source, parserContext, null, frameDescriptor, parentFrame, ownScopeForAssignments, currentNode);
     }
 
     @TruffleBoundary
-    public RubyRootNode parse(Source source,
-                              Rope sourceRope,
+    public RubyRootNode parse(RubySource source,
                               ParserContext parserContext,
                               MaterializedFrame parentFrame,
                               boolean ownScopeForAssignments,
                               Node currentNode) {
-        return parse(source, sourceRope, parserContext, null, parentFrame, ownScopeForAssignments, currentNode);
+        return parse(source, parserContext, null, parentFrame, ownScopeForAssignments, currentNode);
     }
 
     @TruffleBoundary

@@ -33,6 +33,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.RubyLogger;
 import org.truffleruby.shared.options.ExecutionAction;
@@ -118,7 +119,7 @@ public abstract class TruffleBootNodes {
 
             setArgvGlobals(makeStringNode);
 
-            Source source = loadMainSourceSettingDollarZero(
+            RubySource source = loadMainSourceSettingDollarZero(
                     findSFile, makeStringNode,
                     getContext().getOptions().EXECUTION_ACTION,
                     getContext().getOptions().TO_EXECUTE.intern());
@@ -137,7 +138,6 @@ public abstract class TruffleBootNodes {
             } else {
                 final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                         source,
-                        null,
                         ParserContext.TOP_LEVEL_FIRST,
                         null,
                         true,
@@ -175,8 +175,8 @@ public abstract class TruffleBootNodes {
             }
         }
 
-        private Source loadMainSourceSettingDollarZero(CallDispatchHeadNode findSFile, StringNodes.MakeStringNode makeStringNode, ExecutionAction executionAction, String toExecute) {
-            final Source source;
+        private RubySource loadMainSourceSettingDollarZero(CallDispatchHeadNode findSFile, StringNodes.MakeStringNode makeStringNode, ExecutionAction executionAction, String toExecute) {
+            final RubySource source;
             final Object dollarZeroValue;
             try {
                 switch (executionAction) {
@@ -214,16 +214,12 @@ public abstract class TruffleBootNodes {
                                 // language=ruby
                                 "find_s_file",
                                 makeStringNode.executeMake(toExecute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
-                        source = getContext().getSourceLoader().loadMainFile(
-                                this,
-                                StringOperations.getString(path));
+                        source = getContext().getSourceLoader().loadMainFile(this, StringOperations.getString(path));
                         dollarZeroValue = path;
                         break;
 
                     case STDIN:
-                        source = getContext().getSourceLoader().loadMainStdin(
-                                this,
-                                toExecute);
+                        source = getContext().getSourceLoader().loadMainStdin(this, toExecute);
                         dollarZeroValue = makeStringNode.executeMake("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
                         break;
 
@@ -318,8 +314,8 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject innerCheckSyntax(Source source) {
-            getContext().getCodeLoader().parse(source, null, ParserContext.TOP_LEVEL, null, true, null);
+        public DynamicObject innerCheckSyntax(RubySource source) {
+            getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, null);
 
             return nil();
         }

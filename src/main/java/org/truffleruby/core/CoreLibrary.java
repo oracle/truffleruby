@@ -54,6 +54,7 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.NativeTypes;
@@ -752,9 +753,9 @@ public class CoreLibrary {
 
             try {
                 for (int n = 0; n < CORE_FILES.length; n++) {
-                    final Source source = context.getSourceLoader().load(getCoreLoadPath() + CORE_FILES[n]);
+                    final RubySource source = context.getSourceLoader().load(getCoreLoadPath() + CORE_FILES[n]);
 
-                    final RubyRootNode rootNode = context.getCodeLoader().parse(source, null, ParserContext.TOP_LEVEL, null, true, node);
+                    final RubyRootNode rootNode = context.getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, node);
 
                     final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                             ParserContext.TOP_LEVEL,
@@ -763,9 +764,9 @@ public class CoreLibrary {
                             null,
                             context.getCoreLibrary().getMainObject());
 
-                    TranslatorDriver.printParseTranslateExecuteMetric("before-execute", context, source);
+                    TranslatorDriver.printParseTranslateExecuteMetric("before-execute", context, source.getSource());
                     deferredCall.callWithoutCallNode();
-                    TranslatorDriver.printParseTranslateExecuteMetric("after-execute", context, source);
+                    TranslatorDriver.printParseTranslateExecuteMetric("after-execute", context, source.getSource());
                 }
             } catch (IOException e) {
                 throw new JavaException(e);
@@ -793,8 +794,8 @@ public class CoreLibrary {
         // Load code that can't be run until everything else is boostrapped, such as pre-loaded Ruby stdlib.
 
         try {
-            final Source source = context.getSourceLoader().load(getCoreLoadPath() + "/post-boot/post-boot.rb");
-            final RubyRootNode rootNode = context.getCodeLoader().parse(source, null, ParserContext.TOP_LEVEL, null, true, node);
+            final RubySource source = context.getSourceLoader().load(getCoreLoadPath() + "/post-boot/post-boot.rb");
+            final RubyRootNode rootNode = context.getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, node);
             final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                     ParserContext.TOP_LEVEL, DeclarationContext.topLevel(context), rootNode, null, context.getCoreLibrary().getMainObject());
             deferredCall.callWithoutCallNode();

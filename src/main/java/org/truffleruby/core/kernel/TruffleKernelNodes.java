@@ -12,7 +12,6 @@ package org.truffleruby.core.kernel;
 import java.io.IOException;
 
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.source.Source;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
@@ -35,6 +34,7 @@ import org.truffleruby.language.objects.shared.WriteBarrierNode;
 import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNode;
 import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNodeGen;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -82,8 +82,8 @@ public abstract class TruffleKernelNodes {
             }
 
             try {
-                final Source source = getContext().getSourceLoader().load(StringOperations.getString(file));
-                final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, null, ParserContext.TOP_LEVEL, null, true, this);
+                final RubySource source = getContext().getSourceLoader().load(StringOperations.getString(file));
+                final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, this);
                 final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                         ParserContext.TOP_LEVEL, DeclarationContext.topLevel(getContext()), rootNode, null,
                         getContext().getCoreLibrary().getMainObject());

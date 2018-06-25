@@ -32,6 +32,7 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
 
 import java.util.List;
@@ -74,7 +75,7 @@ public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNo
             final TranslatorDriver translator = new TranslatorDriver(context);
 
             final String[] argumentsArray = argumentNames.toArray(new String[argumentNames.size()]);
-            final RubyRootNode rootNode = translator.parse(source, null, ParserContext.TOP_LEVEL, argumentsArray, null, null, true, null);
+            final RubyRootNode rootNode = translator.parse(new RubySource(source), ParserContext.TOP_LEVEL, argumentsArray, null, null, true, null);
 
             final CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
