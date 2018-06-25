@@ -38,12 +38,9 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
-import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -67,7 +64,6 @@ import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
-import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
@@ -112,6 +108,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
+import org.truffleruby.language.eval.CreateEvalSourceNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.RequireNode;
@@ -148,7 +145,6 @@ import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
-import org.truffleruby.parser.lexer.RubyLexer;
 
 import java.io.File;
 import java.io.IOException;
@@ -530,6 +526,7 @@ public abstract class KernelNodes {
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class EvalNode extends PrimitiveArrayArgumentsNode {
 
+        @Child private CreateEvalSourceNode createEvalSourceNode = new CreateEvalSourceNode();
         @Child private BindingNodes.CallerBindingNode bindingNode;
 
         protected static class RootNodeWrapper {
@@ -640,7 +637,7 @@ public abstract class KernelNodes {
 
         protected RubyRootNode buildRootNode(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line, boolean ownScopeForAssignments) {
             final String sourceFile = RopeOperations.decodeRope(file);
-            final RubySource source = createEvalSource(sourceText, "eval", sourceFile, line);
+            final RubySource source = createEvalSourceNode.createEvalSource(sourceText, "eval", sourceFile, line);
             return getContext().getCodeLoader().parse(source, ParserContext.EVAL, parentFrame, ownScopeForAssignments, this);
         }
 
@@ -682,61 +679,8 @@ public abstract class KernelNodes {
             return frameHasOnlySelf(descriptor);
         }
 
-        private boolean frameHasOnlySelf(final FrameDescriptor descriptor) {
+        private boolean frameHasOnlySelf(FrameDescriptor descriptor) {
             return descriptor.getSize() == 1 && SelfNode.SELF_IDENTIFIER.equals(descriptor.getSlots().get(0).getIdentifier());
-        }
-
-        private static Rope createEvalRope(Rope source, String method, String file, int line) {
-            final Encoding[] encoding = { source.getEncoding() };
-
-            RubyLexer.parseMagicComment(source, (name, value) -> {
-                if (RubyLexer.isMagicEncodingComment(name)) {
-                    encoding[0] = EncodingManager.getEncoding(value);
-                }
-            });
-
-            if (source.getEncoding() != encoding[0]) {
-                source = RopeOperations.withEncoding(source, encoding[0]);
-            }
-
-            // Do padding after magic comment detection
-            return offsetSource(method, source, file, line);
-        }
-
-        public static RubySource createEvalSource(Rope code, String method, String file, int line) {
-            final Rope sourceRope = createEvalRope(code, method, file, line);
-
-            final Source source = Source.newBuilder(RopeOperations.decodeRope(sourceRope))
-                    .name(file)
-                    .mimeType(RubyLanguage.MIME_TYPE)
-                    .build();
-
-            return new RubySource(source, sourceRope);
-        }
-
-        private static Rope offsetSource(String method, Rope source, String file, int line) {
-            // TODO CS 23-Apr-18 Truffle doesn't support line numbers starting at anything but 1
-            if (line == 0) {
-                // fine instead of warning because these seem common
-                Log.LOGGER.fine(() -> String.format("zero line number %s:%d not supported in #%s - will be reported as starting at 1", file, line, method));
-                return source;
-            } else if (line < 1) {
-                Log.LOGGER.warning(String.format("negative line number %s:%d not supported in #%s - will be reported as starting at 1", file, line, method));
-                return source;
-            } else if (line > 1) {
-                // fine instead of warning because we can simulate these
-                Log.LOGGER.fine(() -> String.format("offset line number %s:%d are simulated in #%s by adding blank lines", file, line, method));
-                if (!source.getEncoding().isAsciiCompatible()) {
-                    throw new UnsupportedOperationException("Cannot prepend newlines in an ASCII incompatible encoding");
-                }
-                final int n = line - 1;
-                final byte[] bytes = new byte[n + source.byteLength()];
-                Arrays.fill(bytes, 0, n, (byte) '\n');
-                System.arraycopy(source.getBytes(), 0, bytes, n, source.byteLength());
-                return RopeOperations.create(bytes, source.getEncoding(), source.getCodeRange());
-            } else {
-                return source;
-            }
         }
 
     }
