@@ -118,9 +118,9 @@ class Dir
           while ent = dir.read
             next if ent == '.' || ent == '..'
             full = path_join(path, ent)
-            stat = File::Stat.lstat full
+            mode = Truffle::POSIX.truffleposix_lstat_mode(full)
 
-            if stat.directory? and (allow_dots or ent.getbyte(0) != 46) # ?.
+            if Truffle::StatOperations.directory?(mode) and (allow_dots or ent.getbyte(0) != 46) # ?.
               stack << full
               @next.call matches, full
             end
@@ -152,9 +152,9 @@ class Dir
         dir = Dir.new('.')
         while ent = dir.read
           next if ent == '.' || ent == '..'
-          stat = File::Stat.lstat ent
+          mode = Truffle::POSIX.truffleposix_lstat_mode(ent)
 
-          if stat.directory? and (allow_dots or ent.getbyte(0) != 46) # ?.
+          if Truffle::StatOperations.directory?(mode) and (allow_dots or ent.getbyte(0) != 46) # ?.
             stack << ent
             @next.call matches, ent
           end
@@ -167,9 +167,9 @@ class Dir
           while ent = dir.read
             next if ent == '.' || ent == '..'
             full = path_join(path, ent)
-            stat = File::Stat.lstat full
+            mode = Truffle::POSIX.truffleposix_lstat_mode(full)
 
-            if stat.directory? and ent.getbyte(0) != 46  # ?.
+            if Truffle::StatOperations.directory?(mode) and ent.getbyte(0) != 46  # ?.
               stack << full
               @next.call matches, full
             end

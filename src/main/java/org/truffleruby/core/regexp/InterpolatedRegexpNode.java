@@ -109,9 +109,9 @@ public class InterpolatedRegexpNode extends RubyNode {
                 final Rope source = Layouts.REGEXP.getSource(regexp);
 
                 if (!BodyTranslator.all7Bit(preprocessed.getBytes())) {
-                    Layouts.REGEXP.setSource(regexp, RopeOperations.withEncodingVerySlow(source, ASCIIEncoding.INSTANCE));
+                    Layouts.REGEXP.setSource(regexp, RopeOperations.withEncoding(source, ASCIIEncoding.INSTANCE));
                 } else {
-                    Layouts.REGEXP.setSource(regexp, RopeOperations.withEncodingVerySlow(source, USASCIIEncoding.INSTANCE));
+                    Layouts.REGEXP.setSource(regexp, RopeOperations.withEncoding(source, USASCIIEncoding.INSTANCE));
                 }
             }
 

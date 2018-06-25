@@ -1402,17 +1402,20 @@ class IO
         break unless available > 0
 
         if count = @buffer.find(@separator)
-          str << @buffer.shift(count)
+          s = @buffer.shift(count)
 
-          str = IO.read_encode(@io, str)
-          str.taint
+          unless str.empty?
+            s.prepend(str)
+            str.clear
+          end
+
+          s = IO.read_encode(@io, s)
+          s.taint
 
           $. = @io.increment_lineno
           @buffer.discard @skip if @skip
 
-          yield str
-
-          str = ''
+          yield s
         else
           str << @buffer.shift
         end
@@ -2425,7 +2428,8 @@ class IO
   end
 
   def strip_bom
-    return unless File::Stat.fstat(@descriptor).file?
+    mode = Truffle::POSIX.truffleposix_fstat_mode(@descriptor)
+    return unless Truffle::StatOperations.file?(mode)
 
     case b1 = getbyte
     when 0x00

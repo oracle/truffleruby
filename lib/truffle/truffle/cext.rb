@@ -694,10 +694,6 @@ module Truffle::CExt
     str.intern
   end
 
-  def rb_str_new(string, length)
-    string.to_s.byteslice(0, length).force_encoding(Encoding::BINARY)
-  end
-
   def rb_cstr_to_inum(string, base, raise)
     Truffle.invoke_primitive :string_to_inum, string, base, raise != 0
   end
@@ -710,7 +706,13 @@ module Truffle::CExt
     "\0".b * length
   end
 
-  def rb_str_new_cstr(pointer, length)
+  def rb_str_new_rstring_ptr(rstring_ptr, length)
+    raise "#{rstring_ptr} not a RStringPtr" unless RStringPtr === rstring_ptr
+    rstring_ptr.string.byteslice(0, length).force_encoding(Encoding::BINARY)
+  end
+
+  def rb_str_new_native(pointer, length)
+    raise "#{pointer} not a pointer" unless Truffle::Interop.pointer?(pointer)
     Truffle::FFI::Pointer.new(pointer).read_string(length)
   end
 
@@ -791,7 +793,11 @@ module Truffle::CExt
             -1
           # TODO BJF Mar-9-2017 Handle T_DATA
           else
-            0
+            if obj.instance_variable_defined?(:@encoding)
+              obj.instance_variable_get(:@encoding)
+            else
+              0
+            end
           end
     enc = rb_enc_to_index(enc) if enc.is_a?(Encoding)
     enc
@@ -895,7 +901,7 @@ module Truffle::CExt
   end
 
   def rb_string_value_cstr_check(string)
-    raise ArgumentError, 'string contains null byte' if string.include?("\0")
+    raise ArgumentError, 'string contains null byte' if string.include?(0.chr(string.encoding))
   end
 
   def rb_String(value)
@@ -1165,6 +1171,12 @@ module Truffle::CExt
 
   def rb_enumeratorize(obj, meth, args)
     obj.to_enum(meth, *args)
+  end
+
+  def rb_enumeratorize_with_size(obj, meth, args, size_fn)
+    return rb_enumeratorize(obj, meth, args) if size_fn.nil?
+    enum = obj.to_enum(meth, *args) { execute_with_mutex(size_fn, obj, args, enum) }
+    enum
   end
 
   def rb_eval_string(str)
@@ -1674,6 +1686,27 @@ module Truffle::CExt
     f = f.gsub('%ld', '%d')
 
     sprintf(f, *args) rescue raise ArgumentError, "Bad format string #{f}."
+  end
+
+  class WrappedNumber
+    def initialize(a_number)
+      @number = a_number
+    end
+
+    attr_reader :number
+  end
+
+  def rb_tr_wrap_for_handle(a_number)
+    WrappedNumber.new(a_number)
+  end
+
+  def rb_tr_unwrap_from_handle(an_object)
+    case an_object
+    when WrappedNumber
+      an_object.number
+    else
+      an_object
+    end
   end
 end
 

@@ -16,7 +16,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.source.Source;
-import org.jcodings.specific.UTF8Encoding;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyNode;
@@ -25,6 +25,7 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
 
 public abstract class DebugHelpers {
 
@@ -70,13 +71,7 @@ public abstract class DebugHelpers {
 
         final Source source = Source.newBuilder(code).name("debug-eval").mimeType(RubyLanguage.MIME_TYPE).build();
 
-        final RubyRootNode rootNode = context.getCodeLoader().parse(
-                source,
-                UTF8Encoding.INSTANCE,
-                ParserContext.INLINE,
-                evalFrame,
-                true,
-                null);
+        final RubyRootNode rootNode = context.getCodeLoader().parse(new RubySource(source), ParserContext.INLINE, evalFrame, true, null);
 
         final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                 ParserContext.INLINE,

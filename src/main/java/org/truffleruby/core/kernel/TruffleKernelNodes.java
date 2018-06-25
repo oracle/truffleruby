@@ -11,7 +11,8 @@ package org.truffleruby.core.kernel;
 
 import java.io.IOException;
 
-import org.jcodings.specific.UTF8Encoding;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -33,6 +34,7 @@ import org.truffleruby.language.objects.shared.WriteBarrierNode;
 import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNode;
 import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNodeGen;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -80,10 +82,8 @@ public abstract class TruffleKernelNodes {
             }
 
             try {
-                final RubyRootNode rootNode = getContext().getCodeLoader().parse(
-                        getContext().getSourceLoader().load(StringOperations.getString(file)),
-                        UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL,
-                        null, true, this);
+                final RubySource source = getContext().getSourceLoader().load(StringOperations.getString(file));
+                final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, this);
                 final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                         ParserContext.TOP_LEVEL, DeclarationContext.topLevel(getContext()), rootNode, null,
                         getContext().getCoreLibrary().getMainObject());
@@ -170,8 +170,9 @@ public abstract class TruffleKernelNodes {
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode = FindThreadAndFrameLocalStorageNodeGen.create();
 
         @Specialization(guards = { "isRubySymbol(name)", "isRubyBinding(binding)" })
-        public Object executeGetValue(DynamicObject name, DynamicObject binding) {
-            return threadLocalNode.execute(name, Layouts.BINDING.getFrame(binding)).get();
+        public Object executeGetValue(DynamicObject name, DynamicObject binding,
+                @Cached("createBinaryProfile()") ConditionProfile sameThreadProfile) {
+            return threadLocalNode.execute(name, Layouts.BINDING.getFrame(binding)).get(sameThreadProfile);
         }
 
     }
@@ -182,8 +183,9 @@ public abstract class TruffleKernelNodes {
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode = FindThreadAndFrameLocalStorageNodeGen.create();
 
         @Specialization(guards = { "isRubySymbol(name)", "isRubyBinding(binding)" })
-        public Object executeGetValue(DynamicObject name, DynamicObject binding, Object value) {
-            threadLocalNode.execute(name, Layouts.BINDING.getFrame(binding)).set(value);
+        public Object executeGetValue(DynamicObject name, DynamicObject binding, Object value,
+                @Cached("createBinaryProfile()") ConditionProfile sameThreadProfile) {
+            threadLocalNode.execute(name, Layouts.BINDING.getFrame(binding)).set(value, sameThreadProfile);
             return value;
         }
 

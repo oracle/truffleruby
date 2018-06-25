@@ -549,7 +549,7 @@ public abstract class StringNodes {
                     final RopeBuilder builder = new RopeBuilder();
                     builder.setEncoding(encoding(string));
                     return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string),
-                            Layouts.STRING.build(false, false, RopeOperations.withEncodingVerySlow(RopeConstants.EMPTY_ASCII_8BIT_ROPE, encoding(string))));
+                            Layouts.STRING.build(false, false, RopeOperations.withEncoding(RopeConstants.EMPTY_ASCII_8BIT_ROPE, encoding(string))));
                 }
 
                 end = normalizeIndexNode.executeNormalize(end, stringLength);
@@ -672,42 +672,6 @@ public abstract class StringNodes {
         @Specialization(guards = { "!is7Bit(string)" })
         public boolean asciiOnlyAsciiCompatible(DynamicObject string) {
             return false;
-        }
-
-    }
-
-    @CoreMethod(names = "b", taintFrom = 0)
-    public abstract static class BNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private RopeNodes.WithEncodingNode withEncodingNode = RopeNodesFactory.WithEncodingNodeGen.create(null, null, null);
-
-        @Specialization
-        public DynamicObject b(DynamicObject string,
-                               @Cached("create()") StringNodes.MakeStringNode makeStringNode,
-                               @Cached("createBinaryProfile()") ConditionProfile is7BitProfile,
-                               @Cached("createBinaryProfile()") ConditionProfile isAsciiCompatibleProfile) {
-            final Rope rope = rope(string);
-            final CodeRange newCodeRange;
-
-            if (is7BitProfile.profile(rope.getCodeRange() == CodeRange.CR_7BIT)) {
-                // If the rope is already known to be 7-bit, it'll continue to be 7-bit in ASCII 8-bit.
-                newCodeRange = CodeRange.CR_7BIT;
-            } else {
-                if (isAsciiCompatibleProfile.profile(rope.getEncoding().isAsciiCompatible())) {
-                    // If the rope is not 7-bit, but has an ASCII-compatible encoding, then whatever byte sequence it has
-                    // (broken or valid) can only be valid in ASCII 8-bit as it's impossible to have a broken binary string.
-                    newCodeRange = CodeRange.CR_VALID;
-                } else {
-                    // If the rope doesn't have an ASCII-compatible encoding, we can't make any guarantees about the code
-                    // range in ASCII 8-bit. The byte sequence for this rope may end up being either 7-bit or valid. We
-                    // must perform a byte scan to figure it out.
-                    newCodeRange = CodeRange.CR_UNKNOWN;
-                }
-            }
-
-            final Rope newRope = withEncodingNode.executeWithEncoding(rope, ASCIIEncoding.INSTANCE, newCodeRange);
-
-            return makeStringNode.fromRope(newRope);
         }
 
     }
@@ -1238,7 +1202,7 @@ public abstract class StringNodes {
     @CoreMethod(names = "force_encoding", required = 1, raiseIfFrozenSelf = true)
     public abstract static class ForceEncodingNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.WithEncodingNode withEncodingNode = RopeNodesFactory.WithEncodingNodeGen.create(null, null, null);
+        @Child private RopeNodes.WithEncodingNode withEncodingNode = RopeNodesFactory.WithEncodingNodeGen.create(null, null);
         private final ConditionProfile differentEncodingProfile = ConditionProfile.createBinaryProfile();
 
         @Specialization(guards = "isRubyString(encodingName)")
@@ -1253,7 +1217,7 @@ public abstract class StringNodes {
             final Rope rope = rope(string);
 
             if (differentEncodingProfile.profile(rope.getEncoding() != encoding)) {
-                final Rope newRope = withEncodingNode.executeWithEncoding(rope, encoding, CodeRange.CR_UNKNOWN);
+                final Rope newRope = withEncodingNode.executeWithEncoding(rope, encoding);
                 StringOperations.setRope(string, newRope);
             }
 
@@ -1393,7 +1357,7 @@ public abstract class StringNodes {
             // Check the first code point to see if it's a space. In the case of strings without leading spaces,
             // this check can avoid having to materialize the entire byte[] (a potentially expensive operation
             // for ropes) and can avoid having to compile the while loop.
-            if (noopProfile.profile(!StringSupport.isAsciiSpace((byte) firstCodePoint))) {
+            if (noopProfile.profile(!StringSupport.isAsciiSpace(firstCodePoint))) {
                 return nil();
             }
 
@@ -1506,7 +1470,7 @@ public abstract class StringNodes {
             // Check the last code point to see if it's a space or NULL. In the case of strings without leading spaces,
             // this check can avoid having to materialize the entire byte[] (a potentially expensive operation
             // for ropes) and can avoid having to compile the while loop.
-            final boolean willStrip = lastCodePoint == 0x00 || StringSupport.isAsciiSpace((byte) lastCodePoint);
+            final boolean willStrip = lastCodePoint == 0x00 || StringSupport.isAsciiSpace(lastCodePoint);
             if (noopProfile.profile(!willStrip)) {
                 return nil();
             }

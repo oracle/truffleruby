@@ -1,5 +1,9 @@
 // From ./tool/generate-cext-constants.rb
 
+VALUE rb_tr_get_undef(void);
+VALUE rb_tr_get_true(void);
+VALUE rb_tr_get_false(void);
+VALUE rb_tr_get_nil(void);
 VALUE rb_tr_get_Array(void);
 VALUE rb_tr_get_Class(void);
 VALUE rb_tr_get_Comparable(void);

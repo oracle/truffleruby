@@ -37,6 +37,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+
+import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.Log;
@@ -65,6 +67,7 @@ import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
+import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
@@ -144,7 +147,8 @@ import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.ParserContext;
-import org.truffleruby.parser.TranslatorDriver;
+import org.truffleruby.parser.RubySource;
+import org.truffleruby.parser.lexer.RubyLexer;
 
 import java.io.File;
 import java.io.IOException;
@@ -636,16 +640,8 @@ public abstract class KernelNodes {
 
         protected RubyRootNode buildRootNode(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line, boolean ownScopeForAssignments) {
             final String sourceFile = RopeOperations.decodeRope(file);
-            final Source source = createEvalSource(offsetSource("eval", RopeOperations.decodeRope(sourceText), sourceFile, line), sourceFile);
-            return new TranslatorDriver(getContext()).parse(
-                    source,
-                    sourceText.getEncoding(),
-                    ParserContext.EVAL,
-                    null,
-                    null,
-                    parentFrame,
-                    ownScopeForAssignments,
-                    this);
+            final RubySource source = createEvalSource(sourceText, "eval", sourceFile, line);
+            return getContext().getCodeLoader().parse(source, ParserContext.EVAL, parentFrame, ownScopeForAssignments, this);
         }
 
         protected RootNodeWrapper compileSource(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line) {
@@ -690,14 +686,35 @@ public abstract class KernelNodes {
             return descriptor.getSize() == 1 && SelfNode.SELF_IDENTIFIER.equals(descriptor.getSlots().get(0).getIdentifier());
         }
 
-        public static Source createEvalSource(String source, String file) {
-            return Source.newBuilder(source)
+        private static Rope createEvalRope(Rope source, String method, String file, int line) {
+            final Encoding[] encoding = { source.getEncoding() };
+
+            RubyLexer.parseMagicComment(source, (name, value) -> {
+                if (RubyLexer.isMagicEncodingComment(name)) {
+                    encoding[0] = EncodingManager.getEncoding(value);
+                }
+            });
+
+            if (source.getEncoding() != encoding[0]) {
+                source = RopeOperations.withEncoding(source, encoding[0]);
+            }
+
+            // Do padding after magic comment detection
+            return offsetSource(method, source, file, line);
+        }
+
+        public static RubySource createEvalSource(Rope code, String method, String file, int line) {
+            final Rope sourceRope = createEvalRope(code, method, file, line);
+
+            final Source source = Source.newBuilder(RopeOperations.decodeRope(sourceRope))
                     .name(file)
                     .mimeType(RubyLanguage.MIME_TYPE)
                     .build();
+
+            return new RubySource(source, sourceRope);
         }
 
-        public static String offsetSource(String method, String source, String file, int line) {
+        private static Rope offsetSource(String method, Rope source, String file, int line) {
             // TODO CS 23-Apr-18 Truffle doesn't support line numbers starting at anything but 1
             if (line == 0) {
                 // fine instead of warning because these seem common
@@ -709,9 +726,14 @@ public abstract class KernelNodes {
             } else if (line > 1) {
                 // fine instead of warning because we can simulate these
                 Log.LOGGER.fine(() -> String.format("offset line number %s:%d are simulated in #%s by adding blank lines", file, line, method));
-                final char[] emptyLines = new char[line - 1];
-                Arrays.fill(emptyLines, '\n');
-                return new String(emptyLines) + source;
+                if (!source.getEncoding().isAsciiCompatible()) {
+                    throw new UnsupportedOperationException("Cannot prepend newlines in an ASCII incompatible encoding");
+                }
+                final int n = line - 1;
+                final byte[] bytes = new byte[n + source.byteLength()];
+                Arrays.fill(bytes, 0, n, (byte) '\n');
+                System.arraycopy(source.getBytes(), 0, bytes, n, source.byteLength());
+                return RopeOperations.create(bytes, source.getEncoding(), source.getCodeRange());
             } else {
                 return source;
             }

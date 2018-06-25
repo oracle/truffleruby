@@ -77,6 +77,67 @@ describe "Interop special form" do
     Truffle::Debug.foreign_object.inspect.should =~ /#<Truffle::Interop::Foreign@\h+>/
   end
 
+  it "#inspect returns a useful string" do
+    Truffle::Debug.foreign_object.inspect.should =~ /#<Truffle::Interop::Foreign@\h+>/
+  end
+
+  describe "#is_a?" do
+      
+    guard -> { !TruffleRuby.native? } do
+      
+      it "returns true for a directly matching Java object and class" do
+        big_integer_class = Truffle::Interop.java_type("java.math.BigInteger")
+        big_integer = big_integer_class.new("14")
+        big_integer.is_a?(big_integer_class).should be_true
+      end
+
+      it "returns true for a directly matching Java object and superclass" do
+        big_integer_class = Truffle::Interop.java_type("java.math.BigInteger")
+        big_integer = big_integer_class.new("14")
+        number_class = Truffle::Interop.java_type("java.lang.Number")
+        big_integer.is_a?(number_class).should be_true
+      end
+
+      it "returns true for a directly matching Java object and interface" do
+        big_integer_class = Truffle::Interop.java_type("java.math.BigInteger")
+        big_integer = big_integer_class.new("14")
+        serializable_interface = Truffle::Interop.java_type("java.io.Serializable")
+        big_integer.is_a?(serializable_interface).should be_true
+      end
+
+      it "returns false for an unrelated Java object and Java class" do
+        big_integer_class = Truffle::Interop.java_type("java.math.BigInteger")
+        big_integer = big_integer_class.new("14")
+        big_decimal_class = Truffle::Interop.java_type("java.math.BigDecimal")
+        big_integer.is_a?(big_decimal_class).should be_false
+      end
+
+      it "returns false for a Java object and a Ruby class" do
+        java_hash = Truffle::Interop.java_type("java.util.HashMap").new
+        java_hash.is_a?(Hash).should be_false
+      end
+      
+      it "raises a type error for a non-Java foreign object and a non-Java foreign class" do
+        lambda {
+          Truffle::Debug.foreign_object.is_a?(Truffle::Debug.foreign_object)
+        }.should raise_error(TypeError, /cannot check if a foreign object is an instance of a foreign class/)
+      end
+      
+      it "works with boxed primitives" do
+        boxed_integer = Truffle::Debug.foreign_boxed_number(14)
+        boxed_integer.is_a?(Integer).should be_true
+        boxed_double = Truffle::Debug.foreign_boxed_number(14.2)
+        boxed_double.is_a?(Float).should be_true
+      end
+      
+    end
+
+    it "returns false for a non-Java foreign object and a Ruby class" do
+      Truffle::Debug.foreign_object.is_a?(Hash).should be_false
+    end
+
+  end
+
   it "#respond_to?(:to_a) sends HAS_SIZE" do
     @object.respond_to?(:to_a)
     @object.log.should include("HAS_SIZE")

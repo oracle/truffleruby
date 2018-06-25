@@ -14,11 +14,10 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
 
 import org.graalvm.polyglot.Context;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.parser.ParserContext;
-import org.truffleruby.parser.TranslatorDriver;
+import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.TruffleRuby;
 
 import java.util.List;
@@ -41,8 +40,7 @@ public abstract class RubyTest {
         final Source source = Source.newBuilder(text).name("test.rb").mimeType(RubyLanguage.MIME_TYPE).build();
 
         testInContext(() -> {
-            final TranslatorDriver translator = new TranslatorDriver(RubyLanguage.getCurrentContext());
-            final RubyRootNode rootNode = translator.parse(source, UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, null, null, true, null);
+            final RubyRootNode rootNode = RubyLanguage.getCurrentContext().getCodeLoader().parse(new RubySource(source), ParserContext.TOP_LEVEL, null, true, null);
             rootNode.adoptChildren();
             test.accept(rootNode);
         });

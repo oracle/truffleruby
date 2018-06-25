@@ -240,8 +240,8 @@ local part_definitions = {
         ["mx", "fetch-languages", "--language:llvm", "--language:ruby"],
         # aot-build.log is used for the build-stats metrics
         [
-          "./native-image",
-          "--no-server",
+          "mx",
+          "native-image",
           "--language:ruby",
           "-H:Path=$SVM_HOME/svmbuild/native-image-root/languages/ruby/bin",
           "-H:Name=truffleruby",
@@ -293,9 +293,12 @@ local part_definitions = {
       downloads+: {
         JAVA_HOME: {
           name: "oraclejdk",
-          version: "10+46",       // 46 is the GA of Java 10
+          version: "10+46", # 46 is the GA of Java 10
           platformspecific: true,
         },
+
+        # We need a JDK 8 to compile TruffleRuby
+        EXTRA_JAVA_HOMES: $.jdk.labsjdk8.downloads["JAVA_HOME"],
       },
 
       environment+: {
@@ -729,7 +732,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   release_builds:
     {
-      local shared = $.use.common + { timelimit: "35:00" },
+      local shared = $.use.common + { timelimit: "40:00" },
       "ruby-test-standalone-distribution": $.platform.linux + $.cap.gate + $.jdk.openjdk8 + shared + $.run.test_make_standalone_distribution,
       "ruby-standalone-distribution-linux": $.platform.linux + $.cap.manual + $.jdk.openjdk8 + shared + $.run.make_standalone_distribution,
       "ruby-standalone-distribution-darwin": $.platform.darwin + $.cap.manual + $.jdk.labsjdk8 + shared + $.run.make_standalone_distribution,

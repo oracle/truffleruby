@@ -31,7 +31,6 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ValueProfile;
-import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -51,7 +50,7 @@ import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
-import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.core.kernel.KernelNodes.EvalNode;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.module.ModuleNodesFactory.ClassExecNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen;
@@ -106,6 +105,7 @@ import org.truffleruby.language.objects.WriteInstanceVariableNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.Translator;
 
 import java.util.ArrayList;
@@ -517,7 +517,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyString(filename)")
         public DynamicObject autoload(DynamicObject module, String name, DynamicObject filename) {
-            if (!Identifiers.isValidConstantName19(name)) {
+            if (!Identifiers.isValidConstantName(name)) {
                 throw new RaiseException(getContext(), coreExceptions().nameError(StringUtils.format("autoload must be constant name: %s", name), module, name, this));
             }
 
@@ -613,14 +613,13 @@ public abstract class ModuleNodes {
         private CodeLoader.DeferredCall classEvalSource(DynamicObject module, DynamicObject rubySource, String file, int line) {
             assert RubyGuards.isRubyString(rubySource);
 
-            final Source source = KernelNodes.EvalNode.createEvalSource(KernelNodes.EvalNode.offsetSource("class/module_eval", StringOperations.getString(rubySource), file, line), file);
+            final RubySource source = EvalNode.createEvalSource(StringOperations.rope(rubySource), "class/module_eval", file, line);
 
             final MaterializedFrame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
                     .getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize();
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source,
-                    Layouts.STRING.getRope(rubySource).getEncoding(),
                     ParserContext.MODULE,
                     callerFrame,
                     true,
@@ -988,7 +987,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         public Object setConstant(DynamicObject module, String name, Object value) {
-            if (!Identifiers.isValidConstantName19(name)) {
+            if (!Identifiers.isValidConstantName(name)) {
                 throw new RaiseException(getContext(), coreExceptions().nameError(StringUtils.format("wrong constant name %s", name), module, name, this));
             }
 

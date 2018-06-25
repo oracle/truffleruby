@@ -14,15 +14,15 @@ import org.jcodings.Encoding;
 
 public class ConcatRope extends ManagedRope {
 
-    private final Rope left;
-    private final Rope right;
+    private final ManagedRope left;
+    private final ManagedRope right;
     private final boolean balanced;
 
-    public ConcatRope(Rope left, Rope right, Encoding encoding, CodeRange codeRange, boolean singleByteOptimizable, int depth, boolean balanced) {
+    public ConcatRope(ManagedRope left, ManagedRope right, Encoding encoding, CodeRange codeRange, boolean singleByteOptimizable, int depth, boolean balanced) {
         this(left, right, encoding, codeRange, singleByteOptimizable, depth, null, balanced);
     }
 
-    private ConcatRope(Rope left, Rope right, Encoding encoding, CodeRange codeRange, boolean singleByteOptimizable, int depth, byte[] bytes, boolean balanced) {
+    private ConcatRope(ManagedRope left, ManagedRope right, Encoding encoding, CodeRange codeRange, boolean singleByteOptimizable, int depth, byte[] bytes, boolean balanced) {
         super(encoding,
                 codeRange,
                 singleByteOptimizable,
@@ -30,9 +30,6 @@ public class ConcatRope extends ManagedRope {
                 left.characterLength() + right.characterLength(),
                 depth,
                 bytes);
-
-        assert !(left instanceof NativeRope);
-        assert !(right instanceof NativeRope);
         this.left = left;
         this.right = right;
         this.balanced = balanced;
@@ -57,11 +54,11 @@ public class ConcatRope extends ManagedRope {
         return right.getByteSlow(index - left.byteLength());
     }
 
-    public Rope getLeft() {
+    public ManagedRope getLeft() {
         return left;
     }
 
-    public Rope getRight() {
+    public ManagedRope getRight() {
         return right;
     }
 

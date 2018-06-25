@@ -111,7 +111,7 @@ public abstract class GetConstantNode extends RubyNode {
     }
 
     protected boolean isValidConstantName(String name) {
-        return Identifiers.isValidConstantName19(name);
+        return Identifiers.isValidConstantName(name);
     }
 
     protected boolean guardName(String name, String cachedName, ConditionProfile sameNameProfile) {

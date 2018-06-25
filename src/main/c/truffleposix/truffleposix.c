@@ -1,12 +1,12 @@
 /*
-Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
-code is released under a tri EPL/GPL/LGPL license. You can use it,
-redistribute it and/or modify it under the terms of the:
-
-Eclipse Public License version 1.0
-GNU General Public License version 2
-GNU Lesser General Public License version 2.1
-*/
+ * Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
+ * code is released under a tri EPL/GPL/LGPL license. You can use it,
+ * redistribute it and/or modify it under the terms of the:
+ *
+ * Eclipse Public License version 1.0, or
+ * GNU General Public License version 2, or
+ * GNU Lesser General Public License version 2.1.
+ */
 
 /*
 Copyright (C) 1993-2013 Yukihiro Matsumoto. All rights reserved.
@@ -302,11 +302,47 @@ int truffleposix_stat(const char *path, struct truffleposix_stat *buffer) {
   return result;
 }
 
+mode_t truffleposix_stat_mode(const char *path) {
+  struct stat native_stat;
+  int result = stat(path, &native_stat);
+  if (result == 0) {
+    return native_stat.st_mode;
+  }
+  return 0;
+}
+
+int64_t truffleposix_stat_size(const char *path) {
+  struct stat native_stat;
+  int result = stat(path, &native_stat);
+  if (result == 0) {
+    return native_stat.st_size;
+  }
+  return result;
+}
+
 int truffleposix_fstat(int fd, struct truffleposix_stat *buffer) {
   struct stat native_stat;
   int result = fstat(fd, &native_stat);
   if (result == 0) {
     copy_stat(&native_stat, buffer);
+  }
+  return result;
+}
+
+mode_t truffleposix_fstat_mode(int fd) {
+  struct stat native_stat;
+  int result = fstat(fd, &native_stat);
+  if (result == 0) {
+    return native_stat.st_mode;
+  }
+  return 0;
+}
+
+int64_t truffleposix_fstat_size(int fd) {
+  struct stat native_stat;
+  int result = fstat(fd, &native_stat);
+  if (result == 0) {
+    return native_stat.st_size;
   }
   return result;
 }
@@ -318,6 +354,15 @@ int truffleposix_lstat(const char *path, struct truffleposix_stat *buffer) {
     copy_stat(&native_stat, buffer);
   }
   return result;
+}
+
+mode_t truffleposix_lstat_mode(const char *path) {
+  struct stat native_stat;
+  int result = lstat(path, &native_stat);
+  if (result == 0) {
+    return native_stat.st_mode;
+  }
+  return 0;
 }
 
 unsigned int truffleposix_major(dev_t dev) {

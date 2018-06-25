@@ -24,10 +24,12 @@ Fedora 25 using RVM:
 $ jt docker print --fedora25 --source --rvm
 ```
 
-Or, to run a full set of tests on a new release candidate:
+Or, to run a full set of tests on a set of new release candidate tarballs:
 
 ```
-$ jt docker test --graalvm graalvm.tar.gz ruby.jar --test release_branch
+$ jt docker test --graalvm graalvm-ce.tar.gz ruby-installable.jar --test release_branch
+$ jt docker test --graalvm graalvm-ee.tar.gz ruby-installable.jar --test release_branch
+$ jt docker test --graalvm graalvm-ee.tar.gz ruby-installable.jar --rebuild-images --test release_branch
 ```
 
 ## Distributions
@@ -42,8 +44,9 @@ Pick one of:
 
 Pick one of:
 
-* From the public GraalVM CE binary tarball, and the public Ruby component, `--public 1.0.0rc-1` (default)
+* From the public GraalVM CE binary tarball, and the public Ruby component, `--public 1.0.0` (default)
 * From a GraalVM binary tarball and Ruby component you have locally, `--graalvm graalvm.tar.gz ruby-installable.jar`
+* From a TruffleRuby standalone distribution you have locally, `--standalone truffleruby-1.0.0-linux-amd64.tar.gz`
 * From source, `--source master`
 
 ## Ruby manager
@@ -69,8 +72,14 @@ Pick any of:
 * Rebuild images after installing the Ruby component, `--rebuild-images`
 * Run a full set of Docker tests we care about, `test` instead of `build`
 * Use a custom TruffleRuby repo, `--repo url`
+* Do not rebuild `openssl`, to test error messages, `--no-rebuild-openssl`
 
 When using `test` you need to specify the method of installing, and what to do.
+
+## Extracting a standalone image
+
+To extract a standalone image, use `jt docker extract-standalone ~/Downloads/ruby-installable-linux-amd64-rc2.jar 1.0.0-rc2`.
+The file name needs to have the platform in it, as it is on GitHub.
 
 ## Docker cache
 

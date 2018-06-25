@@ -1,5 +1,31 @@
 # 1.0 RC 2, May 2018
 
+# 1.0 RC 3
+
+New features:
+
+* `is_a?` can be called on foreign objects.
+
+Bug fixes:
+
+* It is no longer needed to have `ruby` in `$PATH` to run the post-install hook.
+* `Qnil`/`Qtrue`/`Qfalse`/`Qundef` can now be used as initial value for global
+  variables in C extensions.
+* Fixed error message when the runtime libssl has no SSLv2 support (on Ubuntu
+  16.04 for instance).
+* `RbConfig::CONFIG['extra_bindirs']` is now a String as other RbConfig values.
+* `SIGPIPE` is correctly caught on SubstrateVM, and the corresponding write()
+  raises `Errno::EPIPE` when the read end of a pipe or socket is closed.
+
+Performance:
+
+* Faster stat()-related calls, by returning the relevant field directly and
+  avoiding extra allocations.
+* `rb_str_new()`/`rb_str_new_cstr()` are much faster by avoiding extra copying and
+  allocations.
+
+# 1.0 RC 2, May 2018
+
 New features:
 
 * We are now compatible with Ruby 2.4.4.
@@ -26,6 +52,8 @@ New features:
 Changes:
 
 * The version string now mentions `GraalVM CE` or `EE`.
+* The version string now mentions if you're running GraalVM Community Edition
+  (`GraalVM CE`) or GraalVM Enterprise Edition (`GraalVM EE`).
 
 * The inline JavaScript functionality `-Xinline_js` has been removed.
 

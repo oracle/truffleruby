@@ -420,15 +420,15 @@ enum ruby_special_consts {
     RUBY_SPECIAL_SHIFT  = 8
 };
 
-VALUE rb_tr_get_undef(void);
-VALUE rb_tr_get_true(void);
-VALUE rb_tr_get_false(void);
-VALUE rb_tr_get_nil(void);
+extern void* rb_tr_undef;
+extern void* rb_tr_true;
+extern void* rb_tr_false;
+extern void* rb_tr_nil;
 
-#define Qfalse rb_tr_get_false()
-#define Qtrue rb_tr_get_true()
-#define Qnil rb_tr_get_nil()
-#define Qundef rb_tr_get_undef()
+#define Qfalse ((VALUE)(&rb_tr_false))
+#define Qtrue ((VALUE)(&rb_tr_true))
+#define Qnil ((VALUE)(&rb_tr_nil))
+#define Qundef ((VALUE)(&rb_tr_undef))
 
 #define IMMEDIATE_MASK RUBY_IMMEDIATE_MASK
 #define FIXNUM_FLAG RUBY_FIXNUM_FLAG

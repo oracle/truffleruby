@@ -33,8 +33,9 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
-import org.truffleruby.parser.TranslatorDriver;
+import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.Metrics;
+import org.truffleruby.shared.RubyLogger;
 import org.truffleruby.shared.options.ExecutionAction;
 import org.truffleruby.shared.options.OptionDescription;
 import org.truffleruby.shared.options.OptionsCatalog;
@@ -118,7 +119,7 @@ public abstract class TruffleBootNodes {
 
             setArgvGlobals(makeStringNode);
 
-            Source source = loadMainSourceSettingDollarZero(
+            RubySource source = loadMainSourceSettingDollarZero(
                     findSFile, makeStringNode,
                     getContext().getOptions().EXECUTION_ACTION,
                     getContext().getOptions().TO_EXECUTE.intern());
@@ -137,7 +138,6 @@ public abstract class TruffleBootNodes {
             } else {
                 final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                         source,
-                        UTF8Encoding.INSTANCE,
                         ParserContext.TOP_LEVEL_FIRST,
                         null,
                         true,
@@ -175,8 +175,8 @@ public abstract class TruffleBootNodes {
             }
         }
 
-        private Source loadMainSourceSettingDollarZero(CallDispatchHeadNode findSFile, StringNodes.MakeStringNode makeStringNode, ExecutionAction executionAction, String toExecute) {
-            final Source source;
+        private RubySource loadMainSourceSettingDollarZero(CallDispatchHeadNode findSFile, StringNodes.MakeStringNode makeStringNode, ExecutionAction executionAction, String toExecute) {
+            final RubySource source;
             final Object dollarZeroValue;
             try {
                 switch (executionAction) {
@@ -188,6 +188,8 @@ public abstract class TruffleBootNodes {
                                 return loadMainSourceSettingDollarZero(findSFile, makeStringNode, ExecutionAction.STDIN, toExecute);
                             case IRB:
                                 if (System.console() != null) {
+                                    RubyLogger.LOGGER.warning(
+                                            "truffleruby starts IRB when stdin is a TTY instead of reading from stdin, use '-' to read from stdin");
                                     return loadMainSourceSettingDollarZero(findSFile, makeStringNode, ExecutionAction.PATH, "irb");
                                 } else {
                                     return loadMainSourceSettingDollarZero(findSFile, makeStringNode, ExecutionAction.STDIN, toExecute);
@@ -212,16 +214,12 @@ public abstract class TruffleBootNodes {
                                 // language=ruby
                                 "find_s_file",
                                 makeStringNode.executeMake(toExecute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
-                        source = getContext().getSourceLoader().loadMainFile(
-                                this,
-                                StringOperations.getString(path));
+                        source = getContext().getSourceLoader().loadMainFile(this, StringOperations.getString(path));
                         dollarZeroValue = path;
                         break;
 
                     case STDIN:
-                        source = getContext().getSourceLoader().loadMainStdin(
-                                this,
-                                toExecute);
+                        source = getContext().getSourceLoader().loadMainStdin(this, toExecute);
                         dollarZeroValue = makeStringNode.executeMake("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
                         break;
 
@@ -314,15 +312,10 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "inner_check_syntax", onSingleton = true, required = 1)
     public abstract static class InnerCheckSyntaxNode extends CoreMethodArrayArgumentsNode {
 
-        private static final String[] EMPTY_ARGUMENT_NAMES = new String[]{};
-
         @TruffleBoundary
         @Specialization
-        public DynamicObject innerCheckSyntax(Source source) {
-            final TranslatorDriver translator = new TranslatorDriver(getContext());
-
-            translator.parse(source, UTF8Encoding.INSTANCE,
-                    ParserContext.TOP_LEVEL, EMPTY_ARGUMENT_NAMES, null, null, true, null);
+        public DynamicObject innerCheckSyntax(RubySource source) {
+            getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, null);
 
             return nil();
         }

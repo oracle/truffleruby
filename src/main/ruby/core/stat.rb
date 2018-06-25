@@ -107,11 +107,11 @@ class File
     end
 
     def blockdev?
-      mode & S_IFMT == S_IFBLK
+      Truffle::StatOperations.blockdev?(mode)
     end
 
     def chardev?
-      mode & S_IFMT == S_IFCHR
+      Truffle::StatOperations.chardev?(mode)
     end
 
     def dev_major
@@ -123,7 +123,7 @@ class File
     end
 
     def directory?
-      mode & S_IFMT == S_IFDIR
+      Truffle::StatOperations.directory?(mode)
     end
 
     def executable?
@@ -141,27 +141,11 @@ class File
     end
 
     def file?
-      mode & S_IFMT == S_IFREG
+      Truffle::StatOperations.file?(mode)
     end
 
     def ftype
-      if file?
-        'file'
-      elsif directory?
-        'directory'
-      elsif chardev?
-        'characterSpecial'
-      elsif blockdev?
-        'blockSpecial'
-      elsif pipe?
-        'fifo'
-      elsif socket?
-        'socket'
-      elsif symlink?
-        'link'
-      else
-        'unknown'
-      end
+      Truffle::StatOperations.ftype(mode)
     end
 
     def owned?
@@ -169,7 +153,7 @@ class File
     end
 
     def pipe?
-      mode & S_IFMT == S_IFIFO
+      Truffle::StatOperations.pipe?(mode)
     end
 
     def rdev_major
@@ -195,15 +179,15 @@ class File
     end
 
     def setgid?
-      mode & S_ISGID != 0
+      Truffle::StatOperations.setgid?(mode)
     end
 
     def setuid?
-      mode & S_ISUID != 0
+      Truffle::StatOperations.setuid?(mode)
     end
 
     def sticky?
-      mode & S_ISVTX != 0
+      Truffle::StatOperations.sticky?(mode)
     end
 
     def size?
@@ -211,25 +195,19 @@ class File
     end
 
     def socket?
-      mode & S_IFMT == S_IFSOCK
+      Truffle::StatOperations.socket?(mode)
     end
 
     def symlink?
-      mode & S_IFMT == S_IFLNK
+      Truffle::StatOperations.symlink?(mode)
     end
 
     def world_readable?
-      if mode & S_IROTH == S_IROTH
-        tmp = mode & (S_IRUGO | S_IWUGO | S_IXUGO)
-        Truffle::Type.coerce_to_int tmp
-      end
+      Truffle::StatOperations.world_readable?(mode)
     end
 
     def world_writable?
-      if mode & S_IWOTH == S_IWOTH
-        tmp = mode & (S_IRUGO | S_IWUGO | S_IXUGO)
-        Truffle::Type.coerce_to_int tmp
-      end
+      Truffle::StatOperations.world_writable?(mode)
     end
 
     def writable?

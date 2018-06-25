@@ -10,11 +10,11 @@
 package org.truffleruby.aot;
 
 import com.oracle.truffle.api.TruffleOptions;
-import com.oracle.truffle.api.source.Source;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.loader.SourceLoader;
 import org.truffleruby.shared.options.OptionsCatalog;
+import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.parser.parser.ParserConfiguration;
@@ -55,7 +55,7 @@ public class ParserCache {
         final DynamicScope dynamicScope = new DynamicScope(staticScope);
         final ParserConfiguration parserConfiguration = new ParserConfiguration(null, 0, false, true, false);
 
-        final Source source;
+        final RubySource source;
         try {
             source = SourceLoader.loadNoLogging(null, canonicalPath, true);
         } catch (IOException e) {

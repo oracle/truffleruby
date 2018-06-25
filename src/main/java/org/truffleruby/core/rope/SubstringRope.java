@@ -14,15 +14,15 @@ import org.jcodings.Encoding;
 
 public class SubstringRope extends ManagedRope {
 
-    private final Rope child;
+    private final ManagedRope child;
     private final int byteOffset;
 
-    public SubstringRope(Encoding encoding, Rope child, boolean singleByteOptimizable, int offset, int byteLength, int characterLength, CodeRange codeRange) {
+    public SubstringRope(Encoding encoding, ManagedRope child, boolean singleByteOptimizable, int offset, int byteLength, int characterLength, CodeRange codeRange) {
         // TODO (nirvdrum 07-Jan-16) Verify that this rope is only used for character substrings and not arbitrary byte slices. The former should always have the child's code range while the latter may not.
         this(child, encoding, singleByteOptimizable, offset, byteLength, characterLength, codeRange);
     }
 
-    private SubstringRope(Rope child, Encoding encoding, boolean singleByteOptimizable, int byteOffset, int byteLength, int characterLength, CodeRange codeRange) {
+    private SubstringRope(ManagedRope child, Encoding encoding, boolean singleByteOptimizable, int byteOffset, int byteLength, int characterLength, CodeRange codeRange) {
         // TODO (nirvdrum 07-Jan-16) Verify that this rope is only used for character substrings and not arbitrary byte slices. The former should always have the child's code range while the latter may not.
         super(encoding, codeRange, singleByteOptimizable, byteLength, characterLength, child.depth() + 1, null);
         this.child = child;
@@ -58,7 +58,7 @@ public class SubstringRope extends ManagedRope {
         return child.getByteSlow(index + byteOffset);
     }
 
-    public Rope getChild() {
+    public ManagedRope getChild() {
         return child;
     }
 

@@ -57,6 +57,7 @@ public abstract class RopeNodes {
     public abstract static class SubstringNode extends RubyNode {
 
         @Child private MakeSubstringRopeNode makeSubstringRopeNode = MakeSubstringRopeNode.create();
+        @Child private WithEncodingNode withEncodingNode;
 
         public static SubstringNode create() {
             return RopeNodesFactory.SubstringNodeGen.create(null, null, null);
@@ -75,8 +76,7 @@ public abstract class RopeNodes {
                                      @Cached("createBinaryProfile()") ConditionProfile isUTF8,
                                      @Cached("createBinaryProfile()") ConditionProfile isUSAscii,
                                      @Cached("createBinaryProfile()") ConditionProfile isAscii8Bit,
-                                     @Cached("create()") GetByteNode getByteNode,
-                                     @Cached("create()") WithEncodingNode withEncodingNode) {
+                                     @Cached("create()") GetByteNode getByteNode) {
             final int index = getByteNode.executeGetByte(base, byteOffset);
 
             if (isUTF8.profile(base.getEncoding() == UTF8Encoding.INSTANCE)) {
@@ -91,7 +91,7 @@ public abstract class RopeNodes {
                 return RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[index];
             }
 
-            return withEncodingNode.executeWithEncoding(RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[index], base.getEncoding(), CR_UNKNOWN);
+            return withEncoding(RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[index], base.getEncoding());
         }
 
         @Specialization(guards = { "byteLength > 1", "sameAsBase(base, byteLength)" })
@@ -109,8 +109,8 @@ public abstract class RopeNodes {
             return substringSubstringRopeWithEncoding(base.getEncoding(), base, byteOffset, byteLength);
         }
 
-        private Rope substringSubstringRopeWithEncoding(Encoding encoding, SubstringRope base, int byteOffset, int byteLength) {
-            return makeSubstringRopeNode.executeMake(encoding, base.getChild(), byteOffset + base.getByteOffset(), byteLength);
+        private Rope substringSubstringRopeWithEncoding(Encoding encoding, SubstringRope rope, int byteOffset, int byteLength) {
+            return makeSubstringRopeNode.executeMake(encoding, rope.getChild(), byteOffset + rope.getByteOffset(), byteLength);
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
@@ -119,17 +119,16 @@ public abstract class RopeNodes {
             return substringRepeatingRopeWithEncoding(base.getEncoding(), base, byteOffset, byteLength, matchesChildProfile);
         }
 
-        private Rope substringRepeatingRopeWithEncoding(Encoding encoding, RepeatingRope base, int byteOffset, int byteLength, ConditionProfile matchesChildProfile) {
-            final boolean offsetFitsChild = byteOffset % base.getChild().byteLength() == 0;
-            final boolean byteLengthFitsChild = byteLength == base.getChild().byteLength();
+        private Rope substringRepeatingRopeWithEncoding(Encoding encoding, RepeatingRope rope, int byteOffset, int byteLength, ConditionProfile matchesChildProfile) {
+            final boolean offsetFitsChild = byteOffset % rope.getChild().byteLength() == 0;
+            final boolean byteLengthFitsChild = byteLength == rope.getChild().byteLength();
 
             // TODO (nirvdrum 07-Apr-16) We can specialize any number of children that fit perfectly into the length, not just count == 1. But we may need to create a new RepeatingNode to handle count > 1.
             if (matchesChildProfile.profile(offsetFitsChild && byteLengthFitsChild)) {
-                // A RepeatingRope encoding is always the same as its child, so no need to check it
-                return base.getChild();
+                return withEncoding(rope.getChild(), encoding);
             }
 
-            return makeSubstringRopeNode.executeMake(encoding, base, byteOffset, byteLength);
+            return makeSubstringRopeNode.executeMake(encoding, rope, byteOffset, byteLength);
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
@@ -138,8 +137,9 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
-        public Rope substringNativeRope(NativeRope base, int byteOffset, int byteLength) {
-            return makeSubstringRopeNode.executeMake(base.getEncoding(), base.toLeafRope(), byteOffset, byteLength);
+        public Rope substringNativeRope(NativeRope base, int byteOffset, int byteLength,
+                @Cached("create()") NativeToManagedNode nativeToManagedNode) {
+            return makeSubstringRopeNode.executeMake(base.getEncoding(), nativeToManagedNode.execute(base), byteOffset, byteLength);
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
@@ -167,7 +167,7 @@ public abstract class RopeNodes {
 
                 // CASE 3: Spans left and right.
                 if (byteLength == root.byteLength()) {
-                    return root;
+                    return withEncoding(root, base.getEncoding());
                 } else {
                     return makeSubstringRopeNode.executeMake(base.getEncoding(), root, byteOffset, byteLength);
                 }
@@ -180,6 +180,15 @@ public abstract class RopeNodes {
             }
 
             return makeSubstringRopeNode.executeMake(base.getEncoding(), root, byteOffset, byteLength);
+        }
+
+        private Rope withEncoding(Rope rope, Encoding encoding) {
+            if (withEncodingNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                withEncodingNode = insert(WithEncodingNode.create());
+            }
+
+            return withEncodingNode.executeWithEncoding(rope, encoding);
         }
 
         protected static boolean sameAsBase(Rope base, int byteLength) {
@@ -207,7 +216,7 @@ public abstract class RopeNodes {
         public abstract Rope executeMake(Encoding encoding, Rope base, int byteOffset, int byteLength);
 
         @Specialization(guards = "is7Bit(base.getCodeRange())")
-        public Rope makeSubstring7Bit(Encoding encoding, Rope base, int byteOffset, int byteLength) {
+        public Rope makeSubstring7Bit(Encoding encoding, ManagedRope base, int byteOffset, int byteLength) {
             if (getContext().getOptions().ROPE_LAZY_SUBSTRINGS) {
                 return new SubstringRope(encoding, base, true, byteOffset, byteLength, byteLength, CR_7BIT);
             } else {
@@ -216,7 +225,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = "!is7Bit(base.getCodeRange())")
-        public Rope makeSubstringNon7Bit(Encoding encoding, Rope base, int byteOffset, int byteLength,
+        public Rope makeSubstringNon7Bit(Encoding encoding, ManagedRope base, int byteOffset, int byteLength,
                 @Cached("create()") CalculateAttributesNode calculateAttributesNode) {
 
             final StringAttributes attributes = calculateAttributesNode.executeCalculateAttributes(encoding, RopeOperations.extractRange(base, byteOffset, byteLength));
@@ -237,6 +246,27 @@ public abstract class RopeNodes {
 
                 return makeLeafRopeNode.executeMake(bytes, encoding, codeRange, characterLength);
             }
+        }
+
+        @Specialization
+        public Rope makeSubstringNativeRope(Encoding encoding, NativeRope base, int byteOffset, int byteLength,
+                @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile,
+                @Cached("create()") MakeLeafRopeNode makeLeafRopeNode) {
+            final byte[] bytes = new byte[byteLength];
+            base.copyTo(byteOffset, bytes, 0, byteLength);
+
+            final CodeRange codeRange;
+            final Object characterLength;
+
+            if (asciiOnlyProfile.profile(base.isAsciiOnly())) {
+                codeRange = CR_7BIT;
+                characterLength = byteLength;
+            } else {
+                codeRange = CR_UNKNOWN;
+                characterLength = NotProvided.INSTANCE;
+            }
+
+            return makeLeafRopeNode.executeMake(bytes, encoding, codeRange, characterLength);
         }
 
         protected static boolean is7Bit(CodeRange codeRange) {
@@ -388,20 +418,32 @@ public abstract class RopeNodes {
 
         public abstract Rope executeConcat(Rope left, Rope right, Encoding encoding);
 
-        @TruffleBoundary
         @Specialization
-        public Rope concatNativeRopeLeft(NativeRope left, Rope right, Encoding encoding) {
-            return executeConcat(left.toLeafRope(), right, encoding);
+        public Rope concatNativeRopeLeft(NativeRope left, Rope right, Encoding encoding,
+                @Cached("create()") NativeToManagedNode nativeToManagedNode) {
+            return executeConcat(nativeToManagedNode.execute(left), right, encoding);
         }
 
-        @TruffleBoundary
         @Specialization
-        public Rope concatNativeRopeRight(Rope left, NativeRope right, Encoding encoding) {
-            return executeConcat(left, right.toLeafRope(), encoding);
+        public Rope concatNativeRopeRight(Rope left, NativeRope right, Encoding encoding,
+                @Cached("create()") NativeToManagedNode nativeToManagedNode) {
+            return executeConcat(left, nativeToManagedNode.execute(right), encoding);
         }
 
-        @Specialization(guards = { "!isNativeRope(left)", "!isNativeRope(right)", "!isCodeRangeBroken(left, right)" })
-        public Rope concat(Rope left, Rope right, Encoding encoding,
+        @Specialization(guards = "left.isEmpty()")
+        public Rope concatLeftEmpty(Rope left, ManagedRope right, Encoding encoding,
+                @Cached("create()") WithEncodingNode withEncodingNode) {
+            return withEncodingNode.executeWithEncoding(right, encoding);
+        }
+
+        @Specialization(guards = "right.isEmpty()")
+        public Rope concatRightEmpty(ManagedRope left, Rope right, Encoding encoding,
+                @Cached("create()") WithEncodingNode withEncodingNode) {
+            return withEncodingNode.executeWithEncoding(left, encoding);
+        }
+
+        @Specialization(guards = { "!left.isEmpty()", "!right.isEmpty()", "!isCodeRangeBroken(left, right)" })
+        public Rope concat(ManagedRope left, ManagedRope right, Encoding encoding,
                            @Cached("createBinaryProfile()") ConditionProfile sameCodeRangeProfile,
                            @Cached("createBinaryProfile()") ConditionProfile brokenCodeRangeProfile,
                            @Cached("createBinaryProfile()") ConditionProfile isLeftSingleByteOptimizableProfile,
@@ -467,18 +509,18 @@ public abstract class RopeNodes {
         }
 
         @TruffleBoundary
-        private Rope rebalance(ConcatRope rope, int depthThreshold, FlattenNode flattenNode) {
-            Deque<Rope> currentRopeQueue = new ArrayDeque<>();
-            Deque<Rope> nextLevelQueue = new ArrayDeque<>();
+        private ManagedRope rebalance(ConcatRope rope, int depthThreshold, FlattenNode flattenNode) {
+            Deque<ManagedRope> currentRopeQueue = new ArrayDeque<>();
+            Deque<ManagedRope> nextLevelQueue = new ArrayDeque<>();
 
             linearizeTree(rope.getLeft(), currentRopeQueue);
             linearizeTree(rope.getRight(), currentRopeQueue);
 
             final int flattenThreshold = depthThreshold / 2;
 
-            Rope root = null;
+            ManagedRope root = null;
             while (!currentRopeQueue.isEmpty()) {
-                Rope left = currentRopeQueue.pop();
+                ManagedRope left = currentRopeQueue.pop();
 
                 if (left.depth() >= flattenThreshold) {
                     left = flattenNode.executeFlatten(left);
@@ -489,20 +531,20 @@ public abstract class RopeNodes {
                         root = left;
                     } else {
                         // If a rope can't be paired with another rope at the current level (i.e., odd numbers of ropes),
-                        // it needs to be promoted to the next level where it be tried again. Since by definition every
-                        // rope already present in the next level must have occurred before this rope in the current
+                        // it needs to be promoted to the next level where it will be tried again. Since by definition
+                        // every rope already present in the next level must have occurred before this rope in the current
                         // level, this rope must be added to the end of the list in the next level to maintain proper
                         // position.
                         nextLevelQueue.add(left);
                     }
                 } else {
-                    Rope right = currentRopeQueue.pop();
+                    ManagedRope right = currentRopeQueue.pop();
 
                     if (right.depth() >= flattenThreshold) {
                         right = flattenNode.executeFlatten(right);
                     }
 
-                    final Rope child = new ConcatRope(left, right, rope.getEncoding(),
+                    final ManagedRope child = new ConcatRope(left, right, rope.getEncoding(),
                                                       commonCodeRange(left.getCodeRange(), right.getCodeRange()),
                                     left.isSingleByteOptimizable() && right.isSingleByteOptimizable(),
                                                       depth(left, right), isBalanced(left, right));
@@ -520,7 +562,7 @@ public abstract class RopeNodes {
         }
 
         @TruffleBoundary
-        private void linearizeTree(Rope rope, Deque<Rope> ropeQueue) {
+        private void linearizeTree(ManagedRope rope, Deque<ManagedRope> ropeQueue) {
             if (rope instanceof ConcatRope) {
                 final ConcatRope concatRope = (ConcatRope) rope;
 
@@ -537,8 +579,8 @@ public abstract class RopeNodes {
             }
         }
 
-        @Specialization(guards = { "!isNativeRope(left)", "!isNativeRope(right)", "isCodeRangeBroken(left, right)" })
-        public Rope concatCrBroken(Rope left, Rope right, Encoding encoding,
+        @Specialization(guards = { "!left.isEmpty()", "!right.isEmpty()", "isCodeRangeBroken(left, right)" })
+        public Rope concatCrBroken(ManagedRope left, ManagedRope right, Encoding encoding,
                                    @Cached("create()") MakeLeafRopeNode makeLeafRopeNode) {
             // This specialization was added to a special case where broken code range(s),
             // may concat to form a valid code range.
@@ -792,7 +834,7 @@ public abstract class RopeNodes {
         @Specialization(guards = "times == 0")
         public Rope repeatZero(Rope base, int times,
                                @Cached("create()") WithEncodingNode withEncodingNode) {
-            return withEncodingNode.executeWithEncoding(RopeConstants.EMPTY_UTF8_ROPE, base.getEncoding(), CodeRange.CR_7BIT);
+            return withEncodingNode.executeWithEncoding(RopeConstants.EMPTY_UTF8_ROPE, base.getEncoding());
         }
 
         @Specialization(guards = "times == 1")
@@ -824,8 +866,9 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "!isSingleByteString(base)", "times > 1" })
-        public Rope repeatNative(NativeRope base, int times) {
-            return executeRepeat(base.toLeafRope(), times);
+        public Rope repeatNative(NativeRope base, int times,
+                @Cached("create()") NativeToManagedNode nativeToManagedNode) {
+            return executeRepeat(nativeToManagedNode.execute(base), times);
         }
 
     }
@@ -969,63 +1012,93 @@ public abstract class RopeNodes {
 
     @NodeChildren({
             @NodeChild(type = RubyNode.class, value = "rope"),
-            @NodeChild(type = RubyNode.class, value = "encoding"),
-            @NodeChild(type = RubyNode.class, value = "codeRange")
+            @NodeChild(type = RubyNode.class, value = "encoding")
     })
     public abstract static class WithEncodingNode extends RubyNode {
 
+        @Child private BytesNode bytesNode;
+        @Child private MakeLeafRopeNode makeLeafRopeNode;
+
         public static WithEncodingNode create() {
-            return RopeNodesFactory.WithEncodingNodeGen.create(null, null, null);
+            return RopeNodesFactory.WithEncodingNodeGen.create(null, null);
         }
 
-        public abstract Rope executeWithEncoding(Rope rope, Encoding encoding, CodeRange codeRange);
+        public abstract Rope executeWithEncoding(Rope rope, Encoding encoding);
 
         @Specialization(guards = "rope.getEncoding() == encoding")
-        public Rope withEncodingSameEncoding(Rope rope, Encoding encoding, CodeRange codeRange) {
+        protected Rope withEncodingSameEncoding(Rope rope, Encoding encoding) {
             return rope;
         }
 
-        @Specialization(guards = {
-                "rope.getEncoding() != encoding"
-        })
-        public Rope nativeRopeWithEncoding(NativeRope rope, Encoding encoding, CodeRange codeRange,
-                @Cached("create()") MakeLeafRopeNode makeLeafRopeNode,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
-            return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, codeRange, NotProvided.INSTANCE);
+        @Specialization(guards = "rope.getEncoding() != encoding")
+        protected Rope nativeRopeWithEncoding(NativeRope rope, Encoding encoding) {
+            return rescanBytesForEncoding(rope, encoding);
         }
 
         @Specialization(guards = {
                 "rope.getEncoding() != encoding",
-                "rope.getCodeRange() == codeRange"
-        })
-        public Rope withEncodingSameCodeRange(ManagedRope rope, Encoding encoding, CodeRange codeRange) {
-            return rope.withEncoding(encoding, codeRange);
-        }
-
-        @Specialization(guards = {
-                "rope.getEncoding() != encoding",
-                "rope.getCodeRange() != codeRange",
-                "isAsciiCompatibleChange(rope, encoding)",
-                "rope.getClass() == cachedRopeClass"
+                "rope.getClass() == cachedRopeClass",
         }, limit = "getCacheLimit()")
-        public Rope withEncodingCr7Bit(ManagedRope rope, Encoding encoding, CodeRange codeRange,
-                @Cached("rope.getClass()") Class<? extends Rope> cachedRopeClass) {
-            return cachedRopeClass.cast(rope).withEncoding(encoding, CodeRange.CR_7BIT);
+        protected Rope withEncodingAsciiCompatible(ManagedRope rope, Encoding encoding,
+                @Cached("rope.getClass()") Class<? extends Rope> cachedRopeClass,
+                @Cached("createBinaryProfile()") ConditionProfile asciiCompatibleProfile,
+                @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile,
+                @Cached("createBinaryProfile()") ConditionProfile binaryEncodingProfile) {
+
+            if (asciiCompatibleProfile.profile(encoding.isAsciiCompatible())) {
+                if (asciiOnlyProfile.profile(rope.isAsciiOnly())) {
+                    // ASCII-only strings can trivially convert to other ASCII-compatible encodings.
+                    return cachedRopeClass.cast(rope).withEncoding(encoding, CR_7BIT);
+                } else if (binaryEncodingProfile.profile(encoding == ASCIIEncoding.INSTANCE &&
+                        rope.getCodeRange() == CR_VALID &&
+                        rope.getEncoding().isAsciiCompatible())) {
+                    // ASCII-compatible CR_VALID strings are also CR_VALID in binary.
+                    return cachedRopeClass.cast(rope).withEncoding(ASCIIEncoding.INSTANCE, CR_VALID);
+                } else {
+                    // The rope either has a broken code range or isn't ASCII-compatible. In the case of a broken
+                    // code range, we must perform a new code range scan with the target encoding to see if it's still
+                    // broken. In the case of a non-ASCII-compatible encoding we don't have a quick way to reinterpret
+                    // the byte sequence.
+                    return rescanBytesForEncoding(rope, encoding);
+                }
+            } else {
+                // We don't know of any good way to quickly reinterpret bytes from two different encodings, so we
+                // must perform a full code range scan and character length calculation.
+                return rescanBytesForEncoding(rope, encoding);
+            }
         }
 
-        @Specialization(guards = {
-                "rope.getEncoding() != encoding",
-                "rope.getCodeRange() != codeRange",
-                "!isAsciiCompatibleChange(rope, encoding)"
-        })
-        public Rope withSlowEncoding(ManagedRope rope, Encoding encoding, CodeRange codeRange,
-                @Cached("create()") MakeLeafRopeNode makeLeafRopeNode,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
-            return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, codeRange, NotProvided.INSTANCE);
+        // Version without a node
+        @TruffleBoundary
+        public static Rope withEncodingSlow(Rope originalRope, Encoding newEncoding) {
+            if (originalRope.getEncoding() == newEncoding) {
+                return originalRope;
+            }
+
+            if (originalRope.getCodeRange() == CR_7BIT && newEncoding.isAsciiCompatible()) {
+                return originalRope.withEncoding(newEncoding, CR_7BIT);
+            }
+
+            if (newEncoding == ASCIIEncoding.INSTANCE && originalRope.getCodeRange() == CR_VALID && originalRope.getEncoding().isAsciiCompatible()) {
+                // ASCII-compatible CR_VALID strings are also CR_VALID in binary.
+                return originalRope.withEncoding(newEncoding, CR_VALID);
+            }
+
+            return RopeOperations.create(originalRope.getBytes(), newEncoding, CR_UNKNOWN);
         }
 
-        protected static boolean isAsciiCompatibleChange(Rope rope, Encoding encoding) {
-            return rope.getCodeRange() == CR_7BIT && encoding.isAsciiCompatible();
+        private Rope rescanBytesForEncoding(Rope rope, Encoding encoding) {
+            if (bytesNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                bytesNode = insert(BytesNode.create());
+            }
+
+            if (makeLeafRopeNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                makeLeafRopeNode = insert(MakeLeafRopeNode.create());
+            }
+
+            return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, CR_UNKNOWN, NotProvided.INSTANCE);
         }
 
         protected int getCacheLimit() {
@@ -1508,6 +1581,28 @@ public abstract class RopeNodes {
             }
 
             return n;
+        }
+
+    }
+
+    @NodeChild(type = RubyNode.class, value = "rope")
+    public abstract static class NativeToManagedNode extends RubyNode {
+
+        public static NativeToManagedNode create() {
+            return RopeNodesFactory.NativeToManagedNodeGen.create(null);
+        }
+
+        public abstract LeafRope execute(NativeRope rope);
+
+        @Specialization
+        protected LeafRope nativeToManaged(NativeRope rope,
+                @Cached("create()") BytesNode bytesNode,
+                @Cached("create()") MakeLeafRopeNode makeLeafRopeNode) {
+            // Ideally, a NativeRope would always have an accurate code range and character length. However, in practice,
+            // it's possible for a bad code range to be associated with the rope due to native memory being updated by
+            // 3rd party libraries. So, we must re-calculate the code range and character length values upon conversion
+            // to a ManagedRope.
+            return makeLeafRopeNode.executeMake(bytesNode.execute(rope), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE);
         }
 
     }

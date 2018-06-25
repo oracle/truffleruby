@@ -4,10 +4,11 @@ suite = {
 
     "imports": {
         "suites": [
-            {
-                "name": "truffle",
+            { # Import only the tools suite which depends on truffle, to avoid duplicating import versions.
+              # We want tools to be reliably available with TruffleRuby, even with "mx build", so this is a static import.
+                "name": "tools",
                 "subdir": True,
-                "version": "7d0f63af89a80ab94b8d4f6a0d4c3f9ef1d4b881",
+                "version": "ff6b87789b5990692333bf1fe4f9a6cabbff0bbd",
                 "urls": [
                     {"url": "https://github.com/graalvm/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -15,7 +16,7 @@ suite = {
             },
             {
                 "name": "sulong",
-                "version": "cb47708b29c7f33dbf822cb6a5e75c07af877817",
+                "version": "d3551b17bcab3dd0c8b4d82f922ee4d48980274e",
                 "urls": [
                     {"url": "https://github.com/graalvm/sulong.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -291,6 +292,8 @@ suite = {
                 "TRUFFLERUBY",
                 "TRUFFLERUBY-LAUNCHER",
                 "sulong:SULONG",
+                "tools:CHROMEINSPECTOR",
+                "tools:TRUFFLE_PROFILER",
             ],
             "outputDir": "bin",
             "prefix": "bin",

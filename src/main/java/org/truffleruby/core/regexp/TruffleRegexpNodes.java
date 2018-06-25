@@ -335,7 +335,7 @@ public class TruffleRegexpNodes {
 
             Regex regexp = new Regex(unescaped.getUnsafeBytes(), 0, unescaped.getLength(), options.toJoniOptions(),
                     enc, Syntax.RUBY, new RegexWarnCallback(context));
-            regexp.setUserObject(RopeOperations.withEncodingVerySlow(bytes, enc));
+            regexp.setUserObject(RopeOperations.withEncoding(bytes, enc));
 
             if (context.getOptions().REGEXP_INSTRUMENT_CREATION) {
                 final RegexpCacheKey key = new RegexpCacheKey(bytes, enc, options.toJoniOptions(), context.getHashing(REHASH_COMPILED_REGEXPS));

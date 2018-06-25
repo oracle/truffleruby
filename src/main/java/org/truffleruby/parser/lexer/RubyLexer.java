@@ -85,15 +85,18 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.function.BiConsumer;
 
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 
+import static org.truffleruby.core.string.StringSupport.isAsciiSpace;
+
 /*
  * This is a port of the MRI lexer to Java.
  */
-public class RubyLexer {
+public class RubyLexer implements MagicCommentHandler {
 
     private final ParserRopeOperations parserRopeOperations = new ParserRopeOperations();
 
@@ -277,19 +280,15 @@ public class RubyLexer {
         if (lex_p == lex_pend) {
             line_offset += lex_pend;
 
-            Rope v = lex_nextline;
-            lex_nextline = null;
+            if (eofp) {
+                return EOF;
+            }
 
-            if (v == null) {
-                if (eofp) {
-                    return EOF;
-                }
-
-                if (src == null || (v = src.gets()) == null) {
-                    eofp = true;
-                    lex_goto_eol();
-                    return EOF;
-                }
+            final Rope v;
+            if (src == null || (v = src.gets()) == null) {
+                eofp = true;
+                lex_goto_eol();
+                return EOF;
             }
 
             if (heredoc_end > 0) {
@@ -836,7 +835,7 @@ public class RubyLexer {
                 // no point in looking for them. However, if warnings are enabled, we do need to scan for the magic comment
                 // so we can report that it will be ignored.
                 if (!tokenSeen || (!TruffleOptions.AOT && parserSupport.getContext().getCoreLibrary().warningsEnabled())) {
-                    if (!parser_magic_comment(lexb, lex_p, lex_pend - lex_p)) {
+                    if (!parser_magic_comment(lexb, lex_p, lex_pend - lex_p, parserRopeOperations, this)) {
                             if (comment_at_top()) {
                                 set_file_encoding(lex_p, lex_pend);
                             }
@@ -1090,112 +1089,190 @@ public class RubyLexer {
         return c;
     }
 
-    // MRI: parser_magic_comment
-    public boolean parser_magic_comment(Rope magicLine, int magicLineOffset, int magicLineLength) {
-        boolean indicator = false;
-        int vbeg, vend;
-        int length = magicLineLength;
-        int str = magicLineOffset;
-        int end;
+    private static boolean hasShebangLine(byte[] bytes) {
+        return bytes.length > 2 && bytes[0] == '#' && bytes[1] == '!';
+    }
 
-        if (length <= 7) {
+    private static int newLineIndex(byte[] bytes, int start) {
+        for (int i = start; i < bytes.length; i++) {
+            if (bytes[i] == '\n') {
+                return i;
+            }
+        }
+
+        return bytes.length;
+    }
+
+    /**
+     * Peak in source to see if there is a magic comment. This is used by eval() & friends to know
+     * the actual encoding of the source code, and be able to convert to a Java String faithfully.
+     */
+    public static void parseMagicComment(Rope source, BiConsumer<String, Rope> magicCommentHandler) {
+        final byte[] bytes = source.getBytes();
+        final int length = source.byteLength();
+        int start = 0;
+
+        if (hasShebangLine(bytes)) {
+            start = newLineIndex(bytes, 2) + 1;
+        }
+
+        // Skip leading spaces but don't jump to another line
+        while (start < length && isAsciiSpace(bytes[start]) && bytes[start] != '\n') {
+            start++;
+        }
+
+        if (start < length && bytes[start] == '#') {
+            start++;
+
+            final int magicLineStart = start;
+            int endOfMagicLine = newLineIndex(bytes, magicLineStart);
+            if (endOfMagicLine < length) {
+                endOfMagicLine++;
+            }
+            int magicLineLength = endOfMagicLine - magicLineStart;
+
+            parser_magic_comment(source, magicLineStart, magicLineLength, new ParserRopeOperations(), (name, value) -> {
+                magicCommentHandler.accept(name, value);
+                return isKnownMagicComment(name);
+            });
+        }
+    }
+
+    // MRI: parser_magic_comment
+    private static boolean parser_magic_comment(Rope magicLine, int magicLineOffset, int magicLineLength,
+            ParserRopeOperations parserRopeOperations, MagicCommentHandler magicCommentHandler) {
+
+        boolean emacsStyle = false;
+        int i = magicLineOffset;
+        int end = magicLineOffset + magicLineLength;
+
+        if (magicLineLength <= 7) {
             return false;
         }
-        int beg = magicCommentMarker(magicLine, 0);
-        if (beg >= 0) {
-            end = magicCommentMarker(magicLine, beg);
-            if (end < 0) {
+
+        final int emacsBegin = findEmacsStyleMarker(magicLine, 0, end);
+        if (emacsBegin >= 0) {
+            final int emacsEnd = findEmacsStyleMarker(magicLine, emacsBegin, end);
+            if (emacsEnd < 0) {
                 return false;
             }
-            indicator = true;
-            str = beg;
-            length = end - beg - 3; // -3 is to backup over end just found
+            emacsStyle = true;
+            i = emacsBegin;
+            end = emacsEnd - 3; // -3 is to backup over the final -*- we just found
         }
 
-        /* %r"([^\\s\'\":;]+)\\s*:\\s*(\"(?:\\\\.|[^\"])*\"|[^\"\\s;]+)[\\s;]*" */
-        while (length > 0) {
-            for (; length > 0; str++, --length) {
-                byte c = magicLine.get(str);
+        while (i < end) { // in Emacs mode, there can be multiple name/value pairs on the same line
 
-                switch (c) {
-                    case '\'': case '"': case ':': case ';': continue;
-                }
-                if (!Character.isWhitespace(c)) {
+            // Manual parsing corresponding to this Regexp.
+            // Done manually as we want to parse bytes and don't know the encoding yet, and to optimize speed.
+
+            // / [\s'":;]* (?<name> [^\s'":;]+ ) \s* : \s* (?<value> "(?:\\.|[^"])*" | [^";\s]+ ) [\s;]* /x
+
+            // Ignore leading whitespace or '":;
+            while (i < end) {
+                byte c = magicLine.get(i);
+
+                if (isIgnoredMagicLineCharacter(c) || isAsciiSpace(c)) {
+                    i++;
+                } else {
                     break;
                 }
             }
 
-            for (beg = str; length > 0; str++, --length) {
-                byte c = magicLine.get(str);
+            final int nameBegin = i;
 
-                switch (c) {
-                    case '\'': case '"': case ':': case ';': break;
-                    default:
-                        if (Character.isWhitespace(c)) {
-                            break;
-                        }
-                        continue;
+            // Consume anything except [\s'":;]
+            while (i < end) {
+                byte c = magicLine.get(i);
+
+                if (isIgnoredMagicLineCharacter(c) || isAsciiSpace(c)) {
+                    break;
+                } else {
+                    i++;
                 }
+            }
+
+            final int nameEnd = i;
+
+            // Ignore whitespace
+            while (i < end && isAsciiSpace(magicLine.get(i))) {
+                i++;
+            }
+
+            if (i == end) {
                 break;
             }
 
-            for (end = str; length > 0 && Character.isWhitespace(magicLine.get(str)); str++, --length) { }
-            if (length == 0) {
-                break;
-            }
-
-            byte c = magicLine.get(str);
-            if (c != ':') {
-                if (!indicator) {
+            // Expect ':' between name and value
+            final byte sep = magicLine.get(i);
+            if (sep == ':') {
+                i++;
+            } else {
+                if (!emacsStyle) {
                     return false;
                 }
                 continue;
             }
 
-            do {
-                str++;
-            } while (--length > 0 && Character.isWhitespace(magicLine.get(str)));
+            // Ignore whitespace
+            while (i < end && isAsciiSpace(magicLine.get(i))) {
+                i++;
+            }
 
-            if (length == 0) {
+            if (i == end) {
                 break;
             }
 
-            if (magicLine.get(str) == '"') {
-                for (vbeg = ++str; --length > 0 && str < length && magicLine.get(str) != '"'; str++) {
-                    if (magicLine.get(str) == '\\') {
-                        --length;
-                        ++str;
+            final int valueBegin, valueEnd;
+
+            if (magicLine.get(i) == '"') { // quoted value
+                valueBegin = ++i;
+                while (i < end && magicLine.get(i) != '"') {
+                    if (magicLine.get(i) == '\\') {
+                        i += 2;
+                    } else {
+                        i++;
                     }
                 }
-                vend = str;
-                if (length > 0) {
-                    --length;
-                    ++str;
+                valueEnd = i;
+
+                // Skip the final "
+                if (i < end) {
+                    i++;
                 }
             } else {
-                for (vbeg = str; length > 0 && magicLine.get(str) != '"' && magicLine.get(str) != ';' && !Character.isWhitespace(magicLine.get(str)); --length, str++) { }
-                vend = str;
+                valueBegin = i;
+                while (i < end) {
+                    byte c = magicLine.get(i);
+                    if (c != '"' && c != ';' && !isAsciiSpace(c)) {
+                        i++;
+                    } else {
+                        break;
+                    }
+                }
+                valueEnd = i;
             }
 
-            if (indicator) {
-                while (length > 0 && (magicLine.get(str) == ';' || Character.isWhitespace(magicLine.get(str)))) {
-                    --length;
-                    str++;
+            if (emacsStyle) {
+                // Ignore trailing whitespace or ;
+                while (i < end && (magicLine.get(i) == ';' || isAsciiSpace(magicLine.get(i)))) {
+                    i++;
                 }
             } else {
-                while (length > 0 && Character.isWhitespace(magicLine.get(str))) {
-                    --length;
-                    str++;
+                // Ignore trailing whitespace
+                while (i < end && isAsciiSpace(magicLine.get(i))) {
+                    i++;
                 }
-                if (length > 0) {
+
+                if (i < end) {
                     return false;
                 }
             }
 
-            String name = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, magicLine).subSequence(beg, end).toString().replace('-', '_');
-            Rope value = parserRopeOperations.makeShared(magicLine, vbeg, vend - vbeg);
+            final String name = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, magicLine).subSequence(nameBegin, nameEnd).toString().replace('-', '_');
+            final Rope value = parserRopeOperations.makeShared(magicLine, valueBegin, valueEnd - valueBegin);
 
-            if (!onMagicComment(name, value)) {
+            if (!magicCommentHandler.onMagicComment(name, value)) {
                 return false;
             }
         }
@@ -1203,8 +1280,53 @@ public class RubyLexer {
         return true;
     }
 
-    protected boolean onMagicComment(String name, Rope value) {
-        if ("coding".equalsIgnoreCase(name) || "encoding".equalsIgnoreCase(name)) {
+    private static boolean isIgnoredMagicLineCharacter(byte c) {
+        switch (c) {
+            case '\'': case '"': case ':': case ';':
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /* MRI: magic_comment_marker
+     * Find -*-, as in emacs "file local variable" (special comment at the top of the file) */
+    private static int findEmacsStyleMarker(Rope str, int begin, int end) {
+        final byte[] bytes = str.getBytes();
+        int i = begin;
+
+        while (i < end) {
+            switch (bytes[i]) {
+                case '-':
+                    if (i >= 2 && bytes[i - 1] == '*' && bytes[i - 2] == '-') {
+                        return i + 1;
+                    }
+                    i += 2;
+                    break;
+                case '*':
+                    if (i + 1 >= end) {
+                        return -1;
+                    }
+
+                    if (bytes[i + 1] != '-') {
+                        i += 4;
+                    } else if (bytes[i - 1] != '-') {
+                        i += 2;
+                    } else {
+                        return i + 2;
+                    }
+                    break;
+                default:
+                    i += 3;
+                    break;
+            }
+        }
+        return -1;
+    }
+
+    @Override
+    public boolean onMagicComment(String name, Rope value) {
+        if (isMagicEncodingComment(name)) {
             magicCommentEncoding(value);
             return true;
         } else if ("frozen_string_literal".equalsIgnoreCase(name)) {
@@ -1215,6 +1337,22 @@ public class RubyLexer {
             return true;
         }
         return false;
+    }
+
+    private static boolean isKnownMagicComment(String name) {
+        if (isMagicEncodingComment(name)) {
+            return true;
+        } else if ("frozen_string_literal".equalsIgnoreCase(name)) {
+            return true;
+        } else if ("warn_indent".equalsIgnoreCase(name)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static boolean isMagicEncodingComment(String name) {
+        return "coding".equalsIgnoreCase(name) || "encoding".equalsIgnoreCase(name);
     }
 
     private int at() {
@@ -2613,7 +2751,6 @@ public class RubyLexer {
     private int leftParenBegin = 0;
     public Rope lexb = null;
     public Rope lex_lastline = null;
-    protected Rope lex_nextline = null;
     public int lex_p = 0;                  // Where current position is in current line
     protected int lex_pbeg = 0;
     public int lex_pend = 0;               // Where line ends
@@ -2633,6 +2770,7 @@ public class RubyLexer {
     public int tokp = 0;                   // Where last token started
     protected Object yaccValue;               // Value of last token which had a value associated with it.
 
+    // MRI: comment_at_top
     protected boolean comment_at_top() {
         int p = lex_pbeg;
         int pend = lex_p - 1;
@@ -2640,7 +2778,7 @@ public class RubyLexer {
             return false;
         }
         while (p < pend) {
-            if (!Character.isSpaceChar(p(p))) {
+            if (!isAsciiSpace(p(p))) {
                 return false;
             }
             p++;
@@ -3219,7 +3357,7 @@ public class RubyLexer {
 
     protected void warn_balanced(int c, boolean spaceSeen, String op, String syn) {
         if (!isLexState(last_state, EXPR_CLASS | EXPR_DOT | EXPR_FNAME | EXPR_ENDFN | EXPR_ENDARG) && spaceSeen &&
-                !Character.isWhitespace(c)) {
+                !isAsciiSpace(c)) {
             ambiguousOperator(op, syn);
         }
     }
@@ -3235,7 +3373,7 @@ public class RubyLexer {
         if (indent) {
             for (int i = 0; i < lex_pend; i++) {
                 if (!Character.isWhitespace(p(i + p))) {
-                    p += i;
+                    p += i; // TODO (eregon, 24-Jun-2018): this looks wrong and doesn't seem to match MRI
                     break;
                 }
             }
@@ -3348,44 +3486,6 @@ public class RubyLexer {
 
     protected boolean isSpaceArg(int c, boolean spaceSeen) {
         return isARG() && spaceSeen && !Character.isWhitespace(c);
-    }
-
-    /* MRI: magic_comment_marker */
-    /* This impl is a little sucky.  We basically double scan the same bytelist twice.  Once here
-     * and once in parseMagicComment.
-     */
-    public static int magicCommentMarker(Rope str, int begin) {
-        int i = begin;
-        int len = str.byteLength();
-
-        final byte[] bytes = str.getBytes();
-        while (i < len) {
-            switch (bytes[i]) {
-                case '-':
-                    if (i >= 2 && bytes[i - 1] == '*' && bytes[i - 2] == '-') {
-                        return i + 1;
-                    }
-                    i += 2;
-                    break;
-                case '*':
-                    if (i + 1 >= len) {
-                        return -1;
-                    }
-
-                    if (bytes[i + 1] != '-') {
-                        i += 4;
-                    } else if (bytes[i - 1] != '-') {
-                        i += 2;
-                    } else {
-                        return i + 2;
-                    }
-                    break;
-                default:
-                    i += 3;
-                    break;
-            }
-        }
-        return -1;
     }
 
 }

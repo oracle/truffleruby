@@ -30,6 +30,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.encoding.EncodingManager;
+import org.truffleruby.core.rope.RopeNodes.WithEncodingNode;
 import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
@@ -125,25 +126,8 @@ public class RopeOperations {
         }
     }
 
-    @TruffleBoundary
-    public static Rope withEncodingVerySlow(Rope originalRope, Encoding newEncoding, CodeRange newCodeRange) {
-        if ((originalRope.getEncoding() == newEncoding) && (originalRope.getCodeRange() == newCodeRange)) {
-            return originalRope;
-        }
-
-        if (originalRope.getCodeRange() == newCodeRange) {
-            return originalRope.withEncoding(newEncoding, newCodeRange);
-        }
-
-        if ((originalRope.getCodeRange() == CR_7BIT) && newEncoding.isAsciiCompatible()) {
-            return originalRope.withEncoding(newEncoding, CR_7BIT);
-        }
-
-        return create(originalRope.getBytes(), newEncoding, newCodeRange);
-    }
-
-    public static Rope withEncodingVerySlow(Rope originalRope, Encoding newEncoding) {
-        return withEncodingVerySlow(originalRope, newEncoding, originalRope.getCodeRange());
+    public static Rope withEncoding(Rope originalRope, Encoding newEncoding) {
+        return WithEncodingNode.withEncodingSlow(originalRope, newEncoding);
     }
 
     public static Rope encodeAscii(String value, Encoding encoding) {

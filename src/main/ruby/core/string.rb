@@ -283,13 +283,11 @@ class String
   end
 
   def to_sub_replacement(result, match)
-    data = bytes
     index = 0
     while index < bytesize
-      current = index
-      while current < bytesize && data[current] != 92  # ?\\
-        current += 1
-      end
+      current = Truffle.invoke_primitive(:find_string, self, '\\', index)
+      current = bytesize if current.nil?
+
       result.append(byteslice(index, current - index))
       break if current == bytesize
 
@@ -300,7 +298,7 @@ class String
       end
       index = current + 1
 
-      cap = data[index]
+      cap = getbyte(index)
 
       additional = case cap
                    when 38   # ?&
@@ -316,9 +314,10 @@ class String
                    when 92 # ?\\ escaped backslash
                      '\\'
                    when 107 # \k named capture
-                     if data[index + 1] == 60
+                     if getbyte(index + 1) == 60
                        name = ''
                        i = index + 2
+                       data = bytes
                        while i < bytesize && data[i] != 62
                          name << data[i]
                          i += 1
@@ -483,6 +482,10 @@ class String
     end
 
     self
+  end
+
+  def b
+    dup.force_encoding(Encoding::BINARY)
   end
 
   def encode(to=undefined, from=undefined, options=undefined)
@@ -719,10 +722,8 @@ class String
     Truffle::RegexpOperations.set_last_match(match, block.binding) if block
     Truffle::RegexpOperations.set_last_match(match, Truffle.invoke_primitive(:caller_binding))
 
-    ret = byteslice(0, 0) # Empty string and string subclass
-
     if match
-      ret.append match.pre_match
+      ret = match.pre_match
 
       if use_yield || hash
         duped = dup
@@ -746,16 +747,17 @@ class String
 
       ret.append(match.post_match)
       tainted ||= val.tainted?
+
+      ret.taint if tainted
+      ret.untrust if untrusted
+
+      replace(ret)
+      self
     else
-      return nil
+      nil
     end
-
-    ret.taint if tainted
-    ret.untrust if untrusted
-
-    replace(ret)
-    self
   end
+  Truffle::Graal.always_split instance_method(:sub!)
 
   def slice!(one, two=undefined)
     Truffle.check_frozen

@@ -25,6 +25,20 @@
 #include <errno.h>
 #include <fcntl.h>
 
+void* rb_tr_undef;
+void* rb_tr_true;
+void* rb_tr_false;
+void* rb_tr_nil;
+
+// Run when loading C-extension support
+
+void rb_tr_init(void) {
+  truffle_assign_managed(&rb_tr_undef, rb_tr_get_undef());
+  truffle_assign_managed(&rb_tr_true, rb_tr_get_true());
+  truffle_assign_managed(&rb_tr_false, rb_tr_get_false());
+  truffle_assign_managed(&rb_tr_nil, rb_tr_get_nil());
+}
+
 // Private helper macros just for ruby.c
 
 #define rb_boolean(c) ((c) ? Qtrue : Qfalse)
@@ -1012,8 +1026,12 @@ int rb_str_len(VALUE string) {
   return polyglot_as_i32(polyglot_invoke((void *)string, "bytesize"));
 }
 
+bool is_rstring_ptr(VALUE ptr) {
+  return polyglot_is_value(ptr);
+}
+
 bool is_managed_rstring_ptr(VALUE ptr) {
-  return polyglot_is_value(ptr) &&
+  return is_rstring_ptr(ptr) &&
     !polyglot_as_boolean(polyglot_invoke(ptr, "native?"));
 }
 
@@ -1025,18 +1043,9 @@ VALUE rb_str_new(const char *string, long length) {
   if (string == NULL) {
     return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_nul", length);
   } else if (is_managed_rstring_ptr((VALUE) string)) {
-    return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new", string, length);
+    return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_rstring_ptr", string, length);
   } else {
-    // Copy the string to a new unmanaged buffer, because otherwise it's very
-    // hard to accomodate all the different things this pointer could really be
-    // - unmanaged pointer, foreign object, foreign object plus offset, etc.
-    // TODO CS 24-Oct-17 work with Sulong to make this copying not needed
-
-    char* copy = malloc(length);
-    memcpy(copy, string, length);
-    VALUE ruby_string = (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_cstr", copy, length);
-    free(copy);
-    return ruby_string;
+    return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_str_new_native", string, length);
   }
 }
 
@@ -1048,16 +1057,8 @@ VALUE rb_tainted_str_new(const char *ptr, long len) {
 }
 
 VALUE rb_str_new_cstr(const char *string) {
-  if (is_managed_rstring_ptr((VALUE) string)) {
-    VALUE ruby_string = (VALUE) polyglot_invoke((VALUE) string, "to_s");
-    int len = strlen(string);
-    ruby_string = rb_str_subseq(ruby_string, 0, len);
-    rb_enc_associate(ruby_string, rb_ascii8bit_encoding());
-    return ruby_string;
-  } else {
-    // TODO CS 24-Oct-17 would be nice to read in one go rather than strlen followed by read
-    return rb_str_new(string, strlen(string));
-  }
+  // TODO CS 24-Oct-17 would be nice to read in one go rather than strlen followed by read
+  return rb_str_new(string, strlen(string));
 }
 
 VALUE rb_str_new_shared(VALUE string) {
@@ -1976,6 +1977,12 @@ int rb_tr_to_int_const(VALUE value) {
 
 VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_enumeratorize", obj, meth, rb_ary_new4(argc, argv));
+}
+
+#undef rb_enumeratorize_with_size
+VALUE
+rb_enumeratorize_with_size(VALUE obj, VALUE meth, int argc, const VALUE *argv, rb_enumerator_size_func * size_fn) {
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_enumeratorize_with_size", obj, meth, rb_ary_new4(argc, argv), size_fn);
 }
 
 void rb_check_arity(int argc, int min, int max) {
@@ -3013,7 +3020,11 @@ VALUE rb_java_to_string(VALUE obj) {
 // Handles
 
 void *rb_tr_handle_for_managed(VALUE managed) {
-  return truffle_handle_for_managed(managed);
+  if (polyglot_is_number(managed)) {
+    return truffle_handle_for_managed(polyglot_invoke(RUBY_CEXT, "rb_tr_wrap_for_handle", managed));
+  } else {
+    return truffle_handle_for_managed(managed);
+  }
 }
 
 void *rb_tr_handle_for_managed_leaking(VALUE managed) {
@@ -3054,7 +3065,7 @@ VALUE rb_tr_managed_if_handle(void *pointer) {
 }
 
 VALUE rb_tr_managed_from_handle(void *handle) {
-  return truffle_managed_from_handle(handle);
+  return polyglot_invoke(RUBY_CEXT, "rb_tr_unwrap_from_handle", truffle_managed_from_handle(handle));
 }
 
 void rb_tr_release_if_handle(void *pointer) {
@@ -3067,7 +3078,7 @@ void rb_tr_release_handle(void *handle) {
   truffle_release_handle(handle);
 }
 
-// Managed Strucs
+// Managed Structs
 
 void* rb_tr_new_managed_struct(void) {
   return rb_hash_new();
@@ -3810,7 +3821,7 @@ void rb_backtrace(void) {
 }
 
 ID rb_frame_this_func(void) {
-  rb_tr_error("rb_frame_this_func not implemented");
+  return SYM2ID((VALUE)polyglot_invoke(RUBY_CEXT, "rb_frame_this_func"));
 }
 
 VALUE rb_obj_instance_exec(int argc, const VALUE *argv, VALUE self) {

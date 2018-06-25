@@ -66,6 +66,7 @@ ol7:
     - RUN yum install -y curl
   which:
     - RUN yum install -y which
+  find:
   git:
     - RUN yum install -y git
   source:
@@ -91,6 +92,7 @@ ubuntu1604:
   curl:
     - RUN apt-get install -y curl
   which:
+  find:
   git:
     - RUN apt-get install -y git  
   source:
@@ -105,7 +107,7 @@ ubuntu1604:
   cppext:
     - RUN apt-get install -y libc++-dev
   rvm:
-  post-install: true
+  post-install: false
 fedora25:
   base: fedora:25
   setup:
@@ -117,6 +119,8 @@ fedora25:
     - RUN dnf install -y git
   which:
     - RUN dnf install -y which
+  find:
+    - RUN dnf install -y findutils
   source:
     - RUN dnf install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk-openjfx java-atk-wrapper make gcc libstdc++-static python ruby rubygem-json
   images:

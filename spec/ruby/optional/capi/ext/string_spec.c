@@ -393,8 +393,6 @@ VALUE string_spec_RSTRING_PTR_after_funcall(VALUE self, VALUE str, VALUE cb) {
   return rb_str_new2(RSTRING_PTR(str));
 }
 
-bool is_managed_rstring_ptr(VALUE ptr);
-
 VALUE string_spec_RSTRING_PTR_after_yield(VALUE self, VALUE str) {
   char* ptr = NATIVE_RSTRING_PTR(str);
   long len = RSTRING_LEN(str);
@@ -496,6 +494,13 @@ static VALUE string_spec_rb_usascii_str_new_cstr(VALUE self, VALUE str) {
 #ifdef HAVE_RB_STRING
 static VALUE string_spec_rb_String(VALUE self, VALUE val) {
   return rb_String(val);
+}
+#endif
+
+#ifdef HAVE_RB_STRING_VALUE_CSTR
+static VALUE string_spec_rb_string_value_cstr(VALUE self, VALUE str) {
+  char *c_str = rb_string_value_cstr(&str);
+  return c_str ? Qtrue : Qfalse;
 }
 #endif
 
@@ -735,8 +740,11 @@ void Init_string_spec(void) {
 #ifdef HAVE_RB_STRING
   rb_define_method(cls, "rb_String", string_spec_rb_String, 1);
 #endif
-}
 
+#ifdef HAVE_RB_STRING_VALUE_CSTR
+  rb_define_method(cls, "rb_string_value_cstr", string_spec_rb_string_value_cstr, 1);
+#endif
+}
 #ifdef __cplusplus
 }
 #endif

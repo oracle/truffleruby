@@ -37,6 +37,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
 
 import java.io.File;
 import java.io.IOException;
@@ -106,19 +107,18 @@ public abstract class RequireNode extends RubyNode {
                     return false;
                 }
 
-                final Source source;
+                final RubySource source;
                 try {
                     source = getContext().getSourceLoader().load(expandedPath);
                 } catch (IOException e) {
                     return false;
                 }
 
-                final String mimeType = getSourceMimeType(source);
+                final String mimeType = getSourceMimeType(source.getSource());
 
                 if (RubyLanguage.MIME_TYPE.equals(mimeType)) {
                     final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                             source,
-                            UTF8Encoding.INSTANCE,
                             ParserContext.TOP_LEVEL,
                             null,
                             true,
@@ -250,13 +250,17 @@ public abstract class RequireNode extends RubyNode {
             final String message;
             final String home = getContext().getRubyHome();
             final String postInstallHook = (home != null ? home + "/" : "") + "lib/truffle/post_install_hook.sh";
-            if (linkError.contains("SSLv23_method cannot be found")) {
+
+            // Mismatches between the libssl compiled against and the libssl used at runtime (typically on a different machine)
+            if (// These are comments and not part of the error message because they are guesses at best and could be confusing
+                    // the system libssl is configured without SSLv2 support, such as on Ubuntu 16.04
+                    linkError.contains("SSLv2_method cannot be found") ||
+                    // Compiled against 1.0.2, newer libssl used
+                    linkError.contains("SSLv23_method cannot be found") ||
+                    // Compiled against 1.1.0, older libssl used
+                    linkError.contains("TLS_method cannot be found")) {
                 message = String.format("%s (%s)",
-                        "the OpenSSL C extension was compiled against libssl 1.0.2, but a newer libssl is used - recompile by running " + postInstallHook,
-                        linkError);
-            } else if (linkError.contains("TLS_method cannot be found")) {
-                message = String.format("%s (%s)",
-                        "the OpenSSL C extension was compiled against libssl 1.1.0, but an older libssl is used - recompile by running " + postInstallHook,
+                        "the OpenSSL C extension was compiled against a different libssl than the one used on this system - recompile by running " + postInstallHook,
                         linkError);
             } else {
                 message = linkError;

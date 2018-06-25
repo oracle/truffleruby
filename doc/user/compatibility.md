@@ -135,24 +135,6 @@ disabled where we dynamically detect that they probably won't be used. See the
 
 ## C Extension Compatibility
 
-#### Identifiers may be macros or functions
-
-Identifiers which are normally macros may be functions, functions may be macros,
-and global variables may be macros. This causes problems where they are used in
-a context which relies on a particular implementation, for example a global
-variable assigned to an initial value which was a macro, like `Qnil`, which is
-a macro that evaluates to a function call in TruffleRuby.
-
-For example, this global variable definition does not work because `Qnil` expands
-to be a function call in TruffleRuby:
-
-```c
-static VALUE foo = Qnil;
-```
-
-A workaround is to assign `foo` in your C extension `Init_` function, or inside
-some other function.
-
 #### Storing Ruby objects in native structures and arrays
 
 You cannot store a Ruby object in a structure or array that has been natively
@@ -175,6 +157,15 @@ C global variables can contain native data or they can contain managed data,
 but they cannot contain both in the same program run. If you have a global you
 assign `NULL` to (`NULL` being just `0` and so a native address) you cannot
 then assign managed data to this variable.
+
+#### Identifiers may be macros or functions
+
+Identifiers which are normally macros may be functions, functions may be macros,
+and global variables may be macros. This may cause problems where they are used
+in a context which relies on a particular implementation (e.g., taking the
+address of it, assigning to a function pointer variable and using defined() to
+check if a macro exists). These issues should all be considered bugs and be
+fixed, please report these cases.
 
 #### Variadic functions
 

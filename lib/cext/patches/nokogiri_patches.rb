@@ -32,7 +32,6 @@ static int dealloc_node_i(st_data_t a, st_data_t b, st_data_t c, int errorState)
   xmlDocPtr doc = (xmlDocPtr)c;
 EOF
 
-  ID = /([a-zA-Z_][a-zA-Z0-9_]*)/
   STRUCT_REF = /#{ID}(->#{ID})*/
 
   NOKOGIRI_DOC_RUBY_OBJECT_ORIG = /(DOC_RUBY_OBJECT\(#{STRUCT_REF}\))/

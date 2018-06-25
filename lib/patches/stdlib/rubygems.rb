@@ -14,7 +14,7 @@ end
 # GraalVM bin directories (./bin, ./jre/bin)
 unless RbConfig::CONFIG['extra_bindirs'].empty?
   require 'rubygems/extra_executables_installer'
-  Gem::ExtraExecutablesInstaller.install_hooks_for RbConfig::CONFIG['extra_bindirs']
+  Gem::ExtraExecutablesInstaller.install_hooks_for RbConfig::CONFIG['extra_bindirs'].split(File::PATH_SEPARATOR)
 end
 
 # Make sure we don't use foreign gem directories

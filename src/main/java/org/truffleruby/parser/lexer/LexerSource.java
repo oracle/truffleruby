@@ -40,6 +40,7 @@ import com.oracle.truffle.api.source.Source;
 import org.jcodings.Encoding;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.parser.ParserRopeOperations;
 
 import java.nio.charset.StandardCharsets;
@@ -56,11 +57,16 @@ public class LexerSource {
 
     private int byteOffset;
 
-    public LexerSource(Source source, int lineStartOffset, Encoding encoding) {
-        this.source = source;
+    public LexerSource(RubySource rubySource, int lineStartOffset, Encoding encoding) {
+        this.source = rubySource.getSource();
         this.lineStartOffset = lineStartOffset;
-        // TODO CS 5-Sep-17 can we get the bytes directly rather than using getCharacters -> toString -> getBytes?
-        this.sourceBytes = RopeOperations.create(source.getCharacters().toString().getBytes(StandardCharsets.UTF_8), encoding, CR_UNKNOWN);
+
+        if (rubySource.getRope() != null) {
+            this.sourceBytes = rubySource.getRope();
+        } else {
+            // TODO CS 5-Sep-17 can we get the bytes directly rather than using getCharacters ->  toString -> getBytes?
+            this.sourceBytes = RopeOperations.create(source.getCharacters().toString().getBytes(StandardCharsets.UTF_8), encoding, CR_UNKNOWN);
+        }
     }
 
     public Source getSource() {
@@ -99,7 +105,9 @@ public class LexerSource {
 
         byteOffset = lineEnd;
 
-        return parserRopeOperations.makeShared(sourceBytes, start, length);
+        final Rope line = parserRopeOperations.makeShared(sourceBytes, start, length);
+        assert line.getEncoding() == sourceBytes.getEncoding();
+        return line;
     }
 
     private int nextNewLine() {
