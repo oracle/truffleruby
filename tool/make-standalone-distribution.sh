@@ -97,12 +97,7 @@ mx --disable-polyglot --disable-libpolyglot --force-bash-launchers=lli,native-im
 archive_basename="truffleruby-$version-$os-$arch"
 
 release_home="$PREFIX/$archive_basename"
-cd "mxbuild/$os-$arch/RUBY_INSTALLABLE_SVM"
-cp -R jre/languages/ruby "$release_home"
-
-# Remove unused files in a native-only distribution
-rm "$release_home/native-image.properties"
-rm "$release_home"/*.jar
+cp -R mxbuild/$os-$arch/TRUFFLERUBY*/truffleruby* "$release_home"
 
 # Create archive
 cd "$PREFIX"
