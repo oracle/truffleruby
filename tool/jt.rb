@@ -1996,12 +1996,18 @@ EOS
       graalvm_version = graalvm_version.gsub(/-b\d+\Z/, '')
     end
     
+    check_post_install_message = [
+      "RUN grep 'The Ruby openssl C extension needs to be recompiled on your system to work with the installed libssl' install.log",
+      "RUN grep '/jre/languages/ruby/lib/truffle/post_install_hook.sh' install.log"
+    ]
+
     case install_method
     when :public
       lines.push "RUN curl -OL https://github.com/oracle/graal/releases/download/vm-#{public_version}/graalvm-ce-#{public_version}-linux-amd64.tar.gz"
       lines.push "RUN tar -zxf graalvm-ce-#{public_version}-linux-amd64.tar.gz"
       lines.push "ENV D_GRAALVM_BASE=/test/graalvm-ce-#{public_version}"
-      lines.push "RUN $D_GRAALVM_BASE/bin/gu install org.graalvm.ruby"
+      lines.push "RUN $D_GRAALVM_BASE/bin/gu install org.graalvm.ruby | tee install.log"
+      lines.push(*check_post_install_message)
       lines.push "ENV D_RUBY_BASE=$D_GRAALVM_BASE/jre/languages/ruby"
       lines.push "ENV D_RUBY_BIN=$D_GRAALVM_BASE/bin"
       lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if run_post_install_hook
@@ -2014,7 +2020,8 @@ EOS
       lines.push "COPY #{graalvm_component} /test/"
       lines.push "RUN tar -zxf #{graalvm_tarball}"
       lines.push "ENV D_GRAALVM_BASE=/test/graalvm-#{graalvm_version}"
-      lines.push "RUN $D_GRAALVM_BASE/bin/gu install --file /test/#{graalvm_component}"
+      lines.push "RUN $D_GRAALVM_BASE/bin/gu install --file /test/#{graalvm_component} | tee install.log"
+      lines.push(*check_post_install_message)
       lines.push "ENV D_RUBY_BASE=$D_GRAALVM_BASE/jre/languages/ruby"
       lines.push "ENV D_RUBY_BIN=$D_GRAALVM_BASE/bin"
       lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if run_post_install_hook
