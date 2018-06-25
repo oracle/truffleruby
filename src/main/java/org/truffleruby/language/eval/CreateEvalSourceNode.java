@@ -15,9 +15,11 @@ import org.jcodings.Encoding;
 import org.truffleruby.Log;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.EncodingManager;
+import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.lexer.RubyLexer;
 
@@ -30,7 +32,17 @@ public class CreateEvalSourceNode extends RubyBaseNode {
     public RubySource createEvalSource(Rope code, String method, String file, int line) {
         final Rope sourceRope = createEvalRope(code, method, file, line);
 
-        final String sourceString = RopeOperations.decodeRope(sourceRope);
+        final String sourceString;
+        try {
+            sourceString = RopeOperations.decodeRope(sourceRope);
+        } catch (CannotConvertBinaryRubyStringToJavaString e) {
+            // In such a case, we have no way to build a Java String for the Truffle Source that
+            // could accurately represent the source Rope, so we throw an error.
+            final String message = file + ":" + line + ": cannot " + method +
+                    "() a String with binary encoding, with no magic encoding comment and containing a non-US-ASCII character: \\x" +
+                    String.format("%02X", e.getNonAsciiCharacter());
+            throw new RaiseException(getContext(), coreExceptions().syntaxError(message, this, getEncapsulatingSourceSection()));
+        }
 
         final Source source = Source.newBuilder(sourceString).name(file).mimeType(RubyLanguage.MIME_TYPE).build();
 

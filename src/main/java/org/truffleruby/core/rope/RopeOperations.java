@@ -164,7 +164,7 @@ public class RopeOperations {
         if (encoding == ASCIIEncoding.INSTANCE) {
             for (int i = 0; i < byteLength; i++) {
                 if (bytes[byteOffset + i] < 0) {
-                    throw new UnsupportedOperationException("Cannot convert a String with BINARY encoding containing non-US-ASCII character " + (bytes[byteOffset + i] & 0xFF) + " to a Java String");
+                    throw new CannotConvertBinaryRubyStringToJavaString(bytes[byteOffset + i] & 0xFF);
                 }
             }
 
