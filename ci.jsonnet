@@ -498,6 +498,24 @@ local part_definitions = {
       benchmarks+:: ["allocation", "minheap", "time"],
     },
 
+    # TODO not compose-able, it would had be broken up to 2 builds
+    run_svm_metrics: {
+      local run_benchs = benchmark([
+        "instructions",
+        ["time", "--", "--native"],
+        "maxrss",
+      ]),
+
+      run: [
+        ["export", "GUEST_VM_CONFIG=default"],
+      ] + run_benchs + [
+        ["export", "GUEST_VM_CONFIG=no-rubygems"],
+        ["export", "TRUFFLERUBYOPT=--disable-gems"],
+      ] + run_benchs,
+    },
+
+    svm_build_stats: { benchmarks+:: ["build-stats"] },
+
     classic: { benchmarks+:: ["classic"] },
     chunky: { benchmarks+:: ["chunky"] },
     psd: { benchmarks+:: ["psd"] },
@@ -522,25 +540,6 @@ local part_definitions = {
         jt(["cextc", "bench/chunky_png/oily_png"]) + jt(["cextc", "bench/psd.rb/psd_native"]),
       benchmarks+:: ["chunky"],
     },
-
-    svm_build_stats: { benchmarks+:: ["build-stats"] },
-
-    # TODO not compose-able, it would had be broken up to 2 builds
-    run_svm_metrics: {
-      local run_benchs = benchmark([
-        "instructions",
-        ["time", "--", "--native"],
-        "maxrss",
-      ]),
-
-      run: [
-        ["export", "GUEST_VM_CONFIG=default"],
-      ] + run_benchs + [
-        ["export", "GUEST_VM_CONFIG=no-rubygems"],
-        ["export", "TRUFFLERUBYOPT=--disable-gems"],
-      ] + run_benchs,
-    },
-
   },
 };
 
