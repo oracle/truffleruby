@@ -1858,7 +1858,7 @@ EOS
       raise "Could not find native image -- either build with 'jt build native' or set AOT_BIN to an image location"
     end
   end
-  
+
   def docker(*args)
     command = args.shift
     case command
@@ -1874,7 +1874,7 @@ EOS
       abort "Unkown jt docker command #{command}"
     end
   end
-  
+
   def docker_build(*args)
     if args.first.nil? || args.first.start_with?('--')
       image_name = 'truffleruby-test'
@@ -1885,25 +1885,25 @@ EOS
     File.write(File.join(docker_dir, 'Dockerfile'), dockerfile(*args))
     sh 'docker', 'build', '-t', image_name, '.', chdir: docker_dir
   end
-  
+
   def docker_test(*args)
     distros = ['--ol7', '--ubuntu1604', '--fedora25']
     managers = ['--no-manager', '--rbenv', '--chruby', '--rvm']
-    
+
     distros.each do |distro|
       managers.each do |manager|
         docker 'build', distro, manager, *args
       end
     end
   end
-  
+
   def docker_print(*args)
     puts dockerfile(*args)
   end
-  
+
   def dockerfile(*args)
     config = @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
-    
+
     truffleruby_repo = 'https://github.com/oracle/truffleruby.git'
     distro = 'ubuntu1604'
     install_method = :public
@@ -1913,7 +1913,7 @@ EOS
     manager = :none
     basic_test = false
     full_test = false
-    
+
     until args.empty?
       arg = args.shift
       case arg
@@ -1951,18 +1951,18 @@ EOS
         abort "unknown option #{arg}"
       end
     end
-    
+
     distro = config.fetch(distro)
     run_post_install_hook = rebuild_openssl && distro.fetch('post-install')
 
     lines = []
-    
+
     lines.push "FROM #{distro.fetch('base')}"
-    
+
     lines.push *distro.fetch('setup')
-    
+
     lines.push *distro.fetch('locale')
-    
+
     lines.push *distro.fetch('curl') if install_method == :public
     lines.push *distro.fetch('git') if install_method == :source || manager != :none || full_test
     lines.push *distro.fetch('which') if manager == :rvm || full_test
@@ -1970,28 +1970,28 @@ EOS
     lines.push *distro.fetch('rvm') if manager == :rvm
     lines.push *distro.fetch('source') if install_method == :source
     lines.push *distro.fetch('images') if rebuild_images
-    
+
     lines.push *distro.fetch('openssl')
     lines.push *distro.fetch('cext')
     lines.push *distro.fetch('cppext')
-    
+
     lines.push "WORKDIR /test"
     lines.push "RUN useradd -ms /bin/bash test"
     lines.push "RUN chown test /test"
     lines.push "USER test"
-    
+
     docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
-    
+
     case install_method
     when :graalvm
       tarball = graalvm_tarball
     when :standalone
       tarball = standalone_tarball
     end
-    
+
     if defined?(tarball)
       graalvm_version = /([ce]e-)?\d+(\.\d+)*(-rc\d+)?(\-dev)?(-\h+)?/.match(tarball).to_s
-      
+
       # Test build tarballs may have a -bn suffix, which isn't really part of the version string but matches the hex part in some cases
       graalvm_version = graalvm_version.gsub(/-b\d+\Z/, '')
     end
@@ -2050,7 +2050,7 @@ EOS
       lines.push "ENV D_RUBY_BASE=/test/truffleruby"
       lines.push "ENV D_RUBY_BIN=$D_RUBY_BASE/bin"
     end
-    
+
     if rebuild_images
       if [:public, :graalvm].include?(install_method)
         lines.push "RUN $D_GRAALVM_BASE/bin/gu rebuild-images ruby"
@@ -2058,11 +2058,11 @@ EOS
         abort "can't rebuild images for a build not from public or from local GraalVM components"
       end
     end
-    
+
     case manager
     when :none
       lines.push "ENV PATH=$D_RUBY_BASE/bin:$PATH"
-      
+
       setup_env = lambda do |command|
         command
       end
@@ -2074,9 +2074,9 @@ EOS
 
       lines.push "RUN ln -s $D_RUBY_BASE /home/test/.rbenv/versions/truffleruby"
       lines.push "RUN rbenv versions"
-      
+
       prefix = 'eval "$(rbenv init -)" && rbenv shell truffleruby'
-      
+
       setup_env = lambda do |command|
         "eval \"$(rbenv init -)\" && rbenv shell truffleruby && #{command}"
       end
@@ -2104,25 +2104,25 @@ EOS
         "bash -c 'source $RVM_SCRIPT && rvm use ext-truffleruby && #{command.gsub("'", "'\\\\''")}'"
       end
     end
-    
+
     configs = ['']
     configs += ['--jvm'] if [:public, :graalvm].include?(install_method)
     configs += ['--native'] if [:public, :graalvm, :standalone].include?(install_method)
-    
+
     configs.each do |config|
       lines.push "RUN " + setup_env["ruby #{config} --version"]
     end
-    
+
     if basic_test || full_test
       configs.each do |config|
         lines.push "RUN cp -r $D_RUBY_BASE/lib/ruby/gems /test/clean-gems"
-        
+
         if config == '' && install_method != :source
           gem = "gem"
         else
           gem = "ruby #{config} -Sgem"
         end
-        
+
         lines.push "RUN " + setup_env["#{gem} install color"]
         lines.push "RUN " + setup_env["ruby #{config} -rcolor -e 'raise unless defined?(Color)'"]
 
@@ -2131,46 +2131,46 @@ EOS
 
         lines.push "RUN " + setup_env["#{gem} install unf"]
         lines.push "RUN " + setup_env["ruby #{config} -runf -e 'raise unless defined?(UNF)'"]
-        
+
         lines.push "RUN rm -rf $D_RUBY_BASE/lib/ruby/gems"
         lines.push "RUN mv /test/clean-gems $D_RUBY_BASE/lib/ruby/gems"
       end
     end
-    
+
     if full_test
       lines.push "RUN git clone --depth 1 --branch #{test_branch} #{truffleruby_repo} truffleruby-tests"
       lines.push "RUN cp -r truffleruby-tests/spec ."
       lines.push "RUN cp -r truffleruby-tests/test/truffle/compiler/pe ."
       lines.push "RUN rm -rf truffleruby-tests"
-      
+
       configs.each do |config|
         excludes = ['fails', 'slow', 'ci']
         excludes += ['graalvm'] if [:public, :graalvm].include?(install_method)
         excludes += ['aot'] if ['', '--native'].include?(config)
-      
+
         [':command_line', ':security', ':language', ':core', ':library', ':capi', ':library_cext', ':truffle'].each do |set|
           t_config = config.empty? ? '' : '-T' + config
           t_excludes = excludes.map { |e| '--excl-tag ' + e }.join(' ')
           lines.push "RUN " + setup_env["ruby spec/mspec/bin/mspec --config spec/truffle.mspec -t $D_RUBY_BIN/ruby #{t_config} #{t_excludes} #{set}"]
         end
       end
-      
+
       configs.each do |config|
         if config == '--jvm'
           d = '-J-'
         else
           d = '--native.'
         end
-        
+
         lines.push "RUN " + setup_env["ruby #{config} #{d}Dgraal.TruffleCompilationExceptionsAreThrown=true #{d}Dgraal.TruffleIterativePartialEscape=true -Xbasic_ops.inline=false pe/pe.rb"]
       end
     end
-    
+
     lines.push "CMD " + setup_env["bash"]
-    
+
     lines.join("\n") + "\n"
   end
-  
+
   def docker_extract_standalone(*args)
     graalvm_component = args.shift
     version = args.shift

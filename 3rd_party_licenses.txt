@@ -1,10 +1,9 @@
-                           LICENSING INFORMATION 
+                           LICENSING INFORMATION
                                 TruffleRuby
 
 ===============================================================================
 
-
- LICENSES FOR THIRD-PARTY COMPONENTS 
+ LICENSES FOR THIRD-PARTY COMPONENTS
 
 The following sections contain licensing information for libraries that we have 
 included with the GraalVM Community Edition 1.0 source and components used to 
