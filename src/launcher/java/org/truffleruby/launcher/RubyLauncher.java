@@ -108,6 +108,12 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 }
             }
 
+            // Process RUBYLIB, must be after arguments and RUBYOPT
+            final List<String> rubyLibPaths = getPathListFromEnvVariable("RUBYLIB");
+            for (String path : rubyLibPaths) {
+                config.appendOptionValue(OptionsCatalog.LOAD_PATHS, path);
+            }
+
             if (isAOT()) {
                 final String launcher = setRubyLauncher();
                 if (launcher != null) {
@@ -260,6 +266,14 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             if (value.length() != 0) {
                 return new ArrayList<>(Arrays.asList(value.split("\\s+")));
             }
+        }
+        return Collections.emptyList();
+    }
+
+    private static List<String> getPathListFromEnvVariable(String name) {
+        final String value = System.getenv(name);
+        if (value != null && value.length() != 0) {
+            return new ArrayList<>(Arrays.asList(value.split(":")));
         }
         return Collections.emptyList();
     }
