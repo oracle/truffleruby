@@ -485,16 +485,17 @@ local part_definitions = {
             post_process_and_upload_results,
     },
 
-    metrics: {
-      benchmarks+:: ["allocation", "minheap", "time"],
+    interpreter_metrics: {
+      benchmarks+:: [
+        "allocation:hello",
+        "minheap:hello",
+        "time:hello"
+      ],
     },
 
     compiler_metrics: {
-      benchmarks+:: [
-        "allocation:compile-mandelbrot",
-        "minheap:compile-mandelbrot",
-        "time:compile-mandelbrot",
-      ],
+      # Run all metrics benchmarks: hello and compile-mandelbrot
+      benchmarks+:: ["allocation", "minheap", "time"],
     },
 
     classic: { benchmarks+:: ["classic"] },
@@ -716,7 +717,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
         $.platform.linux + $.jdk.labsjdk8 + $.use.common + $.use.build +
         $.use.truffleruby + $.graal.none +
         $.cap.bench + $.cap.daily +
-        $.benchmark.runner + $.benchmark.metrics +
+        $.benchmark.runner + $.benchmark.interpreter_metrics +
         { timelimit: "00:25:00" },
     } +
 
