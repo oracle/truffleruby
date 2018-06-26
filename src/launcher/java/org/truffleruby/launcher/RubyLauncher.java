@@ -82,18 +82,25 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             argumentCommandLineParser.processArguments();
 
             if (config.getOption(OptionsCatalog.READ_RUBYOPT)) {
+                // Process RUBYOPT
                 final List<String> rubyoptArgs = getArgsFromEnvVariable("RUBYOPT");
-                final List<String> trufflerubyoptArgs = getArgsFromEnvVariable("TRUFFLERUBYOPT");
                 new CommandLineParser(rubyoptArgs, config, false, true).processArguments();
+                // Process TRUFFLERUBYOPT
+                final List<String> trufflerubyoptArgs = getArgsFromEnvVariable("TRUFFLERUBYOPT");
                 new CommandLineParser(trufflerubyoptArgs, config, false, false).processArguments();
 
                 if (isAOT()) {
-                    // Append options from ENV variables to args after last interpreter option, which makes sure that
-                    // maybeExec processes --(native|jvm)* options. The options are removed and are not passed to the
-                    // new process if exec is being called.
-                    // The new process gets all arguments and options including those from ENV variables.
-                    // To avoid processing options from ENV variables twice READ_RUBYOPT option is set to false.
-                    // Only native launcher can apply native and jvm options, therefore this is not done on JVM.
+                    /*
+                     * Append options from ENV variables to args after the last interpreter option,
+                     * which makes sure that maybeExec() processes the --(native|jvm)* options.
+                     * These options are removed and are not passed to the new process if exec() is
+                     * being called as these options need to be passed when starting the new VM
+                     * process. The new process gets all arguments and options including those from
+                     * ENV variables. To avoid processing options from ENV variables twice,
+                     * READ_RUBYOPT is set to false. Only the native launcher can apply native and
+                     * jvm options (it is too late for the running JVM to apply --jvm options),
+                     * therefore this is not done on JVM.
+                     */
                     final int index = argumentCommandLineParser.getLastInterpreterArgumentIndex();
                     args.add(index, "-Xread_rubyopt=false");
                     args.addAll(index + 1, rubyoptArgs);
