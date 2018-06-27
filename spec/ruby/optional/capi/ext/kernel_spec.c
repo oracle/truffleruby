@@ -359,8 +359,8 @@ void Init_kernel_spec(void) {
 #ifdef HAVE_RB_FRAME_THIS_FUNC
   rb_define_method(cls, "rb_frame_this_func_test", kernel_spec_rb_frame_this_func, 0);
   rb_define_method(cls, "rb_frame_this_func_test_again", kernel_spec_rb_frame_this_func, 0);
-  #endif
-  
+#endif
+
 #ifdef HAVE_RB_ENSURE
   rb_define_method(cls, "rb_ensure", kernel_spec_rb_ensure, 4);
 #endif

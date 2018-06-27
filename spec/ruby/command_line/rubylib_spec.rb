@@ -1,11 +1,11 @@
 require_relative '../spec_helper'
 
 describe "The RUBYLIB environment variable" do
-  before (:each) do
+  before :each do
     @rubylib, ENV["RUBYLIB"] = ENV["RUBYLIB"], nil
   end
 
-  after (:each) do
+  after :each do
     ENV["RUBYLIB"] = @rubylib
   end
 
@@ -30,10 +30,9 @@ describe "The RUBYLIB environment variable" do
     ENV["RUBYLIB"] = dir
     paths = ruby_exe("puts $LOAD_PATH").lines.map(&:chomp)
     if PlatformGuard.implementation? :ruby
-      # In a MRI checkout, $PWD ends up as the first entry in $LOAD_PATH.
-      # So just assert that it's at the beginning.
+      # In a MRI checkout, $PWD and some extra -I entries end up as
+      # the first entries in $LOAD_PATH. So just assert that it's not last.
       idx = paths.index(dir)
-      idx.should < 2
       idx.should < paths.size-1
     else
       paths[0].should == dir

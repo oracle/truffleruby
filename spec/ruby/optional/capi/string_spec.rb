@@ -878,10 +878,10 @@ describe "C-API String function" do
     it "raises an error if a string contains a null" do
       lambda { @s.rb_string_value_cstr("Hello\0 with a null.") }.should raise_error(ArgumentError)
     end
-    
+
     it "raises an error if a UTF-16 string contains a null" do
       lambda { @s.rb_string_value_cstr("Hello\0 with a null.".encode('UTF-16BE')) }.should raise_error(ArgumentError)
     end
-    
+
   end
 end

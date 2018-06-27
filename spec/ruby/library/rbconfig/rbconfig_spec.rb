@@ -9,4 +9,3 @@ describe 'RbConfig::CONFIG values' do
     end
   end
 end
-
