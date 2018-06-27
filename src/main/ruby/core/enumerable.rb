@@ -419,9 +419,17 @@ module Enumerable
     return to_enum(:sort_by) { enumerator_size } unless block_given?
 
     # Transform each value to a tuple with the value and it's sort by value
-    sort_values = map do
-      x = Truffle.single_block_arg
-      SortedElement.new(x, yield(x))
+    case self
+    when Array
+      sort_values = map do |x|
+        SortedElement.new(x, yield(x))
+      end
+    else
+      sort_values = []
+      each do |*x|
+        x = x[0] if x.size == 1
+        sort_values << SortedElement.new(x, yield(x))
+      end
     end
 
     # Now sort the tuple according to the sort by value
