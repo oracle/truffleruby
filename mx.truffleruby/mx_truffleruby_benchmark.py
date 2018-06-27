@@ -128,7 +128,7 @@ metrics_benchmarks = {
     'compile-mandelbrot': ['--graal', join(rubyDir, 'bench', 'metrics', 'mandelbrot.rb')]
 }
 
-default_metrics_benchmarks = ['hello']
+default_metrics_benchmarks = ['hello', 'compile-mandelbrot']
 
 class MetricsBenchmarkSuite(RubyBenchmarkSuite):
     def benchmarks(self):

@@ -485,17 +485,36 @@ local part_definitions = {
             post_process_and_upload_results,
     },
 
-    metrics: {
-      benchmarks+:: ["allocation", "minheap", "time"],
+    interpreter_metrics: {
+      benchmarks+:: [
+        "allocation:hello",
+        "minheap:hello",
+        "time:hello"
+      ],
     },
 
     compiler_metrics: {
-      benchmarks+:: [
-        "allocation:compile-mandelbrot",
-        "minheap:compile-mandelbrot",
-        "time:compile-mandelbrot",
-      ],
+      # Run all metrics benchmarks: hello and compile-mandelbrot
+      benchmarks+:: ["allocation", "minheap", "time"],
     },
+
+    # TODO not compose-able, it would had be broken up to 2 builds
+    run_svm_metrics: {
+      local run_benchs = benchmark([
+        "instructions",
+        ["time", "--", "--native"],
+        "maxrss",
+      ]),
+
+      run: [
+        ["export", "GUEST_VM_CONFIG=default"],
+      ] + run_benchs + [
+        ["export", "GUEST_VM_CONFIG=no-rubygems"],
+        ["export", "TRUFFLERUBYOPT=--disable-gems"],
+      ] + run_benchs,
+    },
+
+    svm_build_stats: { benchmarks+:: ["build-stats"] },
 
     classic: { benchmarks+:: ["classic"] },
     chunky: { benchmarks+:: ["chunky"] },
@@ -521,25 +540,6 @@ local part_definitions = {
         jt(["cextc", "bench/chunky_png/oily_png"]) + jt(["cextc", "bench/psd.rb/psd_native"]),
       benchmarks+:: ["chunky"],
     },
-
-    svm_build_stats: { benchmarks+:: ["build-stats"] },
-
-    # TODO not compose-able, it would had be broken up to 2 builds
-    run_svm_metrics: {
-      local run_benchs = benchmark([
-        "instructions",
-        ["time", "--", "--native"],
-        "maxrss",
-      ]),
-
-      run: [
-        ["export", "GUEST_VM_CONFIG=default"],
-      ] + run_benchs + [
-        ["export", "GUEST_VM_CONFIG=no-rubygems"],
-        ["export", "TRUFFLERUBYOPT=--disable-gems"],
-      ] + run_benchs,
-    },
-
   },
 };
 
@@ -716,7 +716,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
         $.platform.linux + $.jdk.labsjdk8 + $.use.common + $.use.build +
         $.use.truffleruby + $.graal.none +
         $.cap.bench + $.cap.daily +
-        $.benchmark.runner + $.benchmark.metrics +
+        $.benchmark.runner + $.benchmark.interpreter_metrics +
         { timelimit: "00:25:00" },
     } +
 
