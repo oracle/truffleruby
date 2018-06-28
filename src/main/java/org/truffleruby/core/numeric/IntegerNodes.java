@@ -1735,7 +1735,7 @@ public abstract class IntegerNodes {
                 return FAILURE;
             }
 
-            warnNode.warn("warn('in a**b, b may be too big')");
+            warnNode.warningMessage(getContext().getCallStack().getTopMostUserSourceSection(), "in a**b, b may be too big");
             // b >= 2**63 && (a > 1 || a < -1) => larger than largest double
             // MRI behavior/bug: always positive Infinity even if a negative and b odd (likely due
             // to libc pow(a, +inf)).
@@ -1756,7 +1756,7 @@ public abstract class IntegerNodes {
                 // Logic for promoting integer exponentiation into doubles taken from MRI.
                 // We replicate the logic exactly so we match MRI's ranges.
                 if (maybeTooBigProfile.profile(baseBitLength > BIGLEN_LIMIT || (baseBitLength * b > BIGLEN_LIMIT))) {
-                    warnNode.warn("warn('in a**b, b may be too big')");
+                    warnNode.warningMessage(getContext().getCallStack().getTopMostUserSourceSection(), "in a**b, b may be too big");
                     return powBigIntegerDouble(base, b);
                 }
 
