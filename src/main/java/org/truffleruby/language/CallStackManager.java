@@ -187,7 +187,7 @@ public class CallStackManager {
     }
 
     @TruffleBoundary
-    public Node getTopMostUserCallNode() {
+    public SourceSection getTopMostUserSourceSection() {
         return Truffle.getRuntime().iterateFrames(frameInstance -> {
             final Node callNode = frameInstance.getCallNode();
             if (callNode == null) {
@@ -196,21 +196,11 @@ public class CallStackManager {
 
             final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
             if (!BacktraceFormatter.isCore(context, sourceSection)) {
-                return callNode;
+                return sourceSection;
             } else {
                 return null; // Keep searching
             }
         });
-    }
-
-    @TruffleBoundary
-    public SourceSection getTopMostUserSourceSection() {
-        final Node callNode = getTopMostUserCallNode();
-        if (callNode == null) {
-            return null;
-        } else {
-            return callNode.getEncapsulatingSourceSection();
-        }
     }
 
     @TruffleBoundary

@@ -98,15 +98,7 @@ public class FeatureLoader {
             final String originalFeature = feature;
 
             Log.LOGGER.info(() -> {
-                final Node callerNode = context.getCallStack().getTopMostUserCallNode();
-
-                final SourceSection sourceSection;
-                if (callerNode == null) {
-                    sourceSection = null;
-                } else {
-                    sourceSection = callerNode.getEncapsulatingSourceSection();
-                }
-
+                final SourceSection sourceSection = context.getCallStack().getTopMostUserSourceSection();
                 return String.format("starting search from %s for feature %s...", context.getSourceLoader().fileLine(sourceSection), originalFeature);
             });
         }
