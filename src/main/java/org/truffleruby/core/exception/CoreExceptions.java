@@ -19,6 +19,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.encoding.EncodingOperations;
+import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.StringOperations;
@@ -483,18 +484,13 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject nameErrorConstantNotDefined(DynamicObject module, String name, Node currentNode) {
-        return nameError(StringUtils.format("constant %s::%s not defined", Layouts.MODULE.getFields(module).getName(), name), null, name,  currentNode);
+        return nameError(StringUtils.format("constant %s not defined", ModuleOperations.constantName(context, module, name)), null, name, currentNode);
     }
 
     @TruffleBoundary
     public DynamicObject nameErrorUninitializedConstant(DynamicObject module, String name, Node currentNode) {
         assert RubyGuards.isRubyModule(module);
-        final String message;
-        if (module == context.getCoreLibrary().getObjectClass()) {
-            message = StringUtils.format("uninitialized constant %s", name);
-        } else {
-            message = StringUtils.format("uninitialized constant %s::%s", Layouts.MODULE.getFields(module).getName(), name);
-        }
+        final String message = StringUtils.format("uninitialized constant %s", ModuleOperations.constantNameNoLeadingColon(context, module, name));
         return nameError(message, module, name, currentNode);
     }
 
@@ -506,7 +502,7 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject nameErrorPrivateConstant(DynamicObject module, String name, Node currentNode) {
-        return nameError(StringUtils.format("private constant %s::%s referenced", Layouts.MODULE.getFields(module).getName(), name), module, name, currentNode);
+        return nameError(StringUtils.format("private constant %s referenced", ModuleOperations.constantName(context, module, name)), module, name, currentNode);
     }
 
     @TruffleBoundary

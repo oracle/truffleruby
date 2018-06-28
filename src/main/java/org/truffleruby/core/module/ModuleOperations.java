@@ -65,6 +65,22 @@ public abstract class ModuleOperations {
         }
     }
 
+    public static String constantName(RubyContext context, DynamicObject module, String name) {
+        if (module == context.getCoreLibrary().getObjectClass()) {
+            return "::" + name;
+        } else {
+            return Layouts.MODULE.getFields(module).getName() + "::" + name;
+        }
+    }
+
+    public static String constantNameNoLeadingColon(RubyContext context, DynamicObject module, String name) {
+        if (module == context.getCoreLibrary().getObjectClass()) {
+            return name;
+        } else {
+            return Layouts.MODULE.getFields(module).getName() + "::" + name;
+        }
+    }
+
     @TruffleBoundary
     public static Iterable<Entry<String, RubyConstant>> getAllConstants(DynamicObject module) {
         CompilerAsserts.neverPartOfCompilation();

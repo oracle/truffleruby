@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.constants;
 
+import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
@@ -28,11 +29,7 @@ public abstract class LookupConstantBaseNode extends RubyNode {
         }
 
         final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection(getEncapsulatingSourceSection());
-        if (constant.getDeclaringModule() == coreLibrary().getObjectClass()) {
-            warnNode.warningMessage(sourceSection, "constant ::" + name + " is deprecated");
-        } else {
-            warnNode.warningMessage(sourceSection, "constant " + name + " is deprecated");
-        }
+        warnNode.warningMessage(sourceSection, "constant " + ModuleOperations.constantName(getContext(), module, name) + " is deprecated");
     }
 
     protected int getCacheLimit() {
