@@ -188,20 +188,17 @@ public class CallStackManager {
 
     @TruffleBoundary
     public Node getTopMostUserCallNode() {
-        final Memo<Boolean> firstFrame = new Memo<>(true);
-
         return Truffle.getRuntime().iterateFrames(frameInstance -> {
-            if (firstFrame.get()) {
-                firstFrame.set(false);
+            final Node callNode = frameInstance.getCallNode();
+            if (callNode == null) {
                 return null;
             }
 
-            final SourceSection sourceSection = frameInstance.getCallNode().getEncapsulatingSourceSection();
-
-            if (sourceSection.getSource() == null) {
-                return null;
+            final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
+            if (sourceSection.getSource() != null) {
+                return callNode;
             } else {
-                return frameInstance.getCallNode();
+                return null; // Keep searching
             }
         });
     }
