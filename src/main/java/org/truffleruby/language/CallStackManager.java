@@ -195,7 +195,7 @@ public class CallStackManager {
             }
 
             final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
-            if (sourceSection.getSource() != null) {
+            if (!BacktraceFormatter.isCore(context, sourceSection)) {
                 return callNode;
             } else {
                 return null; // Keep searching
