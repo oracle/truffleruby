@@ -213,6 +213,15 @@ public class CallStackManager {
         }
     }
 
+    @TruffleBoundary
+    public SourceSection getTopMostUserSourceSection(SourceSection encapsulatingSourceSection) {
+        if (encapsulatingSourceSection != null && !BacktraceFormatter.isCore(context, encapsulatingSourceSection)) {
+            return encapsulatingSourceSection;
+        } else {
+            return getTopMostUserSourceSection();
+        }
+    }
+
     private InternalMethod getMethod(FrameInstance frame) {
         return RubyArguments.tryGetMethod(frame.getFrame(FrameInstance.FrameAccess.READ_ONLY));
     }

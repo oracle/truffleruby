@@ -14,6 +14,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class LookupConstantBaseNode extends RubyNode {
 
@@ -25,10 +26,11 @@ public abstract class LookupConstantBaseNode extends RubyNode {
             warnNode = insert(new WarnNode());
         }
 
+        final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection(getEncapsulatingSourceSection());
         if (constant.getDeclaringModule() == coreLibrary().getObjectClass()) {
-            warnNode.callWarn("constant ::", name, " is deprecated");
+            warnNode.warningMessage(sourceSection, "constant ::" + name + " is deprecated");
         } else {
-            warnNode.callWarn("constant ", name, " is deprecated");
+            warnNode.warningMessage(sourceSection, "constant " + name + " is deprecated");
         }
     }
 
