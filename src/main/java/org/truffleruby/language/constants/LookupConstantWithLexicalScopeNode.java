@@ -53,7 +53,7 @@ public abstract class LookupConstantWithLexicalScopeNode extends LookupConstantB
             throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(getModule(), name, this));
         }
         if (constant.isDeprecated()) {
-            warnDeprecatedConstant(constant.getConstant(), name);
+            warnDeprecatedConstant(getModule(), constant.getConstant(), name);
         }
         return constant.getConstant();
     }
@@ -67,7 +67,7 @@ public abstract class LookupConstantWithLexicalScopeNode extends LookupConstantB
             throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(getModule(), name, this));
         }
         if (isDeprecatedProfile.profile(constant.isDeprecated())) {
-            warnDeprecatedConstant(constant.getConstant(), name);
+            warnDeprecatedConstant(getModule(), constant.getConstant(), name);
         }
         return constant.getConstant();
     }

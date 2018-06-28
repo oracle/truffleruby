@@ -14,13 +14,14 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class LookupConstantBaseNode extends RubyNode {
 
     @Child private WarnNode warnNode;
 
-    protected void warnDeprecatedConstant(RubyConstant constant, String name) {
+    protected void warnDeprecatedConstant(DynamicObject module, RubyConstant constant, String name) {
         if (warnNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             warnNode = insert(new WarnNode());

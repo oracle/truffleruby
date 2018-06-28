@@ -39,11 +39,10 @@ public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode
             @Cached("createBinaryProfile()") ConditionProfile autoloadProfile,
             @Cached("createBinaryProfile()") ConditionProfile warnProfile) {
         final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getSharedMethodInfo().getLexicalScope();
-        RubyConstant constant = deepConstantSearch(name,
-                lexicalScope, lexicalParent);
+        final RubyConstant constant = deepConstantSearch(name, lexicalScope, lexicalParent);
 
         if (warnProfile.profile(constant != null && constant.isDeprecated())) {
-            warnDeprecatedConstant(constant, name);
+            warnDeprecatedConstant(lexicalParent, constant, name);
         }
 
         // If a constant already exists with this class/module name and it's an autoload module, we have to trigger
@@ -60,7 +59,7 @@ public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode
             final RubyConstant autoConstant = deepConstantSearch(name, lexicalScope, lexicalParent);
 
             if (warnProfile.profile(constant.isDeprecated())) {
-                warnDeprecatedConstant(constant, name);
+                warnDeprecatedConstant(lexicalParent, constant, name);
             }
 
             return autoConstant;
