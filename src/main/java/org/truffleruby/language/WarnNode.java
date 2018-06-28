@@ -23,7 +23,7 @@ public class WarnNode extends RubyBaseNode {
     @Child private CallDispatchHeadNode warnMethod = CallDispatchHeadNode.createOnSelf();
     @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
-    public Object warn(String... arguments) {
+    private Object callWarn(String... arguments) {
         final String warningMessage = concatArgumentsToString(arguments);
         final DynamicObject warningString = makeStringNode.executeMake(warningMessage, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         return warnMethod.call(null, getContext().getCoreLibrary().getKernelModule(), "warn", warningString);
@@ -31,7 +31,7 @@ public class WarnNode extends RubyBaseNode {
 
     public Object warningMessage(SourceSection sourceSection, String message) {
         final String sourceLocation = sourceSection != null ? getContext().getSourceLoader().fileLine(sourceSection) + ": " : "";
-        return warn(sourceLocation, "warning: ", message);
+        return callWarn(sourceLocation, "warning: ", message);
     }
 
     @TruffleBoundary

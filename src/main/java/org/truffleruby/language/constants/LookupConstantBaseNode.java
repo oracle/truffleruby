@@ -26,9 +26,9 @@ public abstract class LookupConstantBaseNode extends RubyNode {
         }
 
         if (constant.getDeclaringModule() == coreLibrary().getObjectClass()) {
-            warnNode.warn("constant ::", name, " is deprecated");
+            warnNode.callWarn("constant ::", name, " is deprecated");
         } else {
-            warnNode.warn("constant ", name, " is deprecated");
+            warnNode.callWarn("constant ", name, " is deprecated");
         }
     }
 
