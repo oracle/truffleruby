@@ -584,6 +584,7 @@ module Commands
   def run_ruby(*args)
     env_vars = args.first.is_a?(Hash) ? args.shift : {}
     options = args.last.is_a?(Hash) ? args.pop : {}
+    native = args.delete('--native')
 
     vm_args = []
 
@@ -601,9 +602,8 @@ module Commands
     end
 
     if args.delete('--graal')
-      if ENV["RUBY_BIN"]
-        # Assume that Graal is automatically set up if RUBY_BIN is set.
-        # This will also warn if it's not.
+      if ENV["RUBY_BIN"] || native
+        # Assume that Graal is automatically set up if RUBY_BIN is set or using a native image.
       else
         javacmd, javacmd_options = Utilities.find_graal_javacmd_and_options
         env_vars["JAVACMD"] = javacmd
@@ -664,7 +664,7 @@ module Commands
       options[:use_exec] = true
     end
 
-    ruby_bin = Utilities.find_launcher(args.delete('--native'))
+    ruby_bin = Utilities.find_launcher(native)
 
     raw_sh env_vars, ruby_bin, *vm_args, *args, options
   end
