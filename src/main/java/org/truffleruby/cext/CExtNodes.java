@@ -45,6 +45,7 @@ import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.module.ModuleNodes.ConstSetNode;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
@@ -541,8 +542,31 @@ public class CExtNodes {
             @NodeChild(type = RubyNode.class, value = "module"),
             @NodeChild(type = RubyNode.class, value = "name")
     })
+    @CoreMethod(names = "rb_const_get", onSingleton = true, required = 2)
+    public abstract static class RbConstGetNode extends CoreMethodNode {
+
+        @CreateCast("name")
+        public RubyNode coerceToString(RubyNode name) {
+            return ToJavaStringNodeGen.create(name);
+        }
+
+        @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false, true);
+        @Child private GetConstantNode getConstantNode = GetConstantNode.create();
+
+        @Specialization
+        public Object rbConstGet(VirtualFrame frame, DynamicObject module, String name) {
+            final RubyConstant constant = lookupConstantNode.lookupConstant(frame, module, name);
+            return getConstantNode.executeGetConstant(frame, module, name, constant, lookupConstantNode);
+        }
+
+    }
+
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "module"),
+            @NodeChild(type = RubyNode.class, value = "name")
+    })
     @CoreMethod(names = "rb_const_get_from", onSingleton = true, required = 2)
-    public abstract static class ConstGetFromNode extends CoreMethodNode {
+    public abstract static class RbConstGetFromNode extends CoreMethodNode {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
@@ -553,9 +577,30 @@ public class CExtNodes {
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
         @Specialization
-        public Object constGetFrom(VirtualFrame frame, DynamicObject module, String name) {
+        public Object rbConstGetFrom(VirtualFrame frame, DynamicObject module, String name) {
             final RubyConstant constant = lookupConstantNode.lookupConstant(frame, module, name);
             return getConstantNode.executeGetConstant(frame, module, name, constant, lookupConstantNode);
+        }
+
+    }
+
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "module"),
+            @NodeChild(type = RubyNode.class, value = "name"),
+            @NodeChild(type = RubyNode.class, value = "value")
+    })
+    @CoreMethod(names = "rb_const_set", onSingleton = true, required = 3)
+    public abstract static class RbConstSetNode extends CoreMethodNode {
+
+        @CreateCast("name")
+        public RubyNode coerceToString(RubyNode name) {
+            return ToJavaStringNodeGen.create(name);
+        }
+
+        @Specialization
+        public Object rbConstSet(DynamicObject module, String name, Object value,
+                @Cached("create()") ConstSetNode constSetNode) {
+            return constSetNode.setConstantNoCheckName(module, name, value);
         }
 
     }

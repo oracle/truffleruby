@@ -53,6 +53,7 @@ import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
 import org.truffleruby.core.kernel.KernelNodes.EvalNode;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.module.ModuleNodesFactory.ClassExecNodeFactory;
+import org.truffleruby.core.module.ModuleNodesFactory.ConstSetNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -977,6 +978,10 @@ public abstract class ModuleNodes {
     })
     public abstract static class ConstSetNode extends CoreMethodNode {
 
+        public static ConstSetNode create() {
+            return ConstSetNodeFactory.create(null, null, null);
+        }
+
         @Child private WarnAlreadyInitializedNode warnAlreadyInitializedNode;
 
         @CreateCast("name")
@@ -991,6 +996,11 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(), coreExceptions().nameError(StringUtils.format("wrong constant name %s", name), module, name, this));
             }
 
+            return setConstantNoCheckName(module, name, value);
+        }
+
+        @TruffleBoundary
+        public Object setConstantNoCheckName(DynamicObject module, String name, Object value) {
             final RubyConstant previous = Layouts.MODULE.getFields(module).setConstant(getContext(), this, name, value);
             if (previous != null) {
                 warnAlreadyInitializedConstant(module, name, previous.getSourceSection());
