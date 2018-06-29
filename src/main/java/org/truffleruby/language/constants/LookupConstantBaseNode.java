@@ -9,27 +9,27 @@
  */
 package org.truffleruby.language.constants;
 
+import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class LookupConstantBaseNode extends RubyNode {
 
     @Child private WarnNode warnNode;
 
-    protected void warnDeprecatedConstant(RubyConstant constant, String name) {
+    protected void warnDeprecatedConstant(DynamicObject module, RubyConstant constant, String name) {
         if (warnNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             warnNode = insert(new WarnNode());
         }
 
-        if (constant.getDeclaringModule() == coreLibrary().getObjectClass()) {
-            warnNode.warn("constant ::", name, " is deprecated");
-        } else {
-            warnNode.warn("constant ", name, " is deprecated");
-        }
+        final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection(getEncapsulatingSourceSection());
+        warnNode.warningMessage(sourceSection, "constant " + ModuleOperations.constantName(getContext(), module, name) + " is deprecated");
     }
 
     protected int getCacheLimit() {

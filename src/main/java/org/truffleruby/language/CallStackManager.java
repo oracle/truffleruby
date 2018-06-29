@@ -187,32 +187,28 @@ public class CallStackManager {
     }
 
     @TruffleBoundary
-    public Node getTopMostUserCallNode() {
-        final Memo<Boolean> firstFrame = new Memo<>(true);
-
+    public SourceSection getTopMostUserSourceSection() {
         return Truffle.getRuntime().iterateFrames(frameInstance -> {
-            if (firstFrame.get()) {
-                firstFrame.set(false);
+            final Node callNode = frameInstance.getCallNode();
+            if (callNode == null) {
                 return null;
             }
 
-            final SourceSection sourceSection = frameInstance.getCallNode().getEncapsulatingSourceSection();
-
-            if (sourceSection.getSource() == null) {
-                return null;
+            final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
+            if (!BacktraceFormatter.isCore(context, sourceSection)) {
+                return sourceSection;
             } else {
-                return frameInstance.getCallNode();
+                return null; // Keep searching
             }
         });
     }
 
     @TruffleBoundary
-    public SourceSection getTopMostUserSourceSection() {
-        final Node callNode = getTopMostUserCallNode();
-        if (callNode == null) {
-            return null;
+    public SourceSection getTopMostUserSourceSection(SourceSection encapsulatingSourceSection) {
+        if (encapsulatingSourceSection != null && !BacktraceFormatter.isCore(context, encapsulatingSourceSection)) {
+            return encapsulatingSourceSection;
         } else {
-            return callNode.getEncapsulatingSourceSection();
+            return getTopMostUserSourceSection();
         }
     }
 

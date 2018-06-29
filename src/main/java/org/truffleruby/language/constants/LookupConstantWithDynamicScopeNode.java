@@ -53,7 +53,7 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
             throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
         }
         if (constant.isDeprecated()) {
-            warnDeprecatedConstant(constant.getConstant(), name);
+            warnDeprecatedConstant(constant.getConstant().getDeclaringModule(), constant.getConstant(), name);
         }
         return constant.getConstant();
     }
@@ -68,7 +68,7 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
             throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
         }
         if (isDeprecatedProfile.profile(constant.isDeprecated())) {
-            warnDeprecatedConstant(constant.getConstant(), name);
+            warnDeprecatedConstant(constant.getConstant().getDeclaringModule(), constant.getConstant(), name);
         }
         return constant.getConstant();
     }

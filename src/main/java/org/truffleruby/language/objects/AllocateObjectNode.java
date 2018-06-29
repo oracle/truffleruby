@@ -19,7 +19,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.source.SourceSection;
@@ -95,22 +94,21 @@ public abstract class AllocateObjectNode extends RubyNode {
         final DynamicObject object = allocate(getInstanceFactory(classToAllocate), values);
 
         final FrameInstance allocatingFrameInstance;
-        final Node allocatingNode;
+        final SourceSection allocatingSourceSection;
 
         if (useCallerFrameForTracing) {
             allocatingFrameInstance = getContext().getCallStack().getCallerFrameIgnoringSend();
-            allocatingNode = getContext().getCallStack().getTopMostUserCallNode();
+            allocatingSourceSection = getContext().getCallStack().getTopMostUserSourceSection();
         } else {
             allocatingFrameInstance = Truffle.getRuntime().getCurrentFrame();
-            allocatingNode = this;
+            allocatingSourceSection = getEncapsulatingSourceSection();
         }
 
         final Frame allocatingFrame = allocatingFrameInstance.getFrame(FrameInstance.FrameAccess.READ_ONLY);
 
         final Object allocatingSelf = RubyArguments.getSelf(allocatingFrame);
         final String allocatingMethod = RubyArguments.getMethod(allocatingFrame).getName();
-        final SourceSection allocatingSourceSection = allocatingNode.getEncapsulatingSourceSection();
-        
+
         getContext().getObjectSpaceManager().traceAllocation(
                 object,
                 string(makeStringNode, Layouts.CLASS.getFields(coreLibrary().getLogicalClass(allocatingSelf)).getName()),
