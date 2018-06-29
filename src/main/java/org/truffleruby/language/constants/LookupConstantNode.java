@@ -122,7 +122,6 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
         }
     }
 
-    @TruffleBoundary
     protected boolean isVisible(DynamicObject module, ConstantLookupResult constant) {
         return ignoreVisibility || constant.isVisibleTo(getContext(), LexicalScope.NONE, module);
     }
