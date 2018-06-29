@@ -112,7 +112,7 @@ suite = {
 
         # ------------- Projects -------------
 
-        "truffleruby-annotations": {
+        "org.truffleruby.annotations": {
             "dir": "src/annotations",
             "sourceDirs": ["java"],
             "javaCompliance": "1.8",
@@ -123,7 +123,7 @@ suite = {
             ],
         },
 
-        "truffleruby-shared": {
+        "org.truffleruby.shared": {
             "dir": "src/shared",
             "sourceDirs": ["java"],
             "dependencies": [
@@ -141,7 +141,7 @@ suite = {
             ],
         },
 
-        "truffleruby-processor": {
+        "org.truffleruby.processor": {
             "dir": "src/processor",
             "sourceDirs": ["java"],
             "dependencies": [
@@ -155,7 +155,7 @@ suite = {
             ],
         },
 
-        "truffleruby": {
+        "org.truffleruby": {
             "dir": "src/main",
             "sourceDirs": ["java"],
             "dependencies": [
@@ -171,7 +171,7 @@ suite = {
                 "TRUFFLERUBY-PROCESSOR",
             ],
             "javaCompliance": "1.8",
-            "checkstyle" : "truffleruby",
+            "checkstyle" : "org.truffleruby",
             "workingSets": "TruffleRuby",
             "findbugsIgnoresGenerated" : True,
             "checkPackagePrefix": "false",
@@ -191,7 +191,7 @@ suite = {
             }
         },
 
-        "truffleruby-launcher": {
+        "org.truffleruby.launcher": {
             "dir": "src/launcher",
             "sourceDirs": ["java"],
             "dependencies": [
@@ -208,7 +208,7 @@ suite = {
             ],
         },
 
-        "truffleruby-core": {
+        "org.truffleruby.core": {
             "class": "ArchiveProject",
             "outputDir": "src/main/ruby",
             "prefix": "truffleruby",
@@ -218,11 +218,11 @@ suite = {
             ],
         },
 
-        "truffleruby-test": {
+        "org.truffleruby.test": {
             "dir": "src/test",
             "sourceDirs": ["java"],
             "dependencies": [
-                "truffleruby",
+                "org.truffleruby",
                 "truffle:TRUFFLE_TCK",
                 "mx:JUNIT",
             ],
@@ -233,7 +233,7 @@ suite = {
             ],
         },
 
-        "truffleruby-test-ruby": {
+        "org.truffleruby.test-ruby": {
             "class": "ArchiveProject",
             "outputDir": "src/test/ruby",
             "prefix": "src/test/ruby",
@@ -242,16 +242,16 @@ suite = {
             ],
         },
 
-        "truffleruby-cext": {
+        "org.truffleruby.cext": {
             "native": True,
             "dir": "src/main/c",
             "buildDependencies": [
                 "TRUFFLERUBY", # We need truffleruby.jar to run extconf.rb
-                "truffleruby-bin", # bin/truffleruby
-                "truffleruby-sulong-libs", # polyglot.h
+                "org.truffleruby.bin", # bin/truffleruby
+                "org.truffleruby.sulong-libs", # polyglot.h
             ],
             "output": ".",
-            "results": [], # Empty results as they overlap with truffleruby-lib
+            "results": [], # Empty results as they overlap with org.truffleruby.lib
             "license": [
                 "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "BSD-simplified",   # MRI
@@ -261,7 +261,7 @@ suite = {
         # Copy the files from SULONG_LIBS to lib/cext/sulong-libs.
         # Used by native images, which need a relative path from the Ruby home
         # to these libraries to pass to Sulong so it can find them outside GraalVM.
-        "truffleruby-sulong-libs": {
+        "org.truffleruby.sulong-libs": {
             "class": "TruffleRubySulongLibsProject",
             "outputDir": "lib/cext/sulong-libs",
             "prefix": "lib/cext/sulong-libs",
@@ -270,11 +270,11 @@ suite = {
             ],
         },
 
-        "truffleruby-lib": {
+        "org.truffleruby.lib": {
             "class": "ArchiveProject",
             "dependencies": [
-                "truffleruby-cext",
-                "truffleruby-sulong-libs",
+                "org.truffleruby.cext",
+                "org.truffleruby.sulong-libs",
             ],
             "outputDir": "lib",
             "prefix": "lib",
@@ -286,7 +286,7 @@ suite = {
             ],
         },
 
-        "truffleruby-bin": {
+        "org.truffleruby.bin": {
             "class": "TruffleRubyLauncherProject",
             "buildDependencies": [
                 "TRUFFLERUBY",
@@ -302,13 +302,13 @@ suite = {
             ],
         },
 
-        "truffleruby-doc": {
+        "org.truffleruby.doc": {
             "class": "TruffleRubyDocsProject",
             "outputDir": "",
             "prefix": "",
         },
 
-        "truffleruby-specs": {
+        "org.truffleruby.specs": {
             "class": "ArchiveProject",
             "prefix": "spec",
             "outputDir": "spec",
@@ -325,7 +325,7 @@ suite = {
 
         "TRUFFLERUBY-ANNOTATIONS": {
             "dependencies": [
-                "truffleruby-annotations"
+                "org.truffleruby.annotations"
             ],
             "description": "TruffleRuby Annotations",
             "license": ["EPL-1.0"]
@@ -336,7 +336,7 @@ suite = {
         # This code is loaded twice in different classloaders, therefore any created instances should not be passed around.
         "TRUFFLERUBY-SHARED": {
             "dependencies": [
-                "truffleruby-shared"
+                "org.truffleruby.shared"
             ],
             "distDependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
@@ -348,7 +348,7 @@ suite = {
 
         "TRUFFLERUBY-PROCESSOR": {
             "dependencies": [
-                "truffleruby-processor"
+                "org.truffleruby.processor"
             ],
             "distDependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
@@ -362,8 +362,8 @@ suite = {
         "TRUFFLERUBY": {
             "mainClass": "org.truffleruby.launcher.RubyLauncher",
             "dependencies": [
-                "truffleruby",
-                "truffleruby-core",
+                "org.truffleruby",
+                "org.truffleruby.core",
             ],
             "distDependencies": [
                 "truffle:TRUFFLE_API",
@@ -382,7 +382,7 @@ suite = {
 
         "TRUFFLERUBY-LAUNCHER": {
             "dependencies": [
-                "truffleruby-launcher"
+                "org.truffleruby.launcher"
             ],
             "distDependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
@@ -400,11 +400,11 @@ suite = {
         "TRUFFLERUBY-ZIP": {
             "native": True, # Not Java
             "relpath": True,
-            "platformDependent": True, # truffleruby-cext, truffleruby-bin
+            "platformDependent": True, # org.truffleruby.cext, org.truffleruby.bin
             "dependencies": [
-                "truffleruby-bin",
-                "truffleruby-lib",
-                "truffleruby-doc",
+                "org.truffleruby.bin",
+                "org.truffleruby.lib",
+                "org.truffleruby.doc",
             ],
             "description": "TruffleRuby libraries, documentation, bin directory",
             "license": [
@@ -420,11 +420,11 @@ suite = {
             "platformDependent": True,
             "description" : "TruffleRuby support distribution for the GraalVM",
             "dependencies" : [
-                "truffleruby-cext",
+                "org.truffleruby.cext",
             ],
             "layout" : {
                 "./" : [
-                    "file:lib",  # contains some results from truffleruby-cext
+                    "file:lib",  # contains some results from org.truffleruby.cext
                     "file:CHANGELOG.md",
                     "file:README.md",
                     "file:mx.truffleruby/native-image.properties",
@@ -464,8 +464,8 @@ suite = {
 
         "TRUFFLERUBY-TEST": {
             "dependencies": [
-                "truffleruby-test",
-                "truffleruby-test-ruby",
+                "org.truffleruby.test",
+                "org.truffleruby.test-ruby",
             ],
             "exclude": [
                 "mx:HAMCREST",
@@ -484,7 +484,7 @@ suite = {
             "native": True, # Not Java
             "relpath": True,
             "dependencies": [
-                "truffleruby-specs",
+                "org.truffleruby.specs",
             ],
             "description": "TruffleRuby spec files from ruby/spec",
             "license": [
