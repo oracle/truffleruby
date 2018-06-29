@@ -22,4 +22,4 @@ if [ "$TRUFFLERUBY_RECOMPILE_OPENSSL" != "false" ]; then
   cp openssl.su "$root/lib/mri"
 fi
 
-echo "TruffleRuby was sucessfully installed in $root"
+echo "TruffleRuby was successfully installed in $root"
