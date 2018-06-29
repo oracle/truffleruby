@@ -2445,14 +2445,14 @@ public abstract class StringNodes {
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class UnpackNode extends CoreMethodNode {
 
+        @Child private TaintNode taintNode;
+
+        private final BranchProfile exceptionProfile = BranchProfile.create();
+
         @CreateCast("format")
         public RubyNode coerceFormat(RubyNode format) {
             return ToStrNodeGen.create(format);
         }
-
-        @Child private TaintNode taintNode;
-
-        private final BranchProfile exceptionProfile = BranchProfile.create();
 
         @Specialization(
                 guards = "equalNode.execute(rope(format), cachedFormat)",

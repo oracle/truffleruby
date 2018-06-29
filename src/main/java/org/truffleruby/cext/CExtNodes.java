@@ -545,13 +545,13 @@ public class CExtNodes {
     @CoreMethod(names = "rb_const_get", onSingleton = true, required = 2)
     public abstract static class RbConstGetNode extends CoreMethodNode {
 
+        @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false, true);
+        @Child private GetConstantNode getConstantNode = GetConstantNode.create();
+
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
             return ToJavaStringNodeGen.create(name);
         }
-
-        @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false, true);
-        @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
         @Specialization
         public Object rbConstGet(VirtualFrame frame, DynamicObject module, String name) {
@@ -568,13 +568,13 @@ public class CExtNodes {
     @CoreMethod(names = "rb_const_get_from", onSingleton = true, required = 2)
     public abstract static class RbConstGetFromNode extends CoreMethodNode {
 
+        @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false, false);
+        @Child private GetConstantNode getConstantNode = GetConstantNode.create();
+
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
             return ToJavaStringNodeGen.create(name);
         }
-
-        @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false, false);
-        @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
         @Specialization
         public Object rbConstGetFrom(VirtualFrame frame, DynamicObject module, String name) {
