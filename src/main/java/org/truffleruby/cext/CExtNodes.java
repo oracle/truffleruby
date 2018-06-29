@@ -549,7 +549,7 @@ public class CExtNodes {
             return ToJavaStringNodeGen.create(name);
         }
 
-        @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false);
+        @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false, false);
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
         @Specialization

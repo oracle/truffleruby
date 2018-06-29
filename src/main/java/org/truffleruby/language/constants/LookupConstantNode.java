@@ -25,6 +25,7 @@ import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.parser.Identifiers;
 
 import java.util.ArrayList;
 
@@ -39,14 +40,16 @@ import java.util.ArrayList;
 public abstract class LookupConstantNode extends LookupConstantBaseNode implements LookupConstantInterface {
 
     private final boolean ignoreVisibility;
+    private final boolean checkName;
     private final boolean lookInObject;
 
-    public static LookupConstantNode create(boolean ignoreVisibility, boolean lookInObject) {
-        return LookupConstantNodeGen.create(ignoreVisibility, lookInObject, null, null);
+    public static LookupConstantNode create(boolean ignoreVisibility, boolean checkName, boolean lookInObject) {
+        return LookupConstantNodeGen.create(ignoreVisibility, checkName, lookInObject, null, null);
     }
 
-    public LookupConstantNode(boolean ignoreVisibility, boolean lookInObject) {
+    public LookupConstantNode(boolean ignoreVisibility, boolean checkName, boolean lookInObject) {
         this.ignoreVisibility = ignoreVisibility;
+        this.checkName = checkName;
         this.lookInObject = lookInObject;
     }
 
@@ -67,10 +70,13 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
     protected RubyConstant lookupConstant(DynamicObject module, String name,
             @Cached("module") DynamicObject cachedModule,
             @Cached("name") String cachedName,
+            @Cached("isValidConstantName(cachedName)") boolean isValidConstantName,
             @Cached("doLookup(cachedModule, cachedName)") ConstantLookupResult constant,
             @Cached("isVisible(cachedModule, constant)") boolean isVisible,
             @Cached("createBinaryProfile()") ConditionProfile sameNameProfile) {
-        if (!isVisible) {
+        if (!isValidConstantName) {
+            throw new RaiseException(getContext(), coreExceptions().nameErrorWrongConstantName(cachedName, this));
+        } else if (!isVisible) {
             throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(module, name, this));
         }
         if (constant.isDeprecated()) {
@@ -81,12 +87,15 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
 
     @Specialization(guards = "isRubyModule(module)")
     protected RubyConstant lookupConstantUncached(DynamicObject module, String name,
+            @Cached("createBinaryProfile()") ConditionProfile isValidConstantNameProfile,
             @Cached("createBinaryProfile()") ConditionProfile isVisibleProfile,
             @Cached("createBinaryProfile()") ConditionProfile isDeprecatedProfile) {
         ConstantLookupResult constant = doLookup(module, name);
         boolean isVisible = isVisible(module, constant);
 
-        if (isVisibleProfile.profile(!isVisible)) {
+        if (!isValidConstantNameProfile.profile(isValidConstantName(name))) {
+            throw new RaiseException(getContext(), coreExceptions().nameErrorWrongConstantName(name, this));
+        } else if (isVisibleProfile.profile(!isVisible)) {
             throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(module, name, this));
         }
         if (isDeprecatedProfile.profile(constant.isDeprecated())) {
@@ -124,6 +133,14 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
 
     protected boolean isVisible(DynamicObject module, ConstantLookupResult constant) {
         return ignoreVisibility || constant.isVisibleTo(getContext(), LexicalScope.NONE, module);
+    }
+
+    protected boolean isValidConstantName(String name) {
+        if (checkName) {
+            return Identifiers.isValidConstantName(name);
+        } else {
+            return true;
+        }
     }
 
 }

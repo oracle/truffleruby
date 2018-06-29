@@ -842,7 +842,7 @@ public abstract class ModuleNodes {
     public abstract static class ConstGetNode extends CoreMethodNode {
 
         @Child private RequireNode requireNode;
-        @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, true);
+        @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, true, true);
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
         @CreateCast("name")

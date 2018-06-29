@@ -42,7 +42,7 @@ public abstract class GetIntegerConstantNode extends RubyNode {
     }
 
     protected LookupConstantNode createLookupConstantNode() {
-        return LookupConstantNode.create(false, true);
+        return LookupConstantNode.create(false, true, true);
     }
 
 }
