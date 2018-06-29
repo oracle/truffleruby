@@ -495,7 +495,11 @@ local part_definitions = {
 
     compiler_metrics: {
       # Run all metrics benchmarks: hello and compile-mandelbrot
-      benchmarks+:: ["allocation", "minheap", "time"],
+      benchmarks+:: [
+        ["allocation", "--", "--graal"],
+        ["minheap", "--", "--graal"],
+        ["time", "--", "--graal"],
+      ]
     },
 
     # TODO not compose-able, it would had be broken up to 2 builds

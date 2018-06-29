@@ -125,7 +125,7 @@ class BuildStatsBenchmarkSuite(RubyBenchmarkSuite):
 
 metrics_benchmarks = {
     'hello': ['-e', "puts 'hello'"],
-    'compile-mandelbrot': ['--graal', join(rubyDir, 'bench', 'metrics', 'mandelbrot.rb')]
+    'compile-mandelbrot': [join(rubyDir, 'bench', 'metrics', 'mandelbrot.rb')]
 }
 
 default_metrics_benchmarks = ['hello', 'compile-mandelbrot']
