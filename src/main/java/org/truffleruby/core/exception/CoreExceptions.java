@@ -483,6 +483,11 @@ public class CoreExceptions {
     // NameError
 
     @TruffleBoundary
+    public DynamicObject nameErrorWrongConstantName(String name, Node currentNode) {
+        return nameError(StringUtils.format("wrong constant name %s", name), null, name, currentNode);
+    }
+
+    @TruffleBoundary
     public DynamicObject nameErrorConstantNotDefined(DynamicObject module, String name, Node currentNode) {
         return nameError(StringUtils.format("constant %s not defined", ModuleOperations.constantName(context, module, name)), null, name, currentNode);
     }
@@ -495,14 +500,14 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorUninitializedClassVariable(DynamicObject module, String name, Node currentNode) {
-        assert RubyGuards.isRubyModule(module);
-        return nameError(StringUtils.format("uninitialized class variable %s in %s", name, Layouts.MODULE.getFields(module).getName()), module, name, currentNode);
+    public DynamicObject nameErrorPrivateConstant(DynamicObject module, String name, Node currentNode) {
+        return nameError(StringUtils.format("private constant %s referenced", ModuleOperations.constantName(context, module, name)), module, name, currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorPrivateConstant(DynamicObject module, String name, Node currentNode) {
-        return nameError(StringUtils.format("private constant %s referenced", ModuleOperations.constantName(context, module, name)), module, name, currentNode);
+    public DynamicObject nameErrorUninitializedClassVariable(DynamicObject module, String name, Node currentNode) {
+        assert RubyGuards.isRubyModule(module);
+        return nameError(StringUtils.format("uninitialized class variable %s in %s", name, Layouts.MODULE.getFields(module).getName()), module, name, currentNode);
     }
 
     @TruffleBoundary

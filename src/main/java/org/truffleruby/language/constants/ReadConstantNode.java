@@ -48,7 +48,7 @@ public class ReadConstantNode extends RubyNode {
         }
         if (lookupConstantNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            lookupConstantNode = insert(LookupConstantNodeGen.create(false, false));
+            lookupConstantNode = insert(LookupConstantNode.create(false, true, false));
         }
         return getConstantNode.executeGetConstant(frame, module, name, constant, lookupConstantNode);
     }
@@ -56,7 +56,7 @@ public class ReadConstantNode extends RubyNode {
     private RubyConstant lookupConstant(VirtualFrame frame, Object module) {
         if (lookupConstantNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            lookupConstantNode = insert(LookupConstantNodeGen.create(false, false));
+            lookupConstantNode = insert(LookupConstantNode.create(false, true, false));
         }
         return lookupConstantNode.lookupConstant(frame, module, name);
     }

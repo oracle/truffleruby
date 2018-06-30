@@ -29,7 +29,11 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+
 public final class Identifiers {
+
+    @TruffleBoundary
     public static boolean isValidConstantName(String id) {
         char c;
         int len;
@@ -39,6 +43,7 @@ public final class Identifiers {
         return false;
     }
 
+    @TruffleBoundary
     public static boolean isValidClassVariableName(String id) {
         int len;
         if ((len = id.length()) > 2 && '@' == id.charAt(0) && '@' == id.charAt(1)) {
@@ -49,16 +54,18 @@ public final class Identifiers {
         return false;
     }
 
+    @TruffleBoundary
     public static boolean isInitialCharacter(int c) {
         return Character.isAlphabetic(c) || c == '_';
     }
 
     // check like Rubinius does for compatibility with their Struct Ruby implementation.
+    @TruffleBoundary
     public static boolean isValidInstanceVariableName(String id) {
         return id.startsWith("@") && id.length() > 1 && Identifiers.isInitialCharacter(id.charAt(1));
     }
 
-
+    @TruffleBoundary
     private static boolean isNameString(String id, int start, int limit) {
         for (int i = start; i < limit; i++) {
             char c = id.charAt(i);

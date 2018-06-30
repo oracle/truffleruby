@@ -10,7 +10,6 @@
 package org.truffleruby.language.constants;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -20,13 +19,11 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.loader.RequireNode;
-import org.truffleruby.parser.Identifiers;
 
 @NodeChildren({ @NodeChild("module"), @NodeChild("name"), @NodeChild("constant"), @NodeChild("lookupConstantNode") })
 public abstract class GetConstantNode extends RubyNode {
@@ -67,51 +64,25 @@ public abstract class GetConstantNode extends RubyNode {
     @Specialization(
             guards = { "constant == null", "guardName(name, cachedName, sameNameProfile)" },
             limit = "getCacheLimit()")
-    protected Object missingConstantCached(
-            VirtualFrame frame,
-            DynamicObject module,
-            String name,
-            Object constant,
-            LookupConstantInterface lookupConstantNode,
+    protected Object missingConstantCached(DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode,
             @Cached("name") String cachedName,
-            @Cached("isValidConstantName(name)") boolean isValidConstantName,
             @Cached("getSymbol(name)") DynamicObject symbolName,
             @Cached("createBinaryProfile()") ConditionProfile sameNameProfile) {
-        return doMissingConstant(frame, module, name, isValidConstantName, symbolName);
+        return doMissingConstant(module, name, symbolName);
     }
 
     @Specialization(guards = "constant == null")
-    protected Object missingConstantUncached(VirtualFrame frame, DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode,
-            @Cached("createBinaryProfile()") ConditionProfile validNameProfile) {
-        final boolean isValidConstantName = validNameProfile.profile(isValidConstantName(name));
-        return doMissingConstant(frame, module, name, isValidConstantName, getSymbol(name));
+    protected Object missingConstantUncached(VirtualFrame frame, DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode) {
+        return doMissingConstant(module, name, getSymbol(name));
     }
 
-    private Object doMissingConstant(
-            VirtualFrame frame,
-            DynamicObject module,
-            String name,
-            boolean isValidConstantName,
-            DynamicObject symbolName) {
-        if (!isValidConstantName) {
-            throw new RaiseException(getContext(), coreExceptions().nameError(formatError(name), module, name, this));
-        }
-
+    private Object doMissingConstant(DynamicObject module, String name, DynamicObject symbolName) {
         if (constMissingNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             constMissingNode = insert(CallDispatchHeadNode.createOnSelf());
         }
 
-        return constMissingNode.call(frame, module, "const_missing", symbolName);
-    }
-
-    @TruffleBoundary
-    private String formatError(String name) {
-        return StringUtils.format("wrong constant name %s", name);
-    }
-
-    protected boolean isValidConstantName(String name) {
-        return Identifiers.isValidConstantName(name);
+        return constMissingNode.call(null, module, "const_missing", symbolName);
     }
 
     protected boolean guardName(String name, String cachedName, ConditionProfile sameNameProfile) {

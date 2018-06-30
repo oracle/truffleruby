@@ -1415,17 +1415,17 @@ public abstract class ArrayNodes {
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class PackNode extends CoreMethodNode {
 
-        @CreateCast("format")
-        public RubyNode coerceFormat(RubyNode format) {
-            return ToStrNodeGen.create(format);
-        }
-
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode;
         @Child private StringNodes.MakeStringNode makeStringNode;
         @Child private TaintNode taintNode;
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
         private final ConditionProfile resizeProfile = ConditionProfile.createBinaryProfile();
+
+        @CreateCast("format")
+        public RubyNode coerceFormat(RubyNode format) {
+            return ToStrNodeGen.create(format);
+        }
 
         @Specialization(guards = "equalNode.execute(rope(format), cachedFormat)", limit = "getCacheLimit()")
         public DynamicObject packCached(

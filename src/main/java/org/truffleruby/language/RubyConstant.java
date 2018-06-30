@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Layouts;
@@ -71,9 +71,8 @@ public class RubyConstant {
         }
     }
 
+    @TruffleBoundary
     public boolean isVisibleTo(RubyContext context, LexicalScope lexicalScope, DynamicObject module) {
-        CompilerAsserts.neverPartOfCompilation();
-
         assert RubyGuards.isRubyModule(module);
         assert lexicalScope == null || lexicalScope.getLiveModule() == module;
 

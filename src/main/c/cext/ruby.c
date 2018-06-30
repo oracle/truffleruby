@@ -2110,7 +2110,7 @@ int rb_const_defined_at(VALUE module, ID name) {
 }
 
 VALUE rb_const_get(VALUE module, ID name) {
-  return (VALUE) polyglot_invoke(module, "const_get", name);
+  return polyglot_invoke(RUBY_CEXT, "rb_const_get", module, name);
 }
 
 VALUE rb_const_get_at(VALUE module, ID name) {
@@ -2122,7 +2122,7 @@ VALUE rb_const_get_from(VALUE module, ID name) {
 }
 
 void rb_const_set(VALUE module, ID name, VALUE value) {
-  polyglot_invoke(module, "const_set", name, value);
+  polyglot_invoke(RUBY_CEXT, "rb_const_set", module, name, value);
 }
 
 void rb_define_const(VALUE module, const char *name, VALUE value) {

@@ -78,7 +78,6 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
         return ModuleOperations.lookupConstantWithLexicalScope(getContext(), lexicalScope, name);
     }
 
-    @TruffleBoundary
     protected boolean isVisible(LexicalScope lexicalScope, ConstantLookupResult constant) {
         return constant.isVisibleTo(getContext(), lexicalScope, lexicalScope.getLiveModule());
     }
