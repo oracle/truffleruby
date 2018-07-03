@@ -167,12 +167,7 @@ public class RubyContext {
         options = createOptions(env);
 
         // We need to construct this at runtime
-        try {
-            // Use NativePRNGNonBlocking because it uses /dev/urandom like MRI and allows us to use #generateSeed without worrying about entropy
-            random = SecureRandom.getInstance("NativePRNGNonBlocking");
-        } catch (NoSuchAlgorithmException e) {
-            throw new JavaException(e);
-        }
+        initRandom();
 
         hashing = new Hashing(generateHashingSeed());
 
@@ -304,7 +299,7 @@ public class RubyContext {
         // Re-read the value of $TZ as it can be different in the new process
         GetTimeZoneNode.invalidateTZ();
 
-        this.random = new SecureRandom();
+        initRandom();
         hashing.patchSeed(generateHashingSeed());
 
         this.defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
@@ -829,8 +824,25 @@ public class RubyContext {
         return nativeConfiguration;
     }
 
+    private void initRandom() {
+        try {
+            /*
+             * Use NativePRNG and only call #nextBytes (never #generateSeed) because it uses /dev/urandom
+             * (https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SUNProvider,
+             * https://docs.oracle.com/javase/10/security/oracle-providers.htm#JSSEC-GUID-C4706FFE-D08F-4E29-B0BE-CCE8C93DD940)
+             * like MRI and allows us to not block waiting for entropy which is an observed problem in practice with
+             * Ruby in cloud environments. NativePRNGNonBlocking is not supported on SVM.
+             */
+            random = SecureRandom.getInstance("NativePRNG");
+        } catch (NoSuchAlgorithmException e) {
+            throw new JavaException(e);
+        }
+    }
+
     public byte[] getRandomSeedBytes(int numBytes) {
-        return random.generateSeed(numBytes);
+        final byte[] bytes = new byte[numBytes];
+        random.nextBytes(bytes);
+        return bytes;
     }
 
     public WeakValueCache<RegexpCacheKey, Regex> getRegexpCache() {
