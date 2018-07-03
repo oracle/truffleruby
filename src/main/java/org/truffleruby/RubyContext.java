@@ -78,6 +78,7 @@ import org.truffleruby.stdlib.readline.ConsoleHolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
@@ -173,7 +174,7 @@ public class RubyContext {
             throw new JavaException(e);
         }
 
-        hashing = new Hashing(generateHashingSeed(random));
+        hashing = new Hashing(generateHashingSeed());
 
         defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
         userBacktraceFormatter = new BacktraceFormatter(this, BacktraceFormatter.USER_BACKTRACE_FLAGS);
@@ -304,7 +305,7 @@ public class RubyContext {
         GetTimeZoneNode.invalidateTZ();
 
         this.random = new SecureRandom();
-        hashing.patchSeed(generateHashingSeed(random));
+        hashing.patchSeed(generateHashingSeed());
 
         this.defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
 
@@ -401,12 +402,14 @@ public class RubyContext {
         return options;
     }
 
-    private long generateHashingSeed(SecureRandom random) {
+    private long generateHashingSeed() {
         if (options.HASHING_DETERMINISTIC) {
             Log.LOGGER.severe("deterministic hashing is enabled - this may make you vulnerable to denial of service attacks");
             return 7114160726623585955L;
         } else {
-            return random.nextLong();
+            final byte[] bytes = getRandomSeedBytes(Long.BYTES);
+            final ByteBuffer buffer = ByteBuffer.wrap(bytes);
+            return buffer.getLong();
         }
     }
 
