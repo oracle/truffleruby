@@ -77,12 +77,12 @@ import org.truffleruby.stdlib.CoverageManager;
 import org.truffleruby.stdlib.readline.ConsoleHolder;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
@@ -121,7 +121,7 @@ public class RubyContext {
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
 
-    @CompilationFinal private SecureRandom random;
+    @CompilationFinal private FileInputStream randomFile;
     private final Hashing hashing;
     @CompilationFinal BacktraceFormatter defaultBacktraceFormatter;
     private final BacktraceFormatter userBacktraceFormatter;
@@ -167,7 +167,7 @@ public class RubyContext {
         options = createOptions(env);
 
         // We need to construct this at runtime
-        initRandom();
+        initRandomFile();
 
         hashing = new Hashing(generateHashingSeed());
 
@@ -267,8 +267,8 @@ public class RubyContext {
         }
 
         if (isPreInitializing()) {
-            // Cannot save the FileDescriptor in the image, referenced by the SecureRandom instance
-            random = null;
+            // Cannot save the file descriptor in the image
+            randomFile = null;
             // Cannot save the root Java Thread instance in the image
             threadManager.resetMainThread();
         } else {
@@ -299,7 +299,7 @@ public class RubyContext {
         // Re-read the value of $TZ as it can be different in the new process
         GetTimeZoneNode.invalidateTZ();
 
-        initRandom();
+        initRandomFile();
         hashing.patchSeed(generateHashingSeed());
 
         this.defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
@@ -824,24 +824,39 @@ public class RubyContext {
         return nativeConfiguration;
     }
 
-    private void initRandom() {
+    private void initRandomFile() {
         try {
             /*
-             * Use NativePRNG and only call #nextBytes (never #generateSeed) because it uses /dev/urandom
+             * We'd like to use NativePRNG and only call #nextBytes (never #generateSeed), or NativePRNGNonBlocking,
+             * because they use /dev/urandom
              * (https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SUNProvider,
              * https://docs.oracle.com/javase/10/security/oracle-providers.htm#JSSEC-GUID-C4706FFE-D08F-4E29-B0BE-CCE8C93DD940)
              * like MRI and allows us to not block waiting for entropy which is an observed problem in practice with
-             * Ruby in cloud environments. NativePRNGNonBlocking is not supported on SVM.
+             * Ruby in cloud environments, but neither are supported on the SVM.
              */
-            random = SecureRandom.getInstance("NativePRNG");
-        } catch (NoSuchAlgorithmException e) {
+            randomFile = new FileInputStream("/dev/urandom");
+        } catch (FileNotFoundException e) {
             throw new JavaException(e);
         }
     }
 
     public byte[] getRandomSeedBytes(int numBytes) {
         final byte[] bytes = new byte[numBytes];
-        random.nextBytes(bytes);
+
+        int offset = 0;
+
+        while (offset < numBytes) {
+            final int read;
+
+            try {
+                read = randomFile.read(bytes, offset, numBytes - offset);
+            } catch (IOException e) {
+                throw new JavaException(e);
+            }
+
+            offset += read;
+        }
+
         return bytes;
     }
 
