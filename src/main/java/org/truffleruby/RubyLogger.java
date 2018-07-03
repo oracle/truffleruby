@@ -11,18 +11,17 @@ package org.truffleruby;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.TruffleLogger;
 import org.truffleruby.shared.TruffleRuby;
 
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class RubyLogger {
 
-    public static final Logger LOGGER = Truffle.getLogger(TruffleRuby.LANGUAGE_ID, "ruby");
+    public static final TruffleLogger LOGGER = TruffleLogger.getLogger(TruffleRuby.LANGUAGE_ID, "ruby");
 
     /**
      * Warn about code that works but is not yet optimized as Truffle code normally would be. Only
