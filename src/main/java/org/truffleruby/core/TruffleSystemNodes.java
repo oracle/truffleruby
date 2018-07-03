@@ -64,7 +64,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.Platform;
 
-import java.util.Arrays;
 import java.util.Set;
 import java.util.logging.Level;
 
