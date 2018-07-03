@@ -22,6 +22,11 @@ Bug fixes:
 Performance:
 * Optimize required keyword arguments.
 * `rb_enc_to_index` is now faster by eliminating an expensive look-up.
+Changes:
+
+* `-Xlog=` is now `--log.ruby.level=`.
+* The log format, handlers, etc are now managed by the Truffle logging system.
+* The custom log levels `PERFORMANCE` and `PATCH` have been removed.
 
 # 1.0 RC 3
 
@@ -53,13 +58,6 @@ Performance:
   a delimiter (e.g., `IO#each`), leading to overall improved `IO` reading for common
   use cases such as iterating through lines in a `File`.
 * Use the byte[] of the given Ruby String when calling eval() directly for parsing.
-Changes:
-
-* `-Xlog=` is now `--log.ruby.level=`.
-
-* The log format, handlers, etc are now managed by the Truffle log system.
-
-* The custom log levels `PERFORMANCE` and `PATCH` have been removed.
 
 # 1.0 RC 2, May 2018
 
