@@ -158,12 +158,35 @@ describe "Module#autoload" do
     ModuleSpecs::Autoload.use_ex1.should == :good
   end
 
-  it "does not load the file when referring to the constant in defined?" do
-    module ModuleSpecs::Autoload::Q
-      autoload :R, fixture(__FILE__, "autoload.rb")
-      defined?(R).should == "constant"
+  describe "interacting with defined?" do
+    it "does not load the file when referring to the constant in defined?" do
+      module ModuleSpecs::Autoload::Dog
+        autoload :R, fixture(__FILE__, "autoload_exception.rb")
+      end
+
+      defined?(ModuleSpecs::Autoload::Dog::R).should == "constant"
+      ScratchPad.recorded.should be_nil
+
+      ModuleSpecs::Autoload::Dog.should have_constant(:R)
     end
-    ModuleSpecs::Autoload::Q.should have_constant(:R)
+
+    it "loads an autoloaded parent when referencing a nested constant" do
+      module ModuleSpecs::Autoload
+        autoload :GoodParent, fixture(__FILE__, "autoload_nested.rb")
+      end
+
+      defined?(ModuleSpecs::Autoload::GoodParent::Nested).should == 'constant'
+      ScratchPad.recorded.should == :loaded
+    end
+
+    it "returns nil when it fails to load an autoloaded parent when referencing a nested constant" do
+      module ModuleSpecs::Autoload
+        autoload :BadParent, fixture(__FILE__, "autoload_exception.rb")
+      end
+
+      defined?(ModuleSpecs::Autoload::BadParent::Nested).should be_nil
+      ScratchPad.recorded.should == :exception
+    end
   end
 
   it "does not remove the constant from the constant table if load fails" do
@@ -216,7 +239,6 @@ describe "Module#autoload" do
   end
 
   it "loads the file that defines subclass XX::YY < YY and YY is a top level constant" do
-
     module ModuleSpecs::Autoload::XX
       autoload :YY, fixture(__FILE__, "autoload_subclass.rb")
     end

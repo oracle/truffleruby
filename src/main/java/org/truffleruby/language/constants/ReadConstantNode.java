@@ -70,8 +70,15 @@ public class ReadConstantNode extends RubyNode {
             return nil();
         }
 
-        final Object module = moduleNode.execute(frame);
-        if (!RubyGuards.isRubyModule(module)) {
+        final Object module;
+        try {
+            module = moduleNode.execute(frame);
+            if (!RubyGuards.isRubyModule(module)) {
+                return nil();
+            }
+        } catch (RaiseException e) {
+            // If reading the module raised an exception, it must have been an autoloaded module that failed while
+            // loading. MRI dictates that in this case we should swallow the exception and return `nil`.
             return nil();
         }
 
