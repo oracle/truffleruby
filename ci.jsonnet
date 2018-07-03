@@ -289,11 +289,11 @@ local part_definitions = {
       },
     },
 
-    oraclejdk10: {
+    oraclejdk11: {
       downloads+: {
         JAVA_HOME: {
           name: "oraclejdk",
-          version: "10+46", # 46 is the GA of Java 10
+          version: "11+20",
           platformspecific: true,
         },
 
@@ -561,7 +561,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     {
-      "ruby-test-fast-java10-linux": $.platform.linux + $.jdk.oraclejdk10 + $.use.common + $.use.build + $.cap.gate +
+      "ruby-test-fast-java11-linux": $.platform.linux + $.jdk.oraclejdk11 + $.use.common + $.use.build + $.cap.gate +
                                     $.run.test_fast + { timelimit: "30:00" },
     } +
 
