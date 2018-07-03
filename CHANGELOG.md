@@ -44,20 +44,23 @@ Bug fixes:
 * `RbConfig::CONFIG['extra_bindirs']` is now a String as other RbConfig values.
 * `SIGPIPE` is correctly caught on SubstrateVM, and the corresponding write()
   raises `Errno::EPIPE` when the read end of a pipe or socket is closed.
-* Use the magic encoding comment for determining the source encoding when using eval().
+* Use the magic encoding comment for determining the source encoding when using
+  eval().
 * Fixed a couple bugs where the encoding was not preserved correctly.
 
 Performance:
 
 * Faster stat()-related calls, by returning the relevant field directly and
   avoiding extra allocations.
-* `rb_str_new()`/`rb_str_new_cstr()` are much faster by avoiding extra copying and
-  allocations.
-* `String#{sub,sub!}` are faster in the common case of an empty replacement string.
+* `rb_str_new()`/`rb_str_new_cstr()` are much faster by avoiding extra copying
+  and allocations.
+* `String#{sub,sub!}` are faster in the common case of an empty replacement
+  string.
 * Eliminated many unnecessary memory copy operations when reading from `IO` with
-  a delimiter (e.g., `IO#each`), leading to overall improved `IO` reading for common
-  use cases such as iterating through lines in a `File`.
-* Use the byte[] of the given Ruby String when calling eval() directly for parsing.
+  a delimiter (e.g., `IO#each`), leading to overall improved `IO` reading for
+  common use cases such as iterating through lines in a `File`.
+* Use the byte[] of the given Ruby String when calling eval() directly for
+  parsing.
 
 # 1.0 RC 2, May 2018
 
