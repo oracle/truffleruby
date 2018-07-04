@@ -65,11 +65,18 @@ module Utilities
   end
 
   def self.jvmci_version
-    ci = File.read("#{TRUFFLERUBY_DIR}/ci.jsonnet")
-    unless /JAVA_HOME: \{\n\s*name: "labsjdk",\n\s*version: "8u\d+-(jvmci-0.\d+)",/ =~ ci
-      raise "JVMCI version not found in ci.jsonnet: #{ci[0, 1000]}"
+    if env = ENV["JVMCI_VERSION"]
+      unless /8u(\d+)-(jvmci-0.\d+)/ =~ env
+        raise "Could not parse JDK update and JVMCI version from $JVMCI_VERSION"
+      end
+    else
+      ci = File.read("#{TRUFFLERUBY_DIR}/ci.jsonnet")
+      unless /JAVA_HOME: \{\n\s*name: "labsjdk",\n\s*version: "8u(\d+)-(jvmci-0.\d+)",/ =~ ci
+        raise "JVMCI version not found in ci.jsonnet: #{ci[0, 1000]}"
+      end
     end
-    $1
+    update, jvmci = $1, $2
+    [update, jvmci]
   end
 
   def self.find_graal_javacmd_and_options
@@ -1681,7 +1688,7 @@ EOS
   def install_jvmci
     raise "Installing JVMCI is only available on Linux and macOS currently" unless LINUX || MAC
 
-    jvmci_version = ENV["JVMCI_VERSION"] || Utilities.jvmci_version
+    update, jvmci_version = Utilities.jvmci_version
     dir = File.expand_path("..", TRUFFLERUBY_DIR)
     java_home = chdir(dir) do
       if LINUX
@@ -1689,7 +1696,7 @@ EOS
         if Dir[dir_pattern].empty?
           puts "Downloading JDK8 with JVMCI"
           jvmci_releases = "https://github.com/graalvm/openjdk8-jvmci-builder/releases/download"
-          filename = "openjdk-8u171-#{jvmci_version}-linux-amd64.tar.gz"
+          filename = "openjdk-8u#{update}-#{jvmci_version}-linux-amd64.tar.gz"
           raw_sh "curl", "-L", "#{jvmci_releases}/#{jvmci_version}/#{filename}", "-o", filename
           raw_sh "tar", "xf", filename
         end
