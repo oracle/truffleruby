@@ -57,7 +57,7 @@ public abstract class ExceptionOperations {
     }
 
     public static DynamicObject backtraceAsRubyStringArray(RubyContext context, DynamicObject exception, Backtrace backtrace) {
-        final String[] lines = context.getUserBacktraceFormatter().formatBacktrace(exception, backtrace);
+        final String[] lines = context.getUserBacktraceFormatter().formatBacktraceAsStringArray(exception, backtrace);
 
         final Object[] array = new Object[lines.length];
 

@@ -67,18 +67,11 @@ public class BacktraceFormatter {
     // org.truffleruby.language.backtrace.BacktraceFormatter.printableRubyBacktrace(getContext(), this)
     public static String printableRubyBacktrace(RubyContext context, Node node) {
         final BacktraceFormatter backtraceFormatter = new BacktraceFormatter(context, EnumSet.of(FormattingFlags.INCLUDE_CORE_FILES));
-        final String[] lines = backtraceFormatter.formatBacktrace(null, context.getCallStack().getBacktrace(node));
-
-        final StringBuilder builder = new StringBuilder();
-        for (String line : lines) {
-            builder.append("\n");
-            builder.append(line);
-        }
-        String string = builder.toString();
-        if (string.isEmpty()) {
+        final String backtrace = backtraceFormatter.formatBacktrace(null, context.getCallStack().getBacktrace(node));
+        if (backtrace.isEmpty()) {
             return "<empty backtrace>";
         } else {
-            return string.substring(1); // Remove first \n added above
+            return backtrace;
         }
     }
 
@@ -102,21 +95,13 @@ public class BacktraceFormatter {
     }
 
     @TruffleBoundary
-    private void printBacktraceOnEnvStderr(DynamicObject exception, Backtrace backtrace) {
-        final PrintWriter writer = new PrintWriter(context.getEnv().err(), true);
-        for (String line : formatBacktrace(exception, backtrace)) {
-            writer.println(line);
-        }
-    }
-
-    @TruffleBoundary
     public void printRubyExceptionOnEnvStderr(DynamicObject rubyException) {
         // can be null, if @custom_backtrace is used
+        final PrintWriter printer = new PrintWriter(context.getEnv().err(), true);
         final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(rubyException);
         if (backtrace != null) {
-            printBacktraceOnEnvStderr(rubyException, backtrace);
+            printer.println(formatBacktrace(rubyException, backtrace));
         } else {
-            final PrintWriter printer = new PrintWriter(context.getEnv().err(), true);
             final Object fullMessage = context.send(rubyException, "full_message");
             final Object fullMessageString;
             if (RubyGuards.isRubyString(fullMessage)) {
@@ -128,13 +113,31 @@ public class BacktraceFormatter {
         }
     }
 
+    @TruffleBoundary
     public void printBacktraceOnEnvStderr(Node currentNode) {
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        printBacktraceOnEnvStderr(null, backtrace);
+        final PrintWriter printer = new PrintWriter(context.getEnv().err(), true);
+        printer.println(formatBacktrace(null, backtrace));
+    }
+
+    /** Format the backtrace as a String with \n between each line, but no trailing \n. */
+    public String formatBacktrace(DynamicObject exception, Backtrace backtrace) {
+        final String[] lines = formatBacktraceAsStringArray(exception, backtrace);
+        final StringBuilder builder = new StringBuilder();
+        boolean first = true;
+        for (String line : lines) {
+            if (first) {
+                first = false;
+            } else {
+                builder.append("\n");
+            }
+            builder.append(line);
+        }
+        return builder.toString();
     }
 
     @TruffleBoundary
-    public String[] formatBacktrace(DynamicObject exception, Backtrace backtrace) {
+    public String[] formatBacktraceAsStringArray(DynamicObject exception, Backtrace backtrace) {
         if (backtrace == null) {
             backtrace = context.getCallStack().getBacktrace(null);
         }
