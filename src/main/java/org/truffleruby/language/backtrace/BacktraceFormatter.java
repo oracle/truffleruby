@@ -95,11 +95,6 @@ public class BacktraceFormatter {
     }
 
     @TruffleBoundary
-    public void printBacktrace(DynamicObject exception) {
-        printBacktrace(exception, Layouts.EXCEPTION.getBacktrace(exception));
-    }
-
-    @TruffleBoundary
     public void printBacktrace(DynamicObject exception, Backtrace backtrace) {
         final PrintWriter writer = new PrintWriter(context.getEnv().err(), true);
         for (String line : formatBacktrace(exception, backtrace)) {

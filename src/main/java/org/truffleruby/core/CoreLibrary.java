@@ -773,7 +773,7 @@ public class CoreLibrary {
             }
         } catch (RaiseException e) {
             final DynamicObject rubyException = e.getException();
-            BacktraceFormatter.createDefaultFormatter(getContext()).printBacktrace(rubyException);
+            BacktraceFormatter.createDefaultFormatter(getContext()).printRubyExceptionOnEnvStderr(rubyException);
             throw new TruffleFatalException("couldn't load the core library", e);
         } finally {
             state = State.LOADED;
@@ -803,7 +803,7 @@ public class CoreLibrary {
             throw new JavaException(e);
         } catch (RaiseException e) {
             final DynamicObject rubyException = e.getException();
-            BacktraceFormatter.createDefaultFormatter(getContext()).printBacktrace(rubyException);
+            BacktraceFormatter.createDefaultFormatter(getContext()).printRubyExceptionOnEnvStderr(rubyException);
             throw new TruffleFatalException("couldn't load the post-boot code", e);
         }
     }
