@@ -121,6 +121,7 @@ public class RubyContext {
 
     @CompilationFinal private SecureRandom random;
     private final Hashing hashing;
+    @CompilationFinal BacktraceFormatter defaultBacktraceFormatter;
     private final RopeCache ropeCache;
     private final PathToRopeCache pathToRopeCache = new PathToRopeCache(this);
     @CompilationFinal private TruffleNFIPlatform truffleNFIPlatform;
@@ -166,6 +167,8 @@ public class RubyContext {
         random = new SecureRandom();
 
         hashing = new Hashing(generateHashingSeed(random));
+
+        defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
 
         ropeCache = new RopeCache(this);
 
@@ -294,6 +297,8 @@ public class RubyContext {
 
         this.random = new SecureRandom();
         hashing.patchSeed(generateHashingSeed(random));
+
+        this.defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
 
         this.truffleNFIPlatform = createNativePlatform();
         encodingManager.initializeDefaultEncodings(truffleNFIPlatform, nativeConfiguration);
@@ -527,6 +532,10 @@ public class RubyContext {
             preInitializationManager.addReHashable(reHashable);
         }
         return hashing;
+    }
+
+    public BacktraceFormatter getDefaultBacktraceFormatter() {
+        return defaultBacktraceFormatter;
     }
 
     public AllocationReporter getAllocationReporter() {
