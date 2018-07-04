@@ -315,11 +315,21 @@ public class BacktraceFormatter {
         }
 
         final String name = source.getName();
-        if (name != null) {
-            return name.startsWith(SourceLoader.RESOURCE_SCHEME);
+        if (name == null) {
+            return true;
         }
 
-        return true;
+        if (name.startsWith(SourceLoader.RESOURCE_SCHEME)) {
+            return true;
+        } else if (name.endsWith("truffle/lazy-rubygems.rb")) {
+            // Sinatra manually filters RubyGems files patching #require from caller():
+            // https://github.com/sinatra/sinatra/blob/v2.0.3/lib/sinatra/base.rb#L1165-L1174
+            // lazy-rubygems.rb should be as transparent as possible, including user backtraces,
+            // so we hide it in user backtraces like core files.
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private String formatForeign(Node callNode) {
