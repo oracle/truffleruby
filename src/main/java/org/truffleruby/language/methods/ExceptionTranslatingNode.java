@@ -271,7 +271,7 @@ public class ExceptionTranslatingNode extends RubyNode {
                 // Add the backtrace in the message as otherwise we would only see the
                 // internalError() backtrace.
                 final BacktraceFormatter formatter = new BacktraceFormatter(getContext(), EnumSet.noneOf(FormattingFlags.class));
-                final String[] formattedBacktrace = formatter.formatBacktrace(getContext(), rubyException, Layouts.EXCEPTION.getBacktrace(rubyException));
+                final String[] formattedBacktrace = formatter.formatBacktrace(rubyException, Layouts.EXCEPTION.getBacktrace(rubyException));
                 for (String line : formattedBacktrace) {
                     builder.append(line).append('\n');
                 }

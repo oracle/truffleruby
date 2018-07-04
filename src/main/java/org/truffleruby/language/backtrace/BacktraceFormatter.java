@@ -58,7 +58,7 @@ public class BacktraceFormatter {
 
     private static String[] rubyBacktrace(RubyContext context, Node node) {
         return new BacktraceFormatter(context, EnumSet.of(FormattingFlags.INCLUDE_CORE_FILES)).
-                        formatBacktrace(context, null, context.getCallStack().getBacktrace(node));
+                        formatBacktrace(null, context.getCallStack().getBacktrace(node));
     }
 
     // For debugging:
@@ -97,24 +97,24 @@ public class BacktraceFormatter {
     }
 
     @TruffleBoundary
-    public void printBacktrace(RubyContext context, DynamicObject exception) {
-        printBacktrace(context, exception, Layouts.EXCEPTION.getBacktrace(exception));
+    public void printBacktrace(DynamicObject exception) {
+        printBacktrace(exception, Layouts.EXCEPTION.getBacktrace(exception));
     }
 
     @TruffleBoundary
-    public void printBacktrace(RubyContext context, DynamicObject exception, Backtrace backtrace) {
+    public void printBacktrace(DynamicObject exception, Backtrace backtrace) {
         final PrintWriter writer = new PrintWriter(context.getEnv().err(), true);
-        for (String line : formatBacktrace(context, exception, backtrace)) {
+        for (String line : formatBacktrace(exception, backtrace)) {
             writer.println(line);
         }
     }
 
     @TruffleBoundary
-    public static void printRubyExceptionOnEnvStderr(RubyContext context, DynamicObject rubyException) {
+    public void printRubyExceptionOnEnvStderr(DynamicObject rubyException) {
         // can be null, if @custom_backtrace is used
         final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(rubyException);
         if (backtrace != null) {
-            BacktraceFormatter.createDefaultFormatter(context).printBacktrace(context, rubyException, backtrace);
+            printBacktrace(rubyException, backtrace);
         } else {
             final PrintWriter printer = new PrintWriter(context.getEnv().err(), true);
             final Object fullMessage = context.send(rubyException, "full_message");
@@ -128,7 +128,7 @@ public class BacktraceFormatter {
         }
     }
 
-    public String[] formatBacktrace(RubyContext context, DynamicObject exception, Backtrace backtrace) {
+    public String[] formatBacktrace(DynamicObject exception, Backtrace backtrace) {
         if (backtrace == null) {
             backtrace = context.getCallStack().getBacktrace(null);
         }

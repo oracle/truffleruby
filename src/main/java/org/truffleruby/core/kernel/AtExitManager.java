@@ -89,7 +89,7 @@ public class AtExitManager {
             // can be null, if @custom_backtrace is used
             final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(rubyException);
             if (backtrace != null) {
-                BacktraceFormatter.createDefaultFormatter(context).printBacktrace(context, rubyException, backtrace);
+                BacktraceFormatter.createDefaultFormatter(context).printBacktrace(rubyException, backtrace);
             } else {
                 final Object fullMessage = context.send(rubyException, "full_message");
                 context.send(context.getCoreLibrary().getStderr(), "puts", fullMessage);

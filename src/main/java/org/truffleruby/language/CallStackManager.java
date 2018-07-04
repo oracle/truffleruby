@@ -219,7 +219,7 @@ public class CallStackManager {
     public void printBacktrace(Node currentNode) {
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         final BacktraceFormatter formatter = BacktraceFormatter.createDefaultFormatter(context);
-        formatter.printBacktrace(context, null, backtrace);
+        formatter.printBacktrace(null, backtrace);
     }
 
     public Backtrace getBacktraceForException(Node currentNode, DynamicObject exceptionClass) {

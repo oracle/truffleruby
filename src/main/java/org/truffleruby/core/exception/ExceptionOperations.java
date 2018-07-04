@@ -67,7 +67,7 @@ public abstract class ExceptionOperations {
     @TruffleBoundary
     public static String[] format(RubyContext context, DynamicObject exception, Backtrace backtrace) {
         final BacktraceFormatter formatter = new BacktraceFormatter(context, FORMAT_FLAGS);
-        return formatter.formatBacktrace(context, exception, backtrace);
+        return formatter.formatBacktrace(exception, backtrace);
     }
 
     public static DynamicObject backtraceAsRubyStringArray(RubyContext context, DynamicObject exception, Backtrace backtrace) {

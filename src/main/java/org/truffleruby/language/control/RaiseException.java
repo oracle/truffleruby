@@ -44,7 +44,7 @@ public class RaiseException extends ControlFlowException implements TruffleExcep
         assert !isSyntaxError() || getSourceLocation() != null;
 
         if (context.getOptions().BACKTRACE_ON_RAISE) {
-            BacktraceFormatter.createDefaultFormatter(context).printBacktrace(context, exception);
+            BacktraceFormatter.createDefaultFormatter(context).printBacktrace(exception);
         }
     }
 
