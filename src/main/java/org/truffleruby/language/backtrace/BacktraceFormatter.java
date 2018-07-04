@@ -221,7 +221,7 @@ public class BacktraceFormatter {
             final SourceSection reportedSourceSection;
             String reportedName;
 
-            if (isJavaCore(sourceSection) ||
+            if (isJavaCore(context, sourceSection) ||
                     (isCore(context, sourceSection) && !flags.contains(FormattingFlags.INCLUDE_CORE_FILES))) {
                 final SourceSection nextUserSourceSection = nextUserSourceSection(activations, n);
                 // if there is no next source section use a core one to avoid ???
@@ -300,12 +300,12 @@ public class BacktraceFormatter {
         return null;
     }
 
-    public boolean isJavaCore(SourceSection sourceSection) {
+    public static boolean isJavaCore(RubyContext context, SourceSection sourceSection) {
         return sourceSection == context.getCoreLibrary().getSourceSection();
     }
 
     public static boolean isCore(RubyContext context, SourceSection sourceSection) {
-        if (sourceSection == null || sourceSection == context.getCoreLibrary().getSourceSection()) {
+        if (sourceSection == null || isJavaCore(context, sourceSection)) {
             return true;
         }
 
