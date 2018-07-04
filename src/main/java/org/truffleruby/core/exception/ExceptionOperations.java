@@ -66,8 +66,7 @@ public abstract class ExceptionOperations {
     }
 
     @TruffleBoundary
-    public static void printRubyExceptionOnEnvStderr(RubyContext context, RaiseException raiseException) {
-        final DynamicObject rubyException = raiseException.getException();
+    public static void printRubyExceptionOnEnvStderr(RubyContext context, DynamicObject rubyException) {
         // can be null, if @custom_backtrace is used
         final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(rubyException);
         if (backtrace != null) {

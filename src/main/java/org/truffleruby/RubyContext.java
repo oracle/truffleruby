@@ -324,7 +324,7 @@ public class RubyContext {
             return patch(newEnv);
         } catch (RaiseException e) {
             System.err.println("Exception during RubyContext.patch():");
-            ExceptionOperations.printRubyExceptionOnEnvStderr(this, e);
+            ExceptionOperations.printRubyExceptionOnEnvStderr(this, e.getException());
             throw e;
         } catch (Throwable e) {
             System.err.println("Exception during RubyContext.patch():");
