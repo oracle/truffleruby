@@ -75,6 +75,20 @@ public class BacktraceFormatter {
         }
     }
 
+    /** For debug purposes. */
+    public static boolean isApplicationCode(RubyContext context, SourceSection sourceSection) {
+        if (!BacktraceFormatter.isCore(context, sourceSection)) {
+            return false;
+        }
+
+        final String path = sourceSection.getSource().getName();
+        if (path.startsWith(context.getCoreLibrary().getCoreLoadPath())) {
+            return false;
+        }
+
+        return !path.contains("/lib/stdlib/rubygems");
+    }
+
     public BacktraceFormatter(RubyContext context, EnumSet<FormattingFlags> flags) {
         this.context = context;
         this.flags = flags;
@@ -258,20 +272,6 @@ public class BacktraceFormatter {
         }
 
         return true;
-    }
-
-    /** For debug purposes. */
-    public static boolean isUserSourceSection(RubyContext context, SourceSection sourceSection) {
-        if (!BacktraceFormatter.isCore(context, sourceSection)) {
-            return false;
-        }
-
-        final String path = sourceSection.getSource().getName();
-        if (path.startsWith(context.getCoreLibrary().getCoreLoadPath())) {
-            return false;
-        }
-
-        return !path.contains("/lib/stdlib/rubygems");
     }
 
     private String formatForeign(Node callNode) {
