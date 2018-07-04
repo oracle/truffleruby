@@ -15,8 +15,11 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -121,6 +124,7 @@ public class BacktraceFormatter {
     }
 
     /** Format the backtrace as a String with \n between each line, but no trailing \n. */
+    @TruffleBoundary
     public String formatBacktrace(DynamicObject exception, Backtrace backtrace) {
         final String[] lines = formatBacktraceAsStringArray(exception, backtrace);
         final StringBuilder builder = new StringBuilder();
@@ -136,8 +140,21 @@ public class BacktraceFormatter {
         return builder.toString();
     }
 
+    public DynamicObject formatBacktraceAsRubyStringArray(DynamicObject exception, Backtrace backtrace) {
+        final String[] lines = formatBacktraceAsStringArray(exception, backtrace);
+
+        final Object[] array = new Object[lines.length];
+
+        for (int n = 0; n < lines.length; n++) {
+            array[n] = StringOperations.createString(context,
+                    StringOperations.encodeRope(lines[n], UTF8Encoding.INSTANCE));
+        }
+
+        return ArrayHelpers.createArray(context, array, array.length);
+    }
+
     @TruffleBoundary
-    public String[] formatBacktraceAsStringArray(DynamicObject exception, Backtrace backtrace) {
+    private String[] formatBacktraceAsStringArray(DynamicObject exception, Backtrace backtrace) {
         if (backtrace == null) {
             backtrace = context.getCallStack().getBacktrace(null);
         }

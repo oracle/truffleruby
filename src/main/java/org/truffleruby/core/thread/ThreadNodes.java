@@ -58,7 +58,6 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.array.ArrayOperations;
-import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -118,7 +117,7 @@ public abstract class ThreadNodes {
 
             getContext().getSafepointManager().pauseRubyThreadAndExecute(rubyThread, this, (thread1, currentNode) -> {
                 final Backtrace backtrace = getContext().getCallStack().getBacktrace(currentNode);
-                result.set(ExceptionOperations.backtraceAsRubyStringArray(getContext(), null, backtrace));
+                result.set(getContext().getUserBacktraceFormatter().formatBacktraceAsRubyStringArray(null, backtrace));
             });
 
             // If the thread id dead or aborting the SafepointAction will not run

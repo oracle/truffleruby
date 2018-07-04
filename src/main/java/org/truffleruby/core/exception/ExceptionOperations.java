@@ -10,10 +10,8 @@
 package org.truffleruby.core.exception;
 
 import com.oracle.truffle.api.source.SourceSection;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
@@ -54,19 +52,6 @@ public abstract class ExceptionOperations {
             // Fall back to the internal message field
         }
         return messageFieldToString(context, exception);
-    }
-
-    public static DynamicObject backtraceAsRubyStringArray(RubyContext context, DynamicObject exception, Backtrace backtrace) {
-        final String[] lines = context.getUserBacktraceFormatter().formatBacktraceAsStringArray(exception, backtrace);
-
-        final Object[] array = new Object[lines.length];
-
-        for (int n = 0; n < lines.length; n++) {
-            array[n] = StringOperations.createString(context,
-                    StringOperations.encodeRope(lines[n], UTF8Encoding.INSTANCE));
-        }
-
-        return ArrayHelpers.createArray(context, array, array.length);
     }
 
     // because the factory is not constant
