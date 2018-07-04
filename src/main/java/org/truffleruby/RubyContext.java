@@ -30,7 +30,6 @@ import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.exception.CoreExceptions;
-import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.hash.PreInitializationManager;
 import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.inlined.CoreMethods;
@@ -54,6 +53,7 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.loader.CodeLoader;
@@ -324,7 +324,7 @@ public class RubyContext {
             return patch(newEnv);
         } catch (RaiseException e) {
             System.err.println("Exception during RubyContext.patch():");
-            ExceptionOperations.printRubyExceptionOnEnvStderr(this, e.getException());
+            BacktraceFormatter.printRubyExceptionOnEnvStderr(this, e.getException());
             throw e;
         } catch (Throwable e) {
             System.err.println("Exception during RubyContext.patch():");

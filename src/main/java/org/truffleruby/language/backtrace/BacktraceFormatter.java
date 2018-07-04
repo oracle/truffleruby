@@ -18,7 +18,9 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.loader.SourceLoader;
 
@@ -104,6 +106,25 @@ public class BacktraceFormatter {
         final PrintWriter writer = new PrintWriter(context.getEnv().err(), true);
         for (String line : formatBacktrace(context, exception, backtrace)) {
             writer.println(line);
+        }
+    }
+
+    @TruffleBoundary
+    public static void printRubyExceptionOnEnvStderr(RubyContext context, DynamicObject rubyException) {
+        // can be null, if @custom_backtrace is used
+        final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(rubyException);
+        if (backtrace != null) {
+            BacktraceFormatter.createDefaultFormatter(context).printBacktrace(context, rubyException, backtrace);
+        } else {
+            final PrintWriter printer = new PrintWriter(context.getEnv().err(), true);
+            final Object fullMessage = context.send(rubyException, "full_message");
+            final Object fullMessageString;
+            if (RubyGuards.isRubyString(fullMessage)) {
+                fullMessageString = StringOperations.getString((DynamicObject) fullMessage);
+            } else {
+                fullMessageString = fullMessage.toString();
+            }
+            printer.println(fullMessageString);
         }
     }
 
