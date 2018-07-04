@@ -125,20 +125,7 @@ public class BacktraceFormatter {
         }
 
         for (int n = 0; n < activations.length; n++) {
-            try {
-                lines.add(formatLine(activations, n, exception));
-            } catch (Exception e) {
-                if (context.getOptions().EXCEPTIONS_PRINT_JAVA) {
-                    e.printStackTrace();
-
-                    if (context.getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                        context.getCallStack().printBacktrace(null);
-                    }
-                }
-
-                final String firstFrame = e.getStackTrace().length > 0 ? e.getStackTrace()[0].toString() : "";
-                lines.add(StringUtils.format("(exception %s %s %s", e.getClass().getName(), e.getMessage(), firstFrame));
-            }
+            lines.add(formatLine(activations, n, exception));
         }
 
         if (backtrace.getJavaThrowable() != null && flags.contains(FormattingFlags.INTERLEAVE_JAVA)) {
@@ -150,6 +137,23 @@ public class BacktraceFormatter {
     }
 
     public String formatLine(Activation[] activations, int n, DynamicObject exception) {
+        try {
+            return formatLineInternal(activations, n, exception);
+        } catch (Exception e) {
+            if (context.getOptions().EXCEPTIONS_PRINT_JAVA) {
+                e.printStackTrace();
+
+                if (context.getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
+                    context.getCallStack().printBacktrace(null);
+                }
+            }
+
+            final String firstFrame = e.getStackTrace().length > 0 ? e.getStackTrace()[0].toString() : "";
+            return StringUtils.format("(exception %s %s %s", e.getClass().getName(), e.getMessage(), firstFrame);
+        }
+    }
+
+    private String formatLineInternal(Activation[] activations, int n, DynamicObject exception) {
         final Activation activation = activations[n];
 
         if (activation == Activation.OMITTED_LIMIT) {
