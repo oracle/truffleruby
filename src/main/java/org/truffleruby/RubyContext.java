@@ -329,7 +329,7 @@ public class RubyContext {
             return patch(newEnv);
         } catch (RaiseException e) {
             System.err.println("Exception during RubyContext.patch():");
-            BacktraceFormatter.createDefaultFormatter(this).printRubyExceptionOnEnvStderr(e.getException());
+            getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(e.getException());
             throw e;
         } catch (Throwable e) {
             System.err.println("Exception during RubyContext.patch():");

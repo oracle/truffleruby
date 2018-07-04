@@ -14,7 +14,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.proc.ProcOperations;
-import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.RaiseException;
 
 import java.util.ArrayList;
@@ -85,7 +84,7 @@ public class AtExitManager {
         if (Layouts.BASIC_OBJECT.getLogicalClass(rubyException) == context.getCoreLibrary().getSystemExitClass()) {
             // Do not show SystemExit errors, just track them for the exit status
         } else {
-            BacktraceFormatter.createDefaultFormatter(context).printRubyExceptionOnEnvStderr(rubyException);
+            context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(rubyException);
         }
         return rubyException;
     }

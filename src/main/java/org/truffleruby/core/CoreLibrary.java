@@ -40,7 +40,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.TruffleFatalException;
@@ -772,8 +771,7 @@ public class CoreLibrary {
                 throw new JavaException(e);
             }
         } catch (RaiseException e) {
-            final DynamicObject rubyException = e.getException();
-            BacktraceFormatter.createDefaultFormatter(getContext()).printRubyExceptionOnEnvStderr(rubyException);
+            context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(e.getException());
             throw new TruffleFatalException("couldn't load the core library", e);
         } finally {
             state = State.LOADED;
@@ -802,8 +800,7 @@ public class CoreLibrary {
         } catch (IOException e) {
             throw new JavaException(e);
         } catch (RaiseException e) {
-            final DynamicObject rubyException = e.getException();
-            BacktraceFormatter.createDefaultFormatter(getContext()).printRubyExceptionOnEnvStderr(rubyException);
+            context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(e.getException());
             throw new TruffleFatalException("couldn't load the post-boot code", e);
         }
     }
