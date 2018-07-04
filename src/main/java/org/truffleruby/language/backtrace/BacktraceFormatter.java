@@ -95,7 +95,7 @@ public class BacktraceFormatter {
     }
 
     @TruffleBoundary
-    public void printBacktraceOnEnvStderr(DynamicObject exception, Backtrace backtrace) {
+    private void printBacktraceOnEnvStderr(DynamicObject exception, Backtrace backtrace) {
         final PrintWriter writer = new PrintWriter(context.getEnv().err(), true);
         for (String line : formatBacktrace(exception, backtrace)) {
             writer.println(line);
@@ -119,6 +119,11 @@ public class BacktraceFormatter {
             }
             printer.println(fullMessageString);
         }
+    }
+
+    public void printBacktraceOnEnvStderr(Node currentNode) {
+        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
+        printBacktraceOnEnvStderr(null, backtrace);
     }
 
     public String[] formatBacktrace(DynamicObject exception, Backtrace backtrace) {
@@ -154,7 +159,7 @@ public class BacktraceFormatter {
                 e.printStackTrace();
 
                 if (context.getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                    context.getCallStack().printBacktrace(null);
+                    printBacktraceOnEnvStderr(null);
                 }
             }
 

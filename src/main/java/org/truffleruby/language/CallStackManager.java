@@ -216,12 +216,6 @@ public class CallStackManager {
         return RubyArguments.tryGetMethod(frame.getFrame(FrameInstance.FrameAccess.READ_ONLY));
     }
 
-    public void printBacktrace(Node currentNode) {
-        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final BacktraceFormatter formatter = BacktraceFormatter.createDefaultFormatter(context);
-        formatter.printBacktraceOnEnvStderr(null, backtrace);
-    }
-
     public Backtrace getBacktraceForException(Node currentNode, DynamicObject exceptionClass) {
         return getBacktraceForException(currentNode, null, 0, exceptionClass, null);
     }

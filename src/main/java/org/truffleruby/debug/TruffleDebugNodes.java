@@ -131,7 +131,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject printBacktrace() {
-            getContext().getCallStack().printBacktrace(this);
+            getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
             return nil();
         }
 

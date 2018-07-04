@@ -93,7 +93,7 @@ public class ExceptionTranslatingNode extends RubyNode {
             exception.printStackTrace();
 
             if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                getContext().getCallStack().printBacktrace(this);
+                getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
             }
         }
 
@@ -111,7 +111,7 @@ public class ExceptionTranslatingNode extends RubyNode {
             error.printStackTrace();
 
             if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                getContext().getCallStack().printBacktrace(this);
+                getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
             }
         }
 
@@ -129,7 +129,7 @@ public class ExceptionTranslatingNode extends RubyNode {
             error.printStackTrace();
 
             if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                getContext().getCallStack().printBacktrace(this);
+                getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
             }
         }
 
@@ -142,7 +142,7 @@ public class ExceptionTranslatingNode extends RubyNode {
             exception.printStackTrace();
 
             if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                getContext().getCallStack().printBacktrace(this);
+                getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
             }
         }
 
@@ -161,7 +161,7 @@ public class ExceptionTranslatingNode extends RubyNode {
             exception.printStackTrace();
 
             if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                getContext().getCallStack().printBacktrace(this);
+                getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
             }
         }
 
@@ -238,7 +238,7 @@ public class ExceptionTranslatingNode extends RubyNode {
             throwable.printStackTrace();
 
             if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                getContext().getCallStack().printBacktrace(this);
+                getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
             }
         }
 
