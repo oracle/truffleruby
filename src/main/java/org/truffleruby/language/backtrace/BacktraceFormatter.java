@@ -95,7 +95,7 @@ public class BacktraceFormatter {
     }
 
     @TruffleBoundary
-    public void printBacktrace(DynamicObject exception, Backtrace backtrace) {
+    public void printBacktraceOnEnvStderr(DynamicObject exception, Backtrace backtrace) {
         final PrintWriter writer = new PrintWriter(context.getEnv().err(), true);
         for (String line : formatBacktrace(exception, backtrace)) {
             writer.println(line);
@@ -107,7 +107,7 @@ public class BacktraceFormatter {
         // can be null, if @custom_backtrace is used
         final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(rubyException);
         if (backtrace != null) {
-            printBacktrace(rubyException, backtrace);
+            printBacktraceOnEnvStderr(rubyException, backtrace);
         } else {
             final PrintWriter printer = new PrintWriter(context.getEnv().err(), true);
             final Object fullMessage = context.send(rubyException, "full_message");
