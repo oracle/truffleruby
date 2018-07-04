@@ -38,6 +38,13 @@ public class BacktraceFormatter {
         INTERLEAVE_JAVA
     }
 
+    /**
+     * Flags for a backtrace exposed to Ruby via #caller, #caller_locations, Exception#backtrace and
+     * Thread#backtrace.
+     */
+    public static final EnumSet<FormattingFlags> USER_BACKTRACE_FLAGS =
+            EnumSet.of(FormattingFlags.OMIT_FROM_PREFIX, FormattingFlags.OMIT_EXCEPTION);
+
     private final RubyContext context;
     private final EnumSet<FormattingFlags> flags;
 
@@ -126,6 +133,7 @@ public class BacktraceFormatter {
         printBacktraceOnEnvStderr(null, backtrace);
     }
 
+    @TruffleBoundary
     public String[] formatBacktrace(DynamicObject exception, Backtrace backtrace) {
         if (backtrace == null) {
             backtrace = context.getCallStack().getBacktrace(null);
@@ -151,6 +159,7 @@ public class BacktraceFormatter {
         return lines.toArray(new String[lines.size()]);
     }
 
+    @TruffleBoundary
     public String formatLine(Activation[] activations, int n, DynamicObject exception) {
         try {
             return formatLineInternal(activations, n, exception);

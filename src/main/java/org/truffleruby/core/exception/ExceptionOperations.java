@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.exception;
 
-import java.util.EnumSet;
-
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -20,8 +18,6 @@ import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
-import org.truffleruby.language.backtrace.BacktraceFormatter;
-import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -35,10 +31,6 @@ public abstract class ExceptionOperations {
     public static final String PRIVATE_METHOD_ERROR = "PRIVATE_METHOD_ERROR";
     public static final String NO_METHOD_ERROR = "NO_METHOD_ERROR";
     public static final String NO_LOCAL_VARIABLE_OR_METHOD_ERROR = "NO_LOCAL_VARIABLE_OR_METHOD_ERROR";
-
-    public static final EnumSet<BacktraceFormatter.FormattingFlags> FORMAT_FLAGS = EnumSet.of(
-            FormattingFlags.OMIT_FROM_PREFIX,
-            FormattingFlags.OMIT_EXCEPTION);
 
     @TruffleBoundary
     private static String messageFieldToString(RubyContext context, DynamicObject exception) {
@@ -64,14 +56,8 @@ public abstract class ExceptionOperations {
         return messageFieldToString(context, exception);
     }
 
-    @TruffleBoundary
-    public static String[] format(RubyContext context, DynamicObject exception, Backtrace backtrace) {
-        final BacktraceFormatter formatter = new BacktraceFormatter(context, FORMAT_FLAGS);
-        return formatter.formatBacktrace(exception, backtrace);
-    }
-
     public static DynamicObject backtraceAsRubyStringArray(RubyContext context, DynamicObject exception, Backtrace backtrace) {
-        final String[] lines = format(context, exception, backtrace);
+        final String[] lines = context.getUserBacktraceFormatter().formatBacktrace(exception, backtrace);
 
         final Object[] array = new Object[lines.length];
 
