@@ -203,7 +203,7 @@ public class BacktraceFormatter {
             String reportedName;
 
             if (isJavaCore(context, sourceSection) ||
-                    (isCore(context, sourceSection) && !flags.contains(FormattingFlags.INCLUDE_CORE_FILES))) {
+                    (!flags.contains(FormattingFlags.INCLUDE_CORE_FILES) && isCore(context, sourceSection))) {
                 final SourceSection nextUserSourceSection = nextUserSourceSection(activations, n);
                 // if there is no next source section use a core one to avoid ???
                 reportedSourceSection = nextUserSourceSection != null ? nextUserSourceSection : sourceSection;
