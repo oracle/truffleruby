@@ -103,12 +103,8 @@ module Utilities
         "--module-path=#{jvmci_graal_home}/../truffle/mxbuild/modules/com.oracle.truffle.truffle_api.jar:#{jvmci_graal_home}/mxbuild/modules/com.oracle.graal.graal_core.jar"
       ]
       options = ['--no-bootclasspath']
-    elsif graal_home || auto_graal_home = find_auto_graal_home
-      if graal_home
-        graal_home = File.expand_path(graal_home, TRUFFLERUBY_DIR)
-      else
-        graal_home = auto_graal_home
-      end
+    elsif graal_home
+      graal_home = File.expand_path(graal_home, TRUFFLERUBY_DIR)
       output, _ = ShellUtils.mx('-v', '-p', graal_home, 'vm', '-version', :err => :out, capture: true)
       command_line = output.lines.select { |line| line.include? '-version' }
       if command_line.size == 1
@@ -122,6 +118,19 @@ module Utilities
       vm_args.pop # Drop "-version"
       javacmd = vm_args.shift
       options = []
+    elsif graal_home = find_auto_graal_home
+      javacmd = "#{find_graal_java_home(graal_home)}/bin/java"
+      graal_jars = [
+        "#{graal_home}/mxbuild/dists/graal.jar",
+        "#{graal_home}/mxbuild/dists/graal-management.jar"
+      ]
+      vm_args = [
+        '-XX:+UnlockExperimentalVMOptions',
+        '-XX:+EnableJVMCI',
+        "-Djvmci.class.path.append=#{graal_jars.join(':')}",
+        # No -Xbootclasspath for sdk & Truffle, it's already added by the normal launcher
+      ]
+      options = []
     else
       raise 'set one of GRAALVM_BIN or GRAAL_HOME in order to use Graal'
     end
@@ -133,6 +142,16 @@ module Utilities
     return nil unless Dir.exist?(sibling_compiler)
     return nil unless File.exist?("#{sibling_compiler}/mxbuild/dists/graal-compiler.jar")
     sibling_compiler
+  end
+
+  def self.find_graal_java_home(graal_home)
+    env_file = "#{graal_home}/mx.compiler/env"
+    graal_env = File.exist?(env_file) ? File.read(env_file) : ""
+    if java_home = graal_env[/^JAVA_HOME=(.+)$/, 1]
+      java_home
+    else
+      ENV.fetch("JAVA_HOME") { raise "Could not find JAVA_HOME of graal in #{env_file} or in ENV" }
+    end
   end
 
   def self.which(binary)
