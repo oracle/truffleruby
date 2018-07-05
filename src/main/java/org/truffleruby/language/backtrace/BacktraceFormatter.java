@@ -80,16 +80,8 @@ public class BacktraceFormatter {
 
     /** For debug purposes. */
     public static boolean isApplicationCode(RubyContext context, SourceSection sourceSection) {
-        if (!BacktraceFormatter.isCore(context, sourceSection)) {
-            return false;
-        }
-
-        final String path = sourceSection.getSource().getName();
-        if (path.startsWith(context.getCoreLibrary().getCoreLoadPath())) {
-            return false;
-        }
-
-        return !path.contains("/lib/stdlib/rubygems");
+        return isUserSourceSection(context, sourceSection) &&
+                !sourceSection.getSource().getName().contains("/lib/stdlib/rubygems");
     }
 
     public BacktraceFormatter(RubyContext context, EnumSet<FormattingFlags> flags) {
