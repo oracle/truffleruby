@@ -20,7 +20,8 @@ extra_cflags = nil
   begin
     version = `#{tool} --version`
   rescue Errno::ENOENT
-    raise "#{tool} does not appear to be available - you may need to install LLVM - see doc/user/installing-llvm.md"
+    abort "The #{tool} tool, part of LLVM, does not appear to be available in PATH.\n" +
+          'You need to install LLVM, see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-llvm.md'
   end
 
   if version =~ /\bversion (\d+\.\d+\.\d+)/
@@ -30,10 +31,10 @@ extra_cflags = nil
     elsif major >= 5
       extra_cflags = '-Xclang -disable-O0-optnone'
     else
-      raise "unsupported #{tool} version: #{$1} - see doc/user/installing-llvm.md"
+      abort "unsupported #{tool} version: #{$1} - see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-llvm.md"
     end
   else
-    raise "cannot parse #{tool} version from #{version}"
+    abort "cannot parse #{tool} version from #{version}"
   end
 end
 
