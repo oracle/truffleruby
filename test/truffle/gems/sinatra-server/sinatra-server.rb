@@ -9,7 +9,6 @@
 require 'sinatra'
 
 set :port, 14873
-set :run, true
 
 get '/' do
   "Hello Sinatra!"
