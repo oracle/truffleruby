@@ -200,17 +200,19 @@ public class BacktraceFormatter {
         if (rootNode instanceof RubyRootNode) {
             final SourceSection sourceSection = activation.getCallNode().getEncapsulatingSourceSection();
             final SourceSection reportedSourceSection;
-            String reportedName;
+            final String reportedName;
 
-            if (isJavaCore(context, sourceSection) ||
-                    (!flags.contains(FormattingFlags.INCLUDE_CORE_FILES) && isCore(context, sourceSection))) {
+            // Java @CoreMethods are always hidden, as there is no source position information.
+            // Only show core library paths if the flags contain the option.
+            if (isUserSourceSection(context, sourceSection) ||
+                    (flags.contains(FormattingFlags.INCLUDE_CORE_FILES) && !isJavaCore(context, sourceSection))) {
+                reportedSourceSection = sourceSection;
+                reportedName = rootNode.getName();
+            } else {
                 final SourceSection nextUserSourceSection = nextUserSourceSection(activations, n);
                 // if there is no next source section use a core one to avoid ???
                 reportedSourceSection = nextUserSourceSection != null ? nextUserSourceSection : sourceSection;
                 reportedName = getMethodNameFromActivation(activation);
-            } else {
-                reportedSourceSection = sourceSection;
-                reportedName = rootNode.getName();
             }
 
             if (reportedSourceSection == null) {
