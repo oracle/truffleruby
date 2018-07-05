@@ -331,8 +331,6 @@ local part_definitions = {
       },
       environment+: {
         LANG: "en_US.UTF-8",
-        # Homebrew does not put llvm on the PATH by default
-        OPENSSL_PREFIX: "/usr/local/opt/openssl",
       },
       packages+: {
         llvm: "==4.0.1",
