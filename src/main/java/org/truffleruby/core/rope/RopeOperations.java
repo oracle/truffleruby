@@ -178,10 +178,15 @@ public class RopeOperations {
         return decode(charset, bytes, byteOffset, byteLength);
     }
 
-    @TruffleBoundary
     public static String decodeOrEscapeBinaryRope(Rope rope) {
+        return decodeOrEscapeBinaryRope(rope, rope.getBytes());
+    }
+
+    /** Overload to avoid calling getBytes() and mutate the Rope "bytes" field. */
+    @TruffleBoundary
+    public static String decodeOrEscapeBinaryRope(Rope rope, byte[] bytes) {
         if (rope.isAsciiOnly() || rope.getEncoding() != ASCIIEncoding.INSTANCE) {
-            return decodeRope(rope);
+            return decodeRopeSegment(rope, bytes, 0, bytes.length);
         } else {
             // A Rope with BINARY encoding cannot be converted faithfully to a Java String.
             // (ISO_8859_1 would just show random characters for bytes above 128)
@@ -189,7 +194,6 @@ public class RopeOperations {
             // MRI Symbol#inspect for binary symbols is similar: "\xff".b.to_sym => :"\xFF"
 
             final StringBuilder builder = new StringBuilder(rope.byteLength());
-            final byte[] bytes = rope.getBytes();
 
             for (int i = 0; i < bytes.length; i++) {
                 final byte c = bytes[i];
@@ -209,10 +213,14 @@ public class RopeOperations {
     }
 
     public static String decodeRopeSegment(Rope value, int byteOffset, int byteLength) {
+        return decodeRopeSegment(value, value.getBytes(), byteOffset, byteLength);
+    }
+
+    private static String decodeRopeSegment(Rope value, byte[] bytes, int byteOffset, int byteLength) {
         if (value.isAsciiOnly()) {
-            return decodeAscii(value.getBytes(), byteOffset, byteLength);
+            return decodeAscii(bytes, byteOffset, byteLength);
         } else {
-            return decodeNonAscii(value.getEncoding(), value.getBytes(), byteOffset, byteLength);
+            return decodeNonAscii(value.getEncoding(), bytes, byteOffset, byteLength);
         }
     }
 
