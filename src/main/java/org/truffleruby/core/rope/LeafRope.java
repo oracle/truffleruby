@@ -22,12 +22,6 @@ public abstract class LeafRope extends ManagedRope {
         return getRawBytes()[index];
     }
 
-    @Override
-    public String toString() {
-        assert ALLOW_TO_STRING;
-        return RopeOperations.decodeRope(this);
-    }
-
     public LeafRope computeHashCode() {
         hashCode();
         return this;

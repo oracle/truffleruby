@@ -24,6 +24,7 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.language.control.RaiseException;
 
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class ConvertBytes {
@@ -55,7 +56,7 @@ public class ConvertBytes {
     static {
         MIN_VALUE_BYTES = new byte[37][];
         for (int i = 2; i <= 36; i++) {
-            MIN_VALUE_BYTES[i] =  StringOperations.plain(Long.toString(Long.MIN_VALUE, i));
+            MIN_VALUE_BYTES[i] = Long.toString(Long.MIN_VALUE, i).getBytes(StandardCharsets.US_ASCII);
         }
     }
 

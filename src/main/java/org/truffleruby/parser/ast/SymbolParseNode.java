@@ -43,13 +43,13 @@ import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
  * Represents a symbol (:symbol_name).
  */
 public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNode, SideEffectFree {
+
     private final String name;
     private final Rope rope;
 
@@ -70,13 +70,14 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
     // String path (e.g. [':', str_beg, str_content, str_end])
     public SymbolParseNode(SourceIndexLength position, Rope value) {
         super(position);
-        this.name = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, value).intern();
 
         if (value.getCodeRange() == CodeRange.CR_7BIT) {
             rope = RopeOperations.withEncoding(value, USASCIIEncoding.INSTANCE);
         } else {
             rope = value;
         }
+
+        this.name = RopeOperations.decodeRope(rope).intern();
     }
 
     @Override

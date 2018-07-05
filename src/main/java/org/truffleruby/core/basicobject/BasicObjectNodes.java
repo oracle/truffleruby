@@ -35,7 +35,6 @@ import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNode
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.exception.ExceptionOperations;
-import org.truffleruby.core.kernel.KernelNodes.EvalNode;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
@@ -48,6 +47,7 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
+import org.truffleruby.language.eval.CreateEvalSourceNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -259,6 +259,8 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "instance_eval", needsBlock = true, optional = 3, lowerFixnum = 3, unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
     public abstract static class InstanceEvalNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private CreateEvalSourceNode createEvalSourceNode = new CreateEvalSourceNode();
+
         @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })
         public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName, int line, NotProvided block,
                 @Cached("create()") ReadCallerFrameNode callerFrameNode,
@@ -297,7 +299,7 @@ public abstract class BasicObjectNodes {
                 DynamicObject fileName, int line, ReadCallerFrameNode callerFrameNode, IndirectCallNode callNode) {
             final String fileNameString = RopeOperations.decodeRope(StringOperations.rope(fileName));
 
-            final RubySource source = EvalNode.createEvalSource(StringOperations.rope(string), "instance_eval", fileNameString, line);
+            final RubySource source = createEvalSourceNode.createEvalSource(StringOperations.rope(string), "instance_eval", fileNameString, line);
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source,

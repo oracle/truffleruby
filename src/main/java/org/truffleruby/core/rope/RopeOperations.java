@@ -37,6 +37,7 @@ import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -158,9 +159,53 @@ public class RopeOperations {
 
     @TruffleBoundary
     public static String decodeNonAscii(Encoding encoding, byte[] bytes, int byteOffset, int byteLength) {
-        final Charset charset = EncodingManager.charsetForEncoding(encoding);
+        final Charset charset;
+
+        if (encoding == ASCIIEncoding.INSTANCE) {
+            for (int i = 0; i < byteLength; i++) {
+                if (bytes[byteOffset + i] < 0) {
+                    throw new CannotConvertBinaryRubyStringToJavaString(bytes[byteOffset + i] & 0xFF);
+                }
+            }
+
+            // Don't misinterpret non-ASCII bytes, use the replacement character to show the loss
+            charset = StandardCharsets.US_ASCII;
+        } else {
+            charset = EncodingManager.charsetForEncoding(encoding);
+        }
+
 
         return decode(charset, bytes, byteOffset, byteLength);
+    }
+
+    public static String decodeOrEscapeBinaryRope(Rope rope) {
+        return decodeOrEscapeBinaryRope(rope, rope.getBytes());
+    }
+
+    /** Overload to avoid calling getBytes() and mutate the Rope "bytes" field. */
+    @TruffleBoundary
+    public static String decodeOrEscapeBinaryRope(Rope rope, byte[] bytes) {
+        if (rope.isAsciiOnly() || rope.getEncoding() != ASCIIEncoding.INSTANCE) {
+            return decodeRopeSegment(rope, bytes, 0, bytes.length);
+        } else {
+            // A Rope with BINARY encoding cannot be converted faithfully to a Java String.
+            // (ISO_8859_1 would just show random characters for bytes above 128)
+            // Therefore we convert non-US-ASCII characters to "\xNN".
+            // MRI Symbol#inspect for binary symbols is similar: "\xff".b.to_sym => :"\xFF"
+
+            final StringBuilder builder = new StringBuilder(rope.byteLength());
+
+            for (int i = 0; i < bytes.length; i++) {
+                final byte c = bytes[i];
+                if (c >= 0) { // US-ASCII character
+                    builder.append((char) (c & 0xFF));
+                } else {
+                    builder.append("\\x").append(String.format("%02X", c & 0xFF));
+                }
+            }
+
+            return builder.toString();
+        }
     }
 
     public static String decodeRope(Rope value) {
@@ -168,20 +213,24 @@ public class RopeOperations {
     }
 
     public static String decodeRopeSegment(Rope value, int byteOffset, int byteLength) {
-        if (value.isAsciiOnly()) {
-            return decodeAscii(value.getBytes(), byteOffset, byteLength);
-        }
+        return decodeRopeSegment(value, value.getBytes(), byteOffset, byteLength);
+    }
 
-        return decodeNonAscii(value.getEncoding(), value.getBytes(), byteOffset, byteLength);
+    private static String decodeRopeSegment(Rope value, byte[] bytes, int byteOffset, int byteLength) {
+        if (value.isAsciiOnly()) {
+            return decodeAscii(bytes, byteOffset, byteLength);
+        } else {
+            return decodeNonAscii(value.getEncoding(), bytes, byteOffset, byteLength);
+        }
     }
 
     @TruffleBoundary
-    public static String decode(Charset charset, byte[] bytes, int byteOffset, int byteLength) {
-        return new String(bytes, byteOffset, byteLength, charset);
+    public static String decode(Encoding encoding, byte[] bytes) {
+        return decode(EncodingManager.charsetForEncoding(encoding), bytes, 0, bytes.length);
     }
 
-    public static String decodeRope(Charset charset, Rope rope) {
-        return new String(rope.getBytes(), charset);
+    private static String decode(Charset charset, byte[] bytes, int byteOffset, int byteLength) {
+        return new String(bytes, byteOffset, byteLength, charset);
     }
 
     // MRI: get_actual_encoding

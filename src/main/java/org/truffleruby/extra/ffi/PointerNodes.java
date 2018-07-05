@@ -18,7 +18,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
@@ -28,7 +27,6 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -667,10 +665,8 @@ public abstract class PointerNodes {
         public DynamicObject setAtOffsetCharArr(DynamicObject pointer, int offset, int type, DynamicObject string) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
-            final String str = StringOperations.getString(string);
-            ByteBuffer buf = EncodingManager.charsetForEncoding(StringOperations.encoding(string)).encode(str);
-            int len = Math.min(str.length(), buf.remaining());
-            ptr.writeZeroTerminatedBytes(offset, buf.array(), buf.arrayOffset() + buf.position(), len);
+            final byte[] bytes = StringOperations.rope(string).getBytes();
+            ptr.writeZeroTerminatedBytes(offset, bytes, 0, bytes.length);
             return string;
         }
 

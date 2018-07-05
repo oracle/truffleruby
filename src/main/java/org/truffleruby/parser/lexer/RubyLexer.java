@@ -82,7 +82,6 @@ import org.truffleruby.parser.parser.Tokens;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.function.BiConsumer;
@@ -457,11 +456,11 @@ public class RubyLexer implements MagicCommentHandler {
         final Encoding newEncoding = parserSupport.getEncoding(name);
 
         if (newEncoding == null) {
-            throw argumentError(context, "unknown encoding name: " + RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, name));
+            throw argumentError(context, "unknown encoding name: " + RopeOperations.decodeRope(name));
         }
 
         if (!newEncoding.isAsciiCompatible()) {
-            throw argumentError(context, RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, name) + " is not ASCII compatible");
+            throw argumentError(context, RopeOperations.decodeRope(name) + " is not ASCII compatible");
         }
 
         setEncoding(newEncoding);
@@ -1269,7 +1268,7 @@ public class RubyLexer implements MagicCommentHandler {
                 }
             }
 
-            final String name = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, magicLine).subSequence(nameBegin, nameEnd).toString().replace('-', '_');
+            final String name = RopeOperations.decodeRopeSegment(magicLine, nameBegin, nameEnd - nameBegin).replace('-', '_');
             final Rope value = parserRopeOperations.makeShared(magicLine, valueBegin, valueEnd - valueBegin);
 
             if (!magicCommentHandler.onMagicComment(name, value)) {
@@ -2840,7 +2839,7 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     public String getCurrentLine() {
-        return RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, lex_lastline);
+        return RopeOperations.decodeRope(lex_lastline);
     }
 
     public Encoding getEncoding() {

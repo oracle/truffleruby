@@ -9,7 +9,6 @@
  */
 package org.truffleruby.collections;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -103,11 +102,7 @@ public class ByteArrayBuilder {
 
     @Override
     public String toString() {
-        return toString(StandardCharsets.ISO_8859_1);
-    }
-
-    private String toString(Charset charset) {
-        return new String(bytes, 0, length, charset);
+        return new String(bytes, 0, length, StandardCharsets.ISO_8859_1);
     }
 
     // TODO CS 14-Feb-17 review all uses of this method

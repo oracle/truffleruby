@@ -24,10 +24,4 @@ public abstract class LazyRope extends ManagedRope {
 
     protected abstract byte[] fulfill();
 
-    @Override
-    public String toString() {
-        assert ALLOW_TO_STRING;
-        return RopeOperations.decodeRope(this);
-    }
-
 }

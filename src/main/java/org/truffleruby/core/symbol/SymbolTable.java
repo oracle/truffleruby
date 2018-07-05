@@ -122,7 +122,7 @@ public class SymbolTable implements ReHashable {
     }
 
     private DynamicObject createSymbol(Rope cachedRope) {
-        final String string = RopeOperations.decodeRope(cachedRope);
+        final String string = RopeOperations.decodeOrEscapeBinaryRope(cachedRope);
         return Layouts.SYMBOL.createSymbol(
                 symbolFactory,
                 string,

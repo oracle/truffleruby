@@ -46,9 +46,11 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+
+import java.nio.charset.StandardCharsets;
+
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.string.StringOperations;
 
 @NodeChildren({
         @NodeChild(value = "value", type = FormatNode.class),
@@ -84,7 +86,7 @@ public abstract class WriteMIMEStringNode extends FormatNode {
     private static final byte[] hex_table;
 
     static {
-        hex_table = StringOperations.plain("0123456789ABCDEF");
+        hex_table = "0123456789ABCDEF".getBytes(StandardCharsets.US_ASCII);
     }
 
     /**

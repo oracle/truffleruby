@@ -50,7 +50,6 @@ import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
-import org.truffleruby.core.kernel.KernelNodes.EvalNode;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.module.ModuleNodesFactory.ClassExecNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.ConstSetNodeFactory;
@@ -82,6 +81,7 @@ import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.eval.CreateEvalSourceNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.RequireNode;
 import org.truffleruby.language.methods.AddMethodNode;
@@ -563,6 +563,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = { "class_eval", "module_eval" }, optional = 3, lowerFixnum = 3, needsBlock = true)
     public abstract static class ClassEvalNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private CreateEvalSourceNode createEvalSourceNode = new CreateEvalSourceNode();
         @Child private ToStrNode toStrNode;
 
         protected DynamicObject toStr(VirtualFrame frame, Object object) {
@@ -614,7 +615,7 @@ public abstract class ModuleNodes {
         private CodeLoader.DeferredCall classEvalSource(DynamicObject module, DynamicObject rubySource, String file, int line) {
             assert RubyGuards.isRubyString(rubySource);
 
-            final RubySource source = EvalNode.createEvalSource(StringOperations.rope(rubySource), "class/module_eval", file, line);
+            final RubySource source = createEvalSourceNode.createEvalSource(StringOperations.rope(rubySource), "class/module_eval", file, line);
 
             final MaterializedFrame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
                     .getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize();
