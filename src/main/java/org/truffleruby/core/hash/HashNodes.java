@@ -30,7 +30,9 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.collections.ConsumerNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
+import org.truffleruby.core.hash.HashNodesFactory.EachKeyNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.GetIndexNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
@@ -1169,6 +1171,63 @@ public abstract class HashNodes {
 
             assert HashOperations.verifyStore(getContext(), hash);
             return hash;
+        }
+
+    }
+
+    @NodeChild("hash")
+    @ImportStatic(HashGuards.class)
+    public abstract static class EachKeyNode extends RubyNode {
+
+        @Child ConsumerNode callbackNode;
+
+        public static EachKeyNode create(ConsumerNode consumerNode) {
+            return EachKeyNodeGen.create(consumerNode, null);
+        }
+
+        public EachKeyNode(ConsumerNode consumerNode) {
+            this.callbackNode = consumerNode;
+        }
+
+        public abstract Object executeEachKey(VirtualFrame frame, DynamicObject hash);
+
+        @Specialization(guards = "isNullHash(hash)")
+        protected Object eachKeyNull(VirtualFrame frame, DynamicObject hash) {
+            return hash;
+        }
+
+        @ExplodeLoop
+        @Specialization(guards = { "isPackedHash(hash)", "getSize(hash) == cachedSize" }, limit = "getPackedHashLimit()")
+        protected Object keysPackedArrayCached(VirtualFrame frame, DynamicObject hash,
+                @Cached("getSize(hash)") int cachedSize) {
+            assert HashOperations.verifyStore(getContext(), hash);
+            final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
+
+            for (int i = 0; i < cachedSize; i++) {
+                callbackNode.accept(frame, PackedArrayStrategy.getKey(store, i));
+            }
+
+            return hash;
+        }
+
+        @Specialization(guards = "isBucketHash(hash)")
+        protected Object keysBuckets(VirtualFrame frame, DynamicObject hash) {
+            assert HashOperations.verifyStore(getContext(), hash);
+
+            for (KeyValue keyValue : BucketsStrategy.iterableKeyValues(Layouts.HASH.getFirstInSequence(hash))) {
+                callbackNode.accept(frame, keyValue.getKey());
+            }
+
+            return hash;
+        }
+
+        protected int getSize(DynamicObject hash) {
+            return Layouts.HASH.getSize(hash);
+        }
+
+        protected int getPackedHashLimit() {
+            // + 1 for packed Hash with size = 0
+            return getContext().getOptions().HASH_PACKED_ARRAY_MAX + 1;
         }
 
     }
