@@ -154,13 +154,15 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
 
+        public static GetIndexNode create(Object undefinedValue) {
+            final GetIndexNode node = GetIndexNodeFactory.create(null);
+            node.undefinedValue = undefinedValue;
+            return node;
+        }
+
         @Child private CallDispatchHeadNode callDefaultNode = CallDispatchHeadNode.create();
 
         @CompilationFinal protected Object undefinedValue = null;
-
-        public void setUndefinedValue(Object undefinedValue) {
-            this.undefinedValue = undefinedValue;
-        }
 
         public abstract Object executeGet(VirtualFrame frame, DynamicObject hash, Object key);
 
@@ -209,12 +211,7 @@ public abstract class HashNodes {
     @CoreMethod(names = "_get_or_undefined", required = 1)
     public abstract static class GetOrUndefinedNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private GetIndexNode getIndexNode;
-
-        public GetOrUndefinedNode() {
-            getIndexNode = GetIndexNodeFactory.create(null);
-            getIndexNode.setUndefinedValue(NotProvided.INSTANCE);
-        }
+        @Child private GetIndexNode getIndexNode = GetIndexNode.create(NotProvided.INSTANCE);
 
         @Specialization
         public Object getOrUndefined(VirtualFrame frame, DynamicObject hash, Object key) {
