@@ -570,8 +570,12 @@ module Commands
     shell = -> command { raw_sh(*command.split, continue_on_failure: true) }
     shell['ruby -v']
     shell['uname -a']
+    shell['cc -v']
+    shell['gcc -v']
     shell['clang -v']
     shell['opt -version']
+    shell['/usr/local/opt/llvm@4/bin/clang -v']
+    shell['/usr/local/opt/llvm@4/bin/opt -version']
     shell['mx version']
     sh('mx', 'sversions', continue_on_failure: true)
     shell['git --no-pager show -s --format=%H']
