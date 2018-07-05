@@ -1777,7 +1777,8 @@ EOS
     puts 'Building TruffleRuby native binary'
     chdir("#{graal}/substratevm") do
       mx 'build', java_home: java_home
-      mx 'fetch-languages',
+      mx '--dynamicimports', '/tools',
+         'fetch-languages',
          '--language:llvm', '--language:ruby',
          '--tool:chromeinspector', '--tool:profiler',
          java_home: java_home
