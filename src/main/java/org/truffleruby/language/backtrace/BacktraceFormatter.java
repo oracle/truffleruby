@@ -237,6 +237,39 @@ public class BacktraceFormatter {
         return builder.toString();
     }
 
+    private String formatForeign(Node callNode) {
+        final StringBuilder builder = new StringBuilder();
+        final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
+
+        if (sourceSection != null) {
+            final Source source = sourceSection.getSource();
+            final String path = source.getPath() != null ? source.getPath() : source.getName();
+
+            builder.append(path);
+            if (sourceSection.isAvailable()) {
+                builder.append(":").append(sourceSection.getStartLine());
+            }
+
+            final RootNode rootNode = callNode.getRootNode();
+
+            String identifier = rootNode.getName();
+
+            if (identifier != null && !identifier.isEmpty()) {
+                if (rootNode.getLanguageInfo().getId().equals("llvm") && identifier.startsWith("@")) {
+                    identifier = identifier.substring(1);
+                }
+
+                builder.append(":in `");
+                builder.append(identifier);
+                builder.append("'");
+            }
+        } else {
+            builder.append(getRootOrTopmostNode(callNode).getClass().getSimpleName());
+        }
+
+        return builder.toString();
+    }
+
     private String formatException(DynamicObject exception) {
         final StringBuilder builder = new StringBuilder();
 
@@ -316,40 +349,6 @@ public class BacktraceFormatter {
 
     public static boolean isUserSourceSection(RubyContext context, SourceSection sourceSection) {
         return !isCore(context, sourceSection);
-    }
-
-    private String formatForeign(Node callNode) {
-        final StringBuilder builder = new StringBuilder();
-
-        final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
-
-        if (sourceSection != null) {
-            final Source source = sourceSection.getSource();
-            final String path = source.getPath() != null ? source.getPath() : source.getName();
-
-            builder.append(path);
-            if (sourceSection.isAvailable()) {
-                builder.append(":").append(sourceSection.getStartLine());
-            }
-
-            final RootNode rootNode = callNode.getRootNode();
-
-            String identifier = rootNode.getName();
-
-            if (identifier != null && !identifier.isEmpty()) {
-                if (rootNode.getLanguageInfo().getId().equals("llvm") && identifier.startsWith("@")) {
-                    identifier = identifier.substring(1);
-                }
-
-                builder.append(":in `");
-                builder.append(identifier);
-                builder.append("'");
-            }
-        } else {
-            builder.append(getRootOrTopmostNode(callNode).getClass().getSimpleName());
-        }
-
-        return builder.toString();
     }
 
     private Node getRootOrTopmostNode(Node node) {
