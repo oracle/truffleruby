@@ -279,7 +279,7 @@ public class BacktraceFormatter {
             if (callNode != null) {
                 final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
 
-                if (!isCore(context, sourceSection)) {
+                if (isUserSourceSection(context, sourceSection)) {
                     return sourceSection;
                 }
             }
@@ -319,6 +319,10 @@ public class BacktraceFormatter {
         } else {
             return false;
         }
+    }
+
+    public static boolean isUserSourceSection(RubyContext context, SourceSection sourceSection) {
+        return !isCore(context, sourceSection);
     }
 
     private String formatForeign(Node callNode) {
