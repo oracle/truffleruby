@@ -74,7 +74,7 @@ The tested version of LLVM for macOS is 4.0.1.
 
 We need the `opt` command, so you can't just use what is installed by Xcode if
 you are on macOS. We would recommend that you install LLVM 4 via
-[Homebrew](https://brew.sh) and then manually set your path.
+[Homebrew](https://brew.sh).
 
 For building and using C and C++ extensions on macOS we recommend just
 installing the full `llvm` package. Make sure you have also installed the
@@ -83,5 +83,4 @@ standard C headers from Xcode via `xcode-select --install`.
 ```bash
 xcode-select --install
 brew install llvm@4
-export PATH="/usr/local/opt/llvm@4/bin:$PATH"
 ```
