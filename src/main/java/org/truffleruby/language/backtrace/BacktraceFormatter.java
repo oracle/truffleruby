@@ -202,10 +202,10 @@ public class BacktraceFormatter {
             final SourceSection reportedSourceSection;
             final String reportedName;
 
-            // Java @CoreMethods are always hidden, as there is no source position information.
-            // Only show core library paths if the flags contain the option.
-            if (isUserSourceSection(context, sourceSection) ||
-                    (flags.contains(FormattingFlags.INCLUDE_CORE_FILES) && !isJavaCore(context, sourceSection))) {
+            // Unavailable SourceSections are always skipped, as there is no source position information.
+            // Only show core library SourceSections if the flags contain the option.
+            if (sourceSection != null && sourceSection.isAvailable() &&
+                    (flags.contains(FormattingFlags.INCLUDE_CORE_FILES) || isUserSourceSection(context, sourceSection))) {
                 reportedSourceSection = sourceSection;
                 reportedName = rootNode.getName();
             } else {
@@ -222,7 +222,6 @@ public class BacktraceFormatter {
                 builder.append(":");
                 builder.append(reportedSourceSection.getStartLine());
             }
-
             builder.append(":in `");
             builder.append(reportedName);
             builder.append("'");
@@ -283,7 +282,7 @@ public class BacktraceFormatter {
         return null;
     }
 
-    public static boolean isJavaCore(RubyContext context, SourceSection sourceSection) {
+    private static boolean isJavaCore(RubyContext context, SourceSection sourceSection) {
         return sourceSection == context.getCoreLibrary().getSourceSection();
     }
 
