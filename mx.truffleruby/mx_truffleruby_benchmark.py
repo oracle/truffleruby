@@ -358,6 +358,7 @@ classic_benchmarks = [
     'pidigits',
     'red-black',
     'richards',
+    'richards-kwargs',
     'spectral-norm'
 ]
 
