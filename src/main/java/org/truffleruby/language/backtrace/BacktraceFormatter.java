@@ -126,18 +126,7 @@ public class BacktraceFormatter {
     /** Format the backtrace as a String with \n between each line, but no trailing \n. */
     @TruffleBoundary
     public String formatBacktrace(DynamicObject exception, Backtrace backtrace) {
-        final String[] lines = formatBacktraceAsStringArray(exception, backtrace);
-        final StringBuilder builder = new StringBuilder();
-        boolean first = true;
-        for (String line : lines) {
-            if (first) {
-                first = false;
-            } else {
-                builder.append("\n");
-            }
-            builder.append(line);
-        }
-        return builder.toString();
+        return String.join("\n", formatBacktraceAsStringArray(exception, backtrace));
     }
 
     public DynamicObject formatBacktraceAsRubyStringArray(DynamicObject exception, Backtrace backtrace) {
