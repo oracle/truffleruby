@@ -232,11 +232,11 @@ public abstract class RequireNode extends RubyNode {
             final String message;
 
             if (linkError.contains("libc++.")) {
-                message = String.format("%s (%s)", "you may need to install LLVM and libc++ - see doc/user/installing-llvm.md", linkError);
+                message = String.format("%s (%s)", "you may need to install LLVM and libc++ - see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-llvm.md", linkError);
             } else if (linkError.contains("libc++abi.")) {
-                message = String.format("%s (%s)", "you may need to install LLVM and libc++abi - see doc/user/installing-llvm.md", linkError);
+                message = String.format("%s (%s)", "you may need to install LLVM and libc++abi - see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-llvm.md", linkError);
             } else if (feature.equals("openssl.so")) {
-                message = String.format("%s (%s)", "you may need to install the system OpenSSL library libssl - see doc/user/installing-libssl.md", linkError);
+                message = String.format("%s (%s)", "you may need to install the system OpenSSL library libssl - see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-libssl.md", linkError);
             } else {
                 message = linkError;
             }
