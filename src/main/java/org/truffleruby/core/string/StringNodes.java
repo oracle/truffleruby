@@ -1794,7 +1794,8 @@ public abstract class StringNodes {
 
         private RopeBuilder dumpCommon(Rope rope) {
             RopeBuilder buf = null;
-            Encoding enc = rope.getEncoding();
+            final Encoding enc = rope.getEncoding();
+            final CodeRange cr = rope.getCodeRange();
 
             int p = 0;
             int end = rope.byteLength();
@@ -1817,7 +1818,7 @@ public abstract class StringNodes {
                             len++;
                         } else {
                             if (enc.isUTF8()) {
-                                int n = StringSupport.preciseLength(enc, bytes, p - 1, end) - 1;
+                                int n = StringSupport.characterLength(enc, cr, bytes, p - 1, end) - 1;
                                 if (n > 0) {
                                     if (buf == null) {
                                         buf = new RopeBuilder();
@@ -1887,7 +1888,7 @@ public abstract class StringNodes {
                 } else {
                     out[q++] = '\\';
                     if (enc.isUTF8()) {
-                        int n = StringSupport.preciseLength(enc, bytes, p - 1, end) - 1;
+                        int n = StringSupport.characterLength(enc, cr, bytes, p - 1, end) - 1;
                         if (n > 0) {
                             int cc = codePointX(enc, bytes, p - 1, end);
                             p += n;
