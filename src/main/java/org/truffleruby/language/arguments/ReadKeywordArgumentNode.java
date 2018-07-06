@@ -14,18 +14,18 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import org.truffleruby.core.hash.HashNodes.GetIndexNode;
-import org.truffleruby.language.NotProvided;
+import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.core.hash.HashNodes.HashLookupOrExecuteDefaultNode;
 import org.truffleruby.language.RubyNode;
 
-public class ReadKeywordArgumentNode extends RubyNode {
+public class ReadKeywordArgumentNode extends RubyNode implements BiFunctionNode {
 
     private final DynamicObject name;
     private final ConditionProfile defaultProfile = ConditionProfile.createBinaryProfile();
     
     @Child private RubyNode defaultValue;
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
-    @Child private GetIndexNode hashLookupNode;
+    @Child private HashLookupOrExecuteDefaultNode hashLookupNode;
 
     public ReadKeywordArgumentNode(int minimum, String name, RubyNode defaultValue) {
         this.name = getSymbol(name);
@@ -41,22 +41,20 @@ public class ReadKeywordArgumentNode extends RubyNode {
             return defaultValue.execute(frame);
         }
 
-        final Object value = lookupKeywordInHash(frame, hash);
-
-        if (defaultProfile.profile(value == NotProvided.INSTANCE)) {
-            return defaultValue.execute(frame);
-        }
-
-        return value;
+        return lookupKeywordInHash(frame, hash);
     }
 
     private Object lookupKeywordInHash(VirtualFrame frame, DynamicObject hash) {
         if (hashLookupNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            hashLookupNode = insert(GetIndexNode.create(NotProvided.INSTANCE));
+            hashLookupNode = insert(HashLookupOrExecuteDefaultNode.create());
         }
 
-        return hashLookupNode.executeGet(frame, hash, name);
+        return hashLookupNode.executeGet(frame, hash, name, this);
+    }
+
+    public Object accept(VirtualFrame frame, Object hash, Object key) {
+        return defaultValue.execute(frame);
     }
 
 }
