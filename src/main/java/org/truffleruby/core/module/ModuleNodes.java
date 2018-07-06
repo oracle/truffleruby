@@ -83,7 +83,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.eval.CreateEvalSourceNode;
 import org.truffleruby.language.loader.CodeLoader;
-import org.truffleruby.language.loader.RequireNode;
 import org.truffleruby.language.methods.AddMethodNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.CanBindMethodToModuleNode;
@@ -843,7 +842,7 @@ public abstract class ModuleNodes {
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class ConstGetNode extends CoreMethodNode {
 
-        @Child private RequireNode requireNode;
+        @Child private CallDispatchHeadNode callRequireNode;
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, true, true);
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
@@ -907,7 +906,7 @@ public abstract class ModuleNodes {
                 return getConstantNode.executeGetConstant(frame, module, name, null, lookupConstantNode);
             } else {
                 if (constant.getConstant().isAutoload()) {
-                    loadAutoloadedConstant(constant);
+                    loadAutoloadedConstant(constant.getConstant());
                     constant = ModuleOperations.lookupConstantWithInherit(getContext(), module, name, false, currentNode);
                 }
 
@@ -936,14 +935,14 @@ public abstract class ModuleNodes {
             return name.contains("::");
         }
 
-        private void loadAutoloadedConstant(ConstantLookupResult constant) {
-            if (requireNode == null) {
+        private void loadAutoloadedConstant(RubyConstant constant) {
+            if (callRequireNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                requireNode = insert(RequireNode.create());
+                callRequireNode = insert(CallDispatchHeadNode.createOnSelf());
             }
 
-            final String feature = StringOperations.getString((DynamicObject) constant.getConstant().getValue());
-            requireNode.executeRequire(feature);
+            final Object feature = constant.getValue();
+            callRequireNode.call(null, coreLibrary().getMainObject(), "require", feature);
         }
 
         protected int getLimit() {

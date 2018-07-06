@@ -18,12 +18,10 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.loader.RequireNode;
 
 @NodeChildren({ @NodeChild("module"), @NodeChild("name"), @NodeChild("constant"), @NodeChild("lookupConstantNode") })
 public abstract class GetConstantNode extends RubyNode {
@@ -44,7 +42,7 @@ public abstract class GetConstantNode extends RubyNode {
 
     @Specialization(guards = { "constant != null", "constant.isAutoload()" })
     protected Object autoloadConstant(VirtualFrame frame, DynamicObject module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode,
-            @Cached("create()") RequireNode requireNode) {
+            @Cached("createOnSelf()") CallDispatchHeadNode callRequireNode) {
 
         final DynamicObject path = (DynamicObject) constant.getValue();
 
@@ -52,7 +50,7 @@ public abstract class GetConstantNode extends RubyNode {
         // We remove it first to allow lookup to ignore it and add it back if there was a failure.
         Layouts.MODULE.getFields(constant.getDeclaringModule()).removeConstant(getContext(), this, name);
         try {
-            requireNode.executeRequire(StringOperations.getString(path));
+            callRequireNode.call(null, coreLibrary().getMainObject(), "require", path);
             final RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(frame, module, name);
             return executeGetConstant(frame, module, name, resolvedConstant, lookupConstantNode);
         } catch (RaiseException e) {
