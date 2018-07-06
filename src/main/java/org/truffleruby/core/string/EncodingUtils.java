@@ -207,12 +207,12 @@ public class EncodingUtils {
     }
 
     // rb_enc_codepoint_len
-    public static int encCodepointLength(byte[] pBytes, int p, int e, int[] len_p, Encoding enc) {
+    public static int encCodepointLength(byte[] pBytes, int p, int e, int[] len_p, Encoding enc, CodeRange codeRange) {
         int r;
         if (e <= p) {
             throw new IllegalArgumentException("empty string");
         }
-        r = StringSupport.preciseLength(enc, pBytes, p, e);
+        r = StringSupport.characterLength(enc, codeRange, pBytes, p, e);
         if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
             throw new IllegalArgumentException("invalid byte sequence in " + enc);
         }

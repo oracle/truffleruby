@@ -586,12 +586,12 @@ public final class StringSupport {
         if (EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, n, enc, codeRange) == '\\' && tr.p + n[0] < tr.pend) {
             tr.p += n[0];
         }
-        tr.now = EncodingUtils.encCodepointLength(tr.buf, tr.p, tr.pend, n, enc);
+        tr.now = EncodingUtils.encCodepointLength(tr.buf, tr.p, tr.pend, n, enc, codeRange);
         tr.p += n[0];
         if (EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, n, enc, codeRange) == '-' && tr.p + n[0] < tr.pend) {
             tr.p += n[0];
             if (tr.p < tr.pend) {
-                int c = EncodingUtils.encCodepointLength(tr.buf, tr.p, tr.pend, n, enc);
+                int c = EncodingUtils.encCodepointLength(tr.buf, tr.p, tr.pend, n, enc, codeRange);
                 tr.p += n[0];
                 if (tr.now > c) {
                     if (tr.now < 0x80 && c < 0x80) {
