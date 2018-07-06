@@ -1051,16 +1051,17 @@ public abstract class StringNodes {
                 @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
             final Encoding encoding = rope.getEncoding();
+            final CodeRange cr = rope.getCodeRange();
 
             if (dummyEncodingProfile.profile(encoding.isDummy())) {
                 throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
             }
 
             final byte[] outputBytes = bytesNode.execute(rope);
-            final boolean modified = StringSupport.multiByteDowncaseAsciiOnly(encoding, outputBytes);
+            final boolean modified = StringSupport.multiByteDowncaseAsciiOnly(encoding, cr, outputBytes);
 
             if (modifiedProfile.profile(modified)) {
-                StringOperations.setRope(string, makeLeafRopeNode.executeMake(outputBytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
+                StringOperations.setRope(string, makeLeafRopeNode.executeMake(outputBytes, encoding, cr, rope.characterLength()));
 
                 return string;
             } else {
@@ -1544,6 +1545,7 @@ public abstract class StringNodes {
         public DynamicObject scrubAsciiCompat(DynamicObject string, DynamicObject block) {
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
+            final CodeRange cr = rope.getCodeRange();
             Rope buf = RopeConstants.EMPTY_ASCII_8BIT_ROPE;
 
             final byte[] pBytes = bytesNode.execute(rope);
@@ -1579,7 +1581,7 @@ public abstract class StringNodes {
                         final int q = p;
                         clen--;
                         for (; clen > 1; clen--) {
-                            ret = StringSupport.encLength(enc, pBytes, q, q + clen);
+                            ret = StringSupport.characterLength(enc, cr, pBytes, q, q + clen);
                             if (MBCLEN_NEEDMORE_P(ret)) {
                                 break;
                             } else if (MBCLEN_INVALID_P(ret)) {
@@ -1694,16 +1696,17 @@ public abstract class StringNodes {
 
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
+            final CodeRange cr = rope.getCodeRange();
 
             if (dummyEncodingProfile.profile(enc.isDummy())) {
                 throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
             }
 
             final byte[] bytes = rope.getBytesCopy();
-            final boolean modified = StringSupport.multiByteSwapcaseAsciiOnly(enc, bytes);
+            final boolean modified = StringSupport.multiByteSwapcaseAsciiOnly(enc, cr, bytes);
 
             if (modifiedProfile.profile(modified)) {
-                StringOperations.setRope(string, makeLeafRopeNode.executeMake(bytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
+                StringOperations.setRope(string, makeLeafRopeNode.executeMake(bytes, enc, cr, rope.characterLength()));
 
                 return string;
             } else {
@@ -2660,15 +2663,16 @@ public abstract class StringNodes {
                 @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
             final Encoding encoding = rope.getEncoding();
+            final CodeRange cr = rope.getCodeRange();
 
             if (dummyEncodingProfile.profile(encoding.isDummy())) {
                 throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
             }
 
             final byte[] outputBytes = bytesNode.execute(rope);
-            final boolean modified = StringSupport.multiByteUpcaseAsciiOnly(encoding, outputBytes);
+            final boolean modified = StringSupport.multiByteUpcaseAsciiOnly(encoding, cr, outputBytes);
             if (modifiedProfile.profile(modified)) {
-                StringOperations.setRope(string, makeLeafRopeNode.executeMake(outputBytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
+                StringOperations.setRope(string, makeLeafRopeNode.executeMake(outputBytes, encoding, cr, rope.characterLength()));
 
                 return string;
             } else {
@@ -2790,7 +2794,8 @@ public abstract class StringNodes {
 
             int s = 0;
             int end = rope.byteLength();
-            byte[] bytes = bytesNode.execute(rope);
+            final byte[] bytes = bytesNode.execute(rope);
+            final CodeRange cr = rope.getCodeRange();
             boolean modified = false;
 
             while (s < end) {
@@ -2799,7 +2804,8 @@ public abstract class StringNodes {
                     modified = true;
                     s++;
                 } else {
-                    s += StringSupport.encLength(enc, bytes, s, end);
+                    s += StringSupport.characterLength(enc, cr, bytes, s, end);
+                    // Raise error if invalid.
                 }
             }
 
@@ -3229,8 +3235,10 @@ public abstract class StringNodes {
         // MRI: rb_str_escape
         @TruffleBoundary
         private static Rope rbStrEscape(Rope str) {
-            Encoding enc = str.getEncoding();
-            byte[] pBytes = str.getBytes();
+            final Encoding enc = str.getEncoding();
+            final byte[] pBytes = str.getBytes();
+            final CodeRange cr = str.getCodeRange();
+
             int p = 0;
             int pend = str.byteLength();
             int prev = p;
@@ -3240,7 +3248,7 @@ public abstract class StringNodes {
 
             while (p < pend) {
                 int c, cc;
-                int n = StringSupport.encLength(enc, pBytes, p, pend);
+                int n = StringSupport.characterLength(enc, cr, pBytes, p, pend, false);
                 if (!MBCLEN_CHARFOUND_P(n)) {
                     if (p > prev) {
                         result.append(pBytes, prev, p - prev);

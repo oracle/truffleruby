@@ -104,7 +104,7 @@ public final class StringSupport {
 
     // rb_enc_fast_mbclen
     @TruffleBoundary
-    public static int encLength(Encoding enc, byte[] bytes, int p, int e) {
+    private static int encLength(Encoding enc, byte[] bytes, int p, int e) {
         return enc.length(bytes, p, e);
     }
 
@@ -194,7 +194,7 @@ public final class StringSupport {
                         c += q - p;
                         p = q;
                     }
-                    p += encLength(enc, bytes, p, e);
+                    p += characterLength(enc, cr, bytes, p, e);
                     c++;
                 }
             } else {
@@ -283,7 +283,7 @@ public final class StringSupport {
         if (p >= end) {
             throw new IllegalArgumentException("empty string");
         }
-        int cl = characterLength(enc, codeRange, bytes, p, end, false);
+        int cl = characterLength(enc, codeRange, bytes, p, end);
         if (cl <= 0) {
             throw new IllegalArgumentException("invalid byte sequence in " + enc);
         }
@@ -297,7 +297,7 @@ public final class StringSupport {
 
     @TruffleBoundary
     public static int preciseCodePoint(Encoding enc, CodeRange codeRange, byte[]bytes, int p, int end) {
-        int l = characterLength(enc, codeRange, bytes, p, end, false);
+        int l = characterLength(enc, codeRange, bytes, p, end);
         if (l > 0) {
             return enc.mbcToCode(bytes, p, end);
         }
@@ -1285,7 +1285,7 @@ public final class StringSupport {
      */
 
     @TruffleBoundary
-    public static boolean multiByteSwapcaseAsciiOnly(Encoding enc, byte[] bytes) {
+    public static boolean multiByteSwapcaseAsciiOnly(Encoding enc, CodeRange codeRange, byte[] bytes) {
         boolean modify = false;
         int s = 0;
         final int end = bytes.length;
@@ -1296,7 +1296,7 @@ public final class StringSupport {
                 modify = true;
                 s++;
             } else {
-                s += encLength(enc, bytes, s, end);
+                s += characterLength(enc, codeRange, bytes, s, end);
             }
         }
 
@@ -1358,7 +1358,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteDowncaseAsciiOnly(Encoding enc, byte[] bytes) {
+    public static boolean multiByteDowncaseAsciiOnly(Encoding enc, CodeRange codeRange, byte[] bytes) {
         boolean modify = false;
         int s = 0;
         final int end = bytes.length;
@@ -1369,7 +1369,7 @@ public final class StringSupport {
                 modify = true;
                 s++;
             } else {
-                s += encLength(enc, bytes, s, end);
+                s += characterLength(enc, codeRange, bytes, s, end);
             }
         }
 
@@ -1415,7 +1415,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteUpcaseAsciiOnly(Encoding enc, byte[] bytes) {
+    public static boolean multiByteUpcaseAsciiOnly(Encoding enc, CodeRange codeRange, byte[] bytes) {
         boolean modify = false;
         int s = 0;
         final int end = bytes.length;
@@ -1426,7 +1426,7 @@ public final class StringSupport {
                 modify = true;
                 s++;
             } else {
-                s += encLength(enc, bytes, s, end);
+                s += characterLength(enc, codeRange, bytes, s, end);
             }
         }
 
