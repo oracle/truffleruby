@@ -100,12 +100,12 @@ public abstract class UTF8Operations {
             return 1;
         } else {
             switch(b & 0xf0) {
-                case 0xc0:
-                    return 2;
                 case 0xe0:
                     return 3;
-                default:
+                case 0xf0:
                     return 4;
+                default:
+                    return 2;
             }
         }
     }
