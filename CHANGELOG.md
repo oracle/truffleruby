@@ -1,5 +1,9 @@
 # 1.0
 
+# 1.0 RC 4
+
+* It is no longer needed to add LLVM (`/usr/local/opt/llvm@4/bin`) to PATH on macOS.
+
 # 1.0 RC 3
 
 New features:
