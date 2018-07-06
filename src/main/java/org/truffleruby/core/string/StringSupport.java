@@ -68,7 +68,7 @@ public final class StringSupport {
             case CR_BROKEN:
                 return length(encoding, bytes, byteOffset, byteEnd);
             case CR_UNKNOWN:
-                throw new UnsupportedOperationException("can't handle CR_UNKNOWN");
+                return preciseLength(encoding, bytes, byteOffset, byteEnd);
             default:
                 throw new UnsupportedOperationException("unknown code range value: " + codeRange);
         }

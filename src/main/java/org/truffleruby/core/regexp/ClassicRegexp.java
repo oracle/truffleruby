@@ -56,6 +56,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.string.StringSupport.EMPTY_STRING_ARRAY;
 
 public class ClassicRegexp implements ReOptions {
@@ -394,11 +395,11 @@ public class ClassicRegexp implements ReOptions {
         int chLen = 0;
 
         p = readEscapedByte(context, chBuf, chLen++, bytes, p, end, str, mode);
-        while (chLen < enc.maxLength() && StringSupport.MBCLEN_NEEDMORE_P(StringSupport.preciseLength(enc, chBuf, 0, chLen))) {
+        while (chLen < enc.maxLength() && StringSupport.MBCLEN_NEEDMORE_P(StringSupport.characterLength(enc, CR_UNKNOWN, chBuf, 0, chLen))) {
             p = readEscapedByte(context, chBuf, chLen++, bytes, p, end, str, mode);
         }
 
-        int cl = StringSupport.preciseLength(enc, chBuf, 0, chLen);
+        int cl = StringSupport.characterLength(enc, CR_UNKNOWN, chBuf, 0, chLen);
         if (cl == -1) {
             raisePreprocessError(context, str, "invalid multibyte escape", mode); // MBCLEN_INVALID_P
         }
