@@ -119,7 +119,7 @@ public final class StringSupport {
     }
 
     // rb_enc_precise_mbclen
-    public static int preciseLength(Encoding enc, byte[]bytes, int p, int end) {
+    private static int preciseLength(Encoding enc, byte[]bytes, int p, int end) {
         if (p >= end) {
             return -1 - (1);
         }
@@ -649,7 +649,7 @@ public final class StringSupport {
                 }
             }
 
-            int cl = preciseLength(enc, bytes, s, end);
+            int cl = characterLength(enc, CR_UNKNOWN, bytes, s, end);
             if (cl <= 0) {
                 continue;
             }
@@ -666,7 +666,7 @@ public final class StringSupport {
         if (!alnumSeen) {
             s = end;
             while ((s = enc.prevCharHead(bytes, p, s, end)) != -1) {
-                int cl = preciseLength(enc, bytes, s, end);
+                int cl = characterLength(enc, CR_UNKNOWN, bytes, s, end);
                 if (cl <= 0) {
                     continue;
                 }
@@ -674,7 +674,7 @@ public final class StringSupport {
                 if (neighbor == NeighborChar.FOUND) {
                     return valueCopy;
                 }
-                if (preciseLength(enc, bytes, s, s + 1) != cl) {
+                if (characterLength(enc, CR_UNKNOWN, bytes, s, s + 1) != cl) {
                     succChar(enc, bytes, s, cl); /* wrapped to \0...\0. search next valid char. */
                 }
                 if (!enc.isAsciiCompatible()) {
@@ -697,7 +697,7 @@ public final class StringSupport {
         int l;
         if (enc.minLength() > 1) {
             /* wchar, trivial case */
-            int r = preciseLength(enc, bytes, p, p + len), c;
+            int r = characterLength(enc, CR_UNKNOWN, bytes, p, p + len), c;
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
@@ -710,7 +710,7 @@ public final class StringSupport {
                 return NeighborChar.WRAPPED;
             }
             EncodingUtils.encMbcput(c, bytes, p, enc);
-            r = preciseLength(enc, bytes, p, p + len);
+            r = characterLength(enc, CR_UNKNOWN, bytes, p, p + len);
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
@@ -726,7 +726,7 @@ public final class StringSupport {
                 return NeighborChar.WRAPPED;
             }
             bytes[p + i] = (byte) ((bytes[p + i] & 0xff) + 1);
-            l = preciseLength(enc, bytes, p, p + len);
+            l = characterLength(enc, CR_UNKNOWN, bytes, p, p + len);
             if (MBCLEN_CHARFOUND_P(l)) {
                 l = MBCLEN_CHARFOUND_LEN(l);
                 if (l == len) {
@@ -741,7 +741,7 @@ public final class StringSupport {
                 int len2;
                 int l2;
                 for (len2 = len - 1; 0 < len2; len2--) {
-                    l2 = preciseLength(enc, bytes, p, p + len2);
+                    l2 = characterLength(enc, CR_UNKNOWN, bytes, p, p + len2);
                     if (!MBCLEN_INVALID_P(l2)) {
                         break;
                     }
@@ -813,7 +813,7 @@ public final class StringSupport {
         int l;
         if (enc.minLength() > 1) {
             /* wchar, trivial case */
-            int r = preciseLength(enc, bytes, p, p + len), c;
+            int r = characterLength(enc, CR_UNKNOWN, bytes, p, p + len), c;
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
@@ -830,7 +830,7 @@ public final class StringSupport {
                 return NeighborChar.WRAPPED;
             }
             EncodingUtils.encMbcput(c, bytes, p, enc);
-            r = preciseLength(enc, bytes, p, p + len);
+            r = characterLength(enc, CR_UNKNOWN, bytes, p, p + len);
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
@@ -845,7 +845,7 @@ public final class StringSupport {
                 return NeighborChar.WRAPPED;
             }
             bytes[p + i] = (byte) ((bytes[p + i] & 0xff) - 1);
-            l = preciseLength(enc, bytes, p, p + len);
+            l = characterLength(enc, CR_UNKNOWN, bytes, p, p + len);
             if (MBCLEN_CHARFOUND_P(l)) {
                 l = MBCLEN_CHARFOUND_LEN(l);
                 if (l == len) {
@@ -860,7 +860,7 @@ public final class StringSupport {
                 int len2;
                 int l2;
                 for (len2 = len - 1; 0 < len2; len2--) {
-                    l2 = preciseLength(enc, bytes, p, p + len2);
+                    l2 = characterLength(enc, CR_UNKNOWN, bytes, p, p + len2);
                     if (!MBCLEN_INVALID_P(l2)) {
                         break;
                     }
