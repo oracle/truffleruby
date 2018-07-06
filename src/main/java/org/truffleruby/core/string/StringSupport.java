@@ -458,7 +458,7 @@ public final class StringSupport {
 
         final TR tr = new TR(str);
 
-        if (str.byteLength() > 1 && EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, l, enc) == '^') {
+        if (str.byteLength() > 1 && EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, l, enc, str.getCodeRange()) == '^') {
             cflag = true;
             tr.p += l[0];
         } else {
@@ -482,7 +482,7 @@ public final class StringSupport {
         IntHashMap<Object> table = null, ptable = null;
 
         int c;
-        while ((c = trNext(tr, enc)) != -1) {
+        while ((c = trNext(tr, enc, str.getCodeRange())) != -1) {
             if (c < TRANS_SIZE) {
                 if (buf == null) { // initialize buf
                     buf = new byte[TRANS_SIZE];
@@ -556,16 +556,16 @@ public final class StringSupport {
         return table[TRANS_SIZE];
     }
 
-    public static int trNext(final TR tr, Encoding enc) {
+    public static int trNext(final TR tr, Encoding enc, CodeRange codeRange) {
         for (;;) {
             if (!tr.gen) {
-                return trNext_nextpart(tr, enc);
+                return trNext_nextpart(tr, enc, codeRange);
             }
 
             while (enc.codeToMbcLength(++tr.now) <= 0) {
                 if (tr.now == tr.max) {
                     tr.gen = false;
-                    return trNext_nextpart(tr, enc);
+                    return trNext_nextpart(tr, enc, codeRange);
                 }
             }
             if (tr.now < tr.max) {
@@ -577,18 +577,18 @@ public final class StringSupport {
         }
     }
 
-    private static int trNext_nextpart(final TR tr, Encoding enc) {
+    private static int trNext_nextpart(final TR tr, Encoding enc, CodeRange codeRange) {
         final int[] n = {0};
 
         if (tr.p == tr.pend) {
             return -1;
         }
-        if (EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, n, enc) == '\\' && tr.p + n[0] < tr.pend) {
+        if (EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, n, enc, codeRange) == '\\' && tr.p + n[0] < tr.pend) {
             tr.p += n[0];
         }
         tr.now = EncodingUtils.encCodepointLength(tr.buf, tr.p, tr.pend, n, enc);
         tr.p += n[0];
-        if (EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, n, enc) == '-' && tr.p + n[0] < tr.pend) {
+        if (EncodingUtils.encAscget(tr.buf, tr.p, tr.pend, n, enc, codeRange) == '-' && tr.p + n[0] < tr.pend) {
             tr.p += n[0];
             if (tr.p < tr.pend) {
                 int c = EncodingUtils.encCodepointLength(tr.buf, tr.p, tr.pend, n, enc);
@@ -931,7 +931,7 @@ public final class StringSupport {
         int[] l = {0};
 
         if (srcStr.byteLength() > 1 &&
-                EncodingUtils.encAscget(trSrc.buf, trSrc.p, trSrc.pend, l, enc) == '^' &&
+                EncodingUtils.encAscget(trSrc.buf, trSrc.p, trSrc.pend, l, enc, srcStr.getCodeRange()) == '^' &&
                 trSrc.p + 1 < trSrc.pend) {
             cflag = true;
             trSrc.p++;
@@ -949,7 +949,7 @@ public final class StringSupport {
                 trans[i] = 1;
             }
 
-            while ((c = StringSupport.trNext(trSrc, enc)) != -1) {
+            while ((c = StringSupport.trNext(trSrc, enc, srcStr.getCodeRange())) != -1) {
                 if (c < StringSupport.TRANS_SIZE) {
                     trans[c] = -1;
                 } else {
@@ -959,7 +959,7 @@ public final class StringSupport {
                     hash.put(c, 1); // QTRUE
                 }
             }
-            while ((c = StringSupport.trNext(trRepl, enc)) != -1) {
+            while ((c = StringSupport.trNext(trRepl, enc, replStr.getCodeRange())) != -1) {
                 /* retrieve last replacer */
             }
             last = trRepl.now;
@@ -973,8 +973,8 @@ public final class StringSupport {
                 trans[i] = -1;
             }
 
-            while ((c = StringSupport.trNext(trSrc, enc)) != -1) {
-                int r = StringSupport.trNext(trRepl, enc);
+            while ((c = StringSupport.trNext(trSrc, enc, srcStr.getCodeRange())) != -1) {
+                int r = StringSupport.trNext(trRepl, enc, replStr.getCodeRange());
                 if (r == -1) {
                     r = trRepl.now;
                 }
