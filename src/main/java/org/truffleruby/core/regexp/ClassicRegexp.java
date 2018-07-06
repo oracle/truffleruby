@@ -45,10 +45,7 @@ import org.joni.Regex;
 import org.joni.Syntax;
 import org.joni.exception.JOniException;
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.rope.*;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.ReOptions;
@@ -855,7 +852,7 @@ public class ClassicRegexp implements ReOptions {
                 }
             }
             result.append((byte) ':');
-            appendRegexpString19(result, bytes, p, len, str.getEncoding(), null);
+            appendRegexpString19(result, str, p, len, null);
 
             result.append((byte) ')');
             result.setEncoding(getEncoding());
@@ -864,9 +861,13 @@ public class ClassicRegexp implements ReOptions {
         } while (true);
     }
 
-    public void appendRegexpString19(RopeBuilder to, byte[] bytes, int start, int len, Encoding enc, Encoding resEnc) {
+    public void appendRegexpString19(RopeBuilder to, Rope str, int start, int len, Encoding resEnc) {
         int p = start;
         int end = p + len;
+
+        final CodeRange cr = str.getCodeRange();
+        final Encoding enc = str.getEncoding();
+        final byte[] bytes = str.getBytes();
         boolean needEscape = false;
         while (p < end) {
             final int c;
@@ -875,7 +876,7 @@ public class ClassicRegexp implements ReOptions {
                 cl = 1;
                 c = bytes[p] & 0xff;
             } else {
-                cl = StringSupport.preciseLength(enc, bytes, p, end);
+                cl = StringSupport.characterLength(enc, cr, bytes, p, end);
                 c = enc.mbcToCode(bytes, p, end);
             }
 
@@ -899,12 +900,12 @@ public class ClassicRegexp implements ReOptions {
                     cl = 1;
                     c = bytes[p] & 0xff;
                 } else {
-                    cl = StringSupport.preciseLength(enc, bytes, p, end);
+                    cl = StringSupport.characterLength(enc, cr, bytes, p, end);
                     c = enc.mbcToCode(bytes, p, end);
                 }
 
                 if (c == '\\' && p + cl < end) {
-                    int n = cl + StringSupport.length(enc, bytes, p + cl, end);
+                    int n = cl + StringSupport.characterLength(enc, cr, bytes, p + cl, end);
                     to.append(bytes, p, n);
                     p += n;
                     continue;
@@ -912,7 +913,7 @@ public class ClassicRegexp implements ReOptions {
                     to.append((byte) '\\');
                     to.append(bytes, p, cl);
                 } else if (!Encoding.isAscii(c)) {
-                    int l = StringSupport.preciseLength(enc, bytes, p, end);
+                    int l = StringSupport.characterLength(enc, cr, bytes, p, end);
                     if (l <= 0) {
                         l = 1;
                         to.append(String.format("\\x%02X", c).getBytes(StandardCharsets.US_ASCII));
