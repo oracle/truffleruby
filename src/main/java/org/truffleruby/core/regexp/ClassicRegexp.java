@@ -611,8 +611,9 @@ public class ClassicRegexp implements ReOptions {
     public static Rope quote19(Rope bs, boolean asciiOnly) {
         int p = 0;
         int end = bs.byteLength();
-        byte[] bytes = bs.getBytes();
-        Encoding enc = bs.getEncoding();
+        final byte[] bytes = bs.getBytes();
+        final Encoding enc = bs.getEncoding();
+        final CodeRange cr = bs.getCodeRange();
 
         metaFound: do {
             while (p < end) {
@@ -622,7 +623,7 @@ public class ClassicRegexp implements ReOptions {
                     cl = 1;
                     c = bytes[p] & 0xff;
                 } else {
-                    cl = StringSupport.preciseLength(enc, bytes, p, end);
+                    cl = StringSupport.characterLength(enc, cr, bytes, p, end);
                     c = enc.mbcToCode(bytes, p, end);
                 }
 
@@ -661,7 +662,7 @@ public class ClassicRegexp implements ReOptions {
                 cl = 1;
                 c = bytes[p] & 0xff;
             } else {
-                cl = StringSupport.preciseLength(enc, bytes, p, end);
+                cl = StringSupport.characterLength(enc, cr, bytes, p, end);
                 c = enc.mbcToCode(bytes, p, end);
             }
 
