@@ -161,7 +161,7 @@ public class ClassicRegexp implements ReOptions {
             fixedEnc[0] = enc;
         }
 
-        boolean hasProperty = unescapeNonAscii(context, null, str.getBytes(), 0, str.byteLength(), enc, fixedEnc, str, mode);
+        boolean hasProperty = unescapeNonAscii(context, null, str, enc, fixedEnc, mode);
         if (hasProperty && fixedEnc[0] == null) {
             fixedEnc[0] = enc;
         }
@@ -169,12 +169,16 @@ public class ClassicRegexp implements ReOptions {
 
     @TruffleBoundary
     @SuppressWarnings("fallthrough")
-    private static boolean unescapeNonAscii(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end, Encoding enc, Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
+    private static boolean unescapeNonAscii(RubyContext context, RopeBuilder to, Rope str, Encoding enc, Encoding[] encp, RegexpSupport.ErrorMode mode) {
         boolean hasProperty = false;
         byte[] buf = null;
 
+        int p = 0;
+        int end = str.byteLength();
+        final byte[] bytes = str.getBytes();
+
         while (p < end) {
-            int cl = StringSupport.preciseLength(enc, bytes, p, end);
+            final int cl = StringSupport.characterLength(enc, str.getCodeRange(), bytes, p, end);
             if (cl <= 0) {
                 raisePreprocessError(context, str, "invalid multibyte character", mode);
             }
@@ -544,7 +548,7 @@ public class ClassicRegexp implements ReOptions {
             to.setEncoding(enc);
         }
 
-        boolean hasProperty = unescapeNonAscii(runtime, to, str.getBytes(), 0, str.byteLength(), enc, fixedEnc, str, mode);
+        boolean hasProperty = unescapeNonAscii(runtime, to, str, enc, fixedEnc, mode);
         if (hasProperty && fixedEnc[0] == null) {
             fixedEnc[0] = enc;
         }
