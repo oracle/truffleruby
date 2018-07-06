@@ -589,8 +589,12 @@ module Commands
     shell = -> command { raw_sh(*command.split, continue_on_failure: true) }
     shell['ruby -v']
     shell['uname -a']
+    shell['cc -v']
+    shell['gcc -v']
     shell['clang -v']
     shell['opt -version']
+    shell['/usr/local/opt/llvm@4/bin/clang -v']
+    shell['/usr/local/opt/llvm@4/bin/opt -version']
     shell['mx version']
     sh('mx', 'sversions', continue_on_failure: true)
     shell['git --no-pager show -s --format=%H']
@@ -1871,6 +1875,34 @@ EOS
     end
   end
 
+  def check_documentation_urls
+    url_base = 'https://github.com/oracle/truffleruby/blob/master/doc/'
+    # Explicit list of URLs, so they can be added manually
+    # Notably, Ruby installers reference the LLVM urls
+    known_hardcoded_urls = %w[
+      https://github.com/oracle/truffleruby/blob/master/doc/user/installing-libssl.md
+      https://github.com/oracle/truffleruby/blob/master/doc/user/installing-llvm.md
+      https://github.com/oracle/truffleruby/blob/master/doc/user/installing-zlib.md
+    ]
+
+    known_hardcoded_urls.each { |url|
+      file = url[url_base.size..-1]
+      path = "#{TRUFFLERUBY_DIR}/doc/#{file}"
+      unless File.file?(path)
+        abort "#{path} could not be found but is referenced in code"
+      end
+    }
+
+    hardcoded_urls = `git -C #{TRUFFLERUBY_DIR} grep -Fn #{url_base.inspect}`
+    hardcoded_urls.each_line { |line|
+      abort "Could not parse #{line.inspect}" unless /(.+?):(\d+):.+?(https:.+?)[ "'\n]/ =~ line
+      file, line, url = $1, $2, $3
+      if file != 'tool/jt.rb' and !known_hardcoded_urls.include?(url)
+        abort "Found unknown hardcoded url #{url} in #{file}:#{line}, add it in tool/jt.rb"
+      end
+    }
+  end
+
   def lint(*args)
     check_dsl_usage unless args.delete '--no-build'
     check_filename_length
@@ -1878,6 +1910,7 @@ EOS
     sh "tool/lint.sh"
     mx 'checkstyle'
     check_parser
+    check_documentation_urls
   end
 
   def verify_native_bin!

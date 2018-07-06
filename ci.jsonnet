@@ -330,10 +330,7 @@ local part_definitions = {
         normal_machine: ["darwin_sierra", "amd64"],
       },
       environment+: {
-        path+:: ["/usr/local/opt/llvm/bin"],
         LANG: "en_US.UTF-8",
-        # Homebrew does not put llvm on the PATH by default
-        OPENSSL_PREFIX: "/usr/local/opt/openssl",
       },
       packages+: {
         llvm: "==4.0.1",

@@ -11,18 +11,37 @@
 
 require 'rbconfig'
 
-clang = 'clang'
-opt = 'opt'
+search_paths = { '' => '$PATH' }
+if Truffle::Platform.darwin?
+  search_paths['/usr/local/opt/llvm@4/bin/'] = '/usr/local/opt/llvm@4/bin'
+end
 
+# First, find in which prefix clang and opt are available.
+# We want to use both tools from the same prefix.
+versions = {}
+prefix = search_paths.keys.find do |search_path|
+  %w[clang opt].all? do |tool|
+    tool_path = "#{search_path}#{tool}"
+    begin
+      versions[tool_path] = `#{tool_path} --version`
+    rescue Errno::ENOENT
+      false # Not found
+    end
+  end
+end
+
+unless prefix
+  search_paths_description = search_paths.values.join(' or ')
+  abort "The clang and opt tools, part of LLVM, do not appear to be available in #{search_paths_description}.\n" +
+        'You need to install LLVM, see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-llvm.md'
+end
+
+clang = "#{prefix}clang"
+opt = "#{prefix}opt"
 extra_cflags = nil
 
-[clang, opt].each do |tool|
-  begin
-    version = `#{tool} --version`
-  rescue Errno::ENOENT
-    raise "#{tool} does not appear to be available - you may need to install LLVM - see doc/user/installing-llvm.md"
-  end
-
+# Check the versions
+versions.each_pair do |tool, version|
   if version =~ /\bversion (\d+\.\d+\.\d+)/
     major, minor, _patch = $1.split('.').map(&:to_i)
     if (major == 3 && minor >= 8) || (major == 4 && minor == 0)
@@ -30,10 +49,10 @@ extra_cflags = nil
     elsif major >= 5
       extra_cflags = '-Xclang -disable-O0-optnone'
     else
-      raise "unsupported #{tool} version: #{$1} - see doc/user/installing-llvm.md"
+      abort "unsupported #{tool} version: #{$1}, see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-llvm.md"
     end
   else
-    raise "cannot parse #{tool} version from #{version}"
+    abort "cannot parse the version of #{tool} from #{version.inspect}"
   end
 end
 
@@ -51,7 +70,7 @@ warnflags = [
 ].join(' ')
 
 cc = clang
-cxx = 'clang++'
+cxx = "#{clang}++"
 
 cflags = "#{debugflags} #{warnflags} -c -emit-llvm"
 cflags = "#{extra_cflags} #{cflags}" if extra_cflags
