@@ -57,6 +57,42 @@ public final class StringSupport {
 
     public static final String[] EMPTY_STRING_ARRAY = new String[0];
 
+    public static int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd) {
+        assert byteOffset < byteEnd;
+
+        switch (codeRange) {
+            case CR_7BIT:
+                return 1;
+            case CR_VALID:
+                return characterLengthValid(encoding, bytes, byteOffset, byteEnd);
+            case CR_BROKEN:
+                return length(encoding, bytes, byteOffset, byteEnd);
+            case CR_UNKNOWN:
+                throw new UnsupportedOperationException("can't handle CR_UNKNOWN");
+            default:
+                throw new UnsupportedOperationException("unknown code range value: " + codeRange);
+        }
+    }
+
+    private static int characterLengthValid(Encoding encoding, byte[] bytes, int byteOffset, int byteEnd) {
+        if (encoding.isFixedWidth()) {
+            final int width = encoding.minLength();
+            assert (byteEnd - byteOffset) >= width;
+            return width;
+        } else if (encoding.isUTF8()) {
+            return UTF8Operations.charWidth(bytes[byteOffset]);
+        } else if (encoding.isAsciiCompatible()) {
+            if (bytes[byteOffset] >= 0) {
+                return 1;
+            } else {
+                return encLength(encoding, bytes, byteOffset, byteEnd);
+            }
+        } else {
+            return encLength(encoding, bytes, byteOffset, byteEnd);
+        }
+    }
+
+
     // rb_enc_fast_mbclen
     @TruffleBoundary
     public static int encLength(Encoding enc, byte[] bytes, int p, int e) {
