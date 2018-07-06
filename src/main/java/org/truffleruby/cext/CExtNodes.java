@@ -394,14 +394,15 @@ public class CExtNodes {
         public DynamicObject rbEncCodePointLen(DynamicObject string, DynamicObject encoding,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") RopeNodes.PreciseLengthNode preciseLengthNode) {
-            final byte[] bytes = bytesNode.execute(StringOperations.rope(string));
+            final Rope rope = rope(string);
+            final byte[] bytes = bytesNode.execute(rope);
             final Encoding enc = Layouts.ENCODING.getEncoding(encoding);
             final int r = preciseLengthNode.executeLength(enc, bytes, 0, bytes.length);
             if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("invalid byte sequence in " + enc, this));
             }
             final int len_p = StringSupport.MBCLEN_CHARFOUND_LEN(r);
-            final int codePoint = StringSupport.preciseCodePoint(enc, bytes, 0, bytes.length);
+            final int codePoint = StringSupport.preciseCodePoint(enc, rope.getCodeRange(), bytes, 0, bytes.length);
             return createArray(new Object[]{len_p, codePoint}, 2);
         }
 

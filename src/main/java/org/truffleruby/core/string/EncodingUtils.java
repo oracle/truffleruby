@@ -219,7 +219,7 @@ public class EncodingUtils {
         if (len_p != null) {
             len_p[0] = StringSupport.MBCLEN_CHARFOUND_LEN(r);
         }
-        return StringSupport.codePoint(enc, pBytes, p, e);
+        return StringSupport.codePoint(enc, codeRange, pBytes, p, e);
     }
 
     // rb_enc_mbcput

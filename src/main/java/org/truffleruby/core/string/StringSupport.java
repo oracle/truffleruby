@@ -57,7 +57,8 @@ public final class StringSupport {
 
     public static final String[] EMPTY_STRING_ARRAY = new String[0];
 
-    public static int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd) {
+    public static int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes,
+            int byteOffset, int byteEnd, boolean recoverIfBroken) {
         assert byteOffset < byteEnd;
 
         switch (codeRange) {
@@ -66,12 +67,20 @@ public final class StringSupport {
             case CR_VALID:
                 return characterLengthValid(encoding, bytes, byteOffset, byteEnd);
             case CR_BROKEN:
-                return length(encoding, bytes, byteOffset, byteEnd);
+                if (recoverIfBroken) {
+                    return length(encoding, bytes, byteOffset, byteEnd);
+                } else {
+                    return preciseLength(encoding, bytes, byteOffset, byteEnd);
+                }
             case CR_UNKNOWN:
                 return preciseLength(encoding, bytes, byteOffset, byteEnd);
             default:
                 throw new UnsupportedOperationException("unknown code range value: " + codeRange);
         }
+    }
+
+    public static int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd) {
+        return characterLength(encoding, codeRange, bytes, byteOffset, byteEnd, false);
     }
 
     private static int characterLengthValid(Encoding encoding, byte[] bytes, int byteOffset, int byteEnd) {
@@ -270,11 +279,11 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static int codePoint(Encoding enc, byte[] bytes, int p, int end) {
+    public static int codePoint(Encoding enc, CodeRange codeRange, byte[] bytes, int p, int end) {
         if (p >= end) {
             throw new IllegalArgumentException("empty string");
         }
-        int cl = preciseLength(enc, bytes, p, end);
+        int cl = characterLength(enc, codeRange, bytes, p, end, false);
         if (cl <= 0) {
             throw new IllegalArgumentException("invalid byte sequence in " + enc);
         }
@@ -287,8 +296,8 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static int preciseCodePoint(Encoding enc, byte[]bytes, int p, int end) {
-        int l = preciseLength(enc, bytes, p, end);
+    public static int preciseCodePoint(Encoding enc, CodeRange codeRange, byte[]bytes, int p, int end) {
+        int l = characterLength(enc, codeRange, bytes, p, end, false);
         if (l > 0) {
             return enc.mbcToCode(bytes, p, end);
         }
@@ -413,7 +422,7 @@ public final class StringSupport {
                 }
                 p++;
             } else {
-                c = codePoint(enc, bytes, p, end);
+                c = codePoint(enc, str.getCodeRange(), bytes, p, end);
                 int cl = codeLength(enc, c);
                 if (trFind(c, table, tables)) {
                     count++;
@@ -692,7 +701,7 @@ public final class StringSupport {
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
-            c = codePoint(enc, bytes, p, p + len) + 1;
+            c = codePoint(enc, CR_UNKNOWN, bytes, p, p + len) + 1;
             l = codeLength(enc, c);
             if (l == 0) {
                 return NeighborChar.NOT_CHAR;
@@ -808,7 +817,7 @@ public final class StringSupport {
             if (!MBCLEN_CHARFOUND_P(r)) {
                 return NeighborChar.NOT_CHAR;
             }
-            c = codePoint(enc, bytes, p, p + len);
+            c = codePoint(enc, CR_UNKNOWN, bytes, p, p + len);
             if (c == 0) {
                 return NeighborChar.NOT_CHAR;
             }
@@ -888,7 +897,7 @@ public final class StringSupport {
                 }
                 s++;
             } else {
-                c = codePoint(enc, bytes, s, send);
+                c = codePoint(enc, rubyString.getCodeRange(), bytes, s, send);
                 int cl = codeLength(enc, c);
                 if (trFind(c, squeeze, tables)) {
                     modify = true;
@@ -1009,7 +1018,7 @@ public final class StringSupport {
             int t = 0;
             while (s < send) {
                 boolean mayModify = false;
-                c0 = c = codePoint(e1, sbytes, s, send);
+                c0 = c = codePoint(e1, CR_UNKNOWN, sbytes, s, send);
                 clen = codeLength(e1, c);
                 tlen = enc == e1 ? clen : codeLength(enc, c);
                 s += clen;
@@ -1089,7 +1098,7 @@ public final class StringSupport {
 
             while (s < send) {
                 boolean mayModify = false;
-                c0 = c = codePoint(e1, sbytes, s, send);
+                c0 = c = codePoint(e1, CR_UNKNOWN, sbytes, s, send);
                 clen = codeLength(e1, c);
                 tlen = enc == e1 ? clen : codeLength(enc, c);
 
@@ -1178,8 +1187,8 @@ public final class StringSupport {
                 c = bytes[p] & 0xff;
                 oc = obytes[op] & 0xff;
             } else {
-                c = preciseCodePoint(enc, bytes, p, end);
-                oc = preciseCodePoint(enc, obytes, op, oend);
+                c = preciseCodePoint(enc, value.getCodeRange(), bytes, p, end);
+                oc = preciseCodePoint(enc, otherValue.getCodeRange(), obytes, op, oend);
             }
 
             int cl, ocl;
@@ -1235,7 +1244,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteSqueeze(RopeBuilder value, boolean squeeze[], TrTables tables, Encoding enc, boolean isArg) {
+    public static boolean multiByteSqueeze(RopeBuilder value, CodeRange originalCodeRange, boolean squeeze[], TrTables tables, Encoding enc, boolean isArg) {
         int s = 0;
         int t = s;
         int send = s + value.getLength();
@@ -1250,7 +1259,7 @@ public final class StringSupport {
                 }
                 s++;
             } else {
-                c = codePoint(enc, bytes, s, send);
+                c = codePoint(enc, originalCodeRange, bytes, s, send);
                 int cl = codeLength(enc, c);
                 if (c != save || (isArg && !trFind(c, squeeze, tables))) {
                     if (t != s) {
@@ -1295,7 +1304,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteSwapcase(Encoding enc, RopeBuilder builder, int caseMappingOptions) {
+    public static boolean multiByteSwapcase(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder, int caseMappingOptions) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
         final IntHolder flagP = new IntHolder();
@@ -1306,7 +1315,7 @@ public final class StringSupport {
         byte[] bytes = builder.getUnsafeBytes();
 
         while (s < bytes.length) {
-            int c = codePoint(enc, bytes, s, bytes.length);
+            int c = codePoint(enc, originalCodeRange, bytes, s, bytes.length);
             if (enc.isUpper(c) || enc.isLower(c)) {
                 s += caseMapChar(c, enc, bytes, s, builder, flagP, buf);
                 modify = true;
@@ -1368,7 +1377,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteDowncase(Encoding enc, RopeBuilder builder, int caseMappingOptions) {
+    public static boolean multiByteDowncase(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder, int caseMappingOptions) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
         final IntHolder flagP = new IntHolder();
@@ -1387,7 +1396,7 @@ public final class StringSupport {
                 modify = true;
                 s++;
             } else {
-                final int c = codePoint(enc, bytes, s, bytes.length);
+                final int c = codePoint(enc, originalCodeRange, bytes, s, bytes.length);
 
                 if (isFold || enc.isUpper(c)) {
                     s += caseMapChar(c, enc, bytes, s, builder, flagP, buf);
@@ -1425,7 +1434,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteUpcase(Encoding enc, RopeBuilder builder, int caseMappingOptions) {
+    public static boolean multiByteUpcase(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder, int caseMappingOptions) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
         final IntHolder flagP = new IntHolder();
@@ -1442,7 +1451,7 @@ public final class StringSupport {
                 modify = true;
                 s++;
             } else {
-                final int c = codePoint(enc, bytes, s, bytes.length);
+                final int c = codePoint(enc, originalCodeRange, bytes, s, bytes.length);
 
                 if (enc.isLower(c)) {
                     s += caseMapChar(c, enc, bytes, s, builder, flagP, buf);
@@ -1461,7 +1470,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteCapitalize(Encoding enc, RopeBuilder builder, int caseMappingOptions) {
+    public static boolean multiByteCapitalize(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder, int caseMappingOptions) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
         final IntHolder flagP = new IntHolder();
@@ -1479,7 +1488,7 @@ public final class StringSupport {
                 modify = true;
                 s++;
             } else {
-                final int c = codePoint(enc, bytes, s, bytes.length);
+                final int c = codePoint(enc, originalCodeRange, bytes, s, bytes.length);
 
                 if ((upcasing && enc.isLower(c)) || (!upcasing && enc.isUpper(c))) {
                     s += caseMapChar(c, enc, bytes, s, builder, flagP, buf);

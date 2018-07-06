@@ -1082,7 +1082,7 @@ public abstract class StringNodes {
             }
 
             final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
-            final boolean modified = StringSupport.multiByteDowncase(encoding, builder, caseMappingOptions);
+            final boolean modified = StringSupport.multiByteDowncase(encoding, rope.getCodeRange(), builder, caseMappingOptions);
 
             if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(string, makeLeafRopeNode.executeMake(builder.getBytes(), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE));
@@ -1727,7 +1727,7 @@ public abstract class StringNodes {
             }
 
             final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
-            final boolean modified = StringSupport.multiByteSwapcase(enc, builder, caseMappingOptions);
+            final boolean modified = StringSupport.multiByteSwapcase(enc, rope.getCodeRange(), builder, caseMappingOptions);
 
             if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(string, makeLeafRopeNode.executeMake(builder.getBytes(), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE));
@@ -1823,7 +1823,7 @@ public abstract class StringNodes {
                                     if (buf == null) {
                                         buf = new RopeBuilder();
                                     }
-                                    int cc = codePointX(enc, bytes, p - 1, end);
+                                    int cc = codePointX(enc, rope.getCodeRange(), bytes, p - 1, end);
                                     buf.append(String.format("%x", cc).getBytes(StandardCharsets.US_ASCII));
                                     len += buf.getLength() + 4;
                                     buf.setLength(0);
@@ -1890,7 +1890,7 @@ public abstract class StringNodes {
                     if (enc.isUTF8()) {
                         int n = StringSupport.characterLength(enc, cr, bytes, p - 1, end) - 1;
                         if (n > 0) {
-                            int cc = codePointX(enc, bytes, p - 1, end);
+                            int cc = codePointX(enc, cr, bytes, p - 1, end);
                             p += n;
                             outBytes.setLength(q);
                             outBytes.append(String.format("u{%x}", cc).getBytes(StandardCharsets.US_ASCII));
@@ -1918,9 +1918,9 @@ public abstract class StringNodes {
             return c == '$' || c == '@' || c == '{';
         }
 
-        private int codePointX(Encoding enc, byte[] bytes, int p, int end) {
+        private int codePointX(Encoding enc, CodeRange codeRange, byte[] bytes, int p, int end) {
             try {
-                return StringSupport.codePoint(enc, bytes, p, end);
+                return StringSupport.codePoint(enc, codeRange, bytes, p, end);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(e.getMessage(), this));
             }
@@ -2058,7 +2058,7 @@ public abstract class StringNodes {
                     StringOperations.setRope(string, RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             } else {
-                if (!StringSupport.multiByteSqueeze(buffer, squeeze, null, encoding(string), false)) {
+                if (!StringSupport.multiByteSqueeze(buffer, rope.getCodeRange(), squeeze, null, encoding(string), false)) {
                     return nil();
                 } else {
                     StringOperations.setRope(string, RopeOperations.ropeFromRopeBuilder(buffer));
@@ -2116,7 +2116,7 @@ public abstract class StringNodes {
                     StringOperations.setRope(string, RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             } else {
-                if (!StringSupport.multiByteSqueeze(buffer, squeeze, tables, enc, true)) {
+                if (!StringSupport.multiByteSqueeze(buffer, rope.getCodeRange(), squeeze, tables, enc, true)) {
                     return nil();
                 } else {
                     StringOperations.setRope(string, RopeOperations.ropeFromRopeBuilder(buffer));
@@ -2690,7 +2690,7 @@ public abstract class StringNodes {
             }
 
             final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
-            final boolean modified = StringSupport.multiByteUpcase(encoding, builder, caseMappingOptions);
+            final boolean modified = StringSupport.multiByteUpcase(encoding, rope.getCodeRange(), builder, caseMappingOptions);
             if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(string, makeLeafRopeNode.executeMake(builder.getBytes(), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE));
 
@@ -2829,7 +2829,7 @@ public abstract class StringNodes {
             }
 
             final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
-            final boolean modified = StringSupport.multiByteCapitalize(enc, builder, caseMappingOptions);
+            final boolean modified = StringSupport.multiByteCapitalize(enc, rope.getCodeRange(), builder, caseMappingOptions);
             if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(string, makeLeafRopeNode.executeMake(builder.getBytes(), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE));
 
