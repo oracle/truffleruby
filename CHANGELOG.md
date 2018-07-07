@@ -3,6 +3,7 @@
 # 1.0 RC 4
 
 * #autoload now correctly calls main.require(path) dynamically.
+* It is no longer needed to add LLVM (`/usr/local/opt/llvm@4/bin`) to PATH on macOS.
 
 # 1.0 RC 3
 
