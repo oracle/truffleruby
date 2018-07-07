@@ -100,6 +100,7 @@ public class FeatureLoader {
 
     public String canonicalize(String path) {
         // First, make the path absolute, by expanding relative to the context CWD
+        // Otherwise, getCanonicalPath() uses user.dir as CWD which is incorrect.
         final String absolutePath = makeAbsolute(path);
         try {
             return new File(absolutePath).getCanonicalPath();
@@ -147,7 +148,7 @@ public class FeatureLoader {
                 Log.LOGGER.info(String.format("feature adjusted to %s", feature));
             }
         } else if (feature.startsWith("../")) {
-            feature = cwd.substring(0, cwd.lastIndexOf('/')) + "/" + feature.substring(3);
+            feature = dirname(cwd) + "/" + feature.substring(3);
 
             if (context.getOptions().LOG_FEATURE_LOCATION) {
                 Log.LOGGER.info(String.format("feature adjusted to %s", feature));
