@@ -20,3 +20,5 @@ slow:Kernel#require ($LOADED_FEATURES) complex, enumerator, rational, thread and
 slow:Kernel.require ($LOADED_FEATURES) complex, enumerator, rational, thread and unicode_normalize are already required
 fails:Kernel#require (path resolution) loads a file that recursively requires itself
 fails:Kernel.require (path resolution) loads a file that recursively requires itself
+fails:Kernel#require ($LOADED_FEATURES) with symlinks in the required feature and $LOAD_PATH canonicalizes the entry in $LOAD_PATH but not the filename passed to #require
+fails:Kernel.require ($LOADED_FEATURES) with symlinks in the required feature and $LOAD_PATH canonicalizes the entry in $LOAD_PATH but not the filename passed to #require
