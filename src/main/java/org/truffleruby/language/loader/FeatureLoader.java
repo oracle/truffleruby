@@ -88,20 +88,20 @@ public class FeatureLoader {
         return new String(bytes, EncodingManager.charsetForEncoding(localeEncoding));
     }
 
-    /** Make a path absolute, related to the context's CWD. */
-    private String makeAbsolute(String path) {
+    /** Make a path absolute, by expanding relative to the context CWD. */
+    private String makeAbsolute(String cwd, String path) {
         final File file = new File(path);
         if (file.isAbsolute()) {
             return path;
         } else {
-            return new File(getWorkingDirectory(), path).getPath();
+            return new File(cwd, path).getPath();
         }
     }
 
-    public String canonicalize(String path) {
+    public String canonicalize(String cwd, String path) {
         // First, make the path absolute, by expanding relative to the context CWD
         // Otherwise, getCanonicalPath() uses user.dir as CWD which is incorrect.
-        final String absolutePath = makeAbsolute(path);
+        final String absolutePath = makeAbsolute(cwd, path);
         try {
             return new File(absolutePath).getCanonicalPath();
         } catch (IOException e) {
@@ -162,7 +162,7 @@ public class FeatureLoader {
         } else {
             for (Object pathObject : ArrayOperations.toIterable(context.getCoreLibrary().getLoadPath())) {
                 // $LOAD_PATH entries are canonicalized since Ruby 2.4.4
-                final String loadPath = canonicalize(pathObject.toString());
+                final String loadPath = canonicalize(cwd, pathObject.toString());
 
                 if (context.getOptions().LOG_FEATURE_LOCATION) {
                     Log.LOGGER.info(String.format("from load path %s...", loadPath));

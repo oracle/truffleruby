@@ -1404,7 +1404,8 @@ public abstract class KernelNodes {
                     throw new RaiseException(getContext(), coreExceptions().loadError("cannot infer basepath", featureString, this));
                 }
 
-                sourcePath = getContext().getFeatureLoader().canonicalize(sourcePath);
+                final String cwd = getContext().getFeatureLoader().getWorkingDirectory();
+                sourcePath = getContext().getFeatureLoader().canonicalize(cwd, sourcePath);
 
                 featurePath = getContext().getFeatureLoader().dirname(sourcePath) + "/" + featureString;
             }
