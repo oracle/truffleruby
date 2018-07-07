@@ -1,5 +1,9 @@
 # 1.0
 
+# 1.0 RC 4
+
+* #autoload now correctly calls main.require(path) dynamically.
+
 # 1.0 RC 3
 
 New features:

@@ -19,18 +19,17 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.constants.LookupConstantBaseNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.loader.RequireNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 @NodeChildren({ @NodeChild("name"), @NodeChild("lexicalParent") })
 public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode {
 
-    @Child private RequireNode requireNode;
+    @Child private CallDispatchHeadNode callRequireNode;
 
     public abstract RubyConstant executeLookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent);
 
@@ -55,7 +54,7 @@ public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode
             // call or the recursive execute call.
 
             Layouts.MODULE.getFields(lexicalParent).removeConstant(getContext(), this, name);
-            getRequireNode().executeRequire(StringOperations.getString((DynamicObject) constant.getValue()));
+            loadAutoloadedConstant(constant);
             final RubyConstant autoConstant = deepConstantSearch(name, lexicalScope, lexicalParent);
 
             if (warnProfile.profile(constant.isDeprecated())) {
@@ -92,12 +91,14 @@ public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode
         return constant;
     }
 
-    public RequireNode getRequireNode() {
-        if (requireNode == null) {
+    private void loadAutoloadedConstant(RubyConstant constant) {
+        if (callRequireNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            requireNode = insert(RequireNode.create());
+            callRequireNode = insert(CallDispatchHeadNode.createOnSelf());
         }
-        return requireNode;
+
+        final Object feature = constant.getValue();
+        callRequireNode.call(null, coreLibrary().getMainObject(), "require", feature);
     }
 
 }

@@ -105,6 +105,14 @@ describe "Module#autoload" do
     ModuleSpecs::Autoload::J.should == :autoload_j
   end
 
+  it "calls main.require(path) to load the file" do
+    ModuleSpecs::Autoload.autoload :ModuleAutoloadCallsRequire, "module_autoload_not_exist.rb"
+    main = TOPLEVEL_BINDING.eval("self")
+    main.should_receive(:require).with("module_autoload_not_exist.rb")
+    # The constant won't be defined since require is mocked to do nothing
+    -> { ModuleSpecs::Autoload::ModuleAutoloadCallsRequire }.should raise_error(NameError)
+  end
+
   it "does not load the file if the file is manually required" do
     filename = fixture(__FILE__, "autoload_k.rb")
     ModuleSpecs::Autoload.autoload :KHash, filename
