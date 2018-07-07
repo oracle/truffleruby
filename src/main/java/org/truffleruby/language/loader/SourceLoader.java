@@ -176,22 +176,20 @@ public class SourceLoader {
         if (feature.startsWith(RESOURCE_SCHEME)) {
             return loadResource(feature);
         } else {
-            final File file = new File(feature).getCanonicalFile();
+            final File file = new File(feature);
             ensureReadable(context, feature, file);
 
             final String mimeType;
-
             if (feature.toLowerCase().endsWith(RubyLanguage.CEXT_EXTENSION)) {
                 mimeType = RubyLanguage.CEXT_MIME_TYPE;
             } else {
-                // We need to assume all other files are Ruby, so the file type detection isn't
-                // enough
+                // We need to assume all other files are Ruby, so the file type detection isn't enough
                 mimeType = RubyLanguage.MIME_TYPE;
             }
 
-            String name = file.getPath();
+            String name = feature;
             if (context != null && context.isPreInitializing()) {
-                name = RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(file.getPath()));
+                name = RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(feature));
             }
 
             Source.Builder<IOException, RuntimeException, RuntimeException> builder =
