@@ -305,6 +305,40 @@ describe :kernel_require, shared: true do
       $LOADED_FEATURES.should include(@path)
     end
 
+    platform_is_not :windows do
+      describe "with symlinks" do
+        before :each do
+          @symlink_to_code_dir = tmp("codesymlink")
+          File.symlink(CODE_LOADING_DIR, @symlink_to_code_dir)
+
+          $LOAD_PATH.delete(CODE_LOADING_DIR)
+          $LOAD_PATH.unshift(@symlink_to_code_dir)
+        end
+
+        after :each do
+          rm_r @symlink_to_code_dir
+        end
+
+        it "does not canonicalize the path and stores a path with symlinks" do
+          symlink_path = "#{@symlink_to_code_dir}/load_fixture.rb"
+          canonical_path = "#{CODE_LOADING_DIR}/load_fixture.rb"
+          @object.require(symlink_path).should be_true
+          ScratchPad.recorded.should == [:loaded]
+
+          features = $LOADED_FEATURES.select { |path| path.end_with?('load_fixture.rb') }
+          features.should include(symlink_path)
+          features.should_not include(canonical_path)
+        end
+
+        it "stores the same path that __FILE__ returns in the required file" do
+          symlink_path = "#{@symlink_to_code_dir}/load_fixture_and__FILE__.rb"
+          @object.require(symlink_path).should be_true
+          loaded_feature = $LOADED_FEATURES.last
+          ScratchPad.recorded.should == [loaded_feature]
+        end
+      end
+    end
+
     it "does not store the path if the load fails" do
       $LOAD_PATH << CODE_LOADING_DIR
       saved_loaded_features = $LOADED_FEATURES.dup
