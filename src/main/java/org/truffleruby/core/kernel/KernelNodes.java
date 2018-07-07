@@ -148,6 +148,7 @@ import org.truffleruby.parser.RubySource;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1387,7 +1388,7 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        private String getFullPath(final String featureString) {
+        private String getFullPath(String featureString) {
             final String featurePath;
 
             if (new File(featureString).isAbsolute()) {
@@ -1405,13 +1406,33 @@ public abstract class KernelNodes {
                     throw new RaiseException(getContext(), coreExceptions().loadError("cannot infer basepath", featureString, this));
                 }
 
+                // First, make the path absolute, by expanding relative to the context CWD
+                sourcePath = makeAbsolute(sourcePath);
+
+                // Then canonicalize the source path, as require_relative should be relative to
+                // directory containing the the real/canonicalized file path.
+                try {
+                    sourcePath = new File(sourcePath).getCanonicalPath();
+                } catch (IOException e) {
+                    throw new JavaException(e);
+                }
+
                 featurePath = dirname(sourcePath) + "/" + featureString;
             }
 
-            try {
-                return new File(featurePath).getCanonicalPath();
-            } catch (IOException e) {
-                throw new JavaException(e);
+            // Normalize the path like File.expand_path() (e.g., remove "../"), but do not resolve
+            // symlinks. MRI does this for #require_relative always, but not for #require, so we
+            // need to do it to be compatible in the case the path does not exist, so the
+            // LoadError's #path is the same as MRI's.
+            return Paths.get(featurePath).normalize().toString();
+        }
+
+        private String makeAbsolute(String path) {
+            final File file = new File(path);
+            if (file.isAbsolute()) {
+                return path;
+            } else {
+                return new File(getContext().getFeatureLoader().getWorkingDirectory(), path).getPath();
             }
         }
 
