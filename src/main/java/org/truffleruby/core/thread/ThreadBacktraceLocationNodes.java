@@ -16,7 +16,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -28,7 +27,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.backtrace.Activation;
 import org.truffleruby.language.backtrace.Backtrace;
-import org.truffleruby.language.control.JavaException;
 
 @CoreClass("Thread::Backtrace::Location")
 public class ThreadBacktraceLocationNodes {
@@ -55,11 +53,12 @@ public class ThreadBacktraceLocationNodes {
                 return coreStrings().UNKNOWN.createInstance();
             } else {
                 final String canonicalPath;
-                try {
-                    canonicalPath = new File(path).getCanonicalPath();
-                } catch (IOException e) {
-                    throw new JavaException(e);
+                if (new File(path).isAbsolute()) { // A normal file
+                    canonicalPath = getContext().getFeatureLoader().canonicalize(null, path);
+                } else { // eval()
+                    canonicalPath = path;
                 }
+
                 return makeStringNode.fromRope(getContext().getPathToRopeCache().getCachedPath(canonicalPath));
             }
         }

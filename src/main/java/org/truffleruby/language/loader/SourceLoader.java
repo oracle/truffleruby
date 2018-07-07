@@ -50,6 +50,10 @@ public class SourceLoader {
         this.context = context;
     }
 
+    /**
+     * Returns the path of a Source. Returns the short path for the main script (the file argument
+     * given to "ruby"). The path of eval(code, nil, filename) is just filename.
+     */
     public String getPath(Source source) {
         final String name = source.getName();
         if (context.wasPreInitialized() && name.startsWith(RUBY_HOME_SCHEME)) {
@@ -59,6 +63,10 @@ public class SourceLoader {
         }
     }
 
+    /**
+     * Returns the path of a Source. Returns the canonical path for the main script. Note however
+     * that the path of eval(code, nil, filename) is just filename and might not be absolute.
+     */
     public String getAbsolutePath(Source source) {
         if (source == mainSource) {
             return mainSourceAbsolutePath;
