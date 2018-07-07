@@ -45,11 +45,11 @@ public class ParserCache {
 
     private final Map<String, RootParseNode> cache = new HashMap<>();
 
-    public void add(String canonicalPath) {
-        cache.put(canonicalPath, load(canonicalPath));
+    public void add(String feature) {
+        cache.put(feature, load(feature));
     }
 
-    private RootParseNode load(String canonicalPath) {
+    private RootParseNode load(String feature) {
         final TranslatorDriver driver = new TranslatorDriver(null);
         final StaticScope staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
         final DynamicScope dynamicScope = new DynamicScope(staticScope);
@@ -57,7 +57,7 @@ public class ParserCache {
 
         final RubySource source;
         try {
-            source = SourceLoader.loadNoLogging(null, canonicalPath, true);
+            source = SourceLoader.loadNoLogging(null, feature, true);
         } catch (IOException e) {
             throw new JavaException(e);
         }

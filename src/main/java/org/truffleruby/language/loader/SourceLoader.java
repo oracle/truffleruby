@@ -164,24 +164,24 @@ public class SourceLoader {
     }
 
     @TruffleBoundary
-    public RubySource load(String canonicalPath) throws IOException {
+    public RubySource load(String feature) throws IOException {
         if (context.getOptions().LOG_LOAD) {
-            Log.LOGGER.info("loading " + canonicalPath);
+            Log.LOGGER.info("loading " + feature);
         }
 
-        return loadNoLogging(context, canonicalPath, isInternal(canonicalPath));
+        return loadNoLogging(context, feature, isInternal(feature));
     }
 
-    public static RubySource loadNoLogging(RubyContext context, String canonicalPath, boolean internal) throws IOException {
-        if (canonicalPath.startsWith(RESOURCE_SCHEME)) {
-            return loadResource(canonicalPath);
+    public static RubySource loadNoLogging(RubyContext context, String feature, boolean internal) throws IOException {
+        if (feature.startsWith(RESOURCE_SCHEME)) {
+            return loadResource(feature);
         } else {
-            final File file = new File(canonicalPath).getCanonicalFile();
-            ensureReadable(context, canonicalPath, file);
+            final File file = new File(feature).getCanonicalFile();
+            ensureReadable(context, feature, file);
 
             final String mimeType;
 
-            if (canonicalPath.toLowerCase().endsWith(RubyLanguage.CEXT_EXTENSION)) {
+            if (feature.toLowerCase().endsWith(RubyLanguage.CEXT_EXTENSION)) {
                 mimeType = RubyLanguage.CEXT_MIME_TYPE;
             } else {
                 // We need to assume all other files are Ruby, so the file type detection isn't
