@@ -81,8 +81,9 @@ public abstract class TruffleKernelNodes {
                 throw new UnsupportedOperationException();
             }
 
+            final String feature = StringOperations.getString(file);
             try {
-                final RubySource source = getContext().getSourceLoader().load(StringOperations.getString(file));
+                final RubySource source = getContext().getSourceLoader().load(feature);
                 final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, this);
                 final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                         ParserContext.TOP_LEVEL, DeclarationContext.topLevel(getContext()), rootNode, null,
@@ -90,7 +91,7 @@ public abstract class TruffleKernelNodes {
                 deferredCall.call(callNode);
             } catch (IOException e) {
                 errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().loadErrorCannotLoad(file.toString(), this));
+                throw new RaiseException(getContext(), coreExceptions().loadErrorCannotLoad(feature, this));
             }
 
             return true;
