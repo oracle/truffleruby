@@ -88,6 +88,37 @@ public class FeatureLoader {
         return new String(bytes, EncodingManager.charsetForEncoding(localeEncoding));
     }
 
+    /** Make a path absolute, related to the context's CWD. */
+    private String makeAbsolute(String path) {
+        final File file = new File(path);
+        if (file.isAbsolute()) {
+            return path;
+        } else {
+            return new File(getWorkingDirectory(), path).getPath();
+        }
+    }
+
+    public String canonicalize(String path) {
+        // First, make the path absolute, by expanding relative to the context CWD
+        final String absolutePath = makeAbsolute(path);
+        try {
+            return new File(absolutePath).getCanonicalPath();
+        } catch (IOException e) {
+            throw new JavaException(e);
+        }
+    }
+
+    public String dirname(String absolutePath) {
+        assert new File(absolutePath).isAbsolute();
+
+        final String parent = new File(absolutePath).getParent();
+        if (parent == null) {
+            return absolutePath;
+        } else {
+            return parent;
+        }
+    }
+
     public ReentrantLockFreeingMap<String> getFileLocks() {
         return fileLocks;
     }

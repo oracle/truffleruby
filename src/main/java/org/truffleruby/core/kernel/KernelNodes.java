@@ -101,7 +101,6 @@ import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Activation;
 import org.truffleruby.language.backtrace.Backtrace;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -146,7 +145,6 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -1406,18 +1404,9 @@ public abstract class KernelNodes {
                     throw new RaiseException(getContext(), coreExceptions().loadError("cannot infer basepath", featureString, this));
                 }
 
-                // First, make the path absolute, by expanding relative to the context CWD
-                sourcePath = makeAbsolute(sourcePath);
+                sourcePath = getContext().getFeatureLoader().canonicalize(sourcePath);
 
-                // Then canonicalize the source path, as require_relative should be relative to
-                // directory containing the the real/canonicalized file path.
-                try {
-                    sourcePath = new File(sourcePath).getCanonicalPath();
-                } catch (IOException e) {
-                    throw new JavaException(e);
-                }
-
-                featurePath = dirname(sourcePath) + "/" + featureString;
+                featurePath = getContext().getFeatureLoader().dirname(sourcePath) + "/" + featureString;
             }
 
             // Normalize the path like File.expand_path() (e.g., remove "../"), but do not resolve
@@ -1425,24 +1414,6 @@ public abstract class KernelNodes {
             // need to do it to be compatible in the case the path does not exist, so the
             // LoadError's #path is the same as MRI's.
             return Paths.get(featurePath).normalize().toString();
-        }
-
-        private String makeAbsolute(String path) {
-            final File file = new File(path);
-            if (file.isAbsolute()) {
-                return path;
-            } else {
-                return new File(getContext().getFeatureLoader().getWorkingDirectory(), path).getPath();
-            }
-        }
-
-        private String dirname(String absolutePath) {
-            final String parent = new File(absolutePath).getParent();
-            if (parent == null) {
-                return absolutePath;
-            } else {
-                return parent;
-            }
         }
     }
 
