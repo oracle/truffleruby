@@ -451,7 +451,7 @@ describe :kernel_require, shared: true do
       $LOADED_FEATURES.should include(@path)
     end
 
-    it "canonicalizes non-unique absolute paths" do
+    it "expands absolute paths containing .." do
       path = File.join CODE_LOADING_DIR, "..", "code", "load_fixture.rb"
       @object.require(path).should be_true
       $LOADED_FEATURES.should include(@path)
