@@ -103,10 +103,10 @@ public class SourceLoader {
 
         ensureReadable(context, path);
 
-        final File file = new File(path).getCanonicalFile();
+        final File file = new File(path);
         final String content = xOptionStrip(currentNode, new FileReader(file));
         mainSource = Source.newBuilder(file).name(path).content(content).mimeType(RubyLanguage.MIME_TYPE).build();
-        mainSourceAbsolutePath = file.getPath();
+        mainSourceAbsolutePath = file.getCanonicalPath();
         return new RubySource(mainSource);
     }
 
