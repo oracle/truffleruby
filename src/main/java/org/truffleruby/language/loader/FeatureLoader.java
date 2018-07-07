@@ -195,21 +195,17 @@ public class FeatureLoader {
             return path;
         }
 
-        final File file = new File(path);
-
+        File file = new File(path);
         if (!file.isFile()) {
             return null;
         }
 
-        try {
-            if (file.isAbsolute()) {
-                return file.getCanonicalPath();
-            } else {
-                return new File(cwd, file.getPath()).getCanonicalPath();
-            }
-        } catch (IOException e) {
-            return null;
+        if (!file.isAbsolute()) {
+            file = new File(cwd, file.getPath());
         }
+
+        // Normalize path like File.expand_path() (e.g., remove "../"), but do not resolve symlinks
+        return file.toPath().normalize().toString();
     }
 
     @TruffleBoundary
