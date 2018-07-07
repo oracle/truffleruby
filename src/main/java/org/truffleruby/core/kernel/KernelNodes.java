@@ -1436,17 +1436,12 @@ public abstract class KernelNodes {
             }
         }
 
-        private String dirname(String path) {
-            if (path.charAt(0) == File.separatorChar) {
-                return path.substring(0, path.lastIndexOf(File.separatorChar));
+        private String dirname(String absolutePath) {
+            final String parent = new File(absolutePath).getParent();
+            if (parent == null) {
+                return absolutePath;
             } else {
-                final String workingDirectory = getContext().getFeatureLoader().getWorkingDirectory();
-                final int lastIndex = path.lastIndexOf(File.separatorChar);
-                if (lastIndex == -1) {
-                    return workingDirectory;
-                } else {
-                    return workingDirectory + "/" + path.substring(0, lastIndex);
-                }
+                return parent;
             }
         }
     }
