@@ -158,7 +158,7 @@ public class FeatureLoader {
         String found = null;
 
         if (feature.startsWith(SourceLoader.RESOURCE_SCHEME) || new File(feature).isAbsolute()) {
-            found = findFeatureWithAndWithoutExtension(cwd, feature);
+            found = findFeatureWithAndWithoutExtension(feature);
         } else {
             for (Object pathObject : ArrayOperations.toIterable(context.getCoreLibrary().getLoadPath())) {
                 // $LOAD_PATH entries are canonicalized since Ruby 2.4.4
@@ -169,7 +169,7 @@ public class FeatureLoader {
                 }
 
                 final String fileWithinPath = new File(loadPath, feature).getPath();
-                final String result = findFeatureWithAndWithoutExtension(cwd, fileWithinPath);
+                final String result = findFeatureWithAndWithoutExtension(fileWithinPath);
 
                 if (result != null) {
                     found = result;
@@ -189,30 +189,32 @@ public class FeatureLoader {
         return found;
     }
 
-    private String findFeatureWithAndWithoutExtension(String cwd, String path) {
+    private String findFeatureWithAndWithoutExtension(String path) {
+        assert new File(path).isAbsolute();
+
         if (path.endsWith(".so")) {
             final String base = path.substring(0, path.length() - 3);
 
-            final String asSO = findFeatureWithExactPath(cwd, base + RubyLanguage.CEXT_EXTENSION);
+            final String asSO = findFeatureWithExactPath(base + RubyLanguage.CEXT_EXTENSION);
 
             if (asSO != null) {
                 return asSO;
             }
         }
 
-        final String withExtension = findFeatureWithExactPath(cwd, path + RubyLanguage.EXTENSION);
+        final String withExtension = findFeatureWithExactPath(path + RubyLanguage.EXTENSION);
 
         if (withExtension != null) {
             return withExtension;
         }
 
-        final String asSU = findFeatureWithExactPath(cwd, path + RubyLanguage.CEXT_EXTENSION);
+        final String asSU = findFeatureWithExactPath(path + RubyLanguage.CEXT_EXTENSION);
 
         if (asSU != null) {
             return asSU;
         }
 
-        final String withoutExtension = findFeatureWithExactPath(cwd, path);
+        final String withoutExtension = findFeatureWithExactPath(path);
 
         if (withoutExtension != null) {
             return withoutExtension;
@@ -221,7 +223,7 @@ public class FeatureLoader {
         return null;
     }
 
-    private String findFeatureWithExactPath(String cwd, String path) {
+    private String findFeatureWithExactPath(String path) {
         if (context.getOptions().LOG_FEATURE_LOCATION) {
             Log.LOGGER.info(String.format("trying %s...", path));
         }
@@ -230,13 +232,9 @@ public class FeatureLoader {
             return path;
         }
 
-        File file = new File(path);
+        final File file = new File(path);
         if (!file.isFile()) {
             return null;
-        }
-
-        if (!file.isAbsolute()) {
-            file = new File(cwd, file.getPath());
         }
 
         // Normalize path like File.expand_path() (e.g., remove "../"), but do not resolve symlinks
