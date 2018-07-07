@@ -161,11 +161,14 @@ public class FeatureLoader {
             found = findFeatureWithAndWithoutExtension(cwd, feature);
         } else {
             for (Object pathObject : ArrayOperations.toIterable(context.getCoreLibrary().getLoadPath())) {
+                // $LOAD_PATH entries are canonicalized since Ruby 2.4.4
+                final String loadPath = canonicalize(pathObject.toString());
+
                 if (context.getOptions().LOG_FEATURE_LOCATION) {
-                    Log.LOGGER.info(String.format("from load path %s...", pathObject.toString()));
+                    Log.LOGGER.info(String.format("from load path %s...", loadPath));
                 }
 
-                final String fileWithinPath = new File(pathObject.toString(), feature).getPath();
+                final String fileWithinPath = new File(loadPath, feature).getPath();
                 final String result = findFeatureWithAndWithoutExtension(cwd, fileWithinPath);
 
                 if (result != null) {
