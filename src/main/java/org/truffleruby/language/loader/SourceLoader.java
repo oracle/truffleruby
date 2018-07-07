@@ -101,9 +101,9 @@ public class SourceLoader {
             throw new UnsupportedOperationException("main file already loaded: " + mainSourceAbsolutePath);
         }
 
-        final File file = new File(path).getCanonicalFile();
-        ensureReadable(context, path, file);
+        ensureReadable(context, path);
 
+        final File file = new File(path).getCanonicalFile();
         mainSource = Source.newBuilder(file).name(path).content(xOptionStrip(
                 currentNode,
                 new FileReader(file))).mimeType(RubyLanguage.MIME_TYPE).build();
@@ -176,8 +176,7 @@ public class SourceLoader {
         if (feature.startsWith(RESOURCE_SCHEME)) {
             return loadResource(feature);
         } else {
-            final File file = new File(feature);
-            ensureReadable(context, feature, file);
+            ensureReadable(context, feature);
 
             final String mimeType;
             if (feature.toLowerCase().endsWith(RubyLanguage.CEXT_EXTENSION)) {
@@ -193,7 +192,7 @@ public class SourceLoader {
             }
 
             Source.Builder<IOException, RuntimeException, RuntimeException> builder =
-                    Source.newBuilder(file).name(name.intern()).mimeType(mimeType);
+                    Source.newBuilder(new File(feature)).name(name.intern()).mimeType(mimeType);
 
             if (internal) {
                 builder = builder.internal();
@@ -247,8 +246,9 @@ public class SourceLoader {
         }
     }
 
-    private static void ensureReadable(RubyContext context, String path, File file) {
+    private static void ensureReadable(RubyContext context, String path) {
         if (context != null) {
+            final File file = new File(path);
             if (!file.exists()) {
                 throw new RaiseException(context, context.getCoreExceptions().loadError("No such file or directory -- " + path, path, null));
             }
