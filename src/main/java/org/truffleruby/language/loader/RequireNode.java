@@ -72,19 +72,19 @@ public abstract class RequireNode extends RubyNode {
             @Cached("create()") BranchProfile notFoundProfile,
             @Cached("createBinaryProfile()") ConditionProfile isLoadedProfile,
             @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-        final String expandedPathRaw = getContext().getFeatureLoader().findFeature(feature);
+        final String expandedPath = getContext().getFeatureLoader().findFeature(feature);
 
-        if (expandedPathRaw == null) {
+        if (expandedPath == null) {
             notFoundProfile.enter();
             throw new RaiseException(getContext(), getContext().getCoreExceptions().loadErrorCannotLoad(feature, this));
         }
 
-        final DynamicObject pathString = makeStringNode.executeMake(expandedPathRaw, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        final DynamicObject pathString = makeStringNode.executeMake(expandedPath, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
         if (isLoadedProfile.profile(isFeatureLoaded(pathString))) {
             return false;
         } else {
-            return doRequire(feature, expandedPathRaw, pathString);
+            return doRequire(feature, expandedPath, pathString);
         }
     }
 
