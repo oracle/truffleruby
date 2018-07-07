@@ -116,9 +116,7 @@ public class FeatureLoader {
                 Log.LOGGER.info(String.format("feature adjusted to %s", feature));
             }
         } else if (feature.startsWith("../")) {
-            feature = cwd.substring(
-                    0,
-                    cwd.lastIndexOf('/')) + "/" + feature.substring(3);
+            feature = cwd.substring(0, cwd.lastIndexOf('/')) + "/" + feature.substring(3);
 
             if (context.getOptions().LOG_FEATURE_LOCATION) {
                 Log.LOGGER.info(String.format("feature adjusted to %s", feature));
@@ -127,8 +125,7 @@ public class FeatureLoader {
 
         String found = null;
 
-        if (feature.startsWith(SourceLoader.RESOURCE_SCHEME)
-                || new File(feature).isAbsolute()) {
+        if (feature.startsWith(SourceLoader.RESOURCE_SCHEME) || new File(feature).isAbsolute()) {
             found = findFeatureWithAndWithoutExtension(cwd, feature);
         } else {
             for (Object pathObject : ArrayOperations.toIterable(context.getCoreLibrary().getLoadPath())) {
