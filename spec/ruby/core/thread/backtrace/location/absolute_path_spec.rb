@@ -10,6 +10,14 @@ describe 'Thread::Backtrace::Location#absolute_path' do
     @frame.absolute_path.should == File.realpath(__FILE__)
   end
 
+  context "when used in eval with a given filename" do
+    it "returns filename" do
+      code = "caller_locations(0)[0].absolute_path"
+      eval(code, nil, "foo.rb").should == "foo.rb"
+      eval(code, nil, "foo/bar.rb").should == "foo/bar.rb"
+    end
+  end
+
   platform_is_not :windows do
     before :each do
       @file = fixture(__FILE__, "absolute_path.rb")
