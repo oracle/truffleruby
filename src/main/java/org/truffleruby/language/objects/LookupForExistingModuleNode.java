@@ -19,17 +19,17 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
+import org.truffleruby.core.module.LoadAutoloadedConstantNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.constants.LookupConstantBaseNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 @NodeChildren({ @NodeChild("name"), @NodeChild("lexicalParent") })
 public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode {
 
-    @Child private CallDispatchHeadNode callRequireNode;
+    @Child private LoadAutoloadedConstantNode loadAutoloadedConstantNode;
 
     public abstract RubyConstant executeLookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent);
 
@@ -44,21 +44,20 @@ public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode
             warnDeprecatedConstant(lexicalParent, constant, name);
         }
 
-        // If a constant already exists with this class/module name and it's an autoload module, we have to trigger
-        // the autoload behavior before proceeding.
-
+        // If a constant already exists with this class/module name and it's an autoload constant,
+        // we have to trigger the autoload behavior before proceeding.
         if (autoloadProfile.profile(constant != null && constant.isAutoload())) {
-
-            // We know that we're redefining this constant as we're defining a class/module with that name.  We remove
-            // the constant here rather than just overwrite it in order to prevent autoload loops in either the require
-            // call or the recursive execute call.
-
-            Layouts.MODULE.getFields(lexicalParent).removeConstant(getContext(), this, name);
-            loadAutoloadedConstant(constant);
+            loadAutoloadedConstant(name, constant);
             final RubyConstant autoConstant = deepConstantSearch(name, lexicalScope, lexicalParent);
 
-            if (warnProfile.profile(constant.isDeprecated())) {
-                warnDeprecatedConstant(lexicalParent, constant, name);
+            if (autoConstant == null || autoConstant.isAutoload()) {
+                // If it's still an autoload, the autoload failed so let
+                // DefineClassNode/DefineModuleNode override the constant
+                return null;
+            }
+
+            if (warnProfile.profile(autoConstant.isDeprecated())) {
+                warnDeprecatedConstant(lexicalParent, autoConstant, name);
             }
 
             return autoConstant;
@@ -91,14 +90,13 @@ public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode
         return constant;
     }
 
-    private void loadAutoloadedConstant(RubyConstant constant) {
-        if (callRequireNode == null) {
+    private void loadAutoloadedConstant(String name, RubyConstant constant) {
+        if (loadAutoloadedConstantNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callRequireNode = insert(CallDispatchHeadNode.createOnSelf());
+            loadAutoloadedConstantNode = insert(new LoadAutoloadedConstantNode());
         }
 
-        final Object feature = constant.getValue();
-        callRequireNode.call(null, coreLibrary().getMainObject(), "require", feature);
+        loadAutoloadedConstantNode.loadAutoloadedConstant(name, constant);
     }
 
 }

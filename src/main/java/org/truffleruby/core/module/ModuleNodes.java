@@ -842,9 +842,9 @@ public abstract class ModuleNodes {
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class ConstGetNode extends CoreMethodNode {
 
-        @Child private CallDispatchHeadNode callRequireNode;
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, true, true);
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
+        @Child private LoadAutoloadedConstantNode loadAutoloadedConstantNode;
 
         @CreateCast("name")
         public RubyNode coerceToSymbolOrString(RubyNode name) {
@@ -906,7 +906,7 @@ public abstract class ModuleNodes {
                 return getConstantNode.executeGetConstant(frame, module, name, null, lookupConstantNode);
             } else {
                 if (constant.getConstant().isAutoload()) {
-                    loadAutoloadedConstant(constant.getConstant());
+                    loadAutoloadedConstant(name, constant.getConstant());
                     constant = ModuleOperations.lookupConstantWithInherit(getContext(), module, name, false, currentNode);
                 }
 
@@ -935,14 +935,13 @@ public abstract class ModuleNodes {
             return name.contains("::");
         }
 
-        private void loadAutoloadedConstant(RubyConstant constant) {
-            if (callRequireNode == null) {
+        private void loadAutoloadedConstant(String name, RubyConstant constant) {
+            if (loadAutoloadedConstantNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                callRequireNode = insert(CallDispatchHeadNode.createOnSelf());
+                loadAutoloadedConstantNode = insert(new LoadAutoloadedConstantNode());
             }
 
-            final Object feature = constant.getValue();
-            callRequireNode.call(null, coreLibrary().getMainObject(), "require", feature);
+            loadAutoloadedConstantNode.loadAutoloadedConstant(name, constant);
         }
 
         protected int getLimit() {
