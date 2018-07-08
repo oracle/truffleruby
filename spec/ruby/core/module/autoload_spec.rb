@@ -197,6 +197,69 @@ describe "Module#autoload" do
     end
   end
 
+  describe "during the autoload before the constant is assigned" do
+    before :each do
+      @path = fixture(__FILE__, "autoload_during_autoload.rb")
+      ModuleSpecs::Autoload.autoload :DuringAutoload, @path
+      raise unless ModuleSpecs::Autoload.autoload?(:DuringAutoload) == @path
+    end
+
+    after :each do
+      ModuleSpecs::Autoload.send(:remove_const, :DuringAutoload)
+    end
+
+    def check_before_during_thread_after(&check)
+      before = check.call
+      to_autoload_thread, from_autoload_thread = Queue.new, Queue.new
+      ScratchPad.record -> {
+        from_autoload_thread.push check.call
+        to_autoload_thread.pop
+      }
+      t = Thread.new {
+        in_loading_thread = from_autoload_thread.pop
+        in_other_thread = check.call
+        to_autoload_thread.push :done
+        [in_loading_thread, in_other_thread]
+      }
+      in_loading_thread, in_other_thread = nil
+      begin
+        ModuleSpecs::Autoload::DuringAutoload
+      ensure
+        in_loading_thread, in_other_thread = t.value
+      end
+      after = check.call
+      [before, in_loading_thread, in_other_thread, after]
+    end
+
+    it "returns nil in autoload thread and 'constant' otherwise for defined?" do
+      results = check_before_during_thread_after {
+        defined?(ModuleSpecs::Autoload::DuringAutoload)
+      }
+      results.should == ['constant', nil, 'constant', 'constant']
+    end
+
+    it "keeps the constant part of Module#constants" do
+      results = check_before_during_thread_after {
+        ModuleSpecs::Autoload.constants(false).include?(:DuringAutoload)
+      }
+      results.should == [true, true, true, true]
+    end
+
+    it "returns false in autoload thread and true otherwise for Module#const_defined?" do
+      results = check_before_during_thread_after {
+        ModuleSpecs::Autoload.const_defined?(:DuringAutoload, false)
+      }
+      results.should == [true, false, true, true]
+    end
+
+    it "returns nil in autoload thread and returns the path in other threads for Module#autoload?" do
+      results = check_before_during_thread_after {
+        ModuleSpecs::Autoload.autoload?(:DuringAutoload)
+      }
+      results.should == [@path, nil, @path, nil]
+    end
+  end
+
   it "does not remove the constant from the constant table if load fails" do
     ModuleSpecs::Autoload.autoload :Fail, @non_existent
     ModuleSpecs::Autoload.should have_constant(:Fail)
