@@ -138,7 +138,7 @@ module Truffle
 
     def fetch(key, absent=undefined)
       if block_given? and !undefined.equal?(absent)
-        warn 'block supersedes default value argument'
+        Truffle::Warnings.warn 'block supersedes default value argument'
       end
 
       if value = lookup(key)

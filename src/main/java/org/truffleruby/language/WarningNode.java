@@ -16,7 +16,10 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
-/** Warns only if $VERBOSE is true. */
+/**
+ * Warns only if $VERBOSE is true.
+ * Corresponds to Truffle::Warnings.warning, but in Java with a given SourceSection.
+ */
 public class WarningNode extends RubyBaseNode {
 
     @Child private CallDispatchHeadNode warningMethod = CallDispatchHeadNode.createOnSelf();
@@ -24,12 +27,14 @@ public class WarningNode extends RubyBaseNode {
 
     private Object callWarning(String warningMessage) {
         final DynamicObject warningString = makeStringNode.executeMake(warningMessage, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        return warningMethod.call(null, getContext().getCoreLibrary().getKernelModule(), "warning", warningString);
+        return warningMethod.call(null, getContext().getCoreLibrary().getKernelModule(), "warn", warningString);
     }
 
-    public Object warningMessage(SourceSection sourceSection, String message) {
-        final String sourceLocation = sourceSection != null ? getContext().getSourceLoader().fileLine(sourceSection) + ": " : "";
-        return callWarning(sourceLocation + "warning: " + message);
+    public void warningMessage(SourceSection sourceSection, String message) {
+        if (coreLibrary().isVerbose()) {
+            final String sourceLocation = sourceSection != null ? getContext().getSourceLoader().fileLine(sourceSection) + ": " : "";
+            callWarning(sourceLocation + "warning: " + message);
+        }
     }
 
 }

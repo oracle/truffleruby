@@ -230,7 +230,7 @@ class Hash
     end
 
     if block_given?
-      warn 'block supersedes default value argument' unless undefined.equal?(default)
+      Truffle::Warnings.warn 'block supersedes default value argument' unless undefined.equal?(default)
 
       return yield(key)
     end

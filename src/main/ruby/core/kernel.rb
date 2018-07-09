@@ -563,11 +563,6 @@ module Kernel
   end
   module_function :warn
 
-  def warning(message)
-    $stderr.puts message if $VERBOSE
-  end
-  module_function :warning
-
   def raise(exc=undefined, msg=undefined, ctx=nil)
     Truffle::KernelOperations.internal_raise exc, msg, ctx, false
   end

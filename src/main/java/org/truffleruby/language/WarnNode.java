@@ -16,7 +16,10 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
-/** Warns if $VERBOSE is true or false, but not nil. */
+/**
+ * Warns if $VERBOSE is true or false, but not nil.
+ * Corresponds to Truffle::Warnings.warn, but in Java with a given SourceSection.
+ */
 public class WarnNode extends RubyBaseNode {
 
     @Child private CallDispatchHeadNode warnMethod = CallDispatchHeadNode.createOnSelf();
@@ -27,9 +30,11 @@ public class WarnNode extends RubyBaseNode {
         return warnMethod.call(null, getContext().getCoreLibrary().getKernelModule(), "warn", warningString);
     }
 
-    public Object warningMessage(SourceSection sourceSection, String message) {
-        final String sourceLocation = sourceSection != null ? getContext().getSourceLoader().fileLine(sourceSection) + ": " : "";
-        return callWarn(sourceLocation + "warning: " + message);
+    public void warningMessage(SourceSection sourceSection, String message) {
+        if (coreLibrary().warningsEnabled()) {
+            final String sourceLocation = sourceSection != null ? getContext().getSourceLoader().fileLine(sourceSection) + ": " : "";
+            callWarn(sourceLocation + "warning: " + message);
+        }
     }
 
 }
