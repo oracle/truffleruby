@@ -15,6 +15,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
+import java.io.File;
+
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -50,7 +52,14 @@ public class ThreadBacktraceLocationNodes {
             if (path == null) {
                 return coreStrings().UNKNOWN.createInstance();
             } else {
-                return makeStringNode.fromRope(getContext().getPathToRopeCache().getCachedPath(path));
+                final String canonicalPath;
+                if (new File(path).isAbsolute()) { // A normal file
+                    canonicalPath = getContext().getFeatureLoader().canonicalize(null, path);
+                } else { // eval()
+                    canonicalPath = path;
+                }
+
+                return makeStringNode.fromRope(getContext().getPathToRopeCache().getCachedPath(canonicalPath));
             }
         }
 

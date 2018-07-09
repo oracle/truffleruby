@@ -50,6 +50,10 @@ public class SourceLoader {
         this.context = context;
     }
 
+    /**
+     * Returns the path of a Source. Returns the short path for the main script (the file argument
+     * given to "ruby"). The path of eval(code, nil, filename) is just filename.
+     */
     public String getPath(Source source) {
         final String name = source.getName();
         if (context.wasPreInitialized() && name.startsWith(RUBY_HOME_SCHEME)) {
@@ -59,6 +63,10 @@ public class SourceLoader {
         }
     }
 
+    /**
+     * Returns the path of a Source. Returns the canonical path for the main script. Note however
+     * that the path of eval(code, nil, filename) is just filename and might not be absolute.
+     */
     public String getAbsolutePath(Source source) {
         if (source == mainSource) {
             return mainSourceAbsolutePath;
@@ -101,13 +109,12 @@ public class SourceLoader {
             throw new UnsupportedOperationException("main file already loaded: " + mainSourceAbsolutePath);
         }
 
-        final File file = new File(path).getCanonicalFile();
-        ensureReadable(context, path, file);
+        ensureReadable(context, path);
 
-        mainSource = Source.newBuilder(file).name(path).content(xOptionStrip(
-                currentNode,
-                new FileReader(file))).mimeType(RubyLanguage.MIME_TYPE).build();
-        mainSourceAbsolutePath = file.getPath();
+        final File file = new File(path);
+        final String content = xOptionStrip(currentNode, new FileReader(file));
+        mainSource = Source.newBuilder(file).name(path).content(content).mimeType(RubyLanguage.MIME_TYPE).build();
+        mainSourceAbsolutePath = file.getCanonicalPath();
         return new RubySource(mainSource);
     }
 
@@ -164,38 +171,35 @@ public class SourceLoader {
     }
 
     @TruffleBoundary
-    public RubySource load(String canonicalPath) throws IOException {
+    public RubySource load(String feature) throws IOException {
         if (context.getOptions().LOG_LOAD) {
-            Log.LOGGER.info("loading " + canonicalPath);
+            Log.LOGGER.info("loading " + feature);
         }
 
-        return loadNoLogging(context, canonicalPath, isInternal(canonicalPath));
+        return loadNoLogging(context, feature, isInternal(feature));
     }
 
-    public static RubySource loadNoLogging(RubyContext context, String canonicalPath, boolean internal) throws IOException {
-        if (canonicalPath.startsWith(RESOURCE_SCHEME)) {
-            return loadResource(canonicalPath);
+    public static RubySource loadNoLogging(RubyContext context, String feature, boolean internal) throws IOException {
+        if (feature.startsWith(RESOURCE_SCHEME)) {
+            return loadResource(feature);
         } else {
-            final File file = new File(canonicalPath).getCanonicalFile();
-            ensureReadable(context, canonicalPath, file);
+            ensureReadable(context, feature);
 
             final String mimeType;
-
-            if (canonicalPath.toLowerCase().endsWith(RubyLanguage.CEXT_EXTENSION)) {
+            if (feature.toLowerCase().endsWith(RubyLanguage.CEXT_EXTENSION)) {
                 mimeType = RubyLanguage.CEXT_MIME_TYPE;
             } else {
-                // We need to assume all other files are Ruby, so the file type detection isn't
-                // enough
+                // We need to assume all other files are Ruby, so the file type detection isn't enough
                 mimeType = RubyLanguage.MIME_TYPE;
             }
 
-            String name = file.getPath();
+            String name = feature;
             if (context != null && context.isPreInitializing()) {
-                name = RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(file.getPath()));
+                name = RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(feature));
             }
 
             Source.Builder<IOException, RuntimeException, RuntimeException> builder =
-                    Source.newBuilder(file).name(name.intern()).mimeType(mimeType);
+                    Source.newBuilder(new File(feature)).name(name.intern()).mimeType(mimeType);
 
             if (internal) {
                 builder = builder.internal();
@@ -249,8 +253,9 @@ public class SourceLoader {
         }
     }
 
-    private static void ensureReadable(RubyContext context, String path, File file) {
+    private static void ensureReadable(RubyContext context, String path) {
         if (context != null) {
+            final File file = new File(path);
             if (!file.exists()) {
                 throw new RaiseException(context, context.getCoreExceptions().loadError("No such file or directory -- " + path, path, null));
             }

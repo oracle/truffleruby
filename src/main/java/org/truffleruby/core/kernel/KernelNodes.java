@@ -101,7 +101,6 @@ import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Activation;
 import org.truffleruby.language.backtrace.Backtrace;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -146,8 +145,8 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1387,7 +1386,7 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        private String getFullPath(final String featureString) {
+        private String getFullPath(String featureString) {
             final String featurePath;
 
             if (new File(featureString).isAbsolute()) {
@@ -1405,28 +1404,17 @@ public abstract class KernelNodes {
                     throw new RaiseException(getContext(), coreExceptions().loadError("cannot infer basepath", featureString, this));
                 }
 
-                featurePath = dirname(sourcePath) + "/" + featureString;
+                final String cwd = getContext().getFeatureLoader().getWorkingDirectory();
+                sourcePath = getContext().getFeatureLoader().canonicalize(cwd, sourcePath);
+
+                featurePath = getContext().getFeatureLoader().dirname(sourcePath) + "/" + featureString;
             }
 
-            try {
-                return new File(featurePath).getCanonicalPath();
-            } catch (IOException e) {
-                throw new JavaException(e);
-            }
-        }
-
-        private String dirname(String path) {
-            if (path.charAt(0) == File.separatorChar) {
-                return path.substring(0, path.lastIndexOf(File.separatorChar));
-            } else {
-                final String workingDirectory = getContext().getFeatureLoader().getWorkingDirectory();
-                final int lastIndex = path.lastIndexOf(File.separatorChar);
-                if (lastIndex == -1) {
-                    return workingDirectory;
-                } else {
-                    return workingDirectory + "/" + path.substring(0, lastIndex);
-                }
-            }
+            // Normalize the path like File.expand_path() (e.g., remove "../"), but do not resolve
+            // symlinks. MRI does this for #require_relative always, but not for #require, so we
+            // need to do it to be compatible in the case the path does not exist, so the
+            // LoadError's #path is the same as MRI's.
+            return Paths.get(featurePath).normalize().toString();
         }
     }
 

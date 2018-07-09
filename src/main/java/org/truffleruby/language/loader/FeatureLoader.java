@@ -88,6 +88,38 @@ public class FeatureLoader {
         return new String(bytes, EncodingManager.charsetForEncoding(localeEncoding));
     }
 
+    /** Make a path absolute, by expanding relative to the context CWD. */
+    private String makeAbsolute(String cwd, String path) {
+        final File file = new File(path);
+        if (file.isAbsolute()) {
+            return path;
+        } else {
+            return new File(cwd, path).getPath();
+        }
+    }
+
+    public String canonicalize(String cwd, String path) {
+        // First, make the path absolute, by expanding relative to the context CWD
+        // Otherwise, getCanonicalPath() uses user.dir as CWD which is incorrect.
+        final String absolutePath = makeAbsolute(cwd, path);
+        try {
+            return new File(absolutePath).getCanonicalPath();
+        } catch (IOException e) {
+            throw new JavaException(e);
+        }
+    }
+
+    public String dirname(String absolutePath) {
+        assert new File(absolutePath).isAbsolute();
+
+        final String parent = new File(absolutePath).getParent();
+        if (parent == null) {
+            return absolutePath;
+        } else {
+            return parent;
+        }
+    }
+
     public ReentrantLockFreeingMap<String> getFileLocks() {
         return fileLocks;
     }
@@ -116,9 +148,7 @@ public class FeatureLoader {
                 Log.LOGGER.info(String.format("feature adjusted to %s", feature));
             }
         } else if (feature.startsWith("../")) {
-            feature = cwd.substring(
-                    0,
-                    cwd.lastIndexOf('/')) + "/" + feature.substring(3);
+            feature = dirname(cwd) + "/" + feature.substring(3);
 
             if (context.getOptions().LOG_FEATURE_LOCATION) {
                 Log.LOGGER.info(String.format("feature adjusted to %s", feature));
@@ -127,17 +157,19 @@ public class FeatureLoader {
 
         String found = null;
 
-        if (feature.startsWith(SourceLoader.RESOURCE_SCHEME)
-                || new File(feature).isAbsolute()) {
-            found = findFeatureWithAndWithoutExtension(cwd, feature);
+        if (feature.startsWith(SourceLoader.RESOURCE_SCHEME) || new File(feature).isAbsolute()) {
+            found = findFeatureWithAndWithoutExtension(feature);
         } else {
             for (Object pathObject : ArrayOperations.toIterable(context.getCoreLibrary().getLoadPath())) {
+                // $LOAD_PATH entries are canonicalized since Ruby 2.4.4
+                final String loadPath = canonicalize(cwd, pathObject.toString());
+
                 if (context.getOptions().LOG_FEATURE_LOCATION) {
-                    Log.LOGGER.info(String.format("from load path %s...", pathObject.toString()));
+                    Log.LOGGER.info(String.format("from load path %s...", loadPath));
                 }
 
-                final String fileWithinPath = new File(pathObject.toString(), feature).getPath();
-                final String result = findFeatureWithAndWithoutExtension(cwd, fileWithinPath);
+                final String fileWithinPath = new File(loadPath, feature).getPath();
+                final String result = findFeatureWithAndWithoutExtension(fileWithinPath);
 
                 if (result != null) {
                     found = result;
@@ -157,30 +189,32 @@ public class FeatureLoader {
         return found;
     }
 
-    private String findFeatureWithAndWithoutExtension(String cwd, String path) {
+    private String findFeatureWithAndWithoutExtension(String path) {
+        assert new File(path).isAbsolute();
+
         if (path.endsWith(".so")) {
             final String base = path.substring(0, path.length() - 3);
 
-            final String asSO = findFeatureWithExactPath(cwd, base + RubyLanguage.CEXT_EXTENSION);
+            final String asSO = findFeatureWithExactPath(base + RubyLanguage.CEXT_EXTENSION);
 
             if (asSO != null) {
                 return asSO;
             }
         }
 
-        final String withExtension = findFeatureWithExactPath(cwd, path + RubyLanguage.EXTENSION);
+        final String withExtension = findFeatureWithExactPath(path + RubyLanguage.EXTENSION);
 
         if (withExtension != null) {
             return withExtension;
         }
 
-        final String asSU = findFeatureWithExactPath(cwd, path + RubyLanguage.CEXT_EXTENSION);
+        final String asSU = findFeatureWithExactPath(path + RubyLanguage.CEXT_EXTENSION);
 
         if (asSU != null) {
             return asSU;
         }
 
-        final String withoutExtension = findFeatureWithExactPath(cwd, path);
+        final String withoutExtension = findFeatureWithExactPath(path);
 
         if (withoutExtension != null) {
             return withoutExtension;
@@ -189,7 +223,7 @@ public class FeatureLoader {
         return null;
     }
 
-    private String findFeatureWithExactPath(String cwd, String path) {
+    private String findFeatureWithExactPath(String path) {
         if (context.getOptions().LOG_FEATURE_LOCATION) {
             Log.LOGGER.info(String.format("trying %s...", path));
         }
@@ -199,20 +233,12 @@ public class FeatureLoader {
         }
 
         final File file = new File(path);
-
         if (!file.isFile()) {
             return null;
         }
 
-        try {
-            if (file.isAbsolute()) {
-                return file.getCanonicalPath();
-            } else {
-                return new File(cwd, file.getPath()).getCanonicalPath();
-            }
-        } catch (IOException e) {
-            return null;
-        }
+        // Normalize path like File.expand_path() (e.g., remove "../"), but do not resolve symlinks
+        return file.toPath().normalize().toString();
     }
 
     @TruffleBoundary

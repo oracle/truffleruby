@@ -203,10 +203,10 @@ module Digest
       128
     end
   end
+
+  autoload :SHA2, 'digest/sha2'
 end
 
 def Digest(name)
   Digest.const_get(name.to_sym)
 end
-
-require 'digest/sha2'

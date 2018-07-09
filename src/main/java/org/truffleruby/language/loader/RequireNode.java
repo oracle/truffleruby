@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.loader;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -25,6 +26,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Log;
 import org.truffleruby.RubyLanguage;
@@ -32,6 +35,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -55,6 +59,7 @@ public abstract class RequireNode extends RubyNode {
     @Child private Node readNode = Message.READ.createNode();
     @Child private Node isExecutableNode = Message.IS_EXECUTABLE.createNode();
     @Child private Node executeNode = Message.createExecute(0).createNode();
+    @Child private WarningNode warningNode;
 
     public static RequireNode create() {
         return RequireNodeGen.create(null);
@@ -67,19 +72,19 @@ public abstract class RequireNode extends RubyNode {
             @Cached("create()") BranchProfile notFoundProfile,
             @Cached("createBinaryProfile()") ConditionProfile isLoadedProfile,
             @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-        final String expandedPathRaw = getContext().getFeatureLoader().findFeature(feature);
+        final String expandedPath = getContext().getFeatureLoader().findFeature(feature);
 
-        if (expandedPathRaw == null) {
+        if (expandedPath == null) {
             notFoundProfile.enter();
             throw new RaiseException(getContext(), getContext().getCoreExceptions().loadErrorCannotLoad(feature, this));
         }
 
-        final DynamicObject pathString = makeStringNode.executeMake(expandedPathRaw, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        final DynamicObject pathString = makeStringNode.executeMake(expandedPath, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
         if (isLoadedProfile.profile(isFeatureLoaded(pathString))) {
             return false;
         } else {
-            return doRequire(feature, expandedPathRaw, pathString);
+            return doRequire(feature, expandedPath, pathString);
         }
     }
 
@@ -93,8 +98,7 @@ public abstract class RequireNode extends RubyNode {
             final ReentrantLock lock = fileLocks.get(expandedPath);
 
             if (lock.isHeldByCurrentThread()) {
-                // circular require
-                // TODO (pitr-ch 20-Mar-2016): warn user
+                warnCircularRequire(expandedPath);
                 return false;
             }
 
@@ -320,6 +324,16 @@ public abstract class RequireNode extends RubyNode {
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
             addToLoadedFeatures.call(null, loadedFeatures, "<<", feature);
         }
+    }
+
+    private void warnCircularRequire(String path) {
+        if (warningNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            warningNode = insert(new WarningNode());
+        }
+
+        final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
+        warningNode.warningMessage(sourceSection, "loading in progress, circular require considered harmful - " + path);
     }
 
 }
