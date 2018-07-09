@@ -1384,6 +1384,7 @@ public class CoreLibrary {
             "/core/kernel.rb",
             "/core/truffle/boot.rb",
             "/core/truffle/debug.rb",
+            "/core/truffle/warnings.rb",
             "/core/truffle/exception_operations.rb",
             "/core/truffle/numeric_operations.rb",
             "/core/truffle/proc_operations.rb",

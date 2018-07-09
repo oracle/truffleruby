@@ -406,7 +406,7 @@ class Array
 
     if idx < 0 or idx >= size
       if block_given?
-        warn 'block supersedes default value argument' unless undefined.equal?(default)
+        Truffle::Warnings.warn 'block supersedes default value argument' unless undefined.equal?(default)
 
         return yield(orig)
       end
@@ -948,7 +948,7 @@ class Array
         i -= 1
       end
     else
-      warn 'given block not used' if block_given?
+      Truffle::Warnings.warn 'given block not used' if block_given?
 
       i = size - 1
       while i >= 0

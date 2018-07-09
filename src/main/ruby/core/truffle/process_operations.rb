@@ -389,7 +389,7 @@ module Truffle
           end
 
           if _close_others = @options[:close_others]
-            warn 'spawn_setup: close_others not yet implemented'
+            Truffle::Warnings.warn 'spawn_setup: close_others not yet implemented'
           end
 
           if redirect_fd = @options[:redirect_fd]
