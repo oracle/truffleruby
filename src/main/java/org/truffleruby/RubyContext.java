@@ -167,7 +167,7 @@ public class RubyContext {
         options = createOptions(env);
 
         // We need to construct this at runtime
-        initRandomFile();
+        randomFile = initRandomFile();
 
         hashing = new Hashing(generateHashingSeed());
 
@@ -299,7 +299,7 @@ public class RubyContext {
         // Re-read the value of $TZ as it can be different in the new process
         GetTimeZoneNode.invalidateTZ();
 
-        initRandomFile();
+        randomFile = initRandomFile();
         hashing.patchSeed(generateHashingSeed());
 
         this.defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
@@ -824,7 +824,7 @@ public class RubyContext {
         return nativeConfiguration;
     }
 
-    private void initRandomFile() {
+    private static FileInputStream initRandomFile() {
         try {
             /*
              * We'd like to use NativePRNG and only call #nextBytes (never #generateSeed), or NativePRNGNonBlocking,
@@ -834,7 +834,7 @@ public class RubyContext {
              * like MRI and allows us to not block waiting for entropy which is an observed problem in practice with
              * Ruby in cloud environments, but neither are supported on the SVM.
              */
-            randomFile = new FileInputStream("/dev/urandom");
+            return new FileInputStream("/dev/urandom");
         } catch (FileNotFoundException e) {
             throw new JavaException(e);
         }
