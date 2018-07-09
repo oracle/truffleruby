@@ -629,7 +629,7 @@ public class ClassicRegexp implements ReOptions {
                 }
 
                 if (!Encoding.isAscii(c)) {
-                    p += StringSupport.length(enc, bytes, p, end);
+                    p += StringSupport.characterLength(enc, cr, bytes, p, end, true);
                     continue;
                 }
 
@@ -668,7 +668,7 @@ public class ClassicRegexp implements ReOptions {
             }
 
             if (!Encoding.isAscii(c)) {
-                int n = StringSupport.length(enc, bytes, p, end);
+                int n = StringSupport.characterLength(enc, cr, bytes, p, end, true);
                 while (n-- > 0) {
                     obytes[op++] = bytes[p++];
                 }
@@ -883,7 +883,7 @@ public class ClassicRegexp implements ReOptions {
             }
 
             if (!Encoding.isAscii(c)) {
-                p += StringSupport.length(enc, bytes, p, end);
+                p += StringSupport.characterLength(enc, cr, bytes, p, end, true);
             } else if (c != '/' && enc.isPrint(c)) {
                 p += cl;
             } else {
