@@ -1079,10 +1079,13 @@ public class CoreLibrary {
             return verbosityOption();
         }
     }
+
+    /** true if $VERBOSE is true or false, but not nil */
     public boolean warningsEnabled() {
         return verbosity() != nil;
     }
 
+    /** true only if $VERBOSE is true */
     public boolean isVerbose() {
         return verbosity() == Boolean.TRUE;
     }
