@@ -167,7 +167,7 @@ public class RubyContext {
         options = createOptions(env);
 
         // We need to construct this at runtime
-        randomFile = initRandomFile();
+        randomFile = openRandomFile();
 
         hashing = new Hashing(generateHashingSeed());
 
@@ -299,7 +299,7 @@ public class RubyContext {
         // Re-read the value of $TZ as it can be different in the new process
         GetTimeZoneNode.invalidateTZ();
 
-        randomFile = initRandomFile();
+        randomFile = openRandomFile();
         hashing.patchSeed(generateHashingSeed());
 
         this.defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
@@ -824,7 +824,7 @@ public class RubyContext {
         return nativeConfiguration;
     }
 
-    private static FileInputStream initRandomFile() {
+    private static FileInputStream openRandomFile() {
         try {
             /*
              * We'd like to use NativePRNG and only call #nextBytes (never #generateSeed), or NativePRNGNonBlocking,
