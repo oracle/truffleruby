@@ -1193,12 +1193,19 @@ public class CExtNodes {
     public abstract static class RbEncMbLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
-        public Object rbEncMbLen(DynamicObject enc, DynamicObject str, int p, int e) {
-            return StringSupport.length(
-                    EncodingOperations.getEncoding(enc),
+        public Object rbEncMbLen(DynamicObject enc, DynamicObject str, int p, int e,
+                @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile) {
+            final Encoding encoding = EncodingOperations.getEncoding(enc);
+            final Rope rope = StringOperations.rope(str);
+            final Encoding ropeEncoding = rope.getEncoding();
+
+            return StringSupport.characterLength(
+                    encoding,
+                    sameEncodingProfile.profile(encoding == ropeEncoding) ? rope.getCodeRange() : CodeRange.CR_UNKNOWN,
                     StringOperations.rope(str).getBytes(),
                     p,
-                    e);
+                    e,
+                    true);
         }
 
     }
