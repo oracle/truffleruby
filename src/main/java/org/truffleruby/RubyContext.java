@@ -827,12 +827,17 @@ public class RubyContext {
     private static FileInputStream openRandomFile() {
         try {
             /*
-             * We'd like to use NativePRNG and only call #nextBytes (never #generateSeed), or NativePRNGNonBlocking,
-             * because they use /dev/urandom
-             * (https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SUNProvider,
+             * We don't want to ever use /dev/random because it could block waiting for entropy which is an observed
+             * problem in practice with Ruby in cloud environments.
+             *
+             * We could use NativePRNGNonBlocking, which always uses /dev/urandom, or we could use NativePRNG and only
+             * call #nextBytes (never #generateSeed), but the initial seed might still need a few bytes from
+             * /dev/random, and the SVM does not support either of these algorithms.
+             *
+             * Instead, we'll just use /dev/urandom directly.
+             *
+             * (See https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SUNProvider,
              * https://docs.oracle.com/javase/10/security/oracle-providers.htm#JSSEC-GUID-C4706FFE-D08F-4E29-B0BE-CCE8C93DD940)
-             * like MRI and allows us to not block waiting for entropy which is an observed problem in practice with
-             * Ruby in cloud environments, but neither are supported on the SVM.
              */
             return new FileInputStream("/dev/urandom");
         } catch (FileNotFoundException e) {
