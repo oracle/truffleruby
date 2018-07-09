@@ -30,7 +30,6 @@ import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.exception.CoreExceptions;
-import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.hash.PreInitializationManager;
 import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.inlined.CoreMethods;
@@ -54,6 +53,7 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.loader.CodeLoader;
@@ -121,6 +121,8 @@ public class RubyContext {
 
     @CompilationFinal private SecureRandom random;
     private final Hashing hashing;
+    @CompilationFinal BacktraceFormatter defaultBacktraceFormatter;
+    private final BacktraceFormatter userBacktraceFormatter;
     private final RopeCache ropeCache;
     private final PathToRopeCache pathToRopeCache = new PathToRopeCache(this);
     @CompilationFinal private TruffleNFIPlatform truffleNFIPlatform;
@@ -166,6 +168,9 @@ public class RubyContext {
         random = new SecureRandom();
 
         hashing = new Hashing(generateHashingSeed(random));
+
+        defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
+        userBacktraceFormatter = new BacktraceFormatter(this, BacktraceFormatter.USER_BACKTRACE_FLAGS);
 
         ropeCache = new RopeCache(this);
 
@@ -295,6 +300,8 @@ public class RubyContext {
         this.random = new SecureRandom();
         hashing.patchSeed(generateHashingSeed(random));
 
+        this.defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
+
         this.truffleNFIPlatform = createNativePlatform();
         encodingManager.initializeDefaultEncodings(truffleNFIPlatform, nativeConfiguration);
 
@@ -324,7 +331,7 @@ public class RubyContext {
             return patch(newEnv);
         } catch (RaiseException e) {
             System.err.println("Exception during RubyContext.patch():");
-            ExceptionOperations.printRubyExceptionOnEnvStderr(this, e);
+            getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(e.getException());
             throw e;
         } catch (Throwable e) {
             System.err.println("Exception during RubyContext.patch():");
@@ -527,6 +534,14 @@ public class RubyContext {
             preInitializationManager.addReHashable(reHashable);
         }
         return hashing;
+    }
+
+    public BacktraceFormatter getDefaultBacktraceFormatter() {
+        return defaultBacktraceFormatter;
+    }
+
+    public BacktraceFormatter getUserBacktraceFormatter() {
+        return userBacktraceFormatter;
     }
 
     public AllocationReporter getAllocationReporter() {

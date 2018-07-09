@@ -79,12 +79,7 @@ public class Backtrace {
 
         if (context != null) {
             final BacktraceFormatter backtraceFormatter = new BacktraceFormatter(context, EnumSet.of(FormattingFlags.INCLUDE_CORE_FILES));
-            final StringBuilder builder = new StringBuilder();
-            for (String line : backtraceFormatter.formatBacktrace(context, null, this)) {
-                builder.append("\n");
-                builder.append(line);
-            }
-            return builder.toString().substring(1);
+            return backtraceFormatter.formatBacktrace(null, this);
         } else {
             return "";
         }

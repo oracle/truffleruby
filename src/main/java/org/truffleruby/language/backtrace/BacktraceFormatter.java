@@ -15,10 +15,15 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.loader.SourceLoader;
 
@@ -35,6 +40,13 @@ public class BacktraceFormatter {
         INCLUDE_CORE_FILES,
         INTERLEAVE_JAVA
     }
+
+    /**
+     * Flags for a backtrace exposed to Ruby via #caller, #caller_locations, Exception#backtrace and
+     * Thread#backtrace.
+     */
+    public static final EnumSet<FormattingFlags> USER_BACKTRACE_FLAGS =
+            EnumSet.of(FormattingFlags.OMIT_FROM_PREFIX, FormattingFlags.OMIT_EXCEPTION);
 
     private final RubyContext context;
     private final EnumSet<FormattingFlags> flags;
@@ -54,25 +66,22 @@ public class BacktraceFormatter {
         return new BacktraceFormatter(context, flags);
     }
 
-    private static String[] rubyBacktrace(RubyContext context, Node node) {
-        return new BacktraceFormatter(context, EnumSet.of(FormattingFlags.INCLUDE_CORE_FILES)).
-                        formatBacktrace(context, null, context.getCallStack().getBacktrace(node));
-    }
-
     // For debugging:
     // org.truffleruby.language.backtrace.BacktraceFormatter.printableRubyBacktrace(getContext(), this)
     public static String printableRubyBacktrace(RubyContext context, Node node) {
-        final StringBuilder builder = new StringBuilder();
-        for (String line : rubyBacktrace(context, node)) {
-            builder.append("\n");
-            builder.append(line);
-        }
-        String string = builder.toString();
-        if (string.isEmpty()) {
+        final BacktraceFormatter backtraceFormatter = new BacktraceFormatter(context, EnumSet.of(FormattingFlags.INCLUDE_CORE_FILES));
+        final String backtrace = backtraceFormatter.formatBacktrace(null, context.getCallStack().getBacktrace(node));
+        if (backtrace.isEmpty()) {
             return "<empty backtrace>";
         } else {
-            return string.substring(1); // Remove first \n added above
+            return backtrace;
         }
+    }
+
+    /** For debug purposes. */
+    public static boolean isApplicationCode(RubyContext context, SourceSection sourceSection) {
+        return isUserSourceSection(context, sourceSection) &&
+                !sourceSection.getSource().getName().contains("/lib/stdlib/rubygems");
     }
 
     public BacktraceFormatter(RubyContext context, EnumSet<FormattingFlags> flags) {
@@ -81,23 +90,52 @@ public class BacktraceFormatter {
     }
 
     @TruffleBoundary
-    public void printBacktrace(RubyContext context, DynamicObject exception) {
-        printBacktrace(context, exception, Layouts.EXCEPTION.getBacktrace(exception));
-    }
-
-    @TruffleBoundary
-    public void printBacktrace(RubyContext context, DynamicObject exception, Backtrace backtrace) {
-        printBacktrace(context, exception, backtrace, new PrintWriter(context.getEnv().err(), true));
-    }
-
-    @TruffleBoundary
-    public void printBacktrace(RubyContext context, DynamicObject exception, Backtrace backtrace, PrintWriter writer) {
-        for (String line : formatBacktrace(context, exception, backtrace)) {
-            writer.println(line);
+    public void printRubyExceptionOnEnvStderr(DynamicObject rubyException) {
+        // can be null, if @custom_backtrace is used
+        final PrintWriter printer = new PrintWriter(context.getEnv().err(), true);
+        final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(rubyException);
+        if (backtrace != null) {
+            printer.println(formatBacktrace(rubyException, backtrace));
+        } else {
+            final Object fullMessage = context.send(rubyException, "full_message");
+            final Object fullMessageString;
+            if (RubyGuards.isRubyString(fullMessage)) {
+                fullMessageString = StringOperations.getString((DynamicObject) fullMessage);
+            } else {
+                fullMessageString = fullMessage.toString();
+            }
+            printer.println(fullMessageString);
         }
     }
 
-    public String[] formatBacktrace(RubyContext context, DynamicObject exception, Backtrace backtrace) {
+    @TruffleBoundary
+    public void printBacktraceOnEnvStderr(Node currentNode) {
+        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
+        final PrintWriter printer = new PrintWriter(context.getEnv().err(), true);
+        printer.println(formatBacktrace(null, backtrace));
+    }
+
+    /** Format the backtrace as a String with \n between each line, but no trailing \n. */
+    @TruffleBoundary
+    public String formatBacktrace(DynamicObject exception, Backtrace backtrace) {
+        return String.join("\n", formatBacktraceAsStringArray(exception, backtrace));
+    }
+
+    public DynamicObject formatBacktraceAsRubyStringArray(DynamicObject exception, Backtrace backtrace) {
+        final String[] lines = formatBacktraceAsStringArray(exception, backtrace);
+
+        final Object[] array = new Object[lines.length];
+
+        for (int n = 0; n < lines.length; n++) {
+            array[n] = StringOperations.createString(context,
+                    StringOperations.encodeRope(lines[n], UTF8Encoding.INSTANCE));
+        }
+
+        return ArrayHelpers.createArray(context, array, array.length);
+    }
+
+    @TruffleBoundary
+    private String[] formatBacktraceAsStringArray(DynamicObject exception, Backtrace backtrace) {
         if (backtrace == null) {
             backtrace = context.getCallStack().getBacktrace(null);
         }
@@ -111,20 +149,7 @@ public class BacktraceFormatter {
         }
 
         for (int n = 0; n < activations.length; n++) {
-            try {
-                lines.add(formatLine(activations, n, exception));
-            } catch (Exception e) {
-                if (context.getOptions().EXCEPTIONS_PRINT_JAVA) {
-                    e.printStackTrace();
-
-                    if (context.getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                        context.getCallStack().printBacktrace(null);
-                    }
-                }
-
-                final String firstFrame = e.getStackTrace().length > 0 ? e.getStackTrace()[0].toString() : "";
-                lines.add(StringUtils.format("(exception %s %s %s", e.getClass().getName(), e.getMessage(), firstFrame));
-            }
+            lines.add(formatLine(activations, n, exception));
         }
 
         if (backtrace.getJavaThrowable() != null && flags.contains(FormattingFlags.INTERLEAVE_JAVA)) {
@@ -135,7 +160,25 @@ public class BacktraceFormatter {
         return lines.toArray(new String[lines.size()]);
     }
 
+    @TruffleBoundary
     public String formatLine(Activation[] activations, int n, DynamicObject exception) {
+        try {
+            return formatLineInternal(activations, n, exception);
+        } catch (Exception e) {
+            if (context.getOptions().EXCEPTIONS_PRINT_JAVA) {
+                e.printStackTrace();
+
+                if (context.getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
+                    printBacktraceOnEnvStderr(null);
+                }
+            }
+
+            final String firstFrame = e.getStackTrace().length > 0 ? e.getStackTrace()[0].toString() : "";
+            return StringUtils.format("(exception %s %s %s", e.getClass().getName(), e.getMessage(), firstFrame);
+        }
+    }
+
+    private String formatLineInternal(Activation[] activations, int n, DynamicObject exception) {
         final Activation activation = activations[n];
 
         if (activation == Activation.OMITTED_LIMIT) {
@@ -157,17 +200,19 @@ public class BacktraceFormatter {
         if (rootNode instanceof RubyRootNode) {
             final SourceSection sourceSection = activation.getCallNode().getEncapsulatingSourceSection();
             final SourceSection reportedSourceSection;
-            String reportedName;
+            final String reportedName;
 
-            if (isJavaCore(sourceSection) ||
-                    (isCore(context, sourceSection) && !flags.contains(FormattingFlags.INCLUDE_CORE_FILES))) {
+            // Unavailable SourceSections are always skipped, as there is no source position information.
+            // Only show core library SourceSections if the flags contain the option.
+            if (sourceSection != null && sourceSection.isAvailable() &&
+                    (flags.contains(FormattingFlags.INCLUDE_CORE_FILES) || isUserSourceSection(context, sourceSection))) {
+                reportedSourceSection = sourceSection;
+                reportedName = rootNode.getName();
+            } else {
                 final SourceSection nextUserSourceSection = nextUserSourceSection(activations, n);
                 // if there is no next source section use a core one to avoid ???
                 reportedSourceSection = nextUserSourceSection != null ? nextUserSourceSection : sourceSection;
                 reportedName = getMethodNameFromActivation(activation);
-            } else {
-                reportedSourceSection = sourceSection;
-                reportedName = rootNode.getName();
             }
 
             if (reportedSourceSection == null) {
@@ -177,7 +222,6 @@ public class BacktraceFormatter {
                 builder.append(":");
                 builder.append(reportedSourceSection.getStartLine());
             }
-
             builder.append(":in `");
             builder.append(reportedName);
             builder.append("'");
@@ -188,6 +232,39 @@ public class BacktraceFormatter {
         if (!flags.contains(FormattingFlags.OMIT_EXCEPTION) && exception != null && n == 0) {
             builder.append(": ");
             builder.append(formatException(exception));
+        }
+
+        return builder.toString();
+    }
+
+    private String formatForeign(Node callNode) {
+        final StringBuilder builder = new StringBuilder();
+        final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
+
+        if (sourceSection != null) {
+            final Source source = sourceSection.getSource();
+            final String path = source.getPath() != null ? source.getPath() : source.getName();
+
+            builder.append(path);
+            if (sourceSection.isAvailable()) {
+                builder.append(":").append(sourceSection.getStartLine());
+            }
+
+            final RootNode rootNode = callNode.getRootNode();
+
+            String identifier = rootNode.getName();
+
+            if (identifier != null && !identifier.isEmpty()) {
+                if (rootNode.getLanguageInfo().getId().equals("llvm") && identifier.startsWith("@")) {
+                    identifier = identifier.substring(1);
+                }
+
+                builder.append(":in `");
+                builder.append(identifier);
+                builder.append("'");
+            }
+        } else {
+            builder.append(getRootOrTopmostNode(callNode).getClass().getSimpleName());
         }
 
         return builder.toString();
@@ -228,7 +305,7 @@ public class BacktraceFormatter {
             if (callNode != null) {
                 final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
 
-                if (!isCore(context, sourceSection)) {
+                if (isUserSourceSection(context, sourceSection)) {
                     return sourceSection;
                 }
             }
@@ -238,12 +315,12 @@ public class BacktraceFormatter {
         return null;
     }
 
-    public boolean isJavaCore(SourceSection sourceSection) {
+    private static boolean isJavaCore(RubyContext context, SourceSection sourceSection) {
         return sourceSection == context.getCoreLibrary().getSourceSection();
     }
 
     public static boolean isCore(RubyContext context, SourceSection sourceSection) {
-        if (sourceSection == null || sourceSection == context.getCoreLibrary().getSourceSection()) {
+        if (sourceSection == null || isJavaCore(context, sourceSection)) {
             return true;
         }
 
@@ -253,59 +330,25 @@ public class BacktraceFormatter {
         }
 
         final String name = source.getName();
-        if (name != null) {
-            return name.startsWith(SourceLoader.RESOURCE_SCHEME);
+        if (name == null) {
+            return true;
         }
 
-        return true;
-    }
-
-    /** For debug purposes. */
-    public static boolean isUserSourceSection(RubyContext context, SourceSection sourceSection) {
-        if (!BacktraceFormatter.isCore(context, sourceSection)) {
-            return false;
-        }
-
-        final String path = sourceSection.getSource().getName();
-        if (path.startsWith(context.getCoreLibrary().getCoreLoadPath())) {
-            return false;
-        }
-
-        return !path.contains("/lib/stdlib/rubygems");
-    }
-
-    private String formatForeign(Node callNode) {
-        final StringBuilder builder = new StringBuilder();
-
-        final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
-
-        if (sourceSection != null) {
-            final Source source = sourceSection.getSource();
-            final String path = source.getPath() != null ? source.getPath() : source.getName();
-
-            builder.append(path);
-            if (sourceSection.isAvailable()) {
-                builder.append(":").append(sourceSection.getStartLine());
-            }
-
-            final RootNode rootNode = callNode.getRootNode();
-
-            String identifier = rootNode.getName();
-
-            if (identifier != null && !identifier.isEmpty()) {
-                if (rootNode.getLanguageInfo().getId().equals("llvm") && identifier.startsWith("@")) {
-                    identifier = identifier.substring(1);
-                }
-
-                builder.append(":in `");
-                builder.append(identifier);
-                builder.append("'");
-            }
+        if (name.startsWith(SourceLoader.RESOURCE_SCHEME)) {
+            return true;
+        } else if (name.endsWith("truffle/lazy-rubygems.rb")) {
+            // Sinatra manually filters RubyGems files patching #require from caller():
+            // https://github.com/sinatra/sinatra/blob/v2.0.3/lib/sinatra/base.rb#L1165-L1174
+            // lazy-rubygems.rb should be as transparent as possible, including user backtraces,
+            // so we hide it in user backtraces like core files.
+            return true;
         } else {
-            builder.append(getRootOrTopmostNode(callNode).getClass().getSimpleName());
+            return false;
         }
+    }
 
-        return builder.toString();
+    public static boolean isUserSourceSection(RubyContext context, SourceSection sourceSection) {
+        return !isCore(context, sourceSection);
     }
 
     private Node getRootOrTopmostNode(Node node) {

@@ -93,7 +93,7 @@ public class ExceptionTranslatingNode extends RubyNode {
             exception.printStackTrace();
 
             if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                getContext().getCallStack().printBacktrace(this);
+                getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
             }
         }
 
@@ -111,7 +111,7 @@ public class ExceptionTranslatingNode extends RubyNode {
             error.printStackTrace();
 
             if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                getContext().getCallStack().printBacktrace(this);
+                getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
             }
         }
 
@@ -129,7 +129,7 @@ public class ExceptionTranslatingNode extends RubyNode {
             error.printStackTrace();
 
             if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                getContext().getCallStack().printBacktrace(this);
+                getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
             }
         }
 
@@ -142,7 +142,7 @@ public class ExceptionTranslatingNode extends RubyNode {
             exception.printStackTrace();
 
             if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                getContext().getCallStack().printBacktrace(this);
+                getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
             }
         }
 
@@ -161,7 +161,7 @@ public class ExceptionTranslatingNode extends RubyNode {
             exception.printStackTrace();
 
             if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                getContext().getCallStack().printBacktrace(this);
+                getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
             }
         }
 
@@ -238,7 +238,7 @@ public class ExceptionTranslatingNode extends RubyNode {
             throwable.printStackTrace();
 
             if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                getContext().getCallStack().printBacktrace(this);
+                getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
             }
         }
 
@@ -271,10 +271,8 @@ public class ExceptionTranslatingNode extends RubyNode {
                 // Add the backtrace in the message as otherwise we would only see the
                 // internalError() backtrace.
                 final BacktraceFormatter formatter = new BacktraceFormatter(getContext(), EnumSet.noneOf(FormattingFlags.class));
-                final String[] formattedBacktrace = formatter.formatBacktrace(getContext(), rubyException, Layouts.EXCEPTION.getBacktrace(rubyException));
-                for (String line : formattedBacktrace) {
-                    builder.append(line).append('\n');
-                }
+                final String formattedBacktrace = formatter.formatBacktrace(rubyException, Layouts.EXCEPTION.getBacktrace(rubyException));
+                builder.append(formattedBacktrace).append('\n');
             } else {
                 // Java exception, print it formatted like a Ruby exception
                 final String message = t.getMessage();

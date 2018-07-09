@@ -25,13 +25,10 @@ public interface ThreadBacktraceLocationLayout extends BasicObjectLayout {
     DynamicObject createThreadBacktraceLocation(
             DynamicObjectFactory factory,
             Backtrace backtrace,
-            int activationIndex,
-            String description);
+            int activationIndex);
 
     Backtrace getBacktrace(DynamicObject object);
 
     int getActivationIndex(DynamicObject object);
-
-    String getDescription(DynamicObject object);
 
 }

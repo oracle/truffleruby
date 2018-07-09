@@ -195,7 +195,7 @@ public class CallStackManager {
             }
 
             final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
-            if (!BacktraceFormatter.isCore(context, sourceSection)) {
+            if (BacktraceFormatter.isUserSourceSection(context, sourceSection)) {
                 return sourceSection;
             } else {
                 return null; // Keep searching
@@ -205,7 +205,7 @@ public class CallStackManager {
 
     @TruffleBoundary
     public SourceSection getTopMostUserSourceSection(SourceSection encapsulatingSourceSection) {
-        if (encapsulatingSourceSection != null && !BacktraceFormatter.isCore(context, encapsulatingSourceSection)) {
+        if (encapsulatingSourceSection != null && BacktraceFormatter.isUserSourceSection(context, encapsulatingSourceSection)) {
             return encapsulatingSourceSection;
         } else {
             return getTopMostUserSourceSection();
@@ -214,12 +214,6 @@ public class CallStackManager {
 
     private InternalMethod getMethod(FrameInstance frame) {
         return RubyArguments.tryGetMethod(frame.getFrame(FrameInstance.FrameAccess.READ_ONLY));
-    }
-
-    public void printBacktrace(Node currentNode) {
-        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final BacktraceFormatter formatter = BacktraceFormatter.createDefaultFormatter(context);
-        formatter.printBacktrace(context, null, backtrace);
     }
 
     public Backtrace getBacktraceForException(Node currentNode, DynamicObject exceptionClass) {

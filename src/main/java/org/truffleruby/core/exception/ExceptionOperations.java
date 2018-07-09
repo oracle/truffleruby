@@ -9,20 +9,13 @@
  */
 package org.truffleruby.core.exception;
 
-import java.io.PrintWriter;
-import java.util.EnumSet;
-
 import com.oracle.truffle.api.source.SourceSection;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
-import org.truffleruby.language.backtrace.BacktraceFormatter;
-import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -36,10 +29,6 @@ public abstract class ExceptionOperations {
     public static final String PRIVATE_METHOD_ERROR = "PRIVATE_METHOD_ERROR";
     public static final String NO_METHOD_ERROR = "NO_METHOD_ERROR";
     public static final String NO_LOCAL_VARIABLE_OR_METHOD_ERROR = "NO_LOCAL_VARIABLE_OR_METHOD_ERROR";
-
-    public static final EnumSet<BacktraceFormatter.FormattingFlags> FORMAT_FLAGS = EnumSet.of(
-            FormattingFlags.OMIT_FROM_PREFIX,
-            FormattingFlags.OMIT_EXCEPTION);
 
     @TruffleBoundary
     private static String messageFieldToString(RubyContext context, DynamicObject exception) {
@@ -63,45 +52,6 @@ public abstract class ExceptionOperations {
             // Fall back to the internal message field
         }
         return messageFieldToString(context, exception);
-    }
-
-    @TruffleBoundary
-    public static void printRubyExceptionOnEnvStderr(RubyContext context, RaiseException raiseException) {
-        final DynamicObject rubyException = raiseException.getException();
-        // can be null, if @custom_backtrace is used
-        final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(rubyException);
-        if (backtrace != null) {
-            BacktraceFormatter.createDefaultFormatter(context).printBacktrace(context, rubyException, backtrace);
-        } else {
-            final PrintWriter printer = new PrintWriter(context.getEnv().err(), true);
-            final Object fullMessage = context.send(rubyException, "full_message");
-            final Object fullMessageString;
-            if (RubyGuards.isRubyString(fullMessage)) {
-                fullMessageString = StringOperations.getString((DynamicObject) fullMessage);
-            } else {
-                fullMessageString = fullMessage.toString();
-            }
-            printer.println(fullMessageString);
-        }
-    }
-
-    @TruffleBoundary
-    public static String[] format(RubyContext context, DynamicObject exception, Backtrace backtrace) {
-        final BacktraceFormatter formatter = new BacktraceFormatter(context, FORMAT_FLAGS);
-        return formatter.formatBacktrace(context, exception, backtrace);
-    }
-
-    public static DynamicObject backtraceAsRubyStringArray(RubyContext context, DynamicObject exception, Backtrace backtrace) {
-        final String[] lines = format(context, exception, backtrace);
-
-        final Object[] array = new Object[lines.length];
-
-        for (int n = 0; n < lines.length; n++) {
-            array[n] = StringOperations.createString(context,
-                    StringOperations.encodeRope(lines[n], UTF8Encoding.INSTANCE));
-        }
-
-        return ArrayHelpers.createArray(context, array, array.length);
     }
 
     // because the factory is not constant

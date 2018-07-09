@@ -24,7 +24,6 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointManager;
-import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnException;
@@ -583,7 +582,7 @@ public class ThreadManager {
                 break; // Successfully executed the safepoint and sent the exceptions.
             } catch (RaiseException e) {
                 final DynamicObject rubyException = e.getException();
-                BacktraceFormatter.createDefaultFormatter(context).printBacktrace(context, rubyException);
+                context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(rubyException);
             }
         }
     }

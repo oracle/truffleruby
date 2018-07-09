@@ -99,10 +99,9 @@ public abstract class ExceptionNodes {
             } else if (hasBacktraceProfile.profile(Layouts.EXCEPTION.getBacktrace(exception) != null)) {
                 final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
                 if (backtrace.getBacktraceStringArray() == null) {
-                    backtrace.setBacktraceStringArray(ExceptionOperations.backtraceAsRubyStringArray(
-                        getContext(),
-                        exception,
-                        Layouts.EXCEPTION.getBacktrace(exception)));
+                    backtrace.setBacktraceStringArray(
+                            getContext().getUserBacktraceFormatter().formatBacktraceAsRubyStringArray(
+                                    exception, Layouts.EXCEPTION.getBacktrace(exception)));
                 }
                 return backtrace.getBacktraceStringArray();
             } else {
