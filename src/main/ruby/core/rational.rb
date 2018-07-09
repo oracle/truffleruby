@@ -154,15 +154,7 @@ class Rational < Numeric
     when Float
       to_f <=> other
     else
-      begin
-        a, b = other.coerce(self)
-      rescue
-        warn 'warning: Numerical comparison operators will no more rescue exceptions of #coerce',
-             'warning: in the next release. Return nil in #coerce if the coercion is impossible.'
-        nil
-      else
-        a <=> b
-      end
+      redo_compare_no_error(other)
     end
   end
 
