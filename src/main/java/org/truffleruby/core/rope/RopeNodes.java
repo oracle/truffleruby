@@ -723,7 +723,7 @@ public abstract class RopeNodes {
             int e = bytes.length;
 
             for (calculatedCharacterLength = 0; p < e; calculatedCharacterLength++) {
-                p += StringSupport.length(encoding, bytes, p, e);
+                p += StringSupport.characterLength(encoding, codeRange, bytes, p, e);
             }
 
             return new ValidLeafRope(bytes, encoding, calculatedCharacterLength);

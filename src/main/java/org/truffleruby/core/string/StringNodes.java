@@ -1156,11 +1156,12 @@ public abstract class StringNodes {
             final byte[] ptrBytes = bytesNode.execute(rope);
             final int len = ptrBytes.length;
             final Encoding enc = rope.getEncoding();
+            final CodeRange cr = rope.getCodeRange();
 
             int n;
 
             for (int i = 0; i < len; i += n) {
-                n = StringSupport.length(enc, ptrBytes, i, len);
+                n = StringSupport.characterLength(enc, cr, ptrBytes, i, len, true);
 
                 yield(block, substr(rope, string, i, n));
             }
@@ -2325,12 +2326,13 @@ public abstract class StringNodes {
             final int len = originalBytes.length;
 
             final Encoding enc = rope.getEncoding();
+            final CodeRange cr = rope.getCodeRange();
             final int end = p + len;
             int op = len;
             final byte[] reversedBytes = new byte[len];
 
             while (p < end) {
-                int cl = StringSupport.length(enc, originalBytes, p, end);
+                int cl = StringSupport.characterLength(enc, cr, originalBytes, p, end, true);
                 if (cl > 1 || (originalBytes[p] & 0x80) != 0) {
                     op -= cl;
                     System.arraycopy(originalBytes, p, reversedBytes, op, cl);
@@ -2946,12 +2948,13 @@ public abstract class StringNodes {
             final boolean limit = lim > 0;
             int i = lim > 0 ? 1 : 0;
 
-            byte[]bytes = rope.getBytes();
+            final byte[] bytes = rope.getBytes();
             int p = 0;
             int ptr = p;
             int len = rope.byteLength();
             int end = p + len;
-            Encoding enc = rope.getEncoding();
+            final Encoding enc = rope.getEncoding();
+            final CodeRange cr = rope.getCodeRange();
             boolean skip = true;
 
             int e = 0, b = 0;
@@ -2962,7 +2965,7 @@ public abstract class StringNodes {
                     c = bytes[p++] & 0xff;
                 } else {
                     c = getCodePointNode.executeGetCodePoint(rope, p);
-                    p += StringSupport.length(enc, bytes, p, end);
+                    p += StringSupport.characterLength(enc, cr, bytes, p, end, true);
                 }
 
                 if (skip) {
@@ -3758,12 +3761,13 @@ public abstract class StringNodes {
             final Rope rope = rope(string);
             final byte[] bytes = rope.getBytes();
             final Encoding encoding = rope.getEncoding();
+            final CodeRange codeRange = rope.getCodeRange();
             int p = 0;
             final int end = bytes.length;
             int charIndex = 0;
 
             while (p < end && byteIndex > 0) {
-                final int charLen = StringSupport.length(encoding, bytes, p, end);
+                final int charLen = StringSupport.characterLength(encoding, codeRange, bytes, p, end, true);
                 p += charLen;
                 byteIndex -= charLen;
                 charIndex++;
