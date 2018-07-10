@@ -21,7 +21,7 @@ import java.util.logging.Level;
 
 public class RubyLogger {
 
-    public static final TruffleLogger LOGGER = TruffleLogger.getLogger(TruffleRuby.LANGUAGE_ID, (String) null);
+    public static final TruffleLogger LOGGER = TruffleLogger.getLogger(TruffleRuby.LANGUAGE_ID);
 
     /**
      * Warn about code that works but is not yet optimized as Truffle code normally would be. Only
