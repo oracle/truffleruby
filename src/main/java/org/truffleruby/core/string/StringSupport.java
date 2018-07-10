@@ -83,11 +83,7 @@ public final class StringSupport {
     }
 
     private static int characterLengthValid(Encoding encoding, byte[] bytes, int byteOffset, int byteEnd) {
-        if (encoding.isFixedWidth()) {
-            final int width = encoding.minLength();
-            assert (byteEnd - byteOffset) >= width;
-            return width;
-        } else if (encoding.isUTF8()) {
+        if (encoding.isUTF8()) {
             return UTF8Operations.charWidth(bytes[byteOffset]);
         } else if (encoding.isAsciiCompatible()) {
             if (bytes[byteOffset] >= 0) {
@@ -95,6 +91,10 @@ public final class StringSupport {
             } else {
                 return encLength(encoding, bytes, byteOffset, byteEnd);
             }
+        } else if (encoding.isFixedWidth()) {
+            final int width = encoding.minLength();
+            assert (byteEnd - byteOffset) >= width;
+            return width;
         } else {
             return encLength(encoding, bytes, byteOffset, byteEnd);
         }
