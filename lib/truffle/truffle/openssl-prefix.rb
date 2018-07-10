@@ -8,7 +8,9 @@
 
 # Set OPENSSL_PREFIX in ENV to find the OpenSSL headers
 
-macOS = `uname`.chomp == 'Darwin'
+require 'rbconfig'
+
+macOS = RbConfig::CONFIG['host_os'].include?('darwin')
 
 if macOS && !ENV['OPENSSL_PREFIX']
   if Dir.exist?('/usr/local/opt/openssl') # Homebrew

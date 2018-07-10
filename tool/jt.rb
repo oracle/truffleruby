@@ -41,9 +41,8 @@ RUBOCOP_INCLUDE_LIST = %w[
   tool/generate-sulongmock.rb
 ]
 
-UNAME = `uname`.chomp
-MAC = UNAME == 'Darwin'
-LINUX = UNAME == 'Linux'
+MAC = RbConfig::CONFIG['host_os'].include?('darwin')
+LINUX = RbConfig::CONFIG['host_os'].include?('linux')
 
 SO = MAC ? 'dylib' : 'so'
 
