@@ -1661,42 +1661,6 @@ public abstract class RopeNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "encoding"),
-            @NodeChild(type = RubyNode.class, value = "bytes"),
-            @NodeChild(type = RubyNode.class, value = "start"),
-            @NodeChild(type = RubyNode.class, value = "end")
-    })
-    public abstract static class PreciseLengthNode extends RubyNode {
-
-        public static PreciseLengthNode create() {
-            return RopeNodesFactory.PreciseLengthNodeGen.create(null, null, null, null);
-        }
-
-        public abstract int executeLength(Encoding encoding, byte[] bytes, int start, int end);
-
-        @Specialization
-        public int preciseLength(Encoding encoding, byte[] bytes, int start, int end,
-                          @Cached("create()") EncodingLengthNode encodingLengthNode,
-                          @Cached("create()") BranchProfile startTooLargeProfile,
-                          @Cached("create()") BranchProfile characterTooLargeProfile) {
-            if (start >= end) {
-                startTooLargeProfile.enter();
-                return -1 - (1);
-            }
-
-            int n = encodingLengthNode.executeLength(encoding, bytes, start, end);
-
-            if (n > end - start) {
-                characterTooLargeProfile.enter();
-                return StringSupport.MBCLEN_NEEDMORE(n - (end - start));
-            }
-
-            return n;
-        }
-
-    }
-
     @NodeChild(type = RubyNode.class, value = "rope")
     public abstract static class NativeToManagedNode extends RubyNode {
 
