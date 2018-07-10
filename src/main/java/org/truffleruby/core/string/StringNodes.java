@@ -1614,7 +1614,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "isBrokenCodeRange(string)", "!isAsciiCompatible(string)" })
         public DynamicObject scrubAsciiIncompatible(DynamicObject string, DynamicObject block,
-                @Cached("create()") RopeNodes.PreciseLengthNode preciseLengthNode) {
+                @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode) {
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
             Rope buf = RopeConstants.EMPTY_ASCII_8BIT_ROPE;
@@ -1627,7 +1627,7 @@ public abstract class StringNodes {
             final int mbminlen = enc.minLength();
 
             while (p < e) {
-                int ret = preciseLengthNode.executeLength(enc, pBytes, p, e);
+                int ret = characterLengthNode.characterLength(enc, rope.getCodeRange(), pBytes, p, e);
                 if (MBCLEN_NEEDMORE_P(ret)) {
                     break;
                 } else if (MBCLEN_CHARFOUND_P(ret)) {
@@ -3109,12 +3109,13 @@ public abstract class StringNodes {
         @Specialization(guards = { "!indexOutOfBounds(string, byteIndex)", "!isSingleByteOptimizable(string)" })
         public Object stringChrAt(DynamicObject string, int byteIndex,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("create()") RopeNodes.PreciseLengthNode preciseLengthNode) {
+                @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode) {
             // Taken from Rubinius's Character::create_from.
 
             final Rope rope = rope(string);
             final int end = rope.byteLength();
-            final int c = preciseLengthNode.executeLength(rope.getEncoding(), bytesNode.execute(rope), byteIndex, end);
+            final int c = characterLengthNode.characterLength(rope.getEncoding(), rope.getCodeRange(),
+                    bytesNode.execute(rope), byteIndex, end);
 
             if (!StringSupport.MBCLEN_CHARFOUND_P(c)) {
                 return nil();
@@ -3375,13 +3376,14 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "offset >= 0", "!offsetTooLarge(string, offset)", "!isSingleByteOptimizable(string)" })
         public Object stringFindCharacter(DynamicObject string, int offset,
-                @Cached("create()") RopeNodes.PreciseLengthNode preciseLengthNode) {
+                @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode) {
             // Taken from Rubinius's String::find_character.
 
             final Rope rope = rope(string);
-
             final Encoding enc = rope.getEncoding();
-            final int clen = preciseLengthNode.executeLength(enc, rope.getBytes(), offset, offset + enc.maxLength());
+            final CodeRange cr = rope.getCodeRange();
+
+            final int clen = characterLengthNode.characterLength(enc, cr, rope.getBytes(), offset, offset + enc.maxLength());
 
             final DynamicObject ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string),
                     Layouts.STRING.build(false, false, substringNode.executeSubstring(rope, offset, clen)));
@@ -3441,7 +3443,7 @@ public abstract class StringNodes {
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = { "isRubyEncoding(rubyEncoding)", "!isSimple(code, rubyEncoding)", "isCodepoint(code)" })
         public DynamicObject stringFromCodepoint(long code, DynamicObject rubyEncoding,
-                @Cached("create()") RopeNodes.PreciseLengthNode preciseLengthNode) {
+                @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode) {
             final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
             final int length;
 
@@ -3462,7 +3464,7 @@ public abstract class StringNodes {
                 throw new RaiseException(getContext(), coreExceptions().rangeError(code, rubyEncoding, this));
             }
 
-            if (preciseLengthNode.executeLength(encoding, bytes, 0, length) != length) {
+            if (characterLengthNode.characterLength(encoding, CR_UNKNOWN, bytes, 0, length) != length) {
                 throw new RaiseException(getContext(), coreExceptions().rangeError(code, rubyEncoding, this));
             }
 
@@ -3783,7 +3785,7 @@ public abstract class StringNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyString(pattern)")
         public Object stringCharacterIndex(DynamicObject string, DynamicObject pattern, int offset,
-                @Cached("create()") RopeNodes.PreciseLengthNode preciseLengthNode) {
+                @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode) {
             if (offset < 0) {
                 return nil();
             }
@@ -3811,11 +3813,12 @@ public abstract class StringNodes {
             }
 
             final Encoding enc = stringRope.getEncoding();
+            final CodeRange cr = stringRope.getCodeRange();
             int index = 0;
             int c = 0;
 
             while (p < e && index < offset) {
-                c = preciseLengthNode.executeLength(enc, stringBytes, p, e);
+                c = characterLengthNode.characterLength(enc, cr, stringBytes, p, e);
 
                 if (StringSupport.MBCLEN_CHARFOUND_P(c)) {
                     p += c;
@@ -3826,7 +3829,7 @@ public abstract class StringNodes {
             }
 
             for (; p < l; p += c, ++index) {
-                c = preciseLengthNode.executeLength(enc, stringBytes, p, e);
+                c = characterLengthNode.characterLength(enc, cr, stringBytes, p, e);
                 if (!StringSupport.MBCLEN_CHARFOUND_P(c)) {
                     return nil();
                 }
@@ -3891,7 +3894,7 @@ public abstract class StringNodes {
                 @Cached("createBinaryProfile()") ConditionProfile indexTooLargeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile invalidByteProfile,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("create()") RopeNodes.PreciseLengthNode preciseLengthNode) {
+                @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode) {
             // Taken from Rubinius's String::byte_index.
 
             final Encoding enc = rope.getEncoding();
@@ -3902,7 +3905,7 @@ public abstract class StringNodes {
             int i, k = characterIndex;
 
             for (i = 0; i < k && p < e; i++) {
-                final int c = preciseLengthNode.executeLength(enc, bytes, p, e);
+                final int c = characterLengthNode.characterLength(enc, rope.getCodeRange(), bytes, p, e);
 
                 // TODO (nirvdrum 22-Dec-16): Consider having a specialized version for CR_BROKEN strings to avoid these checks.
                 // If it's an invalid byte, just treat it as a single byte
