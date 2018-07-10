@@ -67,13 +67,12 @@ public final class StringSupport {
             case CR_VALID:
                 return characterLengthValid(encoding, bytes, byteOffset, byteEnd);
             case CR_BROKEN:
+            case CR_UNKNOWN:
                 if (recoverIfBroken) {
                     return length(encoding, bytes, byteOffset, byteEnd);
                 } else {
                     return preciseLength(encoding, bytes, byteOffset, byteEnd);
                 }
-            case CR_UNKNOWN:
-                return preciseLength(encoding, bytes, byteOffset, byteEnd);
             default:
                 throw new UnsupportedOperationException("unknown code range value: " + codeRange);
         }
@@ -109,7 +108,7 @@ public final class StringSupport {
     }
 
     // rb_enc_mbclen
-    public static int length(Encoding enc, byte[]bytes, int p, int end) {
+    private static int length(Encoding enc, byte[]bytes, int p, int end) {
         int n = encLength(enc, bytes, p, end);
         if (MBCLEN_CHARFOUND_P(n) && MBCLEN_CHARFOUND_LEN(n) <= end - p) {
             return MBCLEN_CHARFOUND_LEN(n);
@@ -207,7 +206,7 @@ public final class StringSupport {
                         c += q - p;
                         p = q;
                     }
-                    p += length(enc, bytes, p, e);
+                    p += characterLength(enc, cr, bytes, p, e, true);
                     c++;
                 }
             }
@@ -215,7 +214,7 @@ public final class StringSupport {
         }
 
         for (c = 0; p < e; c++) {
-            p += length(enc, bytes, p, e);
+            p += characterLength(enc, cr, bytes, p, e, true);
         }
         return c;
     }
@@ -1200,8 +1199,8 @@ public final class StringSupport {
                 }
                 cl = ocl = 1;
             } else {
-                cl = length(enc, bytes, p, end);
-                ocl = length(enc, obytes, op, oend);
+                cl = characterLength(enc, enc == value.getEncoding() ? value.getCodeRange() : CR_UNKNOWN, bytes, p, end, true);
+                ocl = characterLength(enc, enc == otherValue.getEncoding() ? otherValue.getCodeRange() : CR_UNKNOWN, obytes, op, oend, true);
                 // TODO: opt for 2 and 3 ?
                 int ret = caseCmp(bytes, p, obytes, op, cl < ocl ? cl : ocl);
                 if (ret != 0) {
