@@ -33,6 +33,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.rope.RopeNodesFactory.SetByteNodeGen;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.string.UTF8Operations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -1520,6 +1521,117 @@ public abstract class RopeNodes {
         public int executeHashNotCalculated(Rope rope) {
             return rope.hashCode();
         }
+    }
+
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "encoding"),
+            @NodeChild(type = RubyNode.class, value = "codeRange"),
+            @NodeChild(type = RubyNode.class, value = "bytes"),
+            @NodeChild(type = RubyNode.class, value = "byteOffset"),
+            @NodeChild(type = RubyNode.class, value = "byteEnd"),
+            @NodeChild(type = RubyNode.class, value = "recoverIfBroken")
+    })
+    @ImportStatic(CodeRange.class)
+    public abstract static class CharacterLengthNode extends RubyNode {
+
+        public static CharacterLengthNode create() {
+            return RopeNodesFactory.CharacterLengthNodeGen.create(null, null, null, null, null, null);
+        }
+
+        protected abstract int executeLength(Encoding encoding, CodeRange codeRange, byte[] bytes,
+                int byteOffset, int byteEnd, boolean recoverIfBroken);
+
+        public int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd) {
+            return executeLength(encoding, codeRange, bytes, byteOffset, byteEnd, false);
+        }
+
+        public int characterLengthWithRecovery(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd) {
+            return executeLength(encoding, codeRange, bytes, byteOffset, byteEnd, true);
+        }
+
+        @Specialization(guards = "codeRange == CR_7BIT")
+        protected int cr7Bit(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd, boolean recoverIfBroken) {
+            assert byteOffset < byteEnd;
+            return 1;
+        }
+
+        @Specialization(guards = { "codeRange == CR_VALID", "encoding.isUTF8()" })
+        protected int validUtf8(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd, boolean recoverIfBroken) {
+            return UTF8Operations.charWidth(bytes[byteOffset]);
+        }
+
+        @Specialization(guards = { "codeRange == CR_VALID", "encoding.isAsciiCompatible()"})
+        protected int validAsciiCompatible(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd, boolean recoverIfBroken,
+                @Cached("createBinaryProfile()") ConditionProfile asciiCharProfile) {
+            if (asciiCharProfile.profile(bytes[byteOffset] >= 0)) {
+                return 1;
+            } else {
+                return encodingLength(encoding, bytes, byteOffset, byteEnd);
+            }
+        }
+
+        @Specialization(guards = { "codeRange == CR_VALID", "encoding.isFixedWidth()"})
+        protected int validFixedWidth(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd, boolean recoverIfBroken) {
+            final int width = encoding.minLength();
+            assert (byteEnd - byteOffset) >= width;
+            return width;
+        }
+
+        @Specialization(guards = {
+                "codeRange == CR_VALID",
+                "!encoding.isAsciiCompatible()", // UTF-8 is ASCII-compatible, so we don't need to check the encoding is not UTF-8 here.
+                "!encoding.isFixedWidth()"
+        })
+        protected int validGeneral(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd, boolean recoverIfBroken) {
+            return encodingLength(encoding, bytes, byteOffset, byteEnd);
+        }
+
+        @Specialization(guards = { "codeRange == CR_BROKEN || codeRange == CR_UNKNOWN", "recoverIfBroken" })
+        protected int brokenOrUnknownWithRecovery(Encoding encoding, CodeRange codeRange, byte[] bytes,
+                int byteOffset, int byteEnd, boolean recoverIfBroken,
+                @Cached("createBinaryProfile()") ConditionProfile validCharWidthProfile,
+                @Cached("createBinaryProfile()") ConditionProfile minEncodingWidthUsedProfile) {
+            final int bytesRemaining = byteEnd - byteOffset;
+            final int width = encodingLength(encoding, bytes, byteOffset, byteEnd);
+
+            if (validCharWidthProfile.profile(width > 0 && width <= bytesRemaining)) {
+                return width;
+            } else {
+                final int minEncodingWidth = encoding.minLength();
+
+                if (minEncodingWidthUsedProfile.profile(minEncodingWidth <= bytesRemaining)) {
+                    return minEncodingWidth;
+                } else {
+                    return bytesRemaining;
+                }
+            }
+        }
+
+        @Specialization(guards = { "codeRange == CR_BROKEN || codeRange == CR_UNKNOWN", "!recoverIfBroken" })
+        protected int brokenOrUnknownWithoutRecovery(Encoding encoding, CodeRange codeRange, byte[] bytes,
+                int byteOffset, int byteEnd, boolean recoverIfBroken,
+                @Cached("createBinaryProfile()") ConditionProfile byteOffsetOutOfBoundsProfile,
+                @Cached("createBinaryProfile()") ConditionProfile validCharWidthProfile) {
+            final int bytesRemaining = byteEnd - byteOffset;
+
+            if (byteOffsetOutOfBoundsProfile.profile(byteOffset >= byteEnd)) {
+                return StringSupport.MBCLEN_NEEDMORE(1);
+            } else {
+                final int width = encodingLength(encoding, bytes, byteOffset, byteEnd);
+
+                if (validCharWidthProfile.profile(width <= bytesRemaining)) {
+                    return width;
+                } else {
+                    return StringSupport.MBCLEN_NEEDMORE(width - bytesRemaining);
+                }
+            }
+        }
+
+        @TruffleBoundary
+        private int encodingLength(Encoding encoding, byte[] bytes, int byteOffset, int byteEnd) {
+            return encoding.length(bytes, byteOffset, byteEnd);
+        }
+
     }
 
     @NodeChildren({
