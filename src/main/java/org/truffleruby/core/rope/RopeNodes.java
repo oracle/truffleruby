@@ -684,7 +684,7 @@ public abstract class RopeNodes {
         @Specialization(guards = { "isValid(codeRange)", "!isFixedWidth(encoding)", "isAsciiCompatible(encoding)" })
         public LeafRope makeValidLeafRopeAsciiCompat(byte[] bytes, Encoding encoding, CodeRange codeRange, NotProvided characterLength,
                 @Cached("create()") BranchProfile errorProfile,
-                @Cached("create()") EncodingLengthNode encodingLengthNode) {
+                @Cached("create()") CharacterLengthNode characterLengthNode) {
             // Extracted from StringSupport.strLength.
 
             int calculatedCharacterLength = 0;
@@ -701,8 +701,8 @@ public abstract class RopeNodes {
                     calculatedCharacterLength += q - p;
                     p = q;
                 }
-                int delta = encodingLengthNode.executeLength(encoding, bytes, p, e);
 
+                final int delta = characterLengthNode.characterLengthWithRecovery(encoding, CR_VALID, bytes, p, e);
                 if (delta < 0) {
                     errorProfile.enter();
                     throw new UnsupportedOperationException("Code range is reported as valid, but is invalid for the given encoding: " + encodingName(encoding));

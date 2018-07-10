@@ -64,6 +64,7 @@
 package org.truffleruby.core.string;
 
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
+import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.rope.RopeConstants.EMPTY_ASCII_8BIT_ROPE;
 import static org.truffleruby.core.string.StringOperations.encoding;
@@ -1133,16 +1134,17 @@ public abstract class StringNodes {
 
         @Specialization(guards = "!isBrokenCodeRange(string)")
         public DynamicObject eachChar(DynamicObject string, DynamicObject block,
-                @Cached("create()") RopeNodes.EncodingLengthNode encodingLengthNode) {
+                @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode) {
             final Rope rope = rope(string);
             final byte[] ptrBytes = bytesNode.execute(rope);
             final int len = ptrBytes.length;
             final Encoding enc = rope.getEncoding();
+            final CodeRange cr = rope.getCodeRange();
 
             int n;
 
             for (int i = 0; i < len; i += n) {
-                n = encodingLengthNode.executeLength(enc, ptrBytes, i, len);
+                n = characterLengthNode.characterLength(enc, cr, ptrBytes, i, len);
 
                 yield(block, substr(rope, string, i, n));
             }
@@ -1539,7 +1541,7 @@ public abstract class StringNodes {
         @Child private RopeNodes.ConcatNode concatNode = RopeNodes.ConcatNode.create();
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-        @Child private RopeNodes.EncodingLengthNode encodingLengthNode = RopeNodes.EncodingLengthNode.create();
+        @Child private RopeNodes.CharacterLengthNode characterLengthNode = RopeNodes.CharacterLengthNode.create();
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization(guards = { "isBrokenCodeRange(string)", "isAsciiCompatible(string)" })
@@ -1560,7 +1562,7 @@ public abstract class StringNodes {
                 p = e;
             }
             while (p < e) {
-                int ret = encodingLengthNode.executeLength(enc, pBytes, p, e);
+                int ret = characterLengthNode.characterLength(enc, CR_BROKEN, pBytes, p, e);
                 if (MBCLEN_NEEDMORE_P(ret)) {
                     break;
                 } else if (MBCLEN_CHARFOUND_P(ret)) {
@@ -1617,6 +1619,7 @@ public abstract class StringNodes {
                 @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode) {
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
+            final CodeRange cr = rope.getCodeRange();
             Rope buf = RopeConstants.EMPTY_ASCII_8BIT_ROPE;
 
             final byte[] pBytes = bytesNode.execute(rope);
@@ -1627,7 +1630,7 @@ public abstract class StringNodes {
             final int mbminlen = enc.minLength();
 
             while (p < e) {
-                int ret = characterLengthNode.characterLength(enc, rope.getCodeRange(), pBytes, p, e);
+                int ret = characterLengthNode.characterLength(enc, CR_BROKEN, pBytes, p, e);
                 if (MBCLEN_NEEDMORE_P(ret)) {
                     break;
                 } else if (MBCLEN_CHARFOUND_P(ret)) {
@@ -1648,7 +1651,7 @@ public abstract class StringNodes {
                     } else {
                         clen -= mbminlen;
                         for (; clen > mbminlen; clen -= mbminlen) {
-                            ret = encodingLengthNode.executeLength(enc, pBytes, q, q + clen);
+                            ret = characterLengthNode.characterLength(enc, cr, pBytes, q, q + clen);
                             if (MBCLEN_NEEDMORE_P(ret)) {
                                 break;
                             }

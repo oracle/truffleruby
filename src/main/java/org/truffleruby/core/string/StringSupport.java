@@ -108,7 +108,7 @@ public final class StringSupport {
     }
 
     // rb_enc_mbclen
-    private static int length(Encoding enc, byte[]bytes, int p, int end) {
+    public static int length(Encoding enc, byte[]bytes, int p, int end) {
         int n = encLength(enc, bytes, p, end);
         if (MBCLEN_CHARFOUND_P(n) && MBCLEN_CHARFOUND_LEN(n) <= end - p) {
             return MBCLEN_CHARFOUND_LEN(n);
