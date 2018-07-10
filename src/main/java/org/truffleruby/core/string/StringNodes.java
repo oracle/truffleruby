@@ -1132,7 +1132,7 @@ public abstract class StringNodes {
         @Child private TaintResultNode taintResultNode;
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
-        @Specialization(guards = "!isBrokenCodeRange(string)")
+        @Specialization
         public DynamicObject eachChar(DynamicObject string, DynamicObject block,
                 @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode) {
             final Rope rope = rope(string);
@@ -1144,26 +1144,7 @@ public abstract class StringNodes {
             int n;
 
             for (int i = 0; i < len; i += n) {
-                n = characterLengthNode.characterLength(enc, cr, ptrBytes, i, len);
-
-                yield(block, substr(rope, string, i, n));
-            }
-
-            return string;
-        }
-
-        @Specialization(guards = "isBrokenCodeRange(string)")
-        public DynamicObject eachCharMultiByteEncoding(DynamicObject string, DynamicObject block) {
-            final Rope rope = rope(string);
-            final byte[] ptrBytes = bytesNode.execute(rope);
-            final int len = ptrBytes.length;
-            final Encoding enc = rope.getEncoding();
-            final CodeRange cr = rope.getCodeRange();
-
-            int n;
-
-            for (int i = 0; i < len; i += n) {
-                n = StringSupport.characterLength(enc, cr, ptrBytes, i, len, true);
+                n = characterLengthNode.characterLengthWithRecovery(enc, cr, ptrBytes, i, len);
 
                 yield(block, substr(rope, string, i, n));
             }
