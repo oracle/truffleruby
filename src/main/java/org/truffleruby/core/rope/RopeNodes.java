@@ -33,7 +33,6 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.rope.RopeNodesFactory.SetByteNodeGen;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.core.string.UTF8Operations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -1556,8 +1555,35 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "codeRange == CR_VALID", "encoding.isUTF8()" })
-        protected int validUtf8(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd, boolean recoverIfBroken) {
-            return UTF8Operations.charWidth(bytes[byteOffset]);
+        protected int validUtf8(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd, boolean recoverIfBroken,
+                @Cached("create()") BranchProfile oneByteProfile,
+                @Cached("create()") BranchProfile twoBytesProfile,
+                @Cached("create()") BranchProfile threeBytesProfile,
+                @Cached("create()") BranchProfile fourBytesProfile) {
+            final byte b = bytes[byteOffset];
+            final int ret;
+
+            if (b > 0) {
+                oneByteProfile.enter();
+                ret = 1;
+            } else {
+                switch(b & 0xf0) {
+                    case 0xe0:
+                        threeBytesProfile.enter();
+                        ret = 3;
+                        break;
+                    case 0xf0:
+                        fourBytesProfile.enter();
+                        ret = 4;
+                        break;
+                    default:
+                        twoBytesProfile.enter();
+                        ret = 2;
+                        break;
+                }
+            }
+
+            return ret;
         }
 
         @Specialization(guards = { "codeRange == CR_VALID", "encoding.isAsciiCompatible()"})
