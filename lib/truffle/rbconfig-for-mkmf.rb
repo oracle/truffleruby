@@ -11,10 +11,11 @@
 
 require 'rbconfig'
 
-search_paths = { '' => '$PATH' }
+search_paths = {}
 if Truffle::Platform.darwin?
   search_paths['/usr/local/opt/llvm@4/bin/'] = '/usr/local/opt/llvm@4/bin'
 end
+search_paths[''] = '$PATH'
 
 # First, find in which prefix clang and opt are available.
 # We want to use both tools from the same prefix.
