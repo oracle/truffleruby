@@ -34,11 +34,22 @@ sudo dnf install openssl-devel
 
 ## macOS
 
-On macOS the system version is too old. We recommend installing via
-[Homebrew](https://brew.sh).
+On macOS the system version is too old.
+
+### Homebrew
+
+We recommend installing libssl via [Homebrew](https://brew.sh).
 
 ```
 brew install openssl
+```
+
+### MacPorts
+
+MacPorts should also work but is not actively tested.
+
+```bash
+sudo port install openssl
 ```
 
 ## Remapping

@@ -73,14 +73,23 @@ sudo dnf install libcxx-devel
 The tested version of LLVM for macOS is 4.0.1.
 
 We need the `opt` command, so you can't just use what is installed by Xcode if
-you are on macOS. We would recommend that you install LLVM 4 via
-[Homebrew](https://brew.sh).
-
+you are on macOS.
 For building and using C and C++ extensions on macOS we recommend just
 installing the full `llvm` package. Make sure you have also installed the
 standard C headers from Xcode via `xcode-select --install`.
 
+### Homebrew
+
+We would recommend that you install LLVM 4 via [Homebrew](https://brew.sh).
+
 ```bash
-xcode-select --install
 brew install llvm@4
+```
+
+### MacPorts
+
+MacPorts should also work but is not actively tested. LLVM 4.0 is required.
+
+```bash
+sudo port install clang-4.0 llvm-4.0
 ```
