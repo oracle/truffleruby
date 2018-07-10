@@ -393,16 +393,30 @@ public class CExtNodes {
         @Specialization
         public DynamicObject rbEncCodePointLen(DynamicObject string, DynamicObject encoding,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("create()") RopeNodes.PreciseLengthNode preciseLengthNode) {
+                @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode,
+                @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile,
+                @Cached("create()") BranchProfile errorProfile) {
             final Rope rope = rope(string);
             final byte[] bytes = bytesNode.execute(rope);
             final Encoding enc = Layouts.ENCODING.getEncoding(encoding);
-            final int r = preciseLengthNode.executeLength(enc, bytes, 0, bytes.length);
+
+            final CodeRange cr;
+            if (sameEncodingProfile.profile(enc == rope.getEncoding())) {
+                cr = rope.getCodeRange();
+            } else {
+                cr = CodeRange.CR_UNKNOWN;
+            }
+
+            final int r = characterLengthNode.characterLength(enc, cr, bytes, 0, bytes.length);
+
             if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
+                errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentError("invalid byte sequence in " + enc, this));
             }
+
             final int len_p = StringSupport.MBCLEN_CHARFOUND_LEN(r);
             final int codePoint = StringSupport.preciseCodePoint(enc, rope.getCodeRange(), bytes, 0, bytes.length);
+
             return createArray(new Object[]{len_p, codePoint}, 2);
         }
 
@@ -1227,9 +1241,18 @@ public class CExtNodes {
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
         public Object rbEncPreciseMbclen(DynamicObject enc, DynamicObject str, int p, int end,
-                @Cached("create()") RopeNodes.PreciseLengthNode preciseLengthNode) {
-            return preciseLengthNode.executeLength(
-                    EncodingOperations.getEncoding(enc), StringOperations.rope(str).getBytes(), p, end);
+                @Cached("create()") RopeNodes.CharacterLengthNode characterLengthNode,
+                @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile) {
+            final Encoding encoding = EncodingOperations.getEncoding(enc);
+            final Rope rope = StringOperations.rope(str);
+            final CodeRange cr;
+            if (sameEncodingProfile.profile(encoding == rope.getEncoding())) {
+                cr = rope.getCodeRange();
+            } else {
+                cr = CodeRange.CR_UNKNOWN;
+            }
+
+            return characterLengthNode.characterLength(encoding, cr, rope.getBytes(), p, end);
         }
 
     }
