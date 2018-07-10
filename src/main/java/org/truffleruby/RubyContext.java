@@ -77,10 +77,12 @@ import org.truffleruby.stdlib.CoverageManager;
 import org.truffleruby.stdlib.readline.ConsoleHolder;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.SecureRandom;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
@@ -119,7 +121,7 @@ public class RubyContext {
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
 
-    @CompilationFinal private SecureRandom random;
+    @CompilationFinal private FileInputStream randomFile;
     private final Hashing hashing;
     @CompilationFinal BacktraceFormatter defaultBacktraceFormatter;
     private final BacktraceFormatter userBacktraceFormatter;
@@ -165,9 +167,9 @@ public class RubyContext {
         options = createOptions(env);
 
         // We need to construct this at runtime
-        random = new SecureRandom();
+        randomFile = openRandomFile();
 
-        hashing = new Hashing(generateHashingSeed(random));
+        hashing = new Hashing(generateHashingSeed());
 
         defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
         userBacktraceFormatter = new BacktraceFormatter(this, BacktraceFormatter.USER_BACKTRACE_FLAGS);
@@ -265,8 +267,8 @@ public class RubyContext {
         }
 
         if (isPreInitializing()) {
-            // Cannot save the FileDescriptor in the image, referenced by the SecureRandom instance
-            random = null;
+            // Cannot save the file descriptor in the image
+            randomFile = null;
             // Cannot save the root Java Thread instance in the image
             threadManager.resetMainThread();
         } else {
@@ -297,8 +299,8 @@ public class RubyContext {
         // Re-read the value of $TZ as it can be different in the new process
         GetTimeZoneNode.invalidateTZ();
 
-        this.random = new SecureRandom();
-        hashing.patchSeed(generateHashingSeed(random));
+        randomFile = openRandomFile();
+        hashing.patchSeed(generateHashingSeed());
 
         this.defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
 
@@ -395,12 +397,14 @@ public class RubyContext {
         return options;
     }
 
-    private long generateHashingSeed(SecureRandom random) {
+    private long generateHashingSeed() {
         if (options.HASHING_DETERMINISTIC) {
             Log.LOGGER.severe("deterministic hashing is enabled - this may make you vulnerable to denial of service attacks");
             return 7114160726623585955L;
         } else {
-            return random.nextLong();
+            final byte[] bytes = getRandomSeedBytes(Long.BYTES);
+            final ByteBuffer buffer = ByteBuffer.wrap(bytes);
+            return buffer.getLong();
         }
     }
 
@@ -820,10 +824,44 @@ public class RubyContext {
         return nativeConfiguration;
     }
 
+    private static FileInputStream openRandomFile() {
+        try {
+            /*
+             * We don't want to ever use /dev/random because it could block waiting for entropy which is an observed
+             * problem in practice with Ruby in cloud environments.
+             *
+             * We could use NativePRNGNonBlocking, which always uses /dev/urandom, or we could use NativePRNG and only
+             * call #nextBytes (never #generateSeed), but the initial seed might still need a few bytes from
+             * /dev/random, and the SVM does not support either of these algorithms.
+             *
+             * Instead, we'll just use /dev/urandom directly.
+             *
+             * (See https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SUNProvider,
+             * https://docs.oracle.com/javase/10/security/oracle-providers.htm#JSSEC-GUID-C4706FFE-D08F-4E29-B0BE-CCE8C93DD940)
+             */
+            return new FileInputStream("/dev/urandom");
+        } catch (FileNotFoundException e) {
+            throw new JavaException(e);
+        }
+    }
+
     public byte[] getRandomSeedBytes(int numBytes) {
-        // We'd like to use /dev/urandom each time here by using NativePRNGNonBlocking, but this is not supported on the SVM
         final byte[] bytes = new byte[numBytes];
-        random.nextBytes(bytes);
+
+        int offset = 0;
+
+        while (offset < numBytes) {
+            final int read;
+
+            try {
+                read = randomFile.read(bytes, offset, numBytes - offset);
+            } catch (IOException e) {
+                throw new JavaException(e);
+            }
+
+            offset += read;
+        }
+
         return bytes;
     }
 

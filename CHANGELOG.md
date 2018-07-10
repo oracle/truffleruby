@@ -4,6 +4,10 @@
 
 * #autoload now correctly calls main.require(path) dynamically.
 * It is no longer needed to add LLVM (`/usr/local/opt/llvm@4/bin`) to PATH on macOS.
+Bug fixes:
+
+* Random seeds now always come directly from `/dev/urandom` for MRI
+  compatibility.
 
 # 1.0 RC 3
 
