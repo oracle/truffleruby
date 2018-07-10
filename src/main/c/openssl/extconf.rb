@@ -14,18 +14,7 @@
 require "mkmf"
 require File.expand_path('../deprecation', __FILE__)
 
-# TruffleRuby: set OPENSSL_PREFIX automatically for normal macOS usecase
-UNAME = `uname`.chomp
-MAC = UNAME == 'Darwin'
-if MAC && !ENV['OPENSSL_PREFIX']
-  if Dir.exist?('/usr/local/opt/openssl') # Homebrew
-    ENV['OPENSSL_PREFIX'] = '/usr/local/opt/openssl'
-  elsif Dir.exist?('/opt/local/include/openssl') # MacPorts
-    ENV['OPENSSL_PREFIX'] = '/opt/local'
-  else
-    abort "Could not find OpenSSL headers, install via Homebrew or MacPorts or set OPENSSL_PREFIX"
-  end
-end
+require 'truffle/openssl-prefix'
 
 dir_config("openssl", ENV["OPENSSL_PREFIX"]) # TruffleRuby: use $OPENSSL_PREFIX as default if set
 dir_config("kerberos")

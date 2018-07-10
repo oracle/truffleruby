@@ -50,9 +50,7 @@ SO = MAC ? 'dylib' : 'so'
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
-if MAC && !ENV['OPENSSL_PREFIX']
-  ENV['OPENSSL_PREFIX'] = '/usr/local/opt/openssl'
-end
+require "#{TRUFFLERUBY_DIR}/lib/truffle/truffle/openssl-prefix.rb"
 
 # wait for sub-processes to handle the interrupt
 trap(:INT) {}

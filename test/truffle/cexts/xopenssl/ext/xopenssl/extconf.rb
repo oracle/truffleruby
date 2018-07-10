@@ -1,10 +1,6 @@
 require 'mkmf'
 
-MAC = `uname`.chomp == 'Darwin'
-
-if MAC && !ENV['OPENSSL_PREFIX']
-  ENV['OPENSSL_PREFIX'] = '/usr/local/opt/openssl'
-end
+require 'truffle/openssl-prefix'
 
 if ENV['OPENSSL_PREFIX']
   $CFLAGS += " -I #{ENV['OPENSSL_PREFIX']}/include"
