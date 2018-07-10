@@ -2,15 +2,10 @@
 
 # 1.0 RC 4
 
-* #autoload now correctly calls main.require(path) dynamically.
-* It is no longer needed to add LLVM (`/usr/local/opt/llvm@4/bin`) to PATH on macOS.
-Bug fixes:
-
-* Random seeds now always come directly from `/dev/urandom` for MRI
-  compatibility.
 New features:
 * It is no longer needed to add LLVM (`/usr/local/opt/llvm@4/bin`) to `PATH` on macOS.
 * Improve error message when LLVM, `clang` or `opt` is missing.
+* Automatically find LLVM and libssl with MacPorts on macOS (#1386).
 
 Bug fixes:
 * Allow any name for constants with `rb_const_get()`/`rb_const_set()` (#1380).
@@ -21,6 +16,8 @@ Bug fixes:
 * Hide internal file from user-level backtraces (#1375).
 * Show caller information in warnings from the core library (#1375).
 * #require and #require_relative should keep symlinks in `$"` and `__FILE__` (#1383).
+* Random seeds now always come directly from `/dev/urandom` for MRI compatibility.
+* SIGINFO, SIGEMT and SIGPWR are now defined (#1382).
 
 Performance:
 * Optimize required keyword arguments.
