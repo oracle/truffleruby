@@ -1634,33 +1634,6 @@ public abstract class RopeNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "encoding"),
-            @NodeChild(type = RubyNode.class, value = "bytes"),
-            @NodeChild(type = RubyNode.class, value = "start"),
-            @NodeChild(type = RubyNode.class, value = "end")
-    })
-    public abstract static class EncodingLengthNode extends RubyNode {
-
-        public static EncodingLengthNode create() {
-            return RopeNodesFactory.EncodingLengthNodeGen.create(null, null, null, null);
-        }
-
-        public abstract int executeLength(Encoding encoding, byte[] bytes, int start, int end);
-
-        @Specialization(guards = "encoding.isUTF8()")
-        public int utf8Length(Encoding encoding, byte[] bytes, int start, int end) {
-            return UTF8Encoding.class.cast(encoding).length(bytes, start, end);
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = "!encoding.isUTF8()")
-        public int genericLength(Encoding encoding, byte[] bytes, int start, int end) {
-            return encoding.length(bytes, start, end);
-        }
-
-    }
-
     @NodeChild(type = RubyNode.class, value = "rope")
     public abstract static class NativeToManagedNode extends RubyNode {
 
