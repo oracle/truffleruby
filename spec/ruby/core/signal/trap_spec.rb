@@ -123,7 +123,13 @@ platform_is_not :windows do
     end
 
     if PlatformGuard.implementation?(:truffleruby)
-      reserved_signals += %w[SEGV ILL FPE USR1 QUIT] if !TruffleRuby.native?
+      if !TruffleRuby.native?
+        reserved_signals += %w[SEGV ILL FPE USR1 QUIT]
+      end
+    end
+
+    if PlatformGuard.implementation?(:jruby)
+      reserved_signals += %w[SEGV ILL FPE BUS USR1 QUIT]
     end
 
     cannot_be_trapped.each do |signal|
