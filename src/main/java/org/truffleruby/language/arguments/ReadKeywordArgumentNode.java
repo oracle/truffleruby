@@ -9,25 +9,26 @@
  */
 package org.truffleruby.language.arguments;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.core.hash.HashOperations;
-import org.truffleruby.core.hash.KeyValue;
-import org.truffleruby.language.RubyGuards;
+
+import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.core.hash.HashNodes.HashLookupOrExecuteDefaultNode;
 import org.truffleruby.language.RubyNode;
 
-public class ReadKeywordArgumentNode extends RubyNode {
+public class ReadKeywordArgumentNode extends RubyNode implements BiFunctionNode {
 
-    private final String name;
+    private final DynamicObject name;
     private final ConditionProfile defaultProfile = ConditionProfile.createBinaryProfile();
     
     @Child private RubyNode defaultValue;
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
+    @Child private HashLookupOrExecuteDefaultNode hashLookupNode;
 
     public ReadKeywordArgumentNode(int minimum, String name, RubyNode defaultValue) {
-        this.name = name;
+        this.name = getSymbol(name);
         this.defaultValue = defaultValue;
         readUserKeywordsHashNode = new ReadUserKeywordsHashNode(minimum);
     }
@@ -40,27 +41,20 @@ public class ReadKeywordArgumentNode extends RubyNode {
             return defaultValue.execute(frame);
         }
 
-        Object value = lookupKeywordInHash(hash);
-
-        if (defaultProfile.profile(value == null)) {
-            return defaultValue.execute(frame);
-        }
-
-        return value;
+        return lookupKeywordInHash(frame, hash);
     }
 
-    @TruffleBoundary
-    private Object lookupKeywordInHash(DynamicObject hash) {
-
-        assert RubyGuards.isRubyHash(hash);
-
-        for (KeyValue keyValue : HashOperations.iterableKeyValues(hash)) {
-            if (RubyGuards.isRubySymbol(keyValue.getKey()) && keyValue.getKey().toString().equals(name)) {
-                return keyValue.getValue();
-            }
+    private Object lookupKeywordInHash(VirtualFrame frame, DynamicObject hash) {
+        if (hashLookupNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            hashLookupNode = insert(HashLookupOrExecuteDefaultNode.create());
         }
 
-        return null;
+        return hashLookupNode.executeGet(frame, hash, name, this);
+    }
+
+    public Object accept(VirtualFrame frame, Object hash, Object key) {
+        return defaultValue.execute(frame);
     }
 
 }

@@ -10,7 +10,6 @@
 package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -30,8 +29,11 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.collections.ConsumerNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
-import org.truffleruby.core.hash.HashNodesFactory.GetIndexNodeFactory;
+import org.truffleruby.core.hash.HashNodesFactory.EachKeyNodeGen;
+import org.truffleruby.core.hash.HashNodesFactory.HashLookupOrExecuteDefaultNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
 import org.truffleruby.language.NotProvided;
@@ -150,44 +152,37 @@ public abstract class HashNodes {
 
     }
 
-    @CoreMethod(names = "[]", required = 1)
+    @NodeChild("hash")
+    @NodeChild("key")
+    @NodeChild("defaultValueNode")
     @ImportStatic(HashGuards.class)
-    public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class HashLookupOrExecuteDefaultNode extends RubyNode {
 
-        @Child private CallDispatchHeadNode callDefaultNode = CallDispatchHeadNode.create();
-
-        @CompilationFinal protected Object undefinedValue = null;
-
-        public void setUndefinedValue(Object undefinedValue) {
-            this.undefinedValue = undefinedValue;
+        public static HashLookupOrExecuteDefaultNode create() {
+            return HashLookupOrExecuteDefaultNodeGen.create(null, null, null);
         }
 
-        public abstract Object executeGet(VirtualFrame frame, DynamicObject hash, Object key);
+        public abstract Object executeGet(VirtualFrame frame, DynamicObject hash, Object key, BiFunctionNode defaultValueNode);
 
         @Specialization(guards = "isNullHash(hash)")
-        public Object getNull(VirtualFrame frame, DynamicObject hash, Object key) {
-            if (undefinedValue != null) {
-                return undefinedValue;
-            } else {
-                return callDefaultNode.call(frame, hash, "default", key);
-            }
+        public Object getNull(VirtualFrame frame, DynamicObject hash, Object key, BiFunctionNode defaultValueNode) {
+            return defaultValueNode.accept(frame, hash, key);
         }
 
         @Specialization(guards = "isPackedHash(hash)")
-        public Object getPackedArray(VirtualFrame frame, DynamicObject hash, Object key,
-                @Cached("create(undefinedValue)") LookupPackedEntryNode lookupPackedEntryNode,
+        public Object getPackedArray(VirtualFrame frame, DynamicObject hash, Object key, BiFunctionNode defaultValueNode,
+                @Cached("create()") LookupPackedEntryNode lookupPackedEntryNode,
                 @Cached("new()") HashNode hashNode,
                 @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
             final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
             int hashed = hashNode.hash(frame, key, compareByIdentity); // Call key.hash only once
-            return lookupPackedEntryNode.executePackedLookup(frame, hash, key, hashed);
+            return lookupPackedEntryNode.executePackedLookup(frame, hash, key, hashed, defaultValueNode);
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        public Object getBuckets(VirtualFrame frame, DynamicObject hash, Object key,
+        public Object getBuckets(VirtualFrame frame, DynamicObject hash, Object key, BiFunctionNode defaultValueNode,
                 @Cached("new()") LookupEntryNode lookupEntryNode,
-                @Cached("create()") BranchProfile notInHashProfile,
-                @Cached("create()") BranchProfile useDefaultProfile) {
+                @Cached("create()") BranchProfile notInHashProfile) {
             final HashLookupResult hashLookupResult = lookupEntryNode.lookup(frame, hash, key);
 
             if (hashLookupResult.getEntry() != null) {
@@ -195,30 +190,47 @@ public abstract class HashNodes {
             }
 
             notInHashProfile.enter();
+            return defaultValueNode.accept(frame, hash, key);
+        }
 
-            if (undefinedValue != null) {
-                return undefinedValue;
+    }
+
+    @CoreMethod(names = "[]", required = 1)
+    @ImportStatic(HashGuards.class)
+    public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode implements BiFunctionNode {
+
+        @Child private HashLookupOrExecuteDefaultNode lookupNode = HashLookupOrExecuteDefaultNode.create();
+        @Child private CallDispatchHeadNode callDefaultNode;
+
+        public abstract Object executeGet(VirtualFrame frame, DynamicObject hash, Object key);
+
+        @Specialization
+        public Object get(VirtualFrame frame, DynamicObject hash, Object key) {
+            return lookupNode.executeGet(frame, hash, key, this);
+        }
+
+        public Object accept(VirtualFrame frame, Object hash, Object key) {
+            if (callDefaultNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                callDefaultNode = insert(CallDispatchHeadNode.create());
             }
-
-            useDefaultProfile.enter();
             return callDefaultNode.call(frame, hash, "default", key);
         }
 
     }
 
     @CoreMethod(names = "_get_or_undefined", required = 1)
-    public abstract static class GetOrUndefinedNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class GetOrUndefinedNode extends CoreMethodArrayArgumentsNode implements BiFunctionNode {
 
-        @Child private GetIndexNode getIndexNode;
-
-        public GetOrUndefinedNode() {
-            getIndexNode = GetIndexNodeFactory.create(null);
-            getIndexNode.setUndefinedValue(NotProvided.INSTANCE);
-        }
+        @Child private HashLookupOrExecuteDefaultNode lookupNode = HashLookupOrExecuteDefaultNode.create();
 
         @Specialization
         public Object getOrUndefined(VirtualFrame frame, DynamicObject hash, Object key) {
-            return getIndexNode.executeGet(frame, hash, key);
+            return lookupNode.executeGet(frame, hash, key, this);
+        }
+
+        public Object accept(VirtualFrame frame, Object hash, Object key) {
+            return NotProvided.INSTANCE;
         }
 
     }
@@ -1172,6 +1184,63 @@ public abstract class HashNodes {
 
             assert HashOperations.verifyStore(getContext(), hash);
             return hash;
+        }
+
+    }
+
+    @NodeChild("hash")
+    @ImportStatic(HashGuards.class)
+    public abstract static class EachKeyNode extends RubyNode {
+
+        @Child ConsumerNode callbackNode;
+
+        public static EachKeyNode create(ConsumerNode consumerNode) {
+            return EachKeyNodeGen.create(consumerNode, null);
+        }
+
+        public EachKeyNode(ConsumerNode consumerNode) {
+            this.callbackNode = consumerNode;
+        }
+
+        public abstract Object executeEachKey(VirtualFrame frame, DynamicObject hash);
+
+        @Specialization(guards = "isNullHash(hash)")
+        protected Object eachKeyNull(VirtualFrame frame, DynamicObject hash) {
+            return hash;
+        }
+
+        @ExplodeLoop
+        @Specialization(guards = { "isPackedHash(hash)", "getSize(hash) == cachedSize" }, limit = "getPackedHashLimit()")
+        protected Object keysPackedArrayCached(VirtualFrame frame, DynamicObject hash,
+                @Cached("getSize(hash)") int cachedSize) {
+            assert HashOperations.verifyStore(getContext(), hash);
+            final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
+
+            for (int i = 0; i < cachedSize; i++) {
+                callbackNode.accept(frame, PackedArrayStrategy.getKey(store, i));
+            }
+
+            return hash;
+        }
+
+        @Specialization(guards = "isBucketHash(hash)")
+        protected Object keysBuckets(VirtualFrame frame, DynamicObject hash) {
+            assert HashOperations.verifyStore(getContext(), hash);
+
+            for (KeyValue keyValue : BucketsStrategy.iterableKeyValues(Layouts.HASH.getFirstInSequence(hash))) {
+                callbackNode.accept(frame, keyValue.getKey());
+            }
+
+            return hash;
+        }
+
+        protected int getSize(DynamicObject hash) {
+            return Layouts.HASH.getSize(hash);
+        }
+
+        protected int getPackedHashLimit() {
+            // + 1 for packed Hash with size = 0
+            return getContext().getOptions().HASH_PACKED_ARRAY_MAX + 1;
         }
 
     }

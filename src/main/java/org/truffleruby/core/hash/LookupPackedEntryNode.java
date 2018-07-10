@@ -20,6 +20,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
+import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
@@ -27,6 +28,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
         @NodeChild("hash"),
         @NodeChild("key"),
         @NodeChild("hashed"),
+        @NodeChild("defaultValueNode"),
 })
 @ImportStatic(HashGuards.class)
 public abstract class LookupPackedEntryNode extends RubyNode {
@@ -34,17 +36,11 @@ public abstract class LookupPackedEntryNode extends RubyNode {
     @Child CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
     @Child private CallDispatchHeadNode callDefaultNode = CallDispatchHeadNode.create();
 
-    private final Object undefinedValue;
-
-    public static LookupPackedEntryNode create(Object undefinedValue) {
-        return LookupPackedEntryNodeGen.create(undefinedValue, null, null, null);
+    public static LookupPackedEntryNode create() {
+        return LookupPackedEntryNodeGen.create(null, null, null, null);
     }
 
-    public LookupPackedEntryNode(Object undefinedValue) {
-        this.undefinedValue = undefinedValue;
-    }
-
-    public abstract Object executePackedLookup(VirtualFrame frame, DynamicObject hash, Object key, int hashed);
+    public abstract Object executePackedLookup(VirtualFrame frame, DynamicObject hash, Object key, int hashed, BiFunctionNode defaultValueNode);
 
     @Specialization(guards = {
             "isCompareByIdentity(hash) == cachedByIdentity",
@@ -52,7 +48,7 @@ public abstract class LookupPackedEntryNode extends RubyNode {
             "cachedIndex < getSize(hash)",
             "sameKeysAtIndex(hash, key, hashed, cachedIndex, cachedByIdentity)"
     }, limit = "1")
-    public Object getConstantIndexPackedArray(DynamicObject hash, Object key, int hashed,
+    public Object getConstantIndexPackedArray(DynamicObject hash, Object key, int hashed, BiFunctionNode defaultValueNode,
             @Cached("index(hash, key, hashed)") int cachedIndex,
             @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity) {
         final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
@@ -98,9 +94,8 @@ public abstract class LookupPackedEntryNode extends RubyNode {
 
     @ExplodeLoop
     @Specialization(replaces = "getConstantIndexPackedArray")
-    public Object getPackedArray(VirtualFrame frame, DynamicObject hash, Object key, int hashed,
+    public Object getPackedArray(VirtualFrame frame, DynamicObject hash, Object key, int hashed, BiFunctionNode defaultValueNode,
             @Cached("create()") BranchProfile notInHashProfile,
-            @Cached("create()") BranchProfile useDefaultProfile,
             @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
         final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
 
@@ -113,18 +108,12 @@ public abstract class LookupPackedEntryNode extends RubyNode {
                 final Object otherKey = PackedArrayStrategy.getKey(store, n);
                 if (equalKeys(frame, compareByIdentity, key, hashed, otherKey, otherHashed)) {
                     return PackedArrayStrategy.getValue(store, n);
-        }
+                }
             }
         }
 
         notInHashProfile.enter();
-
-        if (undefinedValue != null) {
-            return undefinedValue;
-        }
-
-        useDefaultProfile.enter();
-        return callDefaultNode.call(frame, hash, "default", key);
+        return defaultValueNode.accept(frame, hash, key);
 
     }
 

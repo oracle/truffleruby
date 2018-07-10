@@ -45,9 +45,9 @@ public class ReadUserKeywordsHashNode extends RubyNode {
 
         if (lastArgumentIsHashProfile.profile(RubyGuards.isRubyHash(lastArgument))) {
             return lastArgument;
+        } else {
+            return tryConvertToHash(frame, argumentCount, lastArgument);
         }
-
-        return tryConvertToHash(frame, argumentCount, lastArgument);
     }
 
     private Object tryConvertToHash(VirtualFrame frame, int argumentCount, Object lastArgument) {
