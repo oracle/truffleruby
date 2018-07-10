@@ -8,6 +8,22 @@ Bug fixes:
 
 * Random seeds now always come directly from `/dev/urandom` for MRI
   compatibility.
+New features:
+* It is no longer needed to add LLVM (`/usr/local/opt/llvm@4/bin`) to `PATH` on macOS.
+* Improve error message when LLVM, `clang` or `opt` is missing.
+
+Bug fixes:
+* Allow any name for constants with `rb_const_get()`/`rb_const_set()` (#1380).
+* Fix `defined?` with an autoload constant to not raise but return nil if the autoload fails (#1377).
+* Binary Ruby Strings can now only be converted to Java Strings if they only contain US-ASCII characters.
+  Otherwise, they would produce garbled Java Strings (#1376).
+* `#autoload` now correctly calls main.require(path) dynamically.
+* Hide internal file from user-level backtraces (#1375).
+* Show caller information in warnings from the core library (#1375).
+* #require and #require_relative should keep symlinks in `$"` and `__FILE__` (#1383).
+
+Performance:
+* Optimize required keyword arguments.
 
 # 1.0 RC 3
 
