@@ -176,7 +176,7 @@ public class ClassicRegexp implements ReOptions {
         final byte[] bytes = str.getBytes();
 
         while (p < end) {
-            final int cl = StringSupport.characterLength(enc, CR_UNKNOWN, bytes, p, end);
+            final int cl = StringSupport.characterLength(enc, enc == str.getEncoding() ? str.getCodeRange() : CR_UNKNOWN, bytes, p, end);
             if (cl <= 0) {
                 raisePreprocessError(context, str, "invalid multibyte character", mode);
             }
