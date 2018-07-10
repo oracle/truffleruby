@@ -116,16 +116,20 @@ platform_is_not :windows do
 
   describe "Signal.trap" do
     cannot_be_trapped = %w[KILL STOP] # See man 2 signal
-    reserved_signals = %w[VTALRM SEGV ILL FPE]
-    unknown_signals = []
+    reserved_signals = %w[VTALRM]
 
     if PlatformGuard.implementation?(:ruby)
-      reserved_signals += %w[BUS]
+      reserved_signals += %w[SEGV ILL FPE BUS]
     end
 
     if PlatformGuard.implementation?(:truffleruby)
-      reserved_signals += %w[USR1 QUIT] if !TruffleRuby.native?
-      unknown_signals += %w[PWR INFO EMT] if TruffleRuby.native?
+      if !TruffleRuby.native?
+        reserved_signals += %w[SEGV ILL FPE USR1 QUIT]
+      end
+    end
+
+    if PlatformGuard.implementation?(:jruby)
+      reserved_signals += %w[SEGV ILL FPE BUS USR1 QUIT]
     end
 
     cannot_be_trapped.each do |signal|
@@ -148,7 +152,7 @@ platform_is_not :windows do
     end
 
     it "allows to register a handler for all known signals, except reserved signals" do
-      excluded = cannot_be_trapped + reserved_signals + unknown_signals
+      excluded = cannot_be_trapped + reserved_signals
       out = ruby_exe(fixture(__FILE__, "trap_all.rb"), args: [*excluded, "2>&1"])
       out.should == "OK\n"
       $?.exitstatus.should == 0
