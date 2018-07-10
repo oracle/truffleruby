@@ -13,7 +13,11 @@ require 'rbconfig'
 
 search_paths = {}
 if Truffle::Platform.darwin?
-  search_paths['/usr/local/opt/llvm@4/bin/'] = '/usr/local/opt/llvm@4/bin'
+  if Dir.exist?('/usr/local/opt/llvm@4/bin') # Homebrew
+    search_paths['/usr/local/opt/llvm@4/bin/'] = '/usr/local/opt/llvm@4/bin'
+  elsif Dir.exist?('/opt/local/libexec/llvm-4.0/bin') # MacPorts
+    search_paths['/opt/local/libexec/llvm-4.0/bin/'] = '/opt/local/libexec/llvm-4.0/bin'
+  end
 end
 search_paths[''] = '$PATH'
 
