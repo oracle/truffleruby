@@ -9,11 +9,6 @@
 set -e
 set -x
 
-# Tag to use for the different repositories
-# If empty, take the current truffleruby revision and imports from suite.py
-TAG=""
-# TAG=vm-1.0.0-rc2
-
 # In which directory to create the release, will contain the final archive
 PREFIX="../release"
 
@@ -49,12 +44,7 @@ fi
 
 original_repo=$(pwd -P)
 revision=$(git rev-parse --short=8 HEAD)
-
-if [ -n "$TAG" ]; then
-  version="${TAG#vm-}" # Remove the leading "vm-"
-else
-  version="$revision"
-fi
+version="$revision"
 
 rm -rf "${PREFIX:?}"/*
 mkdir -p "$PREFIX"
@@ -65,21 +55,18 @@ PREFIX=$(cd "$PREFIX" && pwd -P)
 mkdir -p "$PREFIX/build"
 cd "$PREFIX/build"
 
-if [ -n "$TAG" ]; then
-  git clone --depth 1 --branch $TAG "$(mx urlrewrite https://github.com/oracle/truffleruby.git)"
-  git clone --depth 1 --branch $TAG "$(mx urlrewrite https://github.com/graalvm/sulong.git)"
-  git clone --depth 1 --branch $TAG "$(mx urlrewrite https://github.com/oracle/graal.git)"
-else
-  git clone "$original_repo" truffleruby
+# Always make a copy of the repository, because we do not want any extra file
+# that might be in the current truffleruby repository.
+git clone "$original_repo" truffleruby
 
-  if [ -d "$original_repo/../graal" ] && [ -d "$original_repo/../sulong" ]; then
-    # Building locally (not in CI), copy from local repositories to gain time
-    git clone "$original_repo/../graal" graal
-    git clone "$original_repo/../sulong" sulong
-  fi
-
-  mx -p truffleruby sforceimports
+# Shortcut when running the script locally
+if [ -d "$original_repo/../graal" ] && [ -d "$original_repo/../sulong" ]; then
+  # Building locally (not in CI), copy from local repositories to gain time
+  git clone "$original_repo/../graal" graal
+  git clone "$original_repo/../sulong" sulong
 fi
+
+mx -p truffleruby sforceimports
 
 # Use our own GEM_HOME when building
 export TRUFFLERUBY_RESILIENT_GEM_HOME=true
