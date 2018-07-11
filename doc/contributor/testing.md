@@ -18,12 +18,22 @@ We talk about several types of tests in TruffleRuby:
 
 ### Unit tests
 
-Java unit tests test 
+Java unit tests test parts of the internal Java implementation which are hard
+to test at the Ruby level.
+
+Java unit tests live in `src/test/java/org/truffleruby`.
+
+To run Java unit tests run `mx unittest`.
 
 ### TCK
 
 The TCK is a parametric test suite provided by GraalVM that tests language
 interoperability.
+
+The TCK Ruby parameters are in
+`src/test/java/org/truffleruby/RubyTCKLanguageProvider.java`.
+
+Run the TCK with `mx tck`.
 
 ### Specs
 
@@ -36,7 +46,7 @@ We usually think of the specs for the C extension API as being separate
 
 Specs are in `spec/`.
 
-Run specs with `jt test spec`, or
+Run specs with `jt test specs`, or
 `ruby spec/mspec/bin/mspec --config spec/truffle.mspec`.
 
 ### MRI tests
@@ -50,8 +60,7 @@ We usually think of the specs for the C extension API as being separate
 
 MRI tests are in `test/mri`.
 
-Run MRI tests with `jt test mri`, or
-`ruby test/mri/tests/runner.rb test-files...`.
+Run MRI tests with `jt test mri`.
 
 ### C extension tests
 
@@ -76,7 +85,7 @@ compiler tests we use the simpler test of checking that a value compiles to a
 constant. We find that this is a good pass-or-fail test that the compiler is
 working as intended.
 
-The compiler tests include a sort of specs suite for compilation, called the
+The compiler tests include a sort of test suite for compilation, called the
 partial evaluation (*PE*) tests, as well as tests for more subtle things like
 on-stack-replacement.
 
@@ -90,13 +99,11 @@ scripts.
 
 ### Ecosystem tests
 
-Ecosystem tests test applications of capstone Ruby projects such as Rails.
+Ecosystem tests test applications of key Ruby projects such as Rails.
 
 Ecosystem tests are in `test/truffle/ecosystem`.
 
-Run ecosystem tests with `jt test ecosystem`. You will need something called
-the *gem test pack* which, because we do not want to distribute gems, is not
-publicly available.
+Run ecosystem tests with `jt test ecosystem`.
 
 ### Gem tests
 
@@ -126,7 +133,7 @@ scripts.
 
 ### Docker tests
 
-The Docker tests using Docker as a virtualisation and software configuration
+The Docker tests use Docker as a virtualisation and software configuration
 tool to test installing and using TruffleRuby in different Linux distributions,
 installing from different sources, using different Ruby version managers,
 rebuilding images or not, and in other types of configuration.
@@ -139,7 +146,7 @@ The Docker basic tests run:
 The Docker full tests additionally run:
 
 * `SPEC` and `SPEC(CEXT)`
-* `CEXT(PE)`
+* `COMP(PE)`
 
 Docker tests always run with the compiler enabled.
 
@@ -156,8 +163,9 @@ http://www.graalvm.org/docs/reference-manual/compatibility/.
 ## Configurations
 
 There is a hyperspace of combinations of tests and different configuration
-options, which is hard to document and inevitably has some holes in what we have
-resources to test.
+options. It's hard to document what we do test from this space, as we can't draw
+an n-dimension table. The table inevitably has a lot of combinations
+configurations that aren't tested, due to limited resources.
 
 * Java 8 `J8` and 11 `J11`
 * Interpreter `INT`
@@ -168,28 +176,30 @@ resources to test.
 
 ### Tests run in CI
 
+* `UNIT` with `INT` on `J8` on Linux.
+* `UNIT` with `INT` on `J8` on macOS.
 * `SPEC` with `INT` on `J8` on Linux.
 * `SPEC` with `INT` on `J8` on macOS.
 * `SPEC(FAST)` with `INT` on `J11` on Linux.
 * `TCK` with `INT` on `J8` on Linux.
 * `MRI` with `INT` on `J8` on Linux.
+* `MRI` with `INT` on `J8` on macOS.
 * `IGR` with `INT` on `J8` on Linux.
 * `CEXT` with `INT` on `J8` on Linux.
+* `CEXT` with `INT` on `J8` on macOS.
 * `GEM` with `INT` on `J8` on Linux.
 * `ECO` with `INT` on `J8` on Linux.
 * `COMP` with Graal CE on `J8` on Linux.
-* `MRI` with `INT` on `J8` on macOS.
-* `COMP` with Graal on `J8` on macOS.
-* `build,ruby_debug,ruby_product` with SVM CE and EE on Linux.
-* `build,darwin_ruby` with SVM CE and EE on macOS.
+* `SPEC(FAST)` and `SPEC(CEXT+FAST)` with SVM CE and EE on Linux and macOS.
 
 ### Tests run on release candidates
 
 * Docker full tests on all supported Linux distributions, on all supported Ruby
   version managers, using release candidate CE and EE tarball and Ruby
   component, and rebuilding images or not.
-
 * macOS manually running similar tests.
+* The standalone binary tarball build runs `SPEC` and `SPEC(CEXT)` on Linux and
+  macOS.
 
 ## Un-used tests and configurations
 
@@ -203,3 +213,4 @@ testing, but we don't use at the moment, including:
 * Running tests in a random order.
 * Running tests with additional logic to randomise hidden internal interpreter
   state such as array strategies.
+* Checking the coverage of our tests.
