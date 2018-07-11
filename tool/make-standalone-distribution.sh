@@ -76,7 +76,7 @@ cd truffleruby
 build_home=$(pwd -P)
 
 cd ../graal/vm
-mx sversions
+mx --dy truffleruby,/substratevm sversions
 mx --disable-polyglot --disable-libpolyglot --force-bash-launchers=lli,native-image --dy truffleruby,/substratevm build
 
 # The archive basename should be inferable from the version and platform,
