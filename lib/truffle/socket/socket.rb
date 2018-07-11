@@ -200,31 +200,33 @@ class Socket < BasicSocket
   end
 
   def self.getifaddrs
-    initial = Truffle::Socket::Foreign::Ifaddrs.new
-    status  = Truffle::Socket::Foreign.getifaddrs(initial.pointer)
-    ifaddrs = []
-    index   = 1
+    Truffle::Socket::Foreign.memory_pointer(:pointer) do |ptr|
+      status = Truffle::Socket::Foreign.getifaddrs(ptr)
+      Errno.handle('getifaddrs()') if status < 0
 
-    Errno.handle('getifaddrs()') if status < 0
+      initial = Truffle::Socket::Foreign::Ifaddrs.new(ptr.read_pointer)
+      ifaddrs = []
+      index   = 1
 
-    begin
-      initial.each_address do |ifaddrs_struct|
-        ifaddrs << Ifaddr.new(
-          addr:      ifaddrs_struct.address_to_addrinfo,
-          broadaddr: ifaddrs_struct.broadcast_to_addrinfo,
-          dstaddr:   ifaddrs_struct.destination_to_addrinfo,
-          netmask:   ifaddrs_struct.netmask_to_addrinfo,
-          name:      ifaddrs_struct.name,
-          flags:     ifaddrs_struct.flags,
-          ifindex:   index
-        )
+      begin
+        initial.each_address do |ifaddrs_struct|
+          ifaddrs << Ifaddr.new(
+            addr:      ifaddrs_struct.address_to_addrinfo,
+            broadaddr: ifaddrs_struct.broadcast_to_addrinfo,
+            dstaddr:   ifaddrs_struct.destination_to_addrinfo,
+            netmask:   ifaddrs_struct.netmask_to_addrinfo,
+            name:      ifaddrs_struct.name,
+            flags:     ifaddrs_struct.flags,
+            ifindex:   index
+          )
 
-        index += 1
+          index += 1
+        end
+
+        ifaddrs
+      ensure
+        Truffle::Socket::Foreign.freeifaddrs(initial.pointer)
       end
-
-      ifaddrs
-    ensure
-      Truffle::Socket::Foreign.freeifaddrs(initial.pointer)
     end
   end
 

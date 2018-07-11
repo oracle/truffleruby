@@ -527,11 +527,17 @@ public abstract class PointerNodes {
         @TruffleBoundary
         @Specialization(guards = "type == TYPE_STRING")
         public DynamicObject getAtOffsetString(DynamicObject pointer, int offset, int type,
-                                               @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
-            final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), offset);
-            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+
+            final Pointer stringPointer = ptr.readPointer(offset);
+            if (stringPointer.isNull()) {
+                return nil();
+            } else {
+                final byte[] bytes = stringPointer.readZeroTerminatedByteArray(getContext(), 0);
+                return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            }
         }
 
         @Specialization(guards = "type == TYPE_PTR")

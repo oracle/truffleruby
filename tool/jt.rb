@@ -444,6 +444,7 @@ module Commands
           --jexception[s] print java exceptions
           --exec          use exec rather than system
           --no-print-cmd  don\'t print the command
+      jt gem                                         shortcut for `jt ruby -S gem`, to install Ruby gems, etc
       jt e 14 + 2                                    evaluate an expression
       jt puts 14 + 2                                 evaluate and print an expression
       jt cextc directory clang-args                  compile the C extension in directory, with optional extra clang arguments
@@ -715,6 +716,11 @@ module Commands
 
   def command_p(*args)
     e 'p begin', *args, 'end'
+  end
+
+  # Just convenience
+  def gem(*args)
+    ruby '-S', 'gem', *args
   end
 
   def cextc(cext_dir, *clang_opts)
