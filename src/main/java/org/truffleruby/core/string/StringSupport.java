@@ -59,7 +59,7 @@ public final class StringSupport {
 
     public static int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes,
             int byteOffset, int byteEnd, boolean recoverIfBroken) {
-        assert byteOffset < byteEnd;
+        assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;
 
         switch (codeRange) {
             case CR_7BIT:
