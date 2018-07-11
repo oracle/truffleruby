@@ -1,7 +1,7 @@
 # Configuring Ruby managers
 
 It's recommended to add TruffleRuby to a Ruby manager for ease of use. You will
-need to [install GraalVM and Ruby](installing.md) manually. There is no support
+need to [install GraalVM and Ruby](installing-graalvm.md) manually. There is no support
 yet for automatically installing TruffleRuby in a version manager.
 
 ## rbenv

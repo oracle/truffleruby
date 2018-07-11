@@ -6,7 +6,7 @@ A high performance implementation of the Ruby programming language. Built on
 ## Getting Started
 
 To get started with TruffleRuby
-[install GraalVM and Ruby](doc/user/installing.md). Inside GraalVM will then be
+[install GraalVM and Ruby](doc/user/installing-graalvm.md). Inside GraalVM will then be
 a `bin/ruby` command that runs TruffleRuby.
 
 We recommend that you use a [Ruby version manager](doc/user/ruby-managers.md)
