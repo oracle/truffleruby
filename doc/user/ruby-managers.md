@@ -1,13 +1,88 @@
-# Configuring Ruby managers
+# Ruby managers and installers
 
-It's recommended to add TruffleRuby to a Ruby manager for ease of use. You will
-need to [install GraalVM and Ruby](installing-graalvm.md) manually. There is no support
-yet for automatically installing TruffleRuby in a version manager.
+## Installing TruffleRuby with RVM, ruby-build or ruby-install
 
-## rbenv
+TruffleRuby is supported by the 3 major Ruby installers.
 
-To add TruffleRuby to `rbenv` a symbolic link has to be added to the `versions` 
-directory of rbenv:
+### RVM
+
+Upgrade RVM to let RVM know about the latest TruffleRuby release:
+
+```bash
+rvm get head
+```
+
+Install TruffleRuby with:
+
+```
+rvm install truffleruby
+```
+
+### ruby-build and rbenv
+
+We assume you already have [`ruby-build`](https://github.com/rbenv/ruby-build)
+installed as a plugin for [`rbenv`](https://github.com/rbenv/rbenv).
+
+First, you need to upgrade `ruby-build` to get the latest TruffleRuby
+definition. See [`ruby-build`'s instructions for upgrading](https://github.com/rbenv/ruby-build#upgrading).
+
+Check the latest available version of TruffleRuby with:
+
+```bash
+rbenv install --list | grep truffleruby
+```
+
+Then install the latest TruffleRuby with:
+
+```bash
+rbenv install truffleruby-[LATEST_VERSION]
+```
+
+### ruby-install and chruby
+
+First, you need at least `ruby-install` 0.7.0 to get TruffleRuby support.
+Check your version with:
+
+```bash
+ruby-install --version
+```
+
+`ruby-install` 0.7.0 is not yet released at the time of writing.
+As a workaround in the meantime, you can just clone the repository:
+
+```bash
+git clone --branch 0.7.0 https://github.com/postmodern/ruby-install.git
+cd ruby-install
+bin/ruby-install --latest
+bin/ruby-install truffleruby
+```
+
+Once `ruby-install` 0.7.0 is released, you can update to latest `ruby-install`.
+Follow the [installation instructions](https://github.com/postmodern/ruby-install#install),
+since the steps for upgrading `ruby-install` are the same as the steps for
+installing it. Then install truffleruby with:
+
+```bash
+ruby-install --latest
+ruby-install truffleruby
+```
+
+There are also instructions on the
+[chruby wiki](https://github.com/postmodern/chruby/wiki/TruffleRuby)
+if you prefer to install TruffleRuby manually.
+
+## Configuring Ruby managers for the full GraalVM distribution
+
+When [installing GraalVM](installing-graalvm.md), it is recommended to add
+TruffleRuby to a Ruby manager for ease of use.
+
+First, [install GraalVM and Ruby](installing-graalvm.md).
+Then follow these steps to integrate GraalVM with your Ruby manager.
+
+### rbenv
+
+To add TruffleRuby to `rbenv`, create a symbolic link in the `versions` directory
+of rbenv:
 
 ```bash
 $ ln -s path/to/graalvm/jre/languages/ruby "$RBENV_ROOT/versions/truffleruby"
@@ -15,10 +90,9 @@ $ rbenv shell truffleruby
 $ ruby --version
 ```
 
-## chruby
+### chruby
 
-To add TruffleRuby to `chruby` a symbolic link has to be added to the
-`$HOME/.rubies`  directory:
+To add TruffleRuby to `chruby`, create a symbolic link to the `$HOME/.rubies` directory:
 
 ```bash
 $ ln -s path/to/graalvm/jre/languages/ruby "$HOME/.rubies/truffleruby"
@@ -26,7 +100,7 @@ $ chruby truffleruby
 $ ruby --version
 ```
 
-## RVM
+### RVM
 
 RVM has a command for adding a precompiled Ruby to the list of available rubies.
 
@@ -36,7 +110,7 @@ $ rvm use ext-truffleruby
 $ ruby --version
 ```
 
-## macOS
+### macOS
 
 Note that on macOS the path is slightly different, and will be
 `path/to/graalvm/Contents/Home/jre/languages/ruby`.
