@@ -57,7 +57,6 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.interop.FromJavaStringNode;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyGuards;
@@ -189,7 +188,6 @@ public abstract class TruffleSystemNodes {
         @TruffleBoundary
         protected Level getLevel(DynamicObject level) {
             assert RubyGuards.isRubySymbol(level);
-            final SymbolTable symbolTable = getContext().getSymbolTable();
 
             try {
                 return Level.parse(level.toString());
