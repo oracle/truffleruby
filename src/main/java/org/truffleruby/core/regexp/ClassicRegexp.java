@@ -45,6 +45,7 @@ import org.joni.Regex;
 import org.joni.Syntax;
 import org.joni.exception.JOniException;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
@@ -59,6 +60,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.string.StringSupport.EMPTY_STRING_ARRAY;
 
 public class ClassicRegexp implements ReOptions {
@@ -161,7 +163,7 @@ public class ClassicRegexp implements ReOptions {
             fixedEnc[0] = enc;
         }
 
-        boolean hasProperty = unescapeNonAscii(context, null, str.getBytes(), 0, str.byteLength(), enc, fixedEnc, str, mode);
+        boolean hasProperty = unescapeNonAscii(context, null, str, enc, fixedEnc, mode);
         if (hasProperty && fixedEnc[0] == null) {
             fixedEnc[0] = enc;
         }
@@ -169,12 +171,16 @@ public class ClassicRegexp implements ReOptions {
 
     @TruffleBoundary
     @SuppressWarnings("fallthrough")
-    private static boolean unescapeNonAscii(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end, Encoding enc, Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
+    private static boolean unescapeNonAscii(RubyContext context, RopeBuilder to, Rope str, Encoding enc, Encoding[] encp, RegexpSupport.ErrorMode mode) {
         boolean hasProperty = false;
         byte[] buf = null;
 
+        int p = 0;
+        int end = str.byteLength();
+        final byte[] bytes = str.getBytes();
+
         while (p < end) {
-            int cl = StringSupport.preciseLength(enc, bytes, p, end);
+            final int cl = StringSupport.characterLength(enc, enc == str.getEncoding() ? str.getCodeRange() : CR_UNKNOWN, bytes, p, end);
             if (cl <= 0) {
                 raisePreprocessError(context, str, "invalid multibyte character", mode);
             }
@@ -393,11 +399,11 @@ public class ClassicRegexp implements ReOptions {
         int chLen = 0;
 
         p = readEscapedByte(context, chBuf, chLen++, bytes, p, end, str, mode);
-        while (chLen < enc.maxLength() && StringSupport.MBCLEN_NEEDMORE_P(StringSupport.preciseLength(enc, chBuf, 0, chLen))) {
+        while (chLen < enc.maxLength() && StringSupport.MBCLEN_NEEDMORE_P(StringSupport.characterLength(enc, CR_UNKNOWN, chBuf, 0, chLen))) {
             p = readEscapedByte(context, chBuf, chLen++, bytes, p, end, str, mode);
         }
 
-        int cl = StringSupport.preciseLength(enc, chBuf, 0, chLen);
+        int cl = StringSupport.characterLength(enc, CR_UNKNOWN, chBuf, 0, chLen);
         if (cl == -1) {
             raisePreprocessError(context, str, "invalid multibyte escape", mode); // MBCLEN_INVALID_P
         }
@@ -544,7 +550,7 @@ public class ClassicRegexp implements ReOptions {
             to.setEncoding(enc);
         }
 
-        boolean hasProperty = unescapeNonAscii(runtime, to, str.getBytes(), 0, str.byteLength(), enc, fixedEnc, str, mode);
+        boolean hasProperty = unescapeNonAscii(runtime, to, str, enc, fixedEnc, mode);
         if (hasProperty && fixedEnc[0] == null) {
             fixedEnc[0] = enc;
         }
@@ -610,8 +616,9 @@ public class ClassicRegexp implements ReOptions {
     public static Rope quote19(Rope bs, boolean asciiOnly) {
         int p = 0;
         int end = bs.byteLength();
-        byte[] bytes = bs.getBytes();
-        Encoding enc = bs.getEncoding();
+        final byte[] bytes = bs.getBytes();
+        final Encoding enc = bs.getEncoding();
+        final CodeRange cr = bs.getCodeRange();
 
         metaFound: do {
             while (p < end) {
@@ -621,12 +628,12 @@ public class ClassicRegexp implements ReOptions {
                     cl = 1;
                     c = bytes[p] & 0xff;
                 } else {
-                    cl = StringSupport.preciseLength(enc, bytes, p, end);
+                    cl = StringSupport.characterLength(enc, cr, bytes, p, end);
                     c = enc.mbcToCode(bytes, p, end);
                 }
 
                 if (!Encoding.isAscii(c)) {
-                    p += StringSupport.length(enc, bytes, p, end);
+                    p += StringSupport.characterLength(enc, cr, bytes, p, end, true);
                     continue;
                 }
 
@@ -660,12 +667,12 @@ public class ClassicRegexp implements ReOptions {
                 cl = 1;
                 c = bytes[p] & 0xff;
             } else {
-                cl = StringSupport.preciseLength(enc, bytes, p, end);
+                cl = StringSupport.characterLength(enc, cr, bytes, p, end);
                 c = enc.mbcToCode(bytes, p, end);
             }
 
             if (!Encoding.isAscii(c)) {
-                int n = StringSupport.length(enc, bytes, p, end);
+                int n = StringSupport.characterLength(enc, cr, bytes, p, end, true);
                 while (n-- > 0) {
                     obytes[op++] = bytes[p++];
                 }
@@ -851,7 +858,7 @@ public class ClassicRegexp implements ReOptions {
                 }
             }
             result.append((byte) ':');
-            appendRegexpString19(result, bytes, p, len, str.getEncoding(), null);
+            appendRegexpString19(result, str, p, len, null);
 
             result.append((byte) ')');
             result.setEncoding(getEncoding());
@@ -860,9 +867,13 @@ public class ClassicRegexp implements ReOptions {
         } while (true);
     }
 
-    public void appendRegexpString19(RopeBuilder to, byte[] bytes, int start, int len, Encoding enc, Encoding resEnc) {
+    public void appendRegexpString19(RopeBuilder to, Rope str, int start, int len, Encoding resEnc) {
         int p = start;
         int end = p + len;
+
+        final CodeRange cr = str.getCodeRange();
+        final Encoding enc = str.getEncoding();
+        final byte[] bytes = str.getBytes();
         boolean needEscape = false;
         while (p < end) {
             final int c;
@@ -871,12 +882,12 @@ public class ClassicRegexp implements ReOptions {
                 cl = 1;
                 c = bytes[p] & 0xff;
             } else {
-                cl = StringSupport.preciseLength(enc, bytes, p, end);
+                cl = StringSupport.characterLength(enc, cr, bytes, p, end);
                 c = enc.mbcToCode(bytes, p, end);
             }
 
             if (!Encoding.isAscii(c)) {
-                p += StringSupport.length(enc, bytes, p, end);
+                p += StringSupport.characterLength(enc, cr, bytes, p, end, true);
             } else if (c != '/' && enc.isPrint(c)) {
                 p += cl;
             } else {
@@ -895,12 +906,12 @@ public class ClassicRegexp implements ReOptions {
                     cl = 1;
                     c = bytes[p] & 0xff;
                 } else {
-                    cl = StringSupport.preciseLength(enc, bytes, p, end);
+                    cl = StringSupport.characterLength(enc, cr, bytes, p, end);
                     c = enc.mbcToCode(bytes, p, end);
                 }
 
                 if (c == '\\' && p + cl < end) {
-                    int n = cl + StringSupport.length(enc, bytes, p + cl, end);
+                    int n = cl + StringSupport.characterLength(enc, cr, bytes, p + cl, end);
                     to.append(bytes, p, n);
                     p += n;
                     continue;
@@ -908,7 +919,7 @@ public class ClassicRegexp implements ReOptions {
                     to.append((byte) '\\');
                     to.append(bytes, p, cl);
                 } else if (!Encoding.isAscii(c)) {
-                    int l = StringSupport.preciseLength(enc, bytes, p, end);
+                    int l = StringSupport.characterLength(enc, cr, bytes, p, end);
                     if (l <= 0) {
                         l = 1;
                         to.append(String.format("\\x%02X", c).getBytes(StandardCharsets.US_ASCII));

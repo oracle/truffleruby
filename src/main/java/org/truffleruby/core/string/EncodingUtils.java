@@ -37,6 +37,7 @@ import org.jcodings.specific.UTF16LEEncoding;
 import org.jcodings.specific.UTF32BEEncoding;
 import org.jcodings.specific.UTF32LEEncoding;
 import org.jcodings.unicode.UnicodeEncoding;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeBuilder;
 
 public class EncodingUtils {
@@ -173,7 +174,7 @@ public class EncodingUtils {
     }
 
     // rb_enc_ascget
-    public static int encAscget(byte[] pBytes, int p, int e, int[] len, Encoding enc) {
+    public static int encAscget(byte[] pBytes, int p, int e, int[] len, Encoding enc, CodeRange codeRange) {
         int c;
         int l;
 
@@ -191,7 +192,7 @@ public class EncodingUtils {
             }
             return c;
         }
-        l = StringSupport.preciseLength(enc, pBytes, p, e);
+        l = StringSupport.characterLength(enc, codeRange, pBytes, p, e);
         if (!StringSupport.MBCLEN_CHARFOUND_P(l)) {
             return -1;
         }
@@ -206,19 +207,19 @@ public class EncodingUtils {
     }
 
     // rb_enc_codepoint_len
-    public static int encCodepointLength(byte[] pBytes, int p, int e, int[] len_p, Encoding enc) {
+    public static int encCodepointLength(byte[] pBytes, int p, int e, int[] len_p, Encoding enc, CodeRange codeRange) {
         int r;
         if (e <= p) {
             throw new IllegalArgumentException("empty string");
         }
-        r = StringSupport.preciseLength(enc, pBytes, p, e);
+        r = StringSupport.characterLength(enc, codeRange, pBytes, p, e);
         if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
             throw new IllegalArgumentException("invalid byte sequence in " + enc);
         }
         if (len_p != null) {
             len_p[0] = StringSupport.MBCLEN_CHARFOUND_LEN(r);
         }
-        return StringSupport.codePoint(enc, pBytes, p, e);
+        return StringSupport.codePoint(enc, codeRange, pBytes, p, e);
     }
 
     // rb_enc_mbcput

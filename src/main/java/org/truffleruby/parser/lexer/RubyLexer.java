@@ -3050,7 +3050,7 @@ public class RubyLexer implements MagicCommentHandler {
         }
 
         // Barring all else, we must inspect the bytes for the substring.
-        return StringSupport.encLength(current_enc, rope.getBytes(), 0, rope.byteLength());
+        return StringSupport.characterLength(current_enc, rope.getCodeRange(), rope.getBytes(), 0, rope.byteLength());
     }
 
     public void pushback(int c) {
