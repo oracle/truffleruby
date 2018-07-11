@@ -165,7 +165,7 @@ http://www.graalvm.org/docs/reference-manual/compatibility/.
 There is a hyperspace of combinations of tests and different configuration
 options. It's hard to document what we do test from this space, as we can't draw
 an n-dimension table. The table inevitably has a lot of combinations
-configurations that aren't tested, due to limited resources.
+and configurations that aren't tested, due to limited resources.
 
 * Java 8 `J8` and 11 `J11`
 * Interpreter `INT`
@@ -191,6 +191,7 @@ configurations that aren't tested, due to limited resources.
 * `ECO` with `INT` on `J8` on Linux.
 * `COMP` with Graal CE on `J8` on Linux.
 * `SPEC(FAST)` and `SPEC(CEXT+FAST)` with SVM CE and EE on Linux and macOS.
+* `SPEC` and `SPEC(CEXT)` on Linux in the standalone distribution configuration.
 
 ### Tests run on release candidates
 
