@@ -1563,7 +1563,7 @@ public abstract class RopeNodes {
             final byte b = bytes[byteOffset];
             final int ret;
 
-            if (b > 0) {
+            if (b >= 0) {
                 oneByteProfile.enter();
                 ret = 1;
             } else {

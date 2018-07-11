@@ -96,7 +96,7 @@ public abstract class UTF8Operations {
     }
 
     public static int charWidth(byte b) {
-        if (b > 0) {
+        if (b >= 0) {
             return 1;
         } else {
             switch(b & 0xf0) {
