@@ -64,37 +64,34 @@ public abstract class BindingNodes {
 
     @TruffleBoundary
     public static FrameDescriptor newFrameDescriptor(RubyContext context, String name) {
-        FrameDescriptor frameDescriptor = new FrameDescriptor(context.getCoreLibrary().getNil());
+        final FrameDescriptor frameDescriptor = new FrameDescriptor(context.getCoreLibrary().getNil());
         assert name != null && !name.isEmpty();
         frameDescriptor.addFrameSlot(name);
         return frameDescriptor;
     }
 
     public static FrameDescriptor getFrameDescriptor(DynamicObject binding) {
-        assert RubyGuards.isRubyBinding(binding);
         return getFrame(binding).getFrameDescriptor();
     }
 
     public static MaterializedFrame getFrame(DynamicObject binding) {
-        assert RubyGuards.isRubyBinding(binding);
         return Layouts.BINDING.getFrame(binding);
     }
 
     public static MaterializedFrame newFrame(DynamicObject binding, FrameDescriptor frameDescriptor) {
-        assert RubyGuards.isRubyBinding(binding);
-        MaterializedFrame frame = getFrame(binding);
-        frame = newFrame(frame, frameDescriptor);
-        Layouts.BINDING.setFrame(binding, frame);
-        return frame;
+        final MaterializedFrame frame = getFrame(binding);
+        final MaterializedFrame newFrame = newFrame(frame, frameDescriptor);
+        Layouts.BINDING.setFrame(binding, newFrame);
+        return newFrame;
     }
 
     public static MaterializedFrame newFrame(RubyContext context, MaterializedFrame parent) {
-        FrameDescriptor descriptor = newFrameDescriptor(context);
+        final FrameDescriptor descriptor = newFrameDescriptor(context);
         return newFrame(parent, descriptor);
     }
 
     public static MaterializedFrame newFrame(MaterializedFrame parent, FrameDescriptor descriptor) {
-        final MaterializedFrame frame = Truffle.getRuntime().createVirtualFrame(
+        return Truffle.getRuntime().createVirtualFrame(
                 RubyArguments.pack(
                         parent,
                         null,
@@ -105,7 +102,6 @@ public abstract class BindingNodes {
                         RubyArguments.getBlock(parent),
                         RubyArguments.getArguments(parent)),
                 descriptor).materialize();
-        return frame;
     }
 
     public static void insertAncestorFrame(RubyContext context, DynamicObject binding, MaterializedFrame ancestorFrame) {
