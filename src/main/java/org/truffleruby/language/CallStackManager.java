@@ -55,19 +55,9 @@ public class CallStackManager {
 
     @TruffleBoundary
     public Node getCallerNode(int skip) {
-        // Try first using getCallerFrame() as it's the common case
-        if (skip == 0) {
-            FrameInstance callerFrame = Truffle.getRuntime().getCurrentFrame();
-            if (callerFrame == null) {
-                return null;
-            }
-            Node node = callerFrame.getCallNode();
-            if (node != null) {
-                return node;
-            }
-        }
+        // Do not try getCallerFrame() as getCallerFrame().getCallNode() is always null.
+        // See the JavaDoc of getCallNode().
 
-        // Need to iterate further
         return Truffle.getRuntime().iterateFrames(new FrameInstanceVisitor<Node>() {
             int depth = 0;
             int skipped = 0;
