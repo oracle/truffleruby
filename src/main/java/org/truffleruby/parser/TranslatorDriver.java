@@ -191,13 +191,13 @@ public class TranslatorDriver {
         }
         parseEnvironment.resetLexicalScope(lexicalScope);
 
-        final String toplevelName = parserContext == ParserContext.TOP_LEVEL_FIRST ? "<main>" : "<top (required)>";
+        final String methodName = getMethodName(parserContext, parentFrame);
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection,
                 parseEnvironment.getLexicalScope(),
                 Arity.NO_ARGUMENTS,
                 null,
-                toplevelName,
+                methodName,
                 null,
                 null,
                 false);
@@ -287,6 +287,21 @@ public class TranslatorDriver {
         }
 
         return new RubyRootNode(context, sourceIndexLength.toSourceSection(source), environment.getFrameDescriptor(), sharedMethodInfo, truffleNode);
+    }
+
+    private String getMethodName(ParserContext parserContext, MaterializedFrame parentFrame) {
+        switch (parserContext) {
+            case TOP_LEVEL_FIRST:
+                return "<main>";
+            case TOP_LEVEL:
+                return "<top (required)>";
+            default:
+                if (parentFrame != null) {
+                    return RubyArguments.getMethod(parentFrame).getName();
+                } else {
+                    throw new UnsupportedOperationException("Could not determine the method name for parser context " + parserContext);
+                }
+        }
     }
 
     public RootParseNode parseToJRubyAST(RubySource rubySource, DynamicScope blockScope, ParserConfiguration configuration) {
