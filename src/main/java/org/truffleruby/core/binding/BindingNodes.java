@@ -12,6 +12,7 @@ package org.truffleruby.core.binding;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CallerFrameAccess;
@@ -23,6 +24,8 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -49,12 +52,18 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.SourceSection;
 
 @CoreClass("Binding")
 public abstract class BindingNodes {
 
+    /** Creates a Binding without a SourceSection, only for Binding used internally and not exposed to the user. */
     public static DynamicObject createBinding(RubyContext context, MaterializedFrame frame) {
-        return Layouts.BINDING.createBinding(context.getCoreLibrary().getBindingFactory(), frame);
+        return createBinding(context, frame, null);
+    }
+
+    public static DynamicObject createBinding(RubyContext context, MaterializedFrame frame, SourceSection sourceSection) {
+        return Layouts.BINDING.createBinding(context.getCoreLibrary().getBindingFactory(), frame, sourceSection);
     }
 
     @TruffleBoundary
@@ -163,7 +172,8 @@ public abstract class BindingNodes {
         public DynamicObject dup(DynamicObject binding) {
             DynamicObject copy = allocateObjectNode.allocate(
                     Layouts.BASIC_OBJECT.getLogicalClass(binding),
-                    Layouts.BINDING.getFrame(binding));
+                    Layouts.BINDING.getFrame(binding),
+                    Layouts.BINDING.getSourceSection(binding));
             return copy;
         }
     }
@@ -400,6 +410,26 @@ public abstract class BindingNodes {
         }
     }
 
+    // NOTE: Introduced in Ruby 2.6, but already useful for Binding#eval
+    @CoreMethod(names = "source_location")
+    public abstract static class SourceLocationNode extends UnaryCoreMethodNode {
+
+        @TruffleBoundary
+        @Specialization
+        public Object sourceLocation(DynamicObject binding,
+                @Cached("create()") MakeStringNode makeStringNode) {
+            final SourceSection sourceSection = Layouts.BINDING.getSourceSection(binding);
+
+            if (sourceSection == null) {
+                return nil();
+            } else {
+                final DynamicObject file = makeStringNode.executeMake(getContext().getSourceLoader().getPath(sourceSection.getSource()), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                final Object[] store = new Object[]{ file, sourceSection.getStartLine() };
+                return createArray(store, store.length);
+            }
+        }
+    }
+
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
@@ -425,4 +455,39 @@ public abstract class BindingNodes {
             return BindingNodes.createBinding(getContext(), callerFrame);
         }
     }
+
+    @Primitive(name = "caller_binding_with_source_location_from_caller", needsSelf = false)
+    public abstract static class CallerBindingWithSourceLocationFromCallerNode extends PrimitiveArrayArgumentsNode {
+
+        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
+
+        public abstract DynamicObject executeBinding(VirtualFrame frame);
+
+        @Specialization(guards = "isCloningEnabled()")
+        protected DynamicObject bindingCached(VirtualFrame frame,
+                @Cached("getCallerSourceSection()") SourceSection cachedSourceSection) {
+            final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
+
+            return BindingNodes.createBinding(getContext(), callerFrame, cachedSourceSection);
+        }
+
+        @Specialization
+        protected DynamicObject bindingUncached(VirtualFrame frame) {
+            final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
+            final SourceSection sourceSection = getCallerSourceSection();
+
+            return BindingNodes.createBinding(getContext(), callerFrame, sourceSection);
+        }
+
+        @TruffleBoundary
+        protected SourceSection getCallerSourceSection() {
+            // TODO: ignore #send
+            return getContext().getCallStack().getCallerNode().getEncapsulatingSourceSection();
+        }
+
+        protected boolean isCloningEnabled() {
+            return coreLibrary().isCloningEnabled();
+        }
+    }
+
 }

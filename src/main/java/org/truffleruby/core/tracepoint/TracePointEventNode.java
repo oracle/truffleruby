@@ -39,7 +39,7 @@ class TracePointEventNode extends TraceBaseEventNode {
         Layouts.TRACE_POINT.setEvent(tracePoint, context.getCoreStrings().LINE.getSymbol());
         Layouts.TRACE_POINT.setPath(tracePoint, getFile());
         Layouts.TRACE_POINT.setLine(tracePoint, getLine());
-        Layouts.TRACE_POINT.setBinding(tracePoint, BindingNodes.createBinding(context, frame.materialize()));
+        Layouts.TRACE_POINT.setBinding(tracePoint, BindingNodes.createBinding(context, frame.materialize(), eventContext.getInstrumentedSourceSection()));
 
         Layouts.TRACE_POINT.setInsideProc(tracePoint, true);
         try {

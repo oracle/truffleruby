@@ -204,9 +204,10 @@ module Kernel
   private :autoload?
 
   def binding
-    Truffle.invoke_primitive(:caller_binding)
+    Truffle.invoke_primitive :caller_binding_with_source_location_from_caller
   end
   module_function :binding
+  Truffle::Graal.always_split(method(:binding))
 
   alias_method :iterator?, :block_given?
 

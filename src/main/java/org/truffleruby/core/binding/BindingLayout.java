@@ -13,6 +13,9 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
+import com.oracle.truffle.api.object.dsl.Nullable;
+import com.oracle.truffle.api.source.SourceSection;
+
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 /**
@@ -30,11 +33,14 @@ public interface BindingLayout extends BasicObjectLayout {
                                             DynamicObject metaClass);
 
     DynamicObject createBinding(DynamicObjectFactory factory,
-            MaterializedFrame frame);
+            MaterializedFrame frame,
+            @Nullable SourceSection sourceSection);
 
     boolean isBinding(DynamicObject object);
 
     MaterializedFrame getFrame(DynamicObject object);
-
     void setFrame(DynamicObject object, MaterializedFrame value);
+
+    SourceSection getSourceSection(DynamicObject object);
+
 }

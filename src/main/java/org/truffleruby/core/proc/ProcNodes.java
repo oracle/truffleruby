@@ -203,7 +203,8 @@ public abstract class ProcNodes {
         @Specialization
         public DynamicObject binding(DynamicObject proc) {
             final MaterializedFrame frame = Layouts.PROC.getDeclarationFrame(proc);
-            return BindingNodes.createBinding(getContext(), frame);
+            final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(proc).getSourceSection();
+            return BindingNodes.createBinding(getContext(), frame, sourceSection);
         }
     }
 

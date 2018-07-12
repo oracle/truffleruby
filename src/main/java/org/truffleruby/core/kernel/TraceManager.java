@@ -133,7 +133,7 @@ public class TraceManager {
                         getFile(),
                         getLine(),
                         context.getCoreLibrary().getNil(),
-                        BindingNodes.createBinding(context, frame.materialize()),
+                        BindingNodes.createBinding(context, frame.materialize(), eventContext.getInstrumentedSourceSection()),
                         context.getCoreLibrary().getNil());
             } finally {
                 isInTraceFunc = false;
@@ -176,7 +176,7 @@ public class TraceManager {
                         getFile(file),
                         line,
                         context.getSymbolTable().getSymbol(RubyArguments.getMethod(frame).getName()),
-                        BindingNodes.createBinding(context, frame.materialize()),
+                        BindingNodes.createBinding(context, frame.materialize(), eventContext.getInstrumentedSourceSection()),
                         getLogicalClass(RubyArguments.getSelf(frame)));
             } finally {
                 isInTraceFunc = false;

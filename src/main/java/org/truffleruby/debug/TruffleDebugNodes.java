@@ -90,7 +90,10 @@ public abstract class TruffleDebugNodes {
 
                         @Override
                         protected void onEnter(VirtualFrame frame) {
-                            yieldNode.dispatch(block, BindingNodes.createBinding(getContext(), frame.materialize()));
+                            yieldNode.dispatch(block,
+                                    BindingNodes.createBinding(getContext(),
+                                            frame.materialize(),
+                                            eventContext.getInstrumentedSourceSection()));
                         }
 
                     });
