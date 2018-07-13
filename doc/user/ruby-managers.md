@@ -1,5 +1,10 @@
 # Ruby managers and installers
 
+If you [installed GraalVM](installing-graalvm.md), it is recommended to add
+TruffleRuby to a Ruby manager. See
+[Configuring Ruby managers for the full GraalVM distribution](#configuring-ruby-managers-for-the-full-graalvm-distribution)
+below.
+
 ## Installing TruffleRuby with RVM, ruby-build or ruby-install
 
 TruffleRuby is supported by the 3 major Ruby installers.
