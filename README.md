@@ -10,7 +10,7 @@ There are two ways to install TruffleRuby:
   other languages such as JavaScript, R and Python and supports both the
   [*native* and *JVM* configurations](#truffleruby-configurations).
   Inside GraalVM will then be a `bin/ruby` command that runs TruffleRuby.
-  We recommend that you use a [Ruby version manager](doc/user/ruby-managers.md)
+  We recommend that you use a [Ruby manager](doc/user/ruby-managers.md#configuring-ruby-managers-for-the-full-graalvm-distribution)
   to use TruffleRuby inside GraalVM.
 * Via your [Ruby manager/installer](doc/user/ruby-managers.md) (RVM, rbenv,
   chruby, ruby-build, ruby-install). This contains only TruffleRuby, in the
