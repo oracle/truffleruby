@@ -5,12 +5,19 @@ A high performance implementation of the Ruby programming language. Built on
 
 ## Getting Started
 
-To get started with TruffleRuby
-[install GraalVM and Ruby](doc/user/installing.md). Inside GraalVM will then be
-a `bin/ruby` command that runs TruffleRuby.
-
-We recommend that you use a [Ruby version manager](doc/user/ruby-managers.md)
-to use TruffleRuby.
+There are two ways to install TruffleRuby:
+* Via [GraalVM](doc/user/installing-graalvm.md), which includes support for
+  other languages such as JavaScript, R and Python and supports both the
+  [*native* and *JVM* configurations](#truffleruby-configurations).
+  Inside GraalVM will then be a `bin/ruby` command that runs TruffleRuby.
+  We recommend that you use a [Ruby version manager](doc/user/ruby-managers.md)
+  to use TruffleRuby inside GraalVM.
+* Via your [Ruby manager/installer](doc/user/ruby-managers.md) (RVM, rbenv,
+  chruby, ruby-build, ruby-install). This contains only TruffleRuby, in the
+  [*native* configuration](#truffleruby-configurations), making it a smaller
+  download. It is meant for users just wanting a Ruby implementation and already using
+  a Ruby manager. This distribution can also be used for
+  [testing TruffleRuby in CI](doc/user/standalone-distribution.md).
 
 You can use `gem` to install Gems as normal. TruffleRuby currently requires
 Bundler version `1.16.x`.
