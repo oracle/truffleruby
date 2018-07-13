@@ -10,7 +10,7 @@ def check(file)
   dir = 'test/truffle/integration/backtraces'
 
   expected = File.open("#{dir}/#{file}") do |f|
-    f.lines.map(&:chomp)
+    f.each_line.map(&:chomp)
   end
 
   begin
