@@ -11,13 +11,23 @@ package org.truffleruby.parser;
 
 public enum ParserContext {
     /** The main script */
-    TOP_LEVEL_FIRST,
+    TOP_LEVEL_FIRST(true),
     /** required or loaded */
-    TOP_LEVEL,
+    TOP_LEVEL(true),
     /** class_eval */
-    MODULE,
+    MODULE(false),
     /** eval */
-    EVAL,
+    EVAL(false),
     /** SnippetNode and DebugHelpers.eval() */
-    INLINE
+    INLINE(false);
+
+    private boolean topLevel;
+
+    private ParserContext(boolean topLevel) {
+        this.topLevel = topLevel;
+    }
+
+    public boolean isTopLevel() {
+        return topLevel;
+    }
 }

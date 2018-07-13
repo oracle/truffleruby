@@ -99,6 +99,8 @@ public class TranslatorDriver {
     public RubyRootNode parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames, FrameDescriptor frameDescriptor,
             MaterializedFrame parentFrame, boolean ownScopeForAssignments, Node currentNode) {
 
+        assert parserContext.isTopLevel() == (parentFrame == null) : "A frame should be given iff the context is not toplevel: " + parserContext + " " + parentFrame;
+
         final Source source = rubySource.getSource();
 
         final StaticScope staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
@@ -202,7 +204,7 @@ public class TranslatorDriver {
                 null,
                 false);
 
-        final boolean topLevel = parserContext == ParserContext.TOP_LEVEL_FIRST || parserContext == ParserContext.TOP_LEVEL;
+        final boolean topLevel = parserContext.isTopLevel();
         final boolean isModuleBody = topLevel;
         final TranslatorEnvironment environment = new TranslatorEnvironment(context, parentEnvironment,
                         parseEnvironment, parseEnvironment.allocateReturnID(), ownScopeForAssignments, false, isModuleBody, sharedMethodInfo, sharedMethodInfo.getName(), 0, null);
