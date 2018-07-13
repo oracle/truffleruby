@@ -47,9 +47,9 @@ public class ReadCallerFrameNode extends RubyNode {
     }
 
     private void replaceDispatchNode() {
-        Node callerNode = getContext().getCallStack().getCallerNode();
+        final Node callerNode = getContext().getCallStack().getCallerNode(0, false);
         if (callerNode instanceof DirectCallNode) {
-            Node parent = callerNode.getParent();
+            final Node parent = callerNode.getParent();
             if (parent instanceof CachedDispatchNode) {
                 ((CachedDispatchNode) parent).startSendingOwnFrame();
             }

@@ -482,7 +482,7 @@ public abstract class BindingNodes {
         @TruffleBoundary
         protected SourceSection getCallerSourceSection() {
             // TODO: ignore #send
-            return getContext().getCallStack().getCallerNode().getEncapsulatingSourceSection();
+            return getContext().getCallStack().getCallerNode(0, true).getEncapsulatingSourceSection();
         }
 
         protected boolean isCloningEnabled() {
