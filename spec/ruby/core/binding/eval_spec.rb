@@ -80,4 +80,16 @@ describe "Binding#eval" do
       bind.eval("__FILE__").should_not == "test.rb"
     end
   end
+
+  it "with __method__ returns the method where the Binding was created" do
+    obj = BindingSpecs::Demo.new(1)
+    bind, meth = obj.get_binding_and_method
+    bind.eval("__method__").should == meth
+  end
+
+  it "with __method__ returns the method where the Binding was created, ignoring #send" do
+    obj = BindingSpecs::Demo.new(1)
+    bind, meth = obj.get_binding_with_send_and_method
+    bind.eval("__method__").should == meth
+  end
 end
