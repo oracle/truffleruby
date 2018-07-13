@@ -21,6 +21,7 @@ Bug fixes:
 
 Performance:
 * Optimize required keyword arguments.
+* `rb_enc_to_index` is now faster by eliminating an expensive look-up.
 
 # 1.0 RC 3
 

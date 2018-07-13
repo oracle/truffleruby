@@ -663,7 +663,7 @@ module Truffle::CExt
   end
 
   def rb_enc_to_index(enc)
-    rb_enc_find_index(enc.name)
+    Truffle.invoke_primitive :encoding_get_encoding_index, enc
   end
 
   def rb_str_new_frozen(value)

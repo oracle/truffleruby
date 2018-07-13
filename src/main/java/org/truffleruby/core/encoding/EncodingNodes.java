@@ -606,6 +606,18 @@ public abstract class EncodingNodes {
 
     }
 
+    @Primitive(name = "encoding_get_encoding_index", needsSelf = false)
+    public static abstract class GetEncodingIndexNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public int getIndex(DynamicObject encoding) {
+            assert RubyGuards.isRubyEncoding(encoding);
+
+            return getContext().getEncodingManager().getEncodingListIndex(encoding);
+        }
+
+    }
+
     @NodeChildren({ @NodeChild("first"), @NodeChild("second") })
     public static abstract class CheckRopeEncodingNode extends RubyNode {
 
