@@ -13,10 +13,7 @@ import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 
 public enum CallerFrameAccess {
 
-    NONE(null),
     ARGUMENTS(FrameAccess.READ_ONLY),
-    READ_ONLY(FrameAccess.READ_ONLY),
-    READ_WRITE(FrameAccess.READ_WRITE),
     MATERIALIZE(FrameAccess.MATERIALIZE);
 
     private final FrameAccess frameAccess;
