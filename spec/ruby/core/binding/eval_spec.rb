@@ -42,6 +42,12 @@ describe "Binding#eval" do
     bind.eval("#foo\n__LINE__").should == obj.get_line_of_binding + 1
   end
 
+  it "inherits __LINE__ from the enclosing scope even if the Binding is created with #send" do
+    obj = BindingSpecs::Demo.new(1)
+    bind, line = obj.get_binding_with_send_and_line
+    bind.eval("__LINE__").should == line
+  end
+
   it "starts with a __LINE__ of 1 if a filename is passed" do
     bind = BindingSpecs::Demo.new(1).get_binding
     bind.eval("__LINE__", "(test)").should == 1
