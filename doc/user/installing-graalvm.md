@@ -57,7 +57,13 @@ editions of GraalVM and comes from GitHub.
 $ gu install ruby
 ```
 
-Or download manually from https://github.com/oracle/truffleruby/releases.
+This command will show a message mentioning to run a post-install script.
+This is necessary to make the Ruby openssl C extension work with your system libssl.
+Please run that script now.
+
+You can also download the Ruby component (`ruby-installable-...`) manually from
+https://github.com/oracle/truffleruby/releases. Then install it with
+`gu install --file path/to/ruby-installable-...`.
 
 If you install Ruby into the Enterprise Edition of GraalVM, you should then
 rebuild the Ruby executable images using the runtime from the Enterprise
