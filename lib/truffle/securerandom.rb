@@ -49,7 +49,7 @@ module SecureRandom
   # If secure random number generator is not available,
   # NotImplementedError is raised.
   def self.random_bytes(n=nil)
-    n ||= 16
+    n = n ? n.to_int : 16
 
     # Defer loading of OpenSSL until we actually need it. Requiring 'openssl' triggers a full initialization
     # of OpenSSL, which is quite costly. We don't want to pay that expense if we never end up using anything
