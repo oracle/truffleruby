@@ -448,7 +448,7 @@ public abstract class EncodingNodes {
             for (Hash.HashEntry<EncodingDB.Entry> entry : EncodingDB.getAliases().entryIterator()) {
                 final CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = (CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry>) entry;
                 final DynamicObject aliasName = makeStringNode.executeMake(ArrayUtils.extractRange(e.bytes, e.p, e.end), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-                yieldNode.dispatch(block, aliasName, entry.value.getIndex());
+                yieldNode.dispatch(block, aliasName, entry.value.getEncoding().getIndex());
             }
             return nil();
         }
@@ -585,7 +585,7 @@ public abstract class EncodingNodes {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorEncodingAlreadyRegistered(name, this));
             }
 
-            final int index = getContext().getEncodingManager().getEncodingListIndex(newEncoding);
+            final int index = Layouts.ENCODING.getEncoding(newEncoding).getIndex();
             return createArray(new Object[]{ newEncoding, index }, 2);
         }
 
@@ -611,9 +611,7 @@ public abstract class EncodingNodes {
 
         @Specialization
         public int getIndex(DynamicObject encoding) {
-            assert RubyGuards.isRubyEncoding(encoding);
-
-            return getContext().getEncodingManager().getEncodingListIndex(encoding);
+            return Layouts.ENCODING.getEncoding(encoding).getIndex();
         }
 
     }

@@ -44,11 +44,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Always use {@link Encoding#getIndex()} for encoding indices. Never use
+ * {@link org.jcodings.EncodingDB.Entry#getIndex()}.
+ */
 public class EncodingManager {
 
     private static final int INITIAL_NUMBER_OF_ENCODINGS = EncodingDB.getEncodings().size();
 
-    private final List<DynamicObject> ENCODING_LIST_BY_ENCODING_LIST_INDEX = new ArrayList<>(INITIAL_NUMBER_OF_ENCODINGS);
     private final List<DynamicObject> ENCODING_LIST_BY_ENCODING_INDEX = new ArrayList<>(INITIAL_NUMBER_OF_ENCODINGS);
     private final Map<String, DynamicObject> LOOKUP = new ConcurrentHashMap<>();
 
@@ -91,7 +94,8 @@ public class EncodingManager {
             final EncodingDB.Entry encodingEntry = e.value;
 
             // The alias name should be exactly the one in the encodings DB.
-            final DynamicObject rubyEncoding = defineAlias(encodingEntry.getIndex(), new String(e.bytes, e.p, e.end));
+            final Encoding encoding = encodingEntry.getEncoding();
+            final DynamicObject rubyEncoding = defineAlias(encoding, new String(e.bytes, e.p, e.end));
 
             // The constant names must be treated by the the <code>encodingNames</code> helper.
             for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
@@ -197,7 +201,7 @@ public class EncodingManager {
 
     @TruffleBoundary
     public Object[] getEncodingList() {
-        return new ArrayList<>(ENCODING_LIST_BY_ENCODING_LIST_INDEX).toArray();
+        return new ArrayList<>(ENCODING_LIST_BY_ENCODING_INDEX).toArray();
     }
 
     @TruffleBoundary
@@ -206,8 +210,8 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    public DynamicObject getRubyEncoding(int encodingListIndex) {
-        return ENCODING_LIST_BY_ENCODING_LIST_INDEX.get(encodingListIndex);
+    public DynamicObject getRubyEncoding(int encodingIndex) {
+        return ENCODING_LIST_BY_ENCODING_INDEX.get(encodingIndex);
     }
 
     @TruffleBoundary
@@ -216,33 +220,25 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    public int getEncodingListIndex(DynamicObject rubyEncoding) {
-        final int index = ENCODING_LIST_BY_ENCODING_LIST_INDEX.indexOf(rubyEncoding);
-        if (index < 0) {
-            final String encodingName = StringOperations.getString(Layouts.ENCODING.getName(rubyEncoding));
-            throw new UnsupportedOperationException("Encoding not found: " + encodingName);
-        }
-        return index;
-    }
-
-    @TruffleBoundary
     public synchronized DynamicObject defineEncoding(EncodingDB.Entry encodingEntry, byte[] name, int p, int end) {
         final Encoding encoding = encodingEntry.getEncoding();
+        final int encodingIndex = encoding.getIndex();
         final DynamicObject rubyEncoding = newRubyEncoding(context, encoding, name, p, end, encodingEntry.isDummy());
 
-        assert ENCODING_LIST_BY_ENCODING_LIST_INDEX.size() == encodingEntry.getIndex();
-        ENCODING_LIST_BY_ENCODING_LIST_INDEX.add(rubyEncoding);
-        while (encoding.getIndex() >= ENCODING_LIST_BY_ENCODING_INDEX.size()) {
+        assert encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.size() || ENCODING_LIST_BY_ENCODING_INDEX.get(encodingIndex) == null;
+
+        while (encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.size()) {
             ENCODING_LIST_BY_ENCODING_INDEX.add(null);
         }
-        ENCODING_LIST_BY_ENCODING_INDEX.set(encoding.getIndex(), rubyEncoding);
+        ENCODING_LIST_BY_ENCODING_INDEX.set(encodingIndex, rubyEncoding);
+
         LOOKUP.put(Layouts.ENCODING.getName(rubyEncoding).toString().toLowerCase(Locale.ENGLISH), rubyEncoding);
         return rubyEncoding;
     }
 
     @TruffleBoundary
-    public DynamicObject defineAlias(int encodingListIndex, String name) {
-        final DynamicObject rubyEncoding = getRubyEncoding(encodingListIndex);
+    public DynamicObject defineAlias(Encoding encoding, String name) {
+        final DynamicObject rubyEncoding = getRubyEncoding(encoding);
         LOOKUP.put(name.toLowerCase(Locale.ENGLISH), rubyEncoding);
         return rubyEncoding;
     }
