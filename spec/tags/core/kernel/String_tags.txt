@@ -1,2 +1,0 @@
-fails:Kernel.String calls #to_s if #respond_to?(:to_s) returns true
-fails:Kernel#String calls #to_s if #respond_to?(:to_s) returns true
