@@ -31,7 +31,7 @@ To get the best performance you want to use the Enterprise Edition.
 ## Installing the base image
 
 GraalVM starts with a base image which provides the platform for
-high-performance scalability.
+high-performance language runtimes.
 
 The Community Edition base image can be installed from GitHub, under an open
 source licence.
