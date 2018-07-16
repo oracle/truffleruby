@@ -4,17 +4,8 @@
 
 ## Dependencies
 
-TruffleRuby is actively tested on these systems:
-
-* Oracle Linux 7
-* Ubuntu 16.04 LTS
-* Fedora 25
-* macOS 10.13
-
-You need to [install LLVM](installing-llvm.md) to build and run C
-extensions and [`zlib`](installing-zlib.md) and
-[`libssl`](installing-libssl.md) for `openssl`. You may also need to
-set up a [UTF-8 locale](utf8-locale.md).
+[TruffleRuby's dependencies](../../README.md#dependencies) need to be installed
+for TruffleRuby to run correctly.
 
 ## Community Edition and Enterprise Edition
 
@@ -31,7 +22,7 @@ To get the best performance you want to use the Enterprise Edition.
 ## Installing the base image
 
 GraalVM starts with a base image which provides the platform for
-high-performance scalability.
+high-performance language runtimes.
 
 The Community Edition base image can be installed from GitHub, under an open
 source licence.
@@ -54,10 +45,16 @@ This is done using the `gu` command. The Ruby package is the same for both
 editions of GraalVM and comes from GitHub.
 
 ```
-$ gu install org.graalvm.ruby
+$ gu install ruby
 ```
 
-Or download manually from https://github.com/oracle/truffleruby/releases.
+This command will show a message mentioning to run a post-install script.
+This is necessary to make the Ruby openssl C extension work with your system libssl.
+Please run that script now.
+
+You can also download the Ruby component (`ruby-installable-...`) manually from
+https://github.com/oracle/truffleruby/releases. Then install it with
+`gu install --file path/to/ruby-installable-...`.
 
 If you install Ruby into the Enterprise Edition of GraalVM, you should then
 rebuild the Ruby executable images using the runtime from the Enterprise

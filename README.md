@@ -89,10 +89,17 @@ TruffleRuby is actively tested on these systems:
 * Fedora 25
 * macOS 10.13
 
-You need to [install LLVM](doc/user/installing-llvm.md) to build and run C
-extensions and [`zlib`](doc/user/installing-zlib.md) and
-[`libssl`](doc/user/installing-libssl.md) for `openssl`. You may also need to
-set up a [UTF-8 locale](doc/user/utf8-locale.md).
+## Dependencies
+
+* [LLVM](doc/user/installing-llvm.md) to build and run C extensions
+* [libssl](doc/user/installing-libssl.md) for the `openssl` C extension
+* [zlib](doc/user/installing-zlib.md) for the `zlib` C extension
+
+Without these dependencies, many libraries including RubyGems will not work.
+TruffleRuby will try to print a nice error message if a dependency is missing,
+but this can only be done on a best effort basis.
+
+You may also need to set up a [UTF-8 locale](doc/user/utf8-locale.md).
 
 ## Current Status
 

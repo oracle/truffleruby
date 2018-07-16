@@ -82,6 +82,8 @@ When [installing GraalVM](installing-graalvm.md), it is recommended to add
 TruffleRuby to a Ruby manager for ease of use.
 
 First, [install GraalVM and Ruby](installing-graalvm.md).
+Make sure you ran the post-install script *before* adding GraalVM to Ruby managers.
+
 Then follow these steps to integrate GraalVM with your Ruby manager.
 
 ### rbenv
