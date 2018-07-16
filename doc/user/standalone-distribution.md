@@ -23,7 +23,7 @@ If you use another continuous integration system, you can follow these
 instructions to run TruffleRuby in CI.
 
 In short, one only needs to download and extract the archive, add it to `PATH`
-and run the post-install hook:
+and run the post-install script:
 
 ```bash
 export TRUFFLERUBY_VERSION=1.0.0-rc3
