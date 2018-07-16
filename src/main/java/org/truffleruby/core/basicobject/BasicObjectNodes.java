@@ -267,7 +267,7 @@ public abstract class BasicObjectNodes {
                 @Cached("create()") IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
 
-            return instanceEvalHelper(callerFrame, receiver, string, fileName, line, callerFrameNode, callNode);
+            return instanceEvalHelper(callerFrame, receiver, string, fileName, line, callNode);
         }
 
         @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })
@@ -276,7 +276,7 @@ public abstract class BasicObjectNodes {
                 @Cached("create()") IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
 
-            return instanceEvalHelper(callerFrame, receiver, string, fileName, 1, callerFrameNode, callNode);
+            return instanceEvalHelper(callerFrame, receiver, string, fileName, 1, callNode);
         }
 
         @Specialization(guards = { "isRubyString(string)" })
@@ -285,7 +285,7 @@ public abstract class BasicObjectNodes {
                 @Cached("create()") IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
 
-            return instanceEvalHelper(callerFrame, receiver, string, coreStrings().EVAL_FILENAME_STRING.createInstance(), 1, callerFrameNode, callNode);
+            return instanceEvalHelper(callerFrame, receiver, string, coreStrings().EVAL_FILENAME_STRING.createInstance(), 1, callNode);
         }
 
         @Specialization
@@ -296,7 +296,7 @@ public abstract class BasicObjectNodes {
 
         @TruffleBoundary
         private Object instanceEvalHelper(MaterializedFrame callerFrame, Object receiver, DynamicObject string,
-                DynamicObject fileName, int line, ReadCallerFrameNode callerFrameNode, IndirectCallNode callNode) {
+                DynamicObject fileName, int line, IndirectCallNode callNode) {
             final String fileNameString = RopeOperations.decodeRope(StringOperations.rope(fileName));
 
             final RubySource source = createEvalSourceNode.createEvalSource(StringOperations.rope(string), "instance_eval", fileNameString, line);

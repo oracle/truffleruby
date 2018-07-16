@@ -15,6 +15,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.SourceSection;
+
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -35,9 +37,11 @@ public abstract class TruffleBindingNodes {
              */
 
             final Memo<Integer> frameCount = new Memo<>(0);
+            final Memo<SourceSection> sourceSection = new Memo<>(null);
 
             final MaterializedFrame frame = Truffle.getRuntime().iterateFrames(frameInstance -> {
                 if (frameCount.get() == 2) {
+                    sourceSection.set(frameInstance.getCallNode().getEncapsulatingSourceSection());
                     return frameInstance.getFrame(FrameInstance.FrameAccess.READ_WRITE).materialize();
                 } else {
                     frameCount.set(frameCount.get() + 1);
@@ -49,7 +53,7 @@ public abstract class TruffleBindingNodes {
                 return nil();
             }
 
-            return BindingNodes.createBinding(getContext(), frame);
+            return BindingNodes.createBinding(getContext(), frame, sourceSection.get());
         }
 
     }

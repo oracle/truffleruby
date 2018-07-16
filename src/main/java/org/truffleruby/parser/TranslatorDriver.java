@@ -99,6 +99,8 @@ public class TranslatorDriver {
     public RubyRootNode parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames, FrameDescriptor frameDescriptor,
             MaterializedFrame parentFrame, boolean ownScopeForAssignments, Node currentNode) {
 
+        assert parserContext.isTopLevel() == (parentFrame == null) : "A frame should be given iff the context is not toplevel: " + parserContext + " " + parentFrame;
+
         final Source source = rubySource.getSource();
 
         final StaticScope staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
@@ -165,7 +167,10 @@ public class TranslatorDriver {
 
         RootParseNode node = null;
 
-        if (ParserCache.INSTANCE != null) {
+        // Only use the cache while loading the core library, as eval() later could use the same
+        // Source name but should not use the cache. For instance, TOPLEVEL_BINDING.eval("self")
+        // would use the cache which is wrong.
+        if (ParserCache.INSTANCE != null && context.getCoreLibrary().isLoadingRubyCore()) {
             node = ParserCache.INSTANCE.lookup(source.getName());
         }
 
@@ -191,18 +196,18 @@ public class TranslatorDriver {
         }
         parseEnvironment.resetLexicalScope(lexicalScope);
 
-        final String toplevelName = parserContext == ParserContext.TOP_LEVEL_FIRST ? "<main>" : "<top (required)>";
+        final String methodName = getMethodName(parserContext, parentFrame);
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection,
                 parseEnvironment.getLexicalScope(),
                 Arity.NO_ARGUMENTS,
                 null,
-                toplevelName,
+                methodName,
                 null,
                 null,
                 false);
 
-        final boolean topLevel = parserContext == ParserContext.TOP_LEVEL_FIRST || parserContext == ParserContext.TOP_LEVEL;
+        final boolean topLevel = parserContext.isTopLevel();
         final boolean isModuleBody = topLevel;
         final TranslatorEnvironment environment = new TranslatorEnvironment(context, parentEnvironment,
                         parseEnvironment, parseEnvironment.allocateReturnID(), ownScopeForAssignments, false, isModuleBody, sharedMethodInfo, sharedMethodInfo.getName(), 0, null);
@@ -287,6 +292,21 @@ public class TranslatorDriver {
         }
 
         return new RubyRootNode(context, sourceIndexLength.toSourceSection(source), environment.getFrameDescriptor(), sharedMethodInfo, truffleNode);
+    }
+
+    private String getMethodName(ParserContext parserContext, MaterializedFrame parentFrame) {
+        switch (parserContext) {
+            case TOP_LEVEL_FIRST:
+                return "<main>";
+            case TOP_LEVEL:
+                return "<top (required)>";
+            default:
+                if (parentFrame != null) {
+                    return RubyArguments.getMethod(parentFrame).getName();
+                } else {
+                    throw new UnsupportedOperationException("Could not determine the method name for parser context " + parserContext);
+                }
+        }
     }
 
     public RootParseNode parseToJRubyAST(RubySource rubySource, DynamicScope blockScope, ParserConfiguration configuration) {

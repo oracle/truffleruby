@@ -8,6 +8,9 @@
 
 class Binding
   def eval(code, file = nil, line = nil)
+    if file.nil? && line.nil?
+      file, line = source_location
+    end
     Kernel.eval(code, self, file, line)
   end
 

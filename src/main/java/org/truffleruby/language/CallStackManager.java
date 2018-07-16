@@ -49,25 +49,11 @@ public class CallStackManager {
         return getCallerFrameIgnoringSend(0);
     }
 
-    public Node getCallerNode() {
-        return getCallerNode(0);
-    }
-
     @TruffleBoundary
-    public Node getCallerNode(int skip) {
-        // Try first using getCallerFrame() as it's the common case
-        if (skip == 0) {
-            FrameInstance callerFrame = Truffle.getRuntime().getCurrentFrame();
-            if (callerFrame == null) {
-                return null;
-            }
-            Node node = callerFrame.getCallNode();
-            if (node != null) {
-                return node;
-            }
-        }
+    public Node getCallerNode(int skip, boolean ignoreSend) {
+        // Do not try getCallerFrame() as getCallerFrame().getCallNode() is always null.
+        // See the JavaDoc of getCallNode().
 
-        // Need to iterate further
         return Truffle.getRuntime().iterateFrames(new FrameInstanceVisitor<Node>() {
             int depth = 0;
             int skipped = 0;
@@ -80,7 +66,16 @@ public class CallStackManager {
                 }
 
                 if (skipped >= skip) {
-                    return frameInstance.getCallNode();
+                    if (ignoreSend) {
+                        final InternalMethod method = getMethod(frameInstance);
+                        if (method != null && context.getCoreLibrary().isSend(method)) {
+                            return null;
+                        } else {
+                            return frameInstance.getCallNode();
+                        }
+                    } else {
+                        return frameInstance.getCallNode();
+                    }
                 } else {
                     skipped++;
                 }
