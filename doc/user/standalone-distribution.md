@@ -68,6 +68,5 @@ Running the post-install is currently not necessary on TravisCI for TruffleRuby
 
 ## Dependencies
 
-The dependencies of TruffleRuby need to be installed for TruffleRuby to run
-correctly. Please see the [list of dependencies](../../README.md#dependencies)
-required for running TruffleRuby.
+[TruffleRuby's dependencies](../../README.md#dependencies) need to be installed
+for TruffleRuby to run correctly.
