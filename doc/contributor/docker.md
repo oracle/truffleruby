@@ -33,6 +33,7 @@ Or, to run a full set of tests on a set of new release candidate tarballs:
 $ jt docker test --graalvm graalvm-ce.tar.gz ruby-installable.jar --test release_branch
 $ jt docker test --graalvm graalvm-ee.tar.gz ruby-installable.jar --test release_branch
 $ jt docker test --graalvm graalvm-ee.tar.gz ruby-installable.jar --rebuild-images --test release_branch
+$ jt docker test --standalone truffleruby-linux-amd64.tar.gz --test release_branch
 ```
 
 ## Distributions

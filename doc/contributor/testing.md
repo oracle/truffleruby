@@ -196,8 +196,11 @@ and configurations that aren't tested, due to limited resources.
 ### Tests run on release candidates
 
 * Docker full tests on all supported Linux distributions, on all supported Ruby
-  version managers, using release candidate CE and EE tarball and Ruby
-  component, and rebuilding images or not.
+  version managers, using:
+  * release candidate CE tarball and Ruby component,
+  * release candidate EE tarball and Ruby component, and rebuilding images or
+    not,
+  * the standalone Ruby tarball.
 * macOS manually running similar tests.
 * The standalone binary tarball build runs `SPEC` and `SPEC(CEXT)` on Linux and
   macOS.
