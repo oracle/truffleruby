@@ -1,1 +1,0 @@
-fails:Thread#[]= raises a RuntimeError if the thread is frozen
