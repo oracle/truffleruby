@@ -190,7 +190,7 @@ and configurations that aren't tested, due to limited resources.
 * `GEM` with `INT` on `J8` on Linux.
 * `ECO` with `INT` on `J8` on Linux.
 * `COMP` with Graal CE on `J8` on Linux.
-* `SPEC(FAST)` and `SPEC(CEXT+FAST)` with SVM CE and EE on Linux and macOS.
+* `SPEC` with SVM CE and EE on Linux and macOS.
 * `SPEC` and `SPEC(CEXT)` on Linux in the standalone distribution configuration.
 
 ### Tests run on release candidates
