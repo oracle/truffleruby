@@ -75,17 +75,3 @@ Ruby.
 
 For logging of TruffleRuby internals, standard Java logging is used. The logging
 level can be set with `--log.ruby.level=INFO`, `=FINEST`, or so on.
-
-The logging level can also be set with the system property
-`-Dtruffleruby.log=info`, or with the environment variable
-`TRUFFLERUBY_LOG=info`, in that priority.
-
-For advanced configuration, write a Java logging configuration file and load it
-using `-J-Djava.util.logging.config.file=logging.properties`. You can use this
-to log to a file and to set the level.
-
-```
-org.truffleruby.handlers=java.util.logging.FileHandler
-java.util.logging.FileHandler.pattern=ruby.log
-org.truffleruby.level=CONFIG
-```

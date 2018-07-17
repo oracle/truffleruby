@@ -24,7 +24,8 @@ Performance:
 * `rb_enc_to_index` is now faster by eliminating an expensive look-up.
 Changes:
 
-* `-Xlog=` is now `--log.ruby.level=`.
+* `-Xlog=` is now `--log.ruby.level=` and the level name needs to be upper-case.
+* `-Dtruffleruby.log` and `TRUFFLERUBY_LOG` have been removed.
 * The log format, handlers, etc are now managed by the Truffle logging system.
 * The custom log levels `PERFORMANCE` and `PATCH` have been removed.
 
