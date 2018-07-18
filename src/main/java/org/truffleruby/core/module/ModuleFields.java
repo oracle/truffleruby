@@ -645,17 +645,6 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         return () -> new AncestorIterator(top);
     }
 
-    public Iterable<DynamicObject> parentAncestors() {
-        final ModuleChain top = start;
-        return () -> {
-            final AncestorIterator iterator = new AncestorIterator(top);
-            if (iterator.hasNext()) {
-                iterator.next();
-            }
-            return iterator;
-        };
-    }
-
     /**
      * Iterates over include'd and prepend'ed modules.
      */

@@ -242,7 +242,7 @@ public abstract class ClassNodes {
 
     @TruffleBoundary
     public static DynamicObject getSuperClass(DynamicObject rubyClass) {
-        for (DynamicObject ancestor : Layouts.MODULE.getFields(rubyClass).parentAncestors()) {
+        for (DynamicObject ancestor : Layouts.MODULE.getFields(rubyClass).ancestors()) {
             if (RubyGuards.isRubyClass(ancestor) && ancestor != rubyClass) {
                 return ancestor;
             }

@@ -22,6 +22,7 @@ Bug fixes:
 * Optional and operator assignment expressions now return the value
   assigned, not the value returned by an assignment method.
 * WeakRef.new will now return the correct type of object, even if WeakRef is subclassed.
+* Resolving constants in prepended modules failed, this has now been fixed.
 
 Performance:
 * Optimize required keyword arguments.

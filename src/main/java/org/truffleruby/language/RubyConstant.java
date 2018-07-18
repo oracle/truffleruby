@@ -92,8 +92,8 @@ public class RubyConstant {
 
         // Look in ancestors
         if (RubyGuards.isRubyClass(module)) {
-            for (DynamicObject included : Layouts.MODULE.getFields(module).parentAncestors()) {
-                if (included == declaringModule) {
+            for (DynamicObject included : Layouts.MODULE.getFields(module).ancestors()) {
+                if (included != module && included == declaringModule) {
                     return true;
                 }
             }
