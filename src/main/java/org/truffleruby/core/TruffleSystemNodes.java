@@ -46,6 +46,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyLogger;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -190,7 +191,7 @@ public abstract class TruffleSystemNodes {
             assert RubyGuards.isRubySymbol(level);
 
             try {
-                return Level.parse(level.toString());
+                return Level.parse(Layouts.SYMBOL.getString(level));
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(
                         "Could not find log level for: " + level,
