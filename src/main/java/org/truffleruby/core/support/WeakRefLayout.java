@@ -9,12 +9,13 @@
  */
 package org.truffleruby.core.support;
 
+import java.lang.ref.WeakReference;
+
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
-
-import java.lang.ref.WeakReference;
 
 @Layout
 public interface WeakRefLayout extends BasicObjectLayout {

@@ -9,24 +9,33 @@
  */
 package org.truffleruby.core.support;
 
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.lang.ref.WeakReference;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.language.Visibility;
+import org.truffleruby.language.objects.AllocateObjectNode;
 
-import java.lang.ref.WeakReference;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 @CoreClass("WeakRef")
 public abstract class WeakRefNodes {
 
-    @Primitive(name = "weakref_new", needsSelf = false)
-    public static abstract class WeakRefNewPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    private static WeakReference<Object> EMPTY_WEAK_REF = new WeakReference<>(null);
+
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject weakRefNew(Object object) {
-            return Layouts.WEAK_REF_LAYOUT.createWeakRef(coreLibrary().getWeakRefFactory(), new WeakReference<>(object));
+        public DynamicObject allocate(DynamicObject rubyClass) {
+            return allocateObjectNode.allocate(rubyClass, EMPTY_WEAK_REF);
         }
 
     }
