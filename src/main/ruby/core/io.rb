@@ -635,8 +635,13 @@ class IO
       offset = 0
       options = length_or_options
     elsif length_or_options
-      offset = Truffle::Type.coerce_to_int(offset || 0)
-      raise Errno::EINVAL, 'offset must not be negative' if offset < 0
+      if Truffle::Type.object_kind_of? offset, Hash
+        options = offset
+        offset = 0
+      else
+        offset = Truffle::Type.coerce_to_int(offset || 0)
+        raise Errno::EINVAL, 'offset must not be negative' if offset < 0
+      end
 
       length = Truffle::Type.coerce_to_int(length_or_options)
       raise ArgumentError, 'length must not be negative' if length < 0
