@@ -36,8 +36,10 @@ original_repo=$(pwd -P)
 revision=$(git rev-parse --short=8 HEAD)
 version="$revision"
 
-rm -rf "${PREFIX:?}"/*
-mkdir -p "$PREFIX"
+if [[ "$CLEAN" != "no" ]]; then
+  rm -rf "${PREFIX:?}"/*
+  mkdir -p "$PREFIX"
+fi
 
 # Expand $PREFIX
 PREFIX=$(cd "$PREFIX" && pwd -P)
@@ -47,13 +49,13 @@ cd "$PREFIX/build"
 
 # Always make a copy of the repository, because we do not want any extra files
 # (e.g., extra gems) that might be in the current truffleruby repository.
-git clone "$original_repo" truffleruby
+test -d truffleruby || git clone "$original_repo" truffleruby
 
 # Shortcut when running the script locally
 if [ -d "$original_repo/../graal" ] && [ -d "$original_repo/../sulong" ]; then
   # Building locally (not in CI), copy from local repositories to gain time
-  git clone "$original_repo/../graal" graal
-  git clone "$original_repo/../sulong" sulong
+  test -d graal || git clone "$original_repo/../graal" graal
+  test -d sulong || git clone "$original_repo/../sulong" sulong
 fi
 
 mx -p truffleruby sforceimports
