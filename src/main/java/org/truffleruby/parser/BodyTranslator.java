@@ -2496,7 +2496,7 @@ public class BodyTranslator extends Translator {
             writeArguments = new ArgsPushParseNode(node.getPosition(), readArguments, value);
         }
 
-        return new CallParseNode(node.getPosition(), readReceiverFromTemp, "[]=", writeArguments, null);
+        return new AttrAssignParseNode(node.getPosition(), readReceiverFromTemp, "[]=", writeArguments, false);
     }
 
     private ParseNode operation(
