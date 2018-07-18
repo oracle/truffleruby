@@ -30,7 +30,7 @@ options. See `RubyContext#compatibleOptions()`.
 
 ## Debugging
 
-`--log.ruby.level=FINE` outputs useful information regarding pre-initialization, notably
+`-Xlog=FINE` outputs useful information regarding pre-initialization, notably
 whether the pre-initialized context is reused.
 
 It is possible to run the pre-initialization process on the JVM to help
@@ -41,7 +41,7 @@ runtime execution.
 Debugging on the JVM can be achieved with:
 
 ```
-bin/truffleruby -J-Dpolyglot.engine.PreinitializeContexts=ruby -J-Dtruffleruby.preinitialization.home=$PWD -Xhome=$PWD --log.ruby.level=FINE -e 'p :hi'
+bin/truffleruby -J-Dpolyglot.engine.PreinitializeContexts=ruby -J-Dtruffleruby.preinitialization.home=$PWD -Xhome=$PWD -Xlog=FINE -e 'p :hi'
 ```
 
 `truffleruby.preinitialization.home` is the pre-initialization home and `-Xhome` the runtime home.

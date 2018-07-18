@@ -6,6 +6,7 @@ New features:
 * It is no longer needed to add LLVM (`/usr/local/opt/llvm@4/bin`) to `PATH` on macOS.
 * Improve error message when LLVM, `clang` or `opt` is missing.
 * Automatically find LLVM and libssl with MacPorts on macOS (#1386).
+* `--log.ruby.level=` can be used to set the log level from any launcher.
 
 Bug fixes:
 * Allow any name for constants with `rb_const_get()`/`rb_const_set()` (#1380).
@@ -24,8 +25,8 @@ Performance:
 * `rb_enc_to_index` is now faster by eliminating an expensive look-up.
 Changes:
 
-* `-Xlog=` is now `--log.ruby.level=` and the level name needs to be upper-case.
-* `-Dtruffleruby.log` and `TRUFFLERUBY_LOG` have been removed.
+* `-Xlog=` now needs log level names to be upper case.
+* `-Dtruffleruby.log` and `TRUFFLERUBY_LOG` have been removed - use `-Dpolyglot.log.ruby.level`.
 * The log format, handlers, etc are now managed by the Truffle logging system.
 * The custom log levels `PERFORMANCE` and `PATCH` have been removed.
 

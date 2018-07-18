@@ -190,7 +190,7 @@ describe "The launcher" do
   end
 
   it "logs options if -Xoptions.log is set" do
-    out = ruby_exe("14", options: "-Xoptions.log --log.ruby.level=CONFIG", args: "2>&1")
+    out = ruby_exe("14", options: "-Xoptions.log -Xlog=CONFIG", args: "2>&1")
     $?.success?.should == true
     out.should include("CONFIG: option home=")
   end
