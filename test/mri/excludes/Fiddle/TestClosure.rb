@@ -1,0 +1,5 @@
+exclude :test_argument_errors, "needs investigation"
+exclude :test_block_caller, "needs investigation"
+exclude :test_call, "needs investigation"
+exclude :test_returner, "needs investigation"
+exclude :test_memsize, "needs investigation"
