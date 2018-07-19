@@ -24,14 +24,6 @@ public class CheckLayoutNode extends RubyBaseNode {
 
     @Child private GetObjectTypeNode getObjectTypeNode = GetObjectTypeNodeGen.create(null);
 
-    public boolean isArray(DynamicObject object) {
-        return Layouts.ARRAY.isArray(getObjectTypeNode.executeGetObjectType(object));
-    }
-
-    public boolean isModule(DynamicObject object) {
-        return Layouts.MODULE.isModule(getObjectTypeNode.executeGetObjectType(object));
-    }
-
     public boolean isString(DynamicObject object) {
         return Layouts.STRING.isString(getObjectTypeNode.executeGetObjectType(object));
     }

@@ -89,17 +89,6 @@ public class DynamicScope {
         return staticScope;
     }
 
-    /**
-     * Set value in current dynamic scope or one of its captured scopes.
-     *
-     * @param offset zero-indexed value that represents where variable lives
-     * @param value to set
-     * @param depth how many captured scopes down this variable should be set
-     */
-    public Object setValue(Object value, int offset, int depth) {
-        return setValue(offset, value, depth);
-    }
-
     @Override
     public String toString() {
         return toString(new StringBuffer(), "");
@@ -165,26 +154,6 @@ public class DynamicScope {
     public Object[] getValues() {
         return variableValues;
     }
-    
-    /**
-     * Get value from current scope or one of its captured scopes.
-     * 
-     * FIXME: block variables are not getting primed to nil so we need to null check those
-     *  until we prime them properly.  Also add assert back in.
-     * 
-     * @param offset zero-indexed value that represents where variable lives
-     * @param depth how many captured scopes down this variable should be set
-     * @return the value here
-     */
-    public Object getValue(int offset, int depth) {
-        if (depth > 0) {
-            return parent.getValue(offset, depth - 1);
-        }
-        assertGetValue(offset, depth);
-        // &foo are not getting set from somewhere...I want the following assert to be true though
-        //assert variableValues[offset] != null : "Getting unassigned: " + staticScope.getVariables()[offset];
-        return variableValues[offset];
-    }
 
     /**
      * Set value in current dynamic scope or one of its captured scopes.
@@ -241,11 +210,6 @@ public class DynamicScope {
             case 3: dst[dstOff] = src[srcOff]; dst[++dstOff] = src[srcOff + 1]; dst[++dstOff] = src[srcOff + 2]; return;
         }
         System.arraycopy(src, srcOff, dst, dstOff, length);
-    }
-
-    private void assertGetValue(int offset, int depth) {
-        Object[] values = variableValues;
-        assert values != null && offset < values.length : "No variables or index to big for getValue off: " + offset + ", Dep: " + depth + ", O: " + this;
     }
 
     private void assertParent() {

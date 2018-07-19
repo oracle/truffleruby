@@ -158,35 +158,6 @@ public class RegexpOptions implements Cloneable {
 
         return null;
     }
-    
-    /**
-     * This int value can be used by compiler or any place where we want
-     * an integer representation of the state of this object.
-     * 
-     * Note: This is for full representation of state in the JIT.  It is not
-     * to be confused with state of marshalled regexp data.
-     */
-    public int toEmbeddedOptions() {
-        int options = toJoniOptions();
-
-        if (once) {
-            options |= ReOptions.RE_OPTION_ONCE;
-        }
-        if (literal) {
-            options |= ReOptions.RE_LITERAL;
-        }
-        if (kcodeDefault) {
-            options |= ReOptions.RE_DEFAULT;
-        }
-        if (fixed) {
-            options |= ReOptions.RE_FIXED;
-        }
-        if (encodingNone) {
-            options |= ReOptions.ARG_ENCODING_NONE;
-        }
-
-        return options;
-    }
 
     /**
      * This int value is meant to only be used when dealing directly with

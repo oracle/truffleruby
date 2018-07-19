@@ -94,11 +94,6 @@ public class WeakValueCache<Key, Value> implements ReHashable {
         }
     }
 
-    public void clear() {
-        removeStaleEntries();
-        map.clear();
-    }
-
     public int size() {
         removeStaleEntries();
         return map.size();

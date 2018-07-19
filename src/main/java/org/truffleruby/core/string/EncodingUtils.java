@@ -38,7 +38,6 @@ import org.jcodings.specific.UTF32BEEncoding;
 import org.jcodings.specific.UTF32LEEncoding;
 import org.jcodings.unicode.UnicodeEncoding;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeBuilder;
 
 public class EncodingUtils {
 
@@ -137,11 +136,6 @@ public class EncodingUtils {
 
     private static final Encoding UTF16Dummy = EncodingDB.getEncodings().get("UTF-16".getBytes()).getEncoding();
     private static final Encoding UTF32Dummy = EncodingDB.getEncodings().get("UTF-32".getBytes()).getEncoding();
-
-    // MRI: get_actual_encoding
-    public static Encoding getActualEncoding(Encoding enc, RopeBuilder builder) {
-        return getActualEncoding(enc, builder.getUnsafeBytes(), 0, builder.getLength());
-    }
 
     public static Encoding getActualEncoding(Encoding enc, byte[] bytes, int p, int end) {
         if (enc.isDummy() && enc instanceof UnicodeEncoding) {

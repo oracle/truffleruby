@@ -638,10 +638,6 @@ public abstract class RopeNodes {
             return Math.max(left.depth(), right.depth()) + 1;
         }
 
-        protected static boolean isNativeRope(Rope rope) {
-            return rope instanceof NativeRope;
-        }
-
         protected static boolean isCodeRangeBroken(Rope first, Rope second) {
             return first.getCodeRange() == CR_BROKEN || second.getCodeRange() == CR_BROKEN;
         }

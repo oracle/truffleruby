@@ -83,10 +83,6 @@ public class ByteArrayBuilder {
         return bytes[n];
     }
 
-    public void set(int n, byte b) {
-        bytes[n] = b;
-    }
-
     public void set(int n, int b) {
         bytes[n] = (byte) b;
     }

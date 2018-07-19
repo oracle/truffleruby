@@ -32,7 +32,6 @@ import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 })
 abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
 
-    @Child private DoesRespondDispatchHeadNode definedNode;
     @Child private DoesRespondDispatchHeadNode indexDefinedNode;
     @Child private CallDispatchHeadNode callNode;
 
@@ -102,15 +101,6 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
     @CompilerDirectives.TruffleBoundary
     private String toString(Object name) {
         return name.toString();
-    }
-
-    protected DoesRespondDispatchHeadNode getDefinedNode() {
-        if (definedNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            definedNode = insert(DoesRespondDispatchHeadNode.create());
-        }
-
-        return definedNode;
     }
 
     protected DoesRespondDispatchHeadNode getIndexDefinedNode() {

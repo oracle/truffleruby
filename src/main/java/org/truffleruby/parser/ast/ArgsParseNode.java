@@ -132,19 +132,6 @@ public class ArgsParseNode extends ParseNode {
         return keywords || keyRest != null;
     }
 
-    public int countKeywords() {
-        if (hasKwargs()) {
-            boolean keywords = args.length - keywordsIndex > 0;
-            if (keywords) {
-                // Rest keyword argument
-                return 0;
-            }
-            return args.length - keywordsIndex;
-        } else {
-            return 0;
-        }
-    }
-
     public boolean hasRestArg() {
         return restArgNode != null;
     }

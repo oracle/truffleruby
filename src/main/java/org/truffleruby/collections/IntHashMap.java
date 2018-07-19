@@ -27,7 +27,6 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.collections;
 
-import java.util.AbstractCollection;
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
@@ -287,34 +286,6 @@ public class IntHashMap<V> {
     }
 
     private transient Set<Entry<V>> entrySet = null;
-
-    public Collection<V> values() {
-        Collection<V> vs = values;
-        return (vs != null ? vs : (values = new Values()));
-    }
-
-    private class Values extends AbstractCollection<V> {
-
-        @Override
-        public Iterator<V> iterator() {
-            return newValueIterator();
-        }
-
-        @Override
-        public int size() {
-            return IntHashMap.this.count;
-        }
-
-        @Override
-        public boolean contains(Object o) {
-            return containsValue(o);
-        }
-
-        @Override
-        public void clear() {
-            IntHashMap.this.clear();
-        }
-    }
 
     public Set<Entry<V>> entrySet() {
         Set<Entry<V>> es = entrySet;
