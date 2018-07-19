@@ -35,8 +35,8 @@ public abstract class Platform extends BasicPlatform {
     public static final String LIBSUFFIX = determineLibExt();
     public static final String LIBC = determineLibC();
 
-    public static final boolean IS_WINDOWS = OS.equals(OS_TYPE.WINDOWS);
-    public static final boolean IS_BSD = OS.equals(OS_TYPE.FREEBSD) || OS.equals(OS_TYPE.NETBSD) || OS.equals(OS_TYPE.OPENBSD);
+    public static final boolean IS_WINDOWS = OS == OS_TYPE.WINDOWS;
+    public static final boolean IS_BSD = OS == OS_TYPE.FREEBSD || OS == OS_TYPE.NETBSD || OS == OS_TYPE.OPENBSD;
 
     private static final String determineLibC() {
         switch (OS) {
