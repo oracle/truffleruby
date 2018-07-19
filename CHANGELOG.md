@@ -19,6 +19,9 @@ Bug fixes:
 * #require and #require_relative should keep symlinks in `$"` and `__FILE__` (#1383).
 * Random seeds now always come directly from `/dev/urandom` for MRI compatibility.
 * SIGINFO, SIGEMT and SIGPWR are now defined (#1382).
+* Optional and operator assignment expressions now return the value
+  assigned, not the value returned by an assignment method.
+* WeakRef.new will now return the correct type of object, even if WeakRef is subclassed.
 
 Performance:
 * Optimize required keyword arguments.

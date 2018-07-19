@@ -28,9 +28,8 @@ class WeakRef < BasicObject
 
   class RefError < ::RuntimeError; end
 
-  def self.new(obj)
-    Truffle.primitive :weakref_new
-    ::Kernel.raise PrimitiveFailure, 'WeakRef.new primitive failed'
+  def initialize(obj)
+    Truffle.invoke_primitive(:weakref_set_object, self, obj)
   end
 
   def __setobj__(obj)
