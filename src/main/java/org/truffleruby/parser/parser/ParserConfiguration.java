@@ -33,11 +33,10 @@ package org.truffleruby.parser.parser;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
-import org.truffleruby.parser.scope.DynamicScope;
 import org.truffleruby.parser.scope.StaticScope;
 
 public class ParserConfiguration {
-    private DynamicScope existingScope = null;
+    private StaticScope existingScope = null;
     private boolean asBlock = false;
     // What linenumber will the source think it starts from?
     private int lineNumber = 0;
@@ -106,7 +105,7 @@ public class ParserConfiguration {
      * 
      * @param existingScope is the scope that captures new vars, etc...
      */
-    public void parseAsBlock(DynamicScope existingScope) {
+    public void parseAsBlock(StaticScope existingScope) {
         this.asBlock = true;
         this.existingScope = existingScope;
     }
@@ -122,7 +121,7 @@ public class ParserConfiguration {
      */
     public StaticScope getScope(String file) {
         if (asBlock) {
-            return existingScope.getStaticScope();
+            return existingScope;
         }
 
         return new StaticScope(StaticScope.Type.LOCAL, (StaticScope) null, file);
