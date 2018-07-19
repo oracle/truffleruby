@@ -35,12 +35,12 @@ import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.PreExeParseNode;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  */
 public class RubyParserResult {
-    final public static List<ParseNode> EMPTY_BEGIN_LIST = new ArrayList<>();
 
     private List<ParseNode> beginNodes;
     private ParseNode ast;
@@ -65,7 +65,7 @@ public class RubyParserResult {
     }
     
     public List<ParseNode> getBeginNodes() {
-        return beginNodes == null ? EMPTY_BEGIN_LIST : beginNodes;
+        return beginNodes == null ? Collections.emptyList() : beginNodes;
     }
 
 }
