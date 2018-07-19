@@ -42,7 +42,6 @@ import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.interop.ForeignCodeNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.RubyWarnings;
 import org.truffleruby.parser.ast.ArgsParseNode;
@@ -114,7 +113,6 @@ import org.truffleruby.parser.ast.SelfParseNode;
 import org.truffleruby.parser.ast.StarParseNode;
 import org.truffleruby.parser.ast.StrParseNode;
 import org.truffleruby.parser.ast.TrueParseNode;
-import org.truffleruby.parser.ast.TruffleFragmentParseNode;
 import org.truffleruby.parser.ast.UnnamedRestArgParseNode;
 import org.truffleruby.parser.ast.UntilParseNode;
 import org.truffleruby.parser.ast.VAliasParseNode;
@@ -224,7 +222,6 @@ public class RubyParser {
 %token <FloatParseNode> tFLOAT  
 %token <RationalParseNode> tRATIONAL
 %token <RegexpParseNode>  tREGEXP_END
-%token <String> tJAVASCRIPT
 
 %type <RestArgParseNode> f_rest_arg
 %type <ParseNode> singleton strings string string1 xstring regexp
@@ -512,9 +509,6 @@ stmt            : kALIAS fitem {
                     $<AssignableParseNode>1.setValueNode($3);
                     $$ = $1;
                     $1.setPosition(support.getPosition($1));
-                }
-                | tJAVASCRIPT {
-                    $$ = new TruffleFragmentParseNode(lexer.getPosition(), new ForeignCodeNode(support.getContext(), "application/javascript", $1));
                 }
                 | expr
 
