@@ -203,7 +203,7 @@ local part_definitions = {
       environment+: {
         HOST_VM_CONFIG: "graal-core",
         GRAAL_HOME: "$PWD/../graal/compiler",
-        SVM_HOME: "$PWD/../graal/substratevm",
+        VM_SUITE_HOME: "$PWD/../graal/vm",
       },
     },
 
@@ -227,35 +227,33 @@ local part_definitions = {
       environment+: {
         HOST_VM_CONFIG: "graal-enterprise",
         GRAAL_HOME: "$PWD/../graal-enterprise/graal-enterprise",
-        SVM_HOME: "$PWD/../graal-enterprise/substratevm-enterprise",
+        VM_SUITE_HOME: "$PWD/../graal-enterprise/vm-enterprise",
       },
     },
 
     build_image: {
+      local vm_suite_mx_flags = [
+        "--disable-polyglot",
+        "--disable-libpolyglot",
+        "--force-bash-launchers=lli,native-image",
+        "--dynamic-imports",
+        "truffleruby,/substratevm"
+      ],
+
       setup+: [
-        ["cd", "$SVM_HOME"],
+        ["cd", "$VM_SUITE_HOME"],
         # Workaround for NFI when building with different Truffle versions
         ["mx", "clean"],
-        ["mx", "build"],
-        ["mx", "--dynamicimports", "/tools", "fetch-languages", "--language:llvm", "--language:ruby"],
         # aot-build.log is used for the build-stats metrics
-        [
-          "mx",
-          "native-image",
-          "--language:ruby",
-          "-H:Path=$SVM_HOME/svmbuild/native-image-root/languages/ruby/bin",
-          "-H:Name=truffleruby",
-          "|",
-          "tee",
-          "../../main/aot-build.log"
-        ],
+        ["mx"] + vm_suite_mx_flags + ["build", "|", "tee", "../../main/aot-build.log"],
+        ["export", ["echo", "VM_DIST_HOME=", ["mx" + vm_suite_mx_flags + "graalvm-home"]]],
         ["cd", "../../main"],
       ],
 
       local build = self,
       environment+: {
         JT_BENCHMARK_RUBY: "$AOT_BIN",
-        AOT_BIN: "$SVM_HOME/svmbuild/native-image-root/languages/ruby/bin/truffleruby",
+        AOT_BIN: "$VM_DIST_HOME/bin/ruby",
       },
     },
   },
@@ -425,13 +423,16 @@ local part_definitions = {
     svm_gate: {
       local build = self,
       run+: [
-        ["cd", "$SVM_HOME"],
+        ["cd", "$VM_SUITE_HOME"],
         [
           "mx",
-          "--strict-compliance",
+          "--dynamic-imports",
+          "sulong,truffleruby",
+          "--disable-polyglot",
+          "--disable-libpolyglot",
+          "--force-bash-launchers=lli,truffleruby",
           "gate",
-          "-B--force-deprecation-as-warning",
-          "--strict-mode",
+          "--no-warning-as-error",
           "--tags",
           build["$.run.svm_gate"].tags,
         ],
