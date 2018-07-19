@@ -9,6 +9,7 @@ We talk about several types of tests in TruffleRuby:
 * Specs (`SPECS`)
 * MRI tests (`MRI`)
 * C extension tests (`CEXT`)
+* Bundler tests (`BUN`)
 * Compiler tests (`COMP`)
 * Ecosystem tests (`ECO`)
 * Gem tests (`GEM`)
@@ -55,8 +56,9 @@ The MRI tests use the `test/unit` library. We find them a bit more difficult to
 run and configure, and find that they often have a lower granularity, so they
 aren't used as frequently as the specs.
 
-We usually think of the specs for the C extension API as being separate
-(`MRI(CEXT)`).
+We usually think of the specs for the C extension API, and MRI tests that use C
+extensions, as being separate (`MRI(CEXT)`), and these are run with different
+flags like `--syslog`.
 
 MRI tests are in `test/mri`.
 
@@ -75,6 +77,13 @@ because we do not want to distribute gems, is not publicly available.
 C extension tests are in `test/truffle/cexts`.
 
 Run C extension tests with `jt test cexts`.
+
+### Bundle tests
+
+The Bundle tests check that Bundler can be installed, it can be used to
+`bundle install` a code base, and `bundle exec` it.
+
+Run the Bundler tests with `jt test bundle`.
 
 ### Compiler tests
 
@@ -185,8 +194,8 @@ and configurations that aren't tested, due to limited resources.
 * `MRI` with `INT` on `J8` on Linux.
 * `MRI` with `INT` on `J8` on macOS.
 * `IGR` with `INT` on `J8` on Linux.
-* `CEXT` with `INT` on `J8` on Linux.
-* `CEXT` with `INT` on `J8` on macOS.
+* `CEXT`, `SPEC(CEXTS)`, `MRI(CEXTS)`, `BUN` with `INT` on `J8` on Linux (the Sulong downstream gate).
+* `CEXT`, `SPEC(CEXTS)`, `MRI(CEXTS)`, `BUN` with `INT` on `J8` on macOS (the Sulong downstream gate).
 * `GEM` with `INT` on `J8` on Linux.
 * `ECO` with `INT` on `J8` on Linux.
 * `COMP` with Graal CE on `J8` on Linux.
