@@ -345,15 +345,6 @@ public class TranslatorDriver {
             }
         }
 
-        // If variables were added then we may need to grow the dynamic scope to match the static
-        // one.
-        // FIXME: Make this so we only need to check this for blockScope != null.  We cannot
-        // currently since we create the DynamicScope for a LocalStaticScope before parse begins.
-        // Refactoring should make this fixable.
-        if (result.getScope() != null) {
-            result.getScope().growIfNeeded();
-        }
-
         return (RootParseNode) result.getAST();
     }
 

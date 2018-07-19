@@ -46,38 +46,12 @@ public class DynamicScope {
     // Static scoping information for this scope
     protected final StaticScope staticScope;
 
-    // Captured dynamic scopes
-    protected final DynamicScope parent;
-
-    private boolean lambda;
-
-    // Our values holder (name of variables are kept in staticScope)
-    private Object[] variableValues;
-
     public DynamicScope(StaticScope staticScope, DynamicScope parent) {
         this.staticScope = staticScope;
-        this.parent = parent;
-        allocate();
     }
 
     public DynamicScope(StaticScope staticScope) {
         this.staticScope = staticScope;
-        this.parent = null;
-        allocate();
-    }
-
-    /**
-     * Get parent (capturing) scope.  This is used by eval and closures to
-     * walk up to hard lexical boundary.
-     *
-     */
-    public final DynamicScope getParentScope() {
-        return parent;
-    }
-
-    @Deprecated
-    public DynamicScope getNextCapturedScope() {  // Used by ruby-debug-ide
-        return getParentScope();
     }
 
     /**
@@ -87,141 +61,6 @@ public class DynamicScope {
      */
     public final StaticScope getStaticScope() {
         return staticScope;
-    }
-
-    @Override
-    public String toString() {
-        return toString(new StringBuffer(), "");
-    }
-
-    // Helper function to give a good view of current dynamic scope with captured scopes
-    public String toString(StringBuffer buf, String indent) {
-        buf.append(indent).append("Static Type[" + hashCode() + "]: " +
-                (staticScope.isBlockScope() ? "block" : "local") + " [");
-        int size = staticScope.getNumberOfVariables();
-        Object[] variableValues = getValues();
-
-        if (size != 0) {
-            String names[] = staticScope.getVariables();
-            for (int i = 0; i < size - 1; i++) {
-                buf.append(names[i]).append("=");
-
-                if (variableValues[i] == null) {
-                    buf.append("null");
-                } else {
-                    buf.append(variableValues[i]);
-                }
-
-                buf.append(",");
-            }
-            buf.append(names[size - 1]).append("=");
-
-            assert variableValues.length == names.length : "V: " + variableValues.length +
-                    " != N: " + names.length + " for " + buf;
-
-            if (variableValues[size - 1] == null) {
-                buf.append("null");
-            } else {
-                buf.append(variableValues[size - 1]);
-            }
-
-        }
-
-        buf.append("]");
-        if (parent != null) {
-            buf.append("\n");
-            parent.toString(buf, indent + "  ");
-        }
-
-        return buf.toString();
-    }
-
-    public void setLambda(boolean lambda) {
-        this.lambda = lambda;
-    }
-
-    public boolean isLambda() {
-        return lambda;
-    }
-
-    private void allocate() {
-        if (variableValues == null) {
-            int size = staticScope.getNumberOfVariables();
-            variableValues = new Object[size];
-        }
-    }
-
-    public Object[] getValues() {
-        return variableValues;
-    }
-
-    /**
-     * Set value in current dynamic scope or one of its captured scopes.
-     * 
-     * @param offset zero-indexed value that represents where variable lives
-     * @param value to set
-     * @param depth how many captured scopes down this variable should be set
-     */
-    public Object setValue(int offset, Object value, int depth) {
-        if (depth > 0) {
-            assertParent();
-            
-            return parent.setValue(offset, value, depth - 1);
-        } else {
-            assertSetValue(offset, value);
-            
-            return setValueDepthZero(value, offset);
-        }
-    }
-
-    public Object setValueDepthZero(Object value, int offset) {
-        assertSetValueDepthZero(offset, value);
-
-        return variableValues[offset] = value;
-    }
-
-    /**
-     * 
-     * Make a larger dynamic scope if the static scope grew.
-     * 
-     * Eval's with bindings require us to possibly change the size of the dynamic scope if
-     * things like 'eval "b = 2", binding' happens.
-     *
-     */
-    public void growIfNeeded() {
-        int dynamicSize = variableValues == null ? 0 : variableValues.length;
-        
-        if (staticScope.getNumberOfVariables() > dynamicSize) {
-            Object values[] = new Object[staticScope.getNumberOfVariables()];
-            
-            if (dynamicSize > 0) {
-                copy(variableValues, 0, values, 0, dynamicSize);
-            }
-            
-            variableValues = values;
-        }
-    }
-
-    public static void copy(Object[] src, int srcOff, Object[] dst, int dstOff, final int length) {
-        switch (length) {
-            case 0: return;
-            case 1: dst[dstOff] = src[srcOff]; return;
-            case 2: dst[dstOff] = src[srcOff]; dst[++dstOff] = src[srcOff + 1]; return;
-            case 3: dst[dstOff] = src[srcOff]; dst[++dstOff] = src[srcOff + 1]; dst[++dstOff] = src[srcOff + 2]; return;
-        }
-        System.arraycopy(src, srcOff, dst, dstOff, length);
-    }
-
-    private void assertParent() {
-        assert parent != null : "If depth > 0, then parent should not ever be null";
-    }
-
-    private void assertSetValue(int offset, Object value) {
-        assert offset < variableValues.length : "Setting " + offset + " to " + value + ", O: " + this;
-    }
-
-    private void assertSetValueDepthZero(int offset, Object value) {
-        assert offset < variableValues.length : "Setting " + offset + " to " + value + ", O: " + this;
     }
 
 }
