@@ -1,0 +1,7 @@
+exclude :test_api_endpoint_ignores_trans_domain_values_that_end_with_original_in_path, "needs investigation"
+exclude :test_ssl_connection, "needs investigation"
+exclude :test_api_endpoint, "needs investigation"
+exclude :test_api_endpoint_ignores_trans_domain_values_that_starts_with_original, "needs investigation"
+exclude :test_ssl_connection_allow_verify_none, "needs investigation"
+exclude :test_api_endpoint_ignores_trans_domain_values_that_end_with_original, "needs investigation"
+exclude :test_api_endpoint_ignores_trans_domain_values, "needs investigation"

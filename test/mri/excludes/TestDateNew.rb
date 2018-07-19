@@ -1,5 +1,1 @@
 exclude :test_civil, "needs investigation"
-exclude :test_commercial, "needs investigation"
-exclude :test_now, "needs investigation"
-exclude :test_ordinal, "needs investigation"
-exclude :test_today, "needs investigation"

@@ -1,0 +1,6 @@
+exclude :test_nread, "needs investigation"
+exclude :test_nread_buffered, "needs investigation"
+exclude :test_wait_buffered, "needs investigation"
+exclude :test_wait_readable_buffered, "needs investigation"
+exclude :test_wait_readwrite, "needs investigation"
+exclude :test_wait_readwrite_timeout, "needs investigation"
