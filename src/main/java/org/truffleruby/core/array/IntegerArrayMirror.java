@@ -67,11 +67,6 @@ class IntegerArrayMirror extends BasicArrayMirror {
     }
 
     @Override
-    public Object[] getBoxedCopy(int newLength) {
-        return ArrayUtils.box(array, newLength);
-    }
-
-    @Override
     public void copyTo(Object[] destination, int sourceStart, int destinationStart, int count) {
         for (int n = 0; n < count; n++) {
             destination[destinationStart + n] = array[sourceStart + n];
