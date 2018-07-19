@@ -52,10 +52,10 @@ import java.util.List;
  * b       = block arg
  */
 public class ArgsParseNode extends ParseNode {
-    private ParseNode[] args;
-    private short optIndex;
-    private short postIndex;
-    private short keywordsIndex;
+    private final ParseNode[] args;
+    private final short optIndex;
+    private final short postIndex;
+    private final short keywordsIndex;
 
     protected final ArgumentParseNode restArgNode;
     private final KeywordRestArgParseNode keyRest;
