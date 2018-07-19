@@ -283,7 +283,7 @@ public class BodyTranslator extends Translator {
 
     public BodyTranslator(Node currentNode, RubyContext context, BodyTranslator parent, TranslatorEnvironment environment, Source source, ParserContext parserContext, boolean topLevel) {
         super(currentNode, context, source, parserContext);
-        parserSupport = new ParserSupport(context, context.getSourceLoader().getPath(source));
+        this.parserSupport = new ParserSupport(context, context.getSourceLoader().getPath(source), null);
         this.parent = parent;
         this.environment = environment;
     }

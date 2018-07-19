@@ -153,20 +153,19 @@ public class ParserSupport {
     // Is the parser currently within a method definition
     private boolean inDefinition;
 
-    protected RubyWarnings warnings;
 
     protected ParserConfiguration configuration;
     private RubyParserResult result;
 
     private final RubyContext context;
-
-    private String file;
-
+    private final String file;
+    private final RubyWarnings warnings;
     private final ParserRopeOperations parserRopeOperations = new ParserRopeOperations();
 
-    public ParserSupport(RubyContext context, String file) {
+    public ParserSupport(RubyContext context, String file, RubyWarnings warnings) {
         this.context = context;
         this.file = file.intern();
+        this.warnings = warnings;
     }
 
     public RubyContext getContext() {
@@ -1070,10 +1069,6 @@ public class ParserSupport {
     public void setConfiguration(ParserConfiguration configuration) {
         this.configuration = configuration;
 
-    }
-
-    public void setWarnings(RubyWarnings warnings) {
-        this.warnings = warnings;
     }
 
     public void setLexer(RubyLexer lexer) {
