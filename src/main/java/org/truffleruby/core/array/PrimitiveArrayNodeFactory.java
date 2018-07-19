@@ -27,18 +27,4 @@ public abstract class PrimitiveArrayNodeFactory {
         }
     }
 
-    /**
-     * Create a node to read a slice from an array with a constant denormalized start and exclusive end.
-     */
-    public static RubyNode readSlice(RubyNode array, int start, int exclusiveEnd) {
-        final RubyNode literalStart = new IntegerFixnumLiteralNode(start);
-        final RubyNode literalExclusiveEnd = new IntegerFixnumLiteralNode(exclusiveEnd);
-
-        if (start >= 0 && exclusiveEnd >= 0) {
-            return ArrayReadSliceNormalizedNodeGen.create(array, literalStart, literalExclusiveEnd);
-        } else {
-            return ArrayReadSliceDenormalizedNodeGen.create(array, literalStart, literalExclusiveEnd);
-        }
-    }
-
 }

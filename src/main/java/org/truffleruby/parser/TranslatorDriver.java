@@ -79,7 +79,6 @@ import org.truffleruby.parser.lexer.SyntaxException;
 import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.parser.parser.RubyParser;
 import org.truffleruby.parser.parser.RubyParserResult;
-import org.truffleruby.parser.scope.DynamicScope;
 import org.truffleruby.parser.scope.StaticScope;
 
 import java.util.ArrayList;
@@ -147,8 +146,6 @@ public class TranslatorDriver {
             }
         }
 
-        final DynamicScope dynamicScope = new DynamicScope(staticScope);
-
         boolean isInlineSource = source.getName().equals("-e");
         boolean isEvalParse = parserContext == ParserContext.EVAL || parserContext == ParserContext.INLINE || parserContext == ParserContext.MODULE;
         final ParserConfiguration parserConfiguration = new ParserConfiguration(context, 0, isInlineSource, !isEvalParse, false);
@@ -176,7 +173,7 @@ public class TranslatorDriver {
 
         if (node == null) {
             printParseTranslateExecuteMetric("before-parsing", context, source);
-            node = parseToJRubyAST(rubySource, dynamicScope, parserConfiguration);
+            node = parseToJRubyAST(rubySource, staticScope, parserConfiguration);
             printParseTranslateExecuteMetric("after-parsing", context, source);
         }
 
@@ -309,7 +306,7 @@ public class TranslatorDriver {
         }
     }
 
-    public RootParseNode parseToJRubyAST(RubySource rubySource, DynamicScope blockScope, ParserConfiguration configuration) {
+    public RootParseNode parseToJRubyAST(RubySource rubySource, StaticScope blockScope, ParserConfiguration configuration) {
         LexerSource lexerSource = new LexerSource(rubySource, configuration.getLineNumber(), configuration.getDefaultEncoding());
         // We only need to pass in current scope if we are evaluating as a block (which
         // is only done for evals).  We need to pass this in so that we can appropriately scope
@@ -343,15 +340,6 @@ public class TranslatorDriver {
                         throw new UnsupportedOperationException(buffer.toString(), e);
                     }
             }
-        }
-
-        // If variables were added then we may need to grow the dynamic scope to match the static
-        // one.
-        // FIXME: Make this so we only need to check this for blockScope != null.  We cannot
-        // currently since we create the DynamicScope for a LocalStaticScope before parse begins.
-        // Refactoring should make this fixable.
-        if (result.getScope() != null) {
-            result.getScope().growIfNeeded();
         }
 
         return (RootParseNode) result.getAST();

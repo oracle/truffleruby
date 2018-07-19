@@ -19,12 +19,12 @@ public abstract class AbstractArrayMirror implements ArrayMirror {
     }
 
     @Override
-    public Object[] getBoxedCopy() {
+    public final Object[] getBoxedCopy() {
         return getBoxedCopy(getLength());
     }
 
     @Override
-    public Object[] getBoxedCopy(int newLength) {
+    public final Object[] getBoxedCopy(int newLength) {
         final Object[] boxed = new Object[newLength];
         copyTo(boxed, 0, 0, Math.min(getLength(), newLength));
         return boxed;

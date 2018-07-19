@@ -18,7 +18,6 @@ import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.parser.parser.ParserConfiguration;
-import org.truffleruby.parser.scope.DynamicScope;
 import org.truffleruby.parser.scope.StaticScope;
 
 import java.io.IOException;
@@ -52,7 +51,6 @@ public class ParserCache {
     private RootParseNode load(String feature) {
         final TranslatorDriver driver = new TranslatorDriver(null);
         final StaticScope staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
-        final DynamicScope dynamicScope = new DynamicScope(staticScope);
         final ParserConfiguration parserConfiguration = new ParserConfiguration(null, 0, false, true, false);
 
         final RubySource source;
@@ -62,7 +60,7 @@ public class ParserCache {
             throw new JavaException(e);
         }
 
-        return driver.parseToJRubyAST(source, dynamicScope, parserConfiguration);
+        return driver.parseToJRubyAST(source, staticScope, parserConfiguration);
     }
 
     public RootParseNode lookup(String canonicalPath) {

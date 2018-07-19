@@ -31,7 +31,7 @@ package org.truffleruby.core.string;
 import org.jcodings.Encoding;
 
 public enum KCode {
-    NIL(null, "ASCII"),
+
     NONE("NONE", "ASCII"),
     UTF8("UTF8", "NonStrictUTF8"),
     SJIS("SJIS", "NonStrictSJIS"),

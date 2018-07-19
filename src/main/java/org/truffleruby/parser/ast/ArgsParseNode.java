@@ -52,10 +52,10 @@ import java.util.List;
  * b       = block arg
  */
 public class ArgsParseNode extends ParseNode {
-    private ParseNode[] args;
-    private short optIndex;
-    private short postIndex;
-    private short keywordsIndex;
+    private final ParseNode[] args;
+    private final short optIndex;
+    private final short postIndex;
+    private final short keywordsIndex;
 
     protected final ArgumentParseNode restArgNode;
     private final KeywordRestArgParseNode keyRest;
@@ -130,19 +130,6 @@ public class ArgsParseNode extends ParseNode {
     public boolean hasKwargs() {
         boolean keywords = getKeywordCount() > 0;
         return keywords || keyRest != null;
-    }
-
-    public int countKeywords() {
-        if (hasKwargs()) {
-            boolean keywords = args.length - keywordsIndex > 0;
-            if (keywords) {
-                // Rest keyword argument
-                return 0;
-            }
-            return args.length - keywordsIndex;
-        } else {
-            return 0;
-        }
     }
 
     public boolean hasRestArg() {

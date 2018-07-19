@@ -27,21 +27,6 @@ public class ArrayGuards {
 
     // Storage strategies
 
-    public static boolean isIntArray(DynamicObject array) {
-        assert RubyGuards.isRubyArray(array);
-        return Layouts.ARRAY.getStore(array) instanceof int[];
-    }
-
-    public static boolean isLongArray(DynamicObject array) {
-        assert RubyGuards.isRubyArray(array);
-        return Layouts.ARRAY.getStore(array) instanceof long[];
-    }
-
-    public static boolean isDoubleArray(DynamicObject array) {
-        assert RubyGuards.isRubyArray(array);
-        return Layouts.ARRAY.getStore(array) instanceof double[];
-    }
-
     public static boolean isObjectArray(DynamicObject array) {
         assert RubyGuards.isRubyArray(array);
         final Object store = Layouts.ARRAY.getStore(array);

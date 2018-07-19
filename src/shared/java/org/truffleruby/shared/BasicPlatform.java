@@ -44,10 +44,6 @@ public abstract class BasicPlatform {
         LINUX("linux"),
         DARWIN("darwin"),
         SOLARIS("solaris"),
-        AIX("aix"),
-        FREEBSD("freebsd"),
-        NETBSD("netbsd"),
-        OPENBSD("openbsd"),
         WINDOWS("mswin32");
 
         private final String rubyName;

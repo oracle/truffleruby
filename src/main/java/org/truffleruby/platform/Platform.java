@@ -35,8 +35,7 @@ public abstract class Platform extends BasicPlatform {
     public static final String LIBSUFFIX = determineLibExt();
     public static final String LIBC = determineLibC();
 
-    public static final boolean IS_WINDOWS = OS.equals(OS_TYPE.WINDOWS);
-    public static final boolean IS_BSD = OS.equals(OS_TYPE.FREEBSD) || OS.equals(OS_TYPE.NETBSD) || OS.equals(OS_TYPE.OPENBSD);
+    public static final boolean IS_WINDOWS = OS == OS_TYPE.WINDOWS;
 
     private static final String determineLibC() {
         switch (OS) {
@@ -44,12 +43,6 @@ public abstract class Platform extends BasicPlatform {
                 return "msvcrt.dll";
             case LINUX:
                 return "libc.so.6";
-            case AIX:
-                if (Integer.getInteger("sun.arch.data.model") == 32) {
-                    return "libc.a(shr.o)";
-                } else {
-                    return "libc.a(shr_64.o)";
-                }
             default:
                 return LIBPREFIX + "c." + LIBSUFFIX;
         }
@@ -59,8 +52,6 @@ public abstract class Platform extends BasicPlatform {
         switch (OS) {
             case WINDOWS:
                 return "dll";
-            case AIX:
-                return "a";
             case DARWIN:
                 return "dylib";
             default:

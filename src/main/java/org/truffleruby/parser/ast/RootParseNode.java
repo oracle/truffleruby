@@ -30,7 +30,6 @@ package org.truffleruby.parser.ast;
 
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
-import org.truffleruby.parser.scope.DynamicScope;
 
 import java.util.List;
 
@@ -43,15 +42,13 @@ import java.util.List;
  */
 // TODO: Store BEGIN and END information into this node
 public class RootParseNode extends ParseNode {
-    private transient DynamicScope scope;
     private ParseNode bodyNode;
     private String file;
     private int endPosition;
 
-    public RootParseNode(SourceIndexLength position, DynamicScope scope, ParseNode bodyNode, String file, int endPosition) {
+    public RootParseNode(SourceIndexLength position, ParseNode bodyNode, String file, int endPosition) {
         super(position);
-        
-        this.scope = scope;
+
         this.bodyNode = bodyNode;
         this.file = file;
         this.endPosition = endPosition;
@@ -60,18 +57,6 @@ public class RootParseNode extends ParseNode {
     @Override
     public NodeType getNodeType() {
         return NodeType.ROOTNODE;
-    }
-    
-    /**
-     * Return the dynamic scope for this AST.  The variable backed by this is transient so
-     * for serialization this is null.  In that case we use staticScope to rebuild the dynamic
-     * scope.  The real reason for this method is supporting bindings+eval.  We need to pass
-     * our live dynamic scope in so when we eval we can use that dynamic scope. 
-     * 
-     * @return dynamic scope of this AST
-     */
-    public DynamicScope getScope() {
-        return scope;
     }
 
     public String getFile() {

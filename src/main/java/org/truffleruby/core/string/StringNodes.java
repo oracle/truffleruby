@@ -3908,22 +3908,12 @@ public abstract class StringNodes {
             }
         }
 
-        protected boolean characterIndexInBounds(Rope rope, int characterIndex) {
-            return characterIndex >= 0 && characterIndex <= rope.characterLength();
-        }
-
     }
 
     // Named 'string_byte_index' in Rubinius.
     @Primitive(name = "string_byte_index_from_char_index", needsSelf = false, lowerFixnum = 2)
     @ImportStatic({ StringGuards.class, StringOperations.class })
     public static abstract class StringByteIndexFromCharIndexNode extends PrimitiveArrayArgumentsNode {
-
-        public static StringByteIndexFromCharIndexNode create() {
-            return StringNodesFactory.StringByteIndexFromCharIndexNodeFactory.create(null);
-        }
-
-        public abstract Object executeFindByteIndex(DynamicObject string, int characterIndex);
 
         @Specialization
         protected Object singleByteOptimizable(DynamicObject string, int characterIndex,

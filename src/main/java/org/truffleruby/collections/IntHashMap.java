@@ -27,9 +27,7 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.collections;
 
-import java.util.AbstractCollection;
 import java.util.AbstractSet;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -38,8 +36,6 @@ public class IntHashMap<V> {
 
     private Entry<V>[] table;
     private int count;
-
-    transient volatile Collection<V> values = null;
 
     private int threshold;
 
@@ -111,10 +107,6 @@ public class IntHashMap<V> {
             }
         }
         return false;
-    }
-
-    public boolean containsValue(Object value) {
-        return contains(value);
     }
 
     public V get(int key) {
@@ -264,13 +256,6 @@ public class IntHashMap<V> {
 
     }
 
-    private class ValueIterator extends HashIterator<V> {
-        @Override
-        public V next() {
-            return nextEntry().value;
-        }
-    }
-
     private class EntryIterator extends HashIterator<Entry<V>> {
         @Override
         public Entry<V> next() {
@@ -278,43 +263,11 @@ public class IntHashMap<V> {
         }
     }
 
-    Iterator<V> newValueIterator() {
-        return new ValueIterator();
-    }
-
     Iterator<Entry<V>> newEntryIterator() {
         return new EntryIterator();
     }
 
     private transient Set<Entry<V>> entrySet = null;
-
-    public Collection<V> values() {
-        Collection<V> vs = values;
-        return (vs != null ? vs : (values = new Values()));
-    }
-
-    private class Values extends AbstractCollection<V> {
-
-        @Override
-        public Iterator<V> iterator() {
-            return newValueIterator();
-        }
-
-        @Override
-        public int size() {
-            return IntHashMap.this.count;
-        }
-
-        @Override
-        public boolean contains(Object o) {
-            return containsValue(o);
-        }
-
-        @Override
-        public void clear() {
-            IntHashMap.this.clear();
-        }
-    }
 
     public Set<Entry<V>> entrySet() {
         Set<Entry<V>> es = entrySet;
