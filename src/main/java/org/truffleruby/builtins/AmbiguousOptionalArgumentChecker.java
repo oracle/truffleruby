@@ -12,7 +12,7 @@ package org.truffleruby.builtins;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.Log;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.language.RubyNode;
 
 import java.lang.reflect.Method;
@@ -58,7 +58,7 @@ public class AmbiguousOptionalArgumentChecker {
                 if (methodAnnotation.needsBlock()) {
                     if (n < 0) {
                         SUCCESS = false;
-                        Log.LOGGER.warning("invalid block method parameter position for " + method);
+                        RubyLogger.LOGGER.warning("invalid block method parameter position for " + method);
                         continue;
                     }
                     unguardedParams = unguardedParams | isParameterUnguarded(method, parameters, parameterTypes, n, errors);
@@ -67,7 +67,7 @@ public class AmbiguousOptionalArgumentChecker {
                 if (methodAnnotation.rest()) {
                     if (n < 0 || !parameterTypes[n].isArray()) {
                         SUCCESS = false;
-                        Log.LOGGER.warning("invalid rest method parameter " + n + " for " + method);
+                        RubyLogger.LOGGER.warning("invalid rest method parameter " + n + " for " + method);
                         continue;
                     }
                     n--; // ignore final Object[] argument
@@ -75,7 +75,7 @@ public class AmbiguousOptionalArgumentChecker {
                 for (int i = 0; i < opt; i++, n--) {
                     if (n < 0) {
                         SUCCESS = false;
-                        Log.LOGGER.warning("invalid optional paramenter count for " + method);
+                        RubyLogger.LOGGER.warning("invalid optional paramenter count for " + method);
                         continue;
                     }
                     unguardedParams = unguardedParams | isParameterUnguarded(method, parameters, parameterTypes, n, errors);
@@ -83,7 +83,7 @@ public class AmbiguousOptionalArgumentChecker {
                 // required arguments are not checked as they should not receive a NotProvided instance.
                 if (unguardedParams) {
                     SUCCESS = false;
-                    Log.LOGGER.warning("ambiguous optional argument in " + node.getCanonicalName() + ":\n" + errors);
+                    RubyLogger.LOGGER.warning("ambiguous optional argument in " + node.getCanonicalName() + ":\n" + errors);
                 }
             }
         }
@@ -96,7 +96,7 @@ public class AmbiguousOptionalArgumentChecker {
         boolean isNamePresent = parameter.isNamePresent();
         if (!isNamePresent) {
             AVAILABLE = SUCCESS = false;
-            Log.LOGGER.warning("method parameters names are not available for " + method);
+            RubyLogger.LOGGER.warning("method parameters names are not available for " + method);
             return false;
         }
         String name = parameter.getName();

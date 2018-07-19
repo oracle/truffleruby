@@ -32,7 +32,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 
-import org.truffleruby.Log;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -106,7 +106,7 @@ public abstract class GetTimeZoneNode extends RubyNode {
             // TimeZone.getDefault() returns the image build time zone on SVM.
             final Path localtime = Paths.get("/etc/localtime");
             if (!Files.exists(localtime, LinkOption.NOFOLLOW_LINKS)) {
-                Log.LOGGER.warning("could not find timezone (/etc/localtime does not exist), using UTC instead");
+                RubyLogger.LOGGER.warning("could not find timezone (/etc/localtime does not exist), using UTC instead");
                 return UTC;
             }
 
@@ -136,7 +136,7 @@ public abstract class GetTimeZoneNode extends RubyNode {
 
         final int index = resolved.indexOf("zoneinfo/");
         if (index == -1) {
-            Log.LOGGER.warning("could not find timezone (the /etc/localtime symlink does not contain zoneinfo/), using UTC instead");
+            RubyLogger.LOGGER.warning("could not find timezone (the /etc/localtime symlink does not contain zoneinfo/), using UTC instead");
             return "UTC";
         }
 
@@ -167,7 +167,7 @@ public abstract class GetTimeZoneNode extends RubyNode {
         if (same.isPresent()) {
             return zoneinfo.relativize(same.get()).toString();
         } else {
-            Log.LOGGER.warning("could not find timezone (no file in " + zoneinfo + " is the same as /etc/localtime), using UTC instead");
+            RubyLogger.LOGGER.warning("could not find timezone (no file in " + zoneinfo + " is the same as /etc/localtime), using UTC instead");
             return "UTC";
         }
     }

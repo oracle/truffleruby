@@ -46,7 +46,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Log;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -57,14 +58,12 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.interop.FromJavaStringNode;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.Platform;
 
-import java.util.Arrays;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -190,22 +189,19 @@ public abstract class TruffleSystemNodes {
         @TruffleBoundary
         protected Level getLevel(DynamicObject level) {
             assert RubyGuards.isRubySymbol(level);
-            final SymbolTable symbolTable = getContext().getSymbolTable();
 
-            for (Level javaLevel : Log.LEVELS) {
-                if (symbolTable.getSymbol(javaLevel.toString()) == level) {
-                    return javaLevel;
-                }
+            try {
+                return Level.parse(Layouts.SYMBOL.getString(level));
+            } catch (IllegalArgumentException e) {
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(
+                        "Could not find log level for: " + level,
+                        this));
             }
-
-            throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(
-                            "Could not find log level for: " + level + " known errors are: " + Arrays.toString(Log.LEVELS),
-                            this));
         }
 
         @TruffleBoundary
         public static void log(Level level, String message) {
-            Log.LOGGER.log(level, message);
+            RubyLogger.LOGGER.log(level, message);
         }
 
     }

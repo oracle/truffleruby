@@ -184,7 +184,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 "--external-encoding", "--internal-encoding",
                 "--version",
                 "--help",
-                "-Xlog",
                 "-Xoptions"));
     }
 
@@ -354,7 +353,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         // Extra output for TruffleRuby
         out.println();
         out.println("TruffleRuby:");
-        out.println("  -Xlog=severe,warning,performance,info,config,fine,finer,finest");
+        out.println("  -Xlog=SEVERE,WARNING,INFO,CONFIG,FINE,FINER,FINEST");
         out.println("                  set the TruffleRuby logging level");
         out.println("  -Xoptions       print available TruffleRuby options");
         out.println("  -Xname=value    set a TruffleRuby option (omit value to set to true)");

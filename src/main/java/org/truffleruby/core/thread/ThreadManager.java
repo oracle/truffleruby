@@ -16,7 +16,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.Log;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
@@ -308,7 +308,7 @@ public class ThreadManager {
             }
         } else {
             if (!Layouts.THREAD.getOwnedLocks(thread).isEmpty()) {
-                Log.LOGGER.warning("could not release locks of " + javaThread + " as its cleanup happened on another Java Thread");
+                RubyLogger.LOGGER.warning("could not release locks of " + javaThread + " as its cleanup happened on another Java Thread");
             }
         }
 

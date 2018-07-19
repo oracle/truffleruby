@@ -13,7 +13,7 @@ import java.util.Arrays;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Log;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyNode;
@@ -77,7 +77,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             VirtualFrame frame,
             TruffleObject receiver,
             Object[] args) {
-        Log.notOptimizedOnce("megamorphic outgoing foreign call");
+        RubyLogger.notOptimizedOnce("megamorphic outgoing foreign call");
 
         final OutgoingNode outgoingNode = createHelperNode(args.length);
         return doCall(frame, receiver, outgoingNode, args);

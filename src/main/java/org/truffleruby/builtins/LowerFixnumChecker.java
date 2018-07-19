@@ -13,7 +13,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.Log;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyNode;
 
@@ -78,6 +78,6 @@ public class LowerFixnumChecker {
 
     private static void reportError(NodeFactory<? extends RubyNode> nodeFactory, String message) {
         SUCCESS = false;
-        Log.LOGGER.warning("node " + nodeFactory.getNodeClass().getCanonicalName() + " " + message);
+        RubyLogger.LOGGER.warning("node " + nodeFactory.getNodeClass().getCanonicalName() + " " + message);
     }
 }

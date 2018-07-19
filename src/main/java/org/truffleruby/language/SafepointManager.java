@@ -18,7 +18,7 @@ import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
-import org.truffleruby.Log;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
@@ -166,7 +166,7 @@ public class SafepointManager {
                 // retry
             } catch (TimeoutException e) {
                 if (System.nanoTime() >= max) {
-                    Log.LOGGER.severe(String.format("waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking native call which should use runBlockingSystemCallUntilResult() - check with jstack",
+                    RubyLogger.LOGGER.severe(String.format("waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking native call which should use runBlockingSystemCallUntilResult() - check with jstack",
                             waits * WAIT_TIME_IN_SECONDS, phaser.getUnarrivedParties(), phaser.getRegisteredParties()));
                     printStacktracesOfBlockedThreads();
 
@@ -174,7 +174,7 @@ public class SafepointManager {
                         restoreDefaultInterruptHandler();
                     }
                     if (max >= exitTime) {
-                        Log.LOGGER.severe("waited " + MAX_WAIT_TIME_IN_SECONDS + " seconds in the SafepointManager, terminating the process as it is unlikely to get unstuck");
+                        RubyLogger.LOGGER.severe("waited " + MAX_WAIT_TIME_IN_SECONDS + " seconds in the SafepointManager, terminating the process as it is unlikely to get unstuck");
                         System.exit(1);
                     }
                     max += TimeUnit.SECONDS.toNanos(WAIT_TIME_IN_SECONDS);
@@ -210,12 +210,12 @@ public class SafepointManager {
     }
 
     private void restoreDefaultInterruptHandler() {
-        Log.LOGGER.warning("restoring default interrupt handler");
+        RubyLogger.LOGGER.warning("restoring default interrupt handler");
 
         try {
             Signals.restoreDefaultHandler("INT");
         } catch (Throwable t) {
-            Log.LOGGER.warning("failed to restore default interrupt handler\n" + t);
+            RubyLogger.LOGGER.warning("failed to restore default interrupt handler\n" + t);
         }
     }
 
@@ -314,7 +314,7 @@ public class SafepointManager {
 
     public void checkNoRunningThreads() {
         if (!runningThreads.isEmpty()) {
-            Log.LOGGER.warning("threads are still registered with safepoint manager at shutdown:\n" + context.getThreadManager().getThreadDebugInfo() + getSafepointDebugInfo());
+            RubyLogger.LOGGER.warning("threads are still registered with safepoint manager at shutdown:\n" + context.getThreadManager().getThreadDebugInfo() + getSafepointDebugInfo());
         }
     }
 

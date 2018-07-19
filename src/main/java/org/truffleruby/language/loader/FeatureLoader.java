@@ -22,7 +22,7 @@ import com.oracle.truffle.api.source.SourceSection;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Log;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.Linker;
@@ -129,7 +129,7 @@ public class FeatureLoader {
         if (context.getOptions().LOG_FEATURE_LOCATION) {
             final String originalFeature = feature;
 
-            Log.LOGGER.info(() -> {
+            RubyLogger.LOGGER.info(() -> {
                 final SourceSection sourceSection = context.getCallStack().getTopMostUserSourceSection();
                 return String.format("starting search from %s for feature %s...", context.getSourceLoader().fileLine(sourceSection), originalFeature);
             });
@@ -138,20 +138,20 @@ public class FeatureLoader {
         final String cwd = getWorkingDirectory();
 
         if (context.getOptions().LOG_FEATURE_LOCATION) {
-            Log.LOGGER.info(String.format("current directory: %s", cwd));
+            RubyLogger.LOGGER.info(String.format("current directory: %s", cwd));
         }
 
         if (feature.startsWith("./")) {
             feature = cwd + "/" + feature.substring(2);
 
             if (context.getOptions().LOG_FEATURE_LOCATION) {
-                Log.LOGGER.info(String.format("feature adjusted to %s", feature));
+                RubyLogger.LOGGER.info(String.format("feature adjusted to %s", feature));
             }
         } else if (feature.startsWith("../")) {
             feature = dirname(cwd) + "/" + feature.substring(3);
 
             if (context.getOptions().LOG_FEATURE_LOCATION) {
-                Log.LOGGER.info(String.format("feature adjusted to %s", feature));
+                RubyLogger.LOGGER.info(String.format("feature adjusted to %s", feature));
             }
         }
 
@@ -165,7 +165,7 @@ public class FeatureLoader {
                 final String loadPath = canonicalize(cwd, pathObject.toString());
 
                 if (context.getOptions().LOG_FEATURE_LOCATION) {
-                    Log.LOGGER.info(String.format("from load path %s...", loadPath));
+                    RubyLogger.LOGGER.info(String.format("from load path %s...", loadPath));
                 }
 
                 final String fileWithinPath = new File(loadPath, feature).getPath();
@@ -180,9 +180,9 @@ public class FeatureLoader {
 
         if (context.getOptions().LOG_FEATURE_LOCATION) {
             if (found == null) {
-                Log.LOGGER.info("not found");
+                RubyLogger.LOGGER.info("not found");
             } else {
-                Log.LOGGER.info(String.format("found in %s", found));
+                RubyLogger.LOGGER.info(String.format("found in %s", found));
             }
         }
 
@@ -225,7 +225,7 @@ public class FeatureLoader {
 
     private String findFeatureWithExactPath(String path) {
         if (context.getOptions().LOG_FEATURE_LOCATION) {
-            Log.LOGGER.info(String.format("trying %s...", path));
+            RubyLogger.LOGGER.info(String.format("trying %s...", path));
         }
 
         if (path.startsWith(SourceLoader.RESOURCE_SCHEME)) {
@@ -273,7 +273,7 @@ public class FeatureLoader {
 
     private List<TruffleObject> loadCExtLibRuby(String rubySUpath, String feature) {
         if (context.getOptions().CEXTS_LOG_LOAD) {
-            Log.LOGGER.info(() -> String.format("loading cext implementation %s", rubySUpath));
+            RubyLogger.LOGGER.info(() -> String.format("loading cext implementation %s", rubySUpath));
         }
 
         if (!new File(rubySUpath).exists()) {
@@ -325,9 +325,9 @@ public class FeatureLoader {
 
         if (context.getOptions().CEXTS_LOG_LOAD) {
             if (remapped.equals(library)) {
-                Log.LOGGER.info(() -> String.format("loading native library %s", library));
+                RubyLogger.LOGGER.info(() -> String.format("loading native library %s", library));
             } else {
-                Log.LOGGER.info(() -> String.format("loading native library %s, remapped from %s", remapped, library));
+                RubyLogger.LOGGER.info(() -> String.format("loading native library %s, remapped from %s", remapped, library));
             }
         }
 

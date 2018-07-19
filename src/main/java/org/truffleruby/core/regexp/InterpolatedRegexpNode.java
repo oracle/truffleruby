@@ -12,7 +12,7 @@ package org.truffleruby.core.regexp;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.Log;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.regexp.InterpolatedRegexpNodeFactory.RegexpBuilderNodeGen;
 import org.truffleruby.core.rope.Rope;
@@ -84,7 +84,7 @@ public class InterpolatedRegexpNode extends RubyNode {
 
         @Specialization(replaces = "executeFast")
         public Object executeSlow(Rope[] parts) {
-            Log.notOptimizedOnce(Log.UNSTABLE_INTERPOLATED_REGEXP);
+            RubyLogger.notOptimizedOnce(RubyLogger.UNSTABLE_INTERPOLATED_REGEXP);
             return createRegexp(parts);
         }
 

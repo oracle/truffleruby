@@ -22,7 +22,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
-import org.truffleruby.Log;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -923,7 +923,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isRubyHash(other)")
         public DynamicObject merge(VirtualFrame frame, DynamicObject hash, DynamicObject other, DynamicObject block) {
-            Log.notOptimizedOnce("Hash#merge with a block is not yet optimized");
+            RubyLogger.notOptimizedOnce("Hash#merge with a block is not yet optimized");
             final boolean compareByIdentity = Layouts.HASH.getCompareByIdentity(hash);
 
             final int capacity = BucketsStrategy.capacityGreaterThan(Layouts.HASH.getSize(hash) + Layouts.HASH.getSize(other));

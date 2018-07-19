@@ -62,6 +62,7 @@ import org.truffleruby.language.loader.SourceLoader;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.shared.Metrics;
+import org.truffleruby.shared.options.OptionDescription;
 import org.truffleruby.shared.options.Options;
 import org.truffleruby.shared.options.OptionsBuilder;
 import org.truffleruby.shared.options.OptionsCatalog;
@@ -346,41 +347,41 @@ public class RubyContext {
         final String notReusingContext = "not reusing pre-initialized context: ";
 
         if (!newOptions.PREINITIALIZATION) {
-            Log.LOGGER.fine(notReusingContext + "-Xpreinit is false");
+            RubyLogger.LOGGER.fine(notReusingContext + "-Xpreinit is false");
             return false;
         }
 
         if (!newOptions.CORE_LOAD_PATH.equals(OptionsCatalog.CORE_LOAD_PATH.getDefaultValue())) {
-            Log.LOGGER.fine(notReusingContext + "-Xcore.load_path is set: " + newOptions.CORE_LOAD_PATH);
+            RubyLogger.LOGGER.fine(notReusingContext + "-Xcore.load_path is set: " + newOptions.CORE_LOAD_PATH);
             return false; // Should load the specified core files
         }
 
         if ((oldHome != null) != (newHome != null)) {
-            Log.LOGGER.fine(notReusingContext + "Ruby home is " + (newHome != null ? "set (" + newHome + ")" : "unset"));
+            RubyLogger.LOGGER.fine(notReusingContext + "Ruby home is " + (newHome != null ? "set (" + newHome + ")" : "unset"));
             return false;
         }
 
         // The core library captures the value of these options (via Truffle::Boot.get_option).
 
         if (newOptions.NATIVE_PLATFORM != oldOptions.NATIVE_PLATFORM) {
-            Log.LOGGER.fine(notReusingContext + "-Xplatform.native is " + newOptions.NATIVE_PLATFORM);
+            RubyLogger.LOGGER.fine(notReusingContext + "-Xplatform.native is " + newOptions.NATIVE_PLATFORM);
             return false;
         }
 
         // Libraries loaded during pre-initialization
 
         if (newOptions.PATCHING != oldOptions.PATCHING) {
-            Log.LOGGER.fine(notReusingContext + "loading patching is " + newOptions.PATCHING);
+            RubyLogger.LOGGER.fine(notReusingContext + "loading patching is " + newOptions.PATCHING);
             return false;
         }
 
         if (newOptions.LAZY_RUBYGEMS != oldOptions.LAZY_RUBYGEMS) {
-            Log.LOGGER.fine(notReusingContext + "loading lazy-rubygems is " + newOptions.LAZY_RUBYGEMS);
+            RubyLogger.LOGGER.fine(notReusingContext + "loading lazy-rubygems is " + newOptions.LAZY_RUBYGEMS);
             return false;
         }
 
         if (newOptions.DID_YOU_MEAN != oldOptions.DID_YOU_MEAN) {
-            Log.LOGGER.fine(notReusingContext + "loading did_you_mean is " + newOptions.DID_YOU_MEAN);
+            RubyLogger.LOGGER.fine(notReusingContext + "loading did_you_mean is " + newOptions.DID_YOU_MEAN);
             return false;
         }
 
@@ -392,14 +393,24 @@ public class RubyContext {
         final OptionsBuilder optionsBuilder = new OptionsBuilder();
         optionsBuilder.set(env.getConfig()); // Legacy config - used by unit tests for example
         optionsBuilder.set(env.getOptions()); // SDK options
+
         final Options options = optionsBuilder.build();
+
+        if (options.OPTIONS_LOG && RubyLogger.LOGGER.isLoggable(Level.CONFIG)) {
+            for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
+                assert option.getName().startsWith(TruffleRuby.LANGUAGE_ID);
+                final String xName = option.getName().substring(TruffleRuby.LANGUAGE_ID.length() + 1);
+                RubyLogger.LOGGER.config("option " + xName + "=" + option.valueToString(options.fromDescription(option)));
+            }
+        }
+
         Metrics.printTime("after-options");
         return options;
     }
 
     private long generateHashingSeed() {
         if (options.HASHING_DETERMINISTIC) {
-            Log.LOGGER.severe("deterministic hashing is enabled - this may make you vulnerable to denial of service attacks");
+            RubyLogger.LOGGER.severe("deterministic hashing is enabled - this may make you vulnerable to denial of service attacks");
             return 7114160726623585955L;
         } else {
             final byte[] bytes = getRandomSeedBytes(Long.BYTES);
@@ -430,7 +441,7 @@ public class RubyContext {
                 SolarisSparcV9NativeConfiguration.load(nativeConfiguration, this);
                 break;
             default:
-                Log.LOGGER.severe("no native configuration for this platform");
+                RubyLogger.LOGGER.severe("no native configuration for this platform");
                 break;
         }
 
@@ -492,10 +503,10 @@ public class RubyContext {
         safepointManager.checkNoRunningThreads();
 
         if (options.ROPE_PRINT_INTERN_STATS) {
-            Log.LOGGER.info("ropes re-used: " + getRopeCache().getRopesReusedCount());
-            Log.LOGGER.info("rope byte arrays re-used: " + getRopeCache().getByteArrayReusedCount());
-            Log.LOGGER.info("rope bytes saved: " + getRopeCache().getRopeBytesSaved());
-            Log.LOGGER.info("total ropes interned: " + getRopeCache().totalRopes());
+            RubyLogger.LOGGER.info("ropes re-used: " + getRopeCache().getRopesReusedCount());
+            RubyLogger.LOGGER.info("rope byte arrays re-used: " + getRopeCache().getByteArrayReusedCount());
+            RubyLogger.LOGGER.info("rope bytes saved: " + getRopeCache().getRopeBytesSaved());
+            RubyLogger.LOGGER.info("total ropes interned: " + getRopeCache().totalRopes());
         }
 
         if (options.COVERAGE_GLOBAL) {
@@ -701,8 +712,8 @@ public class RubyContext {
         } catch (IOException e) {
             throw new JavaException(e);
         }
-        if (Log.LOGGER.isLoggable(Level.CONFIG)) {
-            Log.LOGGER.config("home: " + home);
+        if (RubyLogger.LOGGER.isLoggable(Level.CONFIG)) {
+            RubyLogger.LOGGER.config("home: " + home);
         }
         return home;
     }
@@ -711,7 +722,7 @@ public class RubyContext {
     @TruffleBoundary
     private String searchRubyHome(Options options) throws IOException {
         if (options.NO_HOME_PROVIDED) {
-            Log.LOGGER.config("-Xruby.no_home_provided set");
+            RubyLogger.LOGGER.config("-Xruby.no_home_provided set");
             return null;
         }
 
@@ -719,13 +730,13 @@ public class RubyContext {
 
         if (!options.HOME.isEmpty()) {
             final File home = new File(options.HOME);
-            Log.LOGGER.config(() -> String.format("trying -Xhome=%s, expanded to %s, as the Ruby home", options.HOME, home));
+            RubyLogger.LOGGER.config(() -> String.format("trying -Xhome=%s, expanded to %s, as the Ruby home", options.HOME, home));
             if (!isRubyHome(home)) {
-                Log.LOGGER.warning(String.format("-Xhome=%s does not look like TruffleRuby's home", options.HOME));
+                RubyLogger.LOGGER.warning(String.format("-Xhome=%s does not look like TruffleRuby's home", options.HOME));
             }
             return home.getCanonicalPath();
         } else {
-            Log.LOGGER.config("-Xhome not set, cannot determine home from it");
+            RubyLogger.LOGGER.config("-Xhome not set, cannot determine home from it");
         }
 
         // We need a home for context pre-initialization but the Context is built without arguments.
@@ -733,13 +744,13 @@ public class RubyContext {
         final String fromProperty = System.getProperty("truffleruby.preinitialization.home");
         if (fromProperty != null && !fromProperty.isEmpty()) {
             final File home = new File(fromProperty);
-            Log.LOGGER.config(() -> String.format("trying -Dtruffleruby.preinitialization.home=%s, expanded to %s, as the Ruby home", fromProperty, home));
+            RubyLogger.LOGGER.config(() -> String.format("trying -Dtruffleruby.preinitialization.home=%s, expanded to %s, as the Ruby home", fromProperty, home));
             if (!isRubyHome(home)) {
-                Log.LOGGER.warning(String.format("-Dtruffleruby.preinitialization.home=%s does not look like TruffleRuby's home", fromProperty));
+                RubyLogger.LOGGER.warning(String.format("-Dtruffleruby.preinitialization.home=%s does not look like TruffleRuby's home", fromProperty));
             }
             return home.getCanonicalPath();
         } else {
-            Log.LOGGER.config("-Dtruffleruby.preinitialization.home not set, cannot determine home from it");
+            RubyLogger.LOGGER.config("-Dtruffleruby.preinitialization.home not set, cannot determine home from it");
         }
 
         // Use the Truffle reported home
@@ -748,14 +759,14 @@ public class RubyContext {
 
         if (truffleReported != null) {
             final File home = new File(truffleReported);
-            Log.LOGGER.config(() -> String.format("trying Truffle-reported home %s, expanded to %s, as the Ruby home", truffleReported, home));
+            RubyLogger.LOGGER.config(() -> String.format("trying Truffle-reported home %s, expanded to %s, as the Ruby home", truffleReported, home));
             if (isRubyHome(home)) {
                 return truffleReported;
             } else {
-                Log.LOGGER.warning(String.format("Truffle-reported home %s does not look like TruffleRuby's home", truffleReported));
+                RubyLogger.LOGGER.warning(String.format("Truffle-reported home %s does not look like TruffleRuby's home", truffleReported));
             }
         } else {
-            Log.LOGGER.config("Truffle-reported home not set, cannot determine home from it");
+            RubyLogger.LOGGER.config("Truffle-reported home not set, cannot determine home from it");
         }
 
         // All the following methods to find home should go away longer term
@@ -765,14 +776,14 @@ public class RubyContext {
         if (!options.LAUNCHER.isEmpty()) {
             final Path canonicalLauncherPath = Paths.get(new File(options.LAUNCHER).getCanonicalPath());
             final File candidate = canonicalLauncherPath.getParent().getParent().toFile();
-            Log.LOGGER.config(() -> String.format("trying home %s guessed from executable %s, as the Ruby home", candidate, options.LAUNCHER));
+            RubyLogger.LOGGER.config(() -> String.format("trying home %s guessed from executable %s, as the Ruby home", candidate, options.LAUNCHER));
             if (isRubyHome(candidate)) {
                 return candidate.getCanonicalPath();
             } else {
-                Log.LOGGER.warning(String.format("home %s guessed from executable %s does not look like TruffleRuby's home", candidate, options.LAUNCHER));
+                RubyLogger.LOGGER.warning(String.format("home %s guessed from executable %s does not look like TruffleRuby's home", candidate, options.LAUNCHER));
             }
         } else {
-            Log.LOGGER.config("no launcher set, cannot determine home from it");
+            RubyLogger.LOGGER.config("no launcher set, cannot determine home from it");
         }
 
         // graalvm.home is what Truffle does, but we'll leave this in for now in case something differs
@@ -781,31 +792,31 @@ public class RubyContext {
 
         if (graalVMHome != null) {
             final File candidate = Paths.get(graalVMHome).resolve("jre/languages/ruby").toFile();
-            Log.LOGGER.config(() -> String.format("trying -Dorg.graalvm.home=%s, expanded to %s, as the Ruby home", graalVMHome, candidate));
+            RubyLogger.LOGGER.config(() -> String.format("trying -Dorg.graalvm.home=%s, expanded to %s, as the Ruby home", graalVMHome, candidate));
             if (isRubyHome(candidate)) {
                 return candidate.getCanonicalPath();
             } else {
-                Log.LOGGER.warning(String.format("-Dorg.graalvm.home=%s does not look like TruffleRuby's home", candidate));
+                RubyLogger.LOGGER.warning(String.format("-Dorg.graalvm.home=%s does not look like TruffleRuby's home", candidate));
             }
         } else {
-            Log.LOGGER.config("-Dorg.graalvm.home not set, cannot determine home from it");
+            RubyLogger.LOGGER.config("-Dorg.graalvm.home not set, cannot determine home from it");
         }
 
         // Try the Truffle reported home, but two directories up, which is from where the jar lives in the development repository
 
         if (truffleReported != null) {
             final File home = new File(truffleReported).getParentFile().getParentFile();
-            Log.LOGGER.config(() -> String.format("trying Truffle-reported home %s/../.., expanded to %s, as the Ruby home", truffleReported, home));
+            RubyLogger.LOGGER.config(() -> String.format("trying Truffle-reported home %s/../.., expanded to %s, as the Ruby home", truffleReported, home));
             if (isRubyHome(home)) {
                 return home.getCanonicalPath();
             } else {
-                Log.LOGGER.config(String.format("Truffle-reported home %s/../.. does not look like TruffleRuby's home", home));
+                RubyLogger.LOGGER.config(String.format("Truffle-reported home %s/../.. does not look like TruffleRuby's home", home));
             }
         }
 
         if (!LIBPOLYGLOT) {
             // We have no way to ever find home automatically in libpolyglot, so don't clutter with warnings
-            Log.LOGGER.warning("could not determine TruffleRuby's home - the standard library will not be available - set -Xhome= or use -Xlog=config to see details");
+            RubyLogger.LOGGER.warning("could not determine TruffleRuby's home - the standard library will not be available - set -Xhome= or use -Xlog=CONFIG to see details");
         }
 
         return null;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -11,24 +11,34 @@ package org.truffleruby;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.shared.RubyLogger;
+import com.oracle.truffle.api.TruffleLogger;
+import org.truffleruby.shared.TruffleRuby;
 
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
-public class Log extends RubyLogger {
+public class RubyLogger {
+
+    public static final TruffleLogger LOGGER = TruffleLogger.getLogger(TruffleRuby.LANGUAGE_ID);
 
     /**
      * Warn about code that works but is not yet optimized as Truffle code normally would be. Only
      * prints the warning once, and only if called from compiled code. Don't call this method from
      * behind a boundary, as it will never print the warning because it will never be called from
-     * compiled code. Use {@link #performanceOnce} instead if you need to warn in code that is never
-     * compiled.
+     * compiled code.
      */
     public static void notOptimizedOnce(String message) {
         if (CompilerDirectives.inCompiledCode()) {
-            performanceOnce(message);
+            notOptimizedOnceBoundary(message);
+        }
+    }
+
+    @TruffleBoundary
+    private static void notOptimizedOnceBoundary(String message) {
+        if (DISPLAYED_WARNINGS.add(message)) {
+            LOGGER.log(Level.WARNING, message);
         }
     }
 
@@ -36,16 +46,5 @@ public class Log extends RubyLogger {
 
     public static final String KWARGS_NOT_OPTIMIZED_YET = "keyword arguments are not yet optimized";
     public static final String UNSTABLE_INTERPOLATED_REGEXP = "unstable interpolated regexps are not optimized";
-
-    /**
-     * Warn about something that has lower performance than might be expected. Only prints the
-     * warning once.
-     */
-    @TruffleBoundary
-    public static void performanceOnce(String message) {
-        if (DISPLAYED_WARNINGS.add(message)) {
-            LOGGER.log(PERFORMANCE, message);
-        }
-    }
 
 }

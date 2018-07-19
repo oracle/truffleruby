@@ -14,7 +14,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
-import org.truffleruby.Log;
+import org.truffleruby.RubyLogger;
 import org.truffleruby.core.array.ArrayReadNormalizedNode;
 import org.truffleruby.core.array.ArrayReadNormalizedNodeGen;
 import org.truffleruby.language.RubyGuards;
@@ -67,7 +67,7 @@ public class ReadOptionalArgumentNode extends RubyNode {
         defaultValueProfile.enter();
 
         if (considerRejectedKWArgs) {
-            Log.notOptimizedOnce(Log.KWARGS_NOT_OPTIMIZED_YET);
+            RubyLogger.notOptimizedOnce(RubyLogger.KWARGS_NOT_OPTIMIZED_YET);
 
             final Object rest = readRestArgumentNode.execute(frame);
 

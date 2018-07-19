@@ -74,19 +74,4 @@ Ruby application logging and warning works as in the standard implementation of
 Ruby.
 
 For logging of TruffleRuby internals, standard Java logging is used. The logging
-level can be set with `-Xlog=info`, `=finest`, or so on. An additional logging
-level, `-Xlog=performance` includes warnings about operations that may be slow.
-
-The logging level can also be set with the system property
-`-Dtruffleruby.log=info`, or with the environment variable
-`TRUFFLERUBY_LOG=info`, in that priority.
-
-For advanced configuration, write a Java logging configuration file and load it
-using `-J-Djava.util.logging.config.file=logging.properties`. You can use this
-to log to a file and to set the level.
-
-```
-org.truffleruby.handlers=java.util.logging.FileHandler
-java.util.logging.FileHandler.pattern=ruby.log
-org.truffleruby.level=CONFIG
-```
+level can be set with `-Xlog=INFO`, `=FINEST`, or so on.
