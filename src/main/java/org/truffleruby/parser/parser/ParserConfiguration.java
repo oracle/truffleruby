@@ -120,18 +120,12 @@ public class ParserConfiguration {
      * 
      * @return correct top scope for source to be parsed
      */
-    public DynamicScope getScope(String file) {
+    public StaticScope getScope(String file) {
         if (asBlock) {
-            return existingScope;
+            return existingScope.getStaticScope();
         }
 
-        // FIXME: We should really not be creating the dynamic scope for the root
-        // of the AST before parsing.  This makes us end up needing to readjust
-        // this dynamic scope coming out of parse (and for local static scopes it
-        // will always happen because of $~ and $_).
-        // FIXME: Because we end up adjusting this after-the-fact, we can't use
-        // any of the specific-size scopes.
-        return new DynamicScope(new StaticScope(StaticScope.Type.LOCAL, (StaticScope) null, file), existingScope);
+        return new StaticScope(StaticScope.Type.LOCAL, (StaticScope) null, file);
     }
 
     public boolean isCoverageEnabled() {

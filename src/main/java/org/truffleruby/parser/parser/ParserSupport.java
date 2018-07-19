@@ -130,7 +130,6 @@ import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.lexer.SyntaxException.PID;
-import org.truffleruby.parser.scope.DynamicScope;
 import org.truffleruby.parser.scope.StaticScope;
 
 import java.math.BigInteger;
@@ -316,7 +315,7 @@ public class ParserSupport {
             topOfAST = newTopOfAST;
         }
 
-        return new RootParseNode(position, result.getScope(), topOfAST, lexer.getFile(), endPosition);
+        return new RootParseNode(position, topOfAST, lexer.getFile(), endPosition);
     }
 
     /* MRI: block_append */
@@ -1016,10 +1015,7 @@ public class ParserSupport {
     *  Description of the RubyMethod
     */
     public void initTopLocalVariables() {
-        DynamicScope scope = configuration.getScope(lexer.getFile());
-        currentScope = scope.getStaticScope();
-
-        result.setScope(scope);
+        currentScope = configuration.getScope(lexer.getFile());
     }
 
     /** Getter for property inSingle.

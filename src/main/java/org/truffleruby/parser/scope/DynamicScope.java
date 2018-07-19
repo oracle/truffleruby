@@ -46,10 +46,6 @@ public class DynamicScope {
     // Static scoping information for this scope
     protected final StaticScope staticScope;
 
-    public DynamicScope(StaticScope staticScope, DynamicScope parent) {
-        this.staticScope = staticScope;
-    }
-
     public DynamicScope(StaticScope staticScope) {
         this.staticScope = staticScope;
     }

@@ -33,7 +33,6 @@ package org.truffleruby.parser.parser;
 
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.PreExeParseNode;
-import org.truffleruby.parser.scope.DynamicScope;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,18 +44,9 @@ public class RubyParserResult {
 
     private List<ParseNode> beginNodes;
     private ParseNode ast;
-    private DynamicScope scope;
     
     public ParseNode getAST() {
         return ast;
-    }
-    
-    public DynamicScope getScope() {
-        return scope;
-    }
-    
-    public void setScope(DynamicScope scope) {
-        this.scope = scope;
     }
 
     /**
