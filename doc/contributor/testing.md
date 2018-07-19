@@ -202,8 +202,6 @@ and configurations that aren't tested, due to limited resources.
     not,
   * the standalone Ruby tarball.
 * macOS manually running similar tests.
-* The standalone binary tarball build runs `SPEC` and `SPEC(CEXT)` on Linux and
-  macOS.
 
 ## Un-used tests and configurations
 
