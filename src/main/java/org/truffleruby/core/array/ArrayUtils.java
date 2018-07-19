@@ -111,26 +111,6 @@ public abstract class ArrayUtils {
         return false;
     }
 
-    public static boolean contains(long[] array, long value) {
-        for (int n = 0; n < array.length; n++) {
-            if (array[n] == value) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static boolean contains(double[] array, double value) {
-        for (int n = 0; n < array.length; n++) {
-            if (array[n] == value) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public static <T> boolean contains(T[] array, T value) {
         for (int n = 0; n < array.length; n++) {
             if (array[n] == value) {
