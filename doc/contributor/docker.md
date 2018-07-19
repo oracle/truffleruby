@@ -3,6 +3,9 @@
 The `jt docker` tool can be used to generate `Dockerfiles` for testing
 TruffleRuby on multiple Linux distributions in multiple configurations.
 
+We don't use Docker in a very Docker-like way - we could be using something like
+Vagrant instead.
+
 You need to have Docker installed.
 
 For example, to build a Docker image called `truffleruby-test` to test
@@ -30,6 +33,7 @@ Or, to run a full set of tests on a set of new release candidate tarballs:
 $ jt docker test --graalvm graalvm-ce.tar.gz ruby-installable.jar --test release_branch
 $ jt docker test --graalvm graalvm-ee.tar.gz ruby-installable.jar --test release_branch
 $ jt docker test --graalvm graalvm-ee.tar.gz ruby-installable.jar --rebuild-images --test release_branch
+$ jt docker test --standalone truffleruby-linux-amd64.tar.gz --test release_branch
 ```
 
 ## Distributions
