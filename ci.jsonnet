@@ -33,7 +33,6 @@ local part_definitions = {
 
   use: {
     common: {
-      local build = self,
       environment+: {
         path+:: [],
         java_opts+:: ["-Xmx2G"],
@@ -277,7 +276,6 @@ local part_definitions = {
         ["cd", "../../main"],
       ],
 
-      local build = self,
       environment+: {
         JT_BENCHMARK_RUBY: "$AOT_BIN",
         AOT_BIN: "$VM_DIST_HOME/jre/languages/bin/ruby",
@@ -334,7 +332,6 @@ local part_definitions = {
 
   platform: {
     linux: {
-      local build = self,
       "$.use.build":: { extra_args: [] },
       "$.run.deploy_and_spec":: { test_spec_options: ["-Gci"] },
       "$.cap":: {
