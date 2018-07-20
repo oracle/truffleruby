@@ -1783,38 +1783,24 @@ EOS
   end
 
   def build_native_image(*options)
-    sulong = !options.delete("--no-sulong")
     jvmci = !options.delete("--no-jvmci")
     sforceimports = !options.delete("--no-sforceimports")
-    tools = !options.delete("--no-tools")
 
     build_truffleruby(sforceimports: sforceimports)
 
     java_home = install_jvmci if jvmci
     graal = checkout_or_update_graal_repo(sforceimports: sforceimports)
 
+    mx_args = %w[--dynamicimports /substratevm,truffleruby --disable-polyglot --disable-libpolyglot --force-bash-launchers=lli,native-image]
+
     puts 'Building TruffleRuby native binary'
-    chdir("#{graal}/substratevm") do
-      mx 'build', java_home: java_home
-      mx '--dynamicimports', '/tools',
-         'fetch-languages',
-         '--language:llvm', '--language:ruby',
-         '--tool:chromeinspector', '--tool:profiler',
-         java_home: java_home
-
-      languages = %w[--language:ruby]
-      languages.unshift '--language:llvm' if sulong
-      if tools
-        languages.push '--tool:chromeinspector', '--tool:profiler'
-      end
-
-      output_options = [
-          "-H:Path=#{TRUFFLERUBY_DIR}/bin",
-          '-H:Name=native-ruby',
-          '-H:Class=org.truffleruby.launcher.RubyLauncher']
-
-      mx 'native-image', *languages, *output_options, *options, java_home: java_home
+    chdir("#{graal}/vm") do
+      mx *mx_args, 'build', java_home: java_home
     end
+
+    local_target = "#{TRUFFLERUBY_DIR}/bin/native-ruby"
+    built_bin = Dir.glob("#{graal}/vm/mxbuild/#{RbConfig::CONFIG['target_os']}-amd64/RUBY_STANDALONE_SVM/*/bin/ruby").first
+    FileUtils.ln_sf(built_bin, local_target)
   end
 
   def next(*args)
