@@ -33,7 +33,6 @@ local part_definitions = {
 
   use: {
     common: {
-      local build = self,
       environment+: {
         path+:: [],
         java_opts+:: ["-Xmx2G"],
@@ -193,6 +192,8 @@ local part_definitions = {
     core: {
       is_after+:: ["$.use.build"],
 
+      svm_suite:: "/substratevm",
+
       setup+: [
         ["cd", "../graal/substratevm"],
         ["mx", "sforceimports"],
@@ -203,13 +204,15 @@ local part_definitions = {
       environment+: {
         HOST_VM_CONFIG: "graal-core",
         GRAAL_HOME: "$PWD/../graal/compiler",
-        SVM_HOME: "$PWD/../graal/substratevm",
+        VM_SUITE_HOME: "$PWD/../graal/vm",
       },
     },
 
     enterprise: {
       # Otherwise the TruffleRuby build will change the runtime Truffle version
       is_after+:: ["$.use.build"],
+
+      svm_suite:: "/substratevm-enterprise",
 
       setup+: [
         [
@@ -227,36 +230,53 @@ local part_definitions = {
       environment+: {
         HOST_VM_CONFIG: "graal-enterprise",
         GRAAL_HOME: "$PWD/../graal-enterprise/graal-enterprise",
-        SVM_HOME: "$PWD/../graal-enterprise/substratevm-enterprise",
+        VM_SUITE_HOME: "$PWD/../graal-enterprise/vm-enterprise",
       },
     },
 
-    build_image: {
-      setup+: [
-        ["cd", "$SVM_HOME"],
-        # Workaround for NFI when building with different Truffle versions
-        ["mx", "clean"],
-        ["mx", "build"],
-        ["mx", "--dynamicimports", "/tools", "fetch-languages", "--language:llvm", "--language:ruby"],
-        # aot-build.log is used for the build-stats metrics
+    gate: {
+      # The same as job "gate-vm-native-truffleruby-tip" in
+      # https://github.com/oracle/graal/blob/master/vm/ci_common/common.hocon
+      local build = self,
+      run+: [
+        ["cd", "$VM_SUITE_HOME"],
         [
           "mx",
-          "native-image",
-          "--language:ruby",
-          "-H:Path=$SVM_HOME/svmbuild/native-image-root/languages/ruby/bin",
-          "-H:Name=truffleruby",
-          "|",
-          "tee",
-          "../../main/aot-build.log"
+          "--dynamicimports",
+          self.svm_suite + ",truffleruby",
+          "--disable-polyglot",
+          "--disable-libpolyglot",
+          "--force-bash-launchers=lli,truffleruby",
+          "gate",
+          "--no-warning-as-error",
+          "--tags",
+          build["$.svm.gate"].tags,
         ],
+      ],
+    },
+
+    build_image: {
+      local vm_suite_mx_flags = [
+        "--dynamicimports",
+        self.svm_suite + ",truffleruby",
+        "--disable-polyglot",
+        "--disable-libpolyglot",
+        "--force-bash-launchers=lli,native-image",
+      ],
+      local vm_build = ["mx"] + vm_suite_mx_flags + ["build"],
+      local vm_dist_home = ["mx"] + vm_suite_mx_flags + ["graalvm-home"],
+
+      setup+: [
+        ["cd", "$VM_SUITE_HOME"],
+        # Workaround for NFI when building with different Truffle versions
+        ["mx", "clean"],
+        # aot-build.log is used for the build-stats metrics
+        vm_build + ["|", "tee", "../../main/aot-build.log"],
+        ["export", ["echo", "VM_DIST_HOME=", vm_dist_home, "|", "tr", "-d", "' '"]],
+        ["export", "AOT_BIN=$VM_DIST_HOME/jre/languages/ruby/bin/truffleruby"],
+        ["export", "JT_BENCHMARK_RUBY=$AOT_BIN"],
         ["cd", "../../main"],
       ],
-
-      local build = self,
-      environment+: {
-        JT_BENCHMARK_RUBY: "$AOT_BIN",
-        AOT_BIN: "$SVM_HOME/svmbuild/native-image-root/languages/ruby/bin/truffleruby",
-      },
     },
   },
 
@@ -309,7 +329,6 @@ local part_definitions = {
 
   platform: {
     linux: {
-      local build = self,
       "$.use.build":: { extra_args: [] },
       "$.run.deploy_and_spec":: { test_spec_options: ["-Gci"] },
       "$.cap":: {
@@ -419,22 +438,6 @@ local part_definitions = {
       is_after+:: ["$.use.common"],
       run+: [
         ["mx", "--dynamicimports", "sulong", "ruby_testdownstream_sulong"],
-      ],
-    },
-
-    svm_gate: {
-      local build = self,
-      run+: [
-        ["cd", "$SVM_HOME"],
-        [
-          "mx",
-          "--strict-compliance",
-          "gate",
-          "-B--force-deprecation-as-warning",
-          "--strict-mode",
-          "--tags",
-          build["$.run.svm_gate"].tags,
-        ],
       ],
     },
 
@@ -587,14 +590,14 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     local svm_test_platforms = {
-      local shared = $.jdk.labsjdk8 + $.use.common + $.use.svm + $.cap.gate + $.run.svm_gate,
+      local shared = $.jdk.labsjdk8 + $.use.common + $.use.svm + $.cap.gate + $.svm.gate,
 
-      linux: $.platform.linux + shared + { "$.run.svm_gate":: { tags: "build,ruby_debug,ruby_product" } },
-      darwin: $.platform.darwin + shared + { "$.run.svm_gate":: { tags: "build,darwin_ruby" } },
+      linux: $.platform.linux + shared + { "$.svm.gate":: { tags: "build,ruby_debug,ruby_product" } },
+      darwin: $.platform.darwin + shared + { "$.svm.gate":: { tags: "build,darwin_ruby" } },
     };
     {
       local shared = $.use.build + $.svm.core + { timelimit: "01:00:00" },
-      local tag_override = { "$.run.svm_gate":: { tags: "build,ruby" } },
+      local tag_override = { "$.svm.gate":: { tags: "build,ruby" } },
 
       "ruby-test-svm-graal-core-linux": shared + svm_test_platforms.linux + tag_override,
       "ruby-test-svm-graal-core-darwin": shared + svm_test_platforms.darwin + tag_override,
