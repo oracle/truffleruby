@@ -1,37 +1,52 @@
 # 1.0
 
-# 1.0 RC 4
+# 1.0 RC 5
 
 New features:
-* It is no longer needed to add LLVM (`/usr/local/opt/llvm@4/bin`) to `PATH` on macOS.
+
+* It is no longer needed to add LLVM (`/usr/local/opt/llvm@4/bin`) to `PATH` on
+  macOS.
 * Improve error message when LLVM, `clang` or `opt` is missing.
 * Automatically find LLVM and libssl with MacPorts on macOS (#1386).
 * `--log.ruby.level=` can be used to set the log level from any launcher.
 
 Bug fixes:
+
 * Allow any name for constants with `rb_const_get()`/`rb_const_set()` (#1380).
-* Fix `defined?` with an autoload constant to not raise but return nil if the autoload fails (#1377).
-* Binary Ruby Strings can now only be converted to Java Strings if they only contain US-ASCII characters.
-  Otherwise, they would produce garbled Java Strings (#1376).
+* Fix `defined?` with an autoload constant to not raise but return nil if the
+  autoload fails (#1377).
+* Binary Ruby Strings can now only be converted to Java Strings if they only
+  contain US-ASCII characters. Otherwise, they would produce garbled Java
+  Strings (#1376).
 * `#autoload` now correctly calls main.require(path) dynamically.
 * Hide internal file from user-level backtraces (#1375).
 * Show caller information in warnings from the core library (#1375).
-* #require and #require_relative should keep symlinks in `$"` and `__FILE__` (#1383).
-* Random seeds now always come directly from `/dev/urandom` for MRI compatibility.
+* #require and #require_relative should keep symlinks in `$"` and `__FILE__`
+  (#1383).
+* Random seeds now always come directly from `/dev/urandom` for MRI
+  compatibility.
 * SIGINFO, SIGEMT and SIGPWR are now defined (#1382).
 * Optional and operator assignment expressions now return the value
   assigned, not the value returned by an assignment method.
-* WeakRef.new will now return the correct type of object, even if WeakRef is subclassed.
+* WeakRef.new will now return the correct type of object, even if WeakRef is
+  subclassed.
 
 Performance:
+
 * Optimize required keyword arguments.
 * `rb_enc_to_index` is now faster by eliminating an expensive look-up.
+
 Changes:
 
 * `-Xlog=` now needs log level names to be upper case.
-* `-Dtruffleruby.log` and `TRUFFLERUBY_LOG` have been removed - use `-Dpolyglot.log.ruby.level`.
+* `-Dtruffleruby.log` and `TRUFFLERUBY_LOG` have been removed - use
+  `-Dpolyglot.log.ruby.level`.
 * The log format, handlers, etc are now managed by the Truffle logging system.
 * The custom log levels `PERFORMANCE` and `PATCH` have been removed.
+
+# 1.0 RC 4
+
+*TruffleRuby was not updated in RC 4*
 
 # 1.0 RC 3
 
