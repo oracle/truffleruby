@@ -124,7 +124,10 @@ public abstract class ModuleOperations {
         }
 
         // Look in ancestors
-        for (DynamicObject ancestor : Layouts.MODULE.getFields(module).parentAncestors()) {
+        for (DynamicObject ancestor : Layouts.MODULE.getFields(module).ancestors()) {
+            if (ancestor == module) {
+                continue;
+            }
             fields = Layouts.MODULE.getFields(ancestor);
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
             constant = fields.getConstant(name);
@@ -559,7 +562,10 @@ public abstract class ModuleOperations {
         }
 
         // Look in ancestors
-        for (DynamicObject ancestor : Layouts.MODULE.getFields(module).parentAncestors()) {
+        for (DynamicObject ancestor : Layouts.MODULE.getFields(module).ancestors()) {
+            if (ancestor == module) {
+                continue;
+            }
             result = action.apply(ancestor);
             if (result != null) {
                 return result;
