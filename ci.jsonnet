@@ -273,13 +273,10 @@ local part_definitions = {
         # aot-build.log is used for the build-stats metrics
         vm_build + ["|", "tee", "../../main/aot-build.log"],
         ["export", ["echo", "VM_DIST_HOME=", vm_dist_home, "|", "tr", "-d", "' '"]],
+        ["export", "AOT_BIN=$VM_DIST_HOME/jre/languages/ruby/bin/truffleruby"],
+        ["export", "JT_BENCHMARK_RUBY=$AOT_BIN"],
         ["cd", "../../main"],
       ],
-
-      environment+: {
-        JT_BENCHMARK_RUBY: "$AOT_BIN",
-        AOT_BIN: "$VM_DIST_HOME/jre/languages/bin/ruby",
-      },
     },
   },
 
