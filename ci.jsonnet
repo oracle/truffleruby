@@ -193,6 +193,8 @@ local part_definitions = {
     core: {
       is_after+:: ["$.use.build"],
 
+      svm_suite:: "/substratevm",
+
       setup+: [
         ["cd", "../graal/substratevm"],
         ["mx", "sforceimports"],
@@ -210,6 +212,8 @@ local part_definitions = {
     enterprise: {
       # Otherwise the TruffleRuby build will change the runtime Truffle version
       is_after+:: ["$.use.build"],
+
+      svm_suite:: "/substratevm-enterprise",
 
       setup+: [
         [
@@ -231,13 +235,34 @@ local part_definitions = {
       },
     },
 
+    gate: {
+      # The same as job "gate-vm-native-truffleruby-tip" in
+      # https://github.com/oracle/graal/blob/master/vm/ci_common/common.hocon
+      local build = self,
+      run+: [
+        ["cd", "$VM_SUITE_HOME"],
+        [
+          "mx",
+          "--dynamicimports",
+          self.svm_suite + ",truffleruby",
+          "--disable-polyglot",
+          "--disable-libpolyglot",
+          "--force-bash-launchers=lli,truffleruby",
+          "gate",
+          "--no-warning-as-error",
+          "--tags",
+          build["$.svm.gate"].tags,
+        ],
+      ],
+    },
+
     build_image: {
       local vm_suite_mx_flags = [
+        "--dynamicimports",
+        self.svm_suite + ",truffleruby",
         "--disable-polyglot",
         "--disable-libpolyglot",
         "--force-bash-launchers=lli,native-image",
-        "--dynamic-imports",
-        "truffleruby,/substratevm"
       ],
 
       setup+: [
@@ -420,25 +445,6 @@ local part_definitions = {
       ],
     },
 
-    svm_gate: {
-      local build = self,
-      run+: [
-        ["cd", "$VM_SUITE_HOME"],
-        [
-          "mx",
-          "--dynamic-imports",
-          "sulong,truffleruby",
-          "--disable-polyglot",
-          "--disable-libpolyglot",
-          "--force-bash-launchers=lli,truffleruby",
-          "gate",
-          "--no-warning-as-error",
-          "--tags",
-          build["$.run.svm_gate"].tags,
-        ],
-      ],
-    },
-
     make_standalone_distribution: {
       run+: [
         ["tool/make-standalone-distribution.sh"],
@@ -588,14 +594,14 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } +
 
     local svm_test_platforms = {
-      local shared = $.jdk.labsjdk8 + $.use.common + $.use.svm + $.cap.gate + $.run.svm_gate,
+      local shared = $.jdk.labsjdk8 + $.use.common + $.use.svm + $.cap.gate + $.svm.gate,
 
-      linux: $.platform.linux + shared + { "$.run.svm_gate":: { tags: "build,ruby_debug,ruby_product" } },
-      darwin: $.platform.darwin + shared + { "$.run.svm_gate":: { tags: "build,darwin_ruby" } },
+      linux: $.platform.linux + shared + { "$.svm.gate":: { tags: "build,ruby_debug,ruby_product" } },
+      darwin: $.platform.darwin + shared + { "$.svm.gate":: { tags: "build,darwin_ruby" } },
     };
     {
       local shared = $.use.build + $.svm.core + { timelimit: "01:00:00" },
-      local tag_override = { "$.run.svm_gate":: { tags: "build,ruby" } },
+      local tag_override = { "$.svm.gate":: { tags: "build,ruby" } },
 
       "ruby-test-svm-graal-core-linux": shared + svm_test_platforms.linux + tag_override,
       "ruby-test-svm-graal-core-darwin": shared + svm_test_platforms.darwin + tag_override,
