@@ -264,21 +264,23 @@ local part_definitions = {
         "--disable-libpolyglot",
         "--force-bash-launchers=lli,native-image",
       ],
+      local vm_build = ["mx"] + vm_suite_mx_flags + ["build"],
+      local vm_dist_home = ["mx"] + vm_suite_mx_flags + ["graalvm-home"],
 
       setup+: [
         ["cd", "$VM_SUITE_HOME"],
         # Workaround for NFI when building with different Truffle versions
         ["mx", "clean"],
         # aot-build.log is used for the build-stats metrics
-        ["mx"] + vm_suite_mx_flags + ["build", "|", "tee", "../../main/aot-build.log"],
-        ["export", ["echo", "VM_DIST_HOME=", ["mx" + vm_suite_mx_flags + "graalvm-home"]]],
+        vm_build + ["|", "tee", "../../main/aot-build.log"],
+        ["export", ["echo", "VM_DIST_HOME=", vm_dist_home, "|", "tr", "-d", "' '"]],
         ["cd", "../../main"],
       ],
 
       local build = self,
       environment+: {
         JT_BENCHMARK_RUBY: "$AOT_BIN",
-        AOT_BIN: "$VM_DIST_HOME/bin/ruby",
+        AOT_BIN: "$VM_DIST_HOME/jre/languages/bin/ruby",
       },
     },
   },
