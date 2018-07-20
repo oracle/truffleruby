@@ -456,6 +456,7 @@ public abstract class BasicObjectNodes {
     public abstract static class SendNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
+        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @Specialization
         public Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {
@@ -464,6 +465,9 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         public Object send(VirtualFrame frame, Object self, Object name, Object[] args, DynamicObject block) {
+            DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
+            RubyArguments.setDeclarationContext(frame, context);
+
             return dispatchNode.callWithBlock(frame, self, name, block, args);
         }
 

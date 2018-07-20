@@ -30,6 +30,7 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.Arity;
@@ -102,21 +103,25 @@ public abstract class SymbolNodes {
     @CoreMethod(names = "to_proc")
     public abstract static class ToProcNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "cachedSymbol == symbol", limit = "getCacheLimit()")
+        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
+
+        @Specialization(guards = { "cachedSymbol == symbol", "getDeclarationContext(frame) == cachedDeclarationContext" }, limit = "getCacheLimit()")
         public DynamicObject toProcCached(VirtualFrame frame, DynamicObject symbol,
                                      @Cached("symbol") DynamicObject cachedSymbol,
-                                     @Cached("createProc(getMethod(frame), symbol)") DynamicObject cachedProc) {
+                @Cached("getDeclarationContext(frame)") DeclarationContext cachedDeclarationContext,
+                @Cached("createProc(cachedDeclarationContext, getMethod(frame), symbol)") DynamicObject cachedProc) {
             return cachedProc;
         }
 
         @Specialization
         public DynamicObject toProcUncached(VirtualFrame frame, DynamicObject symbol) {
             final InternalMethod method = getMethod(frame);
-            return createProc(method, symbol);
+            DeclarationContext declarationContext = getDeclarationContext(frame);
+            return createProc(declarationContext, method, symbol);
         }
 
         @TruffleBoundary
-        protected DynamicObject createProc(InternalMethod method, DynamicObject symbol) {
+        protected DynamicObject createProc(DeclarationContext declarationContext, InternalMethod method, DynamicObject symbol) {
             final SourceSection sourceSection = getContext().getCallStack().getCallerFrameIgnoringSend()
                     .getCallNode().getEncapsulatingSourceSection();
             final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection.getCharIndex(), sourceSection.getCharLength());
@@ -130,7 +135,7 @@ public abstract class SymbolNodes {
                     "proc",
                     ArgumentDescriptor.ANON_REST,
                     false);
-            final Object[] args = RubyArguments.pack(null, null, method, null, nil(), null, EMPTY_ARGUMENTS);
+            final Object[] args = RubyArguments.pack(null, null, method, declarationContext, null, nil(), null, EMPTY_ARGUMENTS);
             // MRI raises an error on Proc#binding if you attempt to access the binding of a procedure generated
             // by Symbol#to_proc. We generate a declaration frame here so that all procedures will have a
             // binding as this simplifies the logic elsewhere in the runtime.
@@ -148,7 +153,7 @@ public abstract class SymbolNodes {
                     method,
                     null,
                     null,
-                    DeclarationContext.NONE);
+                    declarationContext == null ? DeclarationContext.NONE : declarationContext);
         }
 
         protected InternalMethod getMethod(VirtualFrame frame) {
@@ -159,6 +164,13 @@ public abstract class SymbolNodes {
             return getContext().getOptions().SYMBOL_TO_PROC_CACHE;
         }
 
+        protected DeclarationContext getDeclarationContext(VirtualFrame frame) {
+            return RubyArguments.tryGetDeclarationContext(readCallerFrame.execute(frame));
+        }
+
+        protected FrameDescriptor getDescriptor(VirtualFrame frame) {
+            return frame.getFrameDescriptor();
+        }
     }
 
     @CoreMethod(names = "to_s")
