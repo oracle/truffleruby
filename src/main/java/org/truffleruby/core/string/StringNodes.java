@@ -531,8 +531,6 @@ public abstract class StringNodes {
         }
 
         private Object sliceRange(VirtualFrame frame, DynamicObject string, int begin, int end, boolean doesExcludeEnd) {
-            assert RubyGuards.isRubyString(string);
-
             if (normalizeIndexNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 normalizeIndexNode = insert(StringNodesFactory.NormalizeIndexNodeGen.create(null, null));
@@ -766,9 +764,6 @@ public abstract class StringNodes {
         }
 
         public static boolean bothSingleByteOptimizable(DynamicObject string, DynamicObject other) {
-            assert RubyGuards.isRubyString(string);
-            assert RubyGuards.isRubyString(other);
-
             return rope(string).isSingleByteOptimizable() && rope(other).isSingleByteOptimizable();
         }
     }
@@ -1776,7 +1771,6 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         private RopeBuilder dumpCommon(DynamicObject string) {
-            assert RubyGuards.isRubyString(string);
             return dumpCommon(rope(string));
         }
 
@@ -2332,8 +2326,6 @@ public abstract class StringNodes {
         }
 
         public static boolean reverseIsEqualToSelf(DynamicObject string) {
-            assert RubyGuards.isRubyString(string);
-
             return rope(string).characterLength() <= 1;
         }
     }
@@ -2987,8 +2979,6 @@ public abstract class StringNodes {
         // because the factory is not constant
         @TruffleBoundary
         private DynamicObject makeString(DynamicObject source, int index, int length) {
-            assert RubyGuards.isRubyString(source);
-
             final Rope rope = substringNode.executeSubstring(rope(source), index, length);
 
             final DynamicObject ret = Layouts.CLASS.getInstanceFactory(Layouts.BASIC_OBJECT.getLogicalClass(source)).newInstance(Layouts.STRING.build(false, false, rope));
@@ -3389,8 +3379,6 @@ public abstract class StringNodes {
         }
 
         protected static boolean offsetTooLarge(DynamicObject string, int offset) {
-            assert RubyGuards.isRubyString(string);
-
             return offset >= rope(string).byteLength();
         }
 
@@ -4201,8 +4189,6 @@ public abstract class StringNodes {
         }
 
         protected boolean patternFitsEvenly(DynamicObject string, int size) {
-            assert RubyGuards.isRubyString(string);
-
             final int byteLength = rope(string).byteLength();
 
             return byteLength > 0 && (size % byteLength) == 0;
@@ -4282,14 +4268,10 @@ public abstract class StringNodes {
         }
 
         protected boolean indexAtEndBound(DynamicObject string, int index) {
-            assert RubyGuards.isRubyString(string);
-
             return index == rope(string).byteLength();
         }
 
         protected boolean indexAtEitherBounds(DynamicObject string, int index) {
-            assert RubyGuards.isRubyString(string);
-
             return indexAtStartBound(index) || indexAtEndBound(string, index);
         }
 
@@ -4520,8 +4502,6 @@ public abstract class StringNodes {
         }
 
         protected static boolean indexTriviallyOutOfBounds(DynamicObject string, int index, int length) {
-            assert RubyGuards.isRubyString(string);
-
             return (length < 0) || (index > rope(string).characterLength());
         }
 
@@ -4572,9 +4552,6 @@ public abstract class StringNodes {
 
         @Specialization
         public Rope stringAppend(DynamicObject string, DynamicObject other) {
-            assert RubyGuards.isRubyString(string);
-            assert RubyGuards.isRubyString(other);
-
             final Rope left = rope(string);
             final Rope right = rope(other);
 

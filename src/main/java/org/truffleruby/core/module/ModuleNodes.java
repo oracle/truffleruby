@@ -919,7 +919,6 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         boolean isScoped(DynamicObject name) {
-            assert RubyGuards.isRubyString(name);
             // TODO (eregon, 27 May 2015): Any way to make this efficient?
             return StringOperations.getString(name).contains("::");
         }

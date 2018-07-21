@@ -15,44 +15,36 @@ import org.jcodings.Config;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.language.RubyGuards;
 
 public class StringGuards {
 
     private static final int CASE_FULL_UNICODE = 0;
 
     public static boolean isSingleByteOptimizable(DynamicObject string) {
-        assert RubyGuards.isRubyString(string);
         return Layouts.STRING.getRope(string).isSingleByteOptimizable();
     }
 
     public static boolean is7Bit(DynamicObject string) {
-        assert RubyGuards.isRubyString(string);
         return StringOperations.codeRange(string) == CodeRange.CR_7BIT;
     }
 
     public static boolean isAsciiCompatible(DynamicObject string) {
-        assert RubyGuards.isRubyString(string);
         return Layouts.STRING.getRope(string).getEncoding().isAsciiCompatible();
     }
 
     public static boolean isFixedWidthEncoding(DynamicObject string) {
-        assert RubyGuards.isRubyString(string);
         return Layouts.STRING.getRope(string).getEncoding().isFixedWidth();
     }
 
     public static boolean isValidUtf8(DynamicObject string) {
-        assert RubyGuards.isRubyString(string);
         return isValidCodeRange(string) && Layouts.STRING.getRope(string).getEncoding().isUTF8();
     }
 
     public static boolean isEmpty(DynamicObject string) {
-        assert RubyGuards.isRubyString(string);
         return Layouts.STRING.getRope(string).isEmpty();
     }
 
     public static boolean isBrokenCodeRange(DynamicObject string) {
-        assert RubyGuards.isRubyString(string);
         return StringOperations.codeRange(string) == CodeRange.CR_BROKEN;
     }
 
