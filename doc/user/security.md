@@ -49,7 +49,7 @@ CVE-2012-4522 | Unintentional file creation caused by inserting a illegal NUL ch
 CVE-2012-4464, CVE-2012-4466  | $SAFE escaping vulnerability about `Exception#to_s` / `NameError#to_s` | *todo* | *todo* | *todo*
 None | Security Fix for RubyGems: SSL server verification failure for remote repository | *todo* | *todo* | *todo*
 CVE-2011-3389 | Security Fix for Ruby OpenSSL module: Allow 0/n splitting as a prevention for the TLS BEAST attack | *todo* | *todo* | *todo*
-CVE-2011-4815 | Denial of service attack was found for Ruby's Hash algorithm (cross-reference CVE-2011-4838, CVE-2012-5370, CVE-2012-5372) | Hashes are made non-deterministic by incorporating process start time | Tested in ruby/spec `:security` | Hashes are made non-deterministic by incorporating a seed from `/dev/random`
+CVE-2011-4815 | Denial of service attack was found for Ruby's Hash algorithm (cross-reference CVE-2011-4838, CVE-2012-5370, CVE-2012-5372) | Hashes are made non-deterministic by incorporating process start time | Tested in ruby/spec `:security` | Hashes are made non-deterministic by incorporating a seed from `/dev/urandom`
 None | Exception methods can bypass `$SAFE` | *todo* | *todo* | *todo*
 None | FileUtils is vulnerable to symlink race attacks | *todo* | *todo* | *todo*
 CVE-2010-0541 | XSS in WEBrick | *todo* | *todo* | *todo*
@@ -73,8 +73,8 @@ apply to TruffleRuby.
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
-CVE-2012-5370 | JRuby computes hash values without properly restricting the ability to trigger hash collisions predictably (cross-reference CVE-2011-4815, CVE-2011-4838, CVE-2012-5372) | Hashes are made non-deterministic by incorporating process start time | Tested in ruby/spec `:security` | Hashes are made non-deterministic by incorporating a seed from `/dev/random`
-CVE-2011-4838 | JRuby before 1.6.5.1 computes hash values without restricting the ability to trigger hash collisions predictably (cross-reference CVE-2011-4815, CVE-2012-5370, CVE-2012-5372) | Hashes are made non-deterministic by incorporating process start time | Tested in ruby/spec `:security` | Hashes are made non-deterministic by incorporating a seed from `/dev/random`
+CVE-2012-5370 | JRuby computes hash values without properly restricting the ability to trigger hash collisions predictably (cross-reference CVE-2011-4815, CVE-2011-4838, CVE-2012-5372) | Hashes are made non-deterministic by incorporating process start time | Tested in ruby/spec `:security` | Hashes are made non-deterministic by incorporating a seed from `/dev/urandom`
+CVE-2011-4838 | JRuby before 1.6.5.1 computes hash values without restricting the ability to trigger hash collisions predictably (cross-reference CVE-2011-4815, CVE-2012-5370, CVE-2012-5372) | Hashes are made non-deterministic by incorporating process start time | Tested in ruby/spec `:security` | Hashes are made non-deterministic by incorporating a seed from `/dev/urandom`
 
 ## Rubinius Vulnerabilities
 
@@ -83,7 +83,7 @@ Rubinius may apply to TruffleRuby.
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
-CVE-2012-5372 | Rubinius computes hash values without properly restricting the ability to trigger hash collisions predictably (cross-reference CVE-2011-4815, CVE-2011-4838, CVE-2012-5370) | Hashes are made non-deterministic by incorporating output from `/dev/urandom` | Tested in ruby/spec `:security` | Hashes are made non-deterministic by incorporating a seed from `/dev/random`
+CVE-2012-5372 | Rubinius computes hash values without properly restricting the ability to trigger hash collisions predictably (cross-reference CVE-2011-4815, CVE-2011-4838, CVE-2012-5370) | Hashes are made non-deterministic by incorporating output from `/dev/urandom` | Tested in ruby/spec `:security` | Hashes are made non-deterministic by incorporating a seed from `/dev/urandom`
 
 ## Java Dependency Vulnerabilities
 
