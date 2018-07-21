@@ -18,9 +18,10 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.core.module.LoadAutoloadedConstantNode;
+import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -58,13 +59,28 @@ public abstract class GetConstantNode extends RubyNode {
 
     @Specialization(guards = { "constant != null", "constant.isAutoload()" })
     protected Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode,
-            @Cached("new()") LoadAutoloadedConstantNode loadAutoloadedConstantNode) {
-        loadAutoloadedConstantNode.loadAutoloadedConstant(name, constant);
+            @Cached("createOnSelf()") CallDispatchHeadNode callRequireNode) {
+
+        assert constant.isAutoload();
+        final DynamicObject feature = (DynamicObject) constant.getValue();
+        assert RubyGuards.isRubyString(feature);
+
+        final ModuleFields fields = Layouts.MODULE.getFields(constant.getDeclaringModule());
+
+        // The autoload constant must only be removed if everything succeeds.
+        // We remove it first to allow lookup to ignore it and add it back if there was a failure.
+        fields.removeConstant(getContext(), this, name);
+        try {
+            callRequireNode.call(null, coreLibrary().getMainObject(), "require", feature);
+        } catch (RaiseException e) {
+            fields.setAutoloadConstant(getContext(), this, name, feature);
+            throw e;
+        }
         try {
             final RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
             return executeGetConstant(lexicalScope, module, name, resolvedConstant, lookupConstantNode);
         } catch (RaiseException e) {
-            Layouts.MODULE.getFields(module).setAutoloadConstant(getContext(), this, name, (DynamicObject) constant.getValue());
+            fields.setAutoloadConstant(getContext(), this, name, feature);
             throw e;
         }
     }
