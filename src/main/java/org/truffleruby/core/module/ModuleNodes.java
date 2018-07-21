@@ -859,33 +859,33 @@ public abstract class ModuleNodes {
 
         // Symbol
         @Specialization(guards = { "inherit", "isRubySymbol(name)" })
-        public Object getConstant(VirtualFrame frame, DynamicObject module, DynamicObject name, boolean inherit) {
-            return getConstant(frame, module, Layouts.SYMBOL.getString(name));
+        public Object getConstant(DynamicObject module, DynamicObject name, boolean inherit) {
+            return getConstant(module, Layouts.SYMBOL.getString(name));
         }
 
         @Specialization(guards = { "!inherit", "isRubySymbol(name)" })
-        public Object getConstantNoInherit(VirtualFrame frame, DynamicObject module, DynamicObject name, boolean inherit) {
-            return getConstantNoInherit(frame, module, Layouts.SYMBOL.getString(name));
+        public Object getConstantNoInherit(DynamicObject module, DynamicObject name, boolean inherit) {
+            return getConstantNoInherit(module, Layouts.SYMBOL.getString(name));
         }
 
         // String
         @Specialization(guards = { "inherit", "isRubyString(name)", "equalNode.execute(rope(name), cachedRope)", "!scoped" }, limit = "getLimit()")
-        public Object getConstantStringCached(VirtualFrame frame, DynamicObject module, DynamicObject name, boolean inherit,
+        public Object getConstantStringCached(DynamicObject module, DynamicObject name, boolean inherit,
                 @Cached("privatizeRope(name)") Rope cachedRope,
                 @Cached("getString(name)") String cachedString,
                 @Cached("create()") RopeNodes.EqualNode equalNode,
                 @Cached("isScoped(cachedString)") boolean scoped) {
-            return getConstant(frame, module, cachedString);
+            return getConstant(module, cachedString);
         }
 
         @Specialization(guards = { "inherit", "isRubyString(name)", "!isScoped(name)" }, replaces = "getConstantStringCached")
-        public Object getConstantString(VirtualFrame frame, DynamicObject module, DynamicObject name, boolean inherit) {
-            return getConstant(frame, module, StringOperations.getString(name));
+        public Object getConstantString(DynamicObject module, DynamicObject name, boolean inherit) {
+            return getConstant(module, StringOperations.getString(name));
         }
 
         @Specialization(guards = { "!inherit", "isRubyString(name)", "!isScoped(name)" })
-        public Object getConstantNoInheritString(VirtualFrame frame, DynamicObject module, DynamicObject name, boolean inherit) {
-            return getConstantNoInherit(frame, module, StringOperations.getString(name));
+        public Object getConstantNoInheritString(DynamicObject module, DynamicObject name, boolean inherit) {
+            return getConstantNoInherit(module, StringOperations.getString(name));
         }
 
         // Scoped String
@@ -894,18 +894,18 @@ public abstract class ModuleNodes {
             return getConstantScoped(module, StringOperations.getString(fullName), inherit);
         }
 
-        private Object getConstant(VirtualFrame frame, Object module, String name) {
-            final RubyConstant constant = lookupConstantNode.lookupConstant(frame, module, name);
-            return getConstantNode.executeGetConstant(frame, module, name, constant, lookupConstantNode);
+        private Object getConstant(Object module, String name) {
+            final RubyConstant constant = lookupConstantNode.lookupConstant(LexicalScope.IGNORE, module, name);
+            return getConstantNode.executeGetConstant(LexicalScope.IGNORE, module, name, constant, lookupConstantNode);
         }
 
-        private Object getConstantNoInherit(VirtualFrame frame, DynamicObject module, String name) {
+        private Object getConstantNoInherit(DynamicObject module, String name) {
             final LookupConstantInterface lookup = this::lookupConstantNoInherit;
-            final RubyConstant constant = lookupConstantNoInherit(frame, module, name);
-            return getConstantNode.executeGetConstant(frame, module, name, constant, lookup);
+            final RubyConstant constant = lookupConstantNoInherit(LexicalScope.IGNORE, module, name);
+            return getConstantNode.executeGetConstant(LexicalScope.IGNORE, module, name, constant, lookup);
         }
 
-        private RubyConstant lookupConstantNoInherit(VirtualFrame frame, Object module, String name) {
+        private RubyConstant lookupConstantNoInherit(LexicalScope lexicalScope, Object module, String name) {
             return ModuleOperations.lookupConstantWithInherit(getContext(), (DynamicObject) module, name, false, this).getConstant();
         }
 

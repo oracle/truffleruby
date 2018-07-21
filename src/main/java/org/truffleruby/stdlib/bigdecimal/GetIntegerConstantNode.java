@@ -17,6 +17,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.constants.GetConstantNode;
@@ -36,8 +37,8 @@ public abstract class GetIntegerConstantNode extends RubyNode {
             @Cached("create()") GetConstantNode getConstantNode,
             @Cached("create()") ToIntNode toIntNode,
             @Cached("create()") IntegerCastNode integerCastNode) {
-        final RubyConstant constant = lookupConstantNode.lookupConstant(frame, module, name);
-        final Object value = getConstantNode.executeGetConstant(frame, module, name, constant, lookupConstantNode);
+        final RubyConstant constant = lookupConstantNode.lookupConstant(LexicalScope.IGNORE, module, name);
+        final Object value = getConstantNode.executeGetConstant(LexicalScope.IGNORE, module, name, constant, lookupConstantNode);
         return integerCastNode.executeCastInt(toIntNode.executeIntOrLong(value));
     }
 

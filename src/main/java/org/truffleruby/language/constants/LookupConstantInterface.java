@@ -9,11 +9,11 @@
  */
 package org.truffleruby.language.constants;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 
 public interface LookupConstantInterface {
 
-    public abstract RubyConstant lookupConstant(VirtualFrame frame, Object module, String name);
+    public abstract RubyConstant lookupConstant(LexicalScope lexicalScope, Object module, String name);
 
 }

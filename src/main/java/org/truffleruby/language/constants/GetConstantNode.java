@@ -14,41 +14,41 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.module.LoadAutoloadedConstantNode;
+import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
-@NodeChildren({ @NodeChild("module"), @NodeChild("name"), @NodeChild("constant"), @NodeChild("lookupConstantNode") })
+@NodeChildren({ @NodeChild("lexicalScope"), @NodeChild("module"), @NodeChild("name"), @NodeChild("constant"), @NodeChild("lookupConstantNode") })
 public abstract class GetConstantNode extends RubyNode {
 
     public static GetConstantNode create() {
-        return GetConstantNodeGen.create(null, null, null, null);
+        return GetConstantNodeGen.create(null, null, null, null, null);
     }
 
     @Child private CallDispatchHeadNode constMissingNode;
 
     public abstract Object executeGetConstant(
-            VirtualFrame frame, Object module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode);
+            LexicalScope lexicalScope, Object module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode);
 
     @Specialization(guards = { "constant != null", "!constant.isAutoload()" })
-    protected Object getConstant(DynamicObject module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode) {
+    protected Object getConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode) {
         return constant.getValue();
     }
 
     @Specialization(guards = { "constant != null", "constant.isAutoload()" })
-    protected Object autoloadConstant(VirtualFrame frame, DynamicObject module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode,
+    protected Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode,
             @Cached("new()") LoadAutoloadedConstantNode loadAutoloadedConstantNode) {
         loadAutoloadedConstantNode.loadAutoloadedConstant(name, constant);
         try {
-            final RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(frame, module, name);
-            return executeGetConstant(frame, module, name, resolvedConstant, lookupConstantNode);
+            final RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
+            return executeGetConstant(lexicalScope, module, name, resolvedConstant, lookupConstantNode);
         } catch (RaiseException e) {
             Layouts.MODULE.getFields(module).setAutoloadConstant(getContext(), this, name, (DynamicObject) constant.getValue());
             throw e;
@@ -58,7 +58,7 @@ public abstract class GetConstantNode extends RubyNode {
     @Specialization(
             guards = { "constant == null", "guardName(name, cachedName, sameNameProfile)" },
             limit = "getCacheLimit()")
-    protected Object missingConstantCached(DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode,
+    protected Object missingConstantCached(LexicalScope lexicalScope, DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode,
             @Cached("name") String cachedName,
             @Cached("getSymbol(name)") DynamicObject symbolName,
             @Cached("createBinaryProfile()") ConditionProfile sameNameProfile) {
@@ -66,7 +66,7 @@ public abstract class GetConstantNode extends RubyNode {
     }
 
     @Specialization(guards = "constant == null")
-    protected Object missingConstantUncached(DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode) {
+    protected Object missingConstantUncached(LexicalScope lexicalScope, DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode) {
         return doMissingConstant(module, name, getSymbol(name));
     }
 

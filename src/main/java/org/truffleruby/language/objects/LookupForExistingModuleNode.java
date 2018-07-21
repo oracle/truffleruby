@@ -37,13 +37,14 @@ public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode
     @Specialization(guards = "isRubyModule(lexicalParent)")
     public RubyConstant lookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent,
             @Cached("createBinaryProfile()") ConditionProfile autoloadProfile) {
-        final RubyConstant constant = lookupConstant(frame, lexicalParent, name);
+        final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getSharedMethodInfo().getLexicalScope();
+        final RubyConstant constant = lookupConstant(lexicalScope, lexicalParent, name);
 
         // If a constant already exists with this class/module name and it's an autoload constant,
         // we have to trigger the autoload behavior before proceeding.
         if (autoloadProfile.profile(constant != null && constant.isAutoload())) {
             loadAutoloadedConstant(name, constant);
-            final RubyConstant autoConstant = lookupConstant(frame, lexicalParent, name);
+            final RubyConstant autoConstant = lookupConstant(lexicalScope, lexicalParent, name);
 
             if (autoConstant == null || autoConstant.isAutoload()) {
                 // If it's still an autoload, the autoload failed so let
@@ -58,8 +59,7 @@ public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode
     }
 
     @Override
-    public RubyConstant lookupConstant(VirtualFrame frame, Object module, String name) {
-        final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getSharedMethodInfo().getLexicalScope();
+    public RubyConstant lookupConstant(LexicalScope lexicalScope, Object module, String name) {
         final DynamicObject lexicalParent = (DynamicObject) module;
         return deepConstantSearch(name, lexicalScope, lexicalParent);
     }

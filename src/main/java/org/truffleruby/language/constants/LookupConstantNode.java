@@ -14,7 +14,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.utilities.NeverValidAssumption;
@@ -56,7 +55,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
     public abstract RubyConstant executeLookupConstant(Object module, String name);
 
     @Override
-    public RubyConstant lookupConstant(VirtualFrame frame, Object module, String name) {
+    public RubyConstant lookupConstant(LexicalScope lexicalScope, Object module, String name) {
         return executeLookupConstant(module, name);
     }
 

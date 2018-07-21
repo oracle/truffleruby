@@ -17,6 +17,9 @@ public class LexicalScope {
 
     public static final LexicalScope NONE = null;
 
+    /** Not null to allow using with @Specialization */
+    public static final LexicalScope IGNORE = new LexicalScope(null, null);
+
     private final LexicalScope parent;
     @CompilationFinal private volatile DynamicObject liveModule;
 

@@ -12,7 +12,6 @@ package org.truffleruby.language.constants;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.module.ConstantLookupResult;
@@ -40,7 +39,7 @@ public abstract class LookupConstantWithLexicalScopeNode extends LookupConstantB
 
     @SuppressFBWarnings("ES")
     @Override
-    public RubyConstant lookupConstant(VirtualFrame frame, Object module, String name) {
+    public RubyConstant lookupConstant(LexicalScope lexicalScope, Object module, String name) {
         assert name == this.name;
         return executeLookupConstant();
     }
