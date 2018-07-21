@@ -66,7 +66,7 @@ public abstract class GetConstantNode extends RubyNode {
     }
 
     @Specialization(guards = "constant == null")
-    protected Object missingConstantUncached(VirtualFrame frame, DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode) {
+    protected Object missingConstantUncached(DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode) {
         return doMissingConstant(module, name, getSymbol(name));
     }
 
