@@ -111,4 +111,11 @@ public class RubyConstant {
         return autoload;
     }
 
+    public DynamicObject getAutoloadPath() {
+        assert isAutoload();
+        final Object feature = getValue();
+        assert RubyGuards.isRubyString(feature);
+        return (DynamicObject) feature;
+    }
+
 }

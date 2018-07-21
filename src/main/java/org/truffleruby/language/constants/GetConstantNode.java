@@ -21,7 +21,6 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -61,10 +60,7 @@ public abstract class GetConstantNode extends RubyNode {
     protected Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode,
             @Cached("createOnSelf()") CallDispatchHeadNode callRequireNode) {
 
-        assert constant.isAutoload();
-        final DynamicObject feature = (DynamicObject) constant.getValue();
-        assert RubyGuards.isRubyString(feature);
-
+        final DynamicObject feature = constant.getAutoloadPath();
         final ModuleFields fields = Layouts.MODULE.getFields(constant.getDeclaringModule());
 
         // The autoload constant must only be removed if everything succeeds.
