@@ -10,6 +10,7 @@
 package org.truffleruby.platform.graal;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyNode;
@@ -17,23 +18,18 @@ import org.truffleruby.language.control.RaiseException;
 
 public abstract class AssertNotCompiledNode extends RubyNode {
 
-    @SuppressWarnings("unused")
-    private static volatile boolean[] sideEffect;
-
     @Specialization
     public DynamicObject assertNotCompiled() {
-        final boolean[] compiled = new boolean[]{ CompilerDirectives.inCompiledCode() };
-
-        // If we didn't cause the value to escape, the transfer would float above the isCompilationConstant
-
-        sideEffect = compiled;
-
-        if (compiled[0]) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new RaiseException(getContext(), coreExceptions().graalErrorAssertNotCompiledCompiled(this), true);
+        if (CompilerDirectives.inCompiledCode()) {
+            compiledBoundary();
         }
 
         return nil();
+    }
+
+    @TruffleBoundary
+    private void compiledBoundary() {
+        throw new RaiseException(getContext(), coreExceptions().graalErrorAssertNotCompiledCompiled(this), true);
     }
 
 }

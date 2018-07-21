@@ -10,6 +10,7 @@
 package org.truffleruby.platform.graal;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.RubyNode;
@@ -18,23 +19,18 @@ import org.truffleruby.language.control.RaiseException;
 @NodeChild("value")
 public abstract class AssertConstantNode extends RubyNode {
 
-    @SuppressWarnings("unused")
-    private static volatile boolean[] sideEffect;
-
     @Specialization
     public Object assertCompilationConstant(Object value) {
-        final boolean[] compilationConstant = new boolean[]{ CompilerDirectives.isCompilationConstant(value) };
-
-        // If we didn't cause the value to escape, the transfer would float above the isCompilationConstant
-
-        sideEffect = compilationConstant;
-
-        if (!compilationConstant[0]) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new RaiseException(getContext(), coreExceptions().graalErrorAssertConstantNotConstant(this), true);
+        if (!CompilerDirectives.isCompilationConstant(value)) {
+            notConstantBoundary();
         }
 
         return value;
+    }
+
+    @TruffleBoundary
+    private void notConstantBoundary() {
+        throw new RaiseException(getContext(), coreExceptions().graalErrorAssertConstantNotConstant(this), true);
     }
 
 }
