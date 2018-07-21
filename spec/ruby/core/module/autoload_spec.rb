@@ -317,30 +317,128 @@ describe "Module#autoload" do
     ModuleSpecs::Autoload::XX::YY.superclass.should == YY
   end
 
+  describe "after autoloading searches for the constant like the original lookup" do
+    it "in lexical scopes if both declared and defined in parent" do
+      module ModuleSpecs::Autoload
+        ScratchPad.record -> {
+          DeclaredAndDefinedInParent = :declared_and_defined_in_parent
+        }
+        autoload :DeclaredAndDefinedInParent, fixture(__FILE__, "autoload_callback.rb")
+        class LexicalScope
+          DeclaredAndDefinedInParent.should == :declared_and_defined_in_parent
 
-  it "looks up the constant in the scope where it is referred" do
-    module ModuleSpecs
-      module Autoload
-        autoload :QQ, fixture(__FILE__, "autoload_scope.rb")
-        class PP
-          QQ.new.should be_kind_of(ModuleSpecs::Autoload::PP::QQ)
+          # The constant is really in Autoload, not Autoload::LexicalScope
+          self.should_not have_constant(:DeclaredAndDefinedInParent)
+          -> { const_get(:DeclaredAndDefinedInParent) }.should raise_error(NameError)
+        end
+        DeclaredAndDefinedInParent.should == :declared_and_defined_in_parent
+      end
+    end
+
+    it "in lexical scopes if declared in parent and defined in current" do
+      module ModuleSpecs::Autoload
+        ScratchPad.record -> {
+          class LexicalScope
+            DeclaredInParentDefinedInCurrent = :declared_in_parent_defined_in_current
+          end
+        }
+        autoload :DeclaredInParentDefinedInCurrent, fixture(__FILE__, "autoload_callback.rb")
+
+        class LexicalScope
+          DeclaredInParentDefinedInCurrent.should == :declared_in_parent_defined_in_current
+          LexicalScope::DeclaredInParentDefinedInCurrent.should == :declared_in_parent_defined_in_current
+        end
+
+        # Basically, the parent autoload constant remains in a "undefined" state
+        self.autoload?(:DeclaredInParentDefinedInCurrent).should == nil
+        const_defined?(:DeclaredInParentDefinedInCurrent).should == false
+        self.should have_constant(:DeclaredInParentDefinedInCurrent)
+        -> { DeclaredInParentDefinedInCurrent }.should raise_error(NameError)
+      end
+    end
+
+    it "and fails when finding the undefined autoload constant in the the current scope when declared in current and defined in parent" do
+      module ModuleSpecs::Autoload
+        ScratchPad.record -> {
+          DeclaredInCurrentDefinedInParent = :declared_in_current_defined_in_parent
+        }
+
+        class LexicalScope
+          autoload :DeclaredInCurrentDefinedInParent, fixture(__FILE__, "autoload_callback.rb")
+          -> { DeclaredInCurrentDefinedInParent }.should raise_error(NameError)
+          # Basically, the autoload constant remains in a "undefined" state
+          self.autoload?(:DeclaredInCurrentDefinedInParent).should == nil
+          const_defined?(:DeclaredInCurrentDefinedInParent).should == false
+          self.should have_constant(:DeclaredInCurrentDefinedInParent)
+          -> { const_get(:DeclaredInCurrentDefinedInParent) }.should raise_error(NameError)
+        end
+
+        DeclaredInCurrentDefinedInParent.should == :declared_in_current_defined_in_parent
+      end
+    end
+
+    it "in the included modules" do
+      module ModuleSpecs::Autoload
+        ScratchPad.record -> {
+          module DefinedInIncludedModule
+            Incl = :defined_in_included_module
+          end
+          include DefinedInIncludedModule
+        }
+        autoload :Incl, fixture(__FILE__, "autoload_callback.rb")
+        Incl.should == :defined_in_included_module
+      end
+    end
+
+    it "in the included modules of the superclass" do
+      module ModuleSpecs::Autoload
+        class LookupAfterAutoloadSuper
+        end
+        class LookupAfterAutoloadChild < LookupAfterAutoloadSuper
+        end
+
+        ScratchPad.record -> {
+          module DefinedInSuperclassIncludedModule
+            InclS = :defined_in_superclass_included_module
+          end
+          LookupAfterAutoloadSuper.include DefinedInSuperclassIncludedModule
+        }
+
+        class LookupAfterAutoloadChild
+          autoload :InclS, fixture(__FILE__, "autoload_callback.rb")
+          InclS.should == :defined_in_superclass_included_module
         end
       end
     end
-  end
 
-  it "looks up the constant when in a meta class scope" do
-    module ModuleSpecs
-      module Autoload
-        autoload :R, fixture(__FILE__, "autoload_r.rb")
+    it "in the prepended modules" do
+      module ModuleSpecs::Autoload
+        ScratchPad.record -> {
+          module DefinedInPrependedModule
+            Prep = :defined_in_prepended_module
+          end
+          include DefinedInPrependedModule
+        }
+        autoload :Prep, fixture(__FILE__, "autoload_callback.rb")
+        Prep.should == :defined_in_prepended_module
+      end
+    end
+
+    it "in a meta class scope" do
+      module ModuleSpecs::Autoload
+        ScratchPad.record -> {
+          class MetaScope
+          end
+        }
+        autoload :MetaScope, fixture(__FILE__, "autoload_callback.rb")
         class << self
           def r
-            R.new
+            MetaScope.new
           end
         end
       end
+      ModuleSpecs::Autoload.r.should be_kind_of(ModuleSpecs::Autoload::MetaScope)
     end
-    ModuleSpecs::Autoload.r.should be_kind_of(ModuleSpecs::Autoload::R)
   end
 
   # [ruby-core:19127] [ruby-core:29941]
