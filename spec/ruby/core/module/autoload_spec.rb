@@ -260,20 +260,68 @@ describe "Module#autoload" do
     end
   end
 
-  it "does not remove the constant from the constant table if load fails" do
+  it "does not remove the constant from Module#constants if load fails and keeps it as an autoload" do
     ModuleSpecs::Autoload.autoload :Fail, @non_existent
+
+    ModuleSpecs::Autoload.const_defined?(:Fail).should == true
     ModuleSpecs::Autoload.should have_constant(:Fail)
+    ModuleSpecs::Autoload.autoload?(:Fail).should == @non_existent
 
     lambda { ModuleSpecs::Autoload::Fail }.should raise_error(LoadError)
+
     ModuleSpecs::Autoload.should have_constant(:Fail)
+    ModuleSpecs::Autoload.const_defined?(:Fail).should == true
+    ModuleSpecs::Autoload.autoload?(:Fail).should == @non_existent
+
+    lambda { ModuleSpecs::Autoload::Fail }.should raise_error(LoadError)
   end
 
-  it "does not remove the constant from the constant table if the loaded files does not define it" do
-    ModuleSpecs::Autoload.autoload :O, fixture(__FILE__, "autoload_o.rb")
+  it "does not remove the constant from Module#constants if load raises a RuntimeError and keeps it as an autoload" do
+    path = fixture(__FILE__, "autoload_raise.rb")
+    ScratchPad.record []
+    ModuleSpecs::Autoload.autoload :Raise, path
+
+    ModuleSpecs::Autoload.const_defined?(:Raise).should == true
+    ModuleSpecs::Autoload.should have_constant(:Raise)
+    ModuleSpecs::Autoload.autoload?(:Raise).should == path
+
+    lambda { ModuleSpecs::Autoload::Raise }.should raise_error(RuntimeError)
+    ScratchPad.recorded.should == [:raise]
+
+    ModuleSpecs::Autoload.should have_constant(:Raise)
+    ModuleSpecs::Autoload.const_defined?(:Raise).should == true
+    ModuleSpecs::Autoload.autoload?(:Raise).should == path
+
+    lambda { ModuleSpecs::Autoload::Raise }.should raise_error(RuntimeError)
+    ScratchPad.recorded.should == [:raise, :raise]
+  end
+
+  it "does not remove the constant from Module#constants if the loaded file does not define it, but leaves it as 'undefined'" do
+    path = fixture(__FILE__, "autoload_o.rb")
+    ScratchPad.record []
+    ModuleSpecs::Autoload.autoload :O, path
+
+    ModuleSpecs::Autoload.const_defined?(:O).should == true
     ModuleSpecs::Autoload.should have_constant(:O)
+    ModuleSpecs::Autoload.autoload?(:O).should == path
 
     lambda { ModuleSpecs::Autoload::O }.should raise_error(NameError)
+
     ModuleSpecs::Autoload.should have_constant(:O)
+    ModuleSpecs::Autoload.const_defined?(:O).should == false
+    ModuleSpecs::Autoload.autoload?(:O).should == nil
+    -> { ModuleSpecs::Autoload.const_get(:O) }.should raise_error(NameError)
+  end
+
+  it "does not try to load the file again if the loaded file did not define the constant" do
+    path = fixture(__FILE__, "autoload_o.rb")
+    ScratchPad.record []
+    ModuleSpecs::Autoload.autoload :NotDefinedByFile, path
+
+    -> { ModuleSpecs::Autoload::NotDefinedByFile }.should raise_error(NameError)
+    ScratchPad.recorded.should == [:loaded]
+    -> { ModuleSpecs::Autoload::NotDefinedByFile }.should raise_error(NameError)
+    ScratchPad.recorded.should == [:loaded]
   end
 
   it "returns 'constant' on referring the constant with defined?()" do
