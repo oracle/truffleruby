@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
@@ -34,7 +35,7 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
     public abstract RubyConstant executeLookupConstant(LexicalScope lexicalScope);
 
     @SuppressFBWarnings("ES")
-    public RubyConstant lookupConstant(LexicalScope lexicalScope, Object module, String name) {
+    public RubyConstant lookupConstant(LexicalScope lexicalScope, DynamicObject module, String name) {
         assert name == this.name;
         return executeLookupConstant(lexicalScope);
     }

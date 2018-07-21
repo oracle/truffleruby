@@ -40,12 +40,12 @@ public abstract class GetConstantNode extends RubyNode {
         return GetConstantNodeGen.create(callConstMissing, null, null, null, null, null);
     }
 
-    public Object lookupAndResolveConstant(LexicalScope lexicalScope, Object module, String name, LookupConstantInterface lookupConstantNode) {
+    public Object lookupAndResolveConstant(LexicalScope lexicalScope, DynamicObject module, String name, LookupConstantInterface lookupConstantNode) {
         final RubyConstant constant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
         return executeGetConstant(lexicalScope, module, name, constant, lookupConstantNode);
     }
 
-    protected abstract Object executeGetConstant(LexicalScope lexicalScope, Object module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode);
+    protected abstract Object executeGetConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode);
 
     public GetConstantNode(boolean callConstMissing) {
         this.callConstMissing = callConstMissing;

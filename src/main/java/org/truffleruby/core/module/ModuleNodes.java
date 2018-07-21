@@ -894,7 +894,7 @@ public abstract class ModuleNodes {
             return getConstantScoped(module, StringOperations.getString(fullName), inherit);
         }
 
-        private Object getConstant(Object module, String name) {
+        private Object getConstant(DynamicObject module, String name) {
             return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
         }
 
