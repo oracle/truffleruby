@@ -24,7 +24,7 @@ CVE-2018-8780 | Unintentional directory traversal by poisoned NUL byte in `Dir` 
 CVE-2018-8777 | DoS by large request in WEBrick | Logic for header length | Tested in MRI `test/webrick/test_httpserver.rb` | We share the same code, so also have the mitigation
 CVE-2017-17742 | HTTP response splitting in WEBrick | Logic for invalid headers | Tested in ruby/spec `:security` | We share the same code, so also have the mitigation
 CVE-2018-8778 | Buffer under-read in String#unpack | A range check | Tested in ruby/spec `:security` | A range check
-CVE-2017-17405 | Command injection vulnerability in `Net::FTP` | *todo* | *todo* | *todo*
+CVE-2017-17405 | Command injection vulnerability in `Net::FTP` | Treat paths in commands explicitly as paths, not general IO commands | Tested in MRI `test/net/ftp/test_ftp.rb` | We share the same code, so also have the mitigation
 CVE-2017-10784 | Escape sequence injection vulnerability in the Basic authentication of WEBrick | *todo* | *todo* | *todo*
 CVE-2017-0898 | Buffer underrun vulnerability in `Kernel.sprintf` | *todo* | *todo* | *todo*
 CVE-2017-14033 | Buffer underrun vulnerability in OpenSSL ASN1 decode | *todo* | *todo* | *todo*
