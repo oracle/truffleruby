@@ -11,6 +11,7 @@ New features:
 * `--log.ruby.level=` can be used to set the log level from any launcher.
 * Add documentation about installing with Ruby managers/installers and how to
   run TruffleRuby in CI such as TravisCI (#1062, #1070).
+* `String#unpack1` has been implemented.
 
 Bug fixes:
 
