@@ -24,10 +24,11 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.constants.LookupConstantBaseNode;
+import org.truffleruby.language.constants.LookupConstantInterface;
 import org.truffleruby.language.control.RaiseException;
 
 @NodeChildren({ @NodeChild("name"), @NodeChild("lexicalParent") })
-public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode {
+public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode implements LookupConstantInterface {
 
     @Child private LoadAutoloadedConstantNode loadAutoloadedConstantNode;
 
@@ -35,20 +36,14 @@ public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode
 
     @Specialization(guards = "isRubyModule(lexicalParent)")
     public RubyConstant lookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent,
-            @Cached("createBinaryProfile()") ConditionProfile autoloadProfile,
-            @Cached("createBinaryProfile()") ConditionProfile warnProfile) {
-        final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getSharedMethodInfo().getLexicalScope();
-        final RubyConstant constant = deepConstantSearch(name, lexicalScope, lexicalParent);
-
-        if (warnProfile.profile(constant != null && constant.isDeprecated())) {
-            warnDeprecatedConstant(lexicalParent, constant, name);
-        }
+            @Cached("createBinaryProfile()") ConditionProfile autoloadProfile) {
+        final RubyConstant constant = lookupConstant(frame, lexicalParent, name);
 
         // If a constant already exists with this class/module name and it's an autoload constant,
         // we have to trigger the autoload behavior before proceeding.
         if (autoloadProfile.profile(constant != null && constant.isAutoload())) {
             loadAutoloadedConstant(name, constant);
-            final RubyConstant autoConstant = deepConstantSearch(name, lexicalScope, lexicalParent);
+            final RubyConstant autoConstant = lookupConstant(frame, lexicalParent, name);
 
             if (autoConstant == null || autoConstant.isAutoload()) {
                 // If it's still an autoload, the autoload failed so let
@@ -56,14 +51,17 @@ public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode
                 return null;
             }
 
-            if (warnProfile.profile(autoConstant.isDeprecated())) {
-                warnDeprecatedConstant(lexicalParent, autoConstant, name);
-            }
-
             return autoConstant;
         }
 
         return constant;
+    }
+
+    @Override
+    public RubyConstant lookupConstant(VirtualFrame frame, Object module, String name) {
+        final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getSharedMethodInfo().getLexicalScope();
+        final DynamicObject lexicalParent = (DynamicObject) module;
+        return deepConstantSearch(name, lexicalScope, lexicalParent);
     }
 
     @TruffleBoundary(transferToInterpreterOnException = false)
@@ -85,6 +83,10 @@ public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode
         if (constant != null && !(constant.isVisibleTo(getContext(), lexicalScope, lexicalScope.getLiveModule()) ||
                 constant.isVisibleTo(getContext(), LexicalScope.NONE, lexicalParent))) {
             throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(lexicalParent, name, this));
+        }
+
+        if (constant != null && constant.isDeprecated()) {
+            warnDeprecatedConstant(lexicalParent, constant, name);
         }
 
         return constant;
