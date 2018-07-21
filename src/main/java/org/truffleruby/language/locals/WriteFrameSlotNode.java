@@ -61,42 +61,42 @@ public abstract class WriteFrameSlotNode extends Node {
     }
 
     protected boolean checkBooleanKind(Frame frame) {
-        return checkKind(FrameSlotKind.Boolean);
+        return checkKind(frame, FrameSlotKind.Boolean);
     }
 
     protected boolean checkIntegerKind(Frame frame) {
-        return checkKind(FrameSlotKind.Int);
+        return checkKind(frame, FrameSlotKind.Int);
     }
 
     protected boolean checkLongKind(Frame frame) {
-        return checkKind(FrameSlotKind.Long);
+        return checkKind(frame, FrameSlotKind.Long);
     }
 
     protected boolean checkDoubleKind(Frame frame) {
-        return checkKind(FrameSlotKind.Double);
+        return checkKind(frame, FrameSlotKind.Double);
     }
 
     protected boolean checkObjectKind(Frame frame) {
-        if (frameSlot.getKind() != FrameSlotKind.Object) {
+        if (frame.getFrameDescriptor().getFrameSlotKind(frameSlot) != FrameSlotKind.Object) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            frameSlot.setKind(FrameSlotKind.Object);
+            frame.getFrameDescriptor().setFrameSlotKind(frameSlot, FrameSlotKind.Object);
         }
 
         return true;
     }
 
-    private boolean checkKind(FrameSlotKind kind) {
-        if (frameSlot.getKind() == kind) {
+    private boolean checkKind(Frame frame, FrameSlotKind kind) {
+        if (frame.getFrameDescriptor().getFrameSlotKind(frameSlot) == kind) {
             return true;
         } else {
-            return initialSetKind(kind);
+            return initialSetKind(frame, kind);
         }
     }
 
-    private boolean initialSetKind(FrameSlotKind kind) {
-        if (frameSlot.getKind() == FrameSlotKind.Illegal) {
+    private boolean initialSetKind(Frame frame, FrameSlotKind kind) {
+        if (frame.getFrameDescriptor().getFrameSlotKind(frameSlot) == FrameSlotKind.Illegal) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            frameSlot.setKind(kind);
+            frame.getFrameDescriptor().setFrameSlotKind(frameSlot, kind);
             return true;
         }
 
