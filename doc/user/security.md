@@ -21,8 +21,8 @@ Number | Description | Their Mitigation | Test | Our Mitigation
 CVE-2018-6914 | Unintentional file and directory creation with directory traversal in tempfile and tmpdir | Sanitation of paths | Tested in ruby/spec `:security` | Sanitation of paths
 CVE-2018-8779 | Unintentional socket creation by poisoned NUL byte in UNIXServer and UNIXSocket | Check for NUL bytes | Tested in ruby/spec `:security` | Check for NUL bytes
 CVE-2018-8780 | Unintentional directory traversal by poisoned NUL byte in Dir | Check for NUL bytes | Tested in ruby/spec `:security` | Check for NUL bytes
-CVE-2018-8777 | DoS by large request in WEBrick | Logic for header length | Tested in MRI `test/webrick/test_httpserver.rb` | Sanitation of paths
-CVE-2017-17742 | HTTP response splitting in WEBrick | Logic for invalid headers | Tested in ruby/spec `:security` | Sanitation of paths
+CVE-2018-8777 | DoS by large request in WEBrick | Logic for header length | Tested in MRI `test/webrick/test_httpserver.rb` | We share the same code, so also have the mitigation
+CVE-2017-17742 | HTTP response splitting in WEBrick | Logic for invalid headers | Tested in ruby/spec `:security` | We share the same code, so also have the mitigation
 CVE-2018-8778 | Buffer under-read in String#unpack | A range check | Tested in ruby/spec `:security` | A range check
 CVE-2017-17405 | Command injection vulnerability in Net::FTP | *todo* | *todo* | *todo*
 CVE-2017-10784 | Escape sequence injection vulnerability in the Basic authentication of WEBrick | *todo* | *todo* | *todo*
