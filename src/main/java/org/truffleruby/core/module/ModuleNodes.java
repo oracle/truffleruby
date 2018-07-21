@@ -78,6 +78,7 @@ import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ReadSelfNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.constants.GetConstantNode;
+import org.truffleruby.language.constants.LookupConstantInterface;
 import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -844,7 +845,6 @@ public abstract class ModuleNodes {
 
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, true, true);
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
-        @Child private LoadAutoloadedConstantNode loadAutoloadedConstantNode;
 
         @CreateCast("name")
         public RubyNode coerceToSymbolOrString(RubyNode name) {
@@ -865,7 +865,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = { "!inherit", "isRubySymbol(name)" })
         public Object getConstantNoInherit(VirtualFrame frame, DynamicObject module, DynamicObject name, boolean inherit) {
-            return getConstantNoInherit(frame, module, Layouts.SYMBOL.getString(name), this);
+            return getConstantNoInherit(frame, module, Layouts.SYMBOL.getString(name));
         }
 
         // String
@@ -885,7 +885,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = { "!inherit", "isRubyString(name)", "!isScoped(name)" })
         public Object getConstantNoInheritString(VirtualFrame frame, DynamicObject module, DynamicObject name, boolean inherit) {
-            return getConstantNoInherit(frame, module, StringOperations.getString(name), this);
+            return getConstantNoInherit(frame, module, StringOperations.getString(name));
         }
 
         // Scoped String
@@ -899,19 +899,14 @@ public abstract class ModuleNodes {
             return getConstantNode.executeGetConstant(frame, module, name, constant, lookupConstantNode);
         }
 
-        private Object getConstantNoInherit(VirtualFrame frame, DynamicObject module, String name, Node currentNode) {
-            ConstantLookupResult constant = ModuleOperations.lookupConstantWithInherit(getContext(), module, name, false, currentNode);
-            if (!constant.isFound()) {
-                // Call const_missing
-                return getConstantNode.executeGetConstant(frame, module, name, null, lookupConstantNode);
-            } else {
-                if (constant.getConstant().isAutoload()) {
-                    loadAutoloadedConstant(name, constant.getConstant());
-                    constant = ModuleOperations.lookupConstantWithInherit(getContext(), module, name, false, currentNode);
-                }
+        private Object getConstantNoInherit(VirtualFrame frame, DynamicObject module, String name) {
+            final LookupConstantInterface lookup = this::lookupConstantNoInherit;
+            final RubyConstant constant = lookupConstantNoInherit(frame, module, name);
+            return getConstantNode.executeGetConstant(frame, module, name, constant, lookup);
+        }
 
-                return constant.getConstant().getValue();
-            }
+        private RubyConstant lookupConstantNoInherit(VirtualFrame frame, Object module, String name) {
+            return ModuleOperations.lookupConstantWithInherit(getContext(), (DynamicObject) module, name, false, this).getConstant();
         }
 
         @TruffleBoundary
@@ -933,15 +928,6 @@ public abstract class ModuleNodes {
 
         boolean isScoped(String name) {
             return name.contains("::");
-        }
-
-        private void loadAutoloadedConstant(String name, RubyConstant constant) {
-            if (loadAutoloadedConstantNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                loadAutoloadedConstantNode = insert(new LoadAutoloadedConstantNode());
-            }
-
-            loadAutoloadedConstantNode.loadAutoloadedConstant(name, constant);
         }
 
         protected int getLimit() {
