@@ -114,7 +114,6 @@ We are not aware of any known vulnerabilities.
 
 # Notes on hashing
 
-TruffleRuby uses `MurmurHash2` hashing with a seed from Java's `SecureRandom`
-(probably `/dev/random`) - it cannot be configured to use any other hashing
-algorithm. For hashing strings we use Java's hash algorithm (and then
-`MurmurHash2` on top).
+TruffleRuby uses `MurmurHash2` hashing with a seed from `/dev/urandom` - it
+cannot be configured to use any other hashing algorithm. For hashing strings we
+use Java's hash algorithm (and then `MurmurHash2` on top).
