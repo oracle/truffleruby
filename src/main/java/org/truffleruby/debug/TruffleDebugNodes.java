@@ -21,7 +21,6 @@ import com.oracle.truffle.api.object.ObjectType;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLogger;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -334,7 +333,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         public static void warning(String message) {
-            RubyLogger.LOGGER.warning(message);
+            RubyLanguage.LOGGER.warning(message);
         }
 
     }
@@ -536,7 +535,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject deadBlock() {
-            RubyLogger.LOGGER.severe("Truffle::Debug.dead_block is being called - will lock up the interpreter");
+            RubyLanguage.LOGGER.severe("Truffle::Debug.dead_block is being called - will lock up the interpreter");
 
             final Object monitor = new Object();
 

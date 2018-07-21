@@ -11,8 +11,6 @@ package org.truffleruby;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleLogger;
-import org.truffleruby.shared.TruffleRuby;
 
 import java.util.Collections;
 import java.util.Set;
@@ -20,8 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 public class RubyLogger {
-
-    public static final TruffleLogger LOGGER = TruffleLogger.getLogger(TruffleRuby.LANGUAGE_ID);
 
     /**
      * Warn about code that works but is not yet optimized as Truffle code normally would be. Only
@@ -38,7 +34,7 @@ public class RubyLogger {
     @TruffleBoundary
     private static void notOptimizedOnceBoundary(String message) {
         if (DISPLAYED_WARNINGS.add(message)) {
-            LOGGER.log(Level.WARNING, message);
+            RubyLanguage.LOGGER.log(Level.WARNING, message);
         }
     }
 

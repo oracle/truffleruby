@@ -20,7 +20,7 @@ import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLogger;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.method.MethodFilter;
@@ -60,7 +60,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
             builder.append(System.lineSeparator());
             chain = chain.getParentModule();
         }
-        RubyLogger.LOGGER.info(builder.toString());
+        RubyLanguage.LOGGER.info(builder.toString());
     }
 
     public DynamicObject rubyModuleObject;

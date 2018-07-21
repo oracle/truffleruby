@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLogger;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.RaiseIfFrozenNode;
 import org.truffleruby.core.array.ArrayUtils;
@@ -177,27 +177,27 @@ public class CoreMethodNodeManager {
     private void verifyUsage(DynamicObject module, MethodDetails methodDetails, final CoreMethod method, final Visibility visibility) {
         if (method.isModuleFunction()) {
             if (visibility != Visibility.PUBLIC) {
-                RubyLogger.LOGGER.warning("visibility ignored when isModuleFunction in " + methodDetails.getIndicativeName());
+                RubyLanguage.LOGGER.warning("visibility ignored when isModuleFunction in " + methodDetails.getIndicativeName());
             }
             if (method.onSingleton()) {
-                RubyLogger.LOGGER.warning("either onSingleton or isModuleFunction for " + methodDetails.getIndicativeName());
+                RubyLanguage.LOGGER.warning("either onSingleton or isModuleFunction for " + methodDetails.getIndicativeName());
             }
             if (method.constructor()) {
-                RubyLogger.LOGGER.warning("either constructor or isModuleFunction for " + methodDetails.getIndicativeName());
+                RubyLanguage.LOGGER.warning("either constructor or isModuleFunction for " + methodDetails.getIndicativeName());
             }
             if (RubyGuards.isRubyClass(module)) {
-                RubyLogger.LOGGER.warning("using isModuleFunction on a Class for " + methodDetails.getIndicativeName());
+                RubyLanguage.LOGGER.warning("using isModuleFunction on a Class for " + methodDetails.getIndicativeName());
             }
         }
         if (method.onSingleton() && method.constructor()) {
-            RubyLogger.LOGGER.warning("either onSingleton or constructor for " + methodDetails.getIndicativeName());
+            RubyLanguage.LOGGER.warning("either onSingleton or constructor for " + methodDetails.getIndicativeName());
         }
 
         if (methodDetails.getPrimaryName().equals("allocate") && !methodDetails.getModuleName().equals("Class")) {
-            RubyLogger.LOGGER.warning("do not define #allocate but #__allocate__ for " + methodDetails.getIndicativeName());
+            RubyLanguage.LOGGER.warning("do not define #allocate but #__allocate__ for " + methodDetails.getIndicativeName());
         }
         if (methodDetails.getPrimaryName().equals("__allocate__") && method.visibility() != Visibility.PRIVATE) {
-            RubyLogger.LOGGER.warning(methodDetails.getIndicativeName() + " should be private");
+            RubyLanguage.LOGGER.warning(methodDetails.getIndicativeName() + " should be private");
         }
     }
 

@@ -48,7 +48,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLogger;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.Primitive;
@@ -277,7 +277,7 @@ public abstract class VMPrimitiveNodes {
 
             return handle(signalName, () -> {
                 if (context.getOptions().SINGLE_THREADED) {
-                    RubyLogger.LOGGER.severe("signal " + signalName + " caught but can't create a thread to handle it so ignoring");
+                    RubyLanguage.LOGGER.severe("signal " + signalName + " caught but can't create a thread to handle it so ignoring");
                     return;
                 }
 
