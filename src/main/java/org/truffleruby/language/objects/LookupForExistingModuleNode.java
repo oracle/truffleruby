@@ -10,36 +10,27 @@
 package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
-import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantBaseNode;
 import org.truffleruby.language.constants.LookupConstantInterface;
 import org.truffleruby.language.control.RaiseException;
 
-@NodeChildren({ @NodeChild("name"), @NodeChild("lexicalParent") })
-public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode implements LookupConstantInterface {
+public class LookupForExistingModuleNode extends LookupConstantBaseNode implements LookupConstantInterface {
 
-    public abstract Object executeLookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent);
+    @Child GetConstantNode getConstantNode = GetConstantNode.create(false);
 
-    @Specialization(guards = "isRubyModule(lexicalParent)")
-    public Object lookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent,
-            @Cached("createGetConstantNode()") GetConstantNode getConstantNode) {
+    public Object lookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent) {
+        assert RubyGuards.isRubyModule(lexicalParent);
 
         final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getSharedMethodInfo().getLexicalScope();
         return getConstantNode.lookupAndResolveConstant(lexicalScope, lexicalParent, name, this);
-    }
-
-    protected GetConstantNode createGetConstantNode() {
-        return GetConstantNode.create(false);
     }
 
     @Override
@@ -74,6 +65,11 @@ public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode
         }
 
         return constant;
+    }
+
+    @Override
+    public Object execute(VirtualFrame frame) {
+        throw new UnsupportedOperationException();
     }
 
 }

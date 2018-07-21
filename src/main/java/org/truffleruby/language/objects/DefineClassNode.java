@@ -118,9 +118,9 @@ public class DefineClassNode extends RubyNode {
     private Object lookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent) {
         if (lookupForExistingModuleNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            lookupForExistingModuleNode = insert(LookupForExistingModuleNodeGen.create(null, null));
+            lookupForExistingModuleNode = insert(new LookupForExistingModuleNode());
         }
-        return lookupForExistingModuleNode.executeLookupForExistingModule(frame, name, lexicalParent);
+        return lookupForExistingModuleNode.lookupForExistingModule(frame, name, lexicalParent);
     }
 
 }
