@@ -286,19 +286,19 @@ public abstract class MatchDataNodes {
             return Layouts.MATCH_DATA.getRegexp(matchData);
         }
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         private int getBackRefFromString(DynamicObject matchData, DynamicObject index) {
             final Rope value = Layouts.STRING.getRope(index);
             return getBackRefFromRope(matchData, index, value);
         }
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         private int getBackRefFromSymbol(DynamicObject matchData, DynamicObject index) {
             final Rope value = Layouts.SYMBOL.getRope(index);
             return getBackRefFromRope(matchData, index, value);
         }
 
-        private int getBackRefFromRope(DynamicObject matchData, DynamicObject index, final Rope value) {
+        private int getBackRefFromRope(DynamicObject matchData, DynamicObject index, Rope value) {
             try {
                 return Layouts.REGEXP.getRegex(Layouts.MATCH_DATA.getRegexp(matchData)).nameToBackrefNumber(value.getBytes(), 0, value.byteLength(), Layouts.MATCH_DATA.getRegion(matchData));
             } catch (final ValueException e) {
