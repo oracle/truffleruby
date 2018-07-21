@@ -16,7 +16,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.klass.ClassNodes;
-import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -54,11 +53,11 @@ public class DefineClassNode extends RubyNode {
 
         final DynamicObject lexicalParentModule = (DynamicObject) lexicalParentObject;
         final DynamicObject suppliedSuperClass = executeSuperClass(frame);
-        final RubyConstant constant = lookupForExistingModule(frame, name, lexicalParentModule);
+        final Object existing = lookupForExistingModule(frame, name, lexicalParentModule);
 
         final DynamicObject definedClass;
 
-        if (needToDefineProfile.profile(constant == null)) {
+        if (needToDefineProfile.profile(existing == null)) {
             final DynamicObject superClass;
             if (noSuperClassSupplied.profile(suppliedSuperClass == null)) {
                 superClass = getContext().getCoreLibrary().getObjectClass();
@@ -68,12 +67,12 @@ public class DefineClassNode extends RubyNode {
             definedClass = ClassNodes.createInitializedRubyClass(getContext(), getEncapsulatingSourceSection(), lexicalParentModule, superClass, name);
             callInherited(frame, superClass, definedClass);
         } else {
-            if (!RubyGuards.isRubyClass(constant.getValue())) {
+            if (!RubyGuards.isRubyClass(existing)) {
                 errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotA(constant.getValue(), "class", this));
+                throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotA(existing, "class", this));
             }
 
-            definedClass = (DynamicObject) constant.getValue();
+            definedClass = (DynamicObject) existing;
 
             final DynamicObject currentSuperClass = ClassNodes.getSuperClass(definedClass);
 
@@ -116,7 +115,7 @@ public class DefineClassNode extends RubyNode {
         inheritedNode.call(frame, superClass, "inherited", childClass);
     }
 
-    private RubyConstant lookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent) {
+    private Object lookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent) {
         if (lookupForExistingModuleNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             lookupForExistingModuleNode = insert(LookupForExistingModuleNodeGen.create(null, null));

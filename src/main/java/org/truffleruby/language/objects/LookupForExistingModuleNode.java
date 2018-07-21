@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -17,12 +16,11 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
-import org.truffleruby.core.module.LoadAutoloadedConstantNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantBaseNode;
 import org.truffleruby.language.constants.LookupConstantInterface;
 import org.truffleruby.language.control.RaiseException;
@@ -30,32 +28,18 @@ import org.truffleruby.language.control.RaiseException;
 @NodeChildren({ @NodeChild("name"), @NodeChild("lexicalParent") })
 public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode implements LookupConstantInterface {
 
-    @Child private LoadAutoloadedConstantNode loadAutoloadedConstantNode;
-
-    public abstract RubyConstant executeLookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent);
+    public abstract Object executeLookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent);
 
     @Specialization(guards = "isRubyModule(lexicalParent)")
-    public RubyConstant lookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent,
-            @Cached("createBinaryProfile()") ConditionProfile autoloadProfile) {
+    public Object lookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent,
+            @Cached("createGetConstantNode()") GetConstantNode getConstantNode) {
+
         final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getSharedMethodInfo().getLexicalScope();
-        final RubyConstant constant = lookupConstant(lexicalScope, lexicalParent, name);
+        return getConstantNode.lookupAndResolveConstant(lexicalScope, lexicalParent, name, this);
+    }
 
-        // If a constant already exists with this class/module name and it's an autoload constant,
-        // we have to trigger the autoload behavior before proceeding.
-        if (autoloadProfile.profile(constant != null && constant.isAutoload())) {
-            loadAutoloadedConstant(name, constant);
-            final RubyConstant autoConstant = lookupConstant(lexicalScope, lexicalParent, name);
-
-            if (autoConstant == null || autoConstant.isAutoload()) {
-                // If it's still an autoload, the autoload failed so let
-                // DefineClassNode/DefineModuleNode override the constant
-                return null;
-            }
-
-            return autoConstant;
-        }
-
-        return constant;
+    protected GetConstantNode createGetConstantNode() {
+        return GetConstantNode.create(false);
     }
 
     @Override
@@ -90,15 +74,6 @@ public abstract class LookupForExistingModuleNode extends LookupConstantBaseNode
         }
 
         return constant;
-    }
-
-    private void loadAutoloadedConstant(String name, RubyConstant constant) {
-        if (loadAutoloadedConstantNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            loadAutoloadedConstantNode = insert(new LoadAutoloadedConstantNode());
-        }
-
-        loadAutoloadedConstantNode.loadAutoloadedConstant(name, constant);
     }
 
 }

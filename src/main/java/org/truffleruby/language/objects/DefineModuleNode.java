@@ -17,7 +17,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.module.ModuleNodes;
-import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -38,22 +37,20 @@ public abstract class DefineModuleNode extends RubyNode {
 
     @Specialization(guards = "isRubyModule(lexicalParentModule)")
     public Object defineModule(VirtualFrame frame, DynamicObject lexicalParentModule) {
-        final RubyConstant constant = lookupForExistingModule(frame, name, lexicalParentModule);
+        final Object existing = lookupForExistingModule(frame, name, lexicalParentModule);
 
         final DynamicObject definingModule;
 
-        if (needToDefineProfile.profile(constant == null)) {
-            definingModule = ModuleNodes.createModule(getContext(), getEncapsulatingSourceSection(), coreLibrary().getModuleClass(),
-                    lexicalParentModule, name, this);
+        if (needToDefineProfile.profile(existing == null)) {
+            definingModule = ModuleNodes.createModule(getContext(), getEncapsulatingSourceSection(),
+                    coreLibrary().getModuleClass(), lexicalParentModule, name, this);
         } else {
-            final Object constantValue = constant.getValue();
-
-            if (!RubyGuards.isRubyModule(constantValue) || RubyGuards.isRubyClass(constantValue)) {
+            if (!RubyGuards.isRubyModule(existing) || RubyGuards.isRubyClass(existing)) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotA(name, "module", this));
             }
 
-            definingModule = (DynamicObject) constantValue;
+            definingModule = (DynamicObject) existing;
         }
 
         return definingModule;
@@ -64,7 +61,7 @@ public abstract class DefineModuleNode extends RubyNode {
         throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotA(lexicalParentObject, "module", this));
     }
 
-    private RubyConstant lookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent) {
+    private Object lookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent) {
         if (lookupForExistingModuleNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             lookupForExistingModuleNode = insert(LookupForExistingModuleNodeGen.create(null, null));

@@ -28,19 +28,28 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 @NodeChildren({ @NodeChild("lexicalScope"), @NodeChild("module"), @NodeChild("name"), @NodeChild("constant"), @NodeChild("lookupConstantNode") })
 public abstract class GetConstantNode extends RubyNode {
 
-    public static GetConstantNode create() {
-        return GetConstantNodeGen.create(null, null, null, null, null);
-    }
+    private final boolean callConstMissing;
 
     @Child private CallDispatchHeadNode constMissingNode;
+
+    public static GetConstantNode create() {
+        return create(true);
+    }
+
+    public static GetConstantNode create(boolean callConstMissing) {
+        return GetConstantNodeGen.create(callConstMissing, null, null, null, null, null);
+    }
 
     public Object lookupAndResolveConstant(LexicalScope lexicalScope, Object module, String name, LookupConstantInterface lookupConstantNode) {
         final RubyConstant constant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
         return executeGetConstant(lexicalScope, module, name, constant, lookupConstantNode);
     }
 
-    protected abstract Object executeGetConstant(
-            LexicalScope lexicalScope, Object module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode);
+    protected abstract Object executeGetConstant(LexicalScope lexicalScope, Object module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode);
+
+    public GetConstantNode(boolean callConstMissing) {
+        this.callConstMissing = callConstMissing;
+    }
 
     @Specialization(guards = { "constant != null", "!constant.isAutoload()" })
     protected Object getConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode) {
@@ -67,12 +76,20 @@ public abstract class GetConstantNode extends RubyNode {
             @Cached("name") String cachedName,
             @Cached("getSymbol(name)") DynamicObject symbolName,
             @Cached("createBinaryProfile()") ConditionProfile sameNameProfile) {
-        return doMissingConstant(module, name, symbolName);
+        if (callConstMissing) {
+            return doMissingConstant(module, name, symbolName);
+        } else {
+            return null;
+        }
     }
 
     @Specialization(guards = "constant == null")
     protected Object missingConstantUncached(LexicalScope lexicalScope, DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode) {
-        return doMissingConstant(module, name, getSymbol(name));
+        if (callConstMissing) {
+            return doMissingConstant(module, name, getSymbol(name));
+        } else {
+            return null;
+        }
     }
 
     private Object doMissingConstant(DynamicObject module, String name, DynamicObject symbolName) {
