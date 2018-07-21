@@ -75,7 +75,6 @@ Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
 CVE-2012-5370 | JRuby computes hash values without properly restricting the ability to trigger hash collisions predictably (cross-reference CVE-2011-4815, CVE-2011-4838, CVE-2012-5372) | Hashes are made non-deterministic by incorporating process start time | Tested in ruby/spec `:security` | Hashes are made non-deterministic by incorporating a seed from `/dev/random`
 CVE-2011-4838 | JRuby before 1.6.5.1 computes hash values without restricting the ability to trigger hash collisions predictably (cross-reference CVE-2011-4815, CVE-2012-5370, CVE-2012-5372) | Hashes are made non-deterministic by incorporating process start time | Tested in ruby/spec `:security` | Hashes are made non-deterministic by incorporating a seed from `/dev/random`
-CVE-2010-1330 | The regular expression engine in JRuby before 1.4.1, when $KCODE is set to 'u', does not properly handle characters immediately after a UTF-8 character | *todo* | *todo* | *todo*
 
 ## Rubinius Vulnerabilities
 
@@ -88,14 +87,15 @@ CVE-2012-5372 | Rubinius computes hash values without properly restricting the a
 
 ## Java Dependency Vulnerabilities
 
-
 ### JONI
 
 We are not aware of any known vulnerabilities.
 
 ### JCodings
 
-We are not aware of any known vulnerabilities.
+Number | Description | Their Mitigation | Test | Our Mitigation
+--- | --- | --- | --- | ---
+CVE-2010-1330 | The regular expression engine in JRuby before 1.4.1, when `$KCODE` is set to `'u'`, does not properly handle characters immediately after a UTF-8 character | *todo* | *todo* | *todo*
 
 ## Other Dependency Vulnerabilities
 
