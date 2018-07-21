@@ -12,8 +12,8 @@ package org.truffleruby.language.arguments;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.RubyLogger;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -29,6 +29,7 @@ public class ReadRestArgumentNode extends RubyNode {
 
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
     @Child private CallDispatchHeadNode addRejectedNode = CallDispatchHeadNode.createOnSelf();
+    @Child private NotOptimizedWarningNode notOptimizedWarningNode = new NotOptimizedWarningNode();
 
     public ReadRestArgumentNode(int startIndex, int indexFromCount,
                                 boolean keywordArguments, int minimumForKWargs) {
@@ -79,7 +80,7 @@ public class ReadRestArgumentNode extends RubyNode {
         final DynamicObject rest = createArray(resultStore, resultLength);
 
         if (keywordArguments) {
-            RubyLogger.notOptimizedOnce(RubyLogger.KWARGS_NOT_OPTIMIZED_YET);
+            notOptimizedWarningNode.warn("keyword arguments are not yet optimized");
 
             Object kwargsHash = readUserKeywordsHashNode.execute(frame);
 

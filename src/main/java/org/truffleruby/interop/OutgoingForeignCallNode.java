@@ -13,9 +13,9 @@ import java.util.Arrays;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.RubyLogger;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
@@ -76,8 +76,9 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
     public Object callUncached(
             VirtualFrame frame,
             TruffleObject receiver,
-            Object[] args) {
-        RubyLogger.notOptimizedOnce("megamorphic outgoing foreign call");
+            Object[] args,
+            @Cached("new()") NotOptimizedWarningNode notOptimizedWarningNode) {
+        notOptimizedWarningNode.warn("megamorphic outgoing foreign call");
 
         final OutgoingNode outgoingNode = createHelperNode(args.length);
         return doCall(frame, receiver, outgoingNode, args);

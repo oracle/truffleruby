@@ -9,8 +9,8 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.RubyLogger;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.locals.ReadFrameSlotNode;
@@ -27,6 +27,7 @@ public class RunBlockKWArgsHelperNode extends RubyNode {
     @Child private ReadFrameSlotNode readArrayNode;
     @Child private WriteFrameSlotNode writeArrayNode;
     @Child private CallDispatchHeadNode callHelperNode;
+    @Child private NotOptimizedWarningNode notOptimizedWarningNode = new NotOptimizedWarningNode();
 
     private final Object kwrestName;
 
@@ -39,7 +40,7 @@ public class RunBlockKWArgsHelperNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        RubyLogger.notOptimizedOnce(RubyLogger.KWARGS_NOT_OPTIMIZED_YET);
+        notOptimizedWarningNode.warn("keyword arguments are not yet optimized");
 
         final Object array = readArrayNode.executeRead(frame);
 

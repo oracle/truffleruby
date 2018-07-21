@@ -17,7 +17,6 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import org.truffleruby.RubyLogger;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToSymbolNode;
@@ -25,6 +24,7 @@ import org.truffleruby.core.cast.ToSymbolNodeGen;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.interop.OutgoingForeignCallNode;
 import org.truffleruby.interop.OutgoingForeignCallNodeGen;
+import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -44,6 +44,7 @@ public class UncachedDispatchNode extends DispatchNode {
     @Child private ToSymbolNode toSymbolNode;
     @Child private NameToJavaStringNode nameToJavaStringNode;
     @Child private MetaClassNode metaClassNode;
+    @Child private NotOptimizedWarningNode notOptimizedWarningNode = new NotOptimizedWarningNode();
 
     private final BranchProfile methodNotFoundProfile = BranchProfile.create();
     private final BranchProfile methodMissingProfile = BranchProfile.create();
@@ -80,7 +81,7 @@ public class UncachedDispatchNode extends DispatchNode {
         if (dispatchAction == DispatchAction.CALL_METHOD) {
             if (metaClassNode.executeMetaClass(receiver) == coreLibrary().getTruffleInteropForeignClass()) {
                 foreignProfile.enter();
-                RubyLogger.notOptimizedOnce("megamorphic dispatch on foreign object");
+                notOptimizedWarningNode.warn("megamorphic dispatch on foreign object");
                 return createOutgoingForeignCallNode(methodName).executeCall(frame, (TruffleObject) receiver, arguments);
             }
         } else {
