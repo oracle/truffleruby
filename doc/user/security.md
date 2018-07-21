@@ -95,7 +95,7 @@ We are not aware of any known vulnerabilities.
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
-CVE-2010-1330 | The regular expression engine in JRuby before 1.4.1, when `$KCODE` is set to `'u'`, does not properly handle characters immediately after a UTF-8 character | *todo* | *todo* | *todo*
+CVE-2010-1330 | The regular expression engine in JRuby before 1.4.1, when `$KCODE` is set to `'u'`, does not properly handle characters immediately after a UTF-8 character | Check byte sequences for the UTF-8 encoding when perform regexp operations | Tested in ruby/spec `:security` | We share the same code, so also have the mitigation
 
 ## Other Dependency Vulnerabilities
 
