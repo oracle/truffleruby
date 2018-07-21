@@ -209,7 +209,6 @@ webrick/test_cgi.rb
 webrick/test_cookie.rb
 webrick/test_filehandler.rb
 webrick/test_htmlutils.rb
-webrick/test_httpauth.rb
 webrick/test_httpproxy.rb
 webrick/test_httprequest.rb
 webrick/test_httpresponse.rb
