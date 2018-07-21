@@ -34,10 +34,9 @@ public class ReadConstantWithDynamicScopeNode extends RubyNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getLexicalScope();
-        final RubyConstant constant = lookupConstantNode.executeLookupConstant(lexicalScope);
         final DynamicObject module = lexicalScope.getLiveModule();
 
-        return getConstantNode.executeGetConstant(lexicalScope, module, name, constant, lookupConstantNode);
+        return getConstantNode.lookupAndResolveConstant(lexicalScope, module, name, lookupConstantNode);
     }
 
     @Override

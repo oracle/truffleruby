@@ -37,24 +37,25 @@ public class ReadConstantNode extends RubyNode {
     public Object execute(VirtualFrame frame) {
         final Object module = moduleNode.execute(frame);
 
-        final RubyConstant constant = lookupConstant(module);
-        return executeGetConstant(module, constant);
+        return lookupAndGetConstant(module);
     }
 
-    private Object executeGetConstant(Object module, RubyConstant constant) {
+
+    private Object lookupAndGetConstant(Object module) {
         if (getConstantNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             getConstantNode = insert(GetConstantNode.create());
         }
-        return getConstantNode.executeGetConstant(LexicalScope.IGNORE, module, name, constant, lookupConstantNode);
+
+        return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, getLookupConstantNode());
     }
 
-    private RubyConstant lookupConstant(Object module) {
+    private LookupConstantNode getLookupConstantNode() {
         if (lookupConstantNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             lookupConstantNode = insert(LookupConstantNode.create(false, true, false));
         }
-        return lookupConstantNode.lookupConstant(LexicalScope.IGNORE, module, name);
+        return lookupConstantNode;
     }
 
     @Override
@@ -80,7 +81,7 @@ public class ReadConstantNode extends RubyNode {
 
         final RubyConstant constant;
         try {
-            constant = lookupConstant(module);
+            constant = getLookupConstantNode().lookupConstant(LexicalScope.IGNORE, module, name);
         } catch (RaiseException e) {
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNameErrorClass()) {
                 // private constant

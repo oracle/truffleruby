@@ -895,14 +895,12 @@ public abstract class ModuleNodes {
         }
 
         private Object getConstant(Object module, String name) {
-            final RubyConstant constant = lookupConstantNode.lookupConstant(LexicalScope.IGNORE, module, name);
-            return getConstantNode.executeGetConstant(LexicalScope.IGNORE, module, name, constant, lookupConstantNode);
+            return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
         }
 
         private Object getConstantNoInherit(DynamicObject module, String name) {
             final LookupConstantInterface lookup = this::lookupConstantNoInherit;
-            final RubyConstant constant = lookupConstantNoInherit(LexicalScope.IGNORE, module, name);
-            return getConstantNode.executeGetConstant(LexicalScope.IGNORE, module, name, constant, lookup);
+            return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookup);
         }
 
         private RubyConstant lookupConstantNoInherit(LexicalScope lexicalScope, Object module, String name) {

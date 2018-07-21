@@ -62,7 +62,6 @@ import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -571,8 +570,7 @@ public class CExtNodes {
 
         @Specialization
         public Object rbConstGet(DynamicObject module, String name) {
-            final RubyConstant constant = lookupConstantNode.lookupConstant(LexicalScope.IGNORE, module, name);
-            return getConstantNode.executeGetConstant(LexicalScope.IGNORE, module, name, constant, lookupConstantNode);
+            return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
         }
 
     }
@@ -594,8 +592,7 @@ public class CExtNodes {
 
         @Specialization
         public Object rbConstGetFrom(DynamicObject module, String name) {
-            final RubyConstant constant = lookupConstantNode.lookupConstant(LexicalScope.IGNORE, module, name);
-            return getConstantNode.executeGetConstant(LexicalScope.IGNORE, module, name, constant, lookupConstantNode);
+            return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
         }
 
     }

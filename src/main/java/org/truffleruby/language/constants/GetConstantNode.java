@@ -34,7 +34,12 @@ public abstract class GetConstantNode extends RubyNode {
 
     @Child private CallDispatchHeadNode constMissingNode;
 
-    public abstract Object executeGetConstant(
+    public Object lookupAndResolveConstant(LexicalScope lexicalScope, Object module, String name, LookupConstantInterface lookupConstantNode) {
+        final RubyConstant constant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
+        return executeGetConstant(lexicalScope, module, name, constant, lookupConstantNode);
+    }
+
+    protected abstract Object executeGetConstant(
             LexicalScope lexicalScope, Object module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode);
 
     @Specialization(guards = { "constant != null", "!constant.isAutoload()" })
