@@ -1439,7 +1439,7 @@ public abstract class ArrayNodes {
 
             try {
                 result = (BytesResult) callPackNode.call(
-                        new Object[] { getStore(array), getSize(array) });
+                        new Object[] { getStore(array), getSize(array), false });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
@@ -1457,7 +1457,7 @@ public abstract class ArrayNodes {
 
             try {
                 result = (BytesResult) callPackNode.call(compileFormat(format),
-                        new Object[] { getStore(array), getSize(array) });
+                        new Object[] { getStore(array), getSize(array), false });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);

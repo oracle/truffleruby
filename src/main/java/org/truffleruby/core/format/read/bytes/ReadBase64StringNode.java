@@ -46,10 +46,12 @@
 package org.truffleruby.core.format.read.bytes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
@@ -57,6 +59,7 @@ import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.write.bytes.EncodeUM;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.language.objects.TaintNode;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -69,7 +72,8 @@ public abstract class ReadBase64StringNode extends FormatNode {
     @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
     @Specialization
-    public Object read(VirtualFrame frame, byte[] source) {
+    public Object read(VirtualFrame frame, byte[] source,
+                       @Cached("create()") TaintNode taintNode) {
         final int position = getSourcePosition(frame);
         final int length = getSourceLength(frame);
 
@@ -79,7 +83,13 @@ public abstract class ReadBase64StringNode extends FormatNode {
 
         setSourcePosition(frame, encode.position());
 
-        return makeStringNode.executeMake(result, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        final DynamicObject string = makeStringNode.executeMake(result, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+
+        if (isSourceTainted(frame)) {
+            taintNode.executeTaint(string);
+        }
+
+        return string;
     }
 
     @TruffleBoundary

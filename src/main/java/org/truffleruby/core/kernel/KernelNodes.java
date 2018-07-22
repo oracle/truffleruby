@@ -1674,12 +1674,13 @@ public abstract class KernelNodes {
                 @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("ropeLength(cachedFormat)") int cachedFormatLength,
                 @Cached("create(compileFormat(format, arguments, isDebug(frame)))") DirectCallNode callPackNode,
-                @Cached("create()") RopeNodes.EqualNode equalNode) {
+                @Cached("create()") RopeNodes.EqualNode equalNode,
+                @Cached("create()") IsTaintedNode isTaintedNode) {
             final BytesResult result;
 
             try {
                 result = (BytesResult) callPackNode.call(
-                        new Object[]{ arguments, arguments.length });
+                        new Object[]{ arguments, arguments.length, isTaintedNode.isTainted(format) });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
@@ -1693,14 +1694,15 @@ public abstract class KernelNodes {
                 VirtualFrame frame,
                 DynamicObject format,
                 Object[] arguments,
-                @Cached("create()") IndirectCallNode callPackNode) {
+                @Cached("create()") IndirectCallNode callPackNode,
+                @Cached("create()") IsTaintedNode isTaintedNode) {
             final BytesResult result;
 
             final boolean isDebug = readDebugGlobalNode.executeBoolean(frame);
 
             try {
                 result = (BytesResult) callPackNode.call(compileFormat(format, arguments, isDebug),
-                        new Object[]{ arguments, arguments.length });
+                        new Object[]{ arguments, arguments.length, isTaintedNode.isTainted(format) });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);

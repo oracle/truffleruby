@@ -40,9 +40,12 @@ public class UnpackRootNode extends RubyBaseRootNode implements InternalRootNode
 
     @Override
     public Object execute(VirtualFrame frame) {
-        frame.setObject(FormatFrameDescriptor.SOURCE_SLOT, frame.getArguments()[0]);
-        frame.setInt(FormatFrameDescriptor.SOURCE_LENGTH_SLOT, (int) frame.getArguments()[1]);
+        final Object[] arguments = frame.getArguments();
+
+        frame.setObject(FormatFrameDescriptor.SOURCE_SLOT, arguments[0]);
+        frame.setInt(FormatFrameDescriptor.SOURCE_LENGTH_SLOT, (int) arguments[1]);
         frame.setInt(FormatFrameDescriptor.SOURCE_POSITION_SLOT, 0);
+        frame.setBoolean(FormatFrameDescriptor.SOURCE_TAINTED_SLOT, (boolean) arguments[2]);
         frame.setObject(FormatFrameDescriptor.OUTPUT_SLOT, new Object[expectedLength]);
         frame.setInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT, 0);
         frame.setBoolean(FormatFrameDescriptor.TAINT_SLOT, false);

@@ -93,6 +93,14 @@ public abstract class FormatNode extends RubyBaseNode {
         return sourcePosition;
     }
 
+    protected boolean isSourceTainted(VirtualFrame frame) {
+        try {
+            return frame.getBoolean(FormatFrameDescriptor.SOURCE_TAINTED_SLOT);
+        } catch (FrameSlotTypeException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     protected Object getOutput(VirtualFrame frame) {
         try {
             return frame.getObject(FormatFrameDescriptor.OUTPUT_SLOT);

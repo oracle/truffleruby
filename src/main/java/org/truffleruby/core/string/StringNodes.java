@@ -2455,14 +2455,15 @@ public abstract class StringNodes {
                 @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("create(compileFormat(format))") DirectCallNode callUnpackNode,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("create()") RopeNodes.EqualNode equalNode) {
+                @Cached("create()") RopeNodes.EqualNode equalNode,
+                @Cached("create()") IsTaintedNode isTaintedNode) {
             final Rope rope = rope(string);
 
             final ArrayResult result;
 
             try {
                 result = (ArrayResult) callUnpackNode.call(
-                        new Object[]{ bytesNode.execute(rope), rope.byteLength() });
+                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), isTaintedNode.executeIsTainted(string) });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
@@ -2476,14 +2477,15 @@ public abstract class StringNodes {
                 DynamicObject string,
                 DynamicObject format,
                 @Cached("create()") IndirectCallNode callUnpackNode,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") IsTaintedNode isTaintedNode) {
             final Rope rope = rope(string);
 
             final ArrayResult result;
 
             try {
                 result = (ArrayResult) callUnpackNode.call(compileFormat(format),
-                        new Object[]{ bytesNode.execute(rope), rope.byteLength() });
+                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), isTaintedNode.executeIsTainted(string) });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
