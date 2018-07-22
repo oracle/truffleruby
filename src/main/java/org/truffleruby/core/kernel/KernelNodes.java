@@ -10,7 +10,6 @@
 package org.truffleruby.core.kernel;
 
 import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
@@ -337,7 +336,7 @@ public abstract class KernelNodes {
         protected DynamicObject copyCached(VirtualFrame frame, DynamicObject self,
                 @Cached("self.getShape()") Shape cachedShape,
                 @Cached("getLogicalClass(cachedShape)") DynamicObject logicalClass,
-                @Cached(value = "getUserProperties(cachedShape)", dimensions = 1) Property[] properties,
+                @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) Property[] properties,
                 @Cached("createReadFieldNodes(properties)") ReadObjectFieldNode[] readFieldNodes,
                 @Cached("createWriteFieldNodes(properties)") WriteObjectFieldNode[] writeFieldNodes) {
             final DynamicObject newObject = (DynamicObject) allocateNode.call(frame, logicalClass, "__allocate__");
@@ -367,22 +366,22 @@ public abstract class KernelNodes {
             return Layouts.BASIC_OBJECT.getLogicalClass(shape.getObjectType());
         }
 
-        protected Property[] getUserProperties(Shape shape) {
-            final List<Property> userProperties = new ArrayList<>();
+        protected Property[] getCopiedProperties(Shape shape) {
+            final List<Property> copiedProperties = new ArrayList<>();
 
             for (Property property : shape.getProperties()) {
                 if (property.getKey() instanceof String) {
-                    userProperties.add(property);
+                    copiedProperties.add(property);
                 }
             }
 
             final Property associatedProperty = shape.getProperty(Layouts.ASSOCIATED_IDENTIFIER);
 
             if (associatedProperty != null) {
-                userProperties.add(associatedProperty);
+                copiedProperties.add(associatedProperty);
             }
 
-            return userProperties.toArray(new Property[userProperties.size()]);
+            return copiedProperties.toArray(new Property[copiedProperties.size()]);
         }
 
         protected ReadObjectFieldNode[] createReadFieldNodes(Property[] properties) {
@@ -405,7 +404,7 @@ public abstract class KernelNodes {
         private void copyInstanceVariables(DynamicObject from, DynamicObject to) {
             // Concurrency: OK if callers create the object and publish it after copy
             // Only copy user-level instance variables, hidden ones are initialized later with #initialize_copy.
-            for (Property property : getUserProperties(from.getShape())) {
+            for (Property property : getCopiedProperties(from.getShape())) {
                 to.define(property.getKey(), property.get(from, from.getShape()), property.getFlags());
             }
         }
