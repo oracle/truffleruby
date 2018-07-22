@@ -41,7 +41,27 @@ public class LookupForExistingModuleNode extends LookupConstantBaseNode implemen
 
     @TruffleBoundary(transferToInterpreterOnException = false)
     private RubyConstant deepConstantSearch(String name, LexicalScope lexicalScope, DynamicObject lexicalParent) {
+        final RubyConstant constant = deepConstantLookup(name, lexicalParent);
+        if (constant != null) {
+            if (!(constant.isVisibleTo(getContext(), lexicalScope, lexicalScope.getLiveModule()) ||
+                    constant.isVisibleTo(getContext(), LexicalScope.NONE, lexicalParent))) {
+                throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(lexicalParent, name, this));
+            }
+
+            if (constant.isDeprecated()) {
+                warnDeprecatedConstant(lexicalParent, constant, name);
+            }
+        }
+
+        return constant;
+
+    }
+
+    private RubyConstant deepConstantLookup(String name, DynamicObject lexicalParent) {
         RubyConstant constant = Layouts.MODULE.getFields(lexicalParent).getConstant(name);
+        if (constant != null) {
+            return constant;
+        }
 
         final DynamicObject objectClass = getContext().getCoreLibrary().getObjectClass();
 
@@ -50,21 +70,12 @@ public class LookupForExistingModuleNode extends LookupConstantBaseNode implemen
                 constant = Layouts.MODULE.getFields(included).getConstant(name);
 
                 if (constant != null) {
-                    break;
+                    return constant;
                 }
             }
         }
 
-        if (constant != null && !(constant.isVisibleTo(getContext(), lexicalScope, lexicalScope.getLiveModule()) ||
-                constant.isVisibleTo(getContext(), LexicalScope.NONE, lexicalParent))) {
-            throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(lexicalParent, name, this));
-        }
-
-        if (constant != null && constant.isDeprecated()) {
-            warnDeprecatedConstant(lexicalParent, constant, name);
-        }
-
-        return constant;
+        return null;
     }
 
     @Override
