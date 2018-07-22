@@ -185,6 +185,8 @@ describe "Module#autoload" do
 
       defined?(ModuleSpecs::Autoload::GoodParent::Nested).should == 'constant'
       ScratchPad.recorded.should == :loaded
+
+      ModuleSpecs::Autoload.send(:remove_const, :GoodParent)
     end
 
     it "returns nil when it fails to load an autoloaded parent when referencing a nested constant" do
@@ -407,6 +409,8 @@ describe "Module#autoload" do
         const_defined?(:DeclaredInParentDefinedInCurrent).should == false
         self.should have_constant(:DeclaredInParentDefinedInCurrent)
         -> { DeclaredInParentDefinedInCurrent }.should raise_error(NameError)
+
+        ModuleSpecs::Autoload::LexicalScope.send(:remove_const, :DeclaredInParentDefinedInCurrent)
       end
     end
 
