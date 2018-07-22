@@ -39,6 +39,11 @@ public abstract class ToStringObjectNode extends FormatNode {
         this.isTaintedNode = IsTaintedNode.create();
     }
 
+    @Specialization(guards = "isNil(nil)")
+    public DynamicObject toStringString(DynamicObject nil) {
+        return nil();
+    }
+
     @Specialization(guards = "isRubyString(string)")
     public Object toStringString(VirtualFrame frame, DynamicObject string) {
         if (taintedProfile.profile(isTaintedNode.executeIsTainted(string))) {

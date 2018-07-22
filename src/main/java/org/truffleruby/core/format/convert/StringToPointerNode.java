@@ -31,6 +31,11 @@ import java.util.List;
 })
 public abstract class StringToPointerNode extends FormatNode {
 
+    @Specialization(guards = "isNil(nil)")
+    public long toPointer(DynamicObject nil) {
+        return 0;
+    }
+
     @SuppressWarnings("unchecked")
     @Specialization(guards = "isRubyString(string)")
     public long toPointer(VirtualFrame frame, DynamicObject string,
