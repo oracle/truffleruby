@@ -231,6 +231,24 @@ public class Pointer implements AutoCloseable {
         autorelease = false;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+
+        if (!(other instanceof Pointer)) {
+            return false;
+        }
+
+        return ((Pointer) other).getAddress() == address;
+    }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(address);
+    }
+
     @SuppressWarnings("restriction")
     private static Unsafe getUnsafe() {
         try {
