@@ -164,26 +164,22 @@ public abstract class ModuleOperations {
         return new ConstantLookupResult(null, toArray(assumptions));
     }
 
-    private static ConstantLookupResult lookupConstantInObject(RubyContext context, DynamicObject module, String name, ArrayList<Assumption> assumptions) {
-        // Look in Object and its included modules for modules (not for classes)
-        if (!RubyGuards.isRubyClass(module)) {
-            final DynamicObject objectClass = context.getCoreLibrary().getObjectClass();
+    public static ConstantLookupResult lookupConstantInObject(RubyContext context, String name, ArrayList<Assumption> assumptions) {
+        final DynamicObject objectClass = context.getCoreLibrary().getObjectClass();
 
-            ModuleFields fields = Layouts.MODULE.getFields(objectClass);
+        ModuleFields fields = Layouts.MODULE.getFields(objectClass);
+        assumptions.add(fields.getConstantsUnmodifiedAssumption());
+        RubyConstant constant = fields.getConstant(name);
+        if (isConstantDefined(constant, assumptions)) {
+            return new ConstantLookupResult(constant, toArray(assumptions));
+        }
+
+        for (DynamicObject ancestor : Layouts.MODULE.getFields(objectClass).prependedAndIncludedModules()) {
+            fields = Layouts.MODULE.getFields(ancestor);
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
-            RubyConstant constant = fields.getConstant(name);
+            constant = fields.getConstant(name);
             if (isConstantDefined(constant, assumptions)) {
                 return new ConstantLookupResult(constant, toArray(assumptions));
-            }
-
-
-            for (DynamicObject ancestor : Layouts.MODULE.getFields(objectClass).prependedAndIncludedModules()) {
-                fields = Layouts.MODULE.getFields(ancestor);
-                assumptions.add(fields.getConstantsUnmodifiedAssumption());
-                constant = fields.getConstant(name);
-                if (isConstantDefined(constant, assumptions)) {
-                    return new ConstantLookupResult(constant, toArray(assumptions));
-                }
             }
         }
 
@@ -196,7 +192,12 @@ public abstract class ModuleOperations {
             return constant;
         }
 
-        return lookupConstantInObject(context, module, name, assumptions);
+        // Look in Object and its included modules for modules (not for classes)
+        if (!RubyGuards.isRubyClass(module)) {
+            return lookupConstantInObject(context, name, assumptions);
+        } else {
+            return constant;
+        }
     }
 
     @TruffleBoundary

@@ -12,7 +12,12 @@ package org.truffleruby.language.objects;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+
+import java.util.ArrayList;
+
 import org.truffleruby.Layouts;
+import org.truffleruby.core.module.ConstantLookupResult;
+import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
@@ -64,14 +69,10 @@ public class LookupForExistingModuleNode extends LookupConstantBaseNode implemen
         }
 
         final DynamicObject objectClass = getContext().getCoreLibrary().getObjectClass();
-
-        if (constant == null && lexicalParent == objectClass) {
-            for (DynamicObject included : Layouts.MODULE.getFields(objectClass).prependedAndIncludedModules()) {
-                constant = Layouts.MODULE.getFields(included).getConstant(name);
-
-                if (constant != null) {
-                    return constant;
-                }
+        if (lexicalParent == objectClass) {
+            final ConstantLookupResult result = ModuleOperations.lookupConstantInObject(getContext(), name, new ArrayList<>());
+            if (result.isFound()) {
+                return result.getConstant();
             }
         }
 
