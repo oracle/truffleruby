@@ -526,7 +526,8 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("empty file name", this));
             }
 
-            if (Layouts.MODULE.getFields(module).getConstant(name) != null) {
+            final RubyConstant constant = Layouts.MODULE.getFields(module).getConstant(name);
+            if (constant != null && !constant.isUndefined()) {
                 return nil();
             }
 
