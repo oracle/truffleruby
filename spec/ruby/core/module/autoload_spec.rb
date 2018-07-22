@@ -238,7 +238,7 @@ describe "Module#autoload" do
       results.should == ['constant', nil, 'constant', 'constant']
     end
 
-    it "keeps the constant part of Module#constants" do
+    it "keeps the constant in Module#constants" do
       results = check_before_during_thread_after {
         ModuleSpecs::Autoload.constants(false).include?(:DuringAutoload)
       }
