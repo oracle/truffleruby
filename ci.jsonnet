@@ -366,7 +366,7 @@ local part_definitions = {
       },
     },
     deploy: { targets+: ["deploy"] },
-    fast_cpu: { capabilities+: ["x62"] },
+    fast_cpu: { capabilities+: ["fast"] },
     bench: { capabilities+: self["$.cap"].bench_machine },
     x52_18_override: {
       is_after+:: ["$.cap.bench"],
@@ -604,7 +604,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     } + {
       local shared = $.use.build + $.svm.enterprise + { timelimit: "01:00:00" },
 
-      "ruby-test-svm-graal-enterprise-linux": shared + svm_test_platforms.linux,
+      "ruby-test-svm-graal-enterprise-linux": shared + svm_test_platforms.linux + $.cap.fast_cpu,
       "ruby-test-svm-graal-enterprise-darwin": shared + svm_test_platforms.darwin,
     },
 
