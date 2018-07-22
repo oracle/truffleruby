@@ -39,7 +39,6 @@ import org.truffleruby.core.format.read.bytes.ReadByteNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadBytesNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadHexStringNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadMIMEStringNodeGen;
-import org.truffleruby.core.format.read.bytes.ReadStringPointerNode;
 import org.truffleruby.core.format.read.bytes.ReadStringPointerNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadUTF8CharacterNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadUUStringNodeGen;
