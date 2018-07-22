@@ -15,7 +15,6 @@ import org.truffleruby.core.format.FormatEncoding;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
-import org.truffleruby.core.format.control.AdvanceSourcePositionNode;
 import org.truffleruby.core.format.control.ReverseOutputPositionNode;
 import org.truffleruby.core.format.control.SequenceNode;
 import org.truffleruby.core.format.control.SetOutputPositionNode;
@@ -26,6 +25,8 @@ import org.truffleruby.core.format.convert.Integer32LittleToBytesNodeGen;
 import org.truffleruby.core.format.convert.Integer64BigToBytesNodeGen;
 import org.truffleruby.core.format.convert.Integer64LittleToBytesNodeGen;
 import org.truffleruby.core.format.convert.ReinterpretAsLongNodeGen;
+import org.truffleruby.core.format.convert.StringToPointerNodeGen;
+import org.truffleruby.core.format.convert.TaintValueNodeGen;
 import org.truffleruby.core.format.convert.ToFloatNodeGen;
 import org.truffleruby.core.format.convert.ToLongNodeGen;
 import org.truffleruby.core.format.read.SourceNode;
@@ -186,18 +187,12 @@ public class SimplePackTreeBuilder implements SimplePackListener {
     }
 
     @Override
-    public void pointer() {
-        /*
-         * P and p print the address of a string. Obviously that doesn't work
-         * well in Java. We'll print 0x0000000000000000 with the hope that at
-         * least it should page fault if anyone tries to read it.
-         */
-
-        appendNode(new SequenceNode(new FormatNode[]{
-                new AdvanceSourcePositionNode(false),
-                writeInteger(64, ByteOrder.nativeOrder(),
-                        new LiteralFormatNode((long) 0))
-        }));
+    public void pointer(int limit) {
+        appendNode(writeInteger(64, ByteOrder.nativeOrder(),
+                StringToPointerNodeGen.create(
+                        TaintValueNodeGen.create(
+                                ReadValueNodeGen.create(
+                                        new SourceNode())))));
     }
 
     @Override

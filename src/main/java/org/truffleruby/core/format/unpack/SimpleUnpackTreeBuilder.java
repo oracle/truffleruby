@@ -27,6 +27,7 @@ import org.truffleruby.core.format.convert.ReinterpretAsUnsignedNodeGen;
 import org.truffleruby.core.format.convert.ReinterpretByteAsIntegerNodeGen;
 import org.truffleruby.core.format.convert.ReinterpretIntegerAsFloatNodeGen;
 import org.truffleruby.core.format.convert.ReinterpretLongAsDoubleNodeGen;
+import org.truffleruby.core.format.convert.TaintValueNodeGen;
 import org.truffleruby.core.format.pack.SimplePackListener;
 import org.truffleruby.core.format.pack.SimplePackParser;
 import org.truffleruby.core.format.read.SourceNode;
@@ -38,6 +39,8 @@ import org.truffleruby.core.format.read.bytes.ReadByteNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadBytesNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadHexStringNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadMIMEStringNodeGen;
+import org.truffleruby.core.format.read.bytes.ReadStringPointerNode;
+import org.truffleruby.core.format.read.bytes.ReadStringPointerNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadUTF8CharacterNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadUUStringNodeGen;
 import org.truffleruby.core.format.write.OutputNode;
@@ -201,8 +204,11 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
     }
 
     @Override
-    public void pointer() {
-
+    public void pointer(int limit) {
+        appendNode(WriteValueNodeGen.create(new OutputNode(),
+                TaintValueNodeGen.create(
+                        ReadStringPointerNodeGen.create(limit,
+                                readBytesAsInteger(64, ByteOrder.nativeOrder(), false, false)))));
     }
 
     @Override
