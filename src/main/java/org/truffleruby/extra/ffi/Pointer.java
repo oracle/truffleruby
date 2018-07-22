@@ -135,29 +135,34 @@ public class Pointer implements AutoCloseable {
     }
 
     public byte[] readZeroTerminatedByteArray(RubyContext context, long offset) {
-        final int length = findNullByte(context, offset);
+        return readZeroTerminatedByteArray(context, offset, Integer.MAX_VALUE);
+    }
+
+    public byte[] readZeroTerminatedByteArray(RubyContext context, long offset, int limit) {
+        final int length = findNullByte(context, offset, limit);
         final byte[] bytes = new byte[length];
         readBytes(offset, bytes, 0, length);
         return bytes;
     }
 
-
     public Pointer readPointer(long offset) {
         return new Pointer(readLong(offset));
     }
 
-    public int findNullByte(RubyContext context, long offset) {
-        if (context.getOptions().NATIVE_PLATFORM) {
+    public int findNullByte(RubyContext context, long offset, int limit) {
+        if (context.getOptions().NATIVE_PLATFORM && limit == Integer.MAX_VALUE) {
             return (int) (long) context.getTruffleNFI().getStrlen().call(address + offset);
         }
 
         int n = 0;
-        while (true) {
+        while (n < limit) {
             if (readByte(offset + n) == 0) {
                 return n;
             }
             n++;
         }
+
+        return limit;
     }
 
     public void free() {
