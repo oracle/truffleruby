@@ -1705,7 +1705,7 @@ public abstract class ModuleNodes {
             if (oldConstant == null) {
                 throw new RaiseException(getContext(), coreExceptions().nameErrorConstantNotDefined(module, name, this));
             } else {
-                if (oldConstant.isAutoload()) {
+                if (oldConstant.isAutoload() || oldConstant.isUndefined()) {
                     return nil();
                 } else {
                     return oldConstant.getValue();
