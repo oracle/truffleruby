@@ -41,7 +41,7 @@ public interface SimplePackListener {
 
     void base64String(int count);
 
-    void pointer(int limit);
+    void pointer(int count, int limit);
 
     void at(int position);
 

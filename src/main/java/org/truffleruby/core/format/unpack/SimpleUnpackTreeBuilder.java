@@ -204,11 +204,12 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
     }
 
     @Override
-    public void pointer(int limit) {
-        appendNode(WriteValueNodeGen.create(new OutputNode(),
+    public void pointer(int count, int limit) {
+        appendNode(sharedTreeBuilder.applyCount(count,
+                WriteValueNodeGen.create(new OutputNode(),
                 TaintValueNodeGen.create(
                         ReadStringPointerNodeGen.create(limit,
-                                readBytesAsInteger(64, ByteOrder.nativeOrder(), false, false)))));
+                                readBytesAsInteger(64, ByteOrder.nativeOrder(), false, false))))));
     }
 
     @Override

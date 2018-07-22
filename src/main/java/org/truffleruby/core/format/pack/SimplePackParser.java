@@ -350,14 +350,15 @@ public class SimplePackParser {
                 case 'P':
                     n++;
                     disallowNative(b);
-                    int count = count();
-                    listener.pointer(count == COUNT_NONE ? Integer.MAX_VALUE : count);
+                    int bigPCount = count();
+                    listener.pointer(1, bigPCount == COUNT_NONE ? Integer.MAX_VALUE : bigPCount);
                     break;
 
                 case 'p':
                     n++;
                     disallowNative(b);
-                    listener.pointer(Integer.MAX_VALUE);
+                    int littlePCount = count();
+                    listener.pointer(littlePCount == COUNT_NONE ? 1 : littlePCount, Integer.MAX_VALUE);
                     break;
 
                 case '@':

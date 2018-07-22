@@ -188,13 +188,14 @@ public class SimplePackTreeBuilder implements SimplePackListener {
     }
 
     @Override
-    public void pointer(int limit) {
-        appendNode(writeInteger(64, ByteOrder.nativeOrder(),
-                StringToPointerNodeGen.create(
-                        ToStringObjectNodeGen.create("to_str",
-                                TaintValueNodeGen.create(
-                                        ReadValueNodeGen.create(
-                                                new SourceNode()))))));
+    public void pointer(int count, int limit) {
+        appendNode(sharedTreeBuilder.applyCount(count,
+                writeInteger(64, ByteOrder.nativeOrder(),
+                        StringToPointerNodeGen.create(
+                                ToStringObjectNodeGen.create("to_str",
+                                        TaintValueNodeGen.create(
+                                                ReadValueNodeGen.create(
+                                                        new SourceNode())))))));
     }
 
     @Override
