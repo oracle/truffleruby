@@ -15,6 +15,7 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.MissingValue;
 import org.truffleruby.language.objects.TaintNode;
 
 @NodeChildren({
@@ -23,8 +24,13 @@ import org.truffleruby.language.objects.TaintNode;
 public abstract class TaintValueNode extends FormatNode {
 
     @Specialization
-    public Object toDouble(Object value,
-                           @Cached("create()") TaintNode taintNode) {
+    public MissingValue taint(MissingValue missingValue) {
+        return missingValue;
+    }
+
+    @Specialization
+    public Object taint(Object value,
+                        @Cached("create()") TaintNode taintNode) {
         return taintNode.executeTaint(value);
     }
 

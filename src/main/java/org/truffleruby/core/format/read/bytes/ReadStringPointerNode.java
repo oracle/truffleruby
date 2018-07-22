@@ -21,6 +21,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.MissingValue;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.extra.ffi.Pointer;
@@ -42,8 +43,8 @@ public abstract class ReadStringPointerNode extends FormatNode {
     }
 
     @Specialization(guards = "isNil(nil)")
-    public DynamicObject decode(DynamicObject nil) {
-        return nil;
+    public MissingValue decode(DynamicObject nil) {
+        return MissingValue.INSTANCE;
     }
 
     @Specialization
