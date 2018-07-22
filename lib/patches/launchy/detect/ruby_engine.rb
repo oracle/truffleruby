@@ -12,7 +12,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-Truffle::Patching.require_original __FILE__
+require 'launchy/detect/ruby_engine'
 
 module Launchy::Detect
   class RubyEngine

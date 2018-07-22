@@ -1,17 +1,23 @@
-# Patching system
+# Ruby files patching system
 
-The patching system is loaded in `post-boot.rb` and is able to patch stdlib and
-installed gems.  The code implementing the patching itself can be found in
-`lib/truffle/truffle/patching.rb`. It can be disabled by passing the
-`-Xpatching=false` option.
+When `require 'some/patch'` (has to be a relative path) is called 
+and an original file exists on `$LOAD_PATH`
+and there is a patch file `some/patch.rb` in a special directory `lib/patches` 
+then the TruffleRuby will first evaluate (not require) the file 
+`lib/patches/some/patch.rb` instead. 
 
-The patching system works for gems as follows.  When a gem *g* is activated,
-there is a directory `g` in `lib/patches`, and the directory is listed in
-`lib/truffle/truffle/patching.rb`, the directory is inserted into `$LOAD_PATH`
-before the original load-paths of the *g* gem. As a result the patching files
-are loaded first before the original files in the gem. The patching file is
-responsible for loading the original file (if desirable), which can be done with
-`Truffle::Patching.require_original __FILE__`.
+To require the original file call `require 'some/patch'` in the 
+`lib/patches/some/patch.rb` file. It will require the original ruby 
+file found on `$LOAD_PATH` ( stdlib file or a gem file).
+
+When requiring the original file is not desired just omit the 
+`require 'some/patch'` in the patch file. The patch file will be evaluated
+only once.  
+
+The evaluated patch files are not visible in `$LOAD_PATH` nor `$LOADED_FEATURES`.
+
+Patching can be disabled by passing the `-Xpatching=false` option. 
+`-X.log=CONFIG` can be used to see paths of loaded patch files.
 
 # C file preprocessing
 

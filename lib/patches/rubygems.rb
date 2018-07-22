@@ -1,5 +1,4 @@
-Truffle::Patching.require_original __FILE__
-Truffle::Patching.install_gem_activation_hook
+require 'rubygems'
 
 # Because did_you_mean was required directly without RubyGems
 if Truffle::Boot.get_option 'did_you_mean'

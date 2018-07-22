@@ -9,6 +9,20 @@
  */
 package org.truffleruby.core;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -60,12 +74,6 @@ import org.truffleruby.platform.NativeTypes;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.shared.BuildInformationImpl;
 import org.truffleruby.shared.TruffleRuby;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 
 public class CoreLibrary {
 
@@ -212,6 +220,8 @@ public class CoreLibrary {
     @CompilationFinal private GlobalVariableStorage debugStorage;
     @CompilationFinal private GlobalVariableStorage verboseStorage;
     @CompilationFinal private GlobalVariableStorage stderrStorage;
+
+    private final ConcurrentMap<String, Boolean> patchFiles;
 
     private final String coreLoadPath;
 
@@ -567,6 +577,35 @@ public class CoreLibrary {
         // No need for new version since it's null before which is not cached
         assert Layouts.CLASS.getSuperclass(basicObjectClass) == null;
         Layouts.CLASS.setSuperclass(basicObjectClass, nil);
+
+        patchFiles = initializePatching(context);
+    }
+
+    private ConcurrentMap<String, Boolean> initializePatching(RubyContext context) {
+        defineModule(truffleModule, "Patching");
+        final ConcurrentMap<String, Boolean> patchFiles = new ConcurrentHashMap<>();
+
+        if (context.getOptions().PATCHING) {
+            try {
+                final Path patchesDirectory = Paths.get(context.getRubyHome(), "lib", "patches");
+                Files.walkFileTree(
+                        patchesDirectory,
+                        new SimpleFileVisitor<Path>() {
+                            @Override
+                            public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
+                                String relativePath = patchesDirectory.relativize(path).toString();
+                                if (relativePath.endsWith(".rb")) {
+                                    patchFiles.put(relativePath.substring(0, relativePath.length() - 3), false);
+                                }
+                                return FileVisitResult.CONTINUE;
+                            }
+                        }
+                );
+            } catch (IOException ignored) {
+                // bad ruby home
+            }
+        }
+        return patchFiles;
     }
 
     private static DynamicObjectFactory alwaysFrozen(DynamicObjectFactory factory) {
@@ -1151,6 +1190,10 @@ public class CoreLibrary {
 
     public DynamicObjectFactory getThreadBacktraceLocationFactory() {
         return threadBacktraceLocationFactory;
+    }
+
+    public ConcurrentMap<String, Boolean> getPatchFiles() {
+        return patchFiles;
     }
 
     public boolean isInitializing() {

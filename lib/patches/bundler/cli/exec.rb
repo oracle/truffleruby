@@ -22,23 +22,26 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-Truffle::Patching.require_original __FILE__
+require 'bundler/cli/exec'
 
-class Bundler::Dependency
+module Bundler
+  class CLI::Exec
+    def ruby_shebang?(file)
+      possibilities = [
+          "#!/usr/bin/env ruby\n",
+          "#!/usr/bin/env jruby\n",
+          # TruffleRuby: added item to the array
+          "#!/usr/bin/env truffleruby\n",
+          "#!#{Gem.ruby}\n",
+      ]
 
-  # TruffleRuby: add record for truffleruby
-  const_set :PLATFORM_MAP,
-            remove_const(:PLATFORM_MAP).merge(truffleruby: Gem::Platform::RUBY)
+      if File.zero?(file)
+        Bundler.ui.warn "#{file} is empty"
+        return false
+      end
 
-  # TruffleRuby: recompute REVERSE_PLATFORM_MAP
-  remove_const :REVERSE_PLATFORM_MAP
-  const_set(:REVERSE_PLATFORM_MAP, {}.tap do |reverse_platform_map|
-    Bundler::Dependency::PLATFORM_MAP.each do |key, value|
-      reverse_platform_map[value] ||= []
-      reverse_platform_map[value] << key
+      first_line = File.open(file, "rb") {|f| f.read(possibilities.map(&:size).max) }
+      possibilities.any? {|shebang| first_line.start_with?(shebang) }
     end
-
-    reverse_platform_map.each { |_, platforms| platforms.freeze }
-  end.freeze)
-
+  end
 end

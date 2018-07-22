@@ -1,7 +1,4 @@
-# Portions copyright (c) 2010 Andre Arko
-# Portions copyright (c) 2009 Engine Yard
-#
-# MIT License
+# Copyright (c) 2008-2011 Luis Lavena.
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -22,26 +19,18 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-Truffle::Patching.require_original __FILE__
+require 'rake/extensiontask'
 
-module Bundler
-  class CLI::Exec
-    def ruby_shebang?(file)
-      possibilities = [
-          "#!/usr/bin/env ruby\n",
-          "#!/usr/bin/env jruby\n",
-          # TruffleRuby: added item to the array
-          "#!/usr/bin/env truffleruby\n",
-          "#!#{Gem.ruby}\n",
-      ]
+module Truffle::Patching::RakeExtensionTaskOverridePatterns
+  def init(name = nil, gem_spec = nil)
+    super
+    @source_pattern = "*.{c,cc,cpp}"
+    @compiled_pattern = "*.{bc,su}"
+  end
+end
 
-      if File.zero?(file)
-        Bundler.ui.warn "#{file} is empty"
-        return false
-      end
-
-      first_line = File.open(file, "rb") {|f| f.read(possibilities.map(&:size).max) }
-      possibilities.any? {|shebang| first_line.start_with?(shebang) }
-    end
+module Rake
+  class ExtensionTask < BaseExtensionTask
+    prepend Truffle::Patching::RakeExtensionTaskOverridePatterns
   end
 end

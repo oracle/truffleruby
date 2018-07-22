@@ -12,8 +12,6 @@ TOPLEVEL_BINDING = binding
 
 module Truffle::Boot
 
-  PATCHING = Truffle::Boot.get_option 'patching'
-
   def self.check_syntax(source_or_file)
     inner_check_syntax source_or_file
     STDOUT.puts 'Syntax OK'

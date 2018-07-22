@@ -19,13 +19,6 @@ if Truffle::Boot.ruby_home
     require 'rational'
     require 'complex'
     require 'unicode_normalize'
-    if Truffle::Boot.get_option('patching')
-      Truffle::Boot.print_time_metric :'before-patching'
-      require 'truffle/patching'
-      Truffle::Patching.insert_patching_dir 'stdlib', "#{Truffle::Boot.ruby_home}/lib/mri"
-      Truffle::Boot.delay { Truffle::Patching.install_local_patches }
-      Truffle::Boot.print_time_metric :'after-patching'
-    end
   rescue LoadError => e
     Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
   end
@@ -76,10 +69,9 @@ if Truffle::Boot.preinitializing?
   if old_home
     # We need to fix all paths which capture the image build-time home to point
     # to the runtime home.
-    patching_paths = Truffle::Patching.paths_depending_on_home
     Truffle::Boot.delay do
       new_home = Truffle::Boot.ruby_home
-      [$LOAD_PATH, $LOADED_FEATURES, patching_paths].each do |array|
+      [$LOAD_PATH, $LOADED_FEATURES].each do |array|
         array.each do |path|
           if path.start_with?(old_home)
             path.replace(new_home + path[old_home.size..-1])

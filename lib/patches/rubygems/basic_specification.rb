@@ -1,4 +1,4 @@
-Truffle::Patching.require_original __FILE__
+require 'rubygems/basic_specification'
 
 if ENV['TRUFFLERUBY_CEXT_ENABLED'] == "false"
   module Truffle::Patching::NoWarnIfBuildingCextDisabled

@@ -1,4 +1,4 @@
-Truffle::Patching.require_original __FILE__
+require 'thread_safe'
 
 # Copyright (c) 2012 thedarkone
 #
