@@ -63,8 +63,8 @@ public class LookupForExistingModuleNode extends LookupConstantBaseNode implemen
     }
 
     private RubyConstant deepConstantLookup(String name, DynamicObject lexicalParent) {
-        RubyConstant constant = Layouts.MODULE.getFields(lexicalParent).getConstant(name);
-        if (constant != null) {
+        final RubyConstant constant = Layouts.MODULE.getFields(lexicalParent).getConstant(name);
+        if (ModuleOperations.isConstantDefined(constant)) {
             return constant;
         }
 
