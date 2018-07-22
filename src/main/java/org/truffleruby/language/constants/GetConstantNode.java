@@ -82,7 +82,9 @@ public abstract class GetConstantNode extends RubyNode {
             RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
 
             // check if the constant was set in the ancestors of autoloadConstantModule
-            if (resolvedConstant != null && ModuleOperations.inAncestorsOf(resolvedConstant.getDeclaringModule(), autoloadConstantModule)) {
+            if (resolvedConstant != null &&
+                    (ModuleOperations.inAncestorsOf(resolvedConstant.getDeclaringModule(), autoloadConstantModule) ||
+                            resolvedConstant.getDeclaringModule() == coreLibrary().getObjectClass())) {
                 // all is good, just return that constant
             } else {
                 // If the autoload constant was not set in the ancestors, undefine the constant
