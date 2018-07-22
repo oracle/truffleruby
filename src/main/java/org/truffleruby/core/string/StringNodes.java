@@ -2433,7 +2433,7 @@ public abstract class StringNodes {
 
     @NodeChild(value = "string", type = RubyNode.class)
     @NodeChild(value = "format", type = RubyNode.class)
-    @CoreMethod(names = "unpack", required = 1, taintFrom = 1)
+    @CoreMethod(names = "unpack", required = 1)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class UnpackNode extends CoreMethodNode {
 
