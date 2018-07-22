@@ -47,9 +47,10 @@ public class LookupForExistingModuleNode extends LookupConstantBaseNode implemen
     @TruffleBoundary(transferToInterpreterOnException = false)
     private RubyConstant deepConstantSearch(String name, LexicalScope lexicalScope, DynamicObject lexicalParent) {
         final RubyConstant constant = deepConstantLookup(name, lexicalParent);
+
         if (constant != null) {
-            if (!(constant.isVisibleTo(getContext(), lexicalScope, lexicalScope.getLiveModule()) ||
-                    constant.isVisibleTo(getContext(), LexicalScope.NONE, lexicalParent))) {
+            if (!constant.isVisibleTo(getContext(), lexicalScope, lexicalScope.getLiveModule()) &&
+                    !constant.isVisibleTo(getContext(), LexicalScope.NONE, lexicalParent)) {
                 throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(lexicalParent, name, this));
             }
 
