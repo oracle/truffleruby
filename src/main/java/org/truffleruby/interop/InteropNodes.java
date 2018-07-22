@@ -35,7 +35,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLogger;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -50,6 +49,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -123,9 +123,10 @@ public abstract class InteropNodes {
 
         @Specialization(replaces = "executeForeignCached")
         public Object executeForeignUncached(TruffleObject receiver, Object[] args,
-                @Cached("create()") RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
-                @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
-            RubyLogger.notOptimizedOnce("megamorphic interop EXECUTE message send");
+                                             @Cached("create()") RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
+                                             @Cached("create()") ForeignToRubyNode foreignToRubyNode,
+                                             @Cached("new()") NotOptimizedWarningNode notOptimizedWarningNode) {
+            notOptimizedWarningNode.warn("megamorphic interop EXECUTE message send");
 
             final Node executeNode = createExecuteNode(args.length);
 
@@ -175,8 +176,9 @@ public abstract class InteropNodes {
 
         @Specialization(replaces = "executeWithoutConversionForeignCached")
         public Object executeWithoutConversionForeignUncached(TruffleObject receiver, Object[] args,
-                @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
-            RubyLogger.notOptimizedOnce("megamorphic interop EXECUTE without conversion message send");
+                                                              @Cached("create()") ForeignToRubyNode foreignToRubyNode,
+                                                              @Cached("new()") NotOptimizedWarningNode notOptimizedWarningNode) {
+            notOptimizedWarningNode.warn("megamorphic interop EXECUTE without conversion message send");
 
             final Node executeNode = createExecuteNode(args.length);
 
@@ -242,12 +244,13 @@ public abstract class InteropNodes {
 
         @Specialization(replaces = "invokeCached")
         public Object invokeUncached(TruffleObject receiver, DynamicObject identifier, Object[] args,
-                @Cached("create()") ToJavaStringNode toJavaStringNode,
-                @Cached("create()") RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
-                @Cached("create()") ForeignToRubyNode foreignToRubyNode,
-                @Cached("create()") BranchProfile unknownIdentifierProfile,
-                @Cached("create()") BranchProfile exceptionProfile) {
-            RubyLogger.notOptimizedOnce("megamorphic interop INVOKE message send");
+                                     @Cached("create()") ToJavaStringNode toJavaStringNode,
+                                     @Cached("create()") RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
+                                     @Cached("create()") ForeignToRubyNode foreignToRubyNode,
+                                     @Cached("create()") BranchProfile unknownIdentifierProfile,
+                                     @Cached("create()") BranchProfile exceptionProfile,
+                                     @Cached("new()") NotOptimizedWarningNode notOptimizedWarningNode) {
+            notOptimizedWarningNode.warn("megamorphic interop INVOKE message send");
 
             final Node invokeNode = createInvokeNode(args.length);
             final String name = toJavaStringNode.executeToJavaString(identifier);
@@ -334,9 +337,10 @@ public abstract class InteropNodes {
 
         @Specialization(replaces = "newCached")
         public Object newUncached(TruffleObject receiver, Object[] args,
-                @Cached("create()") RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
-                @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
-            RubyLogger.notOptimizedOnce("megamorphic interop NEW message send");
+                                  @Cached("create()") RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
+                                  @Cached("create()") ForeignToRubyNode foreignToRubyNode,
+                                  @Cached("new()") NotOptimizedWarningNode notOptimizedWarningNode) {
+            notOptimizedWarningNode.warn("megamorphic interop NEW message send");
 
             final Node invokeNode = createNewNode(args.length);
 

@@ -14,9 +14,9 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLogger;
 import org.truffleruby.core.array.ArrayReadNormalizedNode;
 import org.truffleruby.core.array.ArrayReadNormalizedNodeGen;
+import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 
@@ -31,6 +31,7 @@ public class ReadOptionalArgumentNode extends RubyNode {
     @Child private RubyNode defaultValue;
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
     @Child private ArrayReadNormalizedNode arrayReadNode;
+    @Child private NotOptimizedWarningNode notOptimizedWarningNode = new NotOptimizedWarningNode();
 
     private final BranchProfile defaultValueProfile = BranchProfile.create();
 
@@ -67,7 +68,7 @@ public class ReadOptionalArgumentNode extends RubyNode {
         defaultValueProfile.enter();
 
         if (considerRejectedKWArgs) {
-            RubyLogger.notOptimizedOnce(RubyLogger.KWARGS_NOT_OPTIMIZED_YET);
+            notOptimizedWarningNode.warn("keyword arguments are not yet optimized");
 
             final Object rest = readRestArgumentNode.execute(frame);
 

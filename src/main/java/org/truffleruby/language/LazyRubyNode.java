@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
-import org.truffleruby.RubyLogger;
+import org.truffleruby.RubyLanguage;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeUtil;
@@ -76,7 +76,7 @@ public class LazyRubyNode extends RubyNode {
             masterResolution = resolutionMaster.get();
             if (masterResolution == null) {
                 if (getContext().getOptions().LAZY_TRANSLATION_LOG) {
-                    RubyLogger.LOGGER.info(() -> "lazy translating " + getContext().getSourceLoader().fileLine(getParent().getEncapsulatingSourceSection()) + " in " + getRootNode());
+                    RubyLanguage.LOGGER.info(() -> "lazy translating " + getContext().getSourceLoader().fileLine(getParent().getEncapsulatingSourceSection()) + " in " + getRootNode());
                 }
 
                 masterResolution = resolver.get();

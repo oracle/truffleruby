@@ -12,7 +12,6 @@ package org.truffleruby.core.regexp;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLogger;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.regexp.InterpolatedRegexpNodeFactory.RegexpBuilderNodeGen;
 import org.truffleruby.core.rope.Rope;
@@ -20,6 +19,7 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.parser.BodyTranslator;
@@ -83,8 +83,9 @@ public class InterpolatedRegexpNode extends RubyNode {
         }
 
         @Specialization(replaces = "executeFast")
-        public Object executeSlow(Rope[] parts) {
-            RubyLogger.notOptimizedOnce(RubyLogger.UNSTABLE_INTERPOLATED_REGEXP);
+        public Object executeSlow(Rope[] parts,
+                                  @Cached("new()") NotOptimizedWarningNode notOptimizedWarningNode) {
+            notOptimizedWarningNode.warn("unstable interpolated regexps are not optimized");
             return createRegexp(parts);
         }
 

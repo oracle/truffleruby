@@ -47,7 +47,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLogger;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -201,7 +201,7 @@ public abstract class TruffleSystemNodes {
 
         @TruffleBoundary
         public static void log(Level level, String message) {
-            RubyLogger.LOGGER.log(level, message);
+            RubyLanguage.LOGGER.log(level, message);
         }
 
     }

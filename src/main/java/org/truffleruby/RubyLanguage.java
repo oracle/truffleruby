@@ -12,6 +12,7 @@ package org.truffleruby;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -58,9 +59,11 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final String CEXT_MIME_TYPE = "application/x-ruby-cext-library";
     public static final String CEXT_EXTENSION = ".su";
 
+    public static final TruffleLogger LOGGER = TruffleLogger.getLogger(TruffleRuby.LANGUAGE_ID);
+
     @Override
     public RubyContext createContext(Env env) {
-        RubyLogger.LOGGER.fine("createContext()");
+        LOGGER.fine("createContext()");
         Metrics.printTime("before-create-context");
         // TODO CS 3-Dec-16 need to parse RUBYOPT here if it hasn't been already?
         final RubyContext context = new RubyContext(this, env);
@@ -70,7 +73,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected void initializeContext(RubyContext context) throws Exception {
-        RubyLogger.LOGGER.fine("initializeContext()");
+        LOGGER.fine("initializeContext()");
         Metrics.printTime("before-initialize-context");
         context.initialize();
         Metrics.printTime("after-initialize-context");
@@ -78,7 +81,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected boolean patchContext(RubyContext context, Env newEnv) {
-        RubyLogger.LOGGER.fine("patchContext()");
+        LOGGER.fine("patchContext()");
         Metrics.printTime("before-patch-context");
         boolean patched = context.patchContext(newEnv);
         Metrics.printTime("after-patch-context");
@@ -87,13 +90,13 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected void finalizeContext(RubyContext context) {
-        RubyLogger.LOGGER.fine("finalizeContext()");
+        LOGGER.fine("finalizeContext()");
         context.finalizeContext();
     }
 
     @Override
     protected void disposeContext(RubyContext context) {
-        RubyLogger.LOGGER.fine("disposeContext()");
+        LOGGER.fine("disposeContext()");
         context.disposeContext();
     }
 

@@ -29,7 +29,6 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.RubyLogger;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -170,7 +169,7 @@ public abstract class RequireNode extends RubyNode {
             featureLoader.ensureCExtImplementationLoaded(feature, this);
 
             if (getContext().getOptions().CEXTS_LOG_LOAD) {
-                RubyLogger.LOGGER.info(String.format("loading cext module %s (requested as %s)", expandedPath, feature));
+                RubyLanguage.LOGGER.info(String.format("loading cext module %s (requested as %s)", expandedPath, feature));
             }
 
             libraries = featureLoader.loadCExtLibrary(expandedPath);
@@ -230,7 +229,7 @@ public abstract class RequireNode extends RubyNode {
             final String linkError = linkErrorException.getMessage();
 
             if (getContext().getOptions().CEXTS_LOG_LOAD) {
-                RubyLogger.LOGGER.info("unsatisfied link error " + linkError);
+                RubyLanguage.LOGGER.info("unsatisfied link error " + linkError);
             }
 
             final String message;
