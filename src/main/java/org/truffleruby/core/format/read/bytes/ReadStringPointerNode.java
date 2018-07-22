@@ -16,6 +16,7 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
@@ -36,6 +37,11 @@ public abstract class ReadStringPointerNode extends FormatNode {
 
     public ReadStringPointerNode(int limit) {
         this.limit = limit;
+    }
+
+    @Specialization(guards = "isNil(nil)")
+    public DynamicObject decode(DynamicObject nil) {
+        return nil;
     }
 
     @Specialization

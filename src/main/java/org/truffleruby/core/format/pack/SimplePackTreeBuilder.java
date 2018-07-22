@@ -29,6 +29,7 @@ import org.truffleruby.core.format.convert.StringToPointerNodeGen;
 import org.truffleruby.core.format.convert.TaintValueNodeGen;
 import org.truffleruby.core.format.convert.ToFloatNodeGen;
 import org.truffleruby.core.format.convert.ToLongNodeGen;
+import org.truffleruby.core.format.convert.ToStringObjectNodeGen;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.read.array.ReadDoubleNodeGen;
 import org.truffleruby.core.format.read.array.ReadLongOrBigIntegerNodeGen;
@@ -190,9 +191,10 @@ public class SimplePackTreeBuilder implements SimplePackListener {
     public void pointer(int limit) {
         appendNode(writeInteger(64, ByteOrder.nativeOrder(),
                 StringToPointerNodeGen.create(
-                        TaintValueNodeGen.create(
-                                ReadValueNodeGen.create(
-                                        new SourceNode())))));
+                        ToStringObjectNodeGen.create("to_str",
+                                TaintValueNodeGen.create(
+                                        ReadValueNodeGen.create(
+                                                new SourceNode()))))));
     }
 
     @Override
