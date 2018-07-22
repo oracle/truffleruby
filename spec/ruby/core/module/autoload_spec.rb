@@ -322,6 +322,11 @@ describe "Module#autoload" do
     ScratchPad.recorded.should == [:loaded]
     -> { ModuleSpecs::Autoload::NotDefinedByFile }.should raise_error(NameError)
     ScratchPad.recorded.should == [:loaded]
+
+    Thread.new {
+      -> { ModuleSpecs::Autoload::NotDefinedByFile }.should raise_error(NameError)
+    }.join
+    ScratchPad.recorded.should == [:loaded]
   end
 
   it "returns 'constant' on referring the constant with defined?()" do
