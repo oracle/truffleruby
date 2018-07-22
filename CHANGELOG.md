@@ -51,6 +51,8 @@ Bug fixes:
 * Better warning when the timezone cannot be found on WSL (#1393).
 * `String#unpack` now taints return strings if the format was tainted, and
   now does now taint the return array if the format was tainted.
+* Lots of fixes to `Array#pack` and `String#unpack` tainting, and a better
+  implementation of `P` and `p`.
 
 Performance:
 

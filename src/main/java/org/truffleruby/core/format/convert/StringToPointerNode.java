@@ -9,23 +9,51 @@
  */
 package org.truffleruby.core.format.convert;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.FrameSlotTypeException;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.cext.CExtNodes;
+import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.control.JavaException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @NodeChildren({
         @NodeChild(value = "value", type = FormatNode.class),
 })
 public abstract class StringToPointerNode extends FormatNode {
 
+    @SuppressWarnings("unchecked")
     @Specialization(guards = "isRubyString(string)")
-    public long toPointer(DynamicObject string,
+    public long toPointer(VirtualFrame frame, DynamicObject string,
                           @Cached("create()") CExtNodes.StringToNativeNode stringToNativeNode) {
-        return stringToNativeNode.executeToNative(string).getNativePointer().getAddress();
+        final Pointer pointer = stringToNativeNode.executeToNative(string).getNativePointer();
+
+        List<Pointer> associated;
+
+        try {
+            associated = (List<Pointer>) frame.getObject(FormatFrameDescriptor.ASSOCIATED_SLOT);
+        } catch (FrameSlotTypeException e) {
+            CompilerDirectives.transferToInterpreter();
+            throw new JavaException(e);
+        }
+
+        if (associated == null) {
+            associated = new ArrayList<>();
+            frame.setObject(FormatFrameDescriptor.ASSOCIATED_SLOT, associated);
+        }
+
+        associated.add(pointer);
+
+        return pointer.getAddress();
     }
 
 }

@@ -368,14 +368,18 @@ public abstract class KernelNodes {
         }
 
         protected Property[] getUserProperties(Shape shape) {
-            CompilerAsserts.neverPartOfCompilation();
-
             final List<Property> userProperties = new ArrayList<>();
 
             for (Property property : shape.getProperties()) {
                 if (property.getKey() instanceof String) {
                     userProperties.add(property);
                 }
+            }
+
+            final Property associatedProperty = shape.getProperty(Layouts.ASSOCIATED_IDENTIFIER);
+
+            if (associatedProperty != null) {
+                userProperties.add(associatedProperty);
             }
 
             return userProperties.toArray(new Property[userProperties.size()]);
@@ -1680,7 +1684,7 @@ public abstract class KernelNodes {
 
             try {
                 result = (BytesResult) callPackNode.call(
-                        new Object[]{ arguments, arguments.length, isTaintedNode.isTainted(format) });
+                        new Object[]{ arguments, arguments.length, isTaintedNode.isTainted(format), null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
@@ -1702,7 +1706,7 @@ public abstract class KernelNodes {
 
             try {
                 result = (BytesResult) callPackNode.call(compileFormat(format, arguments, isDebug),
-                        new Object[]{ arguments, arguments.length, isTaintedNode.isTainted(format) });
+                        new Object[]{ arguments, arguments.length, isTaintedNode.isTainted(format), null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);

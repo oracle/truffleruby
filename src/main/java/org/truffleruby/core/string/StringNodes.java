@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2013, 2018 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
@@ -147,6 +146,8 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.IsTaintedNode;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -2456,14 +2457,15 @@ public abstract class StringNodes {
                 @Cached("create(compileFormat(format))") DirectCallNode callUnpackNode,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") RopeNodes.EqualNode equalNode,
-                @Cached("create()") IsTaintedNode isTaintedNode) {
+                @Cached("create()") IsTaintedNode isTaintedNode,
+                @Cached("createReadAssociatedNode()") ReadObjectFieldNode readAssociatedNode) {
             final Rope rope = rope(string);
 
             final ArrayResult result;
 
             try {
                 result = (ArrayResult) callUnpackNode.call(
-                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), isTaintedNode.executeIsTainted(string) });
+                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), isTaintedNode.executeIsTainted(string), readAssociatedNode.execute(string) });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
@@ -2478,20 +2480,25 @@ public abstract class StringNodes {
                 DynamicObject format,
                 @Cached("create()") IndirectCallNode callUnpackNode,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("create()") IsTaintedNode isTaintedNode) {
+                @Cached("create()") IsTaintedNode isTaintedNode,
+                @Cached("createReadAssociatedNode()") ReadObjectFieldNode readAssociatedNode) {
             final Rope rope = rope(string);
 
             final ArrayResult result;
 
             try {
                 result = (ArrayResult) callUnpackNode.call(compileFormat(format),
-                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), isTaintedNode.executeIsTainted(string) });
+                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), isTaintedNode.executeIsTainted(string), readAssociatedNode.execute(string) });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
             }
 
             return finishUnpack(result);
+        }
+
+        protected ReadObjectFieldNode createReadAssociatedNode() {
+            return ReadObjectFieldNodeGen.create(Layouts.ASSOCIATED_IDENTIFIER, null);
         }
 
         private DynamicObject finishUnpack(ArrayResult result) {

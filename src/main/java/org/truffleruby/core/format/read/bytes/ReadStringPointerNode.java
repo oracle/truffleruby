@@ -9,20 +9,21 @@
  */
 package org.truffleruby.core.format.read.bytes;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.jcodings.specific.USASCIIEncoding;
+import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.format.read.SourceNode;
-import org.truffleruby.core.format.write.bytes.EncodeUM;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.extra.ffi.Pointer;
-
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.control.RaiseException;
 
 @NodeChildren({
         @NodeChild(value = "value", type = FormatNode.class),
@@ -38,10 +39,31 @@ public abstract class ReadStringPointerNode extends FormatNode {
     }
 
     @Specialization
-    public Object read(long address) {
+    public Object read(VirtualFrame frame, long address) {
         final Pointer pointer = new Pointer(address);
+
+        try {
+            checkAssociated((Pointer[]) frame.getObject(FormatFrameDescriptor.SOURCE_ASSOCIATED_SLOT), pointer);
+        } catch (FrameSlotTypeException e) {
+            CompilerDirectives.transferToInterpreter();
+            throw new JavaException(e);
+        }
+
         final byte[] bytes = pointer.readZeroTerminatedByteArray(getContext(), 0, limit);
         return makeStringNode.executeMake(bytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+    }
+
+    @TruffleBoundary
+    private void checkAssociated(Pointer[] associated, Pointer reading) {
+        if (associated != null) {
+            for (Pointer pointer : associated) {
+                if (pointer.equals(reading)) {
+                    return;
+                }
+            }
+        }
+
+        throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError("no associated pointer", this));
     }
 
 }

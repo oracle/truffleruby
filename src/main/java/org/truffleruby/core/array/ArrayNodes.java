@@ -69,6 +69,8 @@ import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.IsFrozenNodeGen;
 import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.TaintNode;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
+import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 
 import java.util.Arrays;
 
@@ -1418,6 +1420,7 @@ public abstract class ArrayNodes {
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode;
         @Child private StringNodes.MakeStringNode makeStringNode;
         @Child private TaintNode taintNode;
+        @Child private WriteObjectFieldNode writeAssociatedNode;
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
         private final ConditionProfile resizeProfile = ConditionProfile.createBinaryProfile();
@@ -1439,7 +1442,7 @@ public abstract class ArrayNodes {
 
             try {
                 result = (BytesResult) callPackNode.call(
-                        new Object[] { getStore(array), getSize(array), false });
+                        new Object[] { getStore(array), getSize(array), false, null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
@@ -1457,7 +1460,7 @@ public abstract class ArrayNodes {
 
             try {
                 result = (BytesResult) callPackNode.call(compileFormat(format),
-                        new Object[] { getStore(array), getSize(array), false });
+                        new Object[] { getStore(array), getSize(array), false, null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
@@ -1496,6 +1499,15 @@ public abstract class ArrayNodes {
                 }
 
                 taintNode.executeTaint(string);
+            }
+
+            if (result.getAssociated() != null) {
+                if (writeAssociatedNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    writeAssociatedNode = insert(WriteObjectFieldNodeGen.create(Layouts.ASSOCIATED_IDENTIFIER));
+                }
+
+                writeAssociatedNode.write(string, result.getAssociated());
             }
 
             return string;

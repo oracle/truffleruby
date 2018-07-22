@@ -10,14 +10,18 @@
 package org.truffleruby.core.format;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyBaseRootNode;
 import org.truffleruby.language.backtrace.InternalRootNode;
+
+import java.util.List;
 
 /**
  * The node at the root of a pack expression.
@@ -40,6 +44,7 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
         this.child = child;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Object execute(VirtualFrame frame) {
         frame.setObject(FormatFrameDescriptor.SOURCE_SLOT, frame.getArguments()[0]);
@@ -50,6 +55,7 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
         frame.setInt(FormatFrameDescriptor.STRING_LENGTH_SLOT, 0);
         frame.setInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT, CodeRange.CR_7BIT.toInt());
         frame.setBoolean(FormatFrameDescriptor.TAINT_SLOT, false);
+        frame.setObject(FormatFrameDescriptor.ASSOCIATED_SLOT, null);
 
         child.execute(frame);
 
@@ -109,7 +115,28 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
             throw new IllegalStateException(e);
         }
 
-        return new BytesResult(output, outputLength, stringLength, stringCodeRange, taint, encoding);
+        final List<Pointer> associated;
+
+        try {
+            associated = (List<Pointer>) frame.getObject(FormatFrameDescriptor.ASSOCIATED_SLOT);
+        } catch (FrameSlotTypeException e) {
+            throw new IllegalStateException(e);
+        }
+
+        final Pointer[] associatedArray;
+
+        if (associated != null) {
+            associatedArray = associatedToArray(associated);
+        } else {
+            associatedArray = null;
+        }
+
+        return new BytesResult(output, outputLength, stringLength, stringCodeRange, taint, encoding, associatedArray);
+    }
+
+    @TruffleBoundary
+    private Pointer[] associatedToArray(List<Pointer> associated) {
+        return associated.toArray(new Pointer[associated.size()]);
     }
 
     @Override
