@@ -57,6 +57,7 @@ public class Options {
     public final boolean TRACE_CALLS;
     public final boolean COVERAGE_GLOBAL;
     public final String CORE_LOAD_PATH;
+    public final boolean CORE_AS_INTERNAL;
     public final boolean STDLIB_AS_INTERNAL;
     public final boolean LAZY_BUILTINS;
     public final boolean LAZY_CORE_METHOD_NODES;
@@ -182,6 +183,7 @@ public class Options {
         TRACE_CALLS = builder.getOrDefault(OptionsCatalog.TRACE_CALLS);
         COVERAGE_GLOBAL = builder.getOrDefault(OptionsCatalog.COVERAGE_GLOBAL);
         CORE_LOAD_PATH = builder.getOrDefault(OptionsCatalog.CORE_LOAD_PATH);
+        CORE_AS_INTERNAL = builder.getOrDefault(OptionsCatalog.CORE_AS_INTERNAL);
         STDLIB_AS_INTERNAL = builder.getOrDefault(OptionsCatalog.STDLIB_AS_INTERNAL);
         LAZY_BUILTINS = builder.getOrDefault(OptionsCatalog.LAZY_BUILTINS, DEFAULT_LAZY);
         LAZY_CORE_METHOD_NODES = builder.getOrDefault(OptionsCatalog.LAZY_CORE_METHOD_NODES, DEFAULT_LAZY);
@@ -350,6 +352,8 @@ public class Options {
                 return COVERAGE_GLOBAL;
             case "ruby.core.load_path":
                 return CORE_LOAD_PATH;
+            case "ruby.core_as_internal":
+                return CORE_AS_INTERNAL;
             case "ruby.stdlib_as_internal":
                 return STDLIB_AS_INTERNAL;
             case "ruby.lazy_builtins":

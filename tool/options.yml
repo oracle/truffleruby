@@ -45,6 +45,7 @@ TRACE_CALLS: [trace.calls, boolean, true, 'Support tracing (set_trace_func, Trac
 COVERAGE_GLOBAL: [coverage.global, boolean, false, Run coverage for all code and print results on exit]
 
 CORE_LOAD_PATH: [core.load_path, string, 'resource:/truffleruby', Location to load the Truffle core library from]
+CORE_AS_INTERNAL: [core_as_internal, boolean, true, 'Mark core library sources as internal']
 STDLIB_AS_INTERNAL: [stdlib_as_internal, boolean, true, 'Mark stdlib sources (really, anything loaded from the TruffleRuby home) as internal']
 
 LAZY_BUILTINS: [lazy_builtins, boolean, DEFAULT_LAZY, Load builtin classes (core methods & primitives) lazily on first use]

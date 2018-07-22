@@ -204,11 +204,11 @@ public class SourceLoader {
 
     private boolean isInternal(String canonicalPath) {
         if (canonicalPath.startsWith(context.getCoreLibrary().getCoreLoadPath())) {
-            return true;
+            return context.getOptions().CORE_AS_INTERNAL;
         }
 
-        if (context.getOptions().STDLIB_AS_INTERNAL && canonicalPath.startsWith(context.getRubyHome())) {
-            return true;
+        if (canonicalPath.startsWith(context.getRubyHome())) {
+            return context.getOptions().STDLIB_AS_INTERNAL;
         }
 
         return false;
