@@ -14,6 +14,8 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.utilities.NeverValidAssumption;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayUtils;
@@ -114,6 +116,20 @@ public abstract class ModuleOperations {
         return constant != null && !constant.isAutoloadingThread();
     }
 
+    private static boolean isConstantDefined(RubyConstant constant, ArrayList<Assumption> assumptions) {
+        if (constant != null) {
+            if (constant.isAutoloading()) {
+                // Cannot cache the lookup of an autoloading constant as the result depends on the calling thread
+                assumptions.add(NeverValidAssumption.INSTANCE);
+                return !constant.isAutoloadingThread();
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
     @TruffleBoundary
     public static ConstantLookupResult lookupConstant(RubyContext context, DynamicObject module, String name) {
         return lookupConstant(context, module, name, new ArrayList<>());
@@ -127,7 +143,7 @@ public abstract class ModuleOperations {
         ModuleFields fields = Layouts.MODULE.getFields(module);
         assumptions.add(fields.getConstantsUnmodifiedAssumption());
         RubyConstant constant = fields.getConstant(name);
-        if (isConstantDefined(constant)) {
+        if (isConstantDefined(constant, assumptions)) {
             return new ConstantLookupResult(constant, toArray(assumptions));
         }
 
@@ -139,7 +155,7 @@ public abstract class ModuleOperations {
             fields = Layouts.MODULE.getFields(ancestor);
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
             constant = fields.getConstant(name);
-            if (isConstantDefined(constant)) {
+            if (isConstantDefined(constant, assumptions)) {
                 return new ConstantLookupResult(constant, toArray(assumptions));
             }
         }
@@ -156,7 +172,7 @@ public abstract class ModuleOperations {
             ModuleFields fields = Layouts.MODULE.getFields(objectClass);
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
             RubyConstant constant = fields.getConstant(name);
-            if (isConstantDefined(constant)) {
+            if (isConstantDefined(constant, assumptions)) {
                 return new ConstantLookupResult(constant, toArray(assumptions));
             }
 
@@ -165,7 +181,7 @@ public abstract class ModuleOperations {
                 fields = Layouts.MODULE.getFields(ancestor);
                 assumptions.add(fields.getConstantsUnmodifiedAssumption());
                 constant = fields.getConstant(name);
-                if (isConstantDefined(constant)) {
+                if (isConstantDefined(constant, assumptions)) {
                     return new ConstantLookupResult(constant, toArray(assumptions));
                 }
             }
@@ -193,7 +209,7 @@ public abstract class ModuleOperations {
             final ModuleFields fields = Layouts.MODULE.getFields(lexicalScope.getLiveModule());
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
             final RubyConstant constant = fields.getConstant(name);
-            if (isConstantDefined(constant)) {
+            if (isConstantDefined(constant, assumptions)) {
                 return new ConstantLookupResult(constant, toArray(assumptions));
             }
 
@@ -241,17 +257,17 @@ public abstract class ModuleOperations {
             throw new RaiseException(context, context.getCoreExceptions().nameError(StringUtils.format("wrong constant name %s", name), module, name, currentNode));
         }
 
+        final ArrayList<Assumption> assumptions = new ArrayList<>();
         if (inherit) {
-            return ModuleOperations.lookupConstantAndObject(context, module, name, new ArrayList<>());
+            return ModuleOperations.lookupConstantAndObject(context, module, name, assumptions);
         } else {
-
             final ModuleFields fields = Layouts.MODULE.getFields(module);
-            final Assumption assumption = fields.getConstantsUnmodifiedAssumption();
+            assumptions.add(fields.getConstantsUnmodifiedAssumption());
             final RubyConstant constant = fields.getConstant(name);
-            if (isConstantDefined(constant)) {
-                return new ConstantLookupResult(constant, assumption);
+            if (isConstantDefined(constant, assumptions)) {
+                return new ConstantLookupResult(constant, toArray(assumptions));
             } else {
-                return new ConstantLookupResult(null, assumption);
+                return new ConstantLookupResult(null, toArray(assumptions));
             }
         }
     }
