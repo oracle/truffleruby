@@ -552,11 +552,11 @@ public abstract class ModuleNodes {
         private Object autoloadQuery(DynamicObject module, String name) {
             final ConstantLookupResult constant = ModuleOperations.lookupConstant(getContext(), module, name);
 
-            if (!constant.isFound() || !constant.getConstant().isAutoload()) {
+            if (constant.isAutoload() && !constant.getConstant().isAutoloadingThread()) {
+                return constant.getConstant().getAutoloadPath();
+            } else {
                 return nil();
             }
-
-            return constant.getConstant().getValue();
         }
     }
 
@@ -829,7 +829,8 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         public boolean isConstDefined(DynamicObject module, String fullName, boolean inherit) {
-            return ModuleOperations.lookupScopedConstant(getContext(), module, fullName, inherit, this).isFound();
+            final ConstantLookupResult constant = ModuleOperations.lookupScopedConstant(getContext(), module, fullName, inherit, this);
+            return constant.isFound();
         }
 
     }

@@ -15,6 +15,7 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
@@ -90,10 +91,10 @@ public class ReadConstantNode extends RubyNode {
             throw e;
         }
 
-        if (constant == null) {
-            return nil();
-        } else {
+        if (ModuleOperations.isConstantDefined(constant)) {
             return coreStrings().CONSTANT.createInstance();
+        } else {
+            return nil();
         }
     }
 

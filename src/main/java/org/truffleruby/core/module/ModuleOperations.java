@@ -54,6 +54,10 @@ public abstract class ModuleOperations {
         return includesModule(thisClass, otherClass);
     }
 
+    public static boolean inAncestorsOf(DynamicObject module, DynamicObject ancestors) {
+        return includesModule(ancestors, module);
+    }
+
     public static boolean canBindMethodTo(DynamicObject origin, DynamicObject module) {
         assert RubyGuards.isRubyModule(origin);
         assert RubyGuards.isRubyModule(module);
@@ -106,6 +110,10 @@ public abstract class ModuleOperations {
         return constants.entrySet();
     }
 
+    public static boolean isConstantDefined(RubyConstant constant) {
+        return constant != null && !constant.isAutoloadingThread();
+    }
+
     @TruffleBoundary
     public static ConstantLookupResult lookupConstant(RubyContext context, DynamicObject module, String name) {
         return lookupConstant(context, module, name, new ArrayList<>());
@@ -119,7 +127,7 @@ public abstract class ModuleOperations {
         ModuleFields fields = Layouts.MODULE.getFields(module);
         assumptions.add(fields.getConstantsUnmodifiedAssumption());
         RubyConstant constant = fields.getConstant(name);
-        if (constant != null) {
+        if (isConstantDefined(constant)) {
             return new ConstantLookupResult(constant, toArray(assumptions));
         }
 
@@ -131,7 +139,7 @@ public abstract class ModuleOperations {
             fields = Layouts.MODULE.getFields(ancestor);
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
             constant = fields.getConstant(name);
-            if (constant != null) {
+            if (isConstantDefined(constant)) {
                 return new ConstantLookupResult(constant, toArray(assumptions));
             }
         }
@@ -148,7 +156,7 @@ public abstract class ModuleOperations {
             ModuleFields fields = Layouts.MODULE.getFields(objectClass);
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
             RubyConstant constant = fields.getConstant(name);
-            if (constant != null) {
+            if (isConstantDefined(constant)) {
                 return new ConstantLookupResult(constant, toArray(assumptions));
             }
 
@@ -157,7 +165,7 @@ public abstract class ModuleOperations {
                 fields = Layouts.MODULE.getFields(ancestor);
                 assumptions.add(fields.getConstantsUnmodifiedAssumption());
                 constant = fields.getConstant(name);
-                if (constant != null) {
+                if (isConstantDefined(constant)) {
                     return new ConstantLookupResult(constant, toArray(assumptions));
                 }
             }
@@ -182,10 +190,10 @@ public abstract class ModuleOperations {
 
         // Look in lexical scope
         while (lexicalScope != context.getRootLexicalScope()) {
-            ModuleFields fields = Layouts.MODULE.getFields(lexicalScope.getLiveModule());
+            final ModuleFields fields = Layouts.MODULE.getFields(lexicalScope.getLiveModule());
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
-            RubyConstant constant = fields.getConstant(name);
-            if (constant != null) {
+            final RubyConstant constant = fields.getConstant(name);
+            if (isConstantDefined(constant)) {
                 return new ConstantLookupResult(constant, toArray(assumptions));
             }
 
@@ -236,9 +244,15 @@ public abstract class ModuleOperations {
         if (inherit) {
             return ModuleOperations.lookupConstantAndObject(context, module, name, new ArrayList<>());
         } else {
+
             final ModuleFields fields = Layouts.MODULE.getFields(module);
+            final Assumption assumption = fields.getConstantsUnmodifiedAssumption();
             final RubyConstant constant = fields.getConstant(name);
-            return new ConstantLookupResult(constant, fields.getConstantsUnmodifiedAssumption());
+            if (isConstantDefined(constant)) {
+                return new ConstantLookupResult(constant, assumption);
+            } else {
+                return new ConstantLookupResult(null, assumption);
+            }
         }
     }
 

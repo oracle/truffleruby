@@ -61,7 +61,7 @@ public abstract class LookupConstantWithLexicalScopeNode extends LookupConstantB
     protected RubyConstant lookupConstantUncached(
             @Cached("createBinaryProfile()") ConditionProfile isVisibleProfile,
             @Cached("createBinaryProfile()") ConditionProfile isDeprecatedProfile) {
-        ConstantLookupResult constant = doLookup();
+        final ConstantLookupResult constant = doLookup();
         if (isVisibleProfile.profile(!isVisible(constant))) {
             throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(getModule(), name, this));
         }

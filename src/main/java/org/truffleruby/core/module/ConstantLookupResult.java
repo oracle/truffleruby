@@ -22,16 +22,21 @@ public class ConstantLookupResult {
     @CompilationFinal(dimensions = 1) private final Assumption[] assumptions;
 
     public ConstantLookupResult(RubyConstant constant, Assumption... assumptions) {
+        assert constant == null || !constant.isAutoloadingThread();
         this.constant = constant;
         this.assumptions = assumptions;
     }
 
     public boolean isFound() {
-        return constant != null;
+        return constant != null && !constant.isUndefined();
     }
 
     public boolean isDeprecated() {
         return constant != null && constant.isDeprecated();
+    }
+
+    public boolean isAutoload() {
+        return constant != null && constant.isAutoload();
     }
 
     public boolean isVisibleTo(RubyContext context, LexicalScope lexicalScope, DynamicObject module) {

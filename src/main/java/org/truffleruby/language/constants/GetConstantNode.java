@@ -19,10 +19,10 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.module.ModuleFields;
+import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 @NodeChildren({ @NodeChild("lexicalScope"), @NodeChild("module"), @NodeChild("name"), @NodeChild("constant"), @NodeChild("lookupConstantNode") })
@@ -51,38 +51,57 @@ public abstract class GetConstantNode extends RubyNode {
         this.callConstMissing = callConstMissing;
     }
 
-    @Specialization(guards = { "constant != null", "!constant.isAutoload()" })
+    @Specialization(guards = { "constant != null", "constant.hasValue()" })
     protected Object getConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode) {
         return constant.getValue();
     }
 
-    @Specialization(guards = { "constant != null", "constant.isAutoload()" })
-    protected Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode,
+    @Specialization(guards = { "autoloadConstant != null", "autoloadConstant.isAutoload()" })
+    protected Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant autoloadConstant, LookupConstantInterface lookupConstantNode,
             @Cached("createOnSelf()") CallDispatchHeadNode callRequireNode) {
 
-        final DynamicObject feature = constant.getAutoloadPath();
-        final ModuleFields fields = Layouts.MODULE.getFields(constant.getDeclaringModule());
+        final DynamicObject feature = autoloadConstant.getAutoloadPath();
+        final DynamicObject autoloadConstantModule = autoloadConstant.getDeclaringModule();
+        final ModuleFields fields = Layouts.MODULE.getFields(autoloadConstantModule);
 
-        // The autoload constant must only be removed if everything succeeds.
-        // We remove it first to allow lookup to ignore it and add it back if there was a failure.
-        fields.removeConstant(getContext(), this, name);
+        if (autoloadConstant.isAutoloadingThread()) {
+            // Pretend the constant does not exist while it is autoloading
+            return executeGetConstant(lexicalScope, module, name, null, lookupConstantNode);
+        }
+
+        autoloadConstant.startAutoLoad();
         try {
+
+            // We need to notify cached lookup that we are autoloading the constant, as constant
+            // lookup changes based on whether an autoload constant is loading or not (constant
+            // lookup ignores being-autoloaded constants).
+            fields.newConstantsVersion();
+
             callRequireNode.call(null, coreLibrary().getMainObject(), "require", feature);
-        } catch (RaiseException e) {
-            fields.setAutoloadConstant(getContext(), this, name, feature);
-            throw e;
-        }
-        try {
-            final RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
+
+            RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
+
+            // check if the constant was set in the ancestors of autoloadConstantModule
+            if (resolvedConstant != null && ModuleOperations.inAncestorsOf(resolvedConstant.getDeclaringModule(), autoloadConstantModule)) {
+                // all is good, just return that constant
+            } else {
+                // If the autoload constant was not set in the ancestors, undefine the constant
+                fields.undefineConstantIfStillAutoload(autoloadConstant, name);
+
+                // redo lookup, to consider the undefined constant
+                resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
+            }
+
             return executeGetConstant(lexicalScope, module, name, resolvedConstant, lookupConstantNode);
-        } catch (RaiseException e) {
-            fields.setAutoloadConstant(getContext(), this, name, feature);
-            throw e;
+
+        } finally {
+            autoloadConstant.stopAutoLoad();
         }
+
     }
 
     @Specialization(
-            guards = { "constant == null", "guardName(name, cachedName, sameNameProfile)" },
+            guards = { "isNullOrUndefined(constant)", "guardName(name, cachedName, sameNameProfile)" },
             limit = "getCacheLimit()")
     protected Object missingConstantCached(LexicalScope lexicalScope, DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode,
             @Cached("name") String cachedName,
@@ -95,7 +114,7 @@ public abstract class GetConstantNode extends RubyNode {
         }
     }
 
-    @Specialization(guards = "constant == null")
+    @Specialization(guards = "isNullOrUndefined(constant)")
     protected Object missingConstantUncached(LexicalScope lexicalScope, DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode) {
         if (callConstMissing) {
             return doMissingConstant(module, name, getSymbol(name));
@@ -111,6 +130,10 @@ public abstract class GetConstantNode extends RubyNode {
         }
 
         return constMissingNode.call(null, module, "const_missing", symbolName);
+    }
+
+    protected boolean isNullOrUndefined(Object constant) {
+        return constant == null || ((RubyConstant) constant).isUndefined();
     }
 
     protected boolean guardName(String name, String cachedName, ConditionProfile sameNameProfile) {

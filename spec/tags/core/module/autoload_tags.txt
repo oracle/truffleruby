@@ -2,10 +2,3 @@ fails:Module#autoload (concurrently) blocks a second thread while a first is doi
 fails:Module#autoload (concurrently) blocks others threads while doing an autoload
 fails:Module#autoload shares the autoload request across dup'ed copies of modules
 fails:Module#autoload (concurrently) raises a LoadError in each thread if the file does not exist
-fails:Module#autoload during the autoload before the constant is assigned returns nil in autoload thread and 'constant' otherwise for defined?
-fails:Module#autoload during the autoload before the constant is assigned keeps the constant part of Module#constants
-fails:Module#autoload during the autoload before the constant is assigned returns false in autoload thread and true otherwise for Module#const_defined?
-fails:Module#autoload during the autoload before the constant is assigned returns nil in autoload thread and returns the path in other threads for Module#autoload?
-fails:Module#autoload does not remove the constant from Module#constants if the loaded file does not define it, but leaves it as 'undefined'
-fails:Module#autoload after autoloading searches for the constant like the original lookup in lexical scopes if declared in parent and defined in current
-fails:Module#autoload after autoloading searches for the constant like the original lookup and fails when finding the undefined autoload constant in the the current scope when declared in current and defined in parent
