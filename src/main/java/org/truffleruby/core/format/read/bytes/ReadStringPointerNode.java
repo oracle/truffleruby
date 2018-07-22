@@ -11,6 +11,7 @@ package org.truffleruby.core.format.read.bytes;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -25,6 +26,7 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.TaintNode;
 
 @NodeChildren({
         @NodeChild(value = "value", type = FormatNode.class),
@@ -45,7 +47,8 @@ public abstract class ReadStringPointerNode extends FormatNode {
     }
 
     @Specialization
-    public Object read(VirtualFrame frame, long address) {
+    public Object read(VirtualFrame frame, long address,
+                       @Cached("create()") TaintNode taintNode) {
         final Pointer pointer = new Pointer(address);
 
         try {
@@ -56,7 +59,14 @@ public abstract class ReadStringPointerNode extends FormatNode {
         }
 
         final byte[] bytes = pointer.readZeroTerminatedByteArray(getContext(), 0, limit);
-        return makeStringNode.executeMake(bytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+
+        final DynamicObject string = makeStringNode.executeMake(bytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+
+        if (isSourceTainted(frame)) {
+            taintNode.executeTaint(string);
+        }
+
+        return string;
     }
 
     @TruffleBoundary
