@@ -213,7 +213,7 @@ public class SourceLoader {
             return true;
         }
 
-        if (canonicalPath.startsWith(context.getRubyHome())) {
+        if (context.getOptions().STDLIB_AS_INTERNAL && canonicalPath.startsWith(context.getRubyHome())) {
             return true;
         }
 
