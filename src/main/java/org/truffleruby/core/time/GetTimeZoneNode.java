@@ -153,23 +153,37 @@ public abstract class GetTimeZoneNode extends RubyNode {
                 return false;
             }
 
-            try {
-                if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) {
-                    return false;
-                }
-                final long size = Files.size(path);
-                return size == bytes.length && Arrays.equals(Files.readAllBytes(path), bytes);
-            } catch (IOException e) {
-                throw new JavaException(e);
-            }
+            return isSameFile(bytes, path);
         }).findFirst();
 
         if (same.isPresent()) {
             return zoneinfo.relativize(same.get()).toString();
         } else {
-            RubyLanguage.LOGGER.warning("could not find timezone (no file in " + zoneinfo + " is the same as /etc/localtime), using UTC instead");
+            if (isWSLTimeZone(zoneinfo, bytes)) {
+                RubyLanguage.LOGGER.warning("Windows Subsystem for Linux does not set a correct unix timezone, using UTC instead");
+                RubyLanguage.LOGGER.warning("running 'sudo dpkg-reconfigure tzdata' should configure a correct unix timezone");
+            } else {
+                RubyLanguage.LOGGER.warning("could not find timezone (no file in " + zoneinfo + " is the same as /etc/localtime), using UTC instead");
+            }
             return "UTC";
         }
+    }
+
+    private boolean isSameFile(byte[] bytes, Path path) {
+        try {
+            if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) {
+                return false;
+            }
+            final long size = Files.size(path);
+            return size == bytes.length && Arrays.equals(Files.readAllBytes(path), bytes);
+        } catch (IOException e) {
+            throw new JavaException(e);
+        }
+    }
+
+    private boolean isWSLTimeZone(Path zoneinfo, byte[] bytes) {
+        final Path wslTimeZone = zoneinfo.resolve("Msft/localtime");
+        return isSameFile(bytes, wslTimeZone);
     }
 
     private static final Map<String, String> LONG_TZNAME = Helpers.map(
