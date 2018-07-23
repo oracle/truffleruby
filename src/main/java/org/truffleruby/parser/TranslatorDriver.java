@@ -162,16 +162,14 @@ public class TranslatorDriver {
 
         // Parse to the JRuby AST
 
-        RootParseNode node = null;
+        final RootParseNode node;
 
-        // Only use the cache while loading the core library, as eval() later could use the same
-        // Source name but should not use the cache. For instance, TOPLEVEL_BINDING.eval("self")
-        // would use the cache which is wrong.
-        if (ParserCache.INSTANCE != null && context.getCoreLibrary().isLoadingRubyCore()) {
+        // Only use the cache while loading top-level core library files, as eval() later could use
+        // the same Source name but should not use the cache. For instance,
+        // TOPLEVEL_BINDING.eval("self") would use the cache which is wrong.
+        if (ParserCache.INSTANCE != null && parserContext == ParserContext.TOP_LEVEL && ParserCache.INSTANCE.containsKey(source.getName())) {
             node = ParserCache.INSTANCE.get(source.getName());
-        }
-
-        if (node == null) {
+        } else {
             printParseTranslateExecuteMetric("before-parsing", context, source);
             node = parseToJRubyAST(rubySource, staticScope, parserConfiguration);
             printParseTranslateExecuteMetric("after-parsing", context, source);

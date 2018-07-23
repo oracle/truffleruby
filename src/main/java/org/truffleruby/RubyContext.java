@@ -253,14 +253,8 @@ public class RubyContext {
         // Load the part of the core library defined in Ruby
 
         Metrics.printTime("before-load-core");
-        coreLibrary.loadRubyCore();
+        coreLibrary.loadRubyCoreLibraryAndPostBoot();
         Metrics.printTime("after-load-core");
-
-        // Load other subsystems
-
-        Metrics.printTime("before-post-boot");
-        coreLibrary.initializePostBoot();
-        Metrics.printTime("after-post-boot");
 
         // Share once everything is loaded
         if (options.SHARED_OBJECTS_ENABLED && options.SHARED_OBJECTS_FORCE) {
