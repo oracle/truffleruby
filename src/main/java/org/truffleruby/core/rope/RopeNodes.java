@@ -18,8 +18,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.SlowPathException;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -34,7 +32,7 @@ import org.truffleruby.core.rope.RopeNodesFactory.SetByteNodeGen;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
 import java.util.ArrayDeque;
@@ -49,18 +47,13 @@ import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 public abstract class RopeNodes {
 
     // Preserves encoding of the top-level Rope
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "base"),
-            @NodeChild(type = RubyNode.class, value = "byteOffset"),
-            @NodeChild(type = RubyNode.class, value = "byteLength")
-    })
-    public abstract static class SubstringNode extends RubyNode {
+    public abstract static class SubstringNode extends RubyBaseNode {
 
         @Child private MakeSubstringRopeNode makeSubstringRopeNode = MakeSubstringRopeNode.create();
         @Child private WithEncodingNode withEncodingNode;
 
         public static SubstringNode create() {
-            return RopeNodesFactory.SubstringNodeGen.create(null, null, null);
+            return RopeNodesFactory.SubstringNodeGen.create();
         }
 
         public abstract Rope executeSubstring(Rope base, int byteOffset, int byteLength);
@@ -199,18 +192,12 @@ public abstract class RopeNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "encoding"),
-            @NodeChild(type = RubyNode.class, value = "base"),
-            @NodeChild(type = RubyNode.class, value = "byteOffset"),
-            @NodeChild(type = RubyNode.class, value = "byteLength")
-    })
-    public abstract static class MakeSubstringRopeNode extends RubyNode {
+    public abstract static class MakeSubstringRopeNode extends RubyBaseNode {
 
         @Child private MakeLeafRopeNode makeLeafRopeNode;
 
         public static MakeSubstringRopeNode create() {
-            return RopeNodesFactory.MakeSubstringRopeNodeGen.create(null, null, null, null);
+            return RopeNodesFactory.MakeSubstringRopeNodeGen.create();
         }
 
         public abstract Rope executeMake(Encoding encoding, Rope base, int byteOffset, int byteLength);
@@ -275,15 +262,11 @@ public abstract class RopeNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "encoding"),
-            @NodeChild(type = RubyNode.class, value = "bytes")
-    })
     @ImportStatic(RopeGuards.class)
-    public abstract static class CalculateAttributesNode extends RubyNode {
+    public abstract static class CalculateAttributesNode extends RubyBaseNode {
 
         public static CalculateAttributesNode create() {
-            return RopeNodesFactory.CalculateAttributesNodeGen.create(null, null);
+            return RopeNodesFactory.CalculateAttributesNodeGen.create();
         }
 
         abstract StringAttributes executeCalculateAttributes(Encoding encoding, byte[] bytes);
@@ -403,15 +386,10 @@ public abstract class RopeNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "left"),
-            @NodeChild(type = RubyNode.class, value = "right"),
-            @NodeChild(type = RubyNode.class, value = "encoding")
-    })
-    public abstract static class ConcatNode extends RubyNode {
+    public abstract static class ConcatNode extends RubyBaseNode {
 
         public static ConcatNode create() {
-            return RopeNodesFactory.ConcatNodeGen.create(null, null, null);
+            return RopeNodesFactory.ConcatNodeGen.create();
         }
 
         @Child private FlattenNode flattenNode;
@@ -643,18 +621,11 @@ public abstract class RopeNodes {
         }
     }
 
-
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "bytes"),
-            @NodeChild(type = RubyNode.class, value = "encoding"),
-            @NodeChild(type = RubyNode.class, value = "codeRange"),
-            @NodeChild(type = RubyNode.class, value = "characterLength")
-    })
     @ImportStatic(RopeGuards.class)
-    public abstract static class MakeLeafRopeNode extends RubyNode {
+    public abstract static class MakeLeafRopeNode extends RubyBaseNode {
 
         public static MakeLeafRopeNode create() {
-            return RopeNodesFactory.MakeLeafRopeNodeGen.create(null, null, null, null);
+            return RopeNodesFactory.MakeLeafRopeNodeGen.create();
         }
 
         public abstract LeafRope executeMake(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength);
@@ -814,15 +785,11 @@ public abstract class RopeNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "base"),
-            @NodeChild(type = RubyNode.class, value = "times")
-    })
     @ImportStatic(RopeGuards.class)
-    public abstract static class RepeatNode extends RubyNode {
+    public abstract static class RepeatNode extends RubyBaseNode {
 
         public static RepeatNode create() {
-            return RopeNodesFactory.RepeatNodeGen.create(null, null);
+            return RopeNodesFactory.RepeatNodeGen.create();
         }
 
         public abstract Rope executeRepeat(Rope base, int times);
@@ -869,13 +836,7 @@ public abstract class RopeNodes {
 
     }
 
-
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "rope"),
-            @NodeChild(type = RubyNode.class, value = "currentLevel"),
-            @NodeChild(type = RubyNode.class, value = "printString")
-    })
-    public abstract static class DebugPrintRopeNode extends RubyNode {
+    public abstract static class DebugPrintRopeNode extends RubyBaseNode {
 
         public abstract DynamicObject executeDebugPrint(Rope rope, int currentLevel, boolean printString);
 
@@ -1006,17 +967,13 @@ public abstract class RopeNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "rope"),
-            @NodeChild(type = RubyNode.class, value = "encoding")
-    })
-    public abstract static class WithEncodingNode extends RubyNode {
+    public abstract static class WithEncodingNode extends RubyBaseNode {
 
         @Child private BytesNode bytesNode;
         @Child private MakeLeafRopeNode makeLeafRopeNode;
 
         public static WithEncodingNode create() {
-            return RopeNodesFactory.WithEncodingNodeGen.create(null, null);
+            return RopeNodesFactory.WithEncodingNodeGen.create();
         }
 
         public abstract Rope executeWithEncoding(Rope rope, Encoding encoding);
@@ -1103,14 +1060,10 @@ public abstract class RopeNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "rope"),
-            @NodeChild(type = RubyNode.class, value = "index")
-    })
-    public abstract static class GetByteNode extends RubyNode {
+    public abstract static class GetByteNode extends RubyBaseNode {
 
         public static GetByteNode create() {
-            return RopeNodesFactory.GetByteNodeGen.create(null, null);
+            return RopeNodesFactory.GetByteNodeGen.create();
         }
 
         public abstract int executeGetByte(Rope rope, int index);
@@ -1175,12 +1128,7 @@ public abstract class RopeNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "rope"),
-            @NodeChild(type = RubyNode.class, value = "index"),
-            @NodeChild(type = RubyNode.class, value = "value")
-    })
-    public abstract static class SetByteNode extends RubyNode {
+    public abstract static class SetByteNode extends RubyBaseNode {
 
         @Child private ConcatNode composedConcatNode = ConcatNode.create();
         @Child private ConcatNode middleConcatNode = ConcatNode.create();
@@ -1189,7 +1137,7 @@ public abstract class RopeNodes {
         @Child private SubstringNode rightSubstringNode = SubstringNode.create();
 
         public static SetByteNode create() {
-            return SetByteNodeGen.create(null, null, null);
+            return SetByteNodeGen.create();
         }
 
         public abstract Rope executeSetByte(Rope string, int index, int value);
@@ -1214,16 +1162,12 @@ public abstract class RopeNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "rope"),
-            @NodeChild(type = RubyNode.class, value = "index")
-    })
-    public abstract static class GetCodePointNode extends RubyNode {
+    public abstract static class GetCodePointNode extends RubyBaseNode {
 
         @Child private CharacterLengthNode characterLengthNode;
 
         public static GetCodePointNode create() {
-            return RopeNodesFactory.GetCodePointNodeGen.create(null, null);
+            return RopeNodesFactory.GetCodePointNodeGen.create();
         }
 
         public abstract int executeGetCodePoint(Rope rope, int index);
@@ -1280,16 +1224,13 @@ public abstract class RopeNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "rope")
-    })
     @ImportStatic(RopeGuards.class)
-    public abstract static class FlattenNode extends RubyNode {
+    public abstract static class FlattenNode extends RubyBaseNode {
 
         @Child private MakeLeafRopeNode makeLeafRopeNode = MakeLeafRopeNode.create();
 
         public static FlattenNode create() {
-            return RopeNodesFactory.FlattenNodeGen.create(null);
+            return RopeNodesFactory.FlattenNodeGen.create();
         }
 
         public abstract LeafRope executeFlatten(Rope rope);
@@ -1316,14 +1257,10 @@ public abstract class RopeNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "a"),
-            @NodeChild(type = RubyNode.class, value = "b")
-    })
-    public abstract static class EqualNode extends RubyNode {
+    public abstract static class EqualNode extends RubyBaseNode {
 
         public static EqualNode create() {
-            return RopeNodesFactory.EqualNodeGen.create(null, null);
+            return RopeNodesFactory.EqualNodeGen.create();
         }
 
         public abstract boolean execute(Rope a, Rope b);
@@ -1350,14 +1287,10 @@ public abstract class RopeNodes {
     // This node type checks for the equality of the bytes owned by a rope but does not pay
     // attention to the encoding. It matches the behaviour of the equals method on the rope class
     // itself.
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "a"),
-            @NodeChild(type = RubyNode.class, value = "b")
-    })
-    public abstract static class BytesEqualNode extends RubyNode {
+    public abstract static class BytesEqualNode extends RubyBaseNode {
 
         public static BytesEqualNode create() {
-            return RopeNodesFactory.BytesEqualNodeGen.create(null, null);
+            return RopeNodesFactory.BytesEqualNodeGen.create();
         }
 
         public abstract boolean execute(Rope a, Rope b);
@@ -1436,11 +1369,10 @@ public abstract class RopeNodes {
 
     }
 
-    @NodeChild(type = RubyNode.class, value = "rope")
-    public abstract static class BytesNode extends RubyNode {
+    public abstract static class BytesNode extends RubyBaseNode {
 
         public static BytesNode create() {
-            return RopeNodesFactory.BytesNodeGen.create(null);
+            return RopeNodesFactory.BytesNodeGen.create();
         }
 
         public abstract byte[] execute(Rope rope);
@@ -1462,14 +1394,10 @@ public abstract class RopeNodes {
         }
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "rope"),
-            @NodeChild(type = RubyNode.class, value = "index")
-    })
-    public abstract static class ByteSlowNode extends RubyNode {
+    public abstract static class ByteSlowNode extends RubyBaseNode {
 
         public static ByteSlowNode create() {
-            return RopeNodesFactory.ByteSlowNodeGen.create(null, null);
+            return RopeNodesFactory.ByteSlowNodeGen.create();
         }
 
         public abstract byte execute(Rope rope, int index);
@@ -1497,12 +1425,10 @@ public abstract class RopeNodes {
         }
     }
 
-    @NodeChildren({
-        @NodeChild(type = RubyNode.class, value = "rope")
-    })
-    public abstract static class HashNode extends RubyNode {
+    public abstract static class HashNode extends RubyBaseNode {
+
         public static HashNode create() {
-            return RopeNodesFactory.HashNodeGen.create(null);
+            return RopeNodesFactory.HashNodeGen.create();
         }
 
         public abstract int execute(Rope rope);
@@ -1516,21 +1442,14 @@ public abstract class RopeNodes {
         public int executeHashNotCalculated(Rope rope) {
             return rope.hashCode();
         }
+
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "encoding"),
-            @NodeChild(type = RubyNode.class, value = "codeRange"),
-            @NodeChild(type = RubyNode.class, value = "bytes"),
-            @NodeChild(type = RubyNode.class, value = "byteOffset"),
-            @NodeChild(type = RubyNode.class, value = "byteEnd"),
-            @NodeChild(type = RubyNode.class, value = "recoverIfBroken")
-    })
     @ImportStatic(CodeRange.class)
-    public abstract static class CharacterLengthNode extends RubyNode {
+    public abstract static class CharacterLengthNode extends RubyBaseNode {
 
         public static CharacterLengthNode create() {
-            return RopeNodesFactory.CharacterLengthNodeGen.create(null, null, null, null, null, null);
+            return RopeNodesFactory.CharacterLengthNodeGen.create();
         }
 
         protected abstract int executeLength(Encoding encoding, CodeRange codeRange, byte[] bytes,
@@ -1673,11 +1592,10 @@ public abstract class RopeNodes {
 
     }
 
-    @NodeChild(type = RubyNode.class, value = "rope")
-    public abstract static class NativeToManagedNode extends RubyNode {
+    public abstract static class NativeToManagedNode extends RubyBaseNode {
 
         public static NativeToManagedNode create() {
-            return RopeNodesFactory.NativeToManagedNodeGen.create(null);
+            return RopeNodesFactory.NativeToManagedNodeGen.create();
         }
 
         public abstract LeafRope execute(NativeRope rope);

@@ -53,7 +53,6 @@ import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeNodesFactory;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.SubstringRope;
 import org.truffleruby.core.string.StringNodes;
@@ -941,7 +940,7 @@ public class CExtNodes {
         public Object read(DynamicObject string, int index,
                 @Cached("createBinaryProfile()") ConditionProfile nativeRopeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile inBoundsProfile,
-                @Cached("getHelperNode()") RopeNodes.GetByteNode getByteNode) {
+                @Cached("create()") RopeNodes.GetByteNode getByteNode) {
             final Rope rope = rope(string);
 
             if (nativeRopeProfile.profile(rope instanceof NativeRope) || inBoundsProfile.profile(index < rope.byteLength())) {
@@ -949,10 +948,6 @@ public class CExtNodes {
             } else {
                 return 0;
             }
-        }
-
-        protected RopeNodes.GetByteNode getHelperNode() {
-            return RopeNodesFactory.GetByteNodeGen.create(null, null);
         }
 
     }

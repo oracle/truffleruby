@@ -126,7 +126,6 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeGuards;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeNodes.RepeatNode;
-import org.truffleruby.core.rope.RopeNodesFactory;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.SubstringRope;
 import org.truffleruby.core.string.StringNodesFactory.CountRopesNodeFactory;
@@ -1183,7 +1182,7 @@ public abstract class StringNodes {
     @CoreMethod(names = "force_encoding", required = 1, raiseIfFrozenSelf = true)
     public abstract static class ForceEncodingNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.WithEncodingNode withEncodingNode = RopeNodesFactory.WithEncodingNodeGen.create(null, null);
+        @Child private RopeNodes.WithEncodingNode withEncodingNode = RopeNodes.WithEncodingNode.create();
         private final ConditionProfile differentEncodingProfile = ConditionProfile.createBinaryProfile();
 
         @Specialization(guards = "isRubyString(encodingName)")
@@ -1227,7 +1226,7 @@ public abstract class StringNodes {
     public abstract static class GetByteNode extends CoreMethodArrayArgumentsNode {
 
         @Child private NormalizeIndexNode normalizeIndexNode = StringNodesFactory.NormalizeIndexNodeGen.create(null, null);
-        @Child private RopeNodes.GetByteNode ropeGetByteNode = RopeNodesFactory.GetByteNodeGen.create(null, null);
+        @Child private RopeNodes.GetByteNode ropeGetByteNode = RopeNodes.GetByteNode.create();
 
         @Specialization
         public Object getByte(DynamicObject string, int index,
