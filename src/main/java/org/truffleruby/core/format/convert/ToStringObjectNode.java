@@ -9,17 +9,17 @@
  */
 package org.truffleruby.core.format.convert;
 
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.IsTaintedNode;
 
 @NodeChildren({
@@ -27,17 +27,7 @@ import org.truffleruby.language.objects.IsTaintedNode;
 })
 public abstract class ToStringObjectNode extends FormatNode {
 
-    private final String conversionMethod;
-
-    @Child private CallDispatchHeadNode toStrNode;
-    @Child private IsTaintedNode isTaintedNode;
-
-    private final ConditionProfile taintedProfile = ConditionProfile.createBinaryProfile();
-
-    public ToStringObjectNode(String conversionMethod) {
-        this.conversionMethod = conversionMethod;
-        this.isTaintedNode = IsTaintedNode.create();
-    }
+    public abstract Object executeToStringObject(VirtualFrame frame, Object object);
 
     @Specialization(guards = "isNil(nil)")
     public DynamicObject toStringString(DynamicObject nil) {
@@ -45,7 +35,9 @@ public abstract class ToStringObjectNode extends FormatNode {
     }
 
     @Specialization(guards = "isRubyString(string)")
-    public Object toStringString(VirtualFrame frame, DynamicObject string) {
+    public Object toStringString(VirtualFrame frame, DynamicObject string,
+                                 @Cached("create()") IsTaintedNode isTaintedNode,
+                                 @Cached("createBinaryProfile()") ConditionProfile taintedProfile) {
         if (taintedProfile.profile(isTaintedNode.executeIsTainted(string))) {
             setTainted(frame);
         }
@@ -54,26 +46,16 @@ public abstract class ToStringObjectNode extends FormatNode {
     }
 
     @Specialization(guards = "!isRubyString(object)")
-    public Object toString(VirtualFrame frame, Object object) {
-        final Object value = getToStrNode().call(frame, object, conversionMethod);
+    public Object toString(VirtualFrame frame, Object object,
+                           @Cached("createBinaryProfile()") ConditionProfile notStringProfile,
+                           @Cached("create()") ToStrNode toStrNode) {
+        final Object value = toStrNode.executeToStr(frame, object);
 
-        if (RubyGuards.isRubyString(value)) {
-            if (taintedProfile.profile(isTaintedNode.executeIsTainted(value))) {
-                setTainted(frame);
-            }
-
-            return value;
+        if (notStringProfile.profile(!RubyGuards.isRubyString(value))) {
+            throw new NoImplicitConversionException(object, "String");
         }
 
-        throw new NoImplicitConversionException(object, "String");
-    }
-
-    private CallDispatchHeadNode getToStrNode() {
-        if (toStrNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            toStrNode = insert(CallDispatchHeadNode.createReturnMissing());
-        }
-        return toStrNode;
+        return executeToStringObject(frame, value);
     }
 
 }
