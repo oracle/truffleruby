@@ -180,7 +180,7 @@ public class SourceLoader {
 
     public static RubySource loadNoLogging(RubyContext context, String feature, boolean internal) throws IOException {
         if (feature.startsWith(RESOURCE_SCHEME)) {
-            return loadResource(feature);
+            return loadResource(feature, internal);
         } else {
             ensureReadable(context, feature);
 
@@ -197,30 +197,24 @@ public class SourceLoader {
                 name = RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(feature));
             }
 
-            Source.Builder<IOException, RuntimeException, RuntimeException> builder =
-                    Source.newBuilder(new File(feature)).name(name.intern()).mimeType(mimeType);
-
-            if (internal) {
-                builder = builder.internal();
-            }
-
-            return new RubySource(builder.build());
+            return new RubySource(buildSource(
+                    Source.newBuilder(new File(feature)).name(name.intern()).mimeType(mimeType), internal));
         }
     }
 
     private boolean isInternal(String canonicalPath) {
         if (canonicalPath.startsWith(context.getCoreLibrary().getCoreLoadPath())) {
-            return true;
+            return context.getOptions().CORE_AS_INTERNAL;
         }
 
         if (canonicalPath.startsWith(context.getRubyHome())) {
-            return true;
+            return context.getOptions().STDLIB_AS_INTERNAL;
         }
 
         return false;
     }
 
-    private static RubySource loadResource(String path) throws IOException {
+    private static RubySource loadResource(String path, boolean internal) throws IOException {
         if (TruffleOptions.AOT) {
             final String canonicalPath = SourceLoaderSupport.canonicalizeResourcePath(path);
             final SourceLoaderSupport.CoreLibraryFile coreFile = SourceLoaderSupport.allCoreLibraryFiles.get(canonicalPath);
@@ -228,7 +222,8 @@ public class SourceLoader {
                 throw new FileNotFoundException(path);
             }
 
-            final Source source = Source.newBuilder(coreFile.code).name(path).mimeType(RubyLanguage.MIME_TYPE).internal().build();
+            final Source source = buildSource(
+                    Source.newBuilder(coreFile.code).name(path).mimeType(RubyLanguage.MIME_TYPE), internal);
             return new RubySource(source);
         } else {
             if (!path.toLowerCase(Locale.ENGLISH).endsWith(".rb")) {
@@ -246,9 +241,18 @@ public class SourceLoader {
                 throw new FileNotFoundException(path);
             }
 
-            final Source source = Source.newBuilder(new InputStreamReader(stream, StandardCharsets.UTF_8)).name(path).
-                    mimeType(RubyLanguage.MIME_TYPE).internal().build();
+            final InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
+            final Source source = buildSource(
+                    Source.newBuilder(reader).name(path).mimeType(RubyLanguage.MIME_TYPE), internal);
             return new RubySource(source);
+        }
+    }
+
+    private static <E extends Exception> Source buildSource(Source.Builder<E, RuntimeException, RuntimeException> builder, boolean internal) throws E {
+        if (internal) {
+            return builder.internal().build();
+        } else {
+            return builder.build();
         }
     }
 

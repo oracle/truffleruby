@@ -221,6 +221,11 @@ public class OptionsCatalog {
             "Location to load the Truffle core library from",
             null,
             "resource:/truffleruby");
+    public static final BooleanOptionDescription CORE_AS_INTERNAL = new BooleanOptionDescription(
+            "ruby.core_as_internal",
+            "Mark core library sources as internal",
+            null,
+            true);
     public static final BooleanOptionDescription STDLIB_AS_INTERNAL = new BooleanOptionDescription(
             "ruby.stdlib_as_internal",
             "Mark stdlib sources (really, anything loaded from the TruffleRuby home) as internal",
@@ -603,7 +608,7 @@ public class OptionsCatalog {
             false);
     public static final StringArrayOptionDescription CEXTS_LIBRARY_REMAP = new StringArrayOptionDescription(
             "ruby.cexts.remap",
-            "Remap the name of native libraries, written in the form libexample.so=path/to/actual/libexample.so",
+            "Remap the name of native libraries, written in the form libexample.so:/path/to/actual/libexample.so",
             null,
             new String[]{});
     public static final BooleanOptionDescription LOG_DYNAMIC_CONSTANT_LOOKUP = new BooleanOptionDescription(
@@ -716,6 +721,8 @@ public class OptionsCatalog {
                 return COVERAGE_GLOBAL;
             case "ruby.core.load_path":
                 return CORE_LOAD_PATH;
+            case "ruby.core_as_internal":
+                return CORE_AS_INTERNAL;
             case "ruby.stdlib_as_internal":
                 return STDLIB_AS_INTERNAL;
             case "ruby.lazy_builtins":
@@ -915,6 +922,7 @@ public class OptionsCatalog {
             LOG_DYNAMIC_CONSTANT_LOOKUP,
             CORE_ALWAYS_CLONE,
             CORE_LOAD_PATH,
+            CORE_AS_INTERNAL,
             COVERAGE_GLOBAL,
             DEBUG,
             DEFAULT_CACHE,
