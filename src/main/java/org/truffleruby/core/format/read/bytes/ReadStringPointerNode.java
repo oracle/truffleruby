@@ -60,13 +60,8 @@ public abstract class ReadStringPointerNode extends FormatNode {
         }
 
         final byte[] bytes = pointer.readZeroTerminatedByteArray(getContext(), 0, limit);
-
         final DynamicObject string = makeStringNode.executeMake(bytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-
-        if (isSourceTainted(frame)) {
-            taintNode.executeTaint(string);
-        }
-
+        taintNode.executeTaint(string);
         return string;
     }
 

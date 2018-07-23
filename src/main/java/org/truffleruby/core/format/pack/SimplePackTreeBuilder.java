@@ -193,9 +193,8 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                 writeInteger(64, ByteOrder.nativeOrder(),
                         StringToPointerNodeGen.create(
                                 ToStringObjectNodeGen.create(
-                                        TaintValueNodeGen.create(
-                                                ReadValueNodeGen.create(
-                                                        new SourceNode())))))));
+                                        ReadValueNodeGen.create(
+                                                new SourceNode()))))));
     }
 
     @Override

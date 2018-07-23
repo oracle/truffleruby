@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.format.convert;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -22,6 +21,7 @@ import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.objects.TaintNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +39,10 @@ public abstract class StringToPointerNode extends FormatNode {
     @SuppressWarnings("unchecked")
     @Specialization(guards = "isRubyString(string)")
     public long toPointer(VirtualFrame frame, DynamicObject string,
-                          @Cached("create()") CExtNodes.StringToNativeNode stringToNativeNode) {
+                          @Cached("create()") CExtNodes.StringToNativeNode stringToNativeNode,
+                          @Cached("create()") TaintNode taintNode) {
+        taintNode.executeTaint(string);
+
         final Pointer pointer = stringToNativeNode.executeToNative(string).getNativePointer();
 
         List<Pointer> associated;
