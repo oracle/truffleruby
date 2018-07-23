@@ -33,6 +33,7 @@ Bug fixes:
 * WeakRef.new will now return the correct type of object, even if WeakRef is subclassed.
 * Resolving constants in prepended modules failed, this has now been fixed.
 * Send and `Symbol#to_proc` now take account of refinements at their call sites.
+* Better warning when the timezone cannot be found on WSL (#1393).
 
 Performance:
 
