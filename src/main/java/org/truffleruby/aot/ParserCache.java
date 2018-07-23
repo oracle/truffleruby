@@ -48,7 +48,7 @@ public class ParserCache {
 
     private static RubySource loadSource(String feature) {
         try {
-            return SourceLoader.loadNoLogging(null, feature, true);
+            return SourceLoader.loadResource(feature, true);
         } catch (IOException e) {
             throw new JavaException(e);
         }

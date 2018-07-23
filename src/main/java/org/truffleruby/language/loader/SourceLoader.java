@@ -10,6 +10,7 @@
 package org.truffleruby.language.loader;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -171,9 +172,13 @@ public class SourceLoader {
 
     @TruffleBoundary
     public RubySource loadCoreFile(String feature) throws IOException {
-        if (ParserCache.INSTANCE != null && feature.startsWith(RESOURCE_SCHEME)) {
-            final RootParseNode rootParseNode = ParserCache.INSTANCE.get(feature);
-            return new RubySource(rootParseNode.getSource());
+        if (feature.startsWith(RESOURCE_SCHEME)) {
+            if (TruffleOptions.AOT || ParserCache.INSTANCE != null) {
+                final RootParseNode rootParseNode = ParserCache.INSTANCE.get(feature);
+                return new RubySource(rootParseNode.getSource());
+            } else {
+                return loadResource(feature, isInternal(feature));
+            }
         } else {
             return load(feature);
         }
@@ -189,27 +194,23 @@ public class SourceLoader {
     }
 
     public static RubySource loadNoLogging(RubyContext context, String feature, boolean internal) throws IOException {
-        if (feature.startsWith(RESOURCE_SCHEME)) {
-            return loadResource(feature, internal);
+        ensureReadable(context, feature);
+
+        final String mimeType;
+        if (feature.toLowerCase().endsWith(RubyLanguage.CEXT_EXTENSION)) {
+            mimeType = RubyLanguage.CEXT_MIME_TYPE;
         } else {
-            ensureReadable(context, feature);
-
-            final String mimeType;
-            if (feature.toLowerCase().endsWith(RubyLanguage.CEXT_EXTENSION)) {
-                mimeType = RubyLanguage.CEXT_MIME_TYPE;
-            } else {
-                // We need to assume all other files are Ruby, so the file type detection isn't enough
-                mimeType = RubyLanguage.MIME_TYPE;
-            }
-
-            String name = feature;
-            if (context != null && context.isPreInitializing()) {
-                name = RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(feature));
-            }
-
-            return new RubySource(buildSource(
-                    Source.newBuilder(new File(feature)).name(name.intern()).mimeType(mimeType), internal));
+            // We need to assume all other files are Ruby, so the file type detection isn't enough
+            mimeType = RubyLanguage.MIME_TYPE;
         }
+
+        String name = feature;
+        if (context != null && context.isPreInitializing()) {
+            name = RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(feature));
+        }
+
+        return new RubySource(buildSource(
+                Source.newBuilder(new File(feature)).name(name.intern()).mimeType(mimeType), internal));
     }
 
     private boolean isInternal(String canonicalPath) {
@@ -224,7 +225,7 @@ public class SourceLoader {
         return false;
     }
 
-    private static RubySource loadResource(String path, boolean internal) throws IOException {
+    public static RubySource loadResource(String path, boolean internal) throws IOException {
         assert path.startsWith(RESOURCE_SCHEME);
 
         if (!path.toLowerCase(Locale.ENGLISH).endsWith(".rb")) {
