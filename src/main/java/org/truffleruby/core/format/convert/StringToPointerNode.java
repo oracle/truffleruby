@@ -47,7 +47,6 @@ public abstract class StringToPointerNode extends FormatNode {
         try {
             associated = (List<Pointer>) frame.getObject(FormatFrameDescriptor.ASSOCIATED_SLOT);
         } catch (FrameSlotTypeException e) {
-            CompilerDirectives.transferToInterpreter();
             throw new JavaException(e);
         }
 
