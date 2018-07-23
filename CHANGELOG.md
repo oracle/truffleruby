@@ -44,13 +44,11 @@ Bug fixes:
   assigned, not the value returned by an assignment method.
 * WeakRef.new will now return the correct type of object, even if WeakRef is
   subclassed.
-* WeakRef.new will now return the correct type of object, even if WeakRef is
-  subclassed.
 * Resolving constants in prepended modules failed, this has now been fixed.
 * Send and `Symbol#to_proc` now take account of refinements at their call sites.
 * Better warning when the timezone cannot be found on WSL (#1393).
 * `String#unpack` now taints return strings if the format was tainted, and
-  now does now taint the return array if the format was tainted.
+  now does not taint the return array if the format was tainted.
 * Lots of fixes to `Array#pack` and `String#unpack` tainting, and a better
   implementation of `P` and `p`.
 
