@@ -27,7 +27,7 @@ public abstract class TaintValueNode extends FormatNode {
         return missingValue;
     }
 
-    @Specialization
+    @Specialization(guards = "!isMissingValue(value)")
     public Object taint(Object value,
                         @Cached("create()") TaintNode taintNode) {
         return taintNode.executeTaint(value);
