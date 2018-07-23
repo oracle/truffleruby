@@ -15,7 +15,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
-import org.truffleruby.core.format.control.SequenceNode;
 import org.truffleruby.core.format.convert.ToDoubleWithCoercionNodeGen;
 import org.truffleruby.core.format.convert.ToIntegerNodeGen;
 import org.truffleruby.core.format.convert.ToStringNodeGen;

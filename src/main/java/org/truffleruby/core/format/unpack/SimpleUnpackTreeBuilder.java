@@ -15,7 +15,6 @@ import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
 import org.truffleruby.core.format.control.AdvanceSourcePositionNode;
 import org.truffleruby.core.format.control.ReverseSourcePositionNode;
-import org.truffleruby.core.format.control.SequenceNode;
 import org.truffleruby.core.format.control.SetSourcePositionNode;
 import org.truffleruby.core.format.convert.BytesToInteger16BigNodeGen;
 import org.truffleruby.core.format.convert.BytesToInteger16LittleNodeGen;
