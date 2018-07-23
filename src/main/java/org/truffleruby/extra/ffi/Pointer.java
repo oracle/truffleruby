@@ -9,6 +9,7 @@
  */
 package org.truffleruby.extra.ffi;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 import org.truffleruby.RubyContext;
@@ -179,6 +180,7 @@ public class Pointer implements AutoCloseable {
 
     private int checkStringSize(long size) {
         if (size > Integer.MAX_VALUE) {
+            CompilerDirectives.transferToInterpreter();
             throw new UnsupportedOperationException("native string is too long to read into managed code");
         }
 
