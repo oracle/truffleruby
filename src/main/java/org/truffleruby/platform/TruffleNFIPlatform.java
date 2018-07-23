@@ -35,12 +35,14 @@ public class TruffleNFIPlatform {
 
     private final String size_t;
     private final NativeFunction strlen;
+    private final NativeFunction strnlen;
 
     public TruffleNFIPlatform(RubyContext context) {
         defaultLibrary = (TruffleObject) context.getEnv().parse(Source.newBuilder("default").mimeType("application/x-native").name("native").build()).call();
 
         size_t = resolveType(context.getNativeConfiguration(), "size_t");
-        strlen = getFunction("strlen", 1, "(pointer):" + size_t);
+        strlen = getFunction("strlen", 1, String.format("(pointer):%s", size_t));
+        strnlen = getFunction("strnlen", 2, String.format("(pointer,%s):%s", size_t, size_t));
     }
 
     public TruffleObject getDefaultLibrary() {
@@ -119,6 +121,10 @@ public class TruffleNFIPlatform {
 
     public NativeFunction getStrlen() {
         return strlen;
+    }
+
+    public NativeFunction getStrnlen() {
+        return strnlen;
     }
 
     public static class NativeFunction {
