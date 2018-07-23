@@ -40,6 +40,8 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.NonStandard;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.RaiseIfFrozenNode;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
@@ -836,14 +838,14 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "const_get", required = 1, optional = 1)
+    @Primitive(name = "module_const_get")
     @NodeChildren({
             @NodeChild(type = RubyNode.class, value = "module"),
             @NodeChild(type = RubyNode.class, value = "name"),
             @NodeChild(type = RubyNode.class, value = "inherit")
     })
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
-    public abstract static class ConstGetNode extends CoreMethodNode {
+    public abstract static class ConstGetNode extends PrimitiveNode {
 
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, true, true);
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
@@ -891,9 +893,9 @@ public abstract class ModuleNodes {
         }
 
         // Scoped String
-        @Specialization(guards = {"isRubyString(fullName)", "isScoped(fullName)"})
+        @Specialization(guards = { "isRubyString(fullName)", "isScoped(fullName)" })
         public Object getConstantScoped(DynamicObject module, DynamicObject fullName, boolean inherit) {
-            return getConstantScoped(module, StringOperations.getString(fullName), inherit);
+            return FAILURE;
         }
 
         private Object getConstant(DynamicObject module, String name) {
@@ -907,16 +909,6 @@ public abstract class ModuleNodes {
 
         private RubyConstant lookupConstantNoInherit(LexicalScope lexicalScope, Object module, String name) {
             return ModuleOperations.lookupConstantWithInherit(getContext(), (DynamicObject) module, name, false, this).getConstant();
-        }
-
-        @TruffleBoundary
-        private Object getConstantScoped(DynamicObject module, String fullName, boolean inherit) {
-            ConstantLookupResult constant = ModuleOperations.lookupScopedConstant(getContext(), module, fullName, inherit, this);
-            if (!constant.isFound()) {
-                throw new RaiseException(getContext(), coreExceptions().nameErrorUninitializedConstant(module, fullName, this));
-            } else {
-                return constant.getConstant().getValue();
-            }
         }
 
         @TruffleBoundary
