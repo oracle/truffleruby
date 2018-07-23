@@ -12,26 +12,40 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
+
+import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.language.objects.ObjectGraphNode;
 
-public class RubyConstant {
+public class RubyConstant implements ObjectGraphNode {
 
     private final DynamicObject declaringModule;
     private final Object value;
     private final boolean isPrivate;
-    private final boolean autoload;
     private final boolean isDeprecated;
+
+    private final boolean autoload;
+    private volatile ReentrantLock autoloadLock;
+    /** A autoload constant can become "undefined" after the autoload loads the file but the constant is not defined by the file */
+    private final boolean undefined;
+
     private final SourceSection sourceSection;
 
-    public RubyConstant(DynamicObject declaringModule, Object value, boolean isPrivate, boolean autoload, boolean isDeprecated,
-                        SourceSection sourceSection) {
+    public RubyConstant(DynamicObject declaringModule, Object value, boolean isPrivate, boolean autoload, boolean isDeprecated, SourceSection sourceSection) {
+        this(declaringModule, value, isPrivate, autoload, false, isDeprecated, sourceSection);
+    }
+
+    private RubyConstant(DynamicObject declaringModule, Object value, boolean isPrivate, boolean autoload, boolean undefined, boolean isDeprecated, SourceSection sourceSection) {
         assert RubyGuards.isRubyModule(declaringModule);
         this.declaringModule = declaringModule;
         this.value = value;
         this.isPrivate = isPrivate;
-        this.autoload = autoload;
         this.isDeprecated = isDeprecated;
+        this.autoload = autoload;
+        this.undefined = undefined;
         this.sourceSection = sourceSection;
     }
 
@@ -39,7 +53,12 @@ public class RubyConstant {
         return declaringModule;
     }
 
+    public boolean hasValue() {
+        return !autoload && !undefined;
+    }
+
     public Object getValue() {
+        assert !autoload && !undefined;
         return value;
     }
 
@@ -59,7 +78,7 @@ public class RubyConstant {
         if (isPrivate == this.isPrivate) {
             return this;
         } else {
-            return new RubyConstant(declaringModule, value, isPrivate, autoload, isDeprecated, sourceSection);
+            return new RubyConstant(declaringModule, value, isPrivate, autoload, undefined, isDeprecated, sourceSection);
         }
     }
 
@@ -67,8 +86,13 @@ public class RubyConstant {
         if (this.isDeprecated()) {
             return this;
         } else {
-            return new RubyConstant(declaringModule, value, isPrivate, autoload, true, sourceSection);
+            return new RubyConstant(declaringModule, value, isPrivate, autoload, undefined, true, sourceSection);
         }
+    }
+
+    public RubyConstant undefined() {
+        assert autoload;
+        return new RubyConstant(declaringModule, null, isPrivate, false, true, isDeprecated, sourceSection);
     }
 
     @TruffleBoundary
@@ -107,8 +131,53 @@ public class RubyConstant {
         return false;
     }
 
+    public boolean isUndefined() {
+        return undefined;
+    }
+
     public boolean isAutoload() {
         return autoload;
+    }
+
+    public DynamicObject getAutoloadPath() {
+        assert autoload;
+        final Object feature = value;
+        assert RubyGuards.isRubyString(feature);
+        return (DynamicObject) feature;
+    }
+
+    private ReentrantLock getAutoloadLock() {
+        synchronized (this) {
+            if (autoloadLock == null) {
+                autoloadLock = new ReentrantLock();
+            }
+        }
+        return autoloadLock;
+    }
+
+    @TruffleBoundary
+    public void startAutoLoad() {
+        getAutoloadLock().lock();
+    }
+
+    @TruffleBoundary
+    public void stopAutoLoad() {
+        getAutoloadLock().unlock();
+    }
+
+    public boolean isAutoloading() {
+        return autoloadLock != null && autoloadLock.isLocked();
+    }
+
+    public boolean isAutoloadingThread() {
+        return autoloadLock != null && autoloadLock.isHeldByCurrentThread();
+    }
+
+    @Override
+    public void getAdjacentObjects(Set<DynamicObject> adjacent) {
+        if (value instanceof DynamicObject) {
+            adjacent.add((DynamicObject) value);
+        }
     }
 
 }

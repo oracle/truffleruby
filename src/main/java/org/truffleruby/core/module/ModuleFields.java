@@ -148,7 +148,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     public void updateAnonymousChildrenModules(RubyContext context) {
         for (Map.Entry<String, RubyConstant> entry : constants.entrySet()) {
             RubyConstant constant = entry.getValue();
-            if (RubyGuards.isRubyModule(constant.getValue())) {
+            if (constant.hasValue() && RubyGuards.isRubyModule(constant.getValue())) {
                 DynamicObject module = (DynamicObject) constant.getValue();
                 if (!Layouts.MODULE.getFields(module).hasFullName()) {
                     Layouts.MODULE.getFields(module).getAdoptedByLexicalParent(
@@ -329,7 +329,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         setConstantInternal(context, currentNode, name, filename, true);
     }
 
-    public RubyConstant setConstantInternal(RubyContext context, Node currentNode, String name, Object value, boolean autoload) {
+    private RubyConstant setConstantInternal(RubyContext context, Node currentNode, String name, Object value, boolean autoload) {
         checkFrozen(context, currentNode);
 
         SharedObjects.propagate(context, rubyModuleObject, value);
@@ -516,6 +516,16 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         }
     }
 
+    @TruffleBoundary
+    public boolean undefineConstantIfStillAutoload(RubyConstant autoloadConstant, String name) {
+        if (constants.replace(name, autoloadConstant, autoloadConstant.undefined())) {
+            newConstantsVersion();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public RubyContext getContext() {
         return context;
     }
@@ -580,7 +590,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         return super.toString() + "(" + getName() + ")";
     }
 
-    private void newConstantsVersion() {
+    public void newConstantsVersion() {
         constantsUnmodifiedAssumption.invalidate(givenBaseName);
     }
 
@@ -728,11 +738,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         }
 
         for (RubyConstant constant : constants.values()) {
-            final Object value = constant.getValue();
-
-            if (value instanceof DynamicObject) {
-                adjacent.add((DynamicObject) value);
-            }
+            constant.getAdjacentObjects(adjacent);
         }
 
         for (Object value : classVariables.values()) {

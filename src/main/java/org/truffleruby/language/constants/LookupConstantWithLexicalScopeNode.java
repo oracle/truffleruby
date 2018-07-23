@@ -12,7 +12,6 @@ package org.truffleruby.language.constants;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.module.ConstantLookupResult;
@@ -40,7 +39,7 @@ public abstract class LookupConstantWithLexicalScopeNode extends LookupConstantB
 
     @SuppressFBWarnings("ES")
     @Override
-    public RubyConstant lookupConstant(VirtualFrame frame, Object module, String name) {
+    public RubyConstant lookupConstant(LexicalScope lexicalScope, DynamicObject module, String name) {
         assert name == this.name;
         return executeLookupConstant();
     }
@@ -62,7 +61,7 @@ public abstract class LookupConstantWithLexicalScopeNode extends LookupConstantB
     protected RubyConstant lookupConstantUncached(
             @Cached("createBinaryProfile()") ConditionProfile isVisibleProfile,
             @Cached("createBinaryProfile()") ConditionProfile isDeprecatedProfile) {
-        ConstantLookupResult constant = doLookup();
+        final ConstantLookupResult constant = doLookup();
         if (isVisibleProfile.profile(!isVisible(constant))) {
             throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(getModule(), name, this));
         }

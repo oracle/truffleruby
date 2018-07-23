@@ -12,9 +12,12 @@ package org.truffleruby.language.constants;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.object.DynamicObject;
+
 import org.truffleruby.Layouts;
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -24,6 +27,7 @@ public class ReadConstantNode extends RubyNode {
     private final String name;
 
     @Child private RubyNode moduleNode;
+    @Child private CheckModuleNode checkModuleNode = CheckModuleNodeGen.create(null);
     @Child private LookupConstantNode lookupConstantNode;
     @Child private GetConstantNode getConstantNode;
 
@@ -34,57 +38,51 @@ public class ReadConstantNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final Object module = moduleNode.execute(frame);
-
-        final RubyConstant constant = lookupConstant(frame, module);
-
-        return executeGetConstant(frame, module, constant);
+        final Object moduleObject = moduleNode.execute(frame);
+        final DynamicObject module = checkModuleNode.executeCheckModule(moduleObject);
+        return lookupAndGetConstant(module);
     }
 
-    private Object executeGetConstant(VirtualFrame frame, Object module, RubyConstant constant) {
+
+    private Object lookupAndGetConstant(DynamicObject module) {
         if (getConstantNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             getConstantNode = insert(GetConstantNode.create());
         }
-        if (lookupConstantNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            lookupConstantNode = insert(LookupConstantNode.create(false, true, false));
-        }
-        return getConstantNode.executeGetConstant(frame, module, name, constant, lookupConstantNode);
+
+        return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, getLookupConstantNode());
     }
 
-    private RubyConstant lookupConstant(VirtualFrame frame, Object module) {
+    private LookupConstantNode getLookupConstantNode() {
         if (lookupConstantNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             lookupConstantNode = insert(LookupConstantNode.create(false, true, false));
         }
-        return lookupConstantNode.lookupConstant(frame, module, name);
+        return lookupConstantNode;
     }
 
     @Override
     public Object isDefined(VirtualFrame frame) {
         // TODO (eregon, 17 May 2016): We execute moduleNode twice here but we both want to make sure the LHS is defined and get the result value.
         // Possible solution: have a isDefinedAndReturnValue()?
-        Object isModuleDefined = moduleNode.isDefined(frame);
+        final Object isModuleDefined = moduleNode.isDefined(frame);
         if (isModuleDefined == nil()) {
             return nil();
         }
 
-        final Object module;
+        final Object moduleObject;
         try {
-            module = moduleNode.execute(frame);
-            if (!RubyGuards.isRubyModule(module)) {
-                return nil();
-            }
+            moduleObject = moduleNode.execute(frame);
         } catch (RaiseException e) {
             // If reading the module raised an exception, it must have been an autoloaded module that failed while
             // loading. MRI dictates that in this case we should swallow the exception and return `nil`.
             return nil();
         }
 
+        final DynamicObject module = checkModuleNode.executeCheckModule(moduleObject);
         final RubyConstant constant;
         try {
-            constant = lookupConstant(frame, module);
+            constant = getLookupConstantNode().lookupConstant(LexicalScope.IGNORE, module, name);
         } catch (RaiseException e) {
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNameErrorClass()) {
                 // private constant
@@ -93,10 +91,10 @@ public class ReadConstantNode extends RubyNode {
             throw e;
         }
 
-        if (constant == null) {
-            return nil();
-        } else {
+        if (ModuleOperations.isConstantDefined(constant)) {
             return coreStrings().CONSTANT.createInstance();
+        } else {
+            return nil();
         }
     }
 

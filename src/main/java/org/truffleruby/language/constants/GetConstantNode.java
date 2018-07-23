@@ -14,64 +14,115 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+
 import org.truffleruby.Layouts;
+import org.truffleruby.core.module.ModuleFields;
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
-@NodeChildren({ @NodeChild("module"), @NodeChild("name"), @NodeChild("constant"), @NodeChild("lookupConstantNode") })
+@NodeChildren({ @NodeChild("lexicalScope"), @NodeChild("module"), @NodeChild("name"), @NodeChild("constant"), @NodeChild("lookupConstantNode") })
 public abstract class GetConstantNode extends RubyNode {
 
-    public static GetConstantNode create() {
-        return GetConstantNodeGen.create(null, null, null, null);
-    }
+    private final boolean callConstMissing;
 
     @Child private CallDispatchHeadNode constMissingNode;
 
-    public abstract Object executeGetConstant(
-            VirtualFrame frame, Object module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode);
+    public static GetConstantNode create() {
+        return create(true);
+    }
 
-    @Specialization(guards = { "constant != null", "!constant.isAutoload()" })
-    protected Object getConstant(DynamicObject module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode) {
+    public static GetConstantNode create(boolean callConstMissing) {
+        return GetConstantNodeGen.create(callConstMissing, null, null, null, null, null);
+    }
+
+    public Object lookupAndResolveConstant(LexicalScope lexicalScope, DynamicObject module, String name, LookupConstantInterface lookupConstantNode) {
+        final RubyConstant constant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
+        return executeGetConstant(lexicalScope, module, name, constant, lookupConstantNode);
+    }
+
+    protected abstract Object executeGetConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode);
+
+    public GetConstantNode(boolean callConstMissing) {
+        this.callConstMissing = callConstMissing;
+    }
+
+    @Specialization(guards = { "constant != null", "constant.hasValue()" })
+    protected Object getConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode) {
         return constant.getValue();
     }
 
-    @Specialization(guards = { "constant != null", "constant.isAutoload()" })
-    protected Object autoloadConstant(VirtualFrame frame, DynamicObject module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode,
+    @Specialization(guards = { "autoloadConstant != null", "autoloadConstant.isAutoload()" })
+    protected Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant autoloadConstant, LookupConstantInterface lookupConstantNode,
             @Cached("createOnSelf()") CallDispatchHeadNode callRequireNode) {
 
-        final DynamicObject path = (DynamicObject) constant.getValue();
+        final DynamicObject feature = autoloadConstant.getAutoloadPath();
+        final DynamicObject autoloadConstantModule = autoloadConstant.getDeclaringModule();
+        final ModuleFields fields = Layouts.MODULE.getFields(autoloadConstantModule);
 
-        // The autoload constant must only be removed if everything succeeds.
-        // We remove it first to allow lookup to ignore it and add it back if there was a failure.
-        Layouts.MODULE.getFields(constant.getDeclaringModule()).removeConstant(getContext(), this, name);
-        try {
-            callRequireNode.call(null, coreLibrary().getMainObject(), "require", path);
-            final RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(frame, module, name);
-            return executeGetConstant(frame, module, name, resolvedConstant, lookupConstantNode);
-        } catch (RaiseException e) {
-            Layouts.MODULE.getFields(constant.getDeclaringModule()).setAutoloadConstant(getContext(), this, name, path);
-            throw e;
+        if (autoloadConstant.isAutoloadingThread()) {
+            // Pretend the constant does not exist while it is autoloading
+            return executeGetConstant(lexicalScope, module, name, null, lookupConstantNode);
         }
+
+        autoloadConstant.startAutoLoad();
+        try {
+
+            // We need to notify cached lookup that we are autoloading the constant, as constant
+            // lookup changes based on whether an autoload constant is loading or not (constant
+            // lookup ignores being-autoloaded constants).
+            fields.newConstantsVersion();
+
+            callRequireNode.call(null, coreLibrary().getMainObject(), "require", feature);
+
+            RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
+
+            // check if the constant was set in the ancestors of autoloadConstantModule
+            if (resolvedConstant != null &&
+                    (ModuleOperations.inAncestorsOf(resolvedConstant.getDeclaringModule(), autoloadConstantModule) ||
+                            resolvedConstant.getDeclaringModule() == coreLibrary().getObjectClass())) {
+                // all is good, just return that constant
+            } else {
+                // If the autoload constant was not set in the ancestors, undefine the constant
+                fields.undefineConstantIfStillAutoload(autoloadConstant, name);
+
+                // redo lookup, to consider the undefined constant
+                resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
+            }
+
+            return executeGetConstant(lexicalScope, module, name, resolvedConstant, lookupConstantNode);
+
+        } finally {
+            autoloadConstant.stopAutoLoad();
+        }
+
     }
 
     @Specialization(
-            guards = { "constant == null", "guardName(name, cachedName, sameNameProfile)" },
+            guards = { "isNullOrUndefined(constant)", "guardName(name, cachedName, sameNameProfile)" },
             limit = "getCacheLimit()")
-    protected Object missingConstantCached(DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode,
+    protected Object missingConstantCached(LexicalScope lexicalScope, DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode,
             @Cached("name") String cachedName,
             @Cached("getSymbol(name)") DynamicObject symbolName,
             @Cached("createBinaryProfile()") ConditionProfile sameNameProfile) {
-        return doMissingConstant(module, name, symbolName);
+        if (callConstMissing) {
+            return doMissingConstant(module, name, symbolName);
+        } else {
+            return null;
+        }
     }
 
-    @Specialization(guards = "constant == null")
-    protected Object missingConstantUncached(VirtualFrame frame, DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode) {
-        return doMissingConstant(module, name, getSymbol(name));
+    @Specialization(guards = "isNullOrUndefined(constant)")
+    protected Object missingConstantUncached(LexicalScope lexicalScope, DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode) {
+        if (callConstMissing) {
+            return doMissingConstant(module, name, getSymbol(name));
+        } else {
+            return null;
+        }
     }
 
     private Object doMissingConstant(DynamicObject module, String name, DynamicObject symbolName) {
@@ -81,6 +132,10 @@ public abstract class GetConstantNode extends RubyNode {
         }
 
         return constMissingNode.call(null, module, "const_missing", symbolName);
+    }
+
+    protected boolean isNullOrUndefined(Object constant) {
+        return constant == null || ((RubyConstant) constant).isUndefined();
     }
 
     protected boolean guardName(String name, String cachedName, ConditionProfile sameNameProfile) {

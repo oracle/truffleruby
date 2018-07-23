@@ -1746,11 +1746,9 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         protected CallTarget compileFormat(DynamicObject format, Object[] arguments, boolean isDebug) {
-            assert RubyGuards.isRubyString(format);
-
             try {
                 return new PrintfCompiler(getContext(), this)
-                        .compile(Layouts.STRING.getRope(format).getBytes(), arguments, isDebug);
+                        .compile(StringOperations.rope(format).getBytes(), arguments, isDebug);
             } catch (InvalidFormatException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }

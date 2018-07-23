@@ -78,6 +78,7 @@ import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ReadSelfNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.constants.GetConstantNode;
+import org.truffleruby.language.constants.LookupConstantInterface;
 import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -525,7 +526,8 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("empty file name", this));
             }
 
-            if (Layouts.MODULE.getFields(module).getConstant(name) != null) {
+            final RubyConstant constant = Layouts.MODULE.getFields(module).getConstant(name);
+            if (constant != null && !constant.isUndefined()) {
                 return nil();
             }
 
@@ -551,11 +553,11 @@ public abstract class ModuleNodes {
         private Object autoloadQuery(DynamicObject module, String name) {
             final ConstantLookupResult constant = ModuleOperations.lookupConstant(getContext(), module, name);
 
-            if (!constant.isFound() || !constant.getConstant().isAutoload()) {
+            if (constant.isAutoload() && !constant.getConstant().isAutoloadingThread()) {
+                return constant.getConstant().getAutoloadPath();
+            } else {
                 return nil();
             }
-
-            return constant.getConstant().getValue();
         }
     }
 
@@ -828,7 +830,8 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         public boolean isConstDefined(DynamicObject module, String fullName, boolean inherit) {
-            return ModuleOperations.lookupScopedConstant(getContext(), module, fullName, inherit, this).isFound();
+            final ConstantLookupResult constant = ModuleOperations.lookupScopedConstant(getContext(), module, fullName, inherit, this);
+            return constant.isFound();
         }
 
     }
@@ -842,7 +845,6 @@ public abstract class ModuleNodes {
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class ConstGetNode extends CoreMethodNode {
 
-        @Child private CallDispatchHeadNode callRequireNode;
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, true, true);
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
@@ -859,33 +861,33 @@ public abstract class ModuleNodes {
 
         // Symbol
         @Specialization(guards = { "inherit", "isRubySymbol(name)" })
-        public Object getConstant(VirtualFrame frame, DynamicObject module, DynamicObject name, boolean inherit) {
-            return getConstant(frame, module, Layouts.SYMBOL.getString(name));
+        public Object getConstant(DynamicObject module, DynamicObject name, boolean inherit) {
+            return getConstant(module, Layouts.SYMBOL.getString(name));
         }
 
         @Specialization(guards = { "!inherit", "isRubySymbol(name)" })
-        public Object getConstantNoInherit(VirtualFrame frame, DynamicObject module, DynamicObject name, boolean inherit) {
-            return getConstantNoInherit(frame, module, Layouts.SYMBOL.getString(name), this);
+        public Object getConstantNoInherit(DynamicObject module, DynamicObject name, boolean inherit) {
+            return getConstantNoInherit(module, Layouts.SYMBOL.getString(name));
         }
 
         // String
         @Specialization(guards = { "inherit", "isRubyString(name)", "equalNode.execute(rope(name), cachedRope)", "!scoped" }, limit = "getLimit()")
-        public Object getConstantStringCached(VirtualFrame frame, DynamicObject module, DynamicObject name, boolean inherit,
+        public Object getConstantStringCached(DynamicObject module, DynamicObject name, boolean inherit,
                 @Cached("privatizeRope(name)") Rope cachedRope,
                 @Cached("getString(name)") String cachedString,
                 @Cached("create()") RopeNodes.EqualNode equalNode,
                 @Cached("isScoped(cachedString)") boolean scoped) {
-            return getConstant(frame, module, cachedString);
+            return getConstant(module, cachedString);
         }
 
         @Specialization(guards = { "inherit", "isRubyString(name)", "!isScoped(name)" }, replaces = "getConstantStringCached")
-        public Object getConstantString(VirtualFrame frame, DynamicObject module, DynamicObject name, boolean inherit) {
-            return getConstant(frame, module, StringOperations.getString(name));
+        public Object getConstantString(DynamicObject module, DynamicObject name, boolean inherit) {
+            return getConstant(module, StringOperations.getString(name));
         }
 
         @Specialization(guards = { "!inherit", "isRubyString(name)", "!isScoped(name)" })
-        public Object getConstantNoInheritString(VirtualFrame frame, DynamicObject module, DynamicObject name, boolean inherit) {
-            return getConstantNoInherit(frame, module, StringOperations.getString(name), this);
+        public Object getConstantNoInheritString(DynamicObject module, DynamicObject name, boolean inherit) {
+            return getConstantNoInherit(module, StringOperations.getString(name));
         }
 
         // Scoped String
@@ -894,24 +896,17 @@ public abstract class ModuleNodes {
             return getConstantScoped(module, StringOperations.getString(fullName), inherit);
         }
 
-        private Object getConstant(VirtualFrame frame, Object module, String name) {
-            final RubyConstant constant = lookupConstantNode.lookupConstant(frame, module, name);
-            return getConstantNode.executeGetConstant(frame, module, name, constant, lookupConstantNode);
+        private Object getConstant(DynamicObject module, String name) {
+            return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
         }
 
-        private Object getConstantNoInherit(VirtualFrame frame, DynamicObject module, String name, Node currentNode) {
-            ConstantLookupResult constant = ModuleOperations.lookupConstantWithInherit(getContext(), module, name, false, currentNode);
-            if (!constant.isFound()) {
-                // Call const_missing
-                return getConstantNode.executeGetConstant(frame, module, name, null, lookupConstantNode);
-            } else {
-                if (constant.getConstant().isAutoload()) {
-                    loadAutoloadedConstant(constant.getConstant());
-                    constant = ModuleOperations.lookupConstantWithInherit(getContext(), module, name, false, currentNode);
-                }
+        private Object getConstantNoInherit(DynamicObject module, String name) {
+            final LookupConstantInterface lookup = this::lookupConstantNoInherit;
+            return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookup);
+        }
 
-                return constant.getConstant().getValue();
-            }
+        private RubyConstant lookupConstantNoInherit(LexicalScope lexicalScope, Object module, String name) {
+            return ModuleOperations.lookupConstantWithInherit(getContext(), (DynamicObject) module, name, false, this).getConstant();
         }
 
         @TruffleBoundary
@@ -926,23 +921,12 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         boolean isScoped(DynamicObject name) {
-            assert RubyGuards.isRubyString(name);
             // TODO (eregon, 27 May 2015): Any way to make this efficient?
             return StringOperations.getString(name).contains("::");
         }
 
         boolean isScoped(String name) {
             return name.contains("::");
-        }
-
-        private void loadAutoloadedConstant(RubyConstant constant) {
-            if (callRequireNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                callRequireNode = insert(CallDispatchHeadNode.createOnSelf());
-            }
-
-            final Object feature = constant.getValue();
-            callRequireNode.call(null, coreLibrary().getMainObject(), "require", feature);
         }
 
         protected int getLimit() {
@@ -1721,7 +1705,7 @@ public abstract class ModuleNodes {
             if (oldConstant == null) {
                 throw new RaiseException(getContext(), coreExceptions().nameErrorConstantNotDefined(module, name, this));
             } else {
-                if (oldConstant.isAutoload()) {
+                if (oldConstant.isAutoload() || oldConstant.isUndefined()) {
                     return nil();
                 } else {
                     return oldConstant.getValue();

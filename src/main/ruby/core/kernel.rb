@@ -194,14 +194,24 @@ module Kernel
   module_function :abort
 
   def autoload(name, file)
-    Object.autoload(name, file)
+    nesting = Truffle.invoke_primitive(:caller_binding).eval('Module.nesting')
+    mod = nesting.first || (Kernel.equal?(self) ? Kernel : Object)
+    if mod.equal?(self)
+      super(name, file) # Avoid recursion
+    else
+      mod.autoload(name, file)
+    end
   end
-  private :autoload
+  module_function :autoload
 
   def autoload?(name)
-    Object.autoload?(name)
+    if Kernel.equal?(self)
+      super(name) # Avoid recursion
+    else
+      Object.autoload?(name)
+    end
   end
-  private :autoload?
+  module_function :autoload?
 
   def binding
     Truffle.invoke_primitive :caller_binding_with_source_location_from_caller

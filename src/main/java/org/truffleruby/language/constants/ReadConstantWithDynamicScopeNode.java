@@ -12,8 +12,11 @@ package org.truffleruby.language.constants;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
 /** Read a constant using a dynamic lexical scope: class << expr; CONST; end */
@@ -26,22 +29,23 @@ public class ReadConstantWithDynamicScopeNode extends RubyNode {
 
     public ReadConstantWithDynamicScopeNode(String name) {
         this.name = name;
-        this.lookupConstantNode = LookupConstantWithDynamicScopeNodeGen.create(name);
+        this.lookupConstantNode = LookupConstantWithDynamicScopeNodeGen.create(name, null);
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final RubyConstant constant = lookupConstantNode.executeLookupConstant(frame);
-        final DynamicObject module = lookupConstantNode.getLexicalScope(frame).getLiveModule();
+        final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getLexicalScope();
+        final DynamicObject module = lexicalScope.getLiveModule();
 
-        return getConstantNode.executeGetConstant(frame, module, name, constant, lookupConstantNode);
+        return getConstantNode.lookupAndResolveConstant(lexicalScope, module, name, lookupConstantNode);
     }
 
     @Override
     public Object isDefined(VirtualFrame frame) {
         final RubyConstant constant;
+        final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getLexicalScope();
         try {
-            constant = lookupConstantNode.executeLookupConstant(frame);
+            constant = lookupConstantNode.executeLookupConstant(lexicalScope);
         } catch (RaiseException e) {
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNameErrorClass()) {
                 // private constant
@@ -50,10 +54,10 @@ public class ReadConstantWithDynamicScopeNode extends RubyNode {
             throw e;
         }
 
-        if (constant == null) {
-            return nil();
-        } else {
+        if (ModuleOperations.isConstantDefined(constant)) {
             return coreStrings().CONSTANT.createInstance();
+        } else {
+            return nil();
         }
     }
 

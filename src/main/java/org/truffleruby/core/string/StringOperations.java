@@ -42,8 +42,6 @@ import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.language.RubyGuards;
-
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -63,8 +61,6 @@ public abstract class StringOperations {
     }
 
     public static int clampExclusiveIndex(DynamicObject string, int index) {
-        assert RubyGuards.isRubyString(string);
-
         // TODO (nirvdrum 21-Jan-16): Verify this is supposed to be the byteLength and not the characterLength.
         return ArrayOperations.clampExclusiveIndex(StringOperations.rope(string).byteLength(), index);
     }
@@ -102,26 +98,18 @@ public abstract class StringOperations {
     }
 
     public static Rope rope(DynamicObject string) {
-        assert RubyGuards.isRubyString(string);
-
         return Layouts.STRING.getRope(string);
     }
 
     public static void setRope(DynamicObject string, Rope rope) {
-        assert RubyGuards.isRubyString(string);
-
         Layouts.STRING.setRope(string, rope);
     }
 
     public static Encoding encoding(DynamicObject string) {
-        assert RubyGuards.isRubyString(string);
-
         return rope(string).getEncoding();
     }
 
     public static CodeRange codeRange(DynamicObject string) {
-        assert RubyGuards.isRubyString(string);
-
         return rope(string).getCodeRange();
     }
 

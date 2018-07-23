@@ -27,7 +27,6 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.extra.ffi.PointerNodes;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
@@ -222,8 +221,6 @@ public abstract class ByteArrayNodes {
         }
 
         protected boolean isSingleBytePattern(DynamicObject pattern) {
-            assert RubyGuards.isRubyString(pattern);
-
             final Rope rope = StringOperations.rope(pattern);
             return RopeGuards.isSingleByteString(rope);
         }

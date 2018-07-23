@@ -14,10 +14,8 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.utilities.NeverValidAssumption;
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.LexicalScope;
@@ -56,14 +54,13 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
     public abstract RubyConstant executeLookupConstant(Object module, String name);
 
     @Override
-    public RubyConstant lookupConstant(VirtualFrame frame, Object module, String name) {
+    public RubyConstant lookupConstant(LexicalScope lexicalScope, DynamicObject module, String name) {
         return executeLookupConstant(module, name);
     }
 
     @Specialization(
             guards = {
                     "module == cachedModule",
-                    "isRubyModule(cachedModule)",
                     "guardName(name, cachedName, sameNameProfile)" },
             assumptions = "constant.getAssumptions()",
             limit = "getCacheLimit()")
@@ -85,7 +82,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
         return constant.getConstant();
     }
 
-    @Specialization(guards = "isRubyModule(module)")
+    @Specialization
     protected RubyConstant lookupConstantUncached(DynamicObject module, String name,
             @Cached("createBinaryProfile()") ConditionProfile isValidConstantNameProfile,
             @Cached("createBinaryProfile()") ConditionProfile isVisibleProfile,
@@ -104,11 +101,6 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
         return constant.getConstant();
     }
 
-    @Specialization(guards = "!isRubyModule(module)")
-    protected RubyConstant lookupNotModule(Object module, String name) {
-        throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotAClassModule(module, this));
-    }
-
     protected boolean guardName(String name, String cachedName, ConditionProfile sameNameProfile) {
         // This is likely as for literal constant lookup the name does not change and Symbols
         // always return the same String.
@@ -121,9 +113,8 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
 
     @TruffleBoundary
     protected ConstantLookupResult doLookup(DynamicObject module, String name) {
-        if (!RubyGuards.isRubyModule(module)) {
-            return new ConstantLookupResult(null, NeverValidAssumption.INSTANCE);
-        }
+        assert RubyGuards.isRubyModule(module);
+
         if (lookInObject) {
             return ModuleOperations.lookupConstantAndObject(getContext(), module, name, new ArrayList<>());
         } else {

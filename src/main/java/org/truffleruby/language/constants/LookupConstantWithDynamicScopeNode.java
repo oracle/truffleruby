@@ -11,17 +11,19 @@ package org.truffleruby.language.constants;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.parser.SuppressFBWarnings;
 
+@NodeChild(value = "lexicalScope", type = RubyNode.class)
 public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantBaseNode implements LookupConstantInterface {
 
     private final String name;
@@ -30,25 +32,21 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
         this.name = name;
     }
 
-    public abstract RubyConstant executeLookupConstant(VirtualFrame frame);
+    public abstract RubyConstant executeLookupConstant(LexicalScope lexicalScope);
 
     @SuppressFBWarnings("ES")
-    public RubyConstant lookupConstant(VirtualFrame frame, Object module, String name) {
+    public RubyConstant lookupConstant(LexicalScope lexicalScope, DynamicObject module, String name) {
         assert name == this.name;
-        return executeLookupConstant(frame);
+        return executeLookupConstant(lexicalScope);
     }
 
-    public LexicalScope getLexicalScope(VirtualFrame frame) {
-        return RubyArguments.getMethod(frame).getLexicalScope();
-    }
-
-    @Specialization(guards = "getLexicalScope(frame) == lexicalScope",
+    @Specialization(guards = "lexicalScope == cachedLexicalScope",
                     assumptions = "constant.getAssumptions()",
                     limit = "getCacheLimit()")
-    protected RubyConstant lookupConstant(VirtualFrame frame,
-                    @Cached("getLexicalScope(frame)") LexicalScope lexicalScope,
-                    @Cached("doLookup(lexicalScope)") ConstantLookupResult constant,
-                    @Cached("isVisible(lexicalScope, constant)") boolean isVisible) {
+    protected RubyConstant lookupConstant(LexicalScope lexicalScope,
+            @Cached("lexicalScope") LexicalScope cachedLexicalScope,
+            @Cached("doLookup(cachedLexicalScope)") ConstantLookupResult constant,
+            @Cached("isVisible(cachedLexicalScope, constant)") boolean isVisible) {
         if (!isVisible) {
             throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
         }
@@ -59,10 +57,9 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
     }
 
     @Specialization
-    protected RubyConstant lookupConstantUncached(VirtualFrame frame,
+    protected RubyConstant lookupConstantUncached(LexicalScope lexicalScope,
             @Cached("createBinaryProfile()") ConditionProfile isVisibleProfile,
             @Cached("createBinaryProfile()") ConditionProfile isDeprecatedProfile) {
-        final LexicalScope lexicalScope = getLexicalScope(frame);
         final ConstantLookupResult constant = doLookup(lexicalScope);
         if (isVisibleProfile.profile(!isVisible(lexicalScope, constant))) {
             throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
