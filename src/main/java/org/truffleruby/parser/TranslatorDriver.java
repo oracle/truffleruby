@@ -168,7 +168,7 @@ public class TranslatorDriver {
         // Source name but should not use the cache. For instance, TOPLEVEL_BINDING.eval("self")
         // would use the cache which is wrong.
         if (ParserCache.INSTANCE != null && context.getCoreLibrary().isLoadingRubyCore()) {
-            node = ParserCache.INSTANCE.lookup(source.getName());
+            node = ParserCache.INSTANCE.get(source.getName());
         }
 
         if (node == null) {
