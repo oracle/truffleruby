@@ -66,4 +66,29 @@ class WeakRef < BasicObject
     target.respond_to?(method, include_private) and
       (!include_private || target.respond_to?(method, false))
   end
+
+  def ==(obj)
+    return true if obj.equal?(self)
+    self.__getobj__ == obj
+  end
+
+  def !=(obj)
+    return false if obj.equal?(self)
+    __getobj__ != obj
+  end
+
+  def !
+    !__getobj__
+  end
+
+  def initialize_clone(obj) # :nodoc:
+    self.__setobj__(obj.__getobj__.clone)
+  end
+  
+  def initialize_dup(obj) # :nodoc:
+    self.__setobj__(obj.__getobj__.dup)
+  end
+
+  private :initialize_clone, :initialize_dup
+
 end
