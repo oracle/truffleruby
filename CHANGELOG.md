@@ -34,6 +34,8 @@ Bug fixes:
 * Resolving constants in prepended modules failed, this has now been fixed.
 * Send and `Symbol#to_proc` now take account of refinements at their call sites.
 * Better warning when the timezone cannot be found on WSL (#1393).
+* Array literals could evaluate an element twice under some
+  circumstances. This has now been fixed.
 
 Performance:
 

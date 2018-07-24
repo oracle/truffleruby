@@ -126,19 +126,20 @@ public abstract class ArrayLiteralNode extends RubyNode {
                     executedValues[n] = (double) value;
                 } else {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    return makeGeneric(frame, executedValues, n);
+                    return makeGeneric(frame, executedValues, n, value);
                 }
             }
 
             return createArray(executedValues, values.length);
         }
 
-        private DynamicObject makeGeneric(VirtualFrame frame, final double[] executedValues, int n) {
-            final Object[] executedObjects = new Object[n];
+        private DynamicObject makeGeneric(VirtualFrame frame, final double[] executedValues, int n, Object value) {
+            final Object[] executedObjects = new Object[n + 1];
 
             for (int i = 0; i < n; i++) {
                 executedObjects[i] = executedValues[i];
             }
+            executedObjects[n] = value;
 
             return makeGeneric(frame, executedObjects);
         }
@@ -162,19 +163,20 @@ public abstract class ArrayLiteralNode extends RubyNode {
                     executedValues[n] = (int) value;
                 } else {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    return makeGeneric(frame, executedValues, n);
+                    return makeGeneric(frame, executedValues, n, value);
                 }
             }
 
             return createArray(executedValues, values.length);
         }
 
-        private DynamicObject makeGeneric(VirtualFrame frame, final int[] executedValues, int n) {
-            final Object[] executedObjects = new Object[n];
+        private DynamicObject makeGeneric(VirtualFrame frame, final int[] executedValues, int n, Object value) {
+            final Object[] executedObjects = new Object[n + 1];
 
             for (int i = 0; i < n; i++) {
                 executedObjects[i] = executedValues[i];
             }
+            executedObjects[n] = value;
 
             return makeGeneric(frame, executedObjects);
         }
@@ -198,19 +200,20 @@ public abstract class ArrayLiteralNode extends RubyNode {
                     executedValues[n] = (long) value;
                 } else {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    return makeGeneric(frame, executedValues, n);
+                    return makeGeneric(frame, executedValues, n, value);
                 }
             }
 
             return createArray(executedValues, values.length);
         }
 
-        private DynamicObject makeGeneric(VirtualFrame frame, final long[] executedValues, int n) {
-            final Object[] executedObjects = new Object[n];
+        private DynamicObject makeGeneric(VirtualFrame frame, final long[] executedValues, int n, Object value) {
+            final Object[] executedObjects = new Object[n + 1];
 
             for (int i = 0; i < n; i++) {
                 executedObjects[i] = executedValues[i];
             }
+            executedObjects[n] = value;
 
             return makeGeneric(frame, executedObjects);
         }
