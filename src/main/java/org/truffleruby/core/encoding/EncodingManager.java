@@ -206,7 +206,23 @@ public class EncodingManager {
 
     @TruffleBoundary
     public DynamicObject getRubyEncoding(String name) {
-        return LOOKUP.get(name.toLowerCase(Locale.ENGLISH));
+        final String normalizedName = name.toLowerCase(Locale.ENGLISH);
+        final Encoding encoding;
+
+        switch(normalizedName) {
+            case "internal":
+                encoding = getDefaultInternalEncoding();
+                return getRubyEncoding(encoding == null ? ASCIIEncoding.INSTANCE : encoding);
+            case "external":
+            case "filesystem":
+                encoding = getDefaultExternalEncoding();
+                return getRubyEncoding(encoding == null ? ASCIIEncoding.INSTANCE : encoding);
+            case "locale":
+                encoding = getLocaleEncoding();
+                return getRubyEncoding(encoding == null ? ASCIIEncoding.INSTANCE : encoding);
+            default:
+                return LOOKUP.get(normalizedName);
+        }
     }
 
     @TruffleBoundary

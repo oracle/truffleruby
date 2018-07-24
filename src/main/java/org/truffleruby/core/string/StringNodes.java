@@ -1186,8 +1186,17 @@ public abstract class StringNodes {
         private final ConditionProfile differentEncodingProfile = ConditionProfile.createBinaryProfile();
 
         @Specialization(guards = "isRubyString(encodingName)")
-        public DynamicObject forceEncodingString(DynamicObject string, DynamicObject encodingName) {
-            final DynamicObject encoding = getContext().getEncodingManager().getRubyEncoding(StringOperations.getString(encodingName));
+        public DynamicObject forceEncodingString(DynamicObject string, DynamicObject encodingName,
+                @Cached("create()") BranchProfile errorProfile) {
+            final String stringName = StringOperations.getString(encodingName);
+            final DynamicObject encoding = getContext().getEncodingManager().getRubyEncoding(stringName);
+
+            if (encoding == null) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(),
+                        coreExceptions().argumentError("unknown encoding name - " + stringName, this));
+            }
+
             return forceEncodingEncoding(string, encoding);
         }
 
@@ -1206,8 +1215,9 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "!isRubyString(encoding)", "!isRubyEncoding(encoding)" })
         public DynamicObject forceEncoding(VirtualFrame frame, DynamicObject string, Object encoding,
-                @Cached("create()") ToStrNode toStrNode) {
-            return forceEncodingString(string, toStrNode.executeToStr(frame, encoding));
+                @Cached("create()") ToStrNode toStrNode,
+                @Cached("create()") BranchProfile errorProfile) {
+            return forceEncodingString(string, toStrNode.executeToStr(frame, encoding), errorProfile);
         }
 
     }
