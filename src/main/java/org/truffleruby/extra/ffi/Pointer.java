@@ -91,6 +91,15 @@ public class Pointer implements AutoCloseable {
         UNSAFE.setMemory(address + offset, size, value);
     }
 
+    public void writeBytes(long offset, Pointer buffer, int bufferPos, long length) {
+        assert address + offset != 0 || length == 0;
+        assert buffer != null;
+        assert bufferPos >= 0;
+        assert length >= 0;
+
+        UNSAFE.copyMemory(buffer.getAddress() + bufferPos, address + offset, length);
+    }
+
     public void writeBytes(long offset, byte[] buffer, int bufferPos, int length) {
         assert address + offset != 0 || length == 0;
         assert buffer != null;

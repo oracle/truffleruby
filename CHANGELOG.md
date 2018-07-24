@@ -40,6 +40,7 @@ Bug fixes:
 * Resolve symlinks in `GEM_HOME` and `GEM_PATH` to avoid related problems (#1383).
 * Refactor and fix `#autoload` so other threads see the constant defined while
   the autoload is in progress (#1332).
+* Strings backed by `NativeRope`s now make a copy of the rope when `dup`ed.
 
 Performance:
 
