@@ -1,6 +1,6 @@
 # 1.0
 
-# 1.0 RC 5
+# 1.0 RC 5, August 2018
 
 New features:
 
@@ -9,35 +9,40 @@ New features:
 * Improve error message when LLVM, `clang` or `opt` is missing.
 * Automatically find LLVM and libssl with MacPorts on macOS (#1386).
 * `--log.ruby.level=` can be used to set the log level from any launcher.
+* Add documentation about installing with Ruby managers/installers and how to
+  run TruffleRuby in CI such as TravisCI (#1062, #1070).
 
 Bug fixes:
 
 * Allow any name for constants with `rb_const_get()`/`rb_const_set()` (#1380).
-* Fix `defined?` with an autoload constant to not raise but return nil if the
+* Fix `defined?` with an autoload constant to not raise but return `nil` if the
   autoload fails (#1377).
 * Binary Ruby Strings can now only be converted to Java Strings if they only
   contain US-ASCII characters. Otherwise, they would produce garbled Java
   Strings (#1376).
-* `#autoload` now correctly calls main.require(path) dynamically.
+* `#autoload` now correctly calls `main.require(path)` dynamically.
 * Hide internal file from user-level backtraces (#1375).
 * Show caller information in warnings from the core library (#1375).
-* #require and #require_relative should keep symlinks in `$"` and `__FILE__`
-  (#1383).
-* Random seeds now always come directly from `/dev/urandom` for MRI
-  compatibility.
+* `#require` and `#require_relative` should keep symlinks in `$"` and `__FILE__` (#1383).
+* Random seeds now always come directly from `/dev/urandom` for MRI compatibility.
 * SIGINFO, SIGEMT and SIGPWR are now defined (#1382).
 * Optional and operator assignment expressions now return the value
-  assigned, not the value returned by an assignment method.
-* WeakRef.new will now return the correct type of object, even if WeakRef is
-  subclassed.
-* WeakRef.new will now return the correct type of object, even if WeakRef is subclassed.
-* Resolving constants in prepended modules failed, this has now been fixed.
-* Send and `Symbol#to_proc` now take account of refinements at their call sites.
+  assigned, not the value returned by an assignment method (#1391).
+* `WeakRef.new` will now return the correct type of object, even if `WeakRef` is
+  subclassed (#1391).
+* Resolving constants in prepended modules failed, this has now been fixed (#1391).
+* Send and `Symbol#to_proc` now take account of refinements at their call sites (#1391).
 * Better warning when the timezone cannot be found on WSL (#1393).
+* Fix `Socket.getifaddrs` which would wrongly return an empty array (#1375).
+* `Binding` now remembers the file and line at which it was created for `#eval`.
+  This is notably used by `pry`'s `binding.pry`.
+* Resolve symlinks in `GEM_HOME` and `GEM_PATH` to avoid related problems (#1383).
+* Refactor and fix `#autoload` so other threads see the constant defined while
+  the autoload is in progress (#1332).
 
 Performance:
 
-* Optimize required keyword arguments.
+* Optimize required and optional keyword arguments.
 * `rb_enc_to_index` is now faster by eliminating an expensive look-up.
 
 Changes:
@@ -48,11 +53,11 @@ Changes:
 * The log format, handlers, etc are now managed by the Truffle logging system.
 * The custom log levels `PERFORMANCE` and `PATCH` have been removed.
 
-# 1.0 RC 4
+# 1.0 RC 4, 18 July 2018
 
 *TruffleRuby was not updated in RC 4*
 
-# 1.0 RC 3
+# 1.0 RC 3, 2 July 2018
 
 New features:
 
@@ -86,7 +91,7 @@ Performance:
 * Use the byte[] of the given Ruby String when calling eval() directly for
   parsing.
 
-# 1.0 RC 2, May 2018
+# 1.0 RC 2, 6 June 2018
 
 New features:
 
@@ -135,7 +140,7 @@ Bug fixes:
   canonicalizes it before requiring, and it now uses the current directory as
   the directory for a synthetic file name from `#instance_eval`.
 
-# 1.0 RC 1, April 2018
+# 1.0 RC 1, 17 April 2018
 
 New features:
 
