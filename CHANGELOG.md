@@ -34,6 +34,7 @@ Bug fixes:
 * Resolving constants in prepended modules failed, this has now been fixed.
 * Send and `Symbol#to_proc` now take account of refinements at their call sites.
 * Better warning when the timezone cannot be found on WSL (#1393).
+* Handle special encoding names with `String#force_encoding` (#1397).
 
 Performance:
 
