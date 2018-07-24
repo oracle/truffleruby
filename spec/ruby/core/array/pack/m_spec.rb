@@ -2,11 +2,16 @@
 require_relative '../../../spec_helper'
 require_relative '../fixtures/classes'
 require_relative 'shared/basic'
+require_relative 'shared/taint'
 
 describe "Array#pack with format 'M'" do
   it_behaves_like :array_pack_basic, 'M'
   it_behaves_like :array_pack_basic_non_float, 'M'
   it_behaves_like :array_pack_arguments, 'M'
+  
+  ruby_bug "unknown", ""..."2.6" do
+    it_behaves_like :array_pack_taint, 'M'
+  end
 
   it "encodes an empty string as an empty string" do
     [""].pack("M").should == ""
@@ -192,6 +197,10 @@ describe "Array#pack with format 'm'" do
   it_behaves_like :array_pack_basic, 'm'
   it_behaves_like :array_pack_basic_non_float, 'm'
   it_behaves_like :array_pack_arguments, 'm'
+  
+  ruby_bug "unknown", ""..."2.6" do
+    it_behaves_like :array_pack_taint, 'm'
+  end
 
   it "encodes an empty string as an empty string" do
     [""].pack("m").should == ""
