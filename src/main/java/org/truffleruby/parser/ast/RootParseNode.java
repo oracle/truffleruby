@@ -31,6 +31,8 @@ package org.truffleruby.parser.ast;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
+import com.oracle.truffle.api.source.Source;
+
 import java.util.List;
 
 /**
@@ -42,13 +44,16 @@ import java.util.List;
  */
 // TODO: Store BEGIN and END information into this node
 public class RootParseNode extends ParseNode {
-    private ParseNode bodyNode;
-    private String file;
-    private int endPosition;
 
-    public RootParseNode(SourceIndexLength position, ParseNode bodyNode, String file, int endPosition) {
+    private final Source source;
+    private final ParseNode bodyNode;
+    private final String file;
+    private final int endPosition;
+
+    public RootParseNode(Source source, SourceIndexLength position, ParseNode bodyNode, String file, int endPosition) {
         super(position);
 
+        this.source = source;
         this.bodyNode = bodyNode;
         this.file = file;
         this.endPosition = endPosition;
@@ -57,6 +62,10 @@ public class RootParseNode extends ParseNode {
     @Override
     public NodeType getNodeType() {
         return NodeType.ROOTNODE;
+    }
+
+    public Source getSource() {
+        return source;
     }
 
     public String getFile() {

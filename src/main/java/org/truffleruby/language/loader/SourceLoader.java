@@ -16,10 +16,12 @@ import com.oracle.truffle.api.source.SourceSection;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.aot.ParserCache;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubySource;
+import org.truffleruby.parser.ast.RootParseNode;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -30,7 +32,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Locale;
@@ -170,6 +171,20 @@ public class SourceLoader {
     }
 
     @TruffleBoundary
+    public RubySource loadCoreFile(String feature) throws IOException {
+        if (feature.startsWith(RESOURCE_SCHEME)) {
+            if (TruffleOptions.AOT || ParserCache.INSTANCE != null) {
+                final RootParseNode rootParseNode = ParserCache.INSTANCE.get(feature);
+                return new RubySource(rootParseNode.getSource());
+            } else {
+                return loadResource(feature, isInternal(feature));
+            }
+        } else {
+            return load(feature);
+        }
+    }
+
+    @TruffleBoundary
     public RubySource load(String feature) throws IOException {
         if (context.getOptions().LOG_LOAD) {
             RubyLanguage.LOGGER.info("loading " + feature);
@@ -179,27 +194,23 @@ public class SourceLoader {
     }
 
     public static RubySource loadNoLogging(RubyContext context, String feature, boolean internal) throws IOException {
-        if (feature.startsWith(RESOURCE_SCHEME)) {
-            return loadResource(feature, internal);
+        ensureReadable(context, feature);
+
+        final String mimeType;
+        if (feature.toLowerCase().endsWith(RubyLanguage.CEXT_EXTENSION)) {
+            mimeType = RubyLanguage.CEXT_MIME_TYPE;
         } else {
-            ensureReadable(context, feature);
-
-            final String mimeType;
-            if (feature.toLowerCase().endsWith(RubyLanguage.CEXT_EXTENSION)) {
-                mimeType = RubyLanguage.CEXT_MIME_TYPE;
-            } else {
-                // We need to assume all other files are Ruby, so the file type detection isn't enough
-                mimeType = RubyLanguage.MIME_TYPE;
-            }
-
-            String name = feature;
-            if (context != null && context.isPreInitializing()) {
-                name = RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(feature));
-            }
-
-            return new RubySource(buildSource(
-                    Source.newBuilder(new File(feature)).name(name.intern()).mimeType(mimeType), internal));
+            // We need to assume all other files are Ruby, so the file type detection isn't enough
+            mimeType = RubyLanguage.MIME_TYPE;
         }
+
+        String name = feature;
+        if (context != null && context.isPreInitializing()) {
+            name = RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(feature));
+        }
+
+        return new RubySource(buildSource(
+                Source.newBuilder(new File(feature)).name(name.intern()).mimeType(mimeType), internal));
     }
 
     private boolean isInternal(String canonicalPath) {
@@ -214,38 +225,27 @@ public class SourceLoader {
         return false;
     }
 
-    private static RubySource loadResource(String path, boolean internal) throws IOException {
-        if (TruffleOptions.AOT) {
-            final String canonicalPath = SourceLoaderSupport.canonicalizeResourcePath(path);
-            final SourceLoaderSupport.CoreLibraryFile coreFile = SourceLoaderSupport.allCoreLibraryFiles.get(canonicalPath);
-            if (coreFile == null) {
-                throw new FileNotFoundException(path);
-            }
+    public static RubySource loadResource(String path, boolean internal) throws IOException {
+        assert path.startsWith(RESOURCE_SCHEME);
 
-            final Source source = buildSource(
-                    Source.newBuilder(coreFile.code).name(path).mimeType(RubyLanguage.MIME_TYPE), internal);
-            return new RubySource(source);
-        } else {
-            if (!path.toLowerCase(Locale.ENGLISH).endsWith(".rb")) {
-                throw new FileNotFoundException(path);
-            }
-
-            final Class<?> relativeClass = RubyContext.class;
-            final Path relativePath = FileSystems.getDefault().getPath(path.substring(RESOURCE_SCHEME.length()));
-
-            final Path normalizedPath = relativePath.normalize();
-            final InputStream stream = relativeClass.getResourceAsStream(
-                    StringUtils.replace(normalizedPath.toString(), '\\', '/'));
-
-            if (stream == null) {
-                throw new FileNotFoundException(path);
-            }
-
-            final InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
-            final Source source = buildSource(
-                    Source.newBuilder(reader).name(path).mimeType(RubyLanguage.MIME_TYPE), internal);
-            return new RubySource(source);
+        if (!path.toLowerCase(Locale.ENGLISH).endsWith(".rb")) {
+            throw new FileNotFoundException(path);
         }
+
+        final Class<?> relativeClass = RubyContext.class;
+        final Path relativePath = Paths.get(path.substring(RESOURCE_SCHEME.length()));
+
+        final String normalizedPath = StringUtils.replace(relativePath.normalize().toString(), '\\', '/');
+        final InputStream stream = relativeClass.getResourceAsStream(normalizedPath);
+
+        if (stream == null) {
+            throw new FileNotFoundException(path);
+        }
+
+        final InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
+        final Source source = buildSource(
+                Source.newBuilder(reader).name(path).mimeType(RubyLanguage.MIME_TYPE), internal);
+        return new RubySource(source);
     }
 
     private static <E extends Exception> Source buildSource(Source.Builder<E, RuntimeException, RuntimeException> builder, boolean internal) throws E {

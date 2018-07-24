@@ -746,37 +746,34 @@ public class CoreLibrary {
         return ModuleNodes.createModule(context, sourceSection, moduleClass, lexicalParent, name, node);
     }
 
-    public void loadRubyCore() {
+    public void loadRubyCoreLibraryAndPostBoot() {
+        state = State.LOADING_RUBY_CORE;
+
         try {
-            state = State.LOADING_RUBY_CORE;
+            for (int n = 0; n < CORE_FILES.length; n++) {
+                final RubySource source = context.getSourceLoader().loadCoreFile(getCoreLoadPath() + CORE_FILES[n]);
+                final RubyRootNode rootNode = context.getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, node);
 
-            try {
-                for (int n = 0; n < CORE_FILES.length; n++) {
-                    final RubySource source = context.getSourceLoader().load(getCoreLoadPath() + CORE_FILES[n]);
+                final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
+                        ParserContext.TOP_LEVEL,
+                        DeclarationContext.topLevel(context),
+                        rootNode,
+                        null,
+                        context.getCoreLibrary().getMainObject());
 
-                    final RubyRootNode rootNode = context.getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, node);
-
-                    final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
-                            ParserContext.TOP_LEVEL,
-                            DeclarationContext.topLevel(context),
-                            rootNode,
-                            null,
-                            context.getCoreLibrary().getMainObject());
-
-                    TranslatorDriver.printParseTranslateExecuteMetric("before-execute", context, source.getSource());
-                    deferredCall.callWithoutCallNode();
-                    TranslatorDriver.printParseTranslateExecuteMetric("after-execute", context, source.getSource());
-                }
-            } catch (IOException e) {
-                throw new JavaException(e);
+                TranslatorDriver.printParseTranslateExecuteMetric("before-execute", context, source.getSource());
+                deferredCall.callWithoutCallNode();
+                TranslatorDriver.printParseTranslateExecuteMetric("after-execute", context, source.getSource());
             }
+        } catch (IOException e) {
+            throw new JavaException(e);
         } catch (RaiseException e) {
             context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(e.getException());
             throw new TruffleFatalException("couldn't load the core library", e);
-        } finally {
-            state = State.LOADED;
         }
+    }
 
+    public void afterLoadCoreLibrary() {
         // Get some references to things defined in the Ruby core
 
         eagainWaitReadable = (DynamicObject) Layouts.MODULE.getFields(ioClass).getConstant("EAGAINWaitReadable").getValue();
@@ -786,23 +783,8 @@ public class CoreLibrary {
         assert Layouts.CLASS.isClass(eagainWaitWritable);
 
         findGlobalVariableStorage();
-    }
 
-    public void initializePostBoot() {
-        // Load code that can't be run until everything else is boostrapped, such as pre-loaded Ruby stdlib.
-
-        try {
-            final RubySource source = context.getSourceLoader().load(getCoreLoadPath() + "/post-boot/post-boot.rb");
-            final RubyRootNode rootNode = context.getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, node);
-            final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
-                    ParserContext.TOP_LEVEL, DeclarationContext.topLevel(context), rootNode, null, context.getCoreLibrary().getMainObject());
-            deferredCall.callWithoutCallNode();
-        } catch (IOException e) {
-            throw new JavaException(e);
-        } catch (RaiseException e) {
-            context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(e.getException());
-            throw new TruffleFatalException("couldn't load the post-boot code", e);
-        }
+        state = State.LOADED;
     }
 
     @TruffleBoundary
@@ -1447,7 +1429,8 @@ public class CoreLibrary {
             "/core/truffle/polyglot.rb",
             "/core/posix.rb",
             "/core/main.rb",
-            "/core/post.rb"
+            "/core/post.rb",
+            "/post-boot/post-boot.rb"
     };
 
 }
