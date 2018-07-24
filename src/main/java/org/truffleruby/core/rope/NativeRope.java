@@ -32,6 +32,13 @@ public class NativeRope extends Rope {
         return pointer;
     }
 
+    private static Pointer createNativePointer(FinalizationService finalizationService, Pointer existing) {
+        final Pointer pointer = Pointer.malloc(existing.getSize());
+        pointer.enableAutorelease(finalizationService);
+        pointer.writeBytes(0, existing, 0, existing.getSize());
+        return pointer;
+    }
+
     private NativeRope(Pointer pointer, int byteLength, Encoding encoding, int characterLength, CodeRange codeRange) {
         super(encoding, codeRange, false, byteLength, characterLength, 1, null);
         this.pointer = pointer;
@@ -49,6 +56,11 @@ public class NativeRope extends Rope {
         getNativePointer().writeByte(newByteLength, (byte) 0); // Like MRI
 
         return new NativeRope(getNativePointer(), newByteLength, getEncoding(), characterLength, codeRange);
+    }
+
+    public NativeRope makeCopy(FinalizationService finalizationService) {
+        final Pointer newPointer = createNativePointer(finalizationService, pointer);
+        return new NativeRope(newPointer, byteLength(), getEncoding(), characterLength(), getCodeRange());
     }
 
     @Override

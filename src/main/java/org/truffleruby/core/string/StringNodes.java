@@ -1304,13 +1304,23 @@ public abstract class StringNodes {
         }
 
 
-        @Specialization(guards = { "self != from", "isRubyString(from)" })
+        @Specialization(guards = { "self != from", "isRubyString(from)", "!isNativeRope(from)" })
         public Object initializeCopy(DynamicObject self, DynamicObject from) {
             StringOperations.setRope(self, rope(from));
 
             return self;
         }
 
+        @Specialization(guards = { "self != from", "isRubyString(from)", "isNativeRope(from)" })
+        public Object initializeCopyFromNative(DynamicObject self, DynamicObject from) {
+            StringOperations.setRope(self, ((NativeRope) rope(from)).makeCopy(getContext().getFinalizationService()));
+
+            return self;
+        }
+
+        protected boolean isNativeRope(DynamicObject other) {
+            return rope(other) instanceof NativeRope;
+        }
     }
 
     @CoreMethod(names = "lstrip!", raiseIfFrozenSelf = true)
