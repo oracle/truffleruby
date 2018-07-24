@@ -70,8 +70,6 @@ import org.truffleruby.core.support.IOLayout;
 import org.truffleruby.core.support.IOLayoutImpl;
 import org.truffleruby.core.support.RandomizerLayout;
 import org.truffleruby.core.support.RandomizerLayoutImpl;
-import org.truffleruby.core.support.WeakRefLayout;
-import org.truffleruby.core.support.WeakRefLayoutImpl;
 import org.truffleruby.core.string.StringLayout;
 import org.truffleruby.core.string.StringLayoutImpl;
 import org.truffleruby.core.symbol.SymbolLayout;
@@ -137,7 +135,6 @@ public abstract class Layouts {
     public static final ThreadBacktraceLocationLayout THREAD_BACKTRACE_LOCATION = ThreadBacktraceLocationLayoutImpl.INSTANCE;
     public static final TimeLayout TIME = TimeLayoutImpl.INSTANCE;
     public static final UnboundMethodLayout UNBOUND_METHOD = UnboundMethodLayoutImpl.INSTANCE;
-    public static final WeakRefLayout WEAK_REF_LAYOUT = WeakRefLayoutImpl.INSTANCE;
     public static final RandomizerLayout RANDOMIZER = RandomizerLayoutImpl.INSTANCE;
     public static final AtomicReferenceLayout ATOMIC_REFERENCE = AtomicReferenceLayoutImpl.INSTANCE;
     public static final HandleLayout HANDLE = HandleLayoutImpl.INSTANCE;

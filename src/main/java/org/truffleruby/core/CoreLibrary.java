@@ -185,8 +185,6 @@ public class CoreLibrary {
     private final DynamicObjectFactory byteArrayFactory;
     private final DynamicObject fiberErrorClass;
     private final DynamicObject threadErrorClass;
-    private final DynamicObject weakRefClass;
-    private final DynamicObjectFactory weakRefFactory;
     private final DynamicObject objectSpaceModule;
     private final DynamicObject randomizerClass;
     private final DynamicObjectFactory randomizerFactory;
@@ -471,9 +469,6 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(ioClass, Layouts.IO.createIOShape(ioClass, ioClass));
         defineClass(ioClass, "File");
 
-        weakRefClass = defineClass(basicObjectClass, "WeakRef");
-        weakRefFactory = Layouts.WEAK_REF_LAYOUT.createWeakRefShape(weakRefClass, weakRefClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(weakRefClass, weakRefFactory);
         final DynamicObject tracePointClass = defineClass("TracePoint");
         Layouts.CLASS.setInstanceFactoryUnsafe(tracePointClass, Layouts.TRACE_POINT.createTracePointShape(tracePointClass, tracePointClass));
 
@@ -524,6 +519,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "Readline");
         defineModule(truffleModule, "ReadlineHistory");
         defineModule(truffleModule, "ThreadOperations");
+        defineModule(truffleModule, "WeakRefOperations");
         handleClass = defineClass(truffleModule, objectClass, "Handle");
         handleFactory = Layouts.HANDLE.createHandleShape(handleClass, handleClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(handleClass, handleFactory);
@@ -1239,10 +1235,6 @@ public class CoreLibrary {
         return hashFactory;
     }
 
-    public DynamicObjectFactory getWeakRefFactory() {
-        return weakRefFactory;
-    }
-
     public Object getObjectSpaceModule() {
         return objectSpaceModule;
     }
@@ -1406,7 +1398,6 @@ public class CoreLibrary {
             "/core/thread.rb",
             "/core/true.rb",
             "/core/type.rb",
-            "/core/weakref.rb",
             "/core/truffle/ffi/pointer.rb",
             "/core/truffle/internal.rb",
             "/core/kernel.rb",
