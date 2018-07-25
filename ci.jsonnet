@@ -272,9 +272,9 @@ local part_definitions = {
         ["mx", "clean"],
         # aot-build.log is used for the build-stats metrics
         vm_build + ["|", "tee", "../../main/aot-build.log"],
-        ["export", ["echo", "VM_DIST_HOME=", vm_dist_home, "|", "tr", "-d", "' '"]],
-        ["export", "AOT_BIN=$VM_DIST_HOME/jre/languages/ruby/bin/truffleruby"],
-        ["export", "JT_BENCHMARK_RUBY=$AOT_BIN"],
+        ["set-export", "VM_DIST_HOME", vm_dist_home],
+        ["set-export", "AOT_BIN", "$VM_DIST_HOME/jre/languages/ruby/bin/truffleruby"],
+        ["set-export", "JT_BENCHMARK_RUBY", "$AOT_BIN"],
         ["cd", "../../main"],
       ],
     },
@@ -387,10 +387,10 @@ local part_definitions = {
     deploy_and_spec: {
       local without_rewrites = function(commands)
         [
-          ["export", "PREV_MX_URLREWRITES=$MX_URLREWRITES"],
+          ["set-export", "PREV_MX_URLREWRITES", "$MX_URLREWRITES"],
           ["unset", "MX_URLREWRITES"],
         ] + commands + [
-          ["export", "MX_URLREWRITES=$PREV_MX_URLREWRITES"],
+          ["set-export", "MX_URLREWRITES", "$PREV_MX_URLREWRITES"],
         ],
       local deploy_binaries_commands = [
         ["mx", "deploy-binary-if-master-or-release"],
@@ -511,10 +511,10 @@ local part_definitions = {
       ]),
 
       run: [
-        ["export", "GUEST_VM_CONFIG=default"],
+        ["set-export", "GUEST_VM_CONFIG", "default"],
       ] + run_benchs + [
-        ["export", "GUEST_VM_CONFIG=no-rubygems"],
-        ["export", "TRUFFLERUBYOPT=--disable-gems"],
+        ["set-export", "GUEST_VM_CONFIG", "no-rubygems"],
+        ["set-export", "TRUFFLERUBYOPT", "--disable-gems"],
       ] + run_benchs,
     },
 
