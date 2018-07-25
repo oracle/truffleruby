@@ -11,6 +11,7 @@ New features:
 * `--log.ruby.level=` can be used to set the log level from any launcher.
 * Add documentation about installing with Ruby managers/installers and how to
   run TruffleRuby in CI such as TravisCI (#1062, #1070).
+* `String#unpack1` has been implemented.
 
 Bug fixes:
 
@@ -41,6 +42,10 @@ Bug fixes:
 * Refactor and fix `#autoload` so other threads see the constant defined while
   the autoload is in progress (#1332).
 * Strings backed by `NativeRope`s now make a copy of the rope when `dup`ed.
+* `String#unpack` now taints return strings if the format was tainted, and
+  now does not taint the return array if the format was tainted.
+* Lots of fixes to `Array#pack` and `String#unpack` tainting, and a better
+  implementation of `P` and `p`.
 
 Performance:
 

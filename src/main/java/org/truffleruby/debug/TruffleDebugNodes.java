@@ -28,12 +28,15 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.parser.parser.SuppressFBWarnings;
@@ -548,6 +551,33 @@ public abstract class TruffleDebugNodes {
                     }
                 }
             }
+        }
+
+    }
+
+    @CoreMethod(names = "associated", onSingleton = true, required = 1)
+    public abstract static class AssociatedNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject associated(DynamicObject value,
+                                        @Cached("createReadAssociatedNode()") ReadObjectFieldNode readAssociatedNode) {
+            Pointer[] associated = (Pointer[]) readAssociatedNode.execute(value);
+
+            if (associated == null) {
+                associated = new Pointer[]{};
+            }
+
+            final long[] associatedValues = new long[associated.length];
+
+            for (int n = 0; n < associated.length; n++) {
+                associatedValues[n] = associated[n].getAddress();
+            }
+
+            return Layouts.ARRAY.createArray(getContext().getCoreLibrary().getArrayFactory(), associatedValues, associated.length);
+        }
+
+        protected ReadObjectFieldNode createReadAssociatedNode() {
+            return ReadObjectFieldNodeGen.create(Layouts.ASSOCIATED_IDENTIFIER, null);
         }
 
     }

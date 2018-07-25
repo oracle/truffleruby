@@ -15,7 +15,6 @@ import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
 import org.truffleruby.core.format.control.AdvanceSourcePositionNode;
 import org.truffleruby.core.format.control.ReverseSourcePositionNode;
-import org.truffleruby.core.format.control.SequenceNode;
 import org.truffleruby.core.format.control.SetSourcePositionNode;
 import org.truffleruby.core.format.convert.BytesToInteger16BigNodeGen;
 import org.truffleruby.core.format.convert.BytesToInteger16LittleNodeGen;
@@ -38,6 +37,7 @@ import org.truffleruby.core.format.read.bytes.ReadByteNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadBytesNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadHexStringNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadMIMEStringNodeGen;
+import org.truffleruby.core.format.read.bytes.ReadStringPointerNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadUTF8CharacterNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadUUStringNodeGen;
 import org.truffleruby.core.format.write.OutputNode;
@@ -72,7 +72,7 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
 
     public void exitSequence() {
         final List<FormatNode> sequence = sequenceStack.pop();
-        appendNode(new SequenceNode(sequence.toArray(new FormatNode[sequence.size()])));
+        appendNode(SharedTreeBuilder.createSequence(sequence.toArray(new FormatNode[sequence.size()])));
     }
 
     @Override
@@ -201,8 +201,11 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
     }
 
     @Override
-    public void pointer() {
-
+    public void pointer(int count, int limit) {
+        appendNode(sharedTreeBuilder.applyCount(count,
+                WriteValueNodeGen.create(new OutputNode(),
+                        ReadStringPointerNodeGen.create(limit,
+                                readBytesAsInteger(64, ByteOrder.nativeOrder(), false, false)))));
     }
 
     @Override

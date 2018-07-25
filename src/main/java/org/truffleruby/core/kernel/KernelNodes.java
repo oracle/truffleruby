@@ -10,7 +10,6 @@
 package org.truffleruby.core.kernel;
 
 import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
@@ -337,7 +336,7 @@ public abstract class KernelNodes {
         protected DynamicObject copyCached(VirtualFrame frame, DynamicObject self,
                 @Cached("self.getShape()") Shape cachedShape,
                 @Cached("getLogicalClass(cachedShape)") DynamicObject logicalClass,
-                @Cached(value = "getUserProperties(cachedShape)", dimensions = 1) Property[] properties,
+                @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) Property[] properties,
                 @Cached("createReadFieldNodes(properties)") ReadObjectFieldNode[] readFieldNodes,
                 @Cached("createWriteFieldNodes(properties)") WriteObjectFieldNode[] writeFieldNodes) {
             final DynamicObject newObject = (DynamicObject) allocateNode.call(frame, logicalClass, "__allocate__");
@@ -367,18 +366,22 @@ public abstract class KernelNodes {
             return Layouts.BASIC_OBJECT.getLogicalClass(shape.getObjectType());
         }
 
-        protected Property[] getUserProperties(Shape shape) {
-            CompilerAsserts.neverPartOfCompilation();
-
-            final List<Property> userProperties = new ArrayList<>();
+        protected Property[] getCopiedProperties(Shape shape) {
+            final List<Property> copiedProperties = new ArrayList<>();
 
             for (Property property : shape.getProperties()) {
                 if (property.getKey() instanceof String) {
-                    userProperties.add(property);
+                    copiedProperties.add(property);
                 }
             }
 
-            return userProperties.toArray(new Property[userProperties.size()]);
+            final Property associatedProperty = shape.getProperty(Layouts.ASSOCIATED_IDENTIFIER);
+
+            if (associatedProperty != null) {
+                copiedProperties.add(associatedProperty);
+            }
+
+            return copiedProperties.toArray(new Property[copiedProperties.size()]);
         }
 
         protected ReadObjectFieldNode[] createReadFieldNodes(Property[] properties) {
@@ -401,7 +404,7 @@ public abstract class KernelNodes {
         private void copyInstanceVariables(DynamicObject from, DynamicObject to) {
             // Concurrency: OK if callers create the object and publish it after copy
             // Only copy user-level instance variables, hidden ones are initialized later with #initialize_copy.
-            for (Property property : getUserProperties(from.getShape())) {
+            for (Property property : getCopiedProperties(from.getShape())) {
                 to.define(property.getKey(), property.get(from, from.getShape()), property.getFlags());
             }
         }
@@ -1674,12 +1677,13 @@ public abstract class KernelNodes {
                 @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("ropeLength(cachedFormat)") int cachedFormatLength,
                 @Cached("create(compileFormat(format, arguments, isDebug(frame)))") DirectCallNode callPackNode,
-                @Cached("create()") RopeNodes.EqualNode equalNode) {
+                @Cached("create()") RopeNodes.EqualNode equalNode,
+                @Cached("create()") IsTaintedNode isTaintedNode) {
             final BytesResult result;
 
             try {
                 result = (BytesResult) callPackNode.call(
-                        new Object[]{ arguments, arguments.length });
+                        new Object[]{ arguments, arguments.length, isTaintedNode.isTainted(format), null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
@@ -1693,14 +1697,15 @@ public abstract class KernelNodes {
                 VirtualFrame frame,
                 DynamicObject format,
                 Object[] arguments,
-                @Cached("create()") IndirectCallNode callPackNode) {
+                @Cached("create()") IndirectCallNode callPackNode,
+                @Cached("create()") IsTaintedNode isTaintedNode) {
             final BytesResult result;
 
             final boolean isDebug = readDebugGlobalNode.executeBoolean(frame);
 
             try {
                 result = (BytesResult) callPackNode.call(compileFormat(format, arguments, isDebug),
-                        new Object[]{ arguments, arguments.length });
+                        new Object[]{ arguments, arguments.length, isTaintedNode.isTainted(format), null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);

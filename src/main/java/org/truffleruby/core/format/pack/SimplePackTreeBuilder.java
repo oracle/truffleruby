@@ -15,9 +15,7 @@ import org.truffleruby.core.format.FormatEncoding;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
-import org.truffleruby.core.format.control.AdvanceSourcePositionNode;
 import org.truffleruby.core.format.control.ReverseOutputPositionNode;
-import org.truffleruby.core.format.control.SequenceNode;
 import org.truffleruby.core.format.control.SetOutputPositionNode;
 import org.truffleruby.core.format.convert.Integer16BigToBytesNodeGen;
 import org.truffleruby.core.format.convert.Integer16LittleToBytesNodeGen;
@@ -26,8 +24,10 @@ import org.truffleruby.core.format.convert.Integer32LittleToBytesNodeGen;
 import org.truffleruby.core.format.convert.Integer64BigToBytesNodeGen;
 import org.truffleruby.core.format.convert.Integer64LittleToBytesNodeGen;
 import org.truffleruby.core.format.convert.ReinterpretAsLongNodeGen;
+import org.truffleruby.core.format.convert.StringToPointerNodeGen;
 import org.truffleruby.core.format.convert.ToFloatNodeGen;
 import org.truffleruby.core.format.convert.ToLongNodeGen;
+import org.truffleruby.core.format.convert.ToStringObjectNodeGen;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.read.array.ReadDoubleNodeGen;
 import org.truffleruby.core.format.read.array.ReadLongOrBigIntegerNodeGen;
@@ -74,7 +74,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
 
     public void exitSequence() {
         final List<FormatNode> sequence = sequenceStack.pop();
-        appendNode(new SequenceNode(sequence.toArray(new FormatNode[sequence.size()])));
+        appendNode(SharedTreeBuilder.createSequence(sequence.toArray(new FormatNode[sequence.size()])));
     }
 
     @Override
@@ -186,18 +186,13 @@ public class SimplePackTreeBuilder implements SimplePackListener {
     }
 
     @Override
-    public void pointer() {
-        /*
-         * P and p print the address of a string. Obviously that doesn't work
-         * well in Java. We'll print 0x0000000000000000 with the hope that at
-         * least it should page fault if anyone tries to read it.
-         */
-
-        appendNode(new SequenceNode(new FormatNode[]{
-                new AdvanceSourcePositionNode(false),
+    public void pointer(int count, int limit) {
+        appendNode(sharedTreeBuilder.applyCount(count,
                 writeInteger(64, ByteOrder.nativeOrder(),
-                        new LiteralFormatNode((long) 0))
-        }));
+                        StringToPointerNodeGen.create(
+                                ToStringObjectNodeGen.create(
+                                        ReadValueNodeGen.create(
+                                                new SourceNode()))))));
     }
 
     @Override

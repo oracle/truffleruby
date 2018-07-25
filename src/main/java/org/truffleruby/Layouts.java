@@ -100,6 +100,7 @@ public abstract class Layouts {
     public static final HiddenKey OBJECT_ID_IDENTIFIER = new HiddenKey("object_id");
     public static final HiddenKey TAINTED_IDENTIFIER = new HiddenKey("tainted?");
     public static final HiddenKey FROZEN_IDENTIFIER = new HiddenKey("frozen?");
+    public static final HiddenKey ASSOCIATED_IDENTIFIER = new HiddenKey("associated");
 
     // Generated layouts
 

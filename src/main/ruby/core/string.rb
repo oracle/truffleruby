@@ -1580,5 +1580,9 @@ class String
     crypted.taint if tainted? || salt.tainted?
     crypted
   end
+  
+  def unpack1(format)
+    unpack(format).first
+  end
 
 end

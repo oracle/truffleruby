@@ -347,11 +347,18 @@ public class SimplePackParser {
                     listener.base64String(count());
                     break;
 
-                case 'p':
                 case 'P':
                     n++;
                     disallowNative(b);
-                    listener.pointer();
+                    int bigPCount = count();
+                    listener.pointer(1, bigPCount == COUNT_NONE ? Integer.MAX_VALUE : bigPCount);
+                    break;
+
+                case 'p':
+                    n++;
+                    disallowNative(b);
+                    int littlePCount = count();
+                    listener.pointer(littlePCount == COUNT_NONE ? 1 : littlePCount, Integer.MAX_VALUE);
                     break;
 
                 case '@':

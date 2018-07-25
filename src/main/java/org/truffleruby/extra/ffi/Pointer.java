@@ -9,6 +9,7 @@
  */
 package org.truffleruby.extra.ffi;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 import org.truffleruby.RubyContext;
@@ -114,6 +115,12 @@ public class Pointer implements AutoCloseable {
         return UNSAFE.getByte(address + offset);
     }
 
+    public byte[] readBytes(long offset, int length) {
+        final byte[] bytes = new byte[length];
+        readBytes(offset, bytes, 0, length);
+        return bytes;
+    }
+
     public void readBytes(long offset, byte[] buffer, int bufferPos, int length) {
         assert address + offset != 0 || length == 0;
         assert buffer != null;
@@ -144,29 +151,53 @@ public class Pointer implements AutoCloseable {
     }
 
     public byte[] readZeroTerminatedByteArray(RubyContext context, long offset) {
-        final int length = findNullByte(context, offset);
-        final byte[] bytes = new byte[length];
-        readBytes(offset, bytes, 0, length);
-        return bytes;
+        return readBytes(offset, checkStringSize(findNullByte(context, offset)));
     }
 
+    public byte[] readZeroTerminatedByteArray(RubyContext context, long offset, long limit) {
+        return readBytes(offset, checkStringSize(findNullByte(context, offset, limit)));
+    }
+
+    private long findNullByte(RubyContext context, long offset) {
+        if (context.getOptions().NATIVE_PLATFORM) {
+            return (long) context.getTruffleNFI().getStrlen().call(address + offset);
+        } else {
+            int n = 0;
+            while (true) {
+                if (readByte(offset + n) == 0) {
+                    return n;
+                }
+                n++;
+            }
+        }
+    }
+
+    private long findNullByte(RubyContext context, long offset, long limit) {
+        if (context.getOptions().NATIVE_PLATFORM) {
+            return (long) context.getTruffleNFI().getStrnlen().call(address + offset, limit);
+        } else {
+            int n = 0;
+            while (n < limit) {
+                if (readByte(offset + n) == 0) {
+                    return n;
+                }
+                n++;
+            }
+            return limit;
+        }
+    }
+
+    private int checkStringSize(long size) {
+        if (size > Integer.MAX_VALUE) {
+            CompilerDirectives.transferToInterpreter();
+            throw new UnsupportedOperationException("native string is too long to read into managed code");
+        }
+
+        return (int) size;
+    }
 
     public Pointer readPointer(long offset) {
         return new Pointer(readLong(offset));
-    }
-
-    public int findNullByte(RubyContext context, long offset) {
-        if (context.getOptions().NATIVE_PLATFORM) {
-            return (int) (long) context.getTruffleNFI().getStrlen().call(address + offset);
-        }
-
-        int n = 0;
-        while (true) {
-            if (readByte(offset + n) == 0) {
-                return n;
-            }
-            n++;
-        }
     }
 
     public void free() {
@@ -233,6 +264,24 @@ public class Pointer implements AutoCloseable {
         finalizationService.removeFinalizers(this, Pointer.class);
 
         autorelease = false;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+
+        if (!(other instanceof Pointer)) {
+            return false;
+        }
+
+        return ((Pointer) other).getAddress() == address;
+    }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(address);
     }
 
     @SuppressWarnings("restriction")

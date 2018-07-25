@@ -10,6 +10,7 @@
 package org.truffleruby.core.format;
 
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.extra.ffi.Pointer;
 
 public class BytesResult {
 
@@ -20,13 +21,16 @@ public class BytesResult {
     private final boolean tainted;
     private final FormatEncoding encoding;
 
-    public BytesResult(byte[] output, int outputLength, int stringLength, CodeRange stringCodeRange, boolean tainted, FormatEncoding encoding) {
+    private final Pointer[] associated;
+
+    public BytesResult(byte[] output, int outputLength, int stringLength, CodeRange stringCodeRange, boolean tainted, FormatEncoding encoding, Pointer[] associated) {
         this.output = output;
         this.outputLength = outputLength;
         this.stringLength = stringLength;
         this.stringCodeRange = stringCodeRange;
         this.tainted = tainted;
         this.encoding = encoding;
+        this.associated = associated;
     }
 
     public byte[] getOutput() {
@@ -52,4 +56,9 @@ public class BytesResult {
     public FormatEncoding getEncoding() {
         return encoding;
     }
+
+    public Pointer[] getAssociated() {
+        return associated;
+    }
+
 }

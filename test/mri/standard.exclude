@@ -27,7 +27,6 @@ etc/test_etc.rb
 fileutils/test_fileutils.rb # cannot load such file -- etc
 io/wait/test_io_wait.rb
 io/nonblock/test_flush.rb
-net/ftp/test_ftp.rb
 net/http/test_buffered_io.rb
 net/http/test_http.rb
 net/http/test_http_request.rb
@@ -210,7 +209,6 @@ webrick/test_cgi.rb
 webrick/test_cookie.rb
 webrick/test_filehandler.rb
 webrick/test_htmlutils.rb
-webrick/test_httpauth.rb
 webrick/test_httpproxy.rb
 webrick/test_httprequest.rb
 webrick/test_httpresponse.rb
