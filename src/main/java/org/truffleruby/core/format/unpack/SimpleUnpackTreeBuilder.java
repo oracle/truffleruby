@@ -40,6 +40,7 @@ import org.truffleruby.core.format.read.bytes.ReadMIMEStringNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadStringPointerNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadUTF8CharacterNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadUUStringNodeGen;
+import org.truffleruby.core.format.read.bytes.TaintFromSourceNodeGen;
 import org.truffleruby.core.format.write.OutputNode;
 import org.truffleruby.core.format.write.array.WriteValueNodeGen;
 import org.truffleruby.language.control.RaiseException;
@@ -126,7 +127,9 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
             readNode = ReadBinaryStringNodeGen.create(false, false, count, true, true, false, source);
         }
 
-        appendNode(WriteValueNodeGen.create(new OutputNode(), readNode));
+        appendNode(WriteValueNodeGen.create(new OutputNode(),
+                TaintFromSourceNodeGen.create(
+                        readNode)));
     }
 
     @Override
@@ -142,7 +145,9 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
             readNode = ReadBinaryStringNodeGen.create(false, false, count, false, false, false, source);
         }
 
-        appendNode(WriteValueNodeGen.create(new OutputNode(), readNode));
+        appendNode(WriteValueNodeGen.create(new OutputNode(),
+                TaintFromSourceNodeGen.create(
+                        readNode)));
     }
 
     @Override
@@ -158,7 +163,9 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
             readNode = ReadBinaryStringNodeGen.create(false, false, count, false, true, true, source);
         }
 
-        appendNode(WriteValueNodeGen.create(new OutputNode(), readNode));
+        appendNode(WriteValueNodeGen.create(new OutputNode(),
+                TaintFromSourceNodeGen.create(
+                        readNode)));
     }
 
     @Override
@@ -185,19 +192,22 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
     public void uuString(int count) {
         appendNode(
                 WriteValueNodeGen.create(new OutputNode(),
-                        ReadUUStringNodeGen.create(new SourceNode())));
+                        TaintFromSourceNodeGen.create(
+                                ReadUUStringNodeGen.create(new SourceNode()))));
     }
 
     @Override
     public void mimeString(int count) {
         appendNode(WriteValueNodeGen.create(new OutputNode(),
-                ReadMIMEStringNodeGen.create(new SourceNode())));
+                TaintFromSourceNodeGen.create(
+                        ReadMIMEStringNodeGen.create(new SourceNode()))));
     }
 
     @Override
     public void base64String(int count) {
         appendNode(WriteValueNodeGen.create(new OutputNode(),
-                ReadBase64StringNodeGen.create(new SourceNode())));
+                TaintFromSourceNodeGen.create(
+                        ReadBase64StringNodeGen.create(new SourceNode()))));
     }
 
     @Override

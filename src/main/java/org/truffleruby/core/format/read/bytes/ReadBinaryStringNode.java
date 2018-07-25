@@ -20,7 +20,6 @@ import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.language.objects.TaintNode;
 
 import java.util.Arrays;
 
@@ -57,8 +56,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
 
     @Specialization
     public DynamicObject read(VirtualFrame frame, byte[] source,
-                              @Cached("create()") StringNodes.MakeStringNode makeStringNode,
-                              @Cached("create()") TaintNode taintNode) {
+                              @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
         final int start = getSourcePosition(frame);
 
         int length;
@@ -111,13 +109,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
 
         setSourcePosition(frame, start + length);
 
-        final DynamicObject string = makeStringNode.executeMake(Arrays.copyOfRange(source, start, start + usedLength), ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
-
-        if (isSourceTainted(frame)) {
-            taintNode.executeTaint(string);
-        }
-
-        return string;
+        return makeStringNode.executeMake(Arrays.copyOfRange(source, start, start + usedLength), ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }
 
     private int indexOfFirstNull(byte[] bytes, int start, int length) {
