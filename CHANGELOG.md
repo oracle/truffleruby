@@ -6,6 +6,9 @@ New features:
 
 Bug fixes:
 
+* `Array#reject!` no longer truncates the array if the block raises an
+  exception for an element.
+
 * WeakRef now has the same inheritance and methods as MRI's version.
 
 # 1.0 RC 5, August 2018
