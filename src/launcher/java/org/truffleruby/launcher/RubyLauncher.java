@@ -71,8 +71,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected List<String> preprocessArguments(List<String> args, Map<String, String> polyglotOptions) {
-        Metrics.begin();
-
         config = new CommandLineOptions(polyglotOptions);
 
         try {
@@ -148,6 +146,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected void launch(Context.Builder contextBuilder) {
+        Metrics.begin();
         printPreRunInformation(config);
         debugPreInitialization();
         final int exitValue = runRubyMain(contextBuilder, config);
