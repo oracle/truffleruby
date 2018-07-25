@@ -15,16 +15,9 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
-import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.format.read.SourceNode;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.language.objects.TaintNode;
-
-import java.nio.ByteBuffer;
 
 @NodeChildren({
         @NodeChild(value = "value", type = FormatNode.class),

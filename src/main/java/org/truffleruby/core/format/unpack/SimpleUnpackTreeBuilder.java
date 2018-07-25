@@ -353,16 +353,18 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
         final SharedTreeBuilder.StarLength starLength = sharedTreeBuilder.parseCountContext(count);
 
         appendNode(WriteValueNodeGen.create(new OutputNode(),
-                ReadBitStringNodeGen.create(byteOrder, starLength.isStar(), starLength.getLength(),
-                        new SourceNode())));
+                TaintFromSourceNodeGen.create(
+                        ReadBitStringNodeGen.create(byteOrder, starLength.isStar(), starLength.getLength(),
+                                new SourceNode()))));
     }
 
     private void hexString(ByteOrder byteOrder, int count) {
         final SharedTreeBuilder.StarLength starLength = sharedTreeBuilder.parseCountContext(count);
 
         appendNode(WriteValueNodeGen.create(new OutputNode(),
-                ReadHexStringNodeGen.create(byteOrder, starLength.isStar(), starLength.getLength(),
-                        new SourceNode())));
+                TaintFromSourceNodeGen.create(
+                        ReadHexStringNodeGen.create(byteOrder, starLength.isStar(), starLength.getLength(),
+                                new SourceNode()))));
 
     }
 
