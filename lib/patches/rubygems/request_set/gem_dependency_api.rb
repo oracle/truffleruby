@@ -1,4 +1,4 @@
-Truffle::Patching.require_original __FILE__
+require 'rubygems/request_set/gem_dependency_api'
 
 class Gem::RequestSet::GemDependencyAPI
 

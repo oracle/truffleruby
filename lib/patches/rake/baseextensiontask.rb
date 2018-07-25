@@ -1,4 +1,4 @@
-Truffle::Patching.require_original __FILE__
+require 'rake/baseextensiontask'
 
 module Truffle::Patching::RakeBaseExtensionTaskOverrideBinaryExt
   def binary(platform = nil)

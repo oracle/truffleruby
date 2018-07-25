@@ -818,7 +818,8 @@ public class RubyContext {
 
     private boolean isRubyHome(File path) {
         return Paths.get(path.toString(), "lib", "truffle").toFile().isDirectory() &&
-                Paths.get(path.toString(), "lib", "ruby").toFile().isDirectory();
+                Paths.get(path.toString(), "lib", "ruby").toFile().isDirectory() &&
+                Paths.get(path.toString(), "lib", "patches").toFile().isDirectory();
     }
 
     public TruffleNFIPlatform getTruffleNFI() {

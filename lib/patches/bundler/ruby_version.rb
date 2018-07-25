@@ -22,7 +22,7 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-Truffle::Patching.require_original __FILE__
+require 'bundler/ruby_version'
 
 module Bundler
   class RubyVersion

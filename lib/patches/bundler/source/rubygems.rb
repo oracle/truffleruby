@@ -24,7 +24,7 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-Truffle::Patching.require_original __FILE__
+require 'bundler/source/rubygems'
 
 # TruffleRuby: do not skips gems with extensions not built
 

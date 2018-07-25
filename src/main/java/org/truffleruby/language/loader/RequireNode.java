@@ -9,6 +9,15 @@
  */
 package org.truffleruby.language.loader;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReentrantLock;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -27,7 +36,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.CodeRange;
@@ -41,12 +49,6 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.locks.ReentrantLock;
 
 @NodeChild("feature")
 public abstract class RequireNode extends RubyNode {
@@ -92,13 +94,23 @@ public abstract class RequireNode extends RubyNode {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
         final ReentrantLockFreeingMap<String> fileLocks = featureLoader.getFileLocks();
         final String expandedPath = expandedPathRaw.intern();
+        final ConcurrentMap<String, Boolean> patchFiles = getContext().getCoreLibrary().getPatchFiles();
+        Boolean patchLoaded = patchFiles.get(feature);
+        final boolean isPatched = patchLoaded != null;
 
         while (true) {
             final ReentrantLock lock = fileLocks.get(expandedPath);
 
             if (lock.isHeldByCurrentThread()) {
-                warnCircularRequire(expandedPath);
-                return false;
+                if (isPatched && !patchLoaded) {
+                    // it is loading the original of the patched file for the first time
+                    // it has to allow this one case of circular require where the first require was the patch
+                    patchLoaded = true;
+                    patchFiles.put(feature, true);
+                } else {
+                    warnCircularRequire(expandedPath);
+                    return false;
+                }
             }
 
             if (!fileLocks.lock(this, getContext().getThreadManager(), expandedPath, lock)) {
@@ -106,39 +118,29 @@ public abstract class RequireNode extends RubyNode {
             }
 
             try {
+                if (isPatched && !patchLoaded) {
+                    Path expandedPatchPath =
+                            Paths.get(getContext().getRubyHome(), "lib", "patches", feature + ".rb");
+                    RubyLanguage.LOGGER.config("patch file used: " + expandedPatchPath);
+                    final boolean loaded = parseAndCall(feature, expandedPatchPath.toString());
+                    assert loaded;
+
+                    final boolean originalLoaded = patchFiles.get(feature);
+                    if (!originalLoaded) {
+                        addToLoadedFeatures(pathString);
+                        // if original is not loaded make sure we set the patch to loaded
+                        patchFiles.put(feature, true);
+                    }
+
+                    return true;
+                }
+
                 if (isFeatureLoaded(pathString)) {
                     return false;
                 }
 
-                final RubySource source;
-                try {
-                    source = getContext().getSourceLoader().load(expandedPath);
-                } catch (IOException e) {
+                if (!parseAndCall(feature, expandedPath)) {
                     return false;
-                }
-
-                final String mimeType = getSourceMimeType(source.getSource());
-
-                if (RubyLanguage.MIME_TYPE.equals(mimeType)) {
-                    final RubyRootNode rootNode = getContext().getCodeLoader().parse(
-                            source,
-                            ParserContext.TOP_LEVEL,
-                            null,
-                            true,
-                            this);
-
-                    final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
-                            ParserContext.TOP_LEVEL,
-                            DeclarationContext.topLevel(getContext()),
-                            rootNode,
-                            null,
-                            coreLibrary().getMainObject());
-
-                    deferredCall.call(callNode);
-                } else if (RubyLanguage.CEXT_MIME_TYPE.equals(mimeType)) {
-                    requireCExtension(feature, expandedPath);
-                } else {
-                    throw new RaiseException(getContext(), mimeTypeNotFound(expandedPath, mimeType));
                 }
 
                 addToLoadedFeatures(pathString);
@@ -148,6 +150,40 @@ public abstract class RequireNode extends RubyNode {
                 fileLocks.unlock(expandedPath, lock);
             }
         }
+    }
+
+    private boolean parseAndCall(String feature, String expandedPath) {
+        final RubySource source;
+        try {
+            source = getContext().getSourceLoader().load(expandedPath);
+        } catch (IOException e) {
+            return false;
+        }
+
+        final String mimeType = getSourceMimeType(source.getSource());
+
+        if (RubyLanguage.MIME_TYPE.equals(mimeType)) {
+            final RubyRootNode rootNode = getContext().getCodeLoader().parse(
+                    source,
+                    ParserContext.TOP_LEVEL,
+                    null,
+                    true,
+                    this);
+
+            final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
+                    ParserContext.TOP_LEVEL,
+                    DeclarationContext.topLevel(getContext()),
+                    rootNode,
+                    null,
+                    coreLibrary().getMainObject());
+
+            deferredCall.call(callNode);
+        } else if (RubyLanguage.CEXT_MIME_TYPE.equals(mimeType)) {
+            requireCExtension(feature, expandedPath);
+        } else {
+            throw new RaiseException(getContext(), mimeTypeNotFound(expandedPath, mimeType));
+        }
+        return true;
     }
 
     @TruffleBoundary

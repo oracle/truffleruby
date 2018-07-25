@@ -1,4 +1,4 @@
-Truffle::Patching.require_original __FILE__
+require 'rubygems/ext'
 
 # TruffleRuby: build C extensions conditionally
 
