@@ -46,6 +46,8 @@ Bug fixes:
   now does not taint the return array if the format was tainted.
 * Lots of fixes to `Array#pack` and `String#unpack` tainting, and a better
   implementation of `P` and `p`.
+* Array literals could evaluate an element twice under some
+  circumstances. This has now been fixed.
 
 Performance:
 
