@@ -51,25 +51,9 @@ module SecureRandom
   def self.random_bytes(n=nil)
     n = n ? n.to_int : 16
 
-    if !defined?(@has_urandom) || @has_urandom
-      flags = File::RDONLY
-      flags |= File::NONBLOCK if defined? File::NONBLOCK
-      flags |= File::NOCTTY if defined? File::NOCTTY
-      begin
-        File.open('/dev/urandom', flags) do |f|
-          unless f.stat.chardev?
-            raise Errno::ENOENT
-          end
-          @has_urandom = true
-          ret = f.readpartial(n)
-          if ret.length != n
-            raise NotImplementedError, 'Unexpected partial read from random device'
-          end
-          return ret
-        end
-      rescue Errno::ENOENT
-        @has_urandom = false
-      end
+    if @has_urandom || File.exist?('/dev/urandom')
+      @has_urandom ||= true
+      return Truffle.invoke_primitive(:vm_dev_urandom_bytes, n)
     end
 
     # Defer loading of OpenSSL until we actually need it. Requiring 'openssl' triggers a full initialization
