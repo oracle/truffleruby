@@ -44,6 +44,7 @@ public class CoreStrings {
     public final CoreString MODULO;
     public final CoreString MULTIPLY;
     public final CoreString NEGATIVE_ARRAY_SIZE;
+    public final CoreString NEGATIVE_STRING_SIZE;
     public final CoreString NIL;
     public final CoreString ONE_HASH_REQUIRED;
     public final CoreString OUT_OF_RANGE;
@@ -101,6 +102,7 @@ public class CoreStrings {
         MODULO = new CoreString(context, "%");
         MULTIPLY = new CoreString(context, "*");
         NEGATIVE_ARRAY_SIZE = new CoreString(context, "negative array size");
+        NEGATIVE_STRING_SIZE = new CoreString(context, "negative string size (or size too big)");
         NIL = new CoreString(context, "nil");
         ONE_HASH_REQUIRED = new CoreString(context, "one hash required");
         OUT_OF_RANGE = new CoreString(context, "out of range");
