@@ -1216,6 +1216,7 @@ EOS
                  url:    'https://github.com/pitr-ch/algebrick.git',
                  commit: '473eb80d200fb7ad0a9b869bb0b4971fa507028a' }]
     jdebug = args.delete '--jdebug'
+    bundler_version = '1.16.1'
 
     gems.each do |info|
       gem_name = info.fetch(:name)
@@ -1244,11 +1245,11 @@ EOS
             'PATH'     => [File.join(gem_home, 'bin'), ENV['PATH']].join(File::PATH_SEPARATOR))
 
           run_ruby(environment, '-Xexceptions.print_java=true', *('--jdebug' if jdebug),
-                   '-S', 'gem', 'install', '--no-document', 'bundler', '-v', '1.16.1', '--backtrace')
+                   '-S', 'gem', 'install', '--no-document', 'bundler', '-v', bundler_version, '--backtrace')
           run_ruby(environment, '-J-Xmx512M', '-Xexceptions.print_java=true', *('--jdebug' if jdebug),
-                   '-S', 'bundle', 'install')
+                   '-S', 'bundle', "_#{bundler_version}_", 'install', '--local')
           run_ruby(environment, '-Xexceptions.print_java=true', *('--jdebug' if jdebug),
-                   '-S', 'bundle', 'exec', 'rake')
+                   '-S', 'bundle', "_#{bundler_version}_", 'exec', 'rake')
         end
       ensure
         FileUtils.remove_entry temp_dir
