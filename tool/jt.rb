@@ -25,7 +25,7 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = "1180be86790c2cba4fabd7b728842c26daff0abe"
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = "be5b480900811f5d5062100d9a9ad2a30a781a68"
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -1244,7 +1244,7 @@ EOS
                    '-S', 'bundle', "_#{bundler_version}_", 'exec', 'rake')
         end
       ensure
-        FileUtils.remove_entry temp_dir
+        FileUtils.remove_entry_secure temp_dir
       end
     end
   end
