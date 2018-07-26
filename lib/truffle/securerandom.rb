@@ -51,26 +51,6 @@ module SecureRandom
   def self.random_bytes(n=nil)
     n = n ? n.to_int : 16
 
-    # Defer loading of OpenSSL until we actually need it. Requiring 'openssl' triggers a full initialization
-    # of OpenSSL, which is quite costly. We don't want to pay that expense if we never end up using anything
-    # from OpenSSL.
-    begin
-      require 'openssl'
-    rescue LoadError # rubocop:disable Lint/HandleExceptions
-    end
-
-    if defined? OpenSSL::Random
-      @pid = 0 if !defined?(@pid)
-      pid = $$
-      if @pid != pid
-        now = Time.now
-        ary = [now.to_i, now.nsec, @pid, pid]
-        OpenSSL::Random.seed(ary.to_s)
-        @pid = pid
-      end
-      return OpenSSL::Random.random_bytes(n)
-    end
-
     if !defined?(@has_urandom) || @has_urandom
       flags = File::RDONLY
       flags |= File::NONBLOCK if defined? File::NONBLOCK
@@ -90,6 +70,26 @@ module SecureRandom
       rescue Errno::ENOENT
         @has_urandom = false
       end
+    end
+
+    # Defer loading of OpenSSL until we actually need it. Requiring 'openssl' triggers a full initialization
+    # of OpenSSL, which is quite costly. We don't want to pay that expense if we never end up using anything
+    # from OpenSSL.
+    begin
+      require 'openssl'
+    rescue LoadError # rubocop:disable Lint/HandleExceptions
+    end
+
+    if defined? OpenSSL::Random
+      @pid = 0 if !defined?(@pid)
+      pid = $$
+      if @pid != pid
+        now = Time.now
+        ary = [now.to_i, now.nsec, @pid, pid]
+        OpenSSL::Random.seed(ary.to_s)
+        @pid = pid
+      end
+      return OpenSSL::Random.random_bytes(n)
     end
 
     if !defined?(@has_win32)
