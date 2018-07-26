@@ -1207,9 +1207,6 @@ EOS
   private :test_ecosystem
 
   def test_bundle(*args)
-    # Disabled as it's not using the gem test pack properly
-    return
-
     require 'tmpdir'
 
     gems    = %w[algebrick]
