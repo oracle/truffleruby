@@ -25,7 +25,7 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = "ac168e3499126c03197d2274f19aa74dfdd90fa6"
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = "1180be86790c2cba4fabd7b728842c26daff0abe"
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -1212,32 +1212,26 @@ EOS
 
     require 'tmpdir'
 
-    gems    = [{ name:   'algebrick',
-                 url:    'https://github.com/pitr-ch/algebrick.git',
-                 commit: '473eb80d200fb7ad0a9b869bb0b4971fa507028a' }]
+    gems    = %w[algebrick]
     jdebug = args.delete '--jdebug'
     bundler_version = '1.16.1'
 
-    gems.each do |info|
-      gem_name = info.fetch(:name)
+    gems.each do |gem_name|
       temp_dir = Dir.mktmpdir(gem_name)
 
       begin
-        gem_home = File.join(temp_dir, 'gem_home')
-
-        Dir.mkdir(gem_home)
+        gem_home = File.join(gem_test_pack, 'gems')
         gem_home = File.realpath gem_home # remove symlinks
         puts "Using temporary GEM_HOME:#{gem_home}"
 
-        chdir(temp_dir) do
-          puts "Cloning gem #{gem_name} into temp directory: #{temp_dir}"
-          raw_sh('git', 'clone', info.fetch(:url))
-        end
 
-        gem_checkout = File.join(temp_dir, gem_name)
-        chdir(gem_checkout) do
-          raw_sh('git', 'checkout', info.fetch(:commit)) if info.key?(:commit)
+        puts "Copying gem #{gem_name} source into temp directory: #{temp_dir}"
 
+        original_source_tree = File.join(gem_test_pack, 'gem-testing', gem_name)
+        gem_source_tree = File.join(temp_dir, gem_name)
+        FileUtils.copy_entry(original_source_tree, gem_source_tree)
+
+        chdir(gem_source_tree) do
           environment = Utilities.no_gem_vars_env.merge(
             'GEM_HOME' => gem_home,
             'GEM_PATH' => gem_home,
