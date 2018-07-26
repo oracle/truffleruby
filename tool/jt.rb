@@ -1239,6 +1239,7 @@ EOS
 
           environment = Utilities.no_gem_vars_env.merge(
             'GEM_HOME' => gem_home,
+            'GEM_PATH' => gem_home,
             # add bin from gem_home to PATH
             'PATH'     => [File.join(gem_home, 'bin'), ENV['PATH']].join(File::PATH_SEPARATOR))
 
