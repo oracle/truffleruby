@@ -1572,7 +1572,7 @@ EOS
     use_json = args.delete '--json'
     samples = []
     native = args.include? '--native'
-    metrics_time_option = "#{'-J' unless native}-Dtruffleruby.metrics.time=true"
+    metrics_time_option = "#{native ? '--native.D' : '-J-D'}truffleruby.metrics.time=true"
     METRICS_REPS.times do
       Utilities.log '.', "sampling\n"
       start = Time.now

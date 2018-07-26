@@ -49,7 +49,7 @@ public class Metrics {
     }
 
     public static void begin() {
-        // Assigned here so it's available on SVM as well
+        // Assigned here so the property is read after processing the --native.D... options
         METRICS_TIME = Boolean.getBoolean("truffleruby.metrics.time");
 
         printTime("before-main");
