@@ -1238,8 +1238,6 @@ EOS
             # add bin from gem_home to PATH
             'PATH'     => [File.join(gem_home, 'bin'), ENV['PATH']].join(File::PATH_SEPARATOR))
 
-          run_ruby(environment, '-Xexceptions.print_java=true', *('--jdebug' if jdebug),
-                   '-S', 'gem', 'install', '--clear-sources', '--no-document', 'bundler', '-v', bundler_version, '--backtrace')
           run_ruby(environment, '-J-Xmx512M', '-Xexceptions.print_java=true', *('--jdebug' if jdebug),
                    '-S', 'bundle', "_#{bundler_version}_", 'install', '--local')
           run_ruby(environment, '-Xexceptions.print_java=true', *('--jdebug' if jdebug),
