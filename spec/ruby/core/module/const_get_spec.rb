@@ -1,5 +1,6 @@
 require_relative '../../spec_helper'
 require_relative '../../fixtures/constants'
+require_relative 'fixtures/constants_autoload'
 
 describe "Module#const_get" do
   it "accepts a String or Symbol name" do
@@ -95,6 +96,10 @@ describe "Module#const_get" do
     ConstantSpecs.const_get("ClassA::CS_CONST10").should == :const10_10
   end
 
+  it "raises a NameError if the name includes two successive scope separators" do
+    lambda { ConstantSpecs.const_get("ClassA::::CS_CONST10") }.should raise_error(NameError)
+  end
+
   it "raises a NameError if only '::' is passed" do
     lambda { ConstantSpecs.const_get("::") }.should raise_error(NameError)
   end
@@ -111,6 +116,22 @@ describe "Module#const_get" do
      ConstantSpecs.const_get(:CS_PRIVATE).should == :cs_private
   end
 
+  it 'does autoload a constant' do
+    Object.const_get('CSAutoloadA').name.should == 'CSAutoloadA'
+  end
+
+  it 'does autoload a constant with a toplevel scope qualifier' do
+    Object.const_get('::CSAutoloadB').name.should == 'CSAutoloadB'
+  end
+
+  it 'does autoload a module and resolve a constant within' do
+    Object.const_get('CSAutoloadC::CONST').should == 7
+  end
+
+  it 'does autoload a non-toplevel module' do
+    Object.const_get('CSAutoloadD::InnerModule').name.should == 'CSAutoloadD::InnerModule'
+  end
+  
   describe "with statically assigned constants" do
     it "searches the immediate class or module first" do
       ConstantSpecs::ClassA.const_get(:CS_CONST10).should == :const10_10
