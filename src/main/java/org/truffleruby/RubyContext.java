@@ -851,6 +851,7 @@ public class RubyContext {
         }
     }
 
+    @TruffleBoundary
     public byte[] getRandomSeedBytes(int numBytes) {
         final byte[] bytes = new byte[numBytes];
 

@@ -46,6 +46,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
@@ -369,6 +370,26 @@ public abstract class VMPrimitiveNodes {
                 Layouts.BASIC_OBJECT.setMetaClass(object, newClass);
             }
             return object;
+        }
+
+    }
+
+    @Primitive(name = "vm_dev_urandom_bytes", needsSelf = false, lowerFixnum = 1)
+    public abstract static class VMDevUrandomBytes extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "count >= 0")
+        public DynamicObject readRandomBytes(int count,
+                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+            final byte[] bytes = getContext().getRandomSeedBytes(count);
+
+            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+
+        @Specialization(guards = "count < 0")
+        public DynamicObject negativeCount(int count) {
+            throw new RaiseException(getContext(),
+                    getContext().getCoreExceptions().argumentError(
+                            getContext().getCoreStrings().NEGATIVE_STRING_SIZE.getRope(), this));
         }
 
     }
