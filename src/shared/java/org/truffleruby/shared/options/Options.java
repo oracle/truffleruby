@@ -248,7 +248,7 @@ public class Options {
         BACKTRACES_LIMIT = builder.getOrDefault(OptionsCatalog.BACKTRACES_LIMIT);
         BACKTRACES_OMIT_UNUSED = builder.getOrDefault(OptionsCatalog.BACKTRACES_OMIT_UNUSED);
         BACKTRACE_ON_INTERRUPT = builder.getOrDefault(OptionsCatalog.BACKTRACE_ON_INTERRUPT);
-        BACKTRACE_ON_SIGALRM = builder.getOrDefault(OptionsCatalog.BACKTRACE_ON_SIGALRM);
+        BACKTRACE_ON_SIGALRM = builder.getOrDefault(OptionsCatalog.BACKTRACE_ON_SIGALRM, !EMBEDDED);
         BACKTRACE_ON_RAISE = builder.getOrDefault(OptionsCatalog.BACKTRACE_ON_RAISE);
         BASICOPS_INLINE = builder.getOrDefault(OptionsCatalog.BASICOPS_INLINE);
         REGEXP_INSTRUMENT_CREATION = builder.getOrDefault(OptionsCatalog.REGEXP_INSTRUMENT_CREATION);

@@ -550,7 +550,7 @@ public class OptionsCatalog {
             "ruby.backtraces.sigalrm",
             "Show the backtraces of all Threads on SIGALRM",
             null,
-            true);
+            !EMBEDDED.getDefaultValue());
     public static final BooleanOptionDescription BACKTRACE_ON_RAISE = new BooleanOptionDescription(
             "ruby.backtraces.raise",
             "Show the backtraces of exceptions at the point of them being raised",
