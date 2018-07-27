@@ -1,5 +1,13 @@
 # 1.0
 
+# 1.0 RC 6
+
+New features:
+
+Bug fixes:
+
+* WeakRef now has the same inheritance and methods as MRI's version.
+
 # 1.0 RC 5, August 2018
 
 New features:

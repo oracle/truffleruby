@@ -11,59 +11,51 @@ package org.truffleruby.core.support;
 
 import java.lang.ref.WeakReference;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
-import org.truffleruby.builtins.CoreMethod;
-import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.language.Visibility;
-import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
+import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.HiddenKey;
 
-@CoreClass("WeakRef")
+@CoreClass("Truffle::WeakRefOperations")
 public abstract class WeakRefNodes {
 
-    private static WeakReference<Object> EMPTY_WEAK_REF = new WeakReference<>(null);
-
-    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-
-        @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, EMPTY_WEAK_REF);
-        }
-
-    }
+    private static final WeakReference<Object> EMPTY_WEAK_REF = new WeakReference<>(null);
+    private static final HiddenKey fieldName = new HiddenKey("weak_ref");
 
     @Primitive(name = "weakref_set_object")
     public static abstract class WeakRefSetObjectPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @Child WriteObjectFieldNode fieldNode = WriteObjectFieldNodeGen.create(fieldName);
+
         @Specialization
         public Object weakRefSetObject(DynamicObject weakRef, Object object) {
-            Layouts.WEAK_REF_LAYOUT.setReference(weakRef, new WeakReference<>(object));
+            fieldNode.write(weakRef, new WeakReference<>(object));
             return object;
         }
-
     }
 
     @Primitive(name = "weakref_object")
     public static abstract class WeakRefObjectPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @Child ReadObjectFieldNode fieldNode = ReadObjectFieldNodeGen.create(fieldName, EMPTY_WEAK_REF);
+
         @Specialization
         public Object weakRefObject(DynamicObject weakRef) {
-            final Object object = Layouts.WEAK_REF_LAYOUT.getReference(weakRef).get();
+            @SuppressWarnings("unchecked")
+            final Object object = ((WeakReference<Object>) fieldNode.execute(weakRef)).get();
             if (object == null) {
                 return nil();
             } else {
                 return object;
             }
         }
-
     }
 
 }
