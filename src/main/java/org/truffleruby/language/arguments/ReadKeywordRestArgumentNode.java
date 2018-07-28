@@ -64,18 +64,12 @@ public class ReadKeywordRestArgumentNode extends RubyNode {
 
         final List<KeyValue> entries = new ArrayList<>();
 
-        outer: for (KeyValue keyValue : HashOperations.iterableKeyValues(hashObject)) {
-            if (!RubyGuards.isRubySymbol(keyValue.getKey())) {
-                continue;
-            }
+        for (KeyValue keyValue : HashOperations.iterableKeyValues(hashObject)) {
+            final Object key = keyValue.getKey();
 
-            for (DynamicObject excludedKeyword : excludedKeywords) {
-                if (excludedKeyword == keyValue.getKey()) {
-                    continue outer;
-                }
+            if (RubyGuards.isRubySymbol(key) && !keywordExcluded(key)) {
+                entries.add(keyValue);
             }
-
-            entries.add(keyValue);
         }
 
         return BucketsStrategy.create(getContext(), entries, Layouts.HASH.getCompareByIdentity(hashObject));
