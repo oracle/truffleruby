@@ -29,9 +29,9 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.BiFunctionNode;
-import org.truffleruby.collections.ConsumerNode;
+import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
-import org.truffleruby.core.hash.HashNodesFactory.EachKeyNodeGen;
+import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.HashLookupOrExecuteDefaultNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
@@ -1177,43 +1177,44 @@ public abstract class HashNodes {
 
     @NodeChild("hash")
     @NodeChild("callbackNode")
+    @NodeChild("passedState")
     @ImportStatic(HashGuards.class)
-    public abstract static class EachKeyNode extends RubyNode {
+    public abstract static class EachKeyValueNode extends RubyNode {
 
-        public static EachKeyNode create() {
-            return EachKeyNodeGen.create(null, null);
+        public static EachKeyValueNode create() {
+            return EachKeyValueNodeGen.create(null, null, null);
         }
 
-        public abstract Object executeEachKey(VirtualFrame frame, DynamicObject hash, ConsumerNode callbackNode);
+        public abstract Object executeEachKeyValue(VirtualFrame frame, DynamicObject hash, BiConsumerNode callbackNode, Object state);
 
         @Specialization(guards = "isNullHash(hash)")
-        protected Object eachKeyNull(VirtualFrame frame, DynamicObject hash, ConsumerNode callbackNode) {
-            return hash;
+        protected Object eachNull(VirtualFrame frame, DynamicObject hash, BiConsumerNode callbackNode, Object state) {
+            return state;
         }
 
         @ExplodeLoop
         @Specialization(guards = { "isPackedHash(hash)", "getSize(hash) == cachedSize" }, limit = "getPackedHashLimit()")
-        protected Object keysPackedArrayCached(VirtualFrame frame, DynamicObject hash, ConsumerNode callbackNode,
+        protected Object eachPackedArrayCached(VirtualFrame frame, DynamicObject hash, BiConsumerNode callbackNode, Object state,
                 @Cached("getSize(hash)") int cachedSize) {
             assert HashOperations.verifyStore(getContext(), hash);
             final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
 
             for (int i = 0; i < cachedSize; i++) {
-                callbackNode.accept(frame, PackedArrayStrategy.getKey(store, i));
+                callbackNode.accept(frame, PackedArrayStrategy.getKey(store, i), PackedArrayStrategy.getValue(store, i), state);
             }
 
-            return hash;
+            return state;
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        protected Object keysBuckets(VirtualFrame frame, DynamicObject hash, ConsumerNode callbackNode) {
+        protected Object eachBuckets(VirtualFrame frame, DynamicObject hash, BiConsumerNode callbackNode, Object state) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             for (KeyValue keyValue : BucketsStrategy.iterableKeyValues(Layouts.HASH.getFirstInSequence(hash))) {
-                callbackNode.accept(frame, keyValue.getKey());
+                callbackNode.accept(frame, keyValue.getKey(), keyValue.getValue(), state);
             }
 
-            return hash;
+            return state;
         }
 
         protected int getSize(DynamicObject hash) {

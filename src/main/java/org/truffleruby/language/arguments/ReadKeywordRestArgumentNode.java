@@ -10,31 +10,28 @@
 package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
-import org.truffleruby.core.hash.BucketsStrategy;
-import org.truffleruby.core.hash.HashOperations;
-import org.truffleruby.core.hash.KeyValue;
-import org.truffleruby.language.NotOptimizedWarningNode;
+import org.truffleruby.collections.BiConsumerNode;
+import org.truffleruby.core.hash.SetNode;
+import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.methods.Arity;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class ReadKeywordRestArgumentNode extends RubyNode {
+public class ReadKeywordRestArgumentNode extends RubyNode implements BiConsumerNode {
 
     @CompilationFinal(dimensions = 1) private final DynamicObject[] excludedKeywords;
 
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
-    @Child private NotOptimizedWarningNode notOptimizedWarningNode = new NotOptimizedWarningNode();
+    @Child private EachKeyValueNode eachKeyNode = EachKeyValueNode.create();
+    @Child private SetNode setNode = SetNode.create();
 
     private final ConditionProfile noHash = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile isSymbolProfile = ConditionProfile.createBinaryProfile();
 
     public ReadKeywordRestArgumentNode(int minimum, Arity arity) {
         this.excludedKeywords = keywordsAsSymbols(arity);
@@ -51,29 +48,17 @@ public class ReadKeywordRestArgumentNode extends RubyNode {
 
         if (noHash.profile(hash == null)) {
             return coreLibrary().getHashFactory().newInstance(Layouts.HASH.build(null, 0, null, null, nil(), nil(), false));
+        } else {
+            final DynamicObject kwRest = coreLibrary().getHashFactory().newInstance(Layouts.HASH.build(null, 0, null, null, nil(), nil(), false));
+            return eachKeyNode.executeEachKeyValue(frame, (DynamicObject) hash, this, kwRest);
         }
-
-        notOptimizedWarningNode.warn("keyword arguments are not yet optimized");
-
-        return extractKeywordHash(hash);
     }
 
-    @TruffleBoundary
-    private Object extractKeywordHash(Object hash) {
-        final DynamicObject hashObject = (DynamicObject) hash;
-
-        final List<KeyValue> entries = new ArrayList<>();
-
-        for (KeyValue keyValue : HashOperations.iterableKeyValues(hashObject)) {
-            final Object key = keyValue.getKey();
-
-            if (RubyGuards.isRubySymbol(key) && !keywordExcluded(key)) {
-                entries.add(keyValue);
-            }
+    @Override
+    public void accept(VirtualFrame frame, Object key, Object value, Object kwRest) {
+        if (isSymbolProfile.profile(RubyGuards.isRubySymbol(key)) && !keywordExcluded(key)) {
+            setNode.executeSet(frame, (DynamicObject) kwRest, key, value, false);
         }
-
-        return BucketsStrategy.create(getContext(), entries, Layouts.HASH.getCompareByIdentity(hashObject));
-
     }
 
     @ExplodeLoop

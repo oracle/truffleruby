@@ -9,14 +9,14 @@
  */
 package org.truffleruby.collections;
 
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInterface;
 
-/** {@link Consumer} as a Node */
-public abstract interface ConsumerNode extends NodeInterface {
+/** {@link BiConsumer} as a Node */
+public abstract interface BiConsumerNode extends NodeInterface {
 
-    public abstract void accept(VirtualFrame frame, Object value);
+    public abstract void accept(VirtualFrame frame, Object key, Object value, Object state);
 
 }
