@@ -20,6 +20,7 @@ import org.truffleruby.core.hash.KeyValue;
 import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.methods.Arity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,8 +34,8 @@ public class ReadKeywordRestArgumentNode extends RubyNode {
 
     private final ConditionProfile noHash = ConditionProfile.createBinaryProfile();
 
-    public ReadKeywordRestArgumentNode(int minimum, String[] excludedKeywords) {
-        this.excludedKeywords = excludedKeywords;
+    public ReadKeywordRestArgumentNode(int minimum, Arity arity) {
+        this.excludedKeywords = arity.getKeywordArguments();
         readUserKeywordsHashNode = new ReadUserKeywordsHashNode(minimum);
     }
 
