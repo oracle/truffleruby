@@ -40,10 +40,8 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -435,8 +433,6 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class EachNode extends YieldingCoreMethodNode {
 
-        @Child private CallDispatchHeadNode toEnumNode;
-
         @Specialization(guards = "isNullHash(hash)")
         public DynamicObject eachNull(DynamicObject hash, DynamicObject block) {
             return hash;
@@ -482,17 +478,6 @@ public abstract class HashNodes {
             }
 
             return hash;
-        }
-
-        @Specialization
-        public Object each(VirtualFrame frame, DynamicObject hash, NotProvided block) {
-            if (toEnumNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toEnumNode = insert(CallDispatchHeadNode.createOnSelf());
-            }
-
-            InternalMethod method = RubyArguments.getMethod(frame);
-            return toEnumNode.call(frame, hash, "to_enum", getSymbol(method.getName()));
         }
 
         private Object yieldPair(DynamicObject block, Object key, Object value) {
