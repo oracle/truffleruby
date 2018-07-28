@@ -8,7 +8,7 @@ suite = {
               # We want tools to be reliably available with TruffleRuby, even with "mx build", so this is a static import.
                 "name": "tools",
                 "subdir": True,
-                "version": "33ee3342203423c3af8538e36bb665f20924dd29",
+                "version": "2da7f8fb0e6d7af6a059f823b545259e69b97d66",
                 "urls": [
                     {"url": "https://github.com/graalvm/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
