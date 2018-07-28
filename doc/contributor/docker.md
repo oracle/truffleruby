@@ -80,11 +80,6 @@ Pick any of:
 
 When using `test` you need to specify the method of installing, and what to do.
 
-## Extracting a standalone image
-
-To extract a standalone image, use `jt docker extract-standalone ~/Downloads/ruby-installable-linux-amd64-rc2.jar 1.0.0-rc2`.
-The file name needs to have the platform in it, as it is on GitHub.
-
 ## Docker cache
 
 You may find that the Docker cache interacts badly with these Dockerfiles (such
