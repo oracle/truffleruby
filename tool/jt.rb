@@ -1209,19 +1209,14 @@ EOS
   def test_bundle(*args)
     require 'tmpdir'
 
-    gems    = %w[algebrick]
-    jdebug = args.delete '--jdebug'
+    gems = %w[algebrick]
     bundler_version = '1.16.1'
 
     gems.each do |gem_name|
       temp_dir = Dir.mktmpdir(gem_name)
-
       begin
-        gem_home = File.join(gem_test_pack, 'gems')
-        gem_home = File.realpath gem_home # remove symlinks
+        gem_home = File.realpath(File.join(gem_test_pack, 'gems'))
         puts "Using temporary GEM_HOME:#{gem_home}"
-
-
         puts "Copying gem #{gem_name} source into temp directory: #{temp_dir}"
 
         original_source_tree = File.join(gem_test_pack, 'gem-testing', gem_name)
@@ -1235,9 +1230,9 @@ EOS
             # add bin from gem_home to PATH
             'PATH'     => [File.join(gem_home, 'bin'), ENV['PATH']].join(File::PATH_SEPARATOR))
 
-          run_ruby(environment, '-J-Xmx512M', '-Xexceptions.print_java=true', *('--jdebug' if jdebug),
+          run_ruby(environment, *args, '-Xexceptions.print_java=true',
                    '-S', 'bundle', "_#{bundler_version}_", 'install', '--local')
-          run_ruby(environment, '-Xexceptions.print_java=true', *('--jdebug' if jdebug),
+          run_ruby(environment, *args, '-Xexceptions.print_java=true',
                    '-S', 'bundle', "_#{bundler_version}_", 'exec', 'rake')
         end
       ensure
