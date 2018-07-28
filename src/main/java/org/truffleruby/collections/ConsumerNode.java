@@ -11,12 +11,11 @@ package org.truffleruby.collections;
 
 import java.util.function.Consumer;
 
-import org.truffleruby.language.RubyBaseNode;
-
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.NodeInterface;
 
 /** {@link Consumer} as a Node */
-public abstract class ConsumerNode extends RubyBaseNode {
+public abstract interface ConsumerNode extends NodeInterface {
 
     public abstract void accept(VirtualFrame frame, Object value);
 

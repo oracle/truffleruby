@@ -18,6 +18,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import org.truffleruby.collections.ConsumerNode;
 import org.truffleruby.core.hash.HashNodes.EachKeyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -28,6 +29,7 @@ public class CheckKeywordArityNode extends RubyNode {
     private final Arity arity;
 
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
+    @Child private CheckKeywordArgumentsNode checkKeywordArgumentsNode;
     @Child private EachKeyNode eachKeyNode;
 
     private final BranchProfile receivedKeywordsProfile = BranchProfile.create();
@@ -36,7 +38,8 @@ public class CheckKeywordArityNode extends RubyNode {
     public CheckKeywordArityNode(Arity arity) {
         this.arity = arity;
         this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(arity.getRequired());
-        this.eachKeyNode = EachKeyNode.create(new CheckKeywordArgumentsNode(arity));
+        this.checkKeywordArgumentsNode = new CheckKeywordArgumentsNode(arity);
+        this.eachKeyNode = EachKeyNode.create();
 
     }
 
@@ -58,7 +61,7 @@ public class CheckKeywordArityNode extends RubyNode {
 
         if (keywordArguments != null) {
             receivedKeywordsProfile.enter();
-            eachKeyNode.executeEachKey(frame, (DynamicObject) keywordArguments);
+            eachKeyNode.executeEachKey(frame, (DynamicObject) keywordArguments, checkKeywordArgumentsNode);
         }
     }
 
@@ -68,7 +71,7 @@ public class CheckKeywordArityNode extends RubyNode {
         return nil();
     }
 
-    private static class CheckKeywordArgumentsNode extends ConsumerNode {
+    private static class CheckKeywordArgumentsNode extends RubyBaseNode implements ConsumerNode {
 
         private final boolean checkAllowedKeywords;
         private final boolean doesNotAcceptExtraArguments;

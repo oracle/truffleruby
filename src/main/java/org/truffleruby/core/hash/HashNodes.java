@@ -1191,29 +1191,24 @@ public abstract class HashNodes {
     }
 
     @NodeChild("hash")
+    @NodeChild("callbackNode")
     @ImportStatic(HashGuards.class)
     public abstract static class EachKeyNode extends RubyNode {
 
-        @Child ConsumerNode callbackNode;
-
-        public static EachKeyNode create(ConsumerNode consumerNode) {
-            return EachKeyNodeGen.create(consumerNode, null);
+        public static EachKeyNode create() {
+            return EachKeyNodeGen.create(null, null);
         }
 
-        public EachKeyNode(ConsumerNode consumerNode) {
-            this.callbackNode = consumerNode;
-        }
-
-        public abstract Object executeEachKey(VirtualFrame frame, DynamicObject hash);
+        public abstract Object executeEachKey(VirtualFrame frame, DynamicObject hash, ConsumerNode callbackNode);
 
         @Specialization(guards = "isNullHash(hash)")
-        protected Object eachKeyNull(VirtualFrame frame, DynamicObject hash) {
+        protected Object eachKeyNull(VirtualFrame frame, DynamicObject hash, ConsumerNode callbackNode) {
             return hash;
         }
 
         @ExplodeLoop
         @Specialization(guards = { "isPackedHash(hash)", "getSize(hash) == cachedSize" }, limit = "getPackedHashLimit()")
-        protected Object keysPackedArrayCached(VirtualFrame frame, DynamicObject hash,
+        protected Object keysPackedArrayCached(VirtualFrame frame, DynamicObject hash, ConsumerNode callbackNode,
                 @Cached("getSize(hash)") int cachedSize) {
             assert HashOperations.verifyStore(getContext(), hash);
             final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
@@ -1226,7 +1221,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        protected Object keysBuckets(VirtualFrame frame, DynamicObject hash) {
+        protected Object keysBuckets(VirtualFrame frame, DynamicObject hash, ConsumerNode callbackNode) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             for (KeyValue keyValue : BucketsStrategy.iterableKeyValues(Layouts.HASH.getFirstInSequence(hash))) {
