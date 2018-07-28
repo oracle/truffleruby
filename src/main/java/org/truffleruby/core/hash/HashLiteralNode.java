@@ -57,7 +57,7 @@ public abstract class HashLiteralNode extends RubyNode {
 
         @Override
         public Object execute(VirtualFrame frame) {
-            return coreLibrary().getHashFactory().newInstance(Layouts.HASH.build(null, 0, null, null, nil(), nil(), false));
+            return HashOperations.newEmptyHash(getContext());
         }
 
     }

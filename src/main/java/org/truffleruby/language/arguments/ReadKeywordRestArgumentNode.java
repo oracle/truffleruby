@@ -14,8 +14,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.Layouts;
 import org.truffleruby.collections.BiConsumerNode;
+import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.SetNode;
 import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.language.RubyGuards;
@@ -47,9 +47,9 @@ public class ReadKeywordRestArgumentNode extends RubyNode implements BiConsumerN
         final Object hash = readUserKeywordsHashNode.execute(frame);
 
         if (noHash.profile(hash == null)) {
-            return coreLibrary().getHashFactory().newInstance(Layouts.HASH.build(null, 0, null, null, nil(), nil(), false));
+            return HashOperations.newEmptyHash(getContext());
         } else {
-            final DynamicObject kwRest = coreLibrary().getHashFactory().newInstance(Layouts.HASH.build(null, 0, null, null, nil(), nil(), false));
+            final DynamicObject kwRest = HashOperations.newEmptyHash(getContext());
             return eachKeyNode.executeEachKeyValue(frame, (DynamicObject) hash, this, kwRest);
         }
     }
