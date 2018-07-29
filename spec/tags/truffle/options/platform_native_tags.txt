@@ -1,0 +1,3 @@
+slow:The -Xplatform.native option when disabled can run basic expressions
+slow:The -Xplatform.native option when disabled can use reasonable parts of the stdlib
+slow:The -Xplatform.native option when disabled enables polyglot stdio
