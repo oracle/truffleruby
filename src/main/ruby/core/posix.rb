@@ -7,6 +7,10 @@
 # GNU Lesser General Public License version 2.1.
 
 module Truffle::POSIX
+  NATIVE = Truffle::Boot.get_option 'platform.native'
+end
+
+module Truffle::POSIX
   class LazyLibrary
     def initialize(&block)
       @block = block
@@ -277,11 +281,9 @@ module Truffle::POSIX
   if Truffle::Platform.darwin?
     attach_function :_NSGetArgv, [], :pointer
   end
-end if Truffle::Boot.get_option 'platform.native'
+end if Truffle::POSIX::NATIVE
 
 module Truffle::POSIX
-  NATIVE = Truffle::Boot.get_option 'platform.native'
-
   def self.with_array_of_ints(ints)
     if ints.empty?
       yield Truffle::FFI::Pointer::NULL

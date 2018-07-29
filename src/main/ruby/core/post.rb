@@ -92,7 +92,7 @@ module Kernel
 end
 
 Truffle::Boot.delay do
-  $$ = Process.pid if Truffle::Boot.get_option 'platform.native'
+  $$ = Process.pid if Truffle::POSIX::NATIVE
 
   ARGV.concat(Truffle::Boot.original_argv)
 end
