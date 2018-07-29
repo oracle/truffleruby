@@ -17,6 +17,15 @@ def camelize(string)
   string.sub(/^([a-z\d]*)/) { $1.capitalize }.gsub(/_([a-z\d]*)/) { $1.capitalize }
 end
 
+def parse_reference_defaults(default)
+  match = /^!?[A-Z_]+(\s*\|\|\s*!?[A-Z_]+)*$/.match(default)
+  if match
+    match[0].split('||').reject(&:empty?).map(&:strip)
+  else
+    nil
+  end
+end
+
 options_data = YAML.load_file('tool/options.yml')
 
 options = options_data.map do |constant, values|
@@ -58,7 +67,7 @@ options = options_data.map do |constant, values|
       type_description:  type_description || "#{boxed_type}OptionDescription",
       boxed_type:        boxed_type,
       default:           default,
-      reference_default: /^!?[A-Z_]+$/.match(default),
+      reference_default: parse_reference_defaults(default),
       description:       description + (mri_names.empty? ?
                                             '' : " (configured by #{mri_names.join(', ')} Ruby options)")
   )
@@ -127,7 +136,7 @@ public class OptionsCatalog {
                 else
                   'new String[]{' + o.mri_names.map(&:inspect).join(', ') + '}'
                 end %>,
-            <%= o.reference_default ? o.default + '.getDefaultValue()' : o.default %>);
+            <%= o.reference_default ? o.reference_default.map { |r| r + ".getDefaultValue()" }.join(" || ") : o.default %>);
     <% end %>
     public static OptionDescription<?> fromName(String name) {
         switch (name) {
