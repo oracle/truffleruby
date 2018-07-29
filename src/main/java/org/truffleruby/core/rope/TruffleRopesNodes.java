@@ -49,7 +49,7 @@ public abstract class TruffleRopesNodes {
     @CoreMethod(names = "debug_print_rope", onSingleton = true, required = 1, optional = 1)
     public abstract static class DebugPrintRopeNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.DebugPrintRopeNode debugPrintRopeNode = RopeNodesFactory.DebugPrintRopeNodeGen.create(null, null, null);
+        @Child private RopeNodes.DebugPrintRopeNode debugPrintRopeNode = RopeNodesFactory.DebugPrintRopeNodeGen.create();
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(string)")
