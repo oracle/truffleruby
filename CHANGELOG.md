@@ -33,6 +33,11 @@ Changes:
 * The `-Xplatform.native` option can now load the core library, by enabling
   `-Xpolyglot.stdio`.
 
+Changes:
+
+* The embedded configuration (`-Xembedded`) now warns about features which may
+  not work well embedded, such as signals.
+
 # 1.0 RC 5, August 2018
 
 New features:

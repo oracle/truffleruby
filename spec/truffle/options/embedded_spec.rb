@@ -32,4 +32,8 @@ describe "The -Xembedded option" do
   it "when enabled can use reasonable parts of the stdlib" do
     ruby_exe("require 'yaml'; p YAML.load('--- foo')", options: "-Xembedded").should == "\"foo\"\n"
   end
+  
+  it "when enabled will warn about signals" do
+    ruby_exe("Signal.trap('ALRM') { }", options: "-Xembedded").should =~ /trapping signal ALRM in embedded mode/
+  end
 end

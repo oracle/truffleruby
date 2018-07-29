@@ -183,6 +183,9 @@ This includes options such as not installing an interrupt signal handler, and
 using the IO streams from the Graal SDK. It also turns on the single-threaded
 mode, as described above.
 
+It will also warn when you explicitly do things that may not work well when
+embedded, such as installing your own signal handlers.
+
 This can be turned off even when embedded, with the `embedded` option
 (`--ruby.embedded=false` from another launcher, or
 `-Dpolyglot.ruby.embedded=false` from a normal Java application).
