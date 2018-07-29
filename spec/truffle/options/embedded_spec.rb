@@ -13,8 +13,12 @@ describe "The -Xembedded option" do
     ruby_exe("p Truffle::Boot.get_option('embedded')").should == "false\n"
   end
   
-  it "can be set manually, even though it's set by the launcher" do
+  it "can be set with -X, even though it's set by the launcher" do
     ruby_exe("p Truffle::Boot.get_option('embedded')", options: "-Xembedded").should == "true\n"
+  end
+  
+  it "can be set with --ruby, even though it's set by the launcher" do
+    ruby_exe("p Truffle::Boot.get_option('embedded')", options: "--ruby.embedded=true").should == "true\n"
   end
   
   it "sets dependent options when set manually" do
