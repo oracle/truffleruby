@@ -250,7 +250,9 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     private Context createContext(Context.Builder builder, CommandLineOptions config) {
-        builder.option(OptionsCatalog.EMBEDDED.getName(), Boolean.FALSE.toString());
+        if (!config.getOptions().containsKey(OptionsCatalog.EMBEDDED.getName())) {
+            builder.option(OptionsCatalog.EMBEDDED.getName(), Boolean.FALSE.toString());
+        }
 
         builder.arguments(TruffleRuby.LANGUAGE_ID, config.getArguments());
 

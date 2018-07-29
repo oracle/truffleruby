@@ -180,7 +180,8 @@ via the polyglot interface, embedded using the native polyglot library, or
 embedded in a Java application via the Graal SDK, TruffleRuby will be
 automatically configured to work more cooperatively within another application.
 This includes options such as not installing an interrupt signal handler, and
-using the IO streams from the Graal SDK.
+using the IO streams from the Graal SDK. It also turns on the single-threaded
+mode, as described above.
 
 This can be turned off even when embedded, with the `embedded` option
 (`--ruby.embedded=false` from another launcher, or
