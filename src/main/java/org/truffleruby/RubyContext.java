@@ -506,6 +506,12 @@ public class RubyContext {
         if (options.COVERAGE_GLOBAL) {
             coverageManager.print(System.out, sourceLoader);
         }
+
+        try {
+            randomFile.close();
+        } catch (IOException e) {
+            RubyLanguage.LOGGER.log(Level.WARNING, "exception while closing random file", e);
+        }
     }
 
     public boolean isPreInitializing() {
