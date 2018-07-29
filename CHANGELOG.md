@@ -29,6 +29,7 @@ Changes:
   will be treated as UTF-8, and cannot be re-interpreted as another encoding
   using a magic comment.
 * `-Xembedded` can now set set on the launcher command line.
+* The `-Xembedded` option can now set set on the launcher command line.
 
 # 1.0 RC 5, August 2018
 

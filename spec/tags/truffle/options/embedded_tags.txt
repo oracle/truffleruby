@@ -1,0 +1,5 @@
+slow:The -Xembedded option is disabled by default by the launcher
+slow:The -Xembedded option can be set manually, even though it's set by the launcher
+slow:The -Xembedded option sets dependent options when set manually
+slow:The -Xembedded option when enabled can run basic expressions
+slow:The -Xembedded option when enabled can use reasonable parts of the stdlib

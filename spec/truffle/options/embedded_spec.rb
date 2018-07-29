@@ -20,4 +20,12 @@ describe "The -Xembedded option" do
   it "sets dependent options when set manually" do
     ruby_exe("p Truffle::Boot.get_option('single_threaded')", options: "-Xembedded").should == "true\n"
   end
+  
+  it "when enabled can run basic expressions" do
+    ruby_exe("p [1, 2, 3].map(&:succ)", options: "-Xembedded").should == "[2, 3, 4]\n"
+  end
+  
+  it "when enabled can use reasonable parts of the stdlib" do
+    ruby_exe("require 'yaml'; p YAML.load('--- foo')", options: "-Xembedded").should == "\"foo\"\n"
+  end
 end
