@@ -1412,6 +1412,7 @@ public class CoreLibrary {
             "/core/truffle/stat_operations.rb",
             "/core/truffle/string_operations.rb",
             "/core/truffle/backward.rb",
+            "/core/truffle/atomic_reference.rb",
             "/core/splitter.rb",
             "/core/stat.rb",
             "/core/io.rb",

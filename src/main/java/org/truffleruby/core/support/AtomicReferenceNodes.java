@@ -9,16 +9,21 @@
  */
 package org.truffleruby.core.support;
 
+import java.util.concurrent.atomic.AtomicReference;
+
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
-
-import java.util.concurrent.atomic.AtomicReference;
+import org.truffleruby.language.objects.IsANode;
 
 @CoreClass("Truffle::AtomicReference")
 public abstract class AtomicReferenceNodes {
@@ -58,8 +63,35 @@ public abstract class AtomicReferenceNodes {
     public abstract static class CompareAndSetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean compareAndSet(DynamicObject self, Object expectedValue, Object value) {
-            return Layouts.ATOMIC_REFERENCE.compareAndSetValue(self, expectedValue, value);
+        public boolean compareAndSetNumber(
+                VirtualFrame frame, DynamicObject self, Object expectedValue, Object newValue,
+                @Cached("createOnSelf()") CallDispatchHeadNode equal,
+                @Cached("create()") IsANode expectedValueIsA,
+                @Cached("create()") IsANode currentValueIsA,
+                @Cached("createBinaryProfile()") ConditionProfile profile) {
+
+            final boolean expectedValueIsNumeric =
+                    expectedValueIsA.executeIsA(expectedValue, coreLibrary().getNumericClass());
+            if (profile.profile(expectedValueIsNumeric)) {
+                while (true) {
+                    final Object currentValue = Layouts.ATOMIC_REFERENCE.getValue(self);
+                    if (!currentValueIsA.executeIsA(currentValue, coreLibrary().getNumericClass())) {
+                        return false;
+                    }
+                    if (!equal.callBoolean(frame, currentValue, "==", expectedValue)) {
+                        return false;
+                    }
+                    if (cas(self, currentValue, newValue)) {
+                        return true;
+                    }
+                }
+            } else {
+                return cas(self, expectedValue, newValue);
+            }
+        }
+
+        private boolean cas(DynamicObject self, Object expectedValue, Object newValue) {
+            return Layouts.ATOMIC_REFERENCE.compareAndSetValue(self, expectedValue, newValue);
         }
     }
 
