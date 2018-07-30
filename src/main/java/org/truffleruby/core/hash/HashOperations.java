@@ -22,6 +22,11 @@ import java.util.Iterator;
 
 public abstract class HashOperations {
 
+    public static DynamicObject newEmptyHash(RubyContext context) {
+        final DynamicObject nil = context.getCoreLibrary().getNil();
+        return context.getCoreLibrary().getHashFactory().newInstance(Layouts.HASH.build(null, 0, null, null, nil, nil, false));
+    }
+
     public static boolean verifyStore(RubyContext context, DynamicObject hash) {
         return verifyStore(context, Layouts.HASH.getStore(hash), Layouts.HASH.getSize(hash), Layouts.HASH.getFirstInSequence(hash), Layouts.HASH.getLastInSequence(hash));
     }

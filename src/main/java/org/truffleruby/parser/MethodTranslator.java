@@ -51,13 +51,9 @@ import org.truffleruby.language.supercall.ReadZSuperArgumentsNode;
 import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.supercall.ZSuperOutsideMethodNode;
 import org.truffleruby.parser.ast.ArgsParseNode;
-import org.truffleruby.parser.ast.AssignableParseNode;
 import org.truffleruby.parser.ast.BlockParseNode;
 import org.truffleruby.parser.ast.CallParseNode;
 import org.truffleruby.parser.ast.ConstParseNode;
-import org.truffleruby.parser.ast.DAsgnParseNode;
-import org.truffleruby.parser.ast.KeywordArgParseNode;
-import org.truffleruby.parser.ast.LocalAsgnParseNode;
 import org.truffleruby.parser.ast.MethodDefParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.SuperParseNode;
@@ -88,7 +84,7 @@ public class MethodTranslator extends BodyTranslator {
 
     public BlockDefinitionNode compileBlockNode(SourceIndexLength sourceSection, String methodName, ParseNode bodyNode, SharedMethodInfo sharedMethodInfo, ProcType type, String[] variables) {
         declareArguments();
-        final Arity arity = getArity(argsNode);
+        final Arity arity = argsNode.getArity();
         final Arity arityForCheck;
 
         /*
@@ -230,7 +226,7 @@ public class MethodTranslator extends BodyTranslator {
 
     public RubyNode doCompileMethodBody(SourceIndexLength sourceSection, String methodName, ParseNode bodyNode, SharedMethodInfo sharedMethodInfo) {
         declareArguments();
-        final Arity arity = getArity(argsNode);
+        final Arity arity = argsNode.getArity();
 
         final RubyNode loadArguments = new LoadArgumentsTranslator(currentNode, argsNode, context, source, parserContext, false, this).translate();
         
@@ -317,40 +313,6 @@ public class MethodTranslator extends BodyTranslator {
         for (String parameter : parameterCollector.getParameters()) {
             environment.declareVar(parameter);
         }
-    }
-
-    public static Arity getArity(ArgsParseNode argsNode) {
-        final String[] keywordArguments;
-
-        if (argsNode.hasKwargs() && argsNode.getKeywordCount() > 0) {
-            final ParseNode[] keywordNodes = argsNode.getKeywords().children();
-            final int keywordsCount = keywordNodes.length;
-
-            keywordArguments = new String[keywordsCount];
-            for (int i = 0; i < keywordsCount; i++) {
-                final KeywordArgParseNode kwarg = (KeywordArgParseNode) keywordNodes[i];
-                final AssignableParseNode assignableNode = kwarg.getAssignable();
-
-                if (assignableNode instanceof LocalAsgnParseNode) {
-                    keywordArguments[i] = ((LocalAsgnParseNode) assignableNode).getName();
-                } else if (assignableNode instanceof DAsgnParseNode) {
-                    keywordArguments[i] = ((DAsgnParseNode) assignableNode).getName();
-                } else {
-                    throw new UnsupportedOperationException(
-                            "unsupported keyword arg " + kwarg);
-                }
-            }
-        } else {
-            keywordArguments = Arity.NO_KEYWORDS;
-        }
-
-        return new Arity(
-                argsNode.getPreCount(),
-                argsNode.getOptionalArgsCount(),
-                argsNode.hasRestArg(),
-                argsNode.getPostCount(),
-                keywordArguments,
-                argsNode.hasKeyRest());
     }
 
     @Override

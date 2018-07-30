@@ -29,9 +29,9 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.BiFunctionNode;
-import org.truffleruby.collections.ConsumerNode;
+import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
-import org.truffleruby.core.hash.HashNodesFactory.EachKeyNodeGen;
+import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.HashLookupOrExecuteDefaultNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
@@ -40,10 +40,8 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -435,8 +433,6 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class EachNode extends YieldingCoreMethodNode {
 
-        @Child private CallDispatchHeadNode toEnumNode;
-
         @Specialization(guards = "isNullHash(hash)")
         public DynamicObject eachNull(DynamicObject hash, DynamicObject block) {
             return hash;
@@ -482,17 +478,6 @@ public abstract class HashNodes {
             }
 
             return hash;
-        }
-
-        @Specialization
-        public Object each(VirtualFrame frame, DynamicObject hash, NotProvided block) {
-            if (toEnumNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toEnumNode = insert(CallDispatchHeadNode.createOnSelf());
-            }
-
-            InternalMethod method = RubyArguments.getMethod(frame);
-            return toEnumNode.call(frame, hash, "to_enum", getSymbol(method.getName()));
         }
 
         private Object yieldPair(DynamicObject block, Object key, Object value) {
@@ -1191,49 +1176,45 @@ public abstract class HashNodes {
     }
 
     @NodeChild("hash")
+    @NodeChild("callbackNode")
+    @NodeChild("passedState")
     @ImportStatic(HashGuards.class)
-    public abstract static class EachKeyNode extends RubyNode {
+    public abstract static class EachKeyValueNode extends RubyNode {
 
-        @Child ConsumerNode callbackNode;
-
-        public static EachKeyNode create(ConsumerNode consumerNode) {
-            return EachKeyNodeGen.create(consumerNode, null);
+        public static EachKeyValueNode create() {
+            return EachKeyValueNodeGen.create(null, null, null);
         }
 
-        public EachKeyNode(ConsumerNode consumerNode) {
-            this.callbackNode = consumerNode;
-        }
-
-        public abstract Object executeEachKey(VirtualFrame frame, DynamicObject hash);
+        public abstract Object executeEachKeyValue(VirtualFrame frame, DynamicObject hash, BiConsumerNode callbackNode, Object state);
 
         @Specialization(guards = "isNullHash(hash)")
-        protected Object eachKeyNull(VirtualFrame frame, DynamicObject hash) {
-            return hash;
+        protected Object eachNull(VirtualFrame frame, DynamicObject hash, BiConsumerNode callbackNode, Object state) {
+            return state;
         }
 
         @ExplodeLoop
         @Specialization(guards = { "isPackedHash(hash)", "getSize(hash) == cachedSize" }, limit = "getPackedHashLimit()")
-        protected Object keysPackedArrayCached(VirtualFrame frame, DynamicObject hash,
+        protected Object eachPackedArrayCached(VirtualFrame frame, DynamicObject hash, BiConsumerNode callbackNode, Object state,
                 @Cached("getSize(hash)") int cachedSize) {
             assert HashOperations.verifyStore(getContext(), hash);
             final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
 
             for (int i = 0; i < cachedSize; i++) {
-                callbackNode.accept(frame, PackedArrayStrategy.getKey(store, i));
+                callbackNode.accept(frame, PackedArrayStrategy.getKey(store, i), PackedArrayStrategy.getValue(store, i), state);
             }
 
-            return hash;
+            return state;
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        protected Object keysBuckets(VirtualFrame frame, DynamicObject hash) {
+        protected Object eachBuckets(VirtualFrame frame, DynamicObject hash, BiConsumerNode callbackNode, Object state) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             for (KeyValue keyValue : BucketsStrategy.iterableKeyValues(Layouts.HASH.getFirstInSequence(hash))) {
-                callbackNode.accept(frame, keyValue.getKey());
+                callbackNode.accept(frame, keyValue.getKey(), keyValue.getValue(), state);
             }
 
-            return hash;
+            return state;
         }
 
         protected int getSize(DynamicObject hash) {

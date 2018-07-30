@@ -102,7 +102,6 @@ public class LoadArgumentsTranslator extends Translator {
     private int index;
     private int indexFromEnd = 1;
     private State state;
-    private List<String> excludedKeywords = new ArrayList<>();
     private boolean firstOpt = false;
 
     public LoadArgumentsTranslator(Node currentNode, ArgsParseNode argsNode, RubyContext context, Source source, ParserContext parserContext, boolean isProc, BodyTranslator methodBodyTranslator) {
@@ -262,7 +261,7 @@ public class LoadArgumentsTranslator extends Translator {
 
     @Override
     public RubyNode visitKeywordRestArgNode(KeywordRestArgParseNode node) {
-        final RubyNode readNode = new ReadKeywordRestArgumentNode(required, excludedKeywords.toArray(new String[excludedKeywords.size()]));
+        final RubyNode readNode = new ReadKeywordRestArgumentNode(required, argsNode.getArity());
         final FrameSlot slot = methodBodyTranslator.getEnvironment().declareVar(node.getName());
 
         return new WriteLocalVariableNode(slot, readNode);
@@ -284,8 +283,6 @@ public class LoadArgumentsTranslator extends Translator {
         } else {
             defaultValue = translateNodeOrNil(sourceSection, asgnNode.getValueNode());
         }
-
-        excludedKeywords.add(name);
 
         final RubyNode readNode = new ReadKeywordArgumentNode(required, name, defaultValue);
 

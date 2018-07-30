@@ -16,8 +16,9 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import org.truffleruby.collections.ConsumerNode;
-import org.truffleruby.core.hash.HashNodes.EachKeyNode;
+import org.truffleruby.collections.BiConsumerNode;
+import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -28,7 +29,8 @@ public class CheckKeywordArityNode extends RubyNode {
     private final Arity arity;
 
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
-    @Child private EachKeyNode eachKeyNode;
+    @Child private CheckKeywordArgumentsNode checkKeywordArgumentsNode;
+    @Child private EachKeyValueNode eachKeyNode;
 
     private final BranchProfile receivedKeywordsProfile = BranchProfile.create();
     private final BranchProfile basicArityCheckFailedProfile = BranchProfile.create();
@@ -36,7 +38,8 @@ public class CheckKeywordArityNode extends RubyNode {
     public CheckKeywordArityNode(Arity arity) {
         this.arity = arity;
         this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(arity.getRequired());
-        this.eachKeyNode = EachKeyNode.create(new CheckKeywordArgumentsNode(arity));
+        this.checkKeywordArgumentsNode = new CheckKeywordArgumentsNode(arity);
+        this.eachKeyNode = EachKeyValueNode.create();
 
     }
 
@@ -58,7 +61,7 @@ public class CheckKeywordArityNode extends RubyNode {
 
         if (keywordArguments != null) {
             receivedKeywordsProfile.enter();
-            eachKeyNode.executeEachKey(frame, (DynamicObject) keywordArguments);
+            eachKeyNode.executeEachKeyValue(frame, (DynamicObject) keywordArguments, checkKeywordArgumentsNode, null);
         }
     }
 
@@ -68,7 +71,7 @@ public class CheckKeywordArityNode extends RubyNode {
         return nil();
     }
 
-    private static class CheckKeywordArgumentsNode extends ConsumerNode {
+    private static class CheckKeywordArgumentsNode extends RubyBaseNode implements BiConsumerNode {
 
         private final boolean checkAllowedKeywords;
         private final boolean doesNotAcceptExtraArguments;
@@ -88,7 +91,7 @@ public class CheckKeywordArityNode extends RubyNode {
         }
 
         @Override
-        public void accept(VirtualFrame frame, Object key) {
+        public void accept(VirtualFrame frame, Object key, Object value, Object state) {
             if (isSymbolProfile.profile(RubyGuards.isRubySymbol(key))) {
                 if (checkAllowedKeywords && !keywordAllowed(key)) {
                     unknownKeywordProfile.enter();

@@ -35,6 +35,7 @@
 package org.truffleruby.parser.ast;
 
 import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.language.methods.Arity;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 import java.util.List;
@@ -52,6 +53,7 @@ import java.util.List;
  * b       = block arg
  */
 public class ArgsParseNode extends ParseNode {
+
     private final ParseNode[] args;
     private final short optIndex;
     private final short postIndex;
@@ -61,7 +63,10 @@ public class ArgsParseNode extends ParseNode {
     private final KeywordRestArgParseNode keyRest;
     private final BlockArgParseNode blockArgNode;
 
+    private final Arity arity;
+
     private static final ParseNode[] NO_ARGS = new ParseNode[] {};
+
     /**
      * Construct a new ArgsParseNode with no keyword arguments.
      */
@@ -104,6 +109,55 @@ public class ArgsParseNode extends ParseNode {
         this.restArgNode = rest;
         this.blockArgNode = blockArgNode;
         this.keyRest = keyRest;
+
+        this.arity = createArity();
+    }
+
+    private Arity createArity() {
+        final String[] keywordArguments;
+
+        if (getKeywordCount() > 0) {
+            final ParseNode[] keywordNodes = getKeywords().children();
+            final int keywordsCount = keywordNodes.length;
+            keywordArguments = new String[keywordsCount];
+
+            for (int i = 0; i < keywordsCount; i++) {
+                final KeywordArgParseNode kwarg = (KeywordArgParseNode) keywordNodes[i];
+                final AssignableParseNode assignableNode = kwarg.getAssignable();
+
+                if (assignableNode instanceof LocalAsgnParseNode) {
+                    keywordArguments[i] = ((LocalAsgnParseNode) assignableNode).getName();
+                } else if (assignableNode instanceof DAsgnParseNode) {
+                    keywordArguments[i] = ((DAsgnParseNode) assignableNode).getName();
+                } else {
+                    throw new UnsupportedOperationException("unsupported keyword arg " + kwarg);
+                }
+            }
+        } else {
+            keywordArguments = Arity.NO_KEYWORDS;
+        }
+
+        return new Arity(
+                getPreCount(),
+                getOptionalArgsCount(),
+                hasRestArg(),
+                getPostCount(),
+                keywordArguments,
+                hasKeyRest());
+    }
+
+    @Override
+    public NodeType getNodeType() {
+        return NodeType.ARGSNODE;
+    }
+
+    @Override
+    public <T> T accept(NodeVisitor<T> iVisitor) {
+        return iVisitor.visitArgsNode(this);
+    }
+
+    public Arity getArity() {
+        return arity;
     }
 
     public ParseNode[] getArgs() {
@@ -122,58 +176,62 @@ public class ArgsParseNode extends ParseNode {
         return keywordsIndex;
     }
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.ARGSNODE;
-    }
-
-    public boolean hasKwargs() {
-        boolean keywords = getKeywordCount() > 0;
-        return keywords || keyRest != null;
-    }
-
-    public boolean hasRestArg() {
-        return restArgNode != null;
-    }
-
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    @Override
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitArgsNode(this);
-    }
-
-    /**
-     * Gets the required arguments at the beginning of the argument definition
-     */
-    public ListParseNode getPre() {
-        return new ArrayParseNode(getPosition()).addAll(args, 0, getPreCount());
+    public int getPreCount() {
+        return optIndex;
     }
 
     public int getOptionalArgsCount() {
         return postIndex - optIndex;
     }
 
-    public ListParseNode getPost() {
-        return new ArrayParseNode(getPosition()).addAll(args, postIndex, getPostCount());
+    public int getPostCount() {
+        return keywordsIndex - postIndex;
     }
 
-    /**
-     * Gets the optArgs.
-     * @return Returns a ListParseNode
-     */
+    public int getKeywordCount() {
+        return args.length - keywordsIndex;
+    }
+
+    public int getRequiredCount() {
+        return getPreCount() + getPostCount();
+    }
+
+    public ListParseNode getPre() {
+        return new ArrayParseNode(getPosition()).addAll(args, 0, getPreCount());
+    }
+
     public ListParseNode getOptArgs() {
         return new ArrayParseNode(getPosition()).addAll(args, optIndex, getOptionalArgsCount());
     }
 
-    /**
-     * Gets the restArgNode.
-     * @return Returns an ArgumentParseNode
-     */
+    public ListParseNode getPost() {
+        return new ArrayParseNode(getPosition()).addAll(args, postIndex, getPostCount());
+    }
+
+
+    public ListParseNode getKeywords() {
+        return new ArrayParseNode(getPosition()).addAll(args, keywordsIndex, getKeywordCount());
+    }
+
+    public boolean hasRestArg() {
+        return restArgNode != null;
+    }
+
     public ArgumentParseNode getRestArgNode() {
         return restArgNode;
+    }
+
+    public boolean hasKeyRest() {
+        return keyRest != null;
+    }
+
+    public KeywordRestArgParseNode getKeyRest() {
+        return keyRest;
+    }
+
+    public boolean hasKwargs() {
+        boolean keywords = getKeywordCount() > 0;
+        return keywords || keyRest != null;
     }
 
     /**
@@ -183,30 +241,6 @@ public class ArgsParseNode extends ParseNode {
      */
     public BlockArgParseNode getBlock() {
         return blockArgNode;
-    }
-
-    public int getPostCount() {
-        return keywordsIndex - postIndex;
-    }
-
-    public int getPreCount() {
-        return optIndex;
-    }
-
-    public int getRequiredCount() {
-        return getPreCount() + getPostCount();
-    }
-
-    public ListParseNode getKeywords() {
-        return new ArrayParseNode(getPosition()).addAll(args, keywordsIndex, getKeywordCount());
-    }
-
-    public KeywordRestArgParseNode getKeyRest() {
-        return keyRest;
-    }
-
-    public boolean hasKeyRest() {
-        return keyRest != null;
     }
 
     // FIXME: This is a hot mess and I think we will still have some extra nulls inserted
@@ -239,10 +273,6 @@ public class ArgsParseNode extends ParseNode {
         }
 
         return ParseNode.createList(pre, optArgs, restArgNode, blockArgNode);
-    }
-
-    public int getKeywordCount() {
-        return args.length - keywordsIndex;
     }
 
 }

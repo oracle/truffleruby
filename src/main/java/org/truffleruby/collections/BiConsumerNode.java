@@ -9,15 +9,14 @@
  */
 package org.truffleruby.collections;
 
-import java.util.function.Consumer;
-
-import org.truffleruby.language.RubyBaseNode;
+import java.util.function.BiConsumer;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.NodeInterface;
 
-/** {@link Consumer} as a Node */
-public abstract class ConsumerNode extends RubyBaseNode {
+/** {@link BiConsumer} as a Node */
+public abstract interface BiConsumerNode extends NodeInterface {
 
-    public abstract void accept(VirtualFrame frame, Object value);
+    public abstract void accept(VirtualFrame frame, Object key, Object value, Object state);
 
 }

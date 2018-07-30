@@ -1275,7 +1275,7 @@ public class BodyTranslator extends Translator {
 
     protected RubyNode translateMethodDefinition(SourceIndexLength sourceSection, RubyNode moduleNode, String methodName,
             ArgsParseNode argsNode, MethodDefParseNode defNode, ParseNode bodyNode, boolean isDefs) {
-        final Arity arity = MethodTranslator.getArity(argsNode);
+        final Arity arity = argsNode.getArity();
         final ArgumentDescriptor[] argumentDescriptors = Helpers.argsNodeToArgumentDescriptors(argsNode);
 
         final boolean alwaysClone = MethodTranslator.isPrimitive(bodyNode);
@@ -1719,7 +1719,7 @@ public class BodyTranslator extends Translator {
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection.toSourceSection(source),
                 environment.getLexicalScopeOrNull(),
-                MethodTranslator.getArity(argsNode),
+                argsNode.getArity(),
                 null,
                 null,
                 isLambda ? "lambda" : getIdentifierInNewEnvironment(true, currentCallMethodName),
