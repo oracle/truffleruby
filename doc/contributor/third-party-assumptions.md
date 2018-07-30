@@ -7,5 +7,7 @@ about it.
 
 ## TruffleRuby Extensions in Gems
 
-* `concurrent-ruby` using `TruffleRuby.full_memory_barrier` (actually it is using
-  `Truffle::System.full_memory_barrier` - need to update).
+* `concurrent-ruby` <= 1.0.5 uses: `Truffle::System.full_memory_barrier`,
+  `Truffle::Primitive.logical_processors`
+* `concurrent-ruby` >= 1.1.0 uses: `TruffleRuby.full_memory_barrier`, 
+  `Truffle::AtomicReference`, `Truffle::System.synchronized`
