@@ -514,6 +514,21 @@ describe "Module#autoload" do
     ModuleSpecs::Autoload::W.send(:remove_const, :Y)
   end
 
+  it "does not call #require a second time and does not warn if already loading the same feature with #require" do
+    main = TOPLEVEL_BINDING.eval("self")
+    main.should_not_receive(:require)
+
+    module ModuleSpecs::Autoload
+      autoload :AutoloadDuringRequire, fixture(__FILE__, "autoload_during_require.rb")
+    end
+
+    -> {
+      $VERBOSE = true
+      Kernel.require fixture(__FILE__, "autoload_during_require.rb")
+    }.should_not complain
+    ModuleSpecs::Autoload::AutoloadDuringRequire.should be_kind_of(Class)
+  end
+
   it "calls #to_path on non-string filenames" do
     p = mock('path')
     p.should_receive(:to_path).and_return @non_existent
