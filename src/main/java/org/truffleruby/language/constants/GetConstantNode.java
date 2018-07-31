@@ -70,7 +70,7 @@ public abstract class GetConstantNode extends RubyNode {
 
         if (autoloadConstant.isAutoloadingThread()) {
             // Pretend the constant does not exist while it is autoloading
-            return executeGetConstant(lexicalScope, module, name, null, lookupConstantNode);
+            return doMissingConstant(module, name, getSymbol(name));
         }
 
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
@@ -79,7 +79,7 @@ public abstract class GetConstantNode extends RubyNode {
             // We found an autoload constant while we are already require-ing the autoload file,
             // consider it missing to avoid circular require warnings and calling #require twice.
             // For instance, autoload :RbConfig, "rbconfig"; require "rbconfig" causes this.
-            return executeGetConstant(lexicalScope, module, name, null, lookupConstantNode);
+            return doMissingConstant(module, name, getSymbol(name));
         }
 
         autoloadConstant.startAutoLoad();
@@ -122,29 +122,25 @@ public abstract class GetConstantNode extends RubyNode {
             @Cached("name") String cachedName,
             @Cached("getSymbol(name)") DynamicObject symbolName,
             @Cached("createBinaryProfile()") ConditionProfile sameNameProfile) {
-        if (callConstMissing) {
-            return doMissingConstant(module, name, symbolName);
-        } else {
-            return null;
-        }
+        return doMissingConstant(module, name, symbolName);
     }
 
     @Specialization(guards = "isNullOrUndefined(constant)")
     protected Object missingConstantUncached(LexicalScope lexicalScope, DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode) {
-        if (callConstMissing) {
-            return doMissingConstant(module, name, getSymbol(name));
-        } else {
-            return null;
-        }
+        return doMissingConstant(module, name, getSymbol(name));
     }
 
     private Object doMissingConstant(DynamicObject module, String name, DynamicObject symbolName) {
-        if (constMissingNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            constMissingNode = insert(CallDispatchHeadNode.createOnSelf());
-        }
+        if (callConstMissing) {
+            if (constMissingNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                constMissingNode = insert(CallDispatchHeadNode.createOnSelf());
+            }
 
-        return constMissingNode.call(null, module, "const_missing", symbolName);
+            return constMissingNode.call(null, module, "const_missing", symbolName);
+        } else {
+            return null;
+        }
     }
 
     protected boolean isNullOrUndefined(Object constant) {
