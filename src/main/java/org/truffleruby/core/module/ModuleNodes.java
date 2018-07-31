@@ -313,9 +313,30 @@ public abstract class ModuleNodes {
             return NameToJavaStringNodeGen.create(oldName);
         }
 
+        @Child AddMethodNode addMethodNode = AddMethodNode.create(false);
+
         @Specialization
-        public DynamicObject aliasMethod(DynamicObject module, String newName, String oldName) {
-            Layouts.MODULE.getFields(module).alias(getContext(), this, newName, oldName);
+        public DynamicObject aliasMethod(DynamicObject module, String newName, String oldName,
+                @Cached("create()") BranchProfile errorProfile) {
+            DynamicObject moduleForLookup;
+            if (Layouts.MODULE.getFields(module).isRefinement()) {
+                moduleForLookup = Layouts.MODULE.getFields(module).getRefinedClass();
+            } else {
+                moduleForLookup = module;
+            }
+            final InternalMethod method = Layouts.MODULE.getFields(moduleForLookup).deepMethodSearch(getContext(), oldName);
+
+            if (method == null) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().nameErrorUndefinedMethod(
+                        oldName,
+                        module,
+                        this));
+            }
+
+            InternalMethod aliasMethod = method.withName(newName);
+
+            addMethodNode.executeAddMethod(module, aliasMethod, aliasMethod.getVisibility());
             return module;
         }
 
