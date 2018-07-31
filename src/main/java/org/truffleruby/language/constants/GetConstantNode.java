@@ -10,6 +10,7 @@
 package org.truffleruby.language.constants;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -20,10 +21,12 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.loader.FeatureLoader;
 
 @NodeChildren({ @NodeChild("lexicalScope"), @NodeChild("module"), @NodeChild("name"), @NodeChild("constant"), @NodeChild("lookupConstantNode") })
 public abstract class GetConstantNode extends RubyNode {
@@ -56,6 +59,7 @@ public abstract class GetConstantNode extends RubyNode {
         return constant.getValue();
     }
 
+    @TruffleBoundary
     @Specialization(guards = { "autoloadConstant != null", "autoloadConstant.isAutoload()" })
     protected Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant autoloadConstant, LookupConstantInterface lookupConstantNode,
             @Cached("createOnSelf()") CallDispatchHeadNode callRequireNode) {
@@ -66,6 +70,15 @@ public abstract class GetConstantNode extends RubyNode {
 
         if (autoloadConstant.isAutoloadingThread()) {
             // Pretend the constant does not exist while it is autoloading
+            return executeGetConstant(lexicalScope, module, name, null, lookupConstantNode);
+        }
+
+        final FeatureLoader featureLoader = getContext().getFeatureLoader();
+        final String expandedPath = featureLoader.findFeature(StringOperations.getString(feature));
+        if (expandedPath != null && featureLoader.getFileLocks().isCurrentThreadHoldingLock(expandedPath)) {
+            // We found an autoload constant while we are already require-ing the autoload file,
+            // consider it missing to avoid circular require warnings and calling #require twice.
+            // For instance, autoload :RbConfig, "rbconfig"; require "rbconfig" causes this.
             return executeGetConstant(lexicalScope, module, name, null, lookupConstantNode);
         }
 
