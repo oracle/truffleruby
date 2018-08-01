@@ -85,9 +85,8 @@ and/or modify it under the terms of the:
     OR
   GNU Lesser General Public License version 2.1
 
-bytelist (http://github.com/jruby/bytelist),
-yydebug (http://svn.codehaus.org/jruby/trunk/jay/yydebug)
-are released under the same copyright/license.
+bytelist (http://github.com/jruby/bytelist)
+is released under the same copyright/license.
 
 The Truffle component is copyright (c) 2013-2017 Oracle and/or its affiliates 
 and is released under the same licenses.
