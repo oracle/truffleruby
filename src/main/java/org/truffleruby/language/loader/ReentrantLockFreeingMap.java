@@ -60,6 +60,12 @@ public class ReentrantLockFreeingMap<K> {
     }
 
     @TruffleBoundary
+    public boolean isCurrentThreadHoldingLock(K key) {
+        final ReentrantLock lock = locks.get(key);
+        return lock != null && lock.isHeldByCurrentThread();
+    }
+
+    @TruffleBoundary
     public boolean lock(
             Node currentNode,
             ThreadManager threadManager,
