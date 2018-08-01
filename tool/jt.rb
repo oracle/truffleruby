@@ -523,8 +523,8 @@ module Commands
     case project
     when 'parser'
       jay = "#{TRUFFLERUBY_DIR}/tool/jay"
-      raw_sh 'make', chdir: "#{jay}/src"
-      ENV['PATH'] = "#{jay}/src:#{ENV['PATH']}"
+      raw_sh 'make', chdir: jay
+      ENV['PATH'] = "#{jay}:#{ENV['PATH']}"
       sh 'bash', 'tool/generate_parser'
       yytables = 'src/main/java/org/truffleruby/parser/parser/YyTables.java'
       File.write(yytables, File.read(yytables).gsub('package org.jruby.parser;', 'package org.truffleruby.parser.parser;'))

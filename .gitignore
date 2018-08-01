@@ -130,5 +130,5 @@ bin/*
 dumps/
 
 # Jay
-tool/jay/**/*.o
-tool/jay/src/jay
+tool/jay/*.o
+tool/jay/jay
