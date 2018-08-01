@@ -17,6 +17,7 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ArityException;
@@ -735,27 +736,22 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "export_without_conversion", isModuleFunction = true, required = 2)
-    public abstract static class ExportWithoutConversionNode extends CoreMethodArrayArgumentsNode {
+    @NodeChildren({
+            @NodeChild(value = "name", type = RubyNode.class),
+            @NodeChild(value = "object", type = RubyNode.class)
+    })
+    public abstract static class ExportWithoutConversionNode extends CoreMethodNode {
 
-        @TruffleBoundary
-        @Specialization(guards = "isPrimitive(value)")
-        public Object exportPrimitive(DynamicObject name, Object value) {
-            getContext().getInteropManager().exportObject(name.toString(), new BoxedValue(value));
-            return value;
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(name) || isRubySymbol(name)")
-        public Object exportObject(DynamicObject name, TruffleObject object) {
-            getContext().getInteropManager().exportObject(name.toString(), object);
-            return object;
+        @CreateCast("name")
+        public RubyNode coerceNameToString(RubyNode newName) {
+            return ToJavaStringNodeGen.create(newName);
         }
 
         @TruffleBoundary
         @Specialization
-        public Object exportString(DynamicObject name, String string) {
-            getContext().getInteropManager().exportObject(name.toString(), new BoxedValue(string));
-            return string;
+        public Object export(String name, Object object) {
+            getContext().getInteropManager().exportObject(name, object);
+            return object;
         }
 
     }

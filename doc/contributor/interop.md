@@ -492,8 +492,6 @@ Ruby string at that point, but this is not implemented yet.
 
 `Truffle::Interop.import_method(:name)` (defines `name` in `Object`)
 
-Exporting values which are not Truffle objects will cause them to be boxed.
-
 ## Interop Eval
 
 `Truffle::Interop.eval(mime_type, source)`

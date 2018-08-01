@@ -9,7 +9,6 @@
  */
 package org.truffleruby.interop;
 
-import com.oracle.truffle.api.interop.TruffleObject;
 import org.truffleruby.RubyContext;
 
 import java.util.Map;
@@ -19,13 +18,13 @@ public class InteropManager {
 
     private final RubyContext context;
 
-    private final Map<String, TruffleObject> exported = new ConcurrentHashMap<>();
+    private final Map<String, Object> exported = new ConcurrentHashMap<>();
 
     public InteropManager(RubyContext context) {
         this.context = context;
     }
 
-    public void exportObject(String name, TruffleObject object) {
+    public void exportObject(String name, Object object) {
         exported.put(name, object);
         context.getEnv().exportSymbol(name, object);
     }
