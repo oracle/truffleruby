@@ -734,8 +734,8 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "export", isModuleFunction = true, required = 2)
-    public abstract static class ExportNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "export_without_conversion", isModuleFunction = true, required = 2)
+    public abstract static class ExportWithoutConversionNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = "isPrimitive(value)")
@@ -751,14 +751,21 @@ public abstract class InteropNodes {
             return object;
         }
 
+        @TruffleBoundary
+        @Specialization
+        public Object exportString(DynamicObject name, String string) {
+            getContext().getInteropManager().exportObject(name.toString(), new BoxedValue(string));
+            return string;
+        }
+
     }
 
-    @CoreMethod(names = "import", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "import_without_conversion", isModuleFunction = true, required = 1)
     @NodeChild(value = "name", type = RubyNode.class)
-    public abstract static class ImportNode extends CoreMethodNode {
+    public abstract static class ImportWithoutConversionNode extends CoreMethodNode {
 
         @CreateCast("name")
-        public RubyNode coercetNameToString(RubyNode newName) {
+        public RubyNode coerceNameToString(RubyNode newName) {
             return ToJavaStringNodeGen.create(newName);
         }
 
@@ -881,8 +888,8 @@ public abstract class InteropNodes {
 
         @Specialization
         public Object toJavaString(Object value,
-                @Cached("create()") ToJavaStringNode toJavaStringNode) {
-            return toJavaStringNode.executeToJavaString(value);
+                @Cached("create()") RubyToForeignNode toForeignNode) {
+            return toForeignNode.executeConvert(value);
         }
 
     }

@@ -33,12 +33,12 @@ describe "Truffle::Interop.export" do
   
   it "exports a string" do
     Truffle::Interop.export :exports_a_string, 'hello'
-    Truffle::Interop.import(:exports_a_string).should == 'hello'
+    (Truffle::Interop.import(:exports_a_string) == 'hello').should be_true
   end
   
   it "exports a symbol, getting back a string" do
     Truffle::Interop.export :exports_a_symbol, :hello
-    Truffle::Interop.import(:exports_a_symbol).should == 'hello'
+    (Truffle::Interop.import(:exports_a_symbol) == 'hello').should be_true
   end
   
   it "exports a foreign object" do
@@ -49,14 +49,16 @@ describe "Truffle::Interop.export" do
   
   it "exports a Java string" do
     Truffle::Interop.export :exports_a_java_string, Truffle::Interop.to_java_string('hello')
-    Truffle::Interop.import(:exports_a_java_string).should == 'hello'
+    (Truffle::Interop.import(:exports_a_java_string) == 'hello').should be_true
   end
   
-  it "converts to Java when exporting a string" do
+  it "converts to boxed Java when exporting a string" do
     Truffle::Interop.export :exports_a_string_with_conversion, 'hello'
     imported = Truffle::Interop.import_without_conversion(:exports_a_string_with_conversion)
+    Truffle::Interop.boxed?(imported).should be_true
+    imported = Truffle::Interop.unbox_without_conversion(imported)
     Truffle::Interop.java_string?(imported).should be_true
-    Truffle::Interop.from_java_string(imported).should == 'hello'
+    (Truffle::Interop.from_java_string(imported) == 'hello').should be_true
   end
   
   it "can export a string without conversion to Java" do
@@ -69,23 +71,25 @@ describe "Truffle::Interop.export" do
   it "can import a string without conversion from Java" do
     Truffle::Interop.export :imports_a_string_without_conversion, 'hello'
     imported = Truffle::Interop.import_without_conversion(:imports_a_string_without_conversion)
+    Truffle::Interop.boxed?(imported).should be_true
+    imported = Truffle::Interop.unbox_without_conversion(imported)
     Truffle::Interop.java_string?(imported).should be_true
-    Truffle::Interop.from_java_string(imported).should == 'hello'
+    (Truffle::Interop.from_java_string(imported) == 'hello').should be_true
   end
   
   it "can be used with a string name" do
     Truffle::Interop.export 'string_name', 'hello'
-    Truffle::Interop.import('string_name').should == 'hello'
+    (Truffle::Interop.import('string_name') == 'hello').should be_true
   end
   
   it "can be used with a symbol name" do
     Truffle::Interop.export :symbol_name, 'hello'
-    Truffle::Interop.import(:symbol_name).should == 'hello'
+    (Truffle::Interop.import(:symbol_name) == 'hello').should be_true
   end
   
   it "can be used with a mix of string and symbol names" do
     Truffle::Interop.export :mixed_name, 'hello'
-    Truffle::Interop.import('mixed_name').should == 'hello'
+    (Truffle::Interop.import('mixed_name') == 'hello').should be_true
   end
 
 end
