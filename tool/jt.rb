@@ -522,7 +522,7 @@ module Commands
     project = options.shift
     case project
     when 'parser'
-      jay = Utilities.find_or_clone_repo('https://github.com/jruby/jay.git', '9ffc59aabf21bee1737836fe972c4bd51f41049e')
+      jay = "#{TRUFFLERUBY_DIR}/tool/jay"
       raw_sh 'make', chdir: "#{jay}/src"
       ENV['PATH'] = "#{jay}/src:#{ENV['PATH']}"
       sh 'bash', 'tool/generate_parser'
