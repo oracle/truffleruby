@@ -1,0 +1,24 @@
+conflict/		conflict detection demonstration
+  Conflict.jay		source
+  Conflict.java		regression for skeleton.java
+  Conflict.tables	regression for skeleton.tables
+  Conflict.cs		regression for skeleton.cs
+cs/			C# related stuff
+  arith/		desk calculator example
+  recover/		error recovery demonstration
+  skeleton.cs		normal skeleton file
+  yyDebug.cs		source for trace
+doc-files/
+  copyright.html	Berkeley copyright
+FILES			this file
+INSTALL			installation instructions
+java/			Java related stuff
+  arith/		desk calculator example
+  recover/		error recovery demonstration
+  skeleton.java		normal skeleton file
+  skeleton.tables	very large grammar skeleton file
+jay.1			manual page for groff -man
+jay.pdf			manual page
+README			project log
+src/			source for jay
+yydebug/		Java source for trace and animation

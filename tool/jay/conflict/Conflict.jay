@@ -1,0 +1,14 @@
+%token		IF THEN ELSE Variable Constant
+%nonassoc	'<'
+%%
+
+statement	: IF condition THEN statement	// shift/reduce conflict
+		| IF condition THEN statement ELSE statement
+
+		| Variable '=' condition	// reduce/reduce conflict
+		| Variable '=' expression
+
+condition	: expression
+		| expression '<' expression
+
+expression	: Constant

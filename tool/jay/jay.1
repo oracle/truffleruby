@@ -1,0 +1,116 @@
+.\" Copyright (c) 1989, 1990 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" This code is derived from software contributed to Berkeley by
+.\" Robert Paul Corbett.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)yacc.1	5.8 (Berkeley) 5/24/93
+.\"
+.TH JAY 1 "May 24, 1993 / December 5, 2002"
+.UC 6
+.SH NAME
+jay \- an LALR(1) parser generator for Java and C#
+.SH SYNOPSIS
+.B jay
+.RB [ -ctv ]
+.RB [ -b
+.IR file_prefix ]
+.I filename
+.B <
+.I skeleton
+.SH DESCRIPTION
+.I Jay
+reads the grammar specification in the file
+.I filename
+and generates an LALR(1) parser for it.
+A parser consists of a set of parsing tables and a driver routine
+from the file
+.IR skeleton .
+Suitable
+.I skeleton
+files exist for Java and C#.
+Tables and driver are written to standard output.
+.PP
+The following options are available:
+.TP
+\fB-b \fIfile_prefix\fR
+changes the prefix prepended to the secondary output file names to
+the string denoted by
+.IR file_prefix .
+The default prefix is the character
+.IR y .
+.TP
+.B -c
+arranges for C preprocessor
+.B #line
+directives to be incorporated in the compiled code.
+.TP
+.B -t
+arranges for
+debugging information to be incorporated in the compiled code.
+This option depends on additional runtime packages.
+.TP
+.B -v
+causes a human-readable description of the generated parser to
+be written to the file
+.IR y.output .
+.PP
+If the environment variable TMPDIR is set, the string denoted by
+TMPDIR will be used as the name of the directory where the temporary
+files are created.
+.SH FILES
+.I y.output
+.br
+.I /tmp/yacc.aXXXXXX
+.br
+.I /tmp/yacc.tXXXXXX
+.br
+.I /tmp/yacc.uXXXXXX
+.SH DIAGNOSTICS
+If there are rules that are never reduced, the number of such rules is
+reported on standard error.
+If there are any LALR(1) conflicts, the number of conflicts is reported
+on standard error.
+.SH HISTORY
+.I Jay
+is derived from Berkeley
+.IR yacc .
+Input conventions closely follow those of
+.IR yacc ;
+for details,
+consult the desk calculator and error recovery examples
+and the available
+.I skeleton
+files.
+A tutorial example for Java can be found at
+.RS
+http://www.cs.rit.edu/~ats/lp-2002-2/
+.RE

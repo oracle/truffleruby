@@ -1,0 +1,136 @@
+%{
+  using System;
+  using System.Collections;	// Hashtable
+  using System.IO;		// TextReader
+  using System.Text;		// StringBuilder
+
+  /// <summary>
+  ///   demonstrates robust error recovery for typical iterations.
+  ///   Based on Schreiner/Friedman 'Introduction to Compiler Construction
+  ///   with Unix' ISBN 0-13-474396-2.
+  /// </summary>
+  public class Recover {
+%}
+
+%token	LIST OPT SEQ WORD
+%%
+line	: // null
+	| line OPT opt '\n'	{ yyErrorFlag = 0; Console.WriteLine("opt"); }
+	| line SEQ seq '\n'	{ yyErrorFlag = 0; Console.WriteLine("seq"); }
+	| line LIST list '\n'	{ yyErrorFlag = 0; Console.WriteLine("list"); }
+
+opt	: // null
+	| opt WORD		{ yyErrorFlag = 0; }
+	| opt error
+
+seq	: WORD
+	| seq WORD		{ yyErrorFlag = 0; }
+	| error
+	| seq error
+
+list	: WORD
+	| list ',' WORD		{ yyErrorFlag = 0; }
+	| error
+	| list error
+	| list error WORD	{ yyErrorFlag = 0; }
+	| list ',' error
+
+%%
+  /// <summary>
+  ///   start with any argument to trace.
+  /// </summary>
+  public static void Main (string[] args) {
+    yyDebug.yyDebug debug =
+      args.Length > 0 ? new yyDebug.yyDebugAdapter() : null;
+    yyInput scanner = new Scanner(Console.In);
+    try {
+      new Recover().yyParse(scanner, debug);
+    } catch (yyException ye) {Console.WriteLine(ye); }
+  }
+
+  /// <summary>
+  ///   converts input characters into parser symbols.
+  /// </summary>
+  protected class Scanner : yyInput {
+    /// <summary>
+    ///   input stream to scan.
+    /// </summary>
+    protected readonly TextReader In;
+    
+    /// <summary>
+    ///   <c>true</c> once end of input is reached.
+    ///   used to disallow further <c>Advance()</c>.
+    /// </summary>
+    protected bool AtEof = false;
+    
+    /// <summary>
+    ///   maps rserved words to token values.
+    /// </summary>
+    protected Hashtable Symbols = new Hashtable();
+    
+    /// <summary>
+    ///   represents current <c>Token</c>.
+    /// </summary>
+    private int token;
+    
+    /// <summary>
+    ///   connect input stream, define reserved words.
+    /// </summary>
+    public Scanner (TextReader In) {
+      this.In = In;
+      Symbols["list"] = LIST;
+      Symbols["opt"] = OPT;
+      Symbols["seq"] = SEQ;
+    }
+  
+    /// <summary>
+    ///   move on to next token.
+    ///   This method does the actual work of cutting up the input sequence.
+    /// </summary>
+    /// <returns><c>false</c> if positioned beyond tokens</returns>
+    /// <exception><c>IOException</c> on input error</exception>
+    public bool Advance () {
+      int ch;
+  
+      if (AtEof) return false;
+      for (;;)
+	switch (ch = In.Read()) {
+  
+	case -1:
+	  AtEof = true; return false;
+  
+	case ' ': case '\t':
+	  continue;
+  
+	default:
+	  if (Char.IsLetterOrDigit((char)ch)) {
+            StringBuilder s = new StringBuilder();
+            s.Append((char)ch);
+            while (Char.IsLetterOrDigit((char)In.Peek()))
+              s.Append((char)In.Read());
+            Object o = Symbols[s.ToString()];
+            if (o != null) { token = (int)o; return true; }
+	    token = WORD; return true;
+	  }
+	  token = ch; return true;
+	}
+    }
+  
+    /// <summary>
+    ///   classifies current token by <c>%token</c> value or single character.
+    /// </summary>
+    /// <remarks>
+    ///   Should not be called if <c>Advance()</c> returned false.
+    /// </remarks>
+    public int Token {
+      get { return token; }
+    }
+
+    /// <summary>
+    ///   no value associated with current token.
+    /// </summary>
+    public object Value {
+      get { return null; }
+    }
+  }
+}

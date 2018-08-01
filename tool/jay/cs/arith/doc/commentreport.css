@@ -1,0 +1,133 @@
+BODY  {
+	BACKGROUND-COLOR : white;
+	BORDER-BOTTOM : 0px;
+	BORDER-LEFT : 0px;
+	BORDER-RIGHT : 0px;
+	BORDER-TOP : 0px;
+	MARGIN : 0px;
+	PADDING-BOTTOM : 0px;
+	PADDING-LEFT : 0px;
+	PADDING-RIGHT : 0px;
+	PADDING-TOP : 0px;
+}
+
+.PageHeading  {
+	FONT-SIZE: 120%;
+	FONT-FAMILY: Verdana, sans-serif;
+	FONT-WEIGHT: bold;
+	MARGIN-TOP: 30px;
+	MARGIN-LEFT: 21px;
+}
+
+.Description  {
+	FONT-FAMILY : Verdana, sans-serif;
+	FONT-SIZE : 70%;
+	MARGIN-LEFT : 50px;
+	MARGIN-TOP : 16px;
+}
+
+.InfoTable  {
+	BORDER-BOTTOM : medium none;
+	BORDER-LEFT : medium none;
+	BORDER-RIGHT : medium none;
+	BORDER-TOP : medium none;
+	MARGIN-TOP : 16px;
+	MARGIN-LEFT : 10px;
+	WIDTH : 100%;
+}
+
+.TableDarkLabel
+{
+	COLOR : white;
+	FONT-FAMILY : Verdana, sans-serif;
+	FONT-SIZE : 70%;
+	FONT-WEIGHT : bold;
+	MARGIN-LEFT : 9px;
+        BACKGROUND : #336666;
+}
+
+.TableLightLabel
+{
+        COLOR : white;
+	FONT-FAMILY : Verdana, sans-serif;
+	FONT-SIZE : 9pt;
+	FONT-WEIGHT : bold;
+	MARGIN-LEFT : 19px;
+        BACKGROUND : #cccc66;
+        ALIGN : left;
+}
+
+.TableDarkDesc
+{
+	FONT-FAMILY : Verdana, sans-serif;
+	FONT-SIZE : 70%;
+	MARGIN-LEFT : 9px;
+        BACKGROUND : #ffffcc;
+	COLOR : #003366;
+}
+
+.TableLightDesc
+{
+	COLOR : black;
+	FONT-FAMILY : Verdana, sans-serif;
+	FONT-SIZE : 70%;
+	MARGIN-LEFT : 19px;
+        BACKGROUND : #ffffcc;
+}
+
+.RemarkHdr  {
+	FONT-FAMILY : Verdana, sans-serif;
+	FONT-SIZE : 70%;
+	FONT-WEIGHT : bold;
+	MARGIN-LEFT : 30px;
+	MARGIN-TOP : 18px;
+}
+
+.Remarks  {
+	FONT-FAMILY : Verdana, sans-serif;
+	FONT-SIZE : 70%;
+	MARGIN-LEFT : 50px;
+	MARGIN-TOP : 12px;
+}
+
+.RemarkHdrX
+{
+	FONT-WEIGHT: bold;
+}
+
+.Namespace  {
+	COLOR : #003366;
+	FONT-FAMILY : Verdana, sans-serif;
+	FONT-SIZE : 70%;
+	FONT-WEIGHT : bold;
+	MARGIN-LEFT : 8px;
+	MARGIN-TOP : 13px;
+}
+
+.NamespaceChild  {
+	COLOR : #003366;
+	FONT-FAMILY : Verdana, sans-serif;
+	FONT-SIZE : 70%;
+	MARGIN-LEFT : 8px;
+	MARGIN-TOP : 11px;
+	FONT-WEIGHT : normal;
+}
+
+.linkbuttons  {
+	COLOR : #003366;
+	FONT-FAMILY : Verdana, sans-serif;
+	FONT-SIZE : 70%;
+	MARGIN-TOP : 3 px;
+	POSITION:relative; top:0;
+	BACKGROUND-COLOR: #99CCCC;
+	BORDER-BOTTOM: 1 solid #808080;
+	
+	PADDING-BOTTOM: 4; 
+	PADDING-TOP: 2; 
+	WIDTH: 210;
+}
+
+a	{ 
+color : #6600ff;
+	 TEXT-DECORATION: underline;
+}

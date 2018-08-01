@@ -1,0 +1,92 @@
+%{
+import java.io.*;
+import java.util.*;
+
+/** start with<br>
+	no argument to suppress debugging<br>
+	0, 1, 2, or 3 to animate trapping input, output, or both<br>
+	other to trace
+ */
+
+public class Recover {
+%}
+
+%token	LIST OPT SEQ WORD
+%%
+line	: // null
+	| line OPT opt '\n'	{ yyErrorFlag = 0; System.out.println("opt"); }
+	| line SEQ seq '\n'	{ yyErrorFlag = 0; System.out.println("seq"); }
+	| line LIST list '\n'	{ yyErrorFlag = 0; System.out.println("list"); }
+
+opt	: // null
+	| opt WORD		{ yyErrorFlag = 0; }
+	| opt error
+
+seq	: WORD
+	| seq WORD		{ yyErrorFlag = 0; }
+	| error
+	| seq error
+
+list	: WORD
+	| list ',' WORD		{ yyErrorFlag = 0; }
+	| error
+	| list error
+	| list error WORD	{ yyErrorFlag = 0; }
+	| list ',' error
+
+%%
+  public static void main (String args []) {
+    jay.yydebug.yyDebug debug = null;
+    if (args.length > 0)
+      try {
+        debug = new jay.yydebug.yyAnim("Recover", Integer.parseInt(args[0]));
+      } catch (NumberFormatException nfe) {
+        debug = new jay.yydebug.yyDebugAdapter();
+      }
+    Scanner scanner = new Scanner(new InputStreamReader(System.in));
+    try {
+      new Recover().yyparse(scanner, debug);
+    } catch (IOException ie) { ie.printStackTrace(); }
+      catch (yyException ye) { System.err.println(ye); }
+  }
+
+  protected static class Scanner extends StreamTokenizer implements yyInput {
+    protected final Hashtable symbolTable = new Hashtable();
+    { symbolTable.put("list",	new Integer(LIST));
+      symbolTable.put("opt",	new Integer(OPT));
+      symbolTable.put("seq",	new Integer(SEQ));
+    }
+
+    public Scanner (Reader r) {
+      super (new FilterReader(new BufferedReader(r)) {
+        protected boolean addSpace;	// kludge to add space after \n
+        public int read () throws IOException {
+          int ch = addSpace ? ' ' : in.read();
+          addSpace = ch == '\n';
+	  return ch;
+        }
+      });
+      eolIsSignificant(true);		// need '\n'
+      commentChar('#');			// comments from # to end-of-line
+    }
+
+    public boolean advance () throws IOException {
+      return ttype != TT_EOF && super.nextToken() != TT_EOF;
+    }
+
+    public int token () {
+      switch (ttype) {
+      case TT_EOF:	return 0;	// should not happen
+      case TT_EOL:	return '\n';
+      case ',':		return ttype;
+      case TT_WORD:	Object n = symbolTable.get(sval);
+			if (n != null) return ((Integer)n).intValue();
+      default:		return WORD;
+      }
+    }
+
+    public Object value () {
+      return null;
+    }
+  }
+}

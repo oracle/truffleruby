@@ -1,0 +1,30 @@
+installation instructions
+
+(0) if you work with SSCLI, make sure the path to this directory (after resolving any symbolic links) does not contain blanks -- blanks seem to confuse at least SSCLI on MacOS X 10.2.2.
+
+(1) in the current directory, execute 'make'.
+
+This should at least create jay/jay.$(OSTYPE).
+
+If a suitable JDK is installed, it will also create java/yydebug.jar, java/arith/{arith,tables}.jar, and java/recover/{recover,tables}.jar.
+
+If a suitable SSCLI is installed, it will also create cs/yyDebug.dll and install it with a fake strong name in the GAC, cs/arith/arith.exe, and cs/recover/recover.exe.
+
+(2) in the current directory, execute 'make test'.
+
+This should at least run the regression test in conflict/.
+
+If a suitable JDK is installed, it will also test in java/{arith,recover}/.
+
+If a suitable SSCLI is installed, it will also test in cs/{arith,recover}/.
+
+(3) copy jay/jay.$(OSTYPE) to a convenient location.
+
+(4) copy some of {java,cs}/skeleton.* to a convenient location.
+
+(5) you might want to install a skript somewhere with something like
+
+#!/bin/sh
+exec [path]/jay < [path]/[skeleton] "$@"
+
+Good luck!

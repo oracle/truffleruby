@@ -1,0 +1,272 @@
+<body> <!-- jay -->
+
+  This is the homepage of <i>jay</i>, a LALR(1) parser generator:
+  Berkeley <i>yacc</i> <a href='doc-files/copyright.html'>&copy;</a>
+  retargeted to C# and Java.
+
+  <ul>
+    <li><a href='#Usage'> Usage </a>
+    <li><a href='#Input Format'> Input Format </a>
+    <li><a href='#Skeleton Files'> Skeleton Files </a>
+    <li><a href='#Class Management'> Class Management </a>
+    <li><a href='#Projects'> Projects </a>
+    <li><a href='#Downloads'> Downloads </a>
+  </ul>
+
+  <p><b><a name='Usage'>
+    Usage </a></b>
+
+  <p><i>jay</i> reads a grammar specification from a file and
+  generates an LALR(1) parser for it. A parser consists of a set
+  of parsing tables and a driver routine from a skeleton which is
+  read from standard input. Suitable skeletons exist for Java and
+  C#. Tables and driver are written to standard output.
+
+  <p style='white-space: nowrap'><tt>jay [-ctv] [-b <i>file-prefix</i>] <i>filename</i> &lt; skeleton</tt>
+
+  <p>The following options are available:
+
+  <table>
+    <tr>
+      <td valign='top' style='white-space: nowrap'><tt>-b <i>file-prefix</i></tt>
+      <td>
+	changes the prefix prepended to the secondary output file
+	names to the string denoted by <tt><i>file_prefix</i></tt>.
+	The default prefix is the character <tt>y</tt>.
+
+    <tr>
+      <td valign='top' style='white-space: nowrap'><tt>-c</tt>
+      <td>
+	arranges for C preprocessor <tt>#line</tt> directives to
+	be incorporated in the output. This is only useful for C#.
+
+    <tr>
+      <td valign='top' style='white-space: nowrap'><tt>-t</tt>
+      <td>
+	arranges for debugging information to be incorporated in
+	the output. The actual information is controlled by
+	the <a href='#Skeleton Files'>skeleton files</a>, as
+	distributed it depends on additional runtime packages. For
+	C# this is part of the source download, for Java see {@link
+	jay.yydebug}.
+
+    <tr>
+      <td valign='top' style='white-space: nowrap'><tt>-v</tt>
+      <td>
+	causes a human-readable description of the generated parser
+	to be written to the file <tt><i>file_prefix</i>.output</tt>.
+  </table>
+
+  <p>If the environment variable <tt>TMPDIR</tt> is set, the string
+  denoted by <tt>TMPDIR</tt> will be used as the name of the directory
+  where the temporary files are created.
+
+  <p><b><a name='Input Format'>
+    Input Format </a></b>
+
+  <p>The input format and the LALR(1) algorithm have not been
+  changed from <i>yacc</i>. One should consult the extensive
+  literature on <i>yacc</i> for details on writing and debugging
+  grammars, error recovery, strategies for actions, etc.
+
+  <p>The only differences are the value stack, <a
+  href='#Class%20Management'>the embedding of the generated parser
+  in a class, and the interface to the scanner</a>.  All of these
+  can be changed by modifying the <a href='#Skeleton Files'>skeleton
+  files</a>.  The remainder of this section is based on the skeleton
+  files distributed with <i>jay</i>.
+
+  <p>The <tt>%union</tt> directive has been removed. <i>jay</i>
+  uses {@link java.lang.Object} (or <tt>System.Object</tt> in C#)
+  for the value stack. Consequently, the <tt><i>name</i></tt> in
+  the tag notation <tt><b>&lt;</b><i>name</i><b>&gt;</b></tt> refers
+  to a class or an interface.
+
+  <p>This has implications for the casts that <i>jay</i> generates:
+  Neither C# nor Java permit assignments to casted variables.
+  Therefore, the notation <tt>$$</tt> refers to an {@link
+  java.lang.Object} without cast because <tt>$$</tt> is usually
+  assigned to. If <tt>$$</tt> is used for other purposes, it usually
+  will have to employ an explicit type
+  <tt><b>$&lt;</b><i>name</i><b>&gt;$</b></tt> which is turned into
+  a cast to <tt><i>name</i></tt>.
+
+  <p>Similarly, the notation <tt>$<i>n</i></tt> is rarely assigned
+  to. Therefore, <i>jay</i> will generate a cast unless the notation
+  <tt><b>$&lt;&gt;</b><i>n</i></tt> is used to prevent casting.
+
+  <p><i>jay</i> does not emit casts to {@link java.lang.Object}.
+  These casts are usually unnecessary and this strategy avoids
+  numerous warning messages but it could cause a surprise in an
+  overloading situation.
+
+  <p><i>jay</i> has no notion of inheritance. This can lead to
+  unwarranted warning messages complaining about questionable
+  assignments. It was felt that these messages are generally useful
+  even if some of them are erroneous.
+
+  <p><b><a name='Skeleton Files'>
+    Skeleton Files </a></b>
+
+  <p>The binary or source download includes two skeleton files for
+  Java and one for C#. A skeleton file is read from standard input
+  and controls the format of the generated tables and it includes
+  the actual parser algorithm that interprets the tables. The
+  algorithms are the same in all distributed files but
+  <tt>skeleton.tables</tt> initializes the various tables by reading
+  a resource file at  execution time; this avoids a limit which the
+  Java system imposes on the size of the code segment for a class.
+
+  <p>To create the resource file, generate the parser using
+  <tt>skeleton.tables</tt>. From the parser source extract exactly
+  the lines starting with <tt>//yy</tt> and remove exactly that
+  prefix. The resulting file should be located in the same directory
+  as the class file of the parser and should use the class name of
+  the parser and the suffix <tt>.tables</tt>.
+
+  <p>It should not be necessary to change the skeleton files, but
+  just in case they are extensively commented. The files are
+  line-oriented. A character in the first column determines what
+  happens to a line: <tt>#</tt> marks a comment and the line is
+  ignored. <tt>.</tt> marks a line which is copied without the
+  leading period.
+
+  <p><tt>t</tt> marks a line that is relevant for tracing. Normally
+  it is copied with a leading <tt>//t</tt>; if the option <tt>-t</tt>
+  is set the line is copied without the leading <tt>t</tt>.
+
+  <p>Finally, a line with a leading blank contains a command which
+  results in the output of some table information and which can use
+  the rest of the line as a parameter.
+
+  <table>
+    <tr>
+      <td valign='top' style='white-space: nowrap'><tt>actions</tt>
+      <td>emit code from the actions as body of a <tt>switch</tt>.
+
+    <tr>
+      <td valign='top' style='white-space: nowrap'><tt>epilog</tt>
+      <td>emit the text following the second <tt>%%</tt>.
+
+    <tr>
+      <td valign='top' style='white-space: nowrap'><tt>local</tt>
+      <td>emit the text within <tt>%{ %}</tt> following the first <tt>%%</tt>.
+
+    <tr>
+      <td valign='top' style='white-space: nowrap'><tt>prolog</tt>
+      <td>emit the text within <tt>%{ %}</tt> prior to the first <tt>%%</tt>.
+
+    <tr>
+      <td valign='top' style='white-space: nowrap'><tt>tokens <i>prefix</i><tt>
+      <td>emit each token value as an initialized identifier with
+        the remainder of the line as a prefix.
+
+    <tr>
+      <td valign='top' style='white-space: nowrap'><tt>version <i>comment</i><tt>
+      <td>emit a <tt>//</tt> comment with the remainder of the line.
+
+    <tr>
+      <td valign='top' style='white-space: nowrap'><tt>yyCheck <i>prefix</i>
+        <br>yyDefRed <i>prefix</i>
+        <br>yyDgoto <i>prefix</i>
+        <br>yyGindex <i>prefix</i>
+        <br>yyLen <i>prefix</i>
+        <br>yyLhs <i>prefix</i>
+        <br>yyRindex <i>prefix</i>
+        <br>yySindex <i>prefix</i>
+        <br>yyTable <i>prefix</i></tt>
+      <td valign='top'>emit the body of the relevant table with
+        the remainder of the line as a prefix for each output line.
+
+    <tr>
+      <td valign='top' style='white-space: nowrap'><tt>yyFinal <i>prefix</i><tt>
+      <td>emit the value as an initializer with the remainder of
+        the line as a prefix.
+
+    <tr>
+      <td valign='top' style='white-space: nowrap'><tt>yyNames <i>prefix</i></tt>
+      <td>emit the table as a list of words with the remainder of
+        the line as a prefix for each output line.
+
+    <tr>
+      <td valign='top' style='white-space: nowrap'><tt>yyNames-strings</tt>
+      <td>emit the table as a list of string initializers.
+
+    <tr>
+      <td valign='top' style='white-space: nowrap'><tt>yyRule <i>prefix</i></tt>
+      <td>emit the table as a list of lines with the remainder of
+        the line as a prefix for each output line.
+
+    <tr>
+      <td valign='top' style='white-space: nowrap'><tt>yyRule-strings</tt>
+      <td>emit the table as a list of string initializers.
+  </table>
+
+  <p>Each table is prefixed by a comment with dimension information.
+
+  <p><b><a name='Class Management'>
+    Class Management </a></b>
+
+  <p>The design of a skeleton file has to consider two problems:
+  how to embed the parser in a class and how to interface to the
+  scanner.
+
+  <p>The distributed skeleton files expect the user to supply a
+  prolog within <tt>%{ %}</tt> containing a class header and to
+  supply an epilog following the second <tt>%%</tt> which closes
+  this class. <i>jay</i> does not know the class name of the parser.
+
+  <p>The interface to the scanner <tt>yyInput</tt> is generated as
+  a member of each parser class; this may or may not be a good
+  choice. There are three methods: <tt>advance</tt> has no arguments
+  and must return a boolean value indicating that the scanner has
+  successfully extracted another input symbol; <tt>token</tt> has
+  no arguments and must return the current input symbol as an integer
+  value which the parser expects; <tt>value</tt> has no arguments
+  and can return an object value to be placed on the state/value
+  stack for the input symbol. Tracing expects <tt>token</tt> and
+  <tt>value</tt> to be constant functions between each call to
+  <tt>advance</tt>.
+
+  <p>Explicit token values are generated as constants in the parser
+  class. Single characters represent themselves; however, for those
+  <i>jay</i> believes in the ASCII rather then the Unicode character
+  set. It might have been better to define the constants in the
+  scanner interface but it is expected that the scanner is implemented
+  as an inner class of the parser. {@link pj} supports this view
+  even if the scanner is explicitly constructed using <a target='_blank'
+  href='http://www.cs.princeton.edu/~appel/modern/java/JLex/'>JLex</a>.
+
+  <p><b><a name='Projects'>
+    Projects </a></b>
+
+  <ul>
+    <li>There could be a benefit from recoding in Java: if the
+    target is Java the inheritance relation among the value classes
+    could be checked. On the other hand, {@link pj} shows that this
+    is unlikely to be completely successful.
+
+    <li>Generics should be supported. However, when we checked,
+    Java produced very annoying warning messages when casting
+    generics. Supporting generics simply by allowing nested angle
+    brackets for types is unlikely to be sufficient.
+  </ul>
+
+  <p><b><a name='Downloads'>
+    Downloads </a></b>
+
+  <ul>
+    <li><a href='doc-files/jay-mosx.tgz'>
+      archive with executable and skeletons for MacOS X, 48 kb</a>
+    <li><a href='doc-files/jay.zip'>
+      archive with executable and skeletons for Windows, 104 kb</a>,
+      compiled with GNU C and Visual C++ on Windows Services For Unix.
+    <li><a href='doc-files/src.tgz'>source files, 228 kb</a>
+  </ul>
+
+  @author <a href="mailto:ats@cs.rit.edu">Axel T. Schreiner<a>.
+  @version 1.0.2, July 2004.
+
+</body>
+
+  

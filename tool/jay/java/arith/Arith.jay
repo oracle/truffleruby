@@ -1,0 +1,100 @@
+%{
+  package arith;			// can first specify package/import
+
+  import java.io.InputStreamReader;
+  import java.io.IOException;
+  import java.io.Reader;
+  import java.io.StreamTokenizer;
+
+  public class Arith {			// must first specify class header
+	// must not use yy[A-Za-z].* as identifiers
+	// could overwrite methods named yy[a-z].* in (anonymous) subclass
+%}
+	// value stack is of class Object, <className> results in cast
+
+%token	<Double> Number 99	// names mapped to public static final int
+%type	<Double> expr		// $$ is Object, only $<xx>$ is xx
+
+%left	'+' '-'			// precedence table
+%left	'*' '/'
+%right	UNARY			// placeholder
+
+%start	prog			// start symbol (if not first)
+
+%%	// public Object yyparse(yyInput yyLex)
+        //                         throws IOException, yyException
+
+expr: expr '+' expr { $$ = new Double($1.doubleValue()+$3.doubleValue()); }
+    | expr '-' expr { $$ = new Double($1.doubleValue()-$3.doubleValue()); }
+    | expr '*' expr { $$ = new Double($1.doubleValue()*$3.doubleValue()); }
+    | expr '/' expr { $$ = new Double($1.doubleValue()/$3.doubleValue()); }
+    | '+' expr %prec UNARY { $$ = $<>2; } // can suppress class
+    | '-' expr %prec UNARY { $$ = new Double(-$2.doubleValue()); }
+    | '(' expr ')' { $$ = $2; }
+    | Number // $$ = $1; // uses $$ = yyDefault($1)
+
+prog: /* null */
+    | prog expr '\n' { System.out.println("\t"+$2); }
+    | prog '\n'
+    | prog error '\n' { yyErrorFlag = 0; } // forces recovery
+
+%%	// rest is emitted after yyparse()
+
+  /** start with<br>
+	no argument to suppress debugging<br>
+	0, 1, 2, or 3 to animate trapping input, output, or both<br>
+	other to trace
+    */
+  public static void main (String args []) {
+    jay.yydebug.yyDebug debug = null;
+    if (args.length > 0)
+      try {
+	int trace = Integer.parseInt(args[0]);
+	// don't touch yyAnim (starts AWK) until you mean it...
+        debug = new jay.yydebug.yyAnim("Arith", trace);
+      } catch (NumberFormatException nfe) {
+        debug = new jay.yydebug.yyDebugAdapter();
+      }
+    Scanner scanner = new Scanner(new InputStreamReader(System.in));
+    try {
+      new Arith().yyparse(scanner, debug);
+    } catch (IOException ie) { ie.printStackTrace(); }
+      catch (yyException ye) { System.err.println(ye); }
+  }
+
+}	// must specify trailing } for parser
+
+/** input provider.
+    This would be simpler if statically nested into the parser.
+  */
+class Scanner extends StreamTokenizer implements Arith.yyInput {
+  public Scanner (Reader r) {
+    super(r);
+    eolIsSignificant(true);		// need '\n'
+    ordinaryChar('/');			// gotcha: would start comment
+    ordinaryChar('-');			// gotcha: would start Number
+    commentChar('#');			// comments from # to end-of-line
+  }
+
+  public boolean advance () throws IOException {
+    return ttype != TT_EOF && super.nextToken() != TT_EOF;
+  }
+
+  public int token () {
+    value = null;
+    switch (ttype) {
+    case TT_EOF:	return 0;	// should not happen, assert false
+    case TT_EOL:	return '\n';
+    case TT_NUMBER:	value = new Double(nval);
+			return Arith.Number;
+    case TT_WORD:	return Arith.yyErrorCode;
+    default:		return ttype;
+    }
+  }
+
+  protected Object value;
+
+  public Object value () {
+    return value;
+  }
+}

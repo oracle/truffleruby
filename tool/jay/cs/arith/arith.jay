@@ -1,0 +1,147 @@
+%{
+  namespace Arith {			// can first specify namespace
+    // could specify using directives
+    // [this has not been done here to stress-test the skeleton]
+    
+    /// <summary>
+    ///   start with an argument to trace
+    /// </summary>
+    public class Arith {		// must specify class header
+	// must not use yy[A-Z].* as identifiers
+	// could overwrite some methods named yy[A-Z].* in subclass
+%}
+	// value stack is of class object, <className> results in cast
+        // boxing/unboxing can be used
+        
+%token	<double> Number 99	// names mapped to public static final int
+%type	<double> expr		// $$ is (boxed) object, only $<xx>$ is xx
+
+%left	'+' '-'			// precedence table
+%left	'*' '/'
+%right	UNARY			// placeholder
+
+%start	prog			// start symbol (if not first)
+
+%%	// public object yyParse(yyInput yyLex)
+        //                         throws IOException, yyException
+
+expr: expr '+' expr { $$ = $1 + $3; } // these work by boxing
+    | expr '-' expr { $$ = $1 - $3; }
+    | expr '*' expr { $$ = $1 * $3; }
+    | expr '/' expr { $$ = $1 / $3; }
+    | '+' expr %prec UNARY { $$ = $<>2; } // can suppress class
+    | '-' expr %prec UNARY { $$ = - $2; }
+    | '(' expr ')' { $$ = $2; }
+    | Number // $$ = $1; // uses $$ = yyDefault($1)
+
+prog: /* null */
+    | prog expr '\n' { System.Console.WriteLine("\t"+$2); }
+    | prog '\n'
+    | prog error '\n' { yyErrorFlag = 0; } // forces recovery
+
+%%	// rest is emitted after yyParse()
+
+    /// <summary>
+    ///   start with any argument to trace.
+    /// </summary>
+    public static void Main (string[] args) {
+      yyDebug.yyDebug debug =
+        args.Length > 0 ? new yyDebug.yyDebugAdapter() : null;
+      yyInput scanner = new Scanner(System.Console.In);
+      try {
+        new Arith().yyParse(scanner, debug);
+      } catch (yyException ye) { System.Console.WriteLine(ye); }
+    }
+  
+  } // must specify trailing } for parser class
+
+  /// <summary>
+  ///   converts input characters into parser symbols.
+  /// </summary>
+  /// <remarks>
+  ///   This class could have been internal to the parser class.
+  ///   It is external to demonstrate how to reference token values
+  ///   and the input interface.
+  /// </remarks>
+  public class Scanner : Arith.yyInput {
+    /// <summary>
+    ///   input stream to scan.
+    /// </summary>
+    protected readonly System.IO.TextReader In;
+    
+    /// <summary>
+    ///   <c>true</c> once end of input is reached.
+    ///   used to disallow further <c>Advance()</c>.
+    /// </summary>
+    protected bool AtEof = false;
+    
+    /// <summary>
+    ///   represents current <c>Token</c>.
+    /// </summary>
+    private int token;
+    
+    /// <summary>
+    ///   represents current <c>Value</c>.
+    /// </summary>
+    private double value;
+  
+    /// <summary>
+    ///   connect input stream.
+    /// </summary>
+    public Scanner (System.IO.TextReader In) {
+      this.In = In;
+    }
+  
+    /// <summary>
+    ///   move on to next token.
+    ///   This method does the actual work of cutting up the input sequence.
+    /// </summary>
+    /// <returns><c>false</c> if positioned beyond tokens</returns>
+    /// <exception><c>IOException</c> on input error</exception>
+    public bool Advance () {
+      int ch;
+  
+      if (AtEof) return false;
+      for (;;)
+	switch (ch = In.Read()) {
+  
+	case -1:
+	  AtEof = true; return false;
+  
+	case ' ': case '\t':
+	  continue;
+  
+	default:
+	  if (System.Char.IsDigit((char)ch)) { // support decimal integer values as double
+	    value = ch - '0';
+	    while (System.Char.IsDigit((char)In.Peek())) {
+	      value *= 10;
+	      value += In.Read() - '0';
+	    }
+	    token = Arith.Number; return true;
+	  }
+	  value = token = ch; return true;
+	}
+    }
+  
+    /// <summary>
+    ///   classifies current token by <c>%token</c> value or single character.
+    /// </summary>
+    /// <remarks>
+    ///   Should not be called if <c>Advance()</c> returned false.
+    /// </remarks>
+    public int Token {
+      get { return token; }
+    }
+
+    /// <summary>
+    ///   value associated with current token.
+    /// </summary>
+    /// <remarks>
+    ///   Should not be called if <c>Advance()</c> returned false.
+    /// </remarks>
+    public object Value {
+      get { return this.value; }
+    }
+  }
+} // must specify trailing } for namespace, if any
