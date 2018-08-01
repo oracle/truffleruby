@@ -21,6 +21,14 @@ module Truffle
     def self.export_method(name)
       export(name.to_s, Object.method(name.to_sym))
     end
+    
+    def self.export_without_conversion(name, value)
+      export(name, value)
+    end
+    
+    def self.import_without_conversion(name)
+      import(name)
+    end
 
     def self.keys(object, internal = false)
       keys = keys_without_conversion(object, internal)

@@ -738,8 +738,15 @@ public abstract class InteropNodes {
     public abstract static class ExportNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
+        @Specialization(guards = "isPrimitive(value)")
+        public Object exportPrimitive(DynamicObject name, Object value) {
+            getContext().getInteropManager().exportObject(name.toString(), new BoxedValue(value));
+            return value;
+        }
+
+        @TruffleBoundary
         @Specialization(guards = "isRubyString(name) || isRubySymbol(name)")
-        public Object export(DynamicObject name, TruffleObject object) {
+        public Object exportObject(DynamicObject name, TruffleObject object) {
             getContext().getInteropManager().exportObject(name.toString(), object);
             return object;
         }

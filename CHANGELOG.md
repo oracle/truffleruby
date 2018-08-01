@@ -4,6 +4,9 @@
 
 New features:
 
+* `Polyglot.export` can now be used with primitives, and will now convert
+  strings to Java, and `.import` will convert them from Java.
+
 Bug fixes:
 
 * WeakRef now has the same inheritance and methods as MRI's version.

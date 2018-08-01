@@ -474,6 +474,9 @@ break our C extension support which uses these messages to get Ruby objects
 and expects to be able to mutate them and so on
 (compare with `Truffle::Interop.execute_without_conversion`).
 
+Export and import also converts strings, and also has `_without_conversion`
+counterparts.
+
 It is planned that Java strings, and boxed foreign strings (foreign objects that
 respond positively to `IS_BOXED` and `UNBOX` to a Java string), will be able to
 be used in all locations where a Ruby string could, and will be converted to a

@@ -1,0 +1,4 @@
+fails:Truffle::Interop.export exports a symbol, getting back a string
+fails:Truffle::Interop.export exports a Java string
+fails:Truffle::Interop.export converts to Java when exporting a string
+fails:Truffle::Interop.export can import a string without conversion from Java
