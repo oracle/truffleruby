@@ -26,16 +26,16 @@
 
 module Truffle
   class AtomicReference
-    def initialize(val=nil)
-      set(val) unless val.nil?
+    def initialize(value = nil)
+      set(value) unless value.nil?
     end
 
     def marshal_dump
       get
     end
 
-    def marshal_load(val)
-      set(val)
+    def marshal_load(value)
+      set(value)
     end
 
     alias_method :value, :get
