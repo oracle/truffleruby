@@ -6,7 +6,8 @@ GraalVM, which is the only supported way to use TruffleRuby.
 ## TruffleRuby
 
 TruffleRuby is copyright (c) 2013-2018 Oracle and/or its
-affiliates, and is made available to you under the terms of any one of the following three licenses:
+affiliates, and is made available to you under the terms of any one of the
+following three licenses:
 
 * Eclipse Public License version 1.0, or
 * GNU General Public License version 2, or
@@ -146,3 +147,11 @@ licenses. We've added the licenses to the individual files.
 
 We do not distribute MSpec or the Ruby Specs, but they are both copyright 2008
 Engine Yard and are released under an MIT licence (see `mit.txt`).
+
+# Jay
+
+TruffleRuby uses the Jay parser generator, modified from
+https://github.com/jruby/jay revision `9ffc59a`. Jay is copyright 1989 The
+Regents of the University of California, ported by Axel T. Schreiner, and is
+covered by the three-clause BSD licence (see `jay.txt`). We only distribute Jay
+in the source repository - it isn't part of releases.
