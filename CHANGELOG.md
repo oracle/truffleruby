@@ -11,11 +11,14 @@ Bug fixes:
 
 * `Array#reject!` no longer truncates the array if the block raises an
   exception for an element.
-
 * WeakRef now has the same inheritance and methods as MRI's version.
 * Support `-Wl` linker argument for C extensions.
 * Using `Module#const_get` with a scoped argument will now correctly
   autoload the constant if needed.
+
+Performance:
+
+* Optimize rejected (non-Symbol keys) keyword arguments.
 
 # 1.0 RC 5, August 2018
 
