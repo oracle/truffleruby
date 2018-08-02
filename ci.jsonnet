@@ -385,18 +385,9 @@ local part_definitions = {
 
   run: {
     deploy_and_spec: {
-      local without_rewrites = function(commands)
-        [
-          ["set-export", "PREV_MX_URLREWRITES", "$MX_URLREWRITES"],
-          ["unset", "MX_URLREWRITES"],
-        ] + commands + [
-          ["set-export", "MX_URLREWRITES", "$PREV_MX_URLREWRITES"],
-        ],
-      local deploy_binaries_commands = [
+      local deploy_binaries = [
         ["mx", "deploy-binary-if-master-or-release"],
       ],
-      local deploy_binaries_no_rewrites = without_rewrites(deploy_binaries_commands),
-      local deploy_binaries = deploy_binaries_commands + deploy_binaries_no_rewrites,
 
       run+: deploy_binaries +
             [["mx", "unittest", "org.truffleruby"]] +
