@@ -18,6 +18,10 @@ public abstract class RubyGuards {
 
     // Basic Java types
 
+    public static boolean isBoolean(Object value) {
+        return value instanceof Boolean;
+    }
+
     public static boolean isByte(Object value) {
         return value instanceof Byte;
     }
@@ -60,6 +64,10 @@ public abstract class RubyGuards {
 
     public static boolean isBasicNumber(Object object) {
         return isByte(object) || isShort(object) || isInteger(object) || isLong(object) || isFloat(object) || isDouble(object);
+    }
+
+    public static boolean isPrimitive(Object object) {
+        return isBoolean(object) || isByte(object) || isShort(object) || isInteger(object) || isLong(object) || isFloat(object) || isDouble(object);
     }
 
     // Ruby types

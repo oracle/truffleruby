@@ -18,4 +18,13 @@ describe "Truffle::Interop.to_java_string" do
     Truffle::Interop.from_java_string(Truffle::Interop.to_java_string(:foo)).should == "foo"
   end
 
+  it "passes through primitives with from_java_string" do
+    Truffle::Interop.from_java_string(Truffle::Interop.to_java_string(14)).should == 14
+  end
+
+  it "passes through non-string objects with from_java_string" do
+    object = Object.new
+    Truffle::Interop.from_java_string(Truffle::Interop.to_java_string(object)).equal?(object).should be_true
+  end
+
 end

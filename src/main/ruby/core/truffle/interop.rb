@@ -21,6 +21,15 @@ module Truffle
     def self.export_method(name)
       export(name.to_s, Object.method(name.to_sym))
     end
+    
+    def self.export(name, value)
+      export_without_conversion name, to_java_string(value)
+      value
+    end
+    
+    def self.import(name)
+      from_java_string(import_without_conversion(name))
+    end
 
     def self.keys(object, internal = false)
       keys = keys_without_conversion(object, internal)

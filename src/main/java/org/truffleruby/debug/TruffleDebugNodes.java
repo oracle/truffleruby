@@ -29,6 +29,7 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.interop.BoxedValue;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -465,29 +466,10 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_boxed_number", onSingleton = true, required = 1)
     public abstract static class ForeignBoxedNumberNode extends CoreMethodArrayArgumentsNode {
 
-        public static class ForeignBoxedNumber implements TruffleObject {
-
-            private final Number number;
-
-            public ForeignBoxedNumber(Number number) {
-                this.number = number;
-            }
-
-            public Number getNumber() {
-                return number;
-            }
-
-            @Override
-            public ForeignAccess getForeignAccess() {
-                return ForeignBoxedNumberMessageResolutionForeign.ACCESS;
-            }
-
-        }
-
         @TruffleBoundary
         @Specialization
         public Object foreignBoxedNumber(Number number) {
-            return new ForeignBoxedNumber(number);
+            return new BoxedValue(number);
         }
 
     }
