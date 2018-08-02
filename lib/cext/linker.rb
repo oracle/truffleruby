@@ -10,43 +10,55 @@ module Truffle::CExt
   class Linker
     def self.main(argv = ARGV)
       argv = argv.dup
-      output = 'out.su'
-      libraries = []
-      files = []
-      search_paths = []
+      @output = 'out.su'
+      @libraries = []
+      @files = []
+      @search_paths = []
+      process_args(argv)
+      @libraries = @libraries.uniq
+      @libraries = resolve_libraries(@libraries, @search_paths)
+      @files = @files.uniq
+      @files = link_bitcode(@files)
+      Truffle::CExt.linker(@output, @libraries, @files)
+    end
+
+    def self.process_args(argv)
       while arg = argv.shift
         case arg
+        when ''
+          # Empty arg, do nothing.
         when '-h', '-help', '--help', '/?', '/help'
           puts "#{$0} -e Truffle::CExt::Linker.main [-o out.su] [-l one.so -l two.so ...] one.bc two.bc ..."
           puts '  Links zero or more LLVM binary bitcode files into a single file which can be loaded by Sulong.'
         when '-o'
           raise '-o needs to be followed by a file name' if argv.empty?
-          output = argv.shift
+          @output = argv.shift
         when '-l'
           raise '-l needs to be followed by a file name' if argv.empty?
           lib = argv.shift
-          libraries << standardize_lib_name(lib)
+          @libraries << standardize_lib_name(lib)
         when /\A-l(.+)\z/ # -llib as a single argument
           lib = $1
-          libraries << standardize_lib_name(lib)
+          @libraries << standardize_lib_name(lib)
         when '-L'
           raise '-L needs to be followed by a directory name' if argv.empty?
-          search_paths << argv.shift
+          @search_paths << argv.shift
         when /\A-L(.+)\z/ # -L/libdir as a single argument
-          search_paths <<  $1
+          @search_paths <<  $1
+        when /\A-Wl(.+)\z/
+          subargs = $1.split(',')
+          process_args(subargs)
+        when '-rpath'
+          raise '-rpath needs to be followed by a directory name' if argv.empty?
+          @search_paths << argv.shift
         else
           if arg.start_with?('-')
             raise "Unknown argument: #{arg}"
           else
-            files << arg
+            @files << arg
           end
         end
       end
-      libraries = libraries.uniq
-      libraries = resolve_libraries(libraries, search_paths)
-      files = files.uniq
-      files = link_bitcode(files)
-      Truffle::CExt.linker(output, libraries, files)
     end
 
     def self.link_bitcode(files)
