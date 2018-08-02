@@ -30,8 +30,8 @@ Changes:
   using a magic comment.
 * `-Xembedded` can now set set on the launcher command line.
 * The `-Xembedded` option can now set set on the launcher command line.
-* The `-Xplatform.native` option can now load the core library, by enabling
-  `-Xpolyglot.stdio`.
+* The `-Xplatform.native=false` option can now load the core library, by
+  enabling `-Xpolyglot.stdio`.
 
 Changes:
 
