@@ -49,7 +49,7 @@ end
 
 Truffle::Boot.delay do
   # stdout is line-buffered if it refers to a terminal
-  if Truffle::Boot.get_option('sync.stdio') || (Truffle::POSIX::NATIVE && STDOUT.tty?)
+  if Truffle::Boot.get_option('polyglot.stdio') || !Truffle::POSIX::NATIVE || STDOUT.tty?
     STDOUT.sync = true
   end
 end

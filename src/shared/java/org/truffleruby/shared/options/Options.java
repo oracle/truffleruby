@@ -52,7 +52,6 @@ public class Options {
     public final boolean HANDLE_INTERRUPT;
     public final boolean SINGLE_THREADED;
     public final boolean POLYGLOT_STDIO;
-    public final boolean SYNC_STDIO;
     public final boolean CEXT_LOCK;
     public final boolean PREINITIALIZATION;
     public final boolean TRACE_CALLS;
@@ -180,7 +179,6 @@ public class Options {
         HANDLE_INTERRUPT = builder.getOrDefault(OptionsCatalog.HANDLE_INTERRUPT, !EMBEDDED);
         SINGLE_THREADED = builder.getOrDefault(OptionsCatalog.SINGLE_THREADED, EMBEDDED);
         POLYGLOT_STDIO = builder.getOrDefault(OptionsCatalog.POLYGLOT_STDIO, EMBEDDED || !NATIVE_PLATFORM);
-        SYNC_STDIO = builder.getOrDefault(OptionsCatalog.SYNC_STDIO, EMBEDDED);
         CEXT_LOCK = builder.getOrDefault(OptionsCatalog.CEXT_LOCK);
         PREINITIALIZATION = builder.getOrDefault(OptionsCatalog.PREINITIALIZATION);
         TRACE_CALLS = builder.getOrDefault(OptionsCatalog.TRACE_CALLS);
@@ -346,8 +344,6 @@ public class Options {
                 return SINGLE_THREADED;
             case "ruby.polyglot.stdio":
                 return POLYGLOT_STDIO;
-            case "ruby.sync.stdio":
-                return SYNC_STDIO;
             case "ruby.cexts.lock":
                 return CEXT_LOCK;
             case "ruby.preinit":

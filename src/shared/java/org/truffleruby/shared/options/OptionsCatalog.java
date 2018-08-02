@@ -196,11 +196,6 @@ public class OptionsCatalog {
             "Use standard IO streams from the Graal-SDK polyglot API configuration",
             null,
             EMBEDDED.getDefaultValue() || !NATIVE_PLATFORM.getDefaultValue());
-    public static final BooleanOptionDescription SYNC_STDIO = new BooleanOptionDescription(
-            "ruby.sync.stdio",
-            "Sync operations on standard IO streams",
-            null,
-            EMBEDDED.getDefaultValue());
     public static final BooleanOptionDescription CEXT_LOCK = new BooleanOptionDescription(
             "ruby.cexts.lock",
             "Use a Global Lock when running C extensions",
@@ -721,8 +716,6 @@ public class OptionsCatalog {
                 return SINGLE_THREADED;
             case "ruby.polyglot.stdio":
                 return POLYGLOT_STDIO;
-            case "ruby.sync.stdio":
-                return SYNC_STDIO;
             case "ruby.cexts.lock":
                 return CEXT_LOCK;
             case "ruby.preinit":
@@ -1021,7 +1014,6 @@ public class OptionsCatalog {
             SOURCE_ENCODING,
             STDLIB_AS_INTERNAL,
             SYMBOL_TO_PROC_CACHE,
-            SYNC_STDIO,
             SYNTAX_CHECK,
             THREAD_CACHE,
             TIME_FORMAT_CACHE,

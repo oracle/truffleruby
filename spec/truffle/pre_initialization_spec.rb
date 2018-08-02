@@ -29,7 +29,7 @@ guard -> { TruffleRuby.native? } do
     end
 
     it "is not used when passing incompatible options" do
-      no_native = "-Xplatform.native=false -Xpolyglot.stdio=true -Xsync.stdio=true --disable-gems"
+      no_native = "-Xplatform.native=false --disable-gems"
       out = ruby_exe("p Truffle::Boot.was_preinitialized?", options: "-Xlog=FINE #{no_native}", args: "2>&1")
       out.should include("patchContext()")
       out.should include("not reusing pre-initialized context: -Xplatform.native is false")

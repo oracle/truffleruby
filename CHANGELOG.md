@@ -37,6 +37,8 @@ Changes:
 
 * The embedded configuration (`-Xembedded`) now warns about features which may
   not work well embedded, such as signals.
+* The `-Xsync.stdio` option has been removed - use standard Ruby
+  `STDOUT.sync = true` in your program instead.
 
 # 1.0 RC 5, August 2018
 
