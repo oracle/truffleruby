@@ -411,20 +411,8 @@ public class LoadArgumentsTranslator extends Translator {
                         minimum += 1;
                     }
 
-                    final boolean considerRejectedKWArgs;
-                    final ReadRestArgumentNode readRest;
-
-                    if (firstOpt && hasKeywordArguments) {
-                        considerRejectedKWArgs = true;
-                        int from = argsNode.getPreCount() + argsNode.getOptionalArgsCount();
-                        int to = -argsNode.getPostCount();
-                        readRest = new ReadRestArgumentNode(from, -to, hasKeywordArguments, required);
-                    } else {
-                        considerRejectedKWArgs = false;
-                        readRest = null;
-                    }
-
-                    readNode = new ReadOptionalArgumentNode(index, minimum, considerRejectedKWArgs, argsNode.hasKwargs(), required, readRest, defaultValue);
+                    final boolean considerRejectedKWArgs = firstOpt && hasKeywordArguments;
+                    readNode = new ReadOptionalArgumentNode(index, minimum, considerRejectedKWArgs, argsNode.hasKwargs(), required, defaultValue);
                 }
             }
         } else {

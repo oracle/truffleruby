@@ -13,11 +13,9 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+
 import org.truffleruby.Layouts;
-import org.truffleruby.core.array.ArrayReadNormalizedNode;
-import org.truffleruby.core.array.ArrayReadNormalizedNodeGen;
-import org.truffleruby.language.NotOptimizedWarningNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 
 public class ReadOptionalArgumentNode extends RubyNode {
@@ -27,28 +25,28 @@ public class ReadOptionalArgumentNode extends RubyNode {
     private final boolean considerRejectedKWArgs;
     private final boolean reduceMinimumWhenNoKWargs;
 
-    @Child private ReadRestArgumentNode readRestArgumentNode;
     @Child private RubyNode defaultValue;
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
-    @Child private ArrayReadNormalizedNode arrayReadNode;
-    @Child private NotOptimizedWarningNode notOptimizedWarningNode = new NotOptimizedWarningNode();
+    @Child private ReadRejectedKeywordArgumentsNode readRejectedKeywordArgumentsNode;
 
     private final BranchProfile defaultValueProfile = BranchProfile.create();
+    private final ConditionProfile hasKeywordsProfile;
+    private final ConditionProfile hasRejectedKwargs;
 
-    public ReadOptionalArgumentNode(int index, int minimum,
-                                    boolean considerRejectedKWArgs, boolean reduceMinimumWhenNoKWargs,
-                                    int requiredForKWArgs, ReadRestArgumentNode readRestArgumentNode,
-                                    RubyNode defaultValue) {
+    public ReadOptionalArgumentNode(int index, int minimum, boolean considerRejectedKWArgs,
+            boolean reduceMinimumWhenNoKWargs, int requiredForKWArgs, RubyNode defaultValue) {
         this.index = index;
         this.minimum = minimum;
         this.considerRejectedKWArgs = considerRejectedKWArgs;
         this.defaultValue = defaultValue;
-        this.readRestArgumentNode = readRestArgumentNode;
         this.reduceMinimumWhenNoKWargs = reduceMinimumWhenNoKWargs;
 
-        if (reduceMinimumWhenNoKWargs) {
-            readUserKeywordsHashNode = new ReadUserKeywordsHashNode(requiredForKWArgs);
+        if (reduceMinimumWhenNoKWargs || considerRejectedKWArgs) {
+            this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(requiredForKWArgs);
         }
+
+        this.hasKeywordsProfile = considerRejectedKWArgs ? ConditionProfile.createBinaryProfile() : null;
+        this.hasRejectedKwargs = considerRejectedKWArgs ? ConditionProfile.createBinaryProfile() : null;
     }
 
     @Override
@@ -68,17 +66,18 @@ public class ReadOptionalArgumentNode extends RubyNode {
         defaultValueProfile.enter();
 
         if (considerRejectedKWArgs) {
-            notOptimizedWarningNode.warn("keyword arguments are not yet optimized");
+            final DynamicObject kwargsHash = readUserKeywordsHashNode.execute(frame);
 
-            final Object rest = readRestArgumentNode.execute(frame);
-
-            if (RubyGuards.isRubyArray(rest) && Layouts.ARRAY.getSize((DynamicObject) rest) > 0) {
-                if (arrayReadNode == null) {
+            if (hasKeywordsProfile.profile(kwargsHash != null)) {
+                if (readRejectedKeywordArgumentsNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    arrayReadNode = insert(ArrayReadNormalizedNodeGen.create(null, null));
+                    readRejectedKeywordArgumentsNode = insert(new ReadRejectedKeywordArgumentsNode());
                 }
 
-                return arrayReadNode.executeRead((DynamicObject) rest, 0);
+                final DynamicObject rejectedKwargs = readRejectedKeywordArgumentsNode.extractRejectedKwargs(frame, kwargsHash);
+                if (hasRejectedKwargs.profile(Layouts.HASH.getSize(rejectedKwargs) > 0)) {
+                    return rejectedKwargs;
+                }
             }
         }
 
