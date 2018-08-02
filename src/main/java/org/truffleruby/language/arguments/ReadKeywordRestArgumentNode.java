@@ -44,13 +44,13 @@ public class ReadKeywordRestArgumentNode extends RubyNode implements BiConsumerN
     }
 
     private Object lookupRestKeywordArgumentHash(VirtualFrame frame) {
-        final Object hash = readUserKeywordsHashNode.execute(frame);
+        final DynamicObject hash = readUserKeywordsHashNode.execute(frame);
 
         if (noHash.profile(hash == null)) {
             return HashOperations.newEmptyHash(getContext());
         } else {
             final DynamicObject kwRest = HashOperations.newEmptyHash(getContext());
-            return eachKeyNode.executeEachKeyValue(frame, (DynamicObject) hash, this, kwRest);
+            return eachKeyNode.executeEachKeyValue(frame, hash, this, kwRest);
         }
     }
 

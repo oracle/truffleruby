@@ -11,6 +11,7 @@ package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -34,7 +35,7 @@ public class ReadUserKeywordsHashNode extends RubyNode {
     }
 
     @Override
-    public Object execute(VirtualFrame frame) {
+    public DynamicObject execute(VirtualFrame frame) {
         final int argumentCount = RubyArguments.getArgumentsCount(frame);
 
         if (notEnoughArgumentsProfile.profile(argumentCount <= minArgumentCount)) {
@@ -44,19 +45,19 @@ public class ReadUserKeywordsHashNode extends RubyNode {
         final Object lastArgument = RubyArguments.getArgument(frame, argumentCount - 1);
 
         if (lastArgumentIsHashProfile.profile(RubyGuards.isRubyHash(lastArgument))) {
-            return lastArgument;
+            return (DynamicObject) lastArgument;
         } else {
             return tryConvertToHash(frame, argumentCount, lastArgument);
         }
     }
 
-    private Object tryConvertToHash(VirtualFrame frame, int argumentCount, Object lastArgument) {
+    private DynamicObject tryConvertToHash(VirtualFrame frame, int argumentCount, Object lastArgument) {
         if (respondsToToHashProfile.profile(respondToToHash(frame, lastArgument))) {
             final Object converted = callToHash(frame, lastArgument);
 
             if (convertedIsHashProfile.profile(RubyGuards.isRubyHash(converted))) {
                 RubyArguments.setArgument(frame, argumentCount - 1, converted);
-                return converted;
+                return (DynamicObject) converted;
             }
         }
 
