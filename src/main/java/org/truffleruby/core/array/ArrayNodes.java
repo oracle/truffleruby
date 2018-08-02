@@ -1712,6 +1712,14 @@ public abstract class ArrayNodes {
                     i++;
                 }
             } finally {
+                // Ensure we've iterated to the end of the array.
+                for (; n < strategy.getSize(array); n++) {
+                    if (i != n) {
+                        store.set(i, store.get(n));
+                    }
+                    i++;
+                }
+
                 // Null out the elements behind the size
                 final ArrayMirror filler = strategy.newArray(n - i);
                 filler.copyTo(store, 0, i, n - i);
