@@ -20,7 +20,7 @@ end
 def parse_reference_defaults(default)
   match = /^!?[A-Z_]+(\s*\|\|\s*!?[A-Z_]+)*$/.match(default)
   if match
-    match[0].split('||').reject(&:empty?).map(&:strip)
+    match[0].split('||').map(&:strip)
   else
     nil
   end
