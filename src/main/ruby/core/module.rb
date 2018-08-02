@@ -97,6 +97,28 @@ class Module
     self
   end
 
+  def const_get(name, inherit = true)
+    Truffle.primitive :module_const_get
+    if name.kind_of?(String)
+      names = name.split('::')
+      unless names.empty?
+        names.shift if '' == names.first
+      end
+      raise NameError, "wrong constant name #{name}" if names.empty? || names.include?('')
+      res = self
+      names.each do |s|
+        if res.kind_of?(Module)
+          res = res.const_get(s, inherit)
+        else
+          raise TypeError, "#{name} does not refer to a class/module"
+        end
+      end
+      res
+    else
+      raise PrimitiveFailure
+    end
+  end
+
   def self.constants(inherited = undefined)
     if undefined.equal?(inherited)
       Object.constants

@@ -14,6 +14,8 @@ Bug fixes:
 
 * WeakRef now has the same inheritance and methods as MRI's version.
 * Support `-Wl` linker argument for C extensions.
+* Using `Module#const_get` with a scoped argument will now correctly
+  autoload the constant if needed.
 
 # 1.0 RC 5, August 2018
 
