@@ -9,14 +9,17 @@
  */
 package org.truffleruby.language.arguments;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+
+import org.truffleruby.Layouts;
+import org.truffleruby.core.array.ArrayAppendOneNode;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 public class ReadRestArgumentNode extends RubyNode {
 
@@ -26,10 +29,12 @@ public class ReadRestArgumentNode extends RubyNode {
 
     private final BranchProfile noArgumentsLeftProfile = BranchProfile.create();
     private final BranchProfile subsetOfArgumentsProfile = BranchProfile.create();
+    private final ConditionProfile hasKeywordsProfile;
+    private final ConditionProfile hasRejectedKwargs;
 
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
-    @Child private CallDispatchHeadNode addRejectedNode = CallDispatchHeadNode.createOnSelf();
-    @Child private NotOptimizedWarningNode notOptimizedWarningNode = new NotOptimizedWarningNode();
+    @Child private ReadRejectedKeywordArgumentsNode readRejectedKeywordArgumentsNode;
+    @Child private ArrayAppendOneNode arrayAppendOneNode;
 
     public ReadRestArgumentNode(int startIndex, int indexFromCount,
                                 boolean keywordArguments, int minimumForKWargs) {
@@ -38,8 +43,11 @@ public class ReadRestArgumentNode extends RubyNode {
         this.keywordArguments = keywordArguments;
 
         if (keywordArguments) {
-            readUserKeywordsHashNode = new ReadUserKeywordsHashNode(minimumForKWargs);
+            this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(minimumForKWargs);
         }
+
+        this.hasKeywordsProfile = keywordArguments ? ConditionProfile.createBinaryProfile() : null;
+        this.hasRejectedKwargs = keywordArguments ? ConditionProfile.createBinaryProfile() : null;
     }
 
     @Override
@@ -80,15 +88,25 @@ public class ReadRestArgumentNode extends RubyNode {
         final DynamicObject rest = createArray(resultStore, resultLength);
 
         if (keywordArguments) {
-            notOptimizedWarningNode.warn("keyword arguments are not yet optimized");
+            final DynamicObject kwargsHash = readUserKeywordsHashNode.execute(frame);
 
-            Object kwargsHash = readUserKeywordsHashNode.execute(frame);
+            if (hasKeywordsProfile.profile(kwargsHash != null)) {
+                if (readRejectedKeywordArgumentsNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    readRejectedKeywordArgumentsNode = insert(new ReadRejectedKeywordArgumentsNode());
+                }
 
-            if (kwargsHash == null) {
-                kwargsHash = nil();
+                final DynamicObject rejectedKwargs = readRejectedKeywordArgumentsNode.extractRejectedKwargs(frame, kwargsHash);
+
+                if (hasRejectedKwargs.profile(Layouts.HASH.getSize(rejectedKwargs) > 0)) {
+                    if (arrayAppendOneNode == null) {
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        arrayAppendOneNode = insert(ArrayAppendOneNode.create());
+                    }
+
+                    arrayAppendOneNode.executeAppendOne(rest, rejectedKwargs);
+                }
             }
-
-            addRejectedNode.call(frame, coreLibrary().getTruffleInternalModule(), "add_rejected_kwargs_to_rest", rest, kwargsHash);
         }
 
         return rest;

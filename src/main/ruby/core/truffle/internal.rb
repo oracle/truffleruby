@@ -95,18 +95,6 @@ module Truffle::Internal
     array
   end
 
-  def self.add_rejected_kwargs_to_rest(rest, kwargs)
-    return if kwargs.nil?
-
-    rejected = kwargs.select do |key, _value|
-      not key.is_a?(Symbol)
-    end
-
-    unless rejected.empty?
-      rest.push rejected
-    end
-  end
-  
   def self.when_splat(cases, expression)
     cases.any? do |c|
       c === expression
