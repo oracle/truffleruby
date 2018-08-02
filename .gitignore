@@ -128,3 +128,7 @@ bin/*
 
 # Diagnostic output directory
 dumps/
+
+# Jay
+tool/jay/*.o
+tool/jay/jay
