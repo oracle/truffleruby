@@ -1,0 +1,1 @@
+fails:Date.iso8601 parses a Symbol into a Date object
