@@ -10,7 +10,7 @@
 # https://github.com/google/jsonnet/releases and compiled.
 
 # CONFIGURATION
-local overlay = "7ddf6eb3821b9e8ebac09b3f53d289626f4eb9bb";
+local overlay = "b6998e9380084ade695dbb160e8406bdd6441a93";
 
 # For debugging: generated builds will be restricted to those listed in
 # the array. No restriction is applied when it is empty.
@@ -42,7 +42,12 @@ local part_definitions = {
         PATH: std.join(":", self.path + ["$PATH"]),
       },
 
-      setup+: [],
+      setup+: [
+        # We don't want to proxy any internet access
+        ["unset", "ANT_OPTS", "FTP_PROXY", "ftp_proxy", "GRADLE_OPTS",
+          "HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy",
+          "MAVEN_OPTS", "no_proxy"]
+      ],
     },
 
     svm: {
