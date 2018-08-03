@@ -35,7 +35,7 @@ public class ReadKeywordArgumentNode extends RubyNode implements BiFunctionNode 
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final DynamicObject hash = (DynamicObject) readUserKeywordsHashNode.execute(frame);
+        final DynamicObject hash = readUserKeywordsHashNode.execute(frame);
 
         if (defaultProfile.profile(hash == null)) {
             return defaultValue.execute(frame);
