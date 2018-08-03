@@ -8,7 +8,7 @@ describe "String#gsub" do
     # same - we want to check that Ruby implementations raise an error on
     # #gsub on a string in the UTF-8 encoding but with invalid an UTF-8 byte
     # sequence.
-    
+
     str = "\xF6<script>"
     str.force_encoding Encoding::ASCII_8BIT
     str.gsub(/</, "&lt;").should == "\xF6&lt;script>".b

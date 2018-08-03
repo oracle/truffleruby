@@ -121,17 +121,19 @@ describe "Array#reject!" do
     a.should == [1, 2, 3]
   end
 
-  it "only removes elements for which the block returns true, keeping the element which raised an error." do
-    a = [1, 2, 3, 4]
-    begin
-      a.reject! do |x|
-        return true if x == 2
-        raise raise StandardError, 'Oops' if x == 3
+  ruby_version_is "2.4" do
+    it "only removes elements for which the block returns true, keeping the element which raised an error." do
+      a = [1, 2, 3, 4]
+      begin
+        a.reject! do |x|
+          return true if x == 2
+          raise raise StandardError, 'Oops' if x == 3
+        end
+      rescue
       end
-    rescue
-    end
 
-    a.should == [1, 3, 4]
+      a.should == [1, 3, 4]
+    end
   end
 
   it_behaves_like :enumeratorize, :reject!

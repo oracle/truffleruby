@@ -15,11 +15,11 @@ module ArraySpec
     end
 
     attr_reader :call_count
-    
+
     def array_result(a_number)
       [result(a_number), result(a_number)]
     end
-  
+
     def result(a_number)
       @call_count += 1
       if a_number
@@ -28,5 +28,5 @@ module ArraySpec
         :thing
       end
     end
-  end  
+  end
 end
