@@ -1,4 +1,5 @@
 require_relative '../../spec_helper'
+require 'weakref'
 
 describe "WeakRef#new" do
   it "creates a subclass correctly" do

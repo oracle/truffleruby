@@ -1,4 +1,5 @@
 require_relative '../../spec_helper'
+require 'weakref'
 
 describe "WeakRef#allocate" do
   it "assigns nil as the reference" do

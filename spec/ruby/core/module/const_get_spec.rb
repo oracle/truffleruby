@@ -131,7 +131,7 @@ describe "Module#const_get" do
   it 'does autoload a non-toplevel module' do
     Object.const_get('CSAutoloadD::InnerModule').name.should == 'CSAutoloadD::InnerModule'
   end
-  
+
   describe "with statically assigned constants" do
     it "searches the immediate class or module first" do
       ConstantSpecs::ClassA.const_get(:CS_CONST10).should == :const10_10
