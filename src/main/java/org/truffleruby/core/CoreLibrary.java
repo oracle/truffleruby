@@ -69,6 +69,7 @@ import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
+import org.truffleruby.parser.parser.SuppressFBWarnings;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.NativeTypes;
 import org.truffleruby.platform.Platform;
@@ -781,6 +782,7 @@ public class CoreLibrary {
         return ModuleNodes.createModule(context, sourceSection, moduleClass, lexicalParent, name, node);
     }
 
+    @SuppressFBWarnings("ES")
     public void loadRubyCoreLibraryAndPostBoot() {
         state = State.LOADING_RUBY_CORE;
 
