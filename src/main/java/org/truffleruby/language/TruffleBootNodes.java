@@ -106,16 +106,6 @@ public abstract class TruffleBootNodes {
         }
     }
 
-    @CoreMethod(names = "after_load_core", onSingleton = true)
-    public abstract static class AfterLoadCoreNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected DynamicObject afterLoadCore() {
-            coreLibrary().afterLoadCoreLibrary();
-            return nil();
-        }
-    }
-
     @CoreMethod(names = "main", onSingleton = true)
     public abstract static class MainNode extends CoreMethodArrayArgumentsNode {
 

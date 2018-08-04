@@ -786,7 +786,13 @@ public class CoreLibrary {
 
         try {
             for (int n = 0; n < CORE_FILES.length; n++) {
-                final RubySource source = context.getSourceLoader().loadCoreFile(getCoreLoadPath() + CORE_FILES[n]);
+                final String file = CORE_FILES[n];
+                if (file == POST_BOOT_FILE) {
+                    afterLoadCoreLibrary();
+                    state = State.LOADED;
+                }
+
+                final RubySource source = context.getSourceLoader().loadCoreFile(getCoreLoadPath() + file);
                 final RubyRootNode rootNode = context.getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, node);
 
                 final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
@@ -808,7 +814,7 @@ public class CoreLibrary {
         }
     }
 
-    public void afterLoadCoreLibrary() {
+    private void afterLoadCoreLibrary() {
         // Get some references to things defined in the Ruby core
 
         eagainWaitReadable = (DynamicObject) Layouts.MODULE.getFields(ioClass).getConstant("EAGAINWaitReadable").getValue();
@@ -818,8 +824,6 @@ public class CoreLibrary {
         assert Layouts.CLASS.isClass(eagainWaitWritable);
 
         findGlobalVariableStorage();
-
-        state = State.LOADED;
     }
 
     @TruffleBoundary
@@ -1379,6 +1383,8 @@ public class CoreLibrary {
         return dirClass;
     }
 
+    private static final String POST_BOOT_FILE = "/post-boot/post-boot.rb";
+
     public static final String[] CORE_FILES = {
             "/core/pre.rb",
             "/core/basic_object.rb",
@@ -1465,7 +1471,7 @@ public class CoreLibrary {
             "/core/posix.rb",
             "/core/main.rb",
             "/core/post.rb",
-            "/post-boot/post-boot.rb"
+            POST_BOOT_FILE
     };
 
 }
