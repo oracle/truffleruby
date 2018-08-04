@@ -1565,9 +1565,9 @@ EOS
       Utilities.log '.', "sampling\n"
       start = Time.now
       out, err = run_ruby metrics_time_option, '--no-core-load-path', *args, capture: true, no_print_cmd: true
-      $stdout.puts out unless out.empty?
       finish = Time.now
-      samples.push get_times(err, finish - start)
+      $stdout.puts out unless out.empty?
+      samples.push get_times(err, (finish - start) * 1000.0)
     end
     Utilities.log "\n", nil
 
@@ -1577,12 +1577,13 @@ EOS
       region_samples = samples.map { |s| s[stack] }
       mean = region_samples.inject(:+) / samples.size
       mean_by_stack[stack] = mean
+      mean_in_seconds = (mean / 1000.0)
 
       region = stack.last
-      human = "#{'%.3f' % mean} #{region}"
+      human = "#{'%.3f' % mean_in_seconds} #{region}"
       results[region] = {
         samples: region_samples,
-        mean: mean,
+        mean: mean_in_seconds,
         human: human
       }
 
@@ -1590,7 +1591,7 @@ EOS
       if use_json
         STDERR.puts indent + human
       else
-        STDOUT.puts indent + human if mean > min_time
+        STDOUT.puts indent + human if mean_in_seconds > min_time
       end
     end
     if use_json
@@ -1605,7 +1606,7 @@ EOS
             on_top_of_stack -= time if sub_stack[0...-1] == stack
           }
 
-          file.puts "#{stack.join(';')} #{on_top_of_stack * 1000}"
+          file.puts "#{stack.join(';')} #{on_top_of_stack}"
         end
       end
       sh "#{repo}/flamegraph.pl #{path} > time_metrics_flamegraph.svg"
@@ -1620,7 +1621,7 @@ EOS
     result[%w[total jvm]] = 0
 
     trace.lines do |line|
-      if line =~ /^(.+) (\d+\.\d+)$/
+      if line =~ /^(.+) (\d+)$/
         region = $1
         time = Float($2)
         if region.start_with? 'before-'

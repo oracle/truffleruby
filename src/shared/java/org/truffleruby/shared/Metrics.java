@@ -22,7 +22,7 @@ public class Metrics {
     public static void printTime(String id) {
         if (METRICS_TIME) {
             final long millis = System.currentTimeMillis();
-            System.err.printf("%s %d.%03d%n", id, millis / 1000, millis % 1000);
+            System.err.println(id + " " + millis);
         }
     }
 
