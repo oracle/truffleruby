@@ -71,8 +71,9 @@ local part_definitions = {
     build: {
       setup+: [
         ["mx", "sversions"],
-        ["mx", "build", "--force-javac", "--warning-as-error", "--force-deprecation-as-warning"] + self["$.use.build"].extra_args,
-      ],
+      ] + self.before_build + [
+        ["mx", "build", "--force-javac", "--warning-as-error", "--force-deprecation-as-warning"],
+      ] + self.after_build,
     },
 
     truffleruby: {
@@ -242,6 +243,7 @@ local part_definitions = {
       local build = self,
       run+: [
         ["cd", "$VM_SUITE_HOME"],
+      ] + self.before_build + [
         [
           "mx",
           "--dynamicimports",
@@ -254,7 +256,7 @@ local part_definitions = {
           "--tags",
           build["$.svm.gate"].tags,
         ],
-      ],
+      ] + self.after_build,
     },
 
     build_image: {
@@ -272,8 +274,10 @@ local part_definitions = {
         ["cd", "$VM_SUITE_HOME"],
         # Workaround for NFI when building with different Truffle versions
         ["mx", "clean"],
+      ] + self.before_build + [
         # aot-build.log is used for the build-stats metrics
         vm_build + ["|", "tee", "../../main/aot-build.log"],
+      ] + self.after_build + [
         ["set-export", "VM_DIST_HOME", vm_dist_home],
         ["set-export", "AOT_BIN", "$VM_DIST_HOME/jre/languages/ruby/bin/truffleruby"],
         ["set-export", "JT_BENCHMARK_RUBY", "$AOT_BIN"],
@@ -331,7 +335,8 @@ local part_definitions = {
 
   platform: {
     linux: {
-      "$.use.build":: { extra_args: [] },
+      before_build:: [],
+      after_build:: [],
       "$.run.deploy_and_spec":: { test_spec_options: ["-Gci"] },
       "$.cap":: {
         normal_machine: ["linux", "amd64"],
@@ -345,16 +350,21 @@ local part_definitions = {
       },
     },
     darwin: {
-      "$.use.build":: { extra_args: [] },
+      # Only set LLVM bin on PATH during "mx build" as Sulong needs it.
+      # Unset it for everything else to test how end-user might run TruffleRuby.
+      before_build:: [
+        ["set-export", "PATH_WITHOUT_LLVM", "$PATH"],
+        ["set-export", "PATH", "/usr/local/opt/llvm@4/bin:$PATH"],
+      ],
+      after_build:: [
+        ["set-export", "PATH", "$PATH_WITHOUT_LLVM"],
+      ],
       "$.run.deploy_and_spec":: { test_spec_options: ["-GdarwinCI"] },
       "$.cap":: {
         normal_machine: ["darwin_sierra", "amd64"],
       },
       environment+: {
         LANG: "en_US.UTF-8",
-      },
-      packages+: {
-        llvm: "==4.0.1",
       },
     },
   },
@@ -415,8 +425,9 @@ local part_definitions = {
       run+: [
         # Build with ECJ to get warnings
         ["mx", "sversions"],
+      ] + self.before_build + [
         ["mx", "build", "--jdt", "$JDT", "--warning-as-error", "--force-deprecation-as-warning"],
-      ] + jt(["lint"]) + [
+      ] + jt(["lint"]) + self.after_build + [
         ["mx", "findbugs"],
       ],
     },
