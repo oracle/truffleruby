@@ -285,12 +285,12 @@ public class FeatureLoader {
             throw new RaiseException(context, context.getCoreExceptions().loadError("this TruffleRuby distribution does not have the C extension implementation file ruby.su", feature, null));
         }
 
-        return loadCExtLibrary(rubySUpath);
+        return loadCExtLibrary("ruby.su", rubySUpath);
     }
 
     @TruffleBoundary
-    public List<TruffleObject> loadCExtLibrary(String path) {
-        File file = new File(path);
+    public List<TruffleObject> loadCExtLibrary(String feature, String path) {
+        final File file = new File(path);
 
         if (!new File(path).exists()) {
             throw new RaiseException(context, context.getCoreExceptions().loadError(path + " does not exists", path, null));
@@ -298,6 +298,7 @@ public class FeatureLoader {
 
         final List<TruffleObject> libraries = new ArrayList<>();
 
+        Metrics.printTime("before-load-cext-" + feature);
         try {
             Linker.loadLibrary(file, this::loadNativeLibrary, source -> {
                 final Object result;
@@ -316,6 +317,8 @@ public class FeatureLoader {
             });
         } catch (IOException e) {
             throw new JavaException(e);
+        } finally {
+            Metrics.printTime("after-load-cext-" + feature);
         }
 
         return libraries;

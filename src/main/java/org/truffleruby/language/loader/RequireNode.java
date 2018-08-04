@@ -208,7 +208,7 @@ public abstract class RequireNode extends RubyNode {
                 RubyLanguage.LOGGER.info(String.format("loading cext module %s (requested as %s)", expandedPath, feature));
             }
 
-            libraries = featureLoader.loadCExtLibrary(expandedPath);
+            libraries = featureLoader.loadCExtLibrary(feature, expandedPath);
         } catch (Exception e) {
             handleCExtensionException(feature, e);
             throw e;
