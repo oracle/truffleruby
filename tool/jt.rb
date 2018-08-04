@@ -1559,6 +1559,7 @@ EOS
     samples = []
     native = args.include? '--native'
     metrics_time_option = "#{native ? '--native.D' : '-J-D'}truffleruby.metrics.time=true"
+    min_time = Float(ENV.fetch("TRUFFLERUBY_METRICS_MIN_TIME", "-1"))
     METRICS_REPS.times do
       Utilities.log '.', "sampling\n"
       start = Time.now
@@ -1581,7 +1582,7 @@ EOS
       if use_json
         STDERR.puts region[/\s*/] + human
       else
-        STDOUT.puts region[/\s*/] + human
+        STDOUT.puts region[/\s*/] + human if mean > min_time
       end
     end
     if use_json
