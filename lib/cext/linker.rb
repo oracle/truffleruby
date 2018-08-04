@@ -23,6 +23,8 @@ module Truffle::CExt
     end
 
     def self.process_args(argv)
+      @llvm_link = argv.shift
+
       while arg = argv.shift
         case arg
         when ''
@@ -63,7 +65,8 @@ module Truffle::CExt
 
     def self.link_bitcode(files)
       output = 'out.bc'
-      raise 'Linker failed' unless system('llvm-link', '-o', output, *files)
+      command = [@llvm_link, '-o', output, *files]
+      raise "Linker failed: #{command}" unless system(*command)
       [output]
     end
 
