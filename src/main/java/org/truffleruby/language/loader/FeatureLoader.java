@@ -33,6 +33,7 @@ import org.truffleruby.extra.TruffleRubyNodes;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -251,19 +252,24 @@ public class FeatureLoader {
                 throw new RaiseException(context, context.getCoreExceptions().loadError("Sulong is required to support C extensions, and it doesn't appear to be available", feature, null));
             }
 
-            requireNode.executeRequire(context.getRubyHome() + "/lib/truffle/truffle/cext.rb");
-
-            final String rubySUpath = context.getRubyHome() + "/lib/cext/ruby.su";
-            final List<TruffleObject> libraries = loadCExtLibRuby(rubySUpath, feature);
-
-            sulongLoadLibraryFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_load_library", rubySUpath);
-
-            final TruffleObject initFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_init", rubySUpath);
-            final Node executeInitNode = Message.createExecute(0).createNode();
+            Metrics.printTime("before-load-cext-support");
             try {
-                ForeignAccess.sendExecute(executeInitNode, initFunction);
-            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-                throw new JavaException(e);
+                requireNode.executeRequire(context.getRubyHome() + "/lib/truffle/truffle/cext.rb");
+
+                final String rubySUpath = context.getRubyHome() + "/lib/cext/ruby.su";
+                final List<TruffleObject> libraries = loadCExtLibRuby(rubySUpath, feature);
+
+                sulongLoadLibraryFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_load_library", rubySUpath);
+
+                final TruffleObject initFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_init", rubySUpath);
+                final Node executeInitNode = Message.createExecute(0).createNode();
+                try {
+                    ForeignAccess.sendExecute(executeInitNode, initFunction);
+                } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
+                    throw new JavaException(e);
+                }
+            } finally {
+                Metrics.printTime("after-load-cext-support");
             }
 
             cextImplementationLoaded = true;
