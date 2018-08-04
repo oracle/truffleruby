@@ -49,6 +49,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
+import org.truffleruby.shared.Metrics;
 
 @NodeChild("feature")
 public abstract class RequireNode extends RubyNode {
@@ -85,11 +86,20 @@ public abstract class RequireNode extends RubyNode {
         if (isLoadedProfile.profile(isFeatureLoaded(pathString))) {
             return false;
         } else {
-            return doRequire(feature, expandedPath, pathString);
+            return requireWithMetrics(feature, expandedPath, pathString);
         }
     }
 
     @TruffleBoundary(transferToInterpreterOnException = false)
+    private boolean requireWithMetrics(String feature, String expandedPathRaw, DynamicObject pathString) {
+        requireMetric("before-require-" + feature);
+        try {
+            return doRequire(feature, expandedPathRaw, pathString);
+        } finally {
+            requireMetric("after-require-" + feature);
+        }
+    }
+
     private boolean doRequire(String feature, String expandedPathRaw, DynamicObject pathString) {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
         final ReentrantLockFreeingMap<String> fileLocks = featureLoader.getFileLocks();
@@ -177,7 +187,12 @@ public abstract class RequireNode extends RubyNode {
                     null,
                     coreLibrary().getMainObject());
 
-            deferredCall.call(callNode);
+            requireMetric("before-execute-" + feature);
+            try {
+                deferredCall.call(callNode);
+            } finally {
+                requireMetric("after-execute-" + feature);
+            }
         } else if (RubyLanguage.CEXT_MIME_TYPE.equals(mimeType)) {
             requireCExtension(feature, expandedPath);
         } else {
@@ -222,10 +237,13 @@ public abstract class RequireNode extends RubyNode {
             throw new RaiseException(getContext(), coreExceptions().loadError(initFunctionName + "() is not executable", expandedPath, null));
         }
 
+        requireMetric("before-execute-" + feature);
         try {
             ForeignAccess.sendExecute(executeNode, initFunction);
         } catch (InteropException e) {
             throw new JavaException(e);
+        } finally {
+            requireMetric("after-execute-" + feature);
         }
     }
 
@@ -371,4 +389,9 @@ public abstract class RequireNode extends RubyNode {
         warningNode.warningMessage(sourceSection, "loading in progress, circular require considered harmful - " + path);
     }
 
+    private void requireMetric(String id) {
+        if (Metrics.getMetricsTime() && getContext().getOptions().METRICS_TIME_REQUIRE) {
+            Metrics.printTime(id);
+        }
+    }
 }

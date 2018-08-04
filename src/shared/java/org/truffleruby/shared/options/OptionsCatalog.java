@@ -636,6 +636,11 @@ public class OptionsCatalog {
             "Measure time for parsing, translating and executing files, per file",
             null,
             false);
+    public static final BooleanOptionDescription METRICS_TIME_REQUIRE = new BooleanOptionDescription(
+            "ruby.metrics.time.require",
+            "Measure time for #require and executing the required file",
+            null,
+            false);
     
     public static OptionDescription<?> fromName(String name) {
         switch (name) {
@@ -887,6 +892,8 @@ public class OptionsCatalog {
                 return LOG_FEATURE_LOCATION;
             case "ruby.metrics.time.parsing.file":
                 return METRICS_TIME_PARSING_FILE;
+            case "ruby.metrics.time.require":
+                return METRICS_TIME_REQUIRE;
             default:
                 return null;
         }
@@ -974,6 +981,7 @@ public class OptionsCatalog {
             METHODMISSING_ALWAYS_CLONE,
             METHODMISSING_ALWAYS_INLINE,
             METRICS_TIME_PARSING_FILE,
+            METRICS_TIME_REQUIRE,
             NO_HOME_PROVIDED,
             OPTIONS_LOG,
             PACK_CACHE,
