@@ -16,8 +16,6 @@ local overlay = "b6998e9380084ade695dbb160e8406bdd6441a93";
 # the array. No restriction is applied when it is empty.
 local restrict_builds_to = [],
       debug = std.length(restrict_builds_to) > 0;
-# Set to false to disable overlay application
-local use_overlay = true;
 
 # Import support functions, they can be replaced with identity functions
 # and it would still work.
@@ -757,9 +755,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 };
 
 {
-  local no_overlay = "6f4eafb4da3b14be3593b07ed562d12caad9b64b",
-  overlay: if use_overlay then overlay else no_overlay,
-
+  overlay: overlay,
   builds: composition_environment.builds,
 }
 
