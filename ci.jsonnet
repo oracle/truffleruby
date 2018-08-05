@@ -14,8 +14,7 @@ local overlay = "b6998e9380084ade695dbb160e8406bdd6441a93";
 
 # For debugging: generated builds will be restricted to those listed in
 # the array. No restriction is applied when it is empty.
-local restrict_builds_to = [],
-      debug = std.length(restrict_builds_to) > 0;
+local restrict_builds_to = [];
 
 # Import support functions, they can be replaced with identity functions
 # and it would still work.
@@ -449,9 +448,8 @@ local part_definitions = {
   },
 
   benchmark: {
-    local post_process = [
-      ["tool/post-process-results-json.rb", "bench-results.json", "bench-results-processed.json"],
-    ] + if debug then [["cat", "bench-results-processed.json"]] else [],
+    local post_process =
+      [["tool/post-process-results-json.rb", "bench-results.json", "bench-results-processed.json"]],
     local upload_results =
       [["bench-uploader.py", "bench-results-processed.json"]],
     local post_process_and_upload_results =
