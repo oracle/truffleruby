@@ -1624,7 +1624,7 @@ EOS
           file.puts "#{stack.join(';')} #{on_top_of_stack.round}"
         end
       end
-      sh "#{repo}/flamegraph.pl #{path} > time_metrics_flamegraph.svg"
+      sh "#{repo}/flamegraph.pl", "--countname", "ms", path, out: "time_metrics_flamegraph.svg"
     end
   end
 
