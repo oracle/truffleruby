@@ -74,7 +74,6 @@ module RbConfig
     'host_cpu'          => host_cpu,
     'host'              => host,
     'host_os'           => host_os_full,
-    'includedir'        => '',
     'LDFLAGS'           => '',
     'libdirname'        => 'libdir',
     'LIBEXT'            => 'a',
@@ -130,6 +129,7 @@ module RbConfig
       'hdrdir' => "#{prefix}/lib/cext/include",
       'rubyhdrdir' => "#{prefix}/lib/cext/include",
       'rubyarchhdrdir' => "#{prefix}/lib/cext/include",
+      'includedir' => "#{prefix}/lib/cext", # the parent dir of rubyhdrdir
     }
     expanded.merge!(common)
     mkconfig.merge!(common)
@@ -182,7 +182,7 @@ module RbConfig
   end
 
   if ruby_home
-    expanded['LDSHARED'] = "#{launcher} #{libdir}/cext/ldshared.rb"
+    expanded['LDSHARED'] = "#{launcher} #{libdir}/cext/linker.rb"
   end
 
   RUBY = launcher

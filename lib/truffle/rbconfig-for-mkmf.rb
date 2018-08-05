@@ -7,7 +7,7 @@
 # GNU Lesser General Public License version 2.1.
 
 # Split from rbconfig.rb since we need to do expensive tasks like checking the
-# clang and opt versions.
+# clang, opt and llvm-link versions.
 
 require 'rbconfig'
 
@@ -21,11 +21,11 @@ if Truffle::Platform.darwin?
 end
 search_paths[''] = '$PATH'
 
-# First, find in which prefix clang and opt are available.
-# We want to use both tools from the same prefix.
+# First, find in which prefix clang, opt and llvm-link are available.
+# We want to use all tools from the same prefix.
 versions = {}
 prefix = search_paths.keys.find do |search_path|
-  %w[clang opt].all? do |tool|
+  %w[clang opt llvm-link].all? do |tool|
     tool_path = "#{search_path}#{tool}"
     begin
       versions[tool_path] = `#{tool_path} --version`
@@ -37,12 +37,13 @@ end
 
 unless prefix
   search_paths_description = search_paths.values.join(' or ')
-  abort "The clang and opt tools, part of LLVM, do not appear to be available in #{search_paths_description}.\n" +
+  abort "The clang, opt and llvm-link tools, part of LLVM, do not appear to be available in #{search_paths_description}.\n" +
         'You need to install LLVM, see https://github.com/oracle/truffleruby/blob/master/doc/user/installing-llvm.md'
 end
 
 clang = "#{prefix}clang"
 opt = "#{prefix}opt"
+llvm_link = "#{prefix}llvm-link"
 extra_cflags = nil
 
 # Check the versions
@@ -90,6 +91,8 @@ common = {
   'CC' => cc,
   'CPP' => cc,
   'CXX' => cxx,
+  'LLVM_LINK' => llvm_link,
+  'LDSHARED' => "#{RbConfig.ruby} #{cext_dir}/linker.rb",
   'debugflags' => debugflags,
   'warnflags' => warnflags,
   'CFLAGS' => cflags,
@@ -101,14 +104,10 @@ mkconfig.merge!(common)
 mkconfig['COMPILE_C']   = "ruby #{cext_dir}/preprocess.rb $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@"
 mkconfig['COMPILE_CXX'] = "ruby #{cext_dir}/preprocess.rb $< | $(CXX) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ - -o $@ && #{opt} #{opt_passes} $@ -o $@"
 
-# From mkmf.rb: "$(LDSHARED) #{OUTFLAG}$@ $(OBJS) $(LIBPATH) $(DLDFLAGS) $(LOCAL_LIBS) $(LIBS)"
-# The only difference is we use linker.rb instead of LDSHARED
-mkconfig['LINK_SO'] = "#{RbConfig.ruby} #{cext_dir}/linker.rb -o $@ $(OBJS) $(LIBPATH) $(DLDFLAGS) $(LOCAL_LIBS) $(LIBS)"
-
 cflags_for_try_link = "#{debugflags} #{warnflags}"
 # From mkmf.rb: "$(CC) #{OUTFLAG}#{CONFTEST}#{$EXEEXT} $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
 mkconfig['TRY_LINK'] = "#{cc} -o conftest $(INCFLAGS) $(CPPFLAGS) #{cflags_for_try_link} #{cext_dir}/ruby.o #{cext_dir}/sulongmock.o $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
 
-%w[COMPILE_C COMPILE_CXX LINK_SO TRY_LINK].each do |key|
+%w[COMPILE_C COMPILE_CXX TRY_LINK].each do |key|
   expanded[key] = mkconfig[key].gsub(/\$\((\w+)\)/) { expanded.fetch($1, $&) }
 end

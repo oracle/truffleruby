@@ -25,7 +25,7 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = "be5b480900811f5d5062100d9a9ad2a30a781a68"
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = "c30ae885eb3bfe97a04e25957945b9a107fe4432"
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -1058,6 +1058,13 @@ module Commands
     tests -= %w[openssl xopenssl] if no_openssl
     tests.delete 'gems' if no_gems
 
+    if ENV['TRUFFLERUBY_CI'] && MAC
+      raise "no system clang" unless Utilities.which('clang')
+      %w[opt llvm-link].each do |tool|
+        raise "should not have #{tool} in PATH in TruffleRuby CI" if Utilities.which(tool)
+      end
+    end
+
     tests.each do |test_name|
       case test_name
       when 'tools'
@@ -1137,6 +1144,8 @@ EOS
           sh "test/truffle/cexts/sqlite3/sqlite3.sh"
           sh "test/truffle/cexts/unf_ext/unf_ext.sh"
 
+          # Test a gem dynamically compiling a C extension
+          sh "test/truffle/cexts/RubyInline/RubyInline.sh"
       else
         raise "unknown test: #{test_name}"
       end

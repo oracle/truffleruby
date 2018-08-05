@@ -14,10 +14,7 @@ local overlay = "b6998e9380084ade695dbb160e8406bdd6441a93";
 
 # For debugging: generated builds will be restricted to those listed in
 # the array. No restriction is applied when it is empty.
-local restrict_builds_to = [],
-      debug = std.length(restrict_builds_to) > 0;
-# Set to false to disable overlay application
-local use_overlay = true;
+local restrict_builds_to = [];
 
 # Import support functions, they can be replaced with identity functions
 # and it would still work.
@@ -37,6 +34,7 @@ local part_definitions = {
         path+:: [],
         java_opts+:: ["-Xmx2G"],
         CI: "true",
+        TRUFFLERUBY_CI: "true",
         RUBY_BENCHMARKS: "true",
         JAVA_OPTS: std.join(" ", self.java_opts),
         PATH: std.join(":", self.path + ["$PATH"]),
@@ -74,8 +72,9 @@ local part_definitions = {
     build: {
       setup+: [
         ["mx", "sversions"],
-        ["mx", "build", "--force-javac", "--warning-as-error", "--force-deprecation-as-warning"] + self["$.use.build"].extra_args,
-      ],
+      ] + self.before_build + [
+        ["mx", "build", "--force-javac", "--warning-as-error", "--force-deprecation-as-warning"],
+      ] + self.after_build,
     },
 
     truffleruby: {
@@ -245,6 +244,7 @@ local part_definitions = {
       local build = self,
       run+: [
         ["cd", "$VM_SUITE_HOME"],
+      ] + self.before_build + [
         [
           "mx",
           "--dynamicimports",
@@ -257,7 +257,7 @@ local part_definitions = {
           "--tags",
           build["$.svm.gate"].tags,
         ],
-      ],
+      ] + self.after_build,
     },
 
     build_image: {
@@ -275,8 +275,10 @@ local part_definitions = {
         ["cd", "$VM_SUITE_HOME"],
         # Workaround for NFI when building with different Truffle versions
         ["mx", "clean"],
+      ] + self.before_build + [
         # aot-build.log is used for the build-stats metrics
         vm_build + ["|", "tee", "../../main/aot-build.log"],
+      ] + self.after_build + [
         ["set-export", "VM_DIST_HOME", vm_dist_home],
         ["set-export", "AOT_BIN", "$VM_DIST_HOME/jre/languages/ruby/bin/truffleruby"],
         ["set-export", "JT_BENCHMARK_RUBY", "$AOT_BIN"],
@@ -334,7 +336,8 @@ local part_definitions = {
 
   platform: {
     linux: {
-      "$.use.build":: { extra_args: [] },
+      before_build:: [],
+      after_build:: [],
       "$.run.deploy_and_spec":: { test_spec_options: ["-Gci"] },
       "$.cap":: {
         normal_machine: ["linux", "amd64"],
@@ -348,16 +351,21 @@ local part_definitions = {
       },
     },
     darwin: {
-      "$.use.build":: { extra_args: [] },
+      # Only set LLVM bin on PATH during "mx build" as Sulong needs it.
+      # Unset it for everything else to test how end-user might run TruffleRuby.
+      before_build:: [
+        ["set-export", "PATH_WITHOUT_LLVM", "$PATH"],
+        ["set-export", "PATH", "/usr/local/opt/llvm@4/bin:$PATH"],
+      ],
+      after_build:: [
+        ["set-export", "PATH", "$PATH_WITHOUT_LLVM"],
+      ],
       "$.run.deploy_and_spec":: { test_spec_options: ["-GdarwinCI"] },
       "$.cap":: {
         normal_machine: ["darwin_sierra", "amd64"],
       },
       environment+: {
         LANG: "en_US.UTF-8",
-      },
-      packages+: {
-        llvm: "==4.0.1",
       },
     },
   },
@@ -418,8 +426,9 @@ local part_definitions = {
       run+: [
         # Build with ECJ to get warnings
         ["mx", "sversions"],
+      ] + self.before_build + [
         ["mx", "build", "--jdt", "$JDT", "--warning-as-error", "--force-deprecation-as-warning"],
-      ] + jt(["lint"]) + [
+      ] + jt(["lint"]) + self.after_build + [
         ["mx", "findbugs"],
       ],
     },
@@ -451,9 +460,8 @@ local part_definitions = {
   },
 
   benchmark: {
-    local post_process = [
-      ["tool/post-process-results-json.rb", "bench-results.json", "bench-results-processed.json"],
-    ] + if debug then [["cat", "bench-results-processed.json"]] else [],
+    local post_process =
+      [["tool/post-process-results-json.rb", "bench-results.json", "bench-results-processed.json"]],
     local upload_results =
       [["bench-uploader.py", "bench-results-processed.json"]],
     local post_process_and_upload_results =
@@ -757,9 +765,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 };
 
 {
-  local no_overlay = "6f4eafb4da3b14be3593b07ed562d12caad9b64b",
-  overlay: if use_overlay then overlay else no_overlay,
-
+  overlay: overlay,
   builds: composition_environment.builds,
 }
 
