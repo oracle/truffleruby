@@ -19,6 +19,7 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.module.ModuleOperations;
@@ -30,7 +31,6 @@ import org.truffleruby.language.backtrace.InternalRootNode;
 import org.truffleruby.language.exceptions.DisablingBacktracesNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.parser.parser.SuppressFBWarnings;
 import org.truffleruby.shared.TruffleRuby;
 
 import java.util.ArrayList;

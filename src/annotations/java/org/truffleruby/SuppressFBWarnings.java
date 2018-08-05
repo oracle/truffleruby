@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.parser.parser;
+package org.truffleruby;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

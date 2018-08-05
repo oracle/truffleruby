@@ -28,6 +28,7 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.scope;
 
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.AssignableParseNode;
 import org.truffleruby.parser.ast.DAsgnParseNode;
@@ -36,7 +37,6 @@ import org.truffleruby.parser.ast.LocalAsgnParseNode;
 import org.truffleruby.parser.ast.LocalVarParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.VCallParseNode;
-import org.truffleruby.parser.parser.SuppressFBWarnings;
 
 import java.util.Arrays;
 
