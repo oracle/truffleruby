@@ -1058,6 +1058,13 @@ module Commands
     tests -= %w[openssl xopenssl] if no_openssl
     tests.delete 'gems' if no_gems
 
+    if ENV['TRUFFLERUBY_CI'] && MAC
+      raise "no system clang" unless Utilities.which('clang')
+      %w[opt llvm-link].each do |tool|
+        raise "should not have #{tool} in PATH in TruffleRuby CI" if Utilities.which(tool)
+      end
+    end
+
     tests.each do |test_name|
       case test_name
       when 'tools'
