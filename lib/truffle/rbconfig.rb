@@ -182,7 +182,7 @@ module RbConfig
   end
 
   if ruby_home
-    expanded['LDSHARED'] = "#{launcher} #{libdir}/cext/ldshared.rb"
+    expanded['LDSHARED'] = "#{launcher} #{libdir}/cext/linker.rb"
   end
 
   RUBY = launcher

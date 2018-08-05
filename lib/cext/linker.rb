@@ -6,6 +6,8 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+require 'rbconfig-for-mkmf'
+
 module Truffle::CExt
   class Linker
     def self.main(argv = ARGV)
@@ -14,17 +16,19 @@ module Truffle::CExt
       @libraries = []
       @files = []
       @search_paths = []
+      @incflags = []
+
       process_args(argv)
-      @libraries = @libraries.uniq
-      @libraries = resolve_libraries(@libraries, @search_paths)
       @files = @files.uniq
+      @libraries = @libraries.uniq
+
+      @libraries = resolve_libraries(@libraries, @search_paths)
+      @files = compile_if_needed(@files)
       @files = link_bitcode(@files)
       Truffle::CExt.linker(@output, @libraries, @files)
     end
 
     def self.process_args(argv)
-      @llvm_link = argv.shift
-
       while arg = argv.shift
         case arg
         when ''
@@ -35,6 +39,9 @@ module Truffle::CExt
         when '-o'
           raise '-o needs to be followed by a file name' if argv.empty?
           @output = argv.shift
+        when '-I'
+          raise '-I needs to be followed by a file name' if argv.empty?
+          @incflags << '-I' << argv.shift
         when '-l'
           raise '-l needs to be followed by a file name' if argv.empty?
           lib = argv.shift
@@ -63,9 +70,27 @@ module Truffle::CExt
       end
     end
 
+    def self.compile_if_needed(files)
+      files.map do |file|
+        if file.end_with?('.c')
+          objfile = "#{File.dirname(file)}/#{File.basename(file, '.*')}.#{RbConfig::CONFIG['OBJEXT']}"
+          compile = RbConfig::CONFIG['COMPILE_C'].gsub('$<', file).gsub('$@', objfile)
+          compile = compile.sub('$(INCFLAGS)', @incflags.join(' '))
+          compile = compile.sub('$(COUTFLAG)', '')
+          if system(compile)
+            objfile
+          else
+            raise "command failed: #{compile}"
+          end
+        else
+          file
+        end
+      end
+    end
+
     def self.link_bitcode(files)
       output = 'out.bc'
-      command = [@llvm_link, '-o', output, *files]
+      command = [RbConfig::CONFIG['LLVM_LINK'], '-o', output, *files]
       raise "Linker failed: #{command}" unless system(*command)
       [output]
     end
@@ -120,6 +145,4 @@ module Truffle::CExt
   end
 end
 
-if $0 == __FILE__
-  Truffle::CExt::Linker.main
-end
+Truffle::CExt::Linker.main
