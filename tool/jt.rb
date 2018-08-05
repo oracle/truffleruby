@@ -1606,7 +1606,7 @@ EOS
             on_top_of_stack -= time if sub_stack[0...-1] == stack
           }
 
-          file.puts "#{stack.join(';')} #{on_top_of_stack}"
+          file.puts "#{stack.join(';')} #{on_top_of_stack.round}"
         end
       end
       sh "#{repo}/flamegraph.pl #{path} > time_metrics_flamegraph.svg"
