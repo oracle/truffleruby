@@ -114,5 +114,3 @@ Truffle::Boot.delay do
     $LOAD_PATH.unshift(*extra_load_paths.map { |path| File.expand_path(path) })
   end
 end
-
-Truffle::Boot.after_load_core

@@ -33,6 +33,7 @@ import org.truffleruby.extra.TruffleRubyNodes;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -251,19 +252,24 @@ public class FeatureLoader {
                 throw new RaiseException(context, context.getCoreExceptions().loadError("Sulong is required to support C extensions, and it doesn't appear to be available", feature, null));
             }
 
-            requireNode.executeRequire(context.getRubyHome() + "/lib/truffle/truffle/cext.rb");
-
-            final String rubySUpath = context.getRubyHome() + "/lib/cext/ruby.su";
-            final List<TruffleObject> libraries = loadCExtLibRuby(rubySUpath, feature);
-
-            sulongLoadLibraryFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_load_library", rubySUpath);
-
-            final TruffleObject initFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_init", rubySUpath);
-            final Node executeInitNode = Message.createExecute(0).createNode();
+            Metrics.printTime("before-load-cext-support");
             try {
-                ForeignAccess.sendExecute(executeInitNode, initFunction);
-            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-                throw new JavaException(e);
+                requireNode.executeRequire(context.getRubyHome() + "/lib/truffle/truffle/cext.rb");
+
+                final String rubySUpath = context.getRubyHome() + "/lib/cext/ruby.su";
+                final List<TruffleObject> libraries = loadCExtLibRuby(rubySUpath, feature);
+
+                sulongLoadLibraryFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_load_library", rubySUpath);
+
+                final TruffleObject initFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_init", rubySUpath);
+                final Node executeInitNode = Message.createExecute(0).createNode();
+                try {
+                    ForeignAccess.sendExecute(executeInitNode, initFunction);
+                } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
+                    throw new JavaException(e);
+                }
+            } finally {
+                Metrics.printTime("after-load-cext-support");
             }
 
             cextImplementationLoaded = true;
@@ -279,12 +285,12 @@ public class FeatureLoader {
             throw new RaiseException(context, context.getCoreExceptions().loadError("this TruffleRuby distribution does not have the C extension implementation file ruby.su", feature, null));
         }
 
-        return loadCExtLibrary(rubySUpath);
+        return loadCExtLibrary("ruby.su", rubySUpath);
     }
 
     @TruffleBoundary
-    public List<TruffleObject> loadCExtLibrary(String path) {
-        File file = new File(path);
+    public List<TruffleObject> loadCExtLibrary(String feature, String path) {
+        final File file = new File(path);
 
         if (!new File(path).exists()) {
             throw new RaiseException(context, context.getCoreExceptions().loadError(path + " does not exists", path, null));
@@ -292,6 +298,7 @@ public class FeatureLoader {
 
         final List<TruffleObject> libraries = new ArrayList<>();
 
+        Metrics.printTime("before-load-cext-" + feature);
         try {
             Linker.loadLibrary(file, this::loadNativeLibrary, source -> {
                 final Object result;
@@ -310,6 +317,8 @@ public class FeatureLoader {
             });
         } catch (IOException e) {
             throw new JavaException(e);
+        } finally {
+            Metrics.printTime("after-load-cext-" + feature);
         }
 
         return libraries;

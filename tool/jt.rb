@@ -1556,84 +1556,94 @@ EOS
 
   def metrics_time(*args)
     use_json = args.delete '--json'
+    flamegraph = args.delete '--flamegraph'
     samples = []
     native = args.include? '--native'
     metrics_time_option = "#{native ? '--native.D' : '-J-D'}truffleruby.metrics.time=true"
+    min_time = Float(ENV.fetch("TRUFFLERUBY_METRICS_MIN_TIME", "-1"))
     METRICS_REPS.times do
       Utilities.log '.', "sampling\n"
       start = Time.now
       out, err = run_ruby metrics_time_option, '--no-core-load-path', *args, capture: true, no_print_cmd: true
-      $stdout.puts out unless out.empty?
       finish = Time.now
-      samples.push get_times(err, finish - start)
+      $stdout.puts out unless out.empty?
+      samples.push get_times(err, (finish - start) * 1000.0)
     end
     Utilities.log "\n", nil
+
     results = {}
-    samples[0].each_key do |region|
-      region_samples = samples.map { |s| s[region] }
+    mean_by_stack = {}
+    samples[0].each_key do |stack|
+      region_samples = samples.map { |s| s[stack] }
       mean = region_samples.inject(:+) / samples.size
-      human = "#{'%.3f' % mean} #{region.strip}"
-      results[region.strip] = {
-          samples: region_samples,
-          mean: mean,
-          human: human
+      mean_by_stack[stack] = mean
+      mean_in_seconds = (mean / 1000.0)
+
+      region = stack.last
+      human = "#{'%.3f' % mean_in_seconds} #{region}"
+      results[region] = {
+        samples: region_samples,
+        mean: mean_in_seconds,
+        human: human
       }
+
+      indent = ' ' * (stack.size-1)
       if use_json
-        STDERR.puts region[/\s*/] + human
+        STDERR.puts indent + human
       else
-        STDOUT.puts region[/\s*/] + human
+        STDOUT.puts indent + human if mean_in_seconds > min_time
       end
     end
     if use_json
       puts JSON.generate(results)
+    elsif flamegraph
+      repo = Utilities.find_or_clone_repo("https://github.com/brendangregg/FlameGraph.git")
+      path = "#{TRUFFLERUBY_DIR}/time_metrics.stacks"
+      File.open(path, 'w') do |file|
+        mean_by_stack.each_pair do |stack, mean|
+          on_top_of_stack = mean
+          mean_by_stack.each_pair { |sub_stack, time|
+            on_top_of_stack -= time if sub_stack[0...-1] == stack
+          }
+
+          file.puts "#{stack.join(';')} #{on_top_of_stack}"
+        end
+      end
+      sh "#{repo}/flamegraph.pl #{path} > time_metrics_flamegraph.svg"
     end
   end
 
   def get_times(trace, total)
-    indent = ' '
-    times = {
-      'total' => 0,
-      "#{indent}jvm" => 0,
-    }
-    depth = 0
-    run_depth = -1
-    accounted_for = 0
+    result = Hash.new(0)
+    stack = [['total', 0]]
+
+    result[stack.map(&:first)] = total
+    result[%w[total jvm]] = 0
+
     trace.lines do |line|
-      if line =~ /^(.+) (\d+\.\d+)$/
+      if line =~ /^(.+) (\d+)$/
         region = $1
-        time = $2.to_f
+        time = Float($2)
         if region.start_with? 'before-'
-          depth += 1
-          key = (indent * depth + region['before-'.size..-1])
-          if prev = times[key]
-            # Already a time with the same key, add them together
-            times[key] = time - prev
-          else
-            times[key] = time
-          end
-          run_depth = depth if region == 'before-run'
+          name = region['before-'.size..-1]
+          stack << [name, time]
+          result[stack.map(&:first)] += 0
         elsif region.start_with? 'after-'
-          key = (indent * depth + region['after-'.size..-1])
-          start = times[key]
-          raise "#{region} without matching before: #{key.inspect} #{times.inspect}" unless start
-          elapsed = time - start
-          if depth == run_depth+1
-            accounted_for += elapsed
-          elsif region == 'after-run'
-            times[indent * (depth+1) + 'unaccounted'] = elapsed - accounted_for
-          end
-          depth -= 1
-          times[key] = elapsed
+          name = region['after-'.size..-1]
+          prev, start = stack.last
+          raise "#{region} after before-#{prev}" unless name == prev
+          result[stack.map(&:first)] += (time - start)
+          stack.pop
+        else
+          $stderr.puts line
         end
       else
         $stderr.puts line
       end
     end
-    if main = times["#{indent}main"]
-      times["#{indent}jvm"] = total - main
-    end
-    times['total'] = total
-    times
+
+    result[%w[total jvm]] = total - result[%w[total main]]
+    result
   end
 
   def benchmark(*args)
