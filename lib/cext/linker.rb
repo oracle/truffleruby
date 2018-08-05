@@ -42,6 +42,7 @@ module Truffle::CExt
         when '-h', '-help', '--help', '/?', '/help'
           puts "#{$0} -e Truffle::CExt::Linker.main [-o out.su] [-l one.so -l two.so ...] one.bc two.bc ..."
           puts '  Links zero or more LLVM binary bitcode files into a single file which can be loaded by Sulong.'
+          exit
         when '-o'
           @output = next_arg['file name']
         when '-I'
