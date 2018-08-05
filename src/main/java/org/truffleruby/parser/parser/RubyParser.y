@@ -38,6 +38,7 @@ package org.truffleruby.parser.parser;
 
 import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeConstants;

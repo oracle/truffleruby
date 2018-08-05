@@ -41,6 +41,7 @@ package org.truffleruby.parser.parser;
 
 import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeConstants;
@@ -153,7 +154,7 @@ public class RubyParser {
         this.lexer = new RubyLexer(support, source, warnings);
         support.setLexer(lexer);
     }
-// line 157 "-"
+// line 158 "-"
   // %token constants
   public static final int kCLASS = 257;
   public static final int kMODULE = 258;
@@ -3584,7 +3585,7 @@ states[644] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 }
-// line 2570 "RubyParser.y"
+// line 2571 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -3600,4 +3601,4 @@ states[644] = (support, lexer, yyVal, yyVals, yyTop) -> {
     }
 }
 // CheckStyle: stop generated
-// line 10204 "-"
+// line 10205 "-"

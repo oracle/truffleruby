@@ -13,8 +13,8 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.FinalizationService;
-import org.truffleruby.parser.parser.SuppressFBWarnings;
 
 import sun.misc.Unsafe;
 

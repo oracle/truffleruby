@@ -15,13 +15,14 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.parser.parser.SuppressFBWarnings;
 
 @NodeChild(value = "lexicalScope", type = RubyNode.class)
 public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantBaseNode implements LookupConstantInterface {
