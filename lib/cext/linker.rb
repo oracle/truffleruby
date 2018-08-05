@@ -29,6 +29,12 @@ module Truffle::CExt
     end
 
     def self.process_args(argv)
+      arg = nil
+      next_arg = -> description {
+        raise "#{arg} needs to be followed by a #{description}" if argv.empty?
+        argv.shift
+      }
+
       while arg = argv.shift
         case arg
         when ''
@@ -37,29 +43,24 @@ module Truffle::CExt
           puts "#{$0} -e Truffle::CExt::Linker.main [-o out.su] [-l one.so -l two.so ...] one.bc two.bc ..."
           puts '  Links zero or more LLVM binary bitcode files into a single file which can be loaded by Sulong.'
         when '-o'
-          raise '-o needs to be followed by a file name' if argv.empty?
-          @output = argv.shift
+          @output = next_arg['file name']
         when '-I'
-          raise '-I needs to be followed by a file name' if argv.empty?
-          @incflags << '-I' << argv.shift
+          @incflags << '-I' << next_arg['directory name']
         when '-l'
-          raise '-l needs to be followed by a file name' if argv.empty?
-          lib = argv.shift
+          lib = next_arg['file name']
           @libraries << standardize_lib_name(lib)
         when /\A-l(.+)\z/ # -llib as a single argument
           lib = $1
           @libraries << standardize_lib_name(lib)
         when '-L'
-          raise '-L needs to be followed by a directory name' if argv.empty?
-          @search_paths << argv.shift
+          @search_paths << next_arg['directory name']
         when /\A-L(.+)\z/ # -L/libdir as a single argument
           @search_paths <<  $1
         when /\A-Wl(.+)\z/
           subargs = $1.split(',')
           process_args(subargs)
         when '-rpath'
-          raise '-rpath needs to be followed by a directory name' if argv.empty?
-          @search_paths << argv.shift
+          @search_paths << next_arg['directory name']
         else
           if arg.start_with?('-')
             raise "Unknown argument: #{arg}"
