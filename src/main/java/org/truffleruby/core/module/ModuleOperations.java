@@ -66,6 +66,9 @@ public abstract class ModuleOperations {
 
         if (!(RubyGuards.isRubyClass(origin))) {
             return true;
+        } else if (Layouts.MODULE.getFields(module).isRefinement()) {
+            DynamicObject refinedClass = Layouts.MODULE.getFields(module).getRefinedClass();
+            return ((RubyGuards.isRubyClass(refinedClass)) && ModuleOperations.assignableTo(refinedClass, origin));
         } else {
             return ((RubyGuards.isRubyClass(module)) && ModuleOperations.assignableTo(module, origin));
         }

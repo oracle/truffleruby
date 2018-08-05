@@ -26,7 +26,6 @@ import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.IsFrozenNode;
@@ -457,26 +456,6 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         }
 
         return null;
-    }
-
-    @TruffleBoundary(transferToInterpreterOnException = false)
-    public void alias(RubyContext context, Node currentNode, String newName, String oldName) {
-        InternalMethod method = deepMethodSearch(context, oldName);
-
-        if (method == null) {
-            throw new RaiseException(context, context.getCoreExceptions().nameErrorUndefinedMethod(
-                    oldName,
-                    rubyModuleObject,
-                    currentNode));
-        }
-
-        InternalMethod aliasMethod = method.withName(newName);
-
-        if (ModuleOperations.isMethodPrivateFromName(newName)) {
-            aliasMethod = aliasMethod.withVisibility(Visibility.PRIVATE);
-        }
-
-        addMethod(context, currentNode, aliasMethod);
     }
 
     @TruffleBoundary
