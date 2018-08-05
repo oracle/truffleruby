@@ -120,4 +120,6 @@ module Truffle::CExt
   end
 end
 
-Truffle::CExt::Linker.main
+if $0 == __FILE__
+  Truffle::CExt::Linker.main
+end

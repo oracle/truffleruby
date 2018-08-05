@@ -91,6 +91,7 @@ common = {
   'CC' => cc,
   'CPP' => cc,
   'CXX' => cxx,
+  'LLVM_LINK' => llvm_link,
   'debugflags' => debugflags,
   'warnflags' => warnflags,
   'CFLAGS' => cflags,

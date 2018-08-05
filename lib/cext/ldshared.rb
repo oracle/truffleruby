@@ -10,10 +10,11 @@
 # Compiles a C file and link it as a shared library.
 
 require 'rbconfig-for-mkmf'
+require_relative 'linker'
 
 argv = ARGV.dup
 incdirs = []
-linker_args = []
+linker_args = [RbConfig::CONFIG['LLVM_LINK']]
 src = nil
 cflags = RbConfig::CONFIG['CFLAGS'].split
 
