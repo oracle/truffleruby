@@ -254,7 +254,7 @@ public class FeatureLoader {
 
             Metrics.printTime("before-load-cext-support");
             try {
-                requireNode.executeRequire(context.getRubyHome() + "/lib/truffle/truffle/cext.rb");
+                requireNode.executeRequire("truffle/cext");
 
                 final String rubySUpath = context.getRubyHome() + "/lib/cext/ruby.su";
                 final List<TruffleObject> libraries = loadCExtLibRuby(rubySUpath, feature);
