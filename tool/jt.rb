@@ -299,7 +299,12 @@ module ShellUtils
     elsif timeout
       result = system_timeout(timeout, *args)
     elsif capture
-      out, err, status = Open3.capture3(*args)
+      if options.delete(:out) == :err
+        err, status = Open3.capture2e(*args)
+        out = ""
+      else
+        out, err, status = Open3.capture3(*args)
+      end
       result = status.success?
     else
       result = system(*args)
@@ -1566,17 +1571,18 @@ EOS
   def metrics_time(*args)
     use_json = args.delete '--json'
     flamegraph = args.delete '--flamegraph'
-    samples = []
     native = args.include? '--native'
     metrics_time_option = "#{native ? '--native.D' : '-J-D'}truffleruby.metrics.time=true"
+    verbose_gc_flag = native ? '--native.XX:+PrintGC' : '-J-verbose:gc' unless use_json
     min_time = Float(ENV.fetch("TRUFFLERUBY_METRICS_MIN_TIME", "-1"))
-    METRICS_REPS.times do
+    args = [metrics_time_option, *verbose_gc_flag, '--no-core-load-path', *args]
+
+    samples = METRICS_REPS.times.map do
       Utilities.log '.', "sampling\n"
       start = Time.now
-      out, err = run_ruby metrics_time_option, '--no-core-load-path', *args, capture: true, no_print_cmd: true
+      _, err = run_ruby(*args, capture: true, no_print_cmd: true, :out => :err)
       finish = Time.now
-      $stdout.puts out unless out.empty?
-      samples.push get_times(err, (finish - start) * 1000.0)
+      get_times(err, (finish - start) * 1000.0)
     end
     Utilities.log "\n", nil
 
@@ -1618,7 +1624,7 @@ EOS
           file.puts "#{stack.join(';')} #{on_top_of_stack.round}"
         end
       end
-      sh "#{repo}/flamegraph.pl #{path} > time_metrics_flamegraph.svg"
+      sh "#{repo}/flamegraph.pl", "--countname", "ms", path, out: "time_metrics_flamegraph.svg"
     end
   end
 
@@ -1646,6 +1652,13 @@ EOS
         else
           $stderr.puts line
         end
+      # [Full GC (Metadata GC Threshold)  23928K->23265K(216064K), 0.1168747 secs]
+      elsif line =~ /^\[(.+), (\d+\.\d+) secs\]$/
+        name = $1
+        time = Float($2)
+        stack << [name, time]
+        result[stack.map(&:first)] += (time * 1000.0)
+        stack.pop
       else
         $stderr.puts line
       end
