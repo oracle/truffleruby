@@ -385,6 +385,26 @@ public class CommandLineParser {
                         // cancel other execution actions
                         config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                         break FOR;
+                    } else if (argument.startsWith("--encoding") || argument.startsWith("--external-encoding")) {
+                        final int len = argument.length();
+                        if (len == "--encoding".length() || len == "--external-encoding".length()) {
+                            characterIndex = len;
+                            String feature = grabValue(getArgumentError("missing argument for " + argument), false);
+                            argument = argument + "=" + feature;
+                        }
+                        final String encodingName = argument.substring(argument.indexOf('=') + 1);
+                        config.setOption(OptionsCatalog.EXTERNAL_ENCODING, encodingName);
+                        break FOR;
+                    } else if (argument.startsWith("--internal-encoding")) {
+                        final int len = argument.length();
+                        if (len == "--internal-encoding".length()) {
+                            characterIndex = len;
+                            String feature = grabValue(getArgumentError("missing argument for " + argument), false);
+                            argument = argument + "=" + feature;
+                        }
+                        final String encodingName = argument.substring(argument.indexOf('=') + 1);
+                        config.setOption(OptionsCatalog.INTERNAL_ENCODING, encodingName);
+                        break FOR;
                     } else if (argument.equals("--debug")) {
                         throw notImplemented("--debug");
                     } else if (argument.equals("--yydebug")) {
