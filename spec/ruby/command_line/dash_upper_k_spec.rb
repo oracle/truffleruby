@@ -1,4 +1,6 @@
 describe 'The -K command line option sets __ENCODING__' do
+require_relative '../spec_helper'
+
   it "to Encoding::ASCII_8BIT with -Ka" do
     ruby_exe("print __ENCODING__", options: '-Ka').should == Encoding::ASCII_8BIT.to_s
   end
