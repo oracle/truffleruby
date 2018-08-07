@@ -129,7 +129,6 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 #define rb_funcall(object, ...) polyglot_invoke(RUBY_CEXT, "rb_funcall", (void *) object, __VA_ARGS__)
 
 // Additional non-standard
-int RB_NIL_P(VALUE value);
 VALUE rb_java_class_of(VALUE val);
 VALUE rb_java_to_string(VALUE val);
 VALUE rb_equal_opt(VALUE a, VALUE b);

@@ -440,6 +440,7 @@ extern void* rb_tr_nil;
 
 int RTEST(VALUE value);
 #define NIL_P RB_NIL_P
+int RB_NIL_P(VALUE value); /* Defined as a function in TruffleRuby. */
 
 #define CLASS_OF(v) rb_class_of((VALUE)(v))
 
