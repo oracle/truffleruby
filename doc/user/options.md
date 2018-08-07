@@ -52,6 +52,8 @@ MRI has some extra Ruby switches which are aren't normally listed.
 ```
   -U              set the internal encoding to UTF-8
   -KEeSsUuNnAa    sets the source and external encoding
+  --encoding=encoding
+                  the same as --external-encoding=encoding
   -y, --ydebug    debug the parser
   -Xdirectory     the same as -Cdirectory
   --dump=insns    print disassembled instructions
