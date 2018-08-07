@@ -1,18 +1,18 @@
 require_relative '../spec_helper'
 
-describe "Magic comment" do
-  it "is optional" do
+describe "Magic comments" do
+  it "are optional" do
     eval("__ENCODING__").should be_an_instance_of(Encoding)
   end
 
-  it "determines __ENCODING__" do
+  it "determine __ENCODING__" do
     eval(<<EOS.force_encoding("US-ASCII")).should == Encoding::ASCII_8BIT
 # encoding: ASCII-8BIT
 __ENCODING__
 EOS
   end
 
-  it "is case-insensitive" do
+  it "are case-insensitive" do
     eval(<<EOS.force_encoding("US-ASCII")).should == Encoding::ASCII_8BIT
 # CoDiNg:   aScIi-8bIt
 __ENCODING__
@@ -56,6 +56,13 @@ EOS
   it "can take vim style" do
     eval(<<EOS.force_encoding("US-ASCII")).should == Encoding::ASCII_8BIT
 # vim: filetype=ruby, fileencoding=ascii-8bit, tabsize=3, shiftwidth=3
+__ENCODING__
+EOS
+  end
+
+  it "determine __ENCODING__" do
+    eval(<<EOS.force_encoding("US-ASCII")).should == Encoding::ASCII_8BIT
+# encoding: ASCII-8BIT
 __ENCODING__
 EOS
   end
