@@ -275,7 +275,44 @@ public class CommandLineParser {
 
                     break FOR;
                 case 'K':
-                    throw notImplemented("-K");
+                    if (characterIndex + 1 == argument.length()) {
+                        break;
+                    }
+                    characterIndex++;
+                    final char code = argument.charAt(characterIndex);
+                    final String sourceEncodingName;
+                    switch (code) {
+                        case 'a':
+                        case 'A':
+                        case 'n':
+                        case 'N':
+                            sourceEncodingName = "ascii-8bit";
+                            break;
+
+                        case 'e':
+                        case 'E':
+                            sourceEncodingName = "euc-jp";
+                            break;
+
+                        case 'u':
+                        case 'U':
+                            sourceEncodingName = "utf-8";
+                            break;
+
+                        case 's':
+                        case 'S':
+                            sourceEncodingName = "windows-31j";
+                            break;
+
+                        default:
+                            sourceEncodingName = null;
+                            break;
+                    }
+                    if (sourceEncodingName != null) {
+                        config.setOption(OptionsCatalog.SOURCE_ENCODING, sourceEncodingName);
+                        config.setOption(OptionsCatalog.EXTERNAL_ENCODING, sourceEncodingName);
+                    }
+                    break;
                 case 'l':
                     disallowedInRubyOpts(argument);
                     throw notImplemented("-l");

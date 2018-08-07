@@ -2,13 +2,10 @@ fails:The -K command line option sets __ENCODING__ and Encoding.default_external
 fails:The -K command line option sets __ENCODING__ and Encoding.default_external to Encoding::ASCII_8BIT with -KA
 fails:The -K command line option sets __ENCODING__ and Encoding.default_external to Encoding::EUC_JP with -Ke
 fails:The -K command line option sets __ENCODING__ and Encoding.default_external to Encoding::EUC_JP with -KE
-fails:The -K command line option sets __ENCODING__ and Encoding.default_external to Encoding::UTF_8 with -Ku
-fails:The -K command line option sets __ENCODING__ and Encoding.default_external to Encoding::UTF_8 with -KU
 fails:The -K command line option sets __ENCODING__ and Encoding.default_external to Encoding::Windows_31J with -Ks
 fails:The -K command line option sets __ENCODING__ and Encoding.default_external to Encoding::Windows_31J with -KS
 fails:The -K command line option sets __ENCODING__ and Encoding.default_external to Encoding::ASCII_8BIT with -Kn
 fails:The -K command line option sets __ENCODING__ and Encoding.default_external to Encoding::ASCII_8BIT with -KN
-fails:The -K command line option ignores unknown codes
 slow:The -K command line option sets __ENCODING__ and Encoding.default_external to Encoding::ASCII_8BIT with -Ka
 slow:The -K command line option sets __ENCODING__ and Encoding.default_external to Encoding::ASCII_8BIT with -KA
 slow:The -K command line option sets __ENCODING__ and Encoding.default_external to Encoding::EUC_JP with -Ke
