@@ -1,5 +1,6 @@
 require_relative '../spec_helper'
 
+# See core/kernel/eval_spec.rb for more magic comments specs for eval()
 describe "Magic comments" do
   
   [:main, :load, :require, :eval].each do |context|
