@@ -47,7 +47,8 @@ launcher.
 
 ## Unlisted Ruby switches
 
-MRI has some extra Ruby switches which are aren't normally listed.
+MRI has some extra Ruby switches which are aren't normally listed in help out
+but are documented in the Ruby manual page.
 
 ```
   -U              set the internal encoding to UTF-8
