@@ -35,35 +35,36 @@ describe :magic_comments, shared: true do
   end
 
   it "do not cause bytes to be mangled by passing them through the wrong encoding" do
-    @object.call('bytes_magic_comment.rb', 'ascii-8bit').should == [167, 65, 166, 110].inspect
+    @object.call('bytes_magic_comment.rb').should == [167, 65, 166, 110].inspect
   end
 end
 
 describe "Magic comments" do
   describe "in the main file" do
-    it_behaves_like :magic_comments, nil, proc { |file, encoding='utf-8'|
+    it_behaves_like :magic_comments, nil, -> file {
       print_at_exit = fixture(__FILE__, "print_magic_comment_result_at_exit.rb")
       ruby_exe(fixture(__FILE__, file), options: "-r#{print_at_exit}")
     }
   end
 
   describe "in a loaded file" do
-    it_behaves_like :magic_comments, nil, proc { |file|
+    it_behaves_like :magic_comments, nil, -> file {
       load fixture(__FILE__, file)
       $magic_comment_result
     }
   end
 
   describe "in a required file" do
-    it_behaves_like :magic_comments, nil, proc { |file|
+    it_behaves_like :magic_comments, nil, -> file {
       require fixture(__FILE__, file)
       $magic_comment_result
     }
   end
 
   describe "in an eval" do
-    it_behaves_like :magic_comments, nil, proc { |file, encoding='utf-8'|
-      eval(File.read(fixture(__FILE__, file), encoding: encoding))
+    it_behaves_like :magic_comments, nil, -> file {
+      # Use UTF-8, as it is the default source encoding for files
+      eval(File.read(fixture(__FILE__, file), encoding: 'utf-8'))
     }
   end
 end
