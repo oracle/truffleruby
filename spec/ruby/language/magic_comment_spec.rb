@@ -63,7 +63,7 @@ describe "Magic comments" do
 
   describe "in an eval" do
     it_behaves_like :magic_comments, nil, proc { |file, encoding='utf-8'|
-      eval(File.read(fixture(__FILE__, file), encoding: encoding).gsub("$magic_comment_result = ", ''))
+      eval(File.read(fixture(__FILE__, file), encoding: encoding))
     }
   end
 end
