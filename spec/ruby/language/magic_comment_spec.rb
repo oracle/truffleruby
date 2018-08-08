@@ -4,32 +4,28 @@ require_relative '../spec_helper'
 describe "Magic comments" do
   
   [:main, :load, :require, :eval].each do |context|
-    find_file = proc do |file|
-      File.expand_path("fixtures/" + file, File.dirname(__FILE__))
-    end
-    
     case context
     when :main
       description = "in the main file"
       run = proc do |file, encoding='utf-8'|
-        ruby_exe(File.read(find_file.call(file), encoding: encoding).gsub(/^\$magic_comment_result = /, 'print '))
+        ruby_exe(File.read(fixture(__FILE__, file), encoding: encoding).gsub(/^\$magic_comment_result = /, 'print '))
       end
     when :load
       description = "in a loaded file"
       run = proc do |file|
-        load find_file.call(file)
+        load fixture(__FILE__, file)
         $magic_comment_result
       end
     when :require
       description = "in a required file"
       run = proc do |file|
-        require find_file.call(file)
+        require fixture(__FILE__, file)
         $magic_comment_result
       end
     when :eval
       description = "in an eval"
       run = proc do |file, encoding='utf-8'|
-        eval(File.read(find_file.call(file), encoding: encoding).gsub(/$magic_comment_result = /, ''))
+        eval(File.read(fixture(__FILE__, file), encoding: encoding).gsub(/$magic_comment_result = /, ''))
       end
     end
     
