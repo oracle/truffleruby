@@ -55,11 +55,6 @@ describe 'The -K command line option' do
       ruby_exe(@test_string, options: '-KS').should ==
         [Encoding::Windows_31J.name, Encoding::Windows_31J.name, nil].inspect
     end
-
-    it "to Encoding::Windows_31J with -KS" do
-      ruby_exe(@test_string, options: '-KS').should ==
-        [Encoding::Windows_31J.name, Encoding::Windows_31J.name, nil].inspect
-    end
   end
 
   it "ignores unknown codes" do
