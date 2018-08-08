@@ -14,9 +14,13 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.aot.ParserCache;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -32,6 +36,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Locale;
@@ -112,10 +117,14 @@ public class SourceLoader {
         ensureReadable(context, path);
 
         final File file = new File(path);
+
         final String content = xOptionStrip(currentNode, new FileReader(file));
+
+        final Rope sourceRope = readSourceRope(file);
         mainSource = Source.newBuilder(file).name(path).content(content).mimeType(RubyLanguage.MIME_TYPE).build();
+
         mainSourceAbsolutePath = file.getCanonicalPath();
-        return new RubySource(mainSource);
+        return new RubySource(mainSource, sourceRope);
     }
 
     private String xOptionStrip(RubyNode currentNode, Reader reader) throws IOException {
@@ -196,7 +205,10 @@ public class SourceLoader {
     public static RubySource loadNoLogging(RubyContext context, String feature, boolean internal) throws IOException {
         ensureReadable(context, feature);
 
+        final File featureFile = new File(feature);
+
         final String mimeType;
+
         if (feature.toLowerCase().endsWith(RubyLanguage.CEXT_EXTENSION)) {
             mimeType = RubyLanguage.CEXT_MIME_TYPE;
         } else {
@@ -204,13 +216,37 @@ public class SourceLoader {
             mimeType = RubyLanguage.MIME_TYPE;
         }
 
-        String name = feature;
+        final String name;
+
         if (context != null && context.isPreInitializing()) {
             name = RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(feature));
+        } else {
+            name = feature;
         }
 
-        return new RubySource(buildSource(
-                Source.newBuilder(new File(feature)).name(name.intern()).mimeType(mimeType), internal));
+        final Rope sourceRope = readSourceRope(featureFile);
+
+        final Source source = buildSource(
+                Source.newBuilder(featureFile)
+                        .name(name.intern())
+                        .mimeType(mimeType), internal);
+
+        if (sourceRope == null) {
+            return new RubySource(source);
+        } else {
+            return new RubySource(source, sourceRope);
+        }
+    }
+
+    private static Rope readSourceRope(File file) throws IOException {
+        /*
+         * We must read the file bytes ourselves - otherwise Truffle will read them, assume they're UTF-8, and we will
+         * not be able to re-interpret the encoding later without the risk of the values being corrupted by being
+         * passed through UTF-8.
+         */
+
+        final byte[] sourceBytes = Files.readAllBytes(file.toPath());
+        return RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }
 
     private boolean isInternal(String canonicalPath) {

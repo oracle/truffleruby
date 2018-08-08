@@ -21,6 +21,28 @@ describe Polyglot do
         Polyglot.eval("application/x-ruby", "14 + 2")
       }.should raise_error(RuntimeError, /No language for id application\/x-ruby found/)
     end
+    
+    it "evals code in Ruby as UTF-8" do
+      Polyglot.eval("ruby", "__ENCODING__.name").should == "UTF-8"
+    end
+    
+    it "evals code in Ruby as UTF-8 even if it was a different encoding in the past" do
+      Polyglot.eval("ruby", "__ENCODING__.name".encode("big5")).should == "UTF-8"
+    end
+    
+    it "will allow code in Ruby to have a magic comment that does not change the encoding" do
+      Polyglot.eval("ruby", "# encoding: utf-8\n__ENCODING__.name").should == "UTF-8"
+    end
+    
+    it "will allow code in Ruby to have a magic comment that is a subset of UTF-8" do
+      Polyglot.eval("ruby", "# encoding: us-ascii\n__ENCODING__.name").should == "US-ASCII"
+    end
+    
+    it "will not allow code in Ruby to have a magic comment to change the encoding to something not a subset of UTF-8" do
+      lambda {
+        Polyglot.eval("ruby", "# encoding: big5\n__ENCODING__.name")
+      }.should raise_error(ArgumentError, /big5 cannot be used as an encoding for a Polyglot API source/)
+    end
   
   end
 
@@ -43,6 +65,24 @@ describe Polyglot do
       lambda {
         Polyglot.eval_file("application/x-ruby", File.join(File.dirname(__FILE__), "fixtures/eval_file_id.rb"))
       }.should raise_error(RuntimeError, /No language for id application\/x-ruby found/)
+    end
+    
+    it "evals code in Ruby as UTF-8" do
+      Polyglot.eval_file("ruby", File.join(File.dirname(__FILE__), "fixtures/no_magic.rb")).should == "UTF-8"
+    end
+    
+    it "will allow code in Ruby to have a magic comment that does not change the encoding" do
+      Polyglot.eval_file("ruby", File.join(File.dirname(__FILE__), "fixtures/utf8_magic.rb")).should == "UTF-8"
+    end
+    
+    it "will allow code in Ruby to have a magic comment that is a subset of UTF-8" do
+      Polyglot.eval_file("ruby", File.join(File.dirname(__FILE__), "fixtures/usascii_magic.rb")).should == "US-ASCII"
+    end
+    
+    it "will not allow code in Ruby to have a magic comment to change the encoding" do
+      lambda {
+        Polyglot.eval_file("ruby", File.join(File.dirname(__FILE__), "fixtures/big5_magic.rb"))
+      }.should raise_error(ArgumentError, /big5 cannot be used as an encoding for a Polyglot API source/)
     end
   
   end
