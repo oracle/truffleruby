@@ -275,10 +275,10 @@ public class CommandLineParser {
 
                     break FOR;
                 case 'K':
-                    if (characterIndex + 1 == argument.length()) {
+                    characterIndex++;
+                    if (characterIndex == argument.length()) {
                         break;
                     }
-                    characterIndex++;
                     final char code = argument.charAt(characterIndex);
                     final String sourceEncodingName;
                     switch (code) {
