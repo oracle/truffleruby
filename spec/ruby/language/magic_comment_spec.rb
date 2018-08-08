@@ -8,7 +8,7 @@ describe "Magic comments" do
     when :main
       description = "in the main file"
       run = proc do |file, encoding='utf-8'|
-        ruby_exe(File.read(fixture(__FILE__, file), encoding: encoding).gsub(/^\$magic_comment_result = /, 'print '))
+        ruby_exe(File.read(fixture(__FILE__, file), encoding: encoding).gsub("$magic_comment_result = ", 'print '))
       end
     when :load
       description = "in a loaded file"
@@ -25,7 +25,7 @@ describe "Magic comments" do
     when :eval
       description = "in an eval"
       run = proc do |file, encoding='utf-8'|
-        eval(File.read(fixture(__FILE__, file), encoding: encoding).gsub(/$magic_comment_result = /, ''))
+        eval(File.read(fixture(__FILE__, file), encoding: encoding).gsub("$magic_comment_result = ", ''))
       end
     end
     
