@@ -423,9 +423,8 @@ public class CommandLineParser {
                         config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                         break FOR;
                     } else if (argument.startsWith("--encoding") || argument.startsWith("--external-encoding")) {
-                        final int len = argument.length();
-                        if (len == "--encoding".length() || len == "--external-encoding".length()) {
-                            characterIndex = len;
+                        if (argument.equals("--encoding") || argument.equals("--external-encoding")) {
+                            characterIndex = argument.length();
                             String feature = grabValue(getArgumentError("missing argument for " + argument), false);
                             argument = argument + "=" + feature;
                         }
@@ -433,9 +432,8 @@ public class CommandLineParser {
                         config.setOption(OptionsCatalog.EXTERNAL_ENCODING, encodingName);
                         break FOR;
                     } else if (argument.startsWith("--internal-encoding")) {
-                        final int len = argument.length();
-                        if (len == "--internal-encoding".length()) {
-                            characterIndex = len;
+                        if (argument.equals("--internal-encoding")) {
+                            characterIndex = argument.length();
                             String feature = grabValue(getArgumentError("missing argument for " + argument), false);
                             argument = argument + "=" + feature;
                         }
