@@ -156,6 +156,11 @@ public class OptionsCatalog {
             "Use did_you_mean",
             null,
             true);
+    public static final StringOptionDescription SOURCE_ENCODING = new StringOptionDescription(
+            "ruby.source_encoding",
+            "Source encoding (configured by -K Ruby options)",
+            new String[]{"-K"},
+            "");
     public static final StringOptionDescription INTERNAL_ENCODING = new StringOptionDescription(
             "ruby.internal_encoding",
             "Internal encoding (configured by -E, -U Ruby options)",
@@ -700,6 +705,8 @@ public class OptionsCatalog {
                 return PATCHING;
             case "ruby.did_you_mean":
                 return DID_YOU_MEAN;
+            case "ruby.source_encoding":
+                return SOURCE_ENCODING;
             case "ruby.internal_encoding":
                 return INTERNAL_ENCODING;
             case "ruby.external_encoding":
@@ -1011,6 +1018,7 @@ public class OptionsCatalog {
             SHOW_HELP,
             SHOW_VERSION,
             SINGLE_THREADED,
+            SOURCE_ENCODING,
             STDLIB_AS_INTERNAL,
             SYMBOL_TO_PROC_CACHE,
             SYNC_STDIO,

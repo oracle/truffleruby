@@ -275,7 +275,44 @@ public class CommandLineParser {
 
                     break FOR;
                 case 'K':
-                    throw notImplemented("-K");
+                    characterIndex++;
+                    if (characterIndex == argument.length()) {
+                        break;
+                    }
+                    final char code = argument.charAt(characterIndex);
+                    final String sourceEncodingName;
+                    switch (code) {
+                        case 'a':
+                        case 'A':
+                        case 'n':
+                        case 'N':
+                            sourceEncodingName = "ascii-8bit";
+                            break;
+
+                        case 'e':
+                        case 'E':
+                            sourceEncodingName = "euc-jp";
+                            break;
+
+                        case 'u':
+                        case 'U':
+                            sourceEncodingName = "utf-8";
+                            break;
+
+                        case 's':
+                        case 'S':
+                            sourceEncodingName = "windows-31j";
+                            break;
+
+                        default:
+                            sourceEncodingName = null;
+                            break;
+                    }
+                    if (sourceEncodingName != null) {
+                        config.setOption(OptionsCatalog.SOURCE_ENCODING, sourceEncodingName);
+                        config.setOption(OptionsCatalog.EXTERNAL_ENCODING, sourceEncodingName);
+                    }
+                    break;
                 case 'l':
                     disallowedInRubyOpts(argument);
                     throw notImplemented("-l");
@@ -384,6 +421,43 @@ public class CommandLineParser {
                         config.setOption(OptionsCatalog.SHOW_COPYRIGHT, true);
                         // cancel other execution actions
                         config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
+                        break FOR;
+                    } else if (argument.startsWith("--encoding")) {
+                        if (argument.equals("--encoding")) {
+                            characterIndex = argument.length();
+                            String feature = grabValue(getArgumentError("missing argument for " + argument), false);
+                            argument = argument + "=" + feature;
+                        }
+                        final String encodingNames = argument.substring(argument.indexOf('=') + 1);
+                        final int index = encodingNames.indexOf(':');
+                        if (index == -1) {
+                            config.setOption(OptionsCatalog.EXTERNAL_ENCODING, encodingNames);
+                        } else {
+                            final int secondIndex = encodingNames.indexOf(':', index + 1);
+                            if (secondIndex != -1) {
+                                throw new CommandLineException("extra argument for --encoding: " + encodingNames.substring(secondIndex + 1));
+                            }
+                            config.setOption(OptionsCatalog.EXTERNAL_ENCODING, encodingNames.substring(0, index));
+                            config.setOption(OptionsCatalog.INTERNAL_ENCODING, encodingNames.substring(index + 1));
+                        }
+                        break FOR;
+                    } else if (argument.startsWith("--external-encoding")) {
+                        if (argument.equals("--external-encoding")) {
+                            characterIndex = argument.length();
+                            String feature = grabValue(getArgumentError("missing argument for " + argument), false);
+                            argument = argument + "=" + feature;
+                        }
+                        final String encodingName = argument.substring(argument.indexOf('=') + 1);
+                        config.setOption(OptionsCatalog.EXTERNAL_ENCODING, encodingName);
+                        break FOR;
+                    } else if (argument.startsWith("--internal-encoding")) {
+                        if (argument.equals("--internal-encoding")) {
+                            characterIndex = argument.length();
+                            String feature = grabValue(getArgumentError("missing argument for " + argument), false);
+                            argument = argument + "=" + feature;
+                        }
+                        final String encodingName = argument.substring(argument.indexOf('=') + 1);
+                        config.setOption(OptionsCatalog.INTERNAL_ENCODING, encodingName);
                         break FOR;
                     } else if (argument.equals("--debug")) {
                         throw notImplemented("--debug");

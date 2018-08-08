@@ -1,0 +1,2 @@
+slow:The --internal-encoding command line option sets Encoding.default_internal if given an encoding with an =
+slow:The --internal-encoding command line option sets Encoding.default_internal if given an encoding as a separate argument

@@ -29,6 +29,7 @@ LAZY_RUBYGEMS: [rubygems.lazy, boolean, DEFAULT_LAZY, Load RubyGems lazily on fi
 PATCHING: [patching, boolean, true, Use patching]
 DID_YOU_MEAN: [did_you_mean, boolean, true, Use did_you_mean]
 
+SOURCE_ENCODING: [[source_encoding, -K], string, '', Source encoding]
 INTERNAL_ENCODING: [[internal_encoding, -E, -U], string, '', Internal encoding]
 EXTERNAL_ENCODING: [[external_encoding, -E], string, '', External encoding]
 

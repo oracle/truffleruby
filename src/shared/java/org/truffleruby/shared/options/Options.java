@@ -44,6 +44,7 @@ public class Options {
     public final boolean LAZY_RUBYGEMS;
     public final boolean PATCHING;
     public final boolean DID_YOU_MEAN;
+    public final String SOURCE_ENCODING;
     public final String INTERNAL_ENCODING;
     public final String EXTERNAL_ENCODING;
     public final boolean SINGLE_THREADED;
@@ -171,6 +172,7 @@ public class Options {
         LAZY_RUBYGEMS = builder.getOrDefault(OptionsCatalog.LAZY_RUBYGEMS, DEFAULT_LAZY);
         PATCHING = builder.getOrDefault(OptionsCatalog.PATCHING);
         DID_YOU_MEAN = builder.getOrDefault(OptionsCatalog.DID_YOU_MEAN);
+        SOURCE_ENCODING = builder.getOrDefault(OptionsCatalog.SOURCE_ENCODING);
         INTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.INTERNAL_ENCODING);
         EXTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.EXTERNAL_ENCODING);
         SINGLE_THREADED = builder.getOrDefault(OptionsCatalog.SINGLE_THREADED, EMBEDDED);
@@ -328,6 +330,8 @@ public class Options {
                 return PATCHING;
             case "ruby.did_you_mean":
                 return DID_YOU_MEAN;
+            case "ruby.source_encoding":
+                return SOURCE_ENCODING;
             case "ruby.internal_encoding":
                 return INTERNAL_ENCODING;
             case "ruby.external_encoding":
