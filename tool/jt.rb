@@ -1056,7 +1056,7 @@ module Commands
   private :test_compiler
 
   def test_cexts(*args)
-    all_tests = %w(tools openssl minimum method module globals backtraces xopenssl gems)
+    all_tests = %w(tools openssl minimum method module globals backtraces xopenssl postinstallhook gems)
     no_openssl = args.delete('--no-openssl')
     no_gems = args.delete('--no-gems')
     tests = args.empty? ? all_tests : all_tests & args
@@ -1118,6 +1118,12 @@ EOS
         ensure
           File.delete output_file if File.exist? output_file
         end
+
+      when 'postinstallhook'
+
+        # Test that running the post-install hook works, even when opt &
+        # llvm-link are not on PATH, as it is the case on macOS.
+        sh 'lib/truffle/post_install_hook.sh'
 
       when 'gems'
         # Test that we can compile and run some real C extensions
