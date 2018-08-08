@@ -47,14 +47,14 @@ launcher.
 
 ## Unlisted Ruby switches
 
-MRI has some extra Ruby switches which are aren't normally listed in help out
+MRI has some extra Ruby switches which are aren't normally listed in help output
 but are documented in the Ruby manual page.
 
 ```
   -U              set the internal encoding to UTF-8
   -KEeSsUuNnAa    sets the source and external encoding
-  --encoding=encoding
-                  the same as --external-encoding=encoding
+  --encoding=external[:internal]
+                  the same as --external-encoding=external and optionally --internal-encoding=internal
   -y, --ydebug    debug the parser
   -Xdirectory     the same as -Cdirectory
   --dump=insns    print disassembled instructions

@@ -422,8 +422,27 @@ public class CommandLineParser {
                         // cancel other execution actions
                         config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                         break FOR;
-                    } else if (argument.startsWith("--encoding") || argument.startsWith("--external-encoding")) {
-                        if (argument.equals("--encoding") || argument.equals("--external-encoding")) {
+                    } else if (argument.startsWith("--encoding")) {
+                        if (argument.equals("--encoding")) {
+                            characterIndex = argument.length();
+                            String feature = grabValue(getArgumentError("missing argument for " + argument), false);
+                            argument = argument + "=" + feature;
+                        }
+                        final String encodingNames = argument.substring(argument.indexOf('=') + 1);
+                        final int index = encodingNames.indexOf(':');
+                        if (index == -1) {
+                            config.setOption(OptionsCatalog.EXTERNAL_ENCODING, encodingNames);
+                        } else {
+                            final int secondIndex = encodingNames.indexOf(':', index + 1);
+                            if (secondIndex != -1) {
+                                throw new CommandLineException("extra argument for --encoding: " + encodingNames.substring(secondIndex + 1));
+                            }
+                            config.setOption(OptionsCatalog.EXTERNAL_ENCODING, encodingNames.substring(0, index));
+                            config.setOption(OptionsCatalog.INTERNAL_ENCODING, encodingNames.substring(index + 1));
+                        }
+                        break FOR;
+                    } else if (argument.startsWith("--external-encoding")) {
+                        if (argument.equals("--external-encoding")) {
                             characterIndex = argument.length();
                             String feature = grabValue(getArgumentError("missing argument for " + argument), false);
                             argument = argument + "=" + feature;
