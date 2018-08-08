@@ -42,7 +42,8 @@ end
 describe "Magic comments" do
   describe "in the main file" do
     it_behaves_like :magic_comments, nil, proc { |file, encoding='utf-8'|
-      ruby_exe(File.read(fixture(__FILE__, file), encoding: encoding).gsub("$magic_comment_result = ", 'print '))
+      print_at_exit = fixture(__FILE__, "print_magic_comment_result_at_exit.rb")
+      ruby_exe(fixture(__FILE__, file), options: "-r#{print_at_exit}")
     }
   end
 
