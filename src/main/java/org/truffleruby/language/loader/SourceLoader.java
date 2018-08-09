@@ -218,7 +218,8 @@ public class SourceLoader {
             return context.getOptions().CORE_AS_INTERNAL;
         }
 
-        if (canonicalPath.startsWith(context.getRubyHome())) {
+        if (canonicalPath.startsWith(context.getRubyHome() + "/lib/") &&
+                !canonicalPath.startsWith(context.getRubyHome() + "/lib/ruby/gems/")) {
             return context.getOptions().STDLIB_AS_INTERNAL;
         }
 
