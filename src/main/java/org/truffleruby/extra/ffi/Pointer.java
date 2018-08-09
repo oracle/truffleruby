@@ -189,7 +189,7 @@ public class Pointer implements AutoCloseable {
 
     private int checkStringSize(long size) {
         if (size > Integer.MAX_VALUE) {
-            CompilerDirectives.transferToInterpreter();
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             throw new UnsupportedOperationException("native string is too long to read into managed code");
         }
 
