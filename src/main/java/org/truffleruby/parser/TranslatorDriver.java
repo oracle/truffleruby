@@ -176,7 +176,7 @@ public class TranslatorDriver {
         }
 
         final SourceSection sourceSection = source.createSection(0, source.getCharacters().length());
-        final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection.getCharIndex(), sourceSection.getCharLength());
+        final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection);
 
         final InternalMethod parentMethod = parentFrame == null ? null : RubyArguments.getMethod(parentFrame);
         LexicalScope lexicalScope;

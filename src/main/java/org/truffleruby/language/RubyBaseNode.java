@@ -165,7 +165,7 @@ public abstract class RubyBaseNode extends Node {
             }
 
             if (node instanceof RootNode) {
-                return new SourceIndexLength(node.getSourceSection().getCharIndex(), node.getSourceSection().getCharLength());
+                return new SourceIndexLength(node.getSourceSection());
             }
 
             node = node.getParent();

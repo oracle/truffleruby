@@ -25,6 +25,10 @@ public class SourceIndexLength {
         this.length = length;
     }
 
+    public SourceIndexLength(SourceSection sourceSection) {
+        this(sourceSection.getCharIndex(), sourceSection.isAvailable() ? sourceSection.getCharLength() : UNAVAILABLE);
+    }
+
     @TruffleBoundary
     public SourceSection toSourceSection(Source source) {
         if (length == UNAVAILABLE) {
