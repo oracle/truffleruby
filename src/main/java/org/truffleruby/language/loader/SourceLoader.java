@@ -117,7 +117,7 @@ public class SourceLoader {
         final byte[] sourceBytes = xOptionStrip(currentNode, byteStream.toByteArray());
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         final Source source = Source.newBuilder(sourceRope.toString()).name(path).mimeType(RubyLanguage.MIME_TYPE).build();
-        return new RubySource(source);
+        return new RubySource(source, sourceRope);
     }
 
     @TruffleBoundary
