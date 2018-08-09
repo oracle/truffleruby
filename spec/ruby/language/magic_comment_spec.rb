@@ -40,6 +40,13 @@ describe :magic_comments, shared: true do
 end
 
 describe "Magic comments" do
+  describe "in stdin" do
+    it_behaves_like :magic_comments, nil, -> file {
+      print_at_exit = fixture(__FILE__, "print_magic_comment_result_at_exit.rb")
+      ruby_exe(nil, args: "< #{fixture(__FILE__, file)}", options: "-r#{print_at_exit}")
+    }
+  end
+  
   describe "in the main file" do
     it_behaves_like :magic_comments, nil, -> file {
       print_at_exit = fixture(__FILE__, "print_magic_comment_result_at_exit.rb")
