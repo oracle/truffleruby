@@ -242,9 +242,6 @@ public class CoreMethodNodeManager {
     }
 
     private static CallTarget createCallTarget(RubyContext context, SharedMethodInfo sharedMethodInfo, RubyNode methodNode) {
-        assert sharedMethodInfo.getSourceSection() == context.getCoreLibrary().getSourceSection();
-        methodNode.unsafeSetSourceSection(context.getCoreLibrary().getSourceIndexLength());
-
         final RubyRootNode rootNode = new RubyRootNode(context, sharedMethodInfo.getSourceSection(), null, sharedMethodInfo, methodNode);
         return Truffle.getRuntime().createCallTarget(rootNode);
     }
