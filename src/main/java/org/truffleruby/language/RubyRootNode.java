@@ -34,9 +34,15 @@ public class RubyRootNode extends RubyBaseRootNode {
         super(context.getLanguage(), frameDescriptor, sourceSection);
         assert sourceSection != null;
         assert body != null;
+
         this.context = context;
         this.sharedMethodInfo = sharedMethodInfo;
         this.body = body;
+
+        // Ensure the body node is instrumentable, which requires a non-null SourceSection
+        if (!body.hasSource()) {
+            body.unsafeSetSourceSection(getSourceIndexLength());
+        }
 
         body.unsafeSetIsCall();
         body.unsafeSetIsRoot();
