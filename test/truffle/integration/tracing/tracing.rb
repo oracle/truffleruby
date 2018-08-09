@@ -79,6 +79,12 @@ def check(file)
   end
   
   unless success
+    puts
+    puts 'Expected:'
+    expected.each { |e| p e  }
+    puts
+    puts 'Actual:'
+    actual.each { |e| p e  }
     exit 1
   end
 end
