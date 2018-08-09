@@ -135,6 +135,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
     protected abstract static class OutgoingNode extends Node {
 
+        protected final BranchProfile argumentErrorProfile = BranchProfile.create();
         protected final BranchProfile exceptionProfile = BranchProfile.create();
         protected final BranchProfile unknownIdentifierProfile = BranchProfile.create();
 
@@ -155,7 +156,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != 1) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
             }
 
@@ -190,7 +191,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != 2) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 2, this));
             }
 
@@ -247,7 +248,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length < 1) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
             }
 
@@ -295,7 +296,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != 0) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 0, this));
             }
 
@@ -311,7 +312,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != 1) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
             }
 
@@ -335,7 +336,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != argsLength) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, this.argsLength, this));
             }
 
@@ -356,7 +357,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != 0) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 0, this));
             }
 
@@ -381,7 +382,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != 0) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 0, this));
             }
 
@@ -395,7 +396,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != 1) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
             }
 
