@@ -15,7 +15,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
@@ -59,32 +58,9 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
     public abstract Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args);
 
-    @Specialization(
-            guards = "args.length == cachedArgsLength",
-            limit = "getCacheLimit()"
-    )
-    public Object callCached(
-            VirtualFrame frame,
-            TruffleObject receiver,
-            Object[] args,
-            @Cached("args.length") int cachedArgsLength,
-            @Cached("createHelperNode(cachedArgsLength)") OutgoingNode outgoingNode) {
-        return doCall(frame, receiver, outgoingNode, args);
-    }
-
-    @Specialization(replaces = "callCached")
-    public Object callUncached(
-            VirtualFrame frame,
-            TruffleObject receiver,
-            Object[] args,
-            @Cached("new()") NotOptimizedWarningNode notOptimizedWarningNode) {
-        notOptimizedWarningNode.warn("megamorphic outgoing foreign call");
-
-        final OutgoingNode outgoingNode = createHelperNode(args.length);
-        return doCall(frame, receiver, outgoingNode, args);
-    }
-
-    private Object doCall(VirtualFrame frame, TruffleObject receiver, OutgoingNode outgoingNode, Object[] args) {
+    @Specialization
+    public Object callCached(VirtualFrame frame, TruffleObject receiver, Object[] args,
+            @Cached("createHelperNode()") OutgoingNode outgoingNode) {
         try {
             return outgoingNode.executeCall(frame, receiver, args);
         } catch (Throwable t) {
@@ -94,10 +70,10 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
     }
 
     @TruffleBoundary
-    protected OutgoingNode createHelperNode(int argsLength) {
-        if (name.equals("[]") && argsLength == 1) {
+    protected OutgoingNode createHelperNode() {
+        if (name.equals("[]")) {
             return new IndexReadOutgoingNode();
-        } else if (name.equals("[]=") && argsLength == 2) {
+        } else if (name.equals("[]=")) {
             return new IndexWriteOutgoingNode();
         } else if (name.equals("call")) {
             return new CallOutgoingNode();
@@ -111,9 +87,9 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             return new InspectOutgoingNode();
         } else if (name.equals("__send__")) {
             return new SendOutgoingNode();
-        } else if (name.equals("nil?") && argsLength == 0) {
+        } else if (name.equals("nil?")) {
             return new IsNilOutgoingNode();
-        } else if (name.equals("equal?") && argsLength == 1) {
+        } else if (name.equals("equal?")) {
             return new IsReferenceEqualOutgoingNode();
         } else if (name.equals("delete")
                 || name.equals("size")
@@ -186,7 +162,10 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
-            assert args.length == 1;
+            if (args.length != 1) {
+                CompilerDirectives.transferToInterpreter();
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
+            }
 
             final Object name = rubyToForeignNode.executeConvert(args[0]);
             final Object foreign;
@@ -218,7 +197,10 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
-            assert args.length == 2;
+            if (args.length != 2) {
+                CompilerDirectives.transferToInterpreter();
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 2, this));
+            }
 
             final Object foreign;
 
@@ -320,7 +302,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
-            if (args.length > 0) {
+            if (args.length != 0) {
                 CompilerDirectives.transferToInterpreter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 0, this));
             }
@@ -362,7 +344,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != argsLength) {
                 CompilerDirectives.transferToInterpreter();
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, this.argsLength, this));
             }
 
             final Object[] prependedArgs = new Object[args.length + 2];
@@ -381,6 +363,11 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+            if (args.length != 0) {
+                CompilerDirectives.transferToInterpreter();
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 0, this));
+            }
+
             return makeStringNode.executeMake(inspect(receiver), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
@@ -401,7 +388,10 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
-            assert args.length == 0;
+            if (args.length != 0) {
+                CompilerDirectives.transferToInterpreter();
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 0, this));
+            }
 
             return ForeignAccess.sendIsNull(node, receiver);
         }
@@ -412,7 +402,10 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
-            assert args.length == 1;
+            if (args.length != 1) {
+                CompilerDirectives.transferToInterpreter();
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
+            }
 
             final TruffleObject a = receiver;
 
