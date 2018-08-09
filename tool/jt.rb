@@ -1923,7 +1923,7 @@ EOS
     check_filename_length
     rubocop
     sh "tool/lint.sh"
-    mx 'checkstyle'
+    mx 'checkstyle', '-f', '--primary'
     check_parser
     check_documentation_urls
   end
