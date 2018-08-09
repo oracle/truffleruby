@@ -41,7 +41,7 @@ public class RubyRootNode extends RubyBaseRootNode {
 
         // Ensure the body node is instrumentable, which requires a non-null SourceSection
         if (!body.hasSource()) {
-            body.unsafeSetSourceSection(getSourceIndexLength());
+            body.unsafeSetSourceSection(getSourceSection());
         }
 
         body.unsafeSetIsCall();

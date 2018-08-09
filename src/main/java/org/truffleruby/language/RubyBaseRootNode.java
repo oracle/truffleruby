@@ -28,8 +28,4 @@ public abstract class RubyBaseRootNode extends RootNode {
         return sourceSection;
     }
 
-    public final SourceIndexLength getSourceIndexLength() {
-        return new SourceIndexLength(sourceSection.getCharIndex(), sourceSection.getCharLength());
-    }
-
 }

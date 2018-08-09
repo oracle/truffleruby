@@ -15,8 +15,10 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public class SourceIndexLength {
 
+    public static final int UNAVAILABLE = -1;
+
     private final int charIndex;
-    private final int length;
+    private final int length; // -1 indicates unavailable, which is the same encoding as SourceSection
 
     public SourceIndexLength(int charIndex, int length) {
         this.charIndex = charIndex;
@@ -25,7 +27,11 @@ public class SourceIndexLength {
 
     @TruffleBoundary
     public SourceSection toSourceSection(Source source) {
-        return source.createSection(charIndex, length);
+        if (length == UNAVAILABLE) {
+            return source.createUnavailableSection();
+        } else {
+            return source.createSection(charIndex, length);
+        }
     }
 
     public int getCharIndex() {
