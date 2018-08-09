@@ -34,6 +34,3 @@ slow:Magic comments in an eval can take Emacs style
 slow:Magic comments in an eval can take vim style
 slow:Magic comments in an eval determine __ENCODING__
 slow:Magic comments in an eval do not cause bytes to be mangled by passing them through the wrong encoding
-fails:Magic comments in the main file do not cause bytes to be mangled by passing them through the wrong encoding
-fails:Magic comments in a loaded file do not cause bytes to be mangled by passing them through the wrong encoding
-fails:Magic comments in a required file do not cause bytes to be mangled by passing them through the wrong encoding
