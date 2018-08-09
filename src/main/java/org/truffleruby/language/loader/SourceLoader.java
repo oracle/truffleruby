@@ -27,18 +27,17 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.ast.RootParseNode;
 
-import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Locale;
 
 public class SourceLoader {
@@ -103,8 +102,21 @@ public class SourceLoader {
 
     @TruffleBoundary
     public RubySource loadMainStdin(RubyNode currentNode, String path) throws IOException {
-        final Source source = Source.newBuilder(xOptionStrip(currentNode,
-                new InputStreamReader(System.in))).name(path).mimeType(RubyLanguage.MIME_TYPE).build();
+        final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+
+        final byte[] buffer = new byte[4096];
+
+        while (true) {
+            final int read = System.in.read(buffer);
+            if (read == -1) {
+                break;
+            }
+            byteStream.write(buffer, 0, read);
+        }
+
+        final byte[] sourceBytes = xOptionStrip(currentNode, byteStream.toByteArray());
+        final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        final Source source = Source.newBuilder(sourceRope.toString()).name(path).mimeType(RubyLanguage.MIME_TYPE).build();
         return new RubySource(source);
     }
 
@@ -118,65 +130,64 @@ public class SourceLoader {
 
         final File file = new File(path);
 
-        final String content = xOptionStrip(currentNode, new FileReader(file));
+        final byte[] sourceBytes = xOptionStrip(currentNode, Files.readAllBytes(file.toPath()));
+        final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
-        final Rope sourceRope = readSourceRope(file);
-        mainSource = Source.newBuilder(file).name(path).content(content).mimeType(RubyLanguage.MIME_TYPE).build();
+        mainSource = Source.newBuilder(file).name(path).content(sourceRope.toString()).mimeType(RubyLanguage.MIME_TYPE).build();
 
         mainSourceAbsolutePath = file.getCanonicalPath();
         return new RubySource(mainSource, sourceRope);
     }
 
-    private String xOptionStrip(RubyNode currentNode, Reader reader) throws IOException {
-        StringBuilder content = new StringBuilder();
-        try (BufferedReader bufferedReader = new BufferedReader(reader)) {
+    private byte[] xOptionStrip(RubyNode currentNode, byte[] sourceBytes) throws IOException {
+        boolean lookForRubyShebang = isCurrentLineShebang(sourceBytes) ||
+                context.getOptions().IGNORE_LINES_BEFORE_RUBY_SHEBANG;
 
-            boolean lookForRubyShebang = isCurrentLineShebang(bufferedReader) ||
-                    context.getOptions().IGNORE_LINES_BEFORE_RUBY_SHEBANG;
+        ByteArrayOutputStream content = new ByteArrayOutputStream();
 
-            if (lookForRubyShebang) {
-                while (true) {
-                    final String line = bufferedReader.readLine();
-                    if (line == null) {
-                        throw new RaiseException(context, context.getCoreExceptions().loadError(
-                                "no Ruby script found in input",
-                                "",
-                                currentNode));
-                    }
+        int n = 0;
 
-                    final boolean rubyShebang = line.startsWith("#!") && line.contains("ruby");
-                    if (rubyShebang) {
-                        content.append(line);
-                        content.append("\n");
-                        break;
-                    } else {
-                        content.append("# line ignored by Ruby:"); // prefix with a comment so it's ignored by parser
-                        content.append(line);
-                        content.append("\n");
-                    }
-                }
-            }
-
-            final char[] buffer = new char[1024];
+        if (lookForRubyShebang) {
             while (true) {
-                final int read = bufferedReader.read(buffer, 0, buffer.length);
-                if (read < 0) {
+                if (n == sourceBytes.length) {
+                    throw new RaiseException(context, context.getCoreExceptions().loadError(
+                            "no Ruby script found in input",
+                            "",
+                            currentNode));
+                }
+
+                final int startOfLine = n;
+
+                // TODO CS 9-Aug-18 Windows line endings? We're reading in binary mode.
+                while (n < sourceBytes.length && sourceBytes[n] != '\n') {
+                    n++;
+                }
+
+                if (n < sourceBytes.length && sourceBytes[n] == '\n') {
+                    n++;
+                }
+
+                final byte[] lineBytes = Arrays.copyOfRange(sourceBytes, startOfLine, n);
+                final String line = new String(lineBytes, StandardCharsets.US_ASCII);
+
+                final boolean rubyShebang = line.startsWith("#!") && line.contains("ruby");
+                if (rubyShebang) {
+                    content.write(lineBytes);
                     break;
                 } else {
-                    content.append(buffer, 0, read);
+                    content.write("# line ignored by Ruby:".getBytes(StandardCharsets.US_ASCII)); // prefix with a comment so it's ignored by parser
+                    content.write(lineBytes);
                 }
             }
-
-            return content.toString();
         }
+
+        content.write(sourceBytes, n, sourceBytes.length - n);
+
+        return content.toByteArray();
     }
 
-    private boolean isCurrentLineShebang(BufferedReader bufferedReader) throws IOException {
-        final char[] buffer = new char[2];
-        bufferedReader.mark(2);
-        bufferedReader.read(buffer, 0, 2);
-        bufferedReader.reset();
-        return buffer[0] == '#' && buffer[1] == '!';
+    private boolean isCurrentLineShebang(byte[] bytes) {
+        return bytes.length >= 2 && bytes[0] == '#' && bytes[1] == '!';
     }
 
     @TruffleBoundary
@@ -231,11 +242,7 @@ public class SourceLoader {
                         .name(name.intern())
                         .mimeType(mimeType), internal);
 
-        if (sourceRope == null) {
-            return new RubySource(source);
-        } else {
-            return new RubySource(source, sourceRope);
-        }
+        return new RubySource(source, sourceRope);
     }
 
     private static Rope readSourceRope(File file) throws IOException {
