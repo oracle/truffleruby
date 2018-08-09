@@ -203,7 +203,7 @@ public class ThreadManager {
 
         // We use abs() as a function taking a int and having no side effects
         final TruffleObject abs = nfi.lookup(libC, "abs");
-        final NativeFunction sigaction = nfi.getFunction("sigaction", 3, "(sint32,pointer,pointer):sint32");
+        final NativeFunction sigaction = nfi.getFunction("sigaction", "(sint32,pointer,pointer):sint32");
 
         final int sizeOfSigAction = (int) config.get("platform.sigaction.sizeof");
         final int handlerOffset = (int) config.get("platform.sigaction.sa_handler.offset");
@@ -223,8 +223,8 @@ public class ThreadManager {
     private void setupNativeThreadSupport(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
         final String pthread_t = nfi.resolveType(nativeConfiguration, "pthread_t");
 
-        pthread_self = nfi.getFunction("pthread_self", 0, "():" + pthread_t);
-        pthread_kill = nfi.getFunction("pthread_kill", 2, "(" + pthread_t + ",sint32):sint32");
+        pthread_self = nfi.getFunction("pthread_self", "():" + pthread_t);
+        pthread_kill = nfi.getFunction("pthread_kill", "(" + pthread_t + ",sint32):sint32");
     }
 
     public void initialize(DynamicObject rubyThread, Node currentNode, String info, Supplier<Object> task) {

@@ -100,9 +100,9 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         } else if (name.equals("[]=") && argsLength == 2) {
             return new IndexWriteOutgoingNode();
         } else if (name.equals("call")) {
-            return new CallOutgoingNode(argsLength);
+            return new CallOutgoingNode();
         } else if (name.equals("new")) {
-            return new NewOutgoingNode(argsLength);
+            return new NewOutgoingNode();
         } else if (name.equals("to_a") || name.equals("to_ary")) {
             return new ToAOutgoingNode();
         } else if (name.equals("respond_to?")) {
@@ -142,9 +142,9 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
             return new SpecialFormOutgoingNode(getContext().getSymbolTable().getSymbol(name), expectedArgsLength);
         } else if (isOperatorMethod(name)) {
-            return new UnboxForOperatorAndReDispatchOutgoingNode(name, argsLength);
+            return new UnboxForOperatorAndReDispatchOutgoingNode(name);
         } else {
-            return new InvokeOutgoingNode(name, argsLength);
+            return new InvokeOutgoingNode(name);
         }
     }
 
@@ -243,21 +243,12 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
     protected class CallOutgoingNode extends OutgoingNode {
 
-        private final int argsLength;
-
-        @Child private Node node;
+        @Child private Node node = Message.EXECUTE.createNode();
         @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
         @Child private RubyToForeignArgumentsNode rubyToForeignArgumentsNode = RubyToForeignArgumentsNode.create();
 
-        public CallOutgoingNode(int argsLength) {
-            this.argsLength = argsLength;
-            node = Message.createExecute(argsLength).createNode();
-        }
-
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
-            assert args.length == argsLength;
-
             final Object foreign;
 
             try {
@@ -300,21 +291,12 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
     protected class NewOutgoingNode extends OutgoingNode {
 
-        private final int argsLength;
-
-        @Child private Node node;
+        @Child private Node node = Message.NEW.createNode();
         @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
         @Child private RubyToForeignArgumentsNode rubyToForeignArgumentsNode = RubyToForeignArgumentsNode.create();
 
-        public NewOutgoingNode(int argsLength) {
-            this.argsLength = argsLength;
-            node = Message.createNew(argsLength).createNode();
-        }
-
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
-            assert args.length == argsLength;
-
             final Object foreign;
 
             try {
@@ -452,7 +434,6 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
     protected class UnboxForOperatorAndReDispatchOutgoingNode extends OutgoingNode {
 
         private final String name;
-        private final int argsLength;
 
         @Child private Node isBoxedNode = Message.IS_BOXED.createNode();
         @Child private Node unboxNode;
@@ -460,15 +441,12 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Child private CallDispatchHeadNode redispatchNode;
         @Child private InvokeOutgoingNode invokeOutgoingNode;
 
-        public UnboxForOperatorAndReDispatchOutgoingNode(String name, int argsLength) {
+        public UnboxForOperatorAndReDispatchOutgoingNode(String name) {
             this.name = name;
-            this.argsLength = argsLength;
         }
 
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
-            assert args.length == argsLength;
-
             if (ForeignAccess.sendIsBoxed(isBoxedNode, receiver)) { // implicit profiling as a result of lazy nodes
                 final Object unboxedReceiver = convertToRuby(unbox(receiver));
                 return reDispatch(frame, unboxedReceiver, args);
@@ -511,7 +489,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         private Object invoke(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (invokeOutgoingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                invokeOutgoingNode = insert(new InvokeOutgoingNode(name, argsLength));
+                invokeOutgoingNode = insert(new InvokeOutgoingNode(name));
             }
 
             return invokeOutgoingNode.executeCall(frame, receiver, args);
@@ -522,21 +500,17 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
     protected class InvokeOutgoingNode extends OutgoingNode {
 
         private final String name;
-        private final int argsLength;
 
-        @Child private Node node;
+        @Child private Node node = Message.INVOKE.createNode();
         @Child private RubyToForeignArgumentsNode rubyToForeignArgumentsNode = RubyToForeignArgumentsNode.create();
         @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
 
-        public InvokeOutgoingNode(String name, int argsLength) {
+        public InvokeOutgoingNode(String name) {
             this.name = name;
-            this.argsLength = argsLength;
-            node = Message.createInvoke(argsLength).createNode();
         }
 
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
-            assert args.length == argsLength;
             final Object[] arguments = rubyToForeignArgumentsNode.executeConvert(args);
 
             final Object foreign;

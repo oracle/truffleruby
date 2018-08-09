@@ -60,7 +60,7 @@ public abstract class RequireNode extends RubyNode {
 
     @Child private Node readNode = Message.READ.createNode();
     @Child private Node isExecutableNode = Message.IS_EXECUTABLE.createNode();
-    @Child private Node executeNode = Message.createExecute(0).createNode();
+    @Child private Node executeNode = Message.EXECUTE.createNode();
     @Child private WarningNode warningNode;
 
     public static RequireNode create() {
