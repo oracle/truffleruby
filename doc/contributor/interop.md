@@ -570,7 +570,8 @@ foreign objects, before continuing with the normal coercion routine.
 
 ## Notes on source encoding
 
-As all sources are passed into the Polyglot API as Java strings and original
-bytes are not available to be re-interpreted, TruffleRuby interprets them as
-UTF-8 and cannot set the file encoding using a magic comment except for
-encodings which are sub-sets of UTF-8, such as 7-bit ASCII.
+Sources created from the Polyglot API only contain a Java `String` and the
+original bytes are not available to be re-interpreted in a different encoding
+from the one already to create it. Therefore TruffleRuby interprets these
+sources as UTF-8 and cannot set the file encoding using a magic comment, except
+for encodings which are sub-sets of UTF-8, such as 7-bit ASCII.
