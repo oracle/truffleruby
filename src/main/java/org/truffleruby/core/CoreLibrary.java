@@ -36,6 +36,7 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.Layout;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.Source.Builder;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.transcode.EConvFlags;
@@ -84,7 +85,7 @@ public class CoreLibrary {
 
     private final RubyContext context;
 
-    private final SourceSection sourceSection = initCoreSourceSection();
+    private final SourceSection sourceSection;
 
     private final DynamicObject argumentErrorClass;
     private final DynamicObject arrayClass;
@@ -225,8 +226,13 @@ public class CoreLibrary {
     private final String coreLoadPath;
 
     @TruffleBoundary
-    private static SourceSection initCoreSourceSection() {
-        final Source source = Source.newBuilder("").name("(core)").mimeType(RubyLanguage.MIME_TYPE).build();
+    private SourceSection initCoreSourceSection(RubyContext context) {
+        final Builder<RuntimeException, RuntimeException, RuntimeException> builder =
+                Source.newBuilder("").name("(core)").mimeType(RubyLanguage.MIME_TYPE);
+        if (context.getOptions().CORE_AS_INTERNAL) {
+            builder.internal();
+        }
+        final Source source = builder.build();
         return source.createUnavailableSection();
     }
 
@@ -285,6 +291,7 @@ public class CoreLibrary {
     public CoreLibrary(RubyContext context) {
         this.context = context;
         this.coreLoadPath = buildCoreLoadPath();
+        this.sourceSection = initCoreSourceSection(context);
         this.node = new CoreLibraryNode();
 
         // Nothing in this constructor can use RubyContext.getCoreLibrary() as we are building it!

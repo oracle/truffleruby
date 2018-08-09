@@ -315,12 +315,8 @@ public class BacktraceFormatter {
         return null;
     }
 
-    private static boolean isJavaCore(RubyContext context, SourceSection sourceSection) {
-        return sourceSection == context.getCoreLibrary().getSourceSection();
-    }
-
     public static boolean isCore(RubyContext context, SourceSection sourceSection) {
-        if (sourceSection == null || isJavaCore(context, sourceSection)) {
+        if (sourceSection == null || !sourceSection.isAvailable()) {
             return true;
         }
 

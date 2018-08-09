@@ -29,7 +29,6 @@ import java.util.List;
 public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode {
 
     private final RubyContext context;
-    private final SourceSection sourceSection;
     private final FormatEncoding encoding;
 
     @Child private FormatNode child;
@@ -37,9 +36,8 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
     @CompilationFinal private int expectedLength = 0;
 
     public FormatRootNode(RubyContext context, SourceSection sourceSection, FormatEncoding encoding, FormatNode child) {
-        super(context.getLanguage(), FormatFrameDescriptor.FRAME_DESCRIPTOR);
+        super(context.getLanguage(), FormatFrameDescriptor.FRAME_DESCRIPTOR, sourceSection);
         this.context = context;
-        this.sourceSection = sourceSection;
         this.encoding = encoding;
         this.child = child;
     }
@@ -137,11 +135,6 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
     @TruffleBoundary
     private Pointer[] associatedToArray(List<Pointer> associated) {
         return associated.toArray(new Pointer[associated.size()]);
-    }
-
-    @Override
-    public SourceSection getSourceSection() {
-        return sourceSection;
     }
 
     @Override

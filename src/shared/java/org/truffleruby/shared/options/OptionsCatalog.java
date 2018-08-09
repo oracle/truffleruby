@@ -233,7 +233,7 @@ public class OptionsCatalog {
             true);
     public static final BooleanOptionDescription STDLIB_AS_INTERNAL = new BooleanOptionDescription(
             "ruby.stdlib_as_internal",
-            "Mark stdlib sources (really, anything loaded from the TruffleRuby home) as internal",
+            "Mark stdlib sources as internal",
             null,
             true);
     public static final BooleanOptionDescription LAZY_BUILTINS = new BooleanOptionDescription(

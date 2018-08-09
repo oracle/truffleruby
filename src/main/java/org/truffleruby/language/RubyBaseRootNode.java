@@ -12,10 +12,20 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.nodes.RootNode;
+import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class RubyBaseRootNode extends RootNode {
 
-    public RubyBaseRootNode(TruffleLanguage<?> language, FrameDescriptor frameDescriptor) {
+    private final SourceSection sourceSection;
+
+    public RubyBaseRootNode(TruffleLanguage<?> language, FrameDescriptor frameDescriptor, SourceSection sourceSection) {
         super(language, frameDescriptor);
+        this.sourceSection = sourceSection;
     }
+
+    @Override
+    public final SourceSection getSourceSection() {
+        return sourceSection;
+    }
+
 }

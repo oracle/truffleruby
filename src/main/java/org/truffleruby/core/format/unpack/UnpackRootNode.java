@@ -24,16 +24,14 @@ import org.truffleruby.language.backtrace.InternalRootNode;
 public class UnpackRootNode extends RubyBaseRootNode implements InternalRootNode {
 
     private final RubyContext context;
-    private final SourceSection sourceSection;
 
     @Child private FormatNode child;
 
     @CompilationFinal private int expectedLength;
 
     public UnpackRootNode(RubyContext context, SourceSection sourceSection, FormatNode child) {
-        super(context.getLanguage(), FormatFrameDescriptor.FRAME_DESCRIPTOR);
+        super(context.getLanguage(), FormatFrameDescriptor.FRAME_DESCRIPTOR, sourceSection);
         this.context = context;
-        this.sourceSection = sourceSection;
         this.child = child;
         expectedLength = context.getOptions().ARRAY_UNINITIALIZED_SIZE;
     }
@@ -83,11 +81,6 @@ public class UnpackRootNode extends RubyBaseRootNode implements InternalRootNode
         }
 
         return new ArrayResult(output, outputLength, taint);
-    }
-
-    @Override
-    public SourceSection getSourceSection() {
-        return sourceSection;
     }
 
     @Override

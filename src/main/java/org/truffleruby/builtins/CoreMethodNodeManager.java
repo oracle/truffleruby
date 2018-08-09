@@ -288,7 +288,7 @@ public class CoreMethodNodeManager {
         return new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
     }
 
-    public static <T> T createNodeFromFactory(RubyContext context, NodeFactory<? extends T> nodeFactory, List<RubyNode> argumentsNodes) {
+    public static RubyNode createNodeFromFactory(RubyContext context, NodeFactory<? extends RubyNode> nodeFactory, List<RubyNode> argumentsNodes) {
         final List<List<Class<?>>> signatures = nodeFactory.getNodeSignatures();
 
         assert signatures.size() == 1;

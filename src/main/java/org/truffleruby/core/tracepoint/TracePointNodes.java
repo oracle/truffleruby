@@ -104,6 +104,7 @@ public abstract class TracePointNodes {
                     SourceSectionFilter.newBuilder()
                     .mimeTypeIs(RubyLanguage.MIME_TYPE)
                     .tagIs((Class<?>[]) Layouts.TRACE_POINT.getTags(tracePoint))
+                    .includeInternal(false)
                     .build(), eventContext -> new TracePointEventNode(context, eventContext, tracePoint));
         }
 

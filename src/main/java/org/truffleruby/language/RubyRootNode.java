@@ -23,7 +23,6 @@ import com.oracle.truffle.api.utilities.CyclicAssumption;
 public class RubyRootNode extends RubyBaseRootNode {
 
     private final RubyContext context;
-    private final SourceSection sourceSection;
     private final SharedMethodInfo sharedMethodInfo;
 
     @Child private RubyNode body;
@@ -32,13 +31,18 @@ public class RubyRootNode extends RubyBaseRootNode {
 
     public RubyRootNode(RubyContext context, SourceSection sourceSection, FrameDescriptor frameDescriptor,
                         SharedMethodInfo sharedMethodInfo, RubyNode body) {
-        super(context.getLanguage(), frameDescriptor);
+        super(context.getLanguage(), frameDescriptor, sourceSection);
         assert sourceSection != null;
         assert body != null;
+
         this.context = context;
-        this.sourceSection = sourceSection;
         this.sharedMethodInfo = sharedMethodInfo;
         this.body = body;
+
+        // Ensure the body node is instrumentable, which requires a non-null SourceSection
+        if (!body.hasSource()) {
+            body.unsafeSetSourceSection(getSourceSection());
+        }
 
         body.unsafeSetIsCall();
         body.unsafeSetIsRoot();
@@ -48,11 +52,6 @@ public class RubyRootNode extends RubyBaseRootNode {
     public Object execute(VirtualFrame frame) {
         context.getSafepointManager().poll(this);
         return body.execute(frame);
-    }
-
-    @Override
-    public SourceSection getSourceSection() {
-        return sourceSection;
     }
 
     @Override

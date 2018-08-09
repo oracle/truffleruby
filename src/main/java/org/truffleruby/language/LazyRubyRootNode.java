@@ -40,7 +40,6 @@ import java.util.List;
 public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNode {
 
     private final TruffleLanguage.ContextReference<RubyContext> contextReference;
-    private final SourceSection sourceSection;
     private final Source source;
     private final List<String> argumentNames;
 
@@ -52,9 +51,8 @@ public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNo
 
     public LazyRubyRootNode(RubyLanguage language, SourceSection sourceSection, FrameDescriptor frameDescriptor, Source source,
                             List<String> argumentNames) {
-        super(language, frameDescriptor);
+        super(language, frameDescriptor, sourceSection);
         contextReference = language.getContextReference();
-        this.sourceSection = sourceSection;
         this.source = source;
         this.argumentNames = argumentNames;
     }
@@ -113,8 +111,4 @@ public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNo
         Metrics.printTime(id);
     }
 
-    @Override
-    public SourceSection getSourceSection() {
-        return sourceSection;
-    }
 }

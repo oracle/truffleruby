@@ -103,6 +103,7 @@ public class TraceManager {
             instruments.add(instrumenter.attachExecutionEventFactory(SourceSectionFilter.newBuilder()
                             .mimeTypeIs(RubyLanguage.MIME_TYPE)
                             .tagIs(CallTag.class)
+                            .includeInternal(false)
                             .build(),
                     eventContext -> new CallEventEventNode(context, eventContext, traceFunc, context.getCoreStrings().CALL.createInstance())));
         }

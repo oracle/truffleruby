@@ -116,6 +116,18 @@ public abstract class RubyBaseNode extends Node {
         }
     }
 
+    public void unsafeSetSourceSection(SourceSection sourceSection) {
+        assert sourceCharIndex == NO_SOURCE;
+
+        if (sourceSection.isAvailable()) {
+            sourceCharIndex = sourceSection.getCharIndex();
+            sourceLength = sourceSection.getCharLength();
+        } else {
+            sourceCharIndex = 0;
+            sourceLength = SourceIndexLength.UNAVAILABLE;
+        }
+    }
+
     protected boolean hasSource() {
         return sourceCharIndex != NO_SOURCE;
     }
@@ -153,7 +165,7 @@ public abstract class RubyBaseNode extends Node {
             }
 
             if (node instanceof RootNode) {
-                return new SourceIndexLength(node.getSourceSection().getCharIndex(), node.getSourceSection().getCharLength());
+                return new SourceIndexLength(node.getSourceSection());
             }
 
             node = node.getParent();
