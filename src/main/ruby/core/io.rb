@@ -237,7 +237,6 @@ class IO
 
     def empty_to(io)
       return 0 if @write_synced or empty?
-      @write_synced = true
 
       data = String.from_bytearray(@storage, @start, size, Encoding::ASCII_8BIT)
       Truffle::POSIX.write_string io, data, true
