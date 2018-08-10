@@ -42,3 +42,4 @@ slow:Magic comments in stdin can be after the shebang
 slow:Magic comments in stdin can take Emacs style
 slow:Magic comments in stdin can take vim style
 slow:Magic comments in stdin determine __ENCODING__
+slow:Magic comments in stdin do not cause bytes to be mangled by passing them through the wrong encoding
