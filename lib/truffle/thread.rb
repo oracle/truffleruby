@@ -54,10 +54,8 @@ class ConditionVariable
   # Creates a new ConditionVariable
   #
   def initialize
-    # Truffle: this Hash must never need a guest-language safepoint, or threads
-    # will get stuck while acquiring the Mutex in interrupt-never mode below.
-    @waiters = {}
-    @waiters_mutex = Mutex.new
+    Truffle.primitive :condition_variable_initialize
+    raise PrimitiveFailure
   end
 
   #
@@ -67,57 +65,24 @@ class ConditionVariable
   # even if no other thread has signaled.
   #
   def wait(mutex, timeout=nil)
-    Thread.handle_interrupt(StandardError => :never) do
-      begin
-        Thread.handle_interrupt(StandardError => :on_blocking) do
-          @waiters_mutex.synchronize do
-            @waiters[Thread.current] = true
-          end
-          mutex.sleep timeout
-        end
-      ensure
-        @waiters_mutex.synchronize do
-          @waiters.delete(Thread.current)
-        end
-      end
-    end
-    self
+    Truffle.primitive :condition_variable_wait
+    raise PrimitiveFailure
   end
 
   #
   # Wakes up the first thread in line waiting for this lock.
   #
   def signal
-    Thread.handle_interrupt(StandardError => :on_blocking) do
-      begin
-        t, _ = @waiters_mutex.synchronize { @waiters.shift }
-        t.run if t
-      rescue ThreadError
-        retry # t was already dead?
-      end
-    end
-    self
+    Truffle.primitive :condition_variable_signal
+    raise PrimitiveFailure
   end
 
   #
   # Wakes up all threads waiting for this lock.
   #
   def broadcast
-    Thread.handle_interrupt(StandardError => :on_blocking) do
-      threads = nil
-      @waiters_mutex.synchronize do
-        threads = @waiters.keys
-        @waiters.clear
-      end
-      for t in threads
-        begin
-          t.run
-        rescue ThreadError
-          nil # e.g. killed thread
-        end
-      end
-    end
-    self
+    Truffle.primitive :condition_variable_broadcast
+    raise PrimitiveFailure
   end
 
   # Truffle: define marshal_dump as MRI tests expect it
