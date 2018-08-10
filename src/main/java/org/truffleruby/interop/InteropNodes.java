@@ -118,11 +118,6 @@ public abstract class InteropNodes {
             return foreignToRubyNode.executeConvert(foreign);
         }
 
-        @TruffleBoundary
-        protected Node createExecuteNode() {
-            return Message.EXECUTE.createNode();
-        }
-
     }
 
     @ImportStatic(Message.class)
