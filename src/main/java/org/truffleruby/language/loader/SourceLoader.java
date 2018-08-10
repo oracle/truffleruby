@@ -158,7 +158,6 @@ public class SourceLoader {
 
                 final int startOfLine = n;
 
-                // TODO CS 9-Aug-18 Windows line endings? We're reading in binary mode.
                 while (n < sourceBytes.length && sourceBytes[n] != '\n') {
                     n++;
                 }
