@@ -50,7 +50,6 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -94,17 +93,14 @@ public abstract class InteropNodes {
 
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "execute", isModuleFunction = true, required = 1, rest = true)
     public abstract static class ExecuteNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(
-                guards = "args.length == cachedArgsLength",
-                limit = "getCacheLimit()"
-        )
+        @Specialization
         public Object executeForeignCached(TruffleObject receiver, Object[] args,
-                @Cached("args.length") int cachedArgsLength,
                 @Cached("create()") RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
-                @Cached("createExecuteNode(cachedArgsLength)") Node executeNode,
+                @Cached("EXECUTE.createNode()") Node executeNode,
                 @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
             final Object foreign;
@@ -122,50 +118,15 @@ public abstract class InteropNodes {
             return foreignToRubyNode.executeConvert(foreign);
         }
 
-        @Specialization(replaces = "executeForeignCached")
-        public Object executeForeignUncached(TruffleObject receiver, Object[] args,
-                                             @Cached("create()") RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
-                                             @Cached("create()") ForeignToRubyNode foreignToRubyNode,
-                                             @Cached("new()") NotOptimizedWarningNode notOptimizedWarningNode) {
-            notOptimizedWarningNode.warn("megamorphic interop EXECUTE message send");
-
-            final Node executeNode = createExecuteNode(args.length);
-
-            final Object foreign;
-
-            try {
-                foreign = ForeignAccess.sendExecute(
-                        executeNode,
-                        receiver,
-                        rubyToForeignArgumentsNode.executeConvert(args));
-            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-                throw new JavaException(e);
-            }
-
-            return foreignToRubyNode.executeConvert(foreign);
-        }
-
-        @TruffleBoundary
-        protected Node createExecuteNode(int argsLength) {
-            return Message.createExecute(argsLength).createNode();
-        }
-
-        protected int getCacheLimit() {
-            return getContext().getOptions().INTEROP_EXECUTE_CACHE;
-        }
-
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "execute_without_conversion", isModuleFunction = true, required = 1, rest = true)
     public abstract static class ExecuteWithoutConversionNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(
-                guards = "args.length == cachedArgsLength",
-                limit = "getCacheLimit()"
-        )
+        @Specialization
         public Object executeWithoutConversionForeignCached(TruffleObject receiver, Object[] args,
-                @Cached("args.length") int cachedArgsLength,
-                @Cached("createExecuteNode(cachedArgsLength)") Node executeNode,
+                @Cached("EXECUTE.createNode()") Node executeNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
                 return ForeignAccess.sendExecute(executeNode, receiver, args);
@@ -175,48 +136,17 @@ public abstract class InteropNodes {
             }
         }
 
-        @Specialization(replaces = "executeWithoutConversionForeignCached")
-        public Object executeWithoutConversionForeignUncached(TruffleObject receiver, Object[] args,
-                                                              @Cached("create()") ForeignToRubyNode foreignToRubyNode,
-                                                              @Cached("new()") NotOptimizedWarningNode notOptimizedWarningNode) {
-            notOptimizedWarningNode.warn("megamorphic interop EXECUTE without conversion message send");
-
-            final Node executeNode = createExecuteNode(args.length);
-
-            final Object foreign;
-
-            try {
-                foreign = ForeignAccess.sendExecute(executeNode, receiver, args);
-            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-                throw new JavaException(e);
-            }
-
-            return foreignToRubyNode.executeConvert(foreign);
-        }
-
-        @TruffleBoundary
-        protected Node createExecuteNode(int argsLength) {
-            return Message.createExecute(argsLength).createNode();
-        }
-
-        protected int getCacheLimit() {
-            return getContext().getOptions().INTEROP_EXECUTE_CACHE;
-        }
-
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "invoke", isModuleFunction = true, required = 2, rest = true)
     public abstract static class InvokeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(
-                guards = "args.length == cachedArgsLength",
-                limit = "getCacheLimit()"
-        )
+        @Specialization
         public Object invokeCached(TruffleObject receiver, Object identifier, Object[] args,
-                @Cached("args.length") int cachedArgsLength,
                 @Cached("create()") ToJavaStringNode toJavaStringNode,
                 @Cached("create()") RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
-                @Cached("createInvokeNode(cachedArgsLength)") Node invokeNode,
+                @Cached("INVOKE.createNode()") Node invokeNode,
                 @Cached("create()") ForeignToRubyNode foreignToRubyNode,
                 @Cached("create()") BranchProfile unknownIdentifierProfile,
                 @Cached("create()") BranchProfile exceptionProfile) {
@@ -243,49 +173,6 @@ public abstract class InteropNodes {
             return foreignToRubyNode.executeConvert(foreign);
         }
 
-        @Specialization(replaces = "invokeCached")
-        public Object invokeUncached(TruffleObject receiver, DynamicObject identifier, Object[] args,
-                                     @Cached("create()") ToJavaStringNode toJavaStringNode,
-                                     @Cached("create()") RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
-                                     @Cached("create()") ForeignToRubyNode foreignToRubyNode,
-                                     @Cached("create()") BranchProfile unknownIdentifierProfile,
-                                     @Cached("create()") BranchProfile exceptionProfile,
-                                     @Cached("new()") NotOptimizedWarningNode notOptimizedWarningNode) {
-            notOptimizedWarningNode.warn("megamorphic interop INVOKE message send");
-
-            final Node invokeNode = createInvokeNode(args.length);
-            final String name = toJavaStringNode.executeToJavaString(identifier);
-            final Object[] arguments = rubyToForeignArgumentsNode.executeConvert(args);
-
-            final Object foreign;
-            try {
-                foreign = ForeignAccess.sendInvoke(
-                        invokeNode,
-                        receiver,
-                        name,
-                        arguments);
-            } catch (UnknownIdentifierException e) {
-                unknownIdentifierProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
-            } catch (UnsupportedTypeException
-                    | ArityException
-                    | UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
-            }
-
-            return foreignToRubyNode.executeConvert(foreign);
-        }
-
-        @TruffleBoundary
-        protected Node createInvokeNode(int argsLength) {
-            return Message.createInvoke(argsLength).createNode();
-        }
-
-        protected int getCacheLimit() {
-            return getContext().getOptions().INTEROP_INVOKE_CACHE;
-        }
-
     }
 
     @ImportStatic(Message.class)
@@ -306,17 +193,14 @@ public abstract class InteropNodes {
 
     }
 
+    @ImportStatic(Message.class)
     @CoreMethod(names = "new", isModuleFunction = true, required = 1, rest = true)
     public abstract static class NewNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(
-                guards = "args.length == cachedArgsLength",
-                limit = "getCacheLimit()"
-        )
+        @Specialization
         public Object newCached(TruffleObject receiver, Object[] args,
-                @Cached("args.length") int cachedArgsLength,
                 @Cached("create()") RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
-                @Cached("createNewNode(cachedArgsLength)") Node newNode,
+                @Cached("NEW.createNode()") Node newNode,
                 @Cached("create()") ForeignToRubyNode foreignToRubyNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             final Object foreign;
@@ -334,40 +218,6 @@ public abstract class InteropNodes {
             }
 
             return foreignToRubyNode.executeConvert(foreign);
-        }
-
-        @Specialization(replaces = "newCached")
-        public Object newUncached(TruffleObject receiver, Object[] args,
-                                  @Cached("create()") RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
-                                  @Cached("create()") ForeignToRubyNode foreignToRubyNode,
-                                  @Cached("new()") NotOptimizedWarningNode notOptimizedWarningNode) {
-            notOptimizedWarningNode.warn("megamorphic interop NEW message send");
-
-            final Node invokeNode = createNewNode(args.length);
-
-            final Object foreign;
-
-            try {
-                foreign = ForeignAccess.sendNew(
-                        invokeNode,
-                        receiver,
-                        rubyToForeignArgumentsNode.executeConvert(args));
-            } catch (UnsupportedTypeException
-                    | ArityException
-                    | UnsupportedMessageException e) {
-                throw new JavaException(e);
-            }
-
-            return foreignToRubyNode.executeConvert(foreign);
-        }
-
-        @TruffleBoundary
-        protected Node createNewNode(int argsLength) {
-            return Message.createNew(argsLength).createNode();
-        }
-
-        protected int getCacheLimit() {
-            return getContext().getOptions().INTEROP_NEW_CACHE;
         }
 
     }

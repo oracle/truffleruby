@@ -151,7 +151,7 @@ public class EncodingManager {
 
             // char *nl_langinfo(nl_item item);
             // nl_item is int on at least Linux, macOS & Solaris
-            final NativeFunction nl_langinfo = nfi.getFunction("nl_langinfo", 1, "(sint32):string");
+            final NativeFunction nl_langinfo = nfi.getFunction("nl_langinfo", "(sint32):string");
 
             final long address = nfi.asPointer((TruffleObject) nl_langinfo.call(codeset));
             final byte[] bytes = new Pointer(address).readZeroTerminatedByteArray(context, 0);

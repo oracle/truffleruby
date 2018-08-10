@@ -67,7 +67,7 @@ public class FeatureLoader {
 
     public void initialize(NativeConfiguration nativeConfiguration, TruffleNFIPlatform nfi) {
         if (context.getOptions().NATIVE_PLATFORM) {
-            this.getcwd = nfi.getFunction("getcwd", 2, "(pointer," + nfi.size_t() + "):pointer");
+            this.getcwd = nfi.getFunction("getcwd", "(pointer," + nfi.size_t() + "):pointer");
         }
     }
 
@@ -262,7 +262,7 @@ public class FeatureLoader {
                 sulongLoadLibraryFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_load_library", rubySUpath);
 
                 final TruffleObject initFunction = requireNode.findFunctionInLibraries(libraries, "rb_tr_init", rubySUpath);
-                final Node executeInitNode = Message.createExecute(0).createNode();
+                final Node executeInitNode = Message.EXECUTE.createNode();
                 try {
                     ForeignAccess.sendExecute(executeInitNode, initFunction);
                 } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
@@ -324,7 +324,7 @@ public class FeatureLoader {
         return libraries;
     }
 
-    private final Node executeSulongLoadLibraryNode = Message.createExecute(1).createNode();
+    private final Node executeSulongLoadLibraryNode = Message.EXECUTE.createNode();
 
     private void loadNativeLibrary(String library) {
         assert sulongLoadLibraryFunction != null;

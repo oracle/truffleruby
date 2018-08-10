@@ -102,6 +102,11 @@ module Truffle::FFI
       true
     end
 
+    # Every IS_POINTER object should also have TO_NATIVE
+    def to_native
+      self
+    end
+
     # Set the address pointed to from an Integer
     def address=(address)
       Truffle.primitive :pointer_set_address
@@ -169,7 +174,7 @@ module Truffle::FFI
     def write_string(str, len=nil)
       len = str.bytesize unless len
 
-      write_string_length(str, len);
+      write_string_length(str, len)
     end
 
     # Read a sequence of types +type+, length +length+, using method +reader+

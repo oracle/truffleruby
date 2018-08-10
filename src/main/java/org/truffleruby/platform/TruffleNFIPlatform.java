@@ -31,7 +31,7 @@ public class TruffleNFIPlatform {
     private final Node readNode = Message.READ.createNode();
     private final Node asPointerNode = Message.AS_POINTER.createNode();
 
-    private final Node bindNode = Message.createInvoke(1).createNode();
+    private final Node bindNode = Message.INVOKE.createNode();
 
     private final String size_t;
     private final NativeFunction strlen;
@@ -41,8 +41,8 @@ public class TruffleNFIPlatform {
         defaultLibrary = (TruffleObject) context.getEnv().parse(Source.newBuilder("default").mimeType("application/x-native").name("native").build()).call();
 
         size_t = resolveType(context.getNativeConfiguration(), "size_t");
-        strlen = getFunction("strlen", 1, String.format("(pointer):%s", size_t));
-        strnlen = getFunction("strnlen", 2, String.format("(pointer,%s):%s", size_t, size_t));
+        strlen = getFunction("strlen", String.format("(pointer):%s", size_t));
+        strnlen = getFunction("strnlen", String.format("(pointer,%s):%s", size_t, size_t));
     }
 
     public TruffleObject getDefaultLibrary() {
@@ -109,10 +109,10 @@ public class TruffleNFIPlatform {
         }
     }
 
-    public NativeFunction getFunction(String functionName, int arguments, String signature) {
+    public NativeFunction getFunction(String functionName, String signature) {
         final TruffleObject symbol = lookup(defaultLibrary, functionName);
         final TruffleObject function = bind(symbol, signature);
-        return new NativeFunction(function, arguments);
+        return new NativeFunction(function);
     }
 
     public String size_t() {
@@ -132,9 +132,9 @@ public class TruffleNFIPlatform {
         private final TruffleObject function;
         private final Node executeNode;
 
-        private NativeFunction(TruffleObject function, int numberOfArguments) {
+        private NativeFunction(TruffleObject function) {
             this.function = function;
-            this.executeNode = Message.createExecute(numberOfArguments).createNode();
+            this.executeNode = Message.EXECUTE.createNode();
         }
 
         public Object call(Object... arguments) {

@@ -237,7 +237,6 @@ class IO
 
     def empty_to(io)
       return 0 if @write_synced or empty?
-      @write_synced = true
 
       data = String.from_bytearray(@storage, @start, size, Encoding::ASCII_8BIT)
       Truffle::POSIX.write_string io, data, true
@@ -364,8 +363,7 @@ class IO
 
     def inspect # :nodoc:
       content = (@start..@used).map { |i| @storage[i].chr }.join.inspect
-      format '#<IO::InternalBuffer:0x%x total=%p start=%p used=%p data=%p %s>',
-             object_id, @total, @start, @used, @storage, content
+      "#{super[0...-1]} #{content}>"
     end
   end
 
