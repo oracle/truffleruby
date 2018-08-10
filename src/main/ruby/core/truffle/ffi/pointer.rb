@@ -174,7 +174,7 @@ module Truffle::FFI
     def write_string(str, len=nil)
       len = str.bytesize unless len
 
-      write_string_length(str, len);
+      write_string_length(str, len)
     end
 
     # Read a sequence of types +type+, length +length+, using method +reader+
