@@ -22,6 +22,7 @@ Bug fixes:
 Performance:
 
 * Optimize rejected (non-Symbol keys) keyword arguments.
+* Source `SecureRandom.random_bytes` from `/dev/urandom` rather than OpenSSL.
 
 Changes:
 
