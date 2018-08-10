@@ -1325,13 +1325,10 @@ public abstract class RopeNodes {
                 @Cached("create()") BranchProfile differentLengthProfile,
                 @Cached("createBinaryProfile()") ConditionProfile aCalculatedHashProfile,
                 @Cached("createBinaryProfile()") ConditionProfile bCalculatedHashProfile,
-                @Cached("create()") BranchProfile calculatedHashCodesProfile,
                 @Cached("create()") BranchProfile differentHashCodeProfile,
                 @Cached("create()") BranchProfile compareBytesProfile,
                 @Cached("create()") BytesNode aBytesNode,
-                @Cached("create()") BytesNode bBytesNode,
-                @Cached("create()") BranchProfile notEqualProfile,
-                @Cached("create()") BranchProfile equalProfile) {
+                @Cached("create()") BytesNode bBytesNode) {
             if (aRawBytesProfile.profile(a.getRawBytes() != null) && a.getRawBytes() == b.getRawBytes()) {
                 sameByteArraysProfile.enter();
                 return true;
@@ -1356,15 +1353,7 @@ public abstract class RopeNodes {
             final byte[] bBytes = bBytesNode.execute(b);
             assert aBytes.length == bBytes.length;
 
-            for (int i = 0; i < aBytes.length; i++) {
-                if (aBytes[i] != bBytes[i]) {
-                    notEqualProfile.enter();
-                    return false;
-                }
-            }
-
-            equalProfile.enter();
-            return true;
+            return Arrays.equals(aBytes, bBytes);
         }
 
     }
