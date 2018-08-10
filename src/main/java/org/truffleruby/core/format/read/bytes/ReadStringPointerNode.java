@@ -9,15 +9,15 @@
  */
 package org.truffleruby.core.format.read.bytes;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.FrameSlotTypeException;
+import com.oracle.truffle.api.frame.FrameUtil;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
@@ -25,7 +25,6 @@ import org.truffleruby.core.format.MissingValue;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.TaintNode;
 
@@ -36,6 +35,7 @@ public abstract class ReadStringPointerNode extends FormatNode {
 
     @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
+    private final BranchProfile errorProfile = BranchProfile.create();
     private final int limit;
 
     public ReadStringPointerNode(int limit) {
@@ -51,13 +51,7 @@ public abstract class ReadStringPointerNode extends FormatNode {
     public Object read(VirtualFrame frame, long address,
                        @Cached("create()") TaintNode taintNode) {
         final Pointer pointer = new Pointer(address);
-
-        try {
-            checkAssociated((Pointer[]) frame.getObject(FormatFrameDescriptor.SOURCE_ASSOCIATED_SLOT), pointer);
-        } catch (FrameSlotTypeException e) {
-            CompilerDirectives.transferToInterpreter();
-            throw new JavaException(e);
-        }
+        checkAssociated((Pointer[]) FrameUtil.getObjectSafe(frame, FormatFrameDescriptor.SOURCE_ASSOCIATED_SLOT), pointer);
 
         final byte[] bytes = pointer.readZeroTerminatedByteArray(getContext(), 0, limit);
         final DynamicObject string = makeStringNode.executeMake(bytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
@@ -65,7 +59,6 @@ public abstract class ReadStringPointerNode extends FormatNode {
         return string;
     }
 
-    @TruffleBoundary
     private void checkAssociated(Pointer[] associated, Pointer reading) {
         if (associated != null) {
             for (Pointer pointer : associated) {
@@ -75,6 +68,7 @@ public abstract class ReadStringPointerNode extends FormatNode {
             }
         }
 
+        errorProfile.enter();
         throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError("no associated pointer", this));
     }
 

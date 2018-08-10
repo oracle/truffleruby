@@ -10,7 +10,6 @@
 package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
@@ -22,6 +21,7 @@ import com.oracle.truffle.api.object.IncompatibleLocationException;
 import com.oracle.truffle.api.object.Location;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.utilities.NeverValidAssumption;
 
 import org.truffleruby.language.RubyBaseNode;
@@ -48,6 +48,11 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
 
     public abstract void executeWithGeneralize(DynamicObject object, Object value, boolean generalize);
 
+    @TruffleBoundary
+    private void executeBoundary(DynamicObject object, Object value, boolean generalize) {
+        executeWithGeneralize(object, value, generalize);
+    }
+
     @Specialization(
             guards = {
                     "location != null",
@@ -60,7 +65,8 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
             @Cached("object.getShape()") Shape cachedShape,
             @Cached("createAssumption(cachedShape)") Assumption validLocation,
             @Cached("isShared(cachedShape)") boolean shared,
-            @Cached("createWriteBarrierNode(shared)") WriteBarrierNode writeBarrierNode) {
+            @Cached("createWriteBarrierNode(shared)") WriteBarrierNode writeBarrierNode,
+            @Cached("createProfile(shared)") BranchProfile shapeRaceProfile) {
         try {
             if (shared) {
                 writeBarrierNode.executeWriteBarrier(value);
@@ -69,8 +75,8 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
                     // by adding a field (fine) or upgrading an existing field to Object storage
                     // (need to use the new storage)
                     if (object.getShape() != cachedShape) {
-                        CompilerDirectives.transferToInterpreter();
-                        executeWithGeneralize(object, value, generalize);
+                        shapeRaceProfile.enter();
+                        executeBoundary(object, value, generalize);
                         return;
                     }
                     location.set(object, value, cachedShape);
@@ -99,7 +105,8 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
             @Cached("getNewLocation(newShape)") Location newLocation,
             @Cached("createAssumption(oldShape)") Assumption validLocation,
             @Cached("isShared(oldShape)") boolean shared,
-            @Cached("createWriteBarrierNode(shared)") WriteBarrierNode writeBarrierNode) {
+            @Cached("createWriteBarrierNode(shared)") WriteBarrierNode writeBarrierNode,
+            @Cached("createProfile(shared)") BranchProfile shapeRaceProfile) {
         try {
             if (shared) {
                 writeBarrierNode.executeWriteBarrier(value);
@@ -108,8 +115,8 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
                     // by adding a field or upgrading an existing field to Object storage
                     // (we need to make sure to have the right shape to add the new field)
                     if (object.getShape() != oldShape) {
-                        CompilerDirectives.transferToInterpreter();
-                        executeWithGeneralize(object, value, generalize);
+                        shapeRaceProfile.enter();
+                        executeBoundary(object, value, generalize);
                         return;
                     }
                     newLocation.set(object, value, oldShape, newShape);
@@ -196,6 +203,14 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
     protected WriteBarrierNode createWriteBarrierNode(boolean shared) {
         if (shared) {
             return WriteBarrierNode.create();
+        } else {
+            return null;
+        }
+    }
+
+    protected BranchProfile createProfile(boolean shared) {
+        if (shared) {
+            return BranchProfile.create();
         } else {
             return null;
         }

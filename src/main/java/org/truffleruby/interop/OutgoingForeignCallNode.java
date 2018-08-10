@@ -135,18 +135,11 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
     protected abstract static class OutgoingNode extends Node {
 
-        private final BranchProfile exceptionProfile = BranchProfile.create();
-        private final BranchProfile unknownIdentifierProfile = BranchProfile.create();
+        protected final BranchProfile argumentErrorProfile = BranchProfile.create();
+        protected final BranchProfile exceptionProfile = BranchProfile.create();
+        protected final BranchProfile unknownIdentifierProfile = BranchProfile.create();
 
         public abstract Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args);
-
-        protected void exceptionProfile() {
-            exceptionProfile.enter();
-        }
-
-        protected void unknownIdentifierProfile() {
-            unknownIdentifierProfile.enter();
-        }
 
     }
 
@@ -163,7 +156,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != 1) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
             }
 
@@ -172,10 +165,10 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             try {
                 foreign = ForeignAccess.sendRead(node, receiver, name);
             } catch (UnknownIdentifierException e) {
-                unknownIdentifierProfile();
+                unknownIdentifierProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
             } catch (UnsupportedMessageException e) {
-                exceptionProfile();
+                exceptionProfile.enter();
                 throw new JavaException(e);
             }
 
@@ -198,7 +191,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != 2) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 2, this));
             }
 
@@ -211,10 +204,10 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                         identifierToForeignNode.executeConvert(args[0]),
                         valueToForeignNode.executeConvert(args[1]));
             } catch (UnknownIdentifierException e) {
-                unknownIdentifierProfile();
+                unknownIdentifierProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
             } catch (UnsupportedMessageException | UnsupportedTypeException e) {
-                exceptionProfile();
+                exceptionProfile.enter();
                 throw new JavaException(e);
             }
 
@@ -239,7 +232,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                         receiver,
                         rubyToForeignArgumentsNode.executeConvert(args));
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-                exceptionProfile();
+                exceptionProfile.enter();
                 throw new JavaException(e);
             }
 
@@ -255,7 +248,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length < 1) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
             }
 
@@ -287,7 +280,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                         receiver,
                         rubyToForeignArgumentsNode.executeConvert(args));
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-                exceptionProfile();
+                exceptionProfile.enter();
                 throw new JavaException(e);
             }
 
@@ -303,7 +296,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != 0) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 0, this));
             }
 
@@ -319,7 +312,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != 1) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
             }
 
@@ -343,7 +336,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != argsLength) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, this.argsLength, this));
             }
 
@@ -364,7 +357,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != 0) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 0, this));
             }
 
@@ -389,7 +382,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != 0) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 0, this));
             }
 
@@ -403,7 +396,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             if (args.length != 1) {
-                CompilerDirectives.transferToInterpreter();
+                argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
             }
 
@@ -514,10 +507,10 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                         name,
                         arguments);
             } catch (UnknownIdentifierException e) {
-                unknownIdentifierProfile();
+                unknownIdentifierProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-                exceptionProfile();
+                exceptionProfile.enter();
                 throw new JavaException(e);
             }
 
