@@ -330,7 +330,7 @@ public abstract class PointerNodes {
                 // No need to check the pointer address if we write nothing
                 checkNull(ptr);
             }
-            // Does NOT write an extra final NULL byte, like upstream FFI.
+
             ptr.writeBytes(0, rope.getBytes(), 0, length);
             return pointer;
         }
