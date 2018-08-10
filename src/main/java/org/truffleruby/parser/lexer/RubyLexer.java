@@ -462,7 +462,20 @@ public class RubyLexer implements MagicCommentHandler {
             throw argumentError(context, RopeOperations.decodeRope(name) + " is not ASCII compatible");
         }
 
+        if (!src.isFromRope() && !isUTF8Subset(newEncoding)) {
+            /*
+             * The source we are lexing came in via a String (or Reader, or File) from the Polyglot API, so we only
+             * have the String - we don't have any access to the original bytes, so we cannot re-interpret them
+             * in another encoding without risking errors. 
+             */
+            throw argumentError(context, RopeOperations.decodeRope(name) + " cannot be used as an encoding for a Polyglot API source as it is not UTF-8 or a subset of UTF-8");
+        }
+
         setEncoding(newEncoding);
+    }
+
+    private boolean isUTF8Subset(Encoding encoding) {
+        return encoding == UTF8Encoding.INSTANCE || encoding == USASCIIEncoding.INSTANCE;
     }
 
     private RuntimeException argumentError(RubyContext context, String message) {

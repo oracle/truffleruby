@@ -16,10 +16,18 @@ Bug fixes:
 * Support `-Wl` linker argument for C extensions.
 * Using `Module#const_get` with a scoped argument will now correctly
   autoload the constant if needed.
+* Loaded files are read as raw bytes, rather than as a UTF-8 string and then
+  converted back into bytes.
 
 Performance:
 
 * Optimize rejected (non-Symbol keys) keyword arguments.
+
+Changes:
+
+* Clarified that all sources that come in from the Polyglot API `eval` method
+  will be treated as UTF-8, and cannot be re-interpreted as another encoding
+  using a magic comment.
 
 # 1.0 RC 5, August 2018
 

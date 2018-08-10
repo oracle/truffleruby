@@ -57,11 +57,15 @@ public class LexerSource {
 
     private int byteOffset;
 
+    private final boolean fromRope;
+
     public LexerSource(RubySource rubySource, int lineStartOffset, Encoding encoding) {
         this.source = rubySource.getSource();
         this.lineStartOffset = lineStartOffset;
 
-        if (rubySource.getRope() != null) {
+        fromRope = rubySource.getRope() != null;
+
+        if (fromRope) {
             this.sourceBytes = rubySource.getRope();
         } else {
             // TODO CS 5-Sep-17 can we get the bytes directly rather than using getCharacters ->  toString -> getBytes?
@@ -123,6 +127,10 @@ public class LexerSource {
         }
 
         return -1;
+    }
+
+    public boolean isFromRope() {
+        return fromRope;
     }
 
 }

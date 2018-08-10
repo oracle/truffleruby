@@ -567,3 +567,11 @@ Interop ignores visibility entirely.
 Methods such as `Kernel.Integer`, `Kernel.Float`, `Numeric#coerce` will call
 `Truffle::Interop.unbox_if_needed` on objects, in order to unbox any boxed
 foreign objects, before continuing with the normal coercion routine.
+
+## Notes on source encoding
+
+Sources created from the Polyglot API only contain a Java `String` and the
+original bytes are not available to be re-interpreted in a different encoding
+from the one already to create it. Therefore TruffleRuby interprets these
+sources as UTF-8 and cannot set the file encoding using a magic comment, except
+for encodings which are sub-sets of UTF-8, such as 7-bit ASCII.

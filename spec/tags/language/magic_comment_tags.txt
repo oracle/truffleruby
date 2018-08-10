@@ -34,6 +34,12 @@ slow:Magic comments in an eval can take Emacs style
 slow:Magic comments in an eval can take vim style
 slow:Magic comments in an eval determine __ENCODING__
 slow:Magic comments in an eval do not cause bytes to be mangled by passing them through the wrong encoding
-fails:Magic comments in the main file do not cause bytes to be mangled by passing them through the wrong encoding
-fails:Magic comments in a loaded file do not cause bytes to be mangled by passing them through the wrong encoding
-fails:Magic comments in a required file do not cause bytes to be mangled by passing them through the wrong encoding
+slow:Magic comments in stdin are optional
+slow:Magic comments in stdin are case-insensitive
+slow:Magic comments in stdin must be at the first line
+slow:Magic comments in stdin must be the first token of the line
+slow:Magic comments in stdin can be after the shebang
+slow:Magic comments in stdin can take Emacs style
+slow:Magic comments in stdin can take vim style
+slow:Magic comments in stdin determine __ENCODING__
+slow:Magic comments in stdin do not cause bytes to be mangled by passing them through the wrong encoding
