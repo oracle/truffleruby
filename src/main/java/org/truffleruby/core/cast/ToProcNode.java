@@ -43,7 +43,7 @@ public abstract class ToProcNode extends RubyNode {
             @Cached("create()") BranchProfile errorProfile) {
         final Object coerced;
         try {
-            coerced = toProc.call(frame, object, "to_proc");
+            coerced = toProc.dispatch(frame, object, "to_proc", null, EMPTY_ARGUMENTS);
         } catch (RaiseException e) {
             errorProfile.enter();
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {

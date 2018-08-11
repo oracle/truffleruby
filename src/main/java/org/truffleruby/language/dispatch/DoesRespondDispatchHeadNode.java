@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.dispatch;
 
+import org.truffleruby.language.RubyNode;
+
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
@@ -41,7 +43,7 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
                 receiverObject,
                 methodName,
                 null,
-                null);
+                RubyNode.EMPTY_ARGUMENTS);
     }
 
 }
