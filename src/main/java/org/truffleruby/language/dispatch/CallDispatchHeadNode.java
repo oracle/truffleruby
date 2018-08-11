@@ -32,7 +32,7 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
     }
 
     public Object call(VirtualFrame frame, Object receiver, Object method, Object... arguments) {
-        return dispatch(frame, receiver, method, null, arguments);
+        return dispatch(null, receiver, method, null, arguments);
     }
 
     public Object callWithBlock(
@@ -41,7 +41,7 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
             Object method,
             DynamicObject block,
             Object... arguments) {
-        return dispatch(frame, receiver, method, block, arguments);
+        return dispatch(null, receiver, method, block, arguments);
     }
 
 }
