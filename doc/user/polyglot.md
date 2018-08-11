@@ -190,7 +190,7 @@ This can be turned off even when embedded, with the `embedded` option
 (`--ruby.embedded=false` from another launcher, or
 `-Dpolyglot.ruby.embedded=false` from a normal Java application).
 
-It's a separate option, but in an embedded configuration, you may want to use
+It's a separate option, but in an embedded configuration you may want to use
 the `-Xplatform.native=false` option, which disables use of NFI.
 
 Note that, unlike for example pure JavaScript, Ruby is more than a
