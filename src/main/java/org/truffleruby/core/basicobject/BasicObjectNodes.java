@@ -33,6 +33,7 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
+import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.module.ModuleOperations;
@@ -86,10 +87,11 @@ public abstract class BasicObjectNodes {
     public abstract static class NotEqualNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode equalNode = CallDispatchHeadNode.createOnSelf();
+        @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         @Specialization
         public boolean equal(VirtualFrame frame, Object a, Object b) {
-            return !equalNode.callBoolean(frame, a, "==", b);
+            return !booleanCastNode.executeToBoolean(equalNode.call(frame, a, "==", b));
         }
 
     }

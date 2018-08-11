@@ -165,6 +165,7 @@ public abstract class KernelNodes {
     public abstract static class SameOrEqualNode extends PrimitiveArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode equalNode;
+        @Child private BooleanCastNode booleanCastNode;
 
         private final ConditionProfile sameProfile = ConditionProfile.createBinaryProfile();
 
@@ -190,7 +191,12 @@ public abstract class KernelNodes {
                 equalNode = insert(CallDispatchHeadNode.createOnSelf());
             }
 
-            return equalNode.callBoolean(frame, left, "==", right);
+            if (booleanCastNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                booleanCastNode = insert(BooleanCastNode.create());
+            }
+
+            return booleanCastNode.executeToBoolean(equalNode.call(frame, left, "==", right));
         }
 
     }
@@ -211,6 +217,7 @@ public abstract class KernelNodes {
     public abstract static class SameOrEqlNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode eqlNode;
+        @Child private BooleanCastNode booleanCastNode;
 
         private final ConditionProfile sameProfile = ConditionProfile.createBinaryProfile();
 
@@ -231,7 +238,13 @@ public abstract class KernelNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 eqlNode = insert(CallDispatchHeadNode.createOnSelf());
             }
-            return eqlNode.callBoolean(frame, left, "eql?", right);
+
+            if (booleanCastNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                booleanCastNode = insert(BooleanCastNode.create());
+            }
+
+            return booleanCastNode.executeToBoolean(eqlNode.call(frame, left, "eql?", right));
         }
 
     }
@@ -1089,6 +1102,7 @@ public abstract class KernelNodes {
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private LookupMethodNode lookupMethodNode;
         @Child private CallDispatchHeadNode respondToMissingNode = CallDispatchHeadNode.createOnSelf();
+        @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         public GetMethodObjectNode(boolean ignoreVisibility) {
             this.ignoreVisibility = ignoreVisibility;
@@ -1105,7 +1119,8 @@ public abstract class KernelNodes {
             InternalMethod method = lookupMethodNode.executeLookupMethod(frame, self, normalizedName);
 
             if (notFoundProfile.profile(method == null)) {
-                if (respondToMissingProfile.profile(respondToMissingNode.callBoolean(frame, self, "respond_to_missing?", name, ignoreVisibility))) {
+                final Object respondToMissing = respondToMissingNode.call(frame, self, "respond_to_missing?", name, ignoreVisibility);
+                if (respondToMissingProfile.profile(booleanCastNode.executeToBoolean(respondToMissing))) {
                     final InternalMethod methodMissing = lookupMethodNode.executeLookupMethod(frame, self, "method_missing");
                     method = createMissingMethod(self, name, normalizedName, methodMissing);
                 } else {
@@ -1437,6 +1452,7 @@ public abstract class KernelNodes {
         @Child private DoesRespondDispatchHeadNode dispatchIgnoreVisibility;
         @Child private DoesRespondDispatchHeadNode dispatchRespondToMissing;
         @Child private CallDispatchHeadNode respondToMissingNode;
+        @Child private BooleanCastNode booleanCastNode;
         private final ConditionProfile ignoreVisibilityProfile = ConditionProfile.createBinaryProfile();
 
         public RespondToNode() {
@@ -1496,7 +1512,12 @@ public abstract class KernelNodes {
                 respondToMissingNode = insert(CallDispatchHeadNode.createOnSelf());
             }
 
-            return respondToMissingNode.callBoolean(frame, object, "respond_to_missing?", name, includeProtectedAndPrivate);
+            if (booleanCastNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                booleanCastNode = insert(BooleanCastNode.create());
+            }
+
+            return booleanCastNode.executeToBoolean(respondToMissingNode.call(frame, object, "respond_to_missing?", name, includeProtectedAndPrivate));
         }
     }
 

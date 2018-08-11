@@ -16,6 +16,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -68,6 +69,7 @@ public abstract class HashLiteralNode extends RubyNode {
 
         @Child private HashNode hashNode;
         @Child private CallDispatchHeadNode equalNode;
+        @Child private BooleanCastNode booleanCastNode;
         @Child protected CallDispatchHeadNode dupNode;
         @Child protected CallDispatchHeadNode freezeNode;
         @Child private IsFrozenNode isFrozenNode;
@@ -127,7 +129,13 @@ public abstract class HashLiteralNode extends RubyNode {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 equalNode = insert(CallDispatchHeadNode.createOnSelf());
             }
-            return equalNode.callBoolean(frame, receiver, "eql?", key);
+
+            if (booleanCastNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                booleanCastNode = insert(BooleanCastNode.create());
+            }
+
+            return booleanCastNode.executeToBoolean(equalNode.call(frame, receiver, "eql?", key));
         }
 
         private Object callDup(VirtualFrame frame, Object receiver) {

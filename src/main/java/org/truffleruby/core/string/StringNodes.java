@@ -98,6 +98,7 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
@@ -352,6 +353,7 @@ public abstract class StringNodes {
         @Child private StringEqualNode stringEqualNode = StringEqualNodeGen.create(null, null);
         @Child private KernelNodes.RespondToNode respondToNode;
         @Child private CallDispatchHeadNode objectEqualNode;
+        @Child private BooleanCastNode booleanCastNode;
         @Child private CheckLayoutNode checkLayoutNode;
 
         @Specialization(guards = "isRubyString(b)")
@@ -372,7 +374,12 @@ public abstract class StringNodes {
                     objectEqualNode = insert(CallDispatchHeadNode.createOnSelf());
                 }
 
-                return objectEqualNode.callBoolean(frame, b, "==", a);
+                if (booleanCastNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    booleanCastNode = insert(BooleanCastNode.create());
+                }
+
+                return booleanCastNode.executeToBoolean(objectEqualNode.call(frame, b, "==", a));
             }
 
             return false;
@@ -487,8 +494,6 @@ public abstract class StringNodes {
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-        @Child private CallDispatchHeadNode includeNode;
-        @Child private CallDispatchHeadNode dupNode;
         @Child private NormalizeIndexNode normalizeIndexNode;
         @Child private StringSubstringPrimitiveNode substringNode;
         @Child private CallDispatchHeadNode toIntNode;
@@ -620,20 +625,14 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isRubyString(matchStr)")
-        public Object slice2(VirtualFrame frame, DynamicObject string, DynamicObject matchStr, NotProvided length) {
-            if (includeNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                includeNode = insert(CallDispatchHeadNode.createOnSelf());
-            }
+        public Object slice2(VirtualFrame frame, DynamicObject string, DynamicObject matchStr, NotProvided length,
+                @Cached("createOnSelf()") CallDispatchHeadNode includeNode,
+                @Cached("create()") BooleanCastNode booleanCastNode,
+                @Cached("createOnSelf()") CallDispatchHeadNode dupNode) {
 
-            boolean result = includeNode.callBoolean(frame, string, "include?", matchStr);
+            final Object included = includeNode.call(frame, string, "include?", matchStr);
 
-            if (result) {
-                if (dupNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    dupNode = insert(CallDispatchHeadNode.createOnSelf());
-                }
-
+            if (booleanCastNode.executeToBoolean(included)) {
                 throw new TaintResultNode.DoNotTaint(dupNode.call(frame, matchStr, "dup"));
             }
 

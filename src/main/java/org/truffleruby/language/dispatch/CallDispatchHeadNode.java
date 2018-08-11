@@ -9,15 +9,10 @@
  */
 package org.truffleruby.language.dispatch;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 
 public class CallDispatchHeadNode extends DispatchHeadNode {
-
-    @Child private BooleanCastNode booleanCastNode;
 
     /** Create a dispatch node ignoring visibility. */
     public static CallDispatchHeadNode createOnSelf() {
@@ -47,18 +42,6 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
             DynamicObject block,
             Object... arguments) {
         return dispatch(frame, receiver, method, block, arguments);
-    }
-
-    public boolean callBoolean(
-            VirtualFrame frame,
-            Object receiverObject,
-            Object methodName,
-            Object... argumentsObjects) {
-        if (booleanCastNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            booleanCastNode = insert(BooleanCastNodeGen.create(null));
-        }
-        return booleanCastNode.executeToBoolean(call(frame, receiverObject, methodName, argumentsObjects));
     }
 
 }
