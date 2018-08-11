@@ -125,7 +125,7 @@ public abstract class HashLiteralNode extends RubyNode {
         private boolean callEqual(VirtualFrame frame, Object receiver, Object key) {
             if (equalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                equalNode = insert(CallDispatchHeadNode.create());
+                equalNode = insert(CallDispatchHeadNode.createOnSelf());
             }
             return equalNode.callBoolean(frame, receiver, "eql?", key);
         }
@@ -133,7 +133,7 @@ public abstract class HashLiteralNode extends RubyNode {
         private Object callDup(VirtualFrame frame, Object receiver) {
             if (dupNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                dupNode = insert(CallDispatchHeadNode.create());
+                dupNode = insert(CallDispatchHeadNode.createOnSelf());
             }
             return dupNode.call(frame, receiver, "dup");
         }
@@ -141,7 +141,7 @@ public abstract class HashLiteralNode extends RubyNode {
         private Object callFreeze(VirtualFrame frame, Object receiver) {
             if (freezeNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                freezeNode = insert(CallDispatchHeadNode.create());
+                freezeNode = insert(CallDispatchHeadNode.createOnSelf());
             }
             return freezeNode.call(frame, receiver, "freeze");
         }

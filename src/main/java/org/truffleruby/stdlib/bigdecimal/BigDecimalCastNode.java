@@ -96,9 +96,9 @@ public abstract class BigDecimalCastNode extends RubyNode {
             DynamicObject value,
             Object roundingMode,
             @Cached("create()") IsANode isRationalNode,
-            @Cached("create()") CallDispatchHeadNode numeratorCallNode,
-            @Cached("create()") CallDispatchHeadNode denominatorCallNode,
-            @Cached("create()") CallDispatchHeadNode toFCallNode) {
+            @Cached("createOnSelf()") CallDispatchHeadNode numeratorCallNode,
+            @Cached("createOnSelf()") CallDispatchHeadNode denominatorCallNode,
+            @Cached("createOnSelf()") CallDispatchHeadNode toFCallNode) {
         if (roundingMode instanceof RoundingMode && isRationalNode.executeIsA(value, coreLibrary().getRationalClass())) {
             final Object numerator = numeratorCallNode.call(frame, value, "numerator");
             final Object denominator = denominatorCallNode.call(frame, value, "denominator");

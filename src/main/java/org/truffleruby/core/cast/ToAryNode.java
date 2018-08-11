@@ -38,7 +38,7 @@ public abstract class ToAryNode extends RubyNode {
             @Cached("create()") BranchProfile errorProfile) {
         if (toAryNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toAryNode = insert(CallDispatchHeadNode.create());
+            toAryNode = insert(CallDispatchHeadNode.createOnSelf());
         }
 
         final Object coerced;

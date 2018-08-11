@@ -86,7 +86,6 @@ import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.platform.Platform;
 
@@ -107,7 +106,6 @@ public abstract class IONodes {
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public static abstract class AllocateNode extends UnaryCoreMethodNode {
 
-        @Child private CallDispatchHeadNode newBufferNode = CallDispatchHeadNode.create();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         @Specialization

@@ -49,7 +49,7 @@ public abstract class RescueNode extends RubyNode {
 
         if (callTripleEqualsNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callTripleEqualsNode = insert(CallDispatchHeadNode.create());
+            callTripleEqualsNode = insert(CallDispatchHeadNode.createOnSelf());
         }
         if (booleanCastNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

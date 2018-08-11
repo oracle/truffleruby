@@ -102,11 +102,7 @@ public class RubyCallNode extends RubyNode {
     public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, DynamicObject blockObject, Object[] argumentsObjects) {
         if (dispatchHead == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            if (ignoreVisibility) {
-                dispatchHead = insert(CallDispatchHeadNode.createOnSelf());
-            } else {
-                dispatchHead = insert(CallDispatchHeadNode.create());
-            }
+            dispatchHead = insert(new CallDispatchHeadNode(ignoreVisibility, false, MissingBehavior.CALL_METHOD_MISSING));
         }
 
         final Object returnValue = dispatchHead.dispatch(frame, receiverObject, methodName, blockObject, argumentsObjects);

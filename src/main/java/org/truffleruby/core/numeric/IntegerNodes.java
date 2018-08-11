@@ -787,7 +787,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object equal(VirtualFrame frame, Object a, Object b,
-                @Cached("create()") CallDispatchHeadNode reverseCallNode,
+                @Cached("createOnSelf()") CallDispatchHeadNode reverseCallNode,
                 @Cached("create()") BooleanCastNode booleanCastNode) {
             final Object reversedResult = reverseCallNode.call(frame, b, "==", a);
             return booleanCastNode.executeToBoolean(reversedResult);

@@ -183,7 +183,7 @@ public abstract class KernelNodes {
         private boolean areEqual(VirtualFrame frame, Object left, Object right) {
             if (equalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                equalNode = insert(CallDispatchHeadNode.create());
+                equalNode = insert(CallDispatchHeadNode.createOnSelf());
             }
 
             return equalNode.callBoolean(frame, left, "==", right);
@@ -225,7 +225,7 @@ public abstract class KernelNodes {
         private boolean areEql(VirtualFrame frame, Object left, Object right) {
             if (eqlNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                eqlNode = insert(CallDispatchHeadNode.create());
+                eqlNode = insert(CallDispatchHeadNode.createOnSelf());
             }
             return eqlNode.callBoolean(frame, left, "eql?", right);
         }
@@ -1128,7 +1128,7 @@ public abstract class KernelNodes {
         private static class CallMethodMissingWithStaticName extends RubyNode {
 
             private final DynamicObject methodName;
-            @Child private CallDispatchHeadNode methodMissing = CallDispatchHeadNode.create();
+            @Child private CallDispatchHeadNode methodMissing = CallDispatchHeadNode.createOnSelf();
 
             public CallMethodMissingWithStaticName(DynamicObject methodName) {
                 this.methodName = methodName;
@@ -1196,7 +1196,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "p", isModuleFunction = true, required = 1)
     public abstract static class DebugPrintNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode callInspectNode = CallDispatchHeadNode.create();
+        @Child private CallDispatchHeadNode callInspectNode = CallDispatchHeadNode.createOnSelf();
 
         @Specialization
         public Object p(VirtualFrame frame, Object value) {

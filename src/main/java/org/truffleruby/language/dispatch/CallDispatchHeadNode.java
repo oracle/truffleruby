@@ -19,15 +19,9 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
 
     @Child private BooleanCastNode booleanCastNode;
 
-    public static CallDispatchHeadNode create() {
-        return new CallDispatchHeadNode(
-                false, false, MissingBehavior.CALL_METHOD_MISSING);
-    }
-
     /** Create a dispatch node ignoring visibility. */
     public static CallDispatchHeadNode createOnSelf() {
-        return new CallDispatchHeadNode(
-                true, false, MissingBehavior.CALL_METHOD_MISSING);
+        return new CallDispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING);
     }
 
     public static CallDispatchHeadNode createCallPublicOnly() {
@@ -38,7 +32,7 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
         return new CallDispatchHeadNode(true, false, MissingBehavior.RETURN_MISSING);
     }
 
-    private CallDispatchHeadNode(boolean ignoreVisibility, boolean onlyCallPublic, MissingBehavior missingBehavior) {
+    CallDispatchHeadNode(boolean ignoreVisibility, boolean onlyCallPublic, MissingBehavior missingBehavior) {
         super(ignoreVisibility, onlyCallPublic, missingBehavior, DispatchAction.CALL_METHOD);
     }
 

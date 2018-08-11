@@ -369,7 +369,7 @@ public abstract class StringNodes {
             if (respondToNode.doesRespondToString(frame, b, coreStrings().TO_STR.createInstance(), false)) {
                 if (objectEqualNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    objectEqualNode = insert(CallDispatchHeadNode.create());
+                    objectEqualNode = insert(CallDispatchHeadNode.createOnSelf());
                 }
 
                 return objectEqualNode.callBoolean(frame, b, "==", a);
@@ -477,7 +477,7 @@ public abstract class StringNodes {
                 VirtualFrame frame,
                 DynamicObject string,
                 Object other,
-                @Cached("create()") CallDispatchHeadNode callNode) {
+                @Cached("createOnSelf()") CallDispatchHeadNode callNode) {
             return callNode.call(frame, string, "concat_internal", other);
         }
 
@@ -623,7 +623,7 @@ public abstract class StringNodes {
         public Object slice2(VirtualFrame frame, DynamicObject string, DynamicObject matchStr, NotProvided length) {
             if (includeNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                includeNode = insert(CallDispatchHeadNode.create());
+                includeNode = insert(CallDispatchHeadNode.createOnSelf());
             }
 
             boolean result = includeNode.callBoolean(frame, string, "include?", matchStr);
@@ -631,7 +631,7 @@ public abstract class StringNodes {
             if (result) {
                 if (dupNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    dupNode = insert(CallDispatchHeadNode.create());
+                    dupNode = insert(CallDispatchHeadNode.createOnSelf());
                 }
 
                 throw new TaintResultNode.DoNotTaint(dupNode.call(frame, matchStr, "dup"));
@@ -2161,10 +2161,10 @@ public abstract class StringNodes {
 
         public abstract Object executeSum(VirtualFrame frame, DynamicObject string, Object bits);
 
-        @Child private CallDispatchHeadNode addNode = CallDispatchHeadNode.create();
-        @Child private CallDispatchHeadNode subNode = CallDispatchHeadNode.create();
-        @Child private CallDispatchHeadNode shiftNode = CallDispatchHeadNode.create();
-        @Child private CallDispatchHeadNode andNode = CallDispatchHeadNode.create();
+        @Child private CallDispatchHeadNode addNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode subNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode shiftNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode andNode = CallDispatchHeadNode.createOnSelf();
         private final RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization

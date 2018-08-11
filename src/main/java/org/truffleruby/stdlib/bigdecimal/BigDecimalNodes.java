@@ -329,7 +329,7 @@ public abstract class BigDecimalNodes {
                 DynamicObject b,
                 NotProvided precision,
                 @Cached("createBinaryProfile()") ConditionProfile bZeroProfile,
-                @Cached("create()") CallDispatchHeadNode floorNode) {
+                @Cached("createOnSelf()") CallDispatchHeadNode floorNode) {
             if (bZeroProfile.profile(isNormalZero(b))) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else {
@@ -509,7 +509,7 @@ public abstract class BigDecimalNodes {
                 VirtualFrame frame,
                 DynamicObject a,
                 DynamicObject b,
-                @Cached("create()") CallDispatchHeadNode signCall,
+                @Cached("createOnSelf()") CallDispatchHeadNode signCall,
                 @Cached("create()") IntegerCastNode signIntegerCast,
                 @Cached("createBinaryProfile()") ConditionProfile nanProfile,
                 @Cached("createBinaryProfile()") ConditionProfile normalNegProfile,

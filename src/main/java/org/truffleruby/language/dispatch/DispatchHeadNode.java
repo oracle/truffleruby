@@ -25,7 +25,8 @@ public abstract class DispatchHeadNode extends RubyBaseNode {
     protected DispatchHeadNode(
             boolean ignoreVisibility,
             boolean onlyCallPublic,
-            MissingBehavior missingBehavior, DispatchAction dispatchAction) {
+            MissingBehavior missingBehavior,
+            DispatchAction dispatchAction) {
         this.ignoreVisibility = ignoreVisibility;
         this.onlyCallPublic = onlyCallPublic;
         this.missingBehavior = missingBehavior;

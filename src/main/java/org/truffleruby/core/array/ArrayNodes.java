@@ -1029,7 +1029,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
         public long hash(VirtualFrame frame, DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("create()") CallDispatchHeadNode toHashNode) {
+                @Cached("createOnSelf()") CallDispatchHeadNode toHashNode) {
             final int size = strategy.getSize(array);
             long h = getContext().getHashing(this).start(size);
             h = Hashing.update(h, CLASS_SALT);
@@ -1262,7 +1262,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class InjectNode extends YieldingCoreMethodNode {
 
-        @Child private CallDispatchHeadNode dispatch = CallDispatchHeadNode.create();
+        @Child private CallDispatchHeadNode dispatch = CallDispatchHeadNode.createCallPublicOnly();
 
         // With block
 
@@ -2016,7 +2016,7 @@ public abstract class ArrayNodes {
         public DynamicObject sortVeryShort(VirtualFrame frame, DynamicObject array, NotProvided block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
-                @Cached("create()") CallDispatchHeadNode compareDispatchNode,
+                @Cached("createOnSelf()") CallDispatchHeadNode compareDispatchNode,
                 @Cached("create()") FixnumLowerNode fixnumLowerNode,
                 @Cached("create()") BranchProfile errorProfile) {
             final ArrayMirror originalStore = strategy.newMirror(array);

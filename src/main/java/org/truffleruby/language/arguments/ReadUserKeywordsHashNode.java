@@ -67,7 +67,7 @@ public class ReadUserKeywordsHashNode extends RubyNode {
     private boolean respondToToHash(VirtualFrame frame, Object lastArgument) {
         if (respondToToHashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            respondToToHashNode = insert(DoesRespondDispatchHeadNode.createPublic());
+            respondToToHashNode = insert(DoesRespondDispatchHeadNode.create());
         }
         return respondToToHashNode.doesRespondTo(frame, "to_hash", lastArgument);
     }
@@ -75,7 +75,7 @@ public class ReadUserKeywordsHashNode extends RubyNode {
     private Object callToHash(VirtualFrame frame, Object lastArgument) {
         if (callToHashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callToHashNode = insert(CallDispatchHeadNode.create());
+            callToHashNode = insert(CallDispatchHeadNode.createOnSelf());
         }
         return callToHashNode.call(frame, lastArgument, "to_hash");
     }

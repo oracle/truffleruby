@@ -210,7 +210,7 @@ public abstract class HashNodes {
         public Object accept(VirtualFrame frame, Object hash, Object key) {
             if (callDefaultNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                callDefaultNode = insert(CallDispatchHeadNode.create());
+                callDefaultNode = insert(CallDispatchHeadNode.createOnSelf());
             }
             return callDefaultNode.call(frame, hash, "default", key);
         }
@@ -953,7 +953,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "!isRubyHash(other)")
         public Object merge(VirtualFrame frame, DynamicObject hash, Object other, Object maybeBlock,
-                @Cached("create()") CallDispatchHeadNode fallbackCallNode) {
+                @Cached("createOnSelf()") CallDispatchHeadNode fallbackCallNode) {
             final DynamicObject block;
             if (maybeBlock == NotProvided.INSTANCE) {
                 block = null;
@@ -1009,7 +1009,7 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class ShiftNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode callDefaultNode = CallDispatchHeadNode.create();
+        @Child private CallDispatchHeadNode callDefaultNode = CallDispatchHeadNode.createOnSelf();
 
         @Specialization(guards = "isEmptyHash(hash)")
         public Object shiftEmpty(VirtualFrame frame, DynamicObject hash) {

@@ -40,7 +40,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.IsTaintedNode;
 
@@ -397,7 +396,6 @@ public abstract class MatchDataNodes {
     @CoreMethod(names = "captures")
     public abstract static class CapturesNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
         @Child private ValuesNode valuesNode = ValuesNode.create();
 
         @Specialization

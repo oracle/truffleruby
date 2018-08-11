@@ -165,7 +165,7 @@ public abstract class FloatNodes {
                 if (complexConvertNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     complexConvertNode = insert(CallDispatchHeadNode.createOnSelf());
-                    complexPowNode = insert(CallDispatchHeadNode.create());
+                    complexPowNode = insert(CallDispatchHeadNode.createOnSelf());
                 }
 
                 final Object aComplex = complexConvertNode.call(frame, coreLibrary().getComplexClass(), "convert", a, 0);

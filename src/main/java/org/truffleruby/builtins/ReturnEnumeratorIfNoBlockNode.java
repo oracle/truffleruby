@@ -39,7 +39,7 @@ public class ReturnEnumeratorIfNoBlockNode extends RubyNode {
         if (noBlockProfile.profile(block == null)) {
             if (toEnumNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toEnumNode = insert(CallDispatchHeadNode.create());
+                toEnumNode = insert(CallDispatchHeadNode.createOnSelf());
             }
 
             if (methodSymbol == null) {

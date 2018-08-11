@@ -71,7 +71,7 @@ public class TruffleRegexpNodes {
 
         @Child StringAppendPrimitiveNode appendNode = StringAppendPrimitiveNode.create();
         @Child ToSNode toSNode = ToSNode.create();
-        @Child CallDispatchHeadNode copyNode = CallDispatchHeadNode.create();
+        @Child CallDispatchHeadNode copyNode = CallDispatchHeadNode.createOnSelf();
         @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
@@ -183,7 +183,7 @@ public class TruffleRegexpNodes {
     public static abstract class MatchNode extends RubyNode {
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
-        @Child CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
+        @Child CallDispatchHeadNode dupNode = CallDispatchHeadNode.createOnSelf();
 
         public static MatchNode create() {
             return MatchNodeGen.create(null, null, null, null, null, null);
