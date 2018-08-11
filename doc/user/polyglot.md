@@ -191,7 +191,8 @@ This can be turned off even when embedded, with the `embedded` option
 `-Dpolyglot.ruby.embedded=false` from a normal Java application).
 
 It's a separate option, but in an embedded configuration you may want to use
-the `-Xplatform.native=false` option, which disables use of NFI.
+the `-Xplatform.native=false` option, which disables use of NFI for internal
+functionality.
 
 Note that, unlike for example pure JavaScript, Ruby is more than a
 self-contained expression language. It has a large core library that includes

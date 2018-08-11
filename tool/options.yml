@@ -33,7 +33,7 @@ SOURCE_ENCODING: [[source_encoding, -K], string, '', Source encoding]
 INTERNAL_ENCODING: [[internal_encoding, -E, -U], string, '', Internal encoding]
 EXTERNAL_ENCODING: [[external_encoding, -E], string, '', External encoding]
 
-NATIVE_PLATFORM: [platform.native, boolean, true, Enables native calls via Truffle NFI]
+NATIVE_PLATFORM: [platform.native, boolean, true, Enables native calls via Truffle NFI for internal functionality]
 NATIVE_INTERRUPT: [platform.native_interrupt, boolean, NATIVE_PLATFORM, Use the SIGVTALRM signal to interrupt native blocking calls]
 HANDLE_INTERRUPT: [platform.handle_interrupt, boolean, '!EMBEDDED', Handle the interrupt signal and raise an Interrupt exception]
 SINGLE_THREADED: [single_threaded, boolean, EMBEDDED, Use only a single thread to be compatible with languages not supporting multithreading]
