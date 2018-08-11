@@ -35,7 +35,6 @@ import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.kernel.KernelNodes.ObjectSameOrEqualNode;
-import org.truffleruby.core.kernel.KernelNodesFactory.ObjectSameOrEqualNodeFactory;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.rope.CodeRange;
@@ -72,7 +71,7 @@ public class TruffleRegexpNodes {
         @Child StringAppendPrimitiveNode appendNode = StringAppendPrimitiveNode.create();
         @Child ToSNode toSNode = ToSNode.create();
         @Child CallDispatchHeadNode copyNode = CallDispatchHeadNode.createOnSelf();
-        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
+        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization(guards = "argsMatch(frame, cachedArgs, args)", limit = "getCacheLimit()")

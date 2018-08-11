@@ -50,7 +50,6 @@ import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
 import org.truffleruby.core.kernel.KernelNodes.ObjectSameOrEqualNode;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
-import org.truffleruby.core.kernel.KernelNodesFactory.ObjectSameOrEqualNodeFactory;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.rope.Rope;
@@ -656,7 +655,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class DeleteNode extends YieldingCoreMethodNode {
 
-        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
+        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNode.create();
         @Child private IsFrozenNode isFrozenNode;
 
         @Specialization(guards = { "strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
@@ -866,7 +865,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class EqualNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
+        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNode.create();
 
         @Specialization(guards = { "isRubyArray(b)", "strategy.matches(a)", "strategy.matches(b)",
                 "strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
@@ -1062,7 +1061,7 @@ public abstract class ArrayNodes {
     @CoreMethod(names = "include?", required = 1)
     public abstract static class IncludeNode extends ArrayCoreMethodNode {
 
-        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
+        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNode.create();
 
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
         public boolean include(VirtualFrame frame, DynamicObject array, Object value,

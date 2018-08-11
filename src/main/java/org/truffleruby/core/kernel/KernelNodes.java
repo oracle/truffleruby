@@ -168,6 +168,10 @@ public abstract class KernelNodes {
 
         private final ConditionProfile sameProfile = ConditionProfile.createBinaryProfile();
 
+        public static ObjectSameOrEqualNode create() {
+            return ObjectSameOrEqualNodeFactory.create(null);
+        }
+
         public abstract boolean executeObjectSameOrEqual(VirtualFrame frame, Object a, Object b);
 
         @Specialization
@@ -194,7 +198,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "===", required = 1)
     public abstract static class CaseCompareNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
+        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNode.create();
 
         @Specialization
         protected boolean caseCmp(VirtualFrame frame, Object a, Object b) {
@@ -235,7 +239,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = { "<=>" }, required = 1)
     public abstract static class CompareNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
+        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNode.create();
 
         @Specialization
         public Object compare(VirtualFrame frame, Object self, Object other) {
