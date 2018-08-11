@@ -18,6 +18,6 @@ describe "The -Xplatform.native option" do
   end
   
   it "when disabled can use reasonable parts of the stdlib" do
-    ruby_exe("require 'yaml'; p YAML.load('--- foo')", options: "-Xplatform.native=false").should == "\"foo\"\n"
+    ruby_exe("require 'uri'; p URI('http://foo.com/posts?id=30&limit=5#time=1305298413').query", options: "-Xplatform.native=false").should == "\"id=30&limit=5\"\n"
   end
 end

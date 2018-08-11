@@ -30,7 +30,7 @@ describe "The -Xembedded option" do
   end
   
   it "when enabled can use reasonable parts of the stdlib" do
-    ruby_exe("require 'yaml'; p YAML.load('--- foo')", options: "-Xembedded").should == "\"foo\"\n"
+    ruby_exe("require 'uri'; p URI('http://foo.com/posts?id=30&limit=5#time=1305298413').query", options: "-Xembedded").should == "\"id=30&limit=5\"\n"
   end
   
   it "when enabled will warn about signals" do
