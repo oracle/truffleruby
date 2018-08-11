@@ -79,7 +79,7 @@ public class RubyMessageResolution {
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
-            return dispatchNode.call(frame, object, "size");
+            return dispatchNode.call(object, "size");
         }
 
     }
@@ -128,7 +128,7 @@ public class RubyMessageResolution {
             } else if (pointerProfile.profile(Layouts.POINTER.isPointer(object))) {
                 return Layouts.POINTER.getPointer(object).getAddress();
             } else if (doesRespond.doesRespondTo(frame, "unbox", object)) {
-                return dispatchNode.call(frame, object, "unbox");
+                return dispatchNode.call(object, "unbox");
             } else {
                 throw UnsupportedMessageException.raise(Message.UNBOX);
             }
@@ -144,7 +144,7 @@ public class RubyMessageResolution {
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
             if (doesRespond.doesRespondTo(frame, "pointer?", object)) {
-                return dispatchNode.call(frame, object, "pointer?");
+                return dispatchNode.call(object, "pointer?");
             } else {
                 return false;
             }
@@ -162,7 +162,7 @@ public class RubyMessageResolution {
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
             if (doesRespond.doesRespondTo(frame, "address", object)) {
-                Object result = dispatchNode.call(frame, object, "address");
+                Object result = dispatchNode.call(object, "address");
 
                 if (intProfile.profile(result instanceof Integer)) {
                     result = (long) ((int) result);
@@ -184,7 +184,7 @@ public class RubyMessageResolution {
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
             if (doesRespond.doesRespondTo(frame, "to_native", object)) {
-                return dispatchNode.call(frame, object, "to_native");
+                return dispatchNode.call(object, "to_native");
             } else {
                 throw UnsupportedMessageException.raise(Message.TO_NATIVE);
             }
@@ -238,17 +238,17 @@ public class RubyMessageResolution {
             if (arrayReceiverProfile.profile(RubyGuards.isRubyArray(object))) {
                 if (validArrayIndexProfile.profile(name instanceof Integer ||
                         (name instanceof Long && RubyGuards.fitsInInteger((long) name)))) {
-                    arrayDeleteAtNode.call(frame, object, "delete_at", name);
+                    arrayDeleteAtNode.call(object, "delete_at", name);
                 } else {
                     throw UnknownIdentifierException.raise(toJavaStringNode.executeToJavaString(name));
                 }
             } else if (hashReceiverProfile.profile(RubyGuards.isRubyHash(object))) {
-                hashDeleteNode.call(frame, object, "delete", foreignToRubyNode.executeConvert(name));
+                hashDeleteNode.call(object, "delete", foreignToRubyNode.executeConvert(name));
             } else if (stringProfile.profile(name instanceof String)) {
                 final String stringName = (String) name;
 
                 if (ivarProfile.profile(!stringName.isEmpty() && stringName.charAt(0) == '@')) {
-                    removeInstanceVariableNode.call(frame, object, "remove_instance_variable", foreignToRubyNode.executeConvert(name));
+                    removeInstanceVariableNode.call(object, "remove_instance_variable", foreignToRubyNode.executeConvert(name));
                 } else {
                     throw UnsupportedMessageException.raise(Message.REMOVE);
                 }
@@ -280,7 +280,7 @@ public class RubyMessageResolution {
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
 
         protected Object access(VirtualFrame frame, DynamicObject object, boolean internal) {
-            return dispatchNode.call(frame, getContext().getCoreLibrary().getTruffleInteropModule(), "object_keys", object, internal);
+            return dispatchNode.call(getContext().getCoreLibrary().getTruffleInteropModule(), "object_keys", object, internal);
         }
 
         private RubyContext getContext() {
@@ -304,7 +304,7 @@ public class RubyMessageResolution {
 
         protected Object access(VirtualFrame frame, DynamicObject object, Object name) {
             final Object convertedName = foreignToRubyNode.executeConvert(name);
-            return dispatchNode.call(frame, getContext().getCoreLibrary().getTruffleInteropModule(), "object_key_info", object, convertedName);
+            return dispatchNode.call(getContext().getCoreLibrary().getTruffleInteropModule(), "object_key_info", object, convertedName);
         }
 
         private RubyContext getContext() {
@@ -348,7 +348,7 @@ public class RubyMessageResolution {
         @Child private ForeignToRubyArgumentsNode foreignToRubyArgumentsNode = ForeignToRubyArgumentsNode.create();
 
         protected Object access(VirtualFrame frame, DynamicObject receiver, String name, Object[] arguments) {
-            return dispatchNode.call(frame, receiver, name, foreignToRubyArgumentsNode.executeConvert(arguments));
+            return dispatchNode.call(receiver, name, foreignToRubyArgumentsNode.executeConvert(arguments));
         }
 
     }
@@ -371,7 +371,7 @@ public class RubyMessageResolution {
         @Child private ForeignToRubyArgumentsNode foreignToRubyArgumentsNode = ForeignToRubyArgumentsNode.create();
 
         protected Object access(VirtualFrame frame, DynamicObject receiver, Object[] arguments) {
-            return dispatchNode.call(frame, receiver, "new", foreignToRubyArgumentsNode.executeConvert(arguments));
+            return dispatchNode.call(receiver, "new", foreignToRubyArgumentsNode.executeConvert(arguments));
         }
 
     }

@@ -91,7 +91,7 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         public boolean equal(VirtualFrame frame, Object a, Object b) {
-            return !booleanCastNode.executeToBoolean(equalNode.call(frame, a, "==", b));
+            return !booleanCastNode.executeToBoolean(equalNode.call(a, "==", b));
         }
 
     }

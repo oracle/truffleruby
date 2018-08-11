@@ -129,7 +129,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
             callNode = insert(CallDispatchHeadNode.createOnSelf());
         }
 
-        return callNode.call(null, receiver, methodName, arguments);
+        return callNode.call(receiver, methodName, arguments);
     }
 
 }

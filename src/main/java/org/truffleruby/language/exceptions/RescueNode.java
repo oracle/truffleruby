@@ -56,7 +56,7 @@ public abstract class RescueNode extends RubyNode {
             booleanCastNode = insert(BooleanCastNodeGen.create(null));
         }
 
-        final Object matches = callTripleEqualsNode.call(frame, handlingClass, "===", exception);
+        final Object matches = callTripleEqualsNode.call(handlingClass, "===", exception);
         return booleanCastNode.executeToBoolean(matches);
     }
 

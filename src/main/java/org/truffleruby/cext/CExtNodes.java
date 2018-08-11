@@ -985,7 +985,7 @@ public class CExtNodes {
                 initializeClassNode = insert(InitializeClassNodeGen.create(false, null, null, null));
             }
 
-            DynamicObject klass = (DynamicObject) allocateNode.call(frame, getContext().getCoreLibrary().getClassClass(), "__allocate__");
+            DynamicObject klass = (DynamicObject) allocateNode.call(getContext().getCoreLibrary().getClassClass(), "__allocate__");
             return initializeClassNode.executeInitialize(frame, klass, superclass, NotProvided.INSTANCE);
         }
 
@@ -1036,7 +1036,7 @@ public class CExtNodes {
                 toSCall = insert(CallDispatchHeadNode.createOnSelf());
             }
 
-            return (DynamicObject) toSCall.call(null, object, "to_s");
+            return (DynamicObject) toSCall.call(object, "to_s");
         }
 
     }

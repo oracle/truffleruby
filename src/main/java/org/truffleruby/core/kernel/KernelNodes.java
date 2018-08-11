@@ -196,7 +196,7 @@ public abstract class KernelNodes {
                 booleanCastNode = insert(BooleanCastNode.create());
             }
 
-            return booleanCastNode.executeToBoolean(equalNode.call(frame, left, "==", right));
+            return booleanCastNode.executeToBoolean(equalNode.call(left, "==", right));
         }
 
     }
@@ -244,7 +244,7 @@ public abstract class KernelNodes {
                 booleanCastNode = insert(BooleanCastNode.create());
             }
 
-            return booleanCastNode.executeToBoolean(eqlNode.call(frame, left, "eql?", right));
+            return booleanCastNode.executeToBoolean(eqlNode.call(left, "eql?", right));
         }
 
     }
@@ -356,7 +356,7 @@ public abstract class KernelNodes {
                 @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) Property[] properties,
                 @Cached("createReadFieldNodes(properties)") ReadObjectFieldNode[] readFieldNodes,
                 @Cached("createWriteFieldNodes(properties)") WriteObjectFieldNode[] writeFieldNodes) {
-            final DynamicObject newObject = (DynamicObject) allocateNode.call(frame, logicalClass, "__allocate__");
+            final DynamicObject newObject = (DynamicObject) allocateNode.call(logicalClass, "__allocate__");
 
             for (int i = 0; i < properties.length; i++) {
                 final Object value = readFieldNodes[i].execute(self);
@@ -374,7 +374,7 @@ public abstract class KernelNodes {
         @Specialization(replaces = { "copyCached", "updateShapeAndCopy" })
         protected DynamicObject copyUncached(VirtualFrame frame, DynamicObject self) {
             final DynamicObject rubyClass = Layouts.BASIC_OBJECT.getLogicalClass(self);
-            final DynamicObject newObject = (DynamicObject) allocateNode.call(frame, rubyClass, "__allocate__");
+            final DynamicObject newObject = (DynamicObject) allocateNode.call(rubyClass, "__allocate__");
             copyInstanceVariables(self, newObject);
             return newObject;
         }
@@ -456,7 +456,7 @@ public abstract class KernelNodes {
                 Layouts.MODULE.getFields(newObjectMetaClass).initCopy(selfMetaClass);
             }
 
-            initializeCloneNode.call(frame, newObject, "initialize_clone", self);
+            initializeCloneNode.call(newObject, "initialize_clone", self);
 
             propagateTaintNode.propagate(self, newObject);
 
@@ -497,7 +497,7 @@ public abstract class KernelNodes {
         public DynamicObject dup(VirtualFrame frame, DynamicObject self) {
             final DynamicObject newObject = copyNode.executeCopy(frame, self);
 
-            initializeDupNode.call(frame, newObject, "initialize_dup", self);
+            initializeDupNode.call(newObject, "initialize_dup", self);
 
             return newObject;
         }
@@ -789,7 +789,7 @@ public abstract class KernelNodes {
 
         @Specialization
         public Object initializeDup(VirtualFrame frame, DynamicObject self, DynamicObject from) {
-            return initializeCopyNode.call(frame, self, "initialize_copy", from);
+            return initializeCopyNode.call(self, "initialize_copy", from);
         }
 
     }
@@ -1119,7 +1119,7 @@ public abstract class KernelNodes {
             InternalMethod method = lookupMethodNode.executeLookupMethod(frame, self, normalizedName);
 
             if (notFoundProfile.profile(method == null)) {
-                final Object respondToMissing = respondToMissingNode.call(frame, self, "respond_to_missing?", name, ignoreVisibility);
+                final Object respondToMissing = respondToMissingNode.call(self, "respond_to_missing?", name, ignoreVisibility);
                 if (respondToMissingProfile.profile(booleanCastNode.executeToBoolean(respondToMissing))) {
                     final InternalMethod methodMissing = lookupMethodNode.executeLookupMethod(frame, self, "method_missing");
                     method = createMissingMethod(self, name, normalizedName, methodMissing);
@@ -1157,7 +1157,7 @@ public abstract class KernelNodes {
             public Object execute(VirtualFrame frame) {
                 final Object[] originalUserArguments = RubyArguments.getArguments(frame);
                 final Object[] newUserArguments = ArrayUtils.unshift(originalUserArguments, methodName);
-                return methodMissing.callWithBlock(frame, RubyArguments.getSelf(frame), "method_missing", RubyArguments.getBlock(frame), newUserArguments);
+                return methodMissing.callWithBlock(RubyArguments.getSelf(frame), "method_missing", RubyArguments.getBlock(frame), newUserArguments);
             }
         }
 
@@ -1219,7 +1219,7 @@ public abstract class KernelNodes {
 
         @Specialization
         public Object p(VirtualFrame frame, Object value) {
-            Object inspected = callInspectNode.call(frame, value, "inspect");
+            Object inspected = callInspectNode.call(value, "inspect");
             print(inspected);
             return value;
         }
@@ -1517,7 +1517,7 @@ public abstract class KernelNodes {
                 booleanCastNode = insert(BooleanCastNode.create());
             }
 
-            return booleanCastNode.executeToBoolean(respondToMissingNode.call(frame, object, "respond_to_missing?", name, includeProtectedAndPrivate));
+            return booleanCastNode.executeToBoolean(respondToMissingNode.call(object, "respond_to_missing?", name, includeProtectedAndPrivate));
         }
     }
 

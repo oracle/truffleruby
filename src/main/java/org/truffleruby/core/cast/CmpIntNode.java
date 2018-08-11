@@ -100,11 +100,11 @@ public abstract class CmpIntNode extends RubyNode {
             @Cached("create()") BooleanCastNode gtCastNode,
             @Cached("create()") BooleanCastNode ltCastNode) {
 
-        if (gtCastNode.executeToBoolean(gtNode.call(frame, value, ">", 0))) {
+        if (gtCastNode.executeToBoolean(gtNode.call(value, ">", 0))) {
             return 1;
         }
 
-        if (ltCastNode.executeToBoolean(ltNode.call(frame, value, "<", 0))) {
+        if (ltCastNode.executeToBoolean(ltNode.call(value, "<", 0))) {
             return -1;
         }
 

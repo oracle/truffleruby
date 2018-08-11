@@ -112,7 +112,7 @@ public abstract class ToIntNode extends RubyNode {
 
         final Object coerced;
         try {
-            coerced = toIntNode.call(null, object, "to_int");
+            coerced = toIntNode.call(object, "to_int");
         } catch (RaiseException e) {
             errorProfile.enter();
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {

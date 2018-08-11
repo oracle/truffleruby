@@ -72,7 +72,7 @@ public abstract class CallSuperMethodNode extends RubyNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callMethodMissingNode = insert(CallDispatchHeadNode.createOnSelf());
         }
-        return callMethodMissingNode.callWithBlock(frame, receiver, "method_missing", (DynamicObject) block, arguments);
+        return callMethodMissingNode.callWithBlock(receiver, "method_missing", (DynamicObject) block, arguments);
     }
 
 }

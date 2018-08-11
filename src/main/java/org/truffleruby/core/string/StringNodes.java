@@ -379,7 +379,7 @@ public abstract class StringNodes {
                     booleanCastNode = insert(BooleanCastNode.create());
                 }
 
-                return booleanCastNode.executeToBoolean(objectEqualNode.call(frame, b, "==", a));
+                return booleanCastNode.executeToBoolean(objectEqualNode.call(b, "==", a));
             }
 
             return false;
@@ -485,7 +485,7 @@ public abstract class StringNodes {
                 DynamicObject string,
                 Object other,
                 @Cached("createOnSelf()") CallDispatchHeadNode callNode) {
-            return callNode.call(frame, string, "concat_internal", other);
+            return callNode.call(string, "concat_internal", other);
         }
 
     }
@@ -609,17 +609,17 @@ public abstract class StringNodes {
                 @Cached("createOnSelf()") CallDispatchHeadNode callNode,
                 @Cached("createOnSelf()") CallDispatchHeadNode setLastMatchNode,
                 @Cached("create()") ReadCallerFrameNode readCallerNode) {
-            final Object matchStrPair = callNode.call(frame, string, "subpattern", regexp, capture);
+            final Object matchStrPair = callNode.call(string, "subpattern", regexp, capture);
 
             final DynamicObject binding = BindingNodes.createBinding(getContext(), readCallerNode.execute(frame).materialize());
             if (matchStrPair == nil()) {
-                setLastMatchNode.call(frame, coreLibrary().getTruffleRegexpOperationsModule(), "set_last_match", nil(), binding);
+                setLastMatchNode.call(coreLibrary().getTruffleRegexpOperationsModule(), "set_last_match", nil(), binding);
                 return nil();
             }
 
             final Object[] array = (Object[]) Layouts.ARRAY.getStore((DynamicObject) matchStrPair);
 
-            setLastMatchNode.call(frame, coreLibrary().getTruffleRegexpOperationsModule(), "set_last_match", array[0], binding);
+            setLastMatchNode.call(coreLibrary().getTruffleRegexpOperationsModule(), "set_last_match", array[0], binding);
 
             return array[1];
         }
@@ -630,10 +630,10 @@ public abstract class StringNodes {
                 @Cached("create()") BooleanCastNode booleanCastNode,
                 @Cached("createOnSelf()") CallDispatchHeadNode dupNode) {
 
-            final Object included = includeNode.call(frame, string, "include?", matchStr);
+            final Object included = includeNode.call(string, "include?", matchStr);
 
             if (booleanCastNode.executeToBoolean(included)) {
-                throw new TaintResultNode.DoNotTaint(dupNode.call(frame, matchStr, "dup"));
+                throw new TaintResultNode.DoNotTaint(dupNode.call(matchStr, "dup"));
             }
 
             return nil();
@@ -654,7 +654,7 @@ public abstract class StringNodes {
                 toIntNode = insert(CallDispatchHeadNode.createOnSelf());
             }
 
-            return (int) toIntNode.call(frame, coreLibrary().getTruffleTypeModule(), "rb_num2int", value);
+            return (int) toIntNode.call(coreLibrary().getTruffleTypeModule(), "rb_num2int", value);
         }
     }
 
@@ -2184,11 +2184,11 @@ public abstract class StringNodes {
             if (bits >= 8 * 8) { // long size * bits in byte
                 Object sum = 0;
                 while (p < end) {
-                    sum = addNode.call(frame, sum, "+", bytes[p++] & 0xff);
+                    sum = addNode.call(sum, "+", bytes[p++] & 0xff);
                 }
                 if (bits != 0) {
-                    final Object mod = shiftNode.call(frame, 1, "<<", bits);
-                    sum = andNode.call(frame, sum, "&", subNode.call(frame, mod, "-", 1));
+                    final Object mod = shiftNode.call(1, "<<", bits);
+                    sum = andNode.call(sum, "&", subNode.call(mod, "-", 1));
                 }
                 return sum;
             } else {

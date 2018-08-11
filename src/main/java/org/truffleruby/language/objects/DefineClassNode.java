@@ -112,7 +112,7 @@ public class DefineClassNode extends RubyNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             inheritedNode = insert(CallDispatchHeadNode.createOnSelf());
         }
-        inheritedNode.call(frame, superClass, "inherited", childClass);
+        inheritedNode.call(superClass, "inherited", childClass);
     }
 
     private Object lookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent) {

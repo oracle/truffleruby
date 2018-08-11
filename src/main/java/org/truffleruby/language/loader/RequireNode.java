@@ -371,7 +371,7 @@ public abstract class RequireNode extends RubyNode {
         final DynamicObject loadedFeatures = getContext().getCoreLibrary().getLoadedFeatures();
         final Object included;
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
-            included = isInLoadedFeatures.call(null, loadedFeatures, "include?", feature);
+            included = isInLoadedFeatures.call(loadedFeatures, "include?", feature);
         }
         return booleanCastNode.executeToBoolean(included);
     }
@@ -379,7 +379,7 @@ public abstract class RequireNode extends RubyNode {
     private void addToLoadedFeatures(DynamicObject feature) {
         final DynamicObject loadedFeatures = coreLibrary().getLoadedFeatures();
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
-            addToLoadedFeatures.call(null, loadedFeatures, "<<", feature);
+            addToLoadedFeatures.call(loadedFeatures, "<<", feature);
         }
     }
 

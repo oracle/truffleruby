@@ -64,7 +64,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
         return executeInitialize(
                 frame,
                 value,
-                (DynamicObject) allocateNode.call(frame, getBigDecimalClass(), "__allocate__"),
+                (DynamicObject) allocateNode.call(getBigDecimalClass(), "__allocate__"),
                 NotProvided.INSTANCE);
     }
 
@@ -124,7 +124,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
                 .executeGetIntegerConstant(frame, getBigDecimalClass(), "EXCEPTION_INFINITY");
 
         final boolean raise = booleanCastNode.executeToBoolean(
-                modeCallNode.call(frame, getBigDecimalClass(), "boolean_mode", exceptionConstant));
+                modeCallNode.call(getBigDecimalClass(), "boolean_mode", exceptionConstant));
 
         if (raiseProfile.profile(raise)) {
             throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToInfinity(this));
@@ -150,7 +150,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
                 getBigDecimalClass(), "EXCEPTION_NaN");
 
         final boolean raise = booleanCastNode.executeToBoolean(
-                modeCallNode.call(frame, getBigDecimalClass(), "boolean_mode", exceptionConstant));
+                modeCallNode.call(getBigDecimalClass(), "boolean_mode", exceptionConstant));
 
         if (raiseProfile.profile(raise)) {
             throw new RaiseException(getContext(), coreExceptions().floatDomainErrorResultsToNaN(this));

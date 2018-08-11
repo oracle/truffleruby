@@ -77,7 +77,7 @@ public class ReadUserKeywordsHashNode extends RubyNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callToHashNode = insert(CallDispatchHeadNode.createOnSelf());
         }
-        return callToHashNode.call(frame, lastArgument, "to_hash");
+        return callToHashNode.call(lastArgument, "to_hash");
     }
 
 }

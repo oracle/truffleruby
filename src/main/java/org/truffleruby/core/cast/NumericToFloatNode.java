@@ -39,7 +39,7 @@ public abstract class NumericToFloatNode extends RubyNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toFloatCallNode = insert(CallDispatchHeadNode.createOnSelf());
         }
-        return toFloatCallNode.call(frame, value, "to_f");
+        return toFloatCallNode.call(value, "to_f");
     }
 
     @Specialization(guards = "isNumeric(frame, value)")

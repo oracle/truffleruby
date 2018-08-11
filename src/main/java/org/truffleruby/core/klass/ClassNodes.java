@@ -258,7 +258,7 @@ public abstract class ClassNodes {
 
         @Specialization
         public Object newInstance(VirtualFrame frame, DynamicObject rubyClass) {
-            return allocateNode.call(frame, rubyClass, "__allocate__");
+            return allocateNode.call(rubyClass, "__allocate__");
         }
     }
 
@@ -279,8 +279,8 @@ public abstract class ClassNodes {
         }
 
         private Object doNewInstance(VirtualFrame frame, DynamicObject rubyClass, Object[] args, DynamicObject block) {
-            final Object instance = allocateNode.call(frame, rubyClass, "__allocate__");
-            initialize.callWithBlock(frame, instance, "initialize", block, args);
+            final Object instance = allocateNode.call(rubyClass, "__allocate__");
+            initialize.callWithBlock(instance, "initialize", block, args);
             return instance;
         }
     }

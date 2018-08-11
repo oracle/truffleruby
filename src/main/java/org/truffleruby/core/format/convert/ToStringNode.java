@@ -89,7 +89,7 @@ public abstract class ToStringNode extends FormatNode {
             setTainted(frame);
         }
         if ("inspect".equals(conversionMethod)) {
-            final Object value = getToStrNode().call(frame, string, conversionMethod);
+            final Object value = getToStrNode().call(string, conversionMethod);
 
             if (RubyGuards.isRubyString(value)) {
                 if (taintedProfile.profile(isTaintedNode.executeIsTainted(value))) {
@@ -112,7 +112,7 @@ public abstract class ToStringNode extends FormatNode {
             toSNode = insert(CallDispatchHeadNode.createReturnMissing());
         }
 
-        final Object value = toSNode.call(frame, array, "to_s");
+        final Object value = toSNode.call(array, "to_s");
 
         if (RubyGuards.isRubyString(value)) {
             if (taintedProfile.profile(isTaintedNode.executeIsTainted(value))) {
@@ -128,7 +128,7 @@ public abstract class ToStringNode extends FormatNode {
     @Specialization(guards = {"!isRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)"})
     public byte[] toString(VirtualFrame frame, Object object,
             @Cached("create()") RopeNodes.BytesNode bytesNode) {
-        final Object value = getToStrNode().call(frame, object, conversionMethod);
+        final Object value = getToStrNode().call(object, conversionMethod);
 
         if (RubyGuards.isRubyString(value)) {
             if (taintedProfile.profile(isTaintedNode.executeIsTainted(value))) {

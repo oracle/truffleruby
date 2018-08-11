@@ -1751,9 +1751,9 @@ public abstract class ModuleNodes {
             if (Layouts.MODULE.getFields(module).removeMethod(name)) {
                 if (RubyGuards.isSingletonClass(module)) {
                     final DynamicObject receiver = Layouts.CLASS.getAttached(module);
-                    methodRemovedNode.call(frame, receiver, "singleton_method_removed", getSymbol(name));
+                    methodRemovedNode.call(receiver, "singleton_method_removed", getSymbol(name));
                 } else {
-                    methodRemovedNode.call(frame, module, "method_removed", getSymbol(name));
+                    methodRemovedNode.call(module, "method_removed", getSymbol(name));
                 }
             } else {
                 errorProfile.enter();
@@ -1782,7 +1782,7 @@ public abstract class ModuleNodes {
                         CompilerDirectives.transferToInterpreterAndInvalidate();
                         callRbInspect = insert(CallDispatchHeadNode.createOnSelf());
                     }
-                    final Object inspectResult = callRbInspect.call(null, coreLibrary().getTruffleTypeModule(), "rb_inspect", attached);
+                    final Object inspectResult = callRbInspect.call(coreLibrary().getTruffleTypeModule(), "rb_inspect", attached);
                     name = StringOperations.getString((DynamicObject) inspectResult);
                 } else {
                     name = fields.getName();
@@ -1822,9 +1822,9 @@ public abstract class ModuleNodes {
             Layouts.MODULE.getFields(module).undefMethod(getContext(), this, name);
             if (RubyGuards.isSingletonClass(module)) {
                 final DynamicObject receiver = Layouts.CLASS.getAttached(module);
-                methodUndefinedNode.call(frame, receiver, "singleton_method_undefined", getSymbol(name));
+                methodUndefinedNode.call(receiver, "singleton_method_undefined", getSymbol(name));
             } else {
-                methodUndefinedNode.call(frame, module, "method_undefined", getSymbol(name));
+                methodUndefinedNode.call(module, "method_undefined", getSymbol(name));
             }
         }
 

@@ -78,7 +78,7 @@ public class TruffleRegexpNodes {
         public Object executeFastUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] args,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
                 @Cached("buildUnion(frame, str, sep, args)") DynamicObject union) {
-            return copyNode.call(frame, union, "clone");
+            return copyNode.call(union, "clone");
         }
 
         @Specialization(replaces = "executeFastUnion")
@@ -222,7 +222,7 @@ public class TruffleRegexpNodes {
             assert match >= 0;
 
             final Region region = matcher.getEagerRegion();
-            final DynamicObject dupedString = (DynamicObject) dupNode.call(null, string, "dup");
+            final DynamicObject dupedString = (DynamicObject) dupNode.call(string, "dup");
             DynamicObject result = allocateNode.allocate(matchDataClass(), Layouts.MATCH_DATA.build(dupedString,
                     regexp, region, null));
             return (DynamicObject) taintResultNode.maybeTaint(string, result);

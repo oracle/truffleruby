@@ -135,7 +135,7 @@ public abstract class HashLiteralNode extends RubyNode {
                 booleanCastNode = insert(BooleanCastNode.create());
             }
 
-            return booleanCastNode.executeToBoolean(equalNode.call(frame, receiver, "eql?", key));
+            return booleanCastNode.executeToBoolean(equalNode.call(receiver, "eql?", key));
         }
 
         private Object callDup(VirtualFrame frame, Object receiver) {
@@ -143,7 +143,7 @@ public abstract class HashLiteralNode extends RubyNode {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 dupNode = insert(CallDispatchHeadNode.createOnSelf());
             }
-            return dupNode.call(frame, receiver, "dup");
+            return dupNode.call(receiver, "dup");
         }
 
         private Object callFreeze(VirtualFrame frame, Object receiver) {
@@ -151,7 +151,7 @@ public abstract class HashLiteralNode extends RubyNode {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 freezeNode = insert(CallDispatchHeadNode.createOnSelf());
             }
-            return freezeNode.call(frame, receiver, "freeze");
+            return freezeNode.call(receiver, "freeze");
         }
 
         protected boolean isFrozen(Object object) {

@@ -48,7 +48,7 @@ public class ReturnEnumeratorIfNoBlockNode extends RubyNode {
             }
 
             final Object[] arguments = ArrayUtils.unshift(RubyArguments.getArguments(frame), methodSymbol);
-            return toEnumNode.call(frame, RubyArguments.getSelf(frame), "to_enum", arguments);
+            return toEnumNode.call(RubyArguments.getSelf(frame), "to_enum", arguments);
         } else {
             return method.execute(frame);
         }

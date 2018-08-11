@@ -50,7 +50,7 @@ public abstract class ReadHashValueNode extends FormatNode {
             fetchNode = insert(CallDispatchHeadNode.createOnSelf());
         }
 
-        return fetchNode.call(frame, hash, "fetch", key);
+        return fetchNode.call(hash, "fetch", key);
     }
 
 }

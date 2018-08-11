@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.dispatch;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
 public class CallDispatchHeadNode extends DispatchHeadNode {
@@ -31,16 +30,11 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
         super(ignoreVisibility, onlyCallPublic, missingBehavior, DispatchAction.CALL_METHOD);
     }
 
-    public Object call(VirtualFrame frame, Object receiver, String method, Object... arguments) {
+    public Object call(Object receiver, String method, Object... arguments) {
         return dispatch(null, receiver, method, null, arguments);
     }
 
-    public Object callWithBlock(
-            VirtualFrame frame,
-            Object receiver,
-            String method,
-            DynamicObject block,
-            Object... arguments) {
+    public Object callWithBlock(Object receiver, String method, DynamicObject block, Object... arguments) {
         return dispatch(null, receiver, method, block, arguments);
     }
 

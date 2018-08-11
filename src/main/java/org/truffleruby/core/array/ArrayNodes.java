@@ -1007,13 +1007,13 @@ public abstract class ArrayNodes {
         @Specialization
         protected Object fillFallback(VirtualFrame frame, DynamicObject array, Object[] args, NotProvided block,
                 @Cached("createOnSelf()") CallDispatchHeadNode callFillInternal) {
-            return callFillInternal.call(frame, array, "fill_internal", args);
+            return callFillInternal.call(array, "fill_internal", args);
         }
 
         @Specialization
         protected Object fillFallback(VirtualFrame frame, DynamicObject array, Object[] args, DynamicObject block,
                 @Cached("createOnSelf()") CallDispatchHeadNode callFillInternal) {
-            return callFillInternal.callWithBlock(frame, array, "fill_internal", block, args);
+            return callFillInternal.callWithBlock(array, "fill_internal", block, args);
         }
 
     }
@@ -1036,7 +1036,7 @@ public abstract class ArrayNodes {
 
             for (int n = 0; n < size; n++) {
                 final Object value = store.get(n);
-                final long valueHash = toLong(toHashNode.call(frame, value, "hash"));
+                final long valueHash = toLong(toHashNode.call(value, "hash"));
                 h = Hashing.update(h, valueHash);
             }
 
@@ -1211,7 +1211,7 @@ public abstract class ArrayNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toAryNode = insert(CallDispatchHeadNode.createOnSelf());
             }
-            return toAryNode.call(frame, object, "to_ary");
+            return toAryNode.call(object, "to_ary");
         }
 
         protected int toInt(Object value) {
@@ -2038,7 +2038,7 @@ public abstract class ArrayNodes {
                         if (j < size) {
                             final Object a = store.get(i);
                             final Object b = store.get(j);
-                            final Object comparisonResult = compareDispatchNode.call(frame, b, "<=>", a);
+                            final Object comparisonResult = compareDispatchNode.call(b, "<=>", a);
                             if (castSortValue(comparisonResult, errorProfile, fixnumLowerNode) < 0) {
                                 store.set(j, a);
                                 store.set(i, b);
@@ -2068,13 +2068,13 @@ public abstract class ArrayNodes {
         public Object sortArrayWithoutBlock(DynamicObject array, NotProvided block,
                 @Cached("createOnSelf()") CallDispatchHeadNode fallbackNode,
                 @Cached("of(array)") ArrayStrategy strategy) {
-            return fallbackNode.call(null, array, "sort_fallback");
+            return fallbackNode.call(array, "sort_fallback");
         }
 
         @Specialization(guards = "!isEmptyArray(array)")
         public Object sortGenericWithBlock(DynamicObject array, DynamicObject block,
                 @Cached("createOnSelf()") CallDispatchHeadNode fallbackNode) {
-            return fallbackNode.callWithBlock(null, array, "sort_fallback", block);
+            return fallbackNode.callWithBlock(array, "sort_fallback", block);
         }
 
         private int castSortValue(Object value, BranchProfile errorProfile, FixnumLowerNode fixnumLowerNode) {

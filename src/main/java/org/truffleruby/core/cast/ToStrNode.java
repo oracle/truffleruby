@@ -43,7 +43,7 @@ public abstract class ToStrNode extends RubyNode {
             @Cached("createOnSelf()") CallDispatchHeadNode toStrNode) {
         final Object coerced;
         try {
-            coerced = toStrNode.call(frame, object, "to_str");
+            coerced = toStrNode.call(object, "to_str");
         } catch (RaiseException e) {
             errorProfile.enter();
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {

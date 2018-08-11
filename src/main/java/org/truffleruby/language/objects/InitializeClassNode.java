@@ -134,7 +134,7 @@ public abstract class InitializeClassNode extends RubyNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             inheritedNode = insert(CallDispatchHeadNode.createOnSelf());
         }
-        inheritedNode.call(frame, superClass, "inherited", subClass);
+        inheritedNode.call(superClass, "inherited", subClass);
     }
 
     private void moduleInitialize(DynamicObject rubyClass, DynamicObject block) {

@@ -101,7 +101,7 @@ public final class InterpolatedStringNode extends RubyNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             dupNode = insert(CallDispatchHeadNode.createOnSelf());
         }
-        return dupNode.call(frame, string, "dup");
+        return dupNode.call(string, "dup");
     }
 
     private boolean executeIsTainted(Object object) {

@@ -62,7 +62,7 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             dupNode = insert(CallDispatchHeadNode.createOnSelf());
         }
-        return dupNode.call(frame, value, "dup");
+        return dupNode.call(value, "dup");
     }
 
     private Object freeze(VirtualFrame frame, Object value) {
@@ -70,7 +70,7 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             freezeNode = insert(CallDispatchHeadNode.createOnSelf());
         }
-        return freezeNode.call(frame, value, "freeze");
+        return freezeNode.call(value, "freeze");
     }
 
 }

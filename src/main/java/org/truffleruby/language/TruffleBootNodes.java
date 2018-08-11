@@ -131,7 +131,6 @@ public abstract class TruffleBootNodes {
 
             if (getContext().getOptions().SYNTAX_CHECK) {
                 return (int) checkSyntax.call(
-                        null,
                         getContext().getCoreLibrary().getTruffleBootModule(),
                         "check_syntax",
                         source);
@@ -209,7 +208,6 @@ public abstract class TruffleBootNodes {
 
                     case PATH:
                         final DynamicObject path = (DynamicObject) findSFile.call(
-                                null,
                                 getContext().getCoreLibrary().getTruffleBootModule(),
                                 // language=ruby
                                 "find_s_file",

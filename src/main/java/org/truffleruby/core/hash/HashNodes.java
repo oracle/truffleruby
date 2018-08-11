@@ -85,18 +85,18 @@ public abstract class HashNodes {
                     final Object pair = store[n];
 
                     if (!RubyGuards.isRubyArray(pair)) {
-                        return fallbackNode.call(frame, hashClass, "_constructor_fallback", args);
+                        return fallbackNode.call(hashClass, "_constructor_fallback", args);
                     }
 
                     final DynamicObject pairArray = (DynamicObject) pair;
                     final Object pairStore = Layouts.ARRAY.getStore(pairArray);
 
                     if (pairStore != null && pairStore.getClass() != Object[].class) {
-                        return fallbackNode.call(frame, hashClass, "_constructor_fallback", args);
+                        return fallbackNode.call(hashClass, "_constructor_fallback", args);
                     }
 
                     if (Layouts.ARRAY.getSize(pairArray) != 2) {
-                        return fallbackNode.call(frame, hashClass, "_constructor_fallback", args);
+                        return fallbackNode.call(hashClass, "_constructor_fallback", args);
                     }
 
                     final Object[] pairObjectStore = (Object[]) pairStore;
@@ -118,7 +118,7 @@ public abstract class HashNodes {
                         VirtualFrame frame,
                         DynamicObject hashClass,
                 Object[] args) {
-            return fallbackNode.call(frame, hashClass, "_constructor_fallback", args);
+            return fallbackNode.call(hashClass, "_constructor_fallback", args);
         }
 
         public boolean isSmallArrayOfPairs(Object[] args) {
@@ -212,7 +212,7 @@ public abstract class HashNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 callDefaultNode = insert(CallDispatchHeadNode.createOnSelf());
             }
-            return callDefaultNode.call(frame, hash, "default", key);
+            return callDefaultNode.call(hash, "default", key);
         }
 
     }
@@ -605,8 +605,8 @@ public abstract class HashNodes {
         public DynamicObject replaceCoerce(DynamicObject self, Object other,
                 @Cached("createOnSelf()") CallDispatchHeadNode coerceNode,
                 @Cached("create()") InitializeCopyNode initializeCopyNode) {
-            final Object otherHash = coerceNode.call(null, coreLibrary().getTruffleTypeModule(), "coerce_to",
-                    other, coreLibrary().getHashClass(), coreStrings().TO_HASH.getSymbol());
+            final Object otherHash = coerceNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to", other,
+                    coreLibrary().getHashClass(), coreStrings().TO_HASH.getSymbol());
             return initializeCopyNode.executeReplace(self, (DynamicObject) otherHash);
         }
 
@@ -961,7 +961,7 @@ public abstract class HashNodes {
                 block = (DynamicObject) maybeBlock;
             }
 
-            return fallbackCallNode.callWithBlock(frame, hash, "merge_fallback", block, other);
+            return fallbackCallNode.callWithBlock(hash, "merge_fallback", block, other);
         }
 
         private DynamicObject newHash(DynamicObject hash, Object[] store, int size, boolean compareByIdentity) {
@@ -1013,7 +1013,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isEmptyHash(hash)")
         public Object shiftEmpty(VirtualFrame frame, DynamicObject hash) {
-            return callDefaultNode.call(frame, hash, "default", nil());
+            return callDefaultNode.call(hash, "default", nil());
         }
 
         @Specialization(guards = {"!isEmptyHash(hash)", "isPackedHash(hash)"})

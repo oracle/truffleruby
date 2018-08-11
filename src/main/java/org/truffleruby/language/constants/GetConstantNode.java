@@ -90,7 +90,7 @@ public abstract class GetConstantNode extends RubyNode {
             // lookup ignores being-autoloaded constants).
             fields.newConstantsVersion();
 
-            callRequireNode.call(null, coreLibrary().getMainObject(), "require", feature);
+            callRequireNode.call(coreLibrary().getMainObject(), "require", feature);
 
             RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
 
@@ -137,7 +137,7 @@ public abstract class GetConstantNode extends RubyNode {
                 constMissingNode = insert(CallDispatchHeadNode.createOnSelf());
             }
 
-            return constMissingNode.call(null, module, "const_missing", symbolName);
+            return constMissingNode.call(module, "const_missing", symbolName);
         } else {
             return null;
         }

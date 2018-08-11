@@ -210,7 +210,7 @@ public class RubyCallNode extends RubyNode {
             final Object self = RubyArguments.getSelf(frame);
 
             if (methodNotFoundProfile.profile(method == null)) {
-                final Object r = respondToMissing.call(frame, receiverObject, "respond_to_missing?", methodNameSymbol, false);
+                final Object r = respondToMissing.call(receiverObject, "respond_to_missing?", methodNameSymbol, false);
 
                 if (r != DispatchNode.MISSING && !respondToMissingCast.executeToBoolean(r)) {
                     return nil();

@@ -57,7 +57,7 @@ public abstract class ToIntegerNode extends FormatNode {
             integerNode = insert(CallDispatchHeadNode.createOnSelf());
         }
 
-        return integerNode.call(frame, getContext().getCoreLibrary().getKernelModule(), "Integer", value);
+        return integerNode.call(getContext().getCoreLibrary().getKernelModule(), "Integer", value);
     }
 
 }
