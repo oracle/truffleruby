@@ -2887,23 +2887,37 @@ VALUE rb_struct_aset(VALUE s, VALUE idx, VALUE val) {
 }
 
 VALUE rb_struct_define(const char *name, ...) {
-  VALUE *rb_name = name == NULL ? polyglot_invoke(RUBY_CEXT, "Qnil") : rb_str_new_cstr(name);
-  VALUE *ary = rb_ary_new();
+  VALUE rb_name = name == NULL ? polyglot_invoke(RUBY_CEXT, "Qnil") : rb_str_new_cstr(name);
+  VALUE ary = rb_ary_new();
   int i = 0;
   char *arg = NULL;
   while ((arg = (char *)polyglot_get_arg(i + 1)) != NULL) {
-    rb_ary_store(ary, i++, rb_str_new_cstr(arg));
+    rb_ary_push(ary, rb_str_new_cstr(arg));
+    i++;
   }
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_struct_define_no_splat", rb_name, ary);
 }
 
+VALUE rb_struct_define_under(VALUE outer, const char *name, ...) {
+  VALUE rb_name = name == NULL ? polyglot_invoke(RUBY_CEXT, "Qnil") : rb_str_new_cstr(name);
+  VALUE ary = rb_ary_new();
+  int i = 0;
+  char *arg = NULL;
+  while ((arg = (char *)polyglot_get_arg(i + 1)) != NULL) {
+    rb_ary_push(ary, rb_str_new_cstr(arg));
+    i++;
+  }
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_struct_define_under_no_splat", outer, rb_name, ary);
+}
+
 VALUE rb_struct_new(VALUE klass, ...) {
   int members = polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_struct_size", klass));
-  VALUE *ary = rb_ary_new();
+  VALUE ary = rb_ary_new();
   int i = 0;
   while (i < members) {
     VALUE arg = polyglot_get_arg(i + 1);
-    rb_ary_store(ary, i++, arg);
+    rb_ary_push(ary, arg);
+    i++;
   }
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_struct_new_no_splat", klass, ary);
 }
@@ -2922,10 +2936,6 @@ VALUE rb_struct_s_members(VALUE klass) {
 
 VALUE rb_struct_members(VALUE s) {
   rb_tr_error("rb_struct_members not implemented");
-}
-
-VALUE rb_struct_define_under(VALUE outer, const char *name, ...) {
-  rb_tr_error("rb_struct_define_under not implemented");
 }
 
 // Data
@@ -4203,23 +4213,23 @@ VALUE rb_obj_init_copy(VALUE obj, VALUE orig) {
 }
 
 VALUE rb_obj_tainted(VALUE obj) {
-  rb_tr_error("rb_obj_tainted not implemented");
+  return rb_funcall(obj, rb_intern("tainted?"), 0);
 }
 
 VALUE rb_obj_untaint(VALUE obj) {
-  rb_tr_error("rb_obj_untaint not implemented");
+  return rb_funcall(obj, rb_intern("untaint"), 0);
 }
 
 VALUE rb_obj_untrust(VALUE obj) {
-  rb_tr_error("rb_obj_untrust not implemented");
+  return rb_funcall(obj, rb_intern("untrust"), 0);
 }
 
 VALUE rb_obj_untrusted(VALUE obj) {
-  rb_tr_error("rb_obj_untrusted not implemented");
+  return rb_funcall(obj, rb_intern("untrusted?"), 0);
 }
 
 VALUE rb_obj_trust(VALUE obj) {
-  rb_tr_error("rb_obj_trust not implemented");
+  return rb_funcall(obj, rb_intern("trust"), 0);
 }
 
 VALUE rb_class_get_superclass(VALUE klass) {

@@ -305,9 +305,6 @@ def ruby_testdownstream_sulong(args):
     jt('test', 'specs', ':capi')
     jt('test', 'specs', ':library_cext')
     jt('test', 'mri', '--cext')
-    jt('test', 'mri', '--openssl')
-    jt('test', 'mri', '--syslog')
-    jt('test', 'mri', 'zlib')
     jt('test', 'cexts')
     jt('test', 'bundle')
 

@@ -130,6 +130,7 @@ module RbConfig
       'rubyhdrdir' => "#{prefix}/lib/cext/include",
       'rubyarchhdrdir' => "#{prefix}/lib/cext/include",
       'includedir' => "#{prefix}/lib/cext", # the parent dir of rubyhdrdir
+      'sysconfdir' => "#{prefix}/etc", # doesn't exist, as in MRI
     }
     expanded.merge!(common)
     mkconfig.merge!(common)

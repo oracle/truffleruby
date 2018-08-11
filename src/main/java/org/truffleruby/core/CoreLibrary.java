@@ -510,7 +510,6 @@ public class CoreLibrary {
         defineModule(truffleModule, "Debug");
         defineModule(truffleModule, "Digest");
         defineModule(truffleModule, "ObjSpace");
-        defineModule(truffleModule, "Etc");
         defineModule(truffleModule, "Coverage");
         defineModule(truffleModule, "Graal");
         defineModule(truffleModule, "Ropes");

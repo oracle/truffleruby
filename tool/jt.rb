@@ -54,6 +54,32 @@ require "#{TRUFFLERUBY_DIR}/lib/truffle/truffle/openssl-prefix.rb"
 # wait for sub-processes to handle the interrupt
 trap(:INT) {}
 
+MRI_TEST_MODULES = {
+  '--openssl' => {
+    include: [
+      "#{TRUFFLERUBY_DIR}/test/mri/tests/openssl/test_*.rb"
+    ],
+    exclude: "#{TRUFFLERUBY_DIR}/test/mri/cext.exclude"
+  },
+  '--syslog' => {
+    include: [
+      "#{TRUFFLERUBY_DIR}/test/mri/tests/test_syslog.rb",
+      "#{TRUFFLERUBY_DIR}/test/mri/tests/syslog/test_syslog_logger.rb"
+    ],
+    exclude: "#{TRUFFLERUBY_DIR}/test/mri/cext.exclude"
+  },
+  '--cext' => {
+    include: [
+      "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-ruby/**/test_*.rb",
+      "#{TRUFFLERUBY_DIR}/test/mri/tests/etc/test_etc.rb",
+      "#{TRUFFLERUBY_DIR}/test/mri/tests/openssl/test_*.rb",
+      "#{TRUFFLERUBY_DIR}/test/mri/tests/test_syslog.rb",
+      "#{TRUFFLERUBY_DIR}/test/mri/tests/syslog/test_syslog_logger.rb"
+    ],
+    exclude: "#{TRUFFLERUBY_DIR}/test/mri/cext.exclude"
+  }
+}
+
 module Utilities
   def self.truffle_version
     suite = File.read("#{TRUFFLERUBY_DIR}/mx.truffleruby/suite.py")
@@ -455,9 +481,7 @@ module Commands
       jt cextc directory clang-args                  compile the C extension in directory, with optional extra clang arguments
       jt test                                        run all mri tests, specs and integration tests
       jt test mri                                    run mri tests
-          --cext          runs MRI C extension tests
-          --syslog        runs syslog tests
-          --openssl       runs openssl tests
+          #{MRI_TEST_MODULES.each_key.join(', ')}
           --native        use native TruffleRuby image (set AOT_BIN)
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME, or have graal built as a sibling)
       jt test mri test/mri/tests/test_find.rb [-- <MRI runner options>]
@@ -912,45 +936,45 @@ module Commands
     else
       runner_args = []
     end
-
-    if args.delete('--openssl')
-      include_pattern = "#{TRUFFLERUBY_DIR}/test/mri/tests/openssl/test_*.rb"
-      exclude_file = "#{TRUFFLERUBY_DIR}/test/mri/openssl.exclude"
-    elsif args.delete('--syslog')
-      include_pattern = ["#{TRUFFLERUBY_DIR}/test/mri/tests/test_syslog.rb",
-                         "#{TRUFFLERUBY_DIR}/test/mri/tests/syslog/test_syslog_logger.rb"]
-      exclude_file = nil
-    elsif args.delete('--cext')
-      include_pattern = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-ruby/**/test_*.rb"
-      exclude_file = "#{TRUFFLERUBY_DIR}/test/mri/cext.exclude"
-    elsif args.all? { |a| a.start_with?('-') }
-      include_pattern = "#{TRUFFLERUBY_DIR}/test/mri/tests/**/test_*.rb"
-      exclude_file = "#{TRUFFLERUBY_DIR}/test/mri/standard.exclude"
-    else
-      args, files_to_run = args.partition { |a| a.start_with?('-') }
-    end
-
-    unless files_to_run
-      prefix = "#{TRUFFLERUBY_DIR}/test/mri/tests/"
-      include_files = Dir.glob(include_pattern).map { |f|
-        raise unless f.start_with?(prefix)
-        f[prefix.size..-1]
+    
+    mri_args = []
+    files_to_run = []
+    
+    prefix = "#{TRUFFLERUBY_DIR}/test/mri/tests/"
+    
+    add_patterns = -> (patterns, exclude_file) {
+      exclude_file ||= "#{TRUFFLERUBY_DIR}/test/mri/standard.exclude"
+      
+      include_files = patterns.flat_map { |p|
+        Dir.glob(p).map { |f|
+          raise unless f.start_with?(prefix)
+          f[prefix.size..-1]
+        }.reject(&:empty?).reject { |f|
+          f.include?('cext-ruby') && !patterns.any? {|p| p.include?('cext-ruby') }
+        }
       }
-
-      include_files.reject! { |f| f.include?('cext-ruby') } unless include_pattern.include?('cext-ruby')
-
-      exclude_files = if exclude_file
-                        File.readlines(exclude_file).map { |l| l.gsub(/#.*/, '').strip }
-                      else
-                        []
-                      end
-
-      files_to_run = (include_files - exclude_files)
+      
+      exclude_files = File.readlines(exclude_file).map { |l| l.gsub(/#.*/, '').strip }.reject(&:empty?)
+      
+      files_to_run.push *(include_files - exclude_files)
+    }
+    
+    args.each do |arg|
+      test_module = MRI_TEST_MODULES[arg]
+      if test_module
+        add_patterns.call test_module[:include], test_module[:exclude]
+      elsif arg.start_with?('-')
+        mri_args << arg
+      else
+        add_patterns.call [arg], nil
+      end
     end
-
-    files_to_run.sort!
-
-    run_mri_tests(args, files_to_run, runner_args)
+    
+    if files_to_run.empty?
+      add_patterns.call ["#{TRUFFLERUBY_DIR}/test/mri/tests/**/test_*.rb"], nil
+    end
+    
+    run_mri_tests(mri_args, files_to_run.sort, runner_args)
   end
   private :test_mri
 

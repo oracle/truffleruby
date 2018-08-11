@@ -4,7 +4,7 @@ ruby/test_continuation.rb # cannot load such file -- continuation
 ruby/test_enum.rb # cannot load such file -- continuation
 ruby/test_env.rb # TestEnv#test_aset = core:/core/rubinius/bootstrap/time.rb:28:in `now': internal implementation error - ClassCastException org.truffleruby.runtime.core.RubyNilClass cannot be cast to org.truffleruby.runtime.core.RubyString org.truffleruby.nodes.time.ReadTimeZoneNode.executeRubyString(ReadTimeZoneNode.java:36) (RuntimeError)
 ruby/test_io.rb # cannot load such file -- io/nonblock
-ruby/test_iterator.rb /Users/chrisseaton/Documents/ruby/jruby/test/mri/lib/minitest/unit.rb:1417:in `sort': internal implementation error - NullPointerException null org.truffleruby.runtime.subsystems.TraceManager$4.probeTaggedAs(TraceManager.java:117) (RuntimeError)
+ruby/test_iterator.rb # /Users/chrisseaton/Documents/ruby/jruby/test/mri/lib/minitest/unit.rb:1417:in `sort': internal implementation error - NullPointerException null org.truffleruby.runtime.subsystems.TraceManager$4.probeTaggedAs(TraceManager.java:117) (RuntimeError)
 ruby/test_m17n_comb.rb # cannot load such file -- etc
 ruby/test_marshal.rb # including this causes error in test_objectspace.rb
 ruby/test_module.rb # test/mri/ruby/test_module.rb:96:in `private_class_method': internal implementation error - UnsupportedOperationException null org.truffleruby.nodes.core.ModuleNodes$PrivateClassMethodNode.privateClassMethod(ModuleNodes.java:1474) (RuntimeError)
@@ -23,7 +23,6 @@ csv/test_encodings.rb # missing ObjectSpace define_finalizer specialization
 csv/test_features.rb # `const_missing': uninitialized constant Zlib::GzipWriter
 csv/test_interface.rb # missing ObjectSpace define_finalizer specialization
 digest/test_digest_extend.rb # all failed
-etc/test_etc.rb
 fileutils/test_fileutils.rb # cannot load such file -- etc
 io/wait/test_io_wait.rb
 io/nonblock/test_flush.rb
@@ -244,9 +243,7 @@ ruby/test_file.rb
 ruby/test_extlibs.rb
 erb/test_erb_command.rb
 
-# C extension tests which are run separately in mx ruby_testdownstream_sulong
-
-# openssl tests run separately with --openssl
+# Tested separately as they need Sulong
 
 openssl/test_asn1.rb
 openssl/test_bn.rb
@@ -276,18 +273,10 @@ openssl/test_x509ext.rb
 openssl/test_x509name.rb
 openssl/test_x509req.rb
 openssl/test_x509store.rb
-
-# syslog tests run separately with --syslog
-
 test_syslog.rb
 syslog/test_syslog_logger.rb
-
-# zlib tests run separately with "jt test mri zlib"
-
 zlib/test_zlib.rb
-
-# C-ext tests run separately with --cext
-
+etc/test_etc.rb
 cext/ruby/array/test_resize.rb
 cext/ruby/bignum/test_big2str.rb
 cext/ruby/bignum/test_bigzero.rb
