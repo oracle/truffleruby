@@ -4203,23 +4203,23 @@ VALUE rb_obj_init_copy(VALUE obj, VALUE orig) {
 }
 
 VALUE rb_obj_tainted(VALUE obj) {
-  rb_tr_error("rb_obj_tainted not implemented");
+  return rb_funcall(obj, rb_intern("tainted?"), 0);
 }
 
 VALUE rb_obj_untaint(VALUE obj) {
-  rb_tr_error("rb_obj_untaint not implemented");
+  return rb_funcall(obj, rb_intern("untaint"), 0);
 }
 
 VALUE rb_obj_untrust(VALUE obj) {
-  rb_tr_error("rb_obj_untrust not implemented");
+  return rb_funcall(obj, rb_intern("untrust"), 0);
 }
 
 VALUE rb_obj_untrusted(VALUE obj) {
-  rb_tr_error("rb_obj_untrusted not implemented");
+  return rb_funcall(obj, rb_intern("untrusted?"), 0);
 }
 
 VALUE rb_obj_trust(VALUE obj) {
-  rb_tr_error("rb_obj_trust not implemented");
+  return rb_funcall(obj, rb_intern("trust"), 0);
 }
 
 VALUE rb_class_get_superclass(VALUE klass) {
