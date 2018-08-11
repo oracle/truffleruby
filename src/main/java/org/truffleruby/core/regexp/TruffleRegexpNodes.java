@@ -34,7 +34,7 @@ import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.hash.ReHashable;
-import org.truffleruby.core.kernel.KernelNodes.ObjectSameOrEqualNode;
+import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.rope.CodeRange;
@@ -71,7 +71,7 @@ public class TruffleRegexpNodes {
         @Child StringAppendPrimitiveNode appendNode = StringAppendPrimitiveNode.create();
         @Child ToSNode toSNode = ToSNode.create();
         @Child CallDispatchHeadNode copyNode = CallDispatchHeadNode.createOnSelf();
-        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNode.create();
+        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization(guards = "argsMatch(frame, cachedArgs, args)", limit = "getCacheLimit()")
@@ -115,7 +115,7 @@ public class TruffleRegexpNodes {
                 return false;
             } else {
                 for (int i = 0; i < cachedArgs.length; i++) {
-                    if (!sameOrEqualNode.executeObjectSameOrEqual(frame, cachedArgs[i], args[i])) {
+                    if (!sameOrEqualNode.executeSameOrEqual(frame, cachedArgs[i], args[i])) {
                         return false;
                     }
                 }

@@ -70,7 +70,7 @@ import org.truffleruby.core.format.exceptions.InvalidFormatException;
 import org.truffleruby.core.format.printf.PrintfCompiler;
 import org.truffleruby.core.kernel.KernelNodesFactory.CopyNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.GetMethodObjectNodeGen;
-import org.truffleruby.core.kernel.KernelNodesFactory.ObjectSameOrEqualNodeFactory;
+import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SingletonMethodsNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.ToHexStringNodeFactory;
 import org.truffleruby.core.method.MethodFilter;
@@ -162,17 +162,17 @@ public abstract class KernelNodes {
      * Known as rb_equal() in MRI. The fact Kernel#=== uses this is pure coincidence.
      */
     @Primitive(name = "object_same_or_equal")
-    public abstract static class ObjectSameOrEqualNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class SameOrEqualNode extends PrimitiveArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode equalNode;
 
         private final ConditionProfile sameProfile = ConditionProfile.createBinaryProfile();
 
-        public static ObjectSameOrEqualNode create() {
-            return ObjectSameOrEqualNodeFactory.create(null);
+        public static SameOrEqualNode create() {
+            return SameOrEqualNodeFactory.create(null);
         }
 
-        public abstract boolean executeObjectSameOrEqual(VirtualFrame frame, Object a, Object b);
+        public abstract boolean executeSameOrEqual(VirtualFrame frame, Object a, Object b);
 
         @Specialization
         protected boolean sameOrEqual(VirtualFrame frame, Object a, Object b,
@@ -198,11 +198,11 @@ public abstract class KernelNodes {
     @CoreMethod(names = "===", required = 1)
     public abstract static class CaseCompareNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNode.create();
+        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
 
         @Specialization
         protected boolean caseCmp(VirtualFrame frame, Object a, Object b) {
-            return sameOrEqualNode.executeObjectSameOrEqual(frame, a, b);
+            return sameOrEqualNode.executeSameOrEqual(frame, a, b);
         }
 
     }
@@ -239,11 +239,11 @@ public abstract class KernelNodes {
     @CoreMethod(names = { "<=>" }, required = 1)
     public abstract static class CompareNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNode.create();
+        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
 
         @Specialization
         public Object compare(VirtualFrame frame, Object self, Object other) {
-            if (sameOrEqualNode.executeObjectSameOrEqual(frame, self, other)) {
+            if (sameOrEqualNode.executeSameOrEqual(frame, self, other)) {
                 return 0;
             } else {
                 return nil();
