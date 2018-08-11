@@ -11,6 +11,7 @@ New features:
 * `rb_struct_define_under` has been implemented.
 * `RbConfig::CONFIG['sysconfdir']` has been implemented.
 * More of `Etc` has been implemented.
+* The `-Xcexts=false` option disables C extensions.
 
 Bug fixes:
 
@@ -32,6 +33,18 @@ Changes:
 * Clarified that all sources that come in from the Polyglot API `eval` method
   will be treated as UTF-8, and cannot be re-interpreted as another encoding
   using a magic comment.
+* `-Xembedded` can now set set on the launcher command line.
+* The `-Xembedded` option can now set set on the launcher command line.
+* The `-Xembedded` option can now be set set on the launcher command line.
+* The `-Xplatform.native=false` option can now load the core library, by
+  enabling `-Xpolyglot.stdio`.
+
+Changes:
+
+* The embedded configuration (`-Xembedded`) now warns about features which may
+  not work well embedded, such as signals.
+* The `-Xsync.stdio` option has been removed - use standard Ruby
+  `STDOUT.sync = true` in your program instead.
 
 # 1.0 RC 5, August 2018
 

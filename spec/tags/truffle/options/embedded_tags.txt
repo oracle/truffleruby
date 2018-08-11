@@ -1,0 +1,7 @@
+slow:The -Xembedded option is disabled by default by the launcher
+slow:The -Xembedded option sets dependent options when set manually
+slow:The -Xembedded option when enabled can run basic expressions
+slow:The -Xembedded option when enabled can use reasonable parts of the stdlib
+slow:The -Xembedded option can be set with -X, even though it's set by the launcher
+slow:The -Xembedded option can be set with --ruby, even though it's set by the launcher
+slow:The -Xembedded option when enabled will warn about signals

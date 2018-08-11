@@ -49,7 +49,7 @@ end
 
 Truffle::Boot.delay do
   # stdout is line-buffered if it refers to a terminal
-  if Truffle::Boot.get_option('sync.stdio') || STDOUT.tty?
+  if Truffle::Boot.get_option('polyglot.stdio') || !Truffle::POSIX::NATIVE || STDOUT.tty?
     STDOUT.sync = true
   end
 end
@@ -92,7 +92,7 @@ module Kernel
 end
 
 Truffle::Boot.delay do
-  $$ = Process.pid if Truffle::Boot.get_option 'platform.native'
+  $$ = Process.pid if Truffle::POSIX::NATIVE
 
   ARGV.concat(Truffle::Boot.original_argv)
 end

@@ -1856,7 +1856,14 @@ EOS
     end
 
     local_target = "#{TRUFFLERUBY_DIR}/bin/native-ruby"
-    built_bin = Dir.glob("#{graal}/vm/mxbuild/#{RbConfig::CONFIG['target_os']}-amd64/RUBY_STANDALONE_SVM/*/bin/ruby").first
+    if MAC
+      os = 'darwin'
+    elsif LINUX
+      os = 'linux'
+    else
+      abort
+    end
+    built_bin = Dir.glob("#{graal}/vm/mxbuild/#{os}-amd64/RUBY_STANDALONE_SVM/*/bin/ruby").first
     FileUtils.ln_sf(built_bin, local_target)
   end
 

@@ -33,12 +33,11 @@ SOURCE_ENCODING: [[source_encoding, -K], string, '', Source encoding]
 INTERNAL_ENCODING: [[internal_encoding, -E, -U], string, '', Internal encoding]
 EXTERNAL_ENCODING: [[external_encoding, -E], string, '', External encoding]
 
-SINGLE_THREADED: [single_threaded, boolean, EMBEDDED, Use only a single thread to be compatible with languages not supporting multithreading]
-POLYGLOT_STDIO: [polyglot.stdio, boolean, EMBEDDED, Use standard IO streams from the Graal-SDK polyglot API configuration]
-SYNC_STDIO: [sync.stdio, boolean, EMBEDDED, Sync operations on standard IO streams]
-NATIVE_PLATFORM: [platform.native, boolean, true, Enables native calls via Truffle NFI]
+NATIVE_PLATFORM: [platform.native, boolean, true, Enables native calls via Truffle NFI for internal functionality]
 NATIVE_INTERRUPT: [platform.native_interrupt, boolean, NATIVE_PLATFORM, Use the SIGVTALRM signal to interrupt native blocking calls]
 HANDLE_INTERRUPT: [platform.handle_interrupt, boolean, '!EMBEDDED', Handle the interrupt signal and raise an Interrupt exception]
+SINGLE_THREADED: [single_threaded, boolean, EMBEDDED, Use only a single thread to be compatible with languages not supporting multithreading]
+POLYGLOT_STDIO: [polyglot.stdio, boolean, EMBEDDED || !NATIVE_PLATFORM, Use standard IO streams from the Graal-SDK polyglot API configuration]
 CEXT_LOCK: [cexts.lock, boolean, true, Use a Global Lock when running C extensions]
 PREINITIALIZATION: [preinit, boolean, true, Use the pre-initialized context when available]
 
@@ -133,6 +132,7 @@ SHARED_OBJECTS_DEBUG: [shared.objects.debug, boolean, false, Print information a
 SHARED_OBJECTS_FORCE: [shared.objects.force, boolean, false, Force sharing of objects roots at startup]
 SHARED_OBJECTS_SHARE_ALL: [shared.objects.share_all, boolean, false, Consider all objects as shared]
 
+CEXTS: [cexts, boolean, true, Enable use of C extensions]
 CEXTS_LOG_LOAD: [cexts.log.load, boolean, false, Log loading of cexts]
 CEXTS_LOG_WARNINGS: [cexts.log.warnings, boolean, false, Log cexts warnings]
 CEXTS_LIBRARY_REMAP: [cexts.remap, string-array, [], 'Remap the name of native libraries, written in the form libexample.so:/path/to/actual/libexample.so']

@@ -1,2 +1,2 @@
-slow:The -Xfinalizers.run_on_exit=true option runs finalizers on exit
-fails(spurious, finalizer order might not be respected):The -Xfinalizers.run_on_exit=true option runs finalizers on exit
+slow:The -Xfinalizers.run_on_exit option runs finalizers on exit
+fails(spurious, finalizer order might not be respected):The -Xfinalizers.run_on_exit option runs finalizers on exit

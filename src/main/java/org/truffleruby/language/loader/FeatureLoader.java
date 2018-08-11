@@ -248,6 +248,10 @@ public class FeatureLoader {
                 return;
             }
 
+            if (!context.getOptions().CEXTS) {
+                throw new RaiseException(context, context.getCoreExceptions().loadError("cannot load as C extensions are disabled with -Xcexts=false", feature, null));
+            }
+
             if (!TruffleRubyNodes.SulongNode.isSulongAvailable(context)) {
                 throw new RaiseException(context, context.getCoreExceptions().loadError("Sulong is required to support C extensions, and it doesn't appear to be available", feature, null));
             }

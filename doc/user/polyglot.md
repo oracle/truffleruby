@@ -180,8 +180,23 @@ via the polyglot interface, embedded using the native polyglot library, or
 embedded in a Java application via the Graal SDK, TruffleRuby will be
 automatically configured to work more cooperatively within another application.
 This includes options such as not installing an interrupt signal handler, and
-using the IO streams from the Graal SDK.
+using the IO streams from the Graal SDK. It also turns on the single-threaded
+mode, as described above.
+
+It will also warn when you explicitly do things that may not work well when
+embedded, such as installing your own signal handlers.
 
 This can be turned off even when embedded, with the `embedded` option
 (`--ruby.embedded=false` from another launcher, or
 `-Dpolyglot.ruby.embedded=false` from a normal Java application).
+
+It's a separate option, but in an embedded configuration you may want to use
+the `-Xplatform.native=false` option, which disables use of NFI for internal
+functionality.
+
+Also, `-Xcexts=false` can disable C extensions.
+
+Note that, unlike for example pure JavaScript, Ruby is more than a
+self-contained expression language. It has a large core library that includes
+low-level IO and system and native-memory routines which may interfere with
+other embedded contexts or the host system.

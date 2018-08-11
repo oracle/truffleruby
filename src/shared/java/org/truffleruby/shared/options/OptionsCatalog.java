@@ -171,24 +171,9 @@ public class OptionsCatalog {
             "External encoding (configured by -E Ruby options)",
             new String[]{"-E"},
             "");
-    public static final BooleanOptionDescription SINGLE_THREADED = new BooleanOptionDescription(
-            "ruby.single_threaded",
-            "Use only a single thread to be compatible with languages not supporting multithreading",
-            null,
-            EMBEDDED.getDefaultValue());
-    public static final BooleanOptionDescription POLYGLOT_STDIO = new BooleanOptionDescription(
-            "ruby.polyglot.stdio",
-            "Use standard IO streams from the Graal-SDK polyglot API configuration",
-            null,
-            EMBEDDED.getDefaultValue());
-    public static final BooleanOptionDescription SYNC_STDIO = new BooleanOptionDescription(
-            "ruby.sync.stdio",
-            "Sync operations on standard IO streams",
-            null,
-            EMBEDDED.getDefaultValue());
     public static final BooleanOptionDescription NATIVE_PLATFORM = new BooleanOptionDescription(
             "ruby.platform.native",
-            "Enables native calls via Truffle NFI",
+            "Enables native calls via Truffle NFI for internal functionality",
             null,
             true);
     public static final BooleanOptionDescription NATIVE_INTERRUPT = new BooleanOptionDescription(
@@ -201,6 +186,16 @@ public class OptionsCatalog {
             "Handle the interrupt signal and raise an Interrupt exception",
             null,
             !EMBEDDED.getDefaultValue());
+    public static final BooleanOptionDescription SINGLE_THREADED = new BooleanOptionDescription(
+            "ruby.single_threaded",
+            "Use only a single thread to be compatible with languages not supporting multithreading",
+            null,
+            EMBEDDED.getDefaultValue());
+    public static final BooleanOptionDescription POLYGLOT_STDIO = new BooleanOptionDescription(
+            "ruby.polyglot.stdio",
+            "Use standard IO streams from the Graal-SDK polyglot API configuration",
+            null,
+            EMBEDDED.getDefaultValue() || !NATIVE_PLATFORM.getDefaultValue());
     public static final BooleanOptionDescription CEXT_LOCK = new BooleanOptionDescription(
             "ruby.cexts.lock",
             "Use a Global Lock when running C extensions",
@@ -601,6 +596,11 @@ public class OptionsCatalog {
             "Consider all objects as shared",
             null,
             false);
+    public static final BooleanOptionDescription CEXTS = new BooleanOptionDescription(
+            "ruby.cexts",
+            "Enable use of C extensions",
+            null,
+            true);
     public static final BooleanOptionDescription CEXTS_LOG_LOAD = new BooleanOptionDescription(
             "ruby.cexts.log.load",
             "Log loading of cexts",
@@ -711,18 +711,16 @@ public class OptionsCatalog {
                 return INTERNAL_ENCODING;
             case "ruby.external_encoding":
                 return EXTERNAL_ENCODING;
-            case "ruby.single_threaded":
-                return SINGLE_THREADED;
-            case "ruby.polyglot.stdio":
-                return POLYGLOT_STDIO;
-            case "ruby.sync.stdio":
-                return SYNC_STDIO;
             case "ruby.platform.native":
                 return NATIVE_PLATFORM;
             case "ruby.platform.native_interrupt":
                 return NATIVE_INTERRUPT;
             case "ruby.platform.handle_interrupt":
                 return HANDLE_INTERRUPT;
+            case "ruby.single_threaded":
+                return SINGLE_THREADED;
+            case "ruby.polyglot.stdio":
+                return POLYGLOT_STDIO;
             case "ruby.cexts.lock":
                 return CEXT_LOCK;
             case "ruby.preinit":
@@ -883,6 +881,8 @@ public class OptionsCatalog {
                 return SHARED_OBJECTS_FORCE;
             case "ruby.shared.objects.share_all":
                 return SHARED_OBJECTS_SHARE_ALL;
+            case "ruby.cexts":
+                return CEXTS;
             case "ruby.cexts.log.load":
                 return CEXTS_LOG_LOAD;
             case "ruby.cexts.log.warnings":
@@ -926,6 +926,7 @@ public class OptionsCatalog {
             BIND_CACHE,
             BINDING_LOCAL_VARIABLE_CACHE,
             CALL_WITH_BLOCK_ALWAYS_CLONE,
+            CEXTS,
             CEXT_LOCK,
             CEXTS_LOG_LOAD,
             CEXTS_LOG_WARNINGS,
@@ -1021,7 +1022,6 @@ public class OptionsCatalog {
             SOURCE_ENCODING,
             STDLIB_AS_INTERNAL,
             SYMBOL_TO_PROC_CACHE,
-            SYNC_STDIO,
             SYNTAX_CHECK,
             THREAD_CACHE,
             TIME_FORMAT_CACHE,

@@ -304,8 +304,15 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         private boolean handleDefault(DynamicObject signalName) {
+            final String signalNameString = StringOperations.getString(signalName);
+
+            if (getContext().getOptions().EMBEDDED) {
+                RubyLanguage.LOGGER.warning(() ->
+                        String.format("restoring default handler to signal %s in embedded mode may interfere with other embedded contexts or the host system", signalNameString));
+            }
+
             try {
-                return Signals.restoreDefaultHandler(StringOperations.getString(signalName));
+                return Signals.restoreDefaultHandler(signalNameString);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
@@ -313,8 +320,15 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         private boolean handle(DynamicObject signalName, Runnable newHandler) {
+            final String signalNameString = StringOperations.getString(signalName);
+
+            if (getContext().getOptions().EMBEDDED) {
+                RubyLanguage.LOGGER.warning(() ->
+                        String.format("trapping signal %s in embedded mode may interfere with other embedded contexts or the host system", signalNameString));
+            }
+
             try {
-                Signals.registerHandler(newHandler, StringOperations.getString(signalName));
+                Signals.registerHandler(newHandler, signalNameString);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
