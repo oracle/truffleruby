@@ -63,7 +63,7 @@ clean_cexts:
 	rm -f $(CEXTS_DIR)/syslog.su
 	rm -f syslog/Makefile syslog/*.bc syslog/syslog.su
 	rm -f $(CEXTS_DIR)/etc.su
-	rm -f etc/Makefile etc/*.bc etc/etc.su
+	rm -f etc/Makefile etc/*.bc etc/etc.su etc/constdefs.h
 
 # truffleposix
 truffleposix/truffleposix.$(DLEXT): truffleposix/Makefile truffleposix/truffleposix.c
