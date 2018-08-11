@@ -31,14 +31,14 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
         super(ignoreVisibility, onlyCallPublic, missingBehavior, DispatchAction.CALL_METHOD);
     }
 
-    public Object call(VirtualFrame frame, Object receiver, Object method, Object... arguments) {
+    public Object call(VirtualFrame frame, Object receiver, String method, Object... arguments) {
         return dispatch(null, receiver, method, null, arguments);
     }
 
     public Object callWithBlock(
             VirtualFrame frame,
             Object receiver,
-            Object method,
+            String method,
             DynamicObject block,
             Object... arguments) {
         return dispatch(null, receiver, method, block, arguments);

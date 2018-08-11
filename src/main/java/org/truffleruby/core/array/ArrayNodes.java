@@ -1337,7 +1337,7 @@ public abstract class ArrayNodes {
 
             try {
                 for (; n < getSize(array); n++) {
-                    accumulator = dispatch.call(frame, accumulator, symbol, store.get(n));
+                    accumulator = dispatch.dispatch(frame, accumulator, symbol, null, new Object[]{ store.get(n) });
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {

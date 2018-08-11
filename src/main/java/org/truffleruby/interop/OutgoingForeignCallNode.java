@@ -255,7 +255,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             final Object name = args[0];
             final Object[] sendArgs = Arrays.copyOfRange(args, 1, args.length);
 
-            final Object result = dispatchNode.call(frame, receiver, name, sendArgs);
+            final Object result = dispatchNode.dispatch(frame, receiver, name, null, sendArgs);
 
             assert result != DispatchNode.MISSING;
 
