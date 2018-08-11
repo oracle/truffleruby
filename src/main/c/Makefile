@@ -40,7 +40,7 @@ endif
 no_cexts: clean_cexts
 	@echo "WARNING: TRUFFLERUBY_CEXT_ENABLED is set to false - not building cexts" 1>&2
 
-all: $(RUBY_LIBRARY) $(CEXTS_DIR)/openssl.su $(CEXTS_DIR)/zlib.su $(CEXTS_DIR)/psych.su $(CEXTS_DIR)/syslog.su
+all: $(RUBY_LIBRARY) $(CEXTS_DIR)/openssl.su $(CEXTS_DIR)/zlib.su $(CEXTS_DIR)/psych.su $(CEXTS_DIR)/syslog.su $(CEXTS_DIR)/etc.su
 
 clean: clean_cexts clean_truffleposix
 
@@ -62,6 +62,8 @@ clean_cexts:
 	rm -f psych/Makefile psych/*.bc psych/yaml/*.bc psych/psych.su
 	rm -f $(CEXTS_DIR)/syslog.su
 	rm -f syslog/Makefile syslog/*.bc syslog/syslog.su
+	rm -f $(CEXTS_DIR)/etc.su
+	rm -f etc/Makefile etc/*.bc etc/etc.su
 
 # truffleposix
 truffleposix/truffleposix.$(DLEXT): truffleposix/Makefile truffleposix/truffleposix.c
@@ -119,6 +121,21 @@ syslog/syslog.su: syslog/Makefile syslog/syslog.c
 	cd syslog && $(MAKE)
 
 $(CEXTS_DIR)/syslog.su: syslog/syslog.su
+	cp $< $@
+
+# etc.su
+etc/Makefile: etc/extconf.rb $(EXTCONF_DEPS)
+	cd etc && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
+
+etc/etc.su: etc/Makefile etc/etc.c
+	cd etc && $(MAKE)
+
+etc/etc.c: etc/constdefs.h
+
+etc/constdefs.h: etc/mkconstants.rb
+	$(RUBY) $< > $@
+
+$(CEXTS_DIR)/etc.su: etc/etc.su
 	cp $< $@
 
 # psych.su

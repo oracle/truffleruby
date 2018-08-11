@@ -49,7 +49,8 @@ class MSpecScript
   ]
 
   set :security, [
-    "spec/ruby/security"
+    "spec/ruby/security",
+    "^spec/ruby/security/cve_2017_17742_spec.rb" # :library_cext
   ]
 
   set :language, [
@@ -71,16 +72,14 @@ class MSpecScript
     # Doesn't exist as Ruby code - basically need to write from scratch
     "^spec/ruby/library/win32ole",
 
-    # Uses the Rubinius FFI generator
-    "^spec/ruby/library/etc",
-
     # Hangs in CI
     "^spec/ruby/library/net",
 
-    # openssl, yaml and zlib are tested separately as they need Sulong
+    # Tested separately as they need Sulong
     "^spec/ruby/library/openssl",
     "^spec/ruby/library/yaml",
-    "^spec/ruby/library/zlib"
+    "^spec/ruby/library/zlib",
+    "^spec/ruby/library/etc",
   ]
 
   set :capi, [
@@ -90,7 +89,10 @@ class MSpecScript
   set :library_cext, [
     "spec/ruby/library/openssl",
     "spec/ruby/library/yaml",
-    "spec/ruby/library/zlib"
+    "spec/ruby/library/zlib",
+    "spec/ruby/library/etc",
+    "^spec/ruby/library/etc/struct_group_spec.rb",    # fails in :all block
+    "spec/ruby/security/cve_2017_17742_spec.rb",
   ]
 
   set :truffle, [

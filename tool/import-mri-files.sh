@@ -23,6 +23,7 @@ cp -r ../ruby/ext/pty/lib/*.rb lib/mri
 cp -r ../ruby/ext/psych/lib/psych lib/mri
 cp -r ../ruby/ext/psych/lib/psych.rb lib/mri
 cp -r ../ruby/ext/syslog/lib/syslog lib/mri/syslog
+cp -r ../ruby/ext/syslog/lib/etc lib/mri/etc
 
 rm -rf test/mri/tests
 cp -r ../ruby/test test/mri/tests

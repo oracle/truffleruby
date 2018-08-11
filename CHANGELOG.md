@@ -10,6 +10,7 @@ New features:
 * `rb_object_tainted` and similar C functions have been implemented.
 * `rb_struct_define_under` has been implemented.
 * `RbConfig::CONFIG['sysconfdir']` has been implemented.
+* More of `Etc` has been implemented.
 
 Bug fixes:
 

@@ -23,7 +23,6 @@ csv/test_encodings.rb # missing ObjectSpace define_finalizer specialization
 csv/test_features.rb # `const_missing': uninitialized constant Zlib::GzipWriter
 csv/test_interface.rb # missing ObjectSpace define_finalizer specialization
 digest/test_digest_extend.rb # all failed
-etc/test_etc.rb
 fileutils/test_fileutils.rb # cannot load such file -- etc
 io/wait/test_io_wait.rb
 io/nonblock/test_flush.rb
@@ -244,9 +243,7 @@ ruby/test_file.rb
 ruby/test_extlibs.rb
 erb/test_erb_command.rb
 
-# C extension tests which are run separately in mx ruby_testdownstream_sulong
-
-# openssl tests run separately with --openssl
+# Tested separately as they need Sulong
 
 openssl/test_asn1.rb
 openssl/test_bn.rb
@@ -276,18 +273,10 @@ openssl/test_x509ext.rb
 openssl/test_x509name.rb
 openssl/test_x509req.rb
 openssl/test_x509store.rb
-
-# syslog tests run separately with --syslog
-
 test_syslog.rb
 syslog/test_syslog_logger.rb
-
-# zlib tests run separately with "jt test mri zlib"
-
 zlib/test_zlib.rb
-
-# C-ext tests run separately with --cext
-
+etc/test_etc.rb
 cext/ruby/array/test_resize.rb
 cext/ruby/bignum/test_big2str.rb
 cext/ruby/bignum/test_bigzero.rb

@@ -456,8 +456,6 @@ module Commands
       jt test                                        run all mri tests, specs and integration tests
       jt test mri                                    run mri tests
           --cext          runs MRI C extension tests
-          --syslog        runs syslog tests
-          --openssl       runs openssl tests
           --native        use native TruffleRuby image (set AOT_BIN)
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME, or have graal built as a sibling)
       jt test mri test/mri/tests/test_find.rb [-- <MRI runner options>]
@@ -913,15 +911,12 @@ module Commands
       runner_args = []
     end
 
-    if args.delete('--openssl')
-      include_pattern = "#{TRUFFLERUBY_DIR}/test/mri/tests/openssl/test_*.rb"
-      exclude_file = "#{TRUFFLERUBY_DIR}/test/mri/openssl.exclude"
-    elsif args.delete('--syslog')
-      include_pattern = ["#{TRUFFLERUBY_DIR}/test/mri/tests/test_syslog.rb",
+    if args.delete('--cext')
+      include_pattern = ["#{TRUFFLERUBY_DIR}/test/mri/tests/cext-ruby/**/test_*.rb",
+                         "#{TRUFFLERUBY_DIR}/test/mri/tests/etc/test_etc.rb",
+                         "#{TRUFFLERUBY_DIR}/test/mri/tests/openssl/test_*.rb",
+                         "#{TRUFFLERUBY_DIR}/test/mri/tests/test_syslog.rb",
                          "#{TRUFFLERUBY_DIR}/test/mri/tests/syslog/test_syslog_logger.rb"]
-      exclude_file = nil
-    elsif args.delete('--cext')
-      include_pattern = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-ruby/**/test_*.rb"
       exclude_file = "#{TRUFFLERUBY_DIR}/test/mri/cext.exclude"
     elsif args.all? { |a| a.start_with?('-') }
       include_pattern = "#{TRUFFLERUBY_DIR}/test/mri/tests/**/test_*.rb"

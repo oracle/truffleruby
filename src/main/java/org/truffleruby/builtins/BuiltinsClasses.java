@@ -145,8 +145,6 @@ import org.truffleruby.language.TruffleBootNodesBuiltins;
 import org.truffleruby.language.TruffleBootNodesFactory;
 import org.truffleruby.stdlib.CoverageNodesBuiltins;
 import org.truffleruby.stdlib.CoverageNodesFactory;
-import org.truffleruby.stdlib.EtcNodesBuiltins;
-import org.truffleruby.stdlib.EtcNodesFactory;
 import org.truffleruby.stdlib.ObjSpaceNodesBuiltins;
 import org.truffleruby.stdlib.ObjSpaceNodesFactory;
 import org.truffleruby.stdlib.bigdecimal.BigDecimalNodesBuiltins;
@@ -179,7 +177,6 @@ public abstract class BuiltinsClasses {
         DigestNodesBuiltins.setup(coreManager, primitiveManager);
         EncodingConverterNodesBuiltins.setup(coreManager, primitiveManager);
         EncodingNodesBuiltins.setup(coreManager, primitiveManager);
-        EtcNodesBuiltins.setup(coreManager, primitiveManager);
         ExceptionNodesBuiltins.setup(coreManager, primitiveManager);
         FalseClassNodesBuiltins.setup(coreManager, primitiveManager);
         FiberNodesBuiltins.setup(coreManager, primitiveManager);
@@ -256,7 +253,6 @@ public abstract class BuiltinsClasses {
             DigestNodesFactory.getFactories(),
             EncodingConverterNodesFactory.getFactories(),
             EncodingNodesFactory.getFactories(),
-            EtcNodesFactory.getFactories(),
             ExceptionNodesFactory.getFactories(),
             FalseClassNodesFactory.getFactories(),
             FiberNodesFactory.getFactories(),
