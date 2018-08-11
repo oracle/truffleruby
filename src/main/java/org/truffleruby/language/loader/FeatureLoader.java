@@ -248,6 +248,10 @@ public class FeatureLoader {
                 return;
             }
 
+            if (!context.getOptions().CEXTS) {
+                throw new RaiseException(context, context.getCoreExceptions().loadError("cannot load as C extensions are disabled with -Xcexts=false", feature, null));
+            }
+
             if (!TruffleRubyNodes.SulongNode.isSulongAvailable(context)) {
                 throw new RaiseException(context, context.getCoreExceptions().loadError("Sulong is required to support C extensions, and it doesn't appear to be available", feature, null));
             }
@@ -290,10 +294,6 @@ public class FeatureLoader {
 
     @TruffleBoundary
     public List<TruffleObject> loadCExtLibrary(String feature, String path) {
-        if (!context.getOptions().CEXTS) {
-            throw new RaiseException(context, context.getCoreExceptions().loadError(String.format("cannot load %s as C extensions are disabled with -Xcexts=false", path), path, null));
-        }
-
         final File file = new File(path);
 
         if (!new File(path).exists()) {
