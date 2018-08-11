@@ -470,7 +470,7 @@ public abstract class BasicObjectNodes {
             DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
             RubyArguments.setDeclarationContext(frame, context);
 
-            return dispatchNode.callWithBlock(frame, self, name, block, args);
+            return dispatchNode.dispatch(frame, self, name, block, args);
         }
 
     }
