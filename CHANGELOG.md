@@ -7,6 +7,7 @@ New features:
 * `Polyglot.export` can now be used with primitives, and will now convert
   strings to Java, and `.import` will convert them from Java.
 * Implemented `--encoding`, `--external-encoding`, `--internal-encoding`.
+* The `-Xcexts=false` option disables C extensions.
 
 Bug fixes:
 

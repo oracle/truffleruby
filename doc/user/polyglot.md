@@ -194,6 +194,8 @@ It's a separate option, but in an embedded configuration you may want to use
 the `-Xplatform.native=false` option, which disables use of NFI for internal
 functionality.
 
+Also, `-Xcexts=false` can disable C extensions.
+
 Note that, unlike for example pure JavaScript, Ruby is more than a
 self-contained expression language. It has a large core library that includes
 low-level IO and system and native-memory routines which may interfere with

@@ -132,6 +132,7 @@ public class Options {
     public final boolean SHARED_OBJECTS_DEBUG;
     public final boolean SHARED_OBJECTS_FORCE;
     public final boolean SHARED_OBJECTS_SHARE_ALL;
+    public final boolean CEXTS;
     public final boolean CEXTS_LOG_LOAD;
     public final boolean CEXTS_LOG_WARNINGS;
     public final String[] CEXTS_LIBRARY_REMAP;
@@ -259,6 +260,7 @@ public class Options {
         SHARED_OBJECTS_DEBUG = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_DEBUG);
         SHARED_OBJECTS_FORCE = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_FORCE);
         SHARED_OBJECTS_SHARE_ALL = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_SHARE_ALL);
+        CEXTS = builder.getOrDefault(OptionsCatalog.CEXTS);
         CEXTS_LOG_LOAD = builder.getOrDefault(OptionsCatalog.CEXTS_LOG_LOAD);
         CEXTS_LOG_WARNINGS = builder.getOrDefault(OptionsCatalog.CEXTS_LOG_WARNINGS);
         CEXTS_LIBRARY_REMAP = builder.getOrDefault(OptionsCatalog.CEXTS_LIBRARY_REMAP);
@@ -504,6 +506,8 @@ public class Options {
                 return SHARED_OBJECTS_FORCE;
             case "ruby.shared.objects.share_all":
                 return SHARED_OBJECTS_SHARE_ALL;
+            case "ruby.cexts":
+                return CEXTS;
             case "ruby.cexts.log.load":
                 return CEXTS_LOG_LOAD;
             case "ruby.cexts.log.warnings":

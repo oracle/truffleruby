@@ -132,6 +132,7 @@ SHARED_OBJECTS_DEBUG: [shared.objects.debug, boolean, false, Print information a
 SHARED_OBJECTS_FORCE: [shared.objects.force, boolean, false, Force sharing of objects roots at startup]
 SHARED_OBJECTS_SHARE_ALL: [shared.objects.share_all, boolean, false, Consider all objects as shared]
 
+CEXTS: [cexts, boolean, true, Enable use of C extensions]
 CEXTS_LOG_LOAD: [cexts.log.load, boolean, false, Log loading of cexts]
 CEXTS_LOG_WARNINGS: [cexts.log.warnings, boolean, false, Log cexts warnings]
 CEXTS_LIBRARY_REMAP: [cexts.remap, string-array, [], 'Remap the name of native libraries, written in the form libexample.so:/path/to/actual/libexample.so']

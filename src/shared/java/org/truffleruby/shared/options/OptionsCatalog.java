@@ -173,7 +173,7 @@ public class OptionsCatalog {
             "");
     public static final BooleanOptionDescription NATIVE_PLATFORM = new BooleanOptionDescription(
             "ruby.platform.native",
-            "Enables native calls via Truffle NFI",
+            "Enables native calls via Truffle NFI for internal functionality",
             null,
             true);
     public static final BooleanOptionDescription NATIVE_INTERRUPT = new BooleanOptionDescription(
@@ -596,6 +596,11 @@ public class OptionsCatalog {
             "Consider all objects as shared",
             null,
             false);
+    public static final BooleanOptionDescription CEXTS = new BooleanOptionDescription(
+            "ruby.cexts",
+            "Enable use of C extensions",
+            null,
+            true);
     public static final BooleanOptionDescription CEXTS_LOG_LOAD = new BooleanOptionDescription(
             "ruby.cexts.log.load",
             "Log loading of cexts",
@@ -876,6 +881,8 @@ public class OptionsCatalog {
                 return SHARED_OBJECTS_FORCE;
             case "ruby.shared.objects.share_all":
                 return SHARED_OBJECTS_SHARE_ALL;
+            case "ruby.cexts":
+                return CEXTS;
             case "ruby.cexts.log.load":
                 return CEXTS_LOG_LOAD;
             case "ruby.cexts.log.warnings":
@@ -919,6 +926,7 @@ public class OptionsCatalog {
             BIND_CACHE,
             BINDING_LOCAL_VARIABLE_CACHE,
             CALL_WITH_BLOCK_ALWAYS_CLONE,
+            CEXTS,
             CEXT_LOCK,
             CEXTS_LOG_LOAD,
             CEXTS_LOG_WARNINGS,
