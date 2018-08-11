@@ -8,6 +8,7 @@ New features:
   strings to Java, and `.import` will convert them from Java.
 * Implemented `--encoding`, `--external-encoding`, `--internal-encoding`.
 * `rb_object_tainted` and similar C functions have been implemented.
+* `rb_struct_define_under` has been implemented.
 * `RbConfig::CONFIG['sysconfdir']` has been implemented.
 
 Bug fixes:

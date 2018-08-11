@@ -1440,6 +1440,12 @@ module Truffle::CExt
     Struct.new(name, *attrs)
   end
 
+  def rb_struct_define_under_no_splat(outer, name, attrs)
+    struct = Struct.new(nil, *attrs)
+    rb_const_set outer, name, struct
+    struct
+  end
+
   def rb_struct_aref(struct, index)
     struct[index]
   end
