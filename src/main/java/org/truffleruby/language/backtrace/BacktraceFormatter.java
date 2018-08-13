@@ -19,13 +19,13 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.loader.SourceLoader;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -330,7 +330,7 @@ public class BacktraceFormatter {
             return true;
         }
 
-        if (name.startsWith(SourceLoader.RESOURCE_SCHEME)) {
+        if (name.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
             return true;
         } else if (name.endsWith("truffle/lazy-rubygems.rb")) {
             // Sinatra manually filters RubyGems files patching #require from caller():

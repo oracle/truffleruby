@@ -13,7 +13,7 @@ import com.oracle.truffle.api.TruffleOptions;
 
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.control.JavaException;
-import org.truffleruby.language.loader.SourceLoader;
+import org.truffleruby.language.loader.ResourceLoader;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
@@ -48,7 +48,8 @@ public class ParserCache {
 
     private static RubySource loadSource(String feature) {
         try {
-            return SourceLoader.loadResource(feature, true);
+            final ResourceLoader resourceLoader = new ResourceLoader();
+            return resourceLoader.loadResource(feature, true);
         } catch (IOException e) {
             throw new JavaException(e);
         }

@@ -21,7 +21,6 @@ import org.truffleruby.aot.ParserCache;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubySource;
@@ -30,20 +29,11 @@ import org.truffleruby.shared.TruffleRuby;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Locale;
 
 public class SourceLoader {
-
-    public static final String RESOURCE_SCHEME = "resource:";
-    public static final String RUBY_HOME_SCHEME = "rubyHome:";
 
     private final RubyContext context;
 
@@ -60,8 +50,8 @@ public class SourceLoader {
      */
     public String getPath(Source source) {
         final String name = source.getName();
-        if (context.wasPreInitialized() && name.startsWith(RUBY_HOME_SCHEME)) {
-            return context.getRubyHome() + "/" + name.substring(RUBY_HOME_SCHEME.length());
+        if (context.wasPreInitialized() && name.startsWith(RubyLanguage.RUBY_HOME_SCHEME)) {
+            return context.getRubyHome() + "/" + name.substring(RubyLanguage.RUBY_HOME_SCHEME.length());
         } else {
             return name;
         }
@@ -155,12 +145,13 @@ public class SourceLoader {
 
     @TruffleBoundary
     public RubySource loadCoreFile(String feature) throws IOException {
-        if (feature.startsWith(RESOURCE_SCHEME)) {
+        if (feature.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
             if (TruffleOptions.AOT || ParserCache.INSTANCE != null) {
                 final RootParseNode rootParseNode = ParserCache.INSTANCE.get(feature);
                 return new RubySource(rootParseNode.getSource());
             } else {
-                return loadResource(feature, isInternal(feature));
+                final ResourceLoader resourceLoader = new ResourceLoader();
+                return resourceLoader.loadResource(feature, isInternal(feature));
             }
         } else {
             return load(feature);
@@ -193,7 +184,7 @@ public class SourceLoader {
         final String name;
 
         if (context != null && context.isPreInitializing()) {
-            name = RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(feature));
+            name = RubyLanguage.RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(feature));
         } else {
             name = feature;
         }
@@ -230,29 +221,6 @@ public class SourceLoader {
         }
 
         return false;
-    }
-
-    public static RubySource loadResource(String path, boolean internal) throws IOException {
-        assert path.startsWith(RESOURCE_SCHEME);
-
-        if (!path.toLowerCase(Locale.ENGLISH).endsWith(".rb")) {
-            throw new FileNotFoundException(path);
-        }
-
-        final Class<?> relativeClass = RubyContext.class;
-        final Path relativePath = Paths.get(path.substring(RESOURCE_SCHEME.length()));
-
-        final String normalizedPath = StringUtils.replace(relativePath.normalize().toString(), '\\', '/');
-        final InputStream stream = relativeClass.getResourceAsStream(normalizedPath);
-
-        if (stream == null) {
-            throw new FileNotFoundException(path);
-        }
-
-        final InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
-        final Source source = buildSource(
-                Source.newBuilder(reader).name(path).mimeType(RubyLanguage.MIME_TYPE), internal);
-        return new RubySource(source);
     }
 
     private static <E extends Exception> Source buildSource(Source.Builder<E, RuntimeException, RuntimeException> builder, boolean internal) throws E {

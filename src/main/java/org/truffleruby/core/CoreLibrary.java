@@ -61,7 +61,6 @@ import org.truffleruby.language.control.TruffleFatalException;
 import org.truffleruby.language.globals.GlobalVariableStorage;
 import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.language.loader.CodeLoader;
-import org.truffleruby.language.loader.SourceLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
@@ -250,7 +249,7 @@ public class CoreLibrary {
             path = path.substring(0, path.length() - 1);
         }
 
-        if (path.startsWith(SourceLoader.RESOURCE_SCHEME)) {
+        if (path.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
             return path;
         }
 

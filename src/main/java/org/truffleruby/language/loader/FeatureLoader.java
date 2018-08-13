@@ -157,7 +157,7 @@ public class FeatureLoader {
 
         String found = null;
 
-        if (feature.startsWith(SourceLoader.RESOURCE_SCHEME) || new File(feature).isAbsolute()) {
+        if (feature.startsWith(RubyLanguage.RESOURCE_SCHEME) || new File(feature).isAbsolute()) {
             found = findFeatureWithAndWithoutExtension(feature);
         } else {
             for (Object pathObject : ArrayOperations.toIterable(context.getCoreLibrary().getLoadPath())) {
@@ -228,7 +228,7 @@ public class FeatureLoader {
             RubyLanguage.LOGGER.info(String.format("trying %s...", path));
         }
 
-        if (path.startsWith(SourceLoader.RESOURCE_SCHEME)) {
+        if (path.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
             return path;
         }
 
