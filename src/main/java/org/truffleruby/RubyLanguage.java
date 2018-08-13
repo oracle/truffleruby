@@ -36,7 +36,7 @@ import java.util.List;
         name = "Ruby",
         id = TruffleRuby.LANGUAGE_ID,
         version = TruffleRuby.LANGUAGE_VERSION,
-        mimeType = RubyLanguage.MIME_TYPE,
+        characterMimeTypes = RubyLanguage.MIME_TYPE,
         dependentLanguages = "llvm")
 @ProvidedTags({
         CoverageManager.LineTag.class,

@@ -26,6 +26,7 @@ import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
+import org.truffleruby.shared.TruffleRuby;
 
 public abstract class DebugHelpers {
 
@@ -69,7 +70,7 @@ public abstract class DebugHelpers {
             evalFrame.setObject(evalFrame.getFrameDescriptor().findOrAddFrameSlot(identifier), arguments[n + 1]);
         }
 
-        final Source source = Source.newBuilder(code).name("debug-eval").mimeType(RubyLanguage.MIME_TYPE).build();
+        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, code, "debug-eval").build();
 
         final RubyRootNode rootNode = context.getCodeLoader().parse(new RubySource(source), ParserContext.INLINE, evalFrame, true, null);
 

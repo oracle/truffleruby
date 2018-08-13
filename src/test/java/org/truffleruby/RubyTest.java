@@ -37,7 +37,7 @@ public abstract class RubyTest {
     }
 
     protected void testWithAST(String text, Consumer<RubyRootNode> test) {
-        final Source source = Source.newBuilder(text).name("test.rb").mimeType(RubyLanguage.MIME_TYPE).build();
+        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, text, "test.rb").build();
 
         testInContext(() -> {
             final RubyRootNode rootNode = RubyLanguage.getCurrentContext().getCodeLoader().parse(new RubySource(source), ParserContext.TOP_LEVEL, null, true, null);

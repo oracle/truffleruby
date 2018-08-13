@@ -36,7 +36,6 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.Layout;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.Source.Builder;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.transcode.EConvFlags;
@@ -227,12 +226,20 @@ public class CoreLibrary {
 
     @TruffleBoundary
     private SourceSection initCoreSourceSection(RubyContext context) {
-        final Builder<RuntimeException, RuntimeException, RuntimeException> builder =
-                Source.newBuilder("").name("(core)").mimeType(RubyLanguage.MIME_TYPE);
+        final Source.SourceBuilder builder =
+                Source.newBuilder(TruffleRuby.LANGUAGE_ID, "", "(core)");
         if (context.getOptions().CORE_AS_INTERNAL) {
-            builder.internal();
+            builder.internal(true);
         }
-        final Source source = builder.build();
+
+        final Source source;
+
+        try {
+            source = builder.build();
+        } catch (IOException e) {
+            throw new JavaException(e);
+        }
+
         return source.createUnavailableSection();
     }
 

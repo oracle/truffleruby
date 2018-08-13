@@ -24,6 +24,7 @@ import org.truffleruby.parser.lexer.RubyLexer;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.Source;
+import org.truffleruby.shared.TruffleRuby;
 
 public class CreateEvalSourceNode extends RubyBaseNode {
 
@@ -43,7 +44,7 @@ public class CreateEvalSourceNode extends RubyBaseNode {
             throw new RaiseException(getContext(), coreExceptions().syntaxError(message, this, getEncapsulatingSourceSection()));
         }
 
-        final Source source = Source.newBuilder(sourceString).name(file).mimeType(RubyLanguage.MIME_TYPE).build();
+        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, sourceString, file).build();
 
         return new RubySource(source, sourceRope);
     }

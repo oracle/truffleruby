@@ -131,7 +131,7 @@ public class Linker {
                     }
                 } else if (zipEntry.getName().endsWith("." + LLVM_BITCODE_EXTENSION)) {
                     final String sourceCode = Base64.getEncoder().encodeToString(bytes);
-                    final Source source = Source.newBuilder(sourceCode).name(file.getPath() + "@" + zipEntry.getName()).mimeType(RubyLanguage.SULONG_BITCODE_BASE64_MIME_TYPE).build();
+                    final Source source = Source.newBuilder("llvm", sourceCode, file.getPath() + "@" + zipEntry.getName()).mimeType(RubyLanguage.SULONG_BITCODE_BASE64_MIME_TYPE).build();
                     handleSource.accept(source);
                 }
 

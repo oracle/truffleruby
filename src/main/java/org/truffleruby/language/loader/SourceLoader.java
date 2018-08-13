@@ -26,6 +26,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.ast.RootParseNode;
+import org.truffleruby.shared.TruffleRuby;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -96,7 +97,7 @@ public class SourceLoader {
 
     @TruffleBoundary
     public RubySource loadMainEval() {
-        final Source source = Source.newBuilder(context.getOptions().TO_EXECUTE).name("-e").mimeType(RubyLanguage.MIME_TYPE).build();
+        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, context.getOptions().TO_EXECUTE, "-e").build();
         return new RubySource(source);
     }
 
@@ -116,7 +117,7 @@ public class SourceLoader {
 
         final byte[] sourceBytes = xOptionStrip(currentNode, byteStream.toByteArray());
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        final Source source = Source.newBuilder(sourceRope.toString()).name(path).mimeType(RubyLanguage.MIME_TYPE).build();
+        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, sourceRope.toString(), path).build();
         return new RubySource(source, sourceRope);
     }
 

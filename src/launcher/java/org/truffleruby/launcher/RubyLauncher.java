@@ -25,6 +25,7 @@ import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.Metrics;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -221,11 +222,16 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
         try (Context context = createContext(contextBuilder, config)) {
             Metrics.printTime("before-run");
-            final Source source = Source.newBuilder(
-                    TruffleRuby.LANGUAGE_ID,
-                    // language=ruby
-                    "Truffle::Boot.main",
-                    TruffleRuby.BOOT_SOURCE_NAME).internal(true).buildLiteral();
+            final Source source;
+            try {
+                source = Source.newBuilder(
+                        TruffleRuby.LANGUAGE_ID,
+                        // language=ruby
+                        "Truffle::Boot.main",
+                        TruffleRuby.BOOT_SOURCE_NAME).internal(true).build();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             final int exitCode = context.eval(source).asInt();
             Metrics.printTime("after-run");
             return exitCode;
