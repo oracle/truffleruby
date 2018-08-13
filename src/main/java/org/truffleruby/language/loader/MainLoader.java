@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.loader;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -37,13 +36,11 @@ public class MainLoader {
         this.context = context;
     }
 
-    @CompilerDirectives.TruffleBoundary
     public RubySource loadMainEval() {
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, context.getOptions().TO_EXECUTE, "-e").build();
         return new RubySource(source);
     }
 
-    @CompilerDirectives.TruffleBoundary
     public RubySource loadMainStdin(RubyNode currentNode, String path) throws IOException {
         final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 
@@ -70,7 +67,6 @@ public class MainLoader {
         return new RubySource(source, sourceRope);
     }
 
-    @CompilerDirectives.TruffleBoundary
     public RubySource loadMainFile(RubyNode currentNode, String path) throws IOException {
         SourceLoader.ensureReadable(context, path);
 
