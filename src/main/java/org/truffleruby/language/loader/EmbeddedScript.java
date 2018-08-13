@@ -26,54 +26,51 @@ public class EmbeddedScript {
         this.context = context;
     }
 
-    public byte[] xOptionStrip(RubyNode currentNode, byte[] sourceBytes) throws IOException {
-        boolean lookForRubyShebang = isCurrentLineShebang(sourceBytes) ||
-                context.getOptions().IGNORE_LINES_BEFORE_RUBY_SHEBANG;
+    public boolean shouldTransform(byte[] sourceBytes) {
+        return isShebang(sourceBytes) || context.getOptions().IGNORE_LINES_BEFORE_RUBY_SHEBANG;
+    }
 
-        ByteArrayOutputStream content = new ByteArrayOutputStream();
+    private boolean isShebang(byte[] bytes) {
+        return bytes.length >= 2 && bytes[0] == '#' && bytes[1] == '!';
+    }
+
+    public byte[] transformForExecution(RubyNode currentNode, byte[] sourceBytes, String path) throws IOException {
+        final ByteArrayOutputStream transformed = new ByteArrayOutputStream();
 
         int n = 0;
 
-        if (lookForRubyShebang) {
-            while (true) {
-                if (n == sourceBytes.length) {
-                    throw new RaiseException(context, context.getCoreExceptions().loadError(
-                            "no Ruby script found in input",
-                            "",
-                            currentNode));
-                }
+        while (true) {
+            if (n == sourceBytes.length) {
+                throw new RaiseException(context,
+                        context.getCoreExceptions().loadError("no Ruby script found in input", path, currentNode));
+            }
 
-                final int startOfLine = n;
+            final int startOfLine = n;
 
-                while (n < sourceBytes.length && sourceBytes[n] != '\n') {
-                    n++;
-                }
+            while (n < sourceBytes.length && sourceBytes[n] != '\n') {
+                n++;
+            }
 
-                if (n < sourceBytes.length && sourceBytes[n] == '\n') {
-                    n++;
-                }
+            if (n < sourceBytes.length && sourceBytes[n] == '\n') {
+                n++;
+            }
 
-                final byte[] lineBytes = Arrays.copyOfRange(sourceBytes, startOfLine, n);
-                final String line = new String(lineBytes, StandardCharsets.US_ASCII);
+            final byte[] lineBytes = Arrays.copyOfRange(sourceBytes, startOfLine, n);
+            final String line = new String(lineBytes, StandardCharsets.US_ASCII);
 
-                final boolean rubyShebang = line.startsWith("#!") && line.contains("ruby");
-                if (rubyShebang) {
-                    content.write(lineBytes);
-                    break;
-                } else {
-                    content.write("# line ignored by Ruby:".getBytes(StandardCharsets.US_ASCII)); // prefix with a comment so it's ignored by parser
-                    content.write(lineBytes);
-                }
+            final boolean rubyShebang = line.startsWith("#!") && line.contains("ruby");
+            if (rubyShebang) {
+                transformed.write(lineBytes);
+                break;
+            } else {
+                transformed.write("# line ignored by Ruby:".getBytes(StandardCharsets.US_ASCII)); // prefix with a comment so it's ignored by parser
+                transformed.write(lineBytes);
             }
         }
 
-        content.write(sourceBytes, n, sourceBytes.length - n);
+        transformed.write(sourceBytes, n, sourceBytes.length - n);
 
-        return content.toByteArray();
-    }
-
-    private boolean isCurrentLineShebang(byte[] bytes) {
-        return bytes.length >= 2 && bytes[0] == '#' && bytes[1] == '!';
+        return transformed.toByteArray();
     }
 
 }

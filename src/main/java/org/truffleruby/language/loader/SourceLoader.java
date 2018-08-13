@@ -114,8 +114,14 @@ public class SourceLoader {
             byteStream.write(buffer, 0, read);
         }
 
+        byte[] sourceBytes = byteStream.toByteArray();
+
         final EmbeddedScript embeddedScript = new EmbeddedScript(context);
-        final byte[] sourceBytes = embeddedScript.xOptionStrip(currentNode, byteStream.toByteArray());
+
+        if (embeddedScript.shouldTransform(sourceBytes)) {
+            sourceBytes = embeddedScript.transformForExecution(currentNode, sourceBytes, path);
+        }
+
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, sourceRope.toString(), path).build();
         return new RubySource(source, sourceRope);
@@ -131,8 +137,14 @@ public class SourceLoader {
 
         final File file = new File(path);
 
+        byte[] sourceBytes = Files.readAllBytes(file.toPath());
+
         final EmbeddedScript embeddedScript = new EmbeddedScript(context);
-        final byte[] sourceBytes = embeddedScript.xOptionStrip(currentNode, Files.readAllBytes(file.toPath()));
+
+        if (embeddedScript.shouldTransform(sourceBytes)) {
+            sourceBytes = embeddedScript.transformForExecution(currentNode, sourceBytes, path);
+        }
+
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
         mainSource = Source.newBuilder(file).name(path).content(sourceRope.toString()).mimeType(RubyLanguage.MIME_TYPE).build();
