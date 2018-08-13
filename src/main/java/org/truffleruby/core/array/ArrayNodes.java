@@ -1261,7 +1261,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class InjectNode extends YieldingCoreMethodNode {
 
-        @Child private CallDispatchHeadNode dispatch = CallDispatchHeadNode.createCallPublicOnly();
+        @Child private CallDispatchHeadNode dispatch = CallDispatchHeadNode.createPublic();
 
         // With block
 

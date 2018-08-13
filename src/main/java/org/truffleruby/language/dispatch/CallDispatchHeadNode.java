@@ -25,7 +25,7 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
     /**
      * Create a dispatch node only allowed to call public methods. This is rather rare.
      */
-    public static CallDispatchHeadNode createCallPublicOnly() {
+    public static CallDispatchHeadNode createPublic() {
         return new CallDispatchHeadNode(false, true, MissingBehavior.CALL_METHOD_MISSING);
     }
 

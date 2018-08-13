@@ -1340,7 +1340,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "public_send", needsBlock = true, required = 1, rest = true)
     public abstract static class PublicSendNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createCallPublicOnly();
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPublic();
 
         @Specialization
         public Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {
