@@ -24,9 +24,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 
 /*
- * Loads the main script.
+ * Loads the main script, whether it comes from an argument, standard in, or a file.
  */
 public class MainLoader {
 
@@ -36,25 +37,13 @@ public class MainLoader {
         this.context = context;
     }
 
-    public RubySource loadMainEval() {
+    public RubySource loadFromCommandLineArgument() {
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, context.getOptions().TO_EXECUTE, "-e").build();
         return new RubySource(source);
     }
 
-    public RubySource loadMainStdin(RubyNode currentNode, String path) throws IOException {
-        final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-
-        final byte[] buffer = new byte[4096];
-
-        while (true) {
-            final int read = System.in.read(buffer);
-            if (read == -1) {
-                break;
-            }
-            byteStream.write(buffer, 0, read);
-        }
-
-        byte[] sourceBytes = byteStream.toByteArray();
+    public RubySource loadFromStandardIn(RubyNode currentNode, String path) throws IOException {
+        byte[] sourceBytes = readAllOfStandardIn();
 
         final EmbeddedScript embeddedScript = new EmbeddedScript(context);
 
@@ -67,12 +56,28 @@ public class MainLoader {
         return new RubySource(source, sourceRope);
     }
 
-    public RubySource loadMainFile(RubyNode currentNode, String path) throws IOException {
+    private byte[] readAllOfStandardIn() throws IOException {
+        final ByteArrayOutputStream byteStream = new ByteArrayOutputStream(4096);
+
+        final byte[] buffer = new byte[4096];
+
+        while (true) {
+            final int read = System.in.read(buffer);
+
+            if (read == -1) {
+                break;
+            }
+
+            byteStream.write(buffer, 0, read);
+        }
+
+        return byteStream.toByteArray();
+    }
+
+    public RubySource loadFromFile(RubyNode currentNode, String path) throws IOException {
         SourceLoader.ensureReadable(context, path);
 
-        final File file = new File(path);
-
-        byte[] sourceBytes = Files.readAllBytes(file.toPath());
+        byte[] sourceBytes = Files.readAllBytes(Paths.get(path));
 
         final EmbeddedScript embeddedScript = new EmbeddedScript(context);
 
@@ -82,6 +87,7 @@ public class MainLoader {
 
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
+        final File file = new File(path);
         final Source mainSource = Source.newBuilder(file).name(path).content(sourceRope.toString()).mimeType(RubyLanguage.MIME_TYPE).build();
         final String mainSourceAbsolutePath = file.getCanonicalPath();
 

@@ -206,7 +206,7 @@ public abstract class TruffleBootNodes {
 
                     case FILE: {
                         final MainLoader mainLoader = new MainLoader(getContext());
-                        source = mainLoader.loadMainFile(this, toExecute);
+                        source = mainLoader.loadFromFile(this, toExecute);
                         dollarZeroValue = makeStringNode.executeMake(toExecute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
 
@@ -217,19 +217,19 @@ public abstract class TruffleBootNodes {
                                 "find_s_file",
                                 makeStringNode.executeMake(toExecute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
                         final MainLoader mainLoader = new MainLoader(getContext());
-                        source = mainLoader.loadMainFile(this, StringOperations.getString(path));
+                        source = mainLoader.loadFromFile(this, StringOperations.getString(path));
                         dollarZeroValue = path;
                     } break;
 
                     case STDIN: {
                         final MainLoader mainLoader = new MainLoader(getContext());
-                        source = mainLoader.loadMainStdin(this, toExecute);
+                        source = mainLoader.loadFromStandardIn(this, toExecute);
                         dollarZeroValue = makeStringNode.executeMake("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
                     } break;
 
                     case INLINE: {
                         final MainLoader mainLoader = new MainLoader(getContext());
-                        source = mainLoader.loadMainEval();
+                        source = mainLoader.loadFromCommandLineArgument();
                         dollarZeroValue = makeStringNode.executeMake("-e", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
                     } break;
 
