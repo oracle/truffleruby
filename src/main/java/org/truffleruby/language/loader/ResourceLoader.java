@@ -14,6 +14,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.parser.RubySource;
+import org.truffleruby.shared.TruffleRuby;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -35,7 +36,6 @@ public class ResourceLoader {
 
         final Class<?> relativeClass = RubyContext.class;
         final Path relativePath = Paths.get(path.substring(RubyLanguage.RESOURCE_SCHEME.length()));
-
         final String normalizedPath = StringUtils.replace(relativePath.normalize().toString(), '\\', '/');
         final InputStream stream = relativeClass.getResourceAsStream(normalizedPath);
 
@@ -43,18 +43,16 @@ public class ResourceLoader {
             throw new FileNotFoundException(path);
         }
 
+        // We guarantee that we only put UTF-8 source files into resources
         final InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
-        final Source source = buildSource(
-                Source.newBuilder(reader).name(path).mimeType(RubyLanguage.MIME_TYPE), internal);
-        return new RubySource(source);
-    }
 
-    private static <E extends Exception> Source buildSource(Source.Builder<E, RuntimeException, RuntimeException> builder, boolean internal) throws E {
-        if (internal) {
-            return builder.internal().build();
-        } else {
-            return builder.build();
-        }
+        final Source source = Source
+                .newBuilder(TruffleRuby.LANGUAGE_ID, reader, path)
+                .mimeType(RubyLanguage.MIME_TYPE)
+                .internal(internal)
+                .build();
+
+        return new RubySource(source);
     }
 
 }
