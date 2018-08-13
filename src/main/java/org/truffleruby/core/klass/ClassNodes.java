@@ -254,7 +254,7 @@ public abstract class ClassNodes {
     @CoreMethod(names = "allocate")
     public abstract static class AllocateInstanceNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
         public Object newInstance(VirtualFrame frame, DynamicObject rubyClass) {
@@ -265,8 +265,8 @@ public abstract class ClassNodes {
     @CoreMethod(names = "new", needsBlock = true, rest = true)
     public abstract static class NewNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createOnSelf();
-        @Child private CallDispatchHeadNode initialize = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode initialize = CallDispatchHeadNode.createPrivate();
 
         @Specialization
         public Object newInstance(VirtualFrame frame, DynamicObject rubyClass, Object[] args, NotProvided block) {

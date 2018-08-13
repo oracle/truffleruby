@@ -113,8 +113,8 @@ public abstract class TruffleBootNodes {
         @Specialization
         public int main(
                 @Cached("create()") IndirectCallNode callNode,
-                @Cached("createOnSelf()") CallDispatchHeadNode findSFile,
-                @Cached("createOnSelf()") CallDispatchHeadNode checkSyntax,
+                @Cached("createPrivate()") CallDispatchHeadNode findSFile,
+                @Cached("createPrivate()") CallDispatchHeadNode checkSyntax,
                 @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
 
             setArgvGlobals(makeStringNode);

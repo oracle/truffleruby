@@ -107,7 +107,7 @@ public abstract class ToIntNode extends RubyNode {
     private Object coerceObject(Object object, BranchProfile errorProfile) {
         if (toIntNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toIntNode = insert(CallDispatchHeadNode.createOnSelf());
+            toIntNode = insert(CallDispatchHeadNode.createPrivate());
         }
 
         final Object coerced;

@@ -291,7 +291,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
     protected class ToAOutgoingNode extends OutgoingNode {
 
-        @Child private CallDispatchHeadNode callToArray = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode callToArray = CallDispatchHeadNode.createPrivate();
 
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
@@ -307,7 +307,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
     protected class RespondToOutgoingNode extends OutgoingNode {
 
-        @Child private CallDispatchHeadNode callRespondTo = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode callRespondTo = CallDispatchHeadNode.createPrivate();
 
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
@@ -326,7 +326,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         private final DynamicObject name;
         private final int argsLength;
 
-        @Child private CallDispatchHeadNode callSpecialForm = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode callSpecialForm = CallDispatchHeadNode.createPrivate();
 
         public SpecialFormOutgoingNode(DynamicObject name, int argsLength) {
             this.name = name;
@@ -467,7 +467,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             if (redispatchNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 // ignore visibility like ForeignInvokeNode
-                redispatchNode = insert(CallDispatchHeadNode.createOnSelf());
+                redispatchNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
             return redispatchNode.call(receiver, name, args);

@@ -159,7 +159,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object addCoerced(Object a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreStrings().PLUS.getSymbol(), b);
         }
 
@@ -217,7 +217,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object subCoerced(Object a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreStrings().MINUS.getSymbol(), b);
         }
 
@@ -283,7 +283,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object mul(Object a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreStrings().MULTIPLY.getSymbol(), b);
         }
 
@@ -439,7 +439,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object divCoerced(Object a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreStrings().DIVIDE.getSymbol(), b);
         }
 
@@ -588,7 +588,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object modCoerced(Object a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreStrings().MODULO.getSymbol(), b);
         }
 
@@ -681,7 +681,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object lessCoerced(Object a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(a, "redo_compare", coreStrings().LESS_THAN.getSymbol(), b);
         }
     }
@@ -731,7 +731,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object lessEqualCoerced(Object a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(a, "redo_compare", coreStrings().LESS_OR_EQUAL.getSymbol(), b);
         }
 
@@ -787,7 +787,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object equal(VirtualFrame frame, Object a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode reverseCallNode,
+                @Cached("createPrivate()") CallDispatchHeadNode reverseCallNode,
                 @Cached("create()") BooleanCastNode booleanCastNode) {
             final Object reversedResult = reverseCallNode.call(b, "==", a);
             return booleanCastNode.executeToBoolean(reversedResult);
@@ -865,7 +865,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object compare(Object a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(a, "redo_compare_no_error", b);
         }
 
@@ -916,7 +916,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object greaterEqualCoerced(Object a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(a, "redo_compare", coreStrings().GREATER_OR_EQUAL.getSymbol(), b);
         }
 
@@ -967,7 +967,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object greaterCoerced(Object a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(a, "redo_compare", coreStrings().GREATER_THAN.getSymbol(), b);
         }
 
@@ -1040,7 +1040,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         public Object bitAndCoerced(Object a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_bit_coerced", coreStrings().AMPERSAND.getSymbol(), b);
         }
 
@@ -1078,7 +1078,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         public Object bitOrCoerced(Object a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_bit_coerced", coreStrings().PIPE.getSymbol(), b);
         }
 
@@ -1114,7 +1114,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         public Object bitXOrCoerced(Object a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_bit_coerced", coreStrings().CIRCUMFLEX.getSymbol(), b);
         }
 
@@ -1872,7 +1872,7 @@ public abstract class IntegerNodes {
         public Object downto(VirtualFrame frame, Object from, Object to, DynamicObject block) {
             if (downtoInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                downtoInternalCall = insert(CallDispatchHeadNode.createOnSelf());
+                downtoInternalCall = insert(CallDispatchHeadNode.createPrivate());
             }
 
             return downtoInternalCall.callWithBlock(from, "downto_internal", block, to);
@@ -1961,7 +1961,7 @@ public abstract class IntegerNodes {
         public Object upto(VirtualFrame frame, Object from, Object to, DynamicObject block) {
             if (uptoInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                uptoInternalCall = insert(CallDispatchHeadNode.createOnSelf());
+                uptoInternalCall = insert(CallDispatchHeadNode.createPrivate());
             }
 
             return uptoInternalCall.callWithBlock(from, "upto_internal", block, to);

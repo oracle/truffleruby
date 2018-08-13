@@ -34,7 +34,7 @@ public class RunBlockKWArgsHelperNode extends RubyNode {
     public RunBlockKWArgsHelperNode(FrameSlot arrayFrameSlot, Object kwrestName) {
         readArrayNode = ReadFrameSlotNodeGen.create(arrayFrameSlot);
         writeArrayNode = WriteFrameSlotNodeGen.create(arrayFrameSlot);
-        callHelperNode = CallDispatchHeadNode.createOnSelf();
+        callHelperNode = CallDispatchHeadNode.createPrivate();
         this.kwrestName = kwrestName;
     }
 

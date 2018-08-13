@@ -95,8 +95,8 @@ public abstract class CmpIntNode extends RubyNode {
             "!isRubyBignum(value)",
             "!isNil(value)" })
     public int cmpObject(VirtualFrame frame, Object value, Object receiver, Object other,
-            @Cached("createOnSelf()") CallDispatchHeadNode gtNode,
-            @Cached("createOnSelf()") CallDispatchHeadNode ltNode,
+            @Cached("createPrivate()") CallDispatchHeadNode gtNode,
+            @Cached("createPrivate()") CallDispatchHeadNode ltNode,
             @Cached("create()") BooleanCastNode gtCastNode,
             @Cached("create()") BooleanCastNode ltCastNode) {
 

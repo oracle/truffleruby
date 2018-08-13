@@ -1735,7 +1735,7 @@ public abstract class ModuleNodes {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private IsFrozenNode isFrozenNode = IsFrozenNodeGen.create(null);
-        @Child private CallDispatchHeadNode methodRemovedNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode methodRemovedNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
         public DynamicObject removeMethods(VirtualFrame frame, DynamicObject module, Object[] names) {
@@ -1780,7 +1780,7 @@ public abstract class ModuleNodes {
                 if (Layouts.CLASS.isClass(attached) || Layouts.MODULE.isModule(attached)) {
                     if (callRbInspect == null) {
                         CompilerDirectives.transferToInterpreterAndInvalidate();
-                        callRbInspect = insert(CallDispatchHeadNode.createOnSelf());
+                        callRbInspect = insert(CallDispatchHeadNode.createPrivate());
                     }
                     final Object inspectResult = callRbInspect.call(coreLibrary().getTruffleTypeModule(), "rb_inspect", attached);
                     name = StringOperations.getString((DynamicObject) inspectResult);
@@ -1806,7 +1806,7 @@ public abstract class ModuleNodes {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private RaiseIfFrozenNode raiseIfFrozenNode = new RaiseIfFrozenNode(ProfileArgumentNodeGen.create(new ReadSelfNode()));
-        @Child private CallDispatchHeadNode methodUndefinedNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode methodUndefinedNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
         public DynamicObject undefMethods(VirtualFrame frame, DynamicObject module, Object[] names) {

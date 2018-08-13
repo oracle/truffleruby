@@ -329,7 +329,7 @@ public abstract class BigDecimalNodes {
                 DynamicObject b,
                 NotProvided precision,
                 @Cached("createBinaryProfile()") ConditionProfile bZeroProfile,
-                @Cached("createOnSelf()") CallDispatchHeadNode floorNode) {
+                @Cached("createPrivate()") CallDispatchHeadNode floorNode) {
             if (bZeroProfile.profile(isNormalZero(b))) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else {
@@ -509,7 +509,7 @@ public abstract class BigDecimalNodes {
                 VirtualFrame frame,
                 DynamicObject a,
                 DynamicObject b,
-                @Cached("createOnSelf()") CallDispatchHeadNode signCall,
+                @Cached("createPrivate()") CallDispatchHeadNode signCall,
                 @Cached("create()") IntegerCastNode signIntegerCast,
                 @Cached("createBinaryProfile()") ConditionProfile nanProfile,
                 @Cached("createBinaryProfile()") ConditionProfile normalNegProfile,
@@ -1052,7 +1052,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "!isRubyBigDecimal(b)", "!isNil(b)" })
         public Object compareCoerced(DynamicObject a, DynamicObject b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreStrings().SPACESHIP.getSymbol(), b);
         }
 

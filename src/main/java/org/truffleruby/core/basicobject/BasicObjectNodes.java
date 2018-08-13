@@ -86,7 +86,7 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "!=", required = 1)
     public abstract static class NotEqualNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode equalNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode equalNode = CallDispatchHeadNode.createPrivate();
         @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         @Specialization
@@ -457,7 +457,7 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "__send__", needsBlock = true, rest = true, required = 1)
     public abstract static class SendNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @Specialization

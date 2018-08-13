@@ -46,7 +46,7 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
         private Object callGetIndex(VirtualFrame frame, Object match, int index) {
             if (getIndexNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                getIndexNode = insert(CallDispatchHeadNode.createOnSelf());
+                getIndexNode = insert(CallDispatchHeadNode.createPrivate());
             }
             return getIndexNode.call(match, "[]", index);
         }

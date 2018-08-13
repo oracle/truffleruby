@@ -126,7 +126,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
     protected Object call(DynamicObject receiver, String methodName, Object... arguments) {
         if (callNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callNode = insert(CallDispatchHeadNode.createOnSelf());
+            callNode = insert(CallDispatchHeadNode.createPrivate());
         }
 
         return callNode.call(receiver, methodName, arguments);

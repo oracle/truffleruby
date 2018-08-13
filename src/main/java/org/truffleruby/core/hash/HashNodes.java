@@ -68,7 +68,7 @@ public abstract class HashNodes {
 
         @Child private HashNode hashNode = new HashNode();
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-        @Child private CallDispatchHeadNode fallbackNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode fallbackNode = CallDispatchHeadNode.createPrivate();
 
         @ExplodeLoop
         @Specialization(guards = "isSmallArrayOfPairs(args)")
@@ -210,7 +210,7 @@ public abstract class HashNodes {
         public Object accept(VirtualFrame frame, Object hash, Object key) {
             if (callDefaultNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                callDefaultNode = insert(CallDispatchHeadNode.createOnSelf());
+                callDefaultNode = insert(CallDispatchHeadNode.createPrivate());
             }
             return callDefaultNode.call(hash, "default", key);
         }
@@ -603,7 +603,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "!isRubyHash(other)")
         public DynamicObject replaceCoerce(DynamicObject self, Object other,
-                @Cached("createOnSelf()") CallDispatchHeadNode coerceNode,
+                @Cached("createPrivate()") CallDispatchHeadNode coerceNode,
                 @Cached("create()") InitializeCopyNode initializeCopyNode) {
             final Object otherHash = coerceNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to", other,
                     coreLibrary().getHashClass(), coreStrings().TO_HASH.getSymbol());
@@ -953,7 +953,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "!isRubyHash(other)")
         public Object merge(VirtualFrame frame, DynamicObject hash, Object other, Object maybeBlock,
-                @Cached("createOnSelf()") CallDispatchHeadNode fallbackCallNode) {
+                @Cached("createPrivate()") CallDispatchHeadNode fallbackCallNode) {
             final DynamicObject block;
             if (maybeBlock == NotProvided.INSTANCE) {
                 block = null;
@@ -1009,7 +1009,7 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class ShiftNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode callDefaultNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode callDefaultNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization(guards = "isEmptyHash(hash)")
         public Object shiftEmpty(VirtualFrame frame, DynamicObject hash) {

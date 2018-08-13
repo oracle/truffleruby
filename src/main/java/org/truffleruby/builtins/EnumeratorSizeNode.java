@@ -40,7 +40,7 @@ public class EnumeratorSizeNode extends RubyNode {
         if (noBlockProfile.profile(block == null)) {
             if (toEnumWithSize == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toEnumWithSize = insert(CallDispatchHeadNode.createOnSelf());
+                toEnumWithSize = insert(CallDispatchHeadNode.createPrivate());
             }
 
             final Object self = RubyArguments.getSelf(frame);

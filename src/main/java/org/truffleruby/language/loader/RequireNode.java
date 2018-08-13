@@ -56,9 +56,9 @@ import org.truffleruby.shared.Metrics;
 public abstract class RequireNode extends RubyNode {
 
     @Child private IndirectCallNode callNode = IndirectCallNode.create();
-    @Child private CallDispatchHeadNode isInLoadedFeatures = CallDispatchHeadNode.createOnSelf();
+    @Child private CallDispatchHeadNode isInLoadedFeatures = CallDispatchHeadNode.createPrivate();
     @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
-    @Child private CallDispatchHeadNode addToLoadedFeatures = CallDispatchHeadNode.createOnSelf();
+    @Child private CallDispatchHeadNode addToLoadedFeatures = CallDispatchHeadNode.createPrivate();
 
     @Child private Node readNode = Message.READ.createNode();
     @Child private Node isExecutableNode = Message.IS_EXECUTABLE.createNode();

@@ -38,7 +38,7 @@ public class DataNode extends RubyNode {
 
         if (callHelperNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callHelperNode = insert(CallDispatchHeadNode.createOnSelf());
+            callHelperNode = insert(CallDispatchHeadNode.createPrivate());
         }
 
         final String path = getPath();

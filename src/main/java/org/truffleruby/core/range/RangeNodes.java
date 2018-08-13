@@ -151,7 +151,7 @@ public abstract class RangeNodes {
         private Object eachInternal(VirtualFrame frame, DynamicObject range, DynamicObject block) {
             if (eachInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                eachInternalCall = insert(CallDispatchHeadNode.createOnSelf());
+                eachInternalCall = insert(CallDispatchHeadNode.createPrivate());
             }
 
             return eachInternalCall.callWithBlock(range, "each_internal", block);
@@ -332,7 +332,7 @@ public abstract class RangeNodes {
         public Object stepFallback(VirtualFrame frame, Object range, Object step, Object block) {
             if (stepInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                stepInternalCall = insert(CallDispatchHeadNode.createOnSelf());
+                stepInternalCall = insert(CallDispatchHeadNode.createPrivate());
             }
 
             if (step instanceof NotProvided) {
@@ -384,7 +384,7 @@ public abstract class RangeNodes {
         public Object toA(VirtualFrame frame, DynamicObject range) {
             if (toAInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toAInternalCall = insert(CallDispatchHeadNode.createOnSelf());
+                toAInternalCall = insert(CallDispatchHeadNode.createPrivate());
             }
 
             return toAInternalCall.call(range, "to_a_internal");
@@ -496,7 +496,7 @@ public abstract class RangeNodes {
                 boolean excludeEnd) {
             if (cmpNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                cmpNode = insert(CallDispatchHeadNode.createOnSelf());
+                cmpNode = insert(CallDispatchHeadNode.createPrivate());
             }
             if (allocateNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();

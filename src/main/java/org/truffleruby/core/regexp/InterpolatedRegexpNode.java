@@ -61,7 +61,7 @@ public class InterpolatedRegexpNode extends RubyNode {
     public static abstract class RegexpBuilderNode extends RubyNode {
 
         @Child private RopeNodes.EqualNode ropesEqualNode = RopeNodes.EqualNode.create();
-        @Child private CallDispatchHeadNode copyNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode copyNode = CallDispatchHeadNode.createPrivate();
         private final RegexpOptions options;
 
         public static RegexpBuilderNode create(RegexpOptions options) {

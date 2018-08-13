@@ -58,7 +58,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     public final DynamicObject executeCreate(VirtualFrame frame, Object value) {
         if (allocateNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            allocateNode = insert(CallDispatchHeadNode.createOnSelf());
+            allocateNode = insert(CallDispatchHeadNode.createPrivate());
         }
 
         return executeInitialize(
@@ -116,7 +116,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             Object digits,
             @Cached("createBooleanCastNode()") BooleanCastNode booleanCastNode,
             @Cached("createGetIntegerConstantNode()") GetIntegerConstantNode getIntegerConstantNode,
-            @Cached("createOnSelf()") CallDispatchHeadNode modeCallNode,
+            @Cached("createPrivate()") CallDispatchHeadNode modeCallNode,
             @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
 
@@ -142,7 +142,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             Object digits,
             @Cached("createBooleanCastNode()") BooleanCastNode booleanCastNode,
             @Cached("createGetIntegerConstantNode()") GetIntegerConstantNode getIntegerConstantNode,
-            @Cached("createOnSelf()") CallDispatchHeadNode modeCallNode,
+            @Cached("createPrivate()") CallDispatchHeadNode modeCallNode,
             @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
 

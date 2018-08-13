@@ -147,7 +147,7 @@ public abstract class ProcNodes {
         private CallDispatchHeadNode getInitializeNode() {
             if (initializeNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                initializeNode = insert(CallDispatchHeadNode.createOnSelf());
+                initializeNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
             return initializeNode;

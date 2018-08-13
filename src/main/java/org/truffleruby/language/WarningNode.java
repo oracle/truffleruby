@@ -22,7 +22,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
  */
 public class WarningNode extends RubyBaseNode {
 
-    @Child private CallDispatchHeadNode warningMethod = CallDispatchHeadNode.createOnSelf();
+    @Child private CallDispatchHeadNode warningMethod = CallDispatchHeadNode.createPrivate();
     @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
     private Object callWarning(String warningMessage) {

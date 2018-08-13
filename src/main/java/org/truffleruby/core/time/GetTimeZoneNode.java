@@ -66,7 +66,7 @@ public abstract class GetTimeZoneNode extends RubyNode {
         TZ_UNCHANGED.invalidate();
     }
 
-    @Child private CallDispatchHeadNode lookupEnvNode = CallDispatchHeadNode.createOnSelf();
+    @Child private CallDispatchHeadNode lookupEnvNode = CallDispatchHeadNode.createPrivate();
 
     public abstract TimeZoneAndName executeGetTimeZone();
 

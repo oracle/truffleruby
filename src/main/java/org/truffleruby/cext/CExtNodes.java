@@ -981,7 +981,7 @@ public class CExtNodes {
         public DynamicObject classNew(VirtualFrame frame, DynamicObject superclass) {
             if (allocateNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                allocateNode = insert(CallDispatchHeadNode.createOnSelf());
+                allocateNode = insert(CallDispatchHeadNode.createPrivate());
                 initializeClassNode = insert(InitializeClassNodeGen.create(false, null, null, null));
             }
 
@@ -1033,7 +1033,7 @@ public class CExtNodes {
         private DynamicObject callToS(Object object) {
             if (toSCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toSCall = insert(CallDispatchHeadNode.createOnSelf());
+                toSCall = insert(CallDispatchHeadNode.createPrivate());
             }
 
             return (DynamicObject) toSCall.call(object, "to_s");

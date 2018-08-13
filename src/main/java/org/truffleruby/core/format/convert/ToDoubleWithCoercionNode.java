@@ -25,7 +25,7 @@ public abstract class ToDoubleWithCoercionNode extends FormatNode {
     public Object toDouble(VirtualFrame frame, Object value) {
         if (floatNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            floatNode = insert(CallDispatchHeadNode.createOnSelf());
+            floatNode = insert(CallDispatchHeadNode.createPrivate());
         }
 
         return floatNode.call(getContext().getCoreLibrary().getKernelModule(), "Float", value);

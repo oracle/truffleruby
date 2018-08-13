@@ -1006,13 +1006,13 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected Object fillFallback(VirtualFrame frame, DynamicObject array, Object[] args, NotProvided block,
-                @Cached("createOnSelf()") CallDispatchHeadNode callFillInternal) {
+                @Cached("createPrivate()") CallDispatchHeadNode callFillInternal) {
             return callFillInternal.call(array, "fill_internal", args);
         }
 
         @Specialization
         protected Object fillFallback(VirtualFrame frame, DynamicObject array, Object[] args, DynamicObject block,
-                @Cached("createOnSelf()") CallDispatchHeadNode callFillInternal) {
+                @Cached("createPrivate()") CallDispatchHeadNode callFillInternal) {
             return callFillInternal.callWithBlock(array, "fill_internal", block, args);
         }
 
@@ -1028,7 +1028,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
         public long hash(VirtualFrame frame, DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("createOnSelf()") CallDispatchHeadNode toHashNode) {
+                @Cached("createPrivate()") CallDispatchHeadNode toHashNode) {
             final int size = strategy.getSize(array);
             long h = getContext().getHashing(this).start(size);
             h = Hashing.update(h, CLASS_SALT);
@@ -1209,7 +1209,7 @@ public abstract class ArrayNodes {
         protected Object callToAry(VirtualFrame frame, Object object) {
             if (toAryNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toAryNode = insert(CallDispatchHeadNode.createOnSelf());
+                toAryNode = insert(CallDispatchHeadNode.createPrivate());
             }
             return toAryNode.call(object, "to_ary");
         }
@@ -2015,7 +2015,7 @@ public abstract class ArrayNodes {
         public DynamicObject sortVeryShort(VirtualFrame frame, DynamicObject array, NotProvided block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
-                @Cached("createOnSelf()") CallDispatchHeadNode compareDispatchNode,
+                @Cached("createPrivate()") CallDispatchHeadNode compareDispatchNode,
                 @Cached("create()") FixnumLowerNode fixnumLowerNode,
                 @Cached("create()") BranchProfile errorProfile) {
             final ArrayMirror originalStore = strategy.newMirror(array);
@@ -2066,14 +2066,14 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public Object sortArrayWithoutBlock(DynamicObject array, NotProvided block,
-                @Cached("createOnSelf()") CallDispatchHeadNode fallbackNode,
+                @Cached("createPrivate()") CallDispatchHeadNode fallbackNode,
                 @Cached("of(array)") ArrayStrategy strategy) {
             return fallbackNode.call(array, "sort_fallback");
         }
 
         @Specialization(guards = "!isEmptyArray(array)")
         public Object sortGenericWithBlock(DynamicObject array, DynamicObject block,
-                @Cached("createOnSelf()") CallDispatchHeadNode fallbackNode) {
+                @Cached("createPrivate()") CallDispatchHeadNode fallbackNode) {
             return fallbackNode.callWithBlock(array, "sort_fallback", block);
         }
 

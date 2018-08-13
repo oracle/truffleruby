@@ -20,7 +20,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 /** Load libraries required from the command line (-r LIBRARY) */
 public class LoadRequiredLibrariesNode extends RubyNode {
 
-    @Child private CallDispatchHeadNode requireNode = CallDispatchHeadNode.createOnSelf();
+    @Child private CallDispatchHeadNode requireNode = CallDispatchHeadNode.createPrivate();
     @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
     @Override

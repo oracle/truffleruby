@@ -49,7 +49,7 @@ public class HashNode extends RubyBaseNode {
         } else {
             if (coerceToIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                coerceToIntNode = insert(CallDispatchHeadNode.createOnSelf());
+                coerceToIntNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
             final Object coercedHashedObject = coerceToIntNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to_int", hashedObject);
@@ -69,7 +69,7 @@ public class HashNode extends RubyBaseNode {
     private Object hash(VirtualFrame frame, Object object) {
         if (hashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            hashNode = insert(CallDispatchHeadNode.createOnSelf());
+            hashNode = insert(CallDispatchHeadNode.createPrivate());
         }
         return hashNode.call(object, "hash");
     }

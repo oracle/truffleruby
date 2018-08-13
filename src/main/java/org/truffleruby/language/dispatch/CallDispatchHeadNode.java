@@ -13,11 +13,18 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public class CallDispatchHeadNode extends DispatchHeadNode {
 
-    /** Create a dispatch node ignoring visibility. */
-    public static CallDispatchHeadNode createOnSelf() {
+    /**
+     * Create a dispatch node ignoring visibility. This is the case for most calls from Java nodes
+     * and from the C-API, as checking visibility doesn't make much sense in this context and MRI
+     * doesn't do it either.
+     */
+    public static CallDispatchHeadNode createPrivate() {
         return new CallDispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING);
     }
 
+    /**
+     * Create a dispatch node only allowed to call public methods. This is rather rare.
+     */
     public static CallDispatchHeadNode createCallPublicOnly() {
         return new CallDispatchHeadNode(false, true, MissingBehavior.CALL_METHOD_MISSING);
     }

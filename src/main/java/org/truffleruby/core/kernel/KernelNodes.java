@@ -188,7 +188,7 @@ public abstract class KernelNodes {
         private boolean areEqual(VirtualFrame frame, Object left, Object right) {
             if (equalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                equalNode = insert(CallDispatchHeadNode.createOnSelf());
+                equalNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
             if (booleanCastNode == null) {
@@ -236,7 +236,7 @@ public abstract class KernelNodes {
         private boolean areEql(VirtualFrame frame, Object left, Object right) {
             if (eqlNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                eqlNode = insert(CallDispatchHeadNode.createOnSelf());
+                eqlNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
             if (booleanCastNode == null) {
@@ -344,7 +344,7 @@ public abstract class KernelNodes {
     @ImportStatic(ShapeCachingGuards.class)
     public abstract static class CopyNode extends UnaryCoreMethodNode {
 
-        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createPrivate();
 
         public abstract DynamicObject executeCopy(VirtualFrame frame, DynamicObject self);
 
@@ -436,7 +436,7 @@ public abstract class KernelNodes {
     public abstract static class CloneNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CopyNode copyNode = CopyNodeFactory.create(null);
-        @Child private CallDispatchHeadNode initializeCloneNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode initializeCloneNode = CallDispatchHeadNode.createPrivate();
         @Child private IsFrozenNode isFrozenNode = IsFrozenNodeGen.create(null);
         @Child private FreezeNode freezeNode;
         @Child private PropagateTaintNode propagateTaintNode = PropagateTaintNode.create();
@@ -491,7 +491,7 @@ public abstract class KernelNodes {
     public abstract static class DupNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CopyNode copyNode = CopyNodeFactory.create(null);
-        @Child private CallDispatchHeadNode initializeDupNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode initializeDupNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization(guards = "!isSpecialDup(self)")
         public DynamicObject dup(VirtualFrame frame, DynamicObject self) {
@@ -785,7 +785,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = { "initialize_dup", "initialize_clone" }, required = 1)
     public abstract static class InitializeDupCloneNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode initializeCopyNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode initializeCopyNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
         public Object initializeDup(VirtualFrame frame, DynamicObject self, DynamicObject from) {
@@ -1101,7 +1101,7 @@ public abstract class KernelNodes {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private LookupMethodNode lookupMethodNode;
-        @Child private CallDispatchHeadNode respondToMissingNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode respondToMissingNode = CallDispatchHeadNode.createPrivate();
         @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         public GetMethodObjectNode(boolean ignoreVisibility) {
@@ -1147,7 +1147,7 @@ public abstract class KernelNodes {
         private static class CallMethodMissingWithStaticName extends RubyNode {
 
             private final DynamicObject methodName;
-            @Child private CallDispatchHeadNode methodMissing = CallDispatchHeadNode.createOnSelf();
+            @Child private CallDispatchHeadNode methodMissing = CallDispatchHeadNode.createPrivate();
 
             public CallMethodMissingWithStaticName(DynamicObject methodName) {
                 this.methodName = methodName;
@@ -1215,7 +1215,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "p", isModuleFunction = true, required = 1)
     public abstract static class DebugPrintNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode callInspectNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode callInspectNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
         public Object p(VirtualFrame frame, Object value) {
@@ -1509,7 +1509,7 @@ public abstract class KernelNodes {
         private boolean respondToMissing(VirtualFrame frame, Object object, DynamicObject name, boolean includeProtectedAndPrivate) {
             if (respondToMissingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                respondToMissingNode = insert(CallDispatchHeadNode.createOnSelf());
+                respondToMissingNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
             if (booleanCastNode == null) {

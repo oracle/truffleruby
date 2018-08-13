@@ -371,7 +371,7 @@ public abstract class StringNodes {
             if (respondToNode.doesRespondToString(frame, b, coreStrings().TO_STR.createInstance(), false)) {
                 if (objectEqualNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    objectEqualNode = insert(CallDispatchHeadNode.createOnSelf());
+                    objectEqualNode = insert(CallDispatchHeadNode.createPrivate());
                 }
 
                 if (booleanCastNode == null) {
@@ -484,7 +484,7 @@ public abstract class StringNodes {
                 VirtualFrame frame,
                 DynamicObject string,
                 Object other,
-                @Cached("createOnSelf()") CallDispatchHeadNode callNode) {
+                @Cached("createPrivate()") CallDispatchHeadNode callNode) {
             return callNode.call(string, "concat_internal", other);
         }
 
@@ -594,8 +594,8 @@ public abstract class StringNodes {
                 DynamicObject string,
                 DynamicObject regexp,
                 NotProvided capture,
-                @Cached("createOnSelf()") CallDispatchHeadNode callNode,
-                @Cached("createOnSelf()") CallDispatchHeadNode setLastMatchNode,
+                @Cached("createPrivate()") CallDispatchHeadNode callNode,
+                @Cached("createPrivate()") CallDispatchHeadNode setLastMatchNode,
                 @Cached("create()") ReadCallerFrameNode readCallerNode) {
             return sliceCapture(frame, string, regexp, 0, callNode, setLastMatchNode, readCallerNode);
         }
@@ -606,8 +606,8 @@ public abstract class StringNodes {
                 DynamicObject string,
                 DynamicObject regexp,
                 Object capture,
-                @Cached("createOnSelf()") CallDispatchHeadNode callNode,
-                @Cached("createOnSelf()") CallDispatchHeadNode setLastMatchNode,
+                @Cached("createPrivate()") CallDispatchHeadNode callNode,
+                @Cached("createPrivate()") CallDispatchHeadNode setLastMatchNode,
                 @Cached("create()") ReadCallerFrameNode readCallerNode) {
             final Object matchStrPair = callNode.call(string, "subpattern", regexp, capture);
 
@@ -626,9 +626,9 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isRubyString(matchStr)")
         public Object slice2(VirtualFrame frame, DynamicObject string, DynamicObject matchStr, NotProvided length,
-                @Cached("createOnSelf()") CallDispatchHeadNode includeNode,
+                @Cached("createPrivate()") CallDispatchHeadNode includeNode,
                 @Cached("create()") BooleanCastNode booleanCastNode,
-                @Cached("createOnSelf()") CallDispatchHeadNode dupNode) {
+                @Cached("createPrivate()") CallDispatchHeadNode dupNode) {
 
             final Object included = includeNode.call(string, "include?", matchStr);
 
@@ -651,7 +651,7 @@ public abstract class StringNodes {
         private int toInt(VirtualFrame frame, Object value) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toIntNode = insert(CallDispatchHeadNode.createOnSelf());
+                toIntNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
             return (int) toIntNode.call(coreLibrary().getTruffleTypeModule(), "rb_num2int", value);
@@ -2160,10 +2160,10 @@ public abstract class StringNodes {
 
         public abstract Object executeSum(VirtualFrame frame, DynamicObject string, Object bits);
 
-        @Child private CallDispatchHeadNode addNode = CallDispatchHeadNode.createOnSelf();
-        @Child private CallDispatchHeadNode subNode = CallDispatchHeadNode.createOnSelf();
-        @Child private CallDispatchHeadNode shiftNode = CallDispatchHeadNode.createOnSelf();
-        @Child private CallDispatchHeadNode andNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode addNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode subNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode shiftNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode andNode = CallDispatchHeadNode.createPrivate();
         private final RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization
