@@ -38,12 +38,12 @@ public abstract class ToAryNode extends RubyNode {
             @Cached("create()") BranchProfile errorProfile) {
         if (toAryNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toAryNode = insert(CallDispatchHeadNode.create());
+            toAryNode = insert(CallDispatchHeadNode.createPrivate());
         }
 
         final Object coerced;
         try {
-            coerced = toAryNode.call(frame, object, "to_ary");
+            coerced = toAryNode.call(object, "to_ary");
         } catch (RaiseException e) {
             errorProfile.enter();
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {

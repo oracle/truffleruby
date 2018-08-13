@@ -22,12 +22,12 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
  */
 public class WarningNode extends RubyBaseNode {
 
-    @Child private CallDispatchHeadNode warningMethod = CallDispatchHeadNode.createOnSelf();
+    @Child private CallDispatchHeadNode warningMethod = CallDispatchHeadNode.createPrivate();
     @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
     private Object callWarning(String warningMessage) {
         final DynamicObject warningString = makeStringNode.executeMake(warningMessage, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        return warningMethod.call(null, getContext().getCoreLibrary().getKernelModule(), "warn", warningString);
+        return warningMethod.call(getContext().getCoreLibrary().getKernelModule(), "warn", warningString);
     }
 
     public void warningMessage(SourceSection sourceSection, String message) {

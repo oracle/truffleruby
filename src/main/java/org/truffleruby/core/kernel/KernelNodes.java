@@ -70,7 +70,7 @@ import org.truffleruby.core.format.exceptions.InvalidFormatException;
 import org.truffleruby.core.format.printf.PrintfCompiler;
 import org.truffleruby.core.kernel.KernelNodesFactory.CopyNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.GetMethodObjectNodeGen;
-import org.truffleruby.core.kernel.KernelNodesFactory.ObjectSameOrEqualNodeFactory;
+import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SingletonMethodsNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.ToHexStringNodeFactory;
 import org.truffleruby.core.method.MethodFilter;
@@ -162,13 +162,18 @@ public abstract class KernelNodes {
      * Known as rb_equal() in MRI. The fact Kernel#=== uses this is pure coincidence.
      */
     @Primitive(name = "object_same_or_equal")
-    public abstract static class ObjectSameOrEqualNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class SameOrEqualNode extends PrimitiveArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode equalNode;
+        @Child private BooleanCastNode booleanCastNode;
 
         private final ConditionProfile sameProfile = ConditionProfile.createBinaryProfile();
 
-        public abstract boolean executeObjectSameOrEqual(VirtualFrame frame, Object a, Object b);
+        public static SameOrEqualNode create() {
+            return SameOrEqualNodeFactory.create(null);
+        }
+
+        public abstract boolean executeSameOrEqual(VirtualFrame frame, Object a, Object b);
 
         @Specialization
         protected boolean sameOrEqual(VirtualFrame frame, Object a, Object b,
@@ -183,10 +188,15 @@ public abstract class KernelNodes {
         private boolean areEqual(VirtualFrame frame, Object left, Object right) {
             if (equalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                equalNode = insert(CallDispatchHeadNode.create());
+                equalNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
-            return equalNode.callBoolean(frame, left, "==", right);
+            if (booleanCastNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                booleanCastNode = insert(BooleanCastNode.create());
+            }
+
+            return booleanCastNode.executeToBoolean(equalNode.call(left, "==", right));
         }
 
     }
@@ -194,11 +204,11 @@ public abstract class KernelNodes {
     @CoreMethod(names = "===", required = 1)
     public abstract static class CaseCompareNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
+        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
 
         @Specialization
         protected boolean caseCmp(VirtualFrame frame, Object a, Object b) {
-            return sameOrEqualNode.executeObjectSameOrEqual(frame, a, b);
+            return sameOrEqualNode.executeSameOrEqual(frame, a, b);
         }
 
     }
@@ -207,6 +217,7 @@ public abstract class KernelNodes {
     public abstract static class SameOrEqlNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode eqlNode;
+        @Child private BooleanCastNode booleanCastNode;
 
         private final ConditionProfile sameProfile = ConditionProfile.createBinaryProfile();
 
@@ -225,9 +236,15 @@ public abstract class KernelNodes {
         private boolean areEql(VirtualFrame frame, Object left, Object right) {
             if (eqlNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                eqlNode = insert(CallDispatchHeadNode.create());
+                eqlNode = insert(CallDispatchHeadNode.createPrivate());
             }
-            return eqlNode.callBoolean(frame, left, "eql?", right);
+
+            if (booleanCastNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                booleanCastNode = insert(BooleanCastNode.create());
+            }
+
+            return booleanCastNode.executeToBoolean(eqlNode.call(left, "eql?", right));
         }
 
     }
@@ -235,11 +252,11 @@ public abstract class KernelNodes {
     @CoreMethod(names = { "<=>" }, required = 1)
     public abstract static class CompareNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
+        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
 
         @Specialization
         public Object compare(VirtualFrame frame, Object self, Object other) {
-            if (sameOrEqualNode.executeObjectSameOrEqual(frame, self, other)) {
+            if (sameOrEqualNode.executeSameOrEqual(frame, self, other)) {
                 return 0;
             } else {
                 return nil();
@@ -327,7 +344,7 @@ public abstract class KernelNodes {
     @ImportStatic(ShapeCachingGuards.class)
     public abstract static class CopyNode extends UnaryCoreMethodNode {
 
-        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createPrivate();
 
         public abstract DynamicObject executeCopy(VirtualFrame frame, DynamicObject self);
 
@@ -339,7 +356,7 @@ public abstract class KernelNodes {
                 @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) Property[] properties,
                 @Cached("createReadFieldNodes(properties)") ReadObjectFieldNode[] readFieldNodes,
                 @Cached("createWriteFieldNodes(properties)") WriteObjectFieldNode[] writeFieldNodes) {
-            final DynamicObject newObject = (DynamicObject) allocateNode.call(frame, logicalClass, "__allocate__");
+            final DynamicObject newObject = (DynamicObject) allocateNode.call(logicalClass, "__allocate__");
 
             for (int i = 0; i < properties.length; i++) {
                 final Object value = readFieldNodes[i].execute(self);
@@ -357,7 +374,7 @@ public abstract class KernelNodes {
         @Specialization(replaces = { "copyCached", "updateShapeAndCopy" })
         protected DynamicObject copyUncached(VirtualFrame frame, DynamicObject self) {
             final DynamicObject rubyClass = Layouts.BASIC_OBJECT.getLogicalClass(self);
-            final DynamicObject newObject = (DynamicObject) allocateNode.call(frame, rubyClass, "__allocate__");
+            final DynamicObject newObject = (DynamicObject) allocateNode.call(rubyClass, "__allocate__");
             copyInstanceVariables(self, newObject);
             return newObject;
         }
@@ -419,7 +436,7 @@ public abstract class KernelNodes {
     public abstract static class CloneNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CopyNode copyNode = CopyNodeFactory.create(null);
-        @Child private CallDispatchHeadNode initializeCloneNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode initializeCloneNode = CallDispatchHeadNode.createPrivate();
         @Child private IsFrozenNode isFrozenNode = IsFrozenNodeGen.create(null);
         @Child private FreezeNode freezeNode;
         @Child private PropagateTaintNode propagateTaintNode = PropagateTaintNode.create();
@@ -439,7 +456,7 @@ public abstract class KernelNodes {
                 Layouts.MODULE.getFields(newObjectMetaClass).initCopy(selfMetaClass);
             }
 
-            initializeCloneNode.call(frame, newObject, "initialize_clone", self);
+            initializeCloneNode.call(newObject, "initialize_clone", self);
 
             propagateTaintNode.propagate(self, newObject);
 
@@ -474,13 +491,13 @@ public abstract class KernelNodes {
     public abstract static class DupNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CopyNode copyNode = CopyNodeFactory.create(null);
-        @Child private CallDispatchHeadNode initializeDupNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode initializeDupNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization(guards = "!isSpecialDup(self)")
         public DynamicObject dup(VirtualFrame frame, DynamicObject self) {
             final DynamicObject newObject = copyNode.executeCopy(frame, self);
 
-            initializeDupNode.call(frame, newObject, "initialize_dup", self);
+            initializeDupNode.call(newObject, "initialize_dup", self);
 
             return newObject;
         }
@@ -768,11 +785,11 @@ public abstract class KernelNodes {
     @CoreMethod(names = { "initialize_dup", "initialize_clone" }, required = 1)
     public abstract static class InitializeDupCloneNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode initializeCopyNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode initializeCopyNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
         public Object initializeDup(VirtualFrame frame, DynamicObject self, DynamicObject from) {
-            return initializeCopyNode.call(frame, self, "initialize_copy", from);
+            return initializeCopyNode.call(self, "initialize_copy", from);
         }
 
     }
@@ -1084,7 +1101,8 @@ public abstract class KernelNodes {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private LookupMethodNode lookupMethodNode;
-        @Child private CallDispatchHeadNode respondToMissingNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode respondToMissingNode = CallDispatchHeadNode.createPrivate();
+        @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         public GetMethodObjectNode(boolean ignoreVisibility) {
             this.ignoreVisibility = ignoreVisibility;
@@ -1101,7 +1119,8 @@ public abstract class KernelNodes {
             InternalMethod method = lookupMethodNode.executeLookupMethod(frame, self, normalizedName);
 
             if (notFoundProfile.profile(method == null)) {
-                if (respondToMissingProfile.profile(respondToMissingNode.callBoolean(frame, self, "respond_to_missing?", name, ignoreVisibility))) {
+                final Object respondToMissing = respondToMissingNode.call(self, "respond_to_missing?", name, ignoreVisibility);
+                if (respondToMissingProfile.profile(booleanCastNode.executeToBoolean(respondToMissing))) {
                     final InternalMethod methodMissing = lookupMethodNode.executeLookupMethod(frame, self, "method_missing");
                     method = createMissingMethod(self, name, normalizedName, methodMissing);
                 } else {
@@ -1128,7 +1147,7 @@ public abstract class KernelNodes {
         private static class CallMethodMissingWithStaticName extends RubyNode {
 
             private final DynamicObject methodName;
-            @Child private CallDispatchHeadNode methodMissing = CallDispatchHeadNode.create();
+            @Child private CallDispatchHeadNode methodMissing = CallDispatchHeadNode.createPrivate();
 
             public CallMethodMissingWithStaticName(DynamicObject methodName) {
                 this.methodName = methodName;
@@ -1138,7 +1157,7 @@ public abstract class KernelNodes {
             public Object execute(VirtualFrame frame) {
                 final Object[] originalUserArguments = RubyArguments.getArguments(frame);
                 final Object[] newUserArguments = ArrayUtils.unshift(originalUserArguments, methodName);
-                return methodMissing.callWithBlock(frame, RubyArguments.getSelf(frame), "method_missing", RubyArguments.getBlock(frame), newUserArguments);
+                return methodMissing.callWithBlock(RubyArguments.getSelf(frame), "method_missing", RubyArguments.getBlock(frame), newUserArguments);
             }
         }
 
@@ -1196,11 +1215,11 @@ public abstract class KernelNodes {
     @CoreMethod(names = "p", isModuleFunction = true, required = 1)
     public abstract static class DebugPrintNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode callInspectNode = CallDispatchHeadNode.create();
+        @Child private CallDispatchHeadNode callInspectNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
         public Object p(VirtualFrame frame, Object value) {
-            Object inspected = callInspectNode.call(frame, value, "inspect");
+            Object inspected = callInspectNode.call(value, "inspect");
             print(inspected);
             return value;
         }
@@ -1321,7 +1340,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "public_send", needsBlock = true, required = 1, rest = true)
     public abstract static class PublicSendNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createCallPublicOnly();
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPublic();
 
         @Specialization
         public Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {
@@ -1433,6 +1452,7 @@ public abstract class KernelNodes {
         @Child private DoesRespondDispatchHeadNode dispatchIgnoreVisibility;
         @Child private DoesRespondDispatchHeadNode dispatchRespondToMissing;
         @Child private CallDispatchHeadNode respondToMissingNode;
+        @Child private BooleanCastNode booleanCastNode;
         private final ConditionProfile ignoreVisibilityProfile = ConditionProfile.createBinaryProfile();
 
         public RespondToNode() {
@@ -1489,10 +1509,15 @@ public abstract class KernelNodes {
         private boolean respondToMissing(VirtualFrame frame, Object object, DynamicObject name, boolean includeProtectedAndPrivate) {
             if (respondToMissingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                respondToMissingNode = insert(CallDispatchHeadNode.createOnSelf());
+                respondToMissingNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
-            return respondToMissingNode.callBoolean(frame, object, "respond_to_missing?", name, includeProtectedAndPrivate);
+            if (booleanCastNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                booleanCastNode = insert(BooleanCastNode.create());
+            }
+
+            return booleanCastNode.executeToBoolean(respondToMissingNode.call(object, "respond_to_missing?", name, includeProtectedAndPrivate));
         }
     }
 

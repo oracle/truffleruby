@@ -38,13 +38,13 @@ public class SymbolProcNode extends RubyNode {
                 1,
                 RubyArguments.getArgumentsCount(frame));
 
-        return getCallNode().callWithBlock(frame, receiver, symbol, block, arguments);
+        return getCallNode().dispatch(frame, receiver, symbol, block, arguments);
     }
 
     private CallDispatchHeadNode getCallNode() {
         if (callNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callNode = insert(CallDispatchHeadNode.create());
+            callNode = insert(CallDispatchHeadNode.createPublic());
         }
 
         return callNode;

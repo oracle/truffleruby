@@ -33,6 +33,7 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
+import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.module.ModuleOperations;
@@ -85,11 +86,12 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "!=", required = 1)
     public abstract static class NotEqualNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode equalNode = CallDispatchHeadNode.create();
+        @Child private CallDispatchHeadNode equalNode = CallDispatchHeadNode.createPrivate();
+        @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         @Specialization
         public boolean equal(VirtualFrame frame, Object a, Object b) {
-            return !equalNode.callBoolean(frame, a, "==", b);
+            return !booleanCastNode.executeToBoolean(equalNode.call(a, "==", b));
         }
 
     }
@@ -455,7 +457,7 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "__send__", needsBlock = true, rest = true, required = 1)
     public abstract static class SendNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @Specialization
@@ -468,7 +470,7 @@ public abstract class BasicObjectNodes {
             DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
             RubyArguments.setDeclarationContext(frame, context);
 
-            return dispatchNode.callWithBlock(frame, self, name, block, args);
+            return dispatchNode.dispatch(frame, self, name, block, args);
         }
 
     }

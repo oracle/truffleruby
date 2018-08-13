@@ -54,10 +54,10 @@ public abstract class ToIntegerNode extends FormatNode {
     public Object toInteger(VirtualFrame frame, Object value) {
         if (integerNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            integerNode = insert(CallDispatchHeadNode.createOnSelf());
+            integerNode = insert(CallDispatchHeadNode.createPrivate());
         }
 
-        return integerNode.call(frame, getContext().getCoreLibrary().getKernelModule(), "Integer", value);
+        return integerNode.call(getContext().getCoreLibrary().getKernelModule(), "Integer", value);
     }
 
 }

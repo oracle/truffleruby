@@ -26,8 +26,8 @@ public abstract class ToPathNode extends RubyNode {
 
     @Specialization(guards = "!isRubyString(object)")
     public DynamicObject coerceObject(Object object,
-            @Cached("createOnSelf()") CallDispatchHeadNode toPathNode) {
-        return (DynamicObject) toPathNode.call(null, coreLibrary().getTruffleTypeModule(), "coerce_to_path", object);
+            @Cached("createPrivate()") CallDispatchHeadNode toPathNode) {
+        return (DynamicObject) toPathNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to_path", object);
     }
 
 }

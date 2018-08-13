@@ -49,7 +49,7 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
             Object stringName,
             boolean isIVar,
             @Cached("create()") ForeignToRubyNode nameToRubyNode) {
-        return getCallNode().call(frame, receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
+        return getCallNode().call(receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
     }
 
     @Specialization(guards = {"!isRubyArray(receiver)", "!isRubyHash(receiver)", "isIVar"})
@@ -73,7 +73,7 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
             Object stringName,
             boolean isIVar,
             @Cached("create()") ForeignToRubyNode nameToRubyNode) {
-        return getCallNode().call(frame, receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
+        return getCallNode().call(receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
     }
 
     @Specialization(guards = {
@@ -88,7 +88,7 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
             Object stringName,
             boolean isIVar,
             @Cached("create()") ForeignToRubyNode nameToRubyNode) {
-        return getCallNode().call(frame, receiver, METHOD_NAME, nameToRubyNode.executeConvert(name));
+        return getCallNode().call(receiver, METHOD_NAME, nameToRubyNode.executeConvert(name));
     }
 
     @Specialization(guards = {
@@ -140,7 +140,7 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
     protected CallDispatchHeadNode getCallNode() {
         if (callNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callNode = insert(CallDispatchHeadNode.createOnSelf());
+            callNode = insert(CallDispatchHeadNode.createPrivate());
         }
 
         return callNode;

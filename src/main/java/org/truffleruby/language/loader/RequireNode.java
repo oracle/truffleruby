@@ -38,6 +38,7 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyNode;
@@ -55,8 +56,9 @@ import org.truffleruby.shared.Metrics;
 public abstract class RequireNode extends RubyNode {
 
     @Child private IndirectCallNode callNode = IndirectCallNode.create();
-    @Child private CallDispatchHeadNode isInLoadedFeatures = CallDispatchHeadNode.createOnSelf();
-    @Child private CallDispatchHeadNode addToLoadedFeatures = CallDispatchHeadNode.createOnSelf();
+    @Child private CallDispatchHeadNode isInLoadedFeatures = CallDispatchHeadNode.createPrivate();
+    @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
+    @Child private CallDispatchHeadNode addToLoadedFeatures = CallDispatchHeadNode.createPrivate();
 
     @Child private Node readNode = Message.READ.createNode();
     @Child private Node isExecutableNode = Message.IS_EXECUTABLE.createNode();
@@ -367,15 +369,17 @@ public abstract class RequireNode extends RubyNode {
 
     public boolean isFeatureLoaded(DynamicObject feature) {
         final DynamicObject loadedFeatures = getContext().getCoreLibrary().getLoadedFeatures();
+        final Object included;
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
-            return isInLoadedFeatures.callBoolean(null, loadedFeatures, "include?", feature);
+            included = isInLoadedFeatures.call(loadedFeatures, "include?", feature);
         }
+        return booleanCastNode.executeToBoolean(included);
     }
 
     private void addToLoadedFeatures(DynamicObject feature) {
         final DynamicObject loadedFeatures = coreLibrary().getLoadedFeatures();
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
-            addToLoadedFeatures.call(null, loadedFeatures, "<<", feature);
+            addToLoadedFeatures.call(loadedFeatures, "<<", feature);
         }
     }
 

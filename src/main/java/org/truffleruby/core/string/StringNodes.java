@@ -98,6 +98,7 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
@@ -352,6 +353,7 @@ public abstract class StringNodes {
         @Child private StringEqualNode stringEqualNode = StringEqualNodeGen.create(null, null);
         @Child private KernelNodes.RespondToNode respondToNode;
         @Child private CallDispatchHeadNode objectEqualNode;
+        @Child private BooleanCastNode booleanCastNode;
         @Child private CheckLayoutNode checkLayoutNode;
 
         @Specialization(guards = "isRubyString(b)")
@@ -369,10 +371,15 @@ public abstract class StringNodes {
             if (respondToNode.doesRespondToString(frame, b, coreStrings().TO_STR.createInstance(), false)) {
                 if (objectEqualNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    objectEqualNode = insert(CallDispatchHeadNode.create());
+                    objectEqualNode = insert(CallDispatchHeadNode.createPrivate());
                 }
 
-                return objectEqualNode.callBoolean(frame, b, "==", a);
+                if (booleanCastNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    booleanCastNode = insert(BooleanCastNode.create());
+                }
+
+                return booleanCastNode.executeToBoolean(objectEqualNode.call(b, "==", a));
             }
 
             return false;
@@ -477,8 +484,8 @@ public abstract class StringNodes {
                 VirtualFrame frame,
                 DynamicObject string,
                 Object other,
-                @Cached("create()") CallDispatchHeadNode callNode) {
-            return callNode.call(frame, string, "concat_internal", other);
+                @Cached("createPrivate()") CallDispatchHeadNode callNode) {
+            return callNode.call(string, "concat_internal", other);
         }
 
     }
@@ -487,8 +494,6 @@ public abstract class StringNodes {
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-        @Child private CallDispatchHeadNode includeNode;
-        @Child private CallDispatchHeadNode dupNode;
         @Child private NormalizeIndexNode normalizeIndexNode;
         @Child private StringSubstringPrimitiveNode substringNode;
         @Child private CallDispatchHeadNode toIntNode;
@@ -589,8 +594,8 @@ public abstract class StringNodes {
                 DynamicObject string,
                 DynamicObject regexp,
                 NotProvided capture,
-                @Cached("createOnSelf()") CallDispatchHeadNode callNode,
-                @Cached("createOnSelf()") CallDispatchHeadNode setLastMatchNode,
+                @Cached("createPrivate()") CallDispatchHeadNode callNode,
+                @Cached("createPrivate()") CallDispatchHeadNode setLastMatchNode,
                 @Cached("create()") ReadCallerFrameNode readCallerNode) {
             return sliceCapture(frame, string, regexp, 0, callNode, setLastMatchNode, readCallerNode);
         }
@@ -601,40 +606,34 @@ public abstract class StringNodes {
                 DynamicObject string,
                 DynamicObject regexp,
                 Object capture,
-                @Cached("createOnSelf()") CallDispatchHeadNode callNode,
-                @Cached("createOnSelf()") CallDispatchHeadNode setLastMatchNode,
+                @Cached("createPrivate()") CallDispatchHeadNode callNode,
+                @Cached("createPrivate()") CallDispatchHeadNode setLastMatchNode,
                 @Cached("create()") ReadCallerFrameNode readCallerNode) {
-            final Object matchStrPair = callNode.call(frame, string, "subpattern", regexp, capture);
+            final Object matchStrPair = callNode.call(string, "subpattern", regexp, capture);
 
             final DynamicObject binding = BindingNodes.createBinding(getContext(), readCallerNode.execute(frame).materialize());
             if (matchStrPair == nil()) {
-                setLastMatchNode.call(frame, coreLibrary().getTruffleRegexpOperationsModule(), "set_last_match", nil(), binding);
+                setLastMatchNode.call(coreLibrary().getTruffleRegexpOperationsModule(), "set_last_match", nil(), binding);
                 return nil();
             }
 
             final Object[] array = (Object[]) Layouts.ARRAY.getStore((DynamicObject) matchStrPair);
 
-            setLastMatchNode.call(frame, coreLibrary().getTruffleRegexpOperationsModule(), "set_last_match", array[0], binding);
+            setLastMatchNode.call(coreLibrary().getTruffleRegexpOperationsModule(), "set_last_match", array[0], binding);
 
             return array[1];
         }
 
         @Specialization(guards = "isRubyString(matchStr)")
-        public Object slice2(VirtualFrame frame, DynamicObject string, DynamicObject matchStr, NotProvided length) {
-            if (includeNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                includeNode = insert(CallDispatchHeadNode.create());
-            }
+        public Object slice2(VirtualFrame frame, DynamicObject string, DynamicObject matchStr, NotProvided length,
+                @Cached("createPrivate()") CallDispatchHeadNode includeNode,
+                @Cached("create()") BooleanCastNode booleanCastNode,
+                @Cached("createPrivate()") CallDispatchHeadNode dupNode) {
 
-            boolean result = includeNode.callBoolean(frame, string, "include?", matchStr);
+            final Object included = includeNode.call(string, "include?", matchStr);
 
-            if (result) {
-                if (dupNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    dupNode = insert(CallDispatchHeadNode.create());
-                }
-
-                throw new TaintResultNode.DoNotTaint(dupNode.call(frame, matchStr, "dup"));
+            if (booleanCastNode.executeToBoolean(included)) {
+                throw new TaintResultNode.DoNotTaint(dupNode.call(matchStr, "dup"));
             }
 
             return nil();
@@ -652,10 +651,10 @@ public abstract class StringNodes {
         private int toInt(VirtualFrame frame, Object value) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toIntNode = insert(CallDispatchHeadNode.createOnSelf());
+                toIntNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
-            return (int) toIntNode.call(frame, coreLibrary().getTruffleTypeModule(), "rb_num2int", value);
+            return (int) toIntNode.call(coreLibrary().getTruffleTypeModule(), "rb_num2int", value);
         }
     }
 
@@ -2161,10 +2160,10 @@ public abstract class StringNodes {
 
         public abstract Object executeSum(VirtualFrame frame, DynamicObject string, Object bits);
 
-        @Child private CallDispatchHeadNode addNode = CallDispatchHeadNode.create();
-        @Child private CallDispatchHeadNode subNode = CallDispatchHeadNode.create();
-        @Child private CallDispatchHeadNode shiftNode = CallDispatchHeadNode.create();
-        @Child private CallDispatchHeadNode andNode = CallDispatchHeadNode.create();
+        @Child private CallDispatchHeadNode addNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode subNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode shiftNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode andNode = CallDispatchHeadNode.createPrivate();
         private final RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization
@@ -2185,11 +2184,11 @@ public abstract class StringNodes {
             if (bits >= 8 * 8) { // long size * bits in byte
                 Object sum = 0;
                 while (p < end) {
-                    sum = addNode.call(frame, sum, "+", bytes[p++] & 0xff);
+                    sum = addNode.call(sum, "+", bytes[p++] & 0xff);
                 }
                 if (bits != 0) {
-                    final Object mod = shiftNode.call(frame, 1, "<<", bits);
-                    sum = andNode.call(frame, sum, "&", subNode.call(frame, mod, "-", 1));
+                    final Object mod = shiftNode.call(1, "<<", bits);
+                    sum = andNode.call(sum, "&", subNode.call(mod, "-", 1));
                 }
                 return sum;
             } else {

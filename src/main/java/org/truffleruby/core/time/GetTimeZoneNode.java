@@ -66,7 +66,7 @@ public abstract class GetTimeZoneNode extends RubyNode {
         TZ_UNCHANGED.invalidate();
     }
 
-    @Child private CallDispatchHeadNode lookupEnvNode = CallDispatchHeadNode.createOnSelf();
+    @Child private CallDispatchHeadNode lookupEnvNode = CallDispatchHeadNode.createPrivate();
 
     public abstract TimeZoneAndName executeGetTimeZone();
 
@@ -78,7 +78,7 @@ public abstract class GetTimeZoneNode extends RubyNode {
     }
 
     protected Object getTZ() {
-        return lookupEnvNode.call(null, coreLibrary().getENV(), "[]", coreStrings().TZ.createInstance());
+        return lookupEnvNode.call(coreLibrary().getENV(), "[]", coreStrings().TZ.createInstance());
     }
 
     @TruffleBoundary

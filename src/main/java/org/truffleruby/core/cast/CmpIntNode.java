@@ -20,8 +20,8 @@
 
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -43,9 +43,6 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
     @NodeChild(value = "other")
 })
 public abstract class CmpIntNode extends RubyNode {
-
-    @Child private CallDispatchHeadNode gtNode;
-    @Child private CallDispatchHeadNode ltNode;
 
     public abstract int executeCmpInt(VirtualFrame frame, Object cmpResult, Object a, Object b);
 
@@ -97,22 +94,17 @@ public abstract class CmpIntNode extends RubyNode {
             "!isLong(value)",
             "!isRubyBignum(value)",
             "!isNil(value)" })
-    public int cmpObject(VirtualFrame frame, Object value, Object receiver, Object other) {
-        if (gtNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            gtNode = insert(CallDispatchHeadNode.create());
-        }
+    public int cmpObject(VirtualFrame frame, Object value, Object receiver, Object other,
+            @Cached("createPrivate()") CallDispatchHeadNode gtNode,
+            @Cached("createPrivate()") CallDispatchHeadNode ltNode,
+            @Cached("create()") BooleanCastNode gtCastNode,
+            @Cached("create()") BooleanCastNode ltCastNode) {
 
-        if (gtNode.callBoolean(frame, value, ">", 0)) {
+        if (gtCastNode.executeToBoolean(gtNode.call(value, ">", 0))) {
             return 1;
         }
 
-        if (ltNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            ltNode = insert(CallDispatchHeadNode.create());
-        }
-
-        if (ltNode.callBoolean(frame, value, "<", 0)) {
+        if (ltCastNode.executeToBoolean(ltNode.call(value, "<", 0))) {
             return -1;
         }
 

@@ -9,28 +9,23 @@
  */
 package org.truffleruby.language.dispatch;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 
 public class CallDispatchHeadNode extends DispatchHeadNode {
 
-    @Child private BooleanCastNode booleanCastNode;
-
-    public static CallDispatchHeadNode create() {
-        return new CallDispatchHeadNode(
-                false, false, MissingBehavior.CALL_METHOD_MISSING);
+    /**
+     * Create a dispatch node ignoring visibility. This is the case for most calls from Java nodes
+     * and from the C-API, as checking visibility doesn't make much sense in this context and MRI
+     * doesn't do it either.
+     */
+    public static CallDispatchHeadNode createPrivate() {
+        return new CallDispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING);
     }
 
-    /** Create a dispatch node ignoring visibility. */
-    public static CallDispatchHeadNode createOnSelf() {
-        return new CallDispatchHeadNode(
-                true, false, MissingBehavior.CALL_METHOD_MISSING);
-    }
-
-    public static CallDispatchHeadNode createCallPublicOnly() {
+    /**
+     * Create a dispatch node only allowed to call public methods. This is rather rare.
+     */
+    public static CallDispatchHeadNode createPublic() {
         return new CallDispatchHeadNode(false, true, MissingBehavior.CALL_METHOD_MISSING);
     }
 
@@ -38,33 +33,16 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
         return new CallDispatchHeadNode(true, false, MissingBehavior.RETURN_MISSING);
     }
 
-    private CallDispatchHeadNode(boolean ignoreVisibility, boolean onlyCallPublic, MissingBehavior missingBehavior) {
+    CallDispatchHeadNode(boolean ignoreVisibility, boolean onlyCallPublic, MissingBehavior missingBehavior) {
         super(ignoreVisibility, onlyCallPublic, missingBehavior, DispatchAction.CALL_METHOD);
     }
 
-    public Object call(VirtualFrame frame, Object receiver, Object method, Object... arguments) {
-        return dispatch(frame, receiver, method, null, arguments);
+    public Object call(Object receiver, String method, Object... arguments) {
+        return dispatch(null, receiver, method, null, arguments);
     }
 
-    public Object callWithBlock(
-            VirtualFrame frame,
-            Object receiver,
-            Object method,
-            DynamicObject block,
-            Object... arguments) {
-        return dispatch(frame, receiver, method, block, arguments);
-    }
-
-    public boolean callBoolean(
-            VirtualFrame frame,
-            Object receiverObject,
-            Object methodName,
-            Object... argumentsObjects) {
-        if (booleanCastNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            booleanCastNode = insert(BooleanCastNodeGen.create(null));
-        }
-        return booleanCastNode.executeToBoolean(call(frame, receiverObject, methodName, argumentsObjects));
+    public Object callWithBlock(Object receiver, String method, DynamicObject block, Object... arguments) {
+        return dispatch(null, receiver, method, block, arguments);
     }
 
 }

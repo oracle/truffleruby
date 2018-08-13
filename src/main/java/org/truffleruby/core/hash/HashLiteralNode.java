@@ -16,6 +16,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -68,6 +69,7 @@ public abstract class HashLiteralNode extends RubyNode {
 
         @Child private HashNode hashNode;
         @Child private CallDispatchHeadNode equalNode;
+        @Child private BooleanCastNode booleanCastNode;
         @Child protected CallDispatchHeadNode dupNode;
         @Child protected CallDispatchHeadNode freezeNode;
         @Child private IsFrozenNode isFrozenNode;
@@ -125,25 +127,31 @@ public abstract class HashLiteralNode extends RubyNode {
         private boolean callEqual(VirtualFrame frame, Object receiver, Object key) {
             if (equalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                equalNode = insert(CallDispatchHeadNode.create());
+                equalNode = insert(CallDispatchHeadNode.createPrivate());
             }
-            return equalNode.callBoolean(frame, receiver, "eql?", key);
+
+            if (booleanCastNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                booleanCastNode = insert(BooleanCastNode.create());
+            }
+
+            return booleanCastNode.executeToBoolean(equalNode.call(receiver, "eql?", key));
         }
 
         private Object callDup(VirtualFrame frame, Object receiver) {
             if (dupNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                dupNode = insert(CallDispatchHeadNode.create());
+                dupNode = insert(CallDispatchHeadNode.createPrivate());
             }
-            return dupNode.call(frame, receiver, "dup");
+            return dupNode.call(receiver, "dup");
         }
 
         private Object callFreeze(VirtualFrame frame, Object receiver) {
             if (freezeNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                freezeNode = insert(CallDispatchHeadNode.create());
+                freezeNode = insert(CallDispatchHeadNode.createPrivate());
             }
-            return freezeNode.call(frame, receiver, "freeze");
+            return freezeNode.call(receiver, "freeze");
         }
 
         protected boolean isFrozen(Object object) {

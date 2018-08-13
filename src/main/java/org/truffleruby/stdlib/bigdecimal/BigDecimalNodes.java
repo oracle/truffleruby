@@ -329,12 +329,12 @@ public abstract class BigDecimalNodes {
                 DynamicObject b,
                 NotProvided precision,
                 @Cached("createBinaryProfile()") ConditionProfile bZeroProfile,
-                @Cached("create()") CallDispatchHeadNode floorNode) {
+                @Cached("createPrivate()") CallDispatchHeadNode floorNode) {
             if (bZeroProfile.profile(isNormalZero(b))) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else {
                 final Object result = div(frame, a, b, 0);
-                return floorNode.call(frame, result, "floor");
+                return floorNode.call(result, "floor");
             }
         }
 
@@ -509,7 +509,7 @@ public abstract class BigDecimalNodes {
                 VirtualFrame frame,
                 DynamicObject a,
                 DynamicObject b,
-                @Cached("create()") CallDispatchHeadNode signCall,
+                @Cached("createPrivate()") CallDispatchHeadNode signCall,
                 @Cached("create()") IntegerCastNode signIntegerCast,
                 @Cached("createBinaryProfile()") ConditionProfile nanProfile,
                 @Cached("createBinaryProfile()") ConditionProfile normalNegProfile,
@@ -534,7 +534,7 @@ public abstract class BigDecimalNodes {
 
             if (negNormalProfile.profile(aType == BigDecimalType.POSITIVE_INFINITY || aType == BigDecimalType.NEGATIVE_INFINITY)) {
                 final int signA = aType == BigDecimalType.POSITIVE_INFINITY ? 1 : -1;
-                final int signB = Integer.signum(signIntegerCast.executeCastInt(signCall.call(frame, b, "sign")));
+                final int signB = Integer.signum(signIntegerCast.executeCastInt(signCall.call(b, "sign")));
                 final int sign = signA * signB; // is between -1 and 1, 0 when nan
 
                 final BigDecimalType type = new BigDecimalType[]{ BigDecimalType.NEGATIVE_INFINITY, BigDecimalType.NAN, BigDecimalType.POSITIVE_INFINITY }[sign + 1];
@@ -1052,8 +1052,8 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "!isRubyBigDecimal(b)", "!isNil(b)" })
         public Object compareCoerced(DynamicObject a, DynamicObject b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(null, a, "redo_coerced", coreStrings().SPACESHIP.getSymbol(), b);
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", coreStrings().SPACESHIP.getSymbol(), b);
         }
 
         @TruffleBoundary

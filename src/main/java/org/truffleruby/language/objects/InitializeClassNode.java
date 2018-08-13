@@ -132,9 +132,9 @@ public abstract class InitializeClassNode extends RubyNode {
     private void triggerInheritedHook(VirtualFrame frame, DynamicObject subClass, DynamicObject superClass) {
         if (inheritedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            inheritedNode = insert(CallDispatchHeadNode.createOnSelf());
+            inheritedNode = insert(CallDispatchHeadNode.createPrivate());
         }
-        inheritedNode.call(frame, superClass, "inherited", subClass);
+        inheritedNode.call(superClass, "inherited", subClass);
     }
 
     private void moduleInitialize(DynamicObject rubyClass, DynamicObject block) {

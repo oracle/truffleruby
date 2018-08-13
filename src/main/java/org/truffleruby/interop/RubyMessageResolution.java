@@ -26,10 +26,8 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyObjectType;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 
 @MessageResolution(receiverType = RubyObjectType.class)
@@ -78,10 +76,10 @@ public class RubyMessageResolution {
     @Resolve(message = "GET_SIZE")
     public static abstract class ForeignGetSizeNode extends Node {
 
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
-            return dispatchNode.call(frame, object, "size");
+            return dispatchNode.call(object, "size");
         }
 
     }
@@ -116,7 +114,7 @@ public class RubyMessageResolution {
         private final ConditionProfile pointerProfile = ConditionProfile.createBinaryProfile();
 
         @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
         @Child private ToJavaStringNode toJavaStringNode;
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
@@ -130,7 +128,7 @@ public class RubyMessageResolution {
             } else if (pointerProfile.profile(Layouts.POINTER.isPointer(object))) {
                 return Layouts.POINTER.getPointer(object).getAddress();
             } else if (doesRespond.doesRespondTo(frame, "unbox", object)) {
-                return dispatchNode.dispatch(frame, object, "unbox", null, RubyNode.EMPTY_ARGUMENTS);
+                return dispatchNode.call(object, "unbox");
             } else {
                 throw UnsupportedMessageException.raise(Message.UNBOX);
             }
@@ -142,11 +140,11 @@ public class RubyMessageResolution {
     public static abstract class ForeignIsPointerNode extends Node {
 
         @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
             if (doesRespond.doesRespondTo(frame, "pointer?", object)) {
-                return dispatchNode.call(frame, object, "pointer?");
+                return dispatchNode.call(object, "pointer?");
             } else {
                 return false;
             }
@@ -158,13 +156,13 @@ public class RubyMessageResolution {
     public static abstract class ForeignAsPointerNode extends Node {
 
         @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
 
         private final ConditionProfile intProfile = ConditionProfile.createBinaryProfile();
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
             if (doesRespond.doesRespondTo(frame, "address", object)) {
-                Object result = dispatchNode.call(frame, object, "address");
+                Object result = dispatchNode.call(object, "address");
 
                 if (intProfile.profile(result instanceof Integer)) {
                     result = (long) ((int) result);
@@ -182,11 +180,11 @@ public class RubyMessageResolution {
     public static abstract class ForeignToNativeNode extends Node {
 
         @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
             if (doesRespond.doesRespondTo(frame, "to_native", object)) {
-                return dispatchNode.dispatch(frame, object, "to_native", null, RubyNode.EMPTY_ARGUMENTS);
+                return dispatchNode.call(object, "to_native");
             } else {
                 throw UnsupportedMessageException.raise(Message.TO_NATIVE);
             }
@@ -231,26 +229,26 @@ public class RubyMessageResolution {
         private final ConditionProfile validArrayIndexProfile = ConditionProfile.createBinaryProfile();
 
         @Child private ToJavaStringNode toJavaStringNode = ToJavaStringNode.create();
-        @Child private CallDispatchHeadNode arrayDeleteAtNode = CallDispatchHeadNode.createOnSelf();
-        @Child private CallDispatchHeadNode hashDeleteNode = CallDispatchHeadNode.createOnSelf();
-        @Child private CallDispatchHeadNode removeInstanceVariableNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode arrayDeleteAtNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode hashDeleteNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode removeInstanceVariableNode = CallDispatchHeadNode.createPrivate();
         @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
 
         protected boolean access(VirtualFrame frame, DynamicObject object, Object name) {
             if (arrayReceiverProfile.profile(RubyGuards.isRubyArray(object))) {
                 if (validArrayIndexProfile.profile(name instanceof Integer ||
                         (name instanceof Long && RubyGuards.fitsInInteger((long) name)))) {
-                    arrayDeleteAtNode.call(frame, object, "delete_at", name);
+                    arrayDeleteAtNode.call(object, "delete_at", name);
                 } else {
                     throw UnknownIdentifierException.raise(toJavaStringNode.executeToJavaString(name));
                 }
             } else if (hashReceiverProfile.profile(RubyGuards.isRubyHash(object))) {
-                hashDeleteNode.call(frame, object, "delete", foreignToRubyNode.executeConvert(name));
+                hashDeleteNode.call(object, "delete", foreignToRubyNode.executeConvert(name));
             } else if (stringProfile.profile(name instanceof String)) {
                 final String stringName = (String) name;
 
                 if (ivarProfile.profile(!stringName.isEmpty() && stringName.charAt(0) == '@')) {
-                    removeInstanceVariableNode.call(frame, object, "remove_instance_variable", foreignToRubyNode.executeConvert(name));
+                    removeInstanceVariableNode.call(object, "remove_instance_variable", foreignToRubyNode.executeConvert(name));
                 } else {
                     throw UnsupportedMessageException.raise(Message.REMOVE);
                 }
@@ -279,10 +277,10 @@ public class RubyMessageResolution {
 
         @CompilationFinal private RubyContext context;
 
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
 
         protected Object access(VirtualFrame frame, DynamicObject object, boolean internal) {
-            return dispatchNode.call(frame, getContext().getCoreLibrary().getTruffleInteropModule(), "object_keys", object, internal);
+            return dispatchNode.call(getContext().getCoreLibrary().getTruffleInteropModule(), "object_keys", object, internal);
         }
 
         private RubyContext getContext() {
@@ -301,12 +299,12 @@ public class RubyMessageResolution {
 
         @CompilationFinal private RubyContext context;
 
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
         @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
 
         protected Object access(VirtualFrame frame, DynamicObject object, Object name) {
             final Object convertedName = foreignToRubyNode.executeConvert(name);
-            return dispatchNode.call(frame, getContext().getCoreLibrary().getTruffleInteropModule(), "object_key_info", object, convertedName);
+            return dispatchNode.call(getContext().getCoreLibrary().getTruffleInteropModule(), "object_key_info", object, convertedName);
         }
 
         private RubyContext getContext() {
@@ -346,16 +344,11 @@ public class RubyMessageResolution {
     @Resolve(message = "INVOKE")
     public static abstract class ForeignInvokeNode extends Node {
 
-        @Child private DispatchHeadNode dispatchHeadNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
         @Child private ForeignToRubyArgumentsNode foreignToRubyArgumentsNode = ForeignToRubyArgumentsNode.create();
 
         protected Object access(VirtualFrame frame, DynamicObject receiver, String name, Object[] arguments) {
-            return dispatchHeadNode.dispatch(
-                    frame,
-                    receiver,
-                    name,
-                    null,
-                    foreignToRubyArgumentsNode.executeConvert(arguments));
+            return dispatchNode.call(receiver, name, foreignToRubyArgumentsNode.executeConvert(arguments));
         }
 
     }
@@ -374,16 +367,11 @@ public class RubyMessageResolution {
     @Resolve(message = "NEW")
     public static abstract class ForeignNewNode extends Node {
 
-        @Child private DispatchHeadNode dispatchHeadNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
         @Child private ForeignToRubyArgumentsNode foreignToRubyArgumentsNode = ForeignToRubyArgumentsNode.create();
 
         protected Object access(VirtualFrame frame, DynamicObject receiver, Object[] arguments) {
-            return dispatchHeadNode.dispatch(
-                    frame,
-                    receiver,
-                    "new",
-                    null,
-                    foreignToRubyArgumentsNode.executeConvert(arguments));
+            return dispatchNode.call(receiver, "new", foreignToRubyArgumentsNode.executeConvert(arguments));
         }
 
     }

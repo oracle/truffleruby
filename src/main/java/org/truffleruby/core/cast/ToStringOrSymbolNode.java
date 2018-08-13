@@ -27,7 +27,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToStringOrSymbolNode extends RubyNode {
 
-    @Child private CallDispatchHeadNode toStr = CallDispatchHeadNode.create();
+    @Child private CallDispatchHeadNode toStr = CallDispatchHeadNode.createPrivate();
 
     public abstract DynamicObject executeToSymbolOrString(VirtualFrame frame, Object name);
 
@@ -46,7 +46,7 @@ public abstract class ToStringOrSymbolNode extends RubyNode {
             @Cached("create()") BranchProfile errorProfile) {
         final Object coerced;
         try {
-            coerced = toStr.call(frame, object, "to_str");
+            coerced = toStr.call(object, "to_str");
         } catch (RaiseException e) {
             errorProfile.enter();
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {

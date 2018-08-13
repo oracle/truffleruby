@@ -60,7 +60,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
     protected RoundingMode getRoundMode(VirtualFrame frame) {
         return toRoundingMode(getRoundModeIntegerCast().executeCastInt(
                 // TODO (pitr 21-Jun-2015): read the actual constant
-                getRoundModeCall().call(frame, getBigDecimalClass(), "mode", 256)));
+                getRoundModeCall().call(getBigDecimalClass(), "mode", 256)));
     }
 
     protected DynamicObject getBigDecimalClass() {
@@ -102,7 +102,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
     }
 
     protected int getLimit(VirtualFrame frame) {
-        return getLimitIntegerCast().executeCastInt(getLimitCall().call(frame, getBigDecimalClass(), "limit"));
+        return getLimitIntegerCast().executeCastInt(getLimitCall().call(getBigDecimalClass(), "limit"));
     }
 
     private CreateBigDecimalNode getCreateBigDecimal() {
@@ -117,7 +117,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
     private CallDispatchHeadNode getLimitCall() {
         if (limitCall == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            limitCall = insert(CallDispatchHeadNode.create());
+            limitCall = insert(CallDispatchHeadNode.createPrivate());
         }
 
         return limitCall;
@@ -135,7 +135,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
     private CallDispatchHeadNode getRoundModeCall() {
         if (roundModeCall == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            roundModeCall = insert(CallDispatchHeadNode.create());
+            roundModeCall = insert(CallDispatchHeadNode.createPrivate());
         }
 
         return roundModeCall;

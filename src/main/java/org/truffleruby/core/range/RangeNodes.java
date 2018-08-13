@@ -151,10 +151,10 @@ public abstract class RangeNodes {
         private Object eachInternal(VirtualFrame frame, DynamicObject range, DynamicObject block) {
             if (eachInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                eachInternalCall = insert(CallDispatchHeadNode.create());
+                eachInternalCall = insert(CallDispatchHeadNode.createPrivate());
             }
 
-            return eachInternalCall.callWithBlock(frame, range, "each_internal", block);
+            return eachInternalCall.callWithBlock(range, "each_internal", block);
         }
 
         @Specialization(guards = "isLongRange(range)")
@@ -332,7 +332,7 @@ public abstract class RangeNodes {
         public Object stepFallback(VirtualFrame frame, Object range, Object step, Object block) {
             if (stepInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                stepInternalCall = insert(CallDispatchHeadNode.create());
+                stepInternalCall = insert(CallDispatchHeadNode.createPrivate());
             }
 
             if (step instanceof NotProvided) {
@@ -346,7 +346,7 @@ public abstract class RangeNodes {
                 blockProc = null;
             }
 
-            return stepInternalCall.callWithBlock(frame, range, "step_internal", blockProc, step);
+            return stepInternalCall.callWithBlock(range, "step_internal", blockProc, step);
         }
 
     }
@@ -384,10 +384,10 @@ public abstract class RangeNodes {
         public Object toA(VirtualFrame frame, DynamicObject range) {
             if (toAInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toAInternalCall = insert(CallDispatchHeadNode.create());
+                toAInternalCall = insert(CallDispatchHeadNode.createPrivate());
             }
 
-            return toAInternalCall.call(frame, range, "to_a_internal");
+            return toAInternalCall.call(range, "to_a_internal");
         }
 
     }
@@ -496,7 +496,7 @@ public abstract class RangeNodes {
                 boolean excludeEnd) {
             if (cmpNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                cmpNode = insert(CallDispatchHeadNode.create());
+                cmpNode = insert(CallDispatchHeadNode.createPrivate());
             }
             if (allocateNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -505,7 +505,7 @@ public abstract class RangeNodes {
 
             final Object cmpResult;
             try {
-                cmpResult = cmpNode.call(frame, begin, "<=>", end);
+                cmpResult = cmpNode.call(begin, "<=>", end);
             } catch (RaiseException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }

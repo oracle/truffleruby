@@ -48,9 +48,8 @@ import org.truffleruby.core.format.pack.PackCompiler;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
-import org.truffleruby.core.kernel.KernelNodes.ObjectSameOrEqualNode;
+import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
-import org.truffleruby.core.kernel.KernelNodesFactory.ObjectSameOrEqualNodeFactory;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.rope.Rope;
@@ -656,7 +655,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class DeleteNode extends YieldingCoreMethodNode {
 
-        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
+        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         @Child private IsFrozenNode isFrozenNode;
 
         @Specialization(guards = { "strategy.isStorageMutable()", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
@@ -671,7 +670,7 @@ public abstract class ArrayNodes {
             while (n < strategy.getSize(array)) {
                 final Object stored = store.get(n);
 
-                if (sameOrEqualNode.executeObjectSameOrEqual(frame, stored, value)) {
+                if (sameOrEqualNode.executeSameOrEqual(frame, stored, value)) {
                     checkFrozen(array);
                     found = stored;
                     n++;
@@ -712,7 +711,7 @@ public abstract class ArrayNodes {
             while (n < size) {
                 final Object stored = oldStore.get(n);
 
-                if (sameOrEqualNode.executeObjectSameOrEqual(frame, stored, value)) {
+                if (sameOrEqualNode.executeSameOrEqual(frame, stored, value)) {
                     checkFrozen(array);
                     found = stored;
                     n++;
@@ -866,7 +865,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class EqualNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
+        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
 
         @Specialization(guards = { "isRubyArray(b)", "strategy.matches(a)", "strategy.matches(b)",
                 "strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
@@ -893,7 +892,7 @@ public abstract class ArrayNodes {
             final ArrayMirror bMirror = strategy.newMirror(b);
 
             for (int i = 0; i < aSize; i++) {
-                if (!sameOrEqualNode.executeObjectSameOrEqual(frame, aMirror.get(i), bMirror.get(i))) {
+                if (!sameOrEqualNode.executeSameOrEqual(frame, aMirror.get(i), bMirror.get(i))) {
                     falseProfile.enter();
                     return false;
                 }
@@ -1007,14 +1006,14 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected Object fillFallback(VirtualFrame frame, DynamicObject array, Object[] args, NotProvided block,
-                @Cached("createOnSelf()") CallDispatchHeadNode callFillInternal) {
-            return callFillInternal.call(frame, array, "fill_internal", args);
+                @Cached("createPrivate()") CallDispatchHeadNode callFillInternal) {
+            return callFillInternal.call(array, "fill_internal", args);
         }
 
         @Specialization
         protected Object fillFallback(VirtualFrame frame, DynamicObject array, Object[] args, DynamicObject block,
-                @Cached("createOnSelf()") CallDispatchHeadNode callFillInternal) {
-            return callFillInternal.callWithBlock(frame, array, "fill_internal", block, args);
+                @Cached("createPrivate()") CallDispatchHeadNode callFillInternal) {
+            return callFillInternal.callWithBlock(array, "fill_internal", block, args);
         }
 
     }
@@ -1029,7 +1028,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
         public long hash(VirtualFrame frame, DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("create()") CallDispatchHeadNode toHashNode) {
+                @Cached("createPrivate()") CallDispatchHeadNode toHashNode) {
             final int size = strategy.getSize(array);
             long h = getContext().getHashing(this).start(size);
             h = Hashing.update(h, CLASS_SALT);
@@ -1037,7 +1036,7 @@ public abstract class ArrayNodes {
 
             for (int n = 0; n < size; n++) {
                 final Object value = store.get(n);
-                final long valueHash = toLong(toHashNode.call(frame, value, "hash"));
+                final long valueHash = toLong(toHashNode.call(value, "hash"));
                 h = Hashing.update(h, valueHash);
             }
 
@@ -1062,7 +1061,7 @@ public abstract class ArrayNodes {
     @CoreMethod(names = "include?", required = 1)
     public abstract static class IncludeNode extends ArrayCoreMethodNode {
 
-        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
+        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
 
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
         public boolean include(VirtualFrame frame, DynamicObject array, Object value,
@@ -1072,7 +1071,7 @@ public abstract class ArrayNodes {
             for (int n = 0; n < strategy.getSize(array); n++) {
                 final Object stored = store.get(n);
 
-                if (sameOrEqualNode.executeObjectSameOrEqual(frame, stored, value)) {
+                if (sameOrEqualNode.executeSameOrEqual(frame, stored, value)) {
                     return true;
                 }
             }
@@ -1210,9 +1209,9 @@ public abstract class ArrayNodes {
         protected Object callToAry(VirtualFrame frame, Object object) {
             if (toAryNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toAryNode = insert(CallDispatchHeadNode.createOnSelf());
+                toAryNode = insert(CallDispatchHeadNode.createPrivate());
             }
-            return toAryNode.call(frame, object, "to_ary");
+            return toAryNode.call(object, "to_ary");
         }
 
         protected int toInt(Object value) {
@@ -1262,7 +1261,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class InjectNode extends YieldingCoreMethodNode {
 
-        @Child private CallDispatchHeadNode dispatch = CallDispatchHeadNode.create();
+        @Child private CallDispatchHeadNode dispatch = CallDispatchHeadNode.createPublic();
 
         // With block
 
@@ -1338,7 +1337,7 @@ public abstract class ArrayNodes {
 
             try {
                 for (; n < getSize(array); n++) {
-                    accumulator = dispatch.call(frame, accumulator, symbol, store.get(n));
+                    accumulator = dispatch.dispatch(frame, accumulator, symbol, null, new Object[]{ store.get(n) });
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -2016,7 +2015,7 @@ public abstract class ArrayNodes {
         public DynamicObject sortVeryShort(VirtualFrame frame, DynamicObject array, NotProvided block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
-                @Cached("create()") CallDispatchHeadNode compareDispatchNode,
+                @Cached("createPrivate()") CallDispatchHeadNode compareDispatchNode,
                 @Cached("create()") FixnumLowerNode fixnumLowerNode,
                 @Cached("create()") BranchProfile errorProfile) {
             final ArrayMirror originalStore = strategy.newMirror(array);
@@ -2039,7 +2038,7 @@ public abstract class ArrayNodes {
                         if (j < size) {
                             final Object a = store.get(i);
                             final Object b = store.get(j);
-                            final Object comparisonResult = compareDispatchNode.call(frame, b, "<=>", a);
+                            final Object comparisonResult = compareDispatchNode.call(b, "<=>", a);
                             if (castSortValue(comparisonResult, errorProfile, fixnumLowerNode) < 0) {
                                 store.set(j, a);
                                 store.set(i, b);
@@ -2067,15 +2066,15 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
         public Object sortArrayWithoutBlock(DynamicObject array, NotProvided block,
-                @Cached("createOnSelf()") CallDispatchHeadNode fallbackNode,
+                @Cached("createPrivate()") CallDispatchHeadNode fallbackNode,
                 @Cached("of(array)") ArrayStrategy strategy) {
-            return fallbackNode.call(null, array, "sort_fallback");
+            return fallbackNode.call(array, "sort_fallback");
         }
 
         @Specialization(guards = "!isEmptyArray(array)")
         public Object sortGenericWithBlock(DynamicObject array, DynamicObject block,
-                @Cached("createOnSelf()") CallDispatchHeadNode fallbackNode) {
-            return fallbackNode.callWithBlock(null, array, "sort_fallback", block);
+                @Cached("createPrivate()") CallDispatchHeadNode fallbackNode) {
+            return fallbackNode.callWithBlock(array, "sort_fallback", block);
         }
 
         private int castSortValue(Object value, BranchProfile errorProfile, FixnumLowerNode fixnumLowerNode) {

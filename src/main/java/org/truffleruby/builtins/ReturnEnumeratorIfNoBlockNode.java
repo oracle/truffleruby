@@ -39,7 +39,7 @@ public class ReturnEnumeratorIfNoBlockNode extends RubyNode {
         if (noBlockProfile.profile(block == null)) {
             if (toEnumNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toEnumNode = insert(CallDispatchHeadNode.create());
+                toEnumNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
             if (methodSymbol == null) {
@@ -48,7 +48,7 @@ public class ReturnEnumeratorIfNoBlockNode extends RubyNode {
             }
 
             final Object[] arguments = ArrayUtils.unshift(RubyArguments.getArguments(frame), methodSymbol);
-            return toEnumNode.call(frame, RubyArguments.getSelf(frame), "to_enum", arguments);
+            return toEnumNode.call(RubyArguments.getSelf(frame), "to_enum", arguments);
         } else {
             return method.execute(frame);
         }

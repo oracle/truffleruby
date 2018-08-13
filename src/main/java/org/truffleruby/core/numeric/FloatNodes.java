@@ -75,8 +75,8 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object addCoerced(double a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(null, a, "redo_coerced", coreStrings().PLUS.getSymbol(), b);
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", coreStrings().PLUS.getSymbol(), b);
         }
     }
 
@@ -100,8 +100,8 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object subCoerced(double a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(null, a, "redo_coerced", coreStrings().MINUS.getSymbol(), b);
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", coreStrings().MINUS.getSymbol(), b);
         }
 
     }
@@ -126,8 +126,8 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object mulCoerced(double a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(null, a, "redo_coerced", coreStrings().MULTIPLY.getSymbol(), b);
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", coreStrings().MULTIPLY.getSymbol(), b);
         }
 
     }
@@ -164,13 +164,13 @@ public abstract class FloatNodes {
             if (complexProfile.profile(a < 0 && b != Math.round(b))) {
                 if (complexConvertNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    complexConvertNode = insert(CallDispatchHeadNode.createOnSelf());
-                    complexPowNode = insert(CallDispatchHeadNode.create());
+                    complexConvertNode = insert(CallDispatchHeadNode.createPrivate());
+                    complexPowNode = insert(CallDispatchHeadNode.createPrivate());
                 }
 
-                final Object aComplex = complexConvertNode.call(frame, coreLibrary().getComplexClass(), "convert", a, 0);
+                final Object aComplex = complexConvertNode.call(coreLibrary().getComplexClass(), "convert", a, 0);
 
-                return complexPowNode.call(frame, aComplex, "**", b);
+                return complexPowNode.call(aComplex, "**", b);
             } else {
                 return Math.pow(a, b);
             }
@@ -183,8 +183,8 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object powCoerced(double a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(null, a, "redo_coerced", coreStrings().POWER.getSymbol(), b);
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", coreStrings().POWER.getSymbol(), b);
         }
 
     }
@@ -209,8 +209,8 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object divCoerced(double a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(null, a, "redo_coerced", coreStrings().DIVIDE.getSymbol(), b);
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", coreStrings().DIVIDE.getSymbol(), b);
         }
 
     }
@@ -255,8 +255,8 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object modCoerced(double a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(null, a, "redo_coerced", coreStrings().MODULO.getSymbol(), b);
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", coreStrings().MODULO.getSymbol(), b);
         }
 
     }
@@ -283,8 +283,8 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyBignum(b)")
         public Object divModCoerced(double a, DynamicObject b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(null, a, "redo_coerced", coreStrings().DIVMOD.getSymbol(), b);
+                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", coreStrings().DIVMOD.getSymbol(), b);
         }
 
     }
@@ -309,8 +309,8 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object lessCoerced(double a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
-            return redoCompare.call(null, a, "redo_compare", coreStrings().LESS_THAN.getSymbol(), b);
+                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(a, "redo_compare", coreStrings().LESS_THAN.getSymbol(), b);
         }
     }
 
@@ -334,8 +334,8 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object lessEqualCoerced(double a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
-            return redoCompare.call(null, a, "redo_compare", coreStrings().LESS_OR_EQUAL.getSymbol(), b);
+                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(a, "redo_compare", coreStrings().LESS_OR_EQUAL.getSymbol(), b);
         }
     }
 
@@ -377,10 +377,10 @@ public abstract class FloatNodes {
         public Object equal(VirtualFrame frame, double a, Object b) {
             if (fallbackCallNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                fallbackCallNode = insert(CallDispatchHeadNode.createOnSelf());
+                fallbackCallNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
-            return fallbackCallNode.call(frame, a, "equal_fallback", b);
+            return fallbackCallNode.call(a, "equal_fallback", b);
         }
     }
 
@@ -448,8 +448,8 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object greaterEqualCoerced(double a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
-            return redoCompare.call(null, a, "redo_compare", coreStrings().GREATER_OR_EQUAL.getSymbol(), b);
+                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(a, "redo_compare", coreStrings().GREATER_OR_EQUAL.getSymbol(), b);
         }
 
     }
@@ -474,8 +474,8 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         public Object greaterCoerced(double a, Object b,
-                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
-            return redoCompare.call(null, a, "redo_compare", coreStrings().GREATER_THAN.getSymbol(), b);
+                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(a, "redo_compare", coreStrings().GREATER_THAN.getSymbol(), b);
         }
     }
 

@@ -20,8 +20,8 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.IsANode;
 
@@ -65,7 +65,7 @@ public abstract class AtomicReferenceNodes {
         @Specialization
         public boolean compareAndSetNumber(
                 VirtualFrame frame, DynamicObject self, Object expectedValue, Object newValue,
-                @Cached("createOnSelf()") CallDispatchHeadNode equal,
+                @Cached("create()") SameOrEqualNode sameOrEqualNode,
                 @Cached("create()") IsANode expectedValueIsA,
                 @Cached("create()") IsANode currentValueIsA,
                 @Cached("createBinaryProfile()") ConditionProfile profile) {
@@ -78,7 +78,7 @@ public abstract class AtomicReferenceNodes {
                     if (!currentValueIsA.executeIsA(currentValue, coreLibrary().getNumericClass())) {
                         return false;
                     }
-                    if (!equal.callBoolean(frame, currentValue, "==", expectedValue)) {
+                    if (!sameOrEqualNode.executeSameOrEqual(frame, currentValue, expectedValue)) {
                         return false;
                     }
                     if (cas(self, currentValue, newValue)) {

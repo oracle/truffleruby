@@ -255,7 +255,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             final Object name = args[0];
             final Object[] sendArgs = Arrays.copyOfRange(args, 1, args.length);
 
-            final Object result = dispatchNode.call(frame, receiver, name, sendArgs);
+            final Object result = dispatchNode.dispatch(frame, receiver, name, null, sendArgs);
 
             assert result != DispatchNode.MISSING;
 
@@ -291,7 +291,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
     protected class ToAOutgoingNode extends OutgoingNode {
 
-        @Child private CallDispatchHeadNode callToArray = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode callToArray = CallDispatchHeadNode.createPrivate();
 
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
@@ -300,14 +300,14 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 0, this));
             }
 
-            return callToArray.call(frame, coreLibrary().getTruffleInteropModule(), "to_array", receiver);
+            return callToArray.call(coreLibrary().getTruffleInteropModule(), "to_array", receiver);
         }
 
     }
 
     protected class RespondToOutgoingNode extends OutgoingNode {
 
-        @Child private CallDispatchHeadNode callRespondTo = CallDispatchHeadNode.create();
+        @Child private CallDispatchHeadNode callRespondTo = CallDispatchHeadNode.createPrivate();
 
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
@@ -316,7 +316,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
             }
 
-            return callRespondTo.call(frame, coreLibrary().getTruffleInteropModule(), "respond_to?", receiver, args[0]);
+            return callRespondTo.call(coreLibrary().getTruffleInteropModule(), "respond_to?", receiver, args[0]);
         }
 
     }
@@ -326,7 +326,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         private final DynamicObject name;
         private final int argsLength;
 
-        @Child private CallDispatchHeadNode callRespondTo = CallDispatchHeadNode.create();
+        @Child private CallDispatchHeadNode callSpecialForm = CallDispatchHeadNode.createPrivate();
 
         public SpecialFormOutgoingNode(DynamicObject name, int argsLength) {
             this.name = name;
@@ -345,7 +345,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             prependedArgs[1] = name;
             System.arraycopy(args, 0, prependedArgs, 2, args.length);
 
-            return callRespondTo.call(frame, coreLibrary().getTruffleInteropModule(), "special_form", prependedArgs);
+            return callSpecialForm.call(coreLibrary().getTruffleInteropModule(), "special_form", prependedArgs);
         }
 
     }
@@ -466,10 +466,11 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         private Object reDispatch(VirtualFrame frame, Object receiver, Object[] args) {
             if (redispatchNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                redispatchNode = insert(CallDispatchHeadNode.create());
+                // ignore visibility like ForeignInvokeNode
+                redispatchNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
-            return redispatchNode.call(frame, receiver, name, args);
+            return redispatchNode.call(receiver, name, args);
         }
 
         private Object invoke(VirtualFrame frame, TruffleObject receiver, Object[] args) {

@@ -34,8 +34,7 @@ import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.hash.ReHashable;
-import org.truffleruby.core.kernel.KernelNodes.ObjectSameOrEqualNode;
-import org.truffleruby.core.kernel.KernelNodesFactory.ObjectSameOrEqualNodeFactory;
+import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.rope.CodeRange;
@@ -71,15 +70,15 @@ public class TruffleRegexpNodes {
 
         @Child StringAppendPrimitiveNode appendNode = StringAppendPrimitiveNode.create();
         @Child ToSNode toSNode = ToSNode.create();
-        @Child CallDispatchHeadNode copyNode = CallDispatchHeadNode.create();
-        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
+        @Child CallDispatchHeadNode copyNode = CallDispatchHeadNode.createPrivate();
+        @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization(guards = "argsMatch(frame, cachedArgs, args)", limit = "getCacheLimit()")
         public Object executeFastUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] args,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
                 @Cached("buildUnion(frame, str, sep, args)") DynamicObject union) {
-            return copyNode.call(frame, union, "clone");
+            return copyNode.call(union, "clone");
         }
 
         @Specialization(replaces = "executeFastUnion")
@@ -116,7 +115,7 @@ public class TruffleRegexpNodes {
                 return false;
             } else {
                 for (int i = 0; i < cachedArgs.length; i++) {
-                    if (!sameOrEqualNode.executeObjectSameOrEqual(frame, cachedArgs[i], args[i])) {
+                    if (!sameOrEqualNode.executeSameOrEqual(frame, cachedArgs[i], args[i])) {
                         return false;
                     }
                 }
@@ -183,7 +182,7 @@ public class TruffleRegexpNodes {
     public static abstract class MatchNode extends RubyNode {
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
-        @Child CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
+        @Child CallDispatchHeadNode dupNode = CallDispatchHeadNode.createPrivate();
 
         public static MatchNode create() {
             return MatchNodeGen.create(null, null, null, null, null, null);
@@ -223,7 +222,7 @@ public class TruffleRegexpNodes {
             assert match >= 0;
 
             final Region region = matcher.getEagerRegion();
-            final DynamicObject dupedString = (DynamicObject) dupNode.call(null, string, "dup");
+            final DynamicObject dupedString = (DynamicObject) dupNode.call(string, "dup");
             DynamicObject result = allocateNode.allocate(matchDataClass(), Layouts.MATCH_DATA.build(dupedString,
                     regexp, region, null));
             return (DynamicObject) taintResultNode.maybeTaint(string, result);

@@ -34,7 +34,7 @@ public class RunBlockKWArgsHelperNode extends RubyNode {
     public RunBlockKWArgsHelperNode(FrameSlot arrayFrameSlot, Object kwrestName) {
         readArrayNode = ReadFrameSlotNodeGen.create(arrayFrameSlot);
         writeArrayNode = WriteFrameSlotNodeGen.create(arrayFrameSlot);
-        callHelperNode = CallDispatchHeadNode.createOnSelf();
+        callHelperNode = CallDispatchHeadNode.createPrivate();
         this.kwrestName = kwrestName;
     }
 
@@ -45,7 +45,7 @@ public class RunBlockKWArgsHelperNode extends RubyNode {
         final Object array = readArrayNode.executeRead(frame);
 
         final DynamicObject binding = BindingNodes.createBinding(getContext(), frame.materialize());
-        final Object remainingArray = callHelperNode.call(frame, coreLibrary().getTruffleInternalModule(), "load_arguments_from_array_kw_helper", array, kwrestName, binding);
+        final Object remainingArray = callHelperNode.call(coreLibrary().getTruffleInternalModule(), "load_arguments_from_array_kw_helper", array, kwrestName, binding);
 
         writeArrayNode.executeWrite(frame, remainingArray);
 

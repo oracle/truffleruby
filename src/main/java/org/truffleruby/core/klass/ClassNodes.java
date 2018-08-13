@@ -254,19 +254,19 @@ public abstract class ClassNodes {
     @CoreMethod(names = "allocate")
     public abstract static class AllocateInstanceNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
         public Object newInstance(VirtualFrame frame, DynamicObject rubyClass) {
-            return allocateNode.call(frame, rubyClass, "__allocate__");
+            return allocateNode.call(rubyClass, "__allocate__");
         }
     }
 
     @CoreMethod(names = "new", needsBlock = true, rest = true)
     public abstract static class NewNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createOnSelf();
-        @Child private CallDispatchHeadNode initialize = CallDispatchHeadNode.createOnSelf();
+        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode initialize = CallDispatchHeadNode.createPrivate();
 
         @Specialization
         public Object newInstance(VirtualFrame frame, DynamicObject rubyClass, Object[] args, NotProvided block) {
@@ -279,8 +279,8 @@ public abstract class ClassNodes {
         }
 
         private Object doNewInstance(VirtualFrame frame, DynamicObject rubyClass, Object[] args, DynamicObject block) {
-            final Object instance = allocateNode.call(frame, rubyClass, "__allocate__");
-            initialize.callWithBlock(frame, instance, "initialize", block, args);
+            final Object instance = allocateNode.call(rubyClass, "__allocate__");
+            initialize.callWithBlock(instance, "initialize", block, args);
             return instance;
         }
     }

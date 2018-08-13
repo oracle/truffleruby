@@ -99,9 +99,9 @@ public final class InterpolatedStringNode extends RubyNode {
     private Object callDup(VirtualFrame frame, Object string) {
         if (dupNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            dupNode = insert(CallDispatchHeadNode.create());
+            dupNode = insert(CallDispatchHeadNode.createPrivate());
         }
-        return dupNode.call(frame, string, "dup");
+        return dupNode.call(string, "dup");
     }
 
     private boolean executeIsTainted(Object object) {

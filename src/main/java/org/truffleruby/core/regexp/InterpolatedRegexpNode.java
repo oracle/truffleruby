@@ -61,7 +61,7 @@ public class InterpolatedRegexpNode extends RubyNode {
     public static abstract class RegexpBuilderNode extends RubyNode {
 
         @Child private RopeNodes.EqualNode ropesEqualNode = RopeNodes.EqualNode.create();
-        @Child private CallDispatchHeadNode copyNode = CallDispatchHeadNode.create();
+        @Child private CallDispatchHeadNode copyNode = CallDispatchHeadNode.createPrivate();
         private final RegexpOptions options;
 
         public static RegexpBuilderNode create(RegexpOptions options) {
@@ -78,7 +78,7 @@ public class InterpolatedRegexpNode extends RubyNode {
         public Object executeFast(VirtualFrame frame, Rope[] parts,
                 @Cached(value = "parts", dimensions = 1) Rope[] cachedParts,
                 @Cached("createRegexp(cachedParts)") DynamicObject regexp) {
-            final Object clone = copyNode.call(frame, regexp, "clone");
+            final Object clone = copyNode.call(regexp, "clone");
             return clone;
         }
 

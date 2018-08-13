@@ -93,8 +93,8 @@ public abstract class SplatCastNode extends RubyNode {
     @Specialization(guards = {"!isNil(object)", "!isRubyArray(object)"})
     public DynamicObject splat(VirtualFrame frame, Object object,
             @Cached("create()") BranchProfile errorProfile,
-            @Cached("createOnSelf()") CallDispatchHeadNode toArrayNode) {
-        final Object array = toArrayNode.call(null, coreLibrary().getTruffleTypeModule(), "rb_check_convert_type", object, coreLibrary().getArrayClass(), conversionMethod);
+            @Cached("createPrivate()") CallDispatchHeadNode toArrayNode) {
+        final Object array = toArrayNode.call(coreLibrary().getTruffleTypeModule(), "rb_check_convert_type", object, coreLibrary().getArrayClass(), conversionMethod);
         if (RubyGuards.isRubyArray(array)) {
             return (DynamicObject) array;
         } else if (array == nil()) {
@@ -111,7 +111,7 @@ public abstract class SplatCastNode extends RubyNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toA = insert(CallDispatchHeadNode.createReturnMissing());
         }
-        return toA.call(frame, nil, "to_a");
+        return toA.call(nil, "to_a");
     }
 
     private DynamicObject executeDup(VirtualFrame frame, DynamicObject array) {

@@ -49,10 +49,10 @@ public class HashNode extends RubyBaseNode {
         } else {
             if (coerceToIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                coerceToIntNode = insert(CallDispatchHeadNode.createOnSelf());
+                coerceToIntNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
-            final Object coercedHashedObject = coerceToIntNode.call(null, coreLibrary().getTruffleTypeModule(), "coerce_to_int", hashedObject);
+            final Object coercedHashedObject = coerceToIntNode.call(coreLibrary().getTruffleTypeModule(), "coerce_to_int", hashedObject);
 
             if (isIntegerProfile2.profile(coercedHashedObject instanceof Integer)) {
                 return (int) coercedHashedObject;
@@ -69,9 +69,9 @@ public class HashNode extends RubyBaseNode {
     private Object hash(VirtualFrame frame, Object object) {
         if (hashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            hashNode = insert(CallDispatchHeadNode.createOnSelf());
+            hashNode = insert(CallDispatchHeadNode.createPrivate());
         }
-        return hashNode.call(frame, object, "hash");
+        return hashNode.call(object, "hash");
     }
 
     private Object objectID(Object object) {

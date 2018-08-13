@@ -62,7 +62,7 @@ public abstract class GetConstantNode extends RubyNode {
     @TruffleBoundary
     @Specialization(guards = { "autoloadConstant != null", "autoloadConstant.isAutoload()" })
     protected Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant autoloadConstant, LookupConstantInterface lookupConstantNode,
-            @Cached("createOnSelf()") CallDispatchHeadNode callRequireNode) {
+            @Cached("createPrivate()") CallDispatchHeadNode callRequireNode) {
 
         final DynamicObject feature = autoloadConstant.getAutoloadPath();
         final DynamicObject autoloadConstantModule = autoloadConstant.getDeclaringModule();
@@ -90,7 +90,7 @@ public abstract class GetConstantNode extends RubyNode {
             // lookup ignores being-autoloaded constants).
             fields.newConstantsVersion();
 
-            callRequireNode.call(null, coreLibrary().getMainObject(), "require", feature);
+            callRequireNode.call(coreLibrary().getMainObject(), "require", feature);
 
             RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
 
@@ -134,10 +134,10 @@ public abstract class GetConstantNode extends RubyNode {
         if (callConstMissing) {
             if (constMissingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                constMissingNode = insert(CallDispatchHeadNode.createOnSelf());
+                constMissingNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
-            return constMissingNode.call(null, module, "const_missing", symbolName);
+            return constMissingNode.call(module, "const_missing", symbolName);
         } else {
             return null;
         }

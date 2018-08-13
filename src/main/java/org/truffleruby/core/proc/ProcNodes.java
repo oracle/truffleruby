@@ -126,7 +126,7 @@ public abstract class ProcNodes {
                     Layouts.PROC.getFrameOnStackMarker(block),
                     Layouts.PROC.getDeclarationContext(block)));
 
-            getInitializeNode().callWithBlock(frame, proc, "initialize", block, args);
+            getInitializeNode().callWithBlock(proc, "initialize", block, args);
 
             return proc;
         }
@@ -147,7 +147,7 @@ public abstract class ProcNodes {
         private CallDispatchHeadNode getInitializeNode() {
             if (initializeNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                initializeNode = insert(CallDispatchHeadNode.createOnSelf());
+                initializeNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
             return initializeNode;

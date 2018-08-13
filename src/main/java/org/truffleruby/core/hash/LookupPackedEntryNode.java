@@ -34,7 +34,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 public abstract class LookupPackedEntryNode extends RubyNode {
 
     @Child CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
-    @Child private CallDispatchHeadNode callDefaultNode = CallDispatchHeadNode.create();
+    @Child private CallDispatchHeadNode callDefaultNode = CallDispatchHeadNode.createPrivate();
 
     public static LookupPackedEntryNode create() {
         return LookupPackedEntryNodeGen.create(null, null, null, null);

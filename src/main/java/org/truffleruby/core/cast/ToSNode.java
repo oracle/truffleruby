@@ -41,8 +41,8 @@ public abstract class ToSNode extends RubyNode {
 
     @Specialization(guards = "!isRubyString(object)")
     public DynamicObject toSFallback(VirtualFrame frame, Object object,
-            @Cached("createOnSelf()") CallDispatchHeadNode callToSNode) {
-        final Object value = callToSNode.call(null, object, "to_s");
+            @Cached("createPrivate()") CallDispatchHeadNode callToSNode) {
+        final Object value = callToSNode.call(object, "to_s");
 
         if (RubyGuards.isRubyString(value)) {
             return (DynamicObject) value;
