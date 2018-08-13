@@ -218,7 +218,7 @@ public class BacktraceFormatter {
             if (reportedSourceSection == null) {
                 builder.append("???");
             } else {
-                builder.append(context.getSourceLoader().getPath(reportedSourceSection.getSource()));
+                builder.append(context.getPath(reportedSourceSection.getSource()));
                 builder.append(":");
                 builder.append(reportedSourceSection.getStartLine());
             }

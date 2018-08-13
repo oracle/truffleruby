@@ -143,6 +143,9 @@ public class RubyContext {
     private boolean initialized;
     private volatile boolean finalizing;
 
+    private Source mainSource = null;
+    private String mainSourceAbsolutePath = null;
+
     private static boolean preInitializeContexts = TruffleRuby.PRE_INITIALIZE_CONTEXTS;
 
     private static final boolean LIBPOLYGLOT = Boolean.getBoolean("graalvm.libpolyglot");
@@ -504,7 +507,7 @@ public class RubyContext {
         }
 
         if (options.COVERAGE_GLOBAL) {
-            coverageManager.print(System.out, sourceLoader);
+            coverageManager.print(System.out);
         }
 
         try {
@@ -880,6 +883,36 @@ public class RubyContext {
 
     public WeakValueCache<RegexpCacheKey, Regex> getRegexpCache() {
         return regexpCache;
+    }
+
+    /**
+     * Returns the path of a Source. Returns the short path for the main script (the file argument
+     * given to "ruby"). The path of eval(code, nil, filename) is just filename.
+     */
+    public String getPath(Source source) {
+        final String name = source.getName();
+        if (preInitialized && name.startsWith(RubyLanguage.RUBY_HOME_SCHEME)) {
+            return rubyHome + "/" + name.substring(RubyLanguage.RUBY_HOME_SCHEME.length());
+        } else {
+            return name;
+        }
+    }
+
+    /**
+     * Returns the path of a Source. Returns the canonical path for the main script. Note however
+     * that the path of eval(code, nil, filename) is just filename and might not be absolute.
+     */
+    public String getAbsolutePath(Source source) {
+        if (source == mainSource) {
+            return mainSourceAbsolutePath;
+        } else {
+            return getPath(source);
+        }
+    }
+
+    public void setMainSources(Source mainSource, String mainSourceAbsolutePath) {
+        this.mainSource = mainSource;
+        this.mainSourceAbsolutePath = mainSourceAbsolutePath;
     }
 
 }

@@ -1416,7 +1416,7 @@ public abstract class KernelNodes {
             } else {
                 final Source source = getContext().getCallStack().getCallerFrameIgnoringSend().getCallNode().getEncapsulatingSourceSection().getSource();
 
-                String sourcePath = getContext().getSourceLoader().getAbsolutePath(source);
+                String sourcePath = getContext().getAbsolutePath(source);
                 if (sourcePath == null) {
                     // Use the filename passed to eval as basepath
                     sourcePath = source.getName();

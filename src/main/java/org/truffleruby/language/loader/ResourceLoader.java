@@ -25,6 +25,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Locale;
 
+/*
+ * Loads source files that have been stored as resources (in the Java jar file sense.)
+ */
 public class ResourceLoader {
 
     public RubySource loadResource(String path, boolean internal) throws IOException {

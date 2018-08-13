@@ -41,6 +41,8 @@ public class CoverageManager {
 
     public static final long NO_CODE = -1;
 
+    private final RubyContext context;
+
     private final Instrumenter instrumenter;
     private EventBinding<?> binding;
     private final Map<Source, AtomicLongArray> counters = new ConcurrentHashMap<>();
@@ -49,6 +51,7 @@ public class CoverageManager {
     private volatile boolean enabled;
 
     public CoverageManager(RubyContext context, Instrumenter instrumenter) {
+        this.context = context;
         this.instrumenter = instrumenter;
 
         if (context.getOptions().COVERAGE_GLOBAL) {
@@ -163,7 +166,7 @@ public class CoverageManager {
         return counts;
     }
 
-    public synchronized void print(PrintStream out, SourceLoader sourceLoader) {
+    public synchronized void print(PrintStream out) {
         final int maxCountDigits = Long.toString(getMaxCount()).length();
 
         final String countFormat = "%" + maxCountDigits + "d";
@@ -174,7 +177,7 @@ public class CoverageManager {
         final String noCodeString = new String(noCodeChars);
 
         for (Map.Entry<Source, AtomicLongArray> entry : counters.entrySet()) {
-            out.println(sourceLoader.getPath(entry.getKey()));
+            out.println(context.getPath(entry.getKey()));
 
             for (int n = 0; n < entry.getValue().length(); n++) {
                 // TODO CS 5-Sep-17 can we keep the line as a CharSequence rather than using toString?

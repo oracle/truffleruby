@@ -47,7 +47,7 @@ public class ThreadBacktraceLocationNodes {
         public DynamicObject absolutePath(DynamicObject threadBacktraceLocation,
                                           @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
-            final String path = getContext().getSourceLoader().getAbsolutePath(sourceSection.getSource());
+            final String path = getContext().getAbsolutePath(sourceSection.getSource());
 
             if (path == null) {
                 return coreStrings().UNKNOWN.createInstance();
@@ -73,7 +73,7 @@ public class ThreadBacktraceLocationNodes {
         public DynamicObject path(DynamicObject threadBacktraceLocation,
                                   @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
-            final String path = getContext().getSourceLoader().getPath(sourceSection.getSource());
+            final String path = getContext().getPath(sourceSection.getSource());
 
             if (path == null) {
                 return coreStrings().UNKNOWN.createInstance();

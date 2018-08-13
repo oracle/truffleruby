@@ -271,7 +271,7 @@ public abstract class ProcNodes {
             if (sourceSection.getSource() == null || sourceSection.getSource().getName().endsWith("/lib/truffle/truffle/cext.rb")) {
                 return nil();
             } else {
-                final DynamicObject file = makeStringNode.executeMake(getContext().getSourceLoader().getPath(sourceSection.getSource()), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                final DynamicObject file = makeStringNode.executeMake(getContext().getPath(sourceSection.getSource()), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
                 final Object[] objects = new Object[]{file, sourceSection.getStartLine()};
                 return createArray(objects, objects.length);

@@ -21,13 +21,10 @@ import org.truffleruby.aot.ParserCache;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.ast.RootParseNode;
-import org.truffleruby.shared.TruffleRuby;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,36 +34,8 @@ public class SourceLoader {
 
     private final RubyContext context;
 
-    private Source mainSource = null;
-    private String mainSourceAbsolutePath = null;
-
     public SourceLoader(RubyContext context) {
         this.context = context;
-    }
-
-    /**
-     * Returns the path of a Source. Returns the short path for the main script (the file argument
-     * given to "ruby"). The path of eval(code, nil, filename) is just filename.
-     */
-    public String getPath(Source source) {
-        final String name = source.getName();
-        if (context.wasPreInitialized() && name.startsWith(RubyLanguage.RUBY_HOME_SCHEME)) {
-            return context.getRubyHome() + "/" + name.substring(RubyLanguage.RUBY_HOME_SCHEME.length());
-        } else {
-            return name;
-        }
-    }
-
-    /**
-     * Returns the path of a Source. Returns the canonical path for the main script. Note however
-     * that the path of eval(code, nil, filename) is just filename and might not be absolute.
-     */
-    public String getAbsolutePath(Source source) {
-        if (source == mainSource) {
-            return mainSourceAbsolutePath;
-        } else {
-            return getPath(source);
-        }
     }
 
     @TruffleBoundary
@@ -74,7 +43,7 @@ public class SourceLoader {
         if (section == null) {
             return "no source section";
         } else {
-            final String path = getPath(section.getSource());
+            final String path = context.getPath(section.getSource());
 
             if (section.isAvailable()) {
                 return path + ":" + section.getStartLine();
@@ -82,65 +51,6 @@ public class SourceLoader {
                 return path;
             }
         }
-    }
-
-    @TruffleBoundary
-    public RubySource loadMainEval() {
-        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, context.getOptions().TO_EXECUTE, "-e").build();
-        return new RubySource(source);
-    }
-
-    @TruffleBoundary
-    public RubySource loadMainStdin(RubyNode currentNode, String path) throws IOException {
-        final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-
-        final byte[] buffer = new byte[4096];
-
-        while (true) {
-            final int read = System.in.read(buffer);
-            if (read == -1) {
-                break;
-            }
-            byteStream.write(buffer, 0, read);
-        }
-
-        byte[] sourceBytes = byteStream.toByteArray();
-
-        final EmbeddedScript embeddedScript = new EmbeddedScript(context);
-
-        if (embeddedScript.shouldTransform(sourceBytes)) {
-            sourceBytes = embeddedScript.transformForExecution(currentNode, sourceBytes, path);
-        }
-
-        final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, sourceRope.toString(), path).build();
-        return new RubySource(source, sourceRope);
-    }
-
-    @TruffleBoundary
-    public RubySource loadMainFile(RubyNode currentNode, String path) throws IOException {
-        if (mainSourceAbsolutePath != null) {
-            throw new UnsupportedOperationException("main file already loaded: " + mainSourceAbsolutePath);
-        }
-
-        ensureReadable(context, path);
-
-        final File file = new File(path);
-
-        byte[] sourceBytes = Files.readAllBytes(file.toPath());
-
-        final EmbeddedScript embeddedScript = new EmbeddedScript(context);
-
-        if (embeddedScript.shouldTransform(sourceBytes)) {
-            sourceBytes = embeddedScript.transformForExecution(currentNode, sourceBytes, path);
-        }
-
-        final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-
-        mainSource = Source.newBuilder(file).name(path).content(sourceRope.toString()).mimeType(RubyLanguage.MIME_TYPE).build();
-
-        mainSourceAbsolutePath = file.getCanonicalPath();
-        return new RubySource(mainSource, sourceRope);
     }
 
     @TruffleBoundary
@@ -231,7 +141,7 @@ public class SourceLoader {
         }
     }
 
-    private static void ensureReadable(RubyContext context, String path) {
+    public static void ensureReadable(RubyContext context, String path) {
         if (context != null) {
             final File file = new File(path);
             if (!file.exists()) {

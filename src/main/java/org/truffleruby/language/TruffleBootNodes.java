@@ -32,6 +32,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.loader.CodeLoader;
+import org.truffleruby.language.loader.MainLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
@@ -179,7 +180,7 @@ public abstract class TruffleBootNodes {
             final Object dollarZeroValue;
             try {
                 switch (executionAction) {
-                    case UNSET:
+                    case UNSET: {
                         switch (getContext().getOptions().DEFAULT_EXECUTION_ACTION) {
                             case NONE:
                                 return loadMainSourceSettingDollarZero(findSFile, makeStringNode, ExecutionAction.NONE, toExecute);
@@ -196,35 +197,41 @@ public abstract class TruffleBootNodes {
                             default:
                                 throw new UnsupportedOperationException("unreachable");
                         }
-                    case NONE:
+                    }
+
+                    case NONE: {
                         source = null;
                         dollarZeroValue = nil();
-                        break;
+                    } break;
 
-                    case FILE:
-                        source = getContext().getSourceLoader().loadMainFile(this, toExecute);
+                    case FILE: {
+                        final MainLoader mainLoader = new MainLoader(getContext());
+                        source = mainLoader.loadMainFile(this, toExecute);
                         dollarZeroValue = makeStringNode.executeMake(toExecute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-                        break;
+                    } break;
 
-                    case PATH:
+                    case PATH: {
                         final DynamicObject path = (DynamicObject) findSFile.call(
                                 getContext().getCoreLibrary().getTruffleBootModule(),
                                 // language=ruby
                                 "find_s_file",
                                 makeStringNode.executeMake(toExecute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
-                        source = getContext().getSourceLoader().loadMainFile(this, StringOperations.getString(path));
+                        final MainLoader mainLoader = new MainLoader(getContext());
+                        source = mainLoader.loadMainFile(this, StringOperations.getString(path));
                         dollarZeroValue = path;
-                        break;
+                    } break;
 
-                    case STDIN:
-                        source = getContext().getSourceLoader().loadMainStdin(this, toExecute);
+                    case STDIN: {
+                        final MainLoader mainLoader = new MainLoader(getContext());
+                        source = mainLoader.loadMainStdin(this, toExecute);
                         dollarZeroValue = makeStringNode.executeMake("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-                        break;
+                    } break;
 
-                    case INLINE:
-                        source = getContext().getSourceLoader().loadMainEval();
+                    case INLINE: {
+                        final MainLoader mainLoader = new MainLoader(getContext());
+                        source = mainLoader.loadMainEval();
                         dollarZeroValue = makeStringNode.executeMake("-e", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-                        break;
+                    } break;
 
                     default:
                         throw new IllegalStateException();
@@ -302,7 +309,7 @@ public abstract class TruffleBootNodes {
                 return nil();
             }
 
-            return makeStringNode.executeMake(getContext().getSourceLoader().getPath(source), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(getContext().getPath(source), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }

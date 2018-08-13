@@ -283,7 +283,7 @@ public class BodyTranslator extends Translator {
 
     public BodyTranslator(Node currentNode, RubyContext context, BodyTranslator parent, TranslatorEnvironment environment, Source source, ParserContext parserContext, boolean topLevel) {
         super(currentNode, context, source, parserContext);
-        this.parserSupport = new ParserSupport(context, context.getSourceLoader().getPath(source), null);
+        this.parserSupport = new ParserSupport(context, context.getPath(source), null);
         this.parent = parent;
         this.environment = environment;
     }
@@ -1122,7 +1122,7 @@ public class BodyTranslator extends Translator {
     }
 
     private boolean inCore() {
-        final String path = context.getSourceLoader().getPath(source);
+        final String path = context.getPath(source);
         return path.startsWith(environment.getParseEnvironment().getCorePath());
     }
 
