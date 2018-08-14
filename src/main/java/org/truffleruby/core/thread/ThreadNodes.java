@@ -265,7 +265,7 @@ public abstract class ThreadNodes {
 
             final Object[] args = ArrayOperations.toObjectArray(arguments);
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
-            final String info = getContext().getSourceLoader().fileLine(sourceSection);
+            final String info = getContext().fileLine(sourceSection);
             getContext().getThreadManager().initialize(thread, this, info,
                     () -> ProcOperations.rootCall(block, args));
             return nil();

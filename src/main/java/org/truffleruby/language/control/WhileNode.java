@@ -57,7 +57,7 @@ public final class WhileNode extends RubyNode {
         public String toString() {
             SourceSection sourceSection = getEncapsulatingSourceSection();
             if (sourceSection != null && sourceSection.isAvailable()) {
-                return "while loop at " + context.getSourceLoader().fileLine(sourceSection);
+                return "while loop at " + context.fileLine(sourceSection);
             } else {
                 return "while loop";
             }

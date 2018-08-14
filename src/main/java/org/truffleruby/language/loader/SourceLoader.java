@@ -9,9 +9,6 @@
  */
 package org.truffleruby.language.loader;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.source.SourceSection;
-
 import org.truffleruby.RubyContext;
 
 public class SourceLoader {
@@ -20,21 +17,6 @@ public class SourceLoader {
 
     public SourceLoader(RubyContext context) {
         this.context = context;
-    }
-
-    @TruffleBoundary
-    public String fileLine(SourceSection section) {
-        if (section == null) {
-            return "no source section";
-        } else {
-            final String path = context.getPath(section.getSource());
-
-            if (section.isAvailable()) {
-                return path + ":" + section.getStartLine();
-            } else {
-                return path;
-            }
-        }
     }
 
 }

@@ -53,7 +53,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             final Object[] argumentsObjects) {
         CompilerDirectives.transferToInterpreterAndInvalidate();
         // Useful debug aid to catch a running-away NotProvided or undefined
-        assert !(receiverObject instanceof NotProvided) : getContext().getSourceLoader().fileLine(getEncapsulatingSourceSection());
+        assert !(receiverObject instanceof NotProvided) : getContext().fileLine(getEncapsulatingSourceSection());
 
         // Make sure to have an up-to-date Shape.
         if (receiverObject instanceof DynamicObject) {

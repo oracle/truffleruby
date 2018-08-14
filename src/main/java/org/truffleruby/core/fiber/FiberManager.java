@@ -145,7 +145,7 @@ public class FiberManager {
         final Thread thread = Thread.currentThread();
         final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
         final String oldName = thread.getName();
-        thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + context.getSourceLoader().fileLine(sourceSection));
+        thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + context.fileLine(sourceSection));
 
         start(fiber, thread);
         try {

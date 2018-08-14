@@ -62,7 +62,7 @@ public class NotOptimizedWarningNode extends RubyBaseNode {
         final SourceSection userSourceSection = getContext().getCallStack().getTopMostUserSourceSection();
 
         final String displayedWarning = String.format("%s: %s",
-                getContext().getSourceLoader().fileLine(userSourceSection), message);
+                getContext().fileLine(userSourceSection), message);
 
         if (DISPLAYED_WARNINGS.add(displayedWarning)) {
             RubyLanguage.LOGGER.log(Level.WARNING, displayedWarning);

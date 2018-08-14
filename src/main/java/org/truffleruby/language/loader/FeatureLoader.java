@@ -130,7 +130,7 @@ public class FeatureLoader {
 
             RubyLanguage.LOGGER.info(() -> {
                 final SourceSection sourceSection = context.getCallStack().getTopMostUserSourceSection();
-                return String.format("starting search from %s for feature %s...", context.getSourceLoader().fileLine(sourceSection), originalFeature);
+                return String.format("starting search from %s for feature %s...", context.fileLine(sourceSection), originalFeature);
             });
         }
 

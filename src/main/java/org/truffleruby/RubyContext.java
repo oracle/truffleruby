@@ -21,6 +21,7 @@ import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 
+import com.oracle.truffle.api.source.SourceSection;
 import org.joni.Regex;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.collections.WeakValueCache;
@@ -907,6 +908,21 @@ public class RubyContext {
             return mainSourceAbsolutePath;
         } else {
             return getPath(source);
+        }
+    }
+
+    @TruffleBoundary
+    public String fileLine(SourceSection section) {
+        if (section == null) {
+            return "no source section";
+        } else {
+            final String path = getPath(section.getSource());
+
+            if (section.isAvailable()) {
+                return path + ":" + section.getStartLine();
+            } else {
+                return path;
+            }
         }
     }
 
