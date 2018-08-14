@@ -23,7 +23,6 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
-import org.truffleruby.language.loader.SourceLoader;
 
 import java.io.PrintStream;
 import java.util.Arrays;
