@@ -167,7 +167,8 @@ public abstract class RequireNode extends RubyNode {
     private boolean parseAndCall(String feature, String expandedPath) {
         final RubySource source;
         try {
-            source = getContext().getSourceLoader().load(expandedPath);
+            final FileLoader fileLoader = new FileLoader(getContext());
+            source = fileLoader.load(expandedPath);
         } catch (IOException e) {
             return false;
         }

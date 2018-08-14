@@ -62,6 +62,7 @@ import org.truffleruby.language.control.TruffleFatalException;
 import org.truffleruby.language.globals.GlobalVariableStorage;
 import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.language.loader.CodeLoader;
+import org.truffleruby.language.loader.FileLoader;
 import org.truffleruby.language.loader.ResourceLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -841,7 +842,8 @@ public class CoreLibrary {
                 return resourceLoader.loadResource(feature, context.getSourceLoader().isInternal(feature));
             }
         } else {
-            return context.getSourceLoader().load(feature);
+            final FileLoader fileLoader = new FileLoader(context);
+            return fileLoader.load(feature);
         }
     }
 

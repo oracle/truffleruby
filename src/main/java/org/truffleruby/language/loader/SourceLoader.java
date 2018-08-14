@@ -10,22 +10,12 @@
 package org.truffleruby.language.loader;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.parser.RubySource;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 public class SourceLoader {
 
@@ -50,58 +40,6 @@ public class SourceLoader {
         }
     }
 
-    @TruffleBoundary
-    public RubySource load(String feature) throws IOException {
-        if (context.getOptions().LOG_LOAD) {
-            RubyLanguage.LOGGER.info("loading " + feature);
-        }
-
-        return loadNoLogging(context, feature, isInternal(feature));
-    }
-
-    public static RubySource loadNoLogging(RubyContext context, String feature, boolean internal) throws IOException {
-        ensureReadable(context, feature);
-
-        final File featureFile = new File(feature);
-
-        final String mimeType;
-
-        if (feature.toLowerCase().endsWith(RubyLanguage.CEXT_EXTENSION)) {
-            mimeType = RubyLanguage.CEXT_MIME_TYPE;
-        } else {
-            // We need to assume all other files are Ruby, so the file type detection isn't enough
-            mimeType = RubyLanguage.MIME_TYPE;
-        }
-
-        final String name;
-
-        if (context != null && context.isPreInitializing()) {
-            name = RubyLanguage.RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(feature));
-        } else {
-            name = feature;
-        }
-
-        final Rope sourceRope = readSourceRope(featureFile);
-
-        final Source source = buildSource(
-                Source.newBuilder(featureFile)
-                        .name(name.intern())
-                        .mimeType(mimeType), internal);
-
-        return new RubySource(source, sourceRope);
-    }
-
-    private static Rope readSourceRope(File file) throws IOException {
-        /*
-         * We must read the file bytes ourselves - otherwise Truffle will read them, assume they're UTF-8, and we will
-         * not be able to re-interpret the encoding later without the risk of the values being corrupted by being
-         * passed through UTF-8.
-         */
-
-        final byte[] sourceBytes = Files.readAllBytes(file.toPath());
-        return RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-    }
-
     public boolean isInternal(String canonicalPath) {
         if (canonicalPath.startsWith(context.getCoreLibrary().getCoreLoadPath())) {
             return context.getOptions().CORE_AS_INTERNAL;
@@ -113,14 +51,6 @@ public class SourceLoader {
         }
 
         return false;
-    }
-
-    private static <E extends Exception> Source buildSource(Source.Builder<E, RuntimeException, RuntimeException> builder, boolean internal) throws E {
-        if (internal) {
-            return builder.internal().build();
-        } else {
-            return builder.build();
-        }
     }
 
     public static void ensureReadable(RubyContext context, String path) {
