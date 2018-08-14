@@ -294,8 +294,6 @@ public class FeatureLoader {
 
     @TruffleBoundary
     public List<TruffleObject> loadCExtLibrary(String feature, String path) {
-        final File file = new File(path);
-
         if (!new File(path).exists()) {
             throw new RaiseException(context, context.getCoreExceptions().loadError(path + " does not exists", path, null));
         }
@@ -304,8 +302,7 @@ public class FeatureLoader {
 
         Metrics.printTime("before-load-cext-" + feature);
         try {
-            final CExtLoader cextLoader = new CExtLoader();
-            cextLoader.loadLibrary(file, this::loadNativeLibrary, source -> {
+            final CExtLoader cextLoader = new CExtLoader(this::loadNativeLibrary, source -> {
                 final Object result;
 
                 try {
@@ -315,11 +312,12 @@ public class FeatureLoader {
                 }
 
                 if (!(result instanceof TruffleObject)) {
-                    throw new RaiseException(context, context.getCoreExceptions().loadError(String.format("%s returned a %s rather than a TruffleObject", file, result.getClass().getSimpleName()), path, null));
+                    throw new RaiseException(context, context.getCoreExceptions().loadError(String.format("%s returned a %s rather than a TruffleObject", path, result.getClass().getSimpleName()), path, null));
                 }
 
                 libraries.add((TruffleObject) result);
             });
+            cextLoader.loadLibrary(path);
         } catch (IOException e) {
             throw new JavaException(e);
         } finally {

@@ -45,7 +45,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     static boolean isSulongAvailable() {
         try (Engine engine = Engine.create()) {
-            return engine.getLanguages().containsKey("llvm");
+            return engine.getLanguages().containsKey(TruffleRuby.LLVM_ID);
         }
     }
 

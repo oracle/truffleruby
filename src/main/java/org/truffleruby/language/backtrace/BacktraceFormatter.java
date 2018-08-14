@@ -26,6 +26,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.shared.TruffleRuby;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -255,7 +256,7 @@ public class BacktraceFormatter {
             String identifier = rootNode.getName();
 
             if (identifier != null && !identifier.isEmpty()) {
-                if (rootNode.getLanguageInfo().getId().equals("llvm") && identifier.startsWith("@")) {
+                if (rootNode.getLanguageInfo().getId().equals(TruffleRuby.LLVM_ID) && identifier.startsWith("@")) {
                     identifier = identifier.substring(1);
                 }
 

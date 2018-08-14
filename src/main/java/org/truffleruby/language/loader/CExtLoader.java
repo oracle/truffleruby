@@ -10,14 +10,14 @@
 package org.truffleruby.language.loader;
 
 import com.oracle.truffle.api.source.Source;
+import org.graalvm.polyglot.io.ByteSequence;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.shared.TruffleRuby;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Scanner;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
@@ -28,10 +28,16 @@ import java.util.zip.ZipInputStream;
  */
 public class CExtLoader {
 
-    public void loadLibrary(File file, Consumer<String> handleLibrary, Consumer<Source> handleSource) throws IOException {
-        final byte[] buffer = new byte[4096];
+    private final Consumer<String> handleLibrary;
+    private final Consumer<Source> handleSource;
 
-        try (ZipInputStream zipStream = new ZipInputStream(new FileInputStream(file))) {
+    public CExtLoader(Consumer<String> handleLibrary, Consumer<Source> handleSource) {
+        this.handleLibrary = handleLibrary;
+        this.handleSource = handleSource;
+    }
+
+    public void loadLibrary(String path) throws IOException {
+        try (ZipInputStream zipStream = new ZipInputStream(new FileInputStream(path))) {
             ZipEntry zipEntry = zipStream.getNextEntry();
 
             while (zipEntry != null) {
@@ -40,34 +46,52 @@ public class CExtLoader {
                     continue;
                 }
 
-                final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-
-                while (true) {
-                    final int read = zipStream.read(buffer);
-                    if (read == -1) {
-                        break;
-                    }
-                    byteStream.write(buffer, 0, read);
-                }
-
-                final byte[] bytes = byteStream.toByteArray();
-
-                if (zipEntry.getName().equals("libs")) {
-                    final String libs = byteStream.toString(StandardCharsets.UTF_8.name());
-                    try (Scanner scanner = new Scanner(libs)) {
-                        while (scanner.hasNextLine()) {
-                            handleLibrary.accept(scanner.nextLine());
-                        }
-                    }
-                } else if (zipEntry.getName().endsWith("." + RubyLanguage.CEXT_BITCODE_EXTENSION)) {
-                    final String sourceCode = Base64.getEncoder().encodeToString(bytes);
-                    final Source source = Source.newBuilder("llvm", sourceCode, file.getPath() + "@" + zipEntry.getName()).mimeType(RubyLanguage.SULONG_BITCODE_BASE64_MIME_TYPE).build();
-                    handleSource.accept(source);
-                }
+                loadZipFileEntry(path, zipStream, zipEntry);
 
                 zipEntry = zipStream.getNextEntry();
             }
         }
     }
+
+    private void loadZipFileEntry(String path, ZipInputStream zipStream, ZipEntry zipEntry) throws IOException {
+        final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+
+        final byte[] buffer = new byte[4096];
+
+        while (true) {
+            final int read = zipStream.read(buffer);
+            if (read == -1) {
+                break;
+            }
+            byteStream.write(buffer, 0, read);
+        }
+
+        final byte[] sourceBytes = byteStream.toByteArray();
+
+        if (zipEntry.getName().equals("libs")) {
+            loadLibsFile(sourceBytes);
+        } else if (zipEntry.getName().endsWith("." + RubyLanguage.CEXT_BITCODE_EXTENSION)) {
+            loadBitcode(path, zipEntry.getName(), sourceBytes);
+        } else {
+            // Ignore extra files
+        }
+    }
+
+    private void loadLibsFile(byte[] sourceBytes) {
+        final String libs = new String(sourceBytes, StandardCharsets.UTF_8);
+
+        try (Scanner scanner = new Scanner(libs)) {
+            while (scanner.hasNextLine()) {
+                handleLibrary.accept(scanner.nextLine());
+            }
+        }
+    }
+
+    private void loadBitcode(String path, String entryName, byte[] sourceBytes) {
+        final String name = String.format("%s@%s", path, entryName);
+        final Source source = Source.newBuilder(TruffleRuby.LLVM_ID, ByteSequence.create(sourceBytes), name).mimeType(RubyLanguage.LLVM_BITCODE_MIME_TYPE).build();
+        handleSource.accept(source);
+    }
+
 
 }

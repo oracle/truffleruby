@@ -37,7 +37,7 @@ import java.util.List;
         id = TruffleRuby.LANGUAGE_ID,
         version = TruffleRuby.LANGUAGE_VERSION,
         characterMimeTypes = RubyLanguage.MIME_TYPE,
-        dependentLanguages = "llvm")
+        dependentLanguages = TruffleRuby.LLVM_ID)
 @ProvidedTags({
         CoverageManager.LineTag.class,
         TraceManager.CallTag.class,
@@ -54,7 +54,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final String MIME_TYPE = "application/x-ruby";
     public static final String EXTENSION = ".rb";
 
-    public static final String SULONG_BITCODE_BASE64_MIME_TYPE = "application/x-llvm-ir-bitcode-base64";
+    public static final String LLVM_BITCODE_MIME_TYPE = "application/x-llvm-ir-bitcode";
 
     public static final String CEXT_MIME_TYPE = "application/x-ruby-cext-library";
     public static final String CEXT_EXTENSION = ".su";
