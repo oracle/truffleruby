@@ -61,18 +61,6 @@ public class FileLoader {
 
         ensureReadable(feature);
 
-        final String language;
-        final String mimeType;
-
-        if (feature.toLowerCase(Locale.ENGLISH).endsWith(RubyLanguage.CEXT_EXTENSION)) {
-            language = TruffleRuby.LLVM_ID;
-            mimeType = RubyLanguage.CEXT_MIME_TYPE;
-        } else {
-            // We need to assume all other files are Ruby, so the file type detection isn't enough
-            language = TruffleRuby.LANGUAGE_ID;
-            mimeType = RubyLanguage.MIME_TYPE;
-        }
-
         final String name;
 
         if (context != null && context.isPreInitializing()) {
@@ -90,19 +78,23 @@ public class FileLoader {
         final byte[] sourceBytes = Files.readAllBytes(Paths.get(feature));
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
-        Source.Builder<IOException, RuntimeException, RuntimeException> builder
-                = Source.newBuilder(new File(feature))
-                    .language(language)
-                    .name(name.intern())
-                    .mimeType(mimeType);
+        Source.newBuilder(new File(feature)).build();
 
-        final Source source;
+        final String language;
+        final String mimeType;
 
-        if (context.getSourceLoader().isInternal(feature)) {
-            source = builder.internal().build();
+        if (feature.toLowerCase(Locale.ENGLISH).endsWith(RubyLanguage.CEXT_EXTENSION)) {
+            language = TruffleRuby.LLVM_ID;
+            mimeType = RubyLanguage.CEXT_MIME_TYPE;
         } else {
-            source = builder.build();
+            // We need to assume all other files are Ruby, so the file type detection isn't enough
+            language = TruffleRuby.LANGUAGE_ID;
+            mimeType = RubyLanguage.MIME_TYPE;
         }
+
+        // We set an explicit MIME type because LLVM does not have a default one
+
+        final Source source = Source.newBuilder(language, sourceRope.toString(), name).mimeType(mimeType).build();
 
         return new RubySource(source, sourceRope);
     }
