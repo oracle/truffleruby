@@ -93,11 +93,12 @@ public class MainLoader {
 
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
-        final File file = new File(path);
-        final Source mainSource = Source.newBuilder(file).name(path).content(sourceRope.toString()).mimeType(RubyLanguage.MIME_TYPE).build();
-        final String mainSourceAbsolutePath = file.getAbsolutePath();
+        final Source mainSource = Source.newBuilder(new File(path))
+                .language(TruffleRuby.LANGUAGE_ID)
+                .name(path).content(sourceRope.toString())
+                .mimeType(RubyLanguage.MIME_TYPE).build();
 
-        context.setMainSources(mainSource, mainSourceAbsolutePath);
+        context.setMainSources(mainSource, new File(path).getAbsolutePath());
 
         return new RubySource(mainSource, sourceRope);
     }

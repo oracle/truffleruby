@@ -51,7 +51,6 @@ public class ResourceLoader {
 
         final Source source = Source
                 .newBuilder(TruffleRuby.LANGUAGE_ID, reader, path)
-                .mimeType(RubyLanguage.MIME_TYPE)
                 .internal(internal)
                 .build();
 

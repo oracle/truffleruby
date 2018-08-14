@@ -17,6 +17,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.parser.RubySource;
+import org.truffleruby.shared.TruffleRuby;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,12 +43,15 @@ public class FileLoader {
 
         SourceLoader.ensureReadable(context, feature);
 
+        final String language;
         final String mimeType;
 
         if (feature.toLowerCase(Locale.ENGLISH).endsWith(RubyLanguage.CEXT_EXTENSION)) {
+            language = TruffleRuby.LLVM_ID;
             mimeType = RubyLanguage.CEXT_MIME_TYPE;
         } else {
             // We need to assume all other files are Ruby, so the file type detection isn't enough
+            language = TruffleRuby.LANGUAGE_ID;
             mimeType = RubyLanguage.MIME_TYPE;
         }
 
@@ -70,6 +74,7 @@ public class FileLoader {
 
         Source.Builder<IOException, RuntimeException, RuntimeException> builder
                 = Source.newBuilder(new File(feature))
+                    .language(language)
                     .name(name.intern())
                     .mimeType(mimeType);
 
