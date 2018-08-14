@@ -77,6 +77,12 @@ public class MainLoader {
     public RubySource loadFromFile(RubyNode currentNode, String path) throws IOException {
         SourceLoader.ensureReadable(context, path);
 
+        /*
+         * We must read the file bytes ourselves - otherwise Truffle will read them, assume they're UTF-8, and we will
+         * not be able to re-interpret the encoding later without the risk of the values being corrupted by being
+         * passed through UTF-8.
+         */
+
         byte[] sourceBytes = Files.readAllBytes(Paths.get(path));
 
         final EmbeddedScript embeddedScript = new EmbeddedScript(context);

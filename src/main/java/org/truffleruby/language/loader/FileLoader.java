@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Locale;
 
 /*
  * Loads normal Ruby source files from the file system.
@@ -43,7 +44,7 @@ public class FileLoader {
 
         final String mimeType;
 
-        if (feature.toLowerCase().endsWith(RubyLanguage.CEXT_EXTENSION)) {
+        if (feature.toLowerCase(Locale.ENGLISH).endsWith(RubyLanguage.CEXT_EXTENSION)) {
             mimeType = RubyLanguage.CEXT_MIME_TYPE;
         } else {
             // We need to assume all other files are Ruby, so the file type detection isn't enough
@@ -64,13 +65,13 @@ public class FileLoader {
          * passed through UTF-8.
          */
 
-        final File featureFile = new File(feature);
-        final byte[] sourceBytes = Files.readAllBytes(featureFile.toPath());
+        final byte[] sourceBytes = Files.readAllBytes(Paths.get(feature));
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
-        Source.Builder<IOException, RuntimeException, RuntimeException> builder = Source.newBuilder(featureFile)
-                .name(name.intern())
-                .mimeType(mimeType);
+        Source.Builder<IOException, RuntimeException, RuntimeException> builder
+                = Source.newBuilder(new File(feature))
+                    .name(name.intern())
+                    .mimeType(mimeType);
 
         final Source source;
 
