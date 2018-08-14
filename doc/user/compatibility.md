@@ -87,6 +87,10 @@ development tools.
 implementations of Ruby) have repurposed it for extended options. We warn if
 your `-X` options looks like it was actually intended to be as in MRI.
 
+Programs passed in `-e` arguments with magic-comments must have an encoding that
+is UTF-8 or a subset of UTF-8, as the JVM has already decoded arguments by the
+time we get them.
+
 #### Setting the process title doesn't always work
 
 Setting the process title (via `$0` or `Process.setproctitle` in Ruby) is done

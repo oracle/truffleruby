@@ -468,7 +468,16 @@ public class RubyLexer implements MagicCommentHandler {
              * have the String - we don't have any access to the original bytes, so we cannot re-interpret them
              * in another encoding without risking errors. 
              */
-            throw argumentError(context, RopeOperations.decodeRope(name) + " cannot be used as an encoding for a Polyglot API source as it is not UTF-8 or a subset of UTF-8");
+
+            final String description;
+
+            if (src.getSource().getName().equals("-e")) {
+                description = "program from an -e argument";
+            } else {
+                description = "Polyglot API Source";
+            }
+
+            throw argumentError(context, String.format("%s cannot be used as an encoding for a %s as it is not UTF-8 or a subset of UTF-8",  RopeOperations.decodeRope(name), description));
         }
 
         setEncoding(newEncoding);

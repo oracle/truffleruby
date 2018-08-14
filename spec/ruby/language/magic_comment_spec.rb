@@ -47,6 +47,13 @@ describe "Magic comments" do
     }
   end
   
+  describe "in an -e argument" do
+    it_behaves_like :magic_comments, nil, -> file {
+      print_at_exit = fixture(__FILE__, "print_magic_comment_result_at_exit.rb")
+      ruby_exe(nil, args: "-r#{print_at_exit} -e \"$(< #{fixture(__FILE__, file)})\"")
+    }
+  end
+  
   describe "in the main file" do
     it_behaves_like :magic_comments, nil, -> file {
       print_at_exit = fixture(__FILE__, "print_magic_comment_result_at_exit.rb")

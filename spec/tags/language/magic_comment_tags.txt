@@ -43,3 +43,18 @@ slow:Magic comments in stdin can take Emacs style
 slow:Magic comments in stdin can take vim style
 slow:Magic comments in stdin determine __ENCODING__
 slow:Magic comments in stdin do not cause bytes to be mangled by passing them through the wrong encoding
+slow:Magic comments in an -e argument are optional
+slow:Magic comments in an -e argument are case-insensitive
+slow:Magic comments in an -e argument must be at the first line
+slow:Magic comments in an -e argument must be the first token of the line
+slow:Magic comments in an -e argument can be after the shebang
+slow:Magic comments in an -e argument can take Emacs style
+slow:Magic comments in an -e argument can take vim style
+slow:Magic comments in an -e argument determine __ENCODING__
+slow:Magic comments in an -e argument do not cause bytes to be mangled by passing them through the wrong encoding
+fails:Magic comments in an -e argument are case-insensitive
+fails:Magic comments in an -e argument can be after the shebang
+fails:Magic comments in an -e argument can take Emacs style
+fails:Magic comments in an -e argument can take vim style
+fails:Magic comments in an -e argument determine __ENCODING__
+fails:Magic comments in an -e argument do not cause bytes to be mangled by passing them through the wrong encoding
