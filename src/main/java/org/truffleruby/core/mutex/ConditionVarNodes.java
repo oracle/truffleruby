@@ -164,7 +164,7 @@ public abstract class ConditionVarNodes {
         }
     }
 
-    @Primitive(name = "condition_variable_braodcast")
+    @Primitive(name = "condition_variable_broadcast")
     public static abstract class BroadCastNode extends PrimitiveArrayArgumentsNode {
         @Child ReadObjectFieldNode lockFieldNode = ReadObjectFieldNodeGen.create(lockName, null);
         @Child ReadObjectFieldNode condFieldNode = ReadObjectFieldNodeGen.create(condName, null);
@@ -178,7 +178,7 @@ public abstract class ConditionVarNodes {
             getContext().getThreadManager().runUntilResult(this, () -> {
                 try {
                     condLock.lockInterruptibly();
-                    condition.signal();
+                    condition.signalAll();
                 } finally {
                     condLock.unlock();
                 }
