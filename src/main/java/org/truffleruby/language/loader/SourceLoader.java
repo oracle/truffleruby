@@ -10,20 +10,17 @@
 package org.truffleruby.language.loader;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.aot.ParserCache;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubySource;
-import org.truffleruby.parser.ast.RootParseNode;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,21 +47,6 @@ public class SourceLoader {
             } else {
                 return path;
             }
-        }
-    }
-
-    @TruffleBoundary
-    public RubySource loadCoreFile(String feature) throws IOException {
-        if (feature.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
-            if (TruffleOptions.AOT || ParserCache.INSTANCE != null) {
-                final RootParseNode rootParseNode = ParserCache.INSTANCE.get(feature);
-                return new RubySource(rootParseNode.getSource());
-            } else {
-                final ResourceLoader resourceLoader = new ResourceLoader();
-                return resourceLoader.loadResource(feature, isInternal(feature));
-            }
-        } else {
-            return load(feature);
         }
     }
 
@@ -120,7 +102,7 @@ public class SourceLoader {
         return RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }
 
-    private boolean isInternal(String canonicalPath) {
+    public boolean isInternal(String canonicalPath) {
         if (canonicalPath.startsWith(context.getCoreLibrary().getCoreLoadPath())) {
             return context.getOptions().CORE_AS_INTERNAL;
         }

@@ -43,6 +43,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
+import org.truffleruby.aot.ParserCache;
 import org.truffleruby.builtins.CoreMethodNodeManager;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.klass.ClassNodes;
@@ -61,6 +62,7 @@ import org.truffleruby.language.control.TruffleFatalException;
 import org.truffleruby.language.globals.GlobalVariableStorage;
 import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.language.loader.CodeLoader;
+import org.truffleruby.language.loader.ResourceLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
@@ -69,6 +71,7 @@ import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
+import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.NativeTypes;
 import org.truffleruby.platform.Platform;
@@ -806,7 +809,7 @@ public class CoreLibrary {
                     state = State.LOADED;
                 }
 
-                final RubySource source = context.getSourceLoader().loadCoreFile(getCoreLoadPath() + file);
+                final RubySource source = loadCoreFile(getCoreLoadPath() + file);
                 final RubyRootNode rootNode = context.getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, node);
 
                 final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
@@ -825,6 +828,20 @@ public class CoreLibrary {
         } catch (RaiseException e) {
             context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(e.getException());
             throw new TruffleFatalException("couldn't load the core library", e);
+        }
+    }
+
+    public RubySource loadCoreFile(String feature) throws IOException {
+        if (feature.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
+            if (TruffleOptions.AOT || ParserCache.INSTANCE != null) {
+                final RootParseNode rootParseNode = ParserCache.INSTANCE.get(feature);
+                return new RubySource(rootParseNode.getSource());
+            } else {
+                final ResourceLoader resourceLoader = new ResourceLoader();
+                return resourceLoader.loadResource(feature, context.getSourceLoader().isInternal(feature));
+            }
+        } else {
+            return context.getSourceLoader().load(feature);
         }
     }
 
