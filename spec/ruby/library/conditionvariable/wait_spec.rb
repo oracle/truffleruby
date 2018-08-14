@@ -22,4 +22,36 @@ describe "ConditionVariable#wait" do
     m.synchronize { cv.signal }
     th.join
   end
+
+  it "supports multiple Threads waiting on the same ConditionVariable and Mutex" do
+    m = Mutex.new
+    cv = ConditionVariable.new
+    n_threads = 4
+    events = []
+
+    threads = n_threads.times.map {
+      Thread.new {
+        m.synchronize {
+          events << :t_in_synchronize
+          cv.wait(m)
+        }
+      }
+    }
+
+    Thread.pass until m.synchronize { events.size } == n_threads
+    Thread.pass while threads.any? { |th| th.status and th.status != "sleep" }
+    m.synchronize do
+      threads.each { |t|
+        # Cause interactions with the waiting threads.
+        # On TruffleRuby, this causes a safepoint which has interesting
+        # interactions with the ConditionVariable.
+        bt = t.backtrace
+        bt.should be_kind_of(Array)
+        bt.size.should >= 2
+      }
+    end
+
+    cv.broadcast
+    threads.each(&:join)
+  end
 end
