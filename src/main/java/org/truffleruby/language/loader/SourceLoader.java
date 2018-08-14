@@ -37,17 +37,4 @@ public class SourceLoader {
         }
     }
 
-    public boolean isInternal(String canonicalPath) {
-        if (canonicalPath.startsWith(context.getCoreLibrary().getCoreLoadPath())) {
-            return context.getOptions().CORE_AS_INTERNAL;
-        }
-
-        if (canonicalPath.startsWith(context.getRubyHome() + "/lib/") &&
-                !canonicalPath.startsWith(context.getRubyHome() + "/lib/ruby/gems/")) {
-            return context.getOptions().STDLIB_AS_INTERNAL;
-        }
-
-        return false;
-    }
-
 }
