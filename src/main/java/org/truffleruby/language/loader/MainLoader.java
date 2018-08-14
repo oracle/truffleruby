@@ -95,7 +95,7 @@ public class MainLoader {
 
         final File file = new File(path);
         final Source mainSource = Source.newBuilder(file).name(path).content(sourceRope.toString()).mimeType(RubyLanguage.MIME_TYPE).build();
-        final String mainSourceAbsolutePath = file.getCanonicalPath();
+        final String mainSourceAbsolutePath = file.getAbsolutePath();
 
         context.setMainSources(mainSource, mainSourceAbsolutePath);
 
