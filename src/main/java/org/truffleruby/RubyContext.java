@@ -59,7 +59,6 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FeatureLoader;
-import org.truffleruby.language.loader.SourceLoader;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.shared.Metrics;
@@ -111,7 +110,6 @@ public class RubyContext {
     private final ObjectSpaceManager objectSpaceManager = new ObjectSpaceManager(this, finalizationService);
     private final SharedObjects sharedObjects = new SharedObjects(this);
     private final AtExitManager atExitManager = new AtExitManager(this);
-    private final SourceLoader sourceLoader = new SourceLoader(this);
     private final CallStackManager callStack = new CallStackManager(this);
     private final CoreStrings coreStrings = new CoreStrings(this);
     private final FrozenStringLiterals frozenStringLiterals = new FrozenStringLiterals(this);
@@ -621,10 +619,6 @@ public class RubyContext {
 
     public CoverageManager getCoverageManager() {
         return coverageManager;
-    }
-
-    public SourceLoader getSourceLoader() {
-        return sourceLoader;
     }
 
     public RopeCache getRopeCache() {
