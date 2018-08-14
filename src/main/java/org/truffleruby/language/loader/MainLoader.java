@@ -75,7 +75,8 @@ public class MainLoader {
     }
 
     public RubySource loadFromFile(RubyNode currentNode, String path) throws IOException {
-        SourceLoader.ensureReadable(context, path);
+        final FileLoader fileLoader = new FileLoader(context);
+        fileLoader.ensureReadable(path);
 
         /*
          * We must read the file bytes ourselves - otherwise Truffle will read them, assume they're UTF-8, and we will

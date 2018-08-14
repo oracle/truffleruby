@@ -13,9 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.SourceSection;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.language.control.RaiseException;
-
-import java.io.File;
 
 public class SourceLoader {
 
@@ -51,19 +48,6 @@ public class SourceLoader {
         }
 
         return false;
-    }
-
-    public static void ensureReadable(RubyContext context, String path) {
-        if (context != null) {
-            final File file = new File(path);
-            if (!file.exists()) {
-                throw new RaiseException(context, context.getCoreExceptions().loadError("No such file or directory -- " + path, path, null));
-            }
-
-            if (!file.canRead()) {
-                throw new RaiseException(context, context.getCoreExceptions().loadError("Permission denied -- " + path, path, null));
-            }
-        }
     }
 
 }

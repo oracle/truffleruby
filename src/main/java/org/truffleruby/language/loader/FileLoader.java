@@ -16,6 +16,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.TruffleRuby;
 
@@ -36,12 +37,29 @@ public class FileLoader {
         this.context = context;
     }
 
+    public void ensureReadable(String path) {
+        if (context == null) {
+            // Ignore during pre-initialisation
+            return;
+        }
+
+        final File file = new File(path);
+
+        if (!file.exists()) {
+            throw new RaiseException(context, context.getCoreExceptions().loadError("No such file or directory -- " + path, path, null));
+        }
+
+        if (!file.canRead()) {
+            throw new RaiseException(context, context.getCoreExceptions().loadError("Permission denied -- " + path, path, null));
+        }
+    }
+
     public RubySource loadFile(String feature) throws IOException {
         if (context.getOptions().LOG_LOAD) {
             RubyLanguage.LOGGER.info("loading " + feature);
         }
 
-        SourceLoader.ensureReadable(context, feature);
+        ensureReadable(feature);
 
         final String language;
         final String mimeType;
