@@ -1875,8 +1875,9 @@ EOS
 
   def check_dsl_usage
     mx 'clean'
-    # We need to build with -parameters to get parameter names
-    build_truffleruby('-A-parameters')
+    # We need to build with -parameters to get parameter names.
+    # Build every project as "mx findbugs" needs it currently.
+    mx 'build', '--force-javac', '-A-parameters'
     run_ruby({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '-Xlazy.default=false', '-e', 'exit')
   end
 
@@ -1954,6 +1955,7 @@ EOS
     mx 'checkstyle', '-f', '--primary'
     check_parser
     check_documentation_urls
+    mx 'findbugs'
   end
 
   def verify_native_bin!

@@ -429,9 +429,7 @@ local part_definitions = {
         ["mx", "sversions"],
       ] + self.before_build + [
         ["mx", "build", "--jdt", "$JDT", "--warning-as-error", "--force-deprecation-as-warning"],
-      ] + jt(["lint"]) + self.after_build + [
-        ["mx", "findbugs"],
-      ],
+      ] + jt(["lint"]) + self.after_build,
     },
 
     test_mri: { run+: jt(["test", "mri"]) },
