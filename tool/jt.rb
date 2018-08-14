@@ -1108,6 +1108,7 @@ module Commands
         end
 
         sh 'clang', '-c', '-emit-llvm', *openssl_cflags, 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
+        mx 'build', '--dependencies', 'SULONG_LAUNCHER' # For mx lli
         out, _ = mx('lli', "-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', capture: true)
         raise out.inspect unless out == "5d41402abc4b2a76b9719d911017c592\n"
 
