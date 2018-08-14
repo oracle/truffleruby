@@ -1,0 +1,3 @@
+fails:The $SAFE variable is automatically lowered when leaving a proc
+fails:The $SAFE variable is automatically lowered when leaving a lambda
+fails:The $SAFE variable can be read when default from Thread#safe_level
