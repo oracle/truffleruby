@@ -886,6 +886,7 @@ public class RubyContext {
      */
     public String getPath(Source source) {
         final String name = source.getName();
+
         if (preInitialized && name.startsWith(RubyLanguage.RUBY_HOME_SCHEME)) {
             return rubyHome + "/" + name.substring(RubyLanguage.RUBY_HOME_SCHEME.length());
         } else {
