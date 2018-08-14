@@ -582,7 +582,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     {
       local linux_gate = $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + { timelimit: "01:00:00" },
 
-      "ruby-lint": linux_gate + $.run.lint + { timelimit: "30:00" },  # timilimit override
+      "ruby-lint": linux_gate + $.run.lint + { timelimit: "30:00" },
       "ruby-test-tck": linux_gate + $.use.build + { run+: [["mx", "tck"]] },
       "ruby-test-mri": $.cap.fast_cpu + linux_gate + $.use.build + $.run.test_mri,
       "ruby-test-integration": linux_gate + $.use.build + $.run.test_integration,
