@@ -24,6 +24,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointManager;
+import org.truffleruby.language.SafepointResumeAction;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnException;
@@ -371,7 +372,7 @@ public class ThreadManager {
                 result = action.block();
             } catch (InterruptedException e) {
                 // We were interrupted, possibly by the SafepointManager.
-                context.getSafepointManager().pollFromBlockingCall(currentNode);
+                context.getSafepointManager().pollFromBlockingCall(currentNode, null);
             }
         } while (result == null);
 
@@ -406,7 +407,42 @@ public class ThreadManager {
                 }
             } catch (InterruptedException e) {
                 // We were interrupted, possibly by the SafepointManager.
-                context.getSafepointManager().pollFromBlockingCall(currentNode);
+                context.getSafepointManager().pollFromBlockingCall(currentNode, null);
+            }
+        } while (result == null);
+
+        return result;
+    }
+
+    /**
+     * Runs {@code action} until it returns a non-null value. The given action should throw an
+     * {@link InterruptedException} when {@link Thread#interrupt()} is called. Otherwise, the
+     * {@link SafepointManager} will not be able to interrupt this action. See
+     * {@link ThreadManager#runBlockingNFISystemCallUntilResult(Node, BlockingAction)} for blocking
+     * native calls. If the action throws an {@link InterruptedException}, it will be retried until
+     * it returns a non-null value.
+     *
+     * @param action must not touch any Ruby state
+     * @return the first non-null return value from {@code action}
+     */
+    @TruffleBoundary
+    public <T> T runUntilResultWithResumeAction(Node currentNode, BlockingAction<T> action, SafepointResumeAction resumeAction) {
+        final DynamicObject runningThread = getCurrentThread();
+        T result = null;
+
+        do {
+            final ThreadStatus status = Layouts.THREAD.getStatus(runningThread);
+            Layouts.THREAD.setStatus(runningThread, ThreadStatus.SLEEP);
+
+            try {
+                try {
+                    result = action.block();
+                } finally {
+                    Layouts.THREAD.setStatus(runningThread, status);
+                }
+            } catch (InterruptedException e) {
+                // We were interrupted, possibly by the SafepointManager.
+                context.getSafepointManager().pollFromBlockingCall(currentNode, resumeAction);
             }
         } while (result == null);
 

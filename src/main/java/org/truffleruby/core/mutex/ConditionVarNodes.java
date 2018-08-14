@@ -79,16 +79,15 @@ public abstract class ConditionVarNodes {
             });
             try {
                 mutexLock.unlock();
-                getContext().getThreadManager().runUntilResult(this, () -> {
+                getContext().getThreadManager().runUntilResultWithResumeAction(this, () -> {
                     try {
-                        if (!condLock.isHeldByCurrentThread()) {
-                            condLock.lockInterruptibly();
-                        }
                         condition.await();
                         return BlockingAction.SUCCESS;
                     } finally {
                         condLock.unlock();
                     }
+                }, () -> {
+                    condLock.lock();
                 });
             } finally {
                 getContext().getThreadManager().runUntilResult(this, () -> {
@@ -116,11 +115,8 @@ public abstract class ConditionVarNodes {
             });
             try {
                 mutexLock.unlock();
-                getContext().getThreadManager().runUntilResult(this, () -> {
+                getContext().getThreadManager().runUntilResultWithResumeAction(this, () -> {
                     try {
-                        if (!condLock.isHeldByCurrentThread()) {
-                            condLock.lockInterruptibly();
-                        }
                         final long currentTime = System.nanoTime();
                         if (currentTime < endTIme) {
                             condition.await(endTIme - currentTime, TimeUnit.NANOSECONDS);
@@ -129,6 +125,8 @@ public abstract class ConditionVarNodes {
                     } finally {
                         condLock.unlock();
                     }
+                }, () -> {
+                    condLock.lock();
                 });
             } finally {
                 getContext().getThreadManager().runUntilResult(this, () -> {
