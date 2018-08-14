@@ -51,6 +51,12 @@ supported, such as `fiddle`, `sdbm`, `gdbm`, `tk`. It's quite hard to get an
 understanding of all the standard libraries that should be available, so it's
 hard to give a definitive list of those that are missing.
 
+#### Safe levels
+
+`$SAFE` and `Thread#safe_level` do not have any effect. They can be set to `0`
+or `1` but no checks based on this are implemented in the language or core
+library.
+
 ## Features with major differences
 
 #### Threads run in parallel
