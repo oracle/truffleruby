@@ -9,37 +9,22 @@
  */
 package org.truffleruby.cext;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.Collection;
-import java.util.Scanner;
-import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-
-import org.truffleruby.RubyLanguage;
-
-import com.oracle.truffle.api.source.Source;
 
 public class Linker {
 
-    private static final int BUFFER_SIZE = 4096;
-
-    private static final String LLVM_BITCODE_EXTENSION = "bc";
-
     public static void link(String outputFileName, Collection<String> libraryNames, Collection<String> bitcodeFileNames) throws IOException {
-        final byte[] buffer = new byte[BUFFER_SIZE];
+        final byte[] buffer = new byte[4096];
 
         try (ZipOutputStream outputStream = new ZipOutputStream(new FileOutputStream(outputFileName))) {
             outputStream.putNextEntry(new ZipEntry("libs"));
@@ -94,48 +79,6 @@ public class Linker {
 
                     outputStream.closeEntry();
                 }
-            }
-        }
-    }
-
-    public static void loadLibrary(File file, Consumer<String> handleLibrary, Consumer<Source> handleSource) throws IOException {
-        final byte[] buffer = new byte[BUFFER_SIZE];
-
-        try (ZipInputStream zipStream = new ZipInputStream(new FileInputStream(file))) {
-            ZipEntry zipEntry = zipStream.getNextEntry();
-
-            while (zipEntry != null) {
-                if (zipEntry.isDirectory()) {
-                    zipEntry = zipStream.getNextEntry();
-                    continue;
-                }
-
-                final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-
-                while (true) {
-                    final int read = zipStream.read(buffer);
-                    if (read == -1) {
-                        break;
-                    }
-                    byteStream.write(buffer, 0, read);
-                }
-
-                final byte[] bytes = byteStream.toByteArray();
-
-                if (zipEntry.getName().equals("libs")) {
-                    final String libs = byteStream.toString(StandardCharsets.UTF_8.name());
-                    try (Scanner scanner = new Scanner(libs)) {
-                        while (scanner.hasNextLine()) {
-                            handleLibrary.accept(scanner.nextLine());
-                        }
-                    }
-                } else if (zipEntry.getName().endsWith("." + LLVM_BITCODE_EXTENSION)) {
-                    final String sourceCode = Base64.getEncoder().encodeToString(bytes);
-                    final Source source = Source.newBuilder("llvm", sourceCode, file.getPath() + "@" + zipEntry.getName()).mimeType(RubyLanguage.SULONG_BITCODE_BASE64_MIME_TYPE).build();
-                    handleSource.accept(source);
-                }
-
-                zipEntry = zipStream.getNextEntry();
             }
         }
     }

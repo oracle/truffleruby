@@ -168,7 +168,7 @@ public abstract class RequireNode extends RubyNode {
         final RubySource source;
         try {
             final FileLoader fileLoader = new FileLoader(getContext());
-            source = fileLoader.load(expandedPath);
+            source = fileLoader.loadFile(expandedPath);
         } catch (IOException e) {
             return false;
         }

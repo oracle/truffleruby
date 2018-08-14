@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.loader;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -35,19 +34,12 @@ public class FileLoader {
         this.context = context;
     }
 
-    @CompilerDirectives.TruffleBoundary
-    public RubySource load(String feature) throws IOException {
+    public RubySource loadFile(String feature) throws IOException {
         if (context.getOptions().LOG_LOAD) {
             RubyLanguage.LOGGER.info("loading " + feature);
         }
 
-        return loadNoLogging(context, feature, context.getSourceLoader().isInternal(feature));
-    }
-
-    private static RubySource loadNoLogging(RubyContext context, String feature, boolean internal) throws IOException {
         SourceLoader.ensureReadable(context, feature);
-
-        final File featureFile = new File(feature);
 
         final String mimeType;
 
@@ -66,34 +58,29 @@ public class FileLoader {
             name = feature;
         }
 
-        final Rope sourceRope = readSourceRope(featureFile);
-
-        final Source source = buildSource(
-                Source.newBuilder(featureFile)
-                        .name(name.intern())
-                        .mimeType(mimeType), internal);
-
-        return new RubySource(source, sourceRope);
-    }
-
-    private static Rope readSourceRope(File file) throws IOException {
         /*
          * We must read the file bytes ourselves - otherwise Truffle will read them, assume they're UTF-8, and we will
          * not be able to re-interpret the encoding later without the risk of the values being corrupted by being
          * passed through UTF-8.
          */
 
-        final byte[] sourceBytes = Files.readAllBytes(file.toPath());
-        return RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-    }
+        final File featureFile = new File(feature);
+        final byte[] sourceBytes = Files.readAllBytes(featureFile.toPath());
+        final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
-    private static <E extends Exception> Source buildSource(Source.Builder<E, RuntimeException, RuntimeException> builder, boolean internal) throws E {
-        if (internal) {
-            return builder.internal().build();
+        Source.Builder<IOException, RuntimeException, RuntimeException> builder = Source.newBuilder(featureFile)
+                .name(name.intern())
+                .mimeType(mimeType);
+
+        final Source source;
+
+        if (context.getSourceLoader().isInternal(feature)) {
+            source = builder.internal().build();
         } else {
-            return builder.build();
+            source = builder.build();
         }
-    }
 
+        return new RubySource(source, sourceRope);
+    }
 
 }

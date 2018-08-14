@@ -84,8 +84,7 @@ public abstract class TruffleKernelNodes {
 
             final String feature = StringOperations.getString(file);
             try {
-                final FileLoader fileLoader = new FileLoader(getContext());
-                final RubySource source = fileLoader.load(feature);
+                final RubySource source = loadFile(feature);
                 final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, this);
                 final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                         ParserContext.TOP_LEVEL, DeclarationContext.topLevel(getContext()), rootNode, null,
@@ -97,6 +96,12 @@ public abstract class TruffleKernelNodes {
             }
 
             return true;
+        }
+
+        @TruffleBoundary
+        private RubySource loadFile(String feature) throws IOException {
+            final FileLoader fileLoader = new FileLoader(getContext());
+            return fileLoader.loadFile(feature);
         }
 
     }

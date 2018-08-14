@@ -304,7 +304,8 @@ public class FeatureLoader {
 
         Metrics.printTime("before-load-cext-" + feature);
         try {
-            Linker.loadLibrary(file, this::loadNativeLibrary, source -> {
+            final CExtLoader cextLoader = new CExtLoader();
+            cextLoader.loadLibrary(file, this::loadNativeLibrary, source -> {
                 final Object result;
 
                 try {

@@ -843,7 +843,7 @@ public class CoreLibrary {
             }
         } else {
             final FileLoader fileLoader = new FileLoader(context);
-            return fileLoader.load(feature);
+            return fileLoader.loadFile(feature);
         }
     }
 
