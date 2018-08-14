@@ -41,7 +41,7 @@ describe Polyglot do
     it "will not allow code in Ruby to have a magic comment to change the encoding to something not a subset of UTF-8" do
       lambda {
         Polyglot.eval("ruby", "# encoding: big5\n__ENCODING__.name")
-      }.should raise_error(ArgumentError, /big5 cannot be used as an encoding for a Polyglot API source/)
+      }.should raise_error(ArgumentError, /big5 cannot be used as an encoding for a Polyglot API Source/)
     end
   
   end
@@ -82,7 +82,7 @@ describe Polyglot do
     it "will not allow code in Ruby to have a magic comment to change the encoding" do
       lambda {
         Polyglot.eval_file("ruby", fixture(__FILE__, "big5_magic.rb"))
-      }.should raise_error(ArgumentError, /big5 cannot be used as an encoding for a Polyglot API source/)
+      }.should raise_error(ArgumentError, /big5 cannot be used as an encoding for a Polyglot API Source/)
     end
   
   end
