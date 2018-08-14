@@ -23,6 +23,34 @@ describe "ConditionVariable#wait" do
     th.join
   end
 
+  it "reacquires the lock even if the thread is killed" do
+    m = Mutex.new
+    cv = ConditionVariable.new
+    in_synchronize = false
+    owned = nil
+
+    th = Thread.new do
+      m.synchronize do
+        in_synchronize = true
+        begin
+          cv.wait(m)
+        ensure
+          owned = m.owned?
+        end
+      end
+    end
+
+    # wait for m to acquire the mutex
+    Thread.pass until in_synchronize
+    # wait until th is sleeping (ie waiting)
+    Thread.pass while th.status and th.status != "sleep"
+
+    th.kill
+    th.join
+
+    owned.should == true
+  end
+
   it "supports multiple Threads waiting on the same ConditionVariable and Mutex" do
     m = Mutex.new
     cv = ConditionVariable.new
