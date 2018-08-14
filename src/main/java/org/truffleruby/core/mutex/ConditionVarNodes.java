@@ -31,6 +31,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.HiddenKey;
 
+import sun.util.resources.cldr.khq.LocaleNames_khq;
+
 @CoreClass("Truffle::ConditionVariableOperations")
 public abstract class ConditionVarNodes {
 
@@ -69,28 +71,31 @@ public abstract class ConditionVarNodes {
             final Condition condition = (Condition) condFieldNode.execute(self);
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
 
-            mutexLock.unlock();
+            InterruptMode interruptMode = Layouts.THREAD.getInterruptMode(thread);
+            Layouts.THREAD.setInterruptMode(thread, InterruptMode.ON_BLOCKING);
+            getContext().getThreadManager().runUntilResult(this, () -> {
+                condLock.lockInterruptibly();
+                return BlockingAction.SUCCESS;
+            });
             try {
-                InterruptMode interruptMode = Layouts.THREAD.getInterruptMode(thread);
-                Layouts.THREAD.setInterruptMode(thread, InterruptMode.ON_BLOCKING);
-                try {
-                    getContext().getThreadManager().runUntilResult(this, () -> {
-                        try {
+                mutexLock.unlock();
+                getContext().getThreadManager().runUntilResult(this, () -> {
+                    try {
+                        if (!condLock.isHeldByCurrentThread()) {
                             condLock.lockInterruptibly();
-                            condition.await();
-                            return BlockingAction.SUCCESS;
-                        } finally {
-                            condLock.unlock();
                         }
-                    });
-                } finally {
-                    Layouts.THREAD.setInterruptMode(thread, interruptMode);
-                }
+                        condition.await();
+                        return BlockingAction.SUCCESS;
+                    } finally {
+                        condLock.unlock();
+                    }
+                });
             } finally {
                 getContext().getThreadManager().runUntilResult(this, () -> {
                     mutexLock.lockInterruptibly();
                     return BlockingAction.SUCCESS;
                 });
+                Layouts.THREAD.setInterruptMode(thread, interruptMode);
             }
             return self;
         }
@@ -103,30 +108,36 @@ public abstract class ConditionVarNodes {
             final Condition condition = (Condition) condFieldNode.execute(self);
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
 
-            mutexLock.unlock();
+            InterruptMode interruptMode = Layouts.THREAD.getInterruptMode(thread);
+            Layouts.THREAD.setInterruptMode(thread, InterruptMode.ON_BLOCKING);
+            getContext().getThreadManager().runUntilResult(this, () -> {
+                condLock.lockInterruptibly();
+                return BlockingAction.SUCCESS;
+            });
             try {
-                try {
-                    getContext().getThreadManager().runUntilResult(this, () -> {
-                        try {
+                mutexLock.unlock();
+                getContext().getThreadManager().runUntilResult(this, () -> {
+                    try {
+                        if (!condLock.isHeldByCurrentThread()) {
                             condLock.lockInterruptibly();
-                            final long currentTime = System.nanoTime();
-                            if (currentTime < endTIme) {
-                                condition.await(endTIme - currentTime, TimeUnit.NANOSECONDS);
-                            }
-                        } finally {
-                            condLock.unlock();
+                        }
+                        final long currentTime = System.nanoTime();
+                        if (currentTime < endTIme) {
+                            condition.await(endTIme - currentTime, TimeUnit.NANOSECONDS);
                         }
                         return BlockingAction.SUCCESS;
-                    });
-                } finally {
-                    MutexOperations.unlock(condLock, thread, this);
-                }
+                    } finally {
+                        condLock.unlock();
+                    }
+                });
             } finally {
                 getContext().getThreadManager().runUntilResult(this, () -> {
                     mutexLock.lockInterruptibly();
                     return BlockingAction.SUCCESS;
                 });
+                Layouts.THREAD.setInterruptMode(thread, interruptMode);
             }
+
             return self;
         }
     }
