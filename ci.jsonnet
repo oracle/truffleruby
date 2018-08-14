@@ -70,20 +70,10 @@ local part_definitions = {
     },
 
     build: {
-      # Only build the necessary distributions to avoid building Sulong tests
-      local truffleruby_dists = [
-        "TRUFFLERUBY",
-        "TRUFFLERUBY-LAUNCHER",
-        "TRUFFLERUBY-ZIP",
-        "TRUFFLERUBY_GRAALVM_SUPPORT",
-        "TRUFFLERUBY-TEST",
-        "TRUFFLERUBY-SPECS",
-      ],
       setup+: [
         ["mx", "sversions"],
       ] + self.before_build + [
-        ["mx", "build", "--force-javac", "--warning-as-error", "--force-deprecation-as-warning",
-          "--dependencies", std.join(",", truffleruby_dists)],
+        ["mx", "build_truffleruby"],
       ] + self.after_build,
     },
 

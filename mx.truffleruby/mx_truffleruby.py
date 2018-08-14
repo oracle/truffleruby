@@ -205,9 +205,21 @@ def jt(*args):
     mx.log("\n$ " + ' '.join(['jt'] + list(args)) + "\n")
     mx.run(['ruby', join(root, 'tool/jt.rb')] + list(args))
 
-def build_truffleruby():
+def build_truffleruby(args = []):
+    # Only build the necessary distributions to avoid building Sulong tests
+    truffleruby_dists = [
+        'TRUFFLERUBY',
+        'TRUFFLERUBY-LAUNCHER',
+        'TRUFFLERUBY-ZIP',
+        'TRUFFLERUBY_GRAALVM_SUPPORT',
+        'TRUFFLERUBY-TEST',
+        'TRUFFLERUBY-SPECS',
+    ]
     mx.command_function('sversions')([])
-    mx.command_function('build')([])
+    mx.command_function('build')([
+        '--force-javac', '--warning-as-error', '--force-deprecation-as-warning',
+        '-A-Xmaxerrs', '-A1000', # show more than default 100 errors not to hide actual errors under many missing symbols
+        '--dependencies', ','.join(truffleruby_dists)])
 
 def run_unittest(*args):
     mx_unittest.unittest(['-Dpolyglot.ruby.home='+root, '--verbose', '--suite', 'truffleruby'] + list(args))
@@ -355,6 +367,7 @@ Then run the following command:
 
 mx.update_commands(_suite, {
     'ruby': [ruby_run_ruby, ''],
+    'build_truffleruby': [build_truffleruby, ''],
     'deploy-binary-if-master-or-release': [deploy_binary_if_master_or_release, ''],
     'ruby_download_binary_suite': [download_binary_suite, 'name [revision]'],
     'ruby_testdownstream': [ruby_testdownstream, ''],

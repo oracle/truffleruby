@@ -574,10 +574,7 @@ module Commands
 
   def build_truffleruby(*options, sforceimports: true)
     mx 'sforceimports' if sforceimports
-
-    mx 'build', '--force-javac', '--warning-as-error', '--force-deprecation-as-warning',
-       # show more than default 100 errors not to hide actual errors under pile of missing symbols
-       '-A-Xmaxerrs', '-A1000', *options
+    mx 'build_truffleruby', *options
   end
 
   def clean(*options)
