@@ -21,6 +21,7 @@ import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -77,8 +78,8 @@ public abstract class ConditionVarNodes {
                 condLock.lockInterruptibly();
                 return BlockingAction.SUCCESS;
             });
+            mutexLock.unlock();
             try {
-                mutexLock.unlock();
                 getContext().getThreadManager().runUntilResultWithResumeAction(this, () -> {
                     try {
                         condition.await();
@@ -90,13 +91,35 @@ public abstract class ConditionVarNodes {
                     condLock.lock();
                 });
             } finally {
-                getContext().getThreadManager().runUntilResult(this, () -> {
-                    mutexLock.lockInterruptibly();
-                    return BlockingAction.SUCCESS;
-                });
-                Layouts.THREAD.setInterruptMode(thread, interruptMode);
+                reacquireMutex(mutexLock, thread, interruptMode);
             }
             return self;
+        }
+
+        protected void reacquireMutex(final ReentrantLock mutexLock, final DynamicObject thread, InterruptMode interruptMode) throws Error {
+            Throwable throwable = null;
+            while (true) {
+                try {
+                    getContext().getThreadManager().runUntilResult(this, () -> {
+                        mutexLock.lockInterruptibly();
+                        return BlockingAction.SUCCESS;
+                    });
+                    Layouts.THREAD.setInterruptMode(thread, interruptMode);
+                    break;
+                } catch (Throwable t) {
+                    throwable = t;
+                }
+            }
+
+            if (throwable != null) {
+                if (throwable instanceof RuntimeException) {
+                    throw (RuntimeException) throwable;
+                } else if (throwable instanceof Error) {
+                    throw (Error) throwable;
+                } else {
+                    throw new JavaException(throwable);
+                }
+            }
         }
 
         @Specialization
@@ -113,8 +136,8 @@ public abstract class ConditionVarNodes {
                 condLock.lockInterruptibly();
                 return BlockingAction.SUCCESS;
             });
+            mutexLock.unlock();
             try {
-                mutexLock.unlock();
                 getContext().getThreadManager().runUntilResultWithResumeAction(this, () -> {
                     try {
                         final long currentTime = System.nanoTime();
@@ -129,11 +152,7 @@ public abstract class ConditionVarNodes {
                     condLock.lock();
                 });
             } finally {
-                getContext().getThreadManager().runUntilResult(this, () -> {
-                    mutexLock.lockInterruptibly();
-                    return BlockingAction.SUCCESS;
-                });
-                Layouts.THREAD.setInterruptMode(thread, interruptMode);
+                reacquireMutex(mutexLock, thread, interruptMode);
             }
 
             return self;
