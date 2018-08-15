@@ -1133,7 +1133,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         private InternalMethod createMissingMethod(Object self, DynamicObject name, String normalizedName, InternalMethod methodMissing) {
-            final SharedMethodInfo info = methodMissing.getSharedMethodInfo().withName(normalizedName);
+            final SharedMethodInfo info = methodMissing.getSharedMethodInfo().withMethodName(normalizedName);
 
             final RubyNode newBody = new CallMethodMissingWithStaticName(name);
             final RubyRootNode newRootNode = new RubyRootNode(getContext(), info.getSourceSection(), new FrameDescriptor(nil()), info, newBody);

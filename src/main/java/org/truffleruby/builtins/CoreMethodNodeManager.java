@@ -225,6 +225,7 @@ public class CoreMethodNodeManager {
                 new Arity(required, optional, rest),
                 module,
                 primaryName,
+                0,
                 "builtin",
                 null,
                 context.getOptions().CORE_ALWAYS_CLONE);

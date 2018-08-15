@@ -28,6 +28,7 @@ public class SharedMethodInfo {
     private DynamicObject definitionModule;
     /** The original name of the method. Does not change when aliased. */
     private final String name;
+    private final int blockDepth;
     private final String notes;
     private final ArgumentDescriptor[] argumentDescriptors;
     private boolean alwaysClone;
@@ -39,6 +40,7 @@ public class SharedMethodInfo {
             Arity arity,
             DynamicObject definitionModule,
             String name,
+            int blockDepth,
             String notes,
             ArgumentDescriptor[] argumentDescriptors,
             boolean alwaysClone) {
@@ -49,6 +51,7 @@ public class SharedMethodInfo {
         this.arity = arity;
         this.definitionModule = definitionModule;
         this.name = name;
+        this.blockDepth = blockDepth;
         this.notes = notes;
         this.argumentDescriptors = argumentDescriptors;
         this.alwaysClone = alwaysClone;
@@ -82,13 +85,14 @@ public class SharedMethodInfo {
         this.alwaysClone = alwaysClone;
     }
 
-    public SharedMethodInfo withName(String newName) {
+    public SharedMethodInfo withMethodName(String newName) {
         return new SharedMethodInfo(
                 sourceSection,
                 lexicalScope,
                 arity,
                 definitionModule,
                 newName,
+                0, // no longer a block
                 notes,
                 argumentDescriptors,
                 alwaysClone);

@@ -921,6 +921,7 @@ public class BodyTranslator extends Translator {
                     Arity.NO_ARGUMENTS,
                     null,
                     name,
+                    0,
                     sclass ? "class body" : "module body",
                     null,
                     false);
@@ -1286,6 +1287,7 @@ public class BodyTranslator extends Translator {
                 arity,
                 null,
                 methodName,
+                0,
                 null,
                 argumentDescriptors,
                 alwaysClone);
@@ -1716,12 +1718,14 @@ public class BodyTranslator extends Translator {
 
         final boolean isProc = !isLambda;
 
+        final int blockDepth = environment.getBlockDepth() + 1;
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection.toSourceSection(source),
                 environment.getLexicalScopeOrNull(),
                 argsNode.getArity(),
                 null,
                 getIdentifierInNewEnvironment(true, currentCallMethodName),
+                blockDepth,
                 null,
                 Helpers.argsNodeToArgumentDescriptors(argsNode),
                 false);
@@ -1731,7 +1735,7 @@ public class BodyTranslator extends Translator {
 
         final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(
                 context, environment, parseEnvironment, returnID, hasOwnScope, false,
-                false, sharedMethodInfo, environment.getNamedMethodName(), environment.getBlockDepth() + 1, parseEnvironment.allocateBreakID());
+                false, sharedMethodInfo, environment.getNamedMethodName(), blockDepth, parseEnvironment.allocateBreakID());
         final MethodTranslator methodCompiler = new MethodTranslator(currentNode, context, this, newEnvironment, true, source, parserContext, argsNode);
 
         if (isProc) {

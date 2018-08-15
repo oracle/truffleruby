@@ -416,6 +416,7 @@ public abstract class ModuleNodes {
                     arity,
                     module,
                     accessorName,
+                    0,
                     "attr_" + (isGetter ? "reader" : "writer"),
                     null,
                     false);
@@ -1088,7 +1089,7 @@ public abstract class ModuleNodes {
         private DynamicObject defineMethod(DynamicObject module, String name, DynamicObject proc) {
             final RootCallTarget callTarget = (RootCallTarget) Layouts.PROC.getCallTargetForLambdas(proc);
             final RubyRootNode rootNode = (RubyRootNode) callTarget.getRootNode();
-            final SharedMethodInfo info = Layouts.PROC.getSharedMethodInfo(proc).withName(name);
+            final SharedMethodInfo info = Layouts.PROC.getSharedMethodInfo(proc).withMethodName(name);
             final MaterializedFrame declarationFrame = Layouts.PROC.getDeclarationFrame(proc);
 
             final RubyNode body = NodeUtil.cloneNode(rootNode.getBody());
