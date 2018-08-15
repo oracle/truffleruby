@@ -69,10 +69,6 @@ public class SharedMethodInfo {
         return name;
     }
 
-    public String getNotes() {
-        return notes;
-    }
-
     public ArgumentDescriptor[] getArgumentDescriptors() {
         return argumentDescriptors == null ? arity.toAnonymousArgumentDescriptors() : argumentDescriptors;
     }
@@ -97,7 +93,7 @@ public class SharedMethodInfo {
                 alwaysClone);
     }
 
-    public String getDescriptiveName() {
+    public String getModuleAndMethodName() {
         final StringBuilder descriptiveName = new StringBuilder();
 
         if (definitionModule != null) {
@@ -114,7 +110,7 @@ public class SharedMethodInfo {
 
     public String getDescriptiveNameAndSource() {
         if (descriptiveNameAndSource == null) {
-            String descriptiveName = getDescriptiveName();
+            String descriptiveName = getModuleAndMethodName();
             if (notes != null) {
                 if (descriptiveName.length() > 0) {
                     descriptiveName += " (" + notes + ")";
