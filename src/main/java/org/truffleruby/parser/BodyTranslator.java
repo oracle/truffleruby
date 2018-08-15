@@ -3080,8 +3080,9 @@ public class BodyTranslator extends Translator {
                 methodParent = methodParent.getParent();
             }
 
-            if (environment.getBlockDepth() + 1 > 1) {
-                return "block (" + (environment.getBlockDepth() + 1) + " levels) in " + methodParent.getNamedMethodName();
+            final int blockDepth = environment.getBlockDepth() + 1;
+            if (blockDepth > 1) {
+                return "block (" + blockDepth + " levels) in " + methodParent.getNamedMethodName();
             } else {
                 return "block in " + methodParent.getNamedMethodName();
             }
