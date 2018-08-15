@@ -131,6 +131,11 @@ public class OptionsCatalog {
             "Produce deterministic hash values",
             null,
             false);
+    public static final BooleanOptionDescription SAFE = new BooleanOptionDescription(
+            "ruby.safe",
+            "Allow $SAFE level 1 to be set - although no checks based on this are implemented",
+            null,
+            false);
     public static final BooleanOptionDescription FROZEN_STRING_LITERALS = new BooleanOptionDescription(
             "ruby.frozen_string_literals",
             "Use frozen string literals",
@@ -695,6 +700,8 @@ public class OptionsCatalog {
                 return DEFAULT_LAZY;
             case "ruby.hashing.deterministic":
                 return HASHING_DETERMINISTIC;
+            case "ruby.safe":
+                return SAFE;
             case "ruby.frozen_string_literals":
                 return FROZEN_STRING_LITERALS;
             case "ruby.rubygems":
@@ -1011,6 +1018,7 @@ public class OptionsCatalog {
             ROPE_CLASS_CACHE,
             RUBYGEMS,
             LAZY_RUBYGEMS,
+            SAFE,
             SHARED_OBJECTS_ENABLED,
             SHARED_OBJECTS_DEBUG,
             SHARED_OBJECTS_FORCE,

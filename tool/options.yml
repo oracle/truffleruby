@@ -22,6 +22,7 @@ ARGV_GLOBAL_VALUES: [argv_global_values, string-array, [], Parsed options from s
 ARGV_GLOBAL_FLAGS: [argv_global_flags, string-array, [], Parsed options from script argv acting as flags (no value).]
 DEFAULT_LAZY: [lazy.default, boolean, true, Enable default lazy options]
 HASHING_DETERMINISTIC: [hashing.deterministic, boolean, false, Produce deterministic hash values]
+SAFE: [safe, boolean, false, Allow $SAFE level 1 to be set - although no checks based on this are implemented]
 
 FROZEN_STRING_LITERALS: [frozen_string_literals, boolean, false, Use frozen string literals]
 RUBYGEMS: [rubygems, boolean, true, Use RubyGems]

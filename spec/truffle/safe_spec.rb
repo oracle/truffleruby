@@ -10,12 +10,20 @@ require_relative '../ruby/spec_helper'
 
 describe "The $SAFE variable" do
   it "does not warn when set to 0 and remembers the value" do
-    ruby_exe("$SAFE = 0; puts $SAFE; puts Thread.current.safe_level").should == "0\n0\n"
+    ruby_exe("$SAFE = 0; puts $SAFE; puts Thread.current.safe_level", args: "2>&1").should == "0\n0\n"
   end
   
   it "raises an error when set to 1" do
     lambda {
       $SAFE = 1
     }.should raise_error(SecurityError, /\$SAFE levels are not implemented/)
+  end
+  
+  it "with -Xsafe does not warn when set to 0 and remembers the value" do
+    ruby_exe("$SAFE = 0; puts $SAFE; puts Thread.current.safe_level", options: "-Xsafe", args: "2>&1").should == "0\n0\n"
+  end
+  
+  it "with -Xsafe prints a warning when set to 1" do
+    ruby_exe("$SAFE = 1; puts $SAFE; puts Thread.current.safe_level", options: "-Xsafe", args: "2>&1").should == "[ruby] SEVERE: $SAFE level set to 1, but no checks are implemented\n1\n1\n"
   end
 end

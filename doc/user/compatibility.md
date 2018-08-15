@@ -57,6 +57,8 @@ hard to give a definitive list of those that are missing.
 Trying to use level `1` will raise a `SecurityError`. Other levels will raise
 `ArgumentError` as in standard Ruby.
 
+`$SAFE` level 1 can be allowed, but ignored, with the `-Xsafe` option.
+
 ## Features with major differences
 
 #### Threads run in parallel
