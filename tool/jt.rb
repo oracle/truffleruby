@@ -574,10 +574,7 @@ module Commands
 
   def build_truffleruby(*options, sforceimports: true)
     mx 'sforceimports' if sforceimports
-
-    mx 'build', '--force-javac', '--warning-as-error', '--force-deprecation-as-warning',
-       # show more than default 100 errors not to hide actual errors under pile of missing symbols
-       '-A-Xmaxerrs', '-A1000', *options
+    mx 'build_truffleruby', *options
   end
 
   def clean(*options)
@@ -1111,6 +1108,7 @@ module Commands
         end
 
         sh 'clang', '-c', '-emit-llvm', *openssl_cflags, 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
+        mx 'build', '--dependencies', 'SULONG_LAUNCHER' # For mx lli
         out, _ = mx('lli', "-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', capture: true)
         raise out.inspect unless out == "5d41402abc4b2a76b9719d911017c592\n"
 
@@ -1878,8 +1876,9 @@ EOS
 
   def check_dsl_usage
     mx 'clean'
-    # We need to build with -parameters to get parameter names
-    build_truffleruby('-A-parameters')
+    # We need to build with -parameters to get parameter names.
+    # Build every project as "mx findbugs" needs it currently.
+    mx 'build', '--force-javac', '-A-parameters'
     run_ruby({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '-Xlazy.default=false', '-e', 'exit')
   end
 
@@ -1957,6 +1956,7 @@ EOS
     mx 'checkstyle', '-f', '--primary'
     check_parser
     check_documentation_urls
+    mx 'findbugs'
   end
 
   def verify_native_bin!

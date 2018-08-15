@@ -73,7 +73,7 @@ local part_definitions = {
       setup+: [
         ["mx", "sversions"],
       ] + self.before_build + [
-        ["mx", "build", "--force-javac", "--warning-as-error", "--force-deprecation-as-warning"],
+        ["mx", "build_truffleruby"],
       ] + self.after_build,
     },
 
@@ -402,10 +402,11 @@ local part_definitions = {
         ["mx", "deploy-binary-if-master-or-release"],
       ],
 
-      run+: deploy_binaries +
-            [["mx", "unittest", "org.truffleruby"]] +
-            jt(["test", "specs"] + self["$.run.deploy_and_spec"].test_spec_options) +
-            jt(["test", "specs", ":ruby25"]),
+      run+: deploy_binaries + [
+        ["mx", "unittest", "org.truffleruby"],
+        ["mx", "tck"],
+      ] + jt(["test", "specs"] + self["$.run.deploy_and_spec"].test_spec_options) +
+          jt(["test", "specs", ":ruby25"]),
     },
 
     test_fast: {
@@ -428,9 +429,7 @@ local part_definitions = {
         ["mx", "sversions"],
       ] + self.before_build + [
         ["mx", "build", "--jdt", "$JDT", "--warning-as-error", "--force-deprecation-as-warning"],
-      ] + jt(["lint"]) + self.after_build + [
-        ["mx", "findbugs"],
-      ],
+      ] + jt(["lint"]) + self.after_build,
     },
 
     test_mri: { run+: jt(["test", "mri"]) },
@@ -572,8 +571,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     {
       local linux_gate = $.platform.linux + $.cap.gate + $.jdk.labsjdk8 + $.use.common + { timelimit: "01:00:00" },
 
-      "ruby-lint": linux_gate + $.run.lint + { timelimit: "30:00" },  # timilimit override
-      "ruby-test-tck": linux_gate + $.use.build + { run+: [["mx", "tck"]] },
+      "ruby-lint": linux_gate + $.run.lint + { timelimit: "30:00" },
       "ruby-test-mri": $.cap.fast_cpu + linux_gate + $.use.build + $.run.test_mri,
       "ruby-test-integration": linux_gate + $.use.build + $.run.test_integration,
       "ruby-test-cexts": linux_gate + $.use.build + $.use.gem_test_pack + $.run.test_cexts,
