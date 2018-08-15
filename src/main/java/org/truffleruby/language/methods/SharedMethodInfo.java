@@ -109,29 +109,24 @@ public class SharedMethodInfo {
             descriptiveName.append(name);
         }
 
-        if (notes != null) {
-            final boolean parens = descriptiveName.length() > 0;
-
-            if (parens) {
-                descriptiveName.append(" (");
-            }
-
-            descriptiveName.append(notes);
-
-            if (parens) {
-                descriptiveName.append(')');
-            }
-        }
-
         return descriptiveName.toString();
     }
 
     public String getDescriptiveNameAndSource() {
         if (descriptiveNameAndSource == null) {
+            String descriptiveName = getDescriptiveName();
+            if (notes != null) {
+                if (descriptiveName.length() > 0) {
+                    descriptiveName += " (" + notes + ")";
+                } else {
+                    descriptiveName += notes;
+                }
+            }
+
             if (sourceSection == null || !sourceSection.isAvailable()) {
-                descriptiveNameAndSource = getDescriptiveName();
+                descriptiveNameAndSource = descriptiveName;
             } else {
-                descriptiveNameAndSource = getDescriptiveName() + " " + sourceSection.getSource().getName() + ":" + sourceSection.getStartLine();
+                descriptiveNameAndSource = descriptiveName + " " + sourceSection.getSource().getName() + ":" + sourceSection.getStartLine();
             }
         }
 
