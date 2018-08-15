@@ -115,7 +115,6 @@ module RbConfig
     bindir        = "#{prefix}/bin"
     graalvm_home = Truffle::System.get_java_property 'org.graalvm.home'
     extra_bindirs = if graalvm_home
-                      graalvm_home = Truffle::System.get_java_property 'org.graalvm.home'
                       [File.expand_path('bin', graalvm_home),
                        File.expand_path('jre/bin', graalvm_home)]
                     else
