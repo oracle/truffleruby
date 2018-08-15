@@ -1718,15 +1718,22 @@ public class BodyTranslator extends Translator {
 
         final boolean isProc = !isLambda;
 
+        TranslatorEnvironment methodParent = environment;
+        while (methodParent.isBlock()) {
+            methodParent = methodParent.getParent();
+        }
+        final String methodName = methodParent.getNamedMethodName();
+
         final int blockDepth = environment.getBlockDepth() + 1;
+
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection.toSourceSection(source),
                 environment.getLexicalScopeOrNull(),
                 argsNode.getArity(),
                 null,
-                getIdentifierInNewEnvironment(true, currentCallMethodName),
+                SharedMethodInfo.getBlockName(blockDepth, methodName),
                 blockDepth,
-                null,
+                methodName,
                 Helpers.argsNodeToArgumentDescriptors(argsNode),
                 false);
 
@@ -3074,25 +3081,6 @@ public class BodyTranslator extends Translator {
 
     public TranslatorEnvironment getEnvironment() {
         return environment;
-    }
-
-    protected String getIdentifierInNewEnvironment(boolean isBlock, String namedMethodName) {
-        if (isBlock) {
-            TranslatorEnvironment methodParent = environment;
-
-            while (methodParent.isBlock()) {
-                methodParent = methodParent.getParent();
-            }
-
-            final int blockDepth = environment.getBlockDepth() + 1;
-            if (blockDepth > 1) {
-                return "block (" + blockDepth + " levels) in " + methodParent.getNamedMethodName();
-            } else {
-                return "block in " + methodParent.getNamedMethodName();
-            }
-        } else {
-            return namedMethodName;
-        }
     }
 
     @Override
