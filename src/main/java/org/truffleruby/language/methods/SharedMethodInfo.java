@@ -25,7 +25,7 @@ public class SharedMethodInfo {
     private final SourceSection sourceSection;
     private final LexicalScope lexicalScope;
     private final Arity arity;
-    private final DynamicObject definitionModule;
+    private DynamicObject definitionModule;
     /** The original name of the method. Does not change when aliased. */
     private final String name;
     private final String notes;
@@ -135,6 +135,12 @@ public class SharedMethodInfo {
     @Override
     public String toString() {
         return getDescriptiveNameAndSource();
+    }
+
+    public void setDefinitionModuleIfUnset(DynamicObject definitionModule) {
+        if (this.definitionModule == null) {
+            this.definitionModule = definitionModule;
+        }
     }
 
 }
