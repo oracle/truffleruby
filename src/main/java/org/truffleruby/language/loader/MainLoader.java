@@ -94,6 +94,16 @@ public class MainLoader {
 
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
+        /*
+         * I'm not sure why we need to explicitly set a MIME type here - we say it's Ruby and this is the only and
+         * default MIME type that Ruby supports.
+         *
+         * But if you remove setting the MIME type you get the following failures:
+         *
+         * - test/truffle/compiler/stf-optimises.sh (I think the value is different, not the compilation that fails)
+         * - test/truffle/integration/tracing.sh (again, probably the values, and I'm not sure we were correct before, it's just changed)
+         */
+
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, sourceRope.toString(), path).mimeType(RubyLanguage.MIME_TYPE).build();
 
         context.setMainSources(source, new File(path).getAbsolutePath());
