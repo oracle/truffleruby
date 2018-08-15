@@ -13,7 +13,9 @@ describe "The $SAFE variable" do
     ruby_exe("$SAFE = 0; puts $SAFE; puts Thread.current.safe_level").should == "0\n0\n"
   end
   
-  it "warns when set to 1 but remembers the value" do
-    ruby_exe("$SAFE = 1; puts $SAFE; puts Thread.current.safe_level").should == "[ruby] WARNING: $SAFE level checks not implemented\n1\n1\n"
+  it "raises an error when set to 1" do
+    lambda {
+      $SAFE = 1
+    }.should raise_error(SecurityError, /\$SAFE levels are not implemented/)
   end
 end

@@ -39,6 +39,8 @@ Changes:
 * The `-Xembedded` option can now be set set on the launcher command line.
 * The `-Xplatform.native=false` option can now load the core library, by
   enabling `-Xpolyglot.stdio`.
+* `$SAFE` and `Thread#safe_level` now cannot be set to `1` - raising an error
+  rather than warning as before.
 
 Changes:
 

@@ -5,9 +5,7 @@ chris.seaton@oracle.com and CC kevin.menard@oracle.com.
 
 ## Unimplemented security features
 
-`$SAFE` and `Thread#safe_level` do not have any effect. They can be set to `0`
-or `1` but no checks based on this are implemented in the language or core
-library.
+`$SAFE` and `Thread#safe_level` are `0` and cannot be set to any other value.
 
 ## MRI Vulnerabilities
 

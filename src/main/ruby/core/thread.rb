@@ -324,8 +324,7 @@ class Thread
   end
 
   def safe_level
-    locals = Truffle.invoke_primitive :thread_get_locals, self
-    Truffle.invoke_primitive :object_ivar_get, locals, :$SAFE
+    0
   end
 
   # Fiber-local variables
@@ -440,8 +439,17 @@ end
 Truffle::KernelOperations.define_hooked_variable(
   :$SAFE,
   -> { Thread.current.safe_level },
-  -> value { value = Truffle::Type.check_safe_level(value)
-             Truffle::ThreadOperations.set_thread_local(:$SAFE, value) }
+  -> level {
+    level = Truffle::Type.rb_num2int(level)
+    if level > 1
+      raise ArgumentError, '$SAFE=2 to 4 are obsolete'
+    elsif level != 0
+      raise SecurityError, '$SAFE levels are not implemented'
+    else
+      # Allow people to set the level to 0
+    end
+    level
+  }
 )
 
 Truffle::KernelOperations.define_read_only_global(:$!, -> { Truffle::ThreadOperations.get_thread_local(:$!) })
