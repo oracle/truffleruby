@@ -32,8 +32,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.HiddenKey;
 
-import sun.util.resources.cldr.khq.LocaleNames_khq;
-
 @CoreClass("Truffle::ConditionVariableOperations")
 public abstract class ConditionVarNodes {
 
@@ -170,8 +168,8 @@ public abstract class ConditionVarNodes {
             final ReentrantLock condLock = (ReentrantLock) lockFieldNode.execute(self);
             final Condition condition = (Condition) condFieldNode.execute(self);
             getContext().getThreadManager().runUntilResult(this, () -> {
+                condLock.lockInterruptibly();
                 try {
-                    condLock.lockInterruptibly();
                     condition.signal();
                 } finally {
                     condLock.unlock();
@@ -195,8 +193,8 @@ public abstract class ConditionVarNodes {
             final Condition condition = (Condition) condFieldNode.execute(self);
 
             getContext().getThreadManager().runUntilResult(this, () -> {
+                condLock.lockInterruptibly();
                 try {
-                    condLock.lockInterruptibly();
                     condition.signalAll();
                 } finally {
                     condLock.unlock();
