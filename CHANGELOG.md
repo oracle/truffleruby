@@ -34,8 +34,6 @@ Changes:
 * Clarified that all sources that come in from the Polyglot API `eval` method
   will be treated as UTF-8, and cannot be re-interpreted as another encoding
   using a magic comment.
-* `-Xembedded` can now set set on the launcher command line.
-* The `-Xembedded` option can now set set on the launcher command line.
 * The `-Xembedded` option can now be set set on the launcher command line.
 * The `-Xplatform.native=false` option can now load the core library, by
   enabling `-Xpolyglot.stdio`.
@@ -71,17 +69,22 @@ Bug fixes:
 * `#autoload` now correctly calls `main.require(path)` dynamically.
 * Hide internal file from user-level backtraces (#1375).
 * Show caller information in warnings from the core library (#1375).
-* `#require` and `#require_relative` should keep symlinks in `$"` and `__FILE__` (#1383).
-* Random seeds now always come directly from `/dev/urandom` for MRI compatibility.
+* `#require` and `#require_relative` should keep symlinks in `$"` and
+  `__FILE__` (#1383).
+* Random seeds now always come directly from `/dev/urandom` for MRI
+  compatibility.
 * SIGINFO, SIGEMT and SIGPWR are now defined (#1382).
 * Optional and operator assignment expressions now return the value
   assigned, not the value returned by an assignment method (#1391).
 * `WeakRef.new` will now return the correct type of object, even if `WeakRef` is
   subclassed (#1391).
-* Resolving constants in prepended modules failed, this has now been fixed (#1391).
-* Send and `Symbol#to_proc` now take account of refinements at their call sites (#1391).
+* Resolving constants in prepended modules failed, this has now been
+  fixed (#1391).
+* Send and `Symbol#to_proc` now take account of refinements at their call
+  sites (#1391).
 * Better warning when the timezone cannot be found on WSL (#1393).
-* Allow special encoding names in `String#force_encoding` and raise an exception on bad encoding names (#1397).
+* Allow special encoding names in `String#force_encoding` and raise an exception
+  on bad encoding names (#1397).
 * Fix `Socket.getifaddrs` which would wrongly return an empty array (#1375).
 * `Binding` now remembers the file and line at which it was created for `#eval`.
   This is notably used by `pry`'s `binding.pry`.
