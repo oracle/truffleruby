@@ -5,7 +5,9 @@ chris.seaton@oracle.com and CC kevin.menard@oracle.com.
 
 ## Unimplemented security features
 
-`$SAFE` and `Thread#safe_level` are `0` and cannot be set to any other value.
+`$SAFE` and `Thread#safe_level` are `0` and no other levels are implemented.
+Trying to use level `1` will raise a `SecurityError`. Other levels will raise
+`ArgumentError` as in standard Ruby.
 
 ## MRI Vulnerabilities
 
