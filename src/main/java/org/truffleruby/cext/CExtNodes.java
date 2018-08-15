@@ -684,7 +684,8 @@ public class CExtNodes {
                 if (callNode != null) {
                     final RootNode rootNode = callNode.getRootNode();
 
-                    if (rootNode instanceof RubyRootNode && rootNode.getSourceSection().isAvailable() && !nameMatches(rootNode.getName(), methodNames)) {
+                    if (rootNode instanceof RubyRootNode && rootNode.getSourceSection().isAvailable() &&
+                            !nameMatches(((RubyRootNode) rootNode).getSharedMethodInfo().getName(), methodNames)) {
                         return frameInstance.getCallNode().getEncapsulatingSourceSection();
                     }
                 }
