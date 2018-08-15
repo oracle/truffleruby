@@ -311,6 +311,10 @@ public abstract class RubyGuards {
         return isRubyClass(value) && Layouts.CLASS.getIsSingleton(value);
     }
 
+    public static boolean isMetaClass(DynamicObject value) {
+        return isSingletonClass(value) && RubyGuards.isRubyModule(Layouts.CLASS.getAttached(value));
+    }
+
     // Arguments
 
     public static boolean noArguments(Object[] args) {

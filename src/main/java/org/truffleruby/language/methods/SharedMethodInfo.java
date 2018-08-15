@@ -13,6 +13,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.parser.ArgumentDescriptor;
 
 /**
@@ -94,18 +95,20 @@ public class SharedMethodInfo {
     }
 
     public String getModuleAndMethodName() {
-        final StringBuilder descriptiveName = new StringBuilder();
-
-        if (definitionModule != null) {
-            descriptiveName.append(Layouts.MODULE.getFields(definitionModule).getName());
+        if (definitionModule != null && name != null) {
+            if (RubyGuards.isMetaClass(definitionModule)) {
+                final DynamicObject attached = Layouts.CLASS.getAttached(definitionModule);
+                return Layouts.MODULE.getFields(attached).getName() + "." + name;
+            } else {
+                return Layouts.MODULE.getFields(definitionModule).getName() + "#" + name;
+            }
+        } else if (name != null) {
+            return name;
+        } else if (notes != null) {
+            return notes;
+        } else {
+            return "<unknown>";
         }
-
-        if (name != null) {
-            descriptiveName.append('#');
-            descriptiveName.append(name);
-        }
-
-        return descriptiveName.toString();
     }
 
     public String getDescriptiveNameAndSource() {
