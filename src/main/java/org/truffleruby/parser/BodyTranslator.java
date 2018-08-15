@@ -1721,19 +1721,17 @@ public class BodyTranslator extends Translator {
                 environment.getLexicalScopeOrNull(),
                 argsNode.getArity(),
                 null,
-                isLambda ? "lambda" : getIdentifierInNewEnvironment(true, currentCallMethodName),
+                getIdentifierInNewEnvironment(true, currentCallMethodName),
                 null,
                 Helpers.argsNodeToArgumentDescriptors(argsNode),
                 false);
-
-        final String namedMethodName = isLambda ? sharedMethodInfo.getName() : environment.getNamedMethodName();
 
         final ParseEnvironment parseEnvironment = environment.getParseEnvironment();
         final ReturnID returnID = isLambda ? parseEnvironment.allocateReturnID() : environment.getReturnID();
 
         final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(
                 context, environment, parseEnvironment, returnID, hasOwnScope, false,
-                        false, sharedMethodInfo, namedMethodName, environment.getBlockDepth() + 1, parseEnvironment.allocateBreakID());
+                false, sharedMethodInfo, environment.getNamedMethodName(), environment.getBlockDepth() + 1, parseEnvironment.allocateBreakID());
         final MethodTranslator methodCompiler = new MethodTranslator(currentNode, context, this, newEnvironment, true, source, parserContext, argsNode);
 
         if (isProc) {
