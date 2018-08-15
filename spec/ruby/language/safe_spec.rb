@@ -1,6 +1,13 @@
 require_relative '../spec_helper'
 
 describe "The $SAFE variable" do
+  
+  ruby_version_is "2.6" do
+    after :each do
+      $SAFE = 0
+    end
+  end
+  
   it "is 0 by default" do
     $SAFE.should == 0
     proc {
@@ -40,29 +47,31 @@ describe "The $SAFE variable" do
       }.should raise_error(ArgumentError, /\$SAFE=2 to 4 are obsolete/)
   end
   
-  it "cannot be manually lowered" do
-    proc {
-      $SAFE = 1
+  ruby_version_is ""..."2.6" do
+    it "cannot be manually lowered" do
+      proc {
+        $SAFE = 1
+        lambda {
+          $SAFE = 0
+        }.should raise_error(SecurityError, /tried to downgrade safe level from 1 to 0/)
+      }.call
+    end
+    
+    it "is automatically lowered when leaving a proc" do
+      $SAFE.should == 0
+      proc {
+        $SAFE = 1
+      }.call
+      $SAFE.should == 0
+    end
+    
+    it "is automatically lowered when leaving a lambda" do
+      $SAFE.should == 0
       lambda {
-        $SAFE = 0
-      }.should raise_error(SecurityError, /tried to downgrade safe level from 1 to 0/)
-    }.call
-  end
-  
-  it "is automatically lowered when leaving a proc" do
-    $SAFE.should == 0
-    proc {
-      $SAFE = 1
-    }.call
-    $SAFE.should == 0
-  end
-  
-  it "is automatically lowered when leaving a lambda" do
-    $SAFE.should == 0
-    lambda {
-      $SAFE = 1
-    }.call
-    $SAFE.should == 0
+        $SAFE = 1
+      }.call
+      $SAFE.should == 0
+    end
   end
   
   it "can be read when default from Thread#safe_level" do
