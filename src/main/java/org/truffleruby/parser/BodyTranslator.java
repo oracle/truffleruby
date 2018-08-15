@@ -1721,8 +1721,8 @@ public class BodyTranslator extends Translator {
                 environment.getLexicalScopeOrNull(),
                 argsNode.getArity(),
                 null,
-                null,
                 isLambda ? "lambda" : getIdentifierInNewEnvironment(true, currentCallMethodName),
+                null,
                 Helpers.argsNodeToArgumentDescriptors(argsNode),
                 false);
 

@@ -104,8 +104,6 @@ public class SharedMethodInfo {
             }
         } else if (name != null) {
             return name;
-        } else if (notes != null) {
-            return notes;
         } else {
             return "<unknown>";
         }
