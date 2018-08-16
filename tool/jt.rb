@@ -481,7 +481,7 @@ module Commands
       jt cextc directory clang-args                  compile the C extension in directory, with optional extra clang arguments
       jt test                                        run all mri tests, specs and integration tests
       jt test mri                                    run mri tests
-          #{MRI_TEST_MODULES.each_key.join(', ')}
+          #{MRI_TEST_MODULES.keys.join(', ')}
           --native        use native TruffleRuby image (set AOT_BIN)
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME, or have graal built as a sibling)
       jt test mri test/mri/tests/test_find.rb [-- <MRI runner options>]
