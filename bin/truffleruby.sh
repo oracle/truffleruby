@@ -61,6 +61,10 @@ java_args+=("-Xbootclasspath/a:$bootclasspath")
 CP="$CP:$classpath"
 java_args+=(${properties[@]})
 
+# Set ruby.home in the development lancher,
+# so getTruffleLanguageHome() reports the correct directory.
+java_args+=("-Druby.home=$root")
+
 # no " to split $JAVA_OPTS into array elements
 java_opts=($JAVA_OPTS)
 
@@ -138,7 +142,6 @@ full_command=(
     "$JAVACMD"
     "${java_args[@]}"
     org.truffleruby.launcher.RubyLauncher
-    "-Xhome=$root"
     "-Xlauncher=$root/bin/truffleruby"
     "${ruby_args[@]}"
 )

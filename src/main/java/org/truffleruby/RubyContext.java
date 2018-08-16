@@ -739,20 +739,6 @@ public class RubyContext {
             RubyLanguage.LOGGER.config("-Xhome not set, cannot determine home from it");
         }
 
-        // We need a home for context pre-initialization but the Context is built without arguments.
-        // Therefore we use a system property set in native-image.properties.
-        final String fromProperty = System.getProperty("truffleruby.preinitialization.home");
-        if (fromProperty != null && !fromProperty.isEmpty()) {
-            final File home = new File(fromProperty);
-            RubyLanguage.LOGGER.config(() -> String.format("trying -Dtruffleruby.preinitialization.home=%s, expanded to %s, as the Ruby home", fromProperty, home));
-            if (!isRubyHome(home)) {
-                RubyLanguage.LOGGER.warning(String.format("-Dtruffleruby.preinitialization.home=%s does not look like TruffleRuby's home", fromProperty));
-            }
-            return home.getCanonicalPath();
-        } else {
-            RubyLanguage.LOGGER.config("-Dtruffleruby.preinitialization.home not set, cannot determine home from it");
-        }
-
         // Use the Truffle reported home
 
         final String truffleReported = language.getTruffleLanguageHome();
@@ -769,8 +755,6 @@ public class RubyContext {
             RubyLanguage.LOGGER.config("Truffle-reported home not set, cannot determine home from it");
         }
 
-        // All the following methods to find home should go away longer term
-
         // Use the path relative to the launcher
 
         if (!options.LAUNCHER.isEmpty()) {
@@ -784,34 +768,6 @@ public class RubyContext {
             }
         } else {
             RubyLanguage.LOGGER.config("no launcher set, cannot determine home from it");
-        }
-
-        // graalvm.home is what Truffle does, but we'll leave this in for now in case something differs
-
-        final String graalVMHome = System.getProperty("org.graalvm.home");
-
-        if (graalVMHome != null) {
-            final File candidate = Paths.get(graalVMHome).resolve("jre/languages/ruby").toFile();
-            RubyLanguage.LOGGER.config(() -> String.format("trying -Dorg.graalvm.home=%s, expanded to %s, as the Ruby home", graalVMHome, candidate));
-            if (isRubyHome(candidate)) {
-                return candidate.getCanonicalPath();
-            } else {
-                RubyLanguage.LOGGER.warning(String.format("-Dorg.graalvm.home=%s does not look like TruffleRuby's home", candidate));
-            }
-        } else {
-            RubyLanguage.LOGGER.config("-Dorg.graalvm.home not set, cannot determine home from it");
-        }
-
-        // Try the Truffle reported home, but two directories up, which is from where the jar lives in the development repository
-
-        if (truffleReported != null) {
-            final File home = new File(truffleReported).getParentFile().getParentFile();
-            RubyLanguage.LOGGER.config(() -> String.format("trying Truffle-reported home %s/../.., expanded to %s, as the Ruby home", truffleReported, home));
-            if (isRubyHome(home)) {
-                return home.getCanonicalPath();
-            } else {
-                RubyLanguage.LOGGER.config(String.format("Truffle-reported home %s/../.. does not look like TruffleRuby's home", home));
-            }
         }
 
         if (!LIBPOLYGLOT) {
