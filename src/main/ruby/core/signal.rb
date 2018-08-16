@@ -54,7 +54,6 @@ module Signal
   Numbers[Names['CHLD']] = 'CHLD'
   Numbers[Names['ABRT']] = 'ABRT'
 
-  @threads = {}
   @handlers = {}
 
   def self.trap(sig, prc=nil, &block)
