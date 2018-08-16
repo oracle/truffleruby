@@ -92,21 +92,33 @@ public class EmbeddedScript {
         return transformed.toByteArray();
     }
 
-    private boolean isShebangLine(byte[] bytes, int lineStart) {
-        return bytes.length - lineStart >= 2 && bytes[lineStart] == '#' && bytes[lineStart + 1] == '!';
+    private boolean isShebangLine(byte[] bytes) {
+        return isShebangLine(bytes, 0);
     }
 
     private boolean isRubyShebangLine(byte[] bytes, int lineStart, int lineLength) {
         return isShebangLine(bytes, lineStart) && lineContainsRuby(bytes, lineStart, lineLength);
     }
 
-    private boolean isShebangLine(byte[] bytes) {
-        return isShebangLine(bytes, 0);
+    private boolean isShebangLine(byte[] bytes, int lineStart) {
+        return bytes.length - lineStart >= 2 && bytes[lineStart] == '#' && bytes[lineStart + 1] == '!';
     }
 
-    private boolean lineContainsRuby(byte[] bytes, int lineStart, int lineLength) {
-        final String line = new String(bytes, lineStart, lineLength, StandardCharsets.US_ASCII);
-        return line.contains("ruby");
+    static boolean lineContainsRuby(byte[] bytes, int lineStart, int lineLength) {
+        if (lineLength < 4) {
+            return false;
+        }
+
+        // Don't bother looking for 'ruby' with just three characters to go
+        final int limit = lineStart + lineLength - 3;
+
+        for (int n = lineStart; n < limit; n++) {
+            if (bytes[n] == 'r' && bytes[n + 1] == 'u' && bytes[n + 2] == 'b' && bytes[n + 3] == 'y') {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }
