@@ -739,20 +739,6 @@ public class RubyContext {
             RubyLanguage.LOGGER.config("-Xhome not set, cannot determine home from it");
         }
 
-        // We need a home for context pre-initialization but the Context is built without arguments.
-        // Therefore we use a system property set in native-image.properties.
-        final String fromProperty = System.getProperty("truffleruby.preinitialization.home");
-        if (fromProperty != null && !fromProperty.isEmpty()) {
-            final File home = new File(fromProperty);
-            RubyLanguage.LOGGER.config(() -> String.format("trying -Dtruffleruby.preinitialization.home=%s, expanded to %s, as the Ruby home", fromProperty, home));
-            if (!isRubyHome(home)) {
-                RubyLanguage.LOGGER.warning(String.format("-Dtruffleruby.preinitialization.home=%s does not look like TruffleRuby's home", fromProperty));
-            }
-            return home.getCanonicalPath();
-        } else {
-            RubyLanguage.LOGGER.config("-Dtruffleruby.preinitialization.home not set, cannot determine home from it");
-        }
-
         // Use the Truffle reported home
 
         final String truffleReported = language.getTruffleLanguageHome();
