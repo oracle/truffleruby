@@ -41,8 +41,5 @@ runtime execution.
 Debugging on the JVM can be achieved with:
 
 ```
-bin/truffleruby -J-Dpolyglot.engine.PreinitializeContexts=ruby -J-Dtruffleruby.preinitialization.home=$PWD -Xhome=$PWD -Xlog=FINE -e 'p :hi'
+bin/truffleruby -J-Dpolyglot.engine.PreinitializeContexts=ruby -Xlog=FINE -e 'p :hi'
 ```
-
-`truffleruby.preinitialization.home` is the pre-initialization home and `-Xhome` the runtime home.
-Those can be set to different values to test if the runtime home is properly used.
