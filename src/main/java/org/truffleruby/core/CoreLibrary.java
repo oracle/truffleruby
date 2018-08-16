@@ -494,6 +494,8 @@ public class CoreLibrary {
 
         // The rest
 
+        DynamicObject conditionVariableClass = defineClass("ConditionVariable");
+        Layouts.CLASS.setInstanceFactoryUnsafe(conditionVariableClass, Layouts.CONDITION_VARIABLE.createConditionVarShape(conditionVariableClass, conditionVariableClass));
         encodingCompatibilityErrorClass = defineClass(encodingClass, encodingErrorClass, "CompatibilityError");
         encodingUndefinedConversionErrorClass = defineClass(encodingClass, encodingErrorClass, "UndefinedConversionError");
 

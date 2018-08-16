@@ -50,13 +50,6 @@ end
 #   }
 #
 class ConditionVariable
-  #
-  # Creates a new ConditionVariable
-  #
-  def initialize
-    Truffle.primitive :condition_variable_initialize
-    raise PrimitiveFailure
-  end
 
   #
   # Releases the lock held in +mutex+ and waits; reacquires the lock on wakeup.
@@ -65,10 +58,12 @@ class ConditionVariable
   # even if no other thread has signaled.
   #
   def wait(mutex, timeout=nil)
-    Truffle.primitive :condition_variable_wait
-    timeout = Truffle::Type.rb_num2long(timeout) if timeout
+    if timeout
+      timeout = timeout * 1000
+      timeout = Truffle::Type.rb_num2long(timeout)
+    end
     raise ArgumentError, "#{mutex} must be a Mutex" unless mutex.kind_of? Mutex
-    wait(mutex, timeout)
+    Truffle.invoke_primitive( :condition_variable_wait, self, mutex, timeout)
   end
 
   #

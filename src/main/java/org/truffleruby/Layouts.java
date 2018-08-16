@@ -42,6 +42,8 @@ import org.truffleruby.core.method.UnboundMethodLayout;
 import org.truffleruby.core.method.UnboundMethodLayoutImpl;
 import org.truffleruby.core.module.ModuleLayout;
 import org.truffleruby.core.module.ModuleLayoutImpl;
+import org.truffleruby.core.mutex.ConditionVarLayout;
+import org.truffleruby.core.mutex.ConditionVarLayoutImpl;
 import org.truffleruby.core.mutex.MutexLayout;
 import org.truffleruby.core.mutex.MutexLayoutImpl;
 import org.truffleruby.core.numeric.BignumLayout;
@@ -109,6 +111,7 @@ public abstract class Layouts {
     public static final BindingLayout BINDING = BindingLayoutImpl.INSTANCE;
     public static final ByteArrayLayout BYTE_ARRAY = ByteArrayLayoutImpl.INSTANCE;
     public static final ClassLayout CLASS = ClassLayoutImpl.INSTANCE;
+    public static final ConditionVarLayout CONDITION_VARIABLE = ConditionVarLayoutImpl.INSTANCE;
     public static final EncodingConverterLayout ENCODING_CONVERTER = EncodingConverterLayoutImpl.INSTANCE;
     public static final EncodingLayout ENCODING = EncodingLayoutImpl.INSTANCE;
     public static final ExceptionLayout EXCEPTION = ExceptionLayoutImpl.INSTANCE;

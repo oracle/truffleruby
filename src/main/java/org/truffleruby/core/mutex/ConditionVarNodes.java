@@ -15,49 +15,42 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
-import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
+import org.truffleruby.language.objects.AllocateObjectNode;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.HiddenKey;
 
-@CoreClass("Truffle::ConditionVariableOperations")
+@CoreClass("ConditionVariable")
 public abstract class ConditionVarNodes {
 
-    private static final HiddenKey lockName = new HiddenKey("lock");
-    private static final HiddenKey condName = new HiddenKey("condition");
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
-    @Primitive(name = "condition_variable_initialize")
-    public static abstract class InitializeConditionVariableNode extends PrimitiveArrayArgumentsNode {
-        @Child WriteObjectFieldNode lockFieldNode = WriteObjectFieldNodeGen.create(lockName);
-        @Child WriteObjectFieldNode condFieldNode = WriteObjectFieldNodeGen.create(condName);
+        @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject initializeConditionVariable(DynamicObject variable) {
+        public DynamicObject allocate(DynamicObject rubyClass) {
             ReentrantLock lock = new ReentrantLock();
-            lockFieldNode.write(variable, lock);
-            condFieldNode.write(variable, lock.newCondition());
-            return variable;
+            return allocateNode.allocate(rubyClass, lock, lock.newCondition());
         }
+
     }
 
     @Primitive(name = "condition_variable_wait")
     public static abstract class WaitNode extends PrimitiveArrayArgumentsNode {
-        @Child ReadObjectFieldNode lockFieldNode = ReadObjectFieldNodeGen.create(lockName, null);
-        @Child ReadObjectFieldNode condFieldNode = ReadObjectFieldNodeGen.create(condName, null);
         @Child GetCurrentRubyThreadNode getCurrentRubyThreadNode = GetCurrentRubyThreadNode.create();
 
         @Specialization(guards = "isNil(timeout)")
@@ -68,8 +61,8 @@ public abstract class ConditionVarNodes {
         @Specialization
         public DynamicObject waitTimeoutNotProived(VirtualFrame frame, DynamicObject self, DynamicObject mutex, NotProvided notProvided) {
             final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
-            final ReentrantLock condLock = (ReentrantLock) lockFieldNode.execute(self);
-            final Condition condition = (Condition) condFieldNode.execute(self);
+            final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
+            final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
 
             InterruptMode interruptMode = Layouts.THREAD.getInterruptMode(thread);
@@ -99,8 +92,8 @@ public abstract class ConditionVarNodes {
         public DynamicObject waitTimeout(VirtualFrame frame, DynamicObject self, DynamicObject mutex, long durationInMillis) {
             final long endTIme = System.nanoTime() + 1_000_000 * durationInMillis;
             final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
-            final ReentrantLock condLock = (ReentrantLock) lockFieldNode.execute(self);
-            final Condition condition = (Condition) condFieldNode.execute(self);
+            final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
+            final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
 
             InterruptMode interruptMode = Layouts.THREAD.getInterruptMode(thread);
@@ -180,14 +173,12 @@ public abstract class ConditionVarNodes {
 
     @Primitive(name = "condition_variable_signal")
     public static abstract class SignalNode extends PrimitiveArrayArgumentsNode {
-        @Child ReadObjectFieldNode lockFieldNode = ReadObjectFieldNodeGen.create(lockName, null);
-        @Child ReadObjectFieldNode condFieldNode = ReadObjectFieldNodeGen.create(condName, null);
         @Child GetCurrentRubyThreadNode getCurrentRubyThreadNode = GetCurrentRubyThreadNode.create();
 
         @Specialization
         public DynamicObject signal(VirtualFrame frame, DynamicObject self) {
-            final ReentrantLock condLock = (ReentrantLock) lockFieldNode.execute(self);
-            final Condition condition = (Condition) condFieldNode.execute(self);
+            final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
+            final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
             getContext().getThreadManager().runUntilResult(this, () -> {
                 condLock.lockInterruptibly();
                 try {
@@ -204,14 +195,12 @@ public abstract class ConditionVarNodes {
 
     @Primitive(name = "condition_variable_broadcast")
     public static abstract class BroadCastNode extends PrimitiveArrayArgumentsNode {
-        @Child ReadObjectFieldNode lockFieldNode = ReadObjectFieldNodeGen.create(lockName, null);
-        @Child ReadObjectFieldNode condFieldNode = ReadObjectFieldNodeGen.create(condName, null);
         @Child GetCurrentRubyThreadNode getCurrentRubyThreadNode = GetCurrentRubyThreadNode.create();
 
         @Specialization
         public DynamicObject broadcast(VirtualFrame frame, DynamicObject self) {
-            final ReentrantLock condLock = (ReentrantLock) lockFieldNode.execute(self);
-            final Condition condition = (Condition) condFieldNode.execute(self);
+            final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
+            final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
 
             getContext().getThreadManager().runUntilResult(this, () -> {
                 condLock.lockInterruptibly();
