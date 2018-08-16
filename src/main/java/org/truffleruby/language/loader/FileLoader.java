@@ -16,6 +16,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.TruffleRuby;
@@ -101,9 +102,31 @@ public class FileLoader {
 
         // We set an explicit MIME type because LLVM does not have a default one
 
-        final Source source = Source.newBuilder(language, sourceRope.toString(), name).mimeType(mimeType).build();
+        final Source source = Source.newBuilder(language, sourceRope.toString(), name)
+                .mimeType(mimeType)
+                .internal(isInternal(feature))
+                .build();
 
         return new RubySource(source, sourceRope);
+    }
+
+    private boolean isInternal(String feature) {
+        // If the file is part of the standard library then we may consider it internal
+
+        final String canonicalPath;
+
+        try {
+            canonicalPath = new File(feature).getCanonicalPath();
+        } catch (IOException e) {
+            return false;
+        }
+
+        if (canonicalPath.startsWith(context.getRubyHome() + "/lib/") &&
+                !canonicalPath.startsWith(context.getRubyHome() + "/lib/ruby/gems/")) {
+            return context.getOptions().STDLIB_AS_INTERNAL;
+        } else {
+            return false;
+        }
     }
 
 }

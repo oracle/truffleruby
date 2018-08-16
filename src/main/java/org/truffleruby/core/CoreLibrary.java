@@ -839,25 +839,12 @@ public class CoreLibrary {
                 return new RubySource(rootParseNode.getSource());
             } else {
                 final ResourceLoader resourceLoader = new ResourceLoader();
-                return resourceLoader.loadResource(feature, isInternal(feature));
+                return resourceLoader.loadResource(feature, context.getOptions().CORE_AS_INTERNAL);
             }
         } else {
             final FileLoader fileLoader = new FileLoader(context);
             return fileLoader.loadFile(feature);
         }
-    }
-
-    private boolean isInternal(String canonicalPath) {
-        if (canonicalPath.startsWith(context.getCoreLibrary().getCoreLoadPath())) {
-            return context.getOptions().CORE_AS_INTERNAL;
-        }
-
-        if (canonicalPath.startsWith(context.getRubyHome() + "/lib/") &&
-                !canonicalPath.startsWith(context.getRubyHome() + "/lib/ruby/gems/")) {
-            return context.getOptions().STDLIB_AS_INTERNAL;
-        }
-
-        return false;
     }
 
     private void afterLoadCoreLibrary() {
