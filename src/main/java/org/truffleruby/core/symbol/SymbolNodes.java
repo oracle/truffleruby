@@ -132,6 +132,7 @@ public abstract class SymbolNodes {
                     Arity.AT_LEAST_ONE,
                     null,
                     Layouts.SYMBOL.getString(symbol),
+                    0,
                     "proc",
                     ArgumentDescriptor.ANON_REST,
                     false);

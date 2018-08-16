@@ -9,10 +9,12 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.parser.ArgumentDescriptor;
 
 /**
@@ -24,9 +26,14 @@ public class SharedMethodInfo {
     private final SourceSection sourceSection;
     private final LexicalScope lexicalScope;
     private final Arity arity;
-    private final DynamicObject definitionModule;
-    /** The original name of the method. Does not change when aliased. */
+    @CompilationFinal private DynamicObject definitionModule;
+    /**
+     * The original name of the method. Does not change when aliased.
+     * This is the name shown in backtraces: "from FILE:LINE:in `NAME'".
+     */
     private final String name;
+    private final int blockDepth;
+    /** Extra information. If blockDepth > 0 then it is the name of the method containing this block. */
     private final String notes;
     private final ArgumentDescriptor[] argumentDescriptors;
     private boolean alwaysClone;
@@ -38,6 +45,7 @@ public class SharedMethodInfo {
             Arity arity,
             DynamicObject definitionModule,
             String name,
+            int blockDepth,
             String notes,
             ArgumentDescriptor[] argumentDescriptors,
             boolean alwaysClone) {
@@ -48,6 +56,7 @@ public class SharedMethodInfo {
         this.arity = arity;
         this.definitionModule = definitionModule;
         this.name = name;
+        this.blockDepth = blockDepth;
         this.notes = notes;
         this.argumentDescriptors = argumentDescriptors;
         this.alwaysClone = alwaysClone;
@@ -69,10 +78,6 @@ public class SharedMethodInfo {
         return name;
     }
 
-    public String getNotes() {
-        return notes;
-    }
-
     public ArgumentDescriptor[] getArgumentDescriptors() {
         return argumentDescriptors == null ? arity.toAnonymousArgumentDescriptors() : argumentDescriptors;
     }
@@ -85,62 +90,95 @@ public class SharedMethodInfo {
         this.alwaysClone = alwaysClone;
     }
 
-    public SharedMethodInfo withName(String newName) {
+    public SharedMethodInfo withMethodName(String newName) {
         return new SharedMethodInfo(
                 sourceSection,
                 lexicalScope,
                 arity,
                 definitionModule,
                 newName,
+                0, // no longer a block
                 notes,
                 argumentDescriptors,
                 alwaysClone);
     }
 
-    public String getDescriptiveName() {
-        final StringBuilder descriptiveName = new StringBuilder();
-
-        if (definitionModule != null) {
-            descriptiveName.append(Layouts.MODULE.getFields(definitionModule).getName());
+    /**
+     * A more complete name than just <code>this.name</code>, for tooling, to easily identify what a
+     * RubyRootNode corresponds to.
+     */
+    public String getModuleAndMethodName() {
+        if (blockDepth > 0) {
+            assert name.startsWith("block ") : name;
+            final String methodName = notes;
+            return getBlockName(blockDepth, moduleAndMethodName(definitionModule, methodName));
+        } else {
+            return moduleAndMethodName(definitionModule, name);
         }
+    }
 
-        if (name != null) {
-            descriptiveName.append('#');
-            descriptiveName.append(name);
-        }
-
-        if (notes != null) {
-            final boolean parens = descriptiveName.length() > 0;
-
-            if (parens) {
-                descriptiveName.append(" (");
+    private String moduleAndMethodName(DynamicObject module, String methodName) {
+        if (module != null && methodName != null) {
+            if (RubyGuards.isMetaClass(module)) {
+                final DynamicObject attached = Layouts.CLASS.getAttached(module);
+                return Layouts.MODULE.getFields(attached).getName() + "." + methodName;
+            } else {
+                return Layouts.MODULE.getFields(module).getName() + "#" + methodName;
             }
-
-            descriptiveName.append(notes);
-
-            if (parens) {
-                descriptiveName.append(')');
-            }
+        } else if (methodName != null) {
+            return methodName;
+        } else {
+            return "<unknown>";
         }
+    }
 
-        return descriptiveName.toString();
+    public static String getBlockName(int blockDepth, String methodName) {
+        assert blockDepth > 0;
+        if (blockDepth > 1) {
+            return "block (" + blockDepth + " levels) in " + methodName;
+        } else {
+            return "block in " + methodName;
+        }
     }
 
     public String getDescriptiveNameAndSource() {
         if (descriptiveNameAndSource == null) {
+            String descriptiveName = getModuleAndMethodName();
+            if (hasNotes()) {
+                if (descriptiveName.length() > 0) {
+                    descriptiveName += " (" + notes + ")";
+                } else {
+                    descriptiveName += notes;
+                }
+            }
+
             if (sourceSection == null || !sourceSection.isAvailable()) {
-                descriptiveNameAndSource = getDescriptiveName();
+                descriptiveNameAndSource = descriptiveName;
             } else {
-                descriptiveNameAndSource = getDescriptiveName() + " " + sourceSection.getSource().getName() + ":" + sourceSection.getStartLine();
+                descriptiveNameAndSource = descriptiveName + " " + sourceSection.getSource().getName() + ":" + sourceSection.getStartLine();
             }
         }
 
         return descriptiveNameAndSource;
     }
 
+    private boolean hasNotes() {
+        return notes != null && blockDepth == 0;
+    }
+
     @Override
     public String toString() {
         return getDescriptiveNameAndSource();
+    }
+
+    public DynamicObject getDefinitionModule() {
+        return definitionModule;
+    }
+
+    public void setDefinitionModuleIfUnset(DynamicObject definitionModule) {
+        if (this.definitionModule == null) {
+            this.definitionModule = definitionModule;
+        }
     }
 
 }

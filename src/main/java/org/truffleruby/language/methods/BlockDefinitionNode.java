@@ -73,6 +73,11 @@ public class BlockDefinitionNode extends RubyNode {
             assert frameOnStackMarker != null;
         }
 
+        if (sharedMethodInfo.getDefinitionModule() == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            sharedMethodInfo.setDefinitionModuleIfUnset(RubyArguments.getMethod(frame).getDeclaringModule());
+        }
+
         return ProcOperations.createRubyProc(coreLibrary().getProcFactory(),
                 type,
                 sharedMethodInfo,

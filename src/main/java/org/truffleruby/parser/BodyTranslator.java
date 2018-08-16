@@ -921,6 +921,7 @@ public class BodyTranslator extends Translator {
                     Arity.NO_ARGUMENTS,
                     null,
                     name,
+                    0,
                     sclass ? "class body" : "module body",
                     null,
                     false);
@@ -1286,6 +1287,7 @@ public class BodyTranslator extends Translator {
                 arity,
                 null,
                 methodName,
+                0,
                 null,
                 argumentDescriptors,
                 alwaysClone);
@@ -1716,24 +1718,31 @@ public class BodyTranslator extends Translator {
 
         final boolean isProc = !isLambda;
 
+        TranslatorEnvironment methodParent = environment;
+        while (methodParent.isBlock()) {
+            methodParent = methodParent.getParent();
+        }
+        final String methodName = methodParent.getNamedMethodName();
+
+        final int blockDepth = environment.getBlockDepth() + 1;
+
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection.toSourceSection(source),
                 environment.getLexicalScopeOrNull(),
                 argsNode.getArity(),
                 null,
-                null,
-                isLambda ? "lambda" : getIdentifierInNewEnvironment(true, currentCallMethodName),
+                SharedMethodInfo.getBlockName(blockDepth, methodName),
+                blockDepth,
+                methodName,
                 Helpers.argsNodeToArgumentDescriptors(argsNode),
                 false);
-
-        final String namedMethodName = isLambda ? sharedMethodInfo.getName() : environment.getNamedMethodName();
 
         final ParseEnvironment parseEnvironment = environment.getParseEnvironment();
         final ReturnID returnID = isLambda ? parseEnvironment.allocateReturnID() : environment.getReturnID();
 
         final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(
                 context, environment, parseEnvironment, returnID, hasOwnScope, false,
-                        false, sharedMethodInfo, namedMethodName, environment.getBlockDepth() + 1, parseEnvironment.allocateBreakID());
+                false, sharedMethodInfo, environment.getNamedMethodName(), blockDepth, parseEnvironment.allocateBreakID());
         final MethodTranslator methodCompiler = new MethodTranslator(currentNode, context, this, newEnvironment, true, source, parserContext, argsNode);
 
         if (isProc) {
@@ -3072,24 +3081,6 @@ public class BodyTranslator extends Translator {
 
     public TranslatorEnvironment getEnvironment() {
         return environment;
-    }
-
-    protected String getIdentifierInNewEnvironment(boolean isBlock, String namedMethodName) {
-        if (isBlock) {
-            TranslatorEnvironment methodParent = environment;
-
-            while (methodParent.isBlock()) {
-                methodParent = methodParent.getParent();
-            }
-
-            if (environment.getBlockDepth() + 1 > 1) {
-                return "block (" + (environment.getBlockDepth() + 1) + " levels) in " + methodParent.getNamedMethodName();
-            } else {
-                return "block in " + methodParent.getNamedMethodName();
-            }
-        } else {
-            return namedMethodName;
-        }
     }
 
     @Override

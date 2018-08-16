@@ -198,6 +198,7 @@ public class TranslatorDriver {
                 Arity.NO_ARGUMENTS,
                 null,
                 methodName,
+                0,
                 null,
                 null,
                 false);
@@ -350,6 +351,7 @@ public class TranslatorDriver {
                 Arity.NO_ARGUMENTS,
                 null,
                 null,
+                0,
                 "external",
                 null,
                 false);
@@ -368,6 +370,7 @@ public class TranslatorDriver {
                     Arity.NO_ARGUMENTS,
                     null,
                     null,
+                    0,
                     "external",
                     null,
                     false);

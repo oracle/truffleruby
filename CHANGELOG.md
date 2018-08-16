@@ -12,6 +12,9 @@ New features:
 * `RbConfig::CONFIG['sysconfdir']` has been implemented.
 * More of `Etc` has been implemented.
 * The `-Xcexts=false` option disables C extensions.
+* Instrumentation such as the CPUSampler reports methods in a clearer way like
+  `Foo#bar`, `Gem::Specification.each_spec`, `block in Foo#bar` instead of just
+  `bar`, `each_spec`, `block in bar` (which is what MRI displays in backtraces).
 
 Bug fixes:
 

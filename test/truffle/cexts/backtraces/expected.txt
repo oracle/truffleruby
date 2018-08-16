@@ -36,7 +36,7 @@ Test error in Ruby => C ext => Ruby => C ext Proc => Ruby
 
 Test error in the callback to the Sulong-instrinsified qsort()
 [1, 2, 3, 4]
-/bin/backtraces:76:in `lambda': error from Ruby called from instrinsified qsort() (RuntimeError)
+/bin/backtraces:76:in `block in <main>': error from Ruby called from instrinsified qsort() (RuntimeError)
 	from /lib/truffle/truffle/cext.rb:n:in `call'
 	from /lib/truffle/truffle/cext.rb:n:in `__send__'
 	from /lib/truffle/truffle/cext.rb:n:in `rb_funcall'
@@ -52,7 +52,7 @@ Test error in the callback to the Sulong-instrinsified qsort()
 Test error in callback from a native function
 42
 /bin/backtraces:88:in `error_helper': error from Ruby called from Sulong called from native callback (RuntimeError)
-	from /bin/backtraces:93:in `lambda'
+	from /bin/backtraces:93:in `block in <main>'
 	from /lib/truffle/truffle/cext.rb:n:in `call'
 	from /lib/truffle/truffle/cext.rb:n:in `__send__'
 	from /lib/truffle/truffle/cext.rb:n:in `rb_funcall'
