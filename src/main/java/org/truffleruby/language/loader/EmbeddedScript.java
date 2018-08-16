@@ -19,8 +19,8 @@ import java.nio.charset.StandardCharsets;
 
 /*
  * An embedded script is one with some other language first, and then a Ruby shebang, and then a Ruby program. They're
- * run with the -x option. This class detects embedded scripts, and transforms them so they're valid Ruby programs
- * which we can execute.
+ * run with the -x option, or automatically if a file contains a shebang line. This class detects embedded scripts, and
+ * transforms them so they're valid Ruby programs which we can execute.
  */
 public class EmbeddedScript {
 
