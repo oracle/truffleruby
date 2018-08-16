@@ -63,7 +63,7 @@ public class EmbeddedScriptTest {
     @Test
     public void testLineContainsRubyOffset() {
         final byte[] bytes = "foo bar ruby".getBytes(StandardCharsets.US_ASCII);
-        assertFalse(EmbeddedScript.lineContainsRuby(bytes, 4, bytes.length - 4));
+        assertTrue(EmbeddedScript.lineContainsRuby(bytes, 4, bytes.length - 4));
     }
 
 }
