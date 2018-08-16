@@ -87,6 +87,8 @@ module Signal
     case prc
     when 'DEFAULT', 'SIG_DFL'
       prc = 'DEFAULT'
+    when 'SYSTEM_DEFAULT'
+      prc = 'SYSTEM_DEFAULT'
     when 'IGNORE', 'SIG_IGN'
       prc = 'IGNORE'
     when nil
@@ -103,7 +105,7 @@ module Signal
 
     had_old = @handlers.key?(number)
 
-    if prc == 'DEFAULT'
+    if prc == 'DEFAULT' || prc == 'SYSTEM_DEFAULT'
       old = @handlers.delete(number)
     else
       old = @handlers[number]
@@ -118,8 +120,11 @@ module Signal
       end
     end
 
-    return 'DEFAULT' unless had_old
-    old ? old : nil
+    if !had_old && prc != 'SYSTEM_DEFAULT'
+      return 'DEFAULT'
+    else
+      old ? old : nil
+    end
   end
 
   def self.list

@@ -253,22 +253,27 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_watch_signal", needsSelf = false)
     public static abstract class VMWatchSignalPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization(guards = { "isRubyString(signalName)", "isRubyString(action)" })
         public boolean restoreDefault(DynamicObject signalName, DynamicObject action) {
-            if (!StringOperations.getString(action).equals("DEFAULT")) {
-                throw new UnsupportedOperationException();
+            final String actionString = StringOperations.getString(action);
+            switch (actionString) {
+                case "DEFAULT":
+                    return restoreDefaultHandler(StringOperations.getString(signalName));
+                case "SYSTEM_DEFAULT":
+                    return restoreSystemHandler(StringOperations.getString(signalName));
+                default:
+                    throw new UnsupportedOperationException(actionString);
             }
-
-            return handleDefault(signalName);
         }
 
         @Specialization(guards = { "isRubyString(signalName)", "isNil(nil)" })
         public boolean ignoreSignal(DynamicObject signalName, Object nil) {
-            return handle(signalName, null);
+            return registerHandler(StringOperations.getString(signalName), null);
         }
 
-        @Specialization(guards = { "isRubyString(signalName)", "isRubyProc(proc)" })
-        public boolean watchSignalProc(DynamicObject signalName, DynamicObject proc) {
+        @Specialization(guards = { "isRubyString(signalNameString)", "isRubyProc(proc)" })
+        public boolean watchSignalProc(DynamicObject signalNameString, DynamicObject proc) {
             if (getContext().getThreadManager().getCurrentThread() != getContext().getThreadManager().getRootThread()) {
                 // The proc will be executed on the main thread
                 SharedObjects.writeBarrier(getContext(), proc);
@@ -276,7 +281,8 @@ public abstract class VMPrimitiveNodes {
 
             final RubyContext context = getContext();
 
-            return handle(signalName, () -> {
+            final String signalName = StringOperations.getString(signalNameString);
+            return registerHandler(signalName, () -> {
                 if (context.getOptions().SINGLE_THREADED) {
                     RubyLanguage.LOGGER.severe("signal " + signalName + " caught but can't create a thread to handle it so ignoring");
                     return;
@@ -303,32 +309,40 @@ public abstract class VMPrimitiveNodes {
         }
 
         @TruffleBoundary
-        private boolean handleDefault(DynamicObject signalName) {
-            final String signalNameString = StringOperations.getString(signalName);
-
+        private boolean restoreDefaultHandler(String signalName) {
             if (getContext().getOptions().EMBEDDED) {
-                RubyLanguage.LOGGER.warning(() ->
-                        String.format("restoring default handler to signal %s in embedded mode may interfere with other embedded contexts or the host system", signalNameString));
+                RubyLanguage.LOGGER.warning("restoring default handler for signal " + signalName + " in embedded mode may interfere with other embedded contexts or the host system");
             }
 
             try {
-                return Signals.restoreDefaultHandler(signalNameString);
+                return Signals.restoreDefaultHandler(signalName);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
         }
 
         @TruffleBoundary
-        private boolean handle(DynamicObject signalName, Runnable newHandler) {
-            final String signalNameString = StringOperations.getString(signalName);
-
+        private boolean restoreSystemHandler(String signalName) {
             if (getContext().getOptions().EMBEDDED) {
-                RubyLanguage.LOGGER.warning(() ->
-                        String.format("trapping signal %s in embedded mode may interfere with other embedded contexts or the host system", signalNameString));
+                RubyLanguage.LOGGER.warning("restoring system handler for signal " + signalName + " in embedded mode may interfere with other embedded contexts or the host system");
             }
 
             try {
-                Signals.registerHandler(newHandler, signalNameString);
+                Signals.restoreSystemHandler(signalName);
+            } catch (IllegalArgumentException e) {
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+            }
+            return true;
+        }
+
+        @TruffleBoundary
+        private boolean registerHandler(String signalName, Runnable newHandler) {
+            if (getContext().getOptions().EMBEDDED) {
+                RubyLanguage.LOGGER.warning("trapping signal " + signalName + " in embedded mode may interfere with other embedded contexts or the host system");
+            }
+
+            try {
+                Signals.registerHandler(newHandler, signalName);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
