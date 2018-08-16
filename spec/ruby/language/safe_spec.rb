@@ -39,6 +39,14 @@ describe "The $SAFE variable" do
     end
   end
   
+  it "cannot be set to values below 0" do
+      lambda {
+        proc {
+          $SAFE = -100
+        }.call
+      }.should raise_error(SecurityError, /tried to downgrade safe level from 0 to -100/)
+  end
+  
   it "cannot be set to values above 4" do
       lambda {
         proc {

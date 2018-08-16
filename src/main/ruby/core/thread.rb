@@ -444,6 +444,8 @@ Truffle::KernelOperations.define_hooked_variable(
     level = Truffle::Type.rb_num2int(level)
     if level > 1
       raise ArgumentError, '$SAFE=2 to 4 are obsolete'
+    elsif level < 0
+      raise SecurityError, "tried to downgrade safe level from #{$SAFE} to #{level}"
     elsif level != 0
       if Truffle::Boot.get_option 'safe'
         Truffle::System.log :SEVERE, '$SAFE level set to 1, but no checks are implemented'

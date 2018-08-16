@@ -23,6 +23,7 @@ Bug fixes:
   autoload the constant if needed.
 * Loaded files are read as raw bytes, rather than as a UTF-8 string and then
   converted back into bytes.
+* Setting `$SAFE` to a negative value now raises a `SecurityError`.
 
 Performance:
 
