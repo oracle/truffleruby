@@ -55,19 +55,19 @@ public class FileLoader {
         }
     }
 
-    public RubySource loadFile(String feature) throws IOException {
+    public RubySource loadFile(String path) throws IOException {
         if (context.getOptions().LOG_LOAD) {
-            RubyLanguage.LOGGER.info("loading " + feature);
+            RubyLanguage.LOGGER.info("loading " + path);
         }
 
-        ensureReadable(feature);
+        ensureReadable(path);
 
         final String name;
 
         if (context != null && context.isPreInitializing()) {
-            name = RubyLanguage.RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(feature));
+            name = RubyLanguage.RUBY_HOME_SCHEME + Paths.get(context.getRubyHome()).relativize(Paths.get(path));
         } else {
-            name = feature;
+            name = path;
         }
 
         /*
@@ -76,7 +76,7 @@ public class FileLoader {
          * passed through UTF-8.
          */
 
-        final byte[] sourceBytes = Files.readAllBytes(Paths.get(feature));
+        final byte[] sourceBytes = Files.readAllBytes(Paths.get(path));
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
         /*
@@ -86,12 +86,12 @@ public class FileLoader {
          * - spec/ruby/core/thread/backtrace/location/absolute_path_spec.rb (the source has a different name)
          */
 
-        Source.newBuilder(new File(feature)).build();
+        Source.newBuilder(new File(path)).build();
 
         final String language;
         final String mimeType;
 
-        if (feature.toLowerCase(Locale.ENGLISH).endsWith(RubyLanguage.CEXT_EXTENSION)) {
+        if (path.toLowerCase(Locale.ENGLISH).endsWith(RubyLanguage.CEXT_EXTENSION)) {
             language = TruffleRuby.LLVM_ID;
             mimeType = RubyLanguage.CEXT_MIME_TYPE;
         } else {
@@ -104,19 +104,19 @@ public class FileLoader {
 
         final Source source = Source.newBuilder(language, sourceRope.toString(), name)
                 .mimeType(mimeType)
-                .internal(isInternal(feature))
+                .internal(isInternal(path))
                 .build();
 
         return new RubySource(source, sourceRope);
     }
 
-    private boolean isInternal(String feature) {
+    private boolean isInternal(String path) {
         // If the file is part of the standard library then we may consider it internal
 
         final String canonicalPath;
 
         try {
-            canonicalPath = new File(feature).getCanonicalPath();
+            canonicalPath = new File(path).getCanonicalPath();
         } catch (IOException e) {
             return false;
         }
