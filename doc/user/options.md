@@ -136,11 +136,10 @@ The search priority for finding Ruby home is:
 * The home that the Truffle framework reports.
 * The parent of the directory containing the Ruby launcher executable.
 * `jre/languages/ruby` relative to the directory specified in the system property `org.graalvm.home`.
-* Two directories up from the home that the Truffle framework reports (for development only).
 
 If the `home` option is set, it's used even if it doesn't appear to be a correct
 home location. Other options are tried until one is found that appears to be a
 correct home location. If none appears to be correct a warning will be given but
 the program will continue and you will not be able to require standard
-libraries. You tell TruffleRuby not to try to find a home at all using the
+libraries. You can tell TruffleRuby not to try to find a home at all using the
 `no_home_provided` option.

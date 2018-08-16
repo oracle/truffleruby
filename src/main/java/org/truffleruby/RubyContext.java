@@ -802,18 +802,6 @@ public class RubyContext {
             RubyLanguage.LOGGER.config("-Dorg.graalvm.home not set, cannot determine home from it");
         }
 
-        // Try the Truffle reported home, but two directories up, which is from where the jar lives in the development repository
-
-        if (truffleReported != null) {
-            final File home = new File(truffleReported).getParentFile().getParentFile();
-            RubyLanguage.LOGGER.config(() -> String.format("trying Truffle-reported home %s/../.., expanded to %s, as the Ruby home", truffleReported, home));
-            if (isRubyHome(home)) {
-                return home.getCanonicalPath();
-            } else {
-                RubyLanguage.LOGGER.config(String.format("Truffle-reported home %s/../.. does not look like TruffleRuby's home", home));
-            }
-        }
-
         if (!LIBPOLYGLOT) {
             // We have no way to ever find home automatically in libpolyglot, so don't clutter with warnings
             RubyLanguage.LOGGER.warning("could not determine TruffleRuby's home - the standard library will not be available - set -Xhome= or use -Xlog=CONFIG to see details");
