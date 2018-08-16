@@ -135,7 +135,6 @@ The search priority for finding Ruby home is:
 * The value of the TruffleRuby `home` option (i.e., `-Xhome=path/to/truffleruby_home`).
 * The home that the Truffle framework reports.
 * The parent of the directory containing the Ruby launcher executable.
-* `jre/languages/ruby` relative to the directory specified in the system property `org.graalvm.home`.
 
 If the `home` option is set, it's used even if it doesn't appear to be a correct
 home location. Other options are tried until one is found that appears to be a
