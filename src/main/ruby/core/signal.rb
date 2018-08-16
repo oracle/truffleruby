@@ -86,17 +86,7 @@ module Signal
 
     case prc
     when 'DEFAULT', 'SIG_DFL'
-      had_old = @handlers.key?(number)
-      old = @handlers.delete(number)
-
-      if number != Names['EXIT']
-        unless Truffle.invoke_primitive :vm_watch_signal, signame, 'DEFAULT'
-          return 'SYSTEM_DEFAULT'
-        end
-      end
-
-      return 'DEFAULT' unless had_old
-      return old ? old : nil
+      prc = 'DEFAULT'
     when 'IGNORE', 'SIG_IGN'
       prc = 'IGNORE'
     when nil
@@ -113,12 +103,19 @@ module Signal
 
     had_old = @handlers.key?(number)
 
-    old = @handlers[number]
-    @handlers[number] = prc
+    if prc == 'DEFAULT'
+      old = @handlers.delete(number)
+    else
+      old = @handlers[number]
+      @handlers[number] = prc
+    end
 
     if number != Names['EXIT']
-      handler = (prc.nil? || prc == 'IGNORE') ? nil : prc
-      Truffle.invoke_primitive :vm_watch_signal, signame, handler
+      handler = prc == 'IGNORE' ? nil : prc
+      ret = Truffle.invoke_primitive :vm_watch_signal, signame, handler
+      if prc == 'DEFAULT' && !ret
+        return 'SYSTEM_DEFAULT'
+      end
     end
 
     return 'DEFAULT' unless had_old
