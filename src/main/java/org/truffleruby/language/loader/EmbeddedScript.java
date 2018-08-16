@@ -33,11 +33,7 @@ public class EmbeddedScript {
     }
 
     public boolean shouldTransform(byte[] sourceBytes) {
-        return isShebang(sourceBytes) || context.getOptions().IGNORE_LINES_BEFORE_RUBY_SHEBANG;
-    }
-
-    private boolean isShebang(byte[] bytes) {
-        return bytes.length >= 2 && bytes[0] == '#' && bytes[1] == '!';
+        return isShebangLine(sourceBytes) || context.getOptions().IGNORE_LINES_BEFORE_RUBY_SHEBANG;
     }
 
     public byte[] transformForExecution(RubyNode currentNode, byte[] sourceBytes, String path) throws IOException {
@@ -72,15 +68,11 @@ public class EmbeddedScript {
 
             final int lineLength = n - lineStart;
 
-            // We'll read the line as 7-bit ASCII, which is a subset of all possible Ruby source encodings
-
-            final String line = new String(sourceBytes, lineStart, lineLength, StandardCharsets.US_ASCII);
-
-            final boolean rubyShebang = line.startsWith("#!") && line.contains("ruby");
-
             // Until the Ruby shebang, lines are commented out so they aren't executed
 
-            if (!rubyShebang) {
+            final boolean rubyShebangLine = isRubyShebangLine(sourceBytes, lineStart, lineLength);
+
+            if (!rubyShebangLine) {
                 transformed.write(PREFIX_COMMENT);
             }
 
@@ -88,7 +80,7 @@ public class EmbeddedScript {
 
             // We stop iterating after the Ruby shebang
 
-            if (rubyShebang) {
+            if (rubyShebangLine) {
                 break;
             }
         }
@@ -98,6 +90,23 @@ public class EmbeddedScript {
         transformed.write(sourceBytes, n, sourceBytes.length - n);
 
         return transformed.toByteArray();
+    }
+
+    private boolean isShebangLine(byte[] bytes, int lineStart) {
+        return bytes.length - lineStart >= 2 && bytes[lineStart] == '#' && bytes[lineStart + 1] == '!';
+    }
+
+    private boolean isRubyShebangLine(byte[] bytes, int lineStart, int lineLength) {
+        return isShebangLine(bytes, lineStart) && lineContainsRuby(bytes, lineStart, lineLength);
+    }
+
+    private boolean isShebangLine(byte[] bytes) {
+        return isShebangLine(bytes, 0);
+    }
+
+    private boolean lineContainsRuby(byte[] bytes, int lineStart, int lineLength) {
+        final String line = new String(bytes, lineStart, lineLength, StandardCharsets.US_ASCII);
+        return line.contains("ruby");
     }
 
 }
