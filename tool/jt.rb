@@ -2094,10 +2094,18 @@ EOS
     end
 
     if defined?(tarball)
-      graalvm_version = /([ce]e-)?\d+(\.\d+)*(-rc\d+)?(\-dev)?(-\h+)?/.match(tarball).to_s
+      tarball_base = File.basename(tarball)
+      
+      graalvm_version = /([ce]e-)?(linux-amd64-)?\d+(\.\d+)*(-rc\d+)?(\-dev)?(-\h+)?(\.\h+)?(-\h+)?/.match(tarball_base).to_s
 
       # Test build tarballs may have a -bn suffix, which isn't really part of the version string but matches the hex part in some cases
       graalvm_version = graalvm_version.gsub(/-b\d+\Z/, '')
+      
+      # Some test builds have the platform in the middle
+      graalvm_version = graalvm_version.gsub(/-linux-amd64-/, '-')
+      
+      # Some test builds have a date and time instead of -dev
+      graalvm_version = graalvm_version.gsub(/-\h+\.\h+-\h+/, '-dev')
     end
     
     check_post_install_message = [
