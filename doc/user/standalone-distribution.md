@@ -63,8 +63,8 @@ matrix:
       - bundle install
 ```
 
-Running the post-install is currently not necessary on TravisCI for TruffleRuby
-1.0.0-rc3 or more recent, so this step is skipped here.
+Running the post-install script is currently not necessary on TravisCI for
+TruffleRuby 1.0.0-rc3 or more recent, so this step is skipped here.
 
 ## Dependencies
 
