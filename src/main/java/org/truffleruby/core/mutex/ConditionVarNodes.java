@@ -22,11 +22,13 @@ import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -71,30 +73,86 @@ public abstract class ConditionVarNodes {
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
 
             InterruptMode interruptMode = Layouts.THREAD.getInterruptMode(thread);
+            try {
+                getConditionAndRleleaseMutex(mutexLock, condLock, thread);
+                try {
+                    getContext().getThreadManager().runUntilResultWithResumeAction(this, () -> {
+                        try {
+                            condition.await();
+                            return BlockingAction.SUCCESS;
+                        } finally {
+                            condLock.unlock();
+                        }
+                    }, () -> {
+                        condLock.lock();
+                    });
+                } finally {
+                    reacquireMutex(mutexLock, thread);
+                }
+            } finally {
+                Layouts.THREAD.setInterruptMode(thread, interruptMode);
+            }
+            return self;
+        }
+
+        @Specialization
+        public DynamicObject waitTimeout(VirtualFrame frame, DynamicObject self, DynamicObject mutex, long durationInMillis) {
+            final long endTIme = System.nanoTime() + 1_000_000 * durationInMillis;
+            final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
+            final ReentrantLock condLock = (ReentrantLock) lockFieldNode.execute(self);
+            final Condition condition = (Condition) condFieldNode.execute(self);
+            final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+
+            InterruptMode interruptMode = Layouts.THREAD.getInterruptMode(thread);
+            try {
+                getConditionAndRleleaseMutex(mutexLock, condLock, thread);
+                try {
+                    getContext().getThreadManager().runUntilResultWithResumeAction(this, () -> {
+                        try {
+                            final long currentTime = System.nanoTime();
+                            if (currentTime < endTIme) {
+                                condition.await(endTIme - currentTime, TimeUnit.NANOSECONDS);
+                            }
+                            return BlockingAction.SUCCESS;
+                        } finally {
+                            condLock.unlock();
+                        }
+                    }, () -> {
+                        condLock.lock();
+                    });
+                } finally {
+                    reacquireMutex(mutexLock, thread);
+                }
+            } finally {
+                Layouts.THREAD.setInterruptMode(thread, interruptMode);
+            }
+
+            return self;
+        }
+
+        @Fallback
+        public Object waitFailure(Object string, Object range, Object length) {
+            return FAILURE;
+        }
+
+        protected void getConditionAndRleleaseMutex(final ReentrantLock mutexLock, final ReentrantLock condLock, final DynamicObject thread) {
+            if (!mutexLock.isHeldByCurrentThread()) {
+                if (!mutexLock.isLocked()) {
+                    throw new RaiseException(getContext(), getContext().getCoreExceptions().threadErrorUnlockNotLocked(this));
+                } else {
+                    throw new RaiseException(getContext(), getContext().getCoreExceptions().threadErrorAlreadyLocked(this));
+                }
+            }
+
             Layouts.THREAD.setInterruptMode(thread, InterruptMode.ON_BLOCKING);
             getContext().getThreadManager().runUntilResult(this, () -> {
                 condLock.lockInterruptibly();
                 return BlockingAction.SUCCESS;
             });
             mutexLock.unlock();
-            try {
-                getContext().getThreadManager().runUntilResultWithResumeAction(this, () -> {
-                    try {
-                        condition.await();
-                        return BlockingAction.SUCCESS;
-                    } finally {
-                        condLock.unlock();
-                    }
-                }, () -> {
-                    condLock.lock();
-                });
-            } finally {
-                reacquireMutex(mutexLock, thread, interruptMode);
-            }
-            return self;
         }
 
-        protected void reacquireMutex(final ReentrantLock mutexLock, final DynamicObject thread, InterruptMode interruptMode) throws Error {
+        protected void reacquireMutex(final ReentrantLock mutexLock, final DynamicObject thread) throws Error {
             Throwable throwable = null;
             while (true) {
                 try {
@@ -102,7 +160,6 @@ public abstract class ConditionVarNodes {
                         mutexLock.lockInterruptibly();
                         return BlockingAction.SUCCESS;
                     });
-                    Layouts.THREAD.setInterruptMode(thread, interruptMode);
                     break;
                 } catch (Throwable t) {
                     throwable = t;
@@ -118,42 +175,6 @@ public abstract class ConditionVarNodes {
                     throw new JavaException(throwable);
                 }
             }
-        }
-
-        @Specialization
-        public DynamicObject waitTimeout(VirtualFrame frame, DynamicObject self, DynamicObject mutex, long durationInMillis) {
-            final long endTIme = System.nanoTime() + 1_000_000 * durationInMillis;
-            final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
-            final ReentrantLock condLock = (ReentrantLock) lockFieldNode.execute(self);
-            final Condition condition = (Condition) condFieldNode.execute(self);
-            final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
-
-            InterruptMode interruptMode = Layouts.THREAD.getInterruptMode(thread);
-            Layouts.THREAD.setInterruptMode(thread, InterruptMode.ON_BLOCKING);
-            getContext().getThreadManager().runUntilResult(this, () -> {
-                condLock.lockInterruptibly();
-                return BlockingAction.SUCCESS;
-            });
-            mutexLock.unlock();
-            try {
-                getContext().getThreadManager().runUntilResultWithResumeAction(this, () -> {
-                    try {
-                        final long currentTime = System.nanoTime();
-                        if (currentTime < endTIme) {
-                            condition.await(endTIme - currentTime, TimeUnit.NANOSECONDS);
-                        }
-                        return BlockingAction.SUCCESS;
-                    } finally {
-                        condLock.unlock();
-                    }
-                }, () -> {
-                    condLock.lock();
-                });
-            } finally {
-                reacquireMutex(mutexLock, thread, interruptMode);
-            }
-
-            return self;
         }
     }
 

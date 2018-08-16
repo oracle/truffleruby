@@ -66,7 +66,9 @@ class ConditionVariable
   #
   def wait(mutex, timeout=nil)
     Truffle.primitive :condition_variable_wait
-    raise PrimitiveFailure
+    timeout = Truffle::Type.rb_num2long(timeout) if timeout
+    raise ArgumentError, "#{mutex} must be a Mutex" unless mutex.kind_of? Mutex
+    wait(mutex, timeout)
   end
 
   #
