@@ -56,21 +56,21 @@ module Signal
 
   @handlers = {}
 
-  def self.trap(sig, handler=nil, &block)
-    sig = sig.to_s if sig.kind_of?(Symbol)
+  def self.trap(signal, handler=nil, &block)
+    signal = signal.to_s if signal.kind_of?(Symbol)
 
-    if sig.kind_of?(String)
-      osig = sig
+    if signal.kind_of?(String)
+      original_signal = signal
 
-      if sig.start_with? 'SIG'
-        sig = sig[3..-1]
+      if signal.start_with? 'SIG'
+        signal = signal[3..-1]
       end
 
-      unless number = Names[sig]
-        raise ArgumentError, "Unknown signal '#{osig}'"
+      unless number = Names[signal]
+        raise ArgumentError, "Unknown signal '#{original_signal}'"
       end
     else
-      number = Truffle::Type.coerce_to_int sig
+      number = Truffle::Type.coerce_to_int signal
     end
 
     signame = self.signame(number)
