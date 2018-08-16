@@ -56,7 +56,7 @@ module Signal
 
   @handlers = {}
 
-  def self.trap(sig, prc=nil, &block)
+  def self.trap(sig, handler=nil, &block)
     sig = sig.to_s if sig.kind_of?(Symbol)
 
     if sig.kind_of?(String)
@@ -80,47 +80,46 @@ module Signal
       raise ArgumentError, "can't trap reserved signal: SIGVTALRM"
     end
 
-    # If no command, use the block.
-    prc ||= block
-    prc = prc.to_s if prc.kind_of?(Symbol)
+    handler ||= block
+    handler = handler.to_s if handler.kind_of?(Symbol)
 
-    case prc
+    case handler
     when 'DEFAULT', 'SIG_DFL'
-      prc = 'DEFAULT'
+      handler = 'DEFAULT'
     when 'SYSTEM_DEFAULT'
-      prc = 'SYSTEM_DEFAULT'
+      handler = 'SYSTEM_DEFAULT'
     when 'IGNORE', 'SIG_IGN'
-      prc = 'IGNORE'
+      handler = 'IGNORE'
     when nil
-      prc = nil
+      handler = nil
     when 'EXIT'
-      prc = proc { exit }
+      handler = proc { exit }
     when String
-      raise ArgumentError, "Unsupported command '#{prc}'"
+      raise ArgumentError, "Unsupported command '#{handler}'"
     else
-      unless prc.respond_to? :call
-        raise ArgumentError, "Handler must respond to #call (was #{prc.class})"
+      unless handler.respond_to? :call
+        raise ArgumentError, "Handler must respond to #call (was #{handler.class})"
       end
     end
 
     had_old = @handlers.key?(number)
 
-    if prc == 'DEFAULT' || prc == 'SYSTEM_DEFAULT'
+    if handler == 'DEFAULT' || handler == 'SYSTEM_DEFAULT'
       old = @handlers.delete(number)
     else
       old = @handlers[number]
-      @handlers[number] = prc
+      @handlers[number] = handler
     end
 
     if number != Names['EXIT']
-      handler = prc == 'IGNORE' ? nil : prc
+      handler = handler == 'IGNORE' ? nil : handler
       ret = Truffle.invoke_primitive :vm_watch_signal, signame, handler
-      if prc == 'DEFAULT' && !ret
+      if handler == 'DEFAULT' && !ret
         return 'SYSTEM_DEFAULT'
       end
     end
 
-    if !had_old && prc != 'SYSTEM_DEFAULT'
+    if !had_old && handler != 'SYSTEM_DEFAULT'
       return 'DEFAULT'
     else
       old ? old : nil
