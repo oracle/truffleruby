@@ -158,6 +158,10 @@ platform_is_not :windows do
       $?.exitstatus.should == 0
     end
 
+    it "returns 'DEFAULT' for the initial SIGINT handler" do
+      ruby_exe('print trap(:INT) { abort }').should == 'DEFAULT'
+    end
+
     it "returns SYSTEM_DEFAULT if passed DEFAULT and no handler was ever set" do
       Signal.trap("PROF", "DEFAULT").should == "SYSTEM_DEFAULT"
     end
