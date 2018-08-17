@@ -42,4 +42,9 @@ public class Signals {
         }
     }
 
+    public static void restoreSystemHandler(String signalName) {
+        final Signal signal = new Signal(signalName);
+        Signal.handle(signal, sun.misc.SignalHandler.SIG_DFL);
+    }
+
 }

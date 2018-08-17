@@ -54,24 +54,23 @@ module Signal
   Numbers[Names['CHLD']] = 'CHLD'
   Numbers[Names['ABRT']] = 'ABRT'
 
-  @threads = {}
   @handlers = {}
 
-  def self.trap(sig, prc=nil, &block)
-    sig = sig.to_s if sig.kind_of?(Symbol)
+  def self.trap(signal, handler=nil, &block)
+    signal = signal.to_s if signal.kind_of?(Symbol)
 
-    if sig.kind_of?(String)
-      osig = sig
+    if signal.kind_of?(String)
+      original_signal = signal
 
-      if sig.start_with? 'SIG'
-        sig = sig[3..-1]
+      if signal.start_with? 'SIG'
+        signal = signal[3..-1]
       end
 
-      unless number = Names[sig]
-        raise ArgumentError, "Unknown signal '#{osig}'"
+      unless number = Names[signal]
+        raise ArgumentError, "Unknown signal '#{original_signal}'"
       end
     else
-      number = Truffle::Type.coerce_to_int sig
+      number = Truffle::Type.coerce_to_int signal
     end
 
     signame = self.signame(number)
@@ -81,49 +80,50 @@ module Signal
       raise ArgumentError, "can't trap reserved signal: SIGVTALRM"
     end
 
-    # If no command, use the block.
-    prc ||= block
-    prc = prc.to_s if prc.kind_of?(Symbol)
+    handler ||= block
+    handler = handler.to_s if handler.kind_of?(Symbol)
 
-    case prc
+    case handler
     when 'DEFAULT', 'SIG_DFL'
-      had_old = @handlers.key?(number)
-      old = @handlers.delete(number)
-
-      if number != Names['EXIT']
-        unless Truffle.invoke_primitive :vm_watch_signal, signame, 'DEFAULT'
-          return 'SYSTEM_DEFAULT'
-        end
-      end
-
-      return 'DEFAULT' unless had_old
-      return old ? old : nil
+      handler = 'DEFAULT'
+    when 'SYSTEM_DEFAULT'
+      handler = 'SYSTEM_DEFAULT'
     when 'IGNORE', 'SIG_IGN'
-      prc = 'IGNORE'
+      handler = 'IGNORE'
     when nil
-      prc = nil
+      handler = nil
     when 'EXIT'
-      prc = proc { exit }
+      handler = proc { exit }
     when String
-      raise ArgumentError, "Unsupported command '#{prc}'"
+      raise ArgumentError, "Unsupported command '#{handler}'"
     else
-      unless prc.respond_to? :call
-        raise ArgumentError, "Handler must respond to #call (was #{prc.class})"
+      unless handler.respond_to? :call
+        raise ArgumentError, "Handler must respond to #call (was #{handler.class})"
       end
     end
 
     had_old = @handlers.key?(number)
 
-    old = @handlers[number]
-    @handlers[number] = prc
-
-    if number != Names['EXIT']
-      handler = (prc.nil? || prc == 'IGNORE') ? nil : prc
-      Truffle.invoke_primitive :vm_watch_signal, signame, handler
+    if handler == 'DEFAULT' || handler == 'SYSTEM_DEFAULT'
+      old = @handlers.delete(number)
+    else
+      old = @handlers[number]
+      @handlers[number] = handler
     end
 
-    return 'DEFAULT' unless had_old
-    old ? old : nil
+    if number != Names['EXIT']
+      handler = handler == 'IGNORE' ? nil : handler
+      ret = Truffle.invoke_primitive :vm_watch_signal, signame, handler
+      if handler == 'DEFAULT' && !ret
+        return 'SYSTEM_DEFAULT'
+      end
+    end
+
+    if !had_old && handler != 'SYSTEM_DEFAULT'
+      return 'DEFAULT'
+    else
+      old ? old : nil
+    end
   end
 
   def self.list
