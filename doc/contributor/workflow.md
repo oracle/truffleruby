@@ -205,15 +205,15 @@ list (`:ruby25`) in `spec/truffle.mspec` so that the specs are run in CI too.
 
 ## How to fix a failing MRI test
 
-Remove the exclusion of either the file (`test/mri_standard.exclude`) or the
-individual method (`test/mri/excludes_truffle`) and run the individual file
-`jt test mri test/mri/file.rb` to see any errors.
+Remove the exclusion of either the file (`test/mri/failing.exclude`) or the
+individual method (`test/mri/excludes/...`) and run the individual file
+`jt test mri test/mri/tests/file.rb` to see any errors.
 
 As with specs, you probably then want to recreate the test in a standalone Ruby
 file to fix it.
 
 You can also recompute the tags automatically for an entire test file with
-`jt retag test/mri/file.rb`.
+`jt retag test/mri/tests/file.rb`.
 
 ## Building the parser
 

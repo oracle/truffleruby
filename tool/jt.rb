@@ -55,29 +55,28 @@ require "#{TRUFFLERUBY_DIR}/lib/truffle/truffle/openssl-prefix.rb"
 trap(:INT) {}
 
 MRI_TEST_MODULES = {
-  '--openssl' => {
-    include: [
-      "#{TRUFFLERUBY_DIR}/test/mri/tests/openssl/test_*.rb"
-    ],
-    exclude: "#{TRUFFLERUBY_DIR}/test/mri/cext.exclude"
-  },
-  '--syslog' => {
-    include: [
-      "#{TRUFFLERUBY_DIR}/test/mri/tests/test_syslog.rb",
-      "#{TRUFFLERUBY_DIR}/test/mri/tests/syslog/test_syslog_logger.rb"
-    ],
-    exclude: "#{TRUFFLERUBY_DIR}/test/mri/cext.exclude"
-  },
-  '--cext' => {
-    include: [
-      "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-ruby/**/test_*.rb",
-      "#{TRUFFLERUBY_DIR}/test/mri/tests/etc/test_etc.rb",
-      "#{TRUFFLERUBY_DIR}/test/mri/tests/openssl/test_*.rb",
-      "#{TRUFFLERUBY_DIR}/test/mri/tests/test_syslog.rb",
-      "#{TRUFFLERUBY_DIR}/test/mri/tests/syslog/test_syslog_logger.rb"
-    ],
-    exclude: "#{TRUFFLERUBY_DIR}/test/mri/cext.exclude"
-  }
+    '--no-sulong' => {
+        help: 'exclude all tests requiring Sulong',
+        exclude: "#{TRUFFLERUBY_DIR}/test/mri/sulong.exclude"
+    },
+    '--openssl' => {
+        help: 'include only openssl tests',
+        include: openssl = ["#{TRUFFLERUBY_DIR}/test/mri/tests/openssl/test_*.rb"],
+    },
+    '--syslog' => {
+        help: 'include only syslog tests',
+        include: syslog = [
+            "#{TRUFFLERUBY_DIR}/test/mri/tests/test_syslog.rb",
+            "#{TRUFFLERUBY_DIR}/test/mri/tests/syslog/test_syslog_logger.rb"
+        ]
+    },
+    '--cext' => {
+        help: 'include only tests requiring Sulong',
+        include: openssl + syslog + [
+            "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-ruby/**/test_*.rb",
+            "#{TRUFFLERUBY_DIR}/test/mri/tests/etc/test_etc.rb",
+        ]
+    }
 }
 
 module Utilities
@@ -481,7 +480,7 @@ module Commands
       jt cextc directory clang-args                  compile the C extension in directory, with optional extra clang arguments
       jt test                                        run all mri tests, specs and integration tests
       jt test mri                                    run mri tests
-          #{MRI_TEST_MODULES.keys.join(', ')}
+#{MRI_TEST_MODULES.map { |k, h| format ' '*10+'%-16s%s', k, h[:help] }.join("\n")}
           --native        use native TruffleRuby image (set AOT_BIN)
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME, or have graal built as a sibling)
       jt test mri test/mri/tests/test_find.rb [-- <MRI runner options>]
@@ -933,46 +932,42 @@ module Commands
     else
       runner_args = []
     end
-    
+
     mri_args = []
-    files_to_run = []
-    
     prefix = "#{TRUFFLERUBY_DIR}/test/mri/tests/"
-    
-    add_patterns = -> (patterns, exclude_file) {
-      exclude_file ||= "#{TRUFFLERUBY_DIR}/test/mri/standard.exclude"
-      
-      include_files = patterns.flat_map { |p|
-        Dir.glob(p).map { |f|
-          f = File.absolute_path(f)
-          raise unless f.start_with?(prefix)
-          f[prefix.size..-1]
-        }.reject(&:empty?).reject { |f|
-          f.include?('cext-ruby') && !patterns.any? {|p| p.include?('cext-ruby') }
-        }
-      }
-      
-      exclude_files = File.readlines(exclude_file).map { |l| l.gsub(/#.*/, '').strip }.reject(&:empty?)
-      
-      files_to_run.push *(include_files - exclude_files)
-    }
-    
+    exclusions = ["#{TRUFFLERUBY_DIR}/test/mri/failing.exclude"]
+    patterns = []
+
     args.each do |arg|
       test_module = MRI_TEST_MODULES[arg]
       if test_module
-        add_patterns.call test_module[:include], test_module[:exclude]
+        patterns.push(*test_module[:include])
+        exclusions.push(*test_module[:exclude])
       elsif arg.start_with?('-')
-        mri_args << arg
+        mri_args.push arg
       else
-        add_patterns.call [arg], nil
+        patterns.push arg
       end
     end
-    
-    if files_to_run.empty?
-      add_patterns.call ["#{TRUFFLERUBY_DIR}/test/mri/tests/**/test_*.rb"], nil
-    end
-    
-    run_mri_tests(mri_args, files_to_run.sort, runner_args)
+
+    patterns.push "#{TRUFFLERUBY_DIR}/test/mri/tests/**/test_*.rb" if patterns.empty?
+
+    excluded_files = exclusions.
+        flat_map { |f| File.readlines(f) }.
+        map { |l| l.gsub(/#.*/, '').strip }.
+        reject(&:empty?)
+
+    files_to_run = patterns.flat_map do |pattern|
+      Dir.glob(pattern).map do |path|
+        expanded_path = File.expand_path path
+        raise 'pattern does not match test files' unless expanded_path.start_with?(prefix)
+        expanded_path[prefix.size..-1]
+      end.reject do |path|
+        path.empty?
+      end
+    end.sort - excluded_files
+
+    run_mri_tests(mri_args, files_to_run, runner_args)
   end
   private :test_mri
 
@@ -2096,19 +2091,19 @@ EOS
 
     if defined?(tarball)
       tarball_base = File.basename(tarball)
-      
+
       graalvm_version = /([ce]e-)?(linux-amd64-)?\d+(\.\d+)*(-rc\d+)?(\-dev)?(-\h+)?(\.\h+)?(-\h+)?/.match(tarball_base).to_s
 
       # Test build tarballs may have a -bn suffix, which isn't really part of the version string but matches the hex part in some cases
       graalvm_version = graalvm_version.gsub(/-b\d+\Z/, '')
-      
+
       # Some test builds have the platform in the middle
       graalvm_version = graalvm_version.gsub(/-linux-amd64-/, '-')
-      
+
       # Some test builds have a date and time instead of -dev
       graalvm_version = graalvm_version.gsub(/-\h+\.\h+-\h+/, '-dev')
     end
-    
+
     check_post_install_message = [
       "RUN grep 'The Ruby openssl C extension needs to be recompiled on your system to work with the installed libssl' install.log",
       "RUN grep '/jre/languages/ruby/lib/truffle/post_install_hook.sh' install.log"
