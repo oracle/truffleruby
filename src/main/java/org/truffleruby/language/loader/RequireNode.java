@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -51,6 +50,7 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.Metrics;
+import org.truffleruby.shared.TruffleRuby;
 
 @NodeChild("feature")
 public abstract class RequireNode extends RubyNode {
@@ -167,14 +167,15 @@ public abstract class RequireNode extends RubyNode {
     private boolean parseAndCall(String feature, String expandedPath) {
         final RubySource source;
         try {
-            source = getContext().getSourceLoader().load(expandedPath);
+            final FileLoader fileLoader = new FileLoader(getContext());
+            source = fileLoader.loadFile(expandedPath);
         } catch (IOException e) {
             return false;
         }
 
-        final String mimeType = getSourceMimeType(source.getSource());
+        final String language = getLanguage(source.getSource());
 
-        if (RubyLanguage.MIME_TYPE.equals(mimeType)) {
+        if (TruffleRuby.LANGUAGE_ID.equals(language)) {
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source,
                     ParserContext.TOP_LEVEL,
@@ -195,21 +196,12 @@ public abstract class RequireNode extends RubyNode {
             } finally {
                 requireMetric("after-execute-" + feature);
             }
-        } else if (RubyLanguage.CEXT_MIME_TYPE.equals(mimeType)) {
+        } else if (TruffleRuby.LLVM_ID.equals(language)) {
             requireCExtension(feature, expandedPath);
         } else {
-            throw new RaiseException(getContext(), mimeTypeNotFound(expandedPath, mimeType));
+            throw new UnsupportedOperationException();
         }
         return true;
-    }
-
-    @TruffleBoundary
-    private DynamicObject mimeTypeNotFound(String expandedPath, String mimeType) {
-        if (expandedPath.toLowerCase(Locale.ENGLISH).endsWith(".su")) {
-            return coreExceptions().notImplementedError("cext support is not available to load " + expandedPath, this);
-        } else {
-            return coreExceptions().argumentError("unknown language " + mimeType + " for " + expandedPath, this);
-        }
     }
 
     @TruffleBoundary
@@ -352,8 +344,8 @@ public abstract class RequireNode extends RubyNode {
     }
 
     @TruffleBoundary
-    private String getSourceMimeType(Source source) {
-        return source.getMimeType();
+    private String getLanguage(Source source) {
+        return source.getLanguage();
     }
 
     @TruffleBoundary

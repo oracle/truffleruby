@@ -74,7 +74,7 @@ public class SharedObjects {
 
         if (context.getOptions().SHARED_OBJECTS_DEBUG) {
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
-            RubyLanguage.LOGGER.info("sharing decl frame of " + context.getSourceLoader().fileLine(sourceSection));
+            RubyLanguage.LOGGER.info("sharing decl frame of " + context.fileLine(sourceSection));
         }
 
         final MaterializedFrame declarationFrame = Layouts.PROC.getDeclarationFrame(block);

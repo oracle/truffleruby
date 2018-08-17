@@ -36,7 +36,6 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.Layout;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.Source.Builder;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.transcode.EConvFlags;
@@ -44,6 +43,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
+import org.truffleruby.aot.ParserCache;
 import org.truffleruby.builtins.CoreMethodNodeManager;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.klass.ClassNodes;
@@ -62,7 +62,8 @@ import org.truffleruby.language.control.TruffleFatalException;
 import org.truffleruby.language.globals.GlobalVariableStorage;
 import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.language.loader.CodeLoader;
-import org.truffleruby.language.loader.SourceLoader;
+import org.truffleruby.language.loader.FileLoader;
+import org.truffleruby.language.loader.ResourceLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
@@ -71,6 +72,7 @@ import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
+import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.NativeTypes;
 import org.truffleruby.platform.Platform;
@@ -227,12 +229,20 @@ public class CoreLibrary {
 
     @TruffleBoundary
     private SourceSection initCoreSourceSection(RubyContext context) {
-        final Builder<RuntimeException, RuntimeException, RuntimeException> builder =
-                Source.newBuilder("").name("(core)").mimeType(RubyLanguage.MIME_TYPE);
+        final Source.SourceBuilder builder =
+                Source.newBuilder(TruffleRuby.LANGUAGE_ID, "", "(core)");
         if (context.getOptions().CORE_AS_INTERNAL) {
-            builder.internal();
+            builder.internal(true);
         }
-        final Source source = builder.build();
+
+        final Source source;
+
+        try {
+            source = builder.build();
+        } catch (IOException e) {
+            throw new JavaException(e);
+        }
+
         return source.createUnavailableSection();
     }
 
@@ -243,7 +253,7 @@ public class CoreLibrary {
             path = path.substring(0, path.length() - 1);
         }
 
-        if (path.startsWith(SourceLoader.RESOURCE_SCHEME)) {
+        if (path.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
             return path;
         }
 
@@ -800,7 +810,7 @@ public class CoreLibrary {
                     state = State.LOADED;
                 }
 
-                final RubySource source = context.getSourceLoader().loadCoreFile(getCoreLoadPath() + file);
+                final RubySource source = loadCoreFile(getCoreLoadPath() + file);
                 final RubyRootNode rootNode = context.getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, node);
 
                 final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
@@ -819,6 +829,21 @@ public class CoreLibrary {
         } catch (RaiseException e) {
             context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(e.getException());
             throw new TruffleFatalException("couldn't load the core library", e);
+        }
+    }
+
+    public RubySource loadCoreFile(String feature) throws IOException {
+        if (feature.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
+            if (TruffleOptions.AOT || ParserCache.INSTANCE != null) {
+                final RootParseNode rootParseNode = ParserCache.INSTANCE.get(feature);
+                return new RubySource(rootParseNode.getSource());
+            } else {
+                final ResourceLoader resourceLoader = new ResourceLoader();
+                return resourceLoader.loadResource(feature, context.getOptions().CORE_AS_INTERNAL);
+            }
+        } else {
+            final FileLoader fileLoader = new FileLoader(context);
+            return fileLoader.loadFile(feature);
         }
     }
 

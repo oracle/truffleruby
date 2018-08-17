@@ -60,7 +60,7 @@ public abstract class TruffleRubyNodes {
 
         @TruffleBoundary
         public static boolean isSulongAvailable(RubyContext context) {
-            return context.getEnv().isMimeTypeSupported(RubyLanguage.SULONG_BITCODE_BASE64_MIME_TYPE);
+            return context.getEnv().isMimeTypeSupported(RubyLanguage.LLVM_BITCODE_MIME_TYPE);
         }
 
     }

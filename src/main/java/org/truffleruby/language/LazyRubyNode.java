@@ -76,7 +76,7 @@ public class LazyRubyNode extends RubyNode {
             masterResolution = resolutionMaster.get();
             if (masterResolution == null) {
                 if (getContext().getOptions().LAZY_TRANSLATION_LOG) {
-                    RubyLanguage.LOGGER.info(() -> "lazy translating " + getContext().getSourceLoader().fileLine(getParent().getEncapsulatingSourceSection()) + " in " + getRootNode());
+                    RubyLanguage.LOGGER.info(() -> "lazy translating " + getContext().fileLine(getParent().getEncapsulatingSourceSection()) + " in " + getRootNode());
                 }
 
                 masterResolution = resolver.get();

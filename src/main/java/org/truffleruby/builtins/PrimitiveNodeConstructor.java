@@ -65,7 +65,7 @@ public class PrimitiveNodeConstructor {
 
     public RubyNode createInvokePrimitiveNode(RubyContext context, Source source, SourceIndexLength sourceSection, RubyNode[] arguments) {
         if (arguments.length != getPrimitiveArity()) {
-            throw new AssertionError("Incorrect number of arguments at " + context.getSourceLoader().fileLine(sourceSection.toSourceSection(source)));
+            throw new AssertionError("Incorrect number of arguments at " + context.fileLine(sourceSection.toSourceSection(source)));
         }
 
         for (int n = 0; n < arguments.length; n++) {

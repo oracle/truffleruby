@@ -55,8 +55,8 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.shared.TruffleRuby;
 
-import java.io.File;
 import java.io.IOException;
 
 @CoreClass("Truffle::Interop")
@@ -69,7 +69,7 @@ public abstract class InteropNodes {
         @Specialization(guards = "isRubyString(fileName)")
         public Object importFile(DynamicObject fileName) {
             try {
-                final Source sourceObject = Source.newBuilder(new File(fileName.toString().intern())).build();
+                final Source sourceObject = Source.newBuilder(TruffleRuby.LANGUAGE_ID, getContext().getEnv().getTruffleFile(fileName.toString().intern())).build();
                 getContext().getEnv().parse(sourceObject).call();
             } catch (IOException e) {
                 throw new JavaException(e);
@@ -676,7 +676,7 @@ public abstract class InteropNodes {
         @TruffleBoundary
         protected CallTarget parse(DynamicObject mimeType, DynamicObject source) {
             final String mimeTypeString = mimeType.toString();
-            final Source sourceObject = Source.newBuilder(source.toString()).name("(eval)").mimeType(mimeTypeString).build();
+            final Source sourceObject = Source.newBuilder(Source.findLanguage(mimeTypeString), source.toString(), "(eval)").build();
             return getContext().getEnv().parse(sourceObject);
         }
 

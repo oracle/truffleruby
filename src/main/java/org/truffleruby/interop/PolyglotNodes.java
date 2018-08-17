@@ -11,6 +11,7 @@ package org.truffleruby.interop;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -29,7 +30,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.JavaException;
 
-import java.io.File;
 import java.io.IOException;
 
 @CoreClass("Polyglot")
@@ -66,10 +66,7 @@ public abstract class PolyglotNodes {
         @TruffleBoundary
         protected CallTarget parse(DynamicObject id, DynamicObject source) {
             final String idString = id.toString();
-            final Source sourceObject = Source.newBuilder(source.toString())
-                    .name("(eval)")
-                    .language(idString)
-                    .build();
+            final Source sourceObject = Source.newBuilder(idString, source.toString(), "(eval)").build();
             return getContext().getEnv().parse(sourceObject);
         }
 
@@ -86,8 +83,8 @@ public abstract class PolyglotNodes {
         @Specialization(guards = "isRubyString(fileName)")
         public Object evalFile(DynamicObject fileName, NotProvided id) {
             try {
-                final Source sourceObject = Source.newBuilder(new File(fileName.toString().intern()))
-                        .build();
+                final TruffleFile file = getContext().getEnv().getTruffleFile(fileName.toString().intern());
+                final Source sourceObject = Source.newBuilder(Source.findLanguage(file), file).name("(eval)").build();
                 return getContext().getEnv().parse(sourceObject).call();
             } catch (IOException e) {
                 throw new JavaException(e);
@@ -99,9 +96,8 @@ public abstract class PolyglotNodes {
         public Object evalFile(DynamicObject id, DynamicObject fileName) {
             final String idString = id.toString();
             try {
-                final Source sourceObject = Source.newBuilder(new File(fileName.toString().intern()))
-                        .language(idString)
-                        .build();
+                final TruffleFile file = getContext().getEnv().getTruffleFile(fileName.toString().intern());
+                final Source sourceObject = Source.newBuilder(idString, file).build();
                 return getContext().getEnv().parse(sourceObject).call();
             } catch (IOException e) {
                 throw new JavaException(e);

@@ -944,6 +944,7 @@ module Commands
       
       include_files = patterns.flat_map { |p|
         Dir.glob(p).map { |f|
+          f = File.absolute_path(f)
           raise unless f.start_with?(prefix)
           f[prefix.size..-1]
         }.reject(&:empty?).reject { |f|

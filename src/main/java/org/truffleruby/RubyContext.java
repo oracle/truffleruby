@@ -21,6 +21,7 @@ import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 
+import com.oracle.truffle.api.source.SourceSection;
 import org.joni.Regex;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.collections.WeakValueCache;
@@ -58,7 +59,6 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FeatureLoader;
-import org.truffleruby.language.loader.SourceLoader;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.shared.Metrics;
@@ -110,7 +110,6 @@ public class RubyContext {
     private final ObjectSpaceManager objectSpaceManager = new ObjectSpaceManager(this, finalizationService);
     private final SharedObjects sharedObjects = new SharedObjects(this);
     private final AtExitManager atExitManager = new AtExitManager(this);
-    private final SourceLoader sourceLoader = new SourceLoader(this);
     private final CallStackManager callStack = new CallStackManager(this);
     private final CoreStrings coreStrings = new CoreStrings(this);
     private final FrozenStringLiterals frozenStringLiterals = new FrozenStringLiterals(this);
@@ -142,6 +141,9 @@ public class RubyContext {
     @CompilationFinal private boolean preInitializing;
     private boolean initialized;
     private volatile boolean finalizing;
+
+    private Source mainSource = null;
+    private String mainSourceAbsolutePath = null;
 
     private static boolean preInitializeContexts = TruffleRuby.PRE_INITIALIZE_CONTEXTS;
 
@@ -504,7 +506,7 @@ public class RubyContext {
         }
 
         if (options.COVERAGE_GLOBAL) {
-            coverageManager.print(System.out, sourceLoader);
+            coverageManager.print(System.out);
         }
 
         try {
@@ -617,10 +619,6 @@ public class RubyContext {
 
     public CoverageManager getCoverageManager() {
         return coverageManager;
-    }
-
-    public SourceLoader getSourceLoader() {
-        return sourceLoader;
     }
 
     public RopeCache getRopeCache() {
@@ -836,6 +834,52 @@ public class RubyContext {
 
     public WeakValueCache<RegexpCacheKey, Regex> getRegexpCache() {
         return regexpCache;
+    }
+
+    /**
+     * Returns the path of a Source. Returns the short path for the main script (the file argument
+     * given to "ruby"). The path of eval(code, nil, filename) is just filename.
+     */
+    public String getPath(Source source) {
+        final String name = source.getName();
+
+        if (preInitialized && name.startsWith(RubyLanguage.RUBY_HOME_SCHEME)) {
+            return rubyHome + "/" + name.substring(RubyLanguage.RUBY_HOME_SCHEME.length());
+        } else {
+            return name;
+        }
+    }
+
+    /**
+     * Returns the path of a Source. Returns the canonical path for the main script. Note however
+     * that the path of eval(code, nil, filename) is just filename and might not be absolute.
+     */
+    public String getAbsolutePath(Source source) {
+        if (source == mainSource) {
+            return mainSourceAbsolutePath;
+        } else {
+            return getPath(source);
+        }
+    }
+
+    @TruffleBoundary
+    public String fileLine(SourceSection section) {
+        if (section == null) {
+            return "no source section";
+        } else {
+            final String path = getPath(section.getSource());
+
+            if (section.isAvailable()) {
+                return path + ":" + section.getStartLine();
+            } else {
+                return path;
+            }
+        }
+    }
+
+    public void setMainSources(Source mainSource, String mainSourceAbsolutePath) {
+        this.mainSource = mainSource;
+        this.mainSourceAbsolutePath = mainSourceAbsolutePath;
     }
 
 }

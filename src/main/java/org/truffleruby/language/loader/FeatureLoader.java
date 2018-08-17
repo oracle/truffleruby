@@ -24,7 +24,6 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.cext.Linker;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.support.IONodes.GetThreadBufferNode;
@@ -131,7 +130,7 @@ public class FeatureLoader {
 
             RubyLanguage.LOGGER.info(() -> {
                 final SourceSection sourceSection = context.getCallStack().getTopMostUserSourceSection();
-                return String.format("starting search from %s for feature %s...", context.getSourceLoader().fileLine(sourceSection), originalFeature);
+                return String.format("starting search from %s for feature %s...", context.fileLine(sourceSection), originalFeature);
             });
         }
 
@@ -157,7 +156,7 @@ public class FeatureLoader {
 
         String found = null;
 
-        if (feature.startsWith(SourceLoader.RESOURCE_SCHEME) || new File(feature).isAbsolute()) {
+        if (feature.startsWith(RubyLanguage.RESOURCE_SCHEME) || new File(feature).isAbsolute()) {
             found = findFeatureWithAndWithoutExtension(feature);
         } else {
             for (Object pathObject : ArrayOperations.toIterable(context.getCoreLibrary().getLoadPath())) {
@@ -228,7 +227,7 @@ public class FeatureLoader {
             RubyLanguage.LOGGER.info(String.format("trying %s...", path));
         }
 
-        if (path.startsWith(SourceLoader.RESOURCE_SCHEME)) {
+        if (path.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
             return path;
         }
 
@@ -294,8 +293,6 @@ public class FeatureLoader {
 
     @TruffleBoundary
     public List<TruffleObject> loadCExtLibrary(String feature, String path) {
-        final File file = new File(path);
-
         if (!new File(path).exists()) {
             throw new RaiseException(context, context.getCoreExceptions().loadError(path + " does not exists", path, null));
         }
@@ -304,7 +301,7 @@ public class FeatureLoader {
 
         Metrics.printTime("before-load-cext-" + feature);
         try {
-            Linker.loadLibrary(file, this::loadNativeLibrary, source -> {
+            final CExtLoader cextLoader = new CExtLoader(this::loadNativeLibrary, source -> {
                 final Object result;
 
                 try {
@@ -314,11 +311,12 @@ public class FeatureLoader {
                 }
 
                 if (!(result instanceof TruffleObject)) {
-                    throw new RaiseException(context, context.getCoreExceptions().loadError(String.format("%s returned a %s rather than a TruffleObject", file, result.getClass().getSimpleName()), path, null));
+                    throw new RaiseException(context, context.getCoreExceptions().loadError(String.format("%s returned a %s rather than a TruffleObject", path, result.getClass().getSimpleName()), path, null));
                 }
 
                 libraries.add((TruffleObject) result);
             });
+            cextLoader.loadLibrary(path);
         } catch (IOException e) {
             throw new JavaException(e);
         } finally {

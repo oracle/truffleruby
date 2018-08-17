@@ -19,13 +19,14 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.loader.SourceLoader;
+import org.truffleruby.shared.TruffleRuby;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -218,7 +219,7 @@ public class BacktraceFormatter {
             if (reportedSourceSection == null) {
                 builder.append("???");
             } else {
-                builder.append(context.getSourceLoader().getPath(reportedSourceSection.getSource()));
+                builder.append(context.getPath(reportedSourceSection.getSource()));
                 builder.append(":");
                 builder.append(reportedSourceSection.getStartLine());
             }
@@ -255,7 +256,7 @@ public class BacktraceFormatter {
             String identifier = rootNode.getName();
 
             if (identifier != null && !identifier.isEmpty()) {
-                if (rootNode.getLanguageInfo().getId().equals("llvm") && identifier.startsWith("@")) {
+                if (rootNode.getLanguageInfo().getId().equals(TruffleRuby.LLVM_ID) && identifier.startsWith("@")) {
                     identifier = identifier.substring(1);
                 }
 
@@ -330,7 +331,7 @@ public class BacktraceFormatter {
             return true;
         }
 
-        if (name.startsWith(SourceLoader.RESOURCE_SCHEME)) {
+        if (name.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
             return true;
         } else if (name.endsWith("truffle/lazy-rubygems.rb")) {
             // Sinatra manually filters RubyGems files patching #require from caller():

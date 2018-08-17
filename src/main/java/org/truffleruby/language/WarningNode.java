@@ -32,7 +32,7 @@ public class WarningNode extends RubyBaseNode {
 
     public void warningMessage(SourceSection sourceSection, String message) {
         if (coreLibrary().isVerbose()) {
-            final String sourceLocation = sourceSection != null ? getContext().getSourceLoader().fileLine(sourceSection) + ": " : "";
+            final String sourceLocation = sourceSection != null ? getContext().fileLine(sourceSection) + ": " : "";
             callWarning(sourceLocation + "warning: " + message);
         }
     }

@@ -186,7 +186,7 @@ public class TraceManager {
 
         @TruffleBoundary
         private String getFile(SourceSection sourceSection) {
-            return context.getSourceLoader().getPath(sourceSection.getSource());
+            return context.getPath(sourceSection.getSource());
         }
 
         @TruffleBoundary

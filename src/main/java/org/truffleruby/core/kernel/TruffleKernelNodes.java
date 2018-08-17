@@ -29,6 +29,7 @@ import org.truffleruby.language.globals.ReadSimpleGlobalVariableNodeGen;
 import org.truffleruby.language.globals.WriteSimpleGlobalVariableNode;
 import org.truffleruby.language.globals.WriteSimpleGlobalVariableNodeGen;
 import org.truffleruby.language.loader.CodeLoader;
+import org.truffleruby.language.loader.FileLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
 import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNode;
@@ -83,7 +84,7 @@ public abstract class TruffleKernelNodes {
 
             final String feature = StringOperations.getString(file);
             try {
-                final RubySource source = getContext().getSourceLoader().load(feature);
+                final RubySource source = loadFile(feature);
                 final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, true, this);
                 final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                         ParserContext.TOP_LEVEL, DeclarationContext.topLevel(getContext()), rootNode, null,
@@ -95,6 +96,12 @@ public abstract class TruffleKernelNodes {
             }
 
             return true;
+        }
+
+        @TruffleBoundary
+        private RubySource loadFile(String feature) throws IOException {
+            final FileLoader fileLoader = new FileLoader(getContext());
+            return fileLoader.loadFile(feature);
         }
 
     }

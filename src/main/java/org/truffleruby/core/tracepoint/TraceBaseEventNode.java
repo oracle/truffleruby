@@ -37,7 +37,7 @@ public class TraceBaseEventNode extends ExecutionEventNode {
     protected DynamicObject getFile() {
         if (file == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            final String path = context.getSourceLoader().getPath(eventContext.getInstrumentedSourceSection().getSource());
+            final String path = context.getPath(eventContext.getInstrumentedSourceSection().getSource());
             file = StringOperations.createString(context, context.getPathToRopeCache().getCachedPath(path));
         }
         return file;

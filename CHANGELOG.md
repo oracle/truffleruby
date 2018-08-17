@@ -31,6 +31,7 @@ Performance:
 
 * Optimize rejected (non-Symbol keys) keyword arguments.
 * Source `SecureRandom.random_bytes` from `/dev/urandom` rather than OpenSSL.
+* C extension bitcode is no longer encoded as Base64 to pass it to Sulong.
 
 Changes:
 

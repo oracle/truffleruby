@@ -32,7 +32,7 @@ public class WarnNode extends RubyBaseNode {
 
     public void warningMessage(SourceSection sourceSection, String message) {
         if (coreLibrary().warningsEnabled()) {
-            final String sourceLocation = sourceSection != null ? getContext().getSourceLoader().fileLine(sourceSection) + ": " : "";
+            final String sourceLocation = sourceSection != null ? getContext().fileLine(sourceSection) + ": " : "";
             callWarn(sourceLocation + "warning: " + message);
         }
     }
