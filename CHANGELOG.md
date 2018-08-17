@@ -10,7 +10,7 @@ New features:
 * `rb_object_tainted` and similar C functions have been implemented.
 * `rb_struct_define_under` has been implemented.
 * `RbConfig::CONFIG['sysconfdir']` has been implemented.
-* More of `Etc` has been implemented.
+* `Etc` has been implemented (#1403).
 * The `-Xcexts=false` option disables C extensions.
 * Instrumentation such as the CPUSampler reports methods in a clearer way like
   `Foo#bar`, `Gem::Specification.each_spec`, `block in Foo#bar` instead of just
