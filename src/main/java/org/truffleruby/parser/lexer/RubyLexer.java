@@ -3436,10 +3436,10 @@ public class RubyLexer implements MagicCommentHandler {
 
     public static final int EOF = -1; // 0 in MRI
 
-    public static Rope END_MARKER = RopeOperations.create(new byte[]{'_', '_', 'E', 'N', 'D', '_', '_'}, ASCIIEncoding.INSTANCE, CR_7BIT);
-    public static Rope BEGIN_DOC_MARKER = RopeOperations.create(new byte[]{'b', 'e', 'g', 'i', 'n'}, ASCIIEncoding.INSTANCE, CR_7BIT);
-    public static Rope END_DOC_MARKER = RopeOperations.create(new byte[]{'e', 'n', 'd'}, ASCIIEncoding.INSTANCE, CR_7BIT);
-    public static Rope CODING = RopeOperations.create(new byte[]{'c', 'o', 'd', 'i', 'n', 'g'}, ASCIIEncoding.INSTANCE, CR_7BIT);
+    public static final Rope END_MARKER = RopeOperations.create(new byte[]{ '_', '_', 'E', 'N', 'D', '_', '_' }, ASCIIEncoding.INSTANCE, CR_7BIT);
+    public static final Rope BEGIN_DOC_MARKER = RopeOperations.create(new byte[]{ 'b', 'e', 'g', 'i', 'n' }, ASCIIEncoding.INSTANCE, CR_7BIT);
+    public static final Rope END_DOC_MARKER = RopeOperations.create(new byte[]{ 'e', 'n', 'd' }, ASCIIEncoding.INSTANCE, CR_7BIT);
+    public static final Rope CODING = RopeOperations.create(new byte[]{ 'c', 'o', 'd', 'i', 'n', 'g' }, ASCIIEncoding.INSTANCE, CR_7BIT);
 
     public static final Encoding UTF8_ENCODING = UTF8Encoding.INSTANCE;
     public static final Encoding USASCII_ENCODING = USASCIIEncoding.INSTANCE;
