@@ -26,6 +26,10 @@ Bug fixes:
   autoload the constant if needed.
 * Loaded files are read as raw bytes, rather than as a UTF-8 string and then
   converted back into bytes.
+* Return 'DEFAULT' for `Signal.trap(:INT) {}`. Avoids a backtrace when quitting
+  a Sinatra server with Ctrl+C.
+* Support `Signal.trap('PIPE', 'SYSTEM_DEFAULT')`, used by the gem `rouge`
+  (#1411).
 
 Performance:
 
