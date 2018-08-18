@@ -26,6 +26,7 @@ Bug fixes:
   autoload the constant if needed.
 * Loaded files are read as raw bytes, rather than as a UTF-8 string and then
   converted back into bytes.
+* Fix arity checks and handling of arity `-2` for `rb_define_method()`.
 
 Performance:
 
