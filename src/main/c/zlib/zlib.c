@@ -1002,7 +1002,7 @@ zstream_run(struct zstream *z, Bytef *src, long len, int flush)
     int err;
     VALUE guard = Qnil;
 
-    args.z = rb_tr_handle_for_managed_leaking(z);
+    args.z = rb_tr_handle_for_managed(z);
     args.flush = flush;
     args.interrupt = 0;
     args.jump_state = 0;
@@ -1052,6 +1052,7 @@ loop:
 		}
 	    }
 	}
+        rb_tr_release_handle(args.z);
 	raise_zlib_error(err, z->stream.msg);
     }
 
@@ -1059,6 +1060,8 @@ loop:
 	zstream_append_input(z, z->stream.next_in, z->stream.avail_in);
 	RB_GC_GUARD(guard); /* prevent tail call to make guard effective */
     }
+
+    rb_tr_release_handle(args.z);
 
     if (args.jump_state)
 	rb_jump_tag(args.jump_state);
