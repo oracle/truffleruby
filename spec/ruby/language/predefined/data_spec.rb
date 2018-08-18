@@ -23,6 +23,10 @@ describe "The DATA constant" do
     str.chomp.should == "data only"
   end
 
+  it "returns a File object with the right offset" do
+    ruby_exe(fixture(__FILE__, "data_offset.rb")).should == "File\n121\n"
+  end
+
   it "rewinds to the head of the main script" do
     ruby_exe(fixture(__FILE__, "data5.rb")).chomp.should == "DATA.rewind"
   end
