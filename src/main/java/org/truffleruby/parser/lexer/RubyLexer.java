@@ -276,8 +276,6 @@ public class RubyLexer implements MagicCommentHandler {
 
     public int nextc() {
         if (lex_p == lex_pend) {
-            line_offset += lex_pend;
-
             if (eofp) {
                 return EOF;
             }
@@ -1038,8 +1036,7 @@ public class RubyLexer implements MagicCommentHandler {
                 return at();
             case '_':
                 if (was_bol() && whole_match_p(END_MARKER, false)) {
-                    line_offset += lex_pend;
-                    __end__seen = true;
+                    endPosition = src.getOffset();
                     eofp = true;
 
                     lex_goto_eol();
@@ -2759,7 +2756,7 @@ public class RubyLexer implements MagicCommentHandler {
     protected StackState cmdArgumentState = new StackState();
     private String current_arg;
     private Encoding current_enc;
-    protected boolean __end__seen = false;
+    protected int endPosition = -1;
     public boolean eofp = false;
     protected boolean has_shebang = false;
     protected int heredoc_end = 0;
@@ -2776,7 +2773,6 @@ public class RubyLexer implements MagicCommentHandler {
     public int lex_pend = 0;               // Where line ends
     protected int lex_state;
     protected int line_count = 0;
-    protected int line_offset = 0;
     protected int parenNest = 0;
     protected int ruby_sourceline = 1;
     protected int ruby_sourceline_char_offset = 0;
@@ -2879,10 +2875,6 @@ public class RubyLexer implements MagicCommentHandler {
         return leftParenBegin;
     }
 
-    public int getLineOffset() {
-        return line_offset;
-    }
-
     public int getState() {
         return lex_state;
     }
@@ -2912,8 +2904,8 @@ public class RubyLexer implements MagicCommentHandler {
         return parenNest;
     }
 
-    public boolean isEndSeen() {
-        return __end__seen;
+    public int getEndPosition() {
+        return endPosition;
     }
 
     public boolean isASCII(int c) {

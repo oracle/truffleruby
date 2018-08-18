@@ -285,13 +285,7 @@ public class ParserSupport {
 
     // This is the last node made in the AST unintuitively so so post-processing can occur here.
     public ParseNode addRootNode(ParseNode topOfAST) {
-        final int endPosition;
-
-        if (lexer.isEndSeen()) {
-            endPosition = lexer.getLineOffset();
-        } else {
-            endPosition = -1;
-        }
+        final int endPosition = lexer.getEndPosition();
 
         SourceIndexLength position;
         if (result.getBeginNodes().isEmpty()) {

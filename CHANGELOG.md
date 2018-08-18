@@ -31,6 +31,7 @@ Bug fixes:
 * Support `Signal.trap('PIPE', 'SYSTEM_DEFAULT')`, used by the gem `rouge`
   (#1411).
 * Fix arity checks and handling of arity `-2` for `rb_define_method()`.
+* The offset of `DATA` is now correct in the presence of heredocs.
 
 Performance:
 
