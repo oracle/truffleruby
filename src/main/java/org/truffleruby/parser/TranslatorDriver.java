@@ -148,7 +148,7 @@ public class TranslatorDriver {
 
         boolean isInlineSource = source.getName().equals("-e");
         boolean isEvalParse = parserContext == ParserContext.EVAL || parserContext == ParserContext.INLINE || parserContext == ParserContext.MODULE;
-        final ParserConfiguration parserConfiguration = new ParserConfiguration(context, 0, isInlineSource, !isEvalParse, false);
+        final ParserConfiguration parserConfiguration = new ParserConfiguration(context, isInlineSource, !isEvalParse, false);
 
         if (context.getOptions().FROZEN_STRING_LITERALS) {
             parserConfiguration.setFrozenStringLiteral(true);
@@ -306,7 +306,7 @@ public class TranslatorDriver {
     }
 
     public RootParseNode parseToJRubyAST(RubySource rubySource, StaticScope blockScope, ParserConfiguration configuration) {
-        LexerSource lexerSource = new LexerSource(rubySource, configuration.getLineNumber(), configuration.getDefaultEncoding());
+        LexerSource lexerSource = new LexerSource(rubySource, configuration.getDefaultEncoding());
         // We only need to pass in current scope if we are evaluating as a block (which
         // is only done for evals).  We need to pass this in so that we can appropriately scope
         // down to captured scopes when we are parsing.

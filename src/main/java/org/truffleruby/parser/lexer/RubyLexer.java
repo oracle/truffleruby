@@ -265,7 +265,7 @@ public class RubyLexer implements MagicCommentHandler {
     public void reset() {
         superReset();
         lex_strterm = null;
-        ruby_sourceline = 1 + src.getLineStartOffset();
+        ruby_sourceline = 1;
         updateLineOffset();
 
         // nextc will increment for the first character on the first line
