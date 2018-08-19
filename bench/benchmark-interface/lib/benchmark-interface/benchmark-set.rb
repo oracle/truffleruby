@@ -24,6 +24,12 @@ module BenchmarkInterface
       load(path)
     end
 
+    def load_inlined_benchmark(code)
+      @path = '-e'
+      @@current = self
+      TOPLEVEL_BINDING.eval(code)
+    end
+
     def load_mri_benchmarks(path, options)
       @path = path
       @@current = self
