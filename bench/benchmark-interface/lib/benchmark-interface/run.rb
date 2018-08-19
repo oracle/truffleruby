@@ -163,6 +163,10 @@ module BenchmarkInterface
     puts '  --cache           Cache MRI rewrites'
     puts '  --use-cache       Use cached MRI rewrites'
     puts '  --time N          Run for N seconds, if the backend supports that'
+    puts
+    puts 'Options for the --simple backend:'
+    puts '  --elapsed         Print the elapsed times since the benchmark started'
+    puts '  --iterations      Show the actual number of iterations'
     exit 1
   end
 
