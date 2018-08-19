@@ -45,6 +45,7 @@ public class CoreMethods {
 
     private final RubyContext context;
 
+    final Assumption integerNegAssumption, floatNegAssumption;
     final Assumption integerAddAssumption, floatAddAssumption;
     final Assumption integerSubAssumption, floatSubAssumption;
     final Assumption integerMulAssumption, floatMulAssumption;
@@ -76,6 +77,9 @@ public class CoreMethods {
         final DynamicObject floatClass = context.getCoreLibrary().getFloatClass();
         final DynamicObject nilClass = context.getCoreLibrary().getNilClass();
         final DynamicObject stringClass = context.getCoreLibrary().getStringClass();
+
+        integerNegAssumption = registerAssumption(integerClass, "-@");
+        floatNegAssumption = registerAssumption(floatClass, "-@");
 
         integerAddAssumption = registerAssumption(integerClass, "+");
         floatAddAssumption = registerAssumption(floatClass, "+");
@@ -140,6 +144,8 @@ public class CoreMethods {
             switch (callParameters.getMethodName()) {
                 case "!":
                     return InlinedNotNodeGen.create(context, callParameters, self);
+                case "-@":
+                    return InlinedNegNodeGen.create(context, callParameters, self);
                 case "block_given?":
                     if (callParameters.isIgnoreVisibility()) {
                         return InlinedBlockGivenNodeGen.create(context, callParameters, self);
