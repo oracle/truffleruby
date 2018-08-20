@@ -69,7 +69,7 @@ public abstract class IntegerNodes {
     @CoreMethod(names = "-@")
     public abstract static class NegNode extends BignumCoreMethodNode {
 
-        @Child private FixnumOrBignumNode fixnumOrBignumNode;
+        public abstract Object executeNeg(Object a);
 
         @Specialization(rewriteOn = ArithmeticException.class)
         public int neg(int value) {
