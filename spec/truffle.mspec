@@ -11,11 +11,15 @@ class MSpecScript
   end
 
   def self.linux?
-    RbConfig::CONFIG['host_os'] == 'linux'
+    RbConfig::CONFIG['host_os'].include?('linux')
+  end
+
+  def self.darwin?
+    RbConfig::CONFIG['host_os'].include?('darwin')
   end
 
   def self.solaris?
-    RbConfig::CONFIG['host_os'] == 'solaris'
+    RbConfig::CONFIG['host_os'].include?('solaris')
   end
 
   if child_process?
@@ -125,14 +129,13 @@ class MSpecScript
   if windows?
     # exclude specs tagged with 'windows'
     set :xtags, (get(:xtags) || []) + ['windows']
-  end
-
-  if linux?
+  elsif linux?
     # exclude specs tagged with 'linux'
     set :xtags, (get(:xtags) || []) + ['linux']
-  end
-
-  if solaris?
+  elsif darwin?
+    # exclude specs tagged with 'darwin'
+    set :xtags, (get(:xtags) || []) + ['darwin']
+  elsif solaris?
     # exclude specs tagged with 'solaris'
     set :xtags, (get(:xtags) || []) + ['solaris']
   end

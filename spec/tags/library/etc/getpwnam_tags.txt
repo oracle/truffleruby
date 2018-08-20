@@ -1,0 +1,1 @@
+slow:Etc.getpwnam returns a Etc::Passwd struct instance for the given user

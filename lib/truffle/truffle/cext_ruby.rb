@@ -13,10 +13,19 @@ module Truffle::CExt
   # methods defined with rb_define_method are normal Ruby methods therefore they cannot be defined in the cext.rb file
   # file because blocks passed as arguments would be skipped by org.truffleruby.cext.CExtNodes.BlockProcNode
   def rb_define_method(mod, name, function, argc)
+    if argc < -2
+      raise "Unsupported rb_define_method argc: #{argc}"
+    end
+
     method_body = Truffle::Graal.copy_captured_locals -> *args, &block do
-      if argc == -1
+      if argc == -1 # (int argc, VALUE *argv, VALUE obj)
         args = [args.size, args, self]
-      else
+      elsif argc == -2 # (VALUE obj, VALUE rubyArrayArgs)
+        args = [self, args]
+      elsif argc >= 0 # (VALUE obj); (VALUE obj, VALUE arg1); (VALUE obj, VALUE arg1, VALUE arg2); ...
+        if args.size != argc
+          raise ArgumentError, "wrong number of arguments (given #{args.size}, expected #{argc})"
+        end
         args = [self, *args]
       end
 

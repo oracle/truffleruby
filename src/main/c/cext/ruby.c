@@ -2891,7 +2891,7 @@ VALUE rb_struct_define(const char *name, ...) {
   VALUE ary = rb_ary_new();
   int i = 0;
   char *arg = NULL;
-  while ((arg = (char *)polyglot_get_arg(i + 1)) != NULL) {
+  while ((arg = (char *)polyglot_get_arg(1+i)) != NULL) {
     rb_ary_push(ary, rb_str_new_cstr(arg));
     i++;
   }
@@ -2903,7 +2903,7 @@ VALUE rb_struct_define_under(VALUE outer, const char *name, ...) {
   VALUE ary = rb_ary_new();
   int i = 0;
   char *arg = NULL;
-  while ((arg = (char *)polyglot_get_arg(i + 1)) != NULL) {
+  while ((arg = (char *)polyglot_get_arg(2+i)) != NULL) {
     rb_ary_push(ary, rb_str_new_cstr(arg));
     i++;
   }
@@ -2915,7 +2915,7 @@ VALUE rb_struct_new(VALUE klass, ...) {
   VALUE ary = rb_ary_new();
   int i = 0;
   while (i < members) {
-    VALUE arg = polyglot_get_arg(i + 1);
+    VALUE arg = polyglot_get_arg(1+i);
     rb_ary_push(ary, arg);
     i++;
   }
