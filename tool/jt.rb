@@ -171,7 +171,7 @@ module Utilities
     env_file = "#{graal_home}/mx.compiler/env"
     graal_env = File.exist?(env_file) ? File.read(env_file) : ""
     if java_home = graal_env[/^JAVA_HOME=(.+)$/, 1]
-      java_home
+      java_home.gsub(/\$([a-zA-Z_]+[a-zA-Z0-9_]*)/) { ENV[$1] }
     else
       ENV.fetch("JAVA_HOME") { raise "Could not find JAVA_HOME of graal in #{env_file} or in ENV" }
     end
