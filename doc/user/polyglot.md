@@ -29,6 +29,24 @@ using the Truffle interop API, and exactly how Ruby is matched to this API.
 Also see the separate document on
 [JRuby-compatible Java interop](jruby-java-interop.md).
 
+## Embedding in Java
+
+TruffleRuby is embedded via the Polyglot API, which is part of GraalVM. You will
+need to use the GraalVM to use this API.
+
+```java
+import org.graalvm.polyglot.*;
+
+class Embedding {
+    public static void main(String[] args) {
+        Context polyglot = Context.newBuilder().allowAllAccess(true).build();
+        Value array = polyglot.eval("ruby", "[1,2,42,4]");
+        int result = array.getArrayElement(2).asInt();
+        System.out.println(result);
+    }
+}
+```
+
 ## Loading code written in foreign languages
 
 `Polyglot.eval(id, string)` executes code in a foreign language identified by
@@ -83,9 +101,50 @@ object has a `[]` method, in which case it returns an empty array.
 
 `new object(args...)` calls `object.new(args...)`.
 
-`"length" in obj` retursn `true` for a Ruby `Array`.
+`"length" in obj` returns `true` for a Ruby `Array`.
 
 `object == null` calls `object.nil?`.
+
+## Using Ruby objects from embedding Java
+
+Ruby objects are represented by the `Value` class when embedded in Java.
+
+    public boolean hasArrayElements() 
+    public Value getArrayElement(long index)
+    public void setArrayElement(long index, Object value) {
+    public boolean removeArrayElement(long index) {
+    public long getArraySize() {
+    public boolean hasMembers()
+    public boolean hasMember(String identifier)
+    public Value getMember(String identifier)
+    public Set<String> getMemberKeys
+    public void putMember(String identifier, Object value
+    public boolean removeMember(String identifier)
+    public boolean canExecute() 
+    public Value execute(Object... arguments) 
+    public void executeVoid(Object... arguments) {
+    public boolean canInstantiate() {
+    public Value newInstance(Object... arguments) {
+    public boolean isString() {
+    public String asString() {
+    public boolean fitsInInt() {
+    public int asInt() {
+    public boolean isBoolean() {
+    public boolean asBoolean() {
+    public boolean isNumber() {
+    public boolean fitsInLong() {
+    public long asLong() {
+    public boolean fitsInDouble() {
+    public double asDouble() {
+    public boolean fitsInFloat() {
+    public float asFloat() {
+    public boolean fitsInByte() {
+    public byte asByte() {
+    public boolean fitsInShort() {
+    public short asShort() {
+    public boolean isNull() {
+
+The [JRuby migration guide](jruby-migration.md) includes some more examples.
 
 ### Notes on creating Ruby objects for use in foreign languages
 
@@ -149,9 +208,6 @@ instance, `.foo` will call the static method `foo`, `[:FOO]` will read the field
 `MyClass.class.getName`.
 
 To import a Java class as a top-level constant, use `Java.import 'name'`.
-
-Also see the separate document on
-[JRuby-compatible Java interop](jruby-java-interop.md).
 
 ## Strings
 
