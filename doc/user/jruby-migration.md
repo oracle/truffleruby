@@ -59,6 +59,31 @@ In TruffleRuby you now write:
 Context polyglot = Context.newBuilder().allowAllAccess(true).build();
 ```
 
+`allowAllAccess(true)` allows the permissive access permissions that Ruby needs
+by default. GraalVM by default disallows many things which may not be safe, such
+as native file access, but a normal Ruby installation uses these so we enable
+them. You can use the option `ruby.platform.native` to disable the need for the
+option, but this will restrict some of Ruby's functionality.
+
+```java
+Context polyglot = Context.newBuilder()
+  .option("ruby.platform.native", "false")
+  .build();
+```
+
+You would normally create your context inside a `try` block to ensure it is
+properly disposed.
+
+```java
+try (Context polyglot = Context.newBuilder().allowAllAccess(true).build()) {
+}
+```
+
+### Setting options
+
+You can set TruffleRuby [options](options.md) via system properties, or via the
+`.option(name, value)` builder method.
+
 ### Evaluating code
 
 In JRuby where you would have written one of these:
