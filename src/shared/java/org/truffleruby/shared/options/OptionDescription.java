@@ -30,6 +30,10 @@ public abstract class OptionDescription<T> {
         return name;
     }
 
+    public String getPropertyName() {
+        return String.format("polyglot.%s", name);
+    }
+
     public String getDescription() {
         return description;
     }
