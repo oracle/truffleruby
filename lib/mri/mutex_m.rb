@@ -10,8 +10,8 @@
 #
 # --
 
-
-require 'thread'
+# # We require this from `thread` so must break the circular dependency here.
+# # require 'thread'
 
 # = mutex_m.rb
 #

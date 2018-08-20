@@ -9,6 +9,8 @@
 # Copyright (C) 2000  Information-technology Promotion Agency, Japan
 #
 
+require 'mutex_m'
+
 unless defined? Thread
   raise 'Thread not available for this ruby interpreter'
 end
@@ -62,8 +64,16 @@ class ConditionVariable
       timeout = timeout * 1000
       timeout = Truffle::Type.rb_num2long(timeout)
     end
-    raise ArgumentError, "#{mutex} must be a Mutex" unless mutex.kind_of? Mutex
-    Truffle.invoke_primitive( :condition_variable_wait, self, mutex, timeout)
+
+    if mutex.kind_of?(Mutex_m)
+      raw_mutex = mutex.instance_variable_get(:@_mutex)
+    else
+      raw_mutex = mutex
+    end
+
+    raise ArgumentError, "#{mutex} must be a Mutex or Mutex_m" unless raw_mutex.kind_of? Mutex
+
+    Truffle.invoke_primitive( :condition_variable_wait, self, raw_mutex, timeout)
   end
 
   #
