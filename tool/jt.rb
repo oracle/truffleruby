@@ -25,7 +25,7 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = "c30ae885eb3bfe97a04e25957945b9a107fe4432"
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = "f8296bc32857c91cb689148664ceb8849b44986d"
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -1169,6 +1169,7 @@ EOS
           end
 
           # Tests using gem install to compile the cexts
+          sh "test/truffle/cexts/msgpack/msgpack.sh"
           sh "test/truffle/cexts/puma/puma.sh"
           sh "test/truffle/cexts/sqlite3/sqlite3.sh"
           sh "test/truffle/cexts/unf_ext/unf_ext.sh"
