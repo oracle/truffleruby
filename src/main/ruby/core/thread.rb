@@ -440,8 +440,24 @@ end
 Truffle::KernelOperations.define_hooked_variable(
   :$SAFE,
   -> { Thread.current.safe_level },
-  -> value { value = Truffle::Type.check_safe_level(value)
-             Truffle::ThreadOperations.set_thread_local(:$SAFE, value) }
+  -> level {
+    level = Truffle::Type.rb_num2int(level)
+    if level > 1
+      raise ArgumentError, '$SAFE=2 to 4 are obsolete'
+    elsif level < 0
+      raise SecurityError, "tried to downgrade safe level from #{$SAFE} to #{level}"
+    elsif level != 0
+      if Truffle::Boot.get_option 'safe'
+        Truffle::System.log :SEVERE, '$SAFE level set to 1, but no checks are implemented'
+        Truffle::ThreadOperations.set_thread_local :$SAFE, level
+      else
+        raise SecurityError, '$SAFE levels are not implemented'
+      end
+    else
+      # Allow people to set the level to 0
+    end
+    level
+  }
 )
 
 Truffle::KernelOperations.define_read_only_global(:$!, -> { Truffle::ThreadOperations.get_thread_local(:$!) })

@@ -51,6 +51,14 @@ supported, such as `fiddle`, `sdbm`, `gdbm`, `tk`. It's quite hard to get an
 understanding of all the standard libraries that should be available, so it's
 hard to give a definitive list of those that are missing.
 
+#### Safe levels
+
+`$SAFE` and `Thread#safe_level` are `0` and no other levels are implemented.
+Trying to use level `1` will raise a `SecurityError`. Other levels will raise
+`ArgumentError` as in standard Ruby.
+
+`$SAFE` level 1 can be allowed, but ignored, with the `-Xsafe` option.
+
 ## Features with major differences
 
 #### Threads run in parallel
