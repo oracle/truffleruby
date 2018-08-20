@@ -59,6 +59,9 @@ module BenchmarkInterface
             backend = BenchmarkInterface::Backends::Bench9000
           when '--deep'
             backend = BenchmarkInterface::Backends::Deep
+          when '-e'
+            options[arg] = args[n + 1]
+            n += 1
           when '--Xfirst'
             first = true
           when '--time'
@@ -94,12 +97,16 @@ module BenchmarkInterface
     
     command ||= :run
 
-    to_load.each do |path|
-      source = File.read(path)
-      if NON_MRI_INDICATORS.any? { |t| source.include?(t) } || source =~ /benchmark.*\{/ || source =~ /benchmark.*do/
-        set.load_benchmarks path
-      else
-        set.load_mri_benchmarks path, options
+    if inlined = options['-e']
+      set.load_inlined_benchmark(inlined)
+    else
+      to_load.each do |path|
+        source = File.read(path)
+        if NON_MRI_INDICATORS.any? { |t| source.include?(t) } || source =~ /benchmark.*\{/ || source =~ /benchmark.*do/
+          set.load_benchmarks path
+        else
+          set.load_mri_benchmarks path, options
+        end
       end
     end
     
@@ -150,11 +157,16 @@ module BenchmarkInterface
     puts '  --deep'
     puts
     puts 'Options:'
+    puts '  -e CODE           Run inlined script as a benchmark'
     puts '  --no-scale        Don\'t scale benchmarks for backends that expects benchmarks to take about a second'
     puts '  --show-rewrite    Show rewritten MRI benchmarks'
     puts '  --cache           Cache MRI rewrites'
     puts '  --use-cache       Use cached MRI rewrites'
-    puts '  --time n          Run for n seconds, if the backend supports that'
+    puts '  --time N          Run for N seconds, if the backend supports that'
+    puts
+    puts 'Options for the --simple backend:'
+    puts '  --elapsed         Print the elapsed times since the benchmark started'
+    puts '  --iterations      Show the actual number of iterations'
     exit 1
   end
 

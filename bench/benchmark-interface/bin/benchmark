@@ -8,7 +8,7 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-$LOAD_PATH.push File.expand_path('../../lib', __FILE__)
+$LOAD_PATH.push File.expand_path('../../lib', File.realpath(__FILE__))
 
 require 'benchmark-interface'
 
