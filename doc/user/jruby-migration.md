@@ -242,7 +242,7 @@ In TruffleRuby you can use `getMember` and `putMember` if the keys are strings,
 or you can use `as(Map.class)` to get a `Map<Object, Object>`.
 
 ```java
-polyglot.eval("ruby", "{'a' => 3, 'b' => 4, 'c' => 5}").getMember("b");
+polyglot.eval("ruby", "{'a' => 3, 'b' => 4, 'c' => 5}").getMember("b").asInt();
 polyglot.eval("ruby", "{'a' => 3, 'b' => 4, 'c' => 5}").as(Map.class).get("b");
 ```
 
@@ -251,7 +251,7 @@ the moment.
 
 ### Implementing interfaces
 
-You may want to implement a Java interface using a Ruby object.  (Example copied
+You may want to implement a Java interface using a Ruby object. (Example copied
 from the JRuby wiki.)
 
 ```java
@@ -306,7 +306,7 @@ functional interface) from a Ruby lambda by using
 
 ```java
 BiFunction<Integer, Integer, Integer> adder = polyglot.eval("ruby", "lambda { |a, b| a + b }").as(BiFunction.class);
-adder.apply(14, 2);
+adder.apply(14, 2).intValue();
 ```
 
 ### Parse once run many times

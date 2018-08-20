@@ -54,12 +54,10 @@ public abstract class RubyTest {
     }
 
     public static Context.Builder setupContext(Context.Builder builder) {
-        final String cwd = System.getProperty("user.dir");
-
         return builder
                 .allowAllAccess(true)
                 .option(OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), Boolean.FALSE.toString())
-                .option(OptionsCatalog.HOME.getName(), cwd)
+                .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .option(OptionsCatalog.BASICOPS_INLINE.getName(), Boolean.FALSE.toString());
     }
 
