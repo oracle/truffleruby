@@ -426,8 +426,8 @@ public class RubyLexer implements MagicCommentHandler {
         parserSupport.getConfiguration().setFrozenStringLiteral(b == 1);
     }
 
-    private final Rope TRUE = RopeOperations.create(new byte[]{'t', 'r', 'u', 'e'}, ASCIIEncoding.INSTANCE, CR_7BIT);
-    private final Rope FALSE = RopeOperations.create(new byte[]{'f', 'a', 'l', 's', 'e'}, ASCIIEncoding.INSTANCE, CR_7BIT);
+    private static final Rope TRUE = RopeOperations.create(new byte[]{ 't', 'r', 'u', 'e' }, ASCIIEncoding.INSTANCE, CR_7BIT);
+    private static final Rope FALSE = RopeOperations.create(new byte[]{ 'f', 'a', 'l', 's', 'e' }, ASCIIEncoding.INSTANCE, CR_7BIT);
 
     protected int asTruth(String name, Rope value) {
         int result = RopeOperations.caseInsensitiveCmp(value, TRUE);
