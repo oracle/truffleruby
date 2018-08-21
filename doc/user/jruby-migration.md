@@ -1,13 +1,16 @@
 # Migration from JRuby to TruffleRuby
 
+We recommend that people trying TruffleRuby on their gems and applications
+[get in touch with us](../../README.md#contact) for help.
+
 ## Deployment
 
 If you are migrating from JRuby probably the easiest way to use TruffleRuby is
-via [GraalVM](doc/user/installing-graalvm.md), which gives you a JVM,
+via [GraalVM](installing-graalvm.md), which gives you a JVM,
 JavaScript, Ruby and other languages in one package.
 
 If you don't need the Java interop capabilities of TruffleRuby then you could
-also install via your [Ruby manager/installer](doc/user/ruby-managers.md)
+also install via your [Ruby manager/installer](ruby-managers.md)
 as any other implementation of Ruby.
 
 You can also use the

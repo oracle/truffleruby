@@ -109,6 +109,9 @@ You may also need to set up a [UTF-8 locale](doc/user/utf8-locale.md).
 
 ## Current status
 
+We recommend that people trying TruffleRuby on their gems and applications
+[get in touch with us](#contact) for help.
+
 TruffleRuby is progressing fast but is currently probably not ready for you to
 try running your full Ruby application on. However it is ready for
 experimentation and curious end-users to try on their gems and smaller
