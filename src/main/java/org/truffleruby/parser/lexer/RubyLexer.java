@@ -280,8 +280,8 @@ public class RubyLexer implements MagicCommentHandler {
                 return EOF;
             }
 
-            final Rope line;
-            if (src == null || (line = src.gets()) == null) {
+            final Rope line = src.gets();
+            if (line == null) {
                 eofp = true;
                 lex_goto_eol();
                 return EOF;
@@ -2781,7 +2781,7 @@ public class RubyLexer implements MagicCommentHandler {
     protected int ruby_sourceline = 1;
     protected int ruby_sourceline_char_offset = 0;
     protected int ruby_sourceline_char_length = 0;
-    protected LexerSource src;                // Stream of data that yylex() examines.
+    protected final LexerSource src;                // Stream of data that yylex() examines.
     protected int token;                      // Last token read via yylex().
     private CodeRange tokenCR;
     protected boolean tokenSeen = false;
@@ -3208,15 +3208,6 @@ public class RubyLexer implements MagicCommentHandler {
 
     public void setLeftParenBegin(int value) {
         leftParenBegin = value;
-    }
-
-    /**
-     * Allow the parser to set the source for its lexer.
-     *
-     * @param source where the lexer gets raw data
-     */
-    public void setSource(LexerSource source) {
-        this.src = source;
     }
 
     public void setState(int state) {
