@@ -16,8 +16,6 @@ import org.truffleruby.fixtures.FluidForce;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.OptionsCatalog;
 
-import javax.script.Invocable;
-
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;

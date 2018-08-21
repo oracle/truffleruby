@@ -76,7 +76,7 @@ public class JSR223InteropTest {
     public void testAccessingArrays() throws ScriptException {
         final ScriptEngineManager m = new ScriptEngineManager();
         try (TruffleRubyScriptEngine scriptEngine = (TruffleRubyScriptEngine) m.getEngineByName(TruffleRuby.LANGUAGE_ID)){
-            assertEquals(4, ((List) scriptEngine.eval("[3, 4, 5]")).get(1));
+            assertEquals(4, ((List<Object>) scriptEngine.eval("[3, 4, 5]")).get(1));
         }
     }
 
@@ -84,7 +84,7 @@ public class JSR223InteropTest {
     public void testAccessingHashes() throws ScriptException {
         final ScriptEngineManager m = new ScriptEngineManager();
         try (TruffleRubyScriptEngine scriptEngine = (TruffleRubyScriptEngine) m.getEngineByName(TruffleRuby.LANGUAGE_ID)){
-            assertEquals(4, ((Map) scriptEngine.eval("{'a' => 3, 'b' => 4, 'c' => 5}")).get("b"));
+            assertEquals(4, ((Map<String, Object>) scriptEngine.eval("{'a' => 3, 'b' => 4, 'c' => 5}")).get("b"));
             //assertEquals("b", ((Map) scriptEngine.eval("{3 => 'a', 4 => 'b', 5 => 'c'}")).get(4));
         }
     }
