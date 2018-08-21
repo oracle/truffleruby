@@ -17,7 +17,6 @@ import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.OptionsCatalog;
 
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.IntConsumer;
 
