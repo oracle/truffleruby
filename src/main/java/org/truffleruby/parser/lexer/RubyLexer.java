@@ -2766,11 +2766,15 @@ public class RubyLexer implements MagicCommentHandler {
     protected int last_cr_line;
     protected int last_state;
     private int leftParenBegin = 0;
+    /** The current line being parsed */
     public Rope lexb = null;
     public Rope lex_lastline = null;
-    public int lex_p = 0;                  // Where current position is in current line
+    /** Always 0, except when parsing a UTF-8 BOM in parser_prepare() */
     protected int lex_pbeg = 0;
-    public int lex_pend = 0;               // Where line ends
+    /** The current position, as an offset of lexb */
+    public int lex_p = 0;
+    /** The offset of lexb at which the line ends */
+    public int lex_pend = 0;
     protected int lex_state;
     protected int line_count = 0;
     protected int parenNest = 0;
