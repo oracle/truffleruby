@@ -280,8 +280,8 @@ public class RubyLexer implements MagicCommentHandler {
                 return EOF;
             }
 
-            final Rope v;
-            if (src == null || (v = src.gets()) == null) {
+            final Rope line;
+            if (src == null || (line = src.gets()) == null) {
                 eofp = true;
                 lex_goto_eol();
                 return EOF;
@@ -296,10 +296,10 @@ public class RubyLexer implements MagicCommentHandler {
             updateLineOffset();
             line_count++;
             lex_pbeg = lex_p = 0;
-            lex_pend = lex_p + v.byteLength();
-            lexb = v;
+            lex_pend = lex_p + line.byteLength();
+            lexb = line;
             flush();
-            lex_lastline = v;
+            lex_lastline = line;
         }
 
         int c = p(lex_p);
