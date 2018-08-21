@@ -279,6 +279,10 @@ end
 EthylAlcoholFluidForce.new
 ```
 
+```
+String RUBY_SOURCE = "class EthylAlcoholFluidForce\n  def getFluidForce...";
+```
+
 In JSR 223 you can use `getInterface(object, Interface.class)`, in JRuby Embed
 you can use `getInstance(object, Interface.class)`, and in direct embedding
 you can use `toJava(Interface.class)`. BSF does not appear to support
@@ -305,7 +309,7 @@ does not support this at the moment.
 
 ### Implementing lambdas
 
-As far as I know, JSR 223, BSF, JRuby Embed and direct embedding do not have a
+As far as we know, JSR 223, BSF, JRuby Embed and direct embedding do not have a
 convenient way to get a Java lambda from a Ruby lambda.
 
 In TruffleRuby you can get a Java lambda (really an implementation of a
@@ -450,16 +454,16 @@ In TruffleRuby you would use `Java.type('byte[]').new(1024)`
 
 ### Implementing Java interfaces
 
-JRuby there are several ways to implement an interface. For example to add
-an action listener to a Swing button we could do any of these three things.
+JRuby has several ways to implement an interface. For example to add an action
+listener to a Swing button we could do any of these three things.
 
 ```ruby
 class ClickAction
- include java.awt.event.ActionListener
- 
- def actionPerformed(event)
+  include java.awt.event.ActionListener
+
+  def actionPerformed(event)
    javax.swing.JOptionPane.showMessageDialog nil, 'hello'
- end
+  end
 end
 
 button.addActionListener ClickAction.new
@@ -498,7 +502,8 @@ Java classes cannot be re-opened in TruffleRuby.
 
 ### Subclassing Java classes
 
-Java classes cannot be subclassed in TruffleRuby. Use interfaces instead.
+Java classes cannot be subclassed in TruffleRuby. Use composition or interfaces
+instead.
 
 ### JRuby-compatible Java interop
 
@@ -511,7 +516,8 @@ JRuby supports extensions written in Java. These extensions are written against
 an informal interface that is simply the entire internals of JRuby, similar to
 how the MRI C extension interface works.
 
-TruffleRuby does not support these extensions at the moment.
+TruffleRuby does not support writing these kind of Java extensions at the
+moment. We recommend using Java interop as described above.
 
 ## Tooling
 

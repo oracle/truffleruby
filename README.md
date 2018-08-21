@@ -131,8 +131,8 @@ should read about out [compatibility](doc/user/compatibility.md).
 ## Migration from JRuby
 
 For many use cases TruffleRuby should work as a drop-in replacement for JRuby.
-Our approach to integration with Java is different to JRuby, so you should
-read our [migration guide](doc/user/jruby-migration.md).
+However, our approach to integration with Java is different to JRuby so you
+should read our [migration guide](doc/user/jruby-migration.md).
 
 ## Documentation
 
