@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.locals;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -91,7 +90,6 @@ public abstract class WriteFrameSlotNode extends Node {
 
     private boolean initialSetKind(Frame frame, FrameSlotKind kind) {
         if (frame.getFrameDescriptor().getFrameSlotKind(frameSlot) == FrameSlotKind.Illegal) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
             frame.getFrameDescriptor().setFrameSlotKind(frameSlot, kind);
             return true;
         }
