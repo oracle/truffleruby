@@ -24,7 +24,10 @@ JRuby supports many different ways to embed Ruby in Java, including JSR 223
 (also known as Red Bridge), and the JRuby direct embedding API.
 
 We recommend that TruffleRuby is embedded via the Polyglot API, which is part of
-GraalVM. TruffleRuby also supports JSR 223, compatbile with JRruby, to make it
+GraalVM. The API is different because it's designed to support many languages,
+not just Ruby.
+
+TruffleRuby also supports JSR 223, compatible with JRruby, to make it
 easier to run legacy JRuby code.
 
 You will need to use the GraalVM to use both these APIs.
@@ -345,6 +348,10 @@ TruffleRuby provides its own scheme for Java interop that is consistent for
 use from any GraalVM language, to any other GraalVM language. This isn't
 compatible with existing JRuby Java interop, so you will need to migrate.
 
+TruffleRuby does [experimentally support](jruby-java-interop.md) some of JRuby's
+approach to Java interop, but we aren't sure how complete this will be so we do
+not recommend using it at the moment. `require 'java'` to use it.
+
 Polyglot programming in general is [documented elsewhere](polyglot.md) - this
 section describes it relative to JRuby.
 
@@ -504,11 +511,6 @@ Java classes cannot be re-opened in TruffleRuby.
 
 Java classes cannot be subclassed in TruffleRuby. Use composition or interfaces
 instead.
-
-### JRuby-compatible Java interop
-
-TruffleRuby experimentally supports some of JRuby's approach to Java interop.
-`require 'java'` to use it.
 
 ## Extending TruffleRuby using Java
 
