@@ -7,7 +7,7 @@ endif
 
 ROOT := $(realpath ../../..)
 CEXTS_DIR := $(ROOT)/lib/mri
-RUBY := $(ROOT)/bin/truffleruby
+RUBY := $(ROOT)/bin/truffleruby --disable-gems
 
 CC := clang
 CFLAGS := -Wall -Werror -Wno-unused-function -fPIC -std=c99
