@@ -139,8 +139,8 @@ $(CEXTS_DIR)/etc.su: etc/etc.su
 	cp $< $@
 
 # psych.su
+# Always use the bundled libyaml, as we want it as bitcode and avoid extra handles
 psych/Makefile: psych/extconf.rb $(EXTCONF_DEPS)
-	# TODO CS 6-Apr-18 --enable-bundled-libyaml should be automatic - the header and symbol check pass and I can't see why
 	cd psych && $(RUBY) extconf.rb --enable-bundled-libyaml || $(IF_EXTCONF_FAIL)
 
 psych/psych.su: psych/Makefile psych/*.c psych/*.h psych/yaml/*.c psych/yaml/*.h
