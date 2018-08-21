@@ -112,8 +112,8 @@ In TruffleRuby you now write this:
 polyglot.eval("ruby", "puts 'hello'");
 ```
 
-Note that `eval` is language agnostic, so you need to specify the language each
-time.
+Note that `eval` supports multiple languages, so you need to specify the
+language each time.
 
 ### Evaluating code with parameters
 
@@ -160,9 +160,9 @@ polyglot.eval("ruby", "14 + 2").asLong();
 
 To call a method on an object you get from an `eval`, or any other object, in
 the JRuby embedding APIs you either need to ask the context to invoke the
-method, or in the cast of direct embedding you need to call a method on the
-receiver and marshal the arguments into JRuby types yourself. I don't think
-the BSF has a way to call methods.
+method, or in the case of direct embedding you need to call a method on the
+receiver and marshal the arguments into JRuby types yourself. The BSF doesn't
+appear to have a way to call methods.
 
 ```java
 ((Invocable) scriptEngine).invokeMethod(scriptEngine.eval("Math"), "sin", 2);
@@ -178,11 +178,17 @@ marshal the arguments.
 polyglot.eval("ruby", "Math").getMember("sin").execute(2);
 ```
 
+To call methods on a primitive, write a lambda:
+
+```java
+polyglot.eval("ruby", "->(x) { x.succ }").execute().asInt();
+```
+
 ### Passing blocks
 
 Blocks are a Ruby-specific language feature, so they don't appear in language
 agnostic APIs like JSR 223 and BSF. The JRuby Embed API and direct embedding do
-allow it, having a `Block` parameter to the `callMethod` method, but it's not
+allow passing a `Block` parameter to the `callMethod` method, but it's not
 clear how you would create a `Block` object to use this.
 
 In TruffleRuby you should return a Ruby lambda that performs your call, passing
@@ -215,9 +221,7 @@ polyglot.eval("ruby", "Time").newInstance(2021, 3, 18);
 ### Handling strings
 
 In JRuby's embedding APIs you would use `toString` to convert to a Java
-`String`.
-
-In TruffleRuby you can use `isString` and `asString`.
+`String`. Do the same in TruffleRuby.
 
 ### Accessing arrays
 
@@ -322,7 +326,7 @@ functional interface) from a Ruby lambda by using
 `as(FunctionalInterface.class)`.
 
 ```java
-BiFunction<Integer, Integer, Integer> adder = polyglot.eval("ruby", "lambda { |a, b| a + b }").as(BiFunction.class);
+BiFunction<Integer, Integer, Integer> adder = polyglot.eval("ruby", "->(a, b) { a + b }").as(BiFunction.class);
 adder.apply(14, 2).intValue();
 ```
 
@@ -391,8 +395,11 @@ frame.setVisible(true)
 ```
 
 Instead of using Ruby metaprogramming to simulate a Java package name, we
-explicitly import classes. Constants are read by reading properties of the
-class rather than using Ruby notation.
+explicitly import classes. `Java.import` is similar to JRuby's `java_import`,
+and does `ClassName = Java.type('package.ClassName')`.
+
+Constants are read by reading properties of the class rather than using Ruby
+notation.
 
 ### Require Java
 

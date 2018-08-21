@@ -17,12 +17,12 @@ There are three ways to install TruffleRuby:
 * Via your [Ruby manager/installer](doc/user/ruby-managers.md) (RVM, rbenv,
   chruby, ruby-build, ruby-install). This contains only TruffleRuby, in the
   [*native* configuration](#truffleruby-configurations), making it a smaller
-  download. It is meant for users just wanting a Ruby implementation and already using
-  a Ruby manager. This distribution can also be used for
-  [testing TruffleRuby in CI](doc/user/standalone-distribution.md).
+  download. It is meant for users just wanting a Ruby implementation and already
+  using a Ruby manager.
 
 * Using the [standalone distribution](doc/user/standalone-distribution.md)
-  as a simple binary tarball.
+  as a simple binary tarball. This distribution can also be used for
+  [testing TruffleRuby in CI](doc/user/standalone-distribution.md).
 
 You can use `gem` to install Gems as normal. TruffleRuby currently requires
 Bundler version `1.16.x`.
