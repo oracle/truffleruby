@@ -107,8 +107,9 @@ public class PolyglotInteropTest {
                 .option(OptionsCatalog.HOME.getName(), System.getProperty("user.dir"))
                 .allowAllAccess(true)
                 .build()) {
-            assertEquals(4, polyglot.eval("ruby", "{'a' => 3, 'b' => 4, 'c' => 5}").getMember("b").asInt());
-            assertEquals(4, polyglot.eval("ruby", "{'a' => 3, 'b' => 4, 'c' => 5}").as(Map.class).get("b"));
+            final Value access = polyglot.eval("ruby", "->(hash, key) { hash[key] }");
+            final Value hash = polyglot.eval("ruby", "{'a' => 3, 'b' => 4, 'c' => 5}");
+            assertEquals(4, access.execute(hash, "b").asInt());
         }
     }
 

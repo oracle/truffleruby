@@ -97,7 +97,7 @@ You can set TruffleRuby [options](options.md) via system properties, or via the
 
 ### Evaluating code
 
-In JRuby where you would have written one of these:
+In JRuby where you would have written one of these (each time we show the JRuby example we'll show one of the options available on each line):
 
 ```java
 scriptEngine.eval("puts 'hello'");
@@ -249,12 +249,14 @@ interface to access them.
 ((Map) scriptEngine.eval("{3 => 'a', 4 => 'b', 5 => 'c'}")).get(4);
 ```
 
-In TruffleRuby you can use `getMember` and `putMember` if the keys are strings,
-or you can use `as(Map.class)` to get a `Map<Object, Object>`.
+In TruffleRuby there is currently no uniform way to access hashes or
+dictionary-like data structures. At the moment we recommend using a lambda
+accessor.
 
 ```java
-polyglot.eval("ruby", "{'a' => 3, 'b' => 4, 'c' => 5}").getMember("b").asInt();
-polyglot.eval("ruby", "{'a' => 3, 'b' => 4, 'c' => 5}").as(Map.class).get("b");
+Value hash = polyglot.eval("ruby", "{'a' => 3, 'b' => 4, 'c' => 5}");
+Value accessor = polyglot.eval("ruby", "->(hash, key) { hash[key] }");
+accessor.execute(hash, "b");
 ```
 
 If the keys aren't strings then there is no way to read that `Hash` from Java at
@@ -383,7 +385,7 @@ frame = JFrame.new("Window")
 label = JLabel.new("Hello")
 
 frame.add(label)
-frame.setDefaultCloseOperation(JFrame['EXIT_ON_CLOSE'])
+frame.setDefaultCloseOperation(JFrame[:EXIT_ON_CLOSE])
 frame.pack
 frame.setVisible(true)
 ```
@@ -396,8 +398,7 @@ class rather than using Ruby notation.
 
 There is no need to `require 'java'` in TruffleRuby. However, you do need to run
 in `--jvm` mode. This is only available in GraalVM - not in the standalone
-distribution installed by Ruby version managers and installers. You can feature
-sniff `defined?(Java)`.
+distribution installed by Ruby version managers and installers.
 
 ### Referring to classes
 
@@ -430,12 +431,12 @@ does not do these conversions.
 
 In JRuby, Java constants are modelled as Ruby constants, `MyClass::FOO`. In
 TruffleRuby you use the read notation to read them as a property,
-`MyClass['FOO']`.
+`MyClass[:FOO]`.
 
 ### Using classes from jar files
 
 In JRuby you can add classes and jars to the classpath using `require`. In
-TruffleRuby you use the `-classpath` JVM flag as normal.
+TruffleRuby at the moment you use the `-classpath` JVM flag as normal.
 
 ### Additional Java-specific methods
 

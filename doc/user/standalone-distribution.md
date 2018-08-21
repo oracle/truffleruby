@@ -1,7 +1,7 @@
 # The Standalone Distribution
 
 There are three ways to install TruffleRuby, see
-[getting started](../../README.md#getting-started). The first way is
+[getting started](../../README.md#getting-started). The recommended way is
 [GraalVM](installing-graalvm.md). You can also use what we call the standalone
 distribution of TruffleRuby, either via your Ruby manager/installer, or as a
 simple binary tarball.
