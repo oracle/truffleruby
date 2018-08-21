@@ -72,6 +72,7 @@ public class JSR223InteropTest {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testAccessingArrays() throws ScriptException {
         final ScriptEngineManager m = new ScriptEngineManager();
@@ -80,6 +81,7 @@ public class JSR223InteropTest {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testAccessingHashes() throws ScriptException {
         final ScriptEngineManager m = new ScriptEngineManager();
