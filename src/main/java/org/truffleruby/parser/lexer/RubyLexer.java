@@ -265,7 +265,7 @@ public class RubyLexer implements MagicCommentHandler {
     public void reset() {
         superReset();
         lex_strterm = null;
-        ruby_sourceline = 1 + src.getLineStartOffset();
+        ruby_sourceline = 1;
         updateLineOffset();
 
         // nextc will increment for the first character on the first line
@@ -276,14 +276,12 @@ public class RubyLexer implements MagicCommentHandler {
 
     public int nextc() {
         if (lex_p == lex_pend) {
-            line_offset += lex_pend;
-
             if (eofp) {
                 return EOF;
             }
 
-            final Rope v;
-            if (src == null || (v = src.gets()) == null) {
+            final Rope line = src.gets();
+            if (line == null) {
                 eofp = true;
                 lex_goto_eol();
                 return EOF;
@@ -298,10 +296,10 @@ public class RubyLexer implements MagicCommentHandler {
             updateLineOffset();
             line_count++;
             lex_pbeg = lex_p = 0;
-            lex_pend = lex_p + v.byteLength();
-            lexb = v;
+            lex_pend = lex_p + line.byteLength();
+            lexb = line;
             flush();
-            lex_lastline = v;
+            lex_lastline = line;
         }
 
         int c = p(lex_p);
@@ -428,8 +426,8 @@ public class RubyLexer implements MagicCommentHandler {
         parserSupport.getConfiguration().setFrozenStringLiteral(b == 1);
     }
 
-    private final Rope TRUE = RopeOperations.create(new byte[]{'t', 'r', 'u', 'e'}, ASCIIEncoding.INSTANCE, CR_7BIT);
-    private final Rope FALSE = RopeOperations.create(new byte[]{'f', 'a', 'l', 's', 'e'}, ASCIIEncoding.INSTANCE, CR_7BIT);
+    private static final Rope TRUE = RopeOperations.create(new byte[]{ 't', 'r', 'u', 'e' }, ASCIIEncoding.INSTANCE, CR_7BIT);
+    private static final Rope FALSE = RopeOperations.create(new byte[]{ 'f', 'a', 'l', 's', 'e' }, ASCIIEncoding.INSTANCE, CR_7BIT);
 
     protected int asTruth(String name, Rope value) {
         int result = RopeOperations.caseInsensitiveCmp(value, TRUE);
@@ -1038,8 +1036,7 @@ public class RubyLexer implements MagicCommentHandler {
                 return at();
             case '_':
                 if (was_bol() && whole_match_p(END_MARKER, false)) {
-                    line_offset += lex_pend;
-                    __end__seen = true;
+                    endPosition = src.getOffset();
                     eofp = true;
 
                     lex_goto_eol();
@@ -2759,7 +2756,7 @@ public class RubyLexer implements MagicCommentHandler {
     protected StackState cmdArgumentState = new StackState();
     private String current_arg;
     private Encoding current_enc;
-    protected boolean __end__seen = false;
+    protected int endPosition = -1;
     public boolean eofp = false;
     protected boolean has_shebang = false;
     protected int heredoc_end = 0;
@@ -2769,19 +2766,22 @@ public class RubyLexer implements MagicCommentHandler {
     protected int last_cr_line;
     protected int last_state;
     private int leftParenBegin = 0;
+    /** The current line being parsed */
     public Rope lexb = null;
     public Rope lex_lastline = null;
-    public int lex_p = 0;                  // Where current position is in current line
+    /** Always 0, except when parsing a UTF-8 BOM in parser_prepare() */
     protected int lex_pbeg = 0;
-    public int lex_pend = 0;               // Where line ends
+    /** The current position, as an offset of lexb */
+    public int lex_p = 0;
+    /** The offset of lexb at which the line ends */
+    public int lex_pend = 0;
     protected int lex_state;
     protected int line_count = 0;
-    protected int line_offset = 0;
     protected int parenNest = 0;
     protected int ruby_sourceline = 1;
     protected int ruby_sourceline_char_offset = 0;
     protected int ruby_sourceline_char_length = 0;
-    protected LexerSource src;                // Stream of data that yylex() examines.
+    protected final LexerSource src;                // Stream of data that yylex() examines.
     protected int token;                      // Last token read via yylex().
     private CodeRange tokenCR;
     protected boolean tokenSeen = false;
@@ -2879,10 +2879,6 @@ public class RubyLexer implements MagicCommentHandler {
         return leftParenBegin;
     }
 
-    public int getLineOffset() {
-        return line_offset;
-    }
-
     public int getState() {
         return lex_state;
     }
@@ -2912,8 +2908,8 @@ public class RubyLexer implements MagicCommentHandler {
         return parenNest;
     }
 
-    public boolean isEndSeen() {
-        return __end__seen;
+    public int getEndPosition() {
+        return endPosition;
     }
 
     public boolean isASCII(int c) {
@@ -3214,15 +3210,6 @@ public class RubyLexer implements MagicCommentHandler {
         leftParenBegin = value;
     }
 
-    /**
-     * Allow the parser to set the source for its lexer.
-     *
-     * @param source where the lexer gets raw data
-     */
-    public void setSource(LexerSource source) {
-        this.src = source;
-    }
-
     public void setState(int state) {
         this.lex_state = state;
     }
@@ -3436,10 +3423,10 @@ public class RubyLexer implements MagicCommentHandler {
 
     public static final int EOF = -1; // 0 in MRI
 
-    public static Rope END_MARKER = RopeOperations.create(new byte[]{'_', '_', 'E', 'N', 'D', '_', '_'}, ASCIIEncoding.INSTANCE, CR_7BIT);
-    public static Rope BEGIN_DOC_MARKER = RopeOperations.create(new byte[]{'b', 'e', 'g', 'i', 'n'}, ASCIIEncoding.INSTANCE, CR_7BIT);
-    public static Rope END_DOC_MARKER = RopeOperations.create(new byte[]{'e', 'n', 'd'}, ASCIIEncoding.INSTANCE, CR_7BIT);
-    public static Rope CODING = RopeOperations.create(new byte[]{'c', 'o', 'd', 'i', 'n', 'g'}, ASCIIEncoding.INSTANCE, CR_7BIT);
+    public static final Rope END_MARKER = RopeOperations.create(new byte[]{ '_', '_', 'E', 'N', 'D', '_', '_' }, ASCIIEncoding.INSTANCE, CR_7BIT);
+    public static final Rope BEGIN_DOC_MARKER = RopeOperations.create(new byte[]{ 'b', 'e', 'g', 'i', 'n' }, ASCIIEncoding.INSTANCE, CR_7BIT);
+    public static final Rope END_DOC_MARKER = RopeOperations.create(new byte[]{ 'e', 'n', 'd' }, ASCIIEncoding.INSTANCE, CR_7BIT);
+    public static final Rope CODING = RopeOperations.create(new byte[]{ 'c', 'o', 'd', 'i', 'n', 'g' }, ASCIIEncoding.INSTANCE, CR_7BIT);
 
     public static final Encoding UTF8_ENCODING = UTF8Encoding.INSTANCE;
     public static final Encoding USASCII_ENCODING = USASCIIEncoding.INSTANCE;

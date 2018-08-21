@@ -51,17 +51,13 @@ public class LexerSource {
 
     private final ParserRopeOperations parserRopeOperations = new ParserRopeOperations();
     private final Source source;
-    private final int lineStartOffset;
-
-    private Rope sourceBytes;
-
-    private int byteOffset;
-
     private final boolean fromRope;
 
-    public LexerSource(RubySource rubySource, int lineStartOffset, Encoding encoding) {
+    private Rope sourceBytes;
+    private int byteOffset;
+
+    public LexerSource(RubySource rubySource, Encoding encoding) {
         this.source = rubySource.getSource();
-        this.lineStartOffset = lineStartOffset;
 
         fromRope = rubySource.getRope() != null;
 
@@ -87,10 +83,6 @@ public class LexerSource {
 
     public int getOffset() {
         return byteOffset;
-    }
-
-    public int getLineStartOffset() {
-        return lineStartOffset;
     }
 
     public Rope gets() {

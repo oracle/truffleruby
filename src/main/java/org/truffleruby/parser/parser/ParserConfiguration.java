@@ -38,8 +38,6 @@ import org.truffleruby.parser.scope.StaticScope;
 public class ParserConfiguration {
     private StaticScope existingScope = null;
     private boolean asBlock = false;
-    // What linenumber will the source think it starts from?
-    private int lineNumber = 0;
     // Is this inline source (aka -e "...source...")
     private boolean inlineSource = false;
     // We parse evals more often in source so assume an eval parse.
@@ -54,10 +52,9 @@ public class ParserConfiguration {
     private Encoding defaultEncoding;
     private RubyContext context;
 
-    public ParserConfiguration(RubyContext context, int lineNumber, boolean inlineSource, boolean isFileParse, boolean saveData) {
+    public ParserConfiguration(RubyContext context, boolean inlineSource, boolean isFileParse, boolean saveData) {
         this.context = context;
         this.inlineSource = inlineSource;
-        this.lineNumber = lineNumber;
         this.isEvalParse = !isFileParse;
         this.saveData = saveData;
     }
@@ -93,10 +90,6 @@ public class ParserConfiguration {
      */
     public boolean isEvalParse() {
         return isEvalParse;
-    }
-
-    public int getLineNumber() {
-        return lineNumber;
     }
 
     /**
