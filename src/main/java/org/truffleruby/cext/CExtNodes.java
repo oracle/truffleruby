@@ -1250,4 +1250,15 @@ public class CExtNodes {
         }
 
     }
+
+    @CoreMethod(names = "rb_tr_new_managed_struct", onSingleton = true)
+    public abstract static class RbTrNewManagedStructNode extends CoreMethodNode {
+
+        @Specialization
+        public DynamicObject newManagedStruct() {
+            return ManagedStructObjectType.createManagedStruct();
+        }
+
+    }
+
 }

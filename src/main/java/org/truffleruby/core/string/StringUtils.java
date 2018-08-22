@@ -21,6 +21,11 @@ public abstract class StringUtils {
     }
 
     @TruffleBoundary
+    public static String toString(Object value) {
+        return value.toString();
+    }
+
+    @TruffleBoundary
     public static String format(Locale locale, String format, Object... args) {
         return String.format(locale, format, args);
     }
