@@ -74,6 +74,11 @@ public abstract class MetaClassNode extends RubyNode {
         return Layouts.BASIC_OBJECT.getMetaClass(object);
     }
 
+    @Specialization(guards = "!isRubyBasicObject(object)")
+    protected DynamicObject metaClassForeign(DynamicObject object) {
+        return coreLibrary().getTruffleInteropForeignClass();
+    }
+
     @Fallback
     protected DynamicObject metaClassFallback(Object object) {
         return getContext().getCoreLibrary().getMetaClass(object);
@@ -83,7 +88,7 @@ public abstract class MetaClassNode extends RubyNode {
         if (shape.getObjectType() instanceof RubyObjectType) {
             return Layouts.BASIC_OBJECT.getMetaClass(shape.getObjectType());
         } else {
-            return getContext().getCoreLibrary().getTruffleInteropForeignClass();
+            return coreLibrary().getTruffleInteropForeignClass();
         }
     }
 
