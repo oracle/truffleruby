@@ -396,7 +396,7 @@ frame.setVisible(true)
 
 Instead of using Ruby metaprogramming to simulate a Java package name, we
 explicitly import classes. `Java.import` is similar to JRuby's `java_import`,
-and does `ClassName = Java.type('package.ClassName')`.
+and does `::ClassName = Java.type('package.ClassName')`.
 
 Constants are read by reading properties of the class rather than using Ruby
 notation.
