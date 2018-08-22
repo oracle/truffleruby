@@ -263,9 +263,6 @@ Value accessor = polyglot.eval("ruby", "->(hash, key) { hash[key] }");
 accessor.execute(hash, "b");
 ```
 
-If the keys aren't strings then there is no way to read that `Hash` from Java at
-the moment.
-
 ### Implementing interfaces
 
 You may want to implement a Java interface using a Ruby object. (Example copied
