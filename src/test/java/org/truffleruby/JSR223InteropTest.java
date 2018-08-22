@@ -12,7 +12,8 @@ package org.truffleruby;
 import org.junit.Before;
 import org.junit.Test;
 import org.truffleruby.fixtures.FluidForce;
-import org.truffleruby.scriptengine.TruffleRubyScriptEngine;
+import org.truffleruby.services.scriptengine.TruffleRubyScriptEngine;
+import org.truffleruby.services.scriptengine.TruffleRubyScriptEngineFactory;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.OptionsCatalog;
 
@@ -33,6 +34,11 @@ public class JSR223InteropTest {
     @Before
     public void before() {
         System.setProperty(OptionsCatalog.HOME.getPropertyName(), System.getProperty("user.dir"));
+    }
+
+    @Test
+    public void testVersion() {
+        assertEquals(TruffleRuby.getEngineVersion(), new TruffleRubyScriptEngineFactory().getEngineVersion());
     }
 
     @Test

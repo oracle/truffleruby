@@ -7,10 +7,9 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.scriptengine;
+package org.truffleruby.services.scriptengine;
 
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.shared.TruffleRuby;
+import org.graalvm.polyglot.Context;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
@@ -21,27 +20,28 @@ public class TruffleRubyScriptEngineFactory implements ScriptEngineFactory {
 
     @Override
     public String getEngineName() {
-        return TruffleRuby.ENGINE_NAME;
+        return "TruffleRuby";
+
     }
 
     @Override
     public String getEngineVersion() {
-        return TruffleRuby.getEngineVersion();
+        return query("RUBY_ENGINE_VERSION");
     }
 
     @Override
     public List<String> getExtensions() {
-        return Arrays.asList(RubyLanguage.EXTENSION);
+        return Arrays.asList(".rb");
     }
 
     @Override
     public List<String> getMimeTypes() {
-        return Arrays.asList(RubyLanguage.MIME_TYPE);
+        return Arrays.asList("application/x-ruby");
     }
 
     @Override
     public List<String> getNames() {
-        return Arrays.asList(TruffleRuby.LANGUAGE_ID, TruffleRuby.ENGINE_NAME, TruffleRuby.ENGINE_ID);
+        return Arrays.asList("ruby", "truffleruby", "TruffleRuby");
     }
 
     @Override
@@ -51,14 +51,14 @@ public class TruffleRubyScriptEngineFactory implements ScriptEngineFactory {
 
     @Override
     public String getLanguageVersion() {
-        return TruffleRuby.LANGUAGE_VERSION;
+        return query("RUBY_VERSION");
     }
 
     @Override
     public Object getParameter(String key) {
         switch (key) {
             case ScriptEngine.NAME:
-                return TruffleRuby.LANGUAGE_ID;
+                return "ruby";
             case ScriptEngine.ENGINE:
                 return getEngineName();
             case ScriptEngine.ENGINE_VERSION:
@@ -104,6 +104,15 @@ public class TruffleRubyScriptEngineFactory implements ScriptEngineFactory {
     @Override
     public ScriptEngine getScriptEngine() {
         return new TruffleRubyScriptEngine(this);
+    }
+
+    private String query(String expression) {
+        try (Context context = Context.newBuilder("ruby")
+                .option("ruby.platform.native", "false")
+                .option("ruby.rubygems", "false")
+                .build()) {
+            return context.eval("ruby", expression).asString();
+        }
     }
 
 }

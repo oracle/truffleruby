@@ -332,6 +332,9 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
         'truffleruby:TRUFFLERUBY-SHARED',
         'truffleruby:TRUFFLERUBY-ANNOTATIONS'
     ],
+    boot_jars=[
+        'truffleruby:TRUFFLERUBY-SERVICES'
+    ],
     support_distributions=[
         'truffleruby:TRUFFLERUBY_GRAALVM_SUPPORT',
     ],
