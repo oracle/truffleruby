@@ -55,9 +55,8 @@ require 'json/common'
 module JSON
   require 'json/version'
 
-  begin
-    require 'json/ext'
-  rescue LoadError
-    require 'json/pure'
-  end
+  # TruffleRuby: do not try to require 'json/ext' as that could load a json gem
+  # and we would have 2 versions of json loaded. This change can be removed once
+  # we ship the json C-extension by default.
+  require 'json/pure'
 end

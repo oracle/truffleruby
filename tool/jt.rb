@@ -25,7 +25,7 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = "f8296bc32857c91cb689148664ceb8849b44986d"
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = "5f0860f9d905cdadd1e40bb8a0c91597de4fbddb"
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -1173,6 +1173,7 @@ EOS
           sh "test/truffle/cexts/puma/puma.sh"
           sh "test/truffle/cexts/sqlite3/sqlite3.sh"
           sh "test/truffle/cexts/unf_ext/unf_ext.sh"
+          sh "test/truffle/cexts/json/json.sh"
 
           # Test a gem dynamically compiling a C extension
           sh "test/truffle/cexts/RubyInline/RubyInline.sh"
