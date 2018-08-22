@@ -5,8 +5,8 @@ polyglot programs -- programs written in more than one language.
 
 This document describes how to load code written in foreign languages, how to
 export and import objects between languages, how to use Ruby objects from
-a foreign language, how to use foreign objects from Ruby, and how to load
-Java types to interface with Java.
+a foreign language, how to use foreign objects from Ruby, how to load
+Java types to interface with Java, and how to embed in Java.
 
 If you are using the native configuration, you will need to use the `--polyglot`
 flag to get access to other languages. The JVM configuration automatically has
@@ -83,7 +83,7 @@ object has a `[]` method, in which case it returns an empty array.
 
 `new object(args...)` calls `object.new(args...)`.
 
-`"length" in obj` retursn `true` for a Ruby `Array`.
+`"length" in obj` returns `true` for a Ruby `Array`.
 
 `object == null` calls `object.nil?`.
 
@@ -150,8 +150,88 @@ instance, `.foo` will call the static method `foo`, `[:FOO]` will read the field
 
 To import a Java class as a top-level constant, use `Java.import 'name'`.
 
-Also see the separate document on
-[JRuby-compatible Java interop](jruby-java-interop.md).
+## Embedding in Java
+
+TruffleRuby is embedded via the Polyglot API, which is part of GraalVM. You will
+need to use the GraalVM to use this API.
+
+```java
+import org.graalvm.polyglot.*;
+
+class Embedding {
+    public static void main(String[] args) {
+        Context polyglot = Context.newBuilder().allowAllAccess(true).build();
+        Value array = polyglot.eval("ruby", "[1,2,42,4]");
+        int result = array.getArrayElement(2).asInt();
+        System.out.println(result);
+    }
+}
+```
+
+## Using Ruby objects from embedding Java
+
+Ruby objects are represented by the `Value` class when embedded in Java.
+
+### Accessing arrays
+
+```java
+boolean hasArrayElements() 
+Value getArrayElement(long index)
+void setArrayElement(long index, Object value)
+boolean removeArrayElement(long index)
+long getArraySize()
+```
+
+### Accessing methods in objects
+
+```java
+boolean hasMembers()
+boolean hasMember(String identifier)
+Value getMember(String identifier)
+Set<String> getMemberKeys
+void putMember(String identifier, Object value
+boolean removeMember(String identifier)
+```
+
+### Executing procs, lambdas, and methods
+
+```java
+boolean canExecute() 
+Value execute(Object... arguments) 
+void executeVoid(Object... arguments)
+```
+
+### Instantiating classes
+
+```java
+boolean canInstantiate() {
+Value newInstance(Object... arguments)
+```
+      
+### Accessing primitives
+
+```java
+boolean isString()
+String asString()
+boolean isBoolean()
+boolean asBoolean()
+boolean isNumber()
+boolean fitsInByte()
+byte asByte()
+boolean fitsInShort()
+short asShort()
+boolean fitsInInt()
+int asInt()
+boolean fitsInLong()
+long asLong()
+boolean fitsInDouble()
+double asDouble()
+boolean fitsInFloat()
+float asFloat()
+boolean isNull()
+```
+
+The [JRuby migration guide](jruby-migration.md) includes some more examples.
 
 ## Strings
 

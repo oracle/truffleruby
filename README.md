@@ -3,20 +3,25 @@
 A high performance implementation of the Ruby programming language. Built on
 [GraalVM](http://graalvm.org/) by [Oracle Labs](https://labs.oracle.com).
 
-## Getting Started
+## Getting started
 
-There are two ways to install TruffleRuby:
+There are three ways to install TruffleRuby:
+
 * Via [GraalVM](doc/user/installing-graalvm.md), which includes support for
   other languages such as JavaScript, R and Python and supports both the
   [*native* and *JVM* configurations](#truffleruby-configurations).
   Inside GraalVM will then be a `bin/ruby` command that runs TruffleRuby.
   We recommend that you use a [Ruby manager](doc/user/ruby-managers.md#configuring-ruby-managers-for-the-full-graalvm-distribution)
   to use TruffleRuby inside GraalVM.
+
 * Via your [Ruby manager/installer](doc/user/ruby-managers.md) (RVM, rbenv,
   chruby, ruby-build, ruby-install). This contains only TruffleRuby, in the
   [*native* configuration](#truffleruby-configurations), making it a smaller
-  download. It is meant for users just wanting a Ruby implementation and already using
-  a Ruby manager. This distribution can also be used for
+  download. It is meant for users just wanting a Ruby implementation and already
+  using a Ruby manager.
+
+* Using the [standalone distribution](doc/user/standalone-distribution.md)
+  as a simple binary tarball. This distribution can also be used for
   [testing TruffleRuby in CI](doc/user/standalone-distribution.md).
 
 You can use `gem` to install Gems as normal. TruffleRuby currently requires
@@ -34,11 +39,11 @@ TruffleRuby aims to:
 * Run Ruby code in parallel
 * Boot Ruby applications in less time
 * Execute C extensions in a managed environment
+* Add fast and low-overhead interoperability with languages like Java, JavaScript, Python and R
 * Provide new tooling such as debuggers and monitoring
-* Add fast and low-overhead interoperability with languages like JavaScript, Python and R
 * All while maintaining very high compatibility with the standard implementation of Ruby
 
-## TruffleRuby Configurations
+## TruffleRuby configurations
 
 There are two main configurations of TruffleRuby - *native* and *JVM*. It's
 important to understand the different configurations of TruffleRuby, as each has
@@ -81,7 +86,7 @@ Graal compiler not available. This configuration will have much lower
 performance and should normally only be used for development. `ruby --version`
 will mention `Interpreter` for this configuration.
 
-## System Compatibility
+## System compatibility
 
 TruffleRuby is actively tested on these systems:
 
@@ -102,7 +107,10 @@ but this can only be done on a best effort basis.
 
 You may also need to set up a [UTF-8 locale](doc/user/utf8-locale.md).
 
-## Current Status
+## Current status
+
+We recommend that people trying TruffleRuby on their gems and applications
+[get in touch with us](#contact) for help.
 
 TruffleRuby is progressing fast but is currently probably not ready for you to
 try running your full Ruby application on. However it is ready for
@@ -114,6 +122,17 @@ is missing support for Nokogiri and ActiveRecord database drivers which makes it
 not practical to run real Rails applications at the moment.
 
 You will find that many C extensions will not work without modification.
+
+## Migration from MRI
+
+TruffleRuby should in most cases work as a drop-in replacement for MRI, but you
+should read about out [compatibility](doc/user/compatibility.md).
+
+## Migration from JRuby
+
+For many use cases TruffleRuby should work as a drop-in replacement for JRuby.
+However, our approach to integration with Java is different to JRuby so you
+should read our [migration guide](doc/user/jruby-migration.md).
 
 ## Documentation
 
