@@ -124,15 +124,16 @@ class Preprocessor
     content.each_line do |line|
       output_io.puts preprocess(line)
     end
-
     output = output_io.string
-    $stdout.puts "#line 1 \"#{file_name}\""
-    $stdout.puts output
 
     if ENV['PREPROCESS_DEBUG'] && original_content != output
       patched_file_name = "#{File.dirname file_name}/.#{File.basename file_name, '.*'}.patched#{File.extname file_name}"
       File.write patched_file_name, output
       $stderr.print `git diff --no-index --color -- #{file_name} #{patched_file_name}`
+      file_name = patched_file_name
     end
+
+    $stdout.puts "#line 1 \"#{file_name}\""
+    $stdout.puts output
   end
 end
