@@ -15,6 +15,7 @@ New features:
 * Instrumentation such as the CPUSampler reports methods in a clearer way like
   `Foo#bar`, `Gem::Specification.each_spec`, `block in Foo#bar` instead of just
   `bar`, `each_spec`, `block in bar` (which is what MRI displays in backtraces).
+* TruffleRuby is now usable as a JSR 223 (`javax.script`) language.
 * A migration guide from JRuby (`doc/user/jruby-migration.md`) is now included.
 
 Bug fixes:
