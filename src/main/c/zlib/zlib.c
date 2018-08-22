@@ -935,7 +935,7 @@ zstream_run_func(void *ptr)
 {
     struct zstream_run_args *args = (struct zstream_run_args *)ptr;
     int err, state, flush = args->flush;
-    struct zstream *z = rb_tr_managed_from_handle(args->z);
+    struct zstream *z = polyglot_as_zstream(rb_tr_managed_from_handle(args->z));
     uInt n;
 
     err = Z_OK;
@@ -1154,7 +1154,7 @@ zstream_new(VALUE klass, const struct zstream_funcs *funcs)
     VALUE obj;
     struct zstream *z;
 
-    obj = TypedData_Make_Managed_Struct(klass, struct zstream, &zstream_data_type, z);
+    obj = TypedData_Make_Managed_Struct(klass, struct zstream, &zstream_data_type, z, zstream);
     zstream_init(z, funcs);
     z->stream.opaque = (voidpf)rb_tr_handle_for_managed_leaking(obj);
     return obj;
@@ -1601,7 +1601,7 @@ rb_deflate_s_deflate(int argc, VALUE *argv, VALUE klass)
 
     rb_scan_args(argc, argv, "11", &src, &level);
 
-    z = rb_tr_new_managed_struct();
+    z = polyglot_as_zstream(rb_tr_new_managed_struct());
     lev = ARG_LEVEL(level);
     StringValue(src);
     zstream_init_deflate(z);
@@ -1919,7 +1919,7 @@ rb_inflate_s_inflate(VALUE obj, VALUE src)
     int err;
 
     StringValue(src);
-    z = rb_tr_new_managed_struct();
+    z = polyglot_as_zstream(rb_tr_new_managed_struct());
     zstream_init_inflate(z);
     err = inflateInit(&z->stream);
     if (err != Z_OK) {
@@ -2217,6 +2217,7 @@ struct gzfile {
 
 #define GZFILE_READ_SIZE  2048
 
+POLYGLOT_DECLARE_STRUCT(gzfile);
 
 static void
 gzfile_mark(void *p)
@@ -2298,7 +2299,7 @@ gzfile_new(VALUE klass, const struct zstream_funcs *funcs, void (*endfunc)(struc
     VALUE obj;
     struct gzfile *gz;
 
-    obj = TypedData_Make_Managed_Struct(klass, struct gzfile, &gzfile_data_type, gz);
+    obj = TypedData_Make_Managed_Struct(klass, struct gzfile, &gzfile_data_type, gz, gzfile);
     gzfile_init(gz, funcs, endfunc);
     return obj;
 }
@@ -3004,6 +3005,8 @@ typedef struct {
     VALUE klass;
 } new_wrap_arg_t;
 
+POLYGLOT_DECLARE_TYPE(new_wrap_arg_t)
+
 static VALUE
 new_wrap(VALUE tmp)
 {
@@ -3030,7 +3033,7 @@ gzfile_wrap(int argc, VALUE *argv, VALUE klass, int close_io_on_error)
 
     if (close_io_on_error) {
 	int state = 0;
-	new_wrap_arg_t *arg = rb_tr_new_managed_struct();
+	new_wrap_arg_t *arg = polyglot_as_new_wrap_arg_t(rb_tr_new_managed_struct());
 	arg->argc = argc;
 	arg->argv = argv;
 	arg->klass = klass;

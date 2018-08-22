@@ -61,12 +61,12 @@ VALUE rb_data_typed_object_alloc_managed(VALUE ruby_class, size_t size, const rb
     data_struct_obj; \
 })
 
-#define TypedData_Make_Managed_Struct0(result, klass, type, size, data_type, sval) \
+#define TypedData_Make_Managed_Struct0(result, klass, type, size, data_type, sval, interoptype) \
     VALUE result = rb_data_typed_object_alloc_managed(klass, size, data_type); \
-    (void)((sval) = (type *)DATA_PTR(result));
+    (void)((sval) = polyglot_as_##interoptype((type *)DATA_PTR(result)));
 
-#define TypedData_Make_Managed_Struct(klass, type, data_type, sval) ({\
-    TypedData_Make_Managed_Struct0(data_struct_obj, klass, type, sizeof(type), data_type, sval); \
+#define TypedData_Make_Managed_Struct(klass, type, data_type, sval, interoptype) ({\
+    TypedData_Make_Managed_Struct0(data_struct_obj, klass, type, sizeof(type), data_type, sval, interoptype); \
     data_struct_obj; \
 })
 
