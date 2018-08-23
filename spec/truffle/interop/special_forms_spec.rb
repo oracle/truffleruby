@@ -74,7 +74,7 @@ describe "Interop special form" do
   end
 
   it "#inspect returns a useful string" do
-    Truffle::Debug.foreign_object.inspect.should =~ /#<Foreign:0x\h+>/
+    Truffle::Debug.foreign_object.inspect.should =~ /#<Foreign:0x\-?\h+>/
   end
 
   describe "#is_a?" do
