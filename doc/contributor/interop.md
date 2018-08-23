@@ -481,7 +481,7 @@ Export and import also converts strings, and also has `_without_conversion`
 counterparts.
 
 Boxed foreign strings (foreign objects that respond positively to `IS_BOXED` and
-`UNBOX` to a Java string) unbox on `to_s`, `to_str` and `inspect.`
+`UNBOX` to a Java string) unbox on `to_s`, `to_str` and `inspect`.
 
 ## Import and export
 

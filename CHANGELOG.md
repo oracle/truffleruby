@@ -57,7 +57,7 @@ Changes:
   still no checks.
 * Foreign objects are now printed as `#<Foreign:system-identity-hash-code>`,
   except for foreign arrays which are now printed as `#<Foreign [elements...]>`.
-* Foreign now `to_s` calls `inspect` rather than Java's `toString`.
+* Foreign objects `to_s` now calls `inspect` rather than Java's `toString`.
 
 Changes:
 
