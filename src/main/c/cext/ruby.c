@@ -2960,8 +2960,8 @@ VALUE rb_data_object_zalloc(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY
   return rb_data_object_wrap(klass, data, dmark, dfree);
 }
 
-VALUE rb_data_object_alloc_managed(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
-  void *data = rb_tr_new_managed_struct(NULL);
+VALUE rb_data_object_alloc_managed(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree, void *interoptypeid) {
+  void *data = rb_tr_new_managed_struct(interoptypeid);
   return rb_data_object_wrap(klass, data, dmark, dfree);
 }
 
