@@ -97,12 +97,14 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                 || name.equals("class")
                 || name.equals("to_s")
                 || name.equals("to_str")
-                || name.equals("is_a?")) {
+                || name.equals("is_a?")
+                || name.equals("kind_of?")) {
             final int expectedArgsLength;
 
             switch (name) {
                 case "delete":
                 case "is_a?":
+                case "kind_of?":
                     expectedArgsLength = 1;
                     break;
                 case "size":

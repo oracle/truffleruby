@@ -17,6 +17,7 @@ New features:
   `bar`, `each_spec`, `block in bar` (which is what MRI displays in backtraces).
 * TruffleRuby is now usable as a JSR 223 (`javax.script`) language.
 * A migration guide from JRuby (`doc/user/jruby-migration.md`) is now included.
+* `kind_of?` works as an alias for `is_a?` on foreign objects.
 
 Bug fixes:
 

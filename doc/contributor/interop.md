@@ -427,6 +427,8 @@ runtime object instance.
 
 `foreign_object.is_a?(foreign_class)` raises a `TypeError`.
 
+`foreign_object.kind_of?` works like `foreign_object.is_a?`.
+
 `object.respond_to?(:to_a)`, `respond_to?(:to_ary)` and `respond_to?(:size)`
 sends `HAS_SIZE`.
 

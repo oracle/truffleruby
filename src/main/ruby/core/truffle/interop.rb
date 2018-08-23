@@ -175,7 +175,7 @@ module Truffle
         receiver = Truffle::Interop.unbox_if_needed(receiver)
         raise NameError, 'no method to_str' unless receiver.is_a?(String)
         receiver
-      when :is_a?
+      when :is_a?, :kind_of?
         receiver = Truffle::Interop.unbox_if_needed(receiver)
         check_class = args.first
         if Truffle::Interop.foreign?(receiver)
@@ -215,7 +215,7 @@ module Truffle
       when :to_str
         object = Truffle::Interop.unbox_if_needed(object)
         !Truffle::Interop.foreign?(object) && object.is_a?(String)
-      when :inspect, :to_s, :is_a?
+      when :inspect, :to_s, :is_a?, :kind_of?
         true
       else
         false
