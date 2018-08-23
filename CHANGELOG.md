@@ -58,9 +58,6 @@ Changes:
 * Foreign objects are now printed as `#<Foreign:system-identity-hash-code>`,
   except for foreign arrays which are now printed as `#<Foreign [elements...]>`.
 * Foreign objects `to_s` now calls `inspect` rather than Java's `toString`.
-
-Changes:
-
 * The embedded configuration (`-Xembedded`) now warns about features which may
   not work well embedded, such as signals.
 * The `-Xsync.stdio` option has been removed - use standard Ruby
