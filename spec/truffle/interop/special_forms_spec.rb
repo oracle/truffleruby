@@ -77,10 +77,6 @@ describe "Interop special form" do
     Truffle::Debug.foreign_object.inspect.should =~ /#<Truffle::Interop::Foreign@\h+>/
   end
 
-  it "#inspect returns a useful string" do
-    Truffle::Debug.foreign_object.inspect.should =~ /#<Truffle::Interop::Foreign@\h+>/
-  end
-
   describe "#is_a?" do
       
     guard -> { !TruffleRuby.native? } do
