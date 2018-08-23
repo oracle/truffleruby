@@ -35,7 +35,7 @@ import com.oracle.truffle.api.utilities.AlwaysValidAssumption;
 
 public abstract class CachedDispatchNode extends DispatchNode {
 
-    protected static enum SendsFrame {
+    protected enum SendsFrame {
         NO_FRAME,
         MY_FRAME,
         CALLER_FRAME;
