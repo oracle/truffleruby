@@ -1012,6 +1012,7 @@ public abstract class InteropNodes {
     public abstract static class InteropIdentityHashCodeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
+        @TruffleBoundary
         public int identityHashCode(Object value) {
             return System.identityHashCode(value);
         }
