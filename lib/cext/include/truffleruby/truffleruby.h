@@ -48,9 +48,9 @@ void rb_tr_release_if_handle(void *handle);
 
 // Managed Strucs
 
-void* rb_tr_new_managed_struct(void);
+void* rb_tr_new_managed_struct(void *type);
 VALUE rb_data_object_alloc_managed(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree);
-VALUE rb_data_typed_object_alloc_managed(VALUE ruby_class, size_t size, const rb_data_type_t *data_type);
+VALUE rb_data_typed_object_alloc_managed(VALUE ruby_class, size_t size, const rb_data_type_t *data_type, void *interoptypeid);
 
 #define Data_Make_Managed_Struct0(result, klass, type, size, mark, free, sval) \
     VALUE result = rb_data_object_wrap((klass), (size), (RUBY_DATA_FUNC)(mark), (RUBY_DATA_FUNC)(free)); \
@@ -62,8 +62,8 @@ VALUE rb_data_typed_object_alloc_managed(VALUE ruby_class, size_t size, const rb
 })
 
 #define TypedData_Make_Managed_Struct0(result, klass, type, size, data_type, sval, interoptype) \
-    VALUE result = rb_data_typed_object_alloc_managed(klass, size, data_type); \
-    (void)((sval) = polyglot_as_##interoptype((type *)DATA_PTR(result)));
+    VALUE result = rb_data_typed_object_alloc_managed(klass, size, data_type, polyglot_##interoptype##_typeid()); \
+    (void)((sval) = (type *)DATA_PTR(result));
 
 #define TypedData_Make_Managed_Struct(klass, type, data_type, sval, interoptype) ({\
     TypedData_Make_Managed_Struct0(data_struct_obj, klass, type, sizeof(type), data_type, sval, interoptype); \

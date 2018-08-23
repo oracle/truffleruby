@@ -2961,7 +2961,7 @@ VALUE rb_data_object_zalloc(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY
 }
 
 VALUE rb_data_object_alloc_managed(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
-  void *data = rb_tr_new_managed_struct();
+  void *data = rb_tr_new_managed_struct(NULL);
   return rb_data_object_wrap(klass, data, dmark, dfree);
 }
 
@@ -2977,8 +2977,8 @@ VALUE rb_data_typed_object_zalloc(VALUE ruby_class, size_t size, const rb_data_t
   return rb_data_typed_object_wrap(ruby_class, data, data_type);
 }
 
-VALUE rb_data_typed_object_alloc_managed(VALUE ruby_class, size_t size, const rb_data_type_t *data_type) {
-  void *data = rb_tr_new_managed_struct();
+VALUE rb_data_typed_object_alloc_managed(VALUE ruby_class, size_t size, const rb_data_type_t *data_type, void *interoptypeid) {
+  void *data = rb_tr_new_managed_struct(interoptypeid);
   return rb_data_typed_object_wrap(ruby_class, data, data_type);
 }
 
@@ -3096,8 +3096,8 @@ void rb_tr_release_handle(void *handle) {
 
 // Managed Structs
 
-void* rb_tr_new_managed_struct(void) {
-  return polyglot_invoke(RUBY_CEXT, "rb_tr_new_managed_struct");
+void* rb_tr_new_managed_struct(void *type) {
+  return polyglot_invoke(RUBY_CEXT, "rb_tr_new_managed_struct", type);
 }
 
 void rb_tr_load_library(VALUE library) {

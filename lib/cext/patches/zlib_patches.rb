@@ -25,14 +25,6 @@ class ZLibPatches < CommonPatches
           match: /&gz->z(?=[,);])/,
           replacement: 'polyglot_as_zstream(polyglot_get_member(gz, "z"))'
         },
-        {
-          match: /TypedData_Get_Struct\((?<args>(klass|obj), struct (?<type>zstream|gzfile), &(\k<type>)_data_type, (?<varname>z|gz))\);/,
-          replacement: 'TypedData_Get_Managed_Struct(\k<args>, \k<type>); // Currently we loose interop type info when going from C to Ruby and back'
-        },
-        {
-          match: /(?<lhs>struct gzfile \*gz) = (?<rhs>\(struct gzfile\s*\*\)arg);/,
-          replacement: '\k<lhs> = polyglot_as_gzfile(\k<rhs>); // Currently we loose interop type info when going from C to Ruby and back'
-        },
       ]
     }
   }

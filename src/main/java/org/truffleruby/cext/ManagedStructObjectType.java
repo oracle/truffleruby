@@ -19,8 +19,8 @@ public class ManagedStructObjectType extends ObjectType {
 
     public static final ManagedStructLayout MANAGED_STRUCT = ManagedStructLayoutImpl.INSTANCE;
 
-    public static DynamicObject createManagedStruct() {
-        return MANAGED_STRUCT.createManagedStruct();
+    public static DynamicObject createManagedStruct(Object type) {
+        return MANAGED_STRUCT.createManagedStruct(type);
     }
 
     public static boolean isInstance(TruffleObject receiver) {

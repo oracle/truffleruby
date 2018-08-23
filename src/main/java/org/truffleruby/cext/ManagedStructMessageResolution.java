@@ -60,4 +60,12 @@ public class ManagedStructMessageResolution {
 
     }
 
+    @SuppressWarnings("unknown-message")
+    @Resolve(message = "com.oracle.truffle.llvm.spi.GetDynamicType")
+    public abstract static class GetDynamicType extends Node {
+
+        protected Object access(DynamicObject object) {
+            return ManagedStructObjectType.MANAGED_STRUCT.getType(object);
+        }
+    }
 }
