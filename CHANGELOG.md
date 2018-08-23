@@ -37,6 +37,8 @@ Bug fixes:
 * Fix arity checks and handling of arity `-2` for `rb_define_method()`.
 * Setting `$SAFE` to a negative value now raises a `SecurityError`.
 * The offset of `DATA` is now correct in the presence of heredocs.
+* Fix double-loading of the `json` gem, which led to duplicate constant
+  definition warnings.
 
 Performance:
 
