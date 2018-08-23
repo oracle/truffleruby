@@ -551,6 +551,9 @@ describes the object (unrelated to the metaclass).
 
 `Truffle::Interop.to_string(object)` calls the Java `toString` on the object.
 
+`Truffle::Interop.identity_hash_code(object)` calls
+`System.identityHashCode(object)`.
+
 ## Notes on method resolution
 
 Method calls on foreign objects are usually translated exactly into foreign

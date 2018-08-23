@@ -1008,4 +1008,14 @@ public abstract class InteropNodes {
 
     }
 
+    @CoreMethod(names = "identity_hash_code", isModuleFunction = true, required = 1)
+    public abstract static class InteropIdentityHashCodeNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public int identityHashCode(Object value) {
+            return System.identityHashCode(value);
+        }
+
+    }
+
 }
