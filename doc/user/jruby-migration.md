@@ -25,7 +25,12 @@ JRuby supports many different ways to embed Ruby in Java, including JSR 223
 
 We recommend that TruffleRuby is embedded via the Polyglot API, which is part of
 GraalVM. The API is different because it's designed to support many languages,
-not just Ruby. You will need to use the GraalVM to use both this APIs.
+not just Ruby.
+
+TruffleRuby also supports JSR 223, compatible with JRruby, to make it
+easier to run legacy JRuby code.
+
+You will need to use the GraalVM to use both these APIs.
 
 See the [polyglot](polyglot.md) documentation for more information about how to
 use Ruby from other languages including Java - this document only shows the

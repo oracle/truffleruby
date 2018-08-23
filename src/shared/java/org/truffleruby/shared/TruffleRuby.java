@@ -15,8 +15,9 @@ import org.graalvm.polyglot.Engine;
 public class TruffleRuby {
 
     public static final String LANGUAGE_ID = "ruby";
+    public static final String MIME_TYPE = "application/x-ruby";
+    public static final String EXTENSION = ".rb";
     public static final String LLVM_ID = "llvm";
-    public static final String ENGINE_NAME = "TruffleRuby";
     public static final String ENGINE_ID = "truffleruby";
     public static final String LANGUAGE_VERSION = "2.4.4";
     public static final String LANGUAGE_BASE_VERSION = "2.4.0"; // From RbConfig::CONFIG["ruby_version"]

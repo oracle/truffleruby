@@ -7,12 +7,11 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.scriptengine;
+package org.truffleruby.services.scriptengine;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
-import org.truffleruby.shared.TruffleRuby;
 
 import javax.script.AbstractScriptEngine;
 import javax.script.Bindings;
@@ -55,7 +54,7 @@ public class TruffleRubyScriptEngine extends AbstractScriptEngine implements Scr
     @Override
     public Object eval(String script, ScriptContext context) throws ScriptException {
         try {
-            return polyglot.eval(TruffleRuby.LANGUAGE_ID, script).as(Object.class);
+            return polyglot.eval("ruby", script).as(Object.class);
         } catch (PolyglotException e) {
             throw new ScriptException(e);
         }
@@ -75,7 +74,7 @@ public class TruffleRubyScriptEngine extends AbstractScriptEngine implements Scr
         final Object[] values = entries.stream().map(Map.Entry::getValue).toArray();
 
         try {
-            return polyglot.eval(TruffleRuby.LANGUAGE_ID, parameterisedScript).execute(values).as(Object.class);
+            return polyglot.eval("ruby", parameterisedScript).execute(values).as(Object.class);
         } catch (PolyglotException e) {
             throw new ScriptException(e);
         }
@@ -111,7 +110,7 @@ public class TruffleRubyScriptEngine extends AbstractScriptEngine implements Scr
         final Value compiled;
 
         try {
-            compiled = polyglot.eval(TruffleRuby.LANGUAGE_ID, parameteriseScript(script, Collections.emptyList()));
+            compiled = polyglot.eval("ruby", parameteriseScript(script, Collections.emptyList()));
         } catch (PolyglotException e) {
             throw new ScriptException(e);
         }

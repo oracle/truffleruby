@@ -155,6 +155,20 @@ suite = {
             ],
         },
 
+        "org.truffleruby.services": {
+            "dir": "src/services",
+            "sourceDirs": ["java"],
+            "dependencies": [
+                "sdk:GRAAL_SDK",
+            ],
+            "javaCompliance": "1.8",
+            "workingSets": "TruffleRuby",
+            "checkPackagePrefix": "false",
+            "license": [
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+            ],
+        },
+
         "org.truffleruby": {
             "dir": "src/main",
             "sourceDirs": ["java"],
@@ -223,6 +237,7 @@ suite = {
             "sourceDirs": ["java"],
             "dependencies": [
                 "org.truffleruby",
+                "org.truffleruby.services",
                 "truffle:TRUFFLE_TCK",
                 "mx:JUNIT",
             ],
@@ -358,6 +373,17 @@ suite = {
                 "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
             ],
         },
+        
+        "TRUFFLERUBY-SERVICES": {
+            "dependencies": [
+                "org.truffleruby.services"
+            ],
+            "distDependencies": [
+                "sdk:GRAAL_SDK",
+            ],
+            "description": "TruffleRuby services",
+            "license": ["EPL-1.0"]
+        },
 
         "TRUFFLERUBY": {
             "mainClass": "org.truffleruby.launcher.RubyLauncher",
@@ -387,6 +413,7 @@ suite = {
             "distDependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
+                "truffleruby:TRUFFLERUBY-SERVICES",     # For the file type detection service
                 "sdk:GRAAL_SDK",
                 "sdk:LAUNCHER_COMMON",
             ],
