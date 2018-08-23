@@ -26,7 +26,7 @@ describe "Foreign strings" do
   
   it "are unboxed and converted to Ruby automatically on the RHS of string concatenation" do
     a = 'a'
-    b = Truffle::Debug.foreign_string('a')
+    b = Truffle::Debug.foreign_string('b')
     (a + b).should == 'ab'
   end
 
