@@ -29,5 +29,25 @@ describe "Foreign strings" do
     b = Truffle::Debug.foreign_string('b')
     (a + b).should == 'ab'
   end
+  
+  it "respond to #to_s" do
+    Truffle::Debug.foreign_string('a').to_s.should == 'a'
+  end
+  
+  it "respond to #to_str" do
+    Truffle::Debug.foreign_string('a').to_str.should == 'a'
+  end
+  
+  it "can be printed with #puts" do
+    lambda {
+      puts Truffle::Debug.foreign_string('a')
+    }.should output("a\n")
+  end
+  
+  it "can be printed as if a Ruby string with #p" do
+    lambda {
+      p Truffle::Debug.foreign_string('a')
+    }.should output("\"a\"\n")
+  end
 
 end

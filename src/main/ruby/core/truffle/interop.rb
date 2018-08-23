@@ -169,8 +169,21 @@ module Truffle
         else
           Truffle::Interop.invoke(receiver, :class, *args)
         end
+      when :inspect
+        if Truffle::Interop.size?(receiver)
+          "#<Foreign #{to_array(receiver).inspect}>"
+        elsif Truffle::Interop.boxed?(receiver)
+          Truffle::Interop.unbox(receiver).inspect
+        else
+          "#<Foreign:0x#{Truffle::Interop.identity_hash_code(receiver).to_s(16)}>"
+        end
       when :to_s
-        Truffle::Interop.to_string(receiver)
+        receiver = Truffle::Interop.unbox_if_needed(receiver)
+        if receiver.is_a?(String)
+          receiver
+        else
+          receiver.inspect
+        end
       when :to_str
         receiver = Truffle::Interop.unbox_if_needed(receiver)
         raise NameError, 'no method to_str' unless receiver.is_a?(String)
