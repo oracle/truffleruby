@@ -1,2 +1,0 @@
-fails:Foreign strings are unboxed and converted to Ruby automatically on the LHS of string concatenation
-fails:Foreign strings are unboxed and converted to Ruby automatically on the RHS of string concatenation

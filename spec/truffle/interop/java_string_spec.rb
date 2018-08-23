@@ -31,5 +31,29 @@ describe "Java strings" do
     b = Truffle::Interop.to_java_string('a')
     (a + b).should == 'ab'
   end
+  
+  it "respond to #to_s" do
+    Truffle::Interop.to_java_string('a').to_s.should == 'a'
+  end
+  
+  it "respond to #to_str" do
+    Truffle::Interop.to_java_string('a').to_str.should == 'a'
+  end
+  
+  it "can be printed with #puts" do
+    lambda {
+      puts Truffle::Interop.to_java_string('a')
+    }.should output("a\n")
+  end
+  
+  it "can be printed as if a Ruby string with #p" do
+    lambda {
+      p Truffle::Interop.to_java_string('a')
+    }.should output("\"a\"\n")
+  end
+  
+  it "respond to Java methods" do
+    Truffle::Interop.to_java_string('abc').subSequence(1, 2).should == 'b'
+  end
 
 end

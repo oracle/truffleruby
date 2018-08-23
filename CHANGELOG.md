@@ -17,6 +17,8 @@ New features:
   `bar`, `each_spec`, `block in bar` (which is what MRI displays in backtraces).
 * TruffleRuby is now usable as a JSR 223 (`javax.script`) language.
 * A migration guide from JRuby (`doc/user/jruby-migration.md`) is now included.
+* `kind_of?` works as an alias for `is_a?` on foreign objects.
+* Boxed foreign strings unbox on `to_s`, `to_str`, and `inspect`.
 
 Bug fixes:
 
@@ -53,6 +55,9 @@ Changes:
 * `$SAFE` and `Thread#safe_level` now cannot be set to `1` - raising an error
   rather than warning as before. `-Xsafe` allows it to be set, but there are
   still no checks.
+* Foreign objects are now printed as `#<Foreign:system-identity-hash-code>`,
+  except for foreign arrays which are now printed as `#<Foreign [elements...]>`.
+* Foreign objects `to_s` now calls `inspect` rather than Java's `toString`.
 
 Changes:
 

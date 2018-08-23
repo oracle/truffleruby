@@ -12,9 +12,6 @@ package org.truffleruby.interop;
 import java.util.Arrays;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
@@ -83,8 +80,6 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             return new ToAOutgoingNode();
         } else if (name.equals("respond_to?")) {
             return new RespondToOutgoingNode();
-        } else if (name.equals("inspect")) {
-            return new InspectOutgoingNode();
         } else if (name.equals("__send__")) {
             return new SendOutgoingNode();
         } else if (name.equals("nil?")) {
@@ -95,19 +90,23 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                 || name.equals("size")
                 || name.equals("keys")
                 || name.equals("class")
+                || name.equals("inspect")
                 || name.equals("to_s")
                 || name.equals("to_str")
-                || name.equals("is_a?")) {
+                || name.equals("is_a?")
+                || name.equals("kind_of?")) {
             final int expectedArgsLength;
 
             switch (name) {
                 case "delete":
                 case "is_a?":
+                case "kind_of?":
                     expectedArgsLength = 1;
                     break;
                 case "size":
                 case "keys":
                 case "class":
+                case "inspect":
                 case "to_s":
                 case "to_str":
                     expectedArgsLength = 0;
@@ -346,27 +345,6 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             System.arraycopy(args, 0, prependedArgs, 2, args.length);
 
             return callSpecialForm.call(coreLibrary().getTruffleInteropModule(), "special_form", prependedArgs);
-        }
-
-    }
-
-    protected class InspectOutgoingNode extends OutgoingNode {
-
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
-        @Override
-        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
-            if (args.length != 0) {
-                argumentErrorProfile.enter();
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 0, this));
-            }
-
-            return makeStringNode.executeMake(inspect(receiver), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        }
-
-        @TruffleBoundary
-        private String inspect(TruffleObject receiver) {
-            return String.format("#<Truffle::Interop::Foreign@%x>", System.identityHashCode(receiver));
         }
 
     }

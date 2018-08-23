@@ -410,9 +410,10 @@ reference equality, like `BasicObject#equal?`. For Java interop objects it
 looks at the underlying Java object.
 
 `object.inspect` produces a simple string of the format
-`#<Truffle::Interop::Foreign:system-identity-hash-code>`.
+`#<Foreign:system-identity-hash-code>` for objects, except it prints the Ruby
+representation of a foreign array in place of the hash code.
 
-`object.to_s` calls Java's `toString`.
+`object.to_s` calls `object.inspect`.
 
 `object.to_str` will try to `UNBOX` the object and return it if it's a `String`,
 or will raise `NoMethodError` if it isn't.
@@ -426,6 +427,8 @@ runtime object instance.
 `foreign_object.is_a?(ruby_class)` returns `false`.
 
 `foreign_object.is_a?(foreign_class)` raises a `TypeError`.
+
+`foreign_object.kind_of?` works like `foreign_object.is_a?`.
 
 `object.respond_to?(:to_a)`, `respond_to?(:to_ary)` and `respond_to?(:size)`
 sends `HAS_SIZE`.
@@ -477,10 +480,8 @@ and expects to be able to mutate them and so on
 Export and import also converts strings, and also has `_without_conversion`
 counterparts.
 
-It is planned that Java strings, and boxed foreign strings (foreign objects that
-respond positively to `IS_BOXED` and `UNBOX` to a Java string), will be able to
-be used in all locations where a Ruby string could, and will be converted to a
-Ruby string at that point, but this is not implemented yet.
+Boxed foreign strings (foreign objects that respond positively to `IS_BOXED` and
+`UNBOX` to a Java string) unbox on `to_s`, `to_str` and `inspect`.
 
 ## Import and export
 
@@ -548,6 +549,9 @@ describes the object (unrelated to the metaclass).
 `IS_BOXED` and it's a foreign object.
 
 `Truffle::Interop.to_string(object)` calls the Java `toString` on the object.
+
+`Truffle::Interop.identity_hash_code(object)` calls
+`System.identityHashCode(object)`.
 
 ## Notes on method resolution
 
