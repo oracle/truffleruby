@@ -11,46 +11,24 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
-@NodeChild(value = "child", type = RubyNode.class)
-public abstract class ToFNode extends RubyNode {
+public abstract class ToFNode extends RubyBaseNode {
 
     @Child private CallDispatchHeadNode toFNode;
 
-    private final BranchProfile errorProfile = BranchProfile.create();
-
     public static ToFNode create() {
-        return ToFNodeGen.create(null);
+        return ToFNodeGen.create();
     }
 
-    public double doDouble(VirtualFrame frame, Object value) {
-        final Object doubleObject = executeDouble(frame, value);
-
-        if (doubleObject instanceof Double) {
-            return (double) doubleObject;
-        }
-
-        errorProfile.enter();
-        throw new UnsupportedOperationException("executeDouble must return a double, instead it returned a " + getClassName(doubleObject));
-    }
-
-    @TruffleBoundary
-    private String getClassName(Object doubleObject) {
-        return doubleObject.getClass().getName();
-    }
-
-    public abstract Object executeDouble(VirtualFrame frame, Object value);
+    public abstract double executeToDouble(Object value);
 
     @Specialization
     public double coerceInt(int value) {
@@ -68,18 +46,18 @@ public abstract class ToFNode extends RubyNode {
     }
 
     @Specialization
-    public double coerceBoolean(VirtualFrame frame, boolean value,
+    public double coerceBoolean(boolean value,
             @Cached("create()") BranchProfile errorProfile) {
-        return coerceObject(frame, value, errorProfile);
+        return coerceObject(value, errorProfile);
     }
 
     @Specialization
-    public double coerceDynamicObject(VirtualFrame frame, DynamicObject object,
+    public double coerceDynamicObject(DynamicObject object,
             @Cached("create()") BranchProfile errorProfile) {
-        return coerceObject(frame, object, errorProfile);
+        return coerceObject(object, errorProfile);
     }
 
-    private double coerceObject(VirtualFrame frame, Object object, BranchProfile errorProfile) {
+    private double coerceObject(Object object, BranchProfile errorProfile) {
         if (toFNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toFNode = insert(CallDispatchHeadNode.createPrivate());
