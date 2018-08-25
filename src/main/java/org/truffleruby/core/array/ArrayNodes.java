@@ -497,7 +497,7 @@ public abstract class ArrayNodes {
         private Object write(DynamicObject array, int index, Object value) {
             if (writeNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                writeNode = insert(ArrayWriteNormalizedNodeGen.create(null, null, null));
+                writeNode = insert(ArrayWriteNormalizedNodeGen.create());
             }
             return writeNode.executeWrite(array, index, value);
         }
@@ -1405,7 +1405,7 @@ public abstract class ArrayNodes {
         }
 
         protected ArrayWriteNormalizedNode createWriteNode() {
-            return ArrayWriteNormalizedNodeGen.create(null, null, null);
+            return ArrayWriteNormalizedNodeGen.create();
         }
 
     }

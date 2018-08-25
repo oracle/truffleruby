@@ -117,7 +117,7 @@ public abstract class SplatCastNode extends RubyNode {
     private DynamicObject executeDup(VirtualFrame frame, DynamicObject array) {
         if (dup == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            dup = insert(ArrayDupNodeGen.create(null));
+            dup = insert(ArrayDupNodeGen.create());
         }
         return dup.executeDup(frame, array);
     }

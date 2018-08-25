@@ -135,7 +135,7 @@ public class RubyCallNode extends RubyNode {
     private Object[] splat(Object[] arguments) {
         if (toObjectArrayNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toObjectArrayNode = insert(ArrayToObjectArrayNodeGen.create(null));
+            toObjectArrayNode = insert(ArrayToObjectArrayNodeGen.create());
         }
         // TODO(CS): what happens if it isn't an Array?
         return toObjectArrayNode.unsplat(arguments);

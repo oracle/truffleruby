@@ -68,7 +68,7 @@ public class YieldExpressionNode extends RubyNode {
     private Object[] unsplat(Object[] argumentsObjects) {
         if (unsplatNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            unsplatNode = insert(ArrayToObjectArrayNodeGen.create(null));
+            unsplatNode = insert(ArrayToObjectArrayNodeGen.create());
         }
         return unsplatNode.unsplat(argumentsObjects);
     }
