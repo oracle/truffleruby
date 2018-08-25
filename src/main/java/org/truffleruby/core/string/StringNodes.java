@@ -148,7 +148,6 @@ import org.truffleruby.core.string.StringNodesFactory.StringEqualNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringSubstringPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
 import org.truffleruby.core.string.StringSupport.TrTables;
-import org.truffleruby.language.CheckLayoutNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
@@ -366,7 +365,6 @@ public abstract class StringNodes {
         @Child private KernelNodes.RespondToNode respondToNode;
         @Child private CallDispatchHeadNode objectEqualNode;
         @Child private BooleanCastNode booleanCastNode;
-        @Child private CheckLayoutNode checkLayoutNode;
 
         @Specialization(guards = "isRubyString(b)")
         public boolean equal(DynamicObject a, DynamicObject b) {
@@ -397,14 +395,6 @@ public abstract class StringNodes {
             return false;
         }
 
-        protected boolean isRubyString(DynamicObject object) {
-            if (checkLayoutNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkLayoutNode = insert(new CheckLayoutNode());
-            }
-
-            return checkLayoutNode.isString(object);
-        }
     }
 
     @Primitive(name = "string_cmp")
