@@ -13,14 +13,21 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public class PrependMarker extends ModuleChain {
 
-    public PrependMarker(ModuleChain parentModule) {
-        super(parentModule);
-        assert parentModule != null;
+    private final ModuleFields origin;
+
+    public PrependMarker(ModuleFields origin) {
+        super(origin);
+        assert origin != null;
+        this.origin = origin;
     }
 
     @Override
     public DynamicObject getActualModule() {
         throw new UnsupportedOperationException();
+    }
+
+    public ModuleFields getOrigin() {
+        return origin;
     }
 
 }

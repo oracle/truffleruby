@@ -106,9 +106,7 @@ public abstract class ModuleOperations {
         // Look in ancestors
         for (DynamicObject ancestor : Layouts.MODULE.getFields(module).prependedAndIncludedModules()) {
             for (Map.Entry<String, RubyConstant> constant : Layouts.MODULE.getFields(ancestor).getConstants()) {
-                if (!constants.containsKey(constant.getKey())) {
-                    constants.put(constant.getKey(), constant.getValue());
-                }
+                constants.putIfAbsent(constant.getKey(), constant.getValue());
             }
         }
 
@@ -284,9 +282,7 @@ public abstract class ModuleOperations {
 
         for (DynamicObject ancestor : Layouts.MODULE.getFields(module).ancestors()) {
             for (InternalMethod method : Layouts.MODULE.getFields(ancestor).getMethods()) {
-                if (!methods.containsKey(method.getName())) {
-                    methods.put(method.getName(), method);
-                }
+                methods.putIfAbsent(method.getName(), method);
             }
         }
 
@@ -299,17 +295,33 @@ public abstract class ModuleOperations {
 
         final Map<String, InternalMethod> methods = new HashMap<>();
 
-        for (DynamicObject ancestor : Layouts.MODULE.getFields(module).ancestors()) {
+        ModuleChain chain = Layouts.MODULE.getFields(module).getFirstModuleChain();
+
+        while (true) {
+            if (chain instanceof PrependMarker) {
+                // We need to stop if we are entering prepended modules of a class which is not a
+                // singleton class. So we look for the PrependMarker explicitly here.
+                final DynamicObject origin = ((PrependMarker) chain).getOrigin().getActualModule();
+                // When we find a class which is not a singleton class, we are done
+                if (RubyGuards.isRubyClass(origin) && !Layouts.CLASS.getIsSingleton(origin)) {
+                    break;
+                } else {
+                    chain = chain.getParentModule();
+                }
+            }
+
+            final DynamicObject ancestor = chain.getActualModule();
+
             // When we find a class which is not a singleton class, we are done
             if (RubyGuards.isRubyClass(ancestor) && !Layouts.CLASS.getIsSingleton(ancestor)) {
                 break;
             }
 
             for (InternalMethod method : Layouts.MODULE.getFields(ancestor).getMethods()) {
-                if (!methods.containsKey(method.getName())) {
-                    methods.put(method.getName(), method);
-                }
+                methods.putIfAbsent(method.getName(), method);
             }
+
+            chain = chain.getParentModule();
         }
 
         return methods;
@@ -323,9 +335,7 @@ public abstract class ModuleOperations {
 
         for (DynamicObject ancestor : Layouts.MODULE.getFields(module).ancestors()) {
             for (InternalMethod method : Layouts.MODULE.getFields(ancestor).getMethods()) {
-                if (!methods.containsKey(method.getName())) {
-                    methods.put(method.getName(), method);
-                }
+                methods.putIfAbsent(method.getName(), method);
             }
 
             // When we find a class which is not a singleton class, we are done
