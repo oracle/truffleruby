@@ -65,10 +65,9 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     // The context is stored here - objects can obtain it via their class (which is a module)
     private final RubyContext context;
-
     private final SourceSection sourceSection;
 
-    public final PrependMarker start;
+    private final PrependMarker start;
 
     public final DynamicObject lexicalParent;
     public final String givenBaseName;
