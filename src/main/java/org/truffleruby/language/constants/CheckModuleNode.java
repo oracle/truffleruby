@@ -9,12 +9,11 @@
  */
 package org.truffleruby.language.constants;
 
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -23,8 +22,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
  * An efficient way to check if the value is a module. Needed for A::B constant lookup to check that
  * A is a module, see {@link ReadConstantNode}.
  */
-@NodeChild("module")
-public abstract class CheckModuleNode extends RubyNode {
+public abstract class CheckModuleNode extends RubyBaseNode {
 
     public abstract DynamicObject executeCheckModule(Object module);
 

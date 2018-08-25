@@ -10,7 +10,7 @@
 package org.truffleruby.language.arguments;
 
 import org.truffleruby.builtins.CallerFrameAccess;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.CachedDispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -21,7 +21,7 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadCallerFrameNode extends RubyNode {
+public class ReadCallerFrameNode extends RubyBaseNode {
 
     private final ConditionProfile callerFrameProfile = ConditionProfile.createBinaryProfile();
 
@@ -35,7 +35,6 @@ public class ReadCallerFrameNode extends RubyNode {
         this.accessMode = callerFrameAccess;
     }
 
-    @Override
     public Frame execute(VirtualFrame frame) {
         final MaterializedFrame callerFrame = RubyArguments.getCallerFrame(frame);
 

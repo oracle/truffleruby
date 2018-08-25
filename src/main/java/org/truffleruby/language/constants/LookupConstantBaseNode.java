@@ -10,15 +10,15 @@
 package org.truffleruby.language.constants;
 
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
-public abstract class LookupConstantBaseNode extends RubyNode {
+public abstract class LookupConstantBaseNode extends RubyBaseNode {
 
     @Child private WarnNode warnNode;
 

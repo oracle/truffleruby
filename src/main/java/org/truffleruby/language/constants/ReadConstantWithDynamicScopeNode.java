@@ -29,7 +29,7 @@ public class ReadConstantWithDynamicScopeNode extends RubyNode {
 
     public ReadConstantWithDynamicScopeNode(String name) {
         this.name = name;
-        this.lookupConstantNode = LookupConstantWithDynamicScopeNodeGen.create(name, null);
+        this.lookupConstantNode = LookupConstantWithDynamicScopeNodeGen.create(name);
     }
 
     @Override

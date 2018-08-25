@@ -12,8 +12,6 @@ package org.truffleruby.language.constants;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -23,13 +21,12 @@ import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.loader.FeatureLoader;
 
-@NodeChildren({ @NodeChild("lexicalScope"), @NodeChild("module"), @NodeChild("name"), @NodeChild("constant"), @NodeChild("lookupConstantNode") })
-public abstract class GetConstantNode extends RubyNode {
+public abstract class GetConstantNode extends RubyBaseNode {
 
     private final boolean callConstMissing;
 
@@ -40,7 +37,7 @@ public abstract class GetConstantNode extends RubyNode {
     }
 
     public static GetConstantNode create(boolean callConstMissing) {
-        return GetConstantNodeGen.create(callConstMissing, null, null, null, null, null);
+        return GetConstantNodeGen.create(callConstMissing);
     }
 
     public Object lookupAndResolveConstant(LexicalScope lexicalScope, DynamicObject module, String name, LookupConstantInterface lookupConstantNode) {
@@ -48,7 +45,7 @@ public abstract class GetConstantNode extends RubyNode {
         return executeGetConstant(lexicalScope, module, name, constant, lookupConstantNode);
     }
 
-    protected abstract Object executeGetConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant constant, LookupConstantInterface lookupConstantNode);
+    protected abstract Object executeGetConstant(LexicalScope lexicalScope, DynamicObject module, String name, Object constant, LookupConstantInterface lookupConstantNode);
 
     public GetConstantNode(boolean callConstMissing) {
         this.callConstMissing = callConstMissing;
