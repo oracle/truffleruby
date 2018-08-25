@@ -63,7 +63,7 @@ import java.nio.ByteBuffer;
 })
 public abstract class ReadBERNode extends FormatNode {
 
-    @Child private FixnumOrBignumNode fixnumOrBignumNode = FixnumOrBignumNode.create();
+    @Child private FixnumOrBignumNode fixnumOrBignumNode = new FixnumOrBignumNode();
 
     private static final long UL_MASK = 0xFE000000;
     private static final BigInteger BIG_128 = BigInteger.valueOf(128);
