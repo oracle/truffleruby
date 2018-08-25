@@ -77,16 +77,6 @@ public class FileLoader {
 
         final byte[] sourceBytes = Files.readAllBytes(Paths.get(path));
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-
-        /*
-         * This factory method call ostensibly does nothing - it is created and never assigned to anything. However
-         * it must change some global state or cache, because if you remove it you will get this following failure:
-         *
-         * - spec/ruby/core/thread/backtrace/location/absolute_path_spec.rb (the source has a different name)
-         */
-
-        Source.newBuilder(new File(path)).build();
-
         final String language;
         final String mimeType;
 
