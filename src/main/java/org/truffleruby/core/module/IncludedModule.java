@@ -9,27 +9,20 @@
  */
 package org.truffleruby.core.module;
 
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyGuards;
 
 /**
  * A reference to an included RubyModule.
  */
-public class IncludedModule implements ModuleChain {
+public class IncludedModule extends ModuleChain {
 
-    @CompilationFinal private ModuleChain parentModule;
     private final DynamicObject includedModule;
 
     public IncludedModule(DynamicObject includedModule, ModuleChain parentModule) {
+        super(parentModule);
         assert RubyGuards.isRubyModule(includedModule);
         this.includedModule = includedModule;
-        this.parentModule = parentModule;
-    }
-
-    @Override
-    public ModuleChain getParentModule() {
-        return parentModule;
     }
 
     @Override
@@ -40,11 +33,6 @@ public class IncludedModule implements ModuleChain {
     @Override
     public String toString() {
         return super.toString() + "(" + includedModule + ")";
-    }
-
-    @Override
-    public void insertAfter(DynamicObject module) {
-        parentModule = new IncludedModule(module, parentModule);
     }
 
 }

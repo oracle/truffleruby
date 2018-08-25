@@ -323,9 +323,7 @@ public class CoreLibrary {
 
         // Close the cycles
         // Set superclass of Class to Module
-        Layouts.MODULE.getFields(classClass).parentModule = Layouts.MODULE.getFields(moduleClass).start;
-        Layouts.CLASS.setSuperclass(classClass, moduleClass);
-        Layouts.MODULE.getFields(classClass).newHierarchyVersion();
+        Layouts.MODULE.getFields(classClass).setSuperClass(moduleClass, true);
 
         // Set constants in Object and lexical parents
         Layouts.MODULE.getFields(classClass).getAdoptedByLexicalParent(context, objectClass, "Class", node);

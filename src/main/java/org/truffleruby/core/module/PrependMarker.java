@@ -9,31 +9,18 @@
  */
 package org.truffleruby.core.module;
 
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public class PrependMarker implements ModuleChain {
-
-    @CompilationFinal private ModuleChain parentModule;
+public class PrependMarker extends ModuleChain {
 
     public PrependMarker(ModuleChain parentModule) {
+        super(parentModule);
         assert parentModule != null;
-        this.parentModule = parentModule;
-    }
-
-    @Override
-    public ModuleChain getParentModule() {
-        return parentModule;
     }
 
     @Override
     public DynamicObject getActualModule() {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void insertAfter(DynamicObject module) {
-        parentModule = new IncludedModule(module, parentModule);
     }
 
 }

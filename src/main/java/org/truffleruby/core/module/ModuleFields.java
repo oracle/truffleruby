@@ -12,7 +12,6 @@ package org.truffleruby.core.module;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -44,7 +43,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class ModuleFields implements ModuleChain, ObjectGraphNode {
+public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     public static void debugModuleChain(DynamicObject module) {
         assert RubyGuards.isRubyModule(module);
@@ -70,7 +69,6 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     private final SourceSection sourceSection;
 
     public final PrependMarker start;
-    @CompilationFinal public ModuleChain parentModule;
 
     public final DynamicObject lexicalParent;
     public final String givenBaseName;
@@ -102,6 +100,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     private final Map<String, Assumption> inlinedBuiltinsAssumptions = new HashMap<>();
 
     public ModuleFields(RubyContext context, SourceSection sourceSection, DynamicObject lexicalParent, String givenBaseName) {
+        super(null);
         assert lexicalParent == null || RubyGuards.isRubyModule(lexicalParent);
         this.context = context;
         this.sourceSection = sourceSection;
@@ -207,10 +206,6 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         if (context.getCoreLibrary() != null && IsFrozenNode.isFrozen(rubyModuleObject)) {
             throw new RaiseException(context, context.getCoreExceptions().frozenError(rubyModuleObject, currentNode));
         }
-    }
-
-    public void insertAfter(DynamicObject module) {
-        parentModule = new IncludedModule(module, parentModule);
     }
 
     @TruffleBoundary
@@ -623,10 +618,20 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         return refinements;
     }
 
-    public ModuleChain getParentModule() {
-        return parentModule;
+    public void setSuperClass(DynamicObject superclass, boolean markAsInitialized) {
+        assert RubyGuards.isRubyClass(rubyModuleObject);
+        assert RubyGuards.isRubyClass(superclass);
+
+        this.parentModule = Layouts.MODULE.getFields(superclass).start;
+
+        if (markAsInitialized) {
+            Layouts.CLASS.setSuperclass(rubyModuleObject, superclass);
+        }
+
+        newHierarchyVersion();
     }
 
+    @Override
     public DynamicObject getActualModule() {
         return rubyModuleObject;
     }

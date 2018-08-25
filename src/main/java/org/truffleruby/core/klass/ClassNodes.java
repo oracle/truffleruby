@@ -94,13 +94,7 @@ public abstract class ClassNodes {
         }
 
         if (superclass != null) {
-            assert RubyGuards.isRubyClass(superclass);
-            assert RubyGuards.isRubyClass(rubyClass);
-
-            fields.parentModule = Layouts.MODULE.getFields(superclass).start;
-            Layouts.CLASS.setSuperclass(rubyClass, superclass);
-
-            fields.newHierarchyVersion();
+            fields.setSuperClass(superclass, true);
         }
 
         return rubyClass;
@@ -157,8 +151,7 @@ public abstract class ClassNodes {
         }
 
         if (superclass != null) {
-            fields.parentModule = Layouts.MODULE.getFields(superclass).start;
-            fields.newHierarchyVersion();
+            fields.setSuperClass(superclass, false);
         }
 
         // Singleton classes cannot be instantiated
@@ -174,14 +167,11 @@ public abstract class ClassNodes {
         assert RubyGuards.isRubyClass(superclass);
         assert !Layouts.CLASS.getIsSingleton(rubyClass) : "Singleton classes can only be created internally";
 
-        Layouts.MODULE.getFields(rubyClass).parentModule = Layouts.MODULE.getFields(superclass).start;
-        Layouts.MODULE.getFields(rubyClass).newHierarchyVersion();
+        Layouts.MODULE.getFields(rubyClass).setSuperClass(superclass, true);
+
         ensureItHasSingletonClassCreated(context, rubyClass);
 
         setInstanceFactory(rubyClass, superclass);
-
-        // superclass is set only here in initialize method to its final value
-        Layouts.CLASS.setSuperclass(rubyClass, superclass);
     }
 
     public static void setInstanceFactory(DynamicObject rubyClass, DynamicObject baseClass) {
