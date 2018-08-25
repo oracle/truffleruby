@@ -1817,6 +1817,12 @@ public abstract class ModuleNodes {
             return module;
         }
 
+        @Specialization(guards = "isRubySymbol(name)")
+        public DynamicObject undefKeyword(VirtualFrame frame, DynamicObject module, DynamicObject name) {
+            undefMethod(frame, module, Layouts.SYMBOL.getString(name));
+            return module;
+        }
+
         private void undefMethod(VirtualFrame frame, DynamicObject module, String name) {
             raiseIfFrozenNode.execute(frame);
 
