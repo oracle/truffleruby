@@ -11,17 +11,15 @@ package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
-@NodeChild(value = "child", type = RubyNode.class)
-public abstract class IsTaintedNode extends RubyNode {
+public abstract class IsTaintedNode extends RubyBaseNode {
 
     public static IsTaintedNode create() {
-        return IsTaintedNodeGen.create(null);
+        return IsTaintedNodeGen.create();
     }
 
     public abstract boolean executeIsTainted(Object object);

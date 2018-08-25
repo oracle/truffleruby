@@ -115,13 +115,13 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             DynamicObject self,
             Object digits,
             @Cached("createBooleanCastNode()") BooleanCastNode booleanCastNode,
-            @Cached("createGetIntegerConstantNode()") GetIntegerConstantNode getIntegerConstantNode,
+            @Cached("create()") GetIntegerConstantNode getIntegerConstantNode,
             @Cached("createPrivate()") CallDispatchHeadNode modeCallNode,
             @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
 
         final int exceptionConstant = getIntegerConstantNode
-                .executeGetIntegerConstant(frame, getBigDecimalClass(), "EXCEPTION_INFINITY");
+                .executeGetIntegerConstant(getBigDecimalClass(), "EXCEPTION_INFINITY");
 
         final boolean raise = booleanCastNode.executeToBoolean(
                 modeCallNode.call(getBigDecimalClass(), "boolean_mode", exceptionConstant));
@@ -141,13 +141,13 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             DynamicObject self,
             Object digits,
             @Cached("createBooleanCastNode()") BooleanCastNode booleanCastNode,
-            @Cached("createGetIntegerConstantNode()") GetIntegerConstantNode getIntegerConstantNode,
+            @Cached("create()") GetIntegerConstantNode getIntegerConstantNode,
             @Cached("createPrivate()") CallDispatchHeadNode modeCallNode,
             @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
 
-        final int exceptionConstant = getIntegerConstantNode.executeGetIntegerConstant(frame,
-                getBigDecimalClass(), "EXCEPTION_NaN");
+        final int exceptionConstant = getIntegerConstantNode.executeGetIntegerConstant(getBigDecimalClass(),
+                "EXCEPTION_NaN");
 
         final boolean raise = booleanCastNode.executeToBoolean(
                 modeCallNode.call(getBigDecimalClass(), "boolean_mode", exceptionConstant));
@@ -297,10 +297,6 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
     protected BooleanCastNode createBooleanCastNode() {
         return BooleanCastNodeGen.create(null);
-    }
-
-    protected GetIntegerConstantNode createGetIntegerConstantNode() {
-        return GetIntegerConstantNodeGen.create(null, null);
     }
 
 }

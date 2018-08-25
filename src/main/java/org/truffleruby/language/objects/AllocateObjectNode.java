@@ -13,8 +13,6 @@ import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
@@ -26,25 +24,17 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
-@NodeChildren({
-        @NodeChild("classToAllocate"),
-        @NodeChild("values")
-})
-public abstract class AllocateObjectNode extends RubyNode {
+public abstract class AllocateObjectNode extends RubyBaseNode {
 
     public static AllocateObjectNode create() {
-        return AllocateObjectNodeGen.create(null, null);
+        return AllocateObjectNodeGen.create(true);
     }
 
     private final boolean useCallerFrameForTracing;
-
-    public AllocateObjectNode() {
-        this(true);
-    }
 
     public AllocateObjectNode(boolean useCallerFrameForTracing) {
         this.useCallerFrameForTracing = useCallerFrameForTracing;

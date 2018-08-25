@@ -15,7 +15,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.methods.CallBoundMethodNode;
-import org.truffleruby.language.methods.CallBoundMethodNodeGen;
 import org.truffleruby.language.yield.YieldNode;
 
 abstract class ForeignExecuteHelperNode extends RubyBaseNode {
@@ -24,18 +23,14 @@ abstract class ForeignExecuteHelperNode extends RubyBaseNode {
 
     @Specialization(guards = "isRubyProc(proc)")
     protected Object callProc(DynamicObject proc, Object[] arguments,
-                              @Cached("new()") YieldNode yieldNode) {
+            @Cached("new()") YieldNode yieldNode) {
         return yieldNode.dispatch(proc, arguments);
     }
 
     @Specialization(guards = "isRubyMethod(method)")
     protected Object callMethod(DynamicObject method, Object[] arguments,
-                                @Cached("createCallBoundMethodNode()") CallBoundMethodNode callBoundMethodNode) {
+            @Cached("create()") CallBoundMethodNode callBoundMethodNode) {
         return callBoundMethodNode.executeCallBoundMethod(method, arguments, nil());
-    }
-
-    protected CallBoundMethodNode createCallBoundMethodNode() {
-        return CallBoundMethodNodeGen.create(null, null, null);
     }
 
 }

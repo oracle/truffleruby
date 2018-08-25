@@ -11,15 +11,12 @@ package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.symbol.SymbolTable;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
-@NodeChildren({ @NodeChild("object"), @NodeChild("name") })
-public abstract class ObjectIVarGetNode extends RubyNode {
+public abstract class ObjectIVarGetNode extends RubyBaseNode {
 
     private final boolean checkName;
 
@@ -28,7 +25,7 @@ public abstract class ObjectIVarGetNode extends RubyNode {
     }
 
     public static ObjectIVarGetNode create() {
-        return ObjectIVarGetNodeGen.create(false, null, null);
+        return ObjectIVarGetNodeGen.create(false);
     }
 
     public abstract Object executeIVarGet(DynamicObject object, Object name);

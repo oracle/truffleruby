@@ -67,7 +67,6 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.SingletonClassNode;
-import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
@@ -276,7 +275,7 @@ public class CoreLibrary {
         @Child SingletonClassNode singletonClassNode;
 
         public CoreLibraryNode() {
-            this.singletonClassNode = SingletonClassNodeGen.create(null);
+            this.singletonClassNode = SingletonClassNode.create();
             adoptChildren();
         }
 

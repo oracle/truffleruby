@@ -31,10 +31,8 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CanBindMethodToModuleNode;
-import org.truffleruby.language.methods.CanBindMethodToModuleNodeGen;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.MetaClassNode;
-import org.truffleruby.language.objects.MetaClassNodeGen;
 import org.truffleruby.parser.ArgumentDescriptor;
 
 @CoreClass("UnboundMethod")
@@ -68,13 +66,12 @@ public abstract class UnboundMethodNodes {
     @CoreMethod(names = "bind", required = 1)
     public abstract static class BindNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private MetaClassNode metaClassNode = MetaClassNodeGen.create(null);
-        @Child private CanBindMethodToModuleNode canBindMethodToModuleNode = CanBindMethodToModuleNodeGen.create(null, null);
-
         @Specialization
         public DynamicObject bind(DynamicObject unboundMethod, Object object,
+                @Cached("create()") MetaClassNode metaClassNode,
+                @Cached("create()") CanBindMethodToModuleNode canBindMethodToModuleNode,
                 @Cached("create()") BranchProfile errorProfile) {
-            final DynamicObject objectMetaClass = metaClass(object);
+            final DynamicObject objectMetaClass = metaClassNode.executeMetaClass(object);
 
             if (!canBindMethodToModuleNode.executeCanBindMethodToModule(Layouts.UNBOUND_METHOD.getMethod(unboundMethod), objectMetaClass)) {
                 errorProfile.enter();
@@ -89,10 +86,6 @@ public abstract class UnboundMethodNodes {
             }
 
             return Layouts.METHOD.createMethod(coreLibrary().getMethodFactory(), object, Layouts.UNBOUND_METHOD.getMethod(unboundMethod));
-        }
-
-        protected DynamicObject metaClass(Object object) {
-            return metaClassNode.executeMetaClass(object);
         }
 
     }

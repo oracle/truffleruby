@@ -11,16 +11,13 @@ package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.symbol.SymbolTable;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
-@NodeChildren({ @NodeChild("object"), @NodeChild("name"), @NodeChild("value") })
-public abstract class ObjectIVarSetNode extends RubyNode {
+public abstract class ObjectIVarSetNode extends RubyBaseNode {
 
     private final boolean checkName;
 

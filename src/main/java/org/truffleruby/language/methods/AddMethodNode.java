@@ -19,7 +19,6 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.SingletonClassNode;
-import org.truffleruby.language.objects.SingletonClassNodeGen;
 
 public abstract class AddMethodNode extends RubyBaseNode {
 
@@ -84,7 +83,7 @@ public abstract class AddMethodNode extends RubyBaseNode {
     protected DynamicObject getSingletonClass(DynamicObject object) {
         if (singletonClassNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            singletonClassNode = insert(SingletonClassNodeGen.create(null));
+            singletonClassNode = insert(SingletonClassNode.create());
         }
 
         return singletonClassNode.executeSingletonClass(object);

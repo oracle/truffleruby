@@ -29,7 +29,7 @@ public class LiteralMethodDefinitionNode extends RubyNode {
     private final boolean isDefSingleton;
 
     @Child private RubyNode moduleNode;
-    @Child private RubyNode visibilityNode;
+    @Child private GetCurrentVisibilityNode visibilityNode;
 
     @Child private AddMethodNode addMethodNode;
 
@@ -53,7 +53,7 @@ public class LiteralMethodDefinitionNode extends RubyNode {
         if (isDefSingleton) {
             visibility = Visibility.PUBLIC;
         } else {
-            visibility = (Visibility) visibilityNode.execute(frame);
+            visibility = visibilityNode.getVisibility(frame);
         }
 
         final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame).withVisibility(Visibility.PUBLIC);

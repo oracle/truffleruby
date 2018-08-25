@@ -12,27 +12,19 @@ package org.truffleruby.language.yield;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
 
-@NodeChildren({
-        @NodeChild("block"),
-        @NodeChild("self"),
-        @NodeChild("blockArgument"),
-        @NodeChild(value = "arguments", type = RubyNode[].class)
-})
-public abstract class CallBlockNode extends RubyNode {
+public abstract class CallBlockNode extends RubyBaseNode {
 
     public static CallBlockNode create() {
-        return CallBlockNodeGen.create(null, null, null, null);
+        return CallBlockNodeGen.create();
     }
 
     public abstract Object executeCallBlock(DeclarationContext declarationContext, DynamicObject block, Object self, Object blockArgument, Object[] arguments);

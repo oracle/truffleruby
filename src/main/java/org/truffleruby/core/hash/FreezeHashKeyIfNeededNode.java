@@ -16,7 +16,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.IsFrozenNode;
-import org.truffleruby.language.objects.IsFrozenNodeGen;
 
 public abstract class FreezeHashKeyIfNeededNode extends RubyBaseNode {
 
@@ -49,7 +48,7 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyBaseNode {
     protected boolean isFrozen(Object value) {
         if (isFrozenNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            isFrozenNode = insert(IsFrozenNodeGen.create(null));
+            isFrozenNode = insert(IsFrozenNode.create());
         }
         return isFrozenNode.executeIsFrozen(value);
     }

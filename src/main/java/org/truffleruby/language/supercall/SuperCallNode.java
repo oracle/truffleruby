@@ -62,7 +62,7 @@ public class SuperCallNode extends RubyNode {
     private InternalMethod executeLookupSuperMethod(VirtualFrame frame, Object self) {
         if (lookupSuperMethodNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            lookupSuperMethodNode = insert(LookupSuperMethodNodeGen.create(null));
+            lookupSuperMethodNode = insert(LookupSuperMethodNodeGen.create());
         }
         return lookupSuperMethodNode.executeLookupSuperMethod(frame, self);
     }

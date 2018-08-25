@@ -10,28 +10,25 @@
 package org.truffleruby.stdlib.bigdecimal;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantNode;
 
-@NodeChildren({@NodeChild("module"), @NodeChild("name")})
-public abstract class GetIntegerConstantNode extends RubyNode {
+public abstract class GetIntegerConstantNode extends RubyBaseNode {
 
-    public abstract int executeGetIntegerConstant(VirtualFrame frame, DynamicObject module, String name);
+    public static GetIntegerConstantNode create() {
+        return GetIntegerConstantNodeGen.create();
+    }
+
+    public abstract int executeGetIntegerConstant(DynamicObject module, String name);
 
     @Specialization(guards = "isRubyModule(module)")
-    public int doInteger(
-            VirtualFrame frame,
-            DynamicObject module,
-            String name,
+    public int doInteger(DynamicObject module, String name,
             @Cached("createLookupConstantNode()") LookupConstantNode lookupConstantNode,
             @Cached("create()") GetConstantNode getConstantNode,
             @Cached("create()") ToIntNode toIntNode,

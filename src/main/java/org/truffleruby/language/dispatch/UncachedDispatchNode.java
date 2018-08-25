@@ -32,7 +32,6 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.LookupMethodNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
-import org.truffleruby.language.objects.MetaClassNodeGen;
 
 public class UncachedDispatchNode extends DispatchNode {
 
@@ -54,12 +53,12 @@ public class UncachedDispatchNode extends DispatchNode {
     public UncachedDispatchNode(boolean ignoreVisibility, boolean onlyCallPublic, DispatchAction dispatchAction, MissingBehavior missingBehavior) {
         super(dispatchAction);
         this.missingBehavior = missingBehavior;
-        this.lookupMethodNode = LookupMethodNodeGen.create(ignoreVisibility, onlyCallPublic, null, null);
+        this.lookupMethodNode = LookupMethodNodeGen.create(ignoreVisibility, onlyCallPublic);
         this.lookupMethodMissingNode = LookupMethodNode.createIgnoreVisibility();
         this.indirectCallNode = Truffle.getRuntime().createIndirectCallNode();
         this.toSymbolNode = ToSymbolNodeGen.create();
         this.nameToJavaStringNode = NameToJavaStringNode.create();
-        this.metaClassNode = dispatchAction == DispatchAction.CALL_METHOD ? MetaClassNodeGen.create(null) : null;
+        this.metaClassNode = dispatchAction == DispatchAction.CALL_METHOD ? MetaClassNode.create() : null;
     }
 
     @Override

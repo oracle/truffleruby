@@ -21,7 +21,6 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.MetaClassNode;
-import org.truffleruby.language.objects.MetaClassNodeGen;
 
 public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
 
@@ -47,7 +46,7 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
         this.originalMethodAssumptions = originalMethodLookup.getAssumptions();
         this.methodMissingAssumptions = methodMissingLookup.getAssumptions();
         this.methodMissing = methodMissingLookup.getMethod();
-        this.metaClassNode = MetaClassNodeGen.create(null);
+        this.metaClassNode = MetaClassNode.create();
         this.callNode = Truffle.getRuntime().createDirectCallNode(methodMissing.getCallTarget());
     }
 

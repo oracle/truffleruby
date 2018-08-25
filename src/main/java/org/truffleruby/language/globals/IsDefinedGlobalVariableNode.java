@@ -11,14 +11,14 @@ package org.truffleruby.language.globals;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.binding.BindingNodes;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.yield.YieldNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public abstract class IsDefinedGlobalVariableNode extends RubyNode {
+public abstract class IsDefinedGlobalVariableNode extends RubyBaseNode {
 
     public static IsDefinedGlobalVariableNode create(String name) {
         return IsDefinedGlobalVariableNodeGen.create(name);
@@ -29,6 +29,8 @@ public abstract class IsDefinedGlobalVariableNode extends RubyNode {
     public IsDefinedGlobalVariableNode(String name) {
         this.name = name;
     }
+
+    public abstract Object executeIsDefined(VirtualFrame frame);
 
     @Specialization(guards = "storage.isSimple()")
     public Object executeDefined(
@@ -41,7 +43,7 @@ public abstract class IsDefinedGlobalVariableNode extends RubyNode {
     }
 
     @Specialization(guards = { "storage.hasHooks()", "arity == 0" })
-    public Object executeDefinedHooks(VirtualFrame frame,
+    public Object executeDefinedHooks(
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("isDefinedArity(storage)") int arity,
             @Cached("new()") YieldNode yieldNode) {

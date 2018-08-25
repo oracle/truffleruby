@@ -21,14 +21,13 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.IsANode;
-import org.truffleruby.language.objects.IsANodeGen;
 
 /**
  * Casts a value into a Ruby Float (double).
  */
 public abstract class NumericToFloatNode extends RubyBaseNode {
 
-    @Child private IsANode isANode = IsANodeGen.create(null, null);
+    @Child private IsANode isANode = IsANode.create();
     @Child private CallDispatchHeadNode toFloatCallNode;
 
     public abstract double executeDouble(VirtualFrame frame, DynamicObject value);

@@ -10,27 +10,19 @@
 package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
-@NodeChildren({
-        @NodeChild("rubyClass"),
-        @NodeChild("superClass"),
-        @NodeChild("block")
-})
-public abstract class InitializeClassNode extends RubyNode {
+public abstract class InitializeClassNode extends RubyBaseNode {
 
     private final boolean callInherited;
 
@@ -41,34 +33,34 @@ public abstract class InitializeClassNode extends RubyNode {
         this.callInherited = callInherited;
     }
 
-    public abstract DynamicObject executeInitialize(VirtualFrame frame, DynamicObject rubyClass, Object superclass, Object block);
+    public abstract DynamicObject executeInitialize(DynamicObject rubyClass, Object superclass, Object block);
 
     @Specialization
-    public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, NotProvided superclass, NotProvided block) {
-        return initializeGeneralWithoutBlock(frame, rubyClass, coreLibrary().getObjectClass(), false);
+    public DynamicObject initialize(DynamicObject rubyClass, NotProvided superclass, NotProvided block) {
+        return initializeGeneralWithoutBlock(rubyClass, coreLibrary().getObjectClass(), false);
     }
 
     @Specialization
-    public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, NotProvided superclass, DynamicObject block) {
-        return initializeGeneralWithBlock(frame, rubyClass, coreLibrary().getObjectClass(), block, false);
+    public DynamicObject initialize(DynamicObject rubyClass, NotProvided superclass, DynamicObject block) {
+        return initializeGeneralWithBlock(rubyClass, coreLibrary().getObjectClass(), block, false);
     }
 
     @Specialization(guards = "isRubyClass(superclass)")
-    public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, NotProvided block) {
-        return initializeGeneralWithoutBlock(frame, rubyClass, superclass, true);
+    public DynamicObject initialize(DynamicObject rubyClass, DynamicObject superclass, NotProvided block) {
+        return initializeGeneralWithoutBlock(rubyClass, superclass, true);
     }
 
     @Specialization(guards = "isRubyClass(superclass)")
-    public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, DynamicObject block) {
-        return initializeGeneralWithBlock(frame, rubyClass, superclass, block, true);
+    public DynamicObject initialize(DynamicObject rubyClass, DynamicObject superclass, DynamicObject block) {
+        return initializeGeneralWithBlock(rubyClass, superclass, block, true);
     }
 
     @Specialization(guards = {"!isRubyClass(superclass)", "wasProvided(superclass)"})
-    public DynamicObject initializeNotClass(VirtualFrame frame, DynamicObject rubyClass, Object superclass, Object maybeBlock) {
+    public DynamicObject initializeNotClass(DynamicObject rubyClass, Object superclass, Object maybeBlock) {
         throw new RaiseException(getContext(), coreExceptions().typeErrorSuperclassMustBeClass(this));
     }
 
-    private DynamicObject initializeGeneralWithoutBlock(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, boolean superClassProvided) {
+    private DynamicObject initializeGeneralWithoutBlock(DynamicObject rubyClass, DynamicObject superclass, boolean superClassProvided) {
         assert RubyGuards.isRubyClass(rubyClass);
         assert RubyGuards.isRubyClass(superclass);
 
@@ -86,13 +78,13 @@ public abstract class InitializeClassNode extends RubyNode {
         ClassNodes.initialize(getContext(), rubyClass, superclass);
 
         if (callInherited) {
-            triggerInheritedHook(frame, rubyClass, superclass);
+            triggerInheritedHook(rubyClass, superclass);
         }
 
         return rubyClass;
     }
 
-    private DynamicObject initializeGeneralWithBlock(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, DynamicObject block, boolean superClassProvided) {
+    private DynamicObject initializeGeneralWithBlock(DynamicObject rubyClass, DynamicObject superclass, DynamicObject block, boolean superClassProvided) {
         assert RubyGuards.isRubyClass(superclass);
 
         if (isInitialized(rubyClass)) {
@@ -106,7 +98,7 @@ public abstract class InitializeClassNode extends RubyNode {
         }
 
         ClassNodes.initialize(getContext(), rubyClass, superclass);
-        triggerInheritedHook(frame, rubyClass, superclass);
+        triggerInheritedHook(rubyClass, superclass);
         moduleInitialize(rubyClass, block);
 
         return rubyClass;
@@ -129,7 +121,7 @@ public abstract class InitializeClassNode extends RubyNode {
         }
     }
 
-    private void triggerInheritedHook(VirtualFrame frame, DynamicObject subClass, DynamicObject superClass) {
+    private void triggerInheritedHook(DynamicObject subClass, DynamicObject superClass) {
         if (inheritedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             inheritedNode = insert(CallDispatchHeadNode.createPrivate());

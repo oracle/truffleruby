@@ -11,13 +11,12 @@ package org.truffleruby.parser.parser;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleOptions;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import java.util.Arrays;
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
@@ -55,7 +54,7 @@ public class ParserRopeOperations {
         return TruffleOptions.AOT && RubyContext.FIRST_INSTANCE == null;
     }
 
-    private static class RopeNode extends RubyNode {
+    private static class RopeNode extends RubyBaseNode {
 
         @Child RopeNodes.SubstringNode substringNode;
         @Child RopeNodes.WithEncodingNode withEncodingNode;
@@ -76,11 +75,6 @@ public class ParserRopeOperations {
             }
 
             return withEncodingNode;
-        }
-
-        @Override
-        public Object execute(VirtualFrame frame) {
-            return nil();
         }
 
     }

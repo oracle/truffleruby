@@ -92,7 +92,6 @@ import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.AddMethodNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.CanBindMethodToModuleNode;
-import org.truffleruby.language.methods.CanBindMethodToModuleNodeGen;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.GetCurrentVisibilityNode;
 import org.truffleruby.language.methods.InternalMethod;
@@ -101,12 +100,9 @@ import org.truffleruby.language.methods.DeclarationContext.FixedDefaultDefinee;
 import org.truffleruby.language.methods.UsingNode;
 import org.truffleruby.language.methods.UsingNodeGen;
 import org.truffleruby.language.objects.IsANode;
-import org.truffleruby.language.objects.IsANodeGen;
 import org.truffleruby.language.objects.IsFrozenNode;
-import org.truffleruby.language.objects.IsFrozenNodeGen;
 import org.truffleruby.language.objects.ReadInstanceVariableNode;
 import org.truffleruby.language.objects.SingletonClassNode;
-import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.language.objects.WriteInstanceVariableNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.Identifiers;
@@ -144,7 +140,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "===", required = 1)
     public abstract static class ContainsInstanceNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private IsANode isANode = IsANodeGen.create(null, null);
+        @Child private IsANode isANode = IsANode.create();
 
         @Specialization
         public boolean containsInstance(DynamicObject module, Object instance) {
@@ -1056,7 +1052,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyMethod(methodObject)")
         public DynamicObject defineMethodMethod(DynamicObject module, String name, DynamicObject methodObject, NotProvided block,
-                @Cached("createCanBindMethodToModuleNode()") CanBindMethodToModuleNode canBindMethodToModuleNode) {
+                @Cached("create()") CanBindMethodToModuleNode canBindMethodToModuleNode) {
             final InternalMethod method = Layouts.METHOD.getMethod(methodObject);
 
             if (!canBindMethodToModuleNode.executeCanBindMethodToModule(method, module)) {
@@ -1132,16 +1128,12 @@ public abstract class ModuleNodes {
             return getSymbol(method.getName());
         }
 
-        protected CanBindMethodToModuleNode createCanBindMethodToModuleNode() {
-            return CanBindMethodToModuleNodeGen.create(null, null);
-        }
-
     }
 
     @CoreMethod(names = "extend_object", required = 1, visibility = Visibility.PRIVATE)
     public abstract static class ExtendObjectNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SingletonClassNode singletonClassNode = SingletonClassNodeGen.create(null);
+        @Child private SingletonClassNode singletonClassNode = SingletonClassNode.create();
 
         @Specialization
         public DynamicObject extendObject(DynamicObject module, DynamicObject object,
@@ -1228,7 +1220,7 @@ public abstract class ModuleNodes {
         protected DynamicObject getSingletonClass(DynamicObject object) {
             if (singletonClassNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                singletonClassNode = insert(SingletonClassNodeGen.create(null));
+                singletonClassNode = insert(SingletonClassNode.create());
             }
 
             return singletonClassNode.executeSingletonClass(object);
@@ -1376,7 +1368,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "public_class_method", rest = true)
     public abstract static class PublicClassMethodNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SingletonClassNode singletonClassNode = SingletonClassNodeGen.create(null);
+        @Child private SingletonClassNode singletonClassNode = SingletonClassNode.create();
         @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNodeGen.create(Visibility.PUBLIC);
 
         @Specialization
@@ -1426,7 +1418,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "private_class_method", rest = true)
     public abstract static class PrivateClassMethodNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SingletonClassNode singletonClassNode = SingletonClassNodeGen.create(null);
+        @Child private SingletonClassNode singletonClassNode = SingletonClassNode.create();
         @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNodeGen.create(Visibility.PRIVATE);
 
         @Specialization
@@ -1737,7 +1729,7 @@ public abstract class ModuleNodes {
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-        @Child private IsFrozenNode isFrozenNode = IsFrozenNodeGen.create(null);
+        @Child private IsFrozenNode isFrozenNode = IsFrozenNode.create();
         @Child private CallDispatchHeadNode methodRemovedNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization

@@ -44,11 +44,9 @@ import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallBoundMethodNode;
-import org.truffleruby.language.methods.CallBoundMethodNodeGen;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.LogicalClassNode;
-import org.truffleruby.language.objects.LogicalClassNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.parser.ArgumentDescriptor;
 
@@ -90,7 +88,7 @@ public abstract class MethodNodes {
     @CoreMethod(names = { "call", "[]", "===" }, needsBlock = true, rest = true)
     public abstract static class CallNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallBoundMethodNode callBoundMethodNode = CallBoundMethodNodeGen.create(null, null, null);
+        @Child private CallBoundMethodNode callBoundMethodNode = CallBoundMethodNode.create();
 
         @Specialization
         protected Object call(VirtualFrame frame, DynamicObject method, Object[] arguments, Object maybeBlock) {
@@ -201,7 +199,7 @@ public abstract class MethodNodes {
     @CoreMethod(names = "unbind")
     public abstract static class UnbindNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private LogicalClassNode classNode = LogicalClassNodeGen.create(null);
+        @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
         @Specialization
         public DynamicObject unbind(VirtualFrame frame, DynamicObject method) {

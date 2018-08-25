@@ -57,7 +57,7 @@ public abstract class ArrayLiteralNode extends RubyNode {
     protected DynamicObject createArray(Object store, int size) {
         if (allocateObjectNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            allocateObjectNode = insert(AllocateObjectNodeGen.create(false, null, null));
+            allocateObjectNode = insert(AllocateObjectNodeGen.create(false));
         }
         return allocateObjectNode.allocate(coreLibrary().getArrayClass(), store, size);
     }
