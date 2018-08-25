@@ -35,7 +35,7 @@ public abstract class SetNode extends RubyNode {
     @Child private HashNode hashNode = new HashNode();
     @Child private LookupEntryNode lookupEntryNode;
     @Child private CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
-    @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create(null, null);
+    @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
 
     public static SetNode create() {
         return SetNodeGen.create(null, null, null, null);

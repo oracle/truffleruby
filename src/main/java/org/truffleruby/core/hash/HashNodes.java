@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -37,8 +36,8 @@ import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
 import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -150,14 +149,11 @@ public abstract class HashNodes {
 
     }
 
-    @NodeChild("hash")
-    @NodeChild("key")
-    @NodeChild("defaultValueNode")
     @ImportStatic(HashGuards.class)
-    public abstract static class HashLookupOrExecuteDefaultNode extends RubyNode {
+    public abstract static class HashLookupOrExecuteDefaultNode extends RubyBaseNode {
 
         public static HashLookupOrExecuteDefaultNode create() {
-            return HashLookupOrExecuteDefaultNodeGen.create(null, null, null);
+            return HashLookupOrExecuteDefaultNodeGen.create();
         }
 
         public abstract Object executeGet(VirtualFrame frame, DynamicObject hash, Object key, BiFunctionNode defaultValueNode);
@@ -1102,13 +1098,12 @@ public abstract class HashNodes {
     }
 
     @ImportStatic(HashGuards.class)
-    @NodeChild("hash")
-    public abstract static class InternalRehashNode extends RubyNode {
+    public abstract static class InternalRehashNode extends RubyBaseNode {
 
         @Child private HashNode hashNode = new HashNode();
 
         public static InternalRehashNode create() {
-            return InternalRehashNodeGen.create(null);
+            return InternalRehashNodeGen.create();
         }
 
         public abstract DynamicObject executeRehash(VirtualFrame frame, DynamicObject hash);
@@ -1175,14 +1170,11 @@ public abstract class HashNodes {
 
     }
 
-    @NodeChild("hash")
-    @NodeChild("callbackNode")
-    @NodeChild("passedState")
     @ImportStatic(HashGuards.class)
-    public abstract static class EachKeyValueNode extends RubyNode {
+    public abstract static class EachKeyValueNode extends RubyBaseNode {
 
         public static EachKeyValueNode create() {
-            return EachKeyValueNodeGen.create(null, null, null);
+            return EachKeyValueNodeGen.create();
         }
 
         public abstract Object executeEachKeyValue(VirtualFrame frame, DynamicObject hash, BiConsumerNode callbackNode, Object state);

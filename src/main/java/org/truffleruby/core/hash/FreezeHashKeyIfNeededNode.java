@@ -10,18 +10,16 @@
 package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyNode;
+
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.IsFrozenNodeGen;
 
-@NodeChildren({@NodeChild("key"), @NodeChild("compareByIdentity")})
-public abstract class FreezeHashKeyIfNeededNode extends RubyNode {
+public abstract class FreezeHashKeyIfNeededNode extends RubyBaseNode {
 
     @Child private IsFrozenNode isFrozenNode;
     @Child private CallDispatchHeadNode dupNode;
