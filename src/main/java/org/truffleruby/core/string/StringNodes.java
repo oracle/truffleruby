@@ -3489,7 +3489,7 @@ public abstract class StringNodes {
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         public Object stringToF(DynamicObject string, boolean strict,
-                                @Cached("create(getSourceIndexLength())") FixnumOrBignumNode fixnumOrBignumNode) {
+                @Cached("create()") FixnumOrBignumNode fixnumOrBignumNode) {
             final Rope rope = rope(string);
             if (rope.isEmpty()) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(coreStrings().INVALID_VALUE_FOR_FLOAT.getRope(), this));
@@ -4309,7 +4309,7 @@ public abstract class StringNodes {
 
         @Specialization
         public Object stringToInum(DynamicObject string, int fixBase, boolean strict,
-                @Cached("create(getSourceIndexLength())") FixnumOrBignumNode fixnumOrBignumNode,
+                @Cached("create()") FixnumOrBignumNode fixnumOrBignumNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
                 return ConvertBytes.byteListToInum19(getContext(),

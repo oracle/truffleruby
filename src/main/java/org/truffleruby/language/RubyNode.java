@@ -19,10 +19,15 @@ import com.oracle.truffle.api.instrumentation.InstrumentableNode;
 import com.oracle.truffle.api.instrumentation.ProbeNode;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.instrumentation.Tag;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.RootNode;
+import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
 @GenerateWrapper
 public abstract class RubyNode extends RubyBaseNode implements InstrumentableNode {
+
+    private static final int NO_SOURCE = -1;
 
     private static final int FLAG_NEWLINE = 0;
     private static final int FLAG_COVERAGE_LINE = 1;
@@ -31,6 +36,9 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
 
     public static final RubyNode[] EMPTY_ARRAY = new RubyNode[]{};
     public static final Object[] EMPTY_ARGUMENTS = new Object[]{};
+
+    private int sourceCharIndex = NO_SOURCE;
+    private int sourceLength;
 
     protected byte flags;
 
@@ -58,6 +66,91 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
 
     public boolean isInstrumentable() {
         return hasSource();
+    }
+
+    // Source section
+
+    public void unsafeSetSourceSection(SourceIndexLength sourceSection) {
+        assert sourceCharIndex == NO_SOURCE;
+
+        if (sourceSection != null) {
+            sourceCharIndex = sourceSection.getCharIndex();
+            sourceLength = sourceSection.getLength();
+        }
+    }
+
+    public void unsafeSetSourceSection(SourceSection sourceSection) {
+        assert sourceCharIndex == NO_SOURCE;
+
+        if (sourceSection.isAvailable()) {
+            sourceCharIndex = sourceSection.getCharIndex();
+            sourceLength = sourceSection.getCharLength();
+        } else {
+            sourceCharIndex = 0;
+            sourceLength = SourceIndexLength.UNAVAILABLE;
+        }
+    }
+
+    protected boolean hasSource() {
+        return sourceCharIndex != NO_SOURCE;
+    }
+
+    protected Source getSource() {
+        final RootNode rootNode = getRootNode();
+
+        if (rootNode == null) {
+            return null;
+        }
+
+        final SourceSection sourceSection = rootNode.getSourceSection();
+
+        if (sourceSection == null) {
+            return null;
+        }
+
+        return sourceSection.getSource();
+    }
+
+    public SourceIndexLength getSourceIndexLength() {
+        if (sourceCharIndex == NO_SOURCE) {
+            return null;
+        } else {
+            return new SourceIndexLength(sourceCharIndex, sourceLength);
+        }
+    }
+
+    public SourceIndexLength getEncapsulatingSourceIndexLength() {
+        Node node = this;
+
+        while (node != null) {
+            if (node instanceof RubyNode && ((RubyNode) node).sourceCharIndex != NO_SOURCE) {
+                return ((RubyNode) node).getSourceIndexLength();
+            }
+
+            if (node instanceof RootNode) {
+                return new SourceIndexLength(node.getSourceSection());
+            }
+
+            node = node.getParent();
+        }
+
+        return null;
+    }
+
+    @TruffleBoundary
+    @Override
+    public SourceSection getSourceSection() {
+        if (sourceCharIndex == NO_SOURCE) {
+            return null;
+        } else {
+            final Source source = getSource();
+
+            if (source == null) {
+                return null;
+            }
+
+            return getSourceIndexLength().toSourceSection(source);
+        }
     }
 
     // Tags

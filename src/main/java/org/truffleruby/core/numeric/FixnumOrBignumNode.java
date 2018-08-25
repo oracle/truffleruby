@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.SourceIndexLength;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -23,17 +22,11 @@ public class FixnumOrBignumNode extends RubyBaseNode {
     private static final BigInteger LONG_MIN_BIGINT = BigInteger.valueOf(Long.MIN_VALUE);
     private static final BigInteger LONG_MAX_BIGINT = BigInteger.valueOf(Long.MAX_VALUE);
 
-    public static FixnumOrBignumNode create(SourceIndexLength sourceSection) {
-        return new FixnumOrBignumNode(sourceSection);
+    public static FixnumOrBignumNode create() {
+        return new FixnumOrBignumNode();
     }
 
     public FixnumOrBignumNode() {
-    }
-
-    public FixnumOrBignumNode(SourceIndexLength sourceSection) {
-        if (sourceSection != null) {
-            unsafeSetSourceSection(sourceSection);
-        }
     }
 
     private final ConditionProfile lowerProfile = ConditionProfile.createBinaryProfile();
