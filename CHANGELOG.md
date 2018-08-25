@@ -1,5 +1,12 @@
 # 1.0
 
+# 1.0 RC 7
+
+Bug fixes:
+
+* `Kernel#singleton_methods` now correctly ignores prepended modules of
+  non-singleton classes. Fixes loading `sass` when `activesupport` is loaded.
+
 # 1.0 RC 6
 
 New features:

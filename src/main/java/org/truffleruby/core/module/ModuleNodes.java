@@ -126,14 +126,14 @@ public abstract class ModuleNodes {
 
     @TruffleBoundary
     public static DynamicObject createModule(RubyContext context, SourceSection sourceSection, DynamicObject selfClass, DynamicObject lexicalParent, String name, Node currentNode) {
-        final ModuleFields model = new ModuleFields(context, sourceSection, lexicalParent, name);
-        final DynamicObject module = Layouts.MODULE.createModule(Layouts.CLASS.getInstanceFactory(selfClass), model);
-        model.rubyModuleObject = module;
+        final ModuleFields fields = new ModuleFields(context, sourceSection, lexicalParent, name);
+        final DynamicObject module = Layouts.MODULE.createModule(Layouts.CLASS.getInstanceFactory(selfClass), fields);
+        fields.rubyModuleObject = module;
 
         if (lexicalParent != null) {
-            Layouts.MODULE.getFields(module).getAdoptedByLexicalParent(context, lexicalParent, name, currentNode);
-        } else if (Layouts.MODULE.getFields(module).givenBaseName != null) { // bootstrap module
-            Layouts.MODULE.getFields(module).setFullName(Layouts.MODULE.getFields(module).givenBaseName);
+            fields.getAdoptedByLexicalParent(context, lexicalParent, name, currentNode);
+        } else if (fields.givenBaseName != null) { // bootstrap module
+            fields.setFullName(fields.givenBaseName);
         }
         return module;
     }

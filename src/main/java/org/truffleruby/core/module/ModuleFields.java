@@ -12,7 +12,6 @@ package org.truffleruby.core.module;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -44,7 +43,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class ModuleFields implements ModuleChain, ObjectGraphNode {
+public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     public static void debugModuleChain(DynamicObject module) {
         assert RubyGuards.isRubyModule(module);
@@ -66,13 +65,11 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
 
     // The context is stored here - objects can obtain it via their class (which is a module)
     private final RubyContext context;
-
     private final SourceSection sourceSection;
 
-    public final PrependMarker start;
-    @CompilationFinal public ModuleChain parentModule;
+    private final PrependMarker start;
 
-    public final DynamicObject lexicalParent;
+    private final DynamicObject lexicalParent;
     public final String givenBaseName;
 
     private boolean hasFullName = false;
@@ -102,6 +99,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     private final Map<String, Assumption> inlinedBuiltinsAssumptions = new HashMap<>();
 
     public ModuleFields(RubyContext context, SourceSection sourceSection, DynamicObject lexicalParent, String givenBaseName) {
+        super(null);
         assert lexicalParent == null || RubyGuards.isRubyModule(lexicalParent);
         this.context = context;
         this.sourceSection = sourceSection;
@@ -207,10 +205,6 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         if (context.getCoreLibrary() != null && IsFrozenNode.isFrozen(rubyModuleObject)) {
             throw new RaiseException(context, context.getCoreExceptions().frozenError(rubyModuleObject, currentNode));
         }
-    }
-
-    public void insertAfter(DynamicObject module) {
-        parentModule = new IncludedModule(module, parentModule);
     }
 
     @TruffleBoundary
@@ -623,26 +617,36 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         return refinements;
     }
 
-    public ModuleChain getParentModule() {
-        return parentModule;
+    public void setSuperClass(DynamicObject superclass, boolean markAsInitialized) {
+        assert RubyGuards.isRubyClass(rubyModuleObject);
+        assert RubyGuards.isRubyClass(superclass);
+
+        this.parentModule = Layouts.MODULE.getFields(superclass).start;
+
+        if (markAsInitialized) {
+            Layouts.CLASS.setSuperclass(rubyModuleObject, superclass);
+        }
+
+        newHierarchyVersion();
     }
 
+    @Override
     public DynamicObject getActualModule() {
         return rubyModuleObject;
     }
 
+    /**
+     * Iterate over all ancestors, skipping PrependMarker and resolving IncludedModule.
+     */
     public Iterable<DynamicObject> ancestors() {
-        final ModuleChain top = start;
-        return () -> new AncestorIterator(top);
+        return () -> new AncestorIterator(start);
     }
 
     /**
-     * Iterates over include'd and prepend'ed modules.
+     * Iterates over prepend'ed and include'd modules.
      */
     public Iterable<DynamicObject> prependedAndIncludedModules() {
-        final ModuleChain top = start;
-        final ModuleFields currentModule = this;
-        return () -> new IncludedModulesIterator(top, currentModule);
+        return () -> new IncludedModulesIterator(start, this);
     }
 
     public Collection<DynamicObject> filterMethods(RubyContext context, boolean includeAncestors, MethodFilter filter) {
