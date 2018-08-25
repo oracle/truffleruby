@@ -10,23 +10,20 @@
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import org.truffleruby.language.RubyNode;
 
-@NodeChild(value = "arguments", type = RubyNode.class)
-public abstract class RubyToForeignArgumentsNode extends RubyNode {
+import org.truffleruby.language.RubyBaseNode;
+
+public abstract class RubyToForeignArgumentsNode extends RubyBaseNode {
 
     public static RubyToForeignArgumentsNode create() {
-        return RubyToForeignArgumentsNodeGen.create(null);
+        return RubyToForeignArgumentsNodeGen.create();
     }
 
     public abstract Object[] executeConvert(Object[] args);
 
-    @Specialization(
-            guards = "args.length == cachedArgsLength",
-            limit = "getLimit()")
+    @Specialization(guards = "args.length == cachedArgsLength", limit = "getLimit()")
     @ExplodeLoop
     public Object[] convertCached(Object[] args,
                                   @Cached("args.length") int cachedArgsLength,
