@@ -14,10 +14,10 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.module.MethodLookupResult;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.methods.LookupMethodNode;
 
-public abstract class DispatchNode extends RubyNode {
+public abstract class DispatchNode extends RubyBaseNode {
 
     private final DispatchAction dispatchAction;
 
@@ -87,11 +87,6 @@ public abstract class DispatchNode extends RubyNode {
         } else {
             return null;
         }
-    }
-
-    @Override
-    public final Object execute(VirtualFrame frame) {
-        throw new IllegalStateException("do not call execute on dispatch nodes");
     }
 
     public DispatchAction getDispatchAction() {
