@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.module;
 
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyGuards;
 
@@ -17,9 +17,9 @@ import org.truffleruby.language.RubyGuards;
  * A reference to an included RubyModule.
  */
 public class IncludedModule implements ModuleChain {
+
+    @CompilationFinal private ModuleChain parentModule;
     private final DynamicObject includedModule;
-    @CompilerDirectives.CompilationFinal
-    private ModuleChain parentModule;
 
     public IncludedModule(DynamicObject includedModule, ModuleChain parentModule) {
         assert RubyGuards.isRubyModule(includedModule);

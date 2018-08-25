@@ -9,12 +9,12 @@
  */
 package org.truffleruby.core.module;
 
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.object.DynamicObject;
 
 public class PrependMarker implements ModuleChain {
-    @CompilerDirectives.CompilationFinal
-    private ModuleChain parentModule;
+
+    @CompilationFinal private ModuleChain parentModule;
 
     public PrependMarker(ModuleChain parentModule) {
         assert parentModule != null;
