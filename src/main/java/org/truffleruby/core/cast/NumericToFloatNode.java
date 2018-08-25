@@ -12,12 +12,12 @@ package org.truffleruby.core.cast;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.language.RubyNode;
+
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.IsANode;
@@ -26,15 +26,14 @@ import org.truffleruby.language.objects.IsANodeGen;
 /**
  * Casts a value into a Ruby Float (double).
  */
-@NodeChild(value = "value", type = RubyNode.class)
-public abstract class NumericToFloatNode extends RubyNode {
+public abstract class NumericToFloatNode extends RubyBaseNode {
 
     @Child private IsANode isANode = IsANodeGen.create(null, null);
     @Child private CallDispatchHeadNode toFloatCallNode;
 
     public abstract double executeDouble(VirtualFrame frame, DynamicObject value);
 
-    private Object callToFloat(VirtualFrame frame, DynamicObject value) {
+    private Object callToFloat(DynamicObject value) {
         if (toFloatCallNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toFloatCallNode = insert(CallDispatchHeadNode.createPrivate());
@@ -45,7 +44,7 @@ public abstract class NumericToFloatNode extends RubyNode {
     @Specialization(guards = "isNumeric(frame, value)")
     protected double castNumeric(VirtualFrame frame, DynamicObject value,
             @Cached("create()") BranchProfile errorProfile) {
-        final Object result = callToFloat(frame, value);
+        final Object result = callToFloat(value);
 
         if (result instanceof Double) {
             return (double) result;
@@ -56,7 +55,7 @@ public abstract class NumericToFloatNode extends RubyNode {
     }
 
     @Fallback
-    protected double fallback(Object value) {
+    protected double fallback(DynamicObject value) {
         throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(value, "Float", this));
     }
 

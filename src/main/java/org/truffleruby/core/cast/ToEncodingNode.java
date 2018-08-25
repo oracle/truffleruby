@@ -10,23 +10,21 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
 /**
  * Take a Ruby object that has an encoding and extracts the Java-level encoding object.
  */
-@NodeChild(value = "value", type = RubyNode.class)
-public abstract class ToEncodingNode extends RubyNode {
+public abstract class ToEncodingNode extends RubyBaseNode {
 
     public static ToEncodingNode create() {
-        return ToEncodingNodeGen.create(null);
+        return ToEncodingNodeGen.create();
     }
 
     public abstract Encoding executeToEncoding(Object value);

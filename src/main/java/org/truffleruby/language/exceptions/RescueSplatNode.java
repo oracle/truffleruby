@@ -23,8 +23,9 @@ public class RescueSplatNode extends RescueNode {
     public RescueSplatNode(RubyNode handlingClassesArray, RubyNode rescueBody) {
         super(rescueBody);
         this.splatCastNode = SplatCastNodeGen.create(
-            SplatCastNode.NilBehavior.EMPTY_ARRAY,
-            true, handlingClassesArray);
+                SplatCastNode.NilBehavior.EMPTY_ARRAY,
+                true,
+                handlingClassesArray);
     }
 
     @Override
