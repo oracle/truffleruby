@@ -43,7 +43,7 @@ public abstract class ClassNodes {
     @TruffleBoundary
     public static DynamicObject createClassClass(RubyContext context, SourceSection sourceSection) {
         final ModuleFields model = new ModuleFields(context, sourceSection, null, "Class");
-        model.setFullName(model.givenBaseName);
+        model.setFullName("Class");
 
         final DynamicObjectFactory tempFactory = Layouts.CLASS.createClassShape(null, null);
         final DynamicObject rubyClass = Layouts.CLASS.createClass(tempFactory, model, false, null, null, null);
@@ -78,20 +78,12 @@ public abstract class ClassNodes {
     public static DynamicObject createBootClass(RubyContext context, SourceSection sourceSection, DynamicObject classClass, DynamicObject superclass, String name) {
         assert RubyGuards.isRubyClass(classClass);
         assert superclass == null || RubyGuards.isRubyClass(superclass);
-        final ModuleFields model = new ModuleFields(context, sourceSection, null, name);
 
-        final DynamicObject rubyClass = Layouts.CLASS.createClass(Layouts.CLASS.getInstanceFactory(classClass), model, false, null, null, null);
-        assert RubyGuards.isRubyClass(rubyClass) : classClass.getShape().getObjectType().getClass();
-        assert RubyGuards.isRubyModule(rubyClass) : classClass.getShape().getObjectType().getClass();
+        final ModuleFields fields = new ModuleFields(context, sourceSection, null, name);
+        final DynamicObject rubyClass = Layouts.CLASS.createClass(Layouts.CLASS.getInstanceFactory(classClass), fields, false, null, null, null);
 
-        model.rubyModuleObject = rubyClass;
-
-        final ModuleFields fields = Layouts.MODULE.getFields(rubyClass);
-        if (model.lexicalParent == null) { // bootstrap or anonymous module
-            fields.setFullName(fields.givenBaseName);
-        } else {
-            fields.getAdoptedByLexicalParent(context, model.lexicalParent, model.givenBaseName, null);
-        }
+        fields.rubyModuleObject = rubyClass;
+        fields.setFullName(name);
 
         if (superclass != null) {
             fields.setSuperClass(superclass, true);
@@ -129,25 +121,22 @@ public abstract class ClassNodes {
                                                 boolean initialized) {
         assert superclass == null || RubyGuards.isRubyClass(superclass);
 
-        final ModuleFields model = new ModuleFields(context, sourceSection, lexicalParent, name);
+        final ModuleFields fields = new ModuleFields(context, sourceSection, lexicalParent, name);
 
         final DynamicObject rubyClass = Layouts.CLASS.createClass(
                 Layouts.CLASS.getInstanceFactory(classClass),
-                model,
+                fields,
                 isSingleton,
                 attached,
                 null,
                 initialized ? superclass : null);
-        assert RubyGuards.isRubyClass(rubyClass) : classClass.getShape().getObjectType().getClass();
-        assert RubyGuards.isRubyModule(rubyClass) : classClass.getShape().getObjectType().getClass();
 
-        model.rubyModuleObject = rubyClass;
+        fields.rubyModuleObject = rubyClass;
 
-        final ModuleFields fields = Layouts.MODULE.getFields(rubyClass);
-        if (model.lexicalParent != null) {
-            fields.getAdoptedByLexicalParent(context, model.lexicalParent, model.givenBaseName, null);
-        } else if (fields.givenBaseName != null) { // bootstrap module
-            fields.setFullName(fields.givenBaseName);
+        if (lexicalParent != null) {
+            fields.getAdoptedByLexicalParent(context, lexicalParent, name, null);
+        } else if (name != null) { // bootstrap module
+            fields.setFullName(name);
         }
 
         if (superclass != null) {

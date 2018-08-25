@@ -69,7 +69,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     private final PrependMarker start;
 
-    public final DynamicObject lexicalParent;
+    private final DynamicObject lexicalParent;
     public final String givenBaseName;
 
     private boolean hasFullName = false;
