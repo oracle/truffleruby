@@ -37,6 +37,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
+import org.truffleruby.core.cast.CmpIntNode;
 import org.truffleruby.core.cast.ToAryNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
@@ -50,7 +51,6 @@ import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
-import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -2016,7 +2016,7 @@ public abstract class ArrayNodes {
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
                 @Cached("createPrivate()") CallDispatchHeadNode compareDispatchNode,
-                @Cached("create()") FixnumLowerNode fixnumLowerNode,
+                @Cached("create()") CmpIntNode cmpIntNode,
                 @Cached("create()") BranchProfile errorProfile) {
             final ArrayMirror originalStore = strategy.newMirror(array);
             final ArrayMirror store = mutableStrategy.newArray(getContext().getOptions().ARRAY_SMALL);
@@ -2039,7 +2039,7 @@ public abstract class ArrayNodes {
                             final Object a = store.get(i);
                             final Object b = store.get(j);
                             final Object comparisonResult = compareDispatchNode.call(b, "<=>", a);
-                            if (castSortValue(comparisonResult, errorProfile, fixnumLowerNode) < 0) {
+                            if (cmpIntNode.executeCmpInt(comparisonResult, b, a) < 0) {
                                 store.set(j, a);
                                 store.set(i, b);
                             }
@@ -2075,18 +2075,6 @@ public abstract class ArrayNodes {
         public Object sortGenericWithBlock(DynamicObject array, DynamicObject block,
                 @Cached("createPrivate()") CallDispatchHeadNode fallbackNode) {
             return fallbackNode.callWithBlock(array, "sort_fallback", block);
-        }
-
-        private int castSortValue(Object value, BranchProfile errorProfile, FixnumLowerNode fixnumLowerNode) {
-            value = fixnumLowerNode.executeLower(value);
-
-            if (value instanceof Integer) {
-                return (int) value;
-            }
-
-            errorProfile.enter();
-            // TODO CS 14-Mar-15 - what's the error message here?
-            throw new RaiseException(getContext(), coreExceptions().argumentError("expecting a Fixnum to sort", this));
         }
 
         protected boolean isSmall(DynamicObject array) {
