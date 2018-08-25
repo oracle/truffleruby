@@ -32,7 +32,7 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
     public static final RubyNode[] EMPTY_ARRAY = new RubyNode[]{};
     public static final Object[] EMPTY_ARGUMENTS = new Object[]{};
 
-    protected int flags;
+    protected byte flags;
 
     // Fundamental execute methods
 
