@@ -13,15 +13,11 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.objects.IsFrozenNode;
-import org.truffleruby.language.objects.IsFrozenNodeGen;
 
 public abstract class HashLiteralNode extends RubyNode {
 
@@ -65,14 +61,10 @@ public abstract class HashLiteralNode extends RubyNode {
 
     public static class SmallHashLiteralNode extends HashLiteralNode {
 
-        private final ConditionProfile stringKeyProfile = ConditionProfile.createBinaryProfile();
-
         @Child private HashNode hashNode;
         @Child private CallDispatchHeadNode equalNode;
         @Child private BooleanCastNode booleanCastNode;
-        @Child protected CallDispatchHeadNode dupNode;
-        @Child protected CallDispatchHeadNode freezeNode;
-        @Child private IsFrozenNode isFrozenNode;
+        @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
 
         public SmallHashLiteralNode(RubyNode[] keyValues) {
             super(keyValues);
@@ -87,12 +79,7 @@ public abstract class HashLiteralNode extends RubyNode {
 
             initializers: for (int n = 0; n < keyValues.length / 2; n++) {
                 Object key = keyValues[n * 2].execute(frame);
-
-                if (stringKeyProfile.profile(RubyGuards.isRubyString(key))) {
-                    if (!isFrozen(key)) {
-                        key = callFreeze(callDup(key));
-                    }
-                }
+                key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(key, false);
 
                 final int hashed = hash(key);
 
@@ -135,30 +122,6 @@ public abstract class HashLiteralNode extends RubyNode {
             }
 
             return booleanCastNode.executeToBoolean(equalNode.call(receiver, "eql?", key));
-        }
-
-        private Object callDup(Object receiver) {
-            if (dupNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                dupNode = insert(CallDispatchHeadNode.createPrivate());
-            }
-            return dupNode.call(receiver, "dup");
-        }
-
-        private Object callFreeze(Object receiver) {
-            if (freezeNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                freezeNode = insert(CallDispatchHeadNode.createPrivate());
-            }
-            return freezeNode.call(receiver, "freeze");
-        }
-
-        protected boolean isFrozen(Object object) {
-            if (isFrozenNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                isFrozenNode = insert(IsFrozenNodeGen.create(null));
-            }
-            return isFrozenNode.executeIsFrozen(object);
         }
 
     }
