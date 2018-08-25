@@ -20,13 +20,13 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotOptimizedWarningNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.parser.BodyTranslator;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -44,7 +44,7 @@ public class InterpolatedRegexpNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        return builderNode.execute(frame, executeChildren(frame));
+        return builderNode.execute(executeChildren(frame));
     }
 
     @ExplodeLoop
@@ -57,25 +57,24 @@ public class InterpolatedRegexpNode extends RubyNode {
         return values;
     }
 
-    @NodeChild(value = "ropes", type = RubyNode.class)
-    public static abstract class RegexpBuilderNode extends RubyNode {
+    public static abstract class RegexpBuilderNode extends RubyBaseNode {
 
         @Child private RopeNodes.EqualNode ropesEqualNode = RopeNodes.EqualNode.create();
         @Child private CallDispatchHeadNode copyNode = CallDispatchHeadNode.createPrivate();
         private final RegexpOptions options;
 
         public static RegexpBuilderNode create(RegexpOptions options) {
-            return RegexpBuilderNodeGen.create(options, null);
+            return RegexpBuilderNodeGen.create(options);
         }
 
         public RegexpBuilderNode(RegexpOptions options) {
             this.options = options;
         }
 
-        public abstract Object execute(VirtualFrame frame, Rope[] parts);
+        public abstract Object execute(Rope[] parts);
 
         @Specialization(guards = "ropesMatch(cachedParts, parts)", limit = "getCacheLimit()")
-        public Object executeFast(VirtualFrame frame, Rope[] parts,
+        public Object executeFast(Rope[] parts,
                 @Cached(value = "parts", dimensions = 1) Rope[] cachedParts,
                 @Cached("createRegexp(cachedParts)") DynamicObject regexp) {
             final Object clone = copyNode.call(regexp, "clone");

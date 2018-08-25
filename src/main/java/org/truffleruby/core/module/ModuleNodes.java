@@ -55,7 +55,10 @@ import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.module.ModuleNodesFactory.ClassExecNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.ConstSetNodeFactory;
+import org.truffleruby.core.module.ModuleNodesFactory.GenerateAccessorNodeGen;
+import org.truffleruby.core.module.ModuleNodesFactory.IsSubclassOfOrEqualToNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen;
+import org.truffleruby.core.module.ModuleNodesFactory.SetVisibilityNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -270,7 +273,7 @@ public abstract class ModuleNodes {
         private Object isSubclass(DynamicObject self, DynamicObject other) {
             if (subclassNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                subclassNode = insert(ModuleNodesFactory.IsSubclassOfOrEqualToNodeFactory.create(null));
+                subclassNode = insert(IsSubclassOfOrEqualToNodeFactory.create(null));
             }
             return subclassNode.executeIsSubclassOfOrEqualTo(self, other);
         }
@@ -378,8 +381,7 @@ public abstract class ModuleNodes {
         }
     }
 
-    @NodeChildren({ @NodeChild("module"), @NodeChild("name") })
-    public abstract static class GenerateAccessorNode extends RubyNode {
+    public abstract static class GenerateAccessorNode extends RubyBaseNode {
 
         final boolean isGetter;
 
@@ -441,8 +443,8 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "attr", rest = true, visibility = Visibility.PRIVATE)
     public abstract static class AttrNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private GenerateAccessorNode generateGetterNode = ModuleNodesFactory.GenerateAccessorNodeGen.create(true, null, null);
-        @Child private GenerateAccessorNode generateSetterNode = ModuleNodesFactory.GenerateAccessorNodeGen.create(false, null, null);
+        @Child private GenerateAccessorNode generateGetterNode = GenerateAccessorNodeGen.create(true);
+        @Child private GenerateAccessorNode generateSetterNode = GenerateAccessorNodeGen.create(false);
         @Child private WarningNode warnNode;
 
         @Specialization
@@ -479,8 +481,8 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "attr_accessor", rest = true, visibility = Visibility.PRIVATE)
     public abstract static class AttrAccessorNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private GenerateAccessorNode generateGetterNode = ModuleNodesFactory.GenerateAccessorNodeGen.create(true, null, null);
-        @Child private GenerateAccessorNode generateSetterNode = ModuleNodesFactory.GenerateAccessorNodeGen.create(false, null, null);
+        @Child private GenerateAccessorNode generateGetterNode = GenerateAccessorNodeGen.create(true);
+        @Child private GenerateAccessorNode generateSetterNode = GenerateAccessorNodeGen.create(false);
 
         @Specialization
         public DynamicObject attrAccessor(DynamicObject module, Object[] names) {
@@ -496,7 +498,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "attr_reader", rest = true, visibility = Visibility.PRIVATE)
     public abstract static class AttrReaderNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private GenerateAccessorNode generateGetterNode = ModuleNodesFactory.GenerateAccessorNodeGen.create(true, null, null);
+        @Child private GenerateAccessorNode generateGetterNode = GenerateAccessorNodeGen.create(true);
 
         @Specialization
         public DynamicObject attrReader(DynamicObject module, Object[] names) {
@@ -511,7 +513,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "attr_writer", rest = true, visibility = Visibility.PRIVATE)
     public abstract static class AttrWriterNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private GenerateAccessorNode generateSetterNode = ModuleNodesFactory.GenerateAccessorNodeGen.create(false, null, null);
+        @Child private GenerateAccessorNode generateSetterNode = GenerateAccessorNodeGen.create(false);
 
         @Specialization
         public DynamicObject attrWriter(DynamicObject module, Object[] names) {
@@ -1298,7 +1300,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "module_function", rest = true, visibility = Visibility.PRIVATE)
     public abstract static class ModuleFunctionNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SetVisibilityNode setVisibilityNode = ModuleNodesFactory.SetVisibilityNodeGen.create(Visibility.MODULE_FUNCTION, null, null);
+        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.MODULE_FUNCTION);
 
         @Specialization
         public DynamicObject moduleFunction(VirtualFrame frame, DynamicObject module, Object[] names,
@@ -1360,7 +1362,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "public", rest = true, visibility = Visibility.PRIVATE)
     public abstract static class PublicNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SetVisibilityNode setVisibilityNode = ModuleNodesFactory.SetVisibilityNodeGen.create(Visibility.PUBLIC, null, null);
+        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.PUBLIC);
 
         public abstract DynamicObject executePublic(VirtualFrame frame, DynamicObject module, Object[] args);
 
@@ -1392,7 +1394,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "private", rest = true, visibility = Visibility.PRIVATE)
     public abstract static class PrivateNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SetVisibilityNode setVisibilityNode = ModuleNodesFactory.SetVisibilityNodeGen.create(Visibility.PRIVATE, null, null);
+        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.PRIVATE);
 
         public abstract DynamicObject executePrivate(VirtualFrame frame, DynamicObject module, Object[] args);
 
@@ -1671,7 +1673,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "protected", rest = true, visibility = Visibility.PRIVATE)
     public abstract static class ProtectedNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SetVisibilityNode setVisibilityNode = ModuleNodesFactory.SetVisibilityNodeGen.create(Visibility.PROTECTED, null, null);
+        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.PROTECTED);
 
         @Specialization
         public DynamicObject doProtected(VirtualFrame frame, DynamicObject module, Object[] names) {
@@ -1878,8 +1880,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @NodeChildren({ @NodeChild(value = "module"), @NodeChild(value = "names") })
-    public abstract static class SetVisibilityNode extends RubyNode {
+    public abstract static class SetVisibilityNode extends RubyBaseNode {
 
         private final Visibility visibility;
 

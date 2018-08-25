@@ -91,6 +91,7 @@ import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -1089,12 +1090,10 @@ public abstract class KernelNodes {
 
     }
 
-    @NodeChild("receiver")
-    @NodeChild("name")
-    public abstract static class GetMethodObjectNode extends RubyNode {
+    public abstract static class GetMethodObjectNode extends RubyBaseNode {
 
         public static GetMethodObjectNode create(boolean ignoreVisibility) {
-            return GetMethodObjectNodeGen.create(ignoreVisibility, null, null);
+            return GetMethodObjectNodeGen.create(ignoreVisibility);
         }
 
         private final boolean ignoreVisibility;

@@ -52,7 +52,7 @@ public final class InterpolatedStringNode extends RubyNode {
             tainted |= executeIsTainted(toInterpolate);
         }
 
-        final Object string = concat(frame, strings);
+        final Object string = concat(strings);
 
         if (taintProfile.profile(tainted)) {
             executeTaint(string);
@@ -61,7 +61,7 @@ public final class InterpolatedStringNode extends RubyNode {
         return string;
     }
 
-    private Object concat(VirtualFrame frame, Object[] strings) {
+    private Object concat(Object[] strings) {
         // TODO(CS): there is a lot of copying going on here - and I think this is sometimes inner loop stuff
 
         DynamicObject builder = null;
@@ -71,7 +71,7 @@ public final class InterpolatedStringNode extends RubyNode {
             assert RubyGuards.isRubyString(string);
 
             if (builder == null) {
-                builder = (DynamicObject) callDup(frame, string);
+                builder = (DynamicObject) callDup(string);
             } else {
                 builder = executeStringAppend(builder, (DynamicObject) string);
             }
@@ -96,7 +96,7 @@ public final class InterpolatedStringNode extends RubyNode {
         return appendNode.executeStringAppend(builder, string);
     }
 
-    private Object callDup(VirtualFrame frame, Object string) {
+    private Object callDup(Object string) {
         if (dupNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             dupNode = insert(CallDispatchHeadNode.createPrivate());

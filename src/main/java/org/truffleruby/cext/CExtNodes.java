@@ -43,10 +43,10 @@ import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.hash.HashNode;
 import org.truffleruby.core.module.MethodLookupResult;
-import org.truffleruby.core.module.ModuleNodes;
-import org.truffleruby.core.module.ModuleNodesFactory;
+import org.truffleruby.core.module.ModuleNodesFactory.SetVisibilityNodeGen;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.ModuleNodes.ConstSetNode;
+import org.truffleruby.core.module.ModuleNodes.SetVisibilityNode;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
@@ -622,8 +622,7 @@ public class CExtNodes {
     @CoreMethod(names = "cext_module_function", onSingleton = true, required = 2)
     public abstract static class CextModuleFunctionNode extends CoreMethodArrayArgumentsNode {
 
-        @Child
-        ModuleNodes.SetVisibilityNode setVisibilityNode = ModuleNodesFactory.SetVisibilityNodeGen.create(Visibility.MODULE_FUNCTION, null, null);
+        @Child SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.MODULE_FUNCTION);
 
         @Specialization(guards = {"isRubyModule(module)", "isRubySymbol(name)"})
         public DynamicObject cextModuleFunction(VirtualFrame frame, DynamicObject module, DynamicObject name) {

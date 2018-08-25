@@ -12,24 +12,16 @@ package org.truffleruby.core.hash;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
 @ImportStatic(HashGuards.class)
-@NodeChildren({
-        @NodeChild(value = "hash", type = RubyNode.class),
-        @NodeChild(value = "key", type = RubyNode.class),
-        @NodeChild(value = "value", type = RubyNode.class),
-        @NodeChild(value = "byIdentity", type = RubyNode.class)
-})
-public abstract class SetNode extends RubyNode {
+public abstract class SetNode extends RubyBaseNode {
 
     @Child private HashNode hashNode = new HashNode();
     @Child private LookupEntryNode lookupEntryNode;
@@ -37,7 +29,7 @@ public abstract class SetNode extends RubyNode {
     @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
 
     public static SetNode create() {
-        return SetNodeGen.create(null, null, null, null);
+        return SetNodeGen.create();
     }
 
     public abstract Object executeSet(DynamicObject hash, Object key, Object value, boolean byIdentity);
