@@ -55,7 +55,7 @@ public final class CachedForeignDispatchNode extends CachedDispatchNode {
     }
 
     private Object doDispatch(VirtualFrame frame, TruffleObject receiverObject, Object[] arguments) {
-        return outgoingForeignCallNode.executeCall(frame, receiverObject, arguments);
+        return outgoingForeignCallNode.executeCall(receiverObject, arguments);
     }
 
 }

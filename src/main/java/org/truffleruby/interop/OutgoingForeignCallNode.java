@@ -25,7 +25,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.ForeignAccess;
 import com.oracle.truffle.api.interop.Message;
@@ -48,13 +47,13 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         this.exceptionTranslatingNode = new ExceptionTranslatingNode(null, UnsupportedOperationBehavior.TYPE_ERROR);
     }
 
-    public abstract Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args);
+    public abstract Object executeCall(TruffleObject receiver, Object[] args);
 
     @Specialization
-    public Object callCached(VirtualFrame frame, TruffleObject receiver, Object[] args,
+    public Object callCached(TruffleObject receiver, Object[] args,
             @Cached("createHelperNode()") OutgoingNode outgoingNode) {
         try {
-            return outgoingNode.executeCall(frame, receiver, args);
+            return outgoingNode.executeCall(receiver, args);
         } catch (Throwable t) {
             errorProfile.enter();
             throw exceptionTranslatingNode.translate(t);
@@ -133,7 +132,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         protected final BranchProfile exceptionProfile = BranchProfile.create();
         protected final BranchProfile unknownIdentifierProfile = BranchProfile.create();
 
-        public abstract Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args);
+        public abstract Object executeCall(TruffleObject receiver, Object[] args);
 
     }
 
@@ -148,7 +147,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         }
 
         @Override
-        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+        public Object executeCall(TruffleObject receiver, Object[] args) {
             if (args.length != 1) {
                 argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
@@ -183,7 +182,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         }
 
         @Override
-        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+        public Object executeCall(TruffleObject receiver, Object[] args) {
             if (args.length != 2) {
                 argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 2, this));
@@ -217,7 +216,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         @Child private RubyToForeignArgumentsNode rubyToForeignArgumentsNode = RubyToForeignArgumentsNode.create();
 
         @Override
-        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+        public Object executeCall(TruffleObject receiver, Object[] args) {
             final Object foreign;
 
             try {
@@ -240,7 +239,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createReturnMissing();
 
         @Override
-        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+        public Object executeCall(TruffleObject receiver, Object[] args) {
             if (args.length < 1) {
                 argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
@@ -249,7 +248,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             final Object name = args[0];
             final Object[] sendArgs = Arrays.copyOfRange(args, 1, args.length);
 
-            final Object result = dispatchNode.dispatch(frame, receiver, name, null, sendArgs);
+            final Object result = dispatchNode.dispatch(null, receiver, name, null, sendArgs);
 
             assert result != DispatchNode.MISSING;
 
@@ -265,7 +264,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         @Child private RubyToForeignArgumentsNode rubyToForeignArgumentsNode = RubyToForeignArgumentsNode.create();
 
         @Override
-        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+        public Object executeCall(TruffleObject receiver, Object[] args) {
             final Object foreign;
 
             try {
@@ -288,7 +287,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         @Child private CallDispatchHeadNode callToArray = CallDispatchHeadNode.createPrivate();
 
         @Override
-        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+        public Object executeCall(TruffleObject receiver, Object[] args) {
             if (args.length != 0) {
                 argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 0, this));
@@ -304,7 +303,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         @Child private CallDispatchHeadNode callRespondTo = CallDispatchHeadNode.createPrivate();
 
         @Override
-        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+        public Object executeCall(TruffleObject receiver, Object[] args) {
             if (args.length != 1) {
                 argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
@@ -328,7 +327,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         }
 
         @Override
-        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+        public Object executeCall(TruffleObject receiver, Object[] args) {
             if (args.length != argsLength) {
                 argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, this.argsLength, this));
@@ -353,7 +352,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         }
 
         @Override
-        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+        public Object executeCall(TruffleObject receiver, Object[] args) {
             if (args.length != 0) {
                 argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 0, this));
@@ -367,7 +366,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected class IsReferenceEqualOutgoingNode extends OutgoingNode {
 
         @Override
-        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+        public Object executeCall(TruffleObject receiver, Object[] args) {
             if (args.length != 1) {
                 argumentErrorProfile.enter();
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(args.length, 1, this));
@@ -405,12 +404,12 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         }
 
         @Override
-        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+        public Object executeCall(TruffleObject receiver, Object[] args) {
             if (ForeignAccess.sendIsBoxed(isBoxedNode, receiver)) { // implicit profiling as a result of lazy nodes
                 final Object unboxedReceiver = convertToRuby(unbox(receiver));
-                return reDispatch(frame, unboxedReceiver, args);
+                return reDispatch(unboxedReceiver, args);
             } else {
-                return invoke(frame, receiver, args);
+                return invoke(receiver, args);
             }
         }
 
@@ -436,7 +435,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             return foreignToRubyNode.executeConvert(unboxedReceiver);
         }
 
-        private Object reDispatch(VirtualFrame frame, Object receiver, Object[] args) {
+        private Object reDispatch(Object receiver, Object[] args) {
             if (redispatchNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 // ignore visibility like ForeignInvokeNode
@@ -446,13 +445,13 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             return redispatchNode.call(receiver, name, args);
         }
 
-        private Object invoke(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+        private Object invoke(TruffleObject receiver, Object[] args) {
             if (invokeOutgoingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 invokeOutgoingNode = insert(new InvokeOutgoingNode(name));
             }
 
-            return invokeOutgoingNode.executeCall(frame, receiver, args);
+            return invokeOutgoingNode.executeCall(receiver, args);
         }
 
     }
@@ -470,7 +469,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         }
 
         @Override
-        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+        public Object executeCall(TruffleObject receiver, Object[] args) {
             final Object[] arguments = rubyToForeignArgumentsNode.executeConvert(args);
 
             final Object foreign;

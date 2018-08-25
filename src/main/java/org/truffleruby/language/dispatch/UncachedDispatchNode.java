@@ -82,7 +82,7 @@ public class UncachedDispatchNode extends DispatchNode {
             if (metaClassNode.executeMetaClass(receiver) == coreLibrary().getTruffleInteropForeignClass()) {
                 foreignProfile.enter();
                 notOptimizedWarningNode.warn("megamorphic dispatch on foreign object");
-                return createOutgoingForeignCallNode(methodName).executeCall(frame, (TruffleObject) receiver, arguments);
+                return createOutgoingForeignCallNode(methodName).executeCall((TruffleObject) receiver, arguments);
             }
         } else {
             assert !RubyGuards.isForeignObject(receiver) : "RESPOND_TO_METHOD not supported on foreign objects";
