@@ -219,7 +219,7 @@ public abstract class ArrayNodes {
 
             if (readSliceNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                readSliceNode = insert(ArrayReadSliceDenormalizedNodeGen.create(null, null, null));
+                readSliceNode = insert(ArrayReadSliceDenormalizedNodeGen.create());
             }
 
             return readSliceNode.executeReadSlice(array, start, length);
@@ -246,7 +246,7 @@ public abstract class ArrayNodes {
 
                 if (readNormalizedSliceNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    readNormalizedSliceNode = insert(ArrayReadSliceNormalizedNodeGen.create(null, null, null));
+                    readNormalizedSliceNode = insert(ArrayReadSliceNormalizedNodeGen.create());
                 }
 
                 return readNormalizedSliceNode.executeReadSlice(array, normalizedIndex, length);
@@ -505,7 +505,7 @@ public abstract class ArrayNodes {
         private DynamicObject readSlice(DynamicObject array, int start, int length) {
             if (readSliceNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                readSliceNode = insert(ArrayReadSliceNormalizedNodeGen.create(null, null, null));
+                readSliceNode = insert(ArrayReadSliceNormalizedNodeGen.create());
             }
             return readSliceNode.executeReadSlice(array, start, length);
         }
@@ -636,7 +636,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class ConcatNode extends CoreMethodNode {
 
-        @Child private ArrayAppendManyNode appendManyNode = ArrayAppendManyNodeGen.create(null, null);
+        @Child private ArrayAppendManyNode appendManyNode = ArrayAppendManyNodeGen.create();
 
         @CreateCast("other")
         public RubyNode coerceOtherToAry(RubyNode other) {
@@ -1535,7 +1535,7 @@ public abstract class ArrayNodes {
         public Object pop(DynamicObject array, NotProvided n) {
             if (popOneNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                popOneNode = insert(ArrayPopOneNodeGen.create(null));
+                popOneNode = insert(ArrayPopOneNodeGen.create());
             }
 
             return popOneNode.executePopOne(array);

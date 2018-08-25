@@ -61,6 +61,7 @@ import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -881,11 +882,10 @@ public class CExtNodes {
 
     }
 
-    @NodeChild("string")
-    public abstract static class StringToNativeNode extends RubyNode {
+    public abstract static class StringToNativeNode extends RubyBaseNode {
 
         public static StringToNativeNode create() {
-            return StringToNativeNodeGen.create(null);
+            return StringToNativeNodeGen.create();
         }
 
         public abstract NativeRope executeToNative(DynamicObject string);

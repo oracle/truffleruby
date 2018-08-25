@@ -11,23 +11,16 @@ package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import static org.truffleruby.core.array.ArrayHelpers.getSize;
 
-@NodeChildren({
-        @NodeChild(value = "array", type = RubyNode.class),
-        @NodeChild(value = "index", type = RubyNode.class),
-        @NodeChild(value = "length", type = RubyNode.class)
-})
 @ImportStatic(ArrayGuards.class)
-public abstract class ArrayReadSliceNormalizedNode extends RubyNode {
+public abstract class ArrayReadSliceNormalizedNode extends RubyBaseNode {
 
     @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 

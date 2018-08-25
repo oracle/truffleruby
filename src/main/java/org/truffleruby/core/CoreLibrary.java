@@ -30,7 +30,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.Layout;
@@ -53,8 +52,8 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
@@ -272,7 +271,7 @@ public class CoreLibrary {
 
     private State state = State.INITIALIZING;
 
-    private static class CoreLibraryNode extends RubyNode {
+    private static class CoreLibraryNode extends RubyBaseNode {
 
         @Child SingletonClassNode singletonClassNode;
 
@@ -287,11 +286,6 @@ public class CoreLibrary {
 
         public DynamicObject getSingletonClass(Object object) {
             return singletonClassNode.executeSingletonClass(object);
-        }
-
-        @Override
-        public Object execute(VirtualFrame frame) {
-            return nil();
         }
 
     }
