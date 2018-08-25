@@ -221,19 +221,19 @@ public abstract class KernelNodes {
 
         private final ConditionProfile sameProfile = ConditionProfile.createBinaryProfile();
 
-        public abstract boolean executeSameOrEql(VirtualFrame frame, Object a, Object b);
+        public abstract boolean executeSameOrEql(Object a, Object b);
 
         @Specialization
-        public boolean sameOrEql(VirtualFrame frame, Object a, Object b,
+        public boolean sameOrEql(Object a, Object b,
                         @Cached("create()") ReferenceEqualNode referenceEqualNode) {
             if (sameProfile.profile(referenceEqualNode.executeReferenceEqual(a, b))) {
                 return true;
             } else {
-                return areEql(frame, a, b);
+                return areEql(a, b);
             }
         }
 
-        private boolean areEql(VirtualFrame frame, Object left, Object right) {
+        private boolean areEql(Object left, Object right) {
             if (eqlNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 eqlNode = insert(CallDispatchHeadNode.createPrivate());

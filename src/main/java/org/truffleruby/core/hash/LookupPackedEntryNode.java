@@ -98,7 +98,7 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
             if (n < size) {
                 final int otherHashed = PackedArrayStrategy.getHashed(store, n);
                 final Object otherKey = PackedArrayStrategy.getKey(store, n);
-                if (equalKeys(frame, compareByIdentity, key, hashed, otherKey, otherHashed)) {
+                if (equalKeys(compareByIdentity, key, hashed, otherKey, otherHashed)) {
                     return PackedArrayStrategy.getValue(store, n);
                 }
             }
@@ -109,8 +109,8 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
 
     }
 
-    protected boolean equalKeys(VirtualFrame frame, boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
-        return compareHashKeysNode.equalKeys(frame, compareByIdentity, key, hashed, otherKey, otherHashed);
+    protected boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
+        return compareHashKeysNode.equalKeys(compareByIdentity, key, hashed, otherKey, otherHashed);
     }
 
 }

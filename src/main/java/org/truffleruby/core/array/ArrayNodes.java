@@ -931,7 +931,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "isRubyArray(b)", "strategy.matches(a)", "strategy.matches(b)",
                 "strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
-        protected boolean eqlSamePrimitiveType(VirtualFrame frame, DynamicObject a, DynamicObject b,
+        protected boolean eqlSamePrimitiveType(DynamicObject a, DynamicObject b,
                 @Cached("of(a)") ArrayStrategy strategy,
                 @Cached("createBinaryProfile()") ConditionProfile sameProfile,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
@@ -954,7 +954,7 @@ public abstract class ArrayNodes {
             final ArrayMirror bMirror = strategy.newMirror(b);
 
             for (int i = 0; i < aSize; i++) {
-                if (!eqlNode.executeSameOrEql(frame, aMirror.get(i), bMirror.get(i))) {
+                if (!eqlNode.executeSameOrEql(aMirror.get(i), bMirror.get(i))) {
                     falseProfile.enter();
                     return false;
                 }

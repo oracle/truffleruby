@@ -81,7 +81,6 @@ public abstract class HashLiteralNode extends RubyNode {
         @ExplodeLoop
         @Override
         public Object execute(VirtualFrame frame) {
-
             final Object[] store = PackedArrayStrategy.createStore(getContext());
 
             int size = 0;
@@ -91,18 +90,18 @@ public abstract class HashLiteralNode extends RubyNode {
 
                 if (stringKeyProfile.profile(RubyGuards.isRubyString(key))) {
                     if (!isFrozen(key)) {
-                        key = callFreeze(frame, callDup(frame, key));
+                        key = callFreeze(callDup(key));
                     }
                 }
 
-                final int hashed = hash(frame, key);
+                final int hashed = hash(key);
 
                 final Object value = keyValues[n * 2 + 1].execute(frame);
 
                 for (int i = 0; i < n; i++) {
                     if (i < size &&
                             hashed == PackedArrayStrategy.getHashed(store, i) &&
-                            callEqual(frame, key, PackedArrayStrategy.getKey(store, i))) {
+                            callEqual(key, PackedArrayStrategy.getKey(store, i))) {
                         PackedArrayStrategy.setKey(store, i, key);
                         PackedArrayStrategy.setValue(store, i, value);
                         continue initializers;
@@ -116,15 +115,15 @@ public abstract class HashLiteralNode extends RubyNode {
             return coreLibrary().getHashFactory().newInstance(Layouts.HASH.build(store, size, null, null, nil(), nil(), false));
         }
 
-        private int hash(VirtualFrame frame, Object key) {
+        private int hash(Object key) {
             if (hashNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 hashNode = insert(new HashNode());
             }
-            return hashNode.hash(frame, key, false);
+            return hashNode.hash(key, false);
         }
 
-        private boolean callEqual(VirtualFrame frame, Object receiver, Object key) {
+        private boolean callEqual(Object receiver, Object key) {
             if (equalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 equalNode = insert(CallDispatchHeadNode.createPrivate());
@@ -138,7 +137,7 @@ public abstract class HashLiteralNode extends RubyNode {
             return booleanCastNode.executeToBoolean(equalNode.call(receiver, "eql?", key));
         }
 
-        private Object callDup(VirtualFrame frame, Object receiver) {
+        private Object callDup(Object receiver) {
             if (dupNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 dupNode = insert(CallDispatchHeadNode.createPrivate());
@@ -146,7 +145,7 @@ public abstract class HashLiteralNode extends RubyNode {
             return dupNode.call(receiver, "dup");
         }
 
-        private Object callFreeze(VirtualFrame frame, Object receiver) {
+        private Object callFreeze(Object receiver) {
             if (freezeNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 freezeNode = insert(CallDispatchHeadNode.createPrivate());
@@ -188,7 +187,7 @@ public abstract class HashLiteralNode extends RubyNode {
             for (int n = 0; n < keyValues.length; n += 2) {
                 final Object key = keyValues[n].execute(frame);
                 final Object value = keyValues[n + 1].execute(frame);
-                setNode.executeSet(frame, hash, key, value, false);
+                setNode.executeSet(hash, key, value, false);
             }
 
             return hash;

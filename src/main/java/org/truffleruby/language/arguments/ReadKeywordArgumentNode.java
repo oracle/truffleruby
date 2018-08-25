@@ -53,6 +53,7 @@ public class ReadKeywordArgumentNode extends RubyNode implements BiFunctionNode 
         return hashLookupNode.executeGet(frame, hash, name, this);
     }
 
+    @Override
     public Object accept(VirtualFrame frame, Object hash, Object key) {
         return defaultValue.execute(frame);
     }

@@ -10,7 +10,6 @@
 package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
@@ -32,12 +31,12 @@ public class HashNode extends RubyBaseNode {
     private final ConditionProfile isLongProfile2 = ConditionProfile.createBinaryProfile();
     private final ConditionProfile isBignumProfile2 = ConditionProfile.createBinaryProfile();
 
-    public int hash(VirtualFrame frame, Object key, boolean compareByIdentity) {
+    public int hash(Object key, boolean compareByIdentity) {
         final Object hashedObject;
         if (compareByIdentity) {
             hashedObject = objectID(key);
         } else {
-            hashedObject = hash(frame, key);
+            hashedObject = hash(key);
         }
 
         if (isIntegerProfile1.profile(hashedObject instanceof Integer)) {
@@ -66,7 +65,7 @@ public class HashNode extends RubyBaseNode {
         }
     }
 
-    private Object hash(VirtualFrame frame, Object object) {
+    private Object hash(Object object) {
         if (hashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             hashNode = insert(CallDispatchHeadNode.createPrivate());

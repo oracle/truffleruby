@@ -41,6 +41,7 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingOperations;
+import org.truffleruby.core.hash.HashNode;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.ModuleNodesFactory;
@@ -850,17 +851,18 @@ public class CExtNodes {
     }
 
     @CoreMethod(names = "rb_hash", onSingleton = true, required = 1)
-    public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
-        @Child private org.truffleruby.core.hash.HashNode hash;
+    public abstract static class RbHashNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private HashNode hash;
 
         @Specialization
-        public Object hash(VirtualFrame frame, Object object) {
+        public Object rbHash(Object object) {
             if (hash == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                hash = insert(new org.truffleruby.core.hash.HashNode());
+                hash = insert(new HashNode());
             }
 
-            return hash.hash(frame, object, false);
+            return hash.hash(object, false);
         }
     }
 

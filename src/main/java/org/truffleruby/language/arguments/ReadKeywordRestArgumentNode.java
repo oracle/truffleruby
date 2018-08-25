@@ -57,7 +57,7 @@ public class ReadKeywordRestArgumentNode extends RubyNode implements BiConsumerN
     @Override
     public void accept(VirtualFrame frame, Object key, Object value, Object kwRest) {
         if (isSymbolProfile.profile(RubyGuards.isRubySymbol(key)) && !keywordExcluded(key)) {
-            setNode.executeSet(frame, (DynamicObject) kwRest, key, value, false);
+            setNode.executeSet((DynamicObject) kwRest, key, value, false);
         }
     }
 
