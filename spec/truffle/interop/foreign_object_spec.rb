@@ -18,13 +18,13 @@ describe "Foreign objects" do
   it "can be printed with #puts" do
     lambda {
       puts Truffle::Debug.foreign_object
-    }.should output(/#<Foreign:0x\-?\h+>\n/)
+    }.should output(/#<Foreign:0x\h+>\n/)
   end
   
   it "can be printed with #p" do
     lambda {
       p Truffle::Debug.foreign_object
-    }.should output(/#<Foreign:0x\-?\h+>\n/)
+    }.should output(/#<Foreign:0x\h+>\n/)
   end
 
 end

@@ -1014,7 +1014,9 @@ public abstract class InteropNodes {
         @Specialization
         @TruffleBoundary
         public int identityHashCode(Object value) {
-            return System.identityHashCode(value);
+            final int code = System.identityHashCode(value);
+            assert code >= 0;
+            return code;
         }
 
     }

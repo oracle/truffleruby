@@ -6,6 +6,7 @@ Bug fixes:
 
 * `Kernel#singleton_methods` now correctly ignores prepended modules of
   non-singleton classes. Fixes loading `sass` when `activesupport` is loaded.
+* Object identity numbers should never be negative.
 
 # 1.0 RC 6
 
