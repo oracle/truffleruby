@@ -11,26 +11,18 @@ package org.truffleruby.interop;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyNode;
+
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 
-@NodeChildren({
-        @NodeChild("receiver"),
-        @NodeChild("name"),
-        @NodeChild("stringName"),
-        @NodeChild("isIVar"),
-        @NodeChild("value")
-})
-abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
+abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
 
     @Child private DoesRespondDispatchHeadNode indexDefinedNode;
     @Child private CallDispatchHeadNode callNode;

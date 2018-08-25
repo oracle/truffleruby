@@ -12,7 +12,8 @@ package org.truffleruby.interop;
 import java.util.Arrays;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyNode;
+
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -23,8 +24,6 @@ import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ArityException;
@@ -37,11 +36,7 @@ import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-@NodeChildren({
-        @NodeChild("receiver"),
-        @NodeChild("args")
-})
-public abstract class OutgoingForeignCallNode extends RubyNode {
+public abstract class OutgoingForeignCallNode extends RubyBaseNode {
 
     @Child private ExceptionTranslatingNode exceptionTranslatingNode;
 

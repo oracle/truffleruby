@@ -34,8 +34,8 @@ import com.oracle.truffle.api.utilities.CyclicAssumption;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -56,7 +56,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public abstract class GetTimeZoneNode extends RubyNode {
+public abstract class GetTimeZoneNode extends RubyBaseNode {
 
     public static final ZoneId UTC = ZoneId.of("UTC");
 

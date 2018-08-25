@@ -135,7 +135,7 @@ public class UncachedDispatchNode extends DispatchNode {
 
     @TruffleBoundary
     private OutgoingForeignCallNode createOutgoingForeignCallNode(String methodName) {
-        return OutgoingForeignCallNodeGen.create(methodName, null, null);
+        return OutgoingForeignCallNodeGen.create(methodName);
     }
 
     private Object call(InternalMethod method, Object receiverObject, DynamicObject blockObject, Object[] argumentsObjects) {

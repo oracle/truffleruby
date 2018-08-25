@@ -12,20 +12,14 @@ package org.truffleruby.interop;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.string.StringCachingGuards;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
 @ImportStatic(StringCachingGuards.class)
-@NodeChildren({
-        @NodeChild("receiver"),
-        @NodeChild("name")
-})
-abstract class ForeignReadStringCachingHelperNode extends RubyNode {
+abstract class ForeignReadStringCachingHelperNode extends RubyBaseNode {
 
     @Child private IsStringLikeNode isStringLikeNode;
 
@@ -60,7 +54,7 @@ abstract class ForeignReadStringCachingHelperNode extends RubyNode {
     }
 
     protected ForeignReadStringCachedHelperNode createNextHelper() {
-        return ForeignReadStringCachedHelperNodeGen.create(null, null, null, null);
+        return ForeignReadStringCachedHelperNodeGen.create();
     }
 
 }

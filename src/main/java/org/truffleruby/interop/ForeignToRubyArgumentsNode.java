@@ -10,16 +10,15 @@
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import org.truffleruby.language.RubyNode;
 
-@NodeChild(value = "arguments", type = RubyNode.class)
-public abstract class ForeignToRubyArgumentsNode extends RubyNode {
+import org.truffleruby.language.RubyBaseNode;
+
+public abstract class ForeignToRubyArgumentsNode extends RubyBaseNode {
 
     public static ForeignToRubyArgumentsNode create() {
-        return ForeignToRubyArgumentsNodeGen.create(null);
+        return ForeignToRubyArgumentsNodeGen.create();
     }
 
     public abstract Object[] executeConvert(Object[] args);

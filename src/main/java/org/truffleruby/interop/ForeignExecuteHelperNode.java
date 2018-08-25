@@ -10,20 +10,15 @@
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyNode;
+
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.methods.CallBoundMethodNode;
 import org.truffleruby.language.methods.CallBoundMethodNodeGen;
 import org.truffleruby.language.yield.YieldNode;
 
-@NodeChildren({
-        @NodeChild("receiver"),
-        @NodeChild("arguments")
-})
-abstract class ForeignExecuteHelperNode extends RubyNode {
+abstract class ForeignExecuteHelperNode extends RubyBaseNode {
 
     public abstract Object executeCall(Object receiver, Object[] arguments);
 

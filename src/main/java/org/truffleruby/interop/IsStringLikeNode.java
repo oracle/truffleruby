@@ -9,16 +9,15 @@
  */
 package org.truffleruby.interop;
 
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyNode;
 
-@NodeChild(value = "value", type = RubyNode.class)
-public abstract class IsStringLikeNode extends RubyNode {
+import org.truffleruby.language.RubyBaseNode;
+
+public abstract class IsStringLikeNode extends RubyBaseNode {
 
     public static IsStringLikeNode create() {
-        return IsStringLikeNodeGen.create(null);
+        return IsStringLikeNodeGen.create();
     }
 
     public abstract boolean executeIsStringLike(Object value);

@@ -750,7 +750,7 @@ public abstract class InteropNodes {
         }
 
         protected ForeignToRubyNode createForeignToRubyNode() {
-            return ForeignToRubyNodeGen.create(null);
+            return ForeignToRubyNodeGen.create();
         }
 
     }
