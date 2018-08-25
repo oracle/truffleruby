@@ -104,9 +104,9 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
-import org.truffleruby.core.encoding.EncodingNodes;
+import org.truffleruby.core.encoding.EncodingNodes.CheckEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.CheckRopeEncodingNode;
-import org.truffleruby.core.encoding.EncodingNodesFactory;
+import org.truffleruby.core.encoding.EncodingNodes.NegotiateCompatibleEncodingNode;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.format.FormatExceptionTranslator;
 import org.truffleruby.core.format.exceptions.FormatException;
@@ -730,7 +730,7 @@ public abstract class StringNodes {
     })
     public abstract static class CaseCmpNode extends CoreMethodNode {
 
-        @Child private EncodingNodes.NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode = EncodingNodesFactory.NegotiateCompatibleEncodingNodeGen.create(null, null);
+        @Child private NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleEncodingNode.create();
         private final ConditionProfile incompatibleEncodingProfile = ConditionProfile.createBinaryProfile();
 
         @CreateCast("other") public RubyNode coerceOtherToString(RubyNode other) {
@@ -2031,7 +2031,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class SqueezeBangNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
+        @Child private CheckEncodingNode checkEncodingNode;
         private final ConditionProfile singleByteOptimizableProfile = ConditionProfile.createBinaryProfile();
 
         @Specialization(guards = "isEmpty(string)")
@@ -2085,10 +2085,9 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         private Object performSqueezeBang(DynamicObject string, DynamicObject[] otherStrings) {
-
             if (checkEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(EncodingNodesFactory.CheckEncodingNodeGen.create(null, null));
+                checkEncodingNode = insert(CheckEncodingNode.create());
             }
 
             final Rope rope = rope(string);
@@ -2358,7 +2357,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class TrBangNode extends CoreMethodNode {
 
-        @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
+        @Child private CheckEncodingNode checkEncodingNode;
         @Child private DeleteBangNode deleteBangNode;
 
         @CreateCast("fromStr") public RubyNode coerceFromStrToString(RubyNode fromStr) {
@@ -2388,7 +2387,7 @@ public abstract class StringNodes {
         public Object trBang(VirtualFrame frame, DynamicObject self, DynamicObject fromStr, DynamicObject toStr) {
             if (checkEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(EncodingNodesFactory.CheckEncodingNodeGen.create(null, null));
+                checkEncodingNode = insert(CheckEncodingNode.create());
             }
 
             return StringNodesHelper.trTransHelper(getContext(), checkEncodingNode, self, fromStr, toStr, false);
@@ -2404,7 +2403,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class TrSBangNode extends CoreMethodNode {
 
-        @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
+        @Child private CheckEncodingNode checkEncodingNode;
         @Child private DeleteBangNode deleteBangNode;
 
         @CreateCast("fromStr") public RubyNode coerceFromStrToString(RubyNode fromStr) {
@@ -2433,7 +2432,7 @@ public abstract class StringNodes {
 
             if (checkEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(EncodingNodesFactory.CheckEncodingNodeGen.create(null, null));
+                checkEncodingNode = insert(CheckEncodingNode.create());
             }
 
             return StringNodesHelper.trTransHelper(getContext(), checkEncodingNode, self, fromStr, toStr, true);
@@ -2868,7 +2867,7 @@ public abstract class StringNodes {
     public static class StringNodesHelper {
 
         @TruffleBoundary
-        private static Object trTransHelper(RubyContext context, EncodingNodes.CheckEncodingNode checkEncodingNode,
+        private static Object trTransHelper(RubyContext context, CheckEncodingNode checkEncodingNode,
                                             DynamicObject self, DynamicObject fromStr,
                                             DynamicObject toStr, boolean sFlag) {
             assert RubyGuards.isRubyString(self);
@@ -3526,7 +3525,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public static abstract class StringIndexPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
+        @Child private CheckEncodingNode checkEncodingNode;
 
         @Specialization(guards = "isEmpty(pattern)")
         public Object stringIndexEmptyPattern(DynamicObject string, DynamicObject pattern, int byteOffset) {
@@ -3719,7 +3718,7 @@ public abstract class StringNodes {
         private void checkEncoding(DynamicObject string, DynamicObject pattern) {
             if (checkEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(EncodingNodes.CheckEncodingNode.create());
+                checkEncodingNode = insert(CheckEncodingNode.create());
             }
 
             checkEncodingNode.executeCheckEncoding(string, pattern);
@@ -4000,7 +3999,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public static abstract class StringRindexPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
+        @Child private CheckEncodingNode checkEncodingNode;
 
         @Specialization(guards = "isEmpty(pattern)")
         public Object stringRindexEmptyPattern(DynamicObject string, DynamicObject pattern, int byteOffset) {
@@ -4162,7 +4161,7 @@ public abstract class StringNodes {
         private void checkEncoding(DynamicObject string, DynamicObject pattern) {
             if (checkEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(EncodingNodes.CheckEncodingNode.create());
+                checkEncodingNode = insert(CheckEncodingNode.create());
             }
 
             checkEncodingNode.executeCheckEncoding(string, pattern);
@@ -4568,7 +4567,7 @@ public abstract class StringNodes {
     @NodeChildren({ @NodeChild("string"), @NodeChild("other") })
     public static abstract class StringAppendNode extends RubyNode {
 
-        @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
+        @Child private CheckEncodingNode checkEncodingNode;
         @Child private RopeNodes.ConcatNode concatNode;
 
         public static StringAppendNode create() {
@@ -4598,7 +4597,7 @@ public abstract class StringNodes {
         private Encoding executeCheckEncoding(DynamicObject string, DynamicObject other) {
             if (checkEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(EncodingNodesFactory.CheckEncodingNodeGen.create(null, null));
+                checkEncodingNode = insert(CheckEncodingNode.create());
             }
             return checkEncodingNode.executeCheckEncoding(string, other);
         }

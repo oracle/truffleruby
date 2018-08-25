@@ -14,8 +14,6 @@ package org.truffleruby.core.encoding;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -34,12 +32,16 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToEncodingNode;
+import org.truffleruby.core.encoding.EncodingNodesFactory.CheckRopeEncodingNodeGen;
+import org.truffleruby.core.encoding.EncodingNodesFactory.GetRubyEncodingNodeGen;
+import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleEncodingNodeGen;
+import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleRopeEncodingNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.yield.YieldNode;
@@ -73,11 +75,10 @@ public abstract class EncodingNodes {
         }
     }
 
-    @NodeChild("encoding")
-    public abstract static class GetRubyEncodingNode extends RubyNode {
+    public abstract static class GetRubyEncodingNode extends RubyBaseNode {
 
         public static GetRubyEncodingNode create() {
-            return EncodingNodesFactory.GetRubyEncodingNodeGen.create(null);
+            return GetRubyEncodingNodeGen.create();
         }
 
         public abstract DynamicObject executeGetRubyEncoding(Encoding encoding);
@@ -90,10 +91,6 @@ public abstract class EncodingNodes {
 
         @Specialization(replaces = "getRubyEncodingCached")
         protected DynamicObject getRubyEncodingUncached(Encoding encoding) {
-            if (encoding == null) {
-                throw new UnsupportedOperationException("cannot convert null Java encoding to a Ruby encoding");
-            }
-
             return getContext().getEncodingManager().getRubyEncoding(encoding);
         }
 
@@ -107,13 +104,12 @@ public abstract class EncodingNodes {
 
     }
 
-    @NodeChildren({ @NodeChild("first"), @NodeChild("second") })
-    public static abstract class NegotiateCompatibleRopeEncodingNode extends RubyNode {
+    public static abstract class NegotiateCompatibleRopeEncodingNode extends RubyBaseNode {
 
         public abstract Encoding executeNegotiate(Rope first, Rope second);
 
         public static NegotiateCompatibleRopeEncodingNode create() {
-            return EncodingNodesFactory.NegotiateCompatibleRopeEncodingNodeGen.create(null, null);
+            return NegotiateCompatibleRopeEncodingNodeGen.create();
         }
 
         @Specialization(guards = "first.getEncoding() == second.getEncoding()")
@@ -188,13 +184,12 @@ public abstract class EncodingNodes {
 
     }
 
-    @NodeChildren({ @NodeChild("first"), @NodeChild("second") })
-    public static abstract class NegotiateCompatibleEncodingNode extends RubyNode {
+    public static abstract class NegotiateCompatibleEncodingNode extends RubyBaseNode {
 
         @Child private ToEncodingNode getEncodingNode = ToEncodingNode.create();
 
         public static NegotiateCompatibleEncodingNode create() {
-            return EncodingNodesFactory.NegotiateCompatibleEncodingNodeGen.create(null, null);
+            return NegotiateCompatibleEncodingNodeGen.create();
         }
 
         public abstract Encoding executeNegotiate(Object first, Object second);
@@ -382,7 +377,8 @@ public abstract class EncodingNodes {
     public abstract static class LocaleCharacterMapNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject localeCharacterMap(@Cached("create()") GetRubyEncodingNode getRubyEncodingNode) {
+        public DynamicObject localeCharacterMap(
+                @Cached("create()") GetRubyEncodingNode getRubyEncodingNode) {
             final DynamicObject rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(getContext().getEncodingManager().getLocaleEncoding());
 
             return Layouts.ENCODING.getName(rubyEncoding);
@@ -616,17 +612,12 @@ public abstract class EncodingNodes {
 
     }
 
-    @NodeChildren({ @NodeChild("first"), @NodeChild("second") })
-    public static abstract class CheckRopeEncodingNode extends RubyNode {
+    public static abstract class CheckRopeEncodingNode extends RubyBaseNode {
 
-        @Child private NegotiateCompatibleRopeEncodingNode negotiateCompatibleEncodingNode;
+        @Child private NegotiateCompatibleRopeEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleRopeEncodingNode.create();
 
         public static CheckRopeEncodingNode create() {
-            return EncodingNodesFactory.CheckRopeEncodingNodeGen.create(null, null);
-        }
-
-        public CheckRopeEncodingNode() {
-            negotiateCompatibleEncodingNode = EncodingNodesFactory.NegotiateCompatibleRopeEncodingNodeGen.create(null, null);
+            return CheckRopeEncodingNodeGen.create();
         }
 
         public abstract Encoding executeCheckEncoding(Rope first, Rope second);
@@ -638,28 +629,22 @@ public abstract class EncodingNodes {
 
             if (negotiatedEncoding == null) {
                 errorProfile.enter();
-
-                raiseException(first, second);
+                throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatible(
+                        first.getEncoding(), second.getEncoding(), this));
             }
 
             return negotiatedEncoding;
         }
 
-        private void raiseException(Rope first, Rope second) {
-            throw new RaiseException(getContext(), coreExceptions().encodingCompatibilityErrorIncompatible(
-                    first.getEncoding(), second.getEncoding(), this));
-        }
-
     }
 
-    @NodeChildren({ @NodeChild("first"), @NodeChild("second") })
-    public static abstract class CheckEncodingNode extends RubyNode {
+    public static abstract class CheckEncodingNode extends RubyBaseNode {
 
         @Child private NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode;
         @Child private ToEncodingNode toEncodingNode;
 
         public static CheckEncodingNode create() {
-            return EncodingNodesFactory.CheckEncodingNodeGen.create(null, null);
+            return EncodingNodesFactory.CheckEncodingNodeGen.create();
         }
 
         public abstract Encoding executeCheckEncoding(Object first, Object second);
@@ -671,7 +656,6 @@ public abstract class EncodingNodes {
 
             if (negotiatedEncoding == null) {
                 errorProfile.enter();
-
                 raiseException(first, second);
             }
 
@@ -681,7 +665,7 @@ public abstract class EncodingNodes {
         private Encoding executeNegotiate(Object first, Object second) {
             if (negotiateCompatibleEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                negotiateCompatibleEncodingNode = insert(EncodingNodesFactory.NegotiateCompatibleEncodingNodeGen.create(null, null));
+                negotiateCompatibleEncodingNode = insert(NegotiateCompatibleEncodingNode.create());
             }
             return negotiateCompatibleEncodingNode.executeNegotiate(first, second);
         }

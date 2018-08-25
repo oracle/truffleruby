@@ -57,7 +57,7 @@ public class UncachedDispatchNode extends DispatchNode {
         this.lookupMethodNode = LookupMethodNodeGen.create(ignoreVisibility, onlyCallPublic, null, null);
         this.lookupMethodMissingNode = LookupMethodNode.createIgnoreVisibility();
         this.indirectCallNode = Truffle.getRuntime().createIndirectCallNode();
-        this.toSymbolNode = ToSymbolNodeGen.create(null);
+        this.toSymbolNode = ToSymbolNodeGen.create();
         this.nameToJavaStringNode = NameToJavaStringNode.create();
         this.metaClassNode = dispatchAction == DispatchAction.CALL_METHOD ? MetaClassNodeGen.create(null) : null;
     }
@@ -122,7 +122,7 @@ public class UncachedDispatchNode extends DispatchNode {
         }
 
         if (dispatchAction == DispatchAction.CALL_METHOD) {
-            final DynamicObject nameSymbol = toSymbolNode.executeRubySymbol(frame, name);
+            final DynamicObject nameSymbol = toSymbolNode.executeToSymbol(frame, name);
             final Object[] modifiedArgumentsObjects = ArrayUtils.unshift(arguments, nameSymbol);
 
             return call(methodMissing, receiver, block, modifiedArgumentsObjects);
