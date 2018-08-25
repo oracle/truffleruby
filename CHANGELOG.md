@@ -22,10 +22,16 @@ New features:
 
 Bug fixes:
 
+* Fix false-positive circular warning during autoload.
+* Fix Truffle::AtomicReference for `concurrent-ruby`.
+* Correctly look up `llvm-link` along `clang` and `opt` so it is no longer
+  needed to add LLVM to `PATH` on macOS for Homebrew and MacPorts.
+* Fix `alias` to work when in a refinement module (#1394).
 * `Array#reject!` no longer truncates the array if the block raises an
   exception for an element.
 * WeakRef now has the same inheritance and methods as MRI's version.
-* Support `-Wl` linker argument for C extensions.
+* Support `-Wl` linker argument for C extensions. Fixes compilation of`mysql2`
+  and `pg`.
 * Using `Module#const_get` with a scoped argument will now correctly
   autoload the constant if needed.
 * Loaded files are read as raw bytes, rather than as a UTF-8 string and then
@@ -39,12 +45,17 @@ Bug fixes:
 * The offset of `DATA` is now correct in the presence of heredocs.
 * Fix double-loading of the `json` gem, which led to duplicate constant
   definition warnings.
+* Fix definition of `RB_NIL_P` to be early enough. Fixes compilation of
+  `msgpack`.
+* Fix compilation of megamorphic interop calls.
 
 Performance:
 
+* Optimize keyword rest arguments (`def foo(**kwrest)`).
 * Optimize rejected (non-Symbol keys) keyword arguments.
 * Source `SecureRandom.random_bytes` from `/dev/urandom` rather than OpenSSL.
 * C extension bitcode is no longer encoded as Base64 to pass it to Sulong.
+* Faster `String#==` using vectorization.
 
 Changes:
 
