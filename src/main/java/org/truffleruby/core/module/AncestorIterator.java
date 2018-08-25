@@ -14,6 +14,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import java.util.Iterator;
 
 public class AncestorIterator implements Iterator<DynamicObject> {
+
     ModuleChain module;
 
     public AncestorIterator(ModuleChain top) {
@@ -43,4 +44,5 @@ public class AncestorIterator implements Iterator<DynamicObject> {
     public void remove() {
         throw new UnsupportedOperationException("remove");
     }
+
 }

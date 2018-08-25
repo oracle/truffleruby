@@ -9,25 +9,51 @@
  */
 package org.truffleruby.core.module;
 
-public class IncludedModulesIterator extends AncestorIterator {
+import java.util.Iterator;
+
+import com.oracle.truffle.api.object.DynamicObject;
+
+public class IncludedModulesIterator implements Iterator<DynamicObject> {
 
     private final ModuleFields currentModule;
+    ModuleChain nextModule;
 
-    public IncludedModulesIterator(ModuleChain top, ModuleFields currentModule) {
-        super(top instanceof PrependMarker ? top.getParentModule() : top);
+    public IncludedModulesIterator(PrependMarker start, ModuleFields currentModule) {
         this.currentModule = currentModule;
+        this.nextModule = computeNext(start);
     }
 
     @Override
     public boolean hasNext() {
-        if (!super.hasNext()) {
-            return false;
-        }
-
-        if (module == currentModule) {
-            module = module.getParentModule(); // skip self
-        }
-
-        return module instanceof IncludedModule;
+        return nextModule != null;
     }
+
+    @Override
+    public DynamicObject next() {
+        assert hasNext();
+
+        final ModuleChain returned = nextModule;
+        nextModule = computeNext(nextModule);
+        return returned.getActualModule();
+    }
+
+    private ModuleChain computeNext(ModuleChain current) {
+        ModuleChain mod = current.getParentModule();
+
+        if (mod == currentModule) {
+            mod = mod.getParentModule(); // skip self
+        }
+
+        if (mod instanceof IncludedModule) {
+            return mod;
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public void remove() {
+        throw new UnsupportedOperationException("remove");
+    }
+
 }

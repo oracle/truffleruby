@@ -631,18 +631,18 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         return rubyModuleObject;
     }
 
+    /**
+     * Iterate over all ancestors, skipping PrependMarker and resolving IncludedModule.
+     */
     public Iterable<DynamicObject> ancestors() {
-        final ModuleChain top = start;
-        return () -> new AncestorIterator(top);
+        return () -> new AncestorIterator(start);
     }
 
     /**
-     * Iterates over include'd and prepend'ed modules.
+     * Iterates over prepend'ed and include'd modules.
      */
     public Iterable<DynamicObject> prependedAndIncludedModules() {
-        final ModuleChain top = start;
-        final ModuleFields currentModule = this;
-        return () -> new IncludedModulesIterator(top, currentModule);
+        return () -> new IncludedModulesIterator(start, this);
     }
 
     public Collection<DynamicObject> filterMethods(RubyContext context, boolean includeAncestors, MethodFilter filter) {
