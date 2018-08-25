@@ -82,7 +82,7 @@ public class UncachedDispatchNode extends DispatchNode {
             if (metaClassNode.executeMetaClass(receiver) == coreLibrary().getTruffleInteropForeignClass()) {
                 foreignProfile.enter();
                 notOptimizedWarningNode.warn("megamorphic dispatch on foreign object");
-                return createOutgoingForeignCallNode(methodName).executeCall((TruffleObject) receiver, arguments);
+                return megamorphicForeignCall(receiver, arguments, methodName);
             }
         } else {
             assert !RubyGuards.isForeignObject(receiver) : "RESPOND_TO_METHOD not supported on foreign objects";
@@ -131,6 +131,11 @@ public class UncachedDispatchNode extends DispatchNode {
         } else {
             throw new UnsupportedOperationException();
         }
+    }
+
+    @TruffleBoundary
+    private Object megamorphicForeignCall(Object receiver, Object[] arguments, String methodName) {
+        return createOutgoingForeignCallNode(methodName).executeCall((TruffleObject) receiver, arguments);
     }
 
     @TruffleBoundary
