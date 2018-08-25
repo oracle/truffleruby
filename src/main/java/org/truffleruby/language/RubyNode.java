@@ -24,8 +24,15 @@ import com.oracle.truffle.api.source.SourceSection;
 @GenerateWrapper
 public abstract class RubyNode extends RubyBaseNode implements InstrumentableNode {
 
+    private static final int FLAG_NEWLINE = 0;
+    private static final int FLAG_COVERAGE_LINE = 1;
+    private static final int FLAG_CALL = 2;
+    private static final int FLAG_ROOT = 3;
+
     public static final RubyNode[] EMPTY_ARRAY = new RubyNode[]{};
     public static final Object[] EMPTY_ARGUMENTS = new Object[]{};
+
+    protected int flags;
 
     // Fundamental execute methods
 
@@ -53,7 +60,43 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         return hasSource();
     }
 
-    // Boundaries
+    // Tags
+
+    public void unsafeSetIsNewLine() {
+        flags |= 1 << FLAG_NEWLINE;
+    }
+
+    public void unsafeSetIsCoverageLine() {
+        flags |= 1 << FLAG_COVERAGE_LINE;
+    }
+
+    public void unsafeSetIsCall() {
+        flags |= 1 << FLAG_CALL;
+    }
+
+    public void unsafeSetIsRoot() {
+        flags |= 1 << FLAG_ROOT;
+    }
+
+    protected boolean isNewLine() {
+        return ((flags >> FLAG_NEWLINE) & 1) == 1;
+    }
+
+    protected boolean isCoverageLine() {
+        return ((flags >> FLAG_COVERAGE_LINE) & 1) == 1;
+    }
+
+    protected boolean isCall() {
+        return ((flags >> FLAG_CALL) & 1) == 1;
+    }
+
+    protected boolean isRoot() {
+        return ((flags >> FLAG_ROOT) & 1) == 1;
+    }
+
+    protected void transferFlagsTo(RubyNode to) {
+        to.flags = flags;
+    }
 
     public boolean hasTag(Class<? extends Tag> tag) {
         if (tag == TraceManager.CallTag.class || tag == StandardTags.CallTag.class) {
@@ -75,11 +118,15 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         return false;
     }
 
+    // Boundaries
+
     @TruffleBoundary
     @Override
     public SourceSection getEncapsulatingSourceSection() {
         return super.getEncapsulatingSourceSection();
     }
+
+    // Helpers
 
     public static RubyNode[] createArray(int size) {
         return size == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[size];
