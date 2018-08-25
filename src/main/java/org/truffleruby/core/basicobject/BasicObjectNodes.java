@@ -29,7 +29,6 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
@@ -485,19 +484,6 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass);
-        }
-
-    }
-
-    @NonStandard
-    @CoreMethod(names = "internal_allocate", constructor = true)
-    public abstract static class InternalAllocateNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-
-        @Specialization
-        public DynamicObject internal_allocate(DynamicObject rubyClass) {
             return allocateObjectNode.allocate(rubyClass);
         }
 

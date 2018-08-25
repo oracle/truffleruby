@@ -1327,9 +1327,11 @@ module Truffle::CExt
     Mutex.new
   end
 
+  BASIC_OBJECT_ALLOCATE = BasicObject.method(:__allocate__).unbind
+
   def rb_data_object_wrap(ruby_class, data, mark, free)
     ruby_class = Object if Truffle::Interop.null?(ruby_class)
-    object = ruby_class.internal_allocate
+    object = BASIC_OBJECT_ALLOCATE.bind(ruby_class).call
     data_holder = DataHolder.new(data)
     hidden_variable_set object, :data_holder, data_holder
     ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
@@ -1338,7 +1340,7 @@ module Truffle::CExt
 
   def rb_data_typed_object_wrap(ruby_class, data, data_type, free)
     ruby_class = Object if Truffle::Interop.null?(ruby_class)
-    object = ruby_class.internal_allocate
+    object = BASIC_OBJECT_ALLOCATE.bind(ruby_class).call
     data_holder = DataHolder.new(data)
     hidden_variable_set object, :data_type, data_type
     hidden_variable_set object, :data_holder, data_holder
