@@ -337,7 +337,8 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isPackedHash(hash)")
-        public Object deletePackedArray(DynamicObject hash, Object key, Object maybeBlock, @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
+        public Object deletePackedArray(DynamicObject hash, Object key, Object maybeBlock,
+                @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
             final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
             final int hashed = hashNode.hash(key, compareByIdentity);
