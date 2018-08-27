@@ -20,6 +20,7 @@ import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyObjectType;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
@@ -77,8 +78,10 @@ public abstract class ShareObjectNode extends RubyBaseNode {
 
     protected static Shape ensureSharedClasses(RubyContext context, Shape shape) {
         final ObjectType objectType = shape.getObjectType();
-        SharedObjects.writeBarrier(context, Layouts.BASIC_OBJECT.getLogicalClass(objectType));
-        SharedObjects.writeBarrier(context, Layouts.BASIC_OBJECT.getMetaClass(objectType));
+        if (objectType instanceof RubyObjectType) {
+            SharedObjects.writeBarrier(context, Layouts.BASIC_OBJECT.getLogicalClass(objectType));
+            SharedObjects.writeBarrier(context, Layouts.BASIC_OBJECT.getMetaClass(objectType));
+        }
         return shape;
     }
 

@@ -3097,7 +3097,7 @@ void rb_tr_release_handle(void *handle) {
 // Managed Structs
 
 void* rb_tr_new_managed_struct(void) {
-  return rb_hash_new();
+  return polyglot_invoke(RUBY_CEXT, "rb_tr_new_managed_struct");
 }
 
 void rb_tr_load_library(VALUE library) {

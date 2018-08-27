@@ -11,6 +11,7 @@ package org.truffleruby.interop;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.CanResolve;
 import com.oracle.truffle.api.interop.Message;
@@ -45,19 +46,19 @@ public class RubyMessageResolution {
     @Resolve(message = "IS_NULL")
     public static abstract class ForeignIsNullNode extends Node {
 
-        @CompilationFinal RubyContext context;
+        @CompilationFinal private ContextReference<RubyContext> contextReference;
 
         protected Object access(DynamicObject object) {
             return object == getContext().getCoreLibrary().getNil();
         }
 
         private RubyContext getContext() {
-            if (context == null) {
+            if (contextReference == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                context = RubyLanguage.getCurrentContext();
+                contextReference = RubyLanguage.getCurrentContextReference();
             }
 
-            return context;
+            return contextReference.get();
         }
 
     }

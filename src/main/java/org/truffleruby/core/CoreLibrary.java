@@ -861,7 +861,7 @@ public class CoreLibrary {
 
     @TruffleBoundary
     public DynamicObject getLogicalClass(Object object) {
-        if (object instanceof DynamicObject) {
+        if (RubyGuards.isRubyBasicObject(object)) {
             return Layouts.BASIC_OBJECT.getLogicalClass((DynamicObject) object);
         } else if (object instanceof Boolean) {
             if ((boolean) object) {

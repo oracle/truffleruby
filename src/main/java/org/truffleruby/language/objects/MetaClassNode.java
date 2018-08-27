@@ -67,9 +67,14 @@ public abstract class MetaClassNode extends RubyBaseNode {
         return executeMetaClass(object);
     }
 
-    @Specialization(replaces = { "metaClassCached", "updateShapeAndMetaClass" })
+    @Specialization(guards = "isRubyBasicObject(object)", replaces = { "metaClassCached", "updateShapeAndMetaClass" })
     protected DynamicObject metaClassUncached(DynamicObject object) {
         return Layouts.BASIC_OBJECT.getMetaClass(object);
+    }
+
+    @Specialization(guards = "!isRubyBasicObject(object)")
+    protected DynamicObject metaClassForeign(DynamicObject object) {
+        return coreLibrary().getTruffleInteropForeignClass();
     }
 
     @Fallback
@@ -81,7 +86,7 @@ public abstract class MetaClassNode extends RubyBaseNode {
         if (shape.getObjectType() instanceof RubyObjectType) {
             return Layouts.BASIC_OBJECT.getMetaClass(shape.getObjectType());
         } else {
-            return getContext().getCoreLibrary().getTruffleInteropForeignClass();
+            return coreLibrary().getTruffleInteropForeignClass();
         }
     }
 
