@@ -1601,7 +1601,7 @@ rb_deflate_s_deflate(int argc, VALUE *argv, VALUE klass)
 
     rb_scan_args(argc, argv, "11", &src, &level);
 
-    z = rb_tr_new_managed_struct(polyglot_zstream_typeid());
+    z = rb_tr_new_managed_struct(zstream);
     lev = ARG_LEVEL(level);
     StringValue(src);
     zstream_init_deflate(z);
@@ -1919,7 +1919,7 @@ rb_inflate_s_inflate(VALUE obj, VALUE src)
     int err;
 
     StringValue(src);
-    z = rb_tr_new_managed_struct(polyglot_zstream_typeid());
+    z = rb_tr_new_managed_struct(zstream);
     zstream_init_inflate(z);
     err = inflateInit(&z->stream);
     if (err != Z_OK) {
@@ -2271,7 +2271,7 @@ static const rb_data_type_t gzfile_data_type = {
 static void
 gzfile_init(struct gzfile *gz, const struct zstream_funcs *funcs, void (*endfunc)(struct gzfile *))
 {
-    polyglot_put_member(gz, "z", rb_tr_new_managed_struct(polyglot_zstream_typeid()));
+    polyglot_put_member(gz, "z", rb_tr_new_managed_struct(zstream));
     zstream_init(&gz->z, funcs);
     gz->z.flags |= ZSTREAM_FLAG_GZFILE;
     gz->io = Qnil;
@@ -3033,7 +3033,7 @@ gzfile_wrap(int argc, VALUE *argv, VALUE klass, int close_io_on_error)
 
     if (close_io_on_error) {
 	int state = 0;
-	new_wrap_arg_t *arg = rb_tr_new_managed_struct(polyglot_new_wrap_arg_t_typeid());
+	new_wrap_arg_t *arg = rb_tr_new_managed_struct(new_wrap_arg_t);
 	arg->argc = argc;
 	arg->argv = argv;
 	arg->klass = klass;
