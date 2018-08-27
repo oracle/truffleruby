@@ -12,20 +12,18 @@ package org.truffleruby.language.objects;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyObjectType;
 
 @ImportStatic(ShapeCachingGuards.class)
-@NodeChild(value = "object", type = RubyNode.class)
-public abstract class MetaClassNode extends RubyNode {
+public abstract class MetaClassNode extends RubyBaseNode {
 
     public static MetaClassNode create() {
-        return MetaClassNodeGen.create(null);
+        return MetaClassNodeGen.create();
     }
 
     public abstract DynamicObject executeMetaClass(Object value);

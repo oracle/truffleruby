@@ -11,22 +11,17 @@ package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.language.RubyNode;
 
-@NodeChildren({
-        @NodeChild(value = "array", type = RubyNode.class),
-        @NodeChild(value = "requiredCapacity", type = RubyNode.class)
-})
+import org.truffleruby.language.RubyBaseNode;
+
 @ImportStatic(ArrayGuards.class)
-public abstract class ArrayGeneralizeNode extends RubyNode {
+public abstract class ArrayGeneralizeNode extends RubyBaseNode {
 
     public static ArrayGeneralizeNode create() {
-        return ArrayGeneralizeNodeGen.create(null, null);
+        return ArrayGeneralizeNodeGen.create();
     }
 
     public abstract Object[] executeGeneralize(DynamicObject array, int requiredCapacity);

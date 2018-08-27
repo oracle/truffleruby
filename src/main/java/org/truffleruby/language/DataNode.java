@@ -12,7 +12,9 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
 
+import org.jcodings.Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -42,8 +44,9 @@ public class DataNode extends RubyNode {
         }
 
         final String path = getPath();
-        final Object data = callHelperNode.call(coreLibrary().getTruffleInternalModule(), "get_data", makeStringNode.executeMake(path, getContext().getEncodingManager().getLocaleEncoding(), CodeRange.CR_UNKNOWN),
-                endPosition);
+        final Encoding localeEncoding = getContext().getEncodingManager().getLocaleEncoding();
+        final DynamicObject pathString = makeStringNode.executeMake(path, localeEncoding, CodeRange.CR_UNKNOWN);
+        final Object data = callHelperNode.call(coreLibrary().getTruffleInternalModule(), "get_data", pathString, endPosition);
 
         Layouts.MODULE.getFields(coreLibrary().getObjectClass()).setConstant(getContext(), null, "DATA", data);
 

@@ -10,27 +10,18 @@
 package org.truffleruby.language.supercall;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
-import org.truffleruby.language.methods.CallInternalMethodNodeGen;
 import org.truffleruby.language.methods.InternalMethod;
 
-@NodeChildren({
-        @NodeChild("self"),
-        @NodeChild("superMethod"),
-        @NodeChild("arguments"),
-        @NodeChild("block")
-})
-public abstract class CallSuperMethodNode extends RubyNode {
+public abstract class CallSuperMethodNode extends RubyBaseNode {
 
     private final ConditionProfile missingProfile = ConditionProfile.createBinaryProfile();
 
@@ -38,10 +29,10 @@ public abstract class CallSuperMethodNode extends RubyNode {
     @Child private CallDispatchHeadNode callMethodMissingNode;
 
     public static CallSuperMethodNode create() {
-        return CallSuperMethodNodeGen.create(null, null, null, null);
+        return CallSuperMethodNodeGen.create();
     }
 
-    public abstract Object executeCallSuperMethod(VirtualFrame frame, Object self, InternalMethod superMethod, Object[] arguments, Object block);
+    public abstract Object executeCallSuperMethod(VirtualFrame frame, Object self, Object superMethod, Object[] arguments, Object block);
 
     // superMethod is typed as Object below because it must accept "null".
     @Specialization
@@ -62,7 +53,7 @@ public abstract class CallSuperMethodNode extends RubyNode {
     private Object callMethod(InternalMethod superMethod, Object[] frameArguments) {
         if (callMethodNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callMethodNode = insert(CallInternalMethodNodeGen.create(null, null));
+            callMethodNode = insert(CallInternalMethodNode.create());
         }
         return callMethodNode.executeCallMethod(superMethod, frameArguments);
     }

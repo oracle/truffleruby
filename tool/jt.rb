@@ -1946,12 +1946,16 @@ EOS
     }
   end
 
+  def checkstyle
+    mx 'checkstyle', '-f', '--primary'
+  end
+
   def lint(*args)
     check_dsl_usage unless args.delete '--no-build'
     check_filename_length
     rubocop
     sh "tool/lint.sh"
-    mx 'checkstyle', '-f', '--primary'
+    checkstyle
     check_parser
     check_documentation_urls
     mx 'findbugs'

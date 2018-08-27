@@ -35,7 +35,6 @@ import org.truffleruby.core.array.ArrayDropTailNode;
 import org.truffleruby.core.array.ArrayDropTailNodeGen;
 import org.truffleruby.core.array.ArrayGetTailNodeGen;
 import org.truffleruby.core.array.ArrayLiteralNode;
-import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.array.PrimitiveArrayNodeFactory;
 import org.truffleruby.core.cast.HashCastNodeGen;
 import org.truffleruby.core.cast.SplatCastNode;
@@ -2929,11 +2928,7 @@ public class BodyTranslator extends Translator {
 
         final RubyNode ret = ModuleNodesFactory.UndefMethodNodeFactory.create(new RubyNode[]{
                 new RaiseIfFrozenNode(new GetDefaultDefineeNode()),
-                ArrayToObjectArrayNodeGen.create(
-                    ArrayLiteralNode.create(new RubyNode[]{
-                        translateNameNodeToSymbol(node.getName())
-                    })
-                )
+                translateNameNodeToSymbol(node.getName())
         });
 
         ret.unsafeSetSourceSection(sourceSection);

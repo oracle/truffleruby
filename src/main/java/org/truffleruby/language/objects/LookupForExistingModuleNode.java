@@ -80,9 +80,4 @@ public class LookupForExistingModuleNode extends LookupConstantBaseNode implemen
         return null;
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
-        throw new UnsupportedOperationException();
-    }
-
 }

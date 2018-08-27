@@ -1139,10 +1139,10 @@ public abstract class BigDecimalNodes {
         private int getConstant(VirtualFrame frame, String name) {
             if (sign == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                sign = insert(GetIntegerConstantNodeGen.create(null, null));
+                sign = insert(GetIntegerConstantNode.create());
             }
 
-            return sign.executeGetIntegerConstant(frame, getBigDecimalClass(), name);
+            return sign.executeGetIntegerConstant(getBigDecimalClass(), name);
         }
 
     }

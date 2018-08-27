@@ -16,7 +16,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.objects.SingletonClassNode;
-import org.truffleruby.language.objects.SingletonClassNodeGen;
 
 public class GetDefaultDefineeNode extends RubyNode {
 
@@ -31,7 +30,7 @@ public class GetDefaultDefineeNode extends RubyNode {
     private SingletonClassNode getSingletonClassNode() {
         if (singletonClassNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            singletonClassNode = insert(SingletonClassNodeGen.create(null));
+            singletonClassNode = insert(SingletonClassNode.create());
         }
         return singletonClassNode;
     }

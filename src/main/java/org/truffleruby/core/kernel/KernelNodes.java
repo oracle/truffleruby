@@ -91,6 +91,7 @@ import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -115,15 +116,11 @@ import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.LookupMethodNodeGen;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.FreezeNode;
-import org.truffleruby.language.objects.FreezeNodeGen;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsFrozenNode;
-import org.truffleruby.language.objects.IsFrozenNodeGen;
 import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.LogicalClassNode;
-import org.truffleruby.language.objects.LogicalClassNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
-import org.truffleruby.language.objects.MetaClassNodeGen;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
 import org.truffleruby.language.objects.ObjectIVarGetNodeGen;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
@@ -135,7 +132,6 @@ import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.SelfNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 import org.truffleruby.language.objects.SingletonClassNode;
-import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
@@ -221,19 +217,19 @@ public abstract class KernelNodes {
 
         private final ConditionProfile sameProfile = ConditionProfile.createBinaryProfile();
 
-        public abstract boolean executeSameOrEql(VirtualFrame frame, Object a, Object b);
+        public abstract boolean executeSameOrEql(Object a, Object b);
 
         @Specialization
-        public boolean sameOrEql(VirtualFrame frame, Object a, Object b,
+        public boolean sameOrEql(Object a, Object b,
                         @Cached("create()") ReferenceEqualNode referenceEqualNode) {
             if (sameProfile.profile(referenceEqualNode.executeReferenceEqual(a, b))) {
                 return true;
             } else {
-                return areEql(frame, a, b);
+                return areEql(a, b);
             }
         }
 
-        private boolean areEql(VirtualFrame frame, Object left, Object right) {
+        private boolean areEql(Object left, Object right) {
             if (eqlNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 eqlNode = insert(CallDispatchHeadNode.createPrivate());
@@ -332,7 +328,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "class")
     public abstract static class KernelClassNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private LogicalClassNode classNode = LogicalClassNodeGen.create(null);
+        @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
         @Specialization
         public DynamicObject getClass(VirtualFrame frame, Object self) {
@@ -437,7 +433,7 @@ public abstract class KernelNodes {
 
         @Child private CopyNode copyNode = CopyNodeFactory.create(null);
         @Child private CallDispatchHeadNode initializeCloneNode = CallDispatchHeadNode.createPrivate();
-        @Child private IsFrozenNode isFrozenNode = IsFrozenNodeGen.create(null);
+        @Child private IsFrozenNode isFrozenNode = IsFrozenNode.create();
         @Child private FreezeNode freezeNode;
         @Child private PropagateTaintNode propagateTaintNode = PropagateTaintNode.create();
         @Child private SingletonClassNode singletonClassNode;
@@ -463,7 +459,7 @@ public abstract class KernelNodes {
             if (isFrozenProfile.profile(isFrozenNode.executeIsFrozen(self))) {
                 if (freezeNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    freezeNode = insert(FreezeNodeGen.create(null));
+                    freezeNode = insert(FreezeNode.create());
                 }
 
                 freezeNode.executeFreeze(newObject);
@@ -479,7 +475,7 @@ public abstract class KernelNodes {
         private DynamicObject executeSingletonClass(DynamicObject newObject) {
             if (singletonClassNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                singletonClassNode = insert(SingletonClassNodeGen.create(null));
+                singletonClassNode = insert(SingletonClassNode.create());
             }
 
             return singletonClassNode.executeSingletonClass(newObject);
@@ -699,7 +695,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "freeze")
     public abstract static class KernelFreezeNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private FreezeNode freezeNode = FreezeNodeGen.create(null);
+        @Child private FreezeNode freezeNode = FreezeNode.create();
 
         @Specialization
         public Object freeze(Object self) {
@@ -717,7 +713,7 @@ public abstract class KernelNodes {
         public boolean isFrozen(Object self) {
             if (isFrozenNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                isFrozenNode = insert(IsFrozenNodeGen.create(null));
+                isFrozenNode = insert(IsFrozenNode.create());
             }
 
             return isFrozenNode.executeIsFrozen(self);
@@ -797,7 +793,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "instance_of?", required = 1)
     public abstract static class InstanceOfNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private LogicalClassNode classNode = LogicalClassNodeGen.create(null);
+        @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
         @Specialization(guards = "isRubyModule(rubyClass)")
         public boolean instanceOf(Object self, DynamicObject rubyClass) {
@@ -872,7 +868,7 @@ public abstract class KernelNodes {
         }
 
         protected ObjectIVarGetNode createObjectIVarGetNode() {
-            return ObjectIVarGetNodeGen.create(true, null, null);
+            return ObjectIVarGetNodeGen.create(true);
         }
 
     }
@@ -897,7 +893,7 @@ public abstract class KernelNodes {
         }
 
         protected ObjectIVarSetNode createObjectIVarSetNode() {
-            return ObjectIVarSetNodeGen.create(true, null, null, null);
+            return ObjectIVarSetNodeGen.create(true);
         }
 
     }
@@ -1089,12 +1085,10 @@ public abstract class KernelNodes {
 
     }
 
-    @NodeChild("receiver")
-    @NodeChild("name")
-    public abstract static class GetMethodObjectNode extends RubyNode {
+    public abstract static class GetMethodObjectNode extends RubyBaseNode {
 
         public static GetMethodObjectNode create(boolean ignoreVisibility) {
-            return GetMethodObjectNodeGen.create(ignoreVisibility, null, null);
+            return GetMethodObjectNodeGen.create(ignoreVisibility);
         }
 
         private final boolean ignoreVisibility;
@@ -1106,7 +1100,7 @@ public abstract class KernelNodes {
 
         public GetMethodObjectNode(boolean ignoreVisibility) {
             this.ignoreVisibility = ignoreVisibility;
-            lookupMethodNode = LookupMethodNodeGen.create(ignoreVisibility, !ignoreVisibility, null, null);
+            lookupMethodNode = LookupMethodNodeGen.create(ignoreVisibility, !ignoreVisibility);
         }
 
         public abstract DynamicObject executeGetMethodObject(VirtualFrame frame, Object self, DynamicObject name);
@@ -1192,7 +1186,7 @@ public abstract class KernelNodes {
         }
 
         protected MetaClassNode createMetaClassNode() {
-            return MetaClassNodeGen.create(null);
+            return MetaClassNode.create();
         }
 
         protected SingletonMethodsNode createSingletonMethodsNode() {
@@ -1238,7 +1232,7 @@ public abstract class KernelNodes {
     })
     public abstract static class PrivateMethodsNode extends CoreMethodNode {
 
-        @Child private MetaClassNode metaClassNode = MetaClassNodeGen.create(null);
+        @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @CreateCast("includeAncestors")
         public RubyNode coerceToBoolean(RubyNode includeAncestors) {
@@ -1275,7 +1269,7 @@ public abstract class KernelNodes {
     })
     public abstract static class ProtectedMethodsNode extends CoreMethodNode {
 
-        @Child private MetaClassNode metaClassNode = MetaClassNodeGen.create(null);
+        @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @CreateCast("includeAncestors")
         public RubyNode coerceToBoolean(RubyNode includeAncestors) {
@@ -1319,7 +1313,7 @@ public abstract class KernelNodes {
     })
     public abstract static class PublicMethodsNode extends CoreMethodNode {
 
-        @Child private MetaClassNode metaClassNode = MetaClassNodeGen.create(null);
+        @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @CreateCast("includeAncestors")
         public RubyNode coerceToBoolean(RubyNode includeAncestors) {
@@ -1555,7 +1549,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "singleton_class")
     public abstract static class SingletonClassMethodNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SingletonClassNode singletonClassNode = SingletonClassNodeGen.create(null);
+        @Child private SingletonClassNode singletonClassNode = SingletonClassNode.create();
 
         @Specialization
         public DynamicObject singletonClass(Object self) {
@@ -1571,7 +1565,7 @@ public abstract class KernelNodes {
     })
     public abstract static class SingletonMethodNode extends CoreMethodNode {
 
-        @Child private MetaClassNode metaClassNode = MetaClassNodeGen.create(null);
+        @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
@@ -1605,7 +1599,7 @@ public abstract class KernelNodes {
     })
     public abstract static class SingletonMethodsNode extends CoreMethodNode {
 
-        @Child private MetaClassNode metaClassNode = MetaClassNodeGen.create(null);
+        @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         public abstract DynamicObject executeSingletonMethods(VirtualFrame frame, Object self, boolean includeAncestors);
 
@@ -1868,7 +1862,7 @@ public abstract class KernelNodes {
             return KernelNodesFactory.ToSNodeFactory.create(null);
         }
 
-        @Child private LogicalClassNode classNode = LogicalClassNodeGen.create(null);
+        @Child private LogicalClassNode classNode = LogicalClassNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private ObjectIDNode objectIDNode = ObjectIDNodeFactory.create(null);
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
@@ -1941,7 +1935,7 @@ public abstract class KernelNodes {
         protected void checkFrozen(Object object) {
             if (isFrozenNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                isFrozenNode = insert(IsFrozenNodeGen.create(null));
+                isFrozenNode = insert(IsFrozenNode.create());
             }
             isFrozenNode.raiseIfFrozen(object);
         }

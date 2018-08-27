@@ -9,17 +9,15 @@
  */
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
-@NodeChild(value = "child", type = RubyNode.class)
-public abstract class ToSymbolNode extends RubyNode {
+public abstract class ToSymbolNode extends RubyBaseNode {
 
-    public abstract DynamicObject executeRubySymbol(VirtualFrame frame, Object object);
+    public abstract DynamicObject executeToSymbol(VirtualFrame frame, Object object);
 
     // TODO(CS): cache the conversion to a symbol? Or should the user do that themselves?
 

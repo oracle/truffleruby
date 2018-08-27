@@ -13,14 +13,13 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 
-public class GetCurrentVisibilityNode extends RubyNode {
+public class GetCurrentVisibilityNode extends RubyBaseNode {
 
-    @Override
-    public Visibility execute(VirtualFrame frame) {
+    public Visibility getVisibility(VirtualFrame frame) {
         final Visibility visibility = RubyArguments.getDeclarationContext(frame).visibility;
         if (visibility != null) {
             return visibility;

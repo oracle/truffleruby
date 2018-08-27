@@ -10,24 +10,20 @@
 package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyNode;
+
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.IsFrozenNode;
-import org.truffleruby.language.objects.IsFrozenNodeGen;
 
-@NodeChildren({@NodeChild("key"), @NodeChild("compareByIdentity")})
-public abstract class FreezeHashKeyIfNeededNode extends RubyNode {
+public abstract class FreezeHashKeyIfNeededNode extends RubyBaseNode {
 
     @Child private IsFrozenNode isFrozenNode;
     @Child private CallDispatchHeadNode dupNode;
     @Child private CallDispatchHeadNode freezeNode;
 
-    public abstract Object executeFreezeIfNeeded(VirtualFrame frame, Object key, boolean compareByIdentity);
+    public abstract Object executeFreezeIfNeeded(Object key, boolean compareByIdentity);
 
     @Specialization(guards = {"isRubyString(string)", "isFrozen(string)"})
     Object alreadyFrozen(DynamicObject string, boolean compareByIdentity) {
@@ -35,12 +31,12 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyNode {
     }
 
     @Specialization(guards = {"isRubyString(string)", "!isFrozen(string)", "!compareByIdentity"})
-    Object dupAndFreeze(VirtualFrame frame, DynamicObject string, boolean compareByIdentity) {
-        return freeze(frame, dup(frame, string));
+    Object dupAndFreeze(DynamicObject string, boolean compareByIdentity) {
+        return freeze(dup(string));
     }
 
     @Specialization(guards = {"isRubyString(string)", "!isFrozen(string)", "compareByIdentity"})
-    Object compareByIdentity(VirtualFrame frame, DynamicObject string, boolean compareByIdentity) {
+    Object compareByIdentity(DynamicObject string, boolean compareByIdentity) {
         return string;
     }
 
@@ -52,12 +48,12 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyNode {
     protected boolean isFrozen(Object value) {
         if (isFrozenNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            isFrozenNode = insert(IsFrozenNodeGen.create(null));
+            isFrozenNode = insert(IsFrozenNode.create());
         }
         return isFrozenNode.executeIsFrozen(value);
     }
 
-    private Object dup(VirtualFrame frame, Object value) {
+    private Object dup(Object value) {
         if (dupNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             dupNode = insert(CallDispatchHeadNode.createPrivate());
@@ -65,7 +61,7 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyNode {
         return dupNode.call(value, "dup");
     }
 
-    private Object freeze(VirtualFrame frame, Object value) {
+    private Object freeze(Object value) {
         if (freezeNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             freezeNode = insert(CallDispatchHeadNode.createPrivate());

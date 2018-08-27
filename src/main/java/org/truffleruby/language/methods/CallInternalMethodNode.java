@@ -11,18 +11,17 @@ package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
-import org.truffleruby.language.RubyNode;
 
-@NodeChildren({
-        @NodeChild("method"),
-        @NodeChild(value = "arguments", type = RubyNode[].class)
-})
-public abstract class CallInternalMethodNode extends RubyNode {
+import org.truffleruby.language.RubyBaseNode;
+
+public abstract class CallInternalMethodNode extends RubyBaseNode {
+
+    public static CallInternalMethodNode create() {
+        return CallInternalMethodNodeGen.create();
+    }
 
     public abstract Object executeCallMethod(InternalMethod method, Object[] frameArguments);
 

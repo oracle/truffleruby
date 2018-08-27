@@ -41,11 +41,12 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingOperations;
+import org.truffleruby.core.hash.HashNode;
 import org.truffleruby.core.module.MethodLookupResult;
-import org.truffleruby.core.module.ModuleNodes;
-import org.truffleruby.core.module.ModuleNodesFactory;
+import org.truffleruby.core.module.ModuleNodesFactory.SetVisibilityNodeGen;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.ModuleNodes.ConstSetNode;
+import org.truffleruby.core.module.ModuleNodes.SetVisibilityNode;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
@@ -61,6 +62,7 @@ import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -78,9 +80,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.InitializeClassNode;
 import org.truffleruby.language.objects.InitializeClassNodeGen;
 import org.truffleruby.language.objects.IsFrozenNode;
-import org.truffleruby.language.objects.IsFrozenNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
-import org.truffleruby.language.objects.MetaClassNodeGen;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
 import org.truffleruby.language.objects.ObjectIVarGetNodeGen;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
@@ -542,7 +542,7 @@ public class CExtNodes {
     @CoreMethod(names = "rb_check_frozen", onSingleton = true, required = 1)
     public abstract static class CheckFrozenNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private IsFrozenNode isFrozenNode = IsFrozenNodeGen.create(null);
+        @Child private IsFrozenNode isFrozenNode = IsFrozenNode.create();
 
         @Specialization
         public boolean rb_check_frozen(Object object) {
@@ -620,8 +620,7 @@ public class CExtNodes {
     @CoreMethod(names = "cext_module_function", onSingleton = true, required = 2)
     public abstract static class CextModuleFunctionNode extends CoreMethodArrayArgumentsNode {
 
-        @Child
-        ModuleNodes.SetVisibilityNode setVisibilityNode = ModuleNodesFactory.SetVisibilityNodeGen.create(Visibility.MODULE_FUNCTION, null, null);
+        @Child SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.MODULE_FUNCTION);
 
         @Specialization(guards = {"isRubyModule(module)", "isRubySymbol(name)"})
         public DynamicObject cextModuleFunction(VirtualFrame frame, DynamicObject module, DynamicObject name) {
@@ -765,7 +764,7 @@ public class CExtNodes {
     public abstract static class CallSuperNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallSuperMethodNode callSuperMethodNode = CallSuperMethodNode.create();
-        @Child private MetaClassNode metaClassNode = MetaClassNodeGen.create(null);
+        @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @Specialization
         public Object callSuper(VirtualFrame frame, Object[] args) {
@@ -849,17 +848,18 @@ public class CExtNodes {
     }
 
     @CoreMethod(names = "rb_hash", onSingleton = true, required = 1)
-    public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
-        @Child private org.truffleruby.core.hash.HashNode hash;
+    public abstract static class RbHashNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private HashNode hash;
 
         @Specialization
-        public Object hash(VirtualFrame frame, Object object) {
+        public Object rbHash(Object object) {
             if (hash == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                hash = insert(new org.truffleruby.core.hash.HashNode());
+                hash = insert(new HashNode());
             }
 
-            return hash.hash(frame, object, false);
+            return hash.hash(object, false);
         }
     }
 
@@ -881,11 +881,10 @@ public class CExtNodes {
 
     }
 
-    @NodeChild("string")
-    public abstract static class StringToNativeNode extends RubyNode {
+    public abstract static class StringToNativeNode extends RubyBaseNode {
 
         public static StringToNativeNode create() {
-            return StringToNativeNodeGen.create(null);
+            return StringToNativeNodeGen.create();
         }
 
         public abstract NativeRope executeToNative(DynamicObject string);
@@ -979,15 +978,15 @@ public class CExtNodes {
         @Child private InitializeClassNode initializeClassNode;
 
         @Specialization
-        public DynamicObject classNew(VirtualFrame frame, DynamicObject superclass) {
+        public DynamicObject classNew(DynamicObject superclass) {
             if (allocateNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 allocateNode = insert(CallDispatchHeadNode.createPrivate());
-                initializeClassNode = insert(InitializeClassNodeGen.create(false, null, null, null));
+                initializeClassNode = insert(InitializeClassNodeGen.create(false));
             }
 
             DynamicObject klass = (DynamicObject) allocateNode.call(getContext().getCoreLibrary().getClassClass(), "__allocate__");
-            return initializeClassNode.executeInitialize(frame, klass, superclass, NotProvided.INSTANCE);
+            return initializeClassNode.executeInitialize(klass, superclass, NotProvided.INSTANCE);
         }
 
     }
@@ -1054,7 +1053,7 @@ public class CExtNodes {
         }
 
         protected ObjectIVarGetNode createObjectIVarGetNode() {
-            return ObjectIVarGetNodeGen.create(false, null, null);
+            return ObjectIVarGetNodeGen.create(false);
         }
 
     }
@@ -1069,7 +1068,7 @@ public class CExtNodes {
         }
 
         protected ObjectIVarSetNode createObjectIVarSetNode() {
-            return ObjectIVarSetNodeGen.create(false, null, null, null);
+            return ObjectIVarSetNodeGen.create(false);
         }
 
     }

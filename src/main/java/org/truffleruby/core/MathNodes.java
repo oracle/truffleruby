@@ -40,7 +40,6 @@ package org.truffleruby.core;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
@@ -53,7 +52,6 @@ import org.truffleruby.core.cast.ToFNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.IsANode;
-import org.truffleruby.language.objects.IsANodeGen;
 
 @CoreClass("Math")
 public abstract class MathNodes {
@@ -397,7 +395,7 @@ public abstract class MathNodes {
     @CoreMethod(names = "lgamma", isModuleFunction = true, required = 1)
     public abstract static class LGammaNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private IsANode isANode = IsANodeGen.create(null, null);
+        @Child private IsANode isANode = IsANode.create();
         @Child private ToFNode toFNode = ToFNode.create();
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
@@ -430,13 +428,13 @@ public abstract class MathNodes {
         }
 
         @Fallback
-        public DynamicObject lgamma(VirtualFrame frame, Object a) {
+        public DynamicObject lgamma(Object a) {
             if (!isANode.executeIsA(a, coreLibrary().getNumericClass())) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));
             }
 
-            return lgamma(toFNode.doDouble(frame, a));
+            return lgamma(toFNode.executeToDouble(a));
         }
 
     }
@@ -465,13 +463,13 @@ public abstract class MathNodes {
         }
 
         @Specialization
-        public double function(VirtualFrame frame, Object a, NotProvided b,
+        public double function(Object a, NotProvided b,
                         @Cached("create()") ToFNode toFNode) {
             if (!isANode.executeIsA(a, coreLibrary().getNumericClass())) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));
             }
-            return doFunction(toFNode.doDouble(frame, a));
+            return doFunction(toFNode.executeToDouble(a));
         }
 
         private double doFunction(double a) {
@@ -579,7 +577,7 @@ public abstract class MathNodes {
 
     protected abstract static class SimpleMonadicMathNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private IsANode isANode = IsANodeGen.create(null, null);
+        @Child private IsANode isANode = IsANode.create();
         @Child private ToFNode toFNode = ToFNode.create();
 
         protected final BranchProfile exceptionProfile = BranchProfile.create();
@@ -611,20 +609,20 @@ public abstract class MathNodes {
         }
 
         @Fallback
-        public double function(VirtualFrame frame, Object a) {
+        public double function(Object a) {
             if (!isANode.executeIsA(a, coreLibrary().getNumericClass())) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));
             }
 
-            return doFunction(toFNode.doDouble(frame, a));
+            return doFunction(toFNode.executeToDouble(a));
         }
 
     }
 
     protected abstract static class SimpleDyadicMathNode extends CoreMethodArrayArgumentsNode {
 
-        @Child protected IsANode isANode = IsANodeGen.create(null, null);
+        @Child protected IsANode isANode = IsANode.create();
         @Child protected ToFNode floatANode = ToFNode.create();
         @Child protected ToFNode floatBNode = ToFNode.create();
 
@@ -717,14 +715,14 @@ public abstract class MathNodes {
         }
 
         @Fallback
-        public double function(VirtualFrame frame, Object a, Object b) {
+        public double function(Object a, Object b) {
             if (!(isANode.executeIsA(a, coreLibrary().getNumericClass()) &&
                     isANode.executeIsA(b, coreLibrary().getNumericClass()))) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(a, "Float", this));
             }
 
-            return doFunction(floatANode.doDouble(frame, a), floatBNode.doDouble(frame, b));
+            return doFunction(floatANode.executeToDouble(a), floatBNode.executeToDouble(b));
         }
 
     }

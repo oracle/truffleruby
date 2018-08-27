@@ -11,22 +11,16 @@ package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyNode;
+
+import org.truffleruby.language.RubyBaseNode;
 
 import static org.truffleruby.core.array.ArrayHelpers.getSize;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
-@NodeChildren({
-        @NodeChild(value = "array", type = RubyNode.class),
-        @NodeChild(value = "index", type = RubyNode.class),
-        @NodeChild(value = "value", type = RubyNode.class)
-})
 @ImportStatic(ArrayGuards.class)
-public abstract class ArrayWriteNormalizedNode extends RubyNode {
+public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
 
     public abstract Object executeWrite(DynamicObject array, int index, Object value);
 

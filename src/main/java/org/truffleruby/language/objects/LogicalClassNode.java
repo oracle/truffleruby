@@ -12,16 +12,18 @@ package org.truffleruby.language.objects;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
 @ImportStatic(ShapeCachingGuards.class)
-@NodeChild(value = "object", type = RubyNode.class)
-public abstract class LogicalClassNode extends RubyNode {
+public abstract class LogicalClassNode extends RubyBaseNode {
+
+    public static LogicalClassNode create() {
+        return LogicalClassNodeGen.create();
+    }
 
     public abstract DynamicObject executeLogicalClass(Object value);
 

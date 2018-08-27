@@ -27,7 +27,7 @@ public class ReadConstantNode extends RubyNode {
     private final String name;
 
     @Child private RubyNode moduleNode;
-    @Child private CheckModuleNode checkModuleNode = CheckModuleNodeGen.create(null);
+    @Child private CheckModuleNode checkModuleNode = CheckModuleNodeGen.create();
     @Child private LookupConstantNode lookupConstantNode;
     @Child private GetConstantNode getConstantNode;
 

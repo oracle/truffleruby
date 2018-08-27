@@ -10,7 +10,7 @@
 package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.VirtualFrame;
+
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
@@ -22,11 +22,11 @@ public class CompareHashKeysNode extends RubyBaseNode {
     @Child private SameOrEqlNode sameOrEqlNode;
     @Child private ReferenceEqualNode equalNode;
 
-    public boolean equalKeys(VirtualFrame frame, boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
+    public boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
         if (compareByIdentity) {
             return equal(key, otherKey);
         } else {
-            return hashed == otherHashed && sameOrEql(frame, key, otherKey);
+            return hashed == otherHashed && sameOrEql(key, otherKey);
         }
     }
 
@@ -42,12 +42,12 @@ public class CompareHashKeysNode extends RubyBaseNode {
         }
     }
 
-    private boolean sameOrEql(VirtualFrame frame, Object key1, Object key2) {
+    private boolean sameOrEql(Object key1, Object key2) {
         if (sameOrEqlNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             sameOrEqlNode = insert(SameOrEqlNodeFactory.create(null));
         }
-        return sameOrEqlNode.executeSameOrEql(frame, key1, key2);
+        return sameOrEqlNode.executeSameOrEql(key1, key2);
     }
 
     private boolean equal(Object key1, Object key2) {

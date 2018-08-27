@@ -11,14 +11,16 @@
 package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
-@NodeChild(value = "child")
-public abstract class FreezeNode extends RubyNode {
+public abstract class FreezeNode extends RubyBaseNode {
+
+    public static FreezeNode create() {
+        return FreezeNodeGen.create();
+    }
 
     public abstract Object executeFreeze(Object object);
 

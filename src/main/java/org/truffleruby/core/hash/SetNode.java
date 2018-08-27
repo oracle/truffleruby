@@ -12,45 +12,36 @@ package org.truffleruby.core.hash;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
 @ImportStatic(HashGuards.class)
-@NodeChildren({
-        @NodeChild(value = "hash", type = RubyNode.class),
-        @NodeChild(value = "key", type = RubyNode.class),
-        @NodeChild(value = "value", type = RubyNode.class),
-        @NodeChild(value = "byIdentity", type = RubyNode.class)
-})
-public abstract class SetNode extends RubyNode {
+public abstract class SetNode extends RubyBaseNode {
 
     @Child private HashNode hashNode = new HashNode();
     @Child private LookupEntryNode lookupEntryNode;
     @Child private CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
-    @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create(null, null);
+    @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
 
     public static SetNode create() {
-        return SetNodeGen.create(null, null, null, null);
+        return SetNodeGen.create();
     }
 
-    public abstract Object executeSet(VirtualFrame frame, DynamicObject hash, Object key, Object value, boolean byIdentity);
+    public abstract Object executeSet(DynamicObject hash, Object key, Object value, boolean byIdentity);
 
     @Specialization(guards = "isNullHash(hash)")
-    public Object setNull(VirtualFrame frame, DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
+    public Object setNull(DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
                     @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
         assert HashOperations.verifyStore(getContext(), hash);
         boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
-        final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(frame, originalKey, compareByIdentity);
+        final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);
 
-        final int hashed = hashNode.hash(frame, key, compareByIdentity);
+        final int hashed = hashNode.hash(key, compareByIdentity);
 
         Object store = PackedArrayStrategy.createStore(getContext(), hashed, key, value);
         assert HashOperations.verifyStore(getContext(), store, 1, null, null);
@@ -65,15 +56,15 @@ public abstract class SetNode extends RubyNode {
 
     @ExplodeLoop
     @Specialization(guards = "isPackedHash(hash)")
-    public Object setPackedArray(VirtualFrame frame, DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
+    public Object setPackedArray(DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
                     @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile,
                     @Cached("createBinaryProfile()") ConditionProfile strategyProfile,
                     @Cached("create()") BranchProfile extendProfile) {
         assert HashOperations.verifyStore(getContext(), hash);
         final boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
-        final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(frame, originalKey, compareByIdentity);
+        final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);
 
-        final int hashed = hashNode.hash(frame, key, compareByIdentity);
+        final int hashed = hashNode.hash(key, compareByIdentity);
 
         final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
         final int size = Layouts.HASH.getSize(hash);
@@ -82,7 +73,7 @@ public abstract class SetNode extends RubyNode {
             if (n < size) {
                 final int otherHashed = PackedArrayStrategy.getHashed(store, n);
                 final Object otherKey = PackedArrayStrategy.getKey(store, n);
-                if (equalKeys(frame, compareByIdentity, key, hashed, otherKey, otherHashed)) {
+                if (equalKeys(compareByIdentity, key, hashed, otherKey, otherHashed)) {
                     PackedArrayStrategy.setValue(store, n, value);
                     assert HashOperations.verifyStore(getContext(), hash);
                     return value;
@@ -107,7 +98,7 @@ public abstract class SetNode extends RubyNode {
     }
 
     @Specialization(guards = "isBucketHash(hash)")
-    public Object setBuckets(VirtualFrame frame, DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
+    public Object setBuckets(DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
                     @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile,
                     @Cached("createBinaryProfile()") ConditionProfile foundProfile,
                     @Cached("createBinaryProfile()") ConditionProfile bucketCollisionProfile,
@@ -115,9 +106,9 @@ public abstract class SetNode extends RubyNode {
                     @Cached("createBinaryProfile()") ConditionProfile resizeProfile) {
         assert HashOperations.verifyStore(getContext(), hash);
         final boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
-        final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(frame, originalKey, compareByIdentity);
+        final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);
 
-        final HashLookupResult result = lookup(frame, hash, key);
+        final HashLookupResult result = lookup(hash, key);
         final Entry entry = result.getEntry();
 
         if (foundProfile.profile(entry == null)) {
@@ -160,16 +151,16 @@ public abstract class SetNode extends RubyNode {
         return value;
     }
 
-    private HashLookupResult lookup(VirtualFrame frame, DynamicObject hash, Object key) {
+    private HashLookupResult lookup(DynamicObject hash, Object key) {
         if (lookupEntryNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             lookupEntryNode = insert(new LookupEntryNode());
         }
-        return lookupEntryNode.lookup(frame, hash, key);
+        return lookupEntryNode.lookup(hash, key);
     }
 
-    protected boolean equalKeys(VirtualFrame frame, boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
-        return compareHashKeysNode.equalKeys(frame, compareByIdentity, key, hashed, otherKey, otherHashed);
+    protected boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
+        return compareHashKeysNode.equalKeys(compareByIdentity, key, hashed, otherKey, otherHashed);
     }
 
 }

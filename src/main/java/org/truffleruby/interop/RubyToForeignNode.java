@@ -11,18 +11,16 @@ package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.string.StringCachingGuards;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
 @ImportStatic(StringCachingGuards.class)
-@NodeChild(value = "value", type = RubyNode.class)
-public abstract class RubyToForeignNode extends RubyNode {
+public abstract class RubyToForeignNode extends RubyBaseNode {
 
     public static RubyToForeignNode create() {
-        return RubyToForeignNodeGen.create(null);
+        return RubyToForeignNodeGen.create();
     }
 
     public abstract Object executeConvert(Object value);

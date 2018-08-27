@@ -195,7 +195,7 @@ public class RubyMessageResolution {
     @Resolve(message = "READ")
     public static abstract class ForeignReadNode extends Node {
 
-        @Child private ForeignReadStringCachingHelperNode helperNode = ForeignReadStringCachingHelperNodeGen.create(null, null);
+        @Child private ForeignReadStringCachingHelperNode helperNode = ForeignReadStringCachingHelperNodeGen.create();
 
         protected Object access(VirtualFrame frame, DynamicObject object, Object name) {
             return helperNode.executeStringCachingHelper(frame, object, name);
@@ -206,7 +206,7 @@ public class RubyMessageResolution {
     @Resolve(message = "WRITE")
     public static abstract class ForeignWriteNode extends Node {
 
-        @Child private ForeignWriteStringCachingHelperNode helperNode = ForeignWriteStringCachingHelperNodeGen.create(null, null, null);
+        @Child private ForeignWriteStringCachingHelperNode helperNode = ForeignWriteStringCachingHelperNodeGen.create();
         @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
 
         protected Object access(VirtualFrame frame, DynamicObject object, Object name, Object value) {
@@ -330,7 +330,7 @@ public class RubyMessageResolution {
     @Resolve(message = "EXECUTE")
     public static abstract class ForeignExecuteNode extends Node {
 
-        @Child private ForeignExecuteHelperNode executeMethodNode = ForeignExecuteHelperNodeGen.create(null, null);
+        @Child private ForeignExecuteHelperNode executeMethodNode = ForeignExecuteHelperNodeGen.create();
         @Child private ForeignToRubyArgumentsNode foreignToRubyArgumentsNode = ForeignToRubyArgumentsNode.create();
 
         protected Object access(VirtualFrame frame, DynamicObject object, Object[] arguments) {

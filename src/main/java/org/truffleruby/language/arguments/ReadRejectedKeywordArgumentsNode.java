@@ -37,7 +37,7 @@ public class ReadRejectedKeywordArgumentsNode extends RubyBaseNode implements Bi
     @Override
     public void accept(VirtualFrame frame, Object key, Object value, Object rejectedKwargs) {
         if (!isSymbolProfile.profile(RubyGuards.isRubySymbol(key))) {
-            setNode.executeSet(frame, (DynamicObject) rejectedKwargs, key, value, false);
+            setNode.executeSet((DynamicObject) rejectedKwargs, key, value, false);
         }
     }
 

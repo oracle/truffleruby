@@ -14,18 +14,13 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.dispatch.RespondToNode;
+import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 
 public class ShouldDestructureNode extends RubyNode {
 
-    @Child private RubyNode readArrayNode;
-    @Child private RespondToNode respondToCheck;
+    @Child private DoesRespondDispatchHeadNode respondToToAry;
 
     private final BranchProfile checkIsArrayProfile = BranchProfile.create();
-
-    public ShouldDestructureNode(RubyNode readArrayNode) {
-        this.readArrayNode = readArrayNode;
-    }
 
     @Override
     public Object execute(VirtualFrame frame) {
@@ -35,16 +30,20 @@ public class ShouldDestructureNode extends RubyNode {
 
         checkIsArrayProfile.enter();
 
-        if (RubyGuards.isRubyArray(RubyArguments.getArgument(frame, 0))) {
+        final Object firstArgument = RubyArguments.getArgument(frame, 0);
+
+        if (RubyGuards.isRubyArray(firstArgument)) {
             return true;
         }
 
-        if (respondToCheck == null) {
+        if (respondToToAry == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            respondToCheck = insert(new RespondToNode(readArrayNode, "to_ary"));
+            respondToToAry = insert(DoesRespondDispatchHeadNode.create());
         }
 
-        return respondToCheck.execute(frame);
+        // TODO(cseaton): check this is actually a static "find if there is such method" and not a
+        // dynamic call to respond_to?
+        return respondToToAry.doesRespondTo(frame, "to_ary", firstArgument);
     }
 
 }

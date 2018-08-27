@@ -32,7 +32,6 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.LookupMethodNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
-import org.truffleruby.language.objects.MetaClassNodeGen;
 
 public class UncachedDispatchNode extends DispatchNode {
 
@@ -54,12 +53,12 @@ public class UncachedDispatchNode extends DispatchNode {
     public UncachedDispatchNode(boolean ignoreVisibility, boolean onlyCallPublic, DispatchAction dispatchAction, MissingBehavior missingBehavior) {
         super(dispatchAction);
         this.missingBehavior = missingBehavior;
-        this.lookupMethodNode = LookupMethodNodeGen.create(ignoreVisibility, onlyCallPublic, null, null);
+        this.lookupMethodNode = LookupMethodNodeGen.create(ignoreVisibility, onlyCallPublic);
         this.lookupMethodMissingNode = LookupMethodNode.createIgnoreVisibility();
         this.indirectCallNode = Truffle.getRuntime().createIndirectCallNode();
-        this.toSymbolNode = ToSymbolNodeGen.create(null);
+        this.toSymbolNode = ToSymbolNodeGen.create();
         this.nameToJavaStringNode = NameToJavaStringNode.create();
-        this.metaClassNode = dispatchAction == DispatchAction.CALL_METHOD ? MetaClassNodeGen.create(null) : null;
+        this.metaClassNode = dispatchAction == DispatchAction.CALL_METHOD ? MetaClassNode.create() : null;
     }
 
     @Override
@@ -82,7 +81,7 @@ public class UncachedDispatchNode extends DispatchNode {
             if (metaClassNode.executeMetaClass(receiver) == coreLibrary().getTruffleInteropForeignClass()) {
                 foreignProfile.enter();
                 notOptimizedWarningNode.warn("megamorphic dispatch on foreign object");
-                return createOutgoingForeignCallNode(methodName).executeCall(frame, (TruffleObject) receiver, arguments);
+                return megamorphicForeignCall(receiver, arguments, methodName);
             }
         } else {
             assert !RubyGuards.isForeignObject(receiver) : "RESPOND_TO_METHOD not supported on foreign objects";
@@ -122,7 +121,7 @@ public class UncachedDispatchNode extends DispatchNode {
         }
 
         if (dispatchAction == DispatchAction.CALL_METHOD) {
-            final DynamicObject nameSymbol = toSymbolNode.executeRubySymbol(frame, name);
+            final DynamicObject nameSymbol = toSymbolNode.executeToSymbol(frame, name);
             final Object[] modifiedArgumentsObjects = ArrayUtils.unshift(arguments, nameSymbol);
 
             return call(methodMissing, receiver, block, modifiedArgumentsObjects);
@@ -134,8 +133,13 @@ public class UncachedDispatchNode extends DispatchNode {
     }
 
     @TruffleBoundary
+    private Object megamorphicForeignCall(Object receiver, Object[] arguments, String methodName) {
+        return createOutgoingForeignCallNode(methodName).executeCall((TruffleObject) receiver, arguments);
+    }
+
+    @TruffleBoundary
     private OutgoingForeignCallNode createOutgoingForeignCallNode(String methodName) {
-        return OutgoingForeignCallNodeGen.create(methodName, null, null);
+        return OutgoingForeignCallNodeGen.create(methodName);
     }
 
     private Object call(InternalMethod method, Object receiverObject, DynamicObject blockObject, Object[] argumentsObjects) {

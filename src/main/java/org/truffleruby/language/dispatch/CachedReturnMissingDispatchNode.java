@@ -12,8 +12,6 @@ package org.truffleruby.language.dispatch;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.language.objects.MetaClassNode;
-import org.truffleruby.language.objects.MetaClassNodeGen;
-
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -38,7 +36,7 @@ public class CachedReturnMissingDispatchNode extends CachedDispatchNode {
 
         this.expectedClass = expectedClass;
         this.assumptions = methodLookup.getAssumptions();
-        this.metaClassNode = MetaClassNodeGen.create(null);
+        this.metaClassNode = MetaClassNode.create();
     }
 
     @Override

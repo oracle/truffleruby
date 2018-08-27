@@ -25,9 +25,7 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.globals.GlobalVariableStorage;
 import org.truffleruby.language.globals.ReadSimpleGlobalVariableNode;
-import org.truffleruby.language.globals.ReadSimpleGlobalVariableNodeGen;
 import org.truffleruby.language.globals.WriteSimpleGlobalVariableNode;
-import org.truffleruby.language.globals.WriteSimpleGlobalVariableNodeGen;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FileLoader;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -111,7 +109,7 @@ public abstract class TruffleKernelNodes {
         @Specialization(guards = { "isRubySymbol(cachedName)", "name == cachedName" }, limit = "1")
         public Object write(DynamicObject name, Object value,
                 @Cached("name") DynamicObject cachedName,
-                @Cached("createWriteNode(name)") WriteSimpleGlobalVariableNode writeNode) {
+                @Cached("create(getStorage(cachedName))") WriteSimpleGlobalVariableNode writeNode) {
             return writeNode.execute(value);
         }
 
@@ -127,10 +125,6 @@ public abstract class TruffleKernelNodes {
             return value;
         }
 
-        protected WriteSimpleGlobalVariableNode createWriteNode(DynamicObject name) {
-            return WriteSimpleGlobalVariableNodeGen.create(getStorage(name), null);
-        }
-
         protected GlobalVariableStorage getStorage(DynamicObject name) {
             return getContext().getCoreLibrary().getGlobalVariables().getStorage(Layouts.SYMBOL.getString(name));
         }
@@ -141,7 +135,7 @@ public abstract class TruffleKernelNodes {
         @Specialization(guards = { "isRubySymbol(cachedName)", "name == cachedName" }, limit = "1")
         public Object read(DynamicObject name,
                 @Cached("name") DynamicObject cachedName,
-                @Cached("createReadNode(name)") ReadSimpleGlobalVariableNode readNode) {
+                @Cached("create(getStorage(cachedName))") ReadSimpleGlobalVariableNode readNode) {
             return readNode.execute();
         }
 
@@ -149,10 +143,6 @@ public abstract class TruffleKernelNodes {
         @Specialization(guards = "isRubySymbol(name)", replaces = "read")
         public Object readGeneric(DynamicObject name) {
             return getStorage(name).getValue();
-        }
-
-        protected ReadSimpleGlobalVariableNode createReadNode(DynamicObject name) {
-            return ReadSimpleGlobalVariableNodeGen.create(getStorage(name));
         }
 
         protected GlobalVariableStorage getStorage(DynamicObject name) {

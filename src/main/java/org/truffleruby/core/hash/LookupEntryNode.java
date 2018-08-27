@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.hash;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
@@ -22,9 +21,9 @@ public class LookupEntryNode extends RubyBaseNode {
 
     private final ConditionProfile byIdentityProfile = ConditionProfile.createBinaryProfile();
 
-    public HashLookupResult lookup(VirtualFrame frame, DynamicObject hash, Object key) {
+    public HashLookupResult lookup(DynamicObject hash, Object key) {
         final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
-        int hashed = hashNode.hash(frame, key, compareByIdentity);
+        int hashed = hashNode.hash(key, compareByIdentity);
 
         final Entry[] entries = (Entry[]) Layouts.HASH.getStore(hash);
         final int index = BucketsStrategy.getBucketIndex(hashed, entries.length);
@@ -33,7 +32,7 @@ public class LookupEntryNode extends RubyBaseNode {
         Entry previousEntry = null;
 
         while (entry != null) {
-            if (equalKeys(frame, compareByIdentity, key, hashed, entry.getKey(), entry.getHashed())) {
+            if (equalKeys(compareByIdentity, key, hashed, entry.getKey(), entry.getHashed())) {
                 return new HashLookupResult(hashed, index, previousEntry, entry);
             }
 
@@ -44,8 +43,8 @@ public class LookupEntryNode extends RubyBaseNode {
         return new HashLookupResult(hashed, index, previousEntry, null);
     }
 
-    protected boolean equalKeys(VirtualFrame frame, boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
-        return compareHashKeysNode.equalKeys(frame, compareByIdentity, key, hashed, otherKey, otherHashed);
+    protected boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
+        return compareHashKeysNode.equalKeys(compareByIdentity, key, hashed, otherKey, otherHashed);
     }
 
 }

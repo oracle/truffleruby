@@ -10,22 +10,15 @@
 package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
-@NodeChildren({
-        @NodeChild(value = "array", type = RubyNode.class),
-        @NodeChild(value = "index", type = RubyNode.class),
-        @NodeChild(value = "length", type = RubyNode.class)
-})
-public abstract class ArrayReadSliceDenormalizedNode extends RubyNode {
+public abstract class ArrayReadSliceDenormalizedNode extends RubyBaseNode {
 
-    @Child private ArrayReadSliceNormalizedNode readNode = ArrayReadSliceNormalizedNodeGen.create(null, null, null);
+    @Child private ArrayReadSliceNormalizedNode readNode = ArrayReadSliceNormalizedNodeGen.create();
 
     public abstract DynamicObject executeReadSlice(DynamicObject array, int index, int length);
 

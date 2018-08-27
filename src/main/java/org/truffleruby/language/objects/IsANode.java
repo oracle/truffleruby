@@ -13,37 +13,28 @@ import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
-@NodeChildren({
-        @NodeChild("instance"),
-        @NodeChild("module")
-})
-public abstract class IsANode extends RubyNode {
+public abstract class IsANode extends RubyBaseNode {
 
     public static IsANode create() {
-        return IsANodeGen.create(null, null);
+        return IsANodeGen.create();
     }
 
     @Child private MetaClassNode metaClassNode;
 
     public abstract boolean executeIsA(Object self, DynamicObject module);
 
-    @Specialization(
-            limit = "getCacheLimit()",
-            guards = {
-                    "isRubyModule(cachedModule)",
-                    "getMetaClass(self) == cachedMetaClass",
-                    "module == cachedModule"
-            },
-            assumptions = "getHierarchyUnmodifiedAssumption(cachedModule)")
+    @Specialization(guards = {
+            "isRubyModule(cachedModule)",
+            "getMetaClass(self) == cachedMetaClass",
+            "module == cachedModule"
+    }, assumptions = "getHierarchyUnmodifiedAssumption(cachedModule)", limit = "getCacheLimit()")
     public boolean isACached(Object self,
             DynamicObject module,
             @Cached("getMetaClass(self)") DynamicObject cachedMetaClass,
@@ -74,7 +65,7 @@ public abstract class IsANode extends RubyNode {
     protected DynamicObject getMetaClass(Object object) {
         if (metaClassNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            metaClassNode = insert(MetaClassNodeGen.create(null));
+            metaClassNode = insert(MetaClassNode.create());
         }
 
         return metaClassNode.executeMetaClass(object);

@@ -37,6 +37,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
+import org.truffleruby.core.cast.CmpIntNode;
 import org.truffleruby.core.cast.ToAryNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
@@ -50,7 +51,6 @@ import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
-import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -65,7 +65,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.IsFrozenNode;
-import org.truffleruby.language.objects.IsFrozenNodeGen;
 import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -219,7 +218,7 @@ public abstract class ArrayNodes {
 
             if (readSliceNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                readSliceNode = insert(ArrayReadSliceDenormalizedNodeGen.create(null, null, null));
+                readSliceNode = insert(ArrayReadSliceDenormalizedNodeGen.create());
             }
 
             return readSliceNode.executeReadSlice(array, start, length);
@@ -246,7 +245,7 @@ public abstract class ArrayNodes {
 
                 if (readNormalizedSliceNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    readNormalizedSliceNode = insert(ArrayReadSliceNormalizedNodeGen.create(null, null, null));
+                    readNormalizedSliceNode = insert(ArrayReadSliceNormalizedNodeGen.create());
                 }
 
                 return readNormalizedSliceNode.executeReadSlice(array, normalizedIndex, length);
@@ -497,7 +496,7 @@ public abstract class ArrayNodes {
         private Object write(DynamicObject array, int index, Object value) {
             if (writeNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                writeNode = insert(ArrayWriteNormalizedNodeGen.create(null, null, null));
+                writeNode = insert(ArrayWriteNormalizedNodeGen.create());
             }
             return writeNode.executeWrite(array, index, value);
         }
@@ -505,7 +504,7 @@ public abstract class ArrayNodes {
         private DynamicObject readSlice(DynamicObject array, int start, int length) {
             if (readSliceNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                readSliceNode = insert(ArrayReadSliceNormalizedNodeGen.create(null, null, null));
+                readSliceNode = insert(ArrayReadSliceNormalizedNodeGen.create());
             }
             return readSliceNode.executeReadSlice(array, start, length);
         }
@@ -636,7 +635,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class ConcatNode extends CoreMethodNode {
 
-        @Child private ArrayAppendManyNode appendManyNode = ArrayAppendManyNodeGen.create(null, null);
+        @Child private ArrayAppendManyNode appendManyNode = ArrayAppendManyNodeGen.create();
 
         @CreateCast("other")
         public RubyNode coerceOtherToAry(RubyNode other) {
@@ -738,7 +737,7 @@ public abstract class ArrayNodes {
         public void checkFrozen(Object object) {
             if (isFrozenNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                isFrozenNode = insert(IsFrozenNodeGen.create(null));
+                isFrozenNode = insert(IsFrozenNode.create());
             }
             isFrozenNode.raiseIfFrozen(object);
         }
@@ -931,7 +930,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "isRubyArray(b)", "strategy.matches(a)", "strategy.matches(b)",
                 "strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
-        protected boolean eqlSamePrimitiveType(VirtualFrame frame, DynamicObject a, DynamicObject b,
+        protected boolean eqlSamePrimitiveType(DynamicObject a, DynamicObject b,
                 @Cached("of(a)") ArrayStrategy strategy,
                 @Cached("createBinaryProfile()") ConditionProfile sameProfile,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
@@ -954,7 +953,7 @@ public abstract class ArrayNodes {
             final ArrayMirror bMirror = strategy.newMirror(b);
 
             for (int i = 0; i < aSize; i++) {
-                if (!eqlNode.executeSameOrEql(frame, aMirror.get(i), bMirror.get(i))) {
+                if (!eqlNode.executeSameOrEql(aMirror.get(i), bMirror.get(i))) {
                     falseProfile.enter();
                     return false;
                 }
@@ -1405,7 +1404,7 @@ public abstract class ArrayNodes {
         }
 
         protected ArrayWriteNormalizedNode createWriteNode() {
-            return ArrayWriteNormalizedNodeGen.create(null, null, null);
+            return ArrayWriteNormalizedNodeGen.create();
         }
 
     }
@@ -1535,7 +1534,7 @@ public abstract class ArrayNodes {
         public Object pop(DynamicObject array, NotProvided n) {
             if (popOneNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                popOneNode = insert(ArrayPopOneNodeGen.create(null));
+                popOneNode = insert(ArrayPopOneNodeGen.create());
             }
 
             return popOneNode.executePopOne(array);
@@ -2016,7 +2015,7 @@ public abstract class ArrayNodes {
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
                 @Cached("createPrivate()") CallDispatchHeadNode compareDispatchNode,
-                @Cached("create()") FixnumLowerNode fixnumLowerNode,
+                @Cached("create()") CmpIntNode cmpIntNode,
                 @Cached("create()") BranchProfile errorProfile) {
             final ArrayMirror originalStore = strategy.newMirror(array);
             final ArrayMirror store = mutableStrategy.newArray(getContext().getOptions().ARRAY_SMALL);
@@ -2039,7 +2038,7 @@ public abstract class ArrayNodes {
                             final Object a = store.get(i);
                             final Object b = store.get(j);
                             final Object comparisonResult = compareDispatchNode.call(b, "<=>", a);
-                            if (castSortValue(comparisonResult, errorProfile, fixnumLowerNode) < 0) {
+                            if (cmpIntNode.executeCmpInt(comparisonResult, b, a) < 0) {
                                 store.set(j, a);
                                 store.set(i, b);
                             }
@@ -2075,18 +2074,6 @@ public abstract class ArrayNodes {
         public Object sortGenericWithBlock(DynamicObject array, DynamicObject block,
                 @Cached("createPrivate()") CallDispatchHeadNode fallbackNode) {
             return fallbackNode.callWithBlock(array, "sort_fallback", block);
-        }
-
-        private int castSortValue(Object value, BranchProfile errorProfile, FixnumLowerNode fixnumLowerNode) {
-            value = fixnumLowerNode.executeLower(value);
-
-            if (value instanceof Integer) {
-                return (int) value;
-            }
-
-            errorProfile.enter();
-            // TODO CS 14-Mar-15 - what's the error message here?
-            throw new RaiseException(getContext(), coreExceptions().argumentError("expecting a Fixnum to sort", this));
         }
 
         protected boolean isSmall(DynamicObject array) {

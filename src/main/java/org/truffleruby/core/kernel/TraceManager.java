@@ -33,8 +33,6 @@ import org.truffleruby.core.tracepoint.TraceBaseEventNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.objects.LogicalClassNode;
-import org.truffleruby.language.objects.LogicalClassNodeGen;
-
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -217,7 +215,7 @@ public class TraceManager {
         private DynamicObject getLogicalClass(Object object) {
             if (logicalClassNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                logicalClassNode = insert(LogicalClassNodeGen.create(null));
+                logicalClassNode = insert(LogicalClassNode.create());
             }
 
             return logicalClassNode.executeLogicalClass(object);

@@ -26,14 +26,6 @@ public abstract class ToSNode extends RubyNode {
 
     @Child private KernelNodes.ToSNode kernelToSNode;
 
-    protected DynamicObject kernelToS(Object object) {
-        if (kernelToSNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            kernelToSNode = insert(KernelNodes.ToSNode.create());
-        }
-        return kernelToSNode.executeToS(object);
-    }
-
     @Specialization(guards = "isRubyString(string)")
     public DynamicObject toS(DynamicObject string) {
         return string;
@@ -50,4 +42,13 @@ public abstract class ToSNode extends RubyNode {
             return kernelToS(object);
         }
     }
+
+    protected DynamicObject kernelToS(Object object) {
+        if (kernelToSNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            kernelToSNode = insert(KernelNodes.ToSNode.create());
+        }
+        return kernelToSNode.executeToS(object);
+    }
+
 }

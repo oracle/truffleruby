@@ -11,8 +11,6 @@ package org.truffleruby.language.constants;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -21,7 +19,6 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.Identifiers;
 
@@ -31,10 +28,6 @@ import java.util.ArrayList;
  * Caches {@link ModuleOperations#lookupConstant}
  * and checks visibility.
  */
-@NodeChildren({
-        @NodeChild(value = "module", type = RubyNode.class),
-        @NodeChild(value = "name", type = RubyNode.class)
-})
 public abstract class LookupConstantNode extends LookupConstantBaseNode implements LookupConstantInterface {
 
     private final boolean ignoreVisibility;
@@ -42,7 +35,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
     private final boolean lookInObject;
 
     public static LookupConstantNode create(boolean ignoreVisibility, boolean checkName, boolean lookInObject) {
-        return LookupConstantNodeGen.create(ignoreVisibility, checkName, lookInObject, null, null);
+        return LookupConstantNodeGen.create(ignoreVisibility, checkName, lookInObject);
     }
 
     public LookupConstantNode(boolean ignoreVisibility, boolean checkName, boolean lookInObject) {

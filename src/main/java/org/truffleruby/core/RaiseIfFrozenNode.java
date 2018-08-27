@@ -16,7 +16,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.IsFrozenNode;
-import org.truffleruby.language.objects.IsFrozenNodeGen;
 
 public class RaiseIfFrozenNode extends RubyNode {
 
@@ -44,7 +43,7 @@ public class RaiseIfFrozenNode extends RubyNode {
     private boolean executeIsFrozen(Object value) {
         if (isFrozenNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            isFrozenNode = insert(IsFrozenNodeGen.create(null));
+            isFrozenNode = insert(IsFrozenNode.create());
         }
         return isFrozenNode.executeIsFrozen(value);
     }

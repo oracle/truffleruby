@@ -104,9 +104,9 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
-import org.truffleruby.core.encoding.EncodingNodes;
+import org.truffleruby.core.encoding.EncodingNodes.CheckEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.CheckRopeEncodingNode;
-import org.truffleruby.core.encoding.EncodingNodesFactory;
+import org.truffleruby.core.encoding.EncodingNodes.NegotiateCompatibleEncodingNode;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.format.FormatExceptionTranslator;
 import org.truffleruby.core.format.exceptions.FormatException;
@@ -129,15 +129,27 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeNodes.RepeatNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.SubstringRope;
+import org.truffleruby.core.string.StringNodesFactory.ByteIndexFromCharIndexNodeGen;
+import org.truffleruby.core.string.StringNodesFactory.ByteSizeNodeFactory;
+import org.truffleruby.core.string.StringNodesFactory.CheckIndexNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.CountRopesNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.DeleteBangNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.DeleteBangRopesNodeFactory;
+import org.truffleruby.core.string.StringNodesFactory.InvertAsciiCaseBytesNodeGen;
+import org.truffleruby.core.string.StringNodesFactory.InvertAsciiCaseNodeGen;
+import org.truffleruby.core.string.StringNodesFactory.MakeStringNodeGen;
+import org.truffleruby.core.string.StringNodesFactory.NormalizeIndexNodeGen;
+import org.truffleruby.core.string.StringNodesFactory.StringAppendNodeGen;
+import org.truffleruby.core.string.StringNodesFactory.StringAppendPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.StringAreComparableNodeGen;
+import org.truffleruby.core.string.StringNodesFactory.StringByteCharacterIndexNodeFactory;
+import org.truffleruby.core.string.StringNodesFactory.StringByteSubstringPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.StringEqualNodeGen;
+import org.truffleruby.core.string.StringNodesFactory.StringSubstringPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
 import org.truffleruby.core.string.StringSupport.TrTables;
-import org.truffleruby.language.CheckLayoutNode;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -172,8 +184,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreClass("String")
 public abstract class StringNodes {
 
-    @NodeChildren({ @NodeChild("bytes"), @NodeChild("encoding"), @NodeChild("codeRange") })
-    public abstract static class MakeStringNode extends RubyNode {
+    public abstract static class MakeStringNode extends RubyBaseNode {
 
         @Child private AllocateObjectNode allocateObjectNode;
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
@@ -211,7 +222,7 @@ public abstract class StringNodes {
         }
 
         public static MakeStringNode create() {
-            return StringNodesFactory.MakeStringNodeGen.create(null, null, null);
+            return MakeStringNodeGen.create();
         }
 
         @Specialization
@@ -350,11 +361,10 @@ public abstract class StringNodes {
     @CoreMethod(names = {"==", "===", "eql?"}, required = 1)
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringEqualNode stringEqualNode = StringEqualNodeGen.create(null, null);
+        @Child private StringEqualNode stringEqualNode = StringEqualNodeGen.create();
         @Child private KernelNodes.RespondToNode respondToNode;
         @Child private CallDispatchHeadNode objectEqualNode;
         @Child private BooleanCastNode booleanCastNode;
-        @Child private CheckLayoutNode checkLayoutNode;
 
         @Specialization(guards = "isRubyString(b)")
         public boolean equal(DynamicObject a, DynamicObject b) {
@@ -385,14 +395,6 @@ public abstract class StringNodes {
             return false;
         }
 
-        protected boolean isRubyString(DynamicObject object) {
-            if (checkLayoutNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkLayoutNode = insert(new CheckLayoutNode());
-            }
-
-            return checkLayoutNode.isString(object);
-        }
     }
 
     @Primitive(name = "string_cmp")
@@ -538,7 +540,7 @@ public abstract class StringNodes {
         private Object sliceRange(VirtualFrame frame, DynamicObject string, int begin, int end, boolean doesExcludeEnd) {
             if (normalizeIndexNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                normalizeIndexNode = insert(StringNodesFactory.NormalizeIndexNodeGen.create(null, null));
+                normalizeIndexNode = insert(NormalizeIndexNode.create());
             }
 
             final int stringLength = rope(string).characterLength();
@@ -642,7 +644,7 @@ public abstract class StringNodes {
         private StringSubstringPrimitiveNode getSubstringNode() {
             if (substringNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                substringNode = insert(StringNodesFactory.StringSubstringPrimitiveNodeFactory.create(null));
+                substringNode = insert(StringSubstringPrimitiveNodeFactory.create(null));
             }
 
             return substringNode;
@@ -711,7 +713,7 @@ public abstract class StringNodes {
     public abstract static class ByteSizeNode extends CoreMethodArrayArgumentsNode {
 
         public static ByteSizeNode create() {
-            return StringNodesFactory.ByteSizeNodeFactory.create(null);
+            return ByteSizeNodeFactory.create(null);
         }
 
         public abstract int executeByteSize(DynamicObject string);
@@ -730,7 +732,7 @@ public abstract class StringNodes {
     })
     public abstract static class CaseCmpNode extends CoreMethodNode {
 
-        @Child private EncodingNodes.NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode = EncodingNodesFactory.NegotiateCompatibleEncodingNodeGen.create(null, null);
+        @Child private NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleEncodingNode.create();
         private final ConditionProfile incompatibleEncodingProfile = ConditionProfile.createBinaryProfile();
 
         @CreateCast("other") public RubyNode coerceOtherToString(RubyNode other) {
@@ -1224,7 +1226,7 @@ public abstract class StringNodes {
     @CoreMethod(names = "getbyte", required = 1, lowerFixnum = 1)
     public abstract static class GetByteNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private NormalizeIndexNode normalizeIndexNode = StringNodesFactory.NormalizeIndexNodeGen.create(null, null);
+        @Child private NormalizeIndexNode normalizeIndexNode = NormalizeIndexNode.create();
         @Child private RopeNodes.GetByteNode ropeGetByteNode = RopeNodes.GetByteNode.create();
 
         @Specialization
@@ -1937,7 +1939,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class SetByteNode extends CoreMethodNode {
 
-        @Child private CheckIndexNode checkIndexNode = StringNodesFactory.CheckIndexNodeGen.create(null, null);
+        @Child private CheckIndexNode checkIndexNode = CheckIndexNodeGen.create();
         @Child private RopeNodes.SetByteNode setByteNode = RopeNodes.SetByteNode.create();
 
         @CreateCast("index") public RubyNode coerceIndexToInt(RubyNode index) {
@@ -1966,8 +1968,7 @@ public abstract class StringNodes {
 
     }
 
-    @NodeChildren({ @NodeChild("index"), @NodeChild("length") })
-    public static abstract class CheckIndexNode extends RubyNode {
+    public static abstract class CheckIndexNode extends RubyBaseNode {
 
         public abstract int executeCheck(int index, int length);
 
@@ -1993,13 +1994,12 @@ public abstract class StringNodes {
 
     }
 
-    @NodeChildren({ @NodeChild("index"), @NodeChild("length") })
-    public static abstract class NormalizeIndexNode extends RubyNode {
+    public static abstract class NormalizeIndexNode extends RubyBaseNode {
 
         public abstract int executeNormalize(int index, int length);
 
         public static NormalizeIndexNode create() {
-            return StringNodesFactory.NormalizeIndexNodeGen.create(null, null);
+            return NormalizeIndexNodeGen.create();
         }
 
         @Specialization
@@ -2031,7 +2031,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class SqueezeBangNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
+        @Child private CheckEncodingNode checkEncodingNode;
         private final ConditionProfile singleByteOptimizableProfile = ConditionProfile.createBinaryProfile();
 
         @Specialization(guards = "isEmpty(string)")
@@ -2085,10 +2085,9 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         private Object performSqueezeBang(DynamicObject string, DynamicObject[] otherStrings) {
-
             if (checkEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(EncodingNodesFactory.CheckEncodingNodeGen.create(null, null));
+                checkEncodingNode = insert(CheckEncodingNode.create());
             }
 
             final Rope rope = rope(string);
@@ -2358,7 +2357,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class TrBangNode extends CoreMethodNode {
 
-        @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
+        @Child private CheckEncodingNode checkEncodingNode;
         @Child private DeleteBangNode deleteBangNode;
 
         @CreateCast("fromStr") public RubyNode coerceFromStrToString(RubyNode fromStr) {
@@ -2388,7 +2387,7 @@ public abstract class StringNodes {
         public Object trBang(VirtualFrame frame, DynamicObject self, DynamicObject fromStr, DynamicObject toStr) {
             if (checkEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(EncodingNodesFactory.CheckEncodingNodeGen.create(null, null));
+                checkEncodingNode = insert(CheckEncodingNode.create());
             }
 
             return StringNodesHelper.trTransHelper(getContext(), checkEncodingNode, self, fromStr, toStr, false);
@@ -2404,7 +2403,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class TrSBangNode extends CoreMethodNode {
 
-        @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
+        @Child private CheckEncodingNode checkEncodingNode;
         @Child private DeleteBangNode deleteBangNode;
 
         @CreateCast("fromStr") public RubyNode coerceFromStrToString(RubyNode fromStr) {
@@ -2433,7 +2432,7 @@ public abstract class StringNodes {
 
             if (checkEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(EncodingNodesFactory.CheckEncodingNodeGen.create(null, null));
+                checkEncodingNode = insert(CheckEncodingNode.create());
             }
 
             return StringNodesHelper.trTransHelper(getContext(), checkEncodingNode, self, fromStr, toStr, true);
@@ -2535,25 +2534,21 @@ public abstract class StringNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild("bytes"),
-            @NodeChild("start")
-    })
-    public abstract static class InvertAsciiCaseBytesNode extends RubyNode {
+    public abstract static class InvertAsciiCaseBytesNode extends RubyBaseNode {
 
         private final boolean lowerToUpper;
         private final boolean upperToLower;
 
         public static InvertAsciiCaseBytesNode createLowerToUpper() {
-            return StringNodesFactory.InvertAsciiCaseBytesNodeGen.create(true, false, null, null);
+            return InvertAsciiCaseBytesNodeGen.create(true, false);
         }
 
         public static InvertAsciiCaseBytesNode createUpperToLower() {
-            return StringNodesFactory.InvertAsciiCaseBytesNodeGen.create(false, true, null, null);
+            return InvertAsciiCaseBytesNodeGen.create(false, true);
         }
 
         public static InvertAsciiCaseBytesNode createSwapCase() {
-            return StringNodesFactory.InvertAsciiCaseBytesNodeGen.create(true, true, null, null);
+            return InvertAsciiCaseBytesNodeGen.create(true, true);
         }
 
         protected InvertAsciiCaseBytesNode(boolean lowerToUpper, boolean upperToLower) {
@@ -2600,28 +2595,27 @@ public abstract class StringNodes {
 
     }
 
-    @NodeChild("bytes")
-    public abstract static class InvertAsciiCaseNode extends RubyNode {
+    public abstract static class InvertAsciiCaseNode extends RubyBaseNode {
 
         @Child private InvertAsciiCaseBytesNode invertNode;
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
 
         public static InvertAsciiCaseNode createLowerToUpper() {
-            final InvertAsciiCaseNode ret = StringNodesFactory.InvertAsciiCaseNodeGen.create(null);
+            final InvertAsciiCaseNode ret = InvertAsciiCaseNodeGen.create();
             ret.invertNode = InvertAsciiCaseBytesNode.createLowerToUpper();
 
             return ret;
         }
 
         public static InvertAsciiCaseNode createUpperToLower() {
-            final InvertAsciiCaseNode ret = StringNodesFactory.InvertAsciiCaseNodeGen.create(null);
+            final InvertAsciiCaseNode ret = InvertAsciiCaseNodeGen.create();
             ret.invertNode = InvertAsciiCaseBytesNode.createUpperToLower();
 
             return ret;
         }
 
         public static InvertAsciiCaseNode createSwapCase() {
-            final InvertAsciiCaseNode ret = StringNodesFactory.InvertAsciiCaseNodeGen.create(null);
+            final InvertAsciiCaseNode ret = InvertAsciiCaseNodeGen.create();
             ret.invertNode = InvertAsciiCaseBytesNode.createSwapCase();
 
             return ret;
@@ -2868,7 +2862,7 @@ public abstract class StringNodes {
     public static class StringNodesHelper {
 
         @TruffleBoundary
-        private static Object trTransHelper(RubyContext context, EncodingNodes.CheckEncodingNode checkEncodingNode,
+        private static Object trTransHelper(RubyContext context, CheckEncodingNode checkEncodingNode,
                                             DynamicObject self, DynamicObject fromStr,
                                             DynamicObject toStr, boolean sFlag) {
             assert RubyGuards.isRubyString(self);
@@ -2919,10 +2913,10 @@ public abstract class StringNodes {
     @CoreMethod(names = "append", required = 1)
     public static abstract class StringAppendPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringAppendNode stringAppendNode = StringNodesFactory.StringAppendNodeGen.create(null, null);
+        @Child private StringAppendNode stringAppendNode = StringAppendNode.create();
 
         public static StringAppendPrimitiveNode create() {
-            return StringNodesFactory.StringAppendPrimitiveNodeFactory.create(null);
+            return StringAppendPrimitiveNodeFactory.create(null);
         }
 
         public abstract DynamicObject executeStringAppend(DynamicObject string, DynamicObject other);
@@ -3024,12 +3018,12 @@ public abstract class StringNodes {
     public static abstract class StringByteSubstringPrimitiveNode extends PrimitiveNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-        @Child private NormalizeIndexNode normalizeIndexNode = StringNodesFactory.NormalizeIndexNodeGen.create(null, null);
+        @Child private NormalizeIndexNode normalizeIndexNode = NormalizeIndexNode.create();
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
 
         public static StringByteSubstringPrimitiveNode create() {
-            return StringNodesFactory.StringByteSubstringPrimitiveNodeFactory.create(null, null, null);
+            return StringByteSubstringPrimitiveNodeFactory.create(null, null, null);
         }
 
         public Object executeStringByteSubstring(DynamicObject string, Object index, Object length) {
@@ -3137,8 +3131,7 @@ public abstract class StringNodes {
     }
 
     @ImportStatic(StringGuards.class)
-    @NodeChildren({ @NodeChild("first"), @NodeChild("second") })
-    public static abstract class StringAreComparableNode extends RubyNode {
+    public static abstract class StringAreComparableNode extends RubyBaseNode {
 
         public abstract boolean executeAreComparable(DynamicObject first, DynamicObject second);
 
@@ -3173,7 +3166,7 @@ public abstract class StringNodes {
         }
 
         @Fallback
-        protected boolean notCompatible(Object a, Object b) {
+        protected boolean notCompatible(DynamicObject a, DynamicObject b) {
             return false;
         }
 
@@ -3184,8 +3177,7 @@ public abstract class StringNodes {
     }
 
     @ImportStatic({ StringGuards.class, StringOperations.class })
-    @NodeChildren({ @NodeChild("first"), @NodeChild("second") })
-    public static abstract class StringEqualNode extends RubyNode {
+    public static abstract class StringEqualNode extends RubyBaseNode {
 
         @Child private StringAreComparableNode areComparableNode;
 
@@ -3211,7 +3203,7 @@ public abstract class StringNodes {
         protected boolean areComparable(DynamicObject first, DynamicObject second) {
             if (areComparableNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                areComparableNode = insert(StringAreComparableNodeGen.create(null, null));
+                areComparableNode = insert(StringAreComparableNodeGen.create());
             }
             return areComparableNode.executeAreComparable(first, second);
         }
@@ -3489,7 +3481,7 @@ public abstract class StringNodes {
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         public Object stringToF(DynamicObject string, boolean strict,
-                                @Cached("create(getSourceIndexLength())") FixnumOrBignumNode fixnumOrBignumNode) {
+                @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode) {
             final Rope rope = rope(string);
             if (rope.isEmpty()) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(coreStrings().INVALID_VALUE_FOR_FLOAT.getRope(), this));
@@ -3526,7 +3518,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public static abstract class StringIndexPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
+        @Child private CheckEncodingNode checkEncodingNode;
 
         @Specialization(guards = "isEmpty(pattern)")
         public Object stringIndexEmptyPattern(DynamicObject string, DynamicObject pattern, int byteOffset) {
@@ -3719,7 +3711,7 @@ public abstract class StringNodes {
         private void checkEncoding(DynamicObject string, DynamicObject pattern) {
             if (checkEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(EncodingNodes.CheckEncodingNode.create());
+                checkEncodingNode = insert(CheckEncodingNode.create());
             }
 
             checkEncodingNode.executeCheckEncoding(string, pattern);
@@ -3734,7 +3726,7 @@ public abstract class StringNodes {
         public abstract int executeStringByteCharacterIndex(DynamicObject string, int byteIndex);
 
         public static StringByteCharacterIndexNode create() {
-            return StringNodesFactory.StringByteCharacterIndexNodeFactory.create(null);
+            return StringByteCharacterIndexNodeFactory.create(null);
         }
 
         @Specialization(guards = "isSingleByteOptimizable(string)")
@@ -3851,16 +3843,11 @@ public abstract class StringNodes {
      * @startByteOffset - Starting position in the rope for the calculation of the character's byte offset.
      * @characterIndex - The character index into the rope, starting from the provided byte offset.
      */
-    @NodeChildren({
-            @NodeChild("rope"),
-            @NodeChild("startByteOffset"),
-            @NodeChild("characterIndex")
-    })
     @ImportStatic({ RopeGuards.class, StringGuards.class, StringOperations.class })
-    public static abstract class ByteIndexFromCharIndexNode extends RubyNode {
+    public static abstract class ByteIndexFromCharIndexNode extends RubyBaseNode {
 
         public static ByteIndexFromCharIndexNode create() {
-            return StringNodesFactory.ByteIndexFromCharIndexNodeGen.create(null, null, null);
+            return ByteIndexFromCharIndexNodeGen.create();
         }
 
         public abstract int execute(Rope rope, int startByteOffset, int characterIndex);
@@ -4000,7 +3987,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public static abstract class StringRindexPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
+        @Child private CheckEncodingNode checkEncodingNode;
 
         @Specialization(guards = "isEmpty(pattern)")
         public Object stringRindexEmptyPattern(DynamicObject string, DynamicObject pattern, int byteOffset) {
@@ -4162,7 +4149,7 @@ public abstract class StringNodes {
         private void checkEncoding(DynamicObject string, DynamicObject pattern) {
             if (checkEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(EncodingNodes.CheckEncodingNode.create());
+                checkEncodingNode = insert(CheckEncodingNode.create());
             }
 
             checkEncodingNode.executeCheckEncoding(string, pattern);
@@ -4309,7 +4296,7 @@ public abstract class StringNodes {
 
         @Specialization
         public Object stringToInum(DynamicObject string, int fixBase, boolean strict,
-                @Cached("create(getSourceIndexLength())") FixnumOrBignumNode fixnumOrBignumNode,
+                @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
                 return ConvertBytes.byteListToInum19(getContext(),
@@ -4353,7 +4340,7 @@ public abstract class StringNodes {
     public static abstract class StringSubstringPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateNode;
-        @Child private NormalizeIndexNode normalizeIndexNode = StringNodesFactory.NormalizeIndexNodeGen.create(null, null);
+        @Child private NormalizeIndexNode normalizeIndexNode = NormalizeIndexNode.create();
         @Child private RopeNodes.SubstringNode substringNode;
         @Child private TaintResultNode taintResultNode;
 
@@ -4565,14 +4552,13 @@ public abstract class StringNodes {
 
     }
 
-    @NodeChildren({ @NodeChild("string"), @NodeChild("other") })
-    public static abstract class StringAppendNode extends RubyNode {
+    public static abstract class StringAppendNode extends RubyBaseNode {
 
-        @Child private EncodingNodes.CheckEncodingNode checkEncodingNode;
+        @Child private CheckEncodingNode checkEncodingNode;
         @Child private RopeNodes.ConcatNode concatNode;
 
         public static StringAppendNode create() {
-            return StringNodesFactory.StringAppendNodeGen.create(null, null);
+            return StringAppendNodeGen.create();
         }
 
         public abstract Rope executeStringAppend(DynamicObject string, DynamicObject other);
@@ -4598,7 +4584,7 @@ public abstract class StringNodes {
         private Encoding executeCheckEncoding(DynamicObject string, DynamicObject other) {
             if (checkEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkEncodingNode = insert(EncodingNodesFactory.CheckEncodingNodeGen.create(null, null));
+                checkEncodingNode = insert(CheckEncodingNode.create());
             }
             return checkEncodingNode.executeCheckEncoding(string, other);
         }

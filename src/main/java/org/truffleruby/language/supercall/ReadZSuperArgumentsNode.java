@@ -64,7 +64,7 @@ public class ReadZSuperArgumentsNode extends RubyNode {
     private Object[] unsplat(DynamicObject array) {
         if (unsplatNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            unsplatNode = insert(ArrayToObjectArrayNodeGen.create(null));
+            unsplatNode = insert(ArrayToObjectArrayNodeGen.create());
         }
         return unsplatNode.executeToObjectArray(array);
     }

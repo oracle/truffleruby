@@ -11,15 +11,14 @@ package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 
-@NodeChild(value = "array", type = RubyNode.class)
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyGuards;
+
 @ImportStatic(ArrayGuards.class)
-public abstract class ArrayToObjectArrayNode extends RubyNode {
+public abstract class ArrayToObjectArrayNode extends RubyBaseNode {
 
     public Object[] unsplat(Object[] arguments) {
         assert arguments.length == 1;

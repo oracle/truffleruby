@@ -23,32 +23,16 @@ import org.truffleruby.core.string.CoreStrings;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
 
 @TypeSystemReference(RubyTypes.class)
 @ImportStatic(RubyGuards.class)
 public abstract class RubyBaseNode extends Node {
 
-    private static final int FLAG_NEWLINE = 0;
-    private static final int FLAG_COVERAGE_LINE = 1;
-    private static final int FLAG_CALL = 2;
-    private static final int FLAG_ROOT = 3;
-
-    private static final int NO_SOURCE = -1;
-
     @CompilationFinal private RubyContext context;
-
-    private int sourceCharIndex = NO_SOURCE;
-    private int sourceLength;
-
-    protected int flags;
 
     // Guards which use the context and so can't be static
 
@@ -105,126 +89,4 @@ public abstract class RubyBaseNode extends Node {
         return context;
     }
 
-    // Source section
-
-    public void unsafeSetSourceSection(SourceIndexLength sourceSection) {
-        assert sourceCharIndex == NO_SOURCE;
-        
-        if (sourceSection != null) {
-            sourceCharIndex = sourceSection.getCharIndex();
-            sourceLength = sourceSection.getLength();
-        }
-    }
-
-    public void unsafeSetSourceSection(SourceSection sourceSection) {
-        assert sourceCharIndex == NO_SOURCE;
-
-        if (sourceSection.isAvailable()) {
-            sourceCharIndex = sourceSection.getCharIndex();
-            sourceLength = sourceSection.getCharLength();
-        } else {
-            sourceCharIndex = 0;
-            sourceLength = SourceIndexLength.UNAVAILABLE;
-        }
-    }
-
-    protected boolean hasSource() {
-        return sourceCharIndex != NO_SOURCE;
-    }
-
-    protected Source getSource() {
-        final RootNode rootNode = getRootNode();
-
-        if (rootNode == null) {
-            return null;
-        }
-
-        final SourceSection sourceSection = rootNode.getSourceSection();
-
-        if (sourceSection == null) {
-            return null;
-        }
-
-        return sourceSection.getSource();
-    }
-
-    public SourceIndexLength getSourceIndexLength() {
-        if (sourceCharIndex == NO_SOURCE) {
-            return null;
-        } else {
-            return new SourceIndexLength(sourceCharIndex, sourceLength);
-        }
-    }
-
-    public SourceIndexLength getEncapsulatingSourceIndexLength() {
-        Node node = this;
-
-        while (node != null) {
-            if (node instanceof RubyBaseNode && ((RubyBaseNode) node).sourceCharIndex != NO_SOURCE) {
-                return ((RubyBaseNode) node).getSourceIndexLength();
-            }
-
-            if (node instanceof RootNode) {
-                return new SourceIndexLength(node.getSourceSection());
-            }
-
-            node = node.getParent();
-        }
-
-        return null;
-    }
-
-    @TruffleBoundary
-    @Override
-    public SourceSection getSourceSection() {
-        if (sourceCharIndex == NO_SOURCE) {
-            return null;
-        } else {
-            final Source source = getSource();
-
-            if (source == null) {
-                return null;
-            }
-
-            return getSourceIndexLength().toSourceSection(source);
-        }
-    }
-
-    // Tags
-
-    public void unsafeSetIsNewLine() {
-        flags |= 1 << FLAG_NEWLINE;
-    }
-
-    public void unsafeSetIsCoverageLine() {
-        flags |= 1 << FLAG_COVERAGE_LINE;
-    }
-
-    public void unsafeSetIsCall() {
-        flags |= 1 << FLAG_CALL;
-    }
-
-    public void unsafeSetIsRoot() {
-        flags |= 1 << FLAG_ROOT;
-    }
-
-    protected boolean isNewLine() {
-        return ((flags >> FLAG_NEWLINE) & 1) == 1;
-    }
-
-    protected boolean isCoverageLine() {
-        return ((flags >> FLAG_COVERAGE_LINE) & 1) == 1;
-    }
-
-    protected boolean isCall() {
-        return ((flags >> FLAG_CALL) & 1) == 1;
-    }
-
-    protected boolean isRoot() {
-        return ((flags >> FLAG_ROOT) & 1) == 1;
-    }
-
-    protected void transferFlagsTo(RubyBaseNode to) {
-        to.flags = flags;
-    }
 }

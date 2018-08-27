@@ -14,9 +14,9 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
-public abstract class GetThreadLocalsObjectNode extends RubyNode {
+public abstract class GetThreadLocalsObjectNode extends RubyBaseNode {
 
     public abstract DynamicObject executeGetThreadLocalsObject(VirtualFrame frame);
 

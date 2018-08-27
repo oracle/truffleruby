@@ -11,8 +11,6 @@ package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
@@ -26,31 +24,29 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.objects.MetaClassNode;
-import org.truffleruby.language.objects.MetaClassNodeGen;
 
 /**
  * Caches {@link ModuleOperations#lookupMethodCached(DynamicObject, String, DeclarationContext)}
  * on an actual instance.
  */
-@NodeChildren({ @NodeChild("self"), @NodeChild("name") })
-public abstract class LookupMethodNode extends RubyNode {
+public abstract class LookupMethodNode extends RubyBaseNode {
 
     private final boolean ignoreVisibility;
     private final boolean onlyLookupPublic;
 
-    @Child private MetaClassNode metaClassNode = MetaClassNodeGen.create(null);
+    @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
     public static LookupMethodNode create() {
-        return LookupMethodNodeGen.create(false, false, null, null);
+        return LookupMethodNodeGen.create(false, false);
     }
 
     public static LookupMethodNode createIgnoreVisibility() {
-        return LookupMethodNodeGen.create(true, false, null, null);
+        return LookupMethodNodeGen.create(true, false);
     }
 
     public LookupMethodNode(boolean ignoreVisibility, boolean onlyLookupPublic) {

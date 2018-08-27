@@ -9,25 +9,22 @@
  */
 package org.truffleruby.language.methods;
 
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.cast.ProcOrNullNode;
 import org.truffleruby.core.cast.ProcOrNullNodeGen;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.RubyArguments;
 
-@NodeChildren({
-        @NodeChild("method"),
-        @NodeChild("arguments"),
-        @NodeChild("block")
-})
-public abstract class CallBoundMethodNode extends RubyNode {
+public abstract class CallBoundMethodNode extends RubyBaseNode {
 
-    @Child private CallInternalMethodNode callInternalMethodNode = CallInternalMethodNodeGen.create(null, null);
+    @Child private CallInternalMethodNode callInternalMethodNode = CallInternalMethodNode.create();
     @Child private ProcOrNullNode procOrNullNode = ProcOrNullNodeGen.create(null);
+
+    public static CallBoundMethodNode create() {
+        return CallBoundMethodNodeGen.create();
+    }
 
     public abstract Object executeCallBoundMethod(DynamicObject method, Object[] arguments, Object block);
 

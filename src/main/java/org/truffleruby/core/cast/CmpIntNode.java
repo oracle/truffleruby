@@ -22,41 +22,28 @@ package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 /**
  * This is a port of MRI's rb_cmpint, as taken from RubyComparable and broken out into specialized nodes.
  */
+public abstract class CmpIntNode extends RubyBaseNode {
 
-@NodeChildren({
-    @NodeChild(value = "value"),
-    @NodeChild(value = "receiver"),
-    @NodeChild(value = "other")
-})
-public abstract class CmpIntNode extends RubyNode {
+    public static CmpIntNode create() {
+        return CmpIntNodeGen.create();
+    }
 
-    public abstract int executeCmpInt(VirtualFrame frame, Object cmpResult, Object a, Object b);
+    public abstract int executeCmpInt(Object cmpResult, Object a, Object b);
 
     @Specialization
     public int cmpInt(int value, Object receiver, Object other) {
-        if (value > 0) {
-            return 1;
-        }
-
-        if (value < 0) {
-            return -1;
-        }
-
-        return 0;
+        return value;
     }
 
     @Specialization
@@ -94,7 +81,7 @@ public abstract class CmpIntNode extends RubyNode {
             "!isLong(value)",
             "!isRubyBignum(value)",
             "!isNil(value)" })
-    public int cmpObject(VirtualFrame frame, Object value, Object receiver, Object other,
+    public int cmpObject(Object value, Object receiver, Object other,
             @Cached("createPrivate()") CallDispatchHeadNode gtNode,
             @Cached("createPrivate()") CallDispatchHeadNode ltNode,
             @Cached("create()") BooleanCastNode gtCastNode,

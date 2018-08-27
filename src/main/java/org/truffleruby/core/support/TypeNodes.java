@@ -26,10 +26,8 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.objects.IsANode;
-import org.truffleruby.language.objects.IsANodeGen;
 import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.LogicalClassNode;
-import org.truffleruby.language.objects.LogicalClassNodeGen;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
 import org.truffleruby.language.objects.ObjectIVarGetNodeGen;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
@@ -54,7 +52,7 @@ public abstract class TypeNodes {
     @CoreMethod(names = "object_kind_of?", onSingleton = true, required = 2)
     public static abstract class ObjectKindOfNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private IsANode isANode = IsANodeGen.create(null, null);
+        @Child private IsANode isANode = IsANode.create();
 
         @Specialization
         public boolean objectKindOf(Object object, DynamicObject rubyClass) {
@@ -66,7 +64,7 @@ public abstract class TypeNodes {
     @CoreMethod(names = "object_class", onSingleton = true, required = 1)
     public static abstract class VMObjectClassNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private LogicalClassNode classNode = LogicalClassNodeGen.create(null);
+        @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
         @Specialization
         public DynamicObject objectClass(VirtualFrame frame, Object object) {
@@ -171,7 +169,7 @@ public abstract class TypeNodes {
         }
 
         protected ObjectIVarGetNode createObjectIVarGetNode() {
-            return ObjectIVarGetNodeGen.create(false, null, null);
+            return ObjectIVarGetNodeGen.create(false);
         }
 
     }
@@ -186,7 +184,7 @@ public abstract class TypeNodes {
         }
 
         protected ObjectIVarSetNode createObjectIVarSetNode() {
-            return ObjectIVarSetNodeGen.create(false, null, null, null);
+            return ObjectIVarSetNodeGen.create(false);
         }
 
     }

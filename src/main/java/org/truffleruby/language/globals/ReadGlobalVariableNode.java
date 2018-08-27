@@ -30,7 +30,7 @@ public abstract class ReadGlobalVariableNode extends RubyNode {
 
     @Specialization(guards = "storage.isSimple()")
     public Object read(@Cached("getStorage()") GlobalVariableStorage storage,
-            @Cached("createSimpleNode()") ReadSimpleGlobalVariableNode simpleNode) {
+            @Cached("create(storage)") ReadSimpleGlobalVariableNode simpleNode) {
         return simpleNode.execute();
     }
 
@@ -50,10 +50,6 @@ public abstract class ReadGlobalVariableNode extends RubyNode {
         return yieldNode.dispatch(storage.getGetter(), BindingNodes.createBinding(getContext(), frame.materialize()));
     }
 
-    protected ReadSimpleGlobalVariableNode createSimpleNode() {
-        return ReadSimpleGlobalVariableNodeGen.create(getStorage());
-    }
-
     protected int getterArity(GlobalVariableStorage storage) {
         return Layouts.PROC.getSharedMethodInfo(storage.getGetter()).getArity().getArityNumber();
     }
@@ -69,7 +65,7 @@ public abstract class ReadGlobalVariableNode extends RubyNode {
             definedNode = insert(IsDefinedGlobalVariableNode.create(name));
         }
 
-        return definedNode.execute(frame);
+        return definedNode.executeIsDefined(frame);
     }
 
 }

@@ -31,7 +31,7 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
     @Specialization(guards = "storage.isSimple()")
     public Object write(VirtualFrame frame, Object value,
             @Cached("getStorage()") GlobalVariableStorage storage,
-            @Cached("createSimpleNode()") WriteSimpleGlobalVariableNode simpleNode) {
+            @Cached("create(storage)") WriteSimpleGlobalVariableNode simpleNode) {
         simpleNode.execute(value);
         return value;
     }
@@ -56,10 +56,6 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
 
     protected int setterArity(GlobalVariableStorage storage) {
         return Layouts.PROC.getSharedMethodInfo(storage.getSetter()).getArity().getArityNumber();
-    }
-
-    protected WriteSimpleGlobalVariableNode createSimpleNode() {
-        return WriteSimpleGlobalVariableNodeGen.create(getStorage(), null);
     }
 
     protected GlobalVariableStorage getStorage() {

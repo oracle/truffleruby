@@ -12,25 +12,22 @@ package org.truffleruby.language.supercall;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.MetaClassNode;
-import org.truffleruby.language.objects.MetaClassNodeGen;
 
 /**
  * Caches {@link ModuleOperations#lookupSuperMethod}
  * on an actual instance.
  */
-@NodeChild("self")
-public abstract class LookupSuperMethodNode extends RubyNode {
+public abstract class LookupSuperMethodNode extends RubyBaseNode {
 
     @Child private MetaClassNode metaClassNode;
 
@@ -69,7 +66,7 @@ public abstract class LookupSuperMethodNode extends RubyNode {
     protected DynamicObject metaClass(Object object) {
         if (metaClassNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            metaClassNode = insert(MetaClassNodeGen.create(null));
+            metaClassNode = insert(MetaClassNode.create());
         }
         return metaClassNode.executeMetaClass(object);
     }

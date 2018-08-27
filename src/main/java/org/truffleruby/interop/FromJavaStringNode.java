@@ -10,7 +10,6 @@
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
@@ -18,13 +17,12 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
-@NodeChild(value = "value", type = RubyNode.class)
-public abstract class FromJavaStringNode extends RubyNode {
+public abstract class FromJavaStringNode extends RubyBaseNode {
 
     public static FromJavaStringNode create() {
-        return FromJavaStringNodeGen.create(null);
+        return FromJavaStringNodeGen.create();
     }
 
     public abstract DynamicObject executeFromJavaString(Object value);

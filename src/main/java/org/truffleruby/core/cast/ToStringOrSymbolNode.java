@@ -29,8 +29,6 @@ public abstract class ToStringOrSymbolNode extends RubyNode {
 
     @Child private CallDispatchHeadNode toStr = CallDispatchHeadNode.createPrivate();
 
-    public abstract DynamicObject executeToSymbolOrString(VirtualFrame frame, Object name);
-
     @Specialization(guards = "isRubySymbol(symbol)")
     public DynamicObject coerceRubySymbol(DynamicObject symbol) {
         return symbol;

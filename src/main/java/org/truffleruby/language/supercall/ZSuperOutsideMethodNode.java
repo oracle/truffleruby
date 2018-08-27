@@ -22,7 +22,7 @@ public class ZSuperOutsideMethodNode extends RubyNode {
 
     final boolean insideDefineMethod;
     
-    @Child private LookupSuperMethodNode lookupSuperMethodNode = LookupSuperMethodNodeGen.create(null);
+    @Child private LookupSuperMethodNode lookupSuperMethodNode = LookupSuperMethodNodeGen.create();
 
     public ZSuperOutsideMethodNode(boolean insideDefineMethod) {
         this.insideDefineMethod = insideDefineMethod;

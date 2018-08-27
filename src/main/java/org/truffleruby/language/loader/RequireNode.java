@@ -20,7 +20,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.ForeignAccess;
 import com.oracle.truffle.api.interop.InteropException;
@@ -40,7 +39,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.control.JavaException;
@@ -52,8 +51,7 @@ import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
 
-@NodeChild("feature")
-public abstract class RequireNode extends RubyNode {
+public abstract class RequireNode extends RubyBaseNode {
 
     @Child private IndirectCallNode callNode = IndirectCallNode.create();
     @Child private CallDispatchHeadNode isInLoadedFeatures = CallDispatchHeadNode.createPrivate();
@@ -66,7 +64,7 @@ public abstract class RequireNode extends RubyNode {
     @Child private WarningNode warningNode;
 
     public static RequireNode create() {
-        return RequireNodeGen.create(null);
+        return RequireNodeGen.create();
     }
 
     public abstract boolean executeRequire(String feature);

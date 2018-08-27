@@ -45,7 +45,7 @@ public abstract class FiberNodes {
         public Object singleValue(VirtualFrame frame, Object[] args) {
             if (singleValueCastNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                singleValueCastNode = insert(SingleValueCastNodeGen.create(null));
+                singleValueCastNode = insert(SingleValueCastNodeGen.create());
             }
             return singleValueCastNode.executeSingleValue(frame, args);
         }

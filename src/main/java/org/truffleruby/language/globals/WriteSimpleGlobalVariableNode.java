@@ -1,19 +1,21 @@
 package org.truffleruby.language.globals;
 
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
-@NodeChild(value = "value")
-public abstract class WriteSimpleGlobalVariableNode extends RubyNode {
+public abstract class WriteSimpleGlobalVariableNode extends RubyBaseNode {
 
     protected final GlobalVariableStorage storage;
     @Child protected ReferenceEqualNode referenceEqualNode = ReferenceEqualNode.create();
     @Child protected WriteBarrierNode writeBarrierNode = WriteBarrierNode.create();
+
+    public static WriteSimpleGlobalVariableNode create(GlobalVariableStorage storage) {
+        return WriteSimpleGlobalVariableNodeGen.create(storage);
+    }
 
     public WriteSimpleGlobalVariableNode(GlobalVariableStorage storage) {
         this.storage = storage;

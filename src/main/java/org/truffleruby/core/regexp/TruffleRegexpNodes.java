@@ -44,16 +44,14 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -171,21 +169,14 @@ public class TruffleRegexpNodes {
         }
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "regexp"),
-            @NodeChild(type = RubyNode.class, value = "source"),
-            @NodeChild(type = RubyNode.class, value = "matcher"),
-            @NodeChild(type = RubyNode.class, value = "startPos"),
-            @NodeChild(type = RubyNode.class, value = "range"),
-            @NodeChild(type = RubyNode.class, value = "onlyAtStart")
-    })
-    public static abstract class MatchNode extends RubyNode {
+    public static abstract class MatchNode extends RubyBaseNode {
+
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
-        @Child CallDispatchHeadNode dupNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.createPrivate();
 
         public static MatchNode create() {
-            return MatchNodeGen.create(null, null, null, null, null, null);
+            return MatchNodeGen.create();
         }
 
         public abstract DynamicObject execute(DynamicObject regexp, DynamicObject string, Matcher matcher,

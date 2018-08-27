@@ -15,6 +15,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.RubyNode;
 
 public class SingleBlockArgNode extends RubyNode {
+
     private final ConditionProfile emptyArgsProfile = ConditionProfile.createBinaryProfile();
     private final ConditionProfile singleArgProfile = ConditionProfile.createBinaryProfile();
 

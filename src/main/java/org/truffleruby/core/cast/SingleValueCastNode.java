@@ -9,18 +9,16 @@
  */
 package org.truffleruby.core.cast;
 
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
-@NodeChild(value = "child", type = RubyNode.class)
 @ImportStatic(value = { RubyGuards.class })
-public abstract class SingleValueCastNode extends RubyNode {
+public abstract class SingleValueCastNode extends RubyBaseNode {
 
     public abstract Object executeSingleValue(VirtualFrame frame, Object[] args);
 

@@ -27,7 +27,7 @@ public final class CachedForeignDispatchNode extends CachedDispatchNode {
     public CachedForeignDispatchNode(RubyContext context, DispatchNode next, Object cachedName) {
         super(context, cachedName, next, DispatchAction.CALL_METHOD);
         name = cachedName.toString();
-        outgoingForeignCallNode = OutgoingForeignCallNodeGen.create(name, null, null);
+        outgoingForeignCallNode = OutgoingForeignCallNodeGen.create(name);
     }
 
     @Override
@@ -55,7 +55,7 @@ public final class CachedForeignDispatchNode extends CachedDispatchNode {
     }
 
     private Object doDispatch(VirtualFrame frame, TruffleObject receiverObject, Object[] arguments) {
-        return outgoingForeignCallNode.executeCall(frame, receiverObject, arguments);
+        return outgoingForeignCallNode.executeCall(receiverObject, arguments);
     }
 
 }
