@@ -7,7 +7,12 @@ describe "Etc.group" do
 
   platform_is_not :windows do
     it "returns a Etc::Group struct" do
-      Etc.group.should be_an_instance_of(Etc::Group)
+      group = Etc.group
+      begin
+        group.should be_an_instance_of(Etc::Group)
+      ensure
+        Etc.endgrent
+      end
     end
 
     it "raises a RuntimeError for parallel iteration" do
