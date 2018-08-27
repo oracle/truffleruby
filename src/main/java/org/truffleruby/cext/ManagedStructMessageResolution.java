@@ -46,7 +46,7 @@ public class ManagedStructMessageResolution {
     @Resolve(message = "WRITE")
     public static abstract class ForeignWriteNode extends Node {
 
-        @Child ObjectIVarSetNode writeObjectFieldNode = ObjectIVarSetNodeGen.create(false, null, null, null);
+        @Child ObjectIVarSetNode writeObjectFieldNode = ObjectIVarSetNodeGen.create(false);
         private final BranchProfile notStringProfile = BranchProfile.create();
 
         protected Object access(DynamicObject object, Object name, Object value) {
