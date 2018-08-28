@@ -235,7 +235,7 @@ class TestCSV::Parsing < TestCSV
 
   def assert_parse_errors_out(*args)
     assert_raise(CSV::MalformedCSVError) do
-      Timeout.timeout(0.2) do
+      Timeout.timeout(0.5) do
         CSV.parse(*args)
         fail("Parse didn't error out")
       end
