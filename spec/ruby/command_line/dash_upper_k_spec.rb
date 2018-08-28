@@ -4,7 +4,7 @@ describe 'The -K command line option' do
   before :each do
     @test_string = "print [__ENCODING__&.name, Encoding.default_external&.name, Encoding.default_internal&.name].inspect"
   end
-  
+
   describe 'sets __ENCODING__ and Encoding.default_external' do
     it "to Encoding::ASCII_8BIT with -Ka" do
       ruby_exe(@test_string, options: '-Ka').should ==
@@ -15,7 +15,7 @@ describe 'The -K command line option' do
       ruby_exe(@test_string, options: '-KA').should ==
         [Encoding::ASCII_8BIT.name, Encoding::ASCII_8BIT.name, nil].inspect
     end
-    
+
     it "to Encoding::ASCII_8BIT with -Kn" do
       ruby_exe(@test_string, options: '-Kn').should ==
         [Encoding::ASCII_8BIT.name, Encoding::ASCII_8BIT.name, nil].inspect
@@ -58,7 +58,8 @@ describe 'The -K command line option' do
   end
 
   it "ignores unknown codes" do
+    locale = Encoding.find('locale')
     ruby_exe(@test_string, options: '-KZ').should ==
-      [Encoding::UTF_8.name, Encoding::UTF_8.name, nil].inspect
+      [Encoding::UTF_8.name, locale.name, nil].inspect
   end
 end

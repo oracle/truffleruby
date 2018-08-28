@@ -4,6 +4,6 @@ slow:Signal.trap the special EXIT signal code accepts the EXIT code
 slow:Signal.trap the special EXIT signal code runs the proc before at_exit handlers
 slow:Signal.trap the special EXIT signal code can unset the handler
 slow:Signal.trap allows to register a handler for all known signals, except reserved signals
-slow(not slow, only fails on JDK10, where SIGUSR1 is no longer reserved):Signal.trap raises ArgumentError for reserved signal SIGUSR1
+slow(not slow, only fails on JDK10, where SIGUSR1 is no longer reserved):Signal.trap raises ArgumentError for reserved signal: SIGUSR1
 slow:Signal.trap returns 'DEFAULT' for the initial SIGINT handler
 slow:Signal.trap accepts 'SYSTEM_DEFAULT' and uses the OS handler for SIGPIPE

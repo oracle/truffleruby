@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require 'etc'
 
-platform_is :windows do
+platform_is_not :windows do
   describe "Etc.sysconf" do
     def should_be_integer_or_nil(value)
       if value.nil?
@@ -13,7 +13,7 @@ platform_is :windows do
 
     it "returns the value of POSIX.1 system configuration variables" do
       Etc.sysconf(Etc::SC_ARG_MAX).should be_kind_of(Integer)
-      Etc.sysconf(Etc::SC_CHILD_MAX).should be_kind_of(Integer)
+      should_be_integer_or_nil(Etc.sysconf(Etc::SC_CHILD_MAX))
       Etc.sysconf(Etc::SC_HOST_NAME_MAX).should be_kind_of(Integer)
       Etc.sysconf(Etc::SC_LOGIN_NAME_MAX).should be_kind_of(Integer)
       Etc.sysconf(Etc::SC_NGROUPS_MAX).should be_kind_of(Integer)
