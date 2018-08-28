@@ -15,10 +15,12 @@ import com.oracle.truffle.api.object.dsl.Layout;
 @Layout(objectTypeSuperclass = ManagedStructObjectType.class, implicitCastIntToLong = true)
 public interface ManagedStructLayout {
 
-    DynamicObject createManagedStruct();
+    DynamicObject createManagedStruct(Object type);
 
     boolean isManagedStruct(Object object);
 
     boolean isManagedStruct(DynamicObject object);
+
+    Object getType(DynamicObject object);
 
 }
