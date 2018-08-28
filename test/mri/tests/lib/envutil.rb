@@ -40,7 +40,7 @@ module EnvUtil
   DEFAULT_SIGNALS.delete("TERM") if /mswin|mingw/ =~ RUBY_PLATFORM
 
   def invoke_ruby(args, stdin_data = "", capture_stdout = false, capture_stderr = false,
-                  encoding: nil, timeout: 10, reprieve: 1, timeout_error: Timeout::Error,
+                  encoding: nil, timeout: 15, reprieve: 1, timeout_error: Timeout::Error,
                   stdout_filter: nil, stderr_filter: nil,
                   signal: :TERM,
                   rubybin: EnvUtil.rubybin,

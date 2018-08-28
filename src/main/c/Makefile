@@ -26,7 +26,7 @@ RBCONFIG_MKMF := $(ROOT)/lib/truffle/rbconfig-for-mkmf.rb
 PREPROCESS := $(ROOT)/lib/cext/preprocess.rb
 MKMF := $(ROOT)/lib/mri/mkmf.rb
 BASIC_EXTCONF_DEPS := $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(RBCONFIG) $(RBCONFIG_MKMF) $(PREPROCESS) $(MKMF)
-# These 2 libraries are needed for try_link() in extconf.rb
+# These libraries are needed for try_link() in extconf.rb
 EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) $(SULONG_MOCK) $(RUBY_O) $(RUBY_LIBRARY)
 
 IF_EXTCONF_FAIL := ( echo "`pwd`/extconf.rb failed:" 1>&2 && cat mkmf.log && false )
@@ -73,7 +73,7 @@ $(TRUFFLE_POSIX): truffleposix/truffleposix.$(DLEXT)
 	cp $< $@
 
 # sulongmock.o
-sulongmock/sulongmock.c: $(GENERATE_SULONG_MOCK) $(SULONG_HEADERS)
+sulongmock/sulongmock.c: $(GENERATE_SULONG_MOCK) $(SULONG_HEADERS) $(TRUFFLE_POSIX)
 	$(RUBY) $(GENERATE_SULONG_MOCK)
 
 $(SULONG_MOCK): sulongmock/sulongmock.c
