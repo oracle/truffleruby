@@ -142,6 +142,10 @@
       <property name="message" value="Use a BranchProfile or transferToInterpreterAndInvalidate() instead, which allows moving code around the transfer."/>
     </module>
     <module name="RegexpSinglelineJava">
+      <property name="format" value="CompilerAsserts.neverPartOfCompilation\(\)"/>
+      <property name="message" value="Use a @TruffleBoundary instead, which does not fail compilation if called in PE code."/>
+    </module>
+    <module name="RegexpSinglelineJava">
       <property name="format" value=",\s*@Cached"/>
       <property name="message" value="@Cached arguments should be on their own line"/>
     </module>
