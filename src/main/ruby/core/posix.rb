@@ -372,7 +372,7 @@ module Truffle::POSIX
   end
   
   # #write_string (either #write_string_native or #write_string_polyglot) is
-  # called by IO::InternalBuffer#empty_to
+  # called by IO#syswrite, IO#write, and IO::InternalBuffer#empty_to
 
   def self.write_string_native(io, string, continue_on_eagain)
     fd = io.descriptor
