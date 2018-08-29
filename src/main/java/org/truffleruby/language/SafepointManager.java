@@ -10,7 +10,6 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
@@ -61,9 +60,8 @@ public class SafepointManager {
         this.context = context;
     }
 
+    @TruffleBoundary
     public void enterThread() {
-        CompilerAsserts.neverPartOfCompilation();
-
         lock.lock();
         try {
             int phase = phaser.register();
@@ -74,9 +72,8 @@ public class SafepointManager {
         }
     }
 
+    @TruffleBoundary
     public void leaveThread() {
-        CompilerAsserts.neverPartOfCompilation();
-
         phaser.arriveAndDeregister();
         runningThreads.remove(Thread.currentThread());
     }

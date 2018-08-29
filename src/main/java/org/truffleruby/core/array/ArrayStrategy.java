@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
@@ -94,8 +93,8 @@ public abstract class ArrayStrategy {
     @Override
     public abstract String toString();
 
+    @TruffleBoundary
     public ArrayStrategy generalize(ArrayStrategy other) {
-        CompilerAsserts.neverPartOfCompilation();
         if (other == this) {
             return this;
         }
@@ -131,9 +130,8 @@ public abstract class ArrayStrategy {
             ObjectArrayStrategy.INSTANCE
     };
 
+    @TruffleBoundary
     public static ArrayStrategy ofStore(Object store) {
-        CompilerAsserts.neverPartOfCompilation();
-
         if (store == null) {
             return NullArrayStrategy.INSTANCE;
         } else if (store instanceof int[]) {
@@ -168,9 +166,8 @@ public abstract class ArrayStrategy {
         }
     }
 
+    @TruffleBoundary
     public static ArrayStrategy of(DynamicObject array) {
-        CompilerAsserts.neverPartOfCompilation();
-
         if (!RubyGuards.isRubyArray(array)) {
             return FallbackArrayStrategy.INSTANCE;
         }
@@ -181,8 +178,8 @@ public abstract class ArrayStrategy {
     /**
      * Use together with {@link #specializesFor(Object)}, not {@link #accepts(Object)}.
      */
+    @TruffleBoundary
     public static ArrayStrategy forValue(Object value) {
-        CompilerAsserts.neverPartOfCompilation();
         if (value instanceof Integer) {
             return IntArrayStrategy.INSTANCE;
         } else if (value instanceof Long) {

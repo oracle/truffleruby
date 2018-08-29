@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -34,8 +33,6 @@ public abstract class ArrayLiteralNode extends RubyNode {
     }
 
     protected DynamicObject makeGeneric(VirtualFrame frame, Object[] alreadyExecuted) {
-        CompilerAsserts.neverPartOfCompilation();
-
         final ArrayLiteralNode newNode = new ObjectArrayLiteralNode(values);
         newNode.unsafeSetSourceSection(getSourceIndexLength());
         replace(newNode);

@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.format;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
@@ -110,7 +109,6 @@ public abstract class FormatNode extends RubyBaseNode {
     }
 
     protected void setOutput(VirtualFrame frame, Object output) {
-        CompilerAsserts.neverPartOfCompilation();
         frame.setObject(FormatFrameDescriptor.OUTPUT_SLOT, output);
     }
 
