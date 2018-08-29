@@ -405,7 +405,12 @@ module Truffle::POSIX
   def self.write_string_polyglot(io, string, continue_on_eagain)
     fd = io.descriptor
     if fd == 1 || fd == 2
-      # Ignore continue_on_eagain for polyglot writes
+      
+      # continue_on_eagain is set for IO::InternalBuffer#empty_to, for IO#write
+      # if @sync, but not for IO#syswrite. What happens in a polyglot stream
+      # if we get EAGAIN and EWOULDBLOCK? We should try again if we do and
+      # continue_on_eagain.
+      
       Truffle.invoke_primitive :io_write_polyglot, fd, string
     else
       write_string_native(io, string, continue_on_eagain)
@@ -436,7 +441,11 @@ module Truffle::POSIX
   def self.write_string_nonblock_polyglot(io, string)
     fd = io.descriptor
     if fd == 1 || fd == 2
-      # Ignore non-blocking for polyglot writes
+      
+      # We only come here from IO#write_nonblock. What happens in a polyglot
+      # stream if we get EAGAIN and EWOULDBLOCK? We should try again if we
+      # we get them.
+      
       Truffle.invoke_primitive :io_write_polyglot, fd, string
     else
       write_string_nonblock_native(io, string)
