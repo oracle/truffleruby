@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.format;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
