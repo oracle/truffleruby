@@ -38,8 +38,8 @@ import java.util.function.Function;
 
 public abstract class ModuleOperations {
 
+    @TruffleBoundary
     public static boolean includesModule(DynamicObject module, DynamicObject other) {
-        CompilerAsserts.neverPartOfCompilation();
         assert RubyGuards.isRubyModule(module);
         //assert RubyGuards.isRubyModule(other);
 
@@ -60,6 +60,7 @@ public abstract class ModuleOperations {
         return includesModule(ancestors, module);
     }
 
+    @TruffleBoundary
     public static boolean canBindMethodTo(DynamicObject origin, DynamicObject module) {
         assert RubyGuards.isRubyModule(origin);
         assert RubyGuards.isRubyModule(module);
