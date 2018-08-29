@@ -307,23 +307,8 @@ module Truffle::POSIX
   end
 
   TRY_AGAIN_ERRNOS = [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno]
-  
-  # Used in the non-polyglot version of IO::InternalBuffer#fill_read
 
-  def self.read_blocking(io, count)
-    while true # rubocop:disable Lint/LiteralInCondition
-      buffer, bytes_read, errno = read_bytes(io, count)
-      return [buffer, bytes_read] if errno == 0
-      if TRY_AGAIN_ERRNOS.include? errno
-        IO.select([io])
-      else
-        Errno.handle
-      end
-    end
-  end
-
-  # Used in IO#readpartial and the polyglot version of
-  # IO::InternalBuffer#fill_read
+  # Used in IO#readpartial and IO::InternalBuffer#fill_read
   
   def self.read_string_blocking(io, count)
     while true # rubocop:disable Lint/LiteralInCondition
@@ -356,7 +341,16 @@ module Truffle::POSIX
   # by IO#sysread
 
   def self.read_string_native(io, length)
-    buffer, bytes_read, errno = read_bytes(io, length)
+    fd = io.descriptor
+    buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
+    bytes_read = Truffle::POSIX.read(fd, buffer, length)
+    if bytes_read < 0
+      buffer, bytes_read, errno = nil, bytes_read, Errno.errno
+    elsif bytes_read == 0 # EOF
+      buffer, bytes_read, errno = nil, 0, 0
+    else
+      buffer, bytes_read, errno = buffer, bytes_read, 0
+    end
 
     if bytes_read < 0
       [nil, errno]
@@ -465,20 +459,4 @@ module Truffle::POSIX
     end
   end
   
-  private
-  
-  # Used by #read_blocking and #read_string_native
-  
-  def self.read_bytes(io, length)
-    fd = io.descriptor
-    buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
-    bytes_read = Truffle::POSIX.read(fd, buffer, length)
-    if bytes_read < 0
-      [nil, bytes_read, Errno.errno]
-    elsif bytes_read == 0 # EOF
-      [nil, 0, 0]
-    else
-      [buffer, bytes_read, 0]
-    end
-  end
 end
