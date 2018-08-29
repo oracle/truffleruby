@@ -1998,6 +1998,20 @@ EOS
 
     distros.each do |distro|
       managers.each do |manager|
+        puts '**********************************'
+        puts '**********************************'
+        puts '**********************************'
+        distros.each do |d|
+          managers.each do |m|
+            print "#{d} #{m}"
+            print "     <---" if [d, m] == [distro, manager]
+            puts
+          end
+        end
+        puts '**********************************'
+        puts '**********************************'
+        puts '**********************************'
+        
         docker 'build', distro, manager, *args
       end
     end
@@ -2095,21 +2109,6 @@ EOS
       tarball = standalone_tarball
     end
 
-    if defined?(tarball)
-      tarball_base = File.basename(tarball)
-
-      graalvm_version = /([ce]e-)?(linux-amd64-)?\d+(\.\d+)*(-rc\d+)?(\-dev)?(-\h+)?(\.\h+)?(-\h+)?/.match(tarball_base).to_s
-
-      # Test build tarballs may have a -bn suffix, which isn't really part of the version string but matches the hex part in some cases
-      graalvm_version = graalvm_version.gsub(/-b\d+\Z/, '')
-
-      # Some test builds have the platform in the middle
-      graalvm_version = graalvm_version.gsub(/-linux-amd64-/, '-')
-
-      # Some test builds have a date and time instead of -dev
-      graalvm_version = graalvm_version.gsub(/-\h+\.\h+-\h+/, '-dev')
-    end
-
     check_post_install_message = [
       "RUN grep 'The Ruby openssl C extension needs to be recompiled on your system to work with the installed libssl' install.log",
       "RUN grep '/jre/languages/ruby/lib/truffle/post_install_hook.sh' install.log"
@@ -2117,14 +2116,16 @@ EOS
 
     case install_method
     when :public
-      lines.push "RUN curl -OL https://github.com/oracle/graal/releases/download/vm-#{public_version}/graalvm-ce-#{public_version}-linux-amd64.tar.gz"
-      lines.push "RUN tar -zxf graalvm-ce-#{public_version}-linux-amd64.tar.gz"
-      lines.push "ENV D_GRAALVM_BASE=/test/graalvm-ce-#{public_version}"
-      lines.push "RUN $D_GRAALVM_BASE/bin/gu install org.graalvm.ruby | tee install.log"
-      lines.push(*check_post_install_message)
-      lines.push "ENV D_RUBY_BASE=$D_GRAALVM_BASE/jre/languages/ruby"
-      lines.push "ENV D_RUBY_BIN=$D_GRAALVM_BASE/bin"
-      lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if run_post_install_hook
+      graalvm_tarball = "graalvm-ce-#{public_version}-linux-amd64.tar.gz"
+      lines.push "RUN curl -OL https://github.com/oracle/graal/releases/download/vm-#{public_version}/#{graalvm_tarball}"
+      lines.push "RUN tar -zxf #{graalvm_tarball}"
+      graalvm_base = "/test/`tar -ztf #{graalvm_tarball} | head -1 | cut -f 1 -d /`"
+      lines.push "RUN #{graalvm_base}/bin/gu install org.graalvm.ruby | tee install.log"
+      lines.push *check_post_install_message
+      ruby_base = "#{graalvm_base}/jre/languages/ruby"
+      graalvm_bin = "#{graalvm_base}/bin"
+      ruby_bin = graalvm_bin
+      lines.push "RUN PATH=#{graalvm_bin}:$PATH #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
     when :graalvm
       FileUtils.copy graalvm_tarball, docker_dir
       FileUtils.copy graalvm_component, docker_dir
@@ -2133,20 +2134,21 @@ EOS
       lines.push "COPY #{graalvm_tarball} /test/"
       lines.push "COPY #{graalvm_component} /test/"
       lines.push "RUN tar -zxf #{graalvm_tarball}"
-      lines.push "ENV D_GRAALVM_BASE=/test/graalvm-#{graalvm_version}"
-      lines.push "RUN $D_GRAALVM_BASE/bin/gu install --file /test/#{graalvm_component} | tee install.log"
-      lines.push(*check_post_install_message)
-      lines.push "ENV D_RUBY_BASE=$D_GRAALVM_BASE/jre/languages/ruby"
-      lines.push "ENV D_RUBY_BIN=$D_GRAALVM_BASE/bin"
-      lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if run_post_install_hook
+      graalvm_base = "/test/`tar -ztf #{graalvm_tarball} | head -1 | cut -f 1 -d /`"
+      ruby_base = "#{graalvm_base}/jre/languages/ruby"
+      graalvm_bin = "#{graalvm_base}/bin"
+      ruby_bin = graalvm_bin
+      lines.push "RUN #{graalvm_bin}/gu install --file /test/#{graalvm_component} | tee install.log"
+      lines.push *check_post_install_message
+      lines.push "RUN PATH=#{graalvm_bin}:$PATH #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
     when :standalone
       FileUtils.copy standalone_tarball, docker_dir
       standalone_tarball = File.basename(standalone_tarball)
       lines.push "COPY #{standalone_tarball} /test/"
       lines.push "RUN tar -zxf #{standalone_tarball}"
-      lines.push "ENV D_RUBY_BASE=/test/#{File.basename(standalone_tarball, '.tar.gz')}"
-      lines.push "ENV D_RUBY_BIN=$D_RUBY_BASE/bin"
-      lines.push "RUN PATH=$D_RUBY_BIN:$PATH $D_RUBY_BASE/lib/truffle/post_install_hook.sh" if run_post_install_hook
+      ruby_base = "/test/`tar -ztf #{standalone_tarball} | head -1 | cut -f 1 -d /`"
+      ruby_bin = "#{ruby_base}/bin"
+      lines.push "RUN PATH=#{ruby_bin}:$PATH #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
     when :source
       lines.push "RUN git clone --depth 1 https://github.com/graalvm/mx.git"
       lines.push "ENV PATH=$PATH:/test/mx"
@@ -2161,13 +2163,13 @@ EOS
       lines.push "RUN cd graal/compiler && mx build"
       lines.push "ENV JAVACMD=$JAVA_BIN"
       lines.push "ENV JAVA_OPTS='-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -Djvmci.class.path.append=/test/graal/compiler/mxbuild/dists/graal.jar'"
-      lines.push "ENV D_RUBY_BASE=/test/truffleruby"
-      lines.push "ENV D_RUBY_BIN=$D_RUBY_BASE/bin"
+      ruby_base = "/test/truffleruby"
+      ruby_bin = "#{ruby_base}/bin"
     end
 
     if rebuild_images
       if [:public, :graalvm].include?(install_method)
-        lines.push "RUN $D_GRAALVM_BASE/bin/gu rebuild-images ruby"
+        lines.push "RUN #{graalvm_base}/bin/gu rebuild-images ruby"
       else
         abort "can't rebuild images for a build not from public or from local GraalVM components"
       end
@@ -2175,10 +2177,8 @@ EOS
 
     case manager
     when :none
-      lines.push "ENV PATH=$D_RUBY_BASE/bin:$PATH"
-
       setup_env = lambda do |command|
-        command
+        "PATH=#{ruby_base}/bin:$PATH #{command}"
       end
     when :rbenv
       lines.push "RUN git clone --depth 1 https://github.com/rbenv/rbenv.git /home/test/.rbenv"
@@ -2186,7 +2186,7 @@ EOS
       lines.push "ENV PATH=/home/test/.rbenv/bin:$PATH"
       lines.push "RUN rbenv --version"
 
-      lines.push "RUN ln -s $D_RUBY_BASE /home/test/.rbenv/versions/truffleruby"
+      lines.push "RUN ln -s #{ruby_base} /home/test/.rbenv/versions/truffleruby"
       lines.push "RUN rbenv versions"
 
       prefix = 'eval "$(rbenv init -)" && rbenv shell truffleruby'
@@ -2200,7 +2200,7 @@ EOS
       lines.push "RUN bash -c 'source $CRUBY_SH && chruby --version'"
 
       lines.push "RUN mkdir /home/test/.rubies"
-      lines.push "RUN ln -s $D_RUBY_BASE /home/test/.rubies/truffleruby"
+      lines.push "RUN ln -s #{ruby_base} /home/test/.rubies/truffleruby"
       lines.push "RUN bash -c 'source $CRUBY_SH && chruby'"
 
       setup_env = lambda do |command|
@@ -2211,7 +2211,7 @@ EOS
       lines.push "ENV RVM_SCRIPT=/test/rvm/scripts/rvm"
       lines.push "RUN bash -c 'source $RVM_SCRIPT && rvm --version'"
 
-      lines.push "RUN bash -c 'source $RVM_SCRIPT && rvm mount $D_RUBY_BASE -n truffleruby'"
+      lines.push "RUN bash -c 'source $RVM_SCRIPT && rvm mount #{ruby_base} -n truffleruby'"
       lines.push "RUN bash -c 'source $RVM_SCRIPT && rvm list'"
 
       setup_env = lambda do |command|
@@ -2229,7 +2229,7 @@ EOS
 
     if basic_test || full_test
       configs.each do |config|
-        lines.push "RUN cp -r $D_RUBY_BASE/lib/ruby/gems /test/clean-gems"
+        lines.push "RUN cp -r #{ruby_base}/lib/ruby/gems /test/clean-gems"
 
         if config == '' && install_method != :source
           gem = "gem"
@@ -2246,8 +2246,8 @@ EOS
         lines.push "RUN " + setup_env["#{gem} install unf"]
         lines.push "RUN " + setup_env["ruby #{config} -runf -e 'raise unless defined?(UNF)'"]
 
-        lines.push "RUN rm -rf $D_RUBY_BASE/lib/ruby/gems"
-        lines.push "RUN mv /test/clean-gems $D_RUBY_BASE/lib/ruby/gems"
+        lines.push "RUN rm -rf #{ruby_base}/lib/ruby/gems"
+        lines.push "RUN mv /test/clean-gems #{ruby_base}/lib/ruby/gems"
       end
     end
 
@@ -2265,7 +2265,7 @@ EOS
         [':command_line', ':security', ':language', ':core', ':library', ':capi', ':library_cext', ':truffle'].each do |set|
           t_config = config.empty? ? '' : '-T' + config
           t_excludes = excludes.map { |e| '--excl-tag ' + e }.join(' ')
-          lines.push "RUN " + setup_env["ruby spec/mspec/bin/mspec --config spec/truffle.mspec -t $D_RUBY_BIN/ruby #{t_config} #{t_excludes} #{set}"]
+          lines.push "RUN " + setup_env["ruby spec/mspec/bin/mspec --config spec/truffle.mspec -t #{ruby_bin}/ruby #{t_config} #{t_excludes} #{set}"]
         end
       end
 
