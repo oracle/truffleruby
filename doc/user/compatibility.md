@@ -112,6 +112,20 @@ lines in front of the source before parsing it.
 
 The `erb` standard library has been modified to not use negative line numbers.
 
+#### Polyglot standard IO streams
+
+If you use standard IO streams provided by the Polyglot engine, via the
+`-Xpolyglot.stdio` option, reads and writes to file descriptors 1, 2 and 3 will
+be redirected to these streams. That means that other IO operations on these
+file descriptors, such as `isatty` may not be relevant for where these streams
+actually end up, and operations like `dup` may lose the connection to the
+polyglot stream. For example if you `$stdout.reopen`, as some logging frameworks
+do, you will get the native standard-out, not the polyglot out.
+
+Also, IO buffer drains, writes on IO objects with `sync` set, and
+`write_nonblock`, will not retry the write on `EAGAIN` and `EWOULDBLOCK`, as the
+streams do not provide a way to detect this.
+
 ## Features with very low performance
 
 #### Keyword arguments
