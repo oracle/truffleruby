@@ -357,6 +357,9 @@ module Truffle::POSIX
       [buffer, bytes_read, 0]
     end
   end
+  
+  # #read_string (either #read_string_native or #read_string_polyglot) is called
+  # by IO#sysread
 
   def self.read_string_native(io, length)
     buffer, bytes_read, errno = read_bytes(io, length)
@@ -369,6 +372,19 @@ module Truffle::POSIX
       [buffer.read_string(bytes_read), 0]
     end
   end
+  
+  def self.read_string_polyglot(io, length)
+    fd = io.descriptor
+    if fd == 0
+      read = Truffle.invoke_primitive :io_read_polyglot, length
+      [read, 0]
+    else
+      read_string_native(io, length)
+    end
+  end
+  
+  # #write_string (either #write_string_native or #write_string_polyglot) is
+  # called by IO::InternalBuffer#empty_to
 
   def self.write_string_native(io, string, continue_on_eagain)
     fd = io.descriptor
@@ -396,6 +412,19 @@ module Truffle::POSIX
     written
   end
 
+  def self.write_string_polyglot(io, string, continue_on_eagain)
+    fd = io.descriptor
+    if fd == 1 || fd == 2
+      # Ignore continue_on_eagain for polyglot writes
+      Truffle.invoke_primitive :io_write_polyglot, fd, string
+    else
+      write_string_native(io, string, continue_on_eagain)
+    end
+  end
+  
+  # #write_string_nonblock (either #write_string_nonblock_native or
+  # #write_string_nonblock_polylgot) is called by IO#write_nonblock
+
   def self.write_string_nonblock_native(io, string)
     fd = io.descriptor
     length = string.bytesize
@@ -413,26 +442,6 @@ module Truffle::POSIX
     end
     written
   end
-  
-  def self.read_string_polyglot(io, length)
-    fd = io.descriptor
-    if fd == 0
-      read = Truffle.invoke_primitive :io_read_polyglot, length
-      [read, 0]
-    else
-      read_string_native(io, length)
-    end
-  end
-
-  def self.write_string_polyglot(io, string, continue_on_eagain)
-    fd = io.descriptor
-    if fd == 1 || fd == 2
-      # Ignore continue_on_eagain for polyglot writes
-      Truffle.invoke_primitive :io_write_polyglot, fd, string
-    else
-      write_string_native(io, string, continue_on_eagain)
-    end
-  end
 
   def self.write_string_nonblock_polyglot(io, string)
     fd = io.descriptor
@@ -443,6 +452,8 @@ module Truffle::POSIX
       write_string_nonblock_native(io, string)
     end
   end
+  
+  # Select between native and polyglot variants
 
   Truffle::Boot.delay do
     if Truffle::Boot.get_option('polyglot.stdio')
