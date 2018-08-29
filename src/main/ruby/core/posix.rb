@@ -351,19 +351,6 @@ module Truffle::POSIX
       Errno.handle
     end
   end
-
-  def self.read_bytes(io, length)
-    fd = io.descriptor
-    buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
-    bytes_read = Truffle::POSIX.read(fd, buffer, length)
-    if bytes_read < 0
-      [nil, bytes_read, Errno.errno]
-    elsif bytes_read == 0 # EOF
-      [nil, 0, 0]
-    else
-      [buffer, bytes_read, 0]
-    end
-  end
   
   # #read_string (either #read_string_native or #read_string_polyglot) is called
   # by IO#sysread
@@ -475,6 +462,23 @@ module Truffle::POSIX
         alias_method :write_string, :write_string_native
         alias_method :write_string_nonblock, :write_string_nonblock_native
       end
+    end
+  end
+  
+  private
+  
+  # Used by #read_blocking and #read_string_native
+  
+  def self.read_bytes(io, length)
+    fd = io.descriptor
+    buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
+    bytes_read = Truffle::POSIX.read(fd, buffer, length)
+    if bytes_read < 0
+      [nil, bytes_read, Errno.errno]
+    elsif bytes_read == 0 # EOF
+      [nil, 0, 0]
+    else
+      [buffer, bytes_read, 0]
     end
   end
 end
