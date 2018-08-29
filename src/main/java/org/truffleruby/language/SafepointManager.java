@@ -122,7 +122,7 @@ public class SafepointManager {
         // Wait for other threads to reach their safepoint
         if (isDrivingThread) {
             driveArrivalAtPhaser();
-            assumption = Truffle.getRuntime().createAssumption(getClass().getCanonicalName());
+            assumption = Truffle.getRuntime().createAssumption("SafepointManager");
         } else {
             phaser.arriveAndAwaitAdvance();
         }
