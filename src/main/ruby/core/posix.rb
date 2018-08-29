@@ -308,9 +308,11 @@ module Truffle::POSIX
 
   TRY_AGAIN_ERRNOS = [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno]
 
-  # Used in IO#readpartial and IO::InternalBuffer#fill_read
+  # Used in IO#readpartial and IO::InternalBuffer#fill_read. Reads at least
+  # one byte, blocking if it cannot read anything, but returning whatever it
+  # gets as soon as it gets something.
   
-  def self.read_string_blocking(io, count)
+  def self.read_string_at_least_one_byte(io, count)
     while true # rubocop:disable Lint/LiteralInCondition
       # must call #read_string in order to properly support polyglot STDIO
       string, errno = read_string(io, count)

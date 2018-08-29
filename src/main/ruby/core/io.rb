@@ -221,7 +221,7 @@ class IO
     end
 
     def fill_read(io, count)
-      buffer = Truffle::POSIX.read_string_blocking(io, count)
+      buffer = Truffle::POSIX.read_string_at_least_one_byte(io, count)
       bytes_read = buffer ? buffer.bytesize : 0
       [buffer, bytes_read]
     end
@@ -2212,7 +2212,7 @@ class IO
       if @ibuffer.size > 0
         data = @ibuffer.shift(size)
       else
-        data = Truffle::POSIX.read_string_blocking(self, size)
+        data = Truffle::POSIX.read_string_at_least_one_byte(self, size)
         raise EOFError if data.nil?
       end
 
@@ -2225,7 +2225,7 @@ class IO
         return @ibuffer.shift(size)
       end
 
-      data = Truffle::POSIX.read_string_blocking(self, size)
+      data = Truffle::POSIX.read_string_at_least_one_byte(self, size)
       raise EOFError if data.nil?
       data
     end
