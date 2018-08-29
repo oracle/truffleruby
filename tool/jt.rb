@@ -1998,6 +1998,20 @@ EOS
 
     distros.each do |distro|
       managers.each do |manager|
+        puts '**********************************'
+        puts '**********************************'
+        puts '**********************************'
+        distros.each do |d|
+          managers.each do |m|
+            print "#{d} #{m}"
+            print "     <---" if [d, m] == [distro, manager]
+            puts
+          end
+        end
+        puts '**********************************'
+        puts '**********************************'
+        puts '**********************************'
+        
         docker 'build', distro, manager, *args
       end
     end
