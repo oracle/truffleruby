@@ -220,18 +220,22 @@ class IO
       end
     end
 
+    def fill_read_polyglot(io, count)
+      buffer = Truffle::POSIX.read_string_blocking(io, count)
+      bytes_read = buffer ? buffer.bytesize : 0
+
+      [buffer, bytes_read]
+    end
+
+    def fill_read_native(io, count)
+      Truffle::POSIX.read_blocking(io, count)
+    end
+
     Truffle::Boot.delay do
       if Truffle::Boot.get_option('polyglot.stdio')
-        def fill_read(io, count)
-          buffer = Truffle::POSIX.read_string_blocking(io, count)
-          bytes_read = buffer ? buffer.bytesize : 0
-
-          [buffer, bytes_read]
-        end
-      else        
-        def fill_read(io, count)
-          Truffle::POSIX.read_blocking(io, count)
-        end
+        alias_method :fill_read, :fill_read_polyglot
+      else
+        alias_method :fill_read, :fill_read_native
       end
     end
 
