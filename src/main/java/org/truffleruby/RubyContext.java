@@ -9,7 +9,6 @@
  */
 package org.truffleruby;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage.Env;
@@ -444,9 +443,8 @@ public class RubyContext {
         return nativeConfiguration;
     }
 
+    @TruffleBoundary
     public Object send(Object object, String methodName, Object... arguments) {
-        CompilerAsserts.neverPartOfCompilation();
-
         final InternalMethod method = ModuleOperations.lookupMethodUncached(coreLibrary.getMetaClass(object), methodName, null);
         if (method == null || method.isUndefined()) {
             return null;

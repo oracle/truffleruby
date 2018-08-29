@@ -110,7 +110,6 @@ public abstract class FormatNode extends RubyBaseNode {
     }
 
     protected void setOutput(VirtualFrame frame, Object output) {
-        CompilerAsserts.neverPartOfCompilation();
         frame.setObject(FormatFrameDescriptor.OUTPUT_SLOT, output);
     }
 

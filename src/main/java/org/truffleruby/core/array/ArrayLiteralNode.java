@@ -34,8 +34,6 @@ public abstract class ArrayLiteralNode extends RubyNode {
     }
 
     protected DynamicObject makeGeneric(VirtualFrame frame, Object[] alreadyExecuted) {
-        CompilerAsserts.neverPartOfCompilation();
-
         final ArrayLiteralNode newNode = new ObjectArrayLiteralNode(values);
         newNode.unsafeSetSourceSection(getSourceIndexLength());
         replace(newNode);

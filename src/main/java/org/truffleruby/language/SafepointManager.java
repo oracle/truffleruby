@@ -61,9 +61,8 @@ public class SafepointManager {
         this.context = context;
     }
 
+    @TruffleBoundary
     public void enterThread() {
-        CompilerAsserts.neverPartOfCompilation();
-
         lock.lock();
         try {
             int phase = phaser.register();
@@ -74,9 +73,8 @@ public class SafepointManager {
         }
     }
 
+    @TruffleBoundary
     public void leaveThread() {
-        CompilerAsserts.neverPartOfCompilation();
-
         phaser.arriveAndDeregister();
         runningThreads.remove(Thread.currentThread());
     }

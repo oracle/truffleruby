@@ -93,10 +93,6 @@ public abstract class ModuleOperations {
 
     @TruffleBoundary
     public static Iterable<Entry<String, RubyConstant>> getAllConstants(DynamicObject module) {
-        CompilerAsserts.neverPartOfCompilation();
-
-        assert RubyGuards.isRubyModule(module);
-
         final Map<String, RubyConstant> constants = new HashMap<>();
 
         // Look in the current module
@@ -137,10 +133,8 @@ public abstract class ModuleOperations {
         return lookupConstant(context, module, name, new ArrayList<>());
     }
 
+    @TruffleBoundary
     private static ConstantLookupResult lookupConstant(RubyContext context, DynamicObject module, String name, ArrayList<Assumption> assumptions) {
-        CompilerAsserts.neverPartOfCompilation();
-        assert RubyGuards.isRubyModule(module);
-
         // Look in the current module
         ModuleFields fields = Layouts.MODULE.getFields(module);
         assumptions.add(fields.getConstantsUnmodifiedAssumption());
@@ -166,6 +160,7 @@ public abstract class ModuleOperations {
         return new ConstantLookupResult(null, toArray(assumptions));
     }
 
+    @TruffleBoundary
     public static ConstantLookupResult lookupConstantInObject(RubyContext context, String name, ArrayList<Assumption> assumptions) {
         final DynamicObject objectClass = context.getCoreLibrary().getObjectClass();
 
@@ -188,6 +183,7 @@ public abstract class ModuleOperations {
         return new ConstantLookupResult(null, toArray(assumptions));
     }
 
+    @TruffleBoundary
     public static ConstantLookupResult lookupConstantAndObject(RubyContext context, DynamicObject module, String name, ArrayList<Assumption> assumptions) {
         final ConstantLookupResult constant = lookupConstant(context, module, name, assumptions);
         if (constant.isFound()) {
@@ -222,9 +218,8 @@ public abstract class ModuleOperations {
         return lookupConstantAndObject(context, module, name, assumptions);
     }
 
+    @TruffleBoundary
     public static ConstantLookupResult lookupScopedConstant(RubyContext context, DynamicObject module, String fullName, boolean inherit, Node currentNode) {
-        CompilerAsserts.neverPartOfCompilation();
-
         int start = 0, next;
         if (fullName.startsWith("::")) {
             module = context.getCoreLibrary().getObjectClass();
@@ -522,10 +517,6 @@ public abstract class ModuleOperations {
 
     @TruffleBoundary
     public static Map<String, Object> getAllClassVariables(DynamicObject module) {
-        CompilerAsserts.neverPartOfCompilation();
-
-        assert RubyGuards.isRubyModule(module);
-
         final Map<String, Object> classVariables = new HashMap<>();
 
         classVariableLookup(module, module1 -> {
@@ -538,8 +529,6 @@ public abstract class ModuleOperations {
 
     @TruffleBoundary
     public static Object lookupClassVariable(DynamicObject module, final String name) {
-        assert RubyGuards.isRubyModule(module);
-
         return classVariableLookup(module, module1 -> Layouts.MODULE.getFields(module1).getClassVariables().get(name));
     }
 
@@ -561,7 +550,7 @@ public abstract class ModuleOperations {
         }
     }
 
-    private static boolean trySetClassVariable(DynamicObject topModule, final String name, final Object value) {
+    private static boolean trySetClassVariable(DynamicObject topModule, String name, Object value) {
         final DynamicObject found = classVariableLookup(topModule, module -> {
             final ModuleFields moduleFields = Layouts.MODULE.getFields(module);
             if (moduleFields.getClassVariables().replace(name, value) != null) {
@@ -584,8 +573,9 @@ public abstract class ModuleOperations {
         return found;
     }
 
+    @TruffleBoundary
     private static <R> R classVariableLookup(DynamicObject module, Function<DynamicObject, R> action) {
-        CompilerAsserts.neverPartOfCompilation();
+        assert RubyGuards.isRubyModule(module);
 
         // Look in the current module
         R result = action.apply(module);
@@ -620,9 +610,8 @@ public abstract class ModuleOperations {
         return null;
     }
 
+    @TruffleBoundary
     public static boolean isMethodPrivateFromName(String name) {
-        CompilerAsserts.neverPartOfCompilation();
-
         return (name.equals("initialize") || name.equals("initialize_copy") ||
                 name.equals("initialize_clone") || name.equals("initialize_dup") ||
                 name.equals("respond_to_missing?"));
