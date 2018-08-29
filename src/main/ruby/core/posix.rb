@@ -307,6 +307,8 @@ module Truffle::POSIX
   end
 
   TRY_AGAIN_ERRNOS = [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno]
+  
+  # Used in the non-polyglot version of IO::InternalBuffer#fill_read
 
   def self.read_blocking(io, count)
     while true # rubocop:disable Lint/LiteralInCondition
@@ -320,9 +322,12 @@ module Truffle::POSIX
     end
   end
 
-  # This method must call `read_string' in order to properly support polyglot STDIO.
+  # Used in IO#readpartial and the polyglot version of
+  # IO::InternalBuffer#fill_read
+  
   def self.read_string_blocking(io, count)
     while true # rubocop:disable Lint/LiteralInCondition
+      # must call #read_string in order to properly support polyglot STDIO
       string, errno = read_string(io, count)
       return string if errno == 0
       if TRY_AGAIN_ERRNOS.include? errno
@@ -333,8 +338,10 @@ module Truffle::POSIX
     end
   end
 
-  # This method must call `read_string' in order to properly support polyglot STDIO.
+  # Used in IO#read_nonblock
+
   def self.read_string_nonblock(io, count)
+    # must call #read_string in order to properly support polyglot STDIO.
     string, errno = read_string(io, count)
     if errno == 0
       string
