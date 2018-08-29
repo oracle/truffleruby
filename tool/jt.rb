@@ -2118,14 +2118,15 @@ EOS
     when :public
       graalvm_tarball = "graalvm-ce-#{public_version}-linux-amd64.tar.gz"
       lines.push "RUN curl -OL https://github.com/oracle/graal/releases/download/vm-#{public_version}/#{graalvm_tarball}"
-      lines.push "RUN tar -zxf #{graalvm_tarball}"
-      graalvm_base = "/test/`tar -ztf #{graalvm_tarball} | head -1 | cut -f 1 -d /`"
+      graalvm_base = '/test/graalvm'
+      lines.push "RUN mkdir #{graalvm_base}"
+      lines.push "RUN tar -zxf #{graalvm_tarball} -C #{graalvm_base} --strip-components=1"
       lines.push "RUN #{graalvm_base}/bin/gu install org.graalvm.ruby | tee install.log"
       lines.push *check_post_install_message
       ruby_base = "#{graalvm_base}/jre/languages/ruby"
       graalvm_bin = "#{graalvm_base}/bin"
       ruby_bin = graalvm_bin
-      lines.push "RUN PATH=#{graalvm_bin}:$PATH #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
+      lines.push "RUN #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
     when :graalvm
       FileUtils.copy graalvm_tarball, docker_dir
       FileUtils.copy graalvm_component, docker_dir
@@ -2133,22 +2134,24 @@ EOS
       graalvm_component = File.basename(graalvm_component)
       lines.push "COPY #{graalvm_tarball} /test/"
       lines.push "COPY #{graalvm_component} /test/"
-      lines.push "RUN tar -zxf #{graalvm_tarball}"
-      graalvm_base = "/test/`tar -ztf #{graalvm_tarball} | head -1 | cut -f 1 -d /`"
+      graalvm_base = '/test/graalvm'
+      lines.push "RUN mkdir #{graalvm_base}"
+      lines.push "RUN tar -zxf #{graalvm_tarball} -C #{graalvm_base} --strip-components=1"
       ruby_base = "#{graalvm_base}/jre/languages/ruby"
       graalvm_bin = "#{graalvm_base}/bin"
       ruby_bin = graalvm_bin
       lines.push "RUN #{graalvm_bin}/gu install --file /test/#{graalvm_component} | tee install.log"
       lines.push *check_post_install_message
-      lines.push "RUN PATH=#{graalvm_bin}:$PATH #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
+      lines.push "RUN #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
     when :standalone
       FileUtils.copy standalone_tarball, docker_dir
       standalone_tarball = File.basename(standalone_tarball)
       lines.push "COPY #{standalone_tarball} /test/"
-      lines.push "RUN tar -zxf #{standalone_tarball}"
-      ruby_base = "/test/`tar -ztf #{standalone_tarball} | head -1 | cut -f 1 -d /`"
+      ruby_base = '/test/truffleruby-standalone'
+      lines.push "RUN mkdir #{ruby_base}"
+      lines.push "RUN tar -zxf #{standalone_tarball} -C #{ruby_base} --strip-components=1"
       ruby_bin = "#{ruby_base}/bin"
-      lines.push "RUN PATH=#{ruby_bin}:$PATH #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
+      lines.push "RUN #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
     when :source
       lines.push "RUN git clone --depth 1 https://github.com/graalvm/mx.git"
       lines.push "ENV PATH=$PATH:/test/mx"
@@ -2177,8 +2180,10 @@ EOS
 
     case manager
     when :none
+      lines.push "ENV PATH=#{ruby_bin}:$PATH"
+
       setup_env = lambda do |command|
-        "PATH=#{ruby_base}/bin:$PATH #{command}"
+        command
       end
     when :rbenv
       lines.push "RUN git clone --depth 1 https://github.com/rbenv/rbenv.git /home/test/.rbenv"
