@@ -425,7 +425,7 @@ module Truffle::POSIX
       def self.read_string(io, length)
         fd = io.descriptor
         if fd == 0
-          read = Truffle.invoke_primitive :io_read_polyglot, fd, length
+          read = Truffle.invoke_primitive :io_read_polyglot, length
           [read, 0]
         else
           read_string_native(io, length)

@@ -405,14 +405,13 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "io_read_polyglot", needsSelf = false, lowerFixnum = { 1, 2 })
+    @Primitive(name = "io_read_polyglot", needsSelf = false, lowerFixnum = 1)
     public static abstract class IOReadPolyglotNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
-        public DynamicObject read(int fd, int length,
+        public DynamicObject read(int length,
                 @Cached("create()") MakeStringNode makeStringNode) {
-            assert fd == 0 : "Only handles fd 0 (STDIN)";
             final InputStream stream = getContext().getEnv().in();
             final byte[] buffer = new byte[length];
             final int bytesRead = getContext().getThreadManager().runUntilResult(this, () -> {
