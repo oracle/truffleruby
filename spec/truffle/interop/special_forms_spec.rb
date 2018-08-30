@@ -73,10 +73,6 @@ describe "Interop special form" do
     @object.log.should include("NEW(...)")
   end
 
-  it "#inspect returns a useful string" do
-    Truffle::Debug.foreign_object.inspect.should =~ /#<Foreign:0x\h+>/
-  end
-
   describe "#is_a?" do
       
     guard -> { !TruffleRuby.native? } do
@@ -175,10 +171,6 @@ describe "Interop special form" do
   it "#respond_to?(:call) sends IS_EXECUTABLE" do
     @object.respond_to?(:call)
     @object.log.should include("IS_EXECUTABLE")
-  end
-
-  it "#__send__ can call special forms like outgoing #inspect" do
-    Truffle::Debug.foreign_object.__send__(:inspect).should =~ /#<Foreign:0x\h+>/
   end
 
 end

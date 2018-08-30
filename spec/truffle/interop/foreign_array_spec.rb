@@ -14,10 +14,6 @@ describe "Foreign arrays" do
     foreign = Truffle::Interop.to_java_array([1, 2, 3])
     foreign.to_s.should == foreign.inspect
   end
-  
-  it "implement #inspect by printing as if a Ruby array" do
-    Truffle::Interop.to_java_array([1, 2, 3]).inspect.should == "#<Foreign [1, 2, 3]>"
-  end
 
   it "can be printed with #puts" do
     lambda {
