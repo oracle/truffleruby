@@ -308,21 +308,13 @@ module Truffle::POSIX
 
   TRY_AGAIN_ERRNOS = [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno]
 
-  def self.read_blocking(io, count)
+  # Used in IO#readpartial and IO::InternalBuffer#fill_read. Reads at least
+  # one byte, blocking if it cannot read anything, but returning whatever it
+  # gets as soon as it gets something.
+  
+  def self.read_string_at_least_one_byte(io, count)
     while true # rubocop:disable Lint/LiteralInCondition
-      buffer, bytes_read, errno = read_bytes(io, count)
-      return [buffer, bytes_read] if errno == 0
-      if TRY_AGAIN_ERRNOS.include? errno
-        IO.select([io])
-      else
-        Errno.handle
-      end
-    end
-  end
-
-  # This method must call `read_string' in order to properly support polyglot STDIO.
-  def self.read_string_blocking(io, count)
-    while true # rubocop:disable Lint/LiteralInCondition
+      # must call #read_string in order to properly support polyglot STDIO
       string, errno = read_string(io, count)
       return string if errno == 0
       if TRY_AGAIN_ERRNOS.include? errno
@@ -333,8 +325,10 @@ module Truffle::POSIX
     end
   end
 
-  # This method must call `read_string' in order to properly support polyglot STDIO.
+  # Used in IO#read_nonblock
+
   def self.read_string_nonblock(io, count)
+    # must call #read_string in order to properly support polyglot STDIO.
     string, errno = read_string(io, count)
     if errno == 0
       string
@@ -344,22 +338,21 @@ module Truffle::POSIX
       Errno.handle
     end
   end
+  
+  # #read_string (either #read_string_native or #read_string_polyglot) is called
+  # by IO#sysread
 
-  def self.read_bytes(io, length)
+  def self.read_string_native(io, length)
     fd = io.descriptor
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
     bytes_read = Truffle::POSIX.read(fd, buffer, length)
     if bytes_read < 0
-      [nil, bytes_read, Errno.errno]
+      buffer, bytes_read, errno = nil, bytes_read, Errno.errno
     elsif bytes_read == 0 # EOF
-      [nil, 0, 0]
+      buffer, bytes_read, errno = nil, 0, 0
     else
-      [buffer, bytes_read, 0]
+      buffer, bytes_read, errno = buffer, bytes_read, 0
     end
-  end
-
-  def self.read_string(io, length)
-    buffer, bytes_read, errno = read_bytes(io, length)
 
     if bytes_read < 0
       [nil, errno]
@@ -369,8 +362,21 @@ module Truffle::POSIX
       [buffer.read_string(bytes_read), 0]
     end
   end
+  
+  def self.read_string_polyglot(io, length)
+    fd = io.descriptor
+    if fd == 0
+      read = Truffle.invoke_primitive :io_read_polyglot, length
+      [read, 0]
+    else
+      read_string_native(io, length)
+    end
+  end
+  
+  # #write_string (either #write_string_native or #write_string_polyglot) is
+  # called by IO#syswrite, IO#write, and IO::InternalBuffer#empty_to
 
-  def self.write_string(io, string, continue_on_eagain)
+  def self.write_string_native(io, string, continue_on_eagain)
     fd = io.descriptor
     length = string.bytesize
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
@@ -396,7 +402,25 @@ module Truffle::POSIX
     written
   end
 
-  def self.write_string_nonblock(io, string)
+  def self.write_string_polyglot(io, string, continue_on_eagain)
+    fd = io.descriptor
+    if fd == 1 || fd == 2
+      
+      # continue_on_eagain is set for IO::InternalBuffer#empty_to, for IO#write
+      # if @sync, but not for IO#syswrite. What happens in a polyglot stream
+      # if we get EAGAIN and EWOULDBLOCK? We should try again if we do and
+      # continue_on_eagain.
+      
+      Truffle.invoke_primitive :io_write_polyglot, fd, string
+    else
+      write_string_native(io, string, continue_on_eagain)
+    end
+  end
+  
+  # #write_string_nonblock (either #write_string_nonblock_native or
+  # #write_string_nonblock_polylgot) is called by IO#write_nonblock
+
+  def self.write_string_nonblock_native(io, string)
     fd = io.descriptor
     length = string.bytesize
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
@@ -414,43 +438,36 @@ module Truffle::POSIX
     written
   end
 
+  def self.write_string_nonblock_polyglot(io, string)
+    fd = io.descriptor
+    if fd == 1 || fd == 2
+      
+      # We only come here from IO#write_nonblock. What happens in a polyglot
+      # stream if we get EAGAIN and EWOULDBLOCK? We should try again if we
+      # we get them.
+      
+      Truffle.invoke_primitive :io_write_polyglot, fd, string
+    else
+      write_string_nonblock_native(io, string)
+    end
+  end
+  
+  # Select between native and polyglot variants
+
   Truffle::Boot.delay do
     if Truffle::Boot.get_option('polyglot.stdio')
       class << self
-        alias_method :read_string_native, :read_string
-        alias_method :write_string_native, :write_string
-        alias_method :write_string_nonblock_native, :write_string_nonblock
+        alias_method :read_string, :read_string_polyglot
+        alias_method :write_string, :write_string_polyglot
+        alias_method :write_string_nonblock, :write_string_nonblock_polyglot
       end
-
-      def self.read_string(io, length)
-        fd = io.descriptor
-        if fd == 0
-          read = Truffle.invoke_primitive :io_read_polyglot, fd, length
-          [read, 0]
-        else
-          read_string_native(io, length)
-        end
-      end
-
-      def self.write_string(io, string, continue_on_eagain)
-        fd = io.descriptor
-        if fd == 1 || fd == 2
-          # Ignore continue_on_eagain for polyglot writes
-          Truffle.invoke_primitive :io_write_polyglot, fd, string
-        else
-          write_string_native(io, string, continue_on_eagain)
-        end
-      end
-
-      def self.write_string_nonblock(io, string)
-        fd = io.descriptor
-        if fd == 1 || fd == 2
-          # Ignore non-blocking for polyglot writes
-          Truffle.invoke_primitive :io_write_polyglot, fd, string
-        else
-          write_string_nonblock_native(io, string)
-        end
+    else
+      class << self
+        alias_method :read_string, :read_string_native
+        alias_method :write_string, :write_string_native
+        alias_method :write_string_nonblock, :write_string_nonblock_native
       end
     end
   end
+  
 end

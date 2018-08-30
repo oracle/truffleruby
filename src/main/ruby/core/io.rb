@@ -221,18 +221,9 @@ class IO
     end
 
     def fill_read(io, count)
-      Truffle::POSIX.read_blocking(io, count)
-    end
-
-    Truffle::Boot.delay do
-      if Truffle::Boot.get_option('polyglot.stdio')
-        def fill_read(io, count)
-          buffer = Truffle::POSIX.read_string_blocking(io, count)
-          bytes_read = buffer ? buffer.bytesize : 0
-
-          [buffer, bytes_read]
-        end
-      end
+      buffer = Truffle::POSIX.read_string_at_least_one_byte(io, count)
+      bytes_read = buffer ? buffer.bytesize : 0
+      [buffer, bytes_read]
     end
 
     def empty_to(io)
@@ -2221,7 +2212,7 @@ class IO
       if @ibuffer.size > 0
         data = @ibuffer.shift(size)
       else
-        data = Truffle::POSIX.read_string_blocking(self, size)
+        data = Truffle::POSIX.read_string_at_least_one_byte(self, size)
         raise EOFError if data.nil?
       end
 
@@ -2234,7 +2225,7 @@ class IO
         return @ibuffer.shift(size)
       end
 
-      data = Truffle::POSIX.read_string_blocking(self, size)
+      data = Truffle::POSIX.read_string_at_least_one_byte(self, size)
       raise EOFError if data.nil?
       data
     end
