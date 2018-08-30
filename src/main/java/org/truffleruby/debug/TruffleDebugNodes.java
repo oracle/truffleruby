@@ -14,7 +14,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.interop.CanResolve;
 import com.oracle.truffle.api.interop.ForeignAccess;
+import com.oracle.truffle.api.interop.MessageResolution;
+import com.oracle.truffle.api.interop.Resolve;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.ObjectType;
@@ -421,6 +424,29 @@ public abstract class TruffleDebugNodes {
 
         }
 
+        @MessageResolution(receiverType = ForeignObject.class)
+        public static class ForeignObjectMessageResolution {
+
+            @CanResolve
+            public abstract static class Check extends Node {
+
+                protected static boolean test(TruffleObject receiver) {
+                    return receiver instanceof ForeignObject;
+                }
+
+            }
+
+            @Resolve(message = "IS_BOXED")
+            public static abstract class ForeignIsBoxedNode extends Node {
+
+                protected Object access(VirtualFrame frame, ForeignObject number) {
+                    return false;
+                }
+
+            }
+
+        }
+
         @TruffleBoundary
         @Specialization
         public Object foreignObject() {
@@ -451,6 +477,38 @@ public abstract class TruffleDebugNodes {
             @Override
             public ForeignAccess getForeignAccess() {
                 return ForeignStringMessageResolutionForeign.ACCESS;
+            }
+
+        }
+
+        @MessageResolution(receiverType = TruffleDebugNodes.ForeignStringNode.ForeignStringObjectType.class)
+        public static class ForeignStringMessageResolution {
+
+            @CanResolve
+            public abstract static class Check extends Node {
+
+                protected static boolean test(TruffleObject receiver) {
+                    return receiver instanceof ForeignString;
+                }
+
+            }
+
+            @Resolve(message = "IS_BOXED")
+            public static abstract class ForeignIsBoxedNode extends Node {
+
+                protected Object access(VirtualFrame frame, ForeignString string) {
+                    return true;
+                }
+
+            }
+
+            @Resolve(message = "UNBOX")
+            public static abstract class ForeignUnboxNode extends Node {
+
+                protected Object access(VirtualFrame frame, ForeignString string) {
+                    return string.getString();
+                }
+
             }
 
         }
