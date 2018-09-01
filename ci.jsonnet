@@ -604,7 +604,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-svm-graal-core-linux": shared + svm_test_platforms.linux + tag_override,
       "ruby-test-svm-graal-core-darwin": shared + svm_test_platforms.darwin + tag_override,
     } + {
-      local shared = $.use.build + $.svm.enterprise + { timelimit: "01:00:00" },
+      local shared = $.use.build + $.svm.enterprise + { timelimit: "01:15:00" },
 
       "ruby-test-svm-graal-enterprise-linux": shared + svm_test_platforms.linux + $.cap.fast_cpu,
       "ruby-test-svm-graal-enterprise-darwin": shared + svm_test_platforms.darwin,
