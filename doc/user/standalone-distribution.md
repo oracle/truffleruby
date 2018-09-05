@@ -56,7 +56,7 @@ script:
 matrix:
   include:
   - rvm: 2.5.1
-  - name: truffleruby
+  - name: TruffleRuby
     rvm: system
     install:
       - export TRUFFLERUBY_VERSION=1.0.0-rc3
