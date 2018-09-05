@@ -441,7 +441,7 @@ local part_definitions = {
     test_cexts: {
       is_after+:: ["$.use.common"],
       run+: [
-        ["mx", "--dynamicimports", "sulong", "ruby_testdownstream_sulong"],
+        ["mx", "--dynamicimports", "/sulong", "ruby_testdownstream_sulong"],
       ],
     },
 
