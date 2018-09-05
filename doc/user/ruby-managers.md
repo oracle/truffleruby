@@ -52,20 +52,12 @@ Check your version with:
 ruby-install --version
 ```
 
-`ruby-install` 0.7.0 is not yet released at the time of writing.
-As a workaround in the meantime, you can just clone the repository:
-
-```bash
-git clone --branch 0.7.0 https://github.com/postmodern/ruby-install.git
-cd ruby-install
-bin/ruby-install --latest
-bin/ruby-install truffleruby
-```
-
-Once `ruby-install` 0.7.0 is released, you can update to latest `ruby-install`.
+If it is older than `0.7.0`, you need to update to latest `ruby-install`.
 Follow the [installation instructions](https://github.com/postmodern/ruby-install#install),
 since the steps for upgrading `ruby-install` are the same as the steps for
-installing it. Then install truffleruby with:
+installing it.
+
+Then install TruffleRuby with:
 
 ```bash
 ruby-install --latest
