@@ -1,5 +1,11 @@
 # 1.0
 
+# 1.0 RC 7
+
+New features:
+
+* Useful `inspect` strings have been added for more foreign objects.
+
 # 1.0 RC 6
 
 New features:
