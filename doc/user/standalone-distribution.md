@@ -56,7 +56,8 @@ script:
 matrix:
   include:
   - rvm: 2.5.1
-  - rvm: system
+  - name: TruffleRuby
+    rvm: system
     install:
       - export TRUFFLERUBY_VERSION=1.0.0-rc3
       - curl -L https://github.com/oracle/truffleruby/releases/download/vm-$TRUFFLERUBY_VERSION/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64.tar.gz | tar xz
