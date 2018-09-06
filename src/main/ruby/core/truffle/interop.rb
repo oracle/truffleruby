@@ -215,9 +215,9 @@ module Truffle
       hash_code = "0x#{Truffle::Interop.identity_hash_code(object).to_s(16)}"
       if object.is_a?(String)
         object.inspect
-      elsif Truffle::Interop.java?(object) &&
-          (object.is_a?(::Java.type('java.util.List')) ||
-            (!Truffle::Interop.java_class?(object) && object.getClass.isArray))
+      elsif Truffle::Interop.java?(object) && object.nil?
+        '#<Java null>'
+      elsif Truffle::Interop.java?(object) && object.respond_to?(:size)
         "#<Java:#{hash_code} #{to_array(object).inspect}>"
       elsif Truffle::Interop.java?(object) && object.is_a?(::Java.type('java.util.Map'))
         "#<Java:#{hash_code} {#{pairs_from_java_map(object).map { |k, v| "#{k.inspect}=>#{v.inspect}" }.join(', ')}}>"

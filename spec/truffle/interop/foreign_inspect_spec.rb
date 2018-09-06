@@ -12,6 +12,14 @@ describe "Inspect on a foreign" do
 
   guard -> { !TruffleRuby.native? } do
 
+    describe "Java null" do
+
+      it "gives a similar representation to Ruby" do
+        Truffle::Debug.java_null.inspect.should == "#<Java null>"
+      end
+      
+    end
+
     describe "Java list" do
       
       it "gives a similar representation to Ruby" do

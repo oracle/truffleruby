@@ -706,8 +706,12 @@ public abstract class InteropNodes {
         })
         public boolean javaInstanceOfJava(Object boxedInstance, TruffleObject boxedJavaClass) {
             final Object hostInstance = getContext().getEnv().asHostObject(boxedInstance);
-            final Class<?> javaClass = (Class<?>) getContext().getEnv().asHostObject(boxedJavaClass);
-            return javaClass.isAssignableFrom(hostInstance.getClass());
+            if (hostInstance == null) {
+                return false;
+            } else {
+                final Class<?> javaClass = (Class<?>) getContext().getEnv().asHostObject(boxedJavaClass);
+                return javaClass.isAssignableFrom(hostInstance.getClass());
+            }
         }
 
         @Specialization(guards = {

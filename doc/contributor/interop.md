@@ -582,7 +582,8 @@ Interop ignores visibility entirely.
 TruffleRuby has the following rules for how to generate an `inspect` string
 for a foreign object (where `id` is the identity hash code):
 
-* If an object is a Java array or list, format as `#<Java:0xid [a, b, c...]>`
+* If an object is a Java `null`, format as `#<Java null>`
+* Otherwise, if an object is a Java array, list, or something else with `HAS_SIZE`, format as `#<Java:0xid [a, b, c...]>`
 * Otherwise, if an object is a Java map, format as `#<Java:0xid {"key"=>value, "key"=>value...}>`
 * Otherwise, if an object is a Java class, format as `#<Java class MyJavaClassName>`
 * Otherwise, if an object is a Java object, format as `#<Java:0xid object MyJavaClassName>`

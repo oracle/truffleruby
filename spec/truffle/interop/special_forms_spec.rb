@@ -77,6 +77,11 @@ describe "Interop special form" do
       
     guard -> { !TruffleRuby.native? } do
       
+      it "returns false for Java null" do
+        big_integer_class = Truffle::Interop.java_type("java.math.BigInteger")
+        Truffle::Debug.java_null.is_a?(big_integer_class).should be_false
+      end
+      
       it "returns true for a directly matching Java object and class" do
         big_integer_class = Truffle::Interop.java_type("java.math.BigInteger")
         big_integer = big_integer_class.new("14")

@@ -418,6 +418,17 @@ public abstract class TruffleDebugNodes {
 
     }
 
+    @CoreMethod(names = "java_null", onSingleton = true)
+    public abstract static class JavaNullNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public Object javaNull() {
+            return getContext().getEnv().asGuestValue(null);
+        }
+
+    }
+
     @CoreMethod(names = "foreign_null", onSingleton = true)
     public abstract static class ForeignNullNode extends CoreMethodArrayArgumentsNode {
 
