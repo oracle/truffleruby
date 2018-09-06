@@ -57,7 +57,7 @@ describe "Inspect on a foreign" do
     describe "null" do
 
       it "gives a similar representation to Ruby" do
-        Truffle::Debug.foreign_null.inspect.should =~ /#<Foreign null>/
+        Truffle::Debug.foreign_null.inspect.should == "#<Foreign null>"
       end
       
     end
