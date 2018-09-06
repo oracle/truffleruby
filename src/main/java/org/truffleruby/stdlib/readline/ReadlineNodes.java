@@ -165,7 +165,6 @@ public abstract class ReadlineNodes {
         @Specialization
         public Object readline(String prompt, boolean addToHistory) {
             final ConsoleReader readline = getContext().getConsoleHolder().getReadline();
-            readline.setExpandEvents(false);
 
             // Use a Memo as readLine() can return null on Ctrl+D and we should not retry
             final Memo<String> result = new Memo<>(null);

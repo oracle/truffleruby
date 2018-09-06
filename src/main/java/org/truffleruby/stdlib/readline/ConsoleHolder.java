@@ -82,6 +82,8 @@ public class ConsoleHolder {
             throw new UnsupportedOperationException("Couldn't initialize readline", e);
         }
 
+        readline.setExpandEvents(false);
+
         readline.setHistoryEnabled(historyEnabled);
         readline.setPaginationEnabled(paginationEnabled);
         readline.setBellEnabled(bellEnabled);
