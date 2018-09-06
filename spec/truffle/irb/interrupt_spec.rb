@@ -11,19 +11,19 @@ require_relative '../../ruby/spec_helper'
 describe "IRB" do
   it "can be interrupted with Ctrl+C" do
     # --readline is needed otherwise Readline is not used when stdin is not a TTY.
-    IO.popen([*ruby_exe, "-S", "irb", "-f", "--readline"], "r+") do |io|
+    IO.popen([*ruby_exe, "-S", "irb", "-f", "--prompt=simple", "--readline"], "r+") do |io|
       io.gets.should == "Switch to inspect mode.\n"
 
       io.puts "22 + 33"
-      io.gets.should == "22 + 33\n"
-      io.gets.should == "55\n"
+      io.gets.should == ">> 22 + 33\n"
+      io.gets.should == "=> 55\n"
 
       sleep 0.1 # Make sure irb is waiting for input
       Process.kill(:INT, io.pid) # Ctrl+C
-      io.gets.should == "^C\n"
+      io.gets.should == ">> ^C\n"
 
       io.puts "exit"
-      io.gets.should == "exit\n"
+      io.gets.should == ">> exit\n"
     end
   end
 end
