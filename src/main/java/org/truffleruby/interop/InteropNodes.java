@@ -768,7 +768,7 @@ public abstract class InteropNodes {
 
         @Specialization(guards = "!isRubyArray(object)")
         public Object coerce(DynamicObject interopModule, DynamicObject object) {
-            return null;
+            return FAILURE;
         }
 
     }
@@ -785,7 +785,7 @@ public abstract class InteropNodes {
 
         @Specialization(guards = "!isRubyArray(object)")
         public Object coerce(DynamicObject interopModule, DynamicObject object) {
-            return null;
+            return FAILURE;
         }
 
     }
