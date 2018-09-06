@@ -1,5 +1,12 @@
 # 1.0
 
+# 1.0 RC 7
+
+Bug fixes:
+
+* `readline` can now be interrupted by the interrupt signal (Ctrl+C). This fixes
+  Ctrl+C to work in IRB.
+
 # 1.0 RC 6
 
 New features:

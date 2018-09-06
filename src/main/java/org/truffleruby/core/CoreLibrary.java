@@ -219,6 +219,7 @@ public class CoreLibrary {
     @CompilationFinal private GlobalVariableStorage loadedFeaturesStorage;
     @CompilationFinal private GlobalVariableStorage debugStorage;
     @CompilationFinal private GlobalVariableStorage verboseStorage;
+    @CompilationFinal private GlobalVariableStorage stdinStorage;
     @CompilationFinal private GlobalVariableStorage stderrStorage;
 
     private final ConcurrentMap<String, Boolean> patchFiles;
@@ -677,6 +678,7 @@ public class CoreLibrary {
         loadedFeaturesStorage = globals.getStorage("$LOADED_FEATURES");
         debugStorage = globals.getStorage("$DEBUG");
         verboseStorage = globals.getStorage("$VERBOSE");
+        stdinStorage = globals.getStorage("$stdin");
         stderrStorage = globals.getStorage("$stderr");
     }
 
@@ -1133,6 +1135,10 @@ public class CoreLibrary {
     /** true only if $VERBOSE is true */
     public boolean isVerbose() {
         return verbosity() == Boolean.TRUE;
+    }
+
+    public Object getStdin() {
+        return stdinStorage.getValue();
     }
 
     public Object getStderr() {

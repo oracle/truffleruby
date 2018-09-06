@@ -60,7 +60,8 @@ public class ConsoleHolder {
     private final IoStream out;
 
     public static ConsoleHolder create(RubyContext context) {
-        return new ConsoleHolder(context, 0, null, 1, null,
+        final DynamicObject stdin = (DynamicObject) context.getCoreLibrary().getStdin();
+        return new ConsoleHolder(context, 0, stdin, 1, null,
                 false, true, true,
                 new ReadlineNodes.RubyFileNameCompleter(), new MemoryHistory());
     }
@@ -80,6 +81,8 @@ public class ConsoleHolder {
         } catch (IOException e) {
             throw new UnsupportedOperationException("Couldn't initialize readline", e);
         }
+
+        readline.setExpandEvents(false);
 
         readline.setHistoryEnabled(historyEnabled);
         readline.setPaginationEnabled(paginationEnabled);

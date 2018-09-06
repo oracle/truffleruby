@@ -68,7 +68,7 @@ public class ThreadManager {
             Collections.newSetFromMap(new ConcurrentHashMap<Thread, Boolean>());
 
     private final Map<Thread, UnblockingAction> unblockingActions = new ConcurrentHashMap<>();
-    private static final UnblockingAction EMPTY_UNBLOCKING_ACTION = () -> {
+    public static final UnblockingAction EMPTY_UNBLOCKING_ACTION = () -> {
     };
 
     private final ThreadLocal<UnblockingAction> blockingNativeCallUnblockingAction = ThreadLocal.withInitial(() -> EMPTY_UNBLOCKING_ACTION);
@@ -472,7 +472,9 @@ public class ThreadManager {
             blockingNativeCallUnblockingAction.set(() -> pthread_kill.call(pThreadID, SIGVTALRM));
         }
 
-        unblockingActions.put(thread, EMPTY_UNBLOCKING_ACTION);
+        unblockingActions.put(thread, () -> {
+            thread.interrupt();
+        });
     }
 
     public void cleanupValuesForJavaThread(Thread thread) {
@@ -604,8 +606,6 @@ public class ThreadManager {
         if (action != null) {
             action.unblock();
         }
-
-        thread.interrupt();
     }
 
     public String getThreadDebugInfo() {

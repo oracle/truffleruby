@@ -59,6 +59,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.collections.Memo;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
@@ -68,6 +69,8 @@ import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.thread.ThreadManager;
+import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -162,15 +165,22 @@ public abstract class ReadlineNodes {
         @Specialization
         public Object readline(String prompt, boolean addToHistory) {
             final ConsoleReader readline = getContext().getConsoleHolder().getReadline();
-            readline.setExpandEvents(false);
 
-            final String value;
-            try {
-                value = readline.readLine(prompt);
-            } catch (IOException e) {
-                throw new RaiseException(getContext(), coreExceptions().ioError(e.getMessage(), this));
-            }
+            // Use a Memo as readLine() can return null on Ctrl+D and we should not retry
+            final Memo<String> result = new Memo<>(null);
 
+            // Unset the default unblocking action which does Thread.interrupt(), because
+            // JLine does not support interrupt, in e.g. UnixTerminal#disableLitteralNextCharacter().
+            getContext().getThreadManager().runUntilResult(this, () -> {
+                try {
+                    result.set(readline.readLine(prompt));
+                    return BlockingAction.SUCCESS;
+                } catch (IOException e) {
+                    throw new RaiseException(getContext(), coreExceptions().ioError(e.getMessage(), this));
+                }
+            }, ThreadManager.EMPTY_UNBLOCKING_ACTION);
+
+            final String value = result.get();
             if (value == null) { // EOF
                 return nil();
             } else {
