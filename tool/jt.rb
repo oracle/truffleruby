@@ -992,7 +992,7 @@ module Commands
 
     env_vars = {
       "EXCLUDES" => "test/mri/excludes",
-      "RUBYOPT" => [*ENV['RUBYOPT'], ' --disable-gems'].join(' '),
+      "RUBYOPT" => [*ENV['RUBYOPT'], '--disable-gems'].join(' '),
       "TRUFFLERUBY_RESILIENT_GEM_HOME" => nil,
     }
 
@@ -1062,7 +1062,7 @@ module Commands
   def test_compiler(*args)
     env = {}
 
-    env['TRUFFLERUBYOPT'] = [*ENV['TRUFFLERUBYOPT'], ' -Xexceptions.print_java=true'].join(' ')
+    env['TRUFFLERUBYOPT'] = [*ENV['TRUFFLERUBYOPT'], '-Xexceptions.print_java=true'].join(' ')
 
     Dir["#{TRUFFLERUBY_DIR}/test/truffle/compiler/*.sh"].sort.each do |test_script|
       if args.empty? or args.include?(File.basename(test_script, ".*"))
