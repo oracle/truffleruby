@@ -23,6 +23,9 @@ details.
 * [Java interop](#java-interop)
 * [Additional methods](#additional-methods)
 * [Notes on method resolution](#notes-on-method-resolution)
+* [Notes on inspect strings](#notes-on-inspect-strings)
+* [Notes on coercion](#notes-on-coercion)
+* [Notes on source encoding](#notes-on-source-encoding)
 
 Also see the separate document on
 [JRuby-compatible Java interop](../user/jruby-java-interop.md).
