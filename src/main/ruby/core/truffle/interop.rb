@@ -175,33 +175,7 @@ module Truffle
           Truffle::Interop.invoke(receiver, :class, *args)
         end
       when :inspect
-        receiver = Truffle::Interop.unbox_if_needed(receiver)
-        hash_code = "0x#{Truffle::Interop.identity_hash_code(receiver).to_s(16)}"
-        if receiver.is_a?(String)
-          receiver.inspect
-        elsif Truffle::Interop.java?(receiver) &&
-            (receiver.is_a?(::Java.type('java.util.List')) ||
-              (!Truffle::Interop.java_class?(receiver) && receiver.getClass.isArray))
-          "#<Java:#{hash_code} #{to_array(receiver).inspect}>"
-        elsif Truffle::Interop.java?(receiver) && receiver.is_a?(::Java.type('java.util.Map'))
-          "#<Java:#{hash_code} {#{from_java_map(receiver).map { |k, v| "#{k}=>#{v.inspect}" }.join(', ')}}>"
-        elsif Truffle::Interop.java_class?(receiver)
-          "#<Java class #{receiver.class.getName}>"
-        elsif Truffle::Interop.java?(receiver)
-          "#<Java:#{hash_code} object #{receiver.getClass.getName}>"
-        elsif Truffle::Interop.null?(receiver)
-          '#<Foreign null>'
-        elsif Truffle::Interop.pointer?(receiver)
-          "#<Foreign pointer 0x#{Truffle::Interop.as_pointer(receiver).to_s(16)}>"
-        elsif Truffle::Interop.size?(receiver)
-          "#<Foreign:#{hash_code} #{to_array(receiver).inspect}>"
-        elsif Truffle::Interop.executable?(receiver)
-          "#<Foreign:#{hash_code} proc>"
-        elsif Truffle::Interop.keys?(receiver)
-          "#<Foreign:#{hash_code} #{to_hash(receiver).map { |k, v| "#{k}=#{v.inspect}" }.join(', ')}>"
-        else
-          "#<Foreign:#{hash_code}>"
-        end
+        inspect_foreign(receiver)
       when :to_s
         receiver = Truffle::Interop.unbox_if_needed(receiver)
         if receiver.is_a?(String)
@@ -233,6 +207,36 @@ module Truffle
         end
       else
         raise
+      end
+    end
+    
+    def self.inspect_foreign(object)
+      object = Truffle::Interop.unbox_if_needed(object)
+      hash_code = "0x#{Truffle::Interop.identity_hash_code(object).to_s(16)}"
+      if object.is_a?(String)
+        object.inspect
+      elsif Truffle::Interop.java?(object) &&
+          (object.is_a?(::Java.type('java.util.List')) ||
+            (!Truffle::Interop.java_class?(object) && object.getClass.isArray))
+        "#<Java:#{hash_code} #{to_array(object).inspect}>"
+      elsif Truffle::Interop.java?(object) && object.is_a?(::Java.type('java.util.Map'))
+        "#<Java:#{hash_code} {#{from_java_map(object).map { |k, v| "#{k}=>#{v.inspect}" }.join(', ')}}>"
+      elsif Truffle::Interop.java_class?(object)
+        "#<Java class #{object.class.getName}>"
+      elsif Truffle::Interop.java?(object)
+        "#<Java:#{hash_code} object #{object.getClass.getName}>"
+      elsif Truffle::Interop.null?(object)
+        '#<Foreign null>'
+      elsif Truffle::Interop.pointer?(object)
+        "#<Foreign pointer 0x#{Truffle::Interop.as_pointer(object).to_s(16)}>"
+      elsif Truffle::Interop.size?(object)
+        "#<Foreign:#{hash_code} #{to_array(object).inspect}>"
+      elsif Truffle::Interop.executable?(object)
+        "#<Foreign:#{hash_code} proc>"
+      elsif Truffle::Interop.keys?(object)
+        "#<Foreign:#{hash_code} #{to_hash(object).map { |k, v| "#{k}=#{v.inspect}" }.join(', ')}>"
+      else
+        "#<Foreign:#{hash_code}>"
       end
     end
     
