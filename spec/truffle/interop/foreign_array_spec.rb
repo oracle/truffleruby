@@ -9,26 +9,22 @@
 require_relative '../../ruby/spec_helper'
 
 describe "Foreign arrays" do
-  
-  guard -> { !TruffleRuby.native? } do
-    
-    it "implement #to_s with #inspect" do
-      foreign = Truffle::Interop.to_java_array([1, 2, 3])
-      foreign.to_s.should == foreign.inspect
-    end
 
-    it "can be printed with #puts" do
-      lambda {
-        puts Truffle::Interop.to_java_array([1, 2, 3])
-      }.should output(/#<Java:0x\h+ \[1, 2, 3\]>/)
-    end
-    
-    it "can be printed with #p" do
-      lambda {
-        p Truffle::Interop.to_java_array([1, 2, 3])
-      }.should output(/#<Java:0x\h+ \[1, 2, 3\]>/)
-    end
+  it "implement #to_s with #inspect" do
+    foreign = Truffle::Interop.to_java_array([1, 2, 3])
+    foreign.to_s.should == foreign.inspect
+  end
+
+  it "can be printed with #puts" do
+    lambda {
+      puts Truffle::Interop.to_java_array([1, 2, 3])
+    }.should output(/#<Java:0x\h+ \[1, 2, 3\]>/)
+  end
   
+  it "can be printed with #p" do
+    lambda {
+      p Truffle::Interop.to_java_array([1, 2, 3])
+    }.should output(/#<Java:0x\h+ \[1, 2, 3\]>/)
   end
 
 end
