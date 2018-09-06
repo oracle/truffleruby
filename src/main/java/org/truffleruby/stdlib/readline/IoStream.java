@@ -47,11 +47,9 @@ public class IoStream {
 
     public InputStream getIn() {
         if (in == null) {
-            if (fd == 0) {
-                in = context.getEnv().in();
-            } else {
-                in = new InputStreamAdapter(context, io);
-            }
+            // Always use the InputStreamAdapter as reading from System.in with
+            // FileInputStream.readBytes() is not interruptible.
+            in = new InputStreamAdapter(context, io);
         }
 
         return in;
