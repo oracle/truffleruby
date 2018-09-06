@@ -29,10 +29,12 @@ void* rb_tr_undef;
 void* rb_tr_true;
 void* rb_tr_false;
 void* rb_tr_nil;
+void* rb_tr_cext;
 
 // Run when loading C-extension support
 
 void rb_tr_init(void) {
+  truffle_assign_managed(&rb_tr_cext, rb_tr_get_cext());
   truffle_assign_managed(&rb_tr_undef, rb_tr_get_undef());
   truffle_assign_managed(&rb_tr_true, rb_tr_get_true());
   truffle_assign_managed(&rb_tr_false, rb_tr_get_false());
@@ -172,6 +174,10 @@ VALUE rb_obj_reveal(VALUE obj, VALUE klass) {
 // Constants
 
 // START from tool/generate-cext-constants.rb
+
+void *rb_tr_get_cext(void) {
+  return (void *)polyglot_import("ruby_cext");
+}
 
 VALUE rb_tr_get_undef(void) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "Qundef");

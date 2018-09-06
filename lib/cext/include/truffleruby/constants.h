@@ -1,5 +1,6 @@
 // From ./tool/generate-cext-constants.rb
 
+void *rb_tr_get_cext(void);
 VALUE rb_tr_get_undef(void);
 VALUE rb_tr_get_true(void);
 VALUE rb_tr_get_false(void);
