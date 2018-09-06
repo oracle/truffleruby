@@ -78,16 +78,12 @@ For building and using C and C++ extensions on macOS we recommend just
 installing the full `llvm` package. Make sure you have also installed the
 standard C headers from Xcode via `xcode-select --install`.
 
-On macOS, it is currently required (as of 1.0.0-rc5) to add LLVM binaries on
-`PATH`. This step will no longer be necessary for TruffleRuby 1.0.0-rc6.
-
 ### Homebrew
 
 We would recommend that you install LLVM 4 via [Homebrew](https://brew.sh).
 
 ```bash
 brew install llvm@4
-export PATH="/usr/local/opt/llvm@4/bin:$PATH"
 ```
 
 ### MacPorts
@@ -96,5 +92,4 @@ MacPorts should also work but is not actively tested. LLVM 4.0 is required.
 
 ```bash
 sudo port install clang-4.0 llvm-4.0
-export PATH="/opt/local/libexec/llvm-4.0/bin:$PATH"
 ```
