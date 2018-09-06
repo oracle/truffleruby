@@ -220,7 +220,7 @@ module Truffle
             (!Truffle::Interop.java_class?(object) && object.getClass.isArray))
         "#<Java:#{hash_code} #{to_array(object).inspect}>"
       elsif Truffle::Interop.java?(object) && object.is_a?(::Java.type('java.util.Map'))
-        "#<Java:#{hash_code} {#{from_java_map(object).map { |k, v| "#{k}=>#{v.inspect}" }.join(', ')}}>"
+        "#<Java:#{hash_code} {#{pairs_from_java_map(object).map { |k, v| "#{k.inspect}=>#{v.inspect}" }.join(', ')}}>"
       elsif Truffle::Interop.java_class?(object)
         "#<Java class #{object.class.getName}>"
       elsif Truffle::Interop.java?(object)
@@ -234,7 +234,7 @@ module Truffle
       elsif Truffle::Interop.executable?(object)
         "#<Foreign:#{hash_code} proc>"
       elsif Truffle::Interop.keys?(object)
-        "#<Foreign:#{hash_code} #{to_hash(object).map { |k, v| "#{k}=#{v.inspect}" }.join(', ')}>"
+        "#<Foreign:#{hash_code} #{pairs_from_object(object).map { |k, v| "#{k.inspect}=#{v.inspect}" }.join(', ')}>"
       else
         "#<Foreign:#{hash_code}>"
       end
@@ -278,20 +278,18 @@ module Truffle
       to_array(array)
     end
     
-    def self.from_java_map(map)
-      hash = {}
-      enumerable(map.keySet.toArray).each do |key|
-        hash[key] = map.get(key)
+    def self.pairs_from_java_map(map)
+      enumerable(map.entrySet.toArray).map do |key_value|
+        [key_value.getKey, key_value.getValue]
       end
-      hash
     end
     
     def self.to_hash(object)
-      hash = {}
-      keys(object).each do |key|
-        hash[key] = object[key]
-      end
-      hash
+      Hash[*pairs_from_object(object)]
+    end
+    
+    def self.pairs_from_object(object)
+      keys(object).map { |key| [key, object[key]] }
     end
     
     def self.unbox_if_needed(object)
@@ -305,7 +303,7 @@ module Truffle
     def self.to_java_map(hash)
       map = ::Java.type('java.util.HashMap').new
       hash.each do |key, value|
-        map.put key.to_s, value
+        map.put key, value
       end
       map
     end

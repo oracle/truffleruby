@@ -31,7 +31,7 @@ describe "Inspect on a foreign" do
     describe "Java map" do
       
       it "gives a similar representation to Ruby" do
-        Truffle::Interop.to_java_map({a: 1, b: 2, c: 3}).inspect.should =~ /#<Java:0x\h+ {a=>1, b=>2, c=>3}>/
+        Truffle::Interop.to_java_map({a: 1, b: 2, c: 3}).inspect.should =~ /#<Java:0x\h+ {"a"=>1, "b"=>2, "c"=>3}>/
       end
       
     end
@@ -107,7 +107,7 @@ describe "Inspect on a foreign" do
 
       it "gives a similar representation to Ruby" do
         object = Truffle::Debug.foreign_object_from_map(Truffle::Interop.to_java_map({a: 1, b: 2, c: 3}))
-        object.inspect.should =~ /#<Foreign:0x\h+ a=1, b=2, c=3>/
+        object.inspect.should =~ /#<Foreign:0x\h+ "a"=1, "b"=2, "c"=3>/
       end
       
     end

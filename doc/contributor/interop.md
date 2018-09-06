@@ -583,14 +583,14 @@ TruffleRuby has the following rules for how to generate an `inspect` string
 for a foreign object (where `id` is the identity hash code):
 
 * If an object is a Java array or list, format as `#<Java:0xid [a, b, c...]>`
-* Otherwise, if an object is a Java map, format as `#<Java:0xid {key=>value, key=>value...}>`
+* Otherwise, if an object is a Java map, format as `#<Java:0xid {"key"=>value, "key"=>value...}>`
 * Otherwise, if an object is a Java class, format as `#<Java class MyJavaClassName>`
 * Otherwise, if an object is a Java object, format as `#<Java:0xid object MyJavaClassName>`
 * Otherwise, if an object is `null` (`IS_NULL`), format as `#<Foreign null>`
 * Otherwise, if an object is a pointer (`IS_POINTER)`), format as `#<Foreign pointer 0xaddress>`
 * Otherwise, if an object is an array (`HAS_SIZE`), format as `#<Foreign:0xid [a, b, c...]>`
 * Otherwise, if an object is a executable (`IS_EXECUTABLE`), format as `#<Foreign:0xid proc>`
-* Otherwise, format as `#<Foreign:0xid member=value, member=value...>`
+* Otherwise, format as `#<Foreign:0xid "member"=value, "member"=value...>`
 
 ## Notes on coercion
 
