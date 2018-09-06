@@ -780,10 +780,6 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "foreign_string", onSingleton = true, required = 1)
     public abstract static class ForeignStringNode extends CoreMethodArrayArgumentsNode {
 
-        public static class ForeignStringObjectType extends ObjectType {
-
-        }
-
         public static class ForeignString implements TruffleObject {
 
             private final String string;
@@ -803,7 +799,7 @@ public abstract class TruffleDebugNodes {
 
         }
 
-        @MessageResolution(receiverType = TruffleDebugNodes.ForeignStringNode.ForeignStringObjectType.class)
+        @MessageResolution(receiverType = ForeignString.class)
         public static class ForeignStringMessageResolution {
 
             @CanResolve
