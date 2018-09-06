@@ -472,7 +472,9 @@ public class ThreadManager {
             blockingNativeCallUnblockingAction.set(() -> pthread_kill.call(pThreadID, SIGVTALRM));
         }
 
-        unblockingActions.put(thread, EMPTY_UNBLOCKING_ACTION);
+        unblockingActions.put(thread, () -> {
+            thread.interrupt();
+        });
     }
 
     public void cleanupValuesForJavaThread(Thread thread) {
@@ -604,8 +606,6 @@ public class ThreadManager {
         if (action != null) {
             action.unblock();
         }
-
-        thread.interrupt();
     }
 
     public String getThreadDebugInfo() {
