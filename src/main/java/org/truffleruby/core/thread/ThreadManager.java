@@ -68,7 +68,7 @@ public class ThreadManager {
             Collections.newSetFromMap(new ConcurrentHashMap<Thread, Boolean>());
 
     private final Map<Thread, UnblockingAction> unblockingActions = new ConcurrentHashMap<>();
-    private static final UnblockingAction EMPTY_UNBLOCKING_ACTION = () -> {
+    public static final UnblockingAction EMPTY_UNBLOCKING_ACTION = () -> {
     };
 
     private final ThreadLocal<UnblockingAction> blockingNativeCallUnblockingAction = ThreadLocal.withInitial(() -> EMPTY_UNBLOCKING_ACTION);
