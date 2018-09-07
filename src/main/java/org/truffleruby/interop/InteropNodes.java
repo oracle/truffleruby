@@ -58,6 +58,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.shared.TruffleRuby;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 @CoreClass("Truffle::Interop")
 public abstract class InteropNodes {
@@ -705,8 +706,12 @@ public abstract class InteropNodes {
         })
         public boolean javaInstanceOfJava(Object boxedInstance, TruffleObject boxedJavaClass) {
             final Object hostInstance = getContext().getEnv().asHostObject(boxedInstance);
-            final Class<?> javaClass = (Class<?>) getContext().getEnv().asHostObject(boxedJavaClass);
-            return javaClass.isAssignableFrom(hostInstance.getClass());
+            if (hostInstance == null) {
+                return false;
+            } else {
+                final Class<?> javaClass = (Class<?>) getContext().getEnv().asHostObject(boxedJavaClass);
+                return javaClass.isAssignableFrom(hostInstance.getClass());
+            }
         }
 
         @Specialization(guards = {
@@ -767,7 +772,24 @@ public abstract class InteropNodes {
 
         @Specialization(guards = "!isRubyArray(object)")
         public Object coerce(DynamicObject interopModule, DynamicObject object) {
-            return null;
+            return FAILURE;
+        }
+
+    }
+
+    @Primitive(name = "to_java_list")
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class InteropToJavaListNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
+        public Object toJavaList(DynamicObject interopModule, DynamicObject array,
+                                  @Cached("of(array)") ArrayStrategy strategy) {
+            return getContext().getEnv().asGuestValue(Arrays.asList(strategy.newMirror(array).getBoxedCopy()));
+        }
+
+        @Specialization(guards = "!isRubyArray(object)")
+        public Object coerce(DynamicObject interopModule, DynamicObject object) {
+            return FAILURE;
         }
 
     }

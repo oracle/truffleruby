@@ -73,13 +73,14 @@ describe "Interop special form" do
     @object.log.should include("NEW(...)")
   end
 
-  it "#inspect returns a useful string" do
-    Truffle::Debug.foreign_object.inspect.should =~ /#<Foreign:0x\h+>/
-  end
-
   describe "#is_a?" do
       
     guard -> { !TruffleRuby.native? } do
+      
+      it "returns false for Java null" do
+        big_integer_class = Truffle::Interop.java_type("java.math.BigInteger")
+        Truffle::Debug.java_null.is_a?(big_integer_class).should be_false
+      end
       
       it "returns true for a directly matching Java object and class" do
         big_integer_class = Truffle::Interop.java_type("java.math.BigInteger")
@@ -175,10 +176,6 @@ describe "Interop special form" do
   it "#respond_to?(:call) sends IS_EXECUTABLE" do
     @object.respond_to?(:call)
     @object.log.should include("IS_EXECUTABLE")
-  end
-
-  it "#__send__ can call special forms like outgoing #inspect" do
-    Truffle::Debug.foreign_object.__send__(:inspect).should =~ /#<Foreign:0x\h+>/
   end
 
 end

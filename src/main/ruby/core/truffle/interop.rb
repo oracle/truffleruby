@@ -155,6 +155,11 @@ module Truffle
       to_java_array(Truffle::Type.coerce_to(array, ::Array, :to_a))
     end
     
+    def self.to_java_list(array)
+      Truffle.primitive :to_java_list
+      to_java_list(Truffle::Type.coerce_to(array, ::Array, :to_a))
+    end
+    
     def self.special_form(receiver, name, *args)
       case name.to_sym
       when :delete
@@ -170,13 +175,7 @@ module Truffle
           Truffle::Interop.invoke(receiver, :class, *args)
         end
       when :inspect
-        if Truffle::Interop.size?(receiver)
-          "#<Foreign #{to_array(receiver).inspect}>"
-        elsif Truffle::Interop.boxed?(receiver)
-          Truffle::Interop.unbox(receiver).inspect
-        else
-          "#<Foreign:0x#{Truffle::Interop.identity_hash_code(receiver).to_s(16)}>"
-        end
+        inspect_foreign(receiver)
       when :to_s
         receiver = Truffle::Interop.unbox_if_needed(receiver)
         if receiver.is_a?(String)
@@ -192,7 +191,7 @@ module Truffle
         receiver = Truffle::Interop.unbox_if_needed(receiver)
         check_class = args.first
         if Truffle::Interop.foreign?(receiver)
-          if !TruffleRuby.native? && Truffle::Interop.java_class?(check_class)
+          if Truffle::Interop.java_class?(check_class)
             # Checking against a Java class
             Truffle::Interop.java_instanceof?(receiver, check_class)
           elsif Truffle::Interop.foreign?(check_class)
@@ -208,6 +207,36 @@ module Truffle
         end
       else
         raise
+      end
+    end
+    
+    def self.inspect_foreign(object)
+      object = Truffle::Interop.unbox_if_needed(object)
+      hash_code = "0x#{Truffle::Interop.identity_hash_code(object).to_s(16)}"
+      if object.is_a?(String)
+        object.inspect
+      elsif Truffle::Interop.java?(object) && object.nil?
+        '#<Java null>'
+      elsif Truffle::Interop.java?(object) && object.respond_to?(:size)
+        "#<Java:#{hash_code} #{to_array(object).inspect}>"
+      elsif Truffle::Interop.java?(object) && object.is_a?(::Java.type('java.util.Map'))
+        "#<Java:#{hash_code} {#{pairs_from_java_map(object).map { |k, v| "#{k.inspect}=>#{v.inspect}" }.join(', ')}}>"
+      elsif Truffle::Interop.java_class?(object)
+        "#<Java class #{object.class.getName}>"
+      elsif Truffle::Interop.java?(object)
+        "#<Java:#{hash_code} object #{object.getClass.getName}>"
+      elsif Truffle::Interop.null?(object)
+        '#<Foreign null>'
+      elsif Truffle::Interop.pointer?(object)
+        "#<Foreign pointer 0x#{Truffle::Interop.as_pointer(object).to_s(16)}>"
+      elsif Truffle::Interop.size?(object)
+        "#<Foreign:#{hash_code} #{to_array(object).inspect}>"
+      elsif Truffle::Interop.executable?(object)
+        "#<Foreign:#{hash_code} proc>"
+      elsif Truffle::Interop.keys?(object)
+        "#<Foreign:#{hash_code} #{pairs_from_object(object).map { |k, v| "#{k.inspect}=#{v.inspect}" }.join(', ')}>"
+      else
+        "#<Foreign:#{hash_code}>"
       end
     end
     
@@ -249,12 +278,34 @@ module Truffle
       to_array(array)
     end
     
+    def self.pairs_from_java_map(map)
+      enumerable(map.entrySet.toArray).map do |key_value|
+        [key_value.getKey, key_value.getValue]
+      end
+    end
+    
+    def self.to_hash(object)
+      Hash[*pairs_from_object(object)]
+    end
+    
+    def self.pairs_from_object(object)
+      keys(object).map { |key| [key, object[key]] }
+    end
+    
     def self.unbox_if_needed(object)
       if Truffle::Interop.foreign?(object) && Truffle::Interop.boxed?(object)
         Truffle::Interop.unbox(object)
       else
         object
       end
+    end
+    
+    def self.to_java_map(hash)
+      map = ::Java.type('java.util.HashMap').new
+      hash.each do |key, value|
+        map.put key, value
+      end
+      map
     end
     
   end

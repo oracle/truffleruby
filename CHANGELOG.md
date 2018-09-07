@@ -6,6 +6,9 @@ Bug fixes:
 
 * `readline` can now be interrupted by the interrupt signal (Ctrl+C). This fixes
   Ctrl+C to work in IRB.
+New features:
+
+* Useful `inspect` strings have been added for more foreign objects.
 
 # 1.0 RC 6
 

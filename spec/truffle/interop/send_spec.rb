@@ -11,7 +11,8 @@ require_relative '../../ruby/spec_helper'
 describe "Interop #__send__" do
 
   it "can call special forms like outgoing #inspect" do
-    Truffle::Debug.foreign_object.__send__(:inspect).should =~ /#<Foreign:0x\h+>/
+    object = Truffle::Debug.foreign_object
+    object.__send__(:inspect).should == object.inspect
   end
 
 end
