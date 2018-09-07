@@ -25,7 +25,7 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = "5f0860f9d905cdadd1e40bb8a0c91597de4fbddb"
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = "2736dd2477c532f91a851dd14d826a0dbb16d1a3"
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -1249,35 +1249,53 @@ EOS
   def test_bundle(*args)
     require 'tmpdir'
 
+    bundle_install_flags = [
+      %w[],
+      %w[--standalone],
+      %w[--deployment]
+    ]
     gems = %w[algebrick]
     bundler_version = '1.16.1'
 
-    gems.each do |gem_name|
-      temp_dir = Dir.mktmpdir(gem_name)
-      begin
-        gem_home = File.realpath(File.join(gem_test_pack, 'gems'))
-        puts "Using temporary GEM_HOME:#{gem_home}"
-        puts "Copying gem #{gem_name} source into temp directory: #{temp_dir}"
+    gem_server = spawn('gem', 'server', '-b', '127.0.0.1', '-d', "#{gem_test_pack}/gems")
+    begin
+      bundle_install_flags.each do |install_flags|
+        puts "Testing Bundler with install flags: #{install_flags}"
+        gems.each do |gem_name|
+          temp_dir = Dir.mktmpdir(gem_name)
+          begin
+            gem_home = "#{temp_dir}/gems"
+            puts "Using temporary GEM_HOME: #{gem_home}"
 
-        original_source_tree = File.join(gem_test_pack, 'gem-testing', gem_name)
-        gem_source_tree = File.join(temp_dir, gem_name)
-        FileUtils.copy_entry(original_source_tree, gem_source_tree)
+            puts "Copying gem #{gem_name} source into temp directory: #{temp_dir}"
+            original_source_tree = "#{gem_test_pack}/gem-testing/#{gem_name}"
+            gem_source_tree = "#{temp_dir}/#{gem_name}"
+            FileUtils.copy_entry(original_source_tree, gem_source_tree)
 
-        chdir(gem_source_tree) do
-          environment = Utilities.no_gem_vars_env.merge(
-            'GEM_HOME' => gem_home,
-            'GEM_PATH' => gem_home,
-            # add bin from gem_home to PATH
-            'PATH'     => [File.join(gem_home, 'bin'), ENV['PATH']].join(File::PATH_SEPARATOR))
+            chdir(gem_source_tree) do
+              environment = Utilities.no_gem_vars_env.merge(
+                'GEM_HOME' => gem_home,
+                'GEM_PATH' => gem_home,
+                # add bin from gem_home to PATH
+                'PATH' => ["#{gem_home}/bin", ENV['PATH']].join(File::PATH_SEPARATOR))
 
-          run_ruby(environment, *args, '-Xexceptions.print_java=true',
-                   '-S', 'bundle', "_#{bundler_version}_", 'install', '--local')
-          run_ruby(environment, *args, '-Xexceptions.print_java=true',
-                   '-S', 'bundle', "_#{bundler_version}_", 'exec', 'rake')
+              gemserver_source = %w[--clear-sources --source http://localhost:8808]
+
+              run_ruby(environment, *args, '-Xexceptions.print_java=true', '-S',
+                'gem', 'install', *gemserver_source, '--no-document', 'bundler', '-v', bundler_version, '--backtrace')
+              run_ruby(environment, *args, '-Xexceptions.print_java=true', '-S',
+                'bundle', "_#{bundler_version}_", 'install', *install_flags)
+              run_ruby(environment, *args, '-Xexceptions.print_java=true', '-S',
+                'bundle', "_#{bundler_version}_", 'exec', 'rake')
+            end
+          ensure
+            FileUtils.remove_entry_secure temp_dir
+          end
         end
-      ensure
-        FileUtils.remove_entry_secure temp_dir
       end
+    ensure
+      Process.kill :INT, gem_server
+      Process.wait gem_server
     end
   end
 
