@@ -432,7 +432,7 @@ local part_definitions = {
       ] + jt(["lint"]) + self.after_build,
     },
 
-    test_mri: { run+: jt(["test", "mri", "--no-sulong"]) },
+    test_mri: { run+: jt(["test", "mri", "--no-sulong", "--", "-j4"]) },
     test_integration: { run+: jt(["test", "integration"]) },
     test_gems: { run+: jt(["test", "gems"]) },
     test_ecosystem: { run+: jt(["test", "ecosystem"]) },

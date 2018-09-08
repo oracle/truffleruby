@@ -927,8 +927,7 @@ module Commands
   def test_mri(*args)
     double_dash_index = args.index '--'
     if double_dash_index
-      runner_args = args[(double_dash_index + 1)..-1]
-      args        = args[0...double_dash_index]
+      args, runner_args = args[0...double_dash_index], args[(double_dash_index+1)..-1]
     else
       runner_args = []
     end
