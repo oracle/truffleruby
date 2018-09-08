@@ -1,1 +1,4 @@
 fails:Module#autoload (concurrently) blocks others threads while doing an autoload
+fails:Module#autoload the autoload is removed when the same file is required directly without autoload with a full path
+fails:Module#autoload the autoload is removed when the same file is required directly without autoload with a relative path
+fails:Module#autoload the autoload is removed when the same file is required directly without autoload in a nested require
