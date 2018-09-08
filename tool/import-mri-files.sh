@@ -3,6 +3,16 @@
 set -x
 set -e
 
+topdir=$(cd ../ruby && pwd -P)
+
+# Generate ext/rbconfig/sizeof/sizes.c
+(
+  cd ../ruby/ext/rbconfig/sizeof
+  cp depend Makefile
+  make sizes.c RUBY=ruby top_srcdir="$topdir"
+  rm Makefile
+)
+
 rm -r lib/mri
 cp -r ../ruby/lib lib/mri
 rm lib/mri/racc/rdoc/grammar.en.rdoc
@@ -17,6 +27,7 @@ cp ../ruby/ext/zlib/*.{c,rb} src/main/c/zlib
 cp ../ruby/ext/psych/*.{c,h,rb} src/main/c/psych
 cp ../ruby/ext/psych/yaml/*.{c,h} src/main/c/psych/yaml
 cp ../ruby/ext/psych/yaml/LICENSE src/main/c/psych/yaml
+cp ../ruby/ext/rbconfig/sizeof/*.{c,rb} src/main/c/rbconfig-sizeof
 cp -r ../ruby/ext/openssl/lib/* lib/mri
 cp -r ../ruby/ext/bigdecimal/lib/bigdecimal lib/mri
 cp -r ../ruby/ext/pty/lib/*.rb lib/mri
