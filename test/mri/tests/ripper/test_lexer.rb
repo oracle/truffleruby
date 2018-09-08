@@ -52,4 +52,4 @@ class TestRipper::Lexer < Test::Unit::TestCase
     ]
     assert_equal expect, Ripper.lex(src).map {|e| e[1]}
   end
-end
+end if ripper_test
