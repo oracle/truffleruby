@@ -42,11 +42,9 @@ module Bundler
                               Rubinius::VERSION.dup
                             when "jruby"
                               JRUBY_VERSION.dup
-                            when 'truffleruby'
-                              # TruffleRuby: added case branch
-                              RUBY_ENGINE_VERSION
                             else
-                              raise BundlerError, "RUBY_ENGINE value #{RUBY_ENGINE} is not recognized"
+                              # TruffleRuby: use the standard constant
+                              RUBY_ENGINE_VERSION.dup
                             end
       patchlevel = RUBY_PATCHLEVEL.to_s
 
