@@ -30,6 +30,7 @@ lib/mri/zlib.su
 lib/mri/psych.su
 lib/mri/syslog.su
 lib/mri/etc.su
+lib/mri/rbconfig/sizeof.su
 /.ext
 
 bench/chunky_png/oily_png/ext/oily_png/Makefile

@@ -88,6 +88,7 @@ ripper/test_filter.rb
 ripper/test_parser_events.rb
 ripper/test_ripper.rb
 ripper/test_scanner_events.rb
+ripper/test_sexp.rb
 scanf/test_scanf.rb # many failures / regression
 socket/test_addrinfo.rb
 socket/test_ancdata.rb
@@ -178,7 +179,6 @@ readline/test_readline_history.rb
 resolv/test_dns.rb
 rinda/test_rinda.rb
 rinda/test_tuplebag.rb
-ripper/test_sexp.rb
 ruby/test_arity.rb
 ruby/test_backtrace.rb
 ruby/test_iseq.rb

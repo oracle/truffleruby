@@ -84,6 +84,7 @@ class MSpecScript
     "^spec/ruby/library/yaml",
     "^spec/ruby/library/zlib",
     "^spec/ruby/library/etc",
+    "^spec/ruby/library/rbconfig/sizeof",
   ]
 
   set :capi, [
@@ -95,7 +96,7 @@ class MSpecScript
     "spec/ruby/library/yaml",
     "spec/ruby/library/zlib",
     "spec/ruby/library/etc",
-    "^spec/ruby/library/etc/struct_group_spec.rb",    # fails in :all block
+    "spec/ruby/library/rbconfig/sizeof",
     "spec/ruby/security/cve_2017_17742_spec.rb",
   ]
 
