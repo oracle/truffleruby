@@ -2,15 +2,16 @@
 
 Before you do anything, check with Chris Seaton for clearance to upgrade.
 
-## Create a diff against MRI
+The workflow below will allow you to see and reapply the modifications that we
+have to MRI source code while updating.
 
-We want to create diffs of all changes we have applied on top of the last set
-of files we got from MRI. Get the hash of the commit with the unmodified version
-of the files from the last version of MRI. This will be called something like
-`MRI a.b.c unmodified files`.
+You can re-run these instructions at any time to compare against unmodified
+MRI files.
+
+## Create a branch for the unmodified files from MRI
 
 ```
-git diff <hash> HEAD -- lib/mri lib/cext/include src/main/c/openssl src/main/c/zlib test/mri/tests > ../mri.patch
+git checkout -b mri
 ```
 
 ## Import new files from MRI
@@ -19,20 +20,30 @@ Then we want to create a new commit with the new, unmodified files imported from
 MRI. You need MRI checked out into `../ruby` at the version you want to import.
 Then run `tool/import-mri-files.sh`.
 
-## Create a reference commit of the imported unmodified files
-
-So that we can create the diffs that we created in our first step in the future,
-now create a commit called something like `MRI a.b.d unmodified files`.
+## Create a commit with the unmodified files
 
 ```
-git commit -am 'MRI a.b.d unmodified files'
+git commit -am 'Unmodified n.n.n files'
 ```
 
-## Restore our modifications on top of the imported unmodified files
+## View modifications
+
+You can then view the modifications that we've made against MRI.
 
 ```
-git apply -3 ../mri.patch
-git commit -am 'Restore MRI modifications'
+git diff mri master
+```
+
+You should get a diff of a few thousand lines.
+
+## Update MRI with modifications
+
+You can apply these modifications on top of files from a new version of MRI.
+
+```
+git checkout -b update-mri master
+tool/import-mri-files.sh
+git diff mri master | git apply -3
 ```
 
 ## Make other changes
