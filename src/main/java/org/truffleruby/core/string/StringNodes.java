@@ -3182,6 +3182,18 @@ public abstract class StringNodes {
             return false;
         }
 
+        @Specialization(guards = {
+                "rope(string) == cachedStringRope",
+                "rope(other) == cachedOtherRope",
+                "cachedStringRope.getEncoding() == cachedOtherRope.getEncoding()"
+        }, limit = "getDefaultCacheLimit()")
+        public boolean cachedRopes(DynamicObject string, DynamicObject other,
+                                   @Cached("flattenRope(string)") Rope cachedStringRope,
+                                   @Cached("flattenRope(other)") Rope cachedOtherRope,
+                                   @Cached("cachedStringRope.equals(cachedOtherRope)") boolean equal) {
+            return equal;
+        }
+
         @Specialization(guards = "areComparable(string, other)")
         public boolean stringEquals(DynamicObject string, DynamicObject other,
                 @Cached("create()") RopeNodes.BytesEqualNode bytesEqualNode) {
