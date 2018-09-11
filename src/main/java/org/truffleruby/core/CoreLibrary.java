@@ -49,7 +49,6 @@ import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
 import org.truffleruby.language.NotProvided;
