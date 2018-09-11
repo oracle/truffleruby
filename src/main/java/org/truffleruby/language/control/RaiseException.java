@@ -11,7 +11,6 @@ package org.truffleruby.language.control;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleException;
-import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
@@ -26,7 +25,7 @@ import org.truffleruby.language.objects.ReadObjectFieldNode;
 /**
  * A ControlFlowException holding a Ruby exception.
  */
-public class RaiseException extends ControlFlowException implements TruffleException {
+public class RaiseException extends RuntimeException implements TruffleException {
 
     private static final long serialVersionUID = -4128190563044417424L;
 
@@ -49,6 +48,12 @@ public class RaiseException extends ControlFlowException implements TruffleExcep
 
     public DynamicObject getException() {
         return exception;
+    }
+
+    @SuppressWarnings("sync-override")
+    @Override
+    public final Throwable fillInStackTrace() {
+        return null;
     }
 
     @Override
