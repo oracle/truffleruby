@@ -31,6 +31,8 @@ Additionally, TruffleRuby defines
 
 - `TruffleRuby.revision` which is the Git commit hash
 
+In the C API we define a preprocessor macro `TRUFFLERUBY`.
+
 ## Features entirely missing
 
 #### Continuations and `callcc`

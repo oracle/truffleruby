@@ -5,6 +5,7 @@
 New features:
 
 * Useful `inspect` strings have been added for more foreign objects.
+* The C extension API now defines a preprocessor macro `TRUFFLERUBY`.
 
 Bug fixes:
 
