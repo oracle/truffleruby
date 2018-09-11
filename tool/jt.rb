@@ -1358,7 +1358,7 @@ EOS
     end
 
     if args.any? { |arg| arg.include? 'optional/capi' } or
-        args.include?(':capi') or args.include?(':library_cext')
+        args.include?(':capi') or args.include?(':truffle_capi') or args.include?(':library_cext')
       build("cexts")
     end
 
@@ -2284,7 +2284,7 @@ EOS
         excludes += ['graalvm'] if [:public, :graalvm].include?(install_method)
         excludes += ['aot'] if ['', '--native'].include?(config)
 
-        [':command_line', ':security', ':language', ':core', ':library', ':capi', ':library_cext', ':truffle'].each do |set|
+        [':command_line', ':security', ':language', ':core', ':library', ':capi', ':library_cext', ':truffle', ':truffle_capi'].each do |set|
           t_config = config.empty? ? '' : '-T' + config
           t_excludes = excludes.map { |e| '--excl-tag ' + e }.join(' ')
           lines.push "RUN " + setup_env["ruby spec/mspec/bin/mspec --config spec/truffle.mspec -t #{ruby_bin}/ruby #{t_config} #{t_excludes} #{set}"]

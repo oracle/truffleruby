@@ -315,6 +315,7 @@ def ruby_testdownstream_sulong(args):
     mx.suite('sulong')
 
     jt('test', 'specs', ':capi')
+    jt('test', 'specs', ':truffle_capi')
     jt('test', 'specs', ':library_cext')
     jt('test', 'mri', '--cext')
     jt('test', 'cexts')

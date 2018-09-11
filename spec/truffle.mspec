@@ -101,7 +101,12 @@ class MSpecScript
   ]
 
   set :truffle, [
-    "spec/truffle"
+    "spec/truffle",
+    "^spec/truffle/capi"
+  ]
+
+  set :truffle_capi, [
+    "spec/truffle/capi"
   ]
 
   set :ruby25, [
@@ -152,7 +157,7 @@ class MSpecScript
 
   # All specs, including specs needing C-extensions support.
   # 2.4/2.5 specs are not included as they need to run in a separate process.
-  set :all, get(:files) + get(:capi) + get(:library_cext)
+  set :all, get(:files) + get(:capi) + get(:truffle_capi) + get(:library_cext)
 end
 
 if MSpecScript.child_process?

@@ -18,6 +18,8 @@
 extern "C" {
 #endif
 
+#define TRUFFLERUBY
+
 #define rb_sprintf(format, ...) \
 (VALUE) polyglot_invoke(RUBY_CEXT, "rb_sprintf", rb_str_new_cstr(format), ##__VA_ARGS__)
 
