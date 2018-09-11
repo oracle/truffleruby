@@ -991,15 +991,11 @@ module Truffle::CExt
   # exception out of the thread local and calls raise exception to
   # throw it and allow normal error handling to continue.
 
-  def rb_protect_with_block(function, arg, block)
+  def rb_protect_with_block(function, arg)
     res = nil
     pos = 0
     e = capture_exception do
-      if block
-        res = foreign_call_with_block(function, arg, &block)
-      else
-        res = foreign_call_with_block(function, arg)
-      end
+      res = foreign_call_with_block(function, arg)
     end
     unless nil == e # This way around because e is a CapturedException which is a foreign object with no interop
       store = (Thread.current[:__stored_exceptions__] ||= [])
@@ -1716,6 +1712,11 @@ module Truffle::CExt
       an_object
     end
   end
+
+  def foreign_call_with_block(function, *args)
+    Truffle::Interop.execute_without_conversion(function, *args)
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)

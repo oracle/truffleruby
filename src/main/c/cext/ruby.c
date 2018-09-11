@@ -2218,7 +2218,7 @@ void rb_exc_raise(VALUE exception) {
 
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status) {
   VALUE ary = polyglot_invoke(RUBY_CEXT, "rb_protect_with_block",
-                             (void (*)(void *)) function, data, rb_block_proc());
+                             (void (*)(void *)) function, data);
   *status = NUM2INT(polyglot_get_array_element(ary, 1));
   return polyglot_get_array_element(ary, 0);
 }

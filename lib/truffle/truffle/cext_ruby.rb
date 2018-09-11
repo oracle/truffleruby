@@ -40,10 +40,6 @@ module Truffle::CExt
     mod.send(:define_method, name, method_body)
   end
 
-  def foreign_call_with_block(function, *args, &block)
-    Truffle::Interop.execute_without_conversion(function, *args)
-  end
-
   private
 
   def rb_iterate_call_block(callback, block_arg, callback_arg, &block)
