@@ -29,7 +29,9 @@ class Gem::PathSupport
       @home   = @home.gsub(File::ALT_SEPARATOR, File::SEPARATOR)
     end
 
-    @home = expand(@home)
+    if RUBY_ENGINE == 'truffleruby'
+      @home = expand(@home)
+    end
 
     @path = split_gem_path env["GEM_PATH"], @home
 
@@ -67,7 +69,11 @@ class Gem::PathSupport
       gem_path = default_path
     end
 
-    gem_path.map { |path| expand(path) }.uniq
+    if RUBY_ENGINE == 'truffleruby'
+      gem_path.map { |path| expand(path) }.uniq
+    else
+      gem_path.uniq
+    end
   end
 
   # Return the default Gem path
@@ -80,11 +86,13 @@ class Gem::PathSupport
     gem_path
   end
 
-  def expand(path)
-    if File.directory?(path)
-      File.realpath(path)
-    else
-      path
+  if RUBY_ENGINE == 'truffleruby'
+    def expand(path)
+      if File.directory?(path)
+        File.realpath(path)
+      else
+        path
+      end
     end
   end
 end
