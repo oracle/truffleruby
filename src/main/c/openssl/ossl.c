@@ -169,8 +169,7 @@ ossl_pem_passwd_cb(char *buf, int max_len, int flag, void *pwd_)
 {
     long len;
     int status;
-    VALUE rflag, pass = (VALUE)rb_tr_managed_from_handle(pwd_);
-    rb_tr_release_handle(pwd_);
+    VALUE rflag, pass = (VALUE)rb_tr_managed_from_handle_release(pwd_);
 
     if (RTEST(pass)) {
 	/* PEM_def_callback(buf, max_len, flag, StringValueCStr(pass)) does not
