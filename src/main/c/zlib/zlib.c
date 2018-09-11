@@ -3913,7 +3913,7 @@ rb_gzreader_each_char(VALUE obj)
 {
     VALUE c;
 
-    RETURN_ENUMERATOR_NAME(obj, rb_str_new_cstr("each_char"), 0, 0);
+    RETURN_ENUMERATOR(obj, 0, 0);
 
     while (!NIL_P(c = rb_gzreader_getc(obj))) {
 	rb_yield(c);
@@ -3931,7 +3931,7 @@ rb_gzreader_each_byte(VALUE obj)
 {
     VALUE c;
 
-    RETURN_ENUMERATOR_NAME(obj, rb_str_new_cstr("each_byte"), 0, 0);
+    RETURN_ENUMERATOR(obj, 0, 0);
 
     while (!NIL_P(c = rb_gzreader_getbyte(obj))) {
 	rb_yield(c);
@@ -4217,7 +4217,7 @@ rb_gzreader_each(int argc, VALUE *argv, VALUE obj)
 {
     VALUE str;
 
-    RETURN_ENUMERATOR_NAME(obj, rb_str_new_cstr("each"), 0, 0);
+    RETURN_ENUMERATOR(obj, 0, 0);
 
     while (!NIL_P(str = gzreader_gets(argc, argv, obj))) {
 	rb_yield(str);
