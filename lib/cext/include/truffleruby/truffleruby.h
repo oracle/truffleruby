@@ -85,11 +85,6 @@ int rb_tr_writable(int mode);
 
 typedef void *(*gvl_call)(void *);
 
-#define RETURN_ENUMERATOR_NAME(obj, meth, argc, argv) do {  \
-if (!rb_block_given_p())                                    \
-    return rb_enumeratorize((obj), (meth), (argc), (argv)); \
-} while (0)
-
 // Exceptions
 
 #define rb_raise(EXCEPTION, FORMAT, ...) \
