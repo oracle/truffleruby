@@ -47,6 +47,7 @@ import org.truffleruby.builtins.CoreMethodNodeManager;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.module.ModuleNodes;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
@@ -759,7 +760,7 @@ public class CoreLibrary {
     }
 
     private DynamicObject frozenUSASCIIString(String string) {
-        final Rope rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
+        final Rope rope = context.getRopeCache().getRope(StringOperations.encodeRope(string, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
         return StringOperations.createFrozenString(context, rope);
     }
 
