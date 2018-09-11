@@ -72,7 +72,7 @@ public class TruffleRegexpNodes {
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
-        @Specialization(guards = "argsMatch(frame, cachedArgs, args)", limit = "getCacheLimit()")
+        @Specialization(guards = "argsMatch(frame, cachedArgs, args)", limit = "getDefaultCacheLimit()")
         public Object executeFastUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] args,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
                 @Cached("buildUnion(frame, str, sep, args)") DynamicObject union) {
@@ -128,10 +128,6 @@ public class TruffleRegexpNodes {
 
             final DynamicObjectFactory factory = getContext().getCoreLibrary().getRegexpFactory();
             return Layouts.REGEXP.createRegexp(factory, regex, (Rope) regex.getUserObject(), regexpOptions, new EncodingCache());
-        }
-
-        protected int getCacheLimit() {
-            return getContext().getOptions().DEFAULT_CACHE;
         }
     }
 

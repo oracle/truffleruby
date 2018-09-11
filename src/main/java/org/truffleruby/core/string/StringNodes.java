@@ -775,7 +775,7 @@ public abstract class StringNodes {
         @Child private ToStrNode toStr = ToStrNode.create();
         @Child private CountRopesNode countRopesNode = CountRopesNode.create();
 
-        @Specialization(guards = "args.length == size", limit = "getCacheLimit()")
+        @Specialization(guards = "args.length == size", limit = "getDefaultCacheLimit()")
         public int count(VirtualFrame frame, DynamicObject string, Object[] args,
                 @Cached("args.length") int size) {
             final Rope[] ropes = argRopes(frame, args);
@@ -803,10 +803,6 @@ public abstract class StringNodes {
                 strs[i] = rope(toStr.executeToStr(frame, args[i]));
             }
             return strs;
-        }
-
-        protected int getCacheLimit() {
-            return getContext().getOptions().DEFAULT_CACHE;
         }
     }
 
@@ -923,7 +919,7 @@ public abstract class StringNodes {
 
         public abstract DynamicObject executeDeleteBang(VirtualFrame frame, DynamicObject string, Object[] args);
 
-        @Specialization(guards = "args.length == size", limit = "getCacheLimit()")
+        @Specialization(guards = "args.length == size", limit = "getDefaultCacheLimit()")
         public DynamicObject deleteBang(VirtualFrame frame, DynamicObject string, Object[] args,
                 @Cached("args.length") int size) {
             final Rope[] ropes = argRopes(frame, args);
@@ -951,10 +947,6 @@ public abstract class StringNodes {
                 strs[i] = rope(toStr.executeToStr(frame, args[i]));
             }
             return strs;
-        }
-
-        protected int getCacheLimit() {
-            return getContext().getOptions().DEFAULT_CACHE;
         }
     }
 
@@ -2260,7 +2252,7 @@ public abstract class StringNodes {
         @Specialization(guards = {
                 "!isBrokenCodeRange(string)",
                 "equalNode.execute(rope(string),cachedRope)"
-        }, limit = "getLimit()")
+        }, limit = "getDefaultCacheLimit()")
         public DynamicObject toSymCached(DynamicObject string,
                 @Cached("privatizeRope(string)") Rope cachedRope,
                 @Cached("getSymbol(cachedRope)") DynamicObject cachedSymbol,
@@ -2276,10 +2268,6 @@ public abstract class StringNodes {
         @Specialization(guards = "isBrokenCodeRange(string)")
         public DynamicObject toSymBroken(DynamicObject string) {
             throw new RaiseException(getContext(), coreExceptions().encodingError("invalid encoding symbol", this));
-        }
-
-        protected int getLimit() {
-            return getContext().getOptions().DEFAULT_CACHE;
         }
     }
 

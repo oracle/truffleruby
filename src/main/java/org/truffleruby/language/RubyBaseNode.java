@@ -78,6 +78,10 @@ public abstract class RubyBaseNode extends Node {
         return getContext().getCoreExceptions();
     }
 
+    protected int getDefaultCacheLimit() {
+        return getContext().getOptions().DEFAULT_CACHE;
+    }
+
     // Accessors
 
     public RubyContext getContext() {
