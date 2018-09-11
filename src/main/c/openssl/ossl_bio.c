@@ -9,6 +9,8 @@
  */
 #include "ossl.h"
 
+#ifndef TRUFFLERUBY
+
 BIO *
 ossl_obj2bio(volatile VALUE *pobj)
 {
@@ -25,22 +27,7 @@ ossl_obj2bio(volatile VALUE *pobj)
     return bio;
 }
 
-// TruffleRuby: _x version added that doesn't take a pointer to a local
-// variable - the variable is apparently only to protect against conservative GC
-BIO *
-ossl_obj2bio_x(VALUE obj)
-{
-    BIO *bio;
-
-    if (RB_TYPE_P(obj, T_FILE))
-	obj = rb_funcallv(obj, rb_intern("read"), 0, NULL);
-    StringValue(obj);
-    bio = BIO_new_mem_buf(RSTRING_PTR(obj), RSTRING_LENINT(obj));
-    if (!bio)
-	ossl_raise(eOSSLError, "BIO_new_mem_buf");
-
-    return bio;
-}
+#endif
 
 VALUE
 ossl_membio2str0(BIO *bio)
