@@ -3100,6 +3100,12 @@ VALUE rb_tr_managed_from_handle(void *handle) {
   return polyglot_invoke(RUBY_CEXT, "rb_tr_unwrap_from_handle", truffle_managed_from_handle(handle));
 }
 
+VALUE rb_tr_managed_from_handle_release(void *handle) {
+  VALUE managed = rb_tr_managed_from_handle(handle);
+  rb_tr_release_handle(handle);
+  return managed;
+}
+
 void rb_tr_release_if_handle(void *pointer) {
   if (truffle_is_handle_to_managed(pointer)) {
     truffle_release_handle(pointer);
