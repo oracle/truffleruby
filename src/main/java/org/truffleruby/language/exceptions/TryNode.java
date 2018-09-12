@@ -10,10 +10,12 @@
 package org.truffleruby.language.exceptions;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
+
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RetryException;
@@ -72,6 +74,16 @@ public class TryNode extends RubyNode {
     private Object handleException(VirtualFrame frame, RaiseException exception) {
         for (RescueNode rescue : rescueParts) {
             if (rescue.canHandle(frame, exception.getException())) {
+                /*
+                 * We materialize the backtrace eagerly here, as the exception is being rescued and
+                 * therefore the exception is no longer being thrown on the exception path and the
+                 * lazy stacktrace is no longer filled.
+                 *
+                 * TODO (eregon, 14 Sept 2018): try to optimize the case where the exception is
+                 * rethrown, or the backtrace is not used.
+                 */
+                TruffleStackTraceElement.fillIn(exception);
+
                 return setLastExceptionAndRunRescue(frame, exception, rescue);
             }
         }

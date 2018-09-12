@@ -39,6 +39,12 @@ public class RaiseException extends RuntimeException implements TruffleException
     public RaiseException(RubyContext context, DynamicObject exception, boolean internal) {
         this.exception = exception;
         this.internal = internal;
+
+        final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
+        if (backtrace != null) { // The backtrace could be null if for example a user backtrace was passed to Kernel#raise
+            backtrace.setTruffleException(this);
+        }
+
         assert !isSyntaxError() || getSourceLocation() != null;
 
         if (context.getOptions().BACKTRACE_ON_RAISE) {
