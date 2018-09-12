@@ -24,6 +24,7 @@ cp ../ruby/st.c src/main/c/cext/st.c
 cp ../ruby/ext/openssl/*.{c,h,rb} src/main/c/openssl
 cp ../ruby/ext/syslog/*.{c,rb} src/main/c/syslog
 cp ../ruby/ext/zlib/*.{c,rb} src/main/c/zlib
+cp ../ruby/ext/etc/*.{c,rb} src/main/c/etc
 cp ../ruby/ext/psych/*.{c,h,rb} src/main/c/psych
 cp ../ruby/ext/psych/yaml/*.{c,h} src/main/c/psych/yaml
 cp ../ruby/ext/psych/yaml/LICENSE src/main/c/psych/yaml

@@ -676,8 +676,11 @@ etc_systmpdir(void)
     }
 # endif
 #endif
-    // FL_UNSET(tmpdir, FL_TAINT);
+#ifdef TRUFFLERUBY
     rb_obj_untaint(tmpdir);
+#else
+    FL_UNSET(tmpdir, FL_TAINT);
+#endif
     return tmpdir;
 }
 
