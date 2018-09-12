@@ -109,6 +109,16 @@ public abstract class Rope {
         return hashCode;
     }
 
+    @TruffleBoundary
+    public boolean bytesEqual(Rope other) {
+        /*
+         * What is the right strategy to compare ropes for byte equality? There are lots of options. We're going to
+         * force and compare the hash codes, and then flatten for a byte equality. Both the intermediate hash
+         * generations of the nodes, and the final Array.equals if needed, should have good inner-loop implementations.
+         */
+        return this.hashCode() == other.hashCode() && Arrays.equals(this.getBytes(), other.getBytes());
+    }
+
     @Override
     public final boolean equals(Object o) {
         if (this == o) {
