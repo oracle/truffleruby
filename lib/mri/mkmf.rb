@@ -7,8 +7,10 @@ require 'rbconfig'
 require 'fileutils'
 require 'shellwords'
 
-# Truffle: setup config here as we need to check the clang version
-require 'rbconfig-for-mkmf'
+if RUBY_ENGINE == 'truffleruby'
+  # Setup config here as we need to check the clang version
+  require 'rbconfig-for-mkmf'
+end
 
 # :stopdoc:
 class String
@@ -227,15 +229,20 @@ module MakeMakefile
     map.inject(dir) {|d, (orig, new)| d.gsub(orig, new)}
   end
 
-  # Modified for TruffleRuby
-  # topdir = File.dirname(File.dirname(__FILE__))
-  topdir = RbConfig::CONFIG['prefix']
+  if RUBY_ENGINE == 'truffleruby'
+    topdir = RbConfig::CONFIG['prefix']
+  else
+    topdir = File.dirname(File.dirname(__FILE__))
+  end
+  
   path = File.expand_path($0)
   until (dir = File.dirname(path)) == path
     if File.identical?(dir, topdir)
-      # Modified for TruffleRuby
-      # $extmk = true if %r"\A(?:ext|enc|tool|test)\z" =~ File.basename(path)
-      $extmk = true if %r"\A(?:ext|enc|tool|test|src)\z" =~ File.basename(path)
+      if RUBY_ENGINE == 'truffleruby'
+        $extmk = true if %r"\A(?:ext|enc|tool|test|src)\z" =~ File.basename(path)
+      else
+        $extmk = true if %r"\A(?:ext|enc|tool|test)\z" =~ File.basename(path)
+      end
       break
     end
     path = dir
@@ -245,12 +252,11 @@ module MakeMakefile
     $topdir = $hdrdir
     $top_srcdir = $hdrdir
     $arch_hdrdir = RbConfig::CONFIG["rubyarchhdrdir"]
-  # Modified for TruffleRuby
-  #elsif File.exist?(($hdrdir = ($top_srcdir ||= topdir) + "/include")  + "/ruby.h")
-  elsif File.exist?(($hdrdir = ($top_srcdir ||= topdir + "/lib/cext") + "/include")  + "/ruby.h")
+  elsif RUBY_ENGINE != 'truffleruby' && File.exist?(($hdrdir = ($top_srcdir ||= topdir) + "/include")  + "/ruby.h")
     $topdir ||= RbConfig::CONFIG["topdir"]
-    # Modified for TruffleRuby
-    #$arch_hdrdir = "$(extout)/include/$(arch)"
+    $arch_hdrdir = "$(extout)/include/$(arch)"
+  elsif RUBY_ENGINE == 'truffleruby' && File.exist?(($hdrdir = ($top_srcdir ||= topdir + "/lib/cext") + "/include")  + "/ruby.h")
+    $topdir ||= RbConfig::CONFIG["topdir"]
     $arch_hdrdir = $top_srcdir + "/include"
   else
     abort "mkmf.rb can't find header files for ruby at #{$hdrdir}/ruby.h"
@@ -500,9 +506,14 @@ MSG
     conf = RbConfig::CONFIG.merge('hdrdir' => $hdrdir.quote, 'srcdir' => $srcdir.quote,
                                   'arch_hdrdir' => $arch_hdrdir.quote,
                                   'top_srcdir' => $top_srcdir.quote)
-    # Truffle: specify output file (-o) explictly. Clang 3.8 produces conftest.o and 3.9 conftest.bc.
-    RbConfig::expand("$(CC) #$INCFLAGS #$CPPFLAGS #$CFLAGS #$ARCH_FLAG #{opt} -o #{CONFTEST}.#{$OBJEXT} -c #{CONFTEST_C}",
-                     conf)
+    if RUBY_ENGINE == 'truffleruby'
+      # Specify output file (-o) explictly. Clang 3.8 produces conftest.o and 3.9 conftest.bc.
+      RbConfig::expand("$(CC) #$INCFLAGS #$CPPFLAGS #$CFLAGS #$ARCH_FLAG #{opt} -o #{CONFTEST}.#{$OBJEXT} -c #{CONFTEST_C}",
+                       conf)
+    else
+      RbConfig::expand("$(CC) #$INCFLAGS #$CPPFLAGS #$CFLAGS #$ARCH_FLAG #{opt} -c #{CONFTEST_C}",
+                       conf)
+    end
   end
 
   def cpp_command(outfile, opt="")
@@ -2133,9 +2144,16 @@ RULES
     unless suffixes.empty?
       depout.unshift(".SUFFIXES: ." + suffixes.uniq.join(" .") + "\n\n")
     end
-    # Truffle: added dependency on Makefile as we should recompile if the Makefile was re-generated
-    depout.unshift("$(OBJS): Makefile\n")
-    depout.unshift("$(OBJS): $(RUBY_EXTCONF_H)\n\n") if $extconf_h
+    if RUBY_ENGINE == 'truffleruby'
+      # Added dependency on Makefile as we should recompile if the Makefile was re-generated
+      if $extconf_h
+        depout.unshift("$(OBJS): Makefile $(RUBY_EXTCONF_H)\n\n")
+      else
+        depout.unshift("$(OBJS): Makefile\n\n")
+      end
+    else
+      depout.unshift("$(OBJS): $(RUBY_EXTCONF_H)\n\n") if $extconf_h
+    end
     depout.flatten!
     depout
   end
@@ -2487,8 +2505,12 @@ site-install-rb: install-rb
     if File.exist?(depend)
       mfile.print("###\n", *depend_rules(File.read(depend)))
     else
-      # Truffle: added dependency on Makefile as we should recompile if the Makefile was re-generated
-      mfile.print "$(OBJS): $(HDRS) $(ruby_headers) Makefile\n"
+      if RUBY_ENGINE == 'truffleruby'
+        # Added dependency on Makefile as we should recompile if the Makefile was re-generated
+        mfile.print "$(OBJS): $(HDRS) $(ruby_headers) Makefile\n"
+      else
+        mfile.print "$(OBJS): $(HDRS) $(ruby_headers)\n"
+      end
     end
 
     $makefile_created = true
@@ -2626,9 +2648,12 @@ MESSAGE
     RbConfig::CONFIG["topdir"] = curdir
   end
   $configure_args["--topdir"] ||= $curdir
-  # Modified for TruffleRuby
-  #$ruby = arg_config("--ruby", File.join(RbConfig::CONFIG["bindir"], CONFIG["ruby_install_name"]))
-  $ruby = arg_config("--ruby", RbConfig.ruby)
+  
+  if RUBY_ENGINE == 'truffleruby'
+    $ruby = arg_config("--ruby", RbConfig.ruby)
+  else
+    $ruby = arg_config("--ruby", File.join(RbConfig::CONFIG["bindir"], CONFIG["ruby_install_name"]))
+  end
 
   RbConfig.expand(CONFIG["RUBY_SO_NAME"])
 
