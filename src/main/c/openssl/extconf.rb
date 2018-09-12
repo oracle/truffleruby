@@ -17,6 +17,8 @@ require File.expand_path('../deprecation', __FILE__)
 if RUBY_ENGINE == 'truffleruby'
   require 'truffle/openssl-prefix'
   dir_config("openssl", ENV["OPENSSL_PREFIX"])
+else
+  dir_config("openssl")
 end
 
 dir_config("kerberos")
