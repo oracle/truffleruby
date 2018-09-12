@@ -21,7 +21,7 @@ suite = {
                 # version must always be equal to the version of the "tools" import above
                 "version": "62d7d46298be2872d806b178c7a82b287012a360",
                 "urls": [
-                    {"url": "https://github.com/graal/graal.git", "kind": "git"},
+                    {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
                 ]
             },
