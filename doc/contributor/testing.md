@@ -200,8 +200,7 @@ and configurations that aren't tested, due to limited resources.
 * `ECO` with `INT` on `J8` on Linux.
 * `COMP` with Graal CE on `J8` on Linux.
 * `SPEC` with SVM CE and EE on Linux and macOS.
-* `SPEC`, `SPEC(CEXT)`, `MRI`, `BUN`, `CEXT`, `INT`, `GEM`, `ECO`, `COMP` on
-   Linux in the standalone distribution configuration, via `jt test`.
+* `SPEC` and `SPEC(CEXT)` on Linux in the standalone distribution configuration.
 
 ### Tests run on release candidates
 
