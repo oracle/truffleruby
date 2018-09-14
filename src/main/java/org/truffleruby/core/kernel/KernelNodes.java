@@ -306,7 +306,7 @@ public abstract class KernelNodes {
         }
 
         private DynamicObject innerCallerLocations(int omit, int length) {
-            final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, 1 + omit, true);
+            final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, 1 + omit);
 
             int locationsCount = backtrace.getActivationCount();
 
