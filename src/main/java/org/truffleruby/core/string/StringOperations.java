@@ -101,6 +101,12 @@ public abstract class StringOperations {
         return Layouts.STRING.getRope(string);
     }
 
+    public static Rope flattenRope(DynamicObject string) {
+        final Rope flatRope = RopeOperations.flatten(Layouts.STRING.getRope(string));
+        Layouts.STRING.setRope(string, flatRope);
+        return flatRope;
+    }
+
     public static void setRope(DynamicObject string, Rope rope) {
         Layouts.STRING.setRope(string, rope);
     }

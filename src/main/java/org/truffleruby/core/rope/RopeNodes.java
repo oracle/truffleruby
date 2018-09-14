@@ -1301,6 +1301,17 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = {
+                "a == cachedA",
+                "b == cachedB",
+        }, limit = "getDefaultCacheLimit()")
+        public boolean cachedRopes(Rope a, Rope b,
+                                   @Cached("a") Rope cachedA,
+                                   @Cached("b") Rope cachedB,
+                                   @Cached("a.bytesEqual(b)") boolean equal) {
+            return equal;
+        }
+
+        @Specialization(guards = {
                 "a != b",
                 "a.getRawBytes() != null",
                 "a.getRawBytes() == b.getRawBytes()" })

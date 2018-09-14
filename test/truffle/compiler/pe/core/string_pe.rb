@@ -6,6 +6,11 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+ABC_ROPE_1 = 'abc'
+ABC_ROPE_2 = 'ab' + 'c'
+ABC_ROPE_USASCII = 'abc'.force_encoding('us-ascii')
+ABC_ROPE_UTF8 = 'abc'.force_encoding('utf-8')
+
 simple_string = 'test'
 
 example "Truffle::Ropes.create_simple_string.length", simple_string.length
@@ -18,10 +23,28 @@ example "'こにちわ'.length", 4
 example "'abc'.bytesize", 3
 example "'こにちわ'.bytesize", 12
 
+# Comparison against the same rope node instance
 example "'abc' == 'abc'", true
 example "x = 'abc'; x == x", true
 example "x = 'abc'; x == x.dup", true
 example "x = 'abc'; 'abc' == x.dup", true
+example "ABC_ROPE_1 == ABC_ROPE_1", true
+
+# Comparison against a stable but different string instance, with a stable but
+# different rope node instance with the same encoding
+example "ABC_ROPE_1 == ABC_ROPE_2", true
+
+# Comparison against an unstable string instance, with a stable but different
+# rope node instance with the same encoding
+example "ABC_ROPE_1 == 'abc'", true
+
+# Comparison against a stable but different string instance, with a stable but
+# different rope node instance with a different but compatible encoding
+example "ABC_ROPE_USASCII == ABC_ROPE_UTF8", true
+
+# Comparison against a stable but different string instance, with a stable but
+# different rope node instance with a different but compatible encoding
+example "ABC_ROPE_USASCII == 'abc'", true
 
 example "'A' == String.from_codepoint(65, Encoding::US_ASCII)", true
 example "'A' == 65.chr", true

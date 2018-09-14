@@ -73,7 +73,7 @@ public class InterpolatedRegexpNode extends RubyNode {
 
         public abstract Object execute(Rope[] parts);
 
-        @Specialization(guards = "ropesMatch(cachedParts, parts)", limit = "getCacheLimit()")
+        @Specialization(guards = "ropesMatch(cachedParts, parts)", limit = "getDefaultCacheLimit()")
         public Object executeFast(Rope[] parts,
                 @Cached(value = "parts", dimensions = 1) Rope[] cachedParts,
                 @Cached("createRegexp(cachedParts)") DynamicObject regexp) {
@@ -116,10 +116,6 @@ public class InterpolatedRegexpNode extends RubyNode {
             }
 
             return regexp;
-        }
-
-        protected int getCacheLimit() {
-            return getContext().getOptions().DEFAULT_CACHE;
         }
     }
 }
