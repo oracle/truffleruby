@@ -235,22 +235,20 @@ public class CallStackManager {
                 && ModuleOperations.assignableTo(exceptionClass, context.getCoreLibrary().getStandardErrorClass())) {
             return new Backtrace(currentNode, null, new Activation[] { Activation.OMITTED_UNUSED }, omit, null);
         }
-        return getBacktrace(currentNode, sourceLocation, omit, false, javaThrowable);
+        return getBacktrace(currentNode, sourceLocation, omit, javaThrowable);
     }
 
     public Backtrace getBacktrace(Node currentNode) {
-        return getBacktrace(currentNode, null, 0, false, null);
+        return getBacktrace(currentNode, null, 0, null);
     }
 
-    public Backtrace getBacktrace(Node currentNode,
-            final int omit,
-            final boolean filterNullSourceSection) {
-        return getBacktrace(currentNode, null, omit, filterNullSourceSection, null);
+    public Backtrace getBacktrace(Node currentNode, int omit) {
+        return getBacktrace(currentNode, null, omit, null);
     }
 
     @TruffleBoundary
-    public Backtrace getBacktrace(Node currentNode, SourceSection sourceLocation, int omit, boolean filterNullSourceSection, Throwable javaThrowable) {
-        final Activation[] activations = createActivations(currentNode, omit, filterNullSourceSection);
+    public Backtrace getBacktrace(Node currentNode, SourceSection sourceLocation, int omit, Throwable javaThrowable) {
+        final Activation[] activations = createActivations(currentNode, omit);
 
         if (context.getOptions().EXCEPTIONS_STORE_JAVA || context.getOptions().BACKTRACES_INTERLEAVE_JAVA) {
             if (javaThrowable == null) {
@@ -261,7 +259,7 @@ public class CallStackManager {
         return new Backtrace(currentNode, sourceLocation, activations, omit, javaThrowable);
     }
 
-    public Activation[] createActivations(Node currentNode, int omit, boolean filterNullSourceSection) {
+    public Activation[] createActivations(Node currentNode, int omit) {
         final int limit = context.getOptions().BACKTRACES_LIMIT;
 
         final ArrayList<Activation> activations = new ArrayList<>();
@@ -291,14 +289,12 @@ public class CallStackManager {
                 }
 
                 if (!ignoreFrame(frameInstance) && depth >= omit) {
-                    if (!(filterNullSourceSection && hasNullSourceSection(frameInstance))) {
-                        final InternalMethod method = RubyArguments.tryGetMethod(frameInstance
-                                .getFrame(FrameInstance.FrameAccess.READ_ONLY));
+                    final InternalMethod method = RubyArguments.tryGetMethod(frameInstance
+                            .getFrame(FrameInstance.FrameAccess.READ_ONLY));
 
-                        Node callNode = getCallNode(frameInstance, method);
-                        if (callNode != null) {
-                            activations.add(new Activation(callNode, method));
-                        }
+                    Node callNode = getCallNode(frameInstance, method);
+                    if (callNode != null) {
+                        activations.add(new Activation(callNode, method));
                     }
                 }
 
@@ -344,16 +340,6 @@ public class CallStackManager {
         }
 
         return false;
-    }
-
-    private boolean hasNullSourceSection(FrameInstance frameInstance) {
-        final Node callNode = frameInstance.getCallNode();
-        if (callNode == null) {
-            return true;
-        }
-
-        final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
-        return sourceSection == null || sourceSection.getSource() == null;
     }
 
     private Node getCallNode(FrameInstance frameInstance, InternalMethod method) {
