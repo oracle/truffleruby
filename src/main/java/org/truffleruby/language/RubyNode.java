@@ -191,6 +191,10 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         to.flags = flags;
     }
 
+    protected void transferFlagsExcludingRootTo(RubyNode to) {
+        to.flags = (byte) (flags & ~(1 << FLAG_ROOT));
+    }
+
     public boolean hasTag(Class<? extends Tag> tag) {
         if (tag == TraceManager.CallTag.class || tag == StandardTags.CallTag.class) {
             return isCall();
