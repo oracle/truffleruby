@@ -170,7 +170,6 @@ local part_definitions = {
         ["cd", "../graal-enterprise/graal-enterprise"],
         ["mx", "sforceimports"],
         ["mx", "sversions"],
-        ["mx", "clean"],  # Workaround for NFI
         ["mx", "build"],
         ["cd", "../../main"],
       ],
@@ -273,8 +272,6 @@ local part_definitions = {
 
       setup+: [
         ["cd", "$VM_SUITE_HOME"],
-        # Workaround for NFI when building with different Truffle versions
-        ["mx", "clean"],
       ] + self.before_build + [
         # aot-build.log is used for the build-stats metrics
         vm_build + ["|", "tee", "../../main/aot-build.log"],
