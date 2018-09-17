@@ -213,6 +213,7 @@ public class CoreLibrary {
 
     @CompilationFinal private boolean cloningEnabled;
     @CompilationFinal private InternalMethod basicObjectSendMethod;
+    @CompilationFinal private InternalMethod kernelPublicSendMethod;
     @CompilationFinal private InternalMethod truffleBootMainMethod;
 
     @CompilationFinal private GlobalVariableStorage loadPathStorage;
@@ -645,6 +646,7 @@ public class CoreLibrary {
         coreMethodNodeManager.loadCoreMethodNodes();
 
         basicObjectSendMethod = getMethod(basicObjectClass, "__send__");
+        kernelPublicSendMethod = getMethod(kernelModule, "public_send");
         truffleBootMainMethod = getMethod(node.getSingletonClass(truffleBootModule), "main");
 
         final CallTarget kernelLamba = getMethod(kernelModule, "lambda").getCallTarget();
@@ -1222,7 +1224,7 @@ public class CoreLibrary {
 
     public boolean isSend(InternalMethod method) {
         CallTarget callTarget = method.getCallTarget();
-        return callTarget == basicObjectSendMethod.getCallTarget();
+        return callTarget == basicObjectSendMethod.getCallTarget() || callTarget == kernelPublicSendMethod.getCallTarget();
     }
 
     public boolean isTruffleBootMainMethod(SharedMethodInfo info) {
