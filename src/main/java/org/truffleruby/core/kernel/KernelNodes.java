@@ -310,7 +310,7 @@ public abstract class KernelNodes {
 
             backtrace.setTruffleException(new GetBacktraceException(this, limit));
 
-            int locationsCount = backtrace.getActivationCount();
+            int locationsCount = backtrace.getActivations().length;
 
             if (length != GetBacktraceException.UNLIMITED && length < locationsCount) {
                 locationsCount = length;

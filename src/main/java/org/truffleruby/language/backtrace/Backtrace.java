@@ -104,14 +104,6 @@ public class Backtrace {
         this.activations = activations;
     }
 
-    public int getActivationCount() {
-        return getActivations().length;
-    }
-
-    public Activation getActivation(int index) {
-        return getActivations()[index];
-    }
-
     public int getOmitted() {
         return omitted;
     }

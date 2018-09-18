@@ -93,7 +93,7 @@ public class ThreadBacktraceLocationNodes {
         public DynamicObject label(DynamicObject threadBacktraceLocation) {
             final Backtrace backtrace = Layouts.THREAD_BACKTRACE_LOCATION.getBacktrace(threadBacktraceLocation);
             final int activationIndex = Layouts.THREAD_BACKTRACE_LOCATION.getActivationIndex(threadBacktraceLocation);
-            final Activation activation = backtrace.getActivation(activationIndex);
+            final Activation activation = backtrace.getActivations()[activationIndex];
 
             // TODO eregon 8 Nov. 2016 This does not handle blocks
             final String methodName = activation.getMethod().getSharedMethodInfo().getName();
