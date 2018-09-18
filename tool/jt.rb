@@ -25,7 +25,7 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = "2736dd2477c532f91a851dd14d826a0dbb16d1a3"
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = "19853750bdb8b59900de681bec8dc0d27d5046e5"
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -1254,7 +1254,7 @@ EOS
       %w[--deployment]
     ]
     gems = %w[algebrick]
-    bundler_version = '1.16.1'
+    bundler_version = '1.16.5'
 
     gem_server = spawn('gem', 'server', '-b', '127.0.0.1', '-d', "#{gem_test_pack}/gems")
     begin
