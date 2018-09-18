@@ -20,13 +20,10 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.language.CallStackManager;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 import org.truffleruby.language.methods.InternalMethod;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 
 public class Backtrace {
@@ -121,25 +118,6 @@ public class Backtrace {
 
     public Throwable getJavaThrowable() {
         return javaThrowable;
-    }
-
-    @Override
-    public String toString() {
-        RubyContext context = null;
-        if (getActivations().length > 0) {
-            Activation activation = getActivations()[0];
-            Node node = activation.getCallNode();
-            if (node != null && node instanceof RubyBaseNode) {
-                context = ((RubyBaseNode) node).getContext();
-            }
-        }
-
-        if (context != null) {
-            final BacktraceFormatter backtraceFormatter = new BacktraceFormatter(context, EnumSet.of(FormattingFlags.INCLUDE_CORE_FILES));
-            return backtraceFormatter.formatBacktrace(null, this);
-        } else {
-            return "";
-        }
     }
 
     public DynamicObject getBacktraceStringArray() {
