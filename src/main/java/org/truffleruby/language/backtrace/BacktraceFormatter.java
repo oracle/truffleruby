@@ -196,7 +196,7 @@ public class BacktraceFormatter {
             builder.append("\tfrom ");
         }
 
-        final RootNode rootNode = activation.getCallNode().getRootNode().getRootNode();
+        final RootNode rootNode = activation.getCallNode().getRootNode();
 
         if (rootNode instanceof RubyRootNode) {
             final SourceSection sourceSection = activation.getCallNode().getEncapsulatingSourceSection();
