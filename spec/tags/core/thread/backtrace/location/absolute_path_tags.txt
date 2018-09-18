@@ -1,0 +1,1 @@
+fails:Thread::Backtrace::Location#absolute_path when used in #method_added returns the user filename that defined the method
