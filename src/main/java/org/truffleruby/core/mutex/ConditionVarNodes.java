@@ -62,31 +62,7 @@ public abstract class ConditionVarNodes {
         @Specialization
         public DynamicObject waitTimeoutNotProived(VirtualFrame frame, DynamicObject self, DynamicObject mutex, NotProvided notProvided,
                 @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
-            final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
-            final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
-            final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
-
-            InterruptMode interruptMode = Layouts.THREAD.getInterruptMode(thread);
-            try {
-                getConditionAndReleaseMutex(mutexLock, condLock, thread);
-                try {
-                    getContext().getThreadManager().runUntilResultWithResumeAction(this, () -> {
-                        try {
-                            condition.await();
-                            return BlockingAction.SUCCESS;
-                        } finally {
-                            condLock.unlock();
-                        }
-                    }, () -> {
-                        condLock.lock();
-                    });
-                } finally {
-                    reacquireMutex(mutexLock, thread);
-                }
-            } finally {
-                Layouts.THREAD.setInterruptMode(thread, interruptMode);
-            }
+            waitInternal(frame, self, mutex, getCurrentRubyThreadNode, 0);
             return self;
         }
 
@@ -94,6 +70,12 @@ public abstract class ConditionVarNodes {
         public DynamicObject waitTimeout(VirtualFrame frame, DynamicObject self, DynamicObject mutex, long durationInMillis,
                 @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
             final long endTIme = System.nanoTime() + 1_000_000 * durationInMillis;
+            waitInternal(frame, self, mutex, getCurrentRubyThreadNode, endTIme);
+
+            return self;
+        }
+
+        private void waitInternal(VirtualFrame frame, DynamicObject self, DynamicObject mutex, GetCurrentRubyThreadNode getCurrentRubyThreadNode, final long endTIme) throws Error {
             final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
             final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
@@ -105,9 +87,13 @@ public abstract class ConditionVarNodes {
                 try {
                     getContext().getThreadManager().runUntilResultWithResumeAction(this, () -> {
                         try {
-                            final long currentTime = System.nanoTime();
-                            if (currentTime < endTIme) {
-                                condition.await(endTIme - currentTime, TimeUnit.NANOSECONDS);
+                            if (endTIme != 0) {
+                                final long currentTime = System.nanoTime();
+                                if (currentTime < endTIme) {
+                                    condition.await(endTIme - currentTime, TimeUnit.NANOSECONDS);
+                                }
+                            } else {
+                                condition.await();
                             }
                             return BlockingAction.SUCCESS;
                         } finally {
@@ -122,12 +108,10 @@ public abstract class ConditionVarNodes {
             } finally {
                 Layouts.THREAD.setInterruptMode(thread, interruptMode);
             }
-
-            return self;
         }
 
         @Fallback
-        public Object waitFailure(Object string, Object range, Object length) {
+        public Object waitFailure(Object self, Object mutex, Object duration) {
             return FAILURE;
         }
 
