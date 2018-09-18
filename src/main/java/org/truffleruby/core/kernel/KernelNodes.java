@@ -305,8 +305,9 @@ public abstract class KernelNodes {
         }
 
         private DynamicObject innerCallerLocations(int omit, int length) {
-            final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, 1 + omit);
-            final int limit = (length == GetBacktraceException.UNLIMITED) ? GetBacktraceException.UNLIMITED : 1 + omit + length;
+            final int omitted = 1 /* always skip #caller_locations */ + omit;
+            final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omitted);
+            final int limit = (length == GetBacktraceException.UNLIMITED) ? GetBacktraceException.UNLIMITED : omitted + length;
 
             backtrace.setTruffleException(new GetBacktraceException(this, limit));
 
