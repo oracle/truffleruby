@@ -83,7 +83,6 @@ public class LazyRubyNode extends RubyNode {
 
                 // We no longer need the resolver, so let it be GC'd
                 resolver = null;
-                transferFlagsExcludingRootTo(masterResolution);
                 resolutionMaster.set(masterResolution);
             }
         } finally {
