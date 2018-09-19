@@ -9,28 +9,36 @@
  */
 package org.truffleruby.language.backtrace;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleException;
+import com.oracle.truffle.api.TruffleStackTraceElement;
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.exception.GetBacktraceException;
+import org.truffleruby.language.CallStackManager;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.methods.InternalMethod;
 
-import java.util.EnumSet;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Backtrace {
 
     private final Node location;
     private SourceSection sourceLocation;
-    private final Activation[] activations;
+    private TruffleException truffleException;
+    private Activation[] activations;
     private final int omitted;
     private final Throwable javaThrowable;
     private DynamicObject backtraceStringArray;
 
-    public Backtrace(Node location, SourceSection sourceLocation, Activation[] activations, int omitted, Throwable javaThrowable) {
+    public Backtrace(Node location, SourceSection sourceLocation, int omitted, Throwable javaThrowable) {
         this.location = location;
         this.sourceLocation = sourceLocation;
-        this.activations = activations;
         this.omitted = omitted;
         this.javaThrowable = javaThrowable;
     }
@@ -43,19 +51,60 @@ public class Backtrace {
         return sourceLocation;
     }
 
-    /**
-     * Returns an array to PE better. Do not modify it.
-     */
+    public TruffleException getTruffleException() {
+        return truffleException;
+    }
+
+    public void setTruffleException(TruffleException truffleException) {
+        this.truffleException = truffleException;
+    }
+
+    @TruffleBoundary
     public Activation[] getActivations() {
-        return activations;
+        if (this.activations == null) {
+            final TruffleException truffleException;
+            if (this.truffleException != null) {
+                truffleException = this.truffleException;
+            } else {
+                truffleException = new GetBacktraceException(location, GetBacktraceException.UNLIMITED);
+            }
+
+            // The stacktrace is computed here if it was not already computed and stored in the
+            // TruffleException with TruffleStackTraceElement.fillIn().
+            final List<TruffleStackTraceElement> stackTrace = TruffleStackTraceElement.getStackTrace((Throwable) truffleException);
+
+            final List<Activation> activations = new ArrayList<>();
+            final RubyContext context = RubyLanguage.getCurrentContext();
+            final CallStackManager callStackManager = context.getCallStack();
+
+            int i = 0;
+            for (TruffleStackTraceElement stackTraceElement : stackTrace) {
+                if (i >= omitted) {
+                    final Node node = i == 0 ? location : stackTraceElement.getLocation();
+
+                    if (!callStackManager.ignoreFrame(node)) {
+                        final Frame frame = stackTraceElement.getFrame();
+                        final InternalMethod method = frame == null ? null : RubyArguments.tryGetMethod(frame);
+                        final Node callNode = callStackManager.getCallNode(node, method);
+
+                        if (callNode != null) {
+                            activations.add(new Activation(callNode, method));
+                        }
+                    }
+
+                }
+                i++;
+            }
+
+            this.activations = activations.toArray(new Activation[activations.size()]);
+        }
+
+        return this.activations;
+
     }
 
-    public int getActivationCount() {
-        return activations.length;
-    }
-
-    public Activation getActivation(int index) {
-        return activations[index];
+    public void setActivations(Activation[] activations) {
+        this.activations = activations;
     }
 
     public int getOmitted() {
@@ -64,25 +113,6 @@ public class Backtrace {
 
     public Throwable getJavaThrowable() {
         return javaThrowable;
-    }
-
-    @Override
-    public String toString() {
-        RubyContext context = null;
-        if (activations.length > 0) {
-            Activation activation = activations[0];
-            Node node = activation.getCallNode();
-            if (node != null && node instanceof RubyBaseNode) {
-                context = ((RubyBaseNode) node).getContext();
-            }
-        }
-
-        if (context != null) {
-            final BacktraceFormatter backtraceFormatter = new BacktraceFormatter(context, EnumSet.of(FormattingFlags.INCLUDE_CORE_FILES));
-            return backtraceFormatter.formatBacktrace(null, this);
-        } else {
-            return "";
-        }
     }
 
     public DynamicObject getBacktraceStringArray() {

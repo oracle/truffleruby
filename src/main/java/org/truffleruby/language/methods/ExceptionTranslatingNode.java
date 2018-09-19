@@ -34,6 +34,7 @@ public class ExceptionTranslatingNode extends RubyNode {
 
     private final BranchProfile exceptionProfile = BranchProfile.create();
     private final BranchProfile controlProfile = BranchProfile.create();
+    private final BranchProfile raiseProfile = BranchProfile.create();
     private final BranchProfile arithmeticProfile = BranchProfile.create();
     private final BranchProfile unsupportedProfile = BranchProfile.create();
     private final BranchProfile errorProfile = BranchProfile.create();
@@ -59,6 +60,9 @@ public class ExceptionTranslatingNode extends RubyNode {
             throw throwable;
         } catch (ControlFlowException exception) {
             controlProfile.enter();
+            throw exception;
+        } catch (RaiseException exception) {
+            raiseProfile.enter();
             throw exception;
         } catch (ArithmeticException exception) {
             arithmeticProfile.enter();

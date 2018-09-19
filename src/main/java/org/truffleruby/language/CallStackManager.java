@@ -20,7 +20,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.SuppressFBWarnings;
-import org.truffleruby.collections.Memo;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -32,8 +31,6 @@ import org.truffleruby.language.exceptions.DisablingBacktracesNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.shared.TruffleRuby;
-
-import java.util.ArrayList;
 
 public class CallStackManager {
 
@@ -233,7 +230,9 @@ public class CallStackManager {
         if (context.getOptions().BACKTRACES_OMIT_UNUSED
                 && DisablingBacktracesNode.areBacktracesDisabled()
                 && ModuleOperations.assignableTo(exceptionClass, context.getCoreLibrary().getStandardErrorClass())) {
-            return new Backtrace(currentNode, null, new Activation[] { Activation.OMITTED_UNUSED }, omit, null);
+            final Backtrace backtrace = new Backtrace(currentNode, null, omit, null);
+            backtrace.setActivations(new Activation[]{ Activation.OMITTED_UNUSED });
+            return backtrace;
         }
         return getBacktrace(currentNode, sourceLocation, omit, javaThrowable);
     }
@@ -246,72 +245,18 @@ public class CallStackManager {
         return getBacktrace(currentNode, null, omit, null);
     }
 
-    @TruffleBoundary
     public Backtrace getBacktrace(Node currentNode, SourceSection sourceLocation, int omit, Throwable javaThrowable) {
-        final Activation[] activations = createActivations(currentNode, omit);
-
         if (context.getOptions().EXCEPTIONS_STORE_JAVA || context.getOptions().BACKTRACES_INTERLEAVE_JAVA) {
             if (javaThrowable == null) {
                 javaThrowable = new Exception();
             }
         }
 
-        return new Backtrace(currentNode, sourceLocation, activations, omit, javaThrowable);
-    }
-
-    public Activation[] createActivations(Node currentNode, int omit) {
-        final int limit = context.getOptions().BACKTRACES_LIMIT;
-
-        final ArrayList<Activation> activations = new ArrayList<>();
-
-        if (omit == 0 && currentNode != null && Truffle.getRuntime().getCurrentFrame() != null) {
-            final InternalMethod method = RubyArguments.tryGetMethod(Truffle.getRuntime().getCurrentFrame()
-                    .getFrame(FrameInstance.FrameAccess.READ_ONLY));
-
-            activations.add(new Activation(currentNode, method));
-        }
-
-        final Memo<Boolean> firstFrame = new Memo<>(true);
-
-        Truffle.getRuntime().iterateFrames(new FrameInstanceVisitor<Object>() {
-            int depth = 1;
-
-            @Override
-            public Object visitFrame(FrameInstance frameInstance) {
-                if (firstFrame.get()) {
-                    firstFrame.set(false);
-                    return null;
-                }
-
-                if (depth > limit) {
-                    activations.add(Activation.OMITTED_LIMIT);
-                    return new Object();
-                }
-
-                if (!ignoreFrame(frameInstance) && depth >= omit) {
-                    final InternalMethod method = RubyArguments.tryGetMethod(frameInstance
-                            .getFrame(FrameInstance.FrameAccess.READ_ONLY));
-
-                    Node callNode = getCallNode(frameInstance, method);
-                    if (callNode != null) {
-                        activations.add(new Activation(callNode, method));
-                    }
-                }
-
-                depth++;
-
-                return null;
-            }
-
-        });
-
-        return activations.toArray(new Activation[activations.size()]);
+        return new Backtrace(currentNode, sourceLocation, omit, javaThrowable);
     }
 
     @SuppressFBWarnings("ES")
-    private boolean ignoreFrame(FrameInstance frameInstance) {
-        final Node callNode = frameInstance.getCallNode();
-
+    public boolean ignoreFrame(Node callNode) {
         // Nodes with no call node are top-level or require, which *should* appear in the backtrace.
         if (callNode == null) {
             return false;
@@ -342,8 +287,7 @@ public class CallStackManager {
         return false;
     }
 
-    private Node getCallNode(FrameInstance frameInstance, InternalMethod method) {
-        Node callNode = frameInstance.getCallNode();
+    public Node getCallNode(Node callNode, InternalMethod method) {
         if (callNode == null && method != null &&
                 BacktraceFormatter.isCore(context, method.getSharedMethodInfo().getSourceSection())) {
             callNode = ((RootCallTarget) method.getCallTarget()).getRootNode();

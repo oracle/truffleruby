@@ -63,6 +63,7 @@ import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
+import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
 import org.truffleruby.core.format.exceptions.FormatException;
@@ -288,16 +289,14 @@ public abstract class KernelNodes {
     @CoreMethod(names = "caller_locations", isModuleFunction = true, optional = 2, lowerFixnum = { 1, 2 })
     public abstract static class CallerLocationsNode extends CoreMethodArrayArgumentsNode {
 
-        private final int UNLIMITED = -1;
-
         @Specialization
         public DynamicObject callerLocations(NotProvided omit, NotProvided length) {
-            return innerCallerLocations(1, UNLIMITED);
+            return innerCallerLocations(1, GetBacktraceException.UNLIMITED);
         }
 
         @Specialization
         public DynamicObject callerLocations(int omit, NotProvided length) {
-            return innerCallerLocations(omit, UNLIMITED);
+            return innerCallerLocations(omit, GetBacktraceException.UNLIMITED);
         }
 
         @Specialization(guards = "length >= 0")
@@ -306,11 +305,15 @@ public abstract class KernelNodes {
         }
 
         private DynamicObject innerCallerLocations(int omit, int length) {
-            final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, 1 + omit);
+            final int omitted = 1 /* always skip #caller_locations */ + omit;
+            final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omitted);
+            final int limit = (length == GetBacktraceException.UNLIMITED) ? GetBacktraceException.UNLIMITED : omitted + length;
 
-            int locationsCount = backtrace.getActivationCount();
+            backtrace.setTruffleException(new GetBacktraceException(this, limit));
 
-            if (length != UNLIMITED && length < locationsCount) {
+            int locationsCount = backtrace.getActivations().length;
+
+            if (length != GetBacktraceException.UNLIMITED && length < locationsCount) {
                 locationsCount = length;
             }
 
@@ -1377,8 +1380,9 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         private boolean callerIs(String caller) {
-            for (Activation activation : getContext().getCallStack().getBacktrace(this).getActivations()) {
+            final Backtrace backtrace = getContext().getCallStack().getBacktrace(this);
 
+            for (Activation activation : backtrace.getActivations()) {
                 final Source source = activation.getCallNode().getEncapsulatingSourceSection().getSource();
 
                 if (source != null && source.getName().endsWith(caller)) {

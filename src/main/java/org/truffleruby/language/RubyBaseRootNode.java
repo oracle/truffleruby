@@ -28,4 +28,9 @@ public abstract class RubyBaseRootNode extends RootNode {
         return sourceSection;
     }
 
+    @Override
+    public boolean isCaptureFramesForTrace() {
+        return true;
+    }
+
 }

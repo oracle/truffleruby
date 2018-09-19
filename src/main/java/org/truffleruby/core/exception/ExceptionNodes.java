@@ -129,10 +129,9 @@ public abstract class ExceptionNodes {
             return captureBacktrace(exception, 1);
         }
 
-        @TruffleBoundary
         @Specialization
         public DynamicObject captureBacktrace(DynamicObject exception, int offset) {
-            DynamicObject exceptionClass = Layouts.BASIC_OBJECT.getLogicalClass(exception);
+            final DynamicObject exceptionClass = Layouts.BASIC_OBJECT.getLogicalClass(exception);
             final Backtrace backtrace = getContext().getCallStack().getBacktraceForException(this, offset, exceptionClass);
             Layouts.EXCEPTION.setBacktrace(exception, backtrace);
             return nil();
