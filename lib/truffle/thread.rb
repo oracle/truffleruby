@@ -22,4 +22,5 @@ if $DEBUG
   Thread.abort_on_exception = true
 end
 
-# Truffle: Queue and SizedQueue are defined in Java
+# Truffle: ConditionVariable is defined in the core library.
+#          Queue and SizedQueue are defined in Java

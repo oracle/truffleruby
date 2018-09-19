@@ -35,7 +35,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @CoreClass("ConditionVariable")
-public abstract class ConditionVarNodes {
+public abstract class ConditionVariableNodes {
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
@@ -69,13 +69,12 @@ public abstract class ConditionVarNodes {
         @Specialization
         public DynamicObject waitTimeout(VirtualFrame frame, DynamicObject self, DynamicObject mutex, long durationInMillis,
                 @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            final long endTIme = System.nanoTime() + 1_000_000 * durationInMillis;
-            waitInternal(frame, self, mutex, getCurrentRubyThreadNode, endTIme);
+            waitInternal(frame, self, mutex, getCurrentRubyThreadNode, System.nanoTime() + 1_000_000 * durationInMillis);
 
             return self;
         }
 
-        private void waitInternal(VirtualFrame frame, DynamicObject self, DynamicObject mutex, GetCurrentRubyThreadNode getCurrentRubyThreadNode, final long endTIme) throws Error {
+        private void waitInternal(VirtualFrame frame, DynamicObject self, DynamicObject mutex, GetCurrentRubyThreadNode getCurrentRubyThreadNode, long endNanoTIme) {
             final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
             final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
@@ -87,10 +86,10 @@ public abstract class ConditionVarNodes {
                 try {
                     getContext().getThreadManager().runUntilResultWithResumeAction(this, () -> {
                         try {
-                            if (endTIme != 0) {
+                            if (endNanoTIme != 0) {
                                 final long currentTime = System.nanoTime();
-                                if (currentTime < endTIme) {
-                                    condition.await(endTIme - currentTime, TimeUnit.NANOSECONDS);
+                                if (currentTime < endNanoTIme) {
+                                    condition.await(endNanoTIme - currentTime, TimeUnit.NANOSECONDS);
                                 }
                             } else {
                                 condition.await();
@@ -115,7 +114,7 @@ public abstract class ConditionVarNodes {
             return FAILURE;
         }
 
-        protected void getConditionAndReleaseMutex(final ReentrantLock mutexLock, final ReentrantLock condLock, final DynamicObject thread) {
+        protected void getConditionAndReleaseMutex(ReentrantLock mutexLock, ReentrantLock condLock, DynamicObject thread) {
             if (!mutexLock.isHeldByCurrentThread()) {
                 if (!mutexLock.isLocked()) {
                     throw new RaiseException(getContext(), getContext().getCoreExceptions().threadErrorUnlockNotLocked(this));
@@ -132,7 +131,7 @@ public abstract class ConditionVarNodes {
             mutexLock.unlock();
         }
 
-        protected void reacquireMutex(final ReentrantLock mutexLock, final DynamicObject thread) throws Error {
+        protected void reacquireMutex(ReentrantLock mutexLock, DynamicObject thread) {
             Throwable throwable = null;
             while (true) {
                 try {

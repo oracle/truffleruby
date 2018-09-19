@@ -10,18 +10,18 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 
 @Layout
-public interface ConditionVarLayout extends BasicObjectLayout {
+public interface ConditionVariableLayout extends BasicObjectLayout {
 
-    DynamicObjectFactory createConditionVarShape(
+    DynamicObjectFactory createConditionVariableShape(
             DynamicObject logicalClass,
             DynamicObject metaClass);
 
-    DynamicObject createConditionVar(
+    DynamicObject createConditionVariable(
             DynamicObjectFactory factory,
             ReentrantLock lock,
             Condition condition);
 
-    boolean isConditionVar(DynamicObject object);
+    boolean isConditionVariable(DynamicObject object);
 
     ReentrantLock getLock(DynamicObject object);
 
