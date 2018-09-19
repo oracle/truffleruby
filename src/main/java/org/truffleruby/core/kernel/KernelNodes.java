@@ -1335,6 +1335,7 @@ public abstract class KernelNodes {
     public abstract static class PublicSendNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPublic();
+        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @Specialization
         public Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {
@@ -1343,6 +1344,9 @@ public abstract class KernelNodes {
 
         @Specialization
         public Object send(VirtualFrame frame, Object self, Object name, Object[] args, DynamicObject block) {
+            DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
+            RubyArguments.setDeclarationContext(frame, context);
+
             return dispatchNode.dispatch(frame, self, name, block, args);
         }
 
