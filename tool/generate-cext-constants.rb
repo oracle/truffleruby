@@ -50,6 +50,7 @@ constants = [
     IndexError,
     Interrupt,
     IOError,
+    KeyError,
     LoadError,
     LocalJumpError,
     [Math::DomainError, 'MathDomainError'],

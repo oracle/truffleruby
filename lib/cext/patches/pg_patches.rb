@@ -269,14 +269,6 @@ EOF
           match: 'rb_hash_aset( tuple, this->fnames[field_num], val )',
           replacement: 'rb_hash_aset( tuple, rb_tr_managed_from_handle_or_null(this->fnames[field_num]), val )'
         },
-        # Transform
-        #   PG_VARIABLE_LENGTH_ARRAY(VALUE, row_values, nfields, PG_MAX_COLUMNS)
-        # into
-        #   VALUE *row_values = truffle_managed_malloc(nfields * sizeof(VALUE));
-        {
-          match: /PG_VARIABLE_LENGTH_ARRAY\(VALUE,\s*#{ID},\s*#{ID},\s*#{ID}\)/,
-          replacement: 'VALUE *\1 = truffle_managed_malloc(\2 * sizeof(VALUE));'
-        },
         {
 		  match: PG_RESULT_FIELDS_ORIG,
 		  replacement: PG_RESULT_FIELDS_NEW
@@ -306,8 +298,8 @@ EOF
           replacement: 'rb_tr_managed_from_handle_or_null(pg_get_connection(self)->type_map_for_queries);'
         },
         {
-          match: /rb_scan_args\(argc, argv, "13", &(command|name), &paramsData.params, &in_res_fmt, &paramsData.typemap\);/,
-          replacement: 'VALUE tmp_params, tmp_typemap; rb_scan_args(argc, argv, "13", &\\1, &tmp_params, &in_res_fmt, &tmp_typemap);
+          match: /rb_scan_args\(argc, argv, "([0-9]+)", &(command|name), &paramsData.params, &in_res_fmt, &paramsData.typemap\);/,
+          replacement: 'VALUE tmp_params, tmp_typemap; rb_scan_args(argc, argv, "\\1", &\\2, &tmp_params, &in_res_fmt, &tmp_typemap);
 paramsData.params = tmp_params;
 paramsData.typemap = tmp_typemap;'
         },
@@ -351,6 +343,12 @@ paramsData.typemap = tmp_typemap;'
         {
           match: '*typecast_heap_chain = Data_Wrap_Struct( rb_cObject, NULL, free_typecast_heap_chain, allocated );',
           replacement: '*typecast_heap_chain = rb_tr_handle_for_managed(Data_Wrap_Struct( rb_cObject, NULL, free_typecast_heap_chain, allocated ));'
+        }
+      ],
+      'pg_tuple.c' => [
+        {
+          match: 'VALUE values[0];',
+          replacement: 'VALUE *values;'
         }
       ]
     }

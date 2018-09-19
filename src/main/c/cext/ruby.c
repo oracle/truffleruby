@@ -337,6 +337,10 @@ VALUE rb_tr_get_IOError(void) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eIOError");
 }
 
+VALUE rb_tr_get_KeyError(void) {
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eKeyError");
+}
+
 VALUE rb_tr_get_LoadError(void) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eLoadError");
 }
@@ -1451,6 +1455,15 @@ int rb_tr_flags(VALUE value) {
   }
   // TODO BJF Nov-11-2017 Implement more flags
   return flags;
+}
+
+void rb_tr_set_flags(VALUE value, int flags) {
+  if (flags & RUBY_FL_TAINT) {
+    rb_obj_taint(value);
+  }
+  if (flags & RUBY_FL_FREEZE) {
+    rb_obj_freeze(value);
+  }
 }
 
 // Undef conflicting macro from encoding.h like MRI

@@ -1,4 +1,4 @@
-# From ./tool/generate-cext-constants.rb
+# From tool/generate-cext-constants.rb
 
 module Truffle::CExt
   def Qundef
@@ -165,6 +165,10 @@ module Truffle::CExt
     IOError
   end
 
+  def rb_eKeyError
+    KeyError
+  end
+
   def rb_eLoadError
     LoadError
   end
@@ -174,7 +178,7 @@ module Truffle::CExt
   end
 
   def rb_eMathDomainError
-    Math::DomainError
+    Errno::EDOM
   end
 
   def rb_eEncCompatError
