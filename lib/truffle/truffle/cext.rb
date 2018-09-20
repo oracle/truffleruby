@@ -223,8 +223,21 @@ module Truffle::CExt
         SYNC.unlock unless mine
       end
     end
+
+    def execute_without_mutex(function, *args)
+      SYNC.unlock
+      begin
+        Truffle::Interop.execute_without_conversion(function, *args)
+      ensure
+        SYNC.lock
+      end
+    end
   else
     def execute_with_mutex(function, *args)
+      Truffle::Interop.execute_without_conversion(function, *args)
+    end
+
+    def execute_without_mutex(function, *args)
       Truffle::Interop.execute_without_conversion(function, *args)
     end
   end
@@ -1505,12 +1518,12 @@ module Truffle::CExt
   end
 
   def rb_thread_call_without_gvl(function, data1, unblock, data2)
-    unblocker = proc {
+    unblocker = -> {
       Truffle::Interop.execute_without_conversion(unblock, data2)
     }
 
-    runner = proc {
-      Truffle::Interop.execute_without_conversion(function, data1)
+    runner = -> {
+      execute_without_mutex(function, data1)
     }
 
     Thread.current.unblock unblocker, runner
