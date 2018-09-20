@@ -142,6 +142,29 @@ describe "The rescue keyword" do
     ScratchPad.recorded.should == [:standard_error]
   end
 
+  it "rescues the exception in the deepest rescue block declared to handle the appropriate exception type" do
+    begin
+      begin
+        RescueSpecs.raise_standard_error
+      rescue ArgumentError
+      end
+    rescue StandardError => e
+      if RescueSpecs.respond_to?(:method) and
+          (m = RescueSpecs.method(:raise_standard_error) and
+          (m.respond_to?(:source_location) and
+          (location = m.source_location)))
+        file, line = location
+        line += 1 # Add offset for where the `raise` call occurs within the method
+        e.backtrace.first.should include "#{file}:#{line}:in `raise_standard_error'"
+      else
+        # Fallback test for implementations that don't have all of the `Method` API implemented yet.
+        e.backtrace.first.should include ":in `raise_standard_error'"
+      end
+    else
+      fail("exception wasn't handled by the correct rescue block")
+    end
+  end
+
   it "will execute an else block only if no exceptions were raised" do
     result = begin
       ScratchPad << :one
