@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2017 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2018 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -23,9 +23,10 @@ import org.truffleruby.language.methods.ExceptionTranslatingNode;
 
 public class TryNode extends RubyNode {
 
-    @Child private RubyNode tryPart;
+    @Child private ExceptionTranslatingNode tryPart;
     @Children private final RescueNode[] rescueParts;
     @Child private RubyNode elsePart;
+    private final boolean canOmitBacktrace;
 
     @Child private SetExceptionVariableNode setExceptionVariableNode;
 
@@ -33,10 +34,11 @@ public class TryNode extends RubyNode {
     private final BranchProfile controlFlowProfile = BranchProfile.create();
     private final BranchProfile raiseExceptionProfile = BranchProfile.create();
 
-    public TryNode(ExceptionTranslatingNode tryPart, RescueNode[] rescueParts, RubyNode elsePart) {
+    public TryNode(ExceptionTranslatingNode tryPart, RescueNode[] rescueParts, RubyNode elsePart, boolean canOmitBacktrace) {
         this.tryPart = tryPart;
         this.rescueParts = rescueParts;
         this.elsePart = elsePart;
+        this.canOmitBacktrace = canOmitBacktrace;
     }
 
     @Override
@@ -74,17 +76,18 @@ public class TryNode extends RubyNode {
     private Object handleException(VirtualFrame frame, RaiseException exception) {
         for (RescueNode rescue : rescueParts) {
             if (rescue.canHandle(frame, exception.getException())) {
-                /*
-                 * We materialize the backtrace eagerly here, as the exception is being rescued and
-                 * therefore the exception is no longer being thrown on the exception path and the
-                 * lazy stacktrace is no longer filled.
-                 *
-                 * TODO (eregon, 14 Sept 2018): try to optimize the case where the exception is
-                 * rethrown, or the backtrace is not used.
-                 */
-                TruffleStackTraceElement.fillIn(exception);
+                if (canOmitBacktrace) {
+                    return rescue.execute(frame);
+                } else {
+                    /*
+                     * We materialize the backtrace eagerly here, as the exception is being rescued and
+                     * therefore the exception is no longer being thrown on the exception path and the
+                     * lazy stacktrace is no longer filled.
+                     */
+                    TruffleStackTraceElement.fillIn(exception);
 
-                return setLastExceptionAndRunRescue(frame, exception, rescue);
+                    return setLastExceptionAndRunRescue(frame, exception, rescue);
+                }
             }
         }
 

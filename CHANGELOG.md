@@ -26,6 +26,8 @@ Performance:
 * Reduced memory footprint for private/internal AST nodes.
 * Increased the number of cases in which string equality checks will become
   compile-time constants.
+* Major performance improvement for exceptional paths where the rescue body
+  does not access the exception object (e.g., `x.size rescue 0`).
 
 Changes:
 

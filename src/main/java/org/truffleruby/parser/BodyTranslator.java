@@ -2704,6 +2704,8 @@ public class BodyTranslator extends Translator {
 
         RescueBodyParseNode rescueBody = node.getRescueNode();
 
+        boolean canOmitBacktrace = false;
+
         if (context.getOptions().BACKTRACES_OMIT_UNUSED
                 && rescueBody != null
                 && rescueBody.getBodyNode() instanceof SideEffectFree
@@ -2711,6 +2713,7 @@ public class BodyTranslator extends Translator {
                 && (!(rescueBody.getBodyNode() instanceof GlobalVarParseNode) || !((GlobalVarParseNode) rescueBody.getBodyNode()).getName().equals("$!"))
                 && rescueBody.getOptRescueNode() == null) {
             tryPart = new DisablingBacktracesNode(tryPart);
+            canOmitBacktrace = true;
         }
 
         while (rescueBody != null) {
@@ -2765,7 +2768,7 @@ public class BodyTranslator extends Translator {
 
         final RubyNode ret = new TryNode(
                 new ExceptionTranslatingNode(tryPart, UnsupportedOperationBehavior.TYPE_ERROR),
-                rescueNodes.toArray(new RescueNode[rescueNodes.size()]), elsePart);
+                rescueNodes.toArray(new RescueNode[rescueNodes.size()]), elsePart, canOmitBacktrace);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
