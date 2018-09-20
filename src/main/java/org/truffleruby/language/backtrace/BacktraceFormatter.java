@@ -196,10 +196,10 @@ public class BacktraceFormatter {
             builder.append("\tfrom ");
         }
 
-        final RootNode rootNode = activation.getCallNode().getRootNode();
+        final Node callNode = activation.getCallNode();
 
-        if (rootNode instanceof RubyRootNode) {
-            final SourceSection sourceSection = activation.getCallNode().getEncapsulatingSourceSection();
+        if (activation.getMethod() != null) { // A Ruby frame
+            final SourceSection sourceSection = callNode == null ? null : callNode.getEncapsulatingSourceSection();
             final SourceSection reportedSourceSection;
             final String reportedName;
 
@@ -208,12 +208,13 @@ public class BacktraceFormatter {
             if (sourceSection != null && sourceSection.isAvailable() &&
                     (flags.contains(FormattingFlags.INCLUDE_CORE_FILES) || isUserSourceSection(context, sourceSection))) {
                 reportedSourceSection = sourceSection;
+                final RootNode rootNode = callNode.getRootNode();
                 reportedName = ((RubyRootNode) rootNode).getSharedMethodInfo().getName();
             } else {
                 final SourceSection nextUserSourceSection = nextUserSourceSection(activations, n);
                 // if there is no next source section use a core one to avoid ???
                 reportedSourceSection = nextUserSourceSection != null ? nextUserSourceSection : sourceSection;
-                reportedName = getMethodNameFromActivation(activation);
+                reportedName = activation.getMethod().getName();
             }
 
             if (reportedSourceSection == null) {
@@ -226,8 +227,8 @@ public class BacktraceFormatter {
             builder.append(":in `");
             builder.append(reportedName);
             builder.append("'");
-        } else {
-            builder.append(formatForeign(activation.getCallNode()));
+        } else { // A foreign frame
+            builder.append(formatForeign(callNode));
         }
 
         if (!flags.contains(FormattingFlags.OMIT_EXCEPTION) && exception != null && n == 0) {
@@ -289,14 +290,6 @@ public class BacktraceFormatter {
             builder.append(" (").append(exceptionClass).append(")");
         }
         return builder.toString();
-    }
-
-    private String getMethodNameFromActivation(Activation activation) {
-        try {
-            return activation.getMethod().getName();
-        } catch (Exception e) {
-            return "???";
-        }
     }
 
     public SourceSection nextUserSourceSection(Activation[] activations, int n) {

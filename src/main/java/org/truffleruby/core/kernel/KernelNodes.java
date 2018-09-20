@@ -1383,7 +1383,8 @@ public abstract class KernelNodes {
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this);
 
             for (Activation activation : backtrace.getActivations()) {
-                final Source source = activation.getCallNode().getEncapsulatingSourceSection().getSource();
+                final Node callNode = activation.getCallNode();
+                final Source source = callNode == null ? null : callNode.getEncapsulatingSourceSection().getSource();
 
                 if (source != null && source.getName().endsWith(caller)) {
                     return true;

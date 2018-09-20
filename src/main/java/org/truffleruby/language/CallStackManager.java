@@ -10,7 +10,6 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.FrameInstanceVisitor;
@@ -285,14 +284,6 @@ public class CallStackManager {
         }
 
         return false;
-    }
-
-    public Node getCallNode(Node callNode, InternalMethod method) {
-        if (callNode == null && method != null &&
-                BacktraceFormatter.isCore(context, method.getSharedMethodInfo().getSourceSection())) {
-            callNode = ((RootCallTarget) method.getCallTarget()).getRootNode();
-        }
-        return callNode;
     }
 
 }

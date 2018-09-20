@@ -17,7 +17,9 @@ public class Activation {
     public static final Activation OMITTED_LIMIT = new Activation(null, null);
     public static final Activation OMITTED_UNUSED = new Activation(null, null);
 
+    /** might be null */
     private final Node callNode;
+    /** non-null iff it's a Ruby frame */
     private final InternalMethod method;
 
     public Activation(Node callNode, InternalMethod method) {

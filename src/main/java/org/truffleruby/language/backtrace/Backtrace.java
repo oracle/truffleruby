@@ -80,20 +80,25 @@ public class Backtrace {
             int i = 0;
             for (TruffleStackTraceElement stackTraceElement : stackTrace) {
                 if (i >= omitted) {
-                    final Node node = i == 0 ? location : stackTraceElement.getLocation();
+                    final Node callNode = i == 0 ? location : stackTraceElement.getLocation();
 
-                    if (!callStackManager.ignoreFrame(node)) {
+                    if (!callStackManager.ignoreFrame(callNode)) {
                         final Frame frame = stackTraceElement.getFrame();
                         final InternalMethod method = frame == null ? null : RubyArguments.tryGetMethod(frame);
-                        final Node callNode = callStackManager.getCallNode(node, method);
 
-                        if (callNode != null) {
+                        if (callNode != null || method != null) { // Ignore the frame if we know nothing about it
                             activations.add(new Activation(callNode, method));
                         }
                     }
 
                 }
                 i++;
+            }
+
+            // If there are activations with a InternalMethod but no caller information above in the
+            // stack, then all of these activations are internal as they are not called from user code.
+            while (!activations.isEmpty() && activations.get(activations.size() - 1).getCallNode() == null) {
+                activations.remove(activations.size() - 1);
             }
 
             this.activations = activations.toArray(new Activation[activations.size()]);

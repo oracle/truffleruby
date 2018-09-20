@@ -19,6 +19,7 @@ Bug fixes:
   later (#1413).
 * Fixed problem with `Kernel.public_send` not tracking its caller properly (#1425).
 * `rb_thread_call_without_gvl()` no longer holds the C-extensions lock.
+* Fixed `caller_locations` when called inside `method_added`.
 
 Performance:
 
