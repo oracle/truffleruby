@@ -24,10 +24,10 @@ import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -62,23 +62,29 @@ public abstract class ConditionVariableNodes {
         @Specialization
         public DynamicObject waitTimeoutNotProived(VirtualFrame frame, DynamicObject self, DynamicObject mutex, NotProvided notProvided,
                 @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            waitInternal(frame, self, mutex, getCurrentRubyThreadNode, 0);
+            waitInternal(frame, self, mutex, getCurrentRubyThreadNode, -1);
             return self;
         }
 
         @Specialization
-        public DynamicObject waitTimeout(VirtualFrame frame, DynamicObject self, DynamicObject mutex, long durationInMillis,
+        public DynamicObject waitTimeout(VirtualFrame frame, DynamicObject self, DynamicObject mutex, long durationInNanos,
                 @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            waitInternal(frame, self, mutex, getCurrentRubyThreadNode, System.nanoTime() + 1_000_000 * durationInMillis);
+            waitInternal(frame, self, mutex, getCurrentRubyThreadNode, durationInNanos);
 
             return self;
         }
 
-        private void waitInternal(VirtualFrame frame, DynamicObject self, DynamicObject mutex, GetCurrentRubyThreadNode getCurrentRubyThreadNode, long endNanoTIme) {
+        private void waitInternal(VirtualFrame frame, DynamicObject self, DynamicObject mutex, GetCurrentRubyThreadNode getCurrentRubyThreadNode, long durationInNanos) {
             final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
             final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final long endNanoTIme;
+            if (durationInNanos >= 0) {
+                endNanoTIme = System.nanoTime() + durationInNanos;
+            } else {
+                endNanoTIme = 0;
+            }
 
             InterruptMode interruptMode = Layouts.THREAD.getInterruptMode(thread);
             try {
@@ -86,7 +92,7 @@ public abstract class ConditionVariableNodes {
                 try {
                     getContext().getThreadManager().runUntilResultWithResumeAction(this, () -> {
                         try {
-                            if (endNanoTIme != 0) {
+                            if (durationInNanos >= 0) {
                                 final long currentTime = System.nanoTime();
                                 if (currentTime < endNanoTIme) {
                                     condition.await(endNanoTIme - currentTime, TimeUnit.NANOSECONDS);
@@ -102,7 +108,7 @@ public abstract class ConditionVariableNodes {
                         condLock.lock();
                     });
                 } finally {
-                    reacquireMutex(mutexLock, thread);
+                    reacquireMutex(mutexLock);
                 }
             } finally {
                 Layouts.THREAD.setInterruptMode(thread, interruptMode);
@@ -131,29 +137,9 @@ public abstract class ConditionVariableNodes {
             mutexLock.unlock();
         }
 
-        protected void reacquireMutex(ReentrantLock mutexLock, DynamicObject thread) {
-            Throwable throwable = null;
-            while (true) {
-                try {
-                    getContext().getThreadManager().runUntilResult(this, () -> {
-                        mutexLock.lockInterruptibly();
-                        return BlockingAction.SUCCESS;
-                    });
-                    break;
-                } catch (Throwable t) {
-                    throwable = t;
-                }
-            }
-
-            if (throwable != null) {
-                if (throwable instanceof RuntimeException) {
-                    throw (RuntimeException) throwable;
-                } else if (throwable instanceof Error) {
-                    throw (Error) throwable;
-                } else {
-                    throw new JavaException(throwable);
-                }
-            }
+        @TruffleBoundary
+        protected void reacquireMutex(ReentrantLock mutexLock) {
+            MutexOperations.internalLockEvenWithException(mutexLock, this, getContext());
         }
     }
 
@@ -161,19 +147,19 @@ public abstract class ConditionVariableNodes {
     public static abstract class SignalNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject signal(VirtualFrame frame, DynamicObject self,
-                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
+        public DynamicObject signal(VirtualFrame frame, DynamicObject self) {
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
             final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
             getContext().getThreadManager().runUntilResult(this, () -> {
                 condLock.lockInterruptibly();
-                try {
-                    condition.signal();
-                } finally {
-                    condLock.unlock();
-                }
                 return BlockingAction.SUCCESS;
             });
+
+            try {
+                condition.signal();
+            } finally {
+                condLock.unlock();
+            }
 
             return self;
         }
@@ -183,20 +169,20 @@ public abstract class ConditionVariableNodes {
     public static abstract class BroadCastNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject broadcast(VirtualFrame frame, DynamicObject self,
-                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
+        public DynamicObject broadcast(VirtualFrame frame, DynamicObject self) {
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
             final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
 
             getContext().getThreadManager().runUntilResult(this, () -> {
                 condLock.lockInterruptibly();
-                try {
-                    condition.signalAll();
-                } finally {
-                    condLock.unlock();
-                }
                 return BlockingAction.SUCCESS;
             });
+
+            try {
+                condition.signalAll();
+            } finally {
+                condLock.unlock();
+            }
 
             return self;
         }

@@ -149,6 +149,14 @@ public class SafepointManager {
         } finally {
             if (needsResumeAction) {
                 resumeAction.run();
+                // Resume actions are designed to help resolve lock contention issues when leaving
+                // leaving a safepoint.
+
+                // These threads must reclaim the lock before other threads can resume to avoid race
+                // conditions, but also need to release it and start waiting on the condition
+                // variable as they cannot all hold the lock at the same time. For this reason these
+                // threads much mark they have completed their safepoint but must not wait for the
+                // other threads before continuing.
                 phaser.arrive();
             } else {
                 phaser.arriveAndAwaitAdvance();

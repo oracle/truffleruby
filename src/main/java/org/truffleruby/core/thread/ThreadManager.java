@@ -392,26 +392,7 @@ public class ThreadManager {
      */
     @TruffleBoundary
     public <T> T runUntilResult(Node currentNode, BlockingAction<T> action) {
-        final DynamicObject runningThread = getCurrentThread();
-        T result = null;
-
-        do {
-            final ThreadStatus status = Layouts.THREAD.getStatus(runningThread);
-            Layouts.THREAD.setStatus(runningThread, ThreadStatus.SLEEP);
-
-            try {
-                try {
-                    result = action.block();
-                } finally {
-                    Layouts.THREAD.setStatus(runningThread, status);
-                }
-            } catch (InterruptedException e) {
-                // We were interrupted, possibly by the SafepointManager.
-                context.getSafepointManager().pollFromBlockingCall(currentNode, null);
-            }
-        } while (result == null);
-
-        return result;
+        return runUntilResultWithResumeAction(currentNode, action, null);
     }
 
     /**

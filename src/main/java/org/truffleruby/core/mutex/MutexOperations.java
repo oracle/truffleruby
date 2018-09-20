@@ -47,13 +47,17 @@ public abstract class MutexOperations {
 
         // We need to re-lock this lock after a Mutex#sleep, no matter what, even if another thread throw us an exception.
         // Yet, we also need to allow safepoints to happen otherwise the thread that could unlock could be blocked.
+        internalLockEvenWithException(lock, currentNode, context);
+        Layouts.THREAD.getOwnedLocks(thread).add(lock);
+    }
+
+    protected static void internalLockEvenWithException(ReentrantLock lock, RubyNode currentNode, final RubyContext context) throws AssertionError, Error {
         Throwable throwable = null;
         try {
             while (true) {
                 try {
                     context.getThreadManager().runUntilResult(currentNode, () -> {
                         lock.lockInterruptibly();
-                        Layouts.THREAD.getOwnedLocks(thread).add(lock);
                         return ThreadManager.BlockingAction.SUCCESS;
                     });
                     break;
