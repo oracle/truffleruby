@@ -94,8 +94,7 @@ public abstract class ConditionVariableNodes {
                     getContext().getThreadManager().runUntilResultWithResumeAction(this, () -> {
                         try {
                             if (Layouts.CONDITION_VARIABLE.getSignals(self) > 0) {
-                                Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) - 1);
-                                Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
+                                decrementCounts(self);
                                 return BlockingAction.SUCCESS;
                             }
                             if (durationInNanos >= 0) {
@@ -109,8 +108,7 @@ public abstract class ConditionVariableNodes {
                                 condition.await();
                             }
                             if (Layouts.CONDITION_VARIABLE.getSignals(self) > 0) {
-                                Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) - 1);
-                                Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
+                                decrementCounts(self);
                                 return BlockingAction.SUCCESS;
                             } else {
                                 return null;
@@ -136,6 +134,11 @@ public abstract class ConditionVariableNodes {
             } finally {
                 Layouts.THREAD.setInterruptMode(thread, interruptMode);
             }
+        }
+
+        protected void decrementCounts(DynamicObject self) {
+            Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) - 1);
+            Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
         }
 
         @Fallback
