@@ -21,6 +21,7 @@ Bug fixes:
 * `rb_thread_call_without_gvl()` no longer holds the C-extensions lock.
 * Fixed `caller_locations` when called inside `method_added`.
 * Fixed `mon_initialize` when called inside `initialize_copy` (#1428).
+* `Mutex` correctly raises a `TypeError` when trying to serialize with `Marshal.dump`.
 
 Performance:
 
