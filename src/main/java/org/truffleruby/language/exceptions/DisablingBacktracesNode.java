@@ -17,7 +17,7 @@ public class DisablingBacktracesNode extends RubyNode {
 
     @Child private RubyNode child;
 
-    private static final ThreadLocal<Boolean> BACTRACES_DISABLED = ThreadLocal.withInitial(() -> false);
+    private static final ThreadLocal<Boolean> BACKTRACES_DISABLED = ThreadLocal.withInitial(() -> false);
 
     public DisablingBacktracesNode(RubyNode child) {
         this.child = child;
@@ -36,12 +36,12 @@ public class DisablingBacktracesNode extends RubyNode {
 
     @TruffleBoundary
     private static Boolean getBacktracesDisabled() {
-        return BACTRACES_DISABLED.get();
+        return BACKTRACES_DISABLED.get();
     }
 
     @TruffleBoundary
     private void setBacktracesDisabled(boolean value) {
-        BACTRACES_DISABLED.set(value);
+        BACKTRACES_DISABLED.set(value);
     }
 
     public static boolean areBacktracesDisabled() {
