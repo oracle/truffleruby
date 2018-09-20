@@ -92,6 +92,15 @@ public abstract class ConditionVariableNodes {
                 try {
                     Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) + 1);
                     getContext().getThreadManager().runUntilResultWithResumeAction(this, () -> {
+                        /*
+                         * Working with ConditionVariables is tricky because of safepoints. To call
+                         * await or signal on a condition variable we must hold the lock, and that
+                         * lock is released when we start waiting. However if the wait is
+                         * interrupted then the lock will be reacquired before control returns to
+                         * us. If we are interrupted for a safepoint then we must release the lock
+                         * so that all threads can enter the safepoint, and acquire it again before
+                         * resuming waiting.
+                         */
                         try {
                             if (Layouts.CONDITION_VARIABLE.getSignals(self) > 0) {
                                 decrementCounts(self);
