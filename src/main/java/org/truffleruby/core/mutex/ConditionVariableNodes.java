@@ -45,7 +45,7 @@ public abstract class ConditionVariableNodes {
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
             ReentrantLock lock = new ReentrantLock();
-            return allocateNode.allocate(rubyClass, lock, lock.newCondition());
+            return allocateNode.allocate(rubyClass, lock, lock.newCondition(), 0, 0);
         }
 
     }
@@ -90,8 +90,14 @@ public abstract class ConditionVariableNodes {
             try {
                 getConditionAndReleaseMutex(mutexLock, condLock, thread);
                 try {
+                    Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) + 1);
                     getContext().getThreadManager().runUntilResultWithResumeAction(this, () -> {
                         try {
+                            if (Layouts.CONDITION_VARIABLE.getSignals(self) > 0) {
+                                Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) - 1);
+                                Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
+                                return BlockingAction.SUCCESS;
+                            }
                             if (durationInNanos >= 0) {
                                 final long currentTime = System.nanoTime();
                                 if (currentTime < endNanoTIme) {
@@ -100,13 +106,28 @@ public abstract class ConditionVariableNodes {
                             } else {
                                 condition.await();
                             }
-                            return BlockingAction.SUCCESS;
+                            if (Layouts.CONDITION_VARIABLE.getSignals(self) > 0) {
+                                Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) - 1);
+                                Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
+                                return BlockingAction.SUCCESS;
+                            } else {
+                                return null;
+                            }
                         } finally {
                             condLock.unlock();
                         }
                     }, () -> {
                         condLock.lock();
                     });
+                } catch (Error | RuntimeException e) {
+                    // Remove ourselves as a waiter and consume a signal if there is one.
+                    condLock.lock();
+                    Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
+                    if (Layouts.CONDITION_VARIABLE.getSignals(self) > 0) {
+                        Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) - 1);
+                    }
+                    condLock.unlock();
+                    throw e;
                 } finally {
                     reacquireMutex(mutexLock);
                 }
@@ -156,7 +177,10 @@ public abstract class ConditionVariableNodes {
             });
 
             try {
-                condition.signal();
+                if (Layouts.CONDITION_VARIABLE.getWaiters(self) > 0) {
+                    Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) + 1);
+                    condition.signal();
+                }
             } finally {
                 condLock.unlock();
             }
@@ -179,7 +203,10 @@ public abstract class ConditionVariableNodes {
             });
 
             try {
-                condition.signalAll();
+                if (Layouts.CONDITION_VARIABLE.getWaiters(self) > 0) {
+                    Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) + Layouts.CONDITION_VARIABLE.getWaiters(self));
+                    condition.signalAll();
+                }
             } finally {
                 condLock.unlock();
             }
