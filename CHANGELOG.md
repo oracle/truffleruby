@@ -11,6 +11,7 @@ Bug fixes:
 
 * `readline` can now be interrupted by the interrupt signal (Ctrl+C). This fixes
   Ctrl+C to work in IRB.
+* `rb_thread_call_without_gvl()` no longer holds the C-extensions lock.
 
 # 1.0 RC 6
 
