@@ -32,7 +32,9 @@ extern "C" {
 
 // Support
 
-#define RUBY_CEXT (void *)polyglot_import("ruby_cext")
+extern void* rb_tr_cext;
+#define RUBY_CEXT ((void *)(&rb_tr_cext))
+
 #define MUST_INLINE __attribute__((always_inline)) inline
 
 #include <ruby/thread_native.h>

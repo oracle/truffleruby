@@ -25,6 +25,7 @@
 #include <errno.h>
 #include <fcntl.h>
 
+void* rb_tr_cext;
 void* rb_tr_undef;
 void* rb_tr_true;
 void* rb_tr_false;
@@ -33,6 +34,7 @@ void* rb_tr_nil;
 // Run when loading C-extension support
 
 void rb_tr_init(void) {
+  truffle_assign_managed(&rb_tr_cext, (void *)polyglot_import("ruby_cext"));
   truffle_assign_managed(&rb_tr_undef, rb_tr_get_undef());
   truffle_assign_managed(&rb_tr_true, rb_tr_get_true());
   truffle_assign_managed(&rb_tr_false, rb_tr_get_false());
@@ -2211,8 +2213,7 @@ void rb_exc_raise(VALUE exception) {
 }
 
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status) {
-  VALUE ary = polyglot_invoke(RUBY_CEXT, "rb_protect_with_block",
-                             (void (*)(void *)) function, data, rb_block_proc());
+  VALUE ary = polyglot_invoke(RUBY_CEXT, "rb_protect_with_block", function, data);
   *status = NUM2INT(polyglot_get_array_element(ary, 1));
   return polyglot_get_array_element(ary, 0);
 }
