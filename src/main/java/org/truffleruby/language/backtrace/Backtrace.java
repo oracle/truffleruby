@@ -95,6 +95,12 @@ public class Backtrace {
                 i++;
             }
 
+            // If there are activations with a InternalMethod but no caller information above in the
+            // stack, then all of these activations are internal as they are not called from user code.
+            while (!activations.isEmpty() && activations.get(activations.size() - 1).getCallNode() == null) {
+                activations.remove(activations.size() - 1);
+            }
+
             this.activations = activations.toArray(new Activation[activations.size()]);
         }
 
