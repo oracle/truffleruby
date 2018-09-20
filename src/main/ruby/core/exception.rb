@@ -75,8 +75,9 @@ class Exception
   # #initialize again, BUT not a subclasses initialize.
   alias_method :__initialize__, :initialize
 
-  # Indicates if the Exception has a backtrace set
   def backtrace?
+    Truffle.primitive :exception_backtrace?
+
     backtrace ? true : false
   end
 
