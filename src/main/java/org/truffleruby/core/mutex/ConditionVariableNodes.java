@@ -111,6 +111,7 @@ public abstract class ConditionVariableNodes {
                                 if (currentTime < endNanoTIme) {
                                     condition.await(endNanoTIme - currentTime, TimeUnit.NANOSECONDS);
                                 } else {
+                                    Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
                                     return BlockingAction.SUCCESS;
                                 }
                             } else {
@@ -130,12 +131,15 @@ public abstract class ConditionVariableNodes {
                     });
                 } catch (Error | RuntimeException e) {
                     // Remove ourselves as a waiter and consume a signal if there is one.
-                    condLock.lock();
-                    Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
-                    if (Layouts.CONDITION_VARIABLE.getSignals(self) > 0) {
-                        Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) - 1);
+                    try {
+                        reacquireMutex(condLock);
+                    } finally {
+                        Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
+                        if (Layouts.CONDITION_VARIABLE.getSignals(self) > 0) {
+                            Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) - 1);
+                        }
+                        condLock.unlock();
                     }
-                    condLock.unlock();
                     throw e;
                 } finally {
                     reacquireMutex(mutexLock);
