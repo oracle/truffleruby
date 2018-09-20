@@ -2663,7 +2663,9 @@ void *rb_thread_call_with_gvl(gvl_call function, void *data1) {
 }
 
 void *rb_thread_call_without_gvl(gvl_call function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {
-  // TODO CS 9-Mar-17 polyglot_invoke escapes LLVMAddress into Ruby, which goes wrong when Ruby tries to call the callbacks
+  if (unblock_function == RUBY_UBF_IO) {
+    unblock_function = (rb_unblock_function_t*) Qnil;
+  }
   return polyglot_invoke(RUBY_CEXT, "rb_thread_call_without_gvl", function, data1, unblock_function, data2);
 }
 

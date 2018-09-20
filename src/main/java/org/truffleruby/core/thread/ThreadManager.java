@@ -453,7 +453,11 @@ public class ThreadManager {
                 throw new InterruptedException("EINTR");
             }
             return result;
-        }, blockingNativeCallUnblockingAction.get());
+        }, getNativeCallUnblockingAction());
+    }
+
+    public UnblockingAction getNativeCallUnblockingAction() {
+        return blockingNativeCallUnblockingAction.get();
     }
 
     public void initializeValuesForJavaThread(DynamicObject rubyThread, Thread thread) {

@@ -62,7 +62,9 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.thread.ThreadManager.UnblockingAction;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -442,11 +444,19 @@ public abstract class ThreadNodes {
     public abstract static class UnblockNode extends YieldingCoreMethodNode {
 
         @TruffleBoundary
-        @Specialization(guards = {"isRubyProc(unblocker)", "isRubyProc(runner)"})
+        @Specialization(guards = "isRubyProc(runner)")
         public Object unblock(DynamicObject thread, DynamicObject unblocker, DynamicObject runner) {
+            final UnblockingAction unblockingAction;
+            if (unblocker == nil()) {
+                unblockingAction = getContext().getThreadManager().getNativeCallUnblockingAction();
+            } else {
+                assert RubyGuards.isRubyProc(unblocker);
+                unblockingAction = () -> yield(unblocker);
+            }
+
             return getContext().getThreadManager().runUntilResult(this,
                     () -> yield(runner),
-                    () -> yield(unblocker));
+                    unblockingAction);
         }
 
     }
