@@ -182,14 +182,6 @@ public class BacktraceFormatter {
     private String formatLineInternal(Activation[] activations, int n, DynamicObject exception) {
         final Activation activation = activations[n];
 
-        if (activation == Activation.OMITTED_LIMIT) {
-            return context.getCoreStrings().BACKTRACE_OMITTED_LIMIT.toString();
-        }
-
-        if (activation == Activation.OMITTED_UNUSED) {
-            return context.getCoreStrings().BACKTRACE_OMITTED_UNUSED.toString();
-        }
-
         final StringBuilder builder = new StringBuilder();
 
         if (!flags.contains(FormattingFlags.OMIT_FROM_PREFIX) && n > 0) {
