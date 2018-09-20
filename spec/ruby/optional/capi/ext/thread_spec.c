@@ -27,7 +27,7 @@ static VALUE thread_spec_rb_thread_alone() {
 /* This is unblocked by unblock_func(). */
 static void* blocking_gvl_func(void* data) {
   int rfd = *(int *)data;
-  char dummy;
+  char dummy = ' ';
   ssize_t r;
 
   do {
@@ -36,7 +36,7 @@ static void* blocking_gvl_func(void* data) {
 
   close(rfd);
 
-  return (void*)((r == 1) ? Qtrue : Qfalse);
+  return (void*)((r == 1 && dummy == 'A') ? Qtrue : Qfalse);
 }
 
 static void unblock_gvl_func(void *data) {
