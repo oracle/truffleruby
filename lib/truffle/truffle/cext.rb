@@ -1518,9 +1518,11 @@ module Truffle::CExt
   end
 
   def rb_thread_call_without_gvl(function, data1, unblock, data2)
-    unblocker = -> {
-      Truffle::Interop.execute_without_conversion(unblock, data2)
-    }
+    if unblock
+      unblocker = -> {
+        Truffle::Interop.execute_without_conversion(unblock, data2)
+      }
+    end
 
     runner = -> {
       execute_without_mutex(function, data1)
