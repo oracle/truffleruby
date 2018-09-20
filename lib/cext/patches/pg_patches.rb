@@ -20,15 +20,6 @@ EOF
   PG_CONNECTION_FREE = <<-EOF
 pgconn_gc_free( t_pg_connection *this )
 {
-  rb_tr_release_handle(this->socket_io);
-  rb_tr_release_handle(this->notice_receiver);
-  rb_tr_release_handle(this->notice_processor);
-  rb_tr_release_handle(this->type_map_for_queries);
-  rb_tr_release_handle(this->type_map_for_results);
-  rb_tr_release_handle(this->trace_stream);
-  rb_tr_release_handle(this->external_encoding);
-  rb_tr_release_handle(this->encoder_for_put_copy_data);
-  rb_tr_release_handle(this->decoder_for_get_copy_data);
 EOF
 
   # Using cached encodings requires more handle operations to store
@@ -271,7 +262,6 @@ EOF
         *read_write_field('this','connection', false),
         *read_write_field('this','tuple_hash', false),
         *read_write_field('this','typemap', false),
-        *read_write_field('p_conn','type_map_for_results', false),
         {
           match: 'this->fnames[i] = rb_obj_freeze(fname);',
           replacement: 'this->fnames[i] = rb_tr_handle_for_managed(rb_obj_freeze(fname));'
@@ -286,16 +276,12 @@ EOF
         },
       ],
       'pg_connection.c' => [
-        *read_write_field('this','socket_io', false),
-        *read_write_field('this','notice_receiver', false),
-        *read_write_field('this','notice_processor', false),
-        *read_write_field('this','type_map_for_queries', false),
-        *read_write_field('this','type_map_for_results', false),
-        *read_write_field('this','trace_stream', false),
-        *read_write_field('this','external_encoding', false),
-        *read_write_field('this','encoder_for_put_copy_data', false),
-        *read_write_field('this','decoder_for_get_copy_data', false),
+        *wrap_managed_struct('t_pg_connection', 'this'),
         *replace_reference_passing_with_array('intermediate'),
+        {
+          match: 'VALUE rb_cPGconn;',
+          replacement: 'VALUE rb_cPGconn; POLYGLOT_DECLARE_TYPE(t_pg_connection);'
+        },
         {
           match: 'PQsetNoticeProcessor(this->pgconn, gvl_notice_processor_proxy, (void *)self);',
           replacement: 'PQsetNoticeProcessor(this->pgconn, gvl_notice_processor_proxy, rb_tr_handle_for_managed(self));'
@@ -303,10 +289,6 @@ EOF
         {
           match: 'VALUE self = (VALUE)arg;',
           replacement: 'VALUE self = rb_tr_managed_from_handle_or_null(arg);'
-        },
-        {
-          match: 'pg_get_connection(self)->type_map_for_queries;',
-          replacement: 'rb_tr_managed_from_handle_or_null(pg_get_connection(self)->type_map_for_queries);'
         },
         {
           match: /rb_scan_args\(argc, argv, "([0-9]+)", &(command|name), &paramsData.params, &in_res_fmt, &paramsData.typemap\);/,
