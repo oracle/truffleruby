@@ -170,6 +170,17 @@ pgresult_fields(VALUE self)
 }
 EOF
 
+  PG_TUPLE_ALLOC_ORIG = <<-EOF
+	this = (t_pg_tuple *)xmalloc(
+		sizeof(*this) +
+		sizeof(*this->values) * num_fields +
+		sizeof(*this->values) * (dup_names ? 1 : 0));
+EOF
+
+  PG_TUPLE_ALLOC_NEW = <<-EOF
+    this = (t_pg_tuple *)rb_tr_new_managed_struct(t_pg_tuple);
+EOF
+
   PATCHES = {
     gem: 'pg',
     patches: {
@@ -348,7 +359,15 @@ paramsData.typemap = tmp_typemap;'
       'pg_tuple.c' => [
         {
           match: 'VALUE values[0];',
-          replacement: 'VALUE *values;'
+          replacement: 'void *values[0];'
+        },
+        {
+          match: '} t_pg_tuple;',
+          replacement: '} t_pg_tuple; POLYGLOT_DECLARE_TYPE(t_pg_tuple);'
+        },
+        {
+          match: PG_TUPLE_ALLOC_ORIG,
+          replacement: PG_TUPLE_ALLOC_NEW
         }
       ]
     }
