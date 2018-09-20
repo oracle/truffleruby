@@ -102,6 +102,8 @@ public abstract class ConditionVariableNodes {
                                 final long currentTime = System.nanoTime();
                                 if (currentTime < endNanoTIme) {
                                     condition.await(endNanoTIme - currentTime, TimeUnit.NANOSECONDS);
+                                } else {
+                                    return BlockingAction.SUCCESS;
                                 }
                             } else {
                                 condition.await();
