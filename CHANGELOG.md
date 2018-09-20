@@ -18,6 +18,7 @@ Bug fixes:
 * Fixed version check preventing TruffleRuby from working with Bundler 2.0 and
   later (#1413).
 * Fixed problem with `Kernel.public_send` not tracking its caller properly (#1425).
+* Fixed `caller_locations` when called inside `method_added`.
 
 Performance:
 
