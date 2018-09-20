@@ -6,13 +6,35 @@ New features:
 
 * Useful `inspect` strings have been added for more foreign objects.
 * The C extension API now defines a preprocessor macro `TRUFFLERUBY`.
+* Added the rbconfig/sizeof native extension for better MRI compatibility.
 
 Bug fixes:
 
 * `readline` can now be interrupted by the interrupt signal (Ctrl+C). This fixes
   Ctrl+C to work in IRB.
+* Better compatibility with C extensions due to a new "managed struct" type.
+* Fixed compilation warnings which produced confusing messages for end users (#1422).
+* Improved compatibility with Truffle polyglot STDIO.
+* Fixed version check preventing TruffleRuby from working with Bundler 2.0 and
+  later (#1413).
+* Fixed problem with `Kernel.public_send` not tracking its caller properly (#1425).
 
-# 1.0 RC 6
+Performance:
+
+* Reduced memory footprint for private/internal AST nodes.
+* Increased the number of cases in which string equality checks will become
+  compile-time constants.
+
+Changes:
+
+* Many clean-ups to our internal patching mechanism used to make some native
+  extensions run on TruffleRuby.
+* Removed obsoleted patches for Bundler compatibility now that Bundler 1.16.5
+  has built-in support for TruffleRuby.
+* Reimplemented exceptions and other APIs that can return a backtrace to use
+  Truffle's lazy stacktraces API.
+
+# 1.0 RC 6, September 2018
 
 New features:
 
