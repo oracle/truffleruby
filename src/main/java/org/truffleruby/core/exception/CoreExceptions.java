@@ -568,7 +568,7 @@ public class CoreExceptions {
     public DynamicObject nameError(String message, Object receiver, String name, Node currentNode) {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final DynamicObject exceptionClass = context.getCoreLibrary().getNameErrorClass();
-        final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, exceptionClass);
+        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return Layouts.NAME_ERROR.createNameError(
                 context.getCoreLibrary().getNameErrorFactory(),
@@ -581,10 +581,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject nameErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name, Node currentNode) {
-        final DynamicObject exceptionClass = context.getCoreLibrary().getNameErrorClass();
-
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
-        final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, 1, exceptionClass);
+        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
         final DynamicObject exception = Layouts.NAME_ERROR.createNameError(
                 context.getCoreLibrary().getNameErrorFactory(),
                 null,
@@ -603,7 +601,7 @@ public class CoreExceptions {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final DynamicObject argsArray =  createArray(context, args, args.length);
         final DynamicObject exceptionClass = context.getCoreLibrary().getNoMethodErrorClass();
-        final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, exceptionClass);
+        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return Layouts.NO_METHOD_ERROR.createNoMethodError(
                 context.getCoreLibrary().getNoMethodErrorFactory(),
@@ -618,10 +616,9 @@ public class CoreExceptions {
     @TruffleBoundary
     public DynamicObject noMethodErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name, Object[] args, Node currentNode) {
         final DynamicObject argsArray = createArray(context, args, args.length);
-        final DynamicObject exceptionClass = context.getCoreLibrary().getNoMethodErrorClass();
 
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
-        final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, 1, exceptionClass);
+        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
         final DynamicObject exception = Layouts.NO_METHOD_ERROR.createNoMethodError(
                 context.getCoreLibrary().getNoMethodErrorFactory(),
                 null,
@@ -638,7 +635,7 @@ public class CoreExceptions {
     public DynamicObject noSuperMethodOutsideMethodError(Node currentNode) {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope("super called outside of method", UTF8Encoding.INSTANCE));
         final DynamicObject exceptionClass = context.getCoreLibrary().getNameErrorClass();
-        final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, exceptionClass);
+        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         // TODO BJF Jul 21, 2016 Review to add receiver
         DynamicObject noMethodError = Layouts.NAME_ERROR.createNameError(

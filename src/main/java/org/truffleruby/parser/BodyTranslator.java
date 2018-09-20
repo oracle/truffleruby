@@ -95,7 +95,6 @@ import org.truffleruby.language.defined.DefinedNode;
 import org.truffleruby.language.defined.DefinedWrapperNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
-import org.truffleruby.language.exceptions.DisablingBacktracesNode;
 import org.truffleruby.language.exceptions.EnsureNode;
 import org.truffleruby.language.exceptions.RescueAnyNode;
 import org.truffleruby.language.exceptions.RescueClassesNode;
@@ -2692,8 +2691,7 @@ public class BodyTranslator extends Translator {
     public RubyNode visitRescueNode(RescueParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
-        RubyNode tryPart;
-
+        final RubyNode tryPart;
         if (node.getBodyNode() == null || node.getBodyNode().getPosition() == null) {
             tryPart = nilNode(sourceSection);
         } else {
@@ -2712,7 +2710,6 @@ public class BodyTranslator extends Translator {
                 // allow `expression rescue $!` pattern
                 && (!(rescueBody.getBodyNode() instanceof GlobalVarParseNode) || !((GlobalVarParseNode) rescueBody.getBodyNode()).getName().equals("$!"))
                 && rescueBody.getOptRescueNode() == null) {
-            tryPart = new DisablingBacktracesNode(tryPart);
             canOmitBacktrace = true;
         }
 

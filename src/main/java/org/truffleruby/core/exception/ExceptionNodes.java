@@ -131,8 +131,7 @@ public abstract class ExceptionNodes {
 
         @Specialization
         public DynamicObject captureBacktrace(DynamicObject exception, int offset) {
-            final DynamicObject exceptionClass = Layouts.BASIC_OBJECT.getLogicalClass(exception);
-            final Backtrace backtrace = getContext().getCallStack().getBacktraceForException(this, offset, exceptionClass);
+            final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, offset);
             Layouts.EXCEPTION.setBacktrace(exception, backtrace);
             return nil();
         }

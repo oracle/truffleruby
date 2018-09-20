@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2017 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2014, 2018 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -15,18 +15,14 @@ import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.FrameInstanceVisitor;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.backtrace.Activation;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.InternalRootNode;
-import org.truffleruby.language.exceptions.DisablingBacktracesNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.shared.TruffleRuby;
@@ -207,41 +203,16 @@ public class CallStackManager {
         return RubyArguments.tryGetMethod(frame.getFrame(FrameInstance.FrameAccess.READ_ONLY));
     }
 
-    public Backtrace getBacktraceForException(Node currentNode, DynamicObject exceptionClass) {
-        return getBacktraceForException(currentNode, null, 0, exceptionClass, null);
-    }
-
-    public Backtrace getBacktraceForException(Node currentNode, int omit, DynamicObject exceptionClass) {
-        return getBacktraceForException(currentNode, null, omit, exceptionClass, null);
-    }
-
-    public Backtrace getBacktraceForException(Node currentNode, SourceSection sourceLocation, DynamicObject exceptionClass, Throwable javaThrowable) {
-        return getBacktraceForException(currentNode, sourceLocation, 0, exceptionClass, javaThrowable);
-    }
-
-    @TruffleBoundary
-    public Backtrace getBacktraceForException(Node currentNode,
-                                              SourceSection sourceLocation,
-                                              int omit,
-                                              DynamicObject exceptionClass,
-                                              Throwable javaThrowable) {
-        assert exceptionClass != null;
-        if (context.getOptions().BACKTRACES_OMIT_UNUSED
-                && DisablingBacktracesNode.areBacktracesDisabled()
-                && ModuleOperations.assignableTo(exceptionClass, context.getCoreLibrary().getStandardErrorClass())) {
-            final Backtrace backtrace = new Backtrace(currentNode, null, omit, null);
-            backtrace.setActivations(new Activation[]{ Activation.OMITTED_UNUSED });
-            return backtrace;
-        }
-        return getBacktrace(currentNode, sourceLocation, omit, javaThrowable);
-    }
-
     public Backtrace getBacktrace(Node currentNode) {
         return getBacktrace(currentNode, null, 0, null);
     }
 
     public Backtrace getBacktrace(Node currentNode, int omit) {
         return getBacktrace(currentNode, null, omit, null);
+    }
+
+    public Backtrace getBacktrace(Node currentNode, SourceSection sourceLocation, Throwable javaThrowable) {
+        return getBacktrace(currentNode, sourceLocation, 0, javaThrowable);
     }
 
     public Backtrace getBacktrace(Node currentNode, SourceSection sourceLocation, int omit, Throwable javaThrowable) {
