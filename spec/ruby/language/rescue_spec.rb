@@ -149,17 +149,7 @@ describe "The rescue keyword" do
       rescue ArgumentError
       end
     rescue StandardError => e
-      if RescueSpecs.respond_to?(:method) and
-          (m = RescueSpecs.method(:raise_standard_error) and
-          (m.respond_to?(:source_location) and
-          (location = m.source_location)))
-        file, line = location
-        line += 1 # Add offset for where the `raise` call occurs within the method
-        e.backtrace.first.should include "#{file}:#{line}:in `raise_standard_error'"
-      else
-        # Fallback test for implementations that don't have all of the `Method` API implemented yet.
-        e.backtrace.first.should include ":in `raise_standard_error'"
-      end
+      e.backtrace.first.should include ":in `raise_standard_error'"
     else
       fail("exception wasn't handled by the correct rescue block")
     end
