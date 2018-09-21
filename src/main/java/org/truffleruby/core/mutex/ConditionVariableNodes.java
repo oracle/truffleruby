@@ -14,6 +14,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -108,6 +109,7 @@ public abstract class ConditionVariableNodes {
         }
 
         /** This duplicates {@link ThreadManager#runUntilResult} because it needs fine grained control when polling for safepoints. */
+        @SuppressFBWarnings(value = "UL")
         private void awaitSignal(DynamicObject self, DynamicObject thread, long durationInNanos, ReentrantLock condLock, Condition condition, long endNanoTime) {
             final ThreadStatus status = Layouts.THREAD.getStatus(thread);
             while (true) {
