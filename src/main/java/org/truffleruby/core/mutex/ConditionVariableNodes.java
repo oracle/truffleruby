@@ -20,6 +20,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
+import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.core.thread.ThreadStatus;
 import org.truffleruby.language.Visibility;
@@ -106,9 +107,10 @@ public abstract class ConditionVariableNodes {
             }
         }
 
+        /** This duplicates {@link ThreadManager#runUntilResult} because it needs fine grained control when polling for safepoints. */
         private void awaitSignal(DynamicObject self, DynamicObject thread, long durationInNanos, ReentrantLock condLock, Condition condition, long endNanoTime) {
             final ThreadStatus status = Layouts.THREAD.getStatus(thread);
-            do {
+            while (true) {
                 Layouts.THREAD.setStatus(thread, ThreadStatus.SLEEP);
                 try {
                     try {
@@ -147,7 +149,7 @@ public abstract class ConditionVariableNodes {
                         condLock.lock();
                     }
                 }
-            } while (true);
+            }
         }
 
         private boolean consumeSignal(DynamicObject self) {
