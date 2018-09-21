@@ -22,7 +22,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.core.thread.ThreadStatus;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
@@ -55,12 +54,6 @@ public abstract class ConditionVariableNodes {
 
         @Specialization(guards = "isNil(timeout)")
         public DynamicObject waitTimeoutNil(VirtualFrame frame, DynamicObject self, DynamicObject mutex, DynamicObject timeout,
-                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            return waitTimeoutNotProived(frame, self, mutex, NotProvided.INSTANCE, getCurrentRubyThreadNode);
-        }
-
-        @Specialization
-        public DynamicObject waitTimeoutNotProived(VirtualFrame frame, DynamicObject self, DynamicObject mutex, NotProvided notProvided,
                 @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
             waitInternal(self, mutex, thread, -1);
