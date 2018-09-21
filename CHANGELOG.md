@@ -6,6 +6,8 @@ New features:
 
 * Useful `inspect` strings have been added for more foreign objects.
 * The C extension API now defines a preprocessor macro `TRUFFLERUBY`.
+* Support for `pg` 1.1. The extension now compiles successfully, but
+  may still have issues with some datatypes.
 
 Bug fixes:
 
