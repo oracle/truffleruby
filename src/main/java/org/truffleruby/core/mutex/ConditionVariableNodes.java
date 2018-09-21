@@ -62,28 +62,29 @@ public abstract class ConditionVariableNodes {
         @Specialization
         public DynamicObject waitTimeoutNotProived(VirtualFrame frame, DynamicObject self, DynamicObject mutex, NotProvided notProvided,
                 @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            waitInternal(frame, self, mutex, getCurrentRubyThreadNode, -1);
+            final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            waitInternal(self, mutex, thread, -1);
             return self;
         }
 
         @Specialization
         public DynamicObject waitTimeout(VirtualFrame frame, DynamicObject self, DynamicObject mutex, long durationInNanos,
                 @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            waitInternal(frame, self, mutex, getCurrentRubyThreadNode, durationInNanos);
-
+            final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            waitInternal(self, mutex, thread, durationInNanos);
             return self;
         }
 
-        private void waitInternal(VirtualFrame frame, DynamicObject self, DynamicObject mutex, GetCurrentRubyThreadNode getCurrentRubyThreadNode, long durationInNanos) {
+        @TruffleBoundary
+        private void waitInternal(DynamicObject self, DynamicObject mutex, DynamicObject thread, long durationInNanos) {
             final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
             final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
-            final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
-            final long endNanoTIme;
+            final long endNanoTime;
             if (durationInNanos >= 0) {
-                endNanoTIme = System.nanoTime() + durationInNanos;
+                endNanoTime = System.nanoTime() + durationInNanos;
             } else {
-                endNanoTIme = 0;
+                endNanoTime = 0;
             }
 
             InterruptMode interruptMode = Layouts.THREAD.getInterruptMode(thread);
@@ -102,14 +103,13 @@ public abstract class ConditionVariableNodes {
                          * resuming waiting.
                          */
                         try {
-                            if (Layouts.CONDITION_VARIABLE.getSignals(self) > 0) {
-                                decrementCounts(self);
+                            if (signalConsumed(self)) {
                                 return BlockingAction.SUCCESS;
                             }
                             if (durationInNanos >= 0) {
                                 final long currentTime = System.nanoTime();
-                                if (currentTime < endNanoTIme) {
-                                    condition.await(endNanoTIme - currentTime, TimeUnit.NANOSECONDS);
+                                if (currentTime < endNanoTime) {
+                                    condition.await(endNanoTime - currentTime, TimeUnit.NANOSECONDS);
                                 } else {
                                     Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
                                     return BlockingAction.SUCCESS;
@@ -117,8 +117,7 @@ public abstract class ConditionVariableNodes {
                             } else {
                                 condition.await();
                             }
-                            if (Layouts.CONDITION_VARIABLE.getSignals(self) > 0) {
-                                decrementCounts(self);
+                            if (signalConsumed(self)) {
                                 return BlockingAction.SUCCESS;
                             } else {
                                 return null;
@@ -134,9 +133,8 @@ public abstract class ConditionVariableNodes {
                     try {
                         reacquireMutex(condLock);
                     } finally {
-                        Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
-                        if (Layouts.CONDITION_VARIABLE.getSignals(self) > 0) {
-                            Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) - 1);
+                        if (!signalConsumed(self)) {
+                            Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
                         }
                         condLock.unlock();
                     }
@@ -149,9 +147,13 @@ public abstract class ConditionVariableNodes {
             }
         }
 
-        protected void decrementCounts(DynamicObject self) {
-            Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) - 1);
-            Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
+        protected boolean signalConsumed(DynamicObject self) {
+            if (Layouts.CONDITION_VARIABLE.getSignals(self) > 0) {
+                Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) - 1);
+                Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
+                return true;
+            }
+            return false;
         }
 
         @Fallback
