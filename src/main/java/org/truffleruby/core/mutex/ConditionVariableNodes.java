@@ -80,7 +80,15 @@ public abstract class ConditionVariableNodes {
                 endNanoTime = 0;
             }
 
-            getConditionAndReleaseMutex(mutexLock, condLock, thread);
+            MutexOperations.checkOwnedMutex(getContext(), mutexLock, this);
+
+            // condLock must be locked before unlocking mutexLock, to avoid losing potential signals
+            getContext().getThreadManager().runUntilResult(this, () -> {
+                condLock.lockInterruptibly();
+                return BlockingAction.SUCCESS;
+            });
+            mutexLock.unlock();
+
             try {
                 Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) + 1);
                 awaitSignal(self, thread, durationInNanos, condLock, condition, endNanoTime);
@@ -152,20 +160,6 @@ public abstract class ConditionVariableNodes {
             return false;
         }
 
-        @Fallback
-        public Object waitFailure(Object self, Object mutex, Object duration) {
-            return FAILURE;
-        }
-
-        private void getConditionAndReleaseMutex(ReentrantLock mutexLock, ReentrantLock condLock, DynamicObject thread) {
-            MutexOperations.checkOwnedMutex(getContext(), mutexLock, this);
-
-            getContext().getThreadManager().runUntilResult(this, () -> {
-                condLock.lockInterruptibly();
-                return BlockingAction.SUCCESS;
-            });
-            mutexLock.unlock();
-        }
     }
 
     @Primitive(name = "condition_variable_signal")
