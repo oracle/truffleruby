@@ -140,15 +140,10 @@ public abstract class ExceptionNodes {
                 "lookupNode.lookup(frame, self, METHOD) == getContext().getCoreMethods().EXCEPTION_BACKTRACE",
         }, limit = "1")
         public boolean backtraceQuery(VirtualFrame frame, DynamicObject self,
-                @Cached("create()") LookupMethodNode lookupNode,
-                @Cached("createBinaryProfile()") ConditionProfile resultProfile) {
+                @Cached("create()") LookupMethodNode lookupNode) {
             final Object customBacktrace = readCustomBacktrace(self);
 
-            if (resultProfile.profile(customBacktrace == null && Layouts.EXCEPTION.getBacktrace(self) == null)) {
-                return false;
-            } else {
-                return true;
-            }
+            return !(customBacktrace == null && Layouts.EXCEPTION.getBacktrace(self) == null);
         }
 
         @Specialization
