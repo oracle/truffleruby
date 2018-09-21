@@ -441,7 +441,7 @@ class ConditionVariable
 
   def wait(mutex, timeout=nil)
     if timeout
-      raise ArgumentError "Timeout must be positive" if timeout < 0
+      raise ArgumentError 'Timeout must be positive' if timeout < 0
       timeout = timeout * 1_000_000_000
       timeout = Truffle::Type.rb_num2long(timeout)
     end

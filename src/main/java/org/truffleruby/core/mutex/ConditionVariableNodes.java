@@ -131,7 +131,7 @@ public abstract class ConditionVariableNodes {
                 } catch (Error | RuntimeException e) {
                     // Remove ourselves as a waiter and consume a signal if there is one.
                     try {
-                        reacquireMutex(condLock);
+                        MutexOperations.internalLockEvenWithException(condLock, this, getContext());
                     } finally {
                         if (!signalConsumed(self)) {
                             Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
@@ -140,7 +140,7 @@ public abstract class ConditionVariableNodes {
                     }
                     throw e;
                 } finally {
-                    reacquireMutex(mutexLock);
+                    MutexOperations.internalLockEvenWithException(mutexLock, this, getContext());
                 }
             } finally {
                 Layouts.THREAD.setInterruptMode(thread, interruptMode);
@@ -176,11 +176,6 @@ public abstract class ConditionVariableNodes {
                 return BlockingAction.SUCCESS;
             });
             mutexLock.unlock();
-        }
-
-        @TruffleBoundary
-        protected void reacquireMutex(ReentrantLock mutexLock) {
-            MutexOperations.internalLockEvenWithException(mutexLock, this, getContext());
         }
     }
 
