@@ -79,23 +79,23 @@ public class SafepointManager {
     }
 
     public void poll(Node currentNode) {
-        poll(currentNode, false, null);
+        poll(currentNode, false);
     }
 
-    public void pollFromBlockingCall(Node currentNode, SafepointResumeAction resumeAction) {
-        poll(currentNode, true, resumeAction);
+    public void pollFromBlockingCall(Node currentNode) {
+        poll(currentNode, true);
     }
 
-    private void poll(Node currentNode, boolean fromBlockingCall, SafepointResumeAction resumeAction) {
+    private void poll(Node currentNode, boolean fromBlockingCall) {
         try {
             assumption.check();
         } catch (InvalidAssumptionException e) {
-            assumptionInvalidated(currentNode, fromBlockingCall, resumeAction);
+            assumptionInvalidated(currentNode, fromBlockingCall);
         }
     }
 
     @TruffleBoundary
-    private void assumptionInvalidated(Node currentNode, boolean fromBlockingCall, SafepointResumeAction resumeAction) {
+    private void assumptionInvalidated(Node currentNode, boolean fromBlockingCall) {
         final DynamicObject thread = context.getThreadManager().getCurrentThread();
         final InterruptMode interruptMode = Layouts.THREAD.getInterruptMode(thread);
 
@@ -107,7 +107,7 @@ public class SafepointManager {
             return; // interrupt me later
         }
 
-        final SafepointAction deferredAction = step(currentNode, false, resumeAction);
+        final SafepointAction deferredAction = step(currentNode, false);
 
         // We're now running again normally and can run deferred actions
         if (deferredAction != null) {
@@ -116,9 +116,8 @@ public class SafepointManager {
     }
 
     @TruffleBoundary
-    private SafepointAction step(Node currentNode, boolean isDrivingThread, SafepointResumeAction resumeAction) {
+    private SafepointAction step(Node currentNode, boolean isDrivingThread) {
         final DynamicObject thread = context.getThreadManager().getCurrentThread();
-        boolean needsResumeAction = false;
 
         // Wait for other threads to reach their safepoint
         if (isDrivingThread) {
@@ -135,33 +134,14 @@ public class SafepointManager {
         final SafepointAction deferredAction = deferred ? action : null;
 
         try {
-            try {
-                if (!deferred && thread != null) {
-                    action.accept(thread, currentNode);
-                }
-            } finally {
-                // Wait for other threads to finish their action
-                phaser.arriveAndAwaitAdvance();
-            }
-            if (resumeAction != null) {
-                needsResumeAction = true;
+            if (!deferred && thread != null) {
+                action.accept(thread, currentNode);
             }
         } finally {
-            if (needsResumeAction) {
-                resumeAction.run();
-                // Resume actions are designed to help resolve lock contention issues when leaving
-                // leaving a safepoint.
-
-                // These threads must reclaim the lock before other threads can resume to avoid race
-                // conditions, but also need to release it and start waiting on the condition
-                // variable as they cannot all hold the lock at the same time. For this reason these
-                // threads much mark they have completed their safepoint but must not wait for the
-                // other threads before continuing.
-                phaser.arrive();
-            } else {
-                phaser.arriveAndAwaitAdvance();
-            }
+            // Wait for other threads to finish their action
+            phaser.arriveAndAwaitAdvance();
         }
+
         return deferredAction;
     }
 
@@ -317,7 +297,7 @@ public class SafepointManager {
         assumption.invalidate();
         interruptOtherThreads();
 
-        step(currentNode, true, null);
+        step(currentNode, true);
     }
 
     private void interruptOtherThreads() {

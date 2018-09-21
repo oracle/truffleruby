@@ -21,6 +21,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
+import org.truffleruby.core.thread.ThreadStatus;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -89,7 +90,49 @@ public abstract class ConditionVariableNodes {
             getConditionAndReleaseMutex(mutexLock, condLock, thread);
             try {
                 Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) + 1);
-                getContext().getThreadManager().runUntilResultWithResumeAction(this, () -> {
+                awaitSignal(self, thread, durationInNanos, condLock, condition, endNanoTime);
+            } catch (Error | RuntimeException e) {
+                /*
+                 * Consume a signal if one was waiting. We do this because the error may have
+                 * occurred while we were waiting, or at some point after exiting a safepoint that
+                 * throws an exception and another thread has attempted to signal us. It is valid
+                 * for us to consume this signal because we are still marked as waiting for it.
+                 */
+                signalConsumed(self);
+                throw e;
+            } finally {
+                Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
+                condLock.unlock();
+                MutexOperations.internalLockEvenWithException(mutexLock, this, getContext());
+            }
+        }
+
+        private void awaitSignal(DynamicObject self, DynamicObject thread, long durationInNanos, final ReentrantLock condLock, Condition condition, long endNanoTime) {
+            final ThreadStatus status = Layouts.THREAD.getStatus(thread);
+            do {
+                Layouts.THREAD.setStatus(thread, ThreadStatus.SLEEP);
+                try {
+                    try {
+                        if (signalConsumed(self)) {
+                            return;
+                        }
+                        if (durationInNanos >= 0) {
+                            final long currentTime = System.nanoTime();
+                            if (currentTime < endNanoTime) {
+                                condition.await(endNanoTime - currentTime, TimeUnit.NANOSECONDS);
+                            } else {
+                                return;
+                            }
+                        } else {
+                            condition.await();
+                        }
+                        if (signalConsumed(self)) {
+                            return;
+                        }
+                    } finally {
+                        Layouts.THREAD.setStatus(thread, status);
+                    }
+                } catch (InterruptedException e) {
                     /*
                      * Working with ConditionVariables is tricky because of safepoints. To call
                      * await or signal on a condition variable we must hold the lock, and that lock
@@ -98,52 +141,19 @@ public abstract class ConditionVariableNodes {
                      * interrupted for a safepoint then we must release the lock so that all threads
                      * can enter the safepoint, and acquire it again before resuming waiting.
                      */
-                    try {
-                        if (signalConsumed(self)) {
-                            return BlockingAction.SUCCESS;
-                        }
-                        if (durationInNanos >= 0) {
-                            final long currentTime = System.nanoTime();
-                            if (currentTime < endNanoTime) {
-                                condition.await(endNanoTime - currentTime, TimeUnit.NANOSECONDS);
-                            } else {
-                                Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
-                                return BlockingAction.SUCCESS;
-                            }
-                        } else {
-                            condition.await();
-                        }
-                        if (signalConsumed(self)) {
-                            return BlockingAction.SUCCESS;
-                        } else {
-                            return null;
-                        }
-                    } finally {
-                        condLock.unlock();
-                    }
-                }, () -> {
-                    condLock.lock();
-                });
-            } catch (Error | RuntimeException e) {
-                // Remove ourselves as a waiter and consume a signal if there is one.
-                try {
-                    MutexOperations.internalLockEvenWithException(condLock, this, getContext());
-                } finally {
-                    if (!signalConsumed(self)) {
-                        Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
-                    }
                     condLock.unlock();
+                    try {
+                        getContext().getSafepointManager().pollFromBlockingCall(this);
+                    } finally {
+                        condLock.lock();
+                    }
                 }
-                throw e;
-            } finally {
-                MutexOperations.internalLockEvenWithException(mutexLock, this, getContext());
-            }
+            } while (true);
         }
 
-        protected boolean signalConsumed(DynamicObject self) {
+        private boolean signalConsumed(DynamicObject self) {
             if (Layouts.CONDITION_VARIABLE.getSignals(self) > 0) {
                 Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) - 1);
-                Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
                 return true;
             }
             return false;
@@ -154,7 +164,7 @@ public abstract class ConditionVariableNodes {
             return FAILURE;
         }
 
-        protected void getConditionAndReleaseMutex(ReentrantLock mutexLock, ReentrantLock condLock, DynamicObject thread) {
+        private void getConditionAndReleaseMutex(ReentrantLock mutexLock, ReentrantLock condLock, DynamicObject thread) {
             if (!mutexLock.isHeldByCurrentThread()) {
                 if (!mutexLock.isLocked()) {
                     throw new RaiseException(getContext(), getContext().getCoreExceptions().threadErrorUnlockNotLocked(this));
@@ -175,7 +185,7 @@ public abstract class ConditionVariableNodes {
     public static abstract class SignalNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject signal(VirtualFrame frame, DynamicObject self) {
+        public DynamicObject signal(DynamicObject self) {
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
             final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
             getContext().getThreadManager().runUntilResult(this, () -> {
@@ -200,7 +210,7 @@ public abstract class ConditionVariableNodes {
     public static abstract class BroadCastNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject broadcast(VirtualFrame frame, DynamicObject self) {
+        public DynamicObject broadcast(DynamicObject self) {
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
             final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
 
