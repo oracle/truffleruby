@@ -125,7 +125,7 @@ public abstract class ExceptionNodes {
     }
 
     @Primitive(name = "exception_backtrace?")
-    public abstract static class BacktraceQueryPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class BacktraceQueryPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         protected static final String METHOD = "backtrace";
 
@@ -134,26 +134,21 @@ public abstract class ExceptionNodes {
         /* We can cheaply determine if an Exception has a backtrace via object inspection. However, if
          * `Exception#backtrace` is redefined, then `Exception#backtrace?` needs to follow along to be consistent.
          * So, we check if the method has been redefined here and if so, fall back to the Ruby code for the method
-         * by returning `null` in the fallback specialization.
+         * by returning `FAILURE` in the fallback specialization.
          */
         @Specialization(guards = {
                 "lookupNode.lookup(frame, self, METHOD) == getContext().getCoreMethods().EXCEPTION_BACKTRACE",
         }, limit = "1")
         public boolean backtraceQuery(VirtualFrame frame, DynamicObject self,
-                @Cached("create()") LookupMethodNode lookupNode,
-                @Cached("createBinaryProfile()") ConditionProfile resultProfile) {
+                @Cached("create()") LookupMethodNode lookupNode) {
             final Object customBacktrace = readCustomBacktrace(self);
 
-            if (resultProfile.profile(customBacktrace == null && Layouts.EXCEPTION.getBacktrace(self) == null)) {
-                return false;
-            } else {
-                return true;
-            }
+            return !(customBacktrace == null && Layouts.EXCEPTION.getBacktrace(self) == null);
         }
 
         @Specialization
         public Object fallback(DynamicObject self) {
-            return null;
+            return FAILURE;
         }
 
         private Object readCustomBacktrace(DynamicObject exception) {
@@ -186,7 +181,7 @@ public abstract class ExceptionNodes {
     }
 
     @Primitive(name = "exception_message")
-    public abstract static class MessagePrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class MessagePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         public Object message(DynamicObject exception) {
