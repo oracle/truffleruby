@@ -279,8 +279,8 @@ EOF
         *wrap_managed_struct('t_pg_connection', 'this'),
         *replace_reference_passing_with_array('intermediate'),
         {
-          match: 'VALUE rb_cPGconn;',
-          replacement: 'VALUE rb_cPGconn; POLYGLOT_DECLARE_TYPE(t_pg_connection);'
+          match: "#include \"pg.h\"\n",
+          replacement: "#include \"pg.h\"\nPOLYGLOT_DECLARE_TYPE(t_pg_connection);"
         },
         {
           match: 'PQsetNoticeProcessor(this->pgconn, gvl_notice_processor_proxy, (void *)self);',
@@ -291,7 +291,7 @@ EOF
           replacement: 'VALUE self = rb_tr_managed_from_handle_or_null(arg);'
         },
         {
-          match: /rb_scan_args\(argc, argv, "([0-9]+)", &(command|name), &paramsData.params, &in_res_fmt, &paramsData.typemap\);/,
+          match: /rb_scan_args\(argc, argv, "(\d+)", &(command|name), &paramsData.params, &in_res_fmt, &paramsData.typemap\);/,
           replacement: 'VALUE tmp_params, tmp_typemap; rb_scan_args(argc, argv, "\\1", &\\2, &tmp_params, &in_res_fmt, &tmp_typemap);
 paramsData.params = tmp_params;
 paramsData.typemap = tmp_typemap;'
@@ -314,7 +314,7 @@ paramsData.typemap = tmp_typemap;'
           replacement: PG_ASYNC_EXEC_NEW
         },
         {
-          match: /\(\(VALUE\*\)args\)\[([0-9]+)\]/,
+          match: /\(\(VALUE\*\)args\)\[(\d+)\]/,
           replacement: 'rb_ary_entry(args, \\1)'
         },
         {

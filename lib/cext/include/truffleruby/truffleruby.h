@@ -35,7 +35,7 @@ void rb_tr_hidden_variable_set(VALUE object, const char *name, VALUE value);
 VALUE rb_tr_hidden_variable_get(VALUE object, const char *name);
 int rb_tr_obj_equal(VALUE first, VALUE second);
 int rb_tr_flags(VALUE value);
-void rb_tr_set_flags(VALUE value, int flags);
+void rb_tr_add_flags(VALUE value, int flags);
 
 // Handles
 

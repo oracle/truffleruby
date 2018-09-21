@@ -1227,7 +1227,7 @@ int rb_special_const_p(VALUE object);
 #define RB_FL_ANY(x,f) RB_FL_TEST((x),(f))
 #define RB_FL_ALL_RAW(x,f) (RB_FL_TEST_RAW((x),(f)) == (f))
 #define RB_FL_ALL(x,f) (RB_FL_TEST((x),(f)) == (f))
-#define RB_FL_SET_RAW(x,f) rb_tr_set_flags(x,f)
+#define RB_FL_SET_RAW(x,f) rb_tr_add_flags(x,f)
 #define RB_FL_SET(x,f) (RB_FL_ABLE(x) ? RB_FL_SET_RAW(x, f) : (void)0)
 #define RB_FL_UNSET_RAW(x,f) (void)(RBASIC(x)->flags &= ~(VALUE)(f))
 #define RB_FL_UNSET(x,f) (RB_FL_ABLE(x) ? RB_FL_UNSET_RAW(x, f) : (void)0)
