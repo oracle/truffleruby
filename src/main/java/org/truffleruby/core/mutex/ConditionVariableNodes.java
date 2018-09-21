@@ -106,7 +106,7 @@ public abstract class ConditionVariableNodes {
             }
         }
 
-        private void awaitSignal(DynamicObject self, DynamicObject thread, long durationInNanos, final ReentrantLock condLock, Condition condition, long endNanoTime) {
+        private void awaitSignal(DynamicObject self, DynamicObject thread, long durationInNanos, ReentrantLock condLock, Condition condition, long endNanoTime) {
             final ThreadStatus status = Layouts.THREAD.getStatus(thread);
             do {
                 Layouts.THREAD.setStatus(thread, ThreadStatus.SLEEP);
@@ -167,6 +167,7 @@ public abstract class ConditionVariableNodes {
         public DynamicObject signal(DynamicObject self) {
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
             final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
+
             getContext().getThreadManager().runUntilResult(this, () -> {
                 condLock.lockInterruptibly();
                 return BlockingAction.SUCCESS;
