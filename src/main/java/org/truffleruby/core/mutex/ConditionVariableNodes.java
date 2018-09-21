@@ -99,7 +99,7 @@ public abstract class ConditionVariableNodes {
                  * throws an exception and another thread has attempted to signal us. It is valid
                  * for us to consume this signal because we are still marked as waiting for it.
                  */
-                signalConsumed(self);
+                consumeSignal(self);
                 throw e;
             } finally {
                 Layouts.CONDITION_VARIABLE.setWaiters(self, Layouts.CONDITION_VARIABLE.getWaiters(self) - 1);
@@ -114,7 +114,7 @@ public abstract class ConditionVariableNodes {
                 Layouts.THREAD.setStatus(thread, ThreadStatus.SLEEP);
                 try {
                     try {
-                        if (signalConsumed(self)) {
+                        if (consumeSignal(self)) {
                             return;
                         }
                         if (durationInNanos >= 0) {
@@ -127,7 +127,7 @@ public abstract class ConditionVariableNodes {
                         } else {
                             condition.await();
                         }
-                        if (signalConsumed(self)) {
+                        if (consumeSignal(self)) {
                             return;
                         }
                     } finally {
@@ -152,7 +152,7 @@ public abstract class ConditionVariableNodes {
             } while (true);
         }
 
-        private boolean signalConsumed(DynamicObject self) {
+        private boolean consumeSignal(DynamicObject self) {
             if (Layouts.CONDITION_VARIABLE.getSignals(self) > 0) {
                 Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) - 1);
                 return true;
