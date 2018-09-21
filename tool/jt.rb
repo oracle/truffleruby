@@ -1655,7 +1655,7 @@ EOS
     if use_json
       puts JSON.generate(results)
     elsif flamegraph
-      repo = Utilities.find_or_clone_repo("https://github.com/brendangregg/FlameGraph.git")
+      repo = Utilities.find_or_clone_repo("https://github.com/eregon/FlameGraph.git", "graalvm")
       path = "#{TRUFFLERUBY_DIR}/time_metrics.stacks"
       File.open(path, 'w') do |file|
         mean_by_stack.each_pair do |stack, mean|
@@ -1667,7 +1667,7 @@ EOS
           file.puts "#{stack.join(';')} #{on_top_of_stack.round}"
         end
       end
-      sh "#{repo}/flamegraph.pl", "--countname", "ms", path, out: "time_metrics_flamegraph.svg"
+      sh "#{repo}/flamegraph.pl", "--flamechart", "--countname", "ms", path, out: "time_metrics_flamegraph.svg"
     end
   end
 
