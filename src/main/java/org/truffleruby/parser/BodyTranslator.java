@@ -95,7 +95,6 @@ import org.truffleruby.language.defined.DefinedNode;
 import org.truffleruby.language.defined.DefinedWrapperNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
-import org.truffleruby.language.exceptions.DisablingBacktracesNode;
 import org.truffleruby.language.exceptions.EnsureNode;
 import org.truffleruby.language.exceptions.RescueAnyNode;
 import org.truffleruby.language.exceptions.RescueClassesNode;
@@ -2692,8 +2691,7 @@ public class BodyTranslator extends Translator {
     public RubyNode visitRescueNode(RescueParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
-        RubyNode tryPart;
-
+        final RubyNode tryPart;
         if (node.getBodyNode() == null || node.getBodyNode().getPosition() == null) {
             tryPart = nilNode(sourceSection);
         } else {
@@ -2704,67 +2702,57 @@ public class BodyTranslator extends Translator {
 
         RescueBodyParseNode rescueBody = node.getRescueNode();
 
+        boolean canOmitBacktrace = false;
+
         if (context.getOptions().BACKTRACES_OMIT_UNUSED
                 && rescueBody != null
-                && rescueBody.getExceptionNodes() == null
                 && rescueBody.getBodyNode() instanceof SideEffectFree
                 // allow `expression rescue $!` pattern
                 && (!(rescueBody.getBodyNode() instanceof GlobalVarParseNode) || !((GlobalVarParseNode) rescueBody.getBodyNode()).getName().equals("$!"))
                 && rescueBody.getOptRescueNode() == null) {
-            tryPart = new DisablingBacktracesNode(tryPart);
+            canOmitBacktrace = true;
+        }
 
-            RubyNode bodyNode;
+        while (rescueBody != null) {
+            if (rescueBody.getExceptionNodes() != null) {
+                final Deque<ParseNode> exceptionNodes = new ArrayDeque<>();
+                exceptionNodes.push(rescueBody.getExceptionNodes());
 
-            if (rescueBody.getBodyNode() == null || rescueBody.getBodyNode().getPosition() == null) {
-                bodyNode = nilNode(sourceSection);
-            } else {
-                bodyNode = rescueBody.getBodyNode().accept(this);
-            }
+                while (!exceptionNodes.isEmpty()) {
+                    final ParseNode exceptionNode = exceptionNodes.pop();
 
-            final RescueAnyNode rescueNode = new RescueAnyNode(bodyNode);
-            rescueNodes.add(rescueNode);
-        } else {
-            while (rescueBody != null) {
-                if (rescueBody.getExceptionNodes() != null) {
-                    final Deque<ParseNode> exceptionNodes = new ArrayDeque<>();
-                    exceptionNodes.push(rescueBody.getExceptionNodes());
-
-                    while (!exceptionNodes.isEmpty()) {
-                        final ParseNode exceptionNode = exceptionNodes.pop();
-
-                        if (exceptionNode instanceof ArrayParseNode) {
-                            final RescueNode rescueNode = translateRescueArrayParseNode((ArrayParseNode) exceptionNode, rescueBody, sourceSection);
-                            rescueNodes.add(rescueNode);
-                        } else if (exceptionNode instanceof SplatParseNode) {
-                            final RescueNode rescueNode = translateRescueSplatParseNode((SplatParseNode) exceptionNode, rescueBody, sourceSection);
-                            rescueNodes.add(rescueNode);
-                        } else if (exceptionNode instanceof ArgsCatParseNode) {
-                            final ArgsCatParseNode argsCat = (ArgsCatParseNode) exceptionNode;
-                            exceptionNodes.push(new SplatParseNode(argsCat.getSecondNode().getPosition(), argsCat.getSecondNode()));
-                            exceptionNodes.push(argsCat.getFirstNode());
-                        } else if (exceptionNode instanceof ArgsPushParseNode) {
-                            final ArgsPushParseNode argsPush = (ArgsPushParseNode) exceptionNode;
-                            exceptionNodes.push(new ArrayParseNode(argsPush.getSecondNode().getPosition(), argsPush.getSecondNode()));
-                            exceptionNodes.push(argsPush.getFirstNode());
-                        } else {
-                            throw new UnsupportedOperationException();
-                        }
-                    }
-                } else {
-                    RubyNode bodyNode;
-
-                    if (rescueBody.getBodyNode() == null || rescueBody.getBodyNode().getPosition() == null) {
-                        bodyNode = nilNode(sourceSection);
+                    if (exceptionNode instanceof ArrayParseNode) {
+                        final RescueNode rescueNode = translateRescueArrayParseNode((ArrayParseNode) exceptionNode, rescueBody, sourceSection);
+                        rescueNodes.add(rescueNode);
+                    } else if (exceptionNode instanceof SplatParseNode) {
+                        final RescueNode rescueNode = translateRescueSplatParseNode((SplatParseNode) exceptionNode, rescueBody, sourceSection);
+                        rescueNodes.add(rescueNode);
+                    } else if (exceptionNode instanceof ArgsCatParseNode) {
+                        final ArgsCatParseNode argsCat = (ArgsCatParseNode) exceptionNode;
+                        exceptionNodes.push(new SplatParseNode(argsCat.getSecondNode().getPosition(), argsCat.getSecondNode()));
+                        exceptionNodes.push(argsCat.getFirstNode());
+                    } else if (exceptionNode instanceof ArgsPushParseNode) {
+                        final ArgsPushParseNode argsPush = (ArgsPushParseNode) exceptionNode;
+                        exceptionNodes.push(new ArrayParseNode(argsPush.getSecondNode().getPosition(), argsPush.getSecondNode()));
+                        exceptionNodes.push(argsPush.getFirstNode());
                     } else {
-                        bodyNode = rescueBody.getBodyNode().accept(this);
+                        throw new UnsupportedOperationException();
                     }
+                }
+            } else {
+                RubyNode bodyNode;
 
-                    final RescueAnyNode rescueNode = new RescueAnyNode(bodyNode);
-                    rescueNodes.add(rescueNode);
+                if (rescueBody.getBodyNode() == null || rescueBody.getBodyNode().getPosition() == null) {
+                    bodyNode = nilNode(sourceSection);
+                } else {
+                    bodyNode = rescueBody.getBodyNode().accept(this);
                 }
 
-                rescueBody = rescueBody.getOptRescueNode();
+                final RescueAnyNode rescueNode = new RescueAnyNode(bodyNode);
+                rescueNodes.add(rescueNode);
             }
+
+            rescueBody = rescueBody.getOptRescueNode();
         }
 
         RubyNode elsePart;
@@ -2777,7 +2765,7 @@ public class BodyTranslator extends Translator {
 
         final RubyNode ret = new TryNode(
                 new ExceptionTranslatingNode(tryPart, UnsupportedOperationBehavior.TYPE_ERROR),
-                rescueNodes.toArray(new RescueNode[rescueNodes.size()]), elsePart);
+                rescueNodes.toArray(new RescueNode[rescueNodes.size()]), elsePart, canOmitBacktrace);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }

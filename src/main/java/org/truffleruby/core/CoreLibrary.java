@@ -1415,6 +1415,10 @@ public class CoreLibrary {
         return dirClass;
     }
 
+    public DynamicObject getExceptionClass() {
+        return exceptionClass;
+    }
+
     private static final String POST_BOOT_FILE = "/post-boot/post-boot.rb";
 
     public static final String[] CORE_FILES = {

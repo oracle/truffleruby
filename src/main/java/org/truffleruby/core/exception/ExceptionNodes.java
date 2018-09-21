@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
@@ -26,12 +27,15 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 
 @CoreClass("Exception")
 public abstract class ExceptionNodes {
+
+    protected final static String CUSTOM_BACKTRACE_FIELD = "@custom_backtrace";
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
@@ -112,10 +116,53 @@ public abstract class ExceptionNodes {
         private ReadObjectFieldNode getReadCustomBacktraceNode() {
             if (readCustomBacktraceNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                readCustomBacktraceNode = insert(ReadObjectFieldNodeGen.create("@custom_backtrace", null));
+                readCustomBacktraceNode = insert(ReadObjectFieldNodeGen.create(CUSTOM_BACKTRACE_FIELD, null));
             }
 
             return readCustomBacktraceNode;
+        }
+
+    }
+
+    @Primitive(name = "exception_backtrace?")
+    public abstract static class BacktraceQueryPrimitiveNode extends CoreMethodArrayArgumentsNode {
+
+        protected static final String METHOD = "backtrace";
+
+        @Child private ReadObjectFieldNode readCustomBacktraceNode;
+
+        /* We can cheaply determine if an Exception has a backtrace via object inspection. However, if
+         * `Exception#backtrace` is redefined, then `Exception#backtrace?` needs to follow along to be consistent.
+         * So, we check if the method has been redefined here and if so, fall back to the Ruby code for the method
+         * by returning `null` in the fallback specialization.
+         */
+        @Specialization(guards = {
+                "lookupNode.lookup(frame, self, METHOD) == getContext().getCoreMethods().EXCEPTION_BACKTRACE",
+        }, limit = "1")
+        public boolean backtraceQuery(VirtualFrame frame, DynamicObject self,
+                @Cached("create()") LookupMethodNode lookupNode,
+                @Cached("createBinaryProfile()") ConditionProfile resultProfile) {
+            final Object customBacktrace = readCustomBacktrace(self);
+
+            if (resultProfile.profile(customBacktrace == null && Layouts.EXCEPTION.getBacktrace(self) == null)) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        @Specialization
+        public Object fallback(DynamicObject self) {
+            return null;
+        }
+
+        private Object readCustomBacktrace(DynamicObject exception) {
+            if (readCustomBacktraceNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                readCustomBacktraceNode = insert(ReadObjectFieldNodeGen.create(CUSTOM_BACKTRACE_FIELD, null));
+            }
+
+            return readCustomBacktraceNode.execute(exception);
         }
 
     }
@@ -131,8 +178,7 @@ public abstract class ExceptionNodes {
 
         @Specialization
         public DynamicObject captureBacktrace(DynamicObject exception, int offset) {
-            final DynamicObject exceptionClass = Layouts.BASIC_OBJECT.getLogicalClass(exception);
-            final Backtrace backtrace = getContext().getCallStack().getBacktraceForException(this, offset, exceptionClass);
+            final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, offset);
             Layouts.EXCEPTION.setBacktrace(exception, backtrace);
             return nil();
         }

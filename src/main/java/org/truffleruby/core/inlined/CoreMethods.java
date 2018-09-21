@@ -64,6 +64,7 @@ public class CoreMethods {
 
     final Assumption nilClassIsNilAssumption;
 
+    public final InternalMethod EXCEPTION_BACKTRACE;
     public final InternalMethod BLOCK_GIVEN;
     public final InternalMethod NOT;
     public final InternalMethod KERNEL_IS_NIL;
@@ -72,6 +73,7 @@ public class CoreMethods {
     public CoreMethods(RubyContext context) {
         this.context = context;
         final DynamicObject basicObjectClass = context.getCoreLibrary().getBasicObjectClass();
+        final DynamicObject exceptionClass = context.getCoreLibrary().getExceptionClass();
         final DynamicObject kernelModule = context.getCoreLibrary().getKernelModule();
         final DynamicObject integerClass = context.getCoreLibrary().getIntegerClass();
         final DynamicObject floatClass = context.getCoreLibrary().getFloatClass();
@@ -114,6 +116,7 @@ public class CoreMethods {
 
         BLOCK_GIVEN = getMethod(kernelModule, "block_given?");
         NOT = getMethod(basicObjectClass, "!");
+        EXCEPTION_BACKTRACE = getMethod(exceptionClass, "backtrace");
         KERNEL_IS_NIL = getMethod(kernelModule, "nil?");
         STRING_BYTESIZE = getMethod(stringClass, "bytesize");
     }
