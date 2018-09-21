@@ -158,13 +158,7 @@ public abstract class ConditionVariableNodes {
         }
 
         private void getConditionAndReleaseMutex(ReentrantLock mutexLock, ReentrantLock condLock, DynamicObject thread) {
-            if (!mutexLock.isHeldByCurrentThread()) {
-                if (!mutexLock.isLocked()) {
-                    throw new RaiseException(getContext(), getContext().getCoreExceptions().threadErrorUnlockNotLocked(this));
-                } else {
-                    throw new RaiseException(getContext(), getContext().getCoreExceptions().threadErrorAlreadyLocked(this));
-                }
-            }
+            MutexOperations.checkOwnedMutex(getContext(), mutexLock, this);
 
             getContext().getThreadManager().runUntilResult(this, () -> {
                 condLock.lockInterruptibly();

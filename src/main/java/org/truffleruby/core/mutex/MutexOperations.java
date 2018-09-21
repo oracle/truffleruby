@@ -89,6 +89,12 @@ public abstract class MutexOperations {
     protected static void unlock(ReentrantLock lock, DynamicObject thread, RubyNode currentNode) {
         final RubyContext context = currentNode.getContext();
 
+        checkOwnedMutex(context, lock, currentNode);
+        lock.unlock();
+        Layouts.THREAD.getOwnedLocks(thread).remove(lock);
+    }
+
+    public static void checkOwnedMutex(RubyContext context, ReentrantLock lock, RubyNode currentNode) {
         if (!lock.isHeldByCurrentThread()) {
             if (!lock.isLocked()) {
                 throw new RaiseException(context, context.getCoreExceptions().threadErrorUnlockNotLocked(currentNode));
@@ -96,9 +102,6 @@ public abstract class MutexOperations {
                 throw new RaiseException(context, context.getCoreExceptions().threadErrorAlreadyLocked(currentNode));
             }
         }
-
-        lock.unlock();
-        Layouts.THREAD.getOwnedLocks(thread).remove(lock);
     }
 
 }
