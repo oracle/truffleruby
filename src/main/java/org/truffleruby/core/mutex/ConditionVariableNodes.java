@@ -167,6 +167,7 @@ public abstract class ConditionVariableNodes {
     @Primitive(name = "condition_variable_signal")
     public static abstract class SignalNode extends PrimitiveArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
         public DynamicObject signal(DynamicObject self) {
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
@@ -193,6 +194,7 @@ public abstract class ConditionVariableNodes {
     @Primitive(name = "condition_variable_broadcast")
     public static abstract class BroadCastNode extends PrimitiveArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
         public DynamicObject broadcast(DynamicObject self) {
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
