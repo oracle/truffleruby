@@ -119,11 +119,11 @@ public abstract class ConditionVariableNodes {
                         }
                         if (durationInNanos >= 0) {
                             final long currentTime = System.nanoTime();
-                            if (currentTime < endNanoTime) {
-                                condition.await(endNanoTime - currentTime, TimeUnit.NANOSECONDS);
-                            } else {
+                            if (currentTime >= endNanoTime) {
                                 return;
                             }
+
+                            condition.await(endNanoTime - currentTime, TimeUnit.NANOSECONDS);
                         } else {
                             condition.await();
                         }
