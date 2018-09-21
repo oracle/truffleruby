@@ -20,15 +20,6 @@ EOF
   PG_CONNECTION_FREE = <<-EOF
 pgconn_gc_free( t_pg_connection *this )
 {
-  rb_tr_release_handle(this->socket_io);
-  rb_tr_release_handle(this->notice_receiver);
-  rb_tr_release_handle(this->notice_processor);
-  rb_tr_release_handle(this->type_map_for_queries);
-  rb_tr_release_handle(this->type_map_for_results);
-  rb_tr_release_handle(this->trace_stream);
-  rb_tr_release_handle(this->external_encoding);
-  rb_tr_release_handle(this->encoder_for_put_copy_data);
-  rb_tr_release_handle(this->decoder_for_get_copy_data);
 EOF
 
   # Using cached encodings requires more handle operations to store
@@ -170,6 +161,17 @@ pgresult_fields(VALUE self)
 }
 EOF
 
+  PG_TUPLE_ALLOC_ORIG = <<-EOF
+	this = (t_pg_tuple *)xmalloc(
+		sizeof(*this) +
+		sizeof(*this->values) * num_fields +
+		sizeof(*this->values) * (dup_names ? 1 : 0));
+EOF
+
+  PG_TUPLE_ALLOC_NEW = <<-EOF
+    this = (t_pg_tuple *)rb_tr_new_managed_struct(t_pg_tuple);
+EOF
+
   PATCHES = {
     gem: 'pg',
     patches: {
@@ -260,7 +262,6 @@ EOF
         *read_write_field('this','connection', false),
         *read_write_field('this','tuple_hash', false),
         *read_write_field('this','typemap', false),
-        *read_write_field('p_conn','type_map_for_results', false),
         {
           match: 'this->fnames[i] = rb_obj_freeze(fname);',
           replacement: 'this->fnames[i] = rb_tr_handle_for_managed(rb_obj_freeze(fname));'
@@ -269,30 +270,18 @@ EOF
           match: 'rb_hash_aset( tuple, this->fnames[field_num], val )',
           replacement: 'rb_hash_aset( tuple, rb_tr_managed_from_handle_or_null(this->fnames[field_num]), val )'
         },
-        # Transform
-        #   PG_VARIABLE_LENGTH_ARRAY(VALUE, row_values, nfields, PG_MAX_COLUMNS)
-        # into
-        #   VALUE *row_values = truffle_managed_malloc(nfields * sizeof(VALUE));
-        {
-          match: /PG_VARIABLE_LENGTH_ARRAY\(VALUE,\s*#{ID},\s*#{ID},\s*#{ID}\)/,
-          replacement: 'VALUE *\1 = truffle_managed_malloc(\2 * sizeof(VALUE));'
-        },
         {
 		  match: PG_RESULT_FIELDS_ORIG,
 		  replacement: PG_RESULT_FIELDS_NEW
         },
       ],
       'pg_connection.c' => [
-        *read_write_field('this','socket_io', false),
-        *read_write_field('this','notice_receiver', false),
-        *read_write_field('this','notice_processor', false),
-        *read_write_field('this','type_map_for_queries', false),
-        *read_write_field('this','type_map_for_results', false),
-        *read_write_field('this','trace_stream', false),
-        *read_write_field('this','external_encoding', false),
-        *read_write_field('this','encoder_for_put_copy_data', false),
-        *read_write_field('this','decoder_for_get_copy_data', false),
+        *wrap_managed_struct('t_pg_connection', 'this'),
         *replace_reference_passing_with_array('intermediate'),
+        {
+          match: "#include \"pg.h\"\n",
+          replacement: "#include \"pg.h\"\nPOLYGLOT_DECLARE_TYPE(t_pg_connection);"
+        },
         {
           match: 'PQsetNoticeProcessor(this->pgconn, gvl_notice_processor_proxy, (void *)self);',
           replacement: 'PQsetNoticeProcessor(this->pgconn, gvl_notice_processor_proxy, rb_tr_handle_for_managed(self));'
@@ -302,12 +291,8 @@ EOF
           replacement: 'VALUE self = rb_tr_managed_from_handle_or_null(arg);'
         },
         {
-          match: 'pg_get_connection(self)->type_map_for_queries;',
-          replacement: 'rb_tr_managed_from_handle_or_null(pg_get_connection(self)->type_map_for_queries);'
-        },
-        {
-          match: /rb_scan_args\(argc, argv, "13", &(command|name), &paramsData.params, &in_res_fmt, &paramsData.typemap\);/,
-          replacement: 'VALUE tmp_params, tmp_typemap; rb_scan_args(argc, argv, "13", &\\1, &tmp_params, &in_res_fmt, &tmp_typemap);
+          match: /rb_scan_args\(argc, argv, "(\d+)", &(command|name), &paramsData.params, &in_res_fmt, &paramsData.typemap\);/,
+          replacement: 'VALUE tmp_params, tmp_typemap; rb_scan_args(argc, argv, "\\1", &\\2, &tmp_params, &in_res_fmt, &tmp_typemap);
 paramsData.params = tmp_params;
 paramsData.typemap = tmp_typemap;'
         },
@@ -329,7 +314,7 @@ paramsData.typemap = tmp_typemap;'
           replacement: PG_ASYNC_EXEC_NEW
         },
         {
-          match: /\(\(VALUE\*\)args\)\[([0-9]+)\]/,
+          match: /\(\(VALUE\*\)args\)\[(\d+)\]/,
           replacement: 'rb_ary_entry(args, \\1)'
         },
         {
@@ -351,6 +336,20 @@ paramsData.typemap = tmp_typemap;'
         {
           match: '*typecast_heap_chain = Data_Wrap_Struct( rb_cObject, NULL, free_typecast_heap_chain, allocated );',
           replacement: '*typecast_heap_chain = rb_tr_handle_for_managed(Data_Wrap_Struct( rb_cObject, NULL, free_typecast_heap_chain, allocated ));'
+        }
+      ],
+      'pg_tuple.c' => [
+        {
+          match: 'VALUE values[0];',
+          replacement: 'void *values[0];'
+        },
+        {
+          match: '} t_pg_tuple;',
+          replacement: '} t_pg_tuple; POLYGLOT_DECLARE_TYPE(t_pg_tuple);'
+        },
+        {
+          match: PG_TUPLE_ALLOC_ORIG,
+          replacement: PG_TUPLE_ALLOC_NEW
         }
       ]
     }

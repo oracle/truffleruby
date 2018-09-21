@@ -1,4 +1,4 @@
-// From ./tool/generate-cext-constants.rb
+// From tool/generate-cext-constants.rb
 
 VALUE rb_tr_get_undef(void);
 VALUE rb_tr_get_true(void);
@@ -41,6 +41,7 @@ VALUE rb_tr_get_FloatDomainError(void);
 VALUE rb_tr_get_IndexError(void);
 VALUE rb_tr_get_Interrupt(void);
 VALUE rb_tr_get_IOError(void);
+VALUE rb_tr_get_KeyError(void);
 VALUE rb_tr_get_LoadError(void);
 VALUE rb_tr_get_LocalJumpError(void);
 VALUE rb_tr_get_MathDomainError(void);
@@ -110,6 +111,7 @@ VALUE rb_tr_get_default_rs(void);
 #define rb_eIndexError rb_tr_get_IndexError()
 #define rb_eInterrupt rb_tr_get_Interrupt()
 #define rb_eIOError rb_tr_get_IOError()
+#define rb_eKeyError rb_tr_get_KeyError()
 #define rb_eLoadError rb_tr_get_LoadError()
 #define rb_eLocalJumpError rb_tr_get_LocalJumpError()
 #define rb_eMathDomainError rb_tr_get_MathDomainError()
