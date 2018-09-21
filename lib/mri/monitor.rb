@@ -239,12 +239,9 @@ module MonitorMixin
   # Initializes the MonitorMixin after being included in a class or when an
   # object has been extended with the MonitorMixin
   def mon_initialize
-    # In TruffleRuby avoid resetting the Mutex if mon_initialize is called twice, such as in Rails tests
-    if RUBY_ENGINE != 'truffleruby' || !@mon_mutex
-      @mon_owner = nil
-      @mon_count = 0
-      @mon_mutex = Thread::Mutex.new
-    end
+    @mon_owner = nil
+    @mon_count = 0
+    @mon_mutex = Thread::Mutex.new
   end
 
   def mon_check_owner
