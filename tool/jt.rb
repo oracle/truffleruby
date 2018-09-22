@@ -1383,6 +1383,9 @@ EOS
       sh "git", "clone", url
     end
 
+    # Unset variable set by the pre-commit hook which confuses git
+    ENV.delete "GIT_INDEX_FILE"
+
     current = `git -C #{gem_test_pack} rev-parse HEAD`.chomp
     unless current == TRUFFLERUBY_GEM_TEST_PACK_VERSION
       Remotes.try_fetch(gem_test_pack)
