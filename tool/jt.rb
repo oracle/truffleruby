@@ -1388,7 +1388,8 @@ EOS
 
     current = `git -C #{gem_test_pack} rev-parse HEAD`.chomp
     unless current == TRUFFLERUBY_GEM_TEST_PACK_VERSION
-      Remotes.try_fetch(gem_test_pack)
+      has_commit = raw_sh "git", "-C", gem_test_pack, "cat-file", "-e", TRUFFLERUBY_GEM_TEST_PACK_VERSION, continue_on_failure: true
+      Remotes.try_fetch(gem_test_pack) unless has_commit
       raw_sh "git", "-C", gem_test_pack, "checkout", "-q", TRUFFLERUBY_GEM_TEST_PACK_VERSION
     end
 
