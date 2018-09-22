@@ -437,6 +437,41 @@ class Thread::Backtrace::Location
   end
 end
 
+class ConditionVariable
+
+  def wait(mutex, timeout=nil)
+    if timeout
+      raise ArgumentError 'Timeout must be positive' if timeout < 0
+      timeout = timeout * 1_000_000_000
+      timeout = Truffle::Type.rb_num2long(timeout)
+    end
+
+    if defined?(::Mutex_m) && mutex.kind_of?(Mutex_m)
+      raw_mutex = mutex.instance_variable_get(:@_mutex)
+    else
+      raw_mutex = mutex
+    end
+
+    raise ArgumentError, "#{mutex} must be a Mutex or Mutex_m" unless raw_mutex.kind_of? Mutex
+
+    Truffle.invoke_primitive(:condition_variable_wait, self, raw_mutex, timeout)
+  end
+
+  def signal
+    Truffle.primitive :condition_variable_signal
+    raise PrimitiveFailure
+  end
+
+  def broadcast
+    Truffle.primitive :condition_variable_broadcast
+    raise PrimitiveFailure
+  end
+
+  def marshal_dump
+    raise TypeError, "can't dump #{self.class}"
+  end
+end
+
 Truffle::KernelOperations.define_hooked_variable(
   :$SAFE,
   -> { Thread.current.safe_level },

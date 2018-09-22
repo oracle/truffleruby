@@ -70,6 +70,8 @@ import org.truffleruby.core.method.UnboundMethodNodesBuiltins;
 import org.truffleruby.core.method.UnboundMethodNodesFactory;
 import org.truffleruby.core.module.ModuleNodesBuiltins;
 import org.truffleruby.core.module.ModuleNodesFactory;
+import org.truffleruby.core.mutex.ConditionVariableNodesBuiltins;
+import org.truffleruby.core.mutex.ConditionVariableNodesFactory;
 import org.truffleruby.core.mutex.MutexNodesBuiltins;
 import org.truffleruby.core.mutex.MutexNodesFactory;
 import org.truffleruby.core.numeric.FloatNodesBuiltins;
@@ -173,6 +175,7 @@ public abstract class BuiltinsClasses {
         ByteArrayNodesBuiltins.setup(coreManager, primitiveManager);
         CExtNodesBuiltins.setup(coreManager, primitiveManager);
         ClassNodesBuiltins.setup(coreManager, primitiveManager);
+        ConditionVariableNodesBuiltins.setup(coreManager, primitiveManager);
         CoverageNodesBuiltins.setup(coreManager, primitiveManager);
         DigestNodesBuiltins.setup(coreManager, primitiveManager);
         EncodingConverterNodesBuiltins.setup(coreManager, primitiveManager);
@@ -249,6 +252,7 @@ public abstract class BuiltinsClasses {
             ByteArrayNodesFactory.getFactories(),
             CExtNodesFactory.getFactories(),
             ClassNodesFactory.getFactories(),
+                ConditionVariableNodesFactory.getFactories(),
             CoverageNodesFactory.getFactories(),
             DigestNodesFactory.getFactories(),
             EncodingConverterNodesFactory.getFactories(),

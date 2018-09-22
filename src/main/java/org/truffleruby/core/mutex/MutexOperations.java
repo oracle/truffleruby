@@ -47,13 +47,20 @@ public abstract class MutexOperations {
 
         // We need to re-lock this lock after a Mutex#sleep, no matter what, even if another thread throw us an exception.
         // Yet, we also need to allow safepoints to happen otherwise the thread that could unlock could be blocked.
+        try {
+            internalLockEvenWithException(lock, currentNode, context);
+        } finally {
+            Layouts.THREAD.getOwnedLocks(thread).add(lock);
+        }
+    }
+
+    protected static void internalLockEvenWithException(ReentrantLock lock, RubyNode currentNode, RubyContext context) {
         Throwable throwable = null;
         try {
             while (true) {
                 try {
                     context.getThreadManager().runUntilResult(currentNode, () -> {
                         lock.lockInterruptibly();
-                        Layouts.THREAD.getOwnedLocks(thread).add(lock);
                         return ThreadManager.BlockingAction.SUCCESS;
                     });
                     break;
@@ -82,6 +89,12 @@ public abstract class MutexOperations {
     protected static void unlock(ReentrantLock lock, DynamicObject thread, RubyNode currentNode) {
         final RubyContext context = currentNode.getContext();
 
+        checkOwnedMutex(context, lock, currentNode);
+        lock.unlock();
+        Layouts.THREAD.getOwnedLocks(thread).remove(lock);
+    }
+
+    public static void checkOwnedMutex(RubyContext context, ReentrantLock lock, RubyNode currentNode) {
         if (!lock.isHeldByCurrentThread()) {
             if (!lock.isLocked()) {
                 throw new RaiseException(context, context.getCoreExceptions().threadErrorUnlockNotLocked(currentNode));
@@ -89,9 +102,6 @@ public abstract class MutexOperations {
                 throw new RaiseException(context, context.getCoreExceptions().threadErrorAlreadyLocked(currentNode));
             }
         }
-
-        lock.unlock();
-        Layouts.THREAD.getOwnedLocks(thread).remove(lock);
     }
 
 }
