@@ -872,6 +872,10 @@ module Commands
       end
     end
 
+    def url(remote_name, dir = TRUFFLERUBY_DIR)
+      remote_urls(dir).find { |r, u| r == remote_name }.last
+    end
+
     def try_fetch(repo)
       remote = github(repo) || bitbucket(repo) || 'origin'
       raw_sh "git", "-C", repo, "fetch", remote, continue_on_failure: true
@@ -1369,9 +1373,13 @@ EOS
   def gem_test_pack
     name = "truffleruby-gem-test-pack"
     gem_test_pack = File.expand_path(name, TRUFFLERUBY_DIR)
+
     unless Dir.exist?(gem_test_pack)
       $stderr.puts "Cloning the truffleruby-gem-test-pack repository"
-      url = mx('urlrewrite', "https://github.com/graalvm/#{name}.git", capture: true).first.rstrip
+      unless Remotes.bitbucket
+        abort "Need a git remote in truffleruby with the internal repository URL"
+      end
+      url = Remotes.url(Remotes.bitbucket).sub("truffleruby", name)
       sh "git", "clone", url
     end
 
