@@ -9,75 +9,60 @@
  */
 package org.truffleruby.language.exceptions;
 
+import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
+import org.truffleruby.core.thread.GetCurrentRubyThreadNodeGen;
+import org.truffleruby.core.thread.ThreadNodes.GetThreadLocalExceptionNode;
+import org.truffleruby.core.thread.ThreadNodes.SetThreadLocalExceptionNode;
+import org.truffleruby.core.thread.ThreadNodesFactory.GetThreadLocalExceptionNodeFactory;
+import org.truffleruby.core.thread.ThreadNodesFactory.SetThreadLocalExceptionNodeFactory;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.RubyContext;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
-import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
-import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNode;
-import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNodeGen;
 
 public class SetExceptionVariableNode extends Node {
 
-    private final RubyContext context;
-
-    @Child private GetThreadLocalsObjectNode getThreadLocalsObjectNode;
-    @Child private ReadObjectFieldNode readDollarBang;
-    @Child private WriteObjectFieldNode writeDollarBang;
-
-    public SetExceptionVariableNode(RubyContext context) {
-        this.context = context;
-    }
+    @Child private GetCurrentRubyThreadNode getCurrentThreadNode;
+    @Child private SetThreadLocalExceptionNode setThreadLocalExceptionNode;
+    @Child private GetThreadLocalExceptionNode getThreadLocalExceptionNode;
 
     public Object setLastExceptionAndRun(VirtualFrame frame, RaiseException exception, RubyNode node) {
-        final DynamicObject threadLocals = getThreadLocalsObject(frame);
-
-        final Object lastException = readDollarBang(threadLocals);
-        writeDollarBang(threadLocals, exception.getException());
+        final DynamicObject lastException = getLastException(frame);
+        setLastException(frame, exception.getException());
 
         try {
             return node.execute(frame);
         } finally {
-            writeDollarBang(threadLocals, lastException);
+            setLastException(frame, lastException);
         }
     }
 
     public void setLastException(VirtualFrame frame, DynamicObject exception) {
-        final DynamicObject threadLocals = getThreadLocalsObject(frame);
-        writeDollarBang(threadLocals, exception);
-    }
-
-    private DynamicObject getThreadLocalsObject(VirtualFrame frame) {
-        if (getThreadLocalsObjectNode == null) {
+        if (setThreadLocalExceptionNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            getThreadLocalsObjectNode = insert(GetThreadLocalsObjectNodeGen.create());
+            setThreadLocalExceptionNode = insert(SetThreadLocalExceptionNodeFactory.create(new RubyNode[0]));
         }
 
-        return getThreadLocalsObjectNode.executeGetThreadLocalsObject(frame);
+        setThreadLocalExceptionNode.setException(frame, exception, getCurrentThreadNode());
     }
 
-    private void writeDollarBang(DynamicObject threadLocals, Object value) {
-        if (writeDollarBang == null) {
+    public DynamicObject getLastException(VirtualFrame frame) {
+        if (getThreadLocalExceptionNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            writeDollarBang = insert(WriteObjectFieldNodeGen.create("$!"));
+            getThreadLocalExceptionNode = insert(GetThreadLocalExceptionNodeFactory.create(new RubyNode[0]));
         }
 
-        writeDollarBang.write(threadLocals, value);
+        return getThreadLocalExceptionNode.getException(frame, getCurrentThreadNode());
     }
 
-    private Object readDollarBang(DynamicObject threadLocals) {
-        if (readDollarBang == null) {
+    private GetCurrentRubyThreadNode getCurrentThreadNode() {
+        if (getCurrentThreadNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            readDollarBang = insert(ReadObjectFieldNodeGen.create("$!", context.getCoreLibrary().getNil()));
+            getCurrentThreadNode = GetCurrentRubyThreadNodeGen.create();
         }
-
-        return readDollarBang.execute(threadLocals);
+        return getCurrentThreadNode;
     }
-
 }

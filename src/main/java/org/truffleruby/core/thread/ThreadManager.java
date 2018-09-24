@@ -32,6 +32,7 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
+import org.truffleruby.language.threadlocal.ThreadLocals;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -188,12 +189,8 @@ public class ThreadManager {
         return (boolean) ReadObjectFieldNode.read(threadClass, "@abort_on_exception", null);
     }
 
-    private DynamicObject createThreadLocals() {
-        final DynamicObject threadLocals = Layouts.BASIC_OBJECT.createBasicObject(context.getCoreLibrary().getObjectFactory());
-        threadLocals.define("$!", nil());
-        threadLocals.define("$?", nil());
-        threadLocals.define("$SAFE", 0);
-        return threadLocals;
+    private ThreadLocals createThreadLocals() {
+        return new ThreadLocals(nil(), nil());
     }
 
     private void setupSignalHandler(TruffleNFIPlatform nfi, NativeConfiguration config) {

@@ -551,8 +551,7 @@ module Process
         exitcode, termsig, stopsig = ptr.read_array_of_int(3).map { |e| e == -1000 ? nil : e }
 
         status = Process::Status.new(pid, exitcode, termsig, stopsig)
-        locals = Truffle.invoke_primitive :thread_get_locals, Thread.current
-        Truffle.invoke_primitive :object_ivar_set, locals, :$?, status
+        Truffle.invoke_primitive :thread_set_return_code, status
 
         [pid, status]
       end
