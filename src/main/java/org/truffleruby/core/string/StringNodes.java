@@ -2919,21 +2919,74 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_awk_split", lowerFixnum = 1)
+    @ImportStatic(StringGuards.class)
     public static abstract class StringAwkSplitPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
         @Child private RopeNodes.GetCodePointNode getCodePointNode = RopeNodes.GetCodePointNode.create();
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
 
+        private static final int SUBSTRING_CREATED = -1;
+
+        @Specialization(guards = "is7Bit(string)")
+        public DynamicObject stringAwkSplitSingleByte(DynamicObject string, int limit,
+                @Cached("createBinaryProfile()") ConditionProfile growArrayProfile,
+                @Cached("createBinaryProfile()") ConditionProfile trailingSubstringProfile,
+                @Cached("createBinaryProfile()") ConditionProfile trailingEmptyStringProfile) {
+            Object[] ret = new Object[10];
+            int storeIndex = 0;
+
+            final Rope rope = rope(string);
+            final byte[] bytes = bytesNode.execute(rope);
+
+            int substringStart = 0;
+            boolean findingSubstringEnd = false;
+            for (int i = 0; i < bytes.length; i++) {
+                if (StringSupport.isAsciiSpace(bytes[i])) {
+                    if (findingSubstringEnd) {
+                        findingSubstringEnd = false;
+
+                        ret = addSubstring(ret, storeIndex++, substring(string, rope, substringStart, i - substringStart), growArrayProfile);
+                        substringStart = SUBSTRING_CREATED;
+                    }
+                } else {
+                    if (!findingSubstringEnd) {
+                        substringStart = i;
+                        findingSubstringEnd = true;
+
+                        if (storeIndex == limit - 1) {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (trailingSubstringProfile.profile(substringStart != SUBSTRING_CREATED)) {
+                ret = addSubstring(ret, storeIndex++, substring(string, rope, substringStart, bytes.length - substringStart), growArrayProfile);
+            }
+
+            if (trailingEmptyStringProfile.profile(limit < 0 && StringSupport.isAsciiSpace(bytes[bytes.length - 1]))) {
+                ret = addSubstring(ret, storeIndex++, substring(string, rope, bytes.length - 1, 0), growArrayProfile);
+            }
+
+            return createArray(ret, storeIndex);
+        }
+
         @TruffleBoundary
-        @Specialization
-        public DynamicObject stringAwkSplit(DynamicObject string, int lim) {
-            final List<DynamicObject> ret = new ArrayList<>();
+        @Specialization(guards = "!is7Bit(string)")
+        public DynamicObject stringAwkSplit(DynamicObject string, int lim,
+                @Cached("createBinaryProfile()") ConditionProfile growArrayProfile,
+                @Cached("createBinaryProfile()") ConditionProfile trailingSubstringProfile) {
+            Object[] ret = new Object[10];
+            int storeIndex = 0;
+
             final Rope rope = rope(string);
             final boolean limit = lim > 0;
             int i = lim > 0 ? 1 : 0;
 
-            final byte[] bytes = rope.getBytes();
+            final byte[] bytes = bytesNode.execute(rope);
             int p = 0;
             int ptr = p;
             int len = rope.byteLength();
@@ -2943,18 +2996,12 @@ public abstract class StringNodes {
             boolean skip = true;
 
             int e = 0, b = 0;
-            final boolean singlebyte = rope.isSingleByteOptimizable();
             while (p < end) {
-                final int c;
-                if (singlebyte) {
-                    c = bytes[p++] & 0xff;
-                } else {
-                    c = getCodePointNode.executeGetCodePoint(rope, p);
-                    p += StringSupport.characterLength(enc, cr, bytes, p, end, true);
-                }
+                final int c = getCodePointNode.executeGetCodePoint(rope, p);
+                p += StringSupport.characterLength(enc, cr, bytes, p, end, true);
 
                 if (skip) {
-                    if (enc.isSpace(c)) {
+                    if (StringSupport.isSpace(enc, c)) {
                         b = p - ptr;
                     } else {
                         e = p - ptr;
@@ -2964,8 +3011,8 @@ public abstract class StringNodes {
                         }
                     }
                 } else {
-                    if (enc.isSpace(c)) {
-                        ret.add(makeString(string, b, e - b));
+                    if (StringSupport.isSpace(enc, c)) {
+                        ret = addSubstring(ret, storeIndex++, substring(string, rope, b, e - b), growArrayProfile);
                         skip = true;
                         b = p - ptr;
                         if (limit) {
@@ -2977,20 +3024,30 @@ public abstract class StringNodes {
                 }
             }
 
-            if (len > 0 && (limit || len > b || lim < 0)) {
-                ret.add(makeString(string, b, len - b));
+            if (trailingSubstringProfile.profile(len > 0 && (limit || len > b || lim < 0))) {
+                ret = addSubstring(ret, storeIndex++, substring(string, rope, b, len - b), growArrayProfile);
             }
 
-            Object[] objects = ret.toArray();
-            return createArray(objects, objects.length);
+            return createArray(ret, storeIndex);
         }
 
-        // because the factory is not constant
-        @TruffleBoundary
-        private DynamicObject makeString(DynamicObject source, int index, int length) {
-            final Rope rope = substringNode.executeSubstring(rope(source), index, length);
+        private Object[] addSubstring(Object[] store, int index, DynamicObject substring, ConditionProfile growArrayProfile) {
+            if (growArrayProfile.profile(index < store.length)) {
+                store[index] = substring;
+            } else {
+                store = ArrayUtils.grow(store, store.length * 2);
+                store[index] = substring;
+            }
 
-            final DynamicObject ret = Layouts.CLASS.getInstanceFactory(Layouts.BASIC_OBJECT.getLogicalClass(source)).newInstance(Layouts.STRING.build(false, false, rope));
+            return store;
+        }
+
+        private DynamicObject substring(DynamicObject source, Rope rope, int start, int byteLength) {
+            final DynamicObject ret = allocateObjectNode.allocate(
+                    Layouts.BASIC_OBJECT.getLogicalClass(source),
+                    Layouts.STRING.build(false, false, substringNode.executeSubstring(rope, start, byteLength)));
+
+
             taintResultNode.maybeTaint(source, ret);
 
             return ret;

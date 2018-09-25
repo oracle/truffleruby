@@ -1564,4 +1564,9 @@ public final class StringSupport {
         return isAsciiUppercase(c) || isAsciiLowercase(c);
     }
 
+    @TruffleBoundary
+    public static boolean isSpace(Encoding encoding, int c) {
+        return encoding.isSpace(c);
+    }
+
 }
