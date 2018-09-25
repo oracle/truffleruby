@@ -75,8 +75,6 @@ import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.jcodings.Config;
 import org.jcodings.Encoding;
@@ -261,6 +259,33 @@ public abstract class StringNodes {
 
         protected static boolean is7Bit(CodeRange codeRange) {
             return codeRange == CR_7BIT;
+        }
+
+    }
+
+    public static abstract class SubstringNode extends RubyBaseNode {
+
+        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
+        @Child private TaintResultNode taintResultNode = new TaintResultNode();
+
+        public static SubstringNode create() {
+            return StringNodesFactory.SubstringNodeGen.create();
+        }
+
+        public abstract DynamicObject executeSubstring(DynamicObject string, int offset, int byteLength);
+
+        @Specialization
+        protected DynamicObject substring(DynamicObject source, int offset, int byteLength) {
+            final Rope rope = rope(source);
+
+            final DynamicObject ret = allocateObjectNode.allocate(
+                    Layouts.BASIC_OBJECT.getLogicalClass(source),
+                    Layouts.STRING.build(false, false, substringNode.executeSubstring(rope, offset, byteLength)));
+
+            taintResultNode.maybeTaint(source, ret);
+
+            return ret;
         }
 
     }
@@ -2922,11 +2947,9 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public static abstract class StringAwkSplitPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
         @Child private RopeNodes.GetCodePointNode getCodePointNode = RopeNodes.GetCodePointNode.create();
-        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
-        @Child private TaintResultNode taintResultNode = new TaintResultNode();
+        @Child private SubstringNode substringNode = SubstringNode.create();
 
         private static final int SUBSTRING_CREATED = -1;
 
@@ -2948,7 +2971,8 @@ public abstract class StringNodes {
                     if (findingSubstringEnd) {
                         findingSubstringEnd = false;
 
-                        ret = addSubstring(ret, storeIndex++, substring(string, rope, substringStart, i - substringStart), growArrayProfile);
+                        final DynamicObject substring = substringNode.executeSubstring(string, substringStart, i - substringStart);
+                        ret = addSubstring(ret, storeIndex++, substring, growArrayProfile);
                         substringStart = SUBSTRING_CREATED;
                     }
                 } else {
@@ -2964,11 +2988,13 @@ public abstract class StringNodes {
             }
 
             if (trailingSubstringProfile.profile(substringStart != SUBSTRING_CREATED)) {
-                ret = addSubstring(ret, storeIndex++, substring(string, rope, substringStart, bytes.length - substringStart), growArrayProfile);
+                final DynamicObject substring = substringNode.executeSubstring(string, substringStart, bytes.length - substringStart);
+                ret = addSubstring(ret, storeIndex++, substring, growArrayProfile);
             }
 
             if (trailingEmptyStringProfile.profile(limit < 0 && StringSupport.isAsciiSpace(bytes[bytes.length - 1]))) {
-                ret = addSubstring(ret, storeIndex++, substring(string, rope, bytes.length - 1, 0), growArrayProfile);
+                final DynamicObject substring = substringNode.executeSubstring(string, bytes.length - 1, 0);
+                ret = addSubstring(ret, storeIndex++, substring, growArrayProfile);
             }
 
             return createArray(ret, storeIndex);
@@ -3012,7 +3038,8 @@ public abstract class StringNodes {
                     }
                 } else {
                     if (StringSupport.isSpace(enc, c)) {
-                        ret = addSubstring(ret, storeIndex++, substring(string, rope, b, e - b), growArrayProfile);
+                        final DynamicObject substring = substringNode.executeSubstring(string, b, e - b);
+                        ret = addSubstring(ret, storeIndex++, substring, growArrayProfile);
                         skip = true;
                         b = p - ptr;
                         if (limit) {
@@ -3025,7 +3052,8 @@ public abstract class StringNodes {
             }
 
             if (trailingSubstringProfile.profile(len > 0 && (limit || len > b || lim < 0))) {
-                ret = addSubstring(ret, storeIndex++, substring(string, rope, b, len - b), growArrayProfile);
+                final DynamicObject substring = substringNode.executeSubstring(string, b, len - b);
+                ret = addSubstring(ret, storeIndex++, substring, growArrayProfile);
             }
 
             return createArray(ret, storeIndex);
@@ -3042,16 +3070,6 @@ public abstract class StringNodes {
             return store;
         }
 
-        private DynamicObject substring(DynamicObject source, Rope rope, int start, int byteLength) {
-            final DynamicObject ret = allocateObjectNode.allocate(
-                    Layouts.BASIC_OBJECT.getLogicalClass(source),
-                    Layouts.STRING.build(false, false, substringNode.executeSubstring(rope, start, byteLength)));
-
-
-            taintResultNode.maybeTaint(source, ret);
-
-            return ret;
-        }
     }
 
     @Primitive(name = "string_byte_substring", lowerFixnum = { 1, 2 })
@@ -3062,10 +3080,8 @@ public abstract class StringNodes {
     })
     public static abstract class StringByteSubstringPrimitiveNode extends PrimitiveNode {
 
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private NormalizeIndexNode normalizeIndexNode = NormalizeIndexNode.create();
-        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
-        @Child private TaintResultNode taintResultNode = new TaintResultNode();
+        @Child private SubstringNode substringNode = SubstringNode.create();
 
         public static StringByteSubstringPrimitiveNode create() {
             return StringByteSubstringPrimitiveNodeFactory.create(null, null, null);
@@ -3116,10 +3132,7 @@ public abstract class StringNodes {
                 length = rope.byteLength() - normalizedIndex;
             }
 
-            final Rope substringRope = substringNode.executeSubstring(rope, normalizedIndex, length);
-            final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, substringRope));
-
-            return taintResultNode.maybeTaint(string, result);
+            return substringNode.executeSubstring(string, normalizedIndex, length);
         }
 
         @Fallback
@@ -3387,9 +3400,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public static abstract class StringFindCharacterNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-        @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
-        @Child private TaintResultNode taintResultNode;
+        @Child private SubstringNode substringNode = SubstringNode.create();
 
         @Specialization(guards = "offset < 0")
         public Object stringFindCharacterNegativeOffset(DynamicObject string, int offset) {
@@ -3405,11 +3416,7 @@ public abstract class StringNodes {
         public Object stringFindCharacterSingleByte(DynamicObject string, int offset) {
             // Taken from Rubinius's String::find_character.
 
-            final Rope rope = rope(string);
-
-            final DynamicObject ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, substringNode.executeSubstring(rope, offset, 1)));
-
-            return propagate(string, ret);
+            return substringNode.executeSubstring(string, offset, 1);
         }
 
         @Specialization(guards = { "offset >= 0", "!offsetTooLarge(string, offset)", "!isSingleByteOptimizable(string)" })
@@ -3423,23 +3430,7 @@ public abstract class StringNodes {
 
             final int clen = characterLengthNode.characterLength(enc, cr, rope.getBytes(), offset, offset + enc.maxLength());
 
-            final DynamicObject ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string),
-                    Layouts.STRING.build(false, false, substringNode.executeSubstring(rope, offset, clen)));
-
-            return propagate(string, ret);
-        }
-
-        private Object propagate(DynamicObject string, DynamicObject ret) {
-            return maybeTaint(string, ret);
-        }
-
-        private Object maybeTaint(DynamicObject source, DynamicObject value) {
-            if (taintResultNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                taintResultNode = insert(new TaintResultNode());
-            }
-
-            return taintResultNode.maybeTaint(source, value);
+            return substringNode.executeSubstring(string, offset, clen);
         }
 
         protected static boolean offsetTooLarge(DynamicObject string, int offset) {
