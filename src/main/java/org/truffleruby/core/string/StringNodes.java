@@ -155,7 +155,6 @@ import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.TaintNode;
@@ -267,7 +266,6 @@ public abstract class StringNodes {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
-        @Child private TaintResultNode taintResultNode = new TaintResultNode();
 
         public static SubstringNode create() {
             return StringNodesFactory.SubstringNodeGen.create();
@@ -281,9 +279,9 @@ public abstract class StringNodes {
 
             final DynamicObject ret = allocateObjectNode.allocate(
                     Layouts.BASIC_OBJECT.getLogicalClass(source),
-                    Layouts.STRING.build(false, false, substringNode.executeSubstring(rope, offset, byteLength)));
-
-            taintResultNode.maybeTaint(source, ret);
+                    Layouts.STRING.build(false,
+                            Layouts.STRING.getTainted(source),
+                            substringNode.executeSubstring(rope, offset, byteLength)));
 
             return ret;
         }
@@ -311,7 +309,6 @@ public abstract class StringNodes {
     public abstract static class AddNode extends CoreMethodNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-        @Child private TaintResultNode taintResultNode = new TaintResultNode();
 
         @CreateCast("other") public RubyNode coerceOtherToString(RubyNode other) {
             return ToStrNodeGen.create(other);
@@ -321,11 +318,10 @@ public abstract class StringNodes {
         public DynamicObject add(DynamicObject string, DynamicObject other,
                                  @Cached("create()") StringAppendNode stringAppendNode) {
             final Rope concatRope = stringAppendNode.executeStringAppend(string, other);
+            final boolean eitherPartTainted = Layouts.STRING.getTainted(string) || Layouts.STRING.getTainted(other);
 
-            final DynamicObject ret = allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, concatRope));
-
-            taintResultNode.maybeTaint(string, ret);
-            taintResultNode.maybeTaint(other, ret);
+            final DynamicObject ret = allocateObjectNode.allocate(coreLibrary().getStringClass(),
+                    Layouts.STRING.build(false, eitherPartTainted, concatRope));
 
             return ret;
         }
@@ -1142,7 +1138,6 @@ public abstract class StringNodes {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
-        @Child private TaintResultNode taintResultNode;
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization
@@ -1186,14 +1181,10 @@ public abstract class StringNodes {
 
             final Rope substringRope = substringNode.executeSubstring(rope, beg, end - beg);
 
-            if (taintResultNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                taintResultNode = insert(new TaintResultNode());
-            }
+            final DynamicObject ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string),
+                    Layouts.STRING.build(false, Layouts.STRING.getTainted(string), substringRope));
 
-            final DynamicObject ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, substringRope));
-
-            return taintResultNode.maybeTaint(string, ret);
+            return ret;
         }
     }
 
@@ -2258,10 +2249,9 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isStringSubclass(string)")
-        public Object toSOnSubclass(DynamicObject string,
-                @Cached("create()") IsTaintedNode isTaintedNode) {
+        public Object toSOnSubclass(DynamicObject string) {
             return coreLibrary().getStringFactory().newInstance(Layouts.STRING.build(
-                    false, isTaintedNode.executeIsTainted(string), rope(string)));
+                    false, Layouts.STRING.getTainted(string), rope(string)));
         }
 
         public boolean isStringSubclass(DynamicObject string) {
@@ -2477,7 +2467,6 @@ public abstract class StringNodes {
                 @Cached("create(compileFormat(format))") DirectCallNode callUnpackNode,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
                 @Cached("create()") RopeNodes.EqualNode equalNode,
-                @Cached("create()") IsTaintedNode isTaintedNode,
                 @Cached("createReadAssociatedNode()") ReadObjectFieldNode readAssociatedNode) {
             final Rope rope = rope(string);
 
@@ -2485,7 +2474,7 @@ public abstract class StringNodes {
 
             try {
                 result = (ArrayResult) callUnpackNode.call(
-                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), isTaintedNode.executeIsTainted(string), readAssociatedNode.execute(string) });
+                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), Layouts.STRING.getTainted(string), readAssociatedNode.execute(string) });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
@@ -2500,7 +2489,6 @@ public abstract class StringNodes {
                 DynamicObject format,
                 @Cached("create()") IndirectCallNode callUnpackNode,
                 @Cached("create()") RopeNodes.BytesNode bytesNode,
-                @Cached("create()") IsTaintedNode isTaintedNode,
                 @Cached("createReadAssociatedNode()") ReadObjectFieldNode readAssociatedNode) {
             final Rope rope = rope(string);
 
@@ -2508,7 +2496,7 @@ public abstract class StringNodes {
 
             try {
                 result = (ArrayResult) callUnpackNode.call(compileFormat(format),
-                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), isTaintedNode.executeIsTainted(string), readAssociatedNode.execute(string) });
+                        new Object[]{ bytesNode.execute(rope), rope.byteLength(), Layouts.STRING.getTainted(string), readAssociatedNode.execute(string) });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
@@ -3271,18 +3259,12 @@ public abstract class StringNodes {
     @Primitive(name = "string_escape", needsSelf = false)
     public abstract static class StringEscapePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private IsTaintedNode isTaintedNode = IsTaintedNode.create();
-        @Child private TaintNode taintNode = TaintNode.create();
-        private final ConditionProfile taintedProfile = ConditionProfile.createBinaryProfile();
-
         @Specialization
         public DynamicObject string_escape(DynamicObject string,
                                            @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final DynamicObject result = makeStringNode.fromRope(rbStrEscape(rope(string)));
 
-            if (taintedProfile.profile(isTaintedNode.isTainted(string))) {
-                taintNode.executeTaint(result);
-            }
+            Layouts.STRING.setTainted(result, Layouts.STRING.getTainted(string));
 
             return result;
         }
@@ -4378,7 +4360,6 @@ public abstract class StringNodes {
         @Child private AllocateObjectNode allocateNode;
         @Child private NormalizeIndexNode normalizeIndexNode = NormalizeIndexNode.create();
         @Child private RopeNodes.SubstringNode substringNode;
-        @Child private TaintResultNode taintResultNode;
 
         public abstract Object execute(VirtualFrame frame, DynamicObject string, int index, int characterLength);
 
@@ -4537,16 +4518,11 @@ public abstract class StringNodes {
                 substringNode = insert(RopeNodes.SubstringNode.create());
             }
 
-            if (taintResultNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                taintResultNode = insert(new TaintResultNode());
-            }
-
             final DynamicObject ret = allocateNode.allocate(
                     Layouts.BASIC_OBJECT.getLogicalClass(string),
-                    Layouts.STRING.build(false, false, substringNode.executeSubstring(rope, beg, byteLength)));
-
-            taintResultNode.maybeTaint(string, ret);
+                    Layouts.STRING.build(false,
+                            Layouts.STRING.getTainted(string),
+                            substringNode.executeSubstring(rope, beg, byteLength)));
 
             return ret;
         }
