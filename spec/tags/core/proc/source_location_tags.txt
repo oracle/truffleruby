@@ -1,0 +1,1 @@
+fails:Proc#source_location returns nil for a core method that has been proc-ified
