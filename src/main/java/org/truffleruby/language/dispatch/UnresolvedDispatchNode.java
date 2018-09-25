@@ -179,7 +179,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
         } else if (RubyGuards.isRubySymbol(methodName)) {
             return Layouts.SYMBOL.getString((DynamicObject) methodName);
         } else {
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException("Unexpected method name: " + methodName);
         }
     }
 
