@@ -474,8 +474,8 @@ end
 Truffle::KernelOperations.define_hooked_variable(
   :$SAFE,
   -> { Thread.current.safe_level },
-  -> _ {
-    raise ArgumentError, 'Setting $SAFE is no longer supported.'
+  -> level {
+    raise SecurityError, 'Setting $SAFE is no longer supported.' unless level == 0
   }
 )
 

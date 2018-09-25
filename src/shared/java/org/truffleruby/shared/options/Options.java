@@ -39,7 +39,6 @@ public class Options {
     public final String[] ARGV_GLOBAL_FLAGS;
     public final boolean DEFAULT_LAZY;
     public final boolean HASHING_DETERMINISTIC;
-    public final boolean SAFE;
     public final boolean FROZEN_STRING_LITERALS;
     public final boolean RUBYGEMS;
     public final boolean LAZY_RUBYGEMS;
@@ -168,7 +167,6 @@ public class Options {
         ARGV_GLOBAL_FLAGS = builder.getOrDefault(OptionsCatalog.ARGV_GLOBAL_FLAGS);
         DEFAULT_LAZY = builder.getOrDefault(OptionsCatalog.DEFAULT_LAZY);
         HASHING_DETERMINISTIC = builder.getOrDefault(OptionsCatalog.HASHING_DETERMINISTIC);
-        SAFE = builder.getOrDefault(OptionsCatalog.SAFE);
         FROZEN_STRING_LITERALS = builder.getOrDefault(OptionsCatalog.FROZEN_STRING_LITERALS);
         RUBYGEMS = builder.getOrDefault(OptionsCatalog.RUBYGEMS);
         LAZY_RUBYGEMS = builder.getOrDefault(OptionsCatalog.LAZY_RUBYGEMS, DEFAULT_LAZY);
@@ -322,8 +320,6 @@ public class Options {
                 return DEFAULT_LAZY;
             case "ruby.hashing.deterministic":
                 return HASHING_DETERMINISTIC;
-            case "ruby.safe":
-                return SAFE;
             case "ruby.frozen_string_literals":
                 return FROZEN_STRING_LITERALS;
             case "ruby.rubygems":
