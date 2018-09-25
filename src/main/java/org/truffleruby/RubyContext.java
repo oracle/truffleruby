@@ -77,12 +77,12 @@ import org.truffleruby.stdlib.CoverageManager;
 import org.truffleruby.stdlib.readline.ConsoleHolder;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
@@ -120,7 +120,7 @@ public class RubyContext {
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
 
-    @CompilationFinal private FileInputStream randomFile;
+    @CompilationFinal private SecureRandom random;
     private final Hashing hashing;
     @CompilationFinal BacktraceFormatter defaultBacktraceFormatter;
     private final BacktraceFormatter userBacktraceFormatter;
@@ -169,7 +169,7 @@ public class RubyContext {
         options = createOptions(env);
 
         // We need to construct this at runtime
-        randomFile = openRandomFile();
+        random = createRandomInstance();
 
         hashing = new Hashing(generateHashingSeed());
 
@@ -263,8 +263,8 @@ public class RubyContext {
         }
 
         if (isPreInitializing()) {
-            // Cannot save the file descriptor in the image
-            randomFile = null;
+            // Cannot save the file descriptor in this SecureRandom in the image
+            random = null;
             // Cannot save the root Java Thread instance in the image
             threadManager.resetMainThread();
         } else {
@@ -295,7 +295,7 @@ public class RubyContext {
         // Re-read the value of $TZ as it can be different in the new process
         GetTimeZoneNode.invalidateTZ();
 
-        randomFile = openRandomFile();
+        random = createRandomInstance();
         hashing.patchSeed(generateHashingSeed());
 
         this.defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
@@ -505,12 +505,6 @@ public class RubyContext {
 
         if (options.COVERAGE_GLOBAL) {
             coverageManager.print(System.out);
-        }
-
-        try {
-            randomFile.close();
-        } catch (IOException e) {
-            RubyLanguage.LOGGER.log(Level.WARNING, "exception while closing random file", e);
         }
     }
 
@@ -788,23 +782,14 @@ public class RubyContext {
         return nativeConfiguration;
     }
 
-    private static FileInputStream openRandomFile() {
+    private static SecureRandom createRandomInstance() {
         try {
             /*
-             * We don't want to ever use /dev/random because it could block waiting for entropy which is an observed
-             * problem in practice with Ruby in cloud environments.
-             *
-             * We could use NativePRNGNonBlocking, which always uses /dev/urandom, or we could use NativePRNG and only
-             * call #nextBytes (never #generateSeed), but the initial seed might still need a few bytes from
-             * /dev/random, and the SVM does not support either of these algorithms.
-             *
-             * Instead, we'll just use /dev/urandom directly.
-             *
-             * (See https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SUNProvider,
-             * https://docs.oracle.com/javase/10/security/oracle-providers.htm#JSSEC-GUID-C4706FFE-D08F-4E29-B0BE-CCE8C93DD940)
+             * We want to use a non-blocking source because this is what MRI does (via /dev/urandom) and it's been found
+             * in practice that blocking sources are a problem for deploying JRuby.
              */
-            return new FileInputStream("/dev/urandom");
-        } catch (FileNotFoundException e) {
+            return SecureRandom.getInstance("NativePRNGNonBlocking");
+        } catch (NoSuchAlgorithmException e) {
             throw new JavaException(e);
         }
     }
@@ -812,21 +797,7 @@ public class RubyContext {
     @TruffleBoundary
     public byte[] getRandomSeedBytes(int numBytes) {
         final byte[] bytes = new byte[numBytes];
-
-        int offset = 0;
-
-        while (offset < numBytes) {
-            final int read;
-
-            try {
-                read = randomFile.read(bytes, offset, numBytes - offset);
-            } catch (IOException e) {
-                throw new JavaException(e);
-            }
-
-            offset += read;
-        }
-
+        random.nextBytes(bytes);
         return bytes;
     }
 
