@@ -2194,7 +2194,7 @@ EOS
       lines.push "RUN cd truffleruby && mx build"
       lines.push "RUN cd graal/compiler && mx build"
       lines.push "ENV JAVACMD=$JAVA_BIN"
-      lines.push "ENV JAVA_OPTS='-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -Djvmci.class.path.append=/test/graal/compiler/mxbuild/dists/graal.jar'"
+      lines.push "ENV JAVA_OPTS='-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -Djvmci.class.path.append=/test/graal/compiler/mxbuild/dists/jdk1.8/graal.jar'"
       ruby_base = "/test/truffleruby"
       ruby_bin = "#{ruby_base}/bin"
     end
