@@ -872,6 +872,10 @@ module Commands
       end
     end
 
+    def url(remote_name, dir = TRUFFLERUBY_DIR)
+      remote_urls(dir).find { |r, u| r == remote_name }.last
+    end
+
     def try_fetch(repo)
       remote = github(repo) || bitbucket(repo) || 'origin'
       raw_sh "git", "-C", repo, "fetch", remote, continue_on_failure: true
@@ -1369,15 +1373,23 @@ EOS
   def gem_test_pack
     name = "truffleruby-gem-test-pack"
     gem_test_pack = File.expand_path(name, TRUFFLERUBY_DIR)
+
     unless Dir.exist?(gem_test_pack)
       $stderr.puts "Cloning the truffleruby-gem-test-pack repository"
-      url = mx('urlrewrite', "https://github.com/graalvm/#{name}.git", capture: true).first.rstrip
+      unless Remotes.bitbucket
+        abort "Need a git remote in truffleruby with the internal repository URL"
+      end
+      url = Remotes.url(Remotes.bitbucket).sub("truffleruby", name)
       sh "git", "clone", url
     end
 
+    # Unset variable set by the pre-commit hook which confuses git
+    ENV.delete "GIT_INDEX_FILE"
+
     current = `git -C #{gem_test_pack} rev-parse HEAD`.chomp
     unless current == TRUFFLERUBY_GEM_TEST_PACK_VERSION
-      Remotes.try_fetch(gem_test_pack)
+      has_commit = raw_sh "git", "-C", gem_test_pack, "cat-file", "-e", TRUFFLERUBY_GEM_TEST_PACK_VERSION, continue_on_failure: true
+      Remotes.try_fetch(gem_test_pack) unless has_commit
       raw_sh "git", "-C", gem_test_pack, "checkout", "-q", TRUFFLERUBY_GEM_TEST_PACK_VERSION
     end
 
