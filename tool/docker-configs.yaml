@@ -99,7 +99,7 @@ ubuntu1604:
     - RUN apt-get install -y openjdk-8-jdk openjdk-8-source make gcc g++ python ruby
   images:
     - RUN apt-get install -y gcc
-  jdk: openjdk1.8.0_171
+  jdk: openjdk1.8.0_181
   openssl:
     - RUN apt-get install -y libssl-dev
   cext:
