@@ -85,10 +85,11 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                 newDispatchNode = new UncachedDispatchNode(ignoreVisibility, onlyCallPublic, getDispatchAction(), missingBehavior);
             } else {
                 depth++;
+                final String methodNameString = methodNameToString(methodName);
                 if (RubyGuards.isForeignObject(receiverObject)) {
                     switch (getDispatchAction()) {
                         case CALL_METHOD:
-                            newDispatchNode = new CachedForeignDispatchNode(getContext(), first, methodName);
+                            newDispatchNode = new CachedForeignDispatchNode(getContext(), first, methodNameString);
                             break;
                         case RESPOND_TO_METHOD:
                             throw new UnsupportedOperationException();
@@ -96,9 +97,9 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                             throw new UnsupportedOperationException();
                     }
                 } else if (RubyGuards.isRubyBasicObject(receiverObject)) {
-                    newDispatchNode = doDynamicObject(frame, first, receiverObject, methodName, argumentsObjects);
+                    newDispatchNode = doDynamicObject(frame, first, receiverObject, methodName, methodNameString, argumentsObjects);
                 } else {
-                    newDispatchNode = doUnboxedObject(frame, first, receiverObject, methodName, argumentsObjects);
+                    newDispatchNode = doUnboxedObject(frame, first, receiverObject, methodName, methodNameString, argumentsObjects);
                 }
             }
 
@@ -121,13 +122,13 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             DispatchNode first,
             Object receiverObject,
             Object methodName,
+            String methodNameString,
             Object[] argumentsObjects) {
 
-        final String methodNameString = toString(methodName);
         final MethodLookupResult method = lookup(frame, receiverObject, methodNameString, ignoreVisibility, onlyCallPublic);
 
         if (!method.isDefined()) {
-            return createMethodMissingNode(first, methodName, receiverObject, method, argumentsObjects);
+            return createMethodMissingNode(first, methodName, methodNameString, receiverObject, method, argumentsObjects);
         }
 
         if (receiverObject instanceof Boolean) {
@@ -151,13 +152,13 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             DispatchNode first,
             Object receiverObject,
             Object methodName,
+            String methodNameString,
             Object[] argumentsObjects) {
 
-        String methodNameString = toString(methodName);
         final MethodLookupResult method = lookup(frame, receiverObject, methodNameString, ignoreVisibility, onlyCallPublic);
 
         if (!method.isDefined()) {
-            return createMethodMissingNode(first, methodName, receiverObject, method, argumentsObjects);
+            return createMethodMissingNode(first, methodName, methodNameString, receiverObject, method, argumentsObjects);
         }
 
         if (RubyGuards.isRubySymbol(receiverObject)) {
@@ -171,21 +172,10 @@ public final class UnresolvedDispatchNode extends DispatchNode {
         }
     }
 
-    private String toString(Object methodName) {
-        if (methodName instanceof String) {
-            return (String) methodName;
-        } else if (RubyGuards.isRubyString(methodName)) {
-            return methodName.toString();
-        } else if (RubyGuards.isRubySymbol(methodName)) {
-            return Layouts.SYMBOL.getString((DynamicObject) methodName);
-        } else {
-            throw new UnsupportedOperationException("Unexpected method name: " + methodName);
-        }
-    }
-
     private CachedDispatchNode createMethodMissingNode(
             DispatchNode first,
             Object methodName,
+            String methodNameString,
             Object receiverObject,
             MethodLookupResult methodLookup,
             Object[] argumentsObjects) {
@@ -199,7 +189,6 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                 final MethodLookupResult methodMissing = lookup(null, receiverObject, "method_missing", true, false);
 
                 if (!methodMissing.isDefined()) {
-                    final String methodNameString = toString(methodName);
                     final DynamicObject formatter = ExceptionOperations.getFormatter(ExceptionOperations.NO_METHOD_ERROR, getContext());
                     throw new RaiseException(getContext(), coreExceptions().noMethodErrorFromMethodMissing(
                             formatter, receiverObject, methodNameString, argumentsObjects, this));

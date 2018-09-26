@@ -18,12 +18,17 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
+/**
+ * Converts a method name to a Java String.
+ * The exception message below assumes this conversion is done for a method name.
+ */
 @ImportStatic({ StringCachingGuards.class, StringOperations.class })
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class NameToJavaStringNode extends RubyNode {
@@ -62,7 +67,7 @@ public abstract class NameToJavaStringNode extends RubyNode {
         } catch (RaiseException e) {
             errorProfile.enter();
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {
-                throw new RaiseException(getContext(), coreExceptions().typeErrorNoImplicitConversion(object, "String", this));
+                throw new RaiseException(getContext(), coreExceptions().typeError(StringUtils.toString(object) + " is not a symbol nor a string", this));
             } else {
                 throw e;
             }
