@@ -2185,7 +2185,7 @@ EOS
       lines.push "RUN git clone --depth 1 https://github.com/graalvm/mx.git"
       lines.push "ENV PATH=$PATH:/test/mx"
       lines.push "RUN git clone --depth 1 https://github.com/graalvm/graal-jvmci-8.git"
-      lines.push "RUN cd graal-jvmci-8 && mx build"
+      lines.push "RUN cd graal-jvmci-8 && JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac)))) mx build"
       lines.push "ENV JAVA_HOME=/test/graal-jvmci-8/#{distro.fetch('jdk')}/linux-amd64/product"
       lines.push "ENV JAVA_BIN=$JAVA_HOME/bin/java"
       lines.push "ENV JVMCI_VERSION_CHECK=ignore"
