@@ -1,5 +1,9 @@
 # 1.0
 
+New features:
+
+* macOS 10.14 (Mojave) is now supported.
+
 # 1.0 RC 7
 
 New features:
