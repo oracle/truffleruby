@@ -1,5 +1,9 @@
 # 1.0
 
+Changes:
+
+* Random seeds now use Java's `NativePRNGNonBlocking`.
+
 # 1.0 RC 7
 
 New features:
