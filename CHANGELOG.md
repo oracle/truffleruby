@@ -3,6 +3,7 @@
 Changes:
 
 * Random seeds now use Java's `NativePRNGNonBlocking`.
+
 New features:
 
 * macOS 10.14 (Mojave) is now supported.
