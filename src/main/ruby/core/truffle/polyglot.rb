@@ -55,6 +55,12 @@ unless TruffleRuby.native?
       type
     end
 
+    def self.synchronized(object)
+      Truffle::System.synchronized(object) do
+        yield
+      end
+    end
+
   end
   
 end

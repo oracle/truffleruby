@@ -30,10 +30,10 @@ TruffleRuby outside of GraalVM, such as a standard JVM, the version will be
 `'0.0'`. You can find the version number of GraalVM and TruffleRuby using the
 standard `RUBY_ENGINE_VERSION` constant.
 
-## TruffleRuby methods
+## TruffleRuby methods and classes
 
-TruffleRuby provides these non-standard methods that provide additional
-functionality in the `TruffleRuby` module.
+TruffleRuby provides these non-standard methods and classes that provide
+additional functionality in the `TruffleRuby` module.
 
 `TruffleRuby.graal?` reports if the Graal compiler is available and will be
 used.
@@ -49,6 +49,34 @@ TruffleRuby.
 
 `TruffleRuby.full_memory_barrier` ensures lack of reordering of loads or stores
 before the barrier with loads or stores after the barrier.
+
+`TruffleRuby.synchronized(object) { }` will run the block while holding an
+implicit block per object instance.
+
+### Atomic references
+
+`atomic_reference = TruffleRuby::AtomicReference.new(value=nil)` creates a new
+atomic reference with a reference to a given object.
+
+`atomic_reference.get` gets the value of an atomic reference, returning the
+value.
+
+`atomic_reference.set(new_value)` sets the value of an atomic reference and
+causes a memory barrier on writes involving `new_value`.
+
+`atomic_reference.get_and_set(new_value)` sets the value of an atomic reference,
+returns the previous value, and causes a memory barrier on writes involving
+`new_value`.
+
+`atomic_reference.compare_and_set(expected_value, new_value)` sets the value
+of an atomic reference, only if it currently has the expected value, returning
+a boolean to say whether or not it was set, and causes a memory barrier on
+writes involving `new_value`. For numeric objects it will get the current
+value and then check that the current value is also a numeric and that it is
+equal to the expected value by calling `==`, then perform an atomic compare
+and set.
+
+`AtomicReference` is marshalable.
 
 ## Polyglot programming
 
