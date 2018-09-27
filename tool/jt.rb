@@ -2185,6 +2185,8 @@ EOS
       lines.push "RUN git clone --depth 1 https://github.com/graalvm/mx.git"
       lines.push "ENV PATH=$PATH:/test/mx"
       lines.push "RUN git clone --depth 1 https://github.com/graalvm/graal-jvmci-8.git"
+      lines.push "RUN sed -i 's/WARNINGS_ARE_ERRORS = -Werror/WARNINGS_ARE_ERRORS = /g' graal-jvmci-8/make/linux/makefiles/gcc.make"
+      lines.push "RUN sed -i 's/char xn\\[10\\]/char xn\\[12\\]/g' graal-jvmci-8/src/share/vm/code/dependencies.cpp"
       lines.push "RUN cd graal-jvmci-8 && JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac)))) mx build"
       lines.push "ENV JAVA_HOME=/test/graal-jvmci-8/#{distro.fetch('jdk')}/linux-amd64/product"
       lines.push "ENV JAVA_BIN=$JAVA_HOME/bin/java"
