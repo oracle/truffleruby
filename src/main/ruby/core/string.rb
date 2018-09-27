@@ -578,7 +578,7 @@ class String
       char = chr_at index
 
       if char
-        index += inspect_char(ascii, unicode, index, char, array)
+        index += inspect_char(enc, result_encoding, ascii, unicode, index, char, array)
       else
         array << "\\x#{getbyte(index).to_s(16)}"
         index += 1
@@ -595,10 +595,10 @@ class String
     end
 
     Truffle::Type.infect result, self
-    result.force_encoding result_encoding
+    result.encode(result_encoding, encoding)
   end
 
-  def inspect_char(ascii, unicode, index, char, array)
+  def inspect_char(enc, result_encoding, ascii, unicode, index, char, array)
     consumed = char.bytesize
 
     if (ascii or unicode) and consumed == 1
@@ -648,7 +648,8 @@ class String
       end
     end
 
-    if Truffle.invoke_primitive(:character_printable_p, char)
+    if (enc == result_encoding && Truffle.invoke_primitive(:character_printable_p, char)) ||
+        (ascii && char.ascii_only? && Truffle.invoke_primitive(:character_printable_p, char))
       array << char
     else
       code = char.ord
