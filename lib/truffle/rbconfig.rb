@@ -172,8 +172,8 @@ module RbConfig
     mkconfig['ridir'] = '$(datarootdir)/ri'
   end
 
-  launcher = Truffle::Boot.ruby_launcher
-  unless launcher
+  launcher = Truffle::Boot.get_option 'launcher'
+  if launcher.empty?
     if ruby_home
       launcher = "#{bindir}/#{ruby_install_name}"
     else

@@ -1,0 +1,1 @@
+slow:RbConfig.ruby can be used to run a TruffleRuby subprocess
