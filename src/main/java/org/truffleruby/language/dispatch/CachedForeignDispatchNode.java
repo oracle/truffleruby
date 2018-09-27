@@ -20,14 +20,11 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public final class CachedForeignDispatchNode extends CachedDispatchNode {
 
-    private final String name;
-
     @Child private OutgoingForeignCallNode outgoingForeignCallNode;
 
-    public CachedForeignDispatchNode(RubyContext context, DispatchNode next, Object cachedName) {
-        super(context, cachedName, next, DispatchAction.CALL_METHOD);
-        name = cachedName.toString();
-        outgoingForeignCallNode = OutgoingForeignCallNodeGen.create(name);
+    public CachedForeignDispatchNode(RubyContext context, DispatchNode next, String methodName) {
+        super(context, methodName, next, DispatchAction.CALL_METHOD);
+        outgoingForeignCallNode = OutgoingForeignCallNodeGen.create(methodName);
     }
 
     @Override

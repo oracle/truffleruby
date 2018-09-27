@@ -13,8 +13,14 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
+
+import org.truffleruby.Layouts;
 import org.truffleruby.core.module.MethodLookupResult;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.LookupMethodNode;
 
 public abstract class DispatchNode extends RubyBaseNode {
@@ -86,6 +92,19 @@ public abstract class DispatchNode extends RubyBaseNode {
             return (RubyCallNode) parent;
         } else {
             return null;
+        }
+    }
+
+    protected String methodNameToString(Object methodName) {
+        // TODO (eregon, 26 Sep 2018): this should use a NameToJavaStringNode like UncachedDispatchNode
+        if (methodName instanceof String) {
+            return (String) methodName;
+        } else if (RubyGuards.isRubyString(methodName)) {
+            return StringOperations.getString((DynamicObject) methodName);
+        } else if (RubyGuards.isRubySymbol(methodName)) {
+            return Layouts.SYMBOL.getString((DynamicObject) methodName);
+        } else {
+            throw new RaiseException(getContext(), coreExceptions().typeError(StringUtils.toString(methodName) + " is not a symbol nor a string", this));
         }
     }
 

@@ -17,15 +17,22 @@ def compile_extension(name)
   run_mkmf_in_process = RUBY_ENGINE == 'truffleruby'
 
   core_ext_dir = File.expand_path("../ext", __FILE__)
-  
+
   spec_caller_location = caller_locations.find { |c| c.path.end_with?('_spec.rb') }
   spec_file_path = spec_caller_location.path
   spec_ext_dir = File.expand_path("../ext", spec_file_path)
-  
+
   ext = "#{name}_spec"
   lib = "#{object_path}/#{ext}.#{RbConfig::CONFIG['DLEXT']}"
   ruby_header = "#{RbConfig::CONFIG['rubyhdrdir']}/ruby.h"
-  libruby_so = RbConfig::CONFIG['LIBRUBY_SO'] if RbConfig::CONFIG["ENABLE_SHARED"] == "yes"
+
+  if RbConfig::CONFIG["ENABLE_SHARED"] == "yes"
+    if PlatformGuard.windows?
+      libruby_so = "#{RbConfig::CONFIG['bindir']}/#{RbConfig::CONFIG['LIBRUBY_SO']}"
+    else
+      libruby_so = "#{RbConfig::CONFIG['libdir']}/#{RbConfig::CONFIG['LIBRUBY_SO']}"
+    end
+  end
 
   begin
     mtime = File.mtime(lib)
@@ -36,7 +43,7 @@ def compile_extension(name)
     when mtime <= File.mtime("#{core_ext_dir}/rubyspec.h")
     when mtime <= File.mtime("#{spec_ext_dir}/#{ext}.c")
     when mtime <= File.mtime(ruby_header)
-    when libruby_so && mtime <= File.mtime("#{RbConfig::CONFIG['libdir']}/#{libruby_so}")
+    when libruby_so && mtime <= File.mtime(libruby_so)
     else
       return lib # up-to-date
     end
