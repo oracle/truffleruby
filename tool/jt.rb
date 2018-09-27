@@ -1836,7 +1836,7 @@ EOS
   end
 
   def checkout_or_update_graal_repo(sforceimports: true)
-    graal = Utilities.find_or_clone_repo('https://github.com/graalvm/graal.git')
+    graal = Utilities.find_or_clone_repo('https://github.com/oracle/graal.git')
 
     if sforceimports
       Remotes.try_fetch(graal)
