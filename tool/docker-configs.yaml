@@ -73,7 +73,7 @@ ol7:
     - RUN yum install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk-openjfx java-atk-wrapper gcc libstdc++-static python ruby
   images:
     - RUN yum install -y gcc
-  jdk: openjdk1.8.0_171
+  jdk: openjdk1.8.0_181
   openssl:
     - RUN yum install -y openssl-devel
   cext:
