@@ -11,13 +11,13 @@ package org.truffleruby.language.threadlocal;
 
 import com.oracle.truffle.api.object.DynamicObject;
 
-public class ThreadLocals {
+public class ThreadLocalGlobals {
 
-    public DynamicObject exception;
-    public DynamicObject returnCode;
+    public DynamicObject exception; // $!
+    public DynamicObject processStatus; // $?
 
-    public ThreadLocals(DynamicObject exception, DynamicObject returnCode) {
+    public ThreadLocalGlobals(DynamicObject exception, DynamicObject processStatus) {
         this.exception = exception;
-        this.returnCode = returnCode;
+        this.processStatus = processStatus;
     }
 }

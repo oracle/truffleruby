@@ -605,7 +605,7 @@ public abstract class ThreadNodes {
         @Specialization
         public DynamicObject getException(VirtualFrame frame,
                 @Cached("create()") GetCurrentRubyThreadNode getThreadNode) {
-            return Layouts.THREAD.getThreadLocals(getThreadNode.executeGetRubyThread(frame)).exception;
+            return Layouts.THREAD.getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).exception;
         }
     }
 
@@ -615,7 +615,7 @@ public abstract class ThreadNodes {
         @Specialization
         public DynamicObject getException(VirtualFrame frame,
                 @Cached("create()") GetCurrentRubyThreadNode getThreadNode) {
-            return Layouts.THREAD.getThreadLocals(getThreadNode.executeGetRubyThread(frame)).returnCode;
+            return Layouts.THREAD.getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).processStatus;
         }
     }
 
@@ -625,7 +625,7 @@ public abstract class ThreadNodes {
         @Specialization
         public DynamicObject setException(VirtualFrame frame, DynamicObject exception,
                 @Cached("create()") GetCurrentRubyThreadNode getThreadNode) {
-            return Layouts.THREAD.getThreadLocals(getThreadNode.executeGetRubyThread(frame)).exception = exception;
+            return Layouts.THREAD.getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).exception = exception;
         }
     }
 
@@ -635,7 +635,7 @@ public abstract class ThreadNodes {
         @Specialization
         public DynamicObject getException(VirtualFrame frame, DynamicObject returnCode,
                 @Cached("create()") GetCurrentRubyThreadNode getThreadNode) {
-            return Layouts.THREAD.getThreadLocals(getThreadNode.executeGetRubyThread(frame)).returnCode = returnCode;
+            return Layouts.THREAD.getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).processStatus = returnCode;
         }
     }
 
