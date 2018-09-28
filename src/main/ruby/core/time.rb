@@ -403,7 +403,7 @@ class Time
 
     def valid_utc_offset_string?(utc_offset)
       return false unless utc_offset.encoding.ascii_compatible?
-      utc_offset =~ /\A[+-](\d{2}):(\d{2})\z/ && $1.to_i < 24 && $2.to_i < 60
+      utc_offset =~ /\A[+-](\d{2}):(\d{2})(?::(\d{2}))?\z/ && $1.to_i < 24 && $2.to_i < 60 && ($3 || '0').to_i < 60
     end
     private :valid_utc_offset_string?
 
