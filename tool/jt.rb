@@ -1836,7 +1836,7 @@ EOS
   end
 
   def checkout_or_update_graal_repo(sforceimports: true)
-    graal = Utilities.find_or_clone_repo('https://github.com/graalvm/graal.git')
+    graal = Utilities.find_or_clone_repo('https://github.com/oracle/graal.git')
 
     if sforceimports
       Remotes.try_fetch(graal)
@@ -2022,7 +2022,7 @@ EOS
   end
 
   def docker_test(*args)
-    distros = ['--ol7', '--ubuntu1604', '--fedora25']
+    distros = ['--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora25']
     managers = ['--no-manager', '--rbenv', '--chruby', '--rvm']
 
     distros.each do |distro|
@@ -2054,9 +2054,9 @@ EOS
     config = @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
 
     truffleruby_repo = 'https://github.com/oracle/truffleruby.git'
-    distro = 'ubuntu1604'
+    distro = 'ubuntu1804'
     install_method = :public
-    public_version = '1.0.0-rc2'
+    public_version = '1.0.0-rc6'
     rebuild_images = false
     rebuild_openssl = true
     manager = :none
@@ -2068,7 +2068,7 @@ EOS
       case arg
       when '--repo'
         truffleruby_repo = args.shift
-      when '--ol7', '--ubuntu1604', '--fedora25'
+      when '--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora25'
         distro = arg[2..-1]
       when '--public'
         install_method = :public
@@ -2120,6 +2120,7 @@ EOS
     lines.push *distro.fetch('source') if install_method == :source
     lines.push *distro.fetch('images') if rebuild_images
 
+    lines.push *distro.fetch('zlib')
     lines.push *distro.fetch('openssl')
     lines.push *distro.fetch('cext')
     lines.push *distro.fetch('cppext')
@@ -2185,16 +2186,21 @@ EOS
       lines.push "RUN git clone --depth 1 https://github.com/graalvm/mx.git"
       lines.push "ENV PATH=$PATH:/test/mx"
       lines.push "RUN git clone --depth 1 https://github.com/graalvm/graal-jvmci-8.git"
-      lines.push "RUN cd graal-jvmci-8 && mx build"
+
+      # Disable compiler warnings as errors, as we may be using a more recent compiler
+      lines.push "RUN sed -i 's/WARNINGS_ARE_ERRORS = -Werror/WARNINGS_ARE_ERRORS = /g' graal-jvmci-8/make/linux/makefiles/gcc.make"
+      
+      lines.push "RUN cd graal-jvmci-8 && JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac)))) mx build"
       lines.push "ENV JAVA_HOME=/test/graal-jvmci-8/#{distro.fetch('jdk')}/linux-amd64/product"
       lines.push "ENV JAVA_BIN=$JAVA_HOME/bin/java"
       lines.push "ENV JVMCI_VERSION_CHECK=ignore"
       lines.push "RUN $JAVA_HOME/bin/java -version"
+      lines.push "RUN git clone https://github.com/oracle/graal.git"
       lines.push "RUN git clone --depth 1 --branch #{source_branch} #{truffleruby_repo}"
       lines.push "RUN cd truffleruby && mx build"
       lines.push "RUN cd graal/compiler && mx build"
       lines.push "ENV JAVACMD=$JAVA_BIN"
-      lines.push "ENV JAVA_OPTS='-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -Djvmci.class.path.append=/test/graal/compiler/mxbuild/dists/graal.jar'"
+      lines.push "ENV JAVA_OPTS='-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -Djvmci.class.path.append=/test/graal/compiler/mxbuild/dists/jdk1.8/graal.jar'"
       ruby_base = "/test/truffleruby"
       ruby_bin = "#{ruby_base}/bin"
     end
