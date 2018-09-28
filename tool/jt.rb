@@ -2022,7 +2022,7 @@ EOS
   end
 
   def docker_test(*args)
-    distros = ['--ol7', '--ubuntu1604', '--fedora25']
+    distros = ['--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora25']
     managers = ['--no-manager', '--rbenv', '--chruby', '--rvm']
 
     distros.each do |distro|
@@ -2054,9 +2054,9 @@ EOS
     config = @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
 
     truffleruby_repo = 'https://github.com/oracle/truffleruby.git'
-    distro = 'ubuntu1604'
+    distro = 'ubuntu1804'
     install_method = :public
-    public_version = '1.0.0-rc2'
+    public_version = '1.0.0-rc6'
     rebuild_images = false
     rebuild_openssl = true
     manager = :none
@@ -2068,7 +2068,7 @@ EOS
       case arg
       when '--repo'
         truffleruby_repo = args.shift
-      when '--ol7', '--ubuntu1604', '--fedora25'
+      when '--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora25'
         distro = arg[2..-1]
       when '--public'
         install_method = :public

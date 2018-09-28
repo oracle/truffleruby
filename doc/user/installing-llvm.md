@@ -6,7 +6,7 @@ have success with later versions, but we don't actively test these.
 
 ## Oracle Linux
 
-The tested version of LLVM for Oracle Linux is 3.8.
+The tested version of LLVM for Oracle Linux 7 is 3.8.
 
 Oracle Linux does not include recent-enough LLVM packages, so you will have to
 [build LLVM from scratch](https://llvm.org/docs/CMake.html). You'll need to
@@ -29,7 +29,7 @@ yum install libcxx-devel
 
 ## Ubuntu
 
-The tested version of LLVM for Ubuntu is 3.8.
+The tested version of LLVM for Ubuntu 18.04 is 6.0, and for Ubuntu 16.04 is 3.8.
 
 For building C extensions you need to install:
 
@@ -40,7 +40,8 @@ apt-get install make clang llvm
 For building and using C++ extensions you need to install:
 
 ```
-apt-get install libc++-dev
+apt-get install libc++-dev libc++abi-dev    # on 18.04
+apt-get install libc++-dev                  # on 16.04
 ```
 
 Note that we install `libc++-dev` here even for just using C++ extensions, as
@@ -48,7 +49,7 @@ installing `libc++` seems to introduce some system conflicts.
 
 ## Fedora
 
-The tested version of LLVM for Fedora is 3.8.
+The tested version of LLVM for Fedora 25 is 3.8.
 
 For building C extensions you need to install:
 
@@ -70,7 +71,7 @@ sudo dnf install libcxx-devel
 
 ## macOS
 
-The tested version of LLVM for macOS is 4.0.1.
+The tested version of LLVM for macOS 10.13 and 10.14 is 4.0.1.
 
 We need the `opt` command, so you can't just use what is installed by Xcode if
 you are on macOS. For building and using C and C++ extensions on macOS we
@@ -88,7 +89,7 @@ brew install llvm@4
 
 ### MacPorts
 
-MacPorts should also work but is not actively tested. LLVM 4.0 is required.
+MacPorts should also work but is not actively tested. Use LLVM 4.0 here as well.
 
 ```bash
 sudo port install clang-4.0 llvm-4.0

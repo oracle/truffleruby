@@ -6,6 +6,7 @@ Changes:
 
 New features:
 
+* Ubuntu 18.04 LTS is now supported.
 * macOS 10.14 (Mojave) is now supported.
 
 # 1.0 RC 7

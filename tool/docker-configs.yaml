@@ -83,6 +83,35 @@ ol7:
     - RUN yum install -y libcxx libcxx-devel
   rvm:
   post-install: false
+ubuntu1804:
+  base: ubuntu:18.04
+  setup:
+    - RUN apt-get update
+  locale:
+    - RUN apt-get install -y locales
+    - RUN locale-gen en_US.UTF-8
+    - ENV LANG=en_US.UTF-8
+  curl:
+    - RUN apt-get install -y curl
+  which:
+  find:
+  git:
+    - RUN apt-get install -y git  
+  source:
+    - RUN apt-get install -y openjdk-8-jdk openjdk-8-source make gcc g++ python ruby
+  images:
+    - RUN apt-get install -y gcc
+  jdk: openjdk1.8.0_181
+  zlib:
+    - RUN apt-get install -y libz-dev
+  openssl:
+    - RUN apt-get install -y libssl-dev
+  cext:
+    - RUN apt-get install -y make clang llvm
+  cppext:
+    - RUN apt-get install -y libc++-dev libc++abi-dev
+  rvm:
+  post-install: true
 ubuntu1604:
   base: ubuntu:16.04
   setup:
