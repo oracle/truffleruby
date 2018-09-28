@@ -56,11 +56,14 @@ void* rb_tr_new_managed_struct_internal(void *type);
 VALUE rb_data_object_alloc_managed(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree, void *interoptypeid);
 VALUE rb_data_typed_object_alloc_managed(VALUE ruby_class, size_t size, const rb_data_type_t *data_type, void *interoptypeid);
 
-#define Data_Make_Managed_Struct0(result, klass, type, size, mark, free, sval, interoptypeid) \
-    VALUE result = rb_data_object_alloc_managed((klass), (size), (RUBY_DATA_FUNC)(mark), (RUBY_DATA_FUNC)(free), polyglot_##interoptype##_typeid()); \
+#define Data_Make_Managed_Struct0(result, klass, type, size, mark, free, sval) \
+    VALUE result = rb_data_object_alloc_managed((klass), (size), \
+                     (RUBY_DATA_FUNC)(mark), \
+                     (RUBY_DATA_FUNC)(free), \
+                     polyglot_##type##_typeid()); \
     (void)((sval) = (type *)DATA_PTR(result));
 
-#define Data_Make_Managed_Struct(klass,type,mark,free,sval,interoptype) ({\
+#define Data_Make_Managed_Struct(klass,type,mark,free,sval) ({\
     Data_Make_Managed_Struct0(data_struct_obj, klass, type, sizeof(type), mark, free, sval); \
     data_struct_obj; \
 })

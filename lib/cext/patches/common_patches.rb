@@ -66,12 +66,12 @@ class CommonPatches
 
   def self.wrap_managed_struct(type, struct_name)
     expr = /\s*([-+*\/&()a-zA-Z0-9_]+)\s*/
-    type_expr = /\s*#{type}\s*/
-    struct_name_expr = /\s*#{struct_name}\s*/
+    type_expr = /\s*(#{type})\s*/
+    struct_name_expr = /\s*(#{struct_name})\s*/
     [
       {
         match: /Data_Make_Struct\s*\(#{expr},#{type_expr},#{expr},#{expr},#{struct_name_expr}\);/,
-        replacement: "Data_Wrap_Struct(\\1, \\2, \\3, #{struct_name} = rb_tr_new_managed_struct(#{type}));"
+        replacement: 'Data_Make_Managed_Struct(\1, \2, \3, \4, \5);'
       }
     ]
   end
