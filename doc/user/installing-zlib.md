@@ -3,11 +3,23 @@
 TruffleRuby provides the `zlib` module but not the native `zlib` system
 library that the module uses.
 
-## Linux
+## Oracle Linux
 
-On all Linux distributions we have tested, `zlib` is always going to be
-installed by other packages that you need to install, so we have never needed to
-install it manually.
+```
+yum install zlib-devel
+```
+
+## Ubuntu
+
+```
+apt-get install libz-dev
+```
+
+## Fedora
+
+```
+yum install zlib-devel
+```
 
 ## macOS
 

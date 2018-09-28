@@ -2120,6 +2120,7 @@ EOS
     lines.push *distro.fetch('source') if install_method == :source
     lines.push *distro.fetch('images') if rebuild_images
 
+    lines.push *distro.fetch('zlib')
     lines.push *distro.fetch('openssl')
     lines.push *distro.fetch('cext')
     lines.push *distro.fetch('cppext')

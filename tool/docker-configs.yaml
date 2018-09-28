@@ -74,6 +74,8 @@ ol7:
   images:
     - RUN yum install -y gcc
   jdk: openjdk1.8.0_181
+  zlib:
+    - RUN yum install -y zlib-devel
   openssl:
     - RUN yum install -y openssl-devel
   cext:
@@ -100,6 +102,8 @@ ubuntu1604:
   images:
     - RUN apt-get install -y gcc
   jdk: openjdk1.8.0_181
+  zlib:
+    - RUN apt-get install -y libz-dev
   openssl:
     - RUN apt-get install -y libssl-dev
   cext:
@@ -126,6 +130,8 @@ fedora25:
   images:
     - RUN dnf install -y gcc
   jdk: openjdk1.8.0_151
+  zlib:
+    - RUN dnf install -y zlib-devel
   openssl:
     - RUN dnf install -y openssl-devel
   cext:
