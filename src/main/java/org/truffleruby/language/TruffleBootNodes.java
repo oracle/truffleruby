@@ -63,23 +63,6 @@ public abstract class TruffleBootNodes {
 
     }
 
-    @CoreMethod(names = "ruby_launcher", onSingleton = true)
-    public abstract static class RubyLauncherNode extends CoreMethodNode {
-
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
-        @TruffleBoundary
-        @Specialization
-        public DynamicObject rubyLauncher() {
-            if (getContext().getOptions().LAUNCHER.isEmpty()) {
-                return nil();
-            } else {
-                return makeStringNode.executeMake(getContext().getOptions().LAUNCHER, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-            }
-        }
-
-    }
-
     @CoreMethod(names = "force_context", onSingleton = true)
     public abstract static class ForceContextNode extends CoreMethodArrayArgumentsNode {
 
