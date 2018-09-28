@@ -141,8 +141,8 @@ ubuntu1604:
     - RUN apt-get install -y libc++-dev
   rvm:
   post-install: false
-fedora25:
-  base: fedora:25
+fedora28:
+  base: fedora:28
   setup:
   locale:
     - ENV LANG=en_US.UTF-8
@@ -158,7 +158,7 @@ fedora25:
     - RUN dnf install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk-openjfx java-atk-wrapper make gcc libstdc++-static python ruby rubygem-json
   images:
     - RUN dnf install -y gcc
-  jdk: openjdk1.8.0_151
+  jdk: openjdk1.8.0_181
   zlib:
     - RUN dnf install -y zlib-devel
   openssl:

@@ -25,7 +25,7 @@ version in Ubuntu - run `lib/truffle/post_install_hook.sh`.
 
 ## Fedora
 
-On Fedora 25 or more recent, the default openssl is compatible, so you only need
+On Fedora 28 or more recent, the default openssl is compatible, so you only need
 to install `openssl-devel`:
 
 ```

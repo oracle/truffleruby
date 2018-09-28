@@ -21,10 +21,10 @@ is itself a test. You can then also log into the image after it's successfully
 built to use TruffleRuby.
 
 Or, to print a Dockerfile to show how to install TruffleRuby from source on
-Fedora 25 using RVM:
+Fedora 28 using RVM:
 
 ```
-$ jt docker print --fedora25 --source --rvm
+$ jt docker print --fedora28 --source --rvm
 ```
 
 Or, to run a full set of tests on a set of new release candidate tarballs:
@@ -43,7 +43,7 @@ Pick one of:
 * Oracle Linux 7, `--ol7` (takes a long time to run as it builds LLVM from source)
 * Ubuntu 18.04 `--ubuntu1804` (default)
 * Ubuntu 16.04 `--ubuntu1604`
-* Fedora 25, `--fedora25`
+* Fedora 28, `--fedora28`
 
 ## Methods of installing
 

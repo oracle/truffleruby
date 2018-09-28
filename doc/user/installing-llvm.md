@@ -49,7 +49,7 @@ installing `libc++` seems to introduce some system conflicts.
 
 ## Fedora
 
-The tested version of LLVM for Fedora 25 is 3.8.
+The tested version of LLVM for Fedora 28 is 6.0.
 
 For building C extensions you need to install:
 

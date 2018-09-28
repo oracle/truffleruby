@@ -93,7 +93,7 @@ TruffleRuby is actively tested on these systems:
 * Oracle Linux 7
 * Ubuntu 18.04 LTS
 * Ubuntu 16.04 LTS
-* Fedora 25
+* Fedora 28
 * macOS 10.13 (High Sierra)
 * macOS 10.14 (Mojave)
 
