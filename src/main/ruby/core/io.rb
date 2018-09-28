@@ -180,7 +180,7 @@ class IO
         io = io.to_io
       end
 
-      max = 8192
+      max = 16384
       left = unused
       count = left < max ? left : max
 

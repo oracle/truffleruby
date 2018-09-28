@@ -2015,8 +2015,7 @@ public abstract class ArrayNodes {
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
                 @Cached("createPrivate()") CallDispatchHeadNode compareDispatchNode,
-                @Cached("create()") CmpIntNode cmpIntNode,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached("create()") CmpIntNode cmpIntNode) {
             final ArrayMirror originalStore = strategy.newMirror(array);
             final ArrayMirror store = mutableStrategy.newArray(getContext().getOptions().ARRAY_SMALL);
             final int size = strategy.getSize(array);
