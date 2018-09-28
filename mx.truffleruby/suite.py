@@ -376,7 +376,7 @@ suite = {
                 "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
             ],
         },
-        
+
         "TRUFFLERUBY-SERVICES": {
             "dependencies": [
                 "org.truffleruby.services"
