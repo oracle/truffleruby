@@ -2192,6 +2192,7 @@ EOS
       lines.push "ENV JAVA_BIN=$JAVA_HOME/bin/java"
       lines.push "ENV JVMCI_VERSION_CHECK=ignore"
       lines.push "RUN $JAVA_HOME/bin/java -version"
+      lines.push "RUN git clone https://github.com/oracle/graal.git"
       lines.push "RUN git clone --depth 1 --branch #{source_branch} #{truffleruby_repo}"
       lines.push "RUN cd truffleruby && mx build"
       lines.push "RUN cd graal/compiler && mx build"
