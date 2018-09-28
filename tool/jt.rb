@@ -2022,7 +2022,7 @@ EOS
   end
 
   def docker_test(*args)
-    distros = ['--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora25']
+    distros = ['--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora28']
     managers = ['--no-manager', '--rbenv', '--chruby', '--rvm']
 
     distros.each do |distro|
@@ -2068,7 +2068,7 @@ EOS
       case arg
       when '--repo'
         truffleruby_repo = args.shift
-      when '--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora25'
+      when '--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora28'
         distro = arg[2..-1]
       when '--public'
         install_method = :public

@@ -3,6 +3,7 @@
 Changes:
 
 * Random seeds now use Java's `NativePRNGNonBlocking`.
+* The supported version of Fedora is now 28, upgraded from 25.
 
 New features:
 
