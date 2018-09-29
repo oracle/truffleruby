@@ -170,4 +170,4 @@ fedora28:
     - RUN dnf install -y libcxx
   rvm:
     - RUN dnf install -y procps
-  post-install: false
+  post-install: true
