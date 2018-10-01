@@ -2292,7 +2292,8 @@ EOS
     end
 
     if full_test
-      lines.push "RUN git clone --depth 1 --branch #{test_branch} #{truffleruby_repo} truffleruby-tests"
+      lines.push "RUN git clone #{truffleruby_repo} truffleruby-tests"
+      lines.push "RUN cd truffleruby-tests && git checkout #{test_branch}"
       lines.push "RUN cp -r truffleruby-tests/spec ."
       lines.push "RUN cp -r truffleruby-tests/test/truffle/compiler/pe ."
       lines.push "RUN rm -rf truffleruby-tests"
