@@ -1,8 +1,5 @@
 class PostsController < ApplicationController
 
-  # stubbed, will not work
-  skip_before_filter :verify_authenticity_token
-
   def index
     @posts = Post.order(:created_at).all
   end

@@ -1,6 +1,7 @@
 .bundle
-.jruby+truffle_bundle
-.rakeTasks
+.ruby-version
+
+db/*.sqlite3
 
 # Ignore all logfiles and tempfiles.
 /log/*

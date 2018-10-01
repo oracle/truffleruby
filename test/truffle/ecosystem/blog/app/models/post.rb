@@ -1,4 +1,4 @@
-class Post < ActiveRecord::Base
+class Post < ApplicationRecord
 
   validates :title, presence: true
   validates :author, presence: true

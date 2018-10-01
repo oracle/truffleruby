@@ -15,6 +15,7 @@
 #   inflect.acronym 'RESTful'
 # end
 
+# TODO (pitr-ch 25-Sep-2018): is it needed?
 ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.acronym 'API'
 end

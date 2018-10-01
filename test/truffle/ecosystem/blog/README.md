@@ -1,45 +1,37 @@
-# Rails Demo - Blog
+# A simple blog
 
--   Configure `config/database.yml` (Postgresql required)
--   Start Postgres (eg `postgres -D /usr/local/var/postgres`)
--   Setup environment: `truffleruby-tool setup --offline`
--   Create database: `truffleruby-tool run bin/rake db:create`   
--   Migrate database: `truffleruby-tool run bin/rake db:migrate`   
--   Run Rails server: `truffleruby-tool run bin/rails server`
--   Go to <http://localhost:3000>
--   Create a new post with:
+The base of the application was generated with:
+```bash
+rails new blog \ 
+  --database=sqlite3 \
+  --skip-git \
+  --skip-bundle \
+  --skip-action-cable \
+  --skip-active-storage \
+  --skip-action-mailer \
+  --skip-action-cable \
+  --skip-puma \
+  --skip-turbolinks \
+  --skip-coffee \
+  --skip-javascript \
+  --skip-spring \
+  --skip-sprockets \
+  --skip-yarn \
+  --skip-bootsnap \
+  --skip-listen
+```
+Then the source code of the old blog app running on rails 4.2 was ported over. 
 
-        = This is the Title of the blog post
-        Author Name
-        :icons: font
-         
-        This is an *example* of a _blog post_.
-        
-        == Header 1
-        
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus est ante, 
-        congue aliquet suscipit vel, mollis ac quam. Nam aliquam porta massa, non 
-        porttitor risus cursus quis. Quisque suscipit, lorem eget congue semper, 
-        sem tortor volutpat arcu, non volutpat libero felis et eros. 
-        
-        * Item 1
-        * Item 2
-        * Item 3
-        
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus est ante, 
-        congue aliquet suscipit vel, mollis ac quam.        
-        
-        NOTE: This is really just an example.
-         
-## Alternatively using `bundler`
+## Setup
 
--   _Omitting first 2 steps from above._     
--   Install stubs `truffleruby-tool setup --no-bundler` (used by bundle exec)
--   Setup environment variables
-    -   `export JRUBY_OTPS='-X+T'` (fish: `set -x JRUBY_OPTS '-X+T'`)
-    -   `export RUBYOTP='-r ./workarounds'` (fish: `set -x RUBYOPT '-r ./workarounds'`)
--   Install gems `bundle install`
--   Create database: `bundle exec bin/rake db:create`    
--   Migrate database: `bundle exec bin/rake db:migrate`   
--   Run Rails server: `bundle exec bin/rails server`
--   _Remaining steps omitted._
+List of steps to get the web server running follow. 
+If a step is required specially just for TruffleRuby it is explicitly mentioned, 
+otherwise it is a standard step for all Ruby implementations.
+
+* `gem install bundler`
+* `bundle config --local build.nokogiri --use-system-libraries`
+  * required by nokogiri to work on TruffleRuby
+  * can be left enabled for MRI as well when testing, it works
+* `bin/setup`
+* `bundle exec rails server`
+* Go to <http://localhost:3000>
