@@ -9,40 +9,32 @@
 require_relative '../../ruby/spec_helper'
 require 'bigdecimal'
 
-describe "Truffle::AtomicReference" do
+describe "TruffleRuby::AtomicReference" do
 
-  it "#new creates new instance with a value and get reads it" do
-    r = Truffle::AtomicReference.new :value
+  it ".new creates new instance with a value and get reads it" do
+    r = TruffleRuby::AtomicReference.new(:value)
     r.get.should equal :value
-    r.value.should equal :value
   end
 
-  it "#set and #value= changes the value" do
-    r = Truffle::AtomicReference.new :v1
+  it ".new creates new instance with a nil value by default" do
+    r = TruffleRuby::AtomicReference.new
+    r.get.should equal nil
+  end
 
-    r.value = :v2
+  it "#set changes the value" do
+    r = TruffleRuby::AtomicReference.new(:v1)
+    r.set :v2
     r.get.should equal :v2
-    r.value.should equal :v2
-
-    r.set :v3
-    r.get.should equal :v3
-    r.value.should equal :v3
   end
 
-  it "can be marshaled" do
-    r = Truffle::AtomicReference.new :value
-    copy = Marshal.load Marshal.dump(r)
-    copy.get.should equal :value
-  end
-
-  describe "#compare_and_set" do
-    it "compares regular objects with identity" do
+  describe "#compare_and_set sets a new value if it is set to an expected value" do
+    it "comparing regular objects with identity" do
       always_equal = Class.new { define_method :==, &-> _ { true } }
 
       v1 = always_equal.new
       bad = always_equal.new
       v2 = always_equal.new
-      r = Truffle::AtomicReference.new v1
+      r = TruffleRuby::AtomicReference.new(v1)
 
       r.compare_and_set(bad, v2).should == false
       r.get.should equal v1
@@ -51,17 +43,15 @@ describe "Truffle::AtomicReference" do
       r.get.should equal v2
     end
 
-    it "compares numeric objects with equality " do
+    it "comparing numeric objects with equality " do
       [-> { 1 },
        -> { 1.1 },
-       -> { 1000 },
-       -> { Rational(313124, 576434138) },
-       -> { BigDecimal('64643467448446548974.285454687534') }
+       -> { 1000 }
       ].each do |numeric_source|
         v1 = numeric_source.call
         bad = v1 + 1
         v2 = v1 + 2
-        r = Truffle::AtomicReference.new v1
+        r = TruffleRuby::AtomicReference.new v1
 
         r.compare_and_set(bad, v2).should == false
         r.get.should equal v1
@@ -72,11 +62,17 @@ describe "Truffle::AtomicReference" do
     end
   end
 
-  it "#get_and_set" do
-    r = Truffle::AtomicReference.new :v1
-
+  it "#get_and_set gets the previous value and sets a new value" do
+    r = TruffleRuby::AtomicReference.new(:v1)
     r.get_and_set(:v2).should == :v1
     r.get.should == :v2
+  end
+
+  it "can be marhsalled" do
+    reference = TruffleRuby::AtomicReference.new(:value)
+    dumped = Marshal.dump(reference)
+    loaded = Marshal.load(dumped)
+    reference.get.should == :value
   end
 
 end

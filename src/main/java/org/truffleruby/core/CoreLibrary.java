@@ -503,7 +503,10 @@ public class CoreLibrary {
         encodingConverterClass = defineClass(encodingClass, objectClass, "Converter");
         Layouts.CLASS.setInstanceFactoryUnsafe(encodingConverterClass, Layouts.ENCODING_CONVERTER.createEncodingConverterShape(encodingConverterClass, encodingConverterClass));
 
-        defineModule("TruffleRuby");
+        final DynamicObject truffleRubyModule = defineModule("TruffleRuby");
+        atomicReferenceClass = defineClass(truffleRubyModule, objectClass, "AtomicReference");
+        Layouts.CLASS.setInstanceFactoryUnsafe(atomicReferenceClass,
+                Layouts.ATOMIC_REFERENCE.createAtomicReferenceShape(atomicReferenceClass, atomicReferenceClass));
         truffleModule = defineModule("Truffle");
         truffleInternalModule = defineModule(truffleModule, "Internal");
         graalErrorClass = defineClass(truffleModule, exceptionClass, "GraalError");
@@ -556,9 +559,6 @@ public class CoreLibrary {
         defineClass(truffleModule, objectClass, "StringData");
         defineClass(encodingClass, objectClass, "Transcoding");
         randomizerClass = defineClass(truffleModule, objectClass, "Randomizer");
-        atomicReferenceClass = defineClass(truffleModule, objectClass, "AtomicReference");
-        Layouts.CLASS.setInstanceFactoryUnsafe(atomicReferenceClass,
-                Layouts.ATOMIC_REFERENCE.createAtomicReferenceShape(atomicReferenceClass, atomicReferenceClass));
         randomizerFactory = Layouts.RANDOMIZER.createRandomizerShape(randomizerClass, randomizerClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(randomizerClass, randomizerFactory);
 
@@ -1456,7 +1456,7 @@ public class CoreLibrary {
             "/core/truffle/stat_operations.rb",
             "/core/truffle/string_operations.rb",
             "/core/truffle/backward.rb",
-            "/core/truffle/atomic_reference.rb",
+            "/core/truffle/truffleruby.rb",
             "/core/splitter.rb",
             "/core/stat.rb",
             "/core/io.rb",

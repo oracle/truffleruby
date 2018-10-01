@@ -1,5 +1,11 @@
 # 1.0
 
+New features:
+
+* `Java.synchronized(object) { }` and `TruffleRuby.synchronized(object) { }`
+  methods have been added.
+* Added a `TruffleRuby::AtomicReference` class.
+
 Changes:
 
 * Random seeds now use Java's `NativePRNGNonBlocking`.

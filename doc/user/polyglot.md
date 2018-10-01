@@ -150,6 +150,9 @@ instance, `.foo` will call the static method `foo`, `[:FOO]` will read the field
 
 To import a Java class as a top-level constant, use `Java.import 'name'`.
 
+`Java.synchronized(object) { }` will use the Java object's monitor to
+synchronize.
+
 ## Embedding in Java
 
 TruffleRuby is embedded via the Polyglot API, which is part of GraalVM. You will

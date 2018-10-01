@@ -7,25 +7,21 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.core.support;
+package org.truffleruby.extra;
 
 import java.util.concurrent.atomic.AtomicReference;
-
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.language.objects.IsANode;
 
-@CoreClass("Truffle::AtomicReference")
+@CoreClass("TruffleRuby::AtomicReference")
 public abstract class AtomicReferenceNodes {
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
@@ -36,6 +32,27 @@ public abstract class AtomicReferenceNodes {
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
             return allocateNode.allocate(rubyClass, new AtomicReference<Object>(nil()));
+        }
+
+    }
+
+    @CoreMethod(names = "initialize", optional = 1)
+    public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject initializeNoValue(DynamicObject self, NotProvided notProvided) {
+            return self;
+        }
+
+        @Specialization(guards = "isNil(nil)")
+        public DynamicObject initializeNil(DynamicObject self, DynamicObject nil) {
+            return self;
+        }
+
+        @Specialization(guards = { "!isNil(value)", "wasProvided(value)" })
+        public DynamicObject initializeWithValue(DynamicObject self, Object value) {
+            Layouts.ATOMIC_REFERENCE.setValue(self, value);
+            return self;
         }
 
     }
@@ -59,42 +76,6 @@ public abstract class AtomicReferenceNodes {
         }
     }
 
-    @CoreMethod(names = "compare_and_set", required = 2)
-    public abstract static class CompareAndSetNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public boolean compareAndSetNumber(
-                VirtualFrame frame, DynamicObject self, Object expectedValue, Object newValue,
-                @Cached("create()") SameOrEqualNode sameOrEqualNode,
-                @Cached("create()") IsANode expectedValueIsA,
-                @Cached("create()") IsANode currentValueIsA,
-                @Cached("createBinaryProfile()") ConditionProfile profile) {
-
-            final boolean expectedValueIsNumeric =
-                    expectedValueIsA.executeIsA(expectedValue, coreLibrary().getNumericClass());
-            if (profile.profile(expectedValueIsNumeric)) {
-                while (true) {
-                    final Object currentValue = Layouts.ATOMIC_REFERENCE.getValue(self);
-                    if (!currentValueIsA.executeIsA(currentValue, coreLibrary().getNumericClass())) {
-                        return false;
-                    }
-                    if (!sameOrEqualNode.executeSameOrEqual(frame, currentValue, expectedValue)) {
-                        return false;
-                    }
-                    if (cas(self, currentValue, newValue)) {
-                        return true;
-                    }
-                }
-            } else {
-                return cas(self, expectedValue, newValue);
-            }
-        }
-
-        private boolean cas(DynamicObject self, Object expectedValue, Object newValue) {
-            return Layouts.ATOMIC_REFERENCE.compareAndSetValue(self, expectedValue, newValue);
-        }
-    }
-
     @CoreMethod(names = "get_and_set", required = 1)
     public abstract static class GetAndSetNode extends CoreMethodArrayArgumentsNode {
 
@@ -102,6 +83,31 @@ public abstract class AtomicReferenceNodes {
         public Object getAndSet(DynamicObject self, Object value) {
             return Layouts.ATOMIC_REFERENCE.getAndSetValue(self, value);
         }
+    }
+
+    @CoreMethod(names = "compare_and_set_reference", required = 2, visibility = Visibility.PRIVATE)
+    public abstract static class CompareAndSetReferenceNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isPrimitive(expectedValue)")
+        public boolean compareAndSetPrimitive(DynamicObject self, Object expectedValue, Object newValue) {
+            while (true) {
+                final Object currentValue = Layouts.ATOMIC_REFERENCE.getValue(self);
+
+                if (RubyGuards.isPrimitive(currentValue) && currentValue.equals(expectedValue)) {
+                    if (Layouts.ATOMIC_REFERENCE.compareAndSetValue(self, currentValue, newValue)) {
+                        return true;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        @Specialization(guards = "!isPrimitive(expectedValue)")
+        public boolean compareAndSetReference(DynamicObject self, Object expectedValue, Object newValue) {
+            return Layouts.ATOMIC_REFERENCE.compareAndSetValue(self, expectedValue, newValue);
+        }
+
     }
 
 }

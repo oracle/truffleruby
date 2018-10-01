@@ -15,3 +15,14 @@ module Truffle::System
   end
 
 end
+
+module Truffle
+  
+  # Used by old versions of concurrent-ruby
+
+  class AtomicReference < TruffleRuby::AtomicReference
+    alias_method :value, :get
+    alias_method :value=, :set
+  end
+
+end
