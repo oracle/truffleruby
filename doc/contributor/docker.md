@@ -13,7 +13,7 @@ installing the public GraalVM CE binary and the public Ruby installable,
 using rbenv, and running a basic test:
 
 ```
-$ jt docker build truffleruby-test --ubuntu1804 --graalvm-public 1.0.0 --rbenv --basic-test
+$ jt docker build truffleruby-test --ubuntu1804 --public 1.0.0 --rbenv --basic-test
 ```
 
 Note that running a test will fail the `build` command, so building the image
