@@ -89,6 +89,7 @@ test/mri/tests/cext-c/**/*.o
 /test/truffle/integration/gem-testing
 /truffleruby-gem-test-pack
 /tool/docker/*
+/tool/llvm-ol7/*.tar.gz
 
 # Benchmarking
 /bench-results.json

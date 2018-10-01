@@ -10,21 +10,28 @@ The tested version of LLVM for Oracle Linux 7 is 3.8.
 
 Oracle Linux does not include recent-enough LLVM packages, so you will have to
 [build LLVM from scratch](https://llvm.org/docs/CMake.html). You'll need to
-include at least the `libcxx` packages for running, and `clang`
-for building. One way to build it is documented in the
-`tool/docker/oraclelinux-llvm` Dockerfile in the TruffleRuby source repository.
-These instructions will also install tools that you need to build C extensions.
+include at least the `libcxx` packages for running, and `clang` for building.
+
+`tool/llvm-ol7` is a Dockerfile for generating a binary tarball of LLVM for
+Oracle Linux 7.
+
+For building and running C extensions you will also need to install (in order
+to get several basic system libraries):
+
+```
+yum install -y gcc
+```
 
 For using C++ extensions you will also need to install:
 
 ```
-yum install libcxx
+yum install libstdc++
 ```
 
 And for building C++ extensions:
 
 ```
-yum install libcxx-devel
+yum install libstdc++-devel
 ```
 
 ## Ubuntu
@@ -54,7 +61,7 @@ The tested version of LLVM for Fedora 28 is 6.0.
 For building C extensions you need to install:
 
 ```
-sudo dnf install clang llvm
+sudo dnf install make clang llvm
 ```
 
 For using C++ extensions you need to install:
