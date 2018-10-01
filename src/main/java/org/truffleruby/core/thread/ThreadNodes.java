@@ -599,14 +599,44 @@ public abstract class ThreadNodes {
         }
     }
 
-    @Primitive(name = "thread_get_locals")
-    public static abstract class ThreadLocalsNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "thread_get_exception")
+    public static abstract class GetThreadLocalExceptionNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyThread(thread)")
-        public DynamicObject getLocals(DynamicObject thread) {
-            return Layouts.THREAD.getThreadLocals(thread);
+        @Specialization
+        public DynamicObject getException(VirtualFrame frame,
+                @Cached("create()") GetCurrentRubyThreadNode getThreadNode) {
+            return Layouts.THREAD.getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).exception;
         }
+    }
 
+    @Primitive(name = "thread_get_return_code")
+    public static abstract class GetThreadLocalReturnCodeNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject getException(VirtualFrame frame,
+                @Cached("create()") GetCurrentRubyThreadNode getThreadNode) {
+            return Layouts.THREAD.getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).processStatus;
+        }
+    }
+
+    @Primitive(name = "thread_set_exception")
+    public static abstract class SetThreadLocalExceptionNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject setException(VirtualFrame frame, DynamicObject exception,
+                @Cached("create()") GetCurrentRubyThreadNode getThreadNode) {
+            return Layouts.THREAD.getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).exception = exception;
+        }
+    }
+
+    @Primitive(name = "thread_set_return_code")
+    public static abstract class SetThreadLocalReturnCodeNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject getException(VirtualFrame frame, DynamicObject returnCode,
+                @Cached("create()") GetCurrentRubyThreadNode getThreadNode) {
+            return Layouts.THREAD.getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).processStatus = returnCode;
+        }
     }
 
     @Primitive(name = "thread_get_fiber_locals")

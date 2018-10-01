@@ -651,7 +651,7 @@ module Truffle
       if !error.nil? && !error.is_a?(Exception)
         raise TypeError, 'assigning non-exception to ?!'
       end
-      Truffle::ThreadOperations.set_thread_local(:$!, error)
+      Truffle.invoke_primitive(:thread_set_exception, error)
     end
   end
 end

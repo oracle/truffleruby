@@ -7,7 +7,16 @@ jt ruby --graal -J-Dgraal.TruffleIterativePartialEscape=true doc/samples/can-we-
 if ! cmp test/truffle/compiler/can-we-fold-yet/expected.txt actual.txt
 then
   echo Output not as expected
-  rm -f actual.txt
+  echo Expected:
+  cat test/truffle/compiler/can-we-fold-yet/expected.txt
+  if [ -e actual.txt ]
+  then
+    echo Actual:
+    cat actual.txt
+    echo Diff:
+    diff test/truffle/compiler/can-we-fold-yet/expected.txt actual.txt
+    rm -f actual.txt
+  fi
   exit 1
 fi
 

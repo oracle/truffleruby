@@ -73,7 +73,7 @@ public class TopLevelRaiseHandler extends RubyNode {
     public void setLastException(VirtualFrame frame, DynamicObject exception) {
         if (setExceptionVariableNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            setExceptionVariableNode = insert(new SetExceptionVariableNode(getContext()));
+            setExceptionVariableNode = insert(new SetExceptionVariableNode());
         }
 
         setExceptionVariableNode.setLastException(frame, exception);

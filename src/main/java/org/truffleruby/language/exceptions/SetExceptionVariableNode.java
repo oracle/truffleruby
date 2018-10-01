@@ -9,75 +9,47 @@
  */
 package org.truffleruby.language.exceptions;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
+import org.truffleruby.core.thread.GetCurrentRubyThreadNodeGen;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.RubyContext;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
-import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
-import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNode;
-import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNodeGen;
 
 public class SetExceptionVariableNode extends Node {
 
-    private final RubyContext context;
-
-    @Child private GetThreadLocalsObjectNode getThreadLocalsObjectNode;
-    @Child private ReadObjectFieldNode readDollarBang;
-    @Child private WriteObjectFieldNode writeDollarBang;
-
-    public SetExceptionVariableNode(RubyContext context) {
-        this.context = context;
-    }
+    @Child private GetCurrentRubyThreadNode getCurrentThreadNode;
 
     public Object setLastExceptionAndRun(VirtualFrame frame, RaiseException exception, RubyNode node) {
-        final DynamicObject threadLocals = getThreadLocalsObject(frame);
-
-        final Object lastException = readDollarBang(threadLocals);
-        writeDollarBang(threadLocals, exception.getException());
+        final DynamicObject thread = getCurrentThreadNode().executeGetRubyThread(frame);
+        final ThreadLocalGlobals threadLocalGlobals = Layouts.THREAD.getThreadLocalGlobals(thread);
+        final DynamicObject lastException = threadLocalGlobals.exception;
+        threadLocalGlobals.exception = exception.getException();
 
         try {
             return node.execute(frame);
         } finally {
-            writeDollarBang(threadLocals, lastException);
+            threadLocalGlobals.exception = lastException;
         }
     }
+
 
     public void setLastException(VirtualFrame frame, DynamicObject exception) {
-        final DynamicObject threadLocals = getThreadLocalsObject(frame);
-        writeDollarBang(threadLocals, exception);
+        final DynamicObject thread = getCurrentThreadNode().executeGetRubyThread(frame);
+        final ThreadLocalGlobals threadLocalGlobals = Layouts.THREAD.getThreadLocalGlobals(thread);
+        threadLocalGlobals.exception = exception;
     }
 
-    private DynamicObject getThreadLocalsObject(VirtualFrame frame) {
-        if (getThreadLocalsObjectNode == null) {
+    private GetCurrentRubyThreadNode getCurrentThreadNode() {
+        if (getCurrentThreadNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            getThreadLocalsObjectNode = insert(GetThreadLocalsObjectNodeGen.create());
+            getCurrentThreadNode = GetCurrentRubyThreadNodeGen.create();
         }
-
-        return getThreadLocalsObjectNode.executeGetThreadLocalsObject(frame);
+        return getCurrentThreadNode;
     }
-
-    private void writeDollarBang(DynamicObject threadLocals, Object value) {
-        if (writeDollarBang == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            writeDollarBang = insert(WriteObjectFieldNodeGen.create("$!"));
-        }
-
-        writeDollarBang.write(threadLocals, value);
-    }
-
-    private Object readDollarBang(DynamicObject threadLocals) {
-        if (readDollarBang == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            readDollarBang = insert(ReadObjectFieldNodeGen.create("$!", context.getCoreLibrary().getNil()));
-        }
-
-        return readDollarBang.execute(threadLocals);
-    }
-
 }

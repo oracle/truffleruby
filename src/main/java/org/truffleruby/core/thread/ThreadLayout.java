@@ -18,6 +18,7 @@ import com.oracle.truffle.api.object.dsl.Volatile;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -32,7 +33,7 @@ public interface ThreadLayout extends BasicObjectLayout {
             DynamicObject metaClass);
 
     Object[] build(
-            DynamicObject threadLocals,
+            ThreadLocalGlobals threadLocalGlobals,
             @Volatile InterruptMode interruptMode, // needs to be volatile for fibers implemented by threads
             @Volatile ThreadStatus status,
             List<Lock> ownedLocks,
@@ -57,7 +58,7 @@ public interface ThreadLayout extends BasicObjectLayout {
     CountDownLatch getFinishedLatch(DynamicObject object);
     void setFinishedLatch(DynamicObject object, CountDownLatch value);
 
-    DynamicObject getThreadLocals(DynamicObject object);
+    ThreadLocalGlobals getThreadLocalGlobals(DynamicObject object);
 
     List<Lock> getOwnedLocks(DynamicObject object);
 

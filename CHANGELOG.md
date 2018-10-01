@@ -11,6 +11,10 @@ Changes:
 * Random seeds now use Java's `NativePRNGNonBlocking`.
 * The supported version of Fedora is now 28, upgraded from 25.
 
+
+Performance
+
+* Performance of setting the last exception on a thread has now been improved.
 New features:
 
 * Ubuntu 18.04 LTS is now supported.
