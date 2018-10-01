@@ -2,7 +2,7 @@
 
 The base of the application was generated with:
 ```bash
-rails new blog-5.2 \ 
+rails new blog \ 
   --database=sqlite3 \
   --skip-git \
   --skip-bundle \
