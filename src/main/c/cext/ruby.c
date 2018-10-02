@@ -2978,7 +2978,7 @@ VALUE rb_data_object_zalloc(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY
 
 VALUE rb_data_object_alloc_managed(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree, void *interoptypeid) {
   void *data = rb_tr_new_managed_struct_internal(interoptypeid);
-  return rb_data_object_wrap(klass, data, dmark, dfree);
+  return rb_data_object_wrap(klass, data, dmark, (dfree == (RUBY_DATA_FUNC)RUBY_DEFAULT_FREE) ? NULL : dfree);
 }
 
 // Typed data
