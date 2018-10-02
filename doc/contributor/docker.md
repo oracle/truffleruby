@@ -13,7 +13,7 @@ installing the public GraalVM CE binary and the public Ruby installable,
 using rbenv, and running a basic test:
 
 ```
-$ jt docker build truffleruby-test --ubuntu1804 --graalvm-public 1.0.0 --rbenv --basic-test
+$ jt docker build truffleruby-test --ubuntu1804 --public 1.0.0 --rbenv --basic-test
 ```
 
 Note that running a test will fail the `build` command, so building the image
@@ -40,10 +40,13 @@ $ jt docker test --standalone truffleruby-linux-amd64.tar.gz --test release_bran
 
 Pick one of:
 
-* Oracle Linux 7, `--ol7` (takes a long time to run as it builds LLVM from source)
+* Oracle Linux 7, `--ol7`
 * Ubuntu 18.04 `--ubuntu1804` (default)
 * Ubuntu 16.04 `--ubuntu1604`
 * Fedora 28, `--fedora28`
+
+To use Oracle Linux 7, you need to build the binary LLVM tarball and copy it
+into `tool/docker`. See `tool/llvm-ol7/README.md`.
 
 ## Methods of installing
 
