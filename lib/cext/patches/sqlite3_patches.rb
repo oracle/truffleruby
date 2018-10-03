@@ -75,7 +75,7 @@ class SQLite3Patches < CommonPatches
         },
         { # db_encoding
           match: 'sqlite3_exec(ctx->db, "PRAGMA encoding", enc_cb, (void *)self, NULL);',
-          replacement: 'sqlite3_exec(ctx->db, "PRAGMA encoding", enc_cb, rb_tr_handle_for_managed_leaking(self), NULL);'
+          replacement: '{void *handle = rb_tr_handle_for_managed(self); sqlite3_exec(ctx->db, "PRAGMA encoding", enc_cb, handle, NULL); rb_tr_release_handle(handle);}'
         },
         { # hash_callback_function
           match: 'rb_ary_push(callback_ary, new_hash);',
