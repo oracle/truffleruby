@@ -555,7 +555,7 @@ module Truffle::CExt
   end
 
   def rb_ivar_defined(object, id)
-    object.instance_variable_defined?(id)
+    Truffle.invoke_primitive(:object_ivar_defined?, object, id)
   end
 
   def rb_f_global_variables
