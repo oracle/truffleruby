@@ -14,6 +14,7 @@ Changes:
 * The supported version of Fedora is now 28, upgraded from 25.
 * The FFI gem has been updated from 1.9.18 to 1.9.25.
 * JCodings has been updated from 1.0.30 to 1.0.40.
+* Joni has been updated from 2.1.16 to 2.1.24.
 
 Performance
 
