@@ -5,20 +5,18 @@ New features:
 * `Java.synchronized(object) { }` and `TruffleRuby.synchronized(object) { }`
   methods have been added.
 * Added a `TruffleRuby::AtomicReference` class.
+* Ubuntu 18.04 LTS is now supported.
+* macOS 10.14 (Mojave) is now supported.
 
 Changes:
 
 * Random seeds now use Java's `NativePRNGNonBlocking`.
 * The supported version of Fedora is now 28, upgraded from 25.
 
-
 Performance
 
 * Performance of setting the last exception on a thread has now been improved.
 New features:
-
-* Ubuntu 18.04 LTS is now supported.
-* macOS 10.14 (Mojave) is now supported.
 
 # 1.0 RC 7
 
