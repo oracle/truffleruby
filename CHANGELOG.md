@@ -12,6 +12,7 @@ Changes:
 
 * Random seeds now use Java's `NativePRNGNonBlocking`.
 * The supported version of Fedora is now 28, upgraded from 25.
+* JCodings has been updated from 1.0.30 to 1.0.40.
 
 Performance
 
