@@ -16,7 +16,6 @@ Changes:
 Performance
 
 * Performance of setting the last exception on a thread has now been improved.
-New features:
 
 # 1.0 RC 7
 
