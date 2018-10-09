@@ -1,5 +1,3 @@
-# From https://raw.githubusercontent.com/ffi/ffi/1.9.18/lib/ffi/library.rb
-# Only a minimal subset to lookup libraries.
 #
 # Copyright (C) 2008-2010 Wayne Meissner
 #
@@ -30,6 +28,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.#
 
+# This is a subset of library.rb from the FFI gem - just enough to lookup libraries
+
 module FFI
   CURRENT_PROCESS = USE_THIS_PROCESS_AS_LIBRARY = Object.new
 
@@ -45,12 +45,11 @@ module FFI
   #  FFI.map_library_name 'jpeg'  # -> "jpeg.dll"
   def self.map_library_name(lib)
     # Mangle the library name to reflect the native library naming conventions
-    lib = lib.to_s unless lib.kind_of?(String)
     lib = Library::LIBC if lib == 'c'
 
     if lib && File.basename(lib) == lib
       lib = Platform::LIBPREFIX + lib unless lib =~ /^#{Platform::LIBPREFIX}/
-      r = Platform::IS_GNU ? '\\.so($|\\.[1234567890]+)' : "\\.#{Platform::LIBSUFFIX}$"
+      r = Platform::IS_GNU ? "\\.so($|\\.[1234567890]+)" : "\\.#{Platform::LIBSUFFIX}$"
       lib += ".#{Platform::LIBSUFFIX}" unless lib =~ /#{r}/
     end
 
@@ -66,7 +65,7 @@ module FFI
     # @raise {LoadError} if a library cannot be opened
     # Load native libraries.
     def ffi_lib(*names)
-      raise LoadError, 'library names list must not be empty' if names.empty?
+      raise LoadError.new("library names list must not be empty") if names.empty?
 
       lib_flags = defined?(@ffi_lib_flags) ? @ffi_lib_flags : FFI::DynamicLibrary::RTLD_LAZY | FFI::DynamicLibrary::RTLD_LOCAL
       ffi_libs = names.map do |name|
@@ -75,7 +74,7 @@ module FFI
           FFI::DynamicLibrary.open(nil, FFI::DynamicLibrary::RTLD_LAZY | FFI::DynamicLibrary::RTLD_LOCAL)
 
         else
-          libnames = (name.is_a?(::Array) ? name : [ name ]).map { |n| [ n, FFI.map_library_name(n) ].uniq }.flatten.compact
+          libnames = (name.is_a?(::Array) ? name : [ name ]).map(&:to_s).map { |n| [ n, FFI.map_library_name(n) ].uniq }.flatten.compact
           lib = nil
           errors = {}
 
@@ -85,7 +84,7 @@ module FFI
               lib = FFI::DynamicLibrary.open(libname, lib_flags)
               break if lib
 
-            rescue Exception => ex # rubocop:disable Lint/RescueException # code from ffi gem
+            rescue Exception => ex
               ldscript = false
               if ex.message =~ /(([^ \t()])+\.so([^ \t:()])*):([ \t])*(invalid ELF header|file too short|invalid file format)/
                 if File.read($1) =~ /(?:GROUP|INPUT) *\( *([^ \)]+)/
@@ -98,8 +97,7 @@ module FFI
                 retry
               else
                 # TODO better library lookup logic
-                libname = libname.to_s
-                unless libname.start_with?('/')
+                unless libname.start_with?("/") || FFI::Platform.windows?
                   path = ['/usr/lib/','/usr/local/lib/'].find do |pth|
                     File.exist?(pth + libname)
                   end
@@ -116,7 +114,7 @@ module FFI
           end
 
           if lib.nil?
-            raise LoadError, errors.values.join(".\n")
+            raise LoadError.new(errors.values.join(".\n"))
           end
 
           # return the found lib
@@ -144,7 +142,7 @@ module FFI
     #   ffi_lib_flags(:lazy, :local) # => 5
     #
     # @param [Symbol, …] flags (see {FlagsMap})
-    # @return [Integer] the new value
+    # @return [Fixnum] the new value
     def ffi_lib_flags(*flags)
       @ffi_lib_flags = flags.inject(0) { |result, f| result | FlagsMap[f] }
     end
