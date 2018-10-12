@@ -169,7 +169,11 @@ ossl_pem_passwd_cb(char *buf, int max_len, int flag, void *pwd_)
 {
     long len;
     int status;
+#ifdef TRUFFLERUBY
     VALUE rflag, pass = (VALUE)rb_tr_managed_from_handle_release(pwd_);
+#else
+    VALUE rflag, pass = (VALUE)pwd_;
+#endif
 
     if (RTEST(pass)) {
 	/* PEM_def_callback(buf, max_len, flag, StringValueCStr(pass)) does not

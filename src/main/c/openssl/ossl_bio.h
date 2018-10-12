@@ -15,7 +15,7 @@
 /*
  * This is ossl_obj2bio copied from ossl_bio.c with the only modification being
  * the addition of MUST_INLINE, so that the local variable referenced by pobj
- * can be put into a registser, and the removal of the volatile, which would
+ * can be put into a register, and the removal of the volatile, which would
  * prevent that. I think MRI uses the volatile and the address just in order
  * to support conservative GC. We don't need this as our GC is precise.
  */
