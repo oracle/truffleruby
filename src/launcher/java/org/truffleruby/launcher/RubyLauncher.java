@@ -10,6 +10,7 @@
 package org.truffleruby.launcher;
 
 import org.graalvm.launcher.AbstractLanguageLauncher;
+import org.graalvm.nativeimage.ProcessProperties;
 import org.graalvm.options.OptionCategory;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
@@ -286,8 +287,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     private String setRubyLauncher() {
         if (config.getOption(OptionsCatalog.LAUNCHER).isEmpty()) {
-            final String launcher = (String) Compiler.command(
-                    new Object[]{ "com.oracle.svm.core.posix.GetExecutableName" });
+            final String launcher = ProcessProperties.getExecutableName();
             config.setOption(OptionsCatalog.LAUNCHER, launcher);
             return launcher;
         }
