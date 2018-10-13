@@ -14,9 +14,13 @@
 require "mkmf"
 require File.expand_path('../deprecation', __FILE__)
 
-require 'truffle/openssl-prefix'
+if RUBY_ENGINE == 'truffleruby'
+  require 'truffle/openssl-prefix'
+  dir_config("openssl", ENV["OPENSSL_PREFIX"])
+else
+  dir_config("openssl")
+end
 
-dir_config("openssl", ENV["OPENSSL_PREFIX"]) # TruffleRuby: use $OPENSSL_PREFIX as default if set
 dir_config("kerberos")
 
 Logging::message "=== OpenSSL for Ruby configurator ===\n"
@@ -111,12 +115,15 @@ end
 Logging::message "=== Checking for OpenSSL features... ===\n"
 # compile options
 
-# SSLv2 and SSLv3 may be removed in future versions of OpenSSL, and even macros
-# like OPENSSL_NO_SSL2 may not be defined.
-
-# TruffleRuby: Ubuntu 16.04 explicitly configures OpenSSL without SSLv2 support as it's considered insecure.
-# TruffleRuby: Therefore, we never define HAVE_SSLV2_METHOD so the pre-compiled extension can be used on Ubuntu.
-# have_func("SSLv2_method")
+# Ubuntu 16.04 explicitly configures OpenSSL without SSLv2 support as it's
+# considered insecure. Therefore, we never define HAVE_SSLV2_METHOD so the
+# pre-compiled extension can be used on Ubuntu.
+unless RUBY_ENGINE == 'truffleruby'
+  # SSLv2 and SSLv3 may be removed in future versions of OpenSSL, and even
+  # macros like OPENSSL_NO_SSL2 may not be defined.
+  
+  have_func("SSLv2_method")
+end
 
 have_func("SSLv3_method")
 have_func("TLSv1_1_method")
