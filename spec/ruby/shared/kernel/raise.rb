@@ -41,7 +41,7 @@ describe :kernel_raise, shared: true do
     lambda { @object.raise(nil) }.should raise_error(TypeError)
   end
 
-  it "re-raises the rescued exception" do
+  it "re-raises the previously rescued exception if no exception is specified" do
     lambda do
       begin
         raise Exception, "outer"
