@@ -1,0 +1,1 @@
+fails:Kernel#raise re-raises a previously rescued exception without overwriting the backtrace
