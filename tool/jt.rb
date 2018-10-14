@@ -474,6 +474,7 @@ module Commands
           --jexception[s] print java exceptions
           --exec          use exec rather than system
           --no-print-cmd  don\'t print the command
+          @argument       pass argument to Ruby without processing it in JT (for example @--trace to pass the --trace argument)
       jt gem                                         shortcut for `jt ruby -S gem`, to install Ruby gems, etc
       jt e 14 + 2                                    evaluate an expression
       jt puts 14 + 2                                 evaluate and print an expression
@@ -715,6 +716,14 @@ module Commands
 
     if args.delete('--exec')
       options[:use_exec] = true
+    end
+
+    args.map! do |arg|
+      if arg.start_with?('@')
+        arg[1..-1]
+      else
+        arg
+      end
     end
 
     ruby_bin = Utilities.find_launcher(native)
