@@ -20,13 +20,16 @@ ol7:
   openssl:
     - RUN yum install -y openssl-devel
   cext:
-    - RUN yum install -y glibc-devel make
-    - COPY llvm-3.8.0-ol7.tar.gz /opt
-    - RUN cd /opt && tar -zxf llvm-3.8.0-ol7.tar.gz
-    - ENV PATH=/opt/llvm-3.8.0-ol7/bin:$PATH
-    - RUN echo "/opt/llvm-3.8.0-ol7/lib64" >> /etc/ld.so.conf.d/llvm-x86_64.conf && ldconfig
+    - RUN yum install -y make
+    - RUN yum-config-manager --enable ol7_developer
+    - RUN yum-config-manager --enable ol7_software_collections
+    - RUN yum install -y llvm-toolset-7
+    - ENV PATH=$PATH:/opt/rh/llvm-toolset-7/root/usr/bin
+    - ENV LD_LIBRARY_PATH=/opt/rh/llvm-toolset-7/root/usr/lib64
   cppext:
-    - RUN yum install -y gcc
+    - RUN yum-config-manager --enable ol7_developer_EPEL
+    - RUN yum install -y libcxx
+    - RUN yum install -y libcxx-devel
   rvm:
   post-install: false
 ubuntu1804:
