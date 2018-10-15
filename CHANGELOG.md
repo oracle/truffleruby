@@ -1,4 +1,4 @@
-# 1.0
+# 1.0 RC 8
 
 New features:
 
