@@ -2054,7 +2054,7 @@ EOS
     config = @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
 
     truffleruby_repo = 'https://github.com/oracle/truffleruby.git'
-    distro = 'ubuntu1804'
+    distro = 'ol7'
     install_method = :public
     public_version = '1.0.0-rc6'
     rebuild_images = false
