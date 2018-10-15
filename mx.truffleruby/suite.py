@@ -63,10 +63,10 @@ suite = {
             "maven": {
                 "groupId": "org.jruby.joni",
                 "artifactId": "joni",
-                "version": "2.1.16"
+                "version": "2.1.25"
             },
-            "sha1": "b5c07f6aa52f93fe592dd9545b6b528e1a52c54d",
-            "sourceSha1": "ab3c291fa9aa4caee512b6624b4d2302d91a7230",
+            "sha1": "5dbb09787a9b8780737b71fbf942235ef59051b9",
+            "sourceSha1": "505a09064f6e2209616f38724f6d97d8d889aa92",
             "license": [
                 "MIT",              # Joni
             ],
