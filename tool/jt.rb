@@ -1989,6 +1989,9 @@ EOS
   end
 
   def lint(*args)
+    # Change the annotation retention policy in Truffle so we can inspect specializations.
+    raw_sh("find ../graal/truffle/ -type f -name '*.java' -exec grep -q 'RetentionPolicy\.CLASS' '{}' \\; -exec sed -i.jtbak 's/RetentionPolicy\.CLASS/RetentionPolicy\.RUNTIME/g' '{}' \\;")
+
     check_dsl_usage unless args.delete '--no-build'
     check_filename_length
     rubocop
@@ -1997,6 +2000,9 @@ EOS
     check_parser
     check_documentation_urls
     mx 'findbugs'
+
+    # Revert the changes we made to the Truffle source.
+    raw_sh("find ../graal/truffle/ -name '*.jtbak' -exec sh -c 'mv -f $0 ${0%.jtbak}' '{}' \\;")
   end
 
   def verify_native_bin!
