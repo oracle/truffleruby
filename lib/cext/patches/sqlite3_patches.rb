@@ -87,11 +87,11 @@ class SQLite3Patches < CommonPatches
         },
         { # exec_batch
           match: 'status = sqlite3_exec(ctx->db, StringValuePtr(sql), hash_callback_function, callback_ary, &errMsg);',
-          replacement: 'status = sqlite3_exec(ctx->db, StringValuePtr(sql), hash_callback_function, rb_tr_handle_for_managed_leaking(callback_ary), &errMsg);'
+          replacement: '{VALUE handle = rb_tr_handle_for_managed(callback_ary); status = sqlite3_exec(ctx->db, StringValuePtr(sql), hash_callback_function, handle, &errMsg); rb_tr_release_handle(handle);}'
         },
         { # exec_batch
           match: 'status = sqlite3_exec(ctx->db, StringValuePtr(sql), regular_callback_function, callback_ary, &errMsg);',
-          replacement: 'status = sqlite3_exec(ctx->db, StringValuePtr(sql), regular_callback_function, rb_tr_handle_for_managed_leaking(callback_ary), &errMsg);'
+          replacement: '{VALUE handle = rb_tr_handle_for_managed(callback_ary); status = sqlite3_exec(ctx->db, StringValuePtr(sql), regular_callback_function, handle, &errMsg); rb_tr_release_handle(handle);}'
         }
       ]
     }
