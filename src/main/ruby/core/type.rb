@@ -529,11 +529,11 @@ module Truffle
       offset = String.try_convert(offset) || offset
 
       if offset.kind_of?(String)
-        unless offset.encoding.ascii_compatible? && offset.match(/\A(\+|-)(\d\d):(\d\d)\z/)
+        unless offset.encoding.ascii_compatible? && offset.match(/\A(\+|-)(\d\d):(\d\d)(?::(\d\d))?\z/)
           raise ArgumentError, '"+HH:MM" or "-HH:MM" expected for utc_offset'
         end
 
-        offset = $2.to_i*60*60 + $3.to_i*60
+        offset = $2.to_i*60*60 + $3.to_i*60 + ( $4 || '0' ).to_i
         offset = -offset if $1.ord == 45
       else
         offset = Truffle::Type.coerce_to_exact_num(offset)

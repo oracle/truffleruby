@@ -8,6 +8,10 @@ New features:
 * Ubuntu 18.04 LTS is now supported.
 * macOS 10.14 (Mojave) is now supported.
 
+Bug fixes
+
+* Times can now be created with UTC offsets in `+/-HH:MM:SS` format.
+
 Changes:
 
 * Random seeds now use Java's `NativePRNGNonBlocking`.
