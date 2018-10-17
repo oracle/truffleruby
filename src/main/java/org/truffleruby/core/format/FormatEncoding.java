@@ -39,6 +39,23 @@ public enum FormatEncoding {
         }
     }
 
+    public static FormatEncoding find(Encoding encoding) {
+        if (encoding == ASCIIEncoding.INSTANCE) {
+            return ASCII_8BIT;
+        }
+
+        if (encoding == USASCIIEncoding.INSTANCE) {
+            return US_ASCII;
+        }
+
+        if (encoding == UTF8Encoding.INSTANCE) {
+            return UTF_8;
+        }
+
+        // TODO (kjmenard 17-Oct-18): This entire enum needs to be rethought since a format string can take on any encoding, not just the 3 codified here.
+        throw new UnsupportedOperationException("Can't find format encoding for " + new String(encoding.getName()));
+    }
+
     /**
      * Given the current encoding for a pack string, and something that requires
      * another encoding, give us the encoding that we should use for the result

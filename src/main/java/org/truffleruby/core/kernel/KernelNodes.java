@@ -1781,7 +1781,7 @@ public abstract class KernelNodes {
         protected CallTarget compileFormat(DynamicObject format, Object[] arguments, boolean isDebug) {
             try {
                 return new PrintfCompiler(getContext(), this)
-                        .compile(StringOperations.rope(format).getBytes(), arguments, isDebug);
+                        .compile(StringOperations.rope(format), arguments, isDebug);
             } catch (InvalidFormatException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
