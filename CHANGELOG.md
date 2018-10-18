@@ -18,6 +18,10 @@ New features:
 Bug fixes
 
 * Times can now be created with UTC offsets in `+/-HH:MM:SS` format.
+* `Proc#to_s` now has `ASCII-8BIT` as its encoding instead of the
+  incorrect `UTF-8`.
+* `String#%` now has the correct encoding for `UTF-8` and `US-ASCII`
+  format strings, instead of the incorrect `ASCII-8BIT`.
 
 Changes:
 

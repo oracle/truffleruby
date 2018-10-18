@@ -14,6 +14,7 @@ import com.oracle.truffle.api.Truffle;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.format.FormatEncoding;
 import org.truffleruby.core.format.FormatRootNode;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.RubyNode;
 
 import java.util.List;
@@ -28,14 +29,14 @@ public class PrintfCompiler {
         this.currentNode = currentNode;
     }
 
-    public CallTarget compile(byte[] format, Object[] arguments, boolean isDebug) {
-        final PrintfSimpleParser parser = new PrintfSimpleParser(bytesToChars(format), arguments, isDebug);
+    public CallTarget compile(Rope format, Object[] arguments, boolean isDebug) {
+        final PrintfSimpleParser parser = new PrintfSimpleParser(bytesToChars(format.getBytes()), arguments, isDebug);
         final List<SprintfConfig> configs = parser.parse();
         final PrintfSimpleTreeBuilder builder = new PrintfSimpleTreeBuilder(context, configs);
 
         return Truffle.getRuntime().createCallTarget(
             new FormatRootNode(context, currentNode.getEncapsulatingSourceSection(),
-                FormatEncoding.DEFAULT, builder.getNode()));
+                FormatEncoding.find(format.getEncoding()), builder.getNode()));
     }
 
     private static char[] bytesToChars(byte[] bytes) {

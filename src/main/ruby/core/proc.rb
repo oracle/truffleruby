@@ -90,9 +90,9 @@ class Proc
 
     l = ' (lambda)' if lambda?
     if file and line
-      "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{file}:#{line}#{l}>"
+      "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{file}:#{line}#{l}>".force_encoding('ASCII-8BIT')
     else
-      "#<#{self.class}:0x#{self.object_id.to_s(16)}#{l}>"
+      "#<#{self.class}:0x#{self.object_id.to_s(16)}#{l}>".force_encoding('ASCII-8BIT')
     end
   end
 

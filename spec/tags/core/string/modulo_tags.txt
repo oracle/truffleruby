@@ -1,0 +1,3 @@
+fails:String#% output's encoding is the same as the format string if passed value is encoding-compatible
+fails:String#% output's encoding negotiates a compatible encoding if necessary
+fails:String#% output's encoding raises if a compatible encoding can't be found
