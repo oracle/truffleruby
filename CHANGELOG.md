@@ -1,5 +1,11 @@
 # 1.0
 
+Security:
+
+* CVE-2018-16396, *tainted flags are not propagated in Array#pack and
+  String#unpack with some directives* has been mitigated by adding additional
+  taint operations.
+
 New features:
 
 * `Java.synchronized(object) { }` and `TruffleRuby.synchronized(object) { }`

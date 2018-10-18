@@ -24,7 +24,8 @@ https://www.ruby-lang.org/en/security/.
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
-CVE-2018-6914 | Unintentional file and directory creation with directory traversal in `tempfile` and `tmpdir` | Sanitation of paths | Tested in ruby/spec `:security` | Sanitation of paths
+CVE-2018-16396 | Tainted flags are not propagated in `Array#pack` and `String#unpack` with some directives | Additional taint operations | Tested in ruby/spec `:security` | Additional taint operations
+CVE-2018-6914 | Unintentional file and directory creation with directory traversal in `tempfile` and `tmpdir` | Sanitization of paths | Tested in ruby/spec `:security` | Sanitization of paths
 CVE-2018-8779 | Unintentional socket creation by poisoned NUL byte in `UNIXServer` and `UNIXSocket` | Check for NUL bytes | Tested in ruby/spec `:security` | Check for NUL bytes
 CVE-2018-8780 | Unintentional directory traversal by poisoned NUL byte in `Dir` | Check for NUL bytes | Tested in ruby/spec `:security` | Check for NUL bytes
 CVE-2018-8777 | DoS by large request in WEBrick | Logic for header length | Tested in MRI `test/webrick/test_httpserver.rb` | We share the same code, so also have the mitigation
