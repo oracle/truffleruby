@@ -1,8 +1,26 @@
 # A simple blog
 
+This is a simple blog application that demonstrates running Rails, with the
+option of using several different database backends.
+
+## System dependencies
+
+You need to install system packages for SQLite, MySQL and PostgreSQL (whether
+you are using MRI, TruffleRuby or Rubinius.)
+
+On macOS:
+
+```
+$ brew install sqlite mysql postgresql
+$ brew tap homebrew/services
+```
+
+## Initial generation
+
 The base of the application was generated with:
-```bash
-rails new blog \ 
+
+```
+$ rails new blog \
   --database=sqlite3 \
   --skip-git \
   --skip-bundle \
@@ -20,49 +38,120 @@ rails new blog \
   --skip-bootsnap \
   --skip-listen
 ```
-Then the source code of the old blog app running on rails 4.2 was ported over. 
+
+These skip options are needed for TruffleRuby at the moment but we're working
+on removing them.
+
+In our `Gemfile` we had depended on Concurrent Ruby `>= 1.1.0.pre2` to get
+some fixes. By default we would be using `1.0.5`, and when it is released we
+will be able to use `1.1.0`. You will see an error about TruffleRuby being
+an unsupported Ruby implementation if you try to use `1.0.5`.
 
 ## Setup
 
-List of steps to get the web server running follow. 
-If a step is required specially just for TruffleRuby it is explicitly mentioned, 
-otherwise it is a standard step for all Ruby implementations.
+These commands are the same for any implementation of Ruby. To use TruffleRuby
+in a source repository, you need to put `bin` on your `$PATH`, as Rails starts
+sub-rubies using `system`.
 
-* `gem install bundler`
-* `bundle config --local build.nokogiri --use-system-libraries`
-  * required by nokogiri to work on TruffleRuby
-  * can be left enabled for MRI as well when testing, it works
-* `bundle config --local without postgresql mysql`
-  * disable gem groups which would install pg and mysql drivers
-* `bin/setup`
-* `bundle exec rails server`
-* Go to <http://localhost:3000>
+This is the standard command to install Bundler.
 
-## Using different DB drivers
+```
+$ gem install bundler
+```
 
-Rails by default have 3 environments: `development`, `test`, `production`.
-Those are configured to use sqlite database. 
+On TruffleRuby you currently need to use the system version of `libxml` as a
+dynamic library, rather than the vendored version as a static library. Without
+this you will see an error while attempting to make the static link.
 
-This application has extra environments to run with different database driver.
-It has triplet of environments for postgresql database: 
-`development-postgresql`, `test-postgresql`, `production-postgresql`. 
-And another triplet for mysql: `development-mysql`, `test-mysql`, `production-mysql`.
+```
+$ bundle config --local build.nokogiri --use-system-libraries
+```
 
-To enable the e.g. mysql driver run `bundle config --local without postgresql` 
-which removes mysql driver group from the exclusion list. 
-Then rerun `bin/setup`, which installs the driver gem and creates the database. 
+Then the standard command to install dependencies and setup the database.
 
-Rails commands have options to specify the environment they should be executed in.
-Therefore, to run the web sever with mysql execute `bundle exec rails server -e development-mysql`,
-or to run the rails console execute `bundle exec rails console development-mysql`. 
- 
-## Workarounds
+```
+$ bin/setup
+```
 
-* nokogiri has to install with system libraries
-* the application was generated with lots of skipped standard parts
-  * needs to be explored, it's expected to mostly work
-* concurrent-ruby has to be specified to version '>= 1.1.0.pre2' in Gemfile
-  * can be removed once 1.1.0 is released
+And the standard command to start Rails.
 
+```
+$ bundle exec rails server
+```
 
-`bundle config --local cache_path ...`
+You can now visit http://localhost:3000.
+
+## Using different DB backends
+
+Rails applications by default have three environments: `development`, `test`,
+`production`. Those are configured in the blog application to use SQLite as
+the database.
+
+This application has additional environments to run with a different database
+driver. `development-postgresql`, `test-postgresql` and
+`production-postgresql` use PostgreSQL. `development-mysql`, `test-mysql`, and
+`production-mysql` use MySQL.
+
+To switch to a different database driver, set the `RAILS_ENV` environment
+variable, then run `bin/setup` again.
+
+```
+$ export RAILS_ENV=development-mysql
+$ bin/setup
+$ bundle exec rails server
+```
+
+Except for SQLite, you will need to actually run the database service for the
+application separately.
+
+```
+$ brew services start mysql
+$ brew services stop mysql
+```
+
+PostgreSQL will not work on TruffleRuby yet.
+
+## Comparison to JRuby
+
+JRuby does not support C extensions, so the gems `sqlite3`, `mysql2` and `pg`
+need to be replaced. The JRuby wiki recommends using
+`activerecord-jdbcsqlite3-adapter`, `activerecord-jdbcmysql-adapter `, and
+`activerecord-jdbcpostgresql-adapter` instead.
+
+You could add a new `:jruby` platform to the Gemfile to allow this to work on
+JRuby but still keep working on MRI, TruffleRuby and Rubinius, or you could
+just replace the gem names if you only wanted to run on JRuby.
+
+If you don't replace the C extensions you will see a failure as MySQL looks
+for `rb_absint_size`.
+
+With the gem changes the app should work as on MRI.
+
+## Comparison to Rubinius
+
+The `mysql2` C extension does not compile on Rubinius, as `ST_CONTINUE` is not
+supported https://github.com/rubinius/rubinius/issues/3795. MySQL can be
+disabled using `config`.
+
+```
+$ bundle config --local without mysql
+```
+
+PostgreSQL also does not compile on Rubinius, as `ENCODING_SET_INLINED` is not
+supported https://owo.codes/owo/ruby-pg/commit/fab02db59c5158e350702869809fd9deb9009641.
+PostgreSQL can be disabled as well using `config`.
+
+```
+$ bundle config --local without postgresql mysql
+```
+
+`bin/setup` then fails on Rubinus 3.107 while preparing the database, either
+with a `SIGSEGV` in the garbage collector while parsing
+https://github.com/rubinius/rubinius/issues/3807, or with `racc` not being
+supported https://github.com/rubinius/rubinius/issues/2632.
+
+You can add `gem "racc"` to your `Gemfile` to work around this.
+
+You will then see
+`Circular dependency detected while autoloading constant PostsController`
+while attempting to view a page.
