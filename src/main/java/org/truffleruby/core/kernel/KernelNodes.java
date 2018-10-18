@@ -1688,7 +1688,6 @@ public abstract class KernelNodes {
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class SprintfNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode;
         @Child private StringNodes.MakeStringNode makeStringNode;
         @Child private TaintNode taintNode;
         @Child private BooleanCastNode readDebugGlobalNode = BooleanCastNodeGen.create(ReadGlobalVariableNodeGen.create("$DEBUG"));
@@ -1749,21 +1748,15 @@ public abstract class KernelNodes {
                 bytes = Arrays.copyOf(bytes, result.getOutputLength());
             }
 
-            if (makeLeafRopeNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                makeLeafRopeNode = insert(RopeNodes.MakeLeafRopeNode.create());
-            }
-
             if (makeStringNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 makeStringNode = insert(StringNodes.MakeStringNode.create());
             }
 
-            final DynamicObject string = makeStringNode.fromRope(makeLeafRopeNode.executeMake(
+            final DynamicObject string = makeStringNode.executeMake(
                     bytes,
                     result.getEncoding().getEncodingForLength(formatLength),
-                    result.getStringCodeRange(),
-                    result.getOutputLength()));
+                    result.getStringCodeRange());
 
             if (result.isTainted()) {
                 if (taintNode == null) {
