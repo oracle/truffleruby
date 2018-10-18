@@ -6,32 +6,30 @@ have success with later versions, but we don't actively test these.
 
 ## Oracle Linux
 
-The tested version of LLVM for Oracle Linux 7 is 3.8.
+The tested version of LLVM for Oracle Linux 7 is 4.0.
 
-Oracle Linux does not include recent-enough LLVM packages, so you will have to
-[build LLVM from scratch](https://llvm.org/docs/CMake.html). You'll need to
-include at least the `libcxx` packages for running, and `clang` for building.
-
-`tool/llvm-ol7` is a Dockerfile for generating a binary tarball of LLVM for
-Oracle Linux 7.
-
-For building and running C extensions you will also need to install (in order
-to get several basic system libraries):
+For building C extensions you need to install:
 
 ```
-yum install -y gcc
+yum install -y make
+yum-config-manager --enable ol7_developer
+yum-config-manager --enable ol7_software_collections
+yum install -y llvm-toolset-7
+export PATH=$PATH:/opt/rh/llvm-toolset-7/root/usr/bin
+export LD_LIBRARY_PATH=/opt/rh/llvm-toolset-7/root/usr/lib64
 ```
 
-For using C++ extensions you will also need to install:
+For using C++ extensions you also need to install:
 
 ```
-yum install libstdc++
+yum-config-manager --enable ol7_developer_EPEL
+yum install libcxx
 ```
 
 And for building C++ extensions:
 
 ```
-yum install libstdc++-devel
+yum install libcxx-devel
 ```
 
 ## Ubuntu
@@ -44,7 +42,7 @@ For building C extensions you need to install:
 apt-get install make clang llvm
 ```
 
-For building and using C++ extensions you need to install:
+For building and using C++ extensions you also need to install:
 
 ```
 apt-get install libc++-dev libc++abi-dev    # on 18.04
@@ -64,7 +62,7 @@ For building C extensions you need to install:
 sudo dnf install make clang llvm
 ```
 
-For using C++ extensions you need to install:
+For using C++ extensions you also need to install:
 
 ```
 sudo dnf install libcxx

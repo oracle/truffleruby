@@ -13,6 +13,7 @@ New features:
 * Added a `TruffleRuby::AtomicReference` class.
 * Ubuntu 18.04 LTS is now supported.
 * macOS 10.14 (Mojave) is now supported.
+* LLVM for Oracle Linux 7 can now be installed without building from source.
 
 Bug fixes
 
@@ -25,6 +26,8 @@ Changes:
 * The FFI gem has been updated from 1.9.18 to 1.9.25.
 * JCodings has been updated from 1.0.30 to 1.0.40.
 * Joni has been updated from 2.1.16 to 2.1.25.
+* The supported version of LLVM for Oracle Linux has been updated from 3.8
+  to 4.0.
 
 Performance
 
