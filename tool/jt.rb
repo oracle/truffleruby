@@ -460,21 +460,21 @@ module Commands
       jt env                                         prints the current environment
       jt rebuild                                     clean, sforceimports, and build
       jt dis <file>                                  finds the bc file in the project, disassembles, and returns new filename
-      jt ruby [options] args...                      run TruffleRuby with args
+      jt ruby [jt options] [--] [ruby options] args...  
+                                                     run TruffleRuby with args
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME, or have graal built as a sibling)
               --stress    stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
           --asm           show assembly (implies --graal)
           --server        run an instrumentation server on port 8080
           --igv           make sure IGV is running and dump Graal graphs after partial escape (implies --graal)
-              --full      show all phases, not just up to the Truffle partial escape
+          --igv-full      show all phases, not just up to the Truffle partial escape
           --infopoints    show source location for each node in IGV
           --fg            disable background compilation
           --trace         show compilation information on stdout
           --jdebug        run a JDWP debug server on #{JDEBUG_PORT}
           --jexception[s] print java exceptions
           --exec          use exec rather than system
-          --no-print-cmd  don\'t print the command
-          @argument       pass argument to Ruby without processing it in JT (for example @--trace to pass the --trace argument)
+          --no-print-cmd  don\'t print the command          
       jt gem                                         shortcut for `jt ruby -S gem`, to install Ruby gems, etc
       jt e 14 + 2                                    evaluate an expression
       jt puts 14 + 2                                 evaluate and print an expression
@@ -638,24 +638,64 @@ module Commands
   def run_ruby(*args)
     env_vars = args.first.is_a?(Hash) ? args.shift : {}
     options = args.last.is_a?(Hash) ? args.pop : {}
-    native = args.delete('--native')
 
-    vm_args = []
+    raise ArgumentError, args.inspect + ' has non-String values' if args.any? { |v| not v.is_a? String }
 
-    {
-      '--asm' => '--graal',
-      '--stress' => '--graal',
-      '--igv' => '--graal',
-      '--trace' => '--graal',
-    }.each_pair do |arg, dep|
-      args.unshift dep if args.include?(arg)
+    native = false
+    graal = false
+    ruby_args = []
+    vm_args = [core_load_path = "-Xcore.load_path=#{TRUFFLERUBY_DIR}/src/main/ruby"]
+
+    while (arg = args.shift)
+      case arg
+      when '--native'
+        native = true
+      when '--no-core-load-path'
+        vm_args.delete core_load_path
+      when '--graal'
+        graal = true
+      when '--stress'
+        graal = true
+        vm_args << '-J-Dgraal.TruffleCompileImmediately=true'
+        vm_args << '-J-Dgraal.TruffleBackgroundCompilation=false'
+        vm_args << '-J-Dgraal.TruffleCompilationExceptionsAreFatal=true'
+      when '--asm'
+        graal = true
+        vm_args += %w[-J-XX:+UnlockDiagnosticVMOptions -J-XX:CompileCommand=print,*::callRoot]
+      when '--jdebug'
+        vm_args << JDEBUG
+      when '--jexception', '--jexceptions'
+        vm_args << JEXCEPTION
+      when '--server'
+        vm_args += %w[-Xinstrumentation_server_port=8080]
+      when '--infopoints'
+        vm_args << "-J-XX:+UnlockDiagnosticVMOptions" << "-J-XX:+DebugNonSafepoints"
+        vm_args << "-J-Dgraal.TruffleEnableInfopoints=true"
+      when '--fg'
+        vm_args << "-J-Dgraal.TruffleBackgroundCompilation=false"
+      when '--trace'
+        graal = true
+        vm_args << "-J-Dgraal.TraceTruffleCompilation=true"
+      when '--igv', '--igv-full'
+        graal = true
+        vm_args << (arg == '--igv-full') ? "-J-Dgraal.Dump=:2" : "-J-Dgraal.Dump=TruffleTree,PartialEscape:2"
+        vm_args << "-J-Dgraal.PrintGraphFile=true" unless Utilities.igv_running?
+        vm_args << "-J-Dgraal.PrintBackendCFG=false"
+      when '--no-print-cmd'
+        options[:no_print_cmd] = true
+      when '--exec'
+        options[:use_exec] = true
+      when '--'
+        # marks rest of the options as Ruby arguments, stop parsing jt options
+        break
+      else
+        ruby_args.push arg
+      end
     end
 
-    unless args.delete('--no-core-load-path')
-      vm_args << "-Xcore.load_path=#{TRUFFLERUBY_DIR}/src/main/ruby"
-    end
+    ruby_args += args
 
-    if args.delete('--graal')
+    if graal
       if ENV["RUBY_BIN"] || native
         # Assume that Graal is automatically set up if RUBY_BIN is set or using a native image.
       else
@@ -665,76 +705,16 @@ module Commands
       end
     end
 
-    if args.delete('--stress')
-      vm_args << '-J-Dgraal.TruffleCompileImmediately=true'
-      vm_args << '-J-Dgraal.TruffleBackgroundCompilation=false'
-      vm_args << '-J-Dgraal.TruffleCompilationExceptionsAreFatal=true'
-    end
-
-    if args.delete('--asm')
-      vm_args += %w[-J-XX:+UnlockDiagnosticVMOptions -J-XX:CompileCommand=print,*::callRoot]
-    end
-
-    if args.delete('--jdebug')
-      vm_args << JDEBUG
-    end
-
-    if args.delete('--jexception') || args.delete('--jexceptions')
-      vm_args << JEXCEPTION
-    end
-
-    if args.delete('--server')
-      vm_args += %w[-Xinstrumentation_server_port=8080]
-    end
-
-    if args.delete('--igv')
-      if args.delete('--full')
-        vm_args << "-J-Dgraal.Dump=:2"
-      else
-        vm_args << "-J-Dgraal.Dump=TruffleTree,PartialEscape:2"
-      end
-      vm_args << "-J-Dgraal.PrintGraphFile=true" unless Utilities.igv_running?
-      vm_args << "-J-Dgraal.PrintBackendCFG=false"
-    end
-
-    if args.delete('--infopoints')
-      vm_args << "-J-XX:+UnlockDiagnosticVMOptions" << "-J-XX:+DebugNonSafepoints"
-      vm_args << "-J-Dgraal.TruffleEnableInfopoints=true"
-    end
-
-    if args.delete('--fg')
-      vm_args << "-J-Dgraal.TruffleBackgroundCompilation=false"
-    end
-
-    if args.delete('--trace')
-      vm_args << "-J-Dgraal.TraceTruffleCompilation=true"
-    end
-
-    if args.delete('--no-print-cmd')
-      options[:no_print_cmd] = true
-    end
-
-    if args.delete('--exec')
-      options[:use_exec] = true
-    end
-
-    args.map! do |arg|
-      if arg.start_with?('@')
-        arg[1..-1]
-      else
-        arg
-      end
-    end
-
     ruby_bin = Utilities.find_launcher(native)
 
-    raw_sh env_vars, ruby_bin, *vm_args, *args, options
+    raw_sh env_vars, ruby_bin, *vm_args, *ruby_args, options
   end
   private :run_ruby
 
   # Same as #run but uses exec()
   def ruby(*args)
-    run_ruby(*args, '--exec')
+    env = args.first.is_a?(Hash) ? args.shift : {}
+    run_ruby(env, '--exec', *args)
   end
 
   # Legacy alias
@@ -2204,7 +2184,7 @@ EOS
 
       # Disable compiler warnings as errors, as we may be using a more recent compiler
       lines.push "RUN sed -i 's/WARNINGS_ARE_ERRORS = -Werror/WARNINGS_ARE_ERRORS = /g' graal-jvmci-8/make/linux/makefiles/gcc.make"
-      
+
       lines.push "RUN cd graal-jvmci-8 && JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac)))) mx build"
       lines.push "ENV JAVA_HOME=/test/graal-jvmci-8/#{distro.fetch('jdk')}/linux-amd64/product"
       lines.push "ENV JAVA_BIN=$JAVA_HOME/bin/java"
