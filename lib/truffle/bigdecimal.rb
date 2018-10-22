@@ -236,7 +236,7 @@ class Truffle::BigDecimal < Numeric
                add_spaces_to_s(before_dot, true, space_frequency),
                add_spaces_to_s(after_dot, false, space_frequency)
       else
-        format '%s0.%sE%d',
+        format '%s0.%se%d',
                prefix,
                add_spaces_to_s(unscaled_value, false, space_frequency),
                exponent_value
