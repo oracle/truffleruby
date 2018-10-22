@@ -205,7 +205,7 @@ class Truffle::BigDecimal < Numeric
 
   def to_s(format = 'E')
     if finite?
-      float_format    = format[-1] == 'F'
+      float_format    = format[-1] == 'F' || format[-1] == 'f'
       space_frequency = format.to_i
       prefix          = if self > 0 && [' ', '+'].include?(format[0])
                           format[0]

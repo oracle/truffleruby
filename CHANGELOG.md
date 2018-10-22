@@ -19,6 +19,8 @@ Bug fixes
   format strings, instead of the incorrect `ASCII-8BIT`.
 * Updated `BigDecimal#to_s` to use `e` instead of `E` for exponent
   notation.
+* Fixed `BigDecimal#to_s` to allow `f` as a format flag to indicate
+  conventional floating point notation. Previously only `F` was allowed.
 
 Changes:
 
