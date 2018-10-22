@@ -22,6 +22,8 @@ Changes:
 
 * The supported version of LLVM for Oracle Linux has been updated from 3.8
   to 4.0.
+* `mysql2` is now patched to avoid a bug in passing `NULL` to
+  `rb_scan_args`, and now passes the majority of its test suite.
 
 # 1.0 RC 8
 

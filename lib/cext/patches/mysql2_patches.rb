@@ -65,7 +65,11 @@ EOF
           match: /if \(stmt_wrapper->refcount == 0\) {/,
           replacement: MYSQL2_FREE_STATEMENT
         },
-        *read_write_array('params_enc', true)
+        *read_write_array('params_enc', true),
+        {
+          match: 'int c = rb_scan_args(argc, argv, "*:", NULL, &opts);',
+          replacement: 'VALUE dummy; int c = rb_scan_args(argc, argv, "*:", &dummy, &opts);'
+        }
       ]
     },
   }
