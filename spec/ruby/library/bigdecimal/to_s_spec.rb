@@ -71,10 +71,12 @@ describe "BigDecimal#to_s" do
   end
 
   it "can use conventional floating point notation" do
-    @bigdec.to_s("F").should == @bigdec_str
-    @bigneg.to_s("F").should == @bigneg_str
-    str2 = "+123.45678901 23456789"
-    BigDecimal('123.45678901234567890').to_s('+8F').should == str2
+    %w[f F].each do |format_char|
+      @bigdec.to_s(format_char).should == @bigdec_str
+      @bigneg.to_s(format_char).should == @bigneg_str
+      str2 = "+123.45678901 23456789"
+      BigDecimal('123.45678901234567890').to_s("+8#{format_char}").should == str2
+    end
   end
 
 end
