@@ -20,29 +20,30 @@ public abstract class MethodFilter {
     public static final MethodFilter PUBLIC = new MethodFilter() {
         @Override
         public boolean filter(InternalMethod method) {
-            return method.getVisibility() == Visibility.PUBLIC;
+            return isNotDefinedInRefinementOnly(method) && method.getVisibility() == Visibility.PUBLIC;
         }
     };
 
     public static final MethodFilter PUBLIC_PROTECTED = new MethodFilter() {
         @Override
         public boolean filter(InternalMethod method) {
-            return method.getVisibility() == Visibility.PUBLIC ||
-                    method.getVisibility() == Visibility.PROTECTED;
+            return isNotDefinedInRefinementOnly(method) && (
+                    method.getVisibility() == Visibility.PUBLIC ||
+                    method.getVisibility() == Visibility.PROTECTED);
         }
     };
 
     public static final MethodFilter PROTECTED = new MethodFilter() {
         @Override
         public boolean filter(InternalMethod method) {
-            return method.getVisibility() == Visibility.PROTECTED;
+            return isNotDefinedInRefinementOnly(method) && method.getVisibility() == Visibility.PROTECTED;
         }
     };
 
     public static final MethodFilter PRIVATE = new MethodFilter() {
         @Override
         public boolean filter(InternalMethod method) {
-            return method.getVisibility() == Visibility.PRIVATE;
+            return isNotDefinedInRefinementOnly(method) && method.getVisibility() == Visibility.PRIVATE;
         }
     };
 
@@ -59,6 +60,10 @@ public abstract class MethodFilter {
             default:
                 throw new IllegalArgumentException("unsupported visibility: " + visibility);
         }
+    }
+
+    private static boolean isNotDefinedInRefinementOnly(InternalMethod method) {
+        return !method.isRefined() || method.getOriginalMethod() != null;
     }
 
 }
