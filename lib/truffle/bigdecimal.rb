@@ -205,7 +205,7 @@ class Truffle::BigDecimal < Numeric
 
   def to_s(format = 'E')
     if finite?
-      float_format    = format[-1] == 'F'
+      float_format    = format[-1] == 'F' || format[-1] == 'f'
       space_frequency = format.to_i
       prefix          = if self > 0 && [' ', '+'].include?(format[0])
                           format[0]
@@ -236,7 +236,7 @@ class Truffle::BigDecimal < Numeric
                add_spaces_to_s(before_dot, true, space_frequency),
                add_spaces_to_s(after_dot, false, space_frequency)
       else
-        format '%s0.%sE%d',
+        format '%s0.%se%d',
                prefix,
                add_spaces_to_s(unscaled_value, false, space_frequency),
                exponent_value
