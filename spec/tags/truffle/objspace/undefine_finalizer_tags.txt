@@ -1,0 +1,1 @@
+fails:ObjectSpace.undefine_finalizer if not used leaves the finalizer in place
