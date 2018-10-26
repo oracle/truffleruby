@@ -1,4 +1,4 @@
-# 1.0
+# 1.0 RC 9
 
 Security:
 
@@ -29,7 +29,7 @@ Changes:
 * `mysql2` is now patched to avoid a bug in passing `NULL` to
   `rb_scan_args`, and now passes the majority of its test suite.
 
-# 1.0 RC 8
+# 1.0 RC 8, October 2018
 
 New features:
 
@@ -51,7 +51,7 @@ Performance
 
 * Performance of setting the last exception on a thread has now been improved.
 
-# 1.0 RC 7
+# 1.0 RC 7, October 2018
 
 New features:
 
