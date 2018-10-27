@@ -104,4 +104,25 @@ describe "Time.new with a utc_offset argument" do
     Time.new(2000, 1, 1, 0, 0, 0, 86400 - 1).utc_offset.should == (86400 - 1)
     lambda { Time.new(2000, 1, 1, 0, 0, 0, 86400) }.should raise_error(ArgumentError)
   end
+
+  it "raises ArgumentError if the seconds argument is negative" do
+    lambda { Time.new(2000, 1, 1, 0, 0, -1) }.should raise_error(ArgumentError)
+  end
+
+  it "raises ArgumentError if the utc_offset argument is greater than or equal to 10e9" do
+    lambda { Time.new(2000, 1, 1, 0, 0, 0, 1000000000) }.should raise_error(ArgumentError)
+  end
+end
+
+ruby_version_is "2.6" do
+  describe "Time.new with a timezone argument" do
+    it "returns a Time correspoinding to UTC time returned by local_to_utc" do
+      zone = mock('timezone')
+      zone.should_receive(:local_to_utc).and_return(Time::TM.new(2000, 1, 1, 6, 30, 0))
+      t = Time.new(2000, 1, 1, 12, 0, 0, zone)
+      t.to_a[0, 6].should == [0, 0, 12, 1, 1, 2000]
+      t.utc_offset.should == 19800
+      t.zone.should == zone
+    end
+  end
 end
