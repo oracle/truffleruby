@@ -51,7 +51,7 @@ TruffleRuby.
 before the barrier with loads or stores after the barrier.
 
 `TruffleRuby.synchronized(object) { }` will run the block while holding an
-implicit block per object instance.
+implicit lock per object instance.
 
 ### Atomic references
 
