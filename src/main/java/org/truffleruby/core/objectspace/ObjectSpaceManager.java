@@ -40,6 +40,7 @@ package org.truffleruby.core.objectspace;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 
@@ -74,7 +75,7 @@ public class ObjectSpaceManager {
         this.finalizationService = finalizationService;
     }
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     public synchronized FinalizationService.FinalizerReference defineFinalizer(DynamicObject object, FinalizationService.FinalizerReference ref, Object callable) {
         final DynamicObject root;
         if (callable instanceof DynamicObject) {
@@ -108,6 +109,7 @@ public class ObjectSpaceManager {
 
     }
 
+    @TruffleBoundary
     public synchronized FinalizationService.FinalizerReference undefineFinalizer(DynamicObject object, FinalizationService.FinalizerReference ref) {
         return finalizationService.removeFinalizers(object, ref, ObjectSpaceManager.class);
     }
