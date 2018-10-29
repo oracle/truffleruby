@@ -90,7 +90,7 @@ if [ -n "$UPLOAD_URL" ]; then
 fi
 
 # Test the post-install hook
-"$release_home/lib/truffle/post_install_hook.sh"
+TRUFFLERUBY_RECOMPILE_OPENSSL=true "$release_home/lib/truffle/post_install_hook.sh"
 
 # Test the built distribution
 
