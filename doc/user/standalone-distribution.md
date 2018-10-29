@@ -25,10 +25,13 @@ If you use another continuous integration system, you can follow these
 instructions to run TruffleRuby in CI.
 
 In short, one only needs to download and extract the archive, add it to `PATH`
-and run the post-install script:
+and run the post-install script.
+
+Set `TRUFFLERUBY_VERSION` to the latest TruffleRuby version from
+[GitHub releases](https://github.com/oracle/truffleruby/releases).
 
 ```bash
-export TRUFFLERUBY_VERSION=1.0.0-rc3
+export TRUFFLERUBY_VERSION=<desired_version>
 export TRUFFLERUBY_RESILIENT_GEM_HOME=true
 curl -L https://github.com/oracle/truffleruby/releases/download/vm-$TRUFFLERUBY_VERSION/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64.tar.gz | tar xz
 export PATH="$PWD/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64/bin:$PATH"
@@ -48,7 +51,10 @@ For TravisCI, we
 [plan to integrate](https://github.com/travis-ci/travis-ci/issues/9803)
 directly so one could just use `rvm: truffleruby` in the build matrix.
 However, this is not complete yet. In the meantime, the following example
-configuration can be used:
+configuration can be used.
+
+Set `TRUFFLERUBY_VERSION` to the latest TruffleRuby version from
+[GitHub releases](https://github.com/oracle/truffleruby/releases).
 
 ```yaml
 script:
@@ -59,7 +65,7 @@ matrix:
   - name: TruffleRuby
     rvm: system
     install:
-      - export TRUFFLERUBY_VERSION=1.0.0-rc3
+      - export TRUFFLERUBY_VERSION=<desired_version>
       - curl -L https://github.com/oracle/truffleruby/releases/download/vm-$TRUFFLERUBY_VERSION/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64.tar.gz | tar xz
       - export PATH="$PWD/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64/bin:$PATH"
       - $PWD/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64/lib/truffle/post_install_hook.sh
