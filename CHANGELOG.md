@@ -28,6 +28,9 @@ Changes:
   to 4.0.
 * `mysql2` is now patched to avoid a bug in passing `NULL` to
   `rb_scan_args`, and now passes the majority of its test suite.
+* The post-install script now automatically detects if recompiling the OpenSSL
+  C extension is needed. The post-install script should always be run in
+  TravisCI as well, see `doc/user/standalone-distribution.md`.
 
 # 1.0 RC 8, October 2018
 
