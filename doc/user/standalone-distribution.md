@@ -62,12 +62,10 @@ matrix:
       - export TRUFFLERUBY_VERSION=1.0.0-rc3
       - curl -L https://github.com/oracle/truffleruby/releases/download/vm-$TRUFFLERUBY_VERSION/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64.tar.gz | tar xz
       - export PATH="$PWD/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64/bin:$PATH"
+      - $PWD/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64/lib/truffle/post_install_hook.sh
       - gem install bundler
       - bundle install
 ```
-
-Running the post-install script is currently not necessary on TravisCI for
-TruffleRuby 1.0.0-rc3 or more recent, so this step is skipped here.
 
 ## Dependencies
 
