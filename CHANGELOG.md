@@ -28,6 +28,8 @@ Changes:
   to 4.0.
 * `mysql2` is now patched to avoid a bug in passing `NULL` to
   `rb_scan_args`, and now passes the majority of its test suite.
+* Detect when the system libssl is incompatible more accurately and
+  add instructions on how to recompile the extension.
 
 # 1.0 RC 8, October 2018
 
