@@ -2097,7 +2097,7 @@ EOS
     end
 
     distro = config.fetch(distro)
-    run_post_install_hook = rebuild_openssl && distro.fetch('post-install')
+    run_post_install_hook = rebuild_openssl
 
     lines = []
 
