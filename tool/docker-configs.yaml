@@ -31,7 +31,6 @@ ol7:
     - RUN yum install -y libcxx
     - RUN yum install -y libcxx-devel
   rvm:
-  post-install: false
 ubuntu1804:
   base: ubuntu:18.04
   setup:
@@ -60,7 +59,6 @@ ubuntu1804:
   cppext:
     - RUN apt-get install -y libc++-dev libc++abi-dev
   rvm:
-  post-install: true
 ubuntu1604:
   base: ubuntu:16.04
   setup:
@@ -89,7 +87,6 @@ ubuntu1604:
   cppext:
     - RUN apt-get install -y libc++-dev
   rvm:
-  post-install: false
 fedora28:
   base: fedora:28
   setup:
@@ -119,4 +116,3 @@ fedora28:
     - RUN dnf install -y libcxx
   rvm:
     - RUN dnf install -y procps
-  post-install: true

@@ -1133,7 +1133,7 @@ EOS
 
         # Test that running the post-install hook works, even when opt &
         # llvm-link are not on PATH, as it is the case on macOS.
-        sh 'lib/truffle/post_install_hook.sh'
+        sh({'TRUFFLERUBY_RECOMPILE_OPENSSL' => 'true'}, 'lib/truffle/post_install_hook.sh')
 
       when 'gems'
         # Test that we can compile and run some real C extensions
@@ -2097,7 +2097,7 @@ EOS
     end
 
     distro = config.fetch(distro)
-    run_post_install_hook = rebuild_openssl && distro.fetch('post-install')
+    run_post_install_hook = rebuild_openssl
 
     lines = []
 
