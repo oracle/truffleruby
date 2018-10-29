@@ -301,13 +301,7 @@ public abstract class RequireNode extends RubyBaseNode {
             final String postInstallHook = (home != null ? home + "/" : "") + "lib/truffle/post_install_hook.sh";
 
             // Mismatches between the libssl compiled against and the libssl used at runtime (typically on a different machine)
-            if (// These are comments and not part of the error message because they are guesses at best and could be confusing
-                    // the system libssl is configured without SSLv2 support, such as on Ubuntu 16.04
-                    linkError.contains("SSLv2_method cannot be found") ||
-                    // Compiled against 1.0.2, newer libssl used
-                    linkError.contains("SSLv23_method cannot be found") ||
-                    // Compiled against 1.1.0, older libssl used
-                    linkError.contains("TLS_method cannot be found")) {
+            if (feature.contains("openssl")) {
                 message = String.format("%s (%s)",
                         "the OpenSSL C extension was compiled against a different libssl than the one used on this system - recompile by running " + postInstallHook,
                         linkError);

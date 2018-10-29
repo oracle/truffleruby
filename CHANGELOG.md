@@ -31,6 +31,8 @@ Changes:
 * The post-install script now automatically detects if recompiling the OpenSSL
   C extension is needed. The post-install script should always be run in
   TravisCI as well, see `doc/user/standalone-distribution.md`.
+* Detect when the system libssl is incompatible more accurately and
+  add instructions on how to recompile the extension.
 
 # 1.0 RC 8, October 2018
 
