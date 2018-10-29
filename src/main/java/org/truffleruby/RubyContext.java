@@ -465,10 +465,6 @@ public class RubyContext {
 
         atExitManager.runSystemExitHooks();
         threadManager.killAndWaitOtherThreads();
-
-        if (options.RUN_FINALIZERS_ON_EXIT) {
-            finalizationService.runAllFinalizersOnExit();
-        }
     }
 
     private final ReentrantLock disposeLock = new ReentrantLock();

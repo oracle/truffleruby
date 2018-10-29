@@ -48,6 +48,7 @@ public class Pointer implements AutoCloseable {
     private final long address;
     private final long size;
     private boolean autorelease;
+    private FinalizationService.FinalizerReference finalizerRef = null;
 
     public Pointer(long address) {
         this(address, 0);
@@ -231,7 +232,7 @@ public class Pointer implements AutoCloseable {
 
         // We must be careful here that the finalizer does not capture the Pointer itself that we'd
         // like to finalize.
-        finalizationService.addFinalizer(this, Pointer.class, new FreeAddressFinalizer(address));
+        finalizerRef = finalizationService.addFinalizer(this, finalizerRef, Pointer.class, new FreeAddressFinalizer(address));
 
         autorelease = true;
     }
@@ -261,7 +262,7 @@ public class Pointer implements AutoCloseable {
             return;
         }
 
-        finalizationService.removeFinalizers(this, Pointer.class);
+        finalizerRef = finalizationService.removeFinalizers(this, finalizerRef, Pointer.class);
 
         autorelease = false;
     }

@@ -75,7 +75,7 @@ public class ObjectSpaceManager {
     }
 
     @CompilerDirectives.TruffleBoundary
-    public synchronized void defineFinalizer(DynamicObject object, Object callable) {
+    public synchronized FinalizationService.FinalizerReference defineFinalizer(DynamicObject object, FinalizationService.FinalizerReference ref, Object callable) {
         final DynamicObject root;
         if (callable instanceof DynamicObject) {
             root = (DynamicObject) callable;
@@ -83,7 +83,7 @@ public class ObjectSpaceManager {
             root = null;
         }
 
-        finalizationService.addFinalizer(object, ObjectSpaceManager.class,
+        return finalizationService.addFinalizer(object, ref, ObjectSpaceManager.class,
                 new CallableFinalizer(context, callable), root);
     }
 
@@ -108,8 +108,8 @@ public class ObjectSpaceManager {
 
     }
 
-    public synchronized void undefineFinalizer(DynamicObject object) {
-        finalizationService.removeFinalizers(object, ObjectSpaceManager.class);
+    public synchronized FinalizationService.FinalizerReference undefineFinalizer(DynamicObject object, FinalizationService.FinalizerReference ref) {
+        return finalizationService.removeFinalizers(object, ref, ObjectSpaceManager.class);
     }
 
     public void traceAllocationsStart() {
