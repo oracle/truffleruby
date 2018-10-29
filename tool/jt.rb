@@ -25,7 +25,7 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = "965f5e29f433a69557c55bff5832de28710ce31a"
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = "f23314cbf560d8578b0c2cbd972b83575ba93cd5"
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
