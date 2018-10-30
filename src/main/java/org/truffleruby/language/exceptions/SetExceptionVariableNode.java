@@ -48,7 +48,7 @@ public class SetExceptionVariableNode extends Node {
     private GetCurrentRubyThreadNode getCurrentThreadNode() {
         if (getCurrentThreadNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            getCurrentThreadNode = GetCurrentRubyThreadNodeGen.create();
+            getCurrentThreadNode = insert(GetCurrentRubyThreadNodeGen.create());
         }
         return getCurrentThreadNode;
     }
