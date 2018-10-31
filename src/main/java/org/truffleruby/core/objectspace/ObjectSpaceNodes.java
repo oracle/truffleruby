@@ -21,7 +21,6 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
-import org.truffleruby.core.FinalizationService;
 import org.truffleruby.core.FinalizationService.FinalizerReference;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
@@ -155,10 +154,12 @@ public abstract class ObjectSpaceNodes {
         public DynamicObject defineFinalizer(VirtualFrame frame, DynamicObject object, Object finalizer,
                 @Cached("create()") BranchProfile errorProfile) {
             if (respondToCallNode.doesRespondTo(frame, "call", finalizer)) {
-                FinalizationService.FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object);
-                FinalizationService.FinalizerReference newRef = getContext().getObjectSpaceManager().defineFinalizer(object, ref, finalizer);
-                if (ref != newRef) {
-                    setFinalizerNode.write(object, newRef);
+                synchronized (object) {
+                    FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object);
+                    FinalizerReference newRef = getContext().getObjectSpaceManager().defineFinalizer(object, ref, finalizer);
+                    if (ref != newRef) {
+                        setFinalizerNode.write(object, newRef);
+                    }
                 }
                 Object[] objects = new Object[] { 0, finalizer };
                 return createArray(objects, objects.length);
@@ -177,7 +178,7 @@ public abstract class ObjectSpaceNodes {
 
         @Specialization
         public Object undefineFinalizer(VirtualFrame frame, DynamicObject object) {
-            FinalizationService.FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object);
+            FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object);
             if (ref != null) {
                 FinalizerReference newRef = getContext().getObjectSpaceManager().undefineFinalizer(object, ref);
                 if (ref != newRef) {

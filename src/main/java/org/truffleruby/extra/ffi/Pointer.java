@@ -15,6 +15,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.FinalizationService;
+import org.truffleruby.core.FinalizationService.FinalizerReference;
 
 import sun.misc.Unsafe;
 
@@ -48,7 +49,7 @@ public class Pointer implements AutoCloseable {
     private final long address;
     private final long size;
     private boolean autorelease;
-    private FinalizationService.FinalizerReference finalizerRef = null;
+    private FinalizerReference finalizerRef = null;
 
     public Pointer(long address) {
         this(address, 0);

@@ -46,6 +46,7 @@ import com.oracle.truffle.api.utilities.CyclicAssumption;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.FinalizationService;
+import org.truffleruby.core.FinalizationService.FinalizerReference;
 import org.truffleruby.language.objects.ObjectIDOperations;
 
 import java.lang.management.GarbageCollectorMXBean;
@@ -76,7 +77,7 @@ public class ObjectSpaceManager {
     }
 
     @TruffleBoundary
-    public synchronized FinalizationService.FinalizerReference defineFinalizer(DynamicObject object, FinalizationService.FinalizerReference ref, Object callable) {
+    public synchronized FinalizerReference defineFinalizer(DynamicObject object, FinalizerReference ref, Object callable) {
         final DynamicObject root;
         if (callable instanceof DynamicObject) {
             root = (DynamicObject) callable;
@@ -110,7 +111,7 @@ public class ObjectSpaceManager {
     }
 
     @TruffleBoundary
-    public synchronized FinalizationService.FinalizerReference undefineFinalizer(DynamicObject object, FinalizationService.FinalizerReference ref) {
+    public synchronized FinalizerReference undefineFinalizer(DynamicObject object, FinalizerReference ref) {
         return finalizationService.removeFinalizers(object, ref, ObjectSpaceManager.class);
     }
 

@@ -571,11 +571,6 @@ public class OptionsCatalog {
             "Enable instrumentation to gather stats on regexp matching.",
             null,
             false);
-    public static final BooleanOptionDescription RUN_FINALIZERS_ON_EXIT = new BooleanOptionDescription(
-            "ruby.finalizers.run_on_exit",
-            "Run finalizers on exit (for debugging, even though objects are still alive)",
-            null,
-            false);
     public static final BooleanOptionDescription SHARED_OBJECTS_ENABLED = new BooleanOptionDescription(
             "ruby.shared.objects",
             "Enable shared objects",
@@ -871,8 +866,6 @@ public class OptionsCatalog {
                 return REGEXP_INSTRUMENT_CREATION;
             case "ruby.regexp.instrument-match":
                 return REGEXP_INSTRUMENT_MATCH;
-            case "ruby.finalizers.run_on_exit":
-                return RUN_FINALIZERS_ON_EXIT;
             case "ruby.shared.objects":
                 return SHARED_OBJECTS_ENABLED;
             case "ruby.shared.objects.debug":
@@ -957,7 +950,6 @@ public class OptionsCatalog {
             EXCEPTIONS_WARN_STACKOVERFLOW,
             EXECUTION_ACTION,
             EXTERNAL_ENCODING,
-            RUN_FINALIZERS_ON_EXIT,
             FRAME_VARIABLE_ACCESS_CACHE,
             FROZEN_STRING_LITERALS,
             GLOBAL_VARIABLE_MAX_INVALIDATIONS,
