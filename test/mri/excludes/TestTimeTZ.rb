@@ -1,3 +1,6 @@
 exclude :test_europe_berlin, "needs investigation"
 exclude :test_america_los_angeles, "needs investigation"
 exclude :test_europe_lisbon, "needs investigation"
+exclude :test_gen_Pacific_Kiritimati_71, "possibly changed in new definitive time zone databases"
+exclude :test_gen_Pacific_Kiritimati_89, "possibly changed in new definitive time zone databases"
+exclude :test_pacific_kiritimati, "possibly changed in new definitive time zone databases"
