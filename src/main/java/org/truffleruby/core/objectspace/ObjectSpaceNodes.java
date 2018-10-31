@@ -154,7 +154,7 @@ public abstract class ObjectSpaceNodes {
         public DynamicObject defineFinalizer(VirtualFrame frame, DynamicObject object, Object finalizer,
                 @Cached("create()") BranchProfile errorProfile) {
             if (respondToCallNode.doesRespondTo(frame, "call", finalizer)) {
-                synchronized (object) {
+                synchronized (getContext().getFinalizationService()) {
                     FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object);
                     FinalizerReference newRef = getContext().getObjectSpaceManager().defineFinalizer(object, ref, finalizer);
                     if (ref != newRef) {
