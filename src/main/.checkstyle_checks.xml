@@ -214,6 +214,11 @@
     <property name="format" value="\r\n"/>
     <property name="message" value="illegal Windows line ending"/>
   </module>
+  <module name="RegexpMultiline">
+    <property name="format" value="CompilerDirectives\.transferToInterpreterAndInvalidate\(\);\s+\w+Node\s+=\s+(?!insert\()"/>
+    <property name="fileExtensions" value="java"/>
+    <property name="message" value="Lazily initialized child nodes must be explicitly inserted into the AST."/>
+  </module>
   <module name="SuppressionCommentFilter">
     <property name="offCommentFormat" value="CheckStyle: stop system..print check"/>
     <property name="onCommentFormat" value="CheckStyle: resume system..print check"/>
