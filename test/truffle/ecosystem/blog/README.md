@@ -22,19 +22,6 @@ The base of the application was generated with:
 ```
 $ rails new blog \
   --database=sqlite3 \
-  --skip-git \
-  --skip-bundle \
-  --skip-action-cable \
-  --skip-active-storage \
-  --skip-action-mailer \
-  --skip-action-cable \
-  --skip-puma \
-  --skip-turbolinks \
-  --skip-coffee \
-  --skip-javascript \
-  --skip-spring \
-  --skip-sprockets \
-  --skip-yarn \
   --skip-bootsnap \
   --skip-listen
 ```
