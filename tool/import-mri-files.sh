@@ -36,10 +36,10 @@ cp -r ../ruby/ext/openssl/lib/* lib/mri
 cp ../ruby/ext/psych/*.{c,h,rb} src/main/c/psych
 cp ../ruby/ext/psych/yaml/*.{c,h} src/main/c/psych/yaml
 cp ../ruby/ext/psych/yaml/LICENSE src/main/c/psych/yaml
-cp -r ../ruby/ext/psych/lib/psych.rb lib/mri
+cp ../ruby/ext/psych/lib/psych.rb lib/mri
 cp -r ../ruby/ext/psych/lib/psych lib/mri
 
-cp -r ../ruby/ext/pty/lib/*.rb lib/mri
+cp ../ruby/ext/pty/lib/*.rb lib/mri
 
 cp ../ruby/ext/rbconfig/sizeof/*.{c,rb} src/main/c/rbconfig-sizeof
 
