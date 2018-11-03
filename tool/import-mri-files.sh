@@ -29,6 +29,10 @@ cp -r ../ruby/ext/bigdecimal/lib/bigdecimal lib/mri
 
 cp ../ruby/ext/etc/*.{c,rb} src/main/c/etc
 
+cp ../ruby/ext/nkf/lib/*.rb lib/mri
+cp ../ruby/ext/nkf/*.{c,rb} src/main/c/nkf
+cp -r ../ruby/ext/nkf/nkf-utf8 src/main/c/nkf
+
 rm src/main/c/openssl/*.{c,h}
 cp ../ruby/ext/openssl/*.{c,h,rb} src/main/c/openssl
 cp -r ../ruby/ext/openssl/lib/* lib/mri
