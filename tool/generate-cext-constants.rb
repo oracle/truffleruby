@@ -135,11 +135,15 @@ File.open("lib/cext/include/truffleruby/constants.h", "w") do |f|
   end
 end
 
-constants.each do |macro_name, name, _|
-  puts "VALUE rb_tr_get_#{name}(void) {"
-  puts "  return (VALUE) polyglot_invoke(RUBY_CEXT, \"#{macro_name}\");"
-  puts "}"
-  puts
+File.open("src/main/c/cext/cext_constants.c", "w") do |f|
+  f.puts "// From #{__FILE__}"
+
+  constants.each do |macro_name, name, _|
+    f.puts
+    f.puts "VALUE rb_tr_get_#{name}(void) {"
+    f.puts "  return (VALUE) polyglot_invoke(RUBY_CEXT, \"#{macro_name}\");"
+    f.puts "}"
+  end
 end
 
 File.open("lib/truffle/truffle/cext_constants.rb", "w") do |f|

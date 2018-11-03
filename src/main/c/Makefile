@@ -83,14 +83,14 @@ $(SULONG_MOCK): sulongmock/sulongmock.c
 	$(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(ROOT)/lib/cext/include $<
 
 # ruby.o
-$(RUBY_O): cext/ruby.c $(RUBY_HEADERS)
-	$(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(ROOT)/lib/cext/include $<
+$(RUBY_O): cext/*.c $(RUBY_HEADERS)
+	$(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(ROOT)/lib/cext/include cext/ruby.c
 
 # ruby.su
 cext/Makefile: cext/extconf.rb $(BASIC_EXTCONF_DEPS)
 	cd cext && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
-cext/ruby.su: cext/Makefile cext/ruby.c
+cext/ruby.su: cext/Makefile cext/*.c
 	cd cext && $(MAKE)
 
 $(RUBY_LIBRARY): cext/ruby.su
