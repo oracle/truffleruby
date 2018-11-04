@@ -27,6 +27,7 @@ public class SizedQueue {
     private int takeEnd;
     private int capacity;
     private int size;
+    private boolean closed;
 
     public SizedQueue(int capacity) {
         this.capacity = capacity;
@@ -218,6 +219,14 @@ public class SizedQueue {
         }
 
         return objects;
+    }
+
+    public void close() {
+        closed = true;
+    }
+
+    public boolean isClosed() {
+        return closed;
     }
 
 }

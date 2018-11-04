@@ -1,1 +1,0 @@
-fails:Queue#closed? returns true when the queue is closed
