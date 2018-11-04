@@ -37,6 +37,10 @@ module Truffle::CExt
     Encoding
   end
 
+  def rb_eEncodingError
+    EncodingError
+  end
+
   def rb_mEnumerable
     Enumerable
   end

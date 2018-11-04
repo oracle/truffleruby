@@ -18,6 +18,7 @@ constants = [
     Comparable,
     Data,
     Encoding,
+    EncodingError,
     Enumerable,
     FalseClass,
     File,

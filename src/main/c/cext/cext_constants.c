@@ -36,6 +36,10 @@ VALUE rb_tr_get_Encoding(void) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_cEncoding");
 }
 
+VALUE rb_tr_get_EncodingError(void) {
+  return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_eEncodingError");
+}
+
 VALUE rb_tr_get_Enumerable(void) {
   return (VALUE) polyglot_invoke(RUBY_CEXT, "rb_mEnumerable");
 }
