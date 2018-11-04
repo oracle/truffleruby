@@ -172,7 +172,13 @@ public abstract class SizedQueueNodes {
         public Object popBlocking(DynamicObject self, boolean nonBlocking) {
             final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
 
-            return doPop(queue);
+            final Object value = doPop(queue);
+
+            if (value == SizedQueue.CLOSED) {
+                return nil();
+            } else {
+                return value;
+            }
         }
 
         @TruffleBoundary

@@ -150,12 +150,18 @@ public class SizedQueue {
         }
     }
 
+    public static final Object CLOSED = new Object();
+
     @TruffleBoundary
     public Object take() throws InterruptedException {
         lock.lock();
 
         try {
             while (size == 0) {
+                if (closed) {
+                    return CLOSED;
+                }
+
                 canTake.await();
             }
 
@@ -166,7 +172,6 @@ public class SizedQueue {
     }
 
     private Object doTake() {
-        assert lock.isHeldByCurrentThread();
         final Object item = items[takeEnd];
         takeEnd++;
         if (takeEnd == items.length) {
