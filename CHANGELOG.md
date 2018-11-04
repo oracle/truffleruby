@@ -1,3 +1,9 @@
+# 1.0
+
+New features
+
+* `Queue` and `SizedQueue`, `#close` and `#closed?`, have been implemented.
+
 # 1.0 RC 9
 
 Security:
