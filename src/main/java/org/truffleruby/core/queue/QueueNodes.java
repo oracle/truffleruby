@@ -78,10 +78,18 @@ public abstract class QueueNodes {
         }
 
         @Specialization(guards = "!nonBlocking")
-        public Object popBlocking(DynamicObject self, boolean nonBlocking) {
+        public Object popBlocking(DynamicObject self, boolean nonBlocking,
+                                  @Cached("create()") BranchProfile closedProfile) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
-            return doPop(queue);
+            final Object value = doPop(queue);
+
+            if (value == UnsizedQueue.CLOSED) {
+                closedProfile.enter();
+                return nil();
+            } else {
+                return value;
+            }
         }
 
         @TruffleBoundary
@@ -91,16 +99,21 @@ public abstract class QueueNodes {
 
         @Specialization(guards = "nonBlocking")
         public Object popNonBlock(DynamicObject self, boolean nonBlocking,
-                @Cached("create()") BranchProfile errorProfile) {
+                                  @Cached("create()") BranchProfile errorProfile,
+                                  @Cached("create()") BranchProfile closedProfile) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
             final Object value = queue.poll();
+
             if (value == null) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().threadError("queue empty", this));
+            } else if (value == UnsizedQueue.CLOSED) {
+                closedProfile.enter();
+                return nil();
+            } else {
+                return value;
             }
-
-            return value;
         }
 
     }

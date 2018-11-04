@@ -73,6 +73,10 @@ public class UnsizedQueue {
 
         try {
             while (takeEnd == null) {
+                if (closed) {
+                    return CLOSED;
+                }
+
                 canTake.await();
             }
 
@@ -82,12 +86,18 @@ public class UnsizedQueue {
         }
     }
 
+    public static final Object CLOSED = new Object();
+
     @TruffleBoundary
     public Object poll(long timeoutMilliseconds) throws InterruptedException {
         lock.lock();
 
         try {
             if (takeEnd == null) {
+                if (closed) {
+                    return CLOSED;
+                }
+
                 if (!canTake.await(timeoutMilliseconds, TimeUnit.MILLISECONDS)) {
                     return null;
                 }
@@ -100,7 +110,6 @@ public class UnsizedQueue {
     }
 
     private Object doTake() {
-        assert lock.isHeldByCurrentThread();
         final Object item = takeEnd.getItem();
         final Item nextToTake = takeEnd.getNextToTake();
         takeEnd.clearNextReference();

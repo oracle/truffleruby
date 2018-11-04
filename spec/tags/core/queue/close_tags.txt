@@ -1,1 +1,0 @@
-fails:Queue#close closes the queue and returns nil for further #pop
