@@ -28,8 +28,12 @@ public class UnsizedQueue {
     private boolean closed;
 
     @TruffleBoundary
-    public void add(Object item) {
+    public boolean add(Object item) {
         lock.lock();
+
+        if (closed) {
+            return false;
+        }
 
         try {
             final Item newItem = new Item(item);
@@ -42,6 +46,7 @@ public class UnsizedQueue {
             }
             size++;
             canTake.signal();
+            return true;
         } finally {
             lock.unlock();
         }

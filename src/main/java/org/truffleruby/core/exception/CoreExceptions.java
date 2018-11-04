@@ -841,7 +841,6 @@ public class CoreExceptions {
         return ExceptionOperations.createRubyException(context, exceptionClass, coreStrings().REPLACEMENT_CHARACTER_SETUP_FAILED.createInstance(), currentNode, null);
     }
 
-
     // FiberError
 
     @TruffleBoundary
@@ -882,6 +881,10 @@ public class CoreExceptions {
 
     public DynamicObject threadErrorAlreadyLocked(Node currentNode) {
         return threadError("Attempt to unlock a mutex which is locked by another thread", currentNode);
+    }
+
+    public DynamicObject threadErrorQueueFull(Node currentNode) {
+        return threadError("queue full", currentNode);
     }
 
     // SecurityError
@@ -925,6 +928,19 @@ public class CoreExceptions {
         final DynamicObject systemExit = ExceptionOperations.createRubyException(context, exceptionClass, message, currentNode, null);
         systemExit.define("@status", exitStatus);
         return systemExit;
+    }
+
+    // ClosedQueueError
+
+    @TruffleBoundary
+    public DynamicObject closedQueueError(String message, Node currentNode) {
+        DynamicObject exceptionClass = context.getCoreLibrary().getClosedQueueError();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
+    }
+
+    public DynamicObject closedQueueError(Node currentNode) {
+        return closedQueueError("queue closed", currentNode);
     }
 
     // Helpers

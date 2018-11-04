@@ -69,16 +69,29 @@ public class SizedQueue {
         }
     }
 
+    public enum OfferResult {
+        SUCCESS,
+        FULL,
+        CLOSED
+    }
+
     @TruffleBoundary
-    public boolean offer(Object item) {
+    public OfferResult offer(Object item) {
         lock.lock();
 
         try {
             if (size == capacity) {
-                return false;
+                if (closed) {
+                    return OfferResult.CLOSED;
+                } else {
+                    return OfferResult.FULL;
+                }
             } else {
-                doAdd(item);
-                return true;
+                if (doAdd(item)) {
+                    return OfferResult.SUCCESS;
+                } else {
+                    return OfferResult.CLOSED;
+                }
             }
         } finally {
             lock.unlock();
@@ -86,22 +99,29 @@ public class SizedQueue {
     }
 
     @TruffleBoundary
-    public void put(Object item) throws InterruptedException {
+    public boolean put(Object item) throws InterruptedException {
         lock.lock();
 
         try {
             while (size == capacity) {
+                if (closed) {
+                    return false;
+                }
+
                 canAdd.await();
             }
 
-            doAdd(item);
+            return doAdd(item);
         } finally {
             lock.unlock();
         }
     }
 
-    private void doAdd(Object item) {
-        assert lock.isHeldByCurrentThread();
+    private boolean doAdd(Object item) {
+        if (closed) {
+            return false;
+        }
+
         items[addEnd] = item;
         addEnd++;
         if (addEnd == items.length) {
@@ -111,6 +131,8 @@ public class SizedQueue {
         if (size >= 1) {
             canTake.signal();
         }
+
+        return true;
     }
 
     @TruffleBoundary

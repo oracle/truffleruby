@@ -55,9 +55,12 @@ public abstract class QueueNodes {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
             propagateSharingNode.propagate(self, value);
-            queue.add(value);
 
-            return self;
+            if (queue.add(value)) {
+                return self;
+            } else {
+                throw new RaiseException(getContext(), coreExceptions().closedQueueError(this));
+            }
         }
 
     }
