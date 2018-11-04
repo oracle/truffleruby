@@ -1,5 +1,9 @@
 # 1.0 RC 10
 
+New features:
+
+* The `nkf` and `kconv` standard libraries were added (#1439).
+
 Bug fixes:
 
 * Added `rb_eEncodingError` for C extensions (#1437).
