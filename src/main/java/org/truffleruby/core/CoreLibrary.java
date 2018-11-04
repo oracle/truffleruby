@@ -173,7 +173,6 @@ public class CoreLibrary {
     private final DynamicObject truffleExceptionOperationsModule;
     private final DynamicObject truffleInteropModule;
     private final DynamicObject truffleInteropForeignClass;
-    private final DynamicObject truffleInteropJavaModule;
     private final DynamicObject truffleKernelOperationsModule;
     private final DynamicObject truffleRegexpOperationsModule;
     private final DynamicObject bigDecimalClass;
@@ -194,6 +193,8 @@ public class CoreLibrary {
     private final DynamicObject handleClass;
     private final DynamicObjectFactory handleFactory;
     private final DynamicObject ioClass;
+    private final DynamicObject stopIterationClass;
+    private final DynamicObject closedQueueErrorClass;
 
     private final DynamicObject argv;
     private final GlobalVariables globalVariables;
@@ -355,6 +356,8 @@ public class CoreLibrary {
         // StandardError > IndexError
         indexErrorClass = defineClass(standardErrorClass, "IndexError");
         defineClass(indexErrorClass, "KeyError");
+        stopIterationClass = defineClass(indexErrorClass, "StopIteration");
+        closedQueueErrorClass = defineClass(stopIterationClass, "ClosedQueueError");
 
         // StandardError > IOError
         defineClass(ioErrorClass, "EOFError");
@@ -513,7 +516,7 @@ public class CoreLibrary {
         truffleExceptionOperationsModule = defineModule(truffleModule, "ExceptionOperations");
         truffleInteropModule = defineModule(truffleModule, "Interop");
         truffleInteropForeignClass = defineClass(truffleInteropModule, objectClass, "Foreign");
-        truffleInteropJavaModule = defineModule(truffleInteropModule, "Java");
+        defineModule(truffleInteropModule, "Java");
         defineModule(truffleModule, "CExt");
         defineModule(truffleModule, "Debug");
         defineModule(truffleModule, "Digest");
@@ -930,11 +933,6 @@ public class CoreLibrary {
         return value == (value & 0xffffffffL) || value < 0 && value >= Integer.MIN_VALUE;
     }
 
-    public static int long2int(long value) {
-        assert fitsIntoInteger(value) : value;
-        return (int) value;
-    }
-
     public RubyContext getContext() {
         return context;
     }
@@ -993,10 +991,6 @@ public class CoreLibrary {
 
     public DynamicObject getMatchDataClass() {
         return matchDataClass;
-    }
-
-    public DynamicObjectFactory getMatchDataFactory() {
-        return matchDataFactory;
     }
 
     public DynamicObject getModuleClass() {
@@ -1196,10 +1190,6 @@ public class CoreLibrary {
         return errnoClasses.get(name);
     }
 
-    public DynamicObject getSymbolClass() {
-        return symbolClass;
-    }
-
     public DynamicObjectFactory getSymbolFactory() {
         return symbolFactory;
     }
@@ -1369,18 +1359,6 @@ public class CoreLibrary {
         return systemCallErrorClass;
     }
 
-    public DynamicObject getEagainWaitReadable() {
-        return eagainWaitReadable;
-    }
-
-    public DynamicObject getEagainWaitWritable() {
-        return eagainWaitWritable;
-    }
-
-    public DynamicObject getTruffleModule() {
-        return truffleModule;
-    }
-
     public DynamicObject getTruffleInternalModule() {
         return truffleInternalModule;
     }
@@ -1401,10 +1379,6 @@ public class CoreLibrary {
         return truffleInteropForeignClass;
     }
 
-    public DynamicObject getTruffleInteropJavaModule() {
-        return truffleInteropJavaModule;
-    }
-
     public DynamicObject getTruffleKernelOperationsModule() {
         return truffleKernelOperationsModule;
     }
@@ -1413,12 +1387,12 @@ public class CoreLibrary {
         return truffleRegexpOperationsModule;
     }
 
-    public DynamicObject getDirClass() {
-        return dirClass;
-    }
-
     public DynamicObject getExceptionClass() {
         return exceptionClass;
+    }
+
+    public DynamicObject getClosedQueueError() {
+        return closedQueueErrorClass;
     }
 
     private static final String POST_BOOT_FILE = "/post-boot/post-boot.rb";

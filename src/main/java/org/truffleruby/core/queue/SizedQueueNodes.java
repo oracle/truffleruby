@@ -125,8 +125,11 @@ public abstract class SizedQueueNodes {
         @TruffleBoundary
         private void doPushBlocking(final Object value, final SizedQueue queue) {
             getContext().getThreadManager().runUntilResult(this, () -> {
-                queue.put(value);
-                return BlockingAction.SUCCESS;
+                if (queue.put(value)) {
+                    return BlockingAction.SUCCESS;
+                } else {
+                    throw new RaiseException(getContext(), coreExceptions().closedQueueError(this));
+                }
             });
         }
 
@@ -136,10 +139,16 @@ public abstract class SizedQueueNodes {
             final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
 
             propagateSharingNode.propagate(self, value);
-            final boolean pushed = queue.offer(value);
-            if (!pushed) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().threadError("queue full", this));
+
+            switch (queue.offer(value)) {
+                case SUCCESS:
+                    return self;
+                case FULL:
+                    errorProfile.enter();
+                    throw new RaiseException(getContext(), coreExceptions().threadErrorQueueFull(this));
+                case CLOSED:
+                    errorProfile.enter();
+                    throw new RaiseException(getContext(), coreExceptions().closedQueueError(this));
             }
 
             return self;
