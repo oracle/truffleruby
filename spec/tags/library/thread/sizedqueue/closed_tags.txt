@@ -1,2 +1,1 @@
-fails:Thread::SizedQueue#closed? returns false initially
 fails:Thread::SizedQueue#closed? returns true when the queue is closed
