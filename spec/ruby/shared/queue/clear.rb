@@ -7,4 +7,6 @@ describe :queue_clear, shared: true do
     queue.clear
     queue.empty?.should be_true
   end
+
+  # TODO: test for atomicity of Queue#clear
 end

@@ -1,7 +1,6 @@
 require_relative '../../../spec_helper'
-require 'thread'
-require_relative '../shared/queue/enque'
+require_relative '../../../shared/queue/enque'
 
 describe "Thread::Queue#<<" do
-  it_behaves_like :queue_enq, :<<, -> { Queue.new }
+  it_behaves_like :queue_enq, :<<, -> { Thread::Queue.new }
 end

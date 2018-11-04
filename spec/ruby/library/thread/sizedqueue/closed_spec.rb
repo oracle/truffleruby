@@ -1,7 +1,6 @@
 require_relative '../../../spec_helper'
-require 'thread'
-require_relative '../shared/queue/closed'
+require_relative '../../../shared/queue/closed'
 
-describe "SizedQueue#closed?" do
-  it_behaves_like :queue_closed?, :closed?, -> { SizedQueue.new(10) }
+describe "Thread::SizedQueue#closed?" do
+  it_behaves_like :queue_closed?, :closed?, -> { Thread::SizedQueue.new(10) }
 end
