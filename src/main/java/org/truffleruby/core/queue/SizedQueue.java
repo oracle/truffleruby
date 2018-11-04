@@ -222,11 +222,23 @@ public class SizedQueue {
     }
 
     public void close() {
-        closed = true;
+        lock.lock();
+
+        try {
+            closed = true;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public boolean isClosed() {
-        return closed;
+        lock.lock();
+
+        try {
+            return closed;
+        } finally {
+            lock.unlock();
+        }
     }
 
 }
