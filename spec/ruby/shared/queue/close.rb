@@ -23,4 +23,9 @@ describe :queue_close, shared: true do
     q.close # no effect
     q.closed?.should be_true
   end
+
+  it "returns self" do
+    q = @object.call
+    q.close.should == q
+  end
 end
