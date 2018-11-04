@@ -9,6 +9,7 @@ VALUE rb_tr_get_Class(void);
 VALUE rb_tr_get_Comparable(void);
 VALUE rb_tr_get_Data(void);
 VALUE rb_tr_get_Encoding(void);
+VALUE rb_tr_get_EncodingError(void);
 VALUE rb_tr_get_Enumerable(void);
 VALUE rb_tr_get_FalseClass(void);
 VALUE rb_tr_get_File(void);
@@ -79,6 +80,7 @@ VALUE rb_tr_get_default_rs(void);
 #define rb_mComparable rb_tr_get_Comparable()
 #define rb_cData rb_tr_get_Data()
 #define rb_cEncoding rb_tr_get_Encoding()
+#define rb_eEncodingError rb_tr_get_EncodingError()
 #define rb_mEnumerable rb_tr_get_Enumerable()
 #define rb_cFalseClass rb_tr_get_FalseClass()
 #define rb_cFile rb_tr_get_File()
