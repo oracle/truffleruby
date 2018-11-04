@@ -31,11 +31,11 @@ public class UnsizedQueue {
     public boolean add(Object item) {
         lock.lock();
 
-        if (closed) {
-            return false;
-        }
-
         try {
+            if (closed) {
+                return false;
+            }
+
             final Item newItem = new Item(item);
             if (addEnd != null) {
                 addEnd.setNextToTake(newItem);
