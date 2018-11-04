@@ -25,6 +25,7 @@ public class UnsizedQueue {
     private Item addEnd;
     private Item takeEnd;
     private int size;
+    private boolean closed;
 
     @TruffleBoundary
     public void add(Object item) {
@@ -167,6 +168,14 @@ public class UnsizedQueue {
         }
 
         return objects;
+    }
+
+    public void close() {
+        closed = true;
+    }
+
+    public boolean isClosed() {
+        return closed;
     }
 
     private static class Item {

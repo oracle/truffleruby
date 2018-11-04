@@ -237,6 +237,7 @@ public abstract class SizedQueueNodes {
 
         @Specialization
         public DynamicObject close(DynamicObject self) {
+            Layouts.SIZED_QUEUE.getQueue(self).close();
             return self;
         }
 
@@ -247,7 +248,7 @@ public abstract class SizedQueueNodes {
 
         @Specialization
         public boolean closed(DynamicObject self) {
-            return false;
+            return Layouts.SIZED_QUEUE.getQueue(self).isClosed();
         }
 
     }
