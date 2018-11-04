@@ -1,4 +1,3 @@
 fails:Thread::Queue#close closes the queue and returns nil for further #pop
 fails:Thread::Queue#close prevents further #push
 fails:Thread::Queue#close may be called multiple times
-fails:Thread::Queue#close returns self

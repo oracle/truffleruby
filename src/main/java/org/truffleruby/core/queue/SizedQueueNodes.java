@@ -232,4 +232,24 @@ public abstract class SizedQueueNodes {
 
     }
 
+    @CoreMethod(names = "close")
+    public abstract static class CloseNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject close(DynamicObject self) {
+            return self;
+        }
+
+    }
+
+    @CoreMethod(names = "closed?")
+    public abstract static class ClosedNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean closed(DynamicObject self) {
+            return false;
+        }
+
+    }
+
 }
