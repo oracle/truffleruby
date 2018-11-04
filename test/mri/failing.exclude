@@ -98,7 +98,6 @@ socket/test_sockopt.rb
 socket/test_tcp.rb
 socket/test_udp.rb
 socket/test_unix.rb
-thread/test_queue.rb # possible issue on Travis - needs to be tried again
 ruby/enc/test_euc_jp.rb # invalid multibyte char (EUC-JP)
 ruby/enc/test_windows_1251.rb
 dbm/test_dbm.rb
