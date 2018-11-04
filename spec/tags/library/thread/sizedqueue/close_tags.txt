@@ -1,3 +1,4 @@
 fails:Thread::SizedQueue#close closes the queue and returns nil for further #pop
 fails:Thread::SizedQueue#close prevents further #push
 fails:Thread::SizedQueue#close may be called multiple times
+fails:Thread::SizedQueue#close returns self
