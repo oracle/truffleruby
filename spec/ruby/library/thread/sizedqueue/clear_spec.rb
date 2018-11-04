@@ -1,9 +1,6 @@
 require_relative '../../../spec_helper'
-require 'thread'
-require_relative '../shared/queue/clear'
+require_relative '../../../shared/queue/clear'
 
 describe "Thread::SizedQueue#clear" do
-  it_behaves_like :queue_clear, :clear, -> { SizedQueue.new(10) }
-
-  # TODO: test for atomicity of Queue#clear
+  it_behaves_like :queue_clear, :clear, -> { Thread::SizedQueue.new(10) }
 end
