@@ -1,3 +1,9 @@
+# 1.0 RC 10
+
+Bug fixes:
+
+* Added `rb_eEncodingError` for C extensions (#1437).
+
 # 1.0 RC 9
 
 Security:
@@ -10,7 +16,7 @@ New features:
 
 * LLVM for Oracle Linux 7 can now be installed without building from source.
 
-Bug fixes
+Bug fixes:
 
 * Times can now be created with UTC offsets in `+/-HH:MM:SS` format.
 * `Proc#to_s` now has `ASCII-8BIT` as its encoding instead of the
@@ -52,7 +58,7 @@ Changes:
 * JCodings has been updated from 1.0.30 to 1.0.40.
 * Joni has been updated from 2.1.16 to 2.1.25.
 
-Performance
+Performance:
 
 * Performance of setting the last exception on a thread has now been improved.
 
