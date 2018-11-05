@@ -14,5 +14,30 @@ describe "Thread.exclusive" do
     Thread.exclusive { :result }.should == :result
   end
 
-  it "needs to be reviewed for spec completeness"
+  it "blocks the caller if another thread is also in an exclusive block" do
+    m = Mutex.new
+    q1 = Queue.new
+    q2 = Queue.new
+    
+    t = Thread.new {
+      Thread.exclusive {
+        q1.push :ready
+        q2.pop
+      }
+    }
+
+    q1.pop.should == :ready
+
+    lambda { Thread.exclusive { } }.should block_caller
+
+    q2.push :done
+  end
+
+  it "is not recursive" do
+    m = Mutex.new
+
+    Thread.exclusive do
+      lambda { Thread.exclusive { } }.should block_caller
+    end
+  end
 end
