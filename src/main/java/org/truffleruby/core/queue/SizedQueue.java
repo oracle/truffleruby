@@ -81,11 +81,11 @@ public class SizedQueue {
     public OfferResult offer(Object item) {
         lock.lock();
 
-        if (closed) {
-            return OfferResult.CLOSED;
-        }
-
         try {
+            if (closed) {
+                return OfferResult.CLOSED;
+            }
+
             if (size == capacity) {
                 return OfferResult.FULL;
             } else {
@@ -101,11 +101,11 @@ public class SizedQueue {
     public boolean put(Object item) throws InterruptedException {
         lock.lock();
 
-        if (closed) {
-            return false;
-        }
-
         try {
+            if (closed) {
+                return false;
+            }
+
             while (size == capacity) {
                 canAdd.await();
 
