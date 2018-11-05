@@ -1,22 +1,22 @@
 class BlockingMatcher
   def matches?(block)
-    started = false
+    started = Queue.new
     blocking = true
 
     thread = Thread.new do
-      started = true
+      started.push :started
       block.call
-
       blocking = false
     end
 
-    Thread.pass while !started
+    started.pop
 
     # Wait until the Thread status is "sleep" (then it's blocking)
     # or nil (the Thread finished execution, it did not block)
     while status = thread.status and status != "sleep"
       Thread.pass
     end
+    
     thread.kill
     thread.join
 
