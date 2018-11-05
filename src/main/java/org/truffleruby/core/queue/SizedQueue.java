@@ -29,6 +29,14 @@ public class SizedQueue {
     private int size;
     private boolean closed;
 
+    public enum OfferResult {
+        SUCCESS,
+        FULL,
+        CLOSED
+    }
+
+    public static final Object CLOSED = new Object();
+
     public SizedQueue(int capacity) {
         this.capacity = capacity;
         items = new Object[capacity];
@@ -67,12 +75,6 @@ public class SizedQueue {
         } finally {
             lock.unlock();
         }
-    }
-
-    public enum OfferResult {
-        SUCCESS,
-        FULL,
-        CLOSED
     }
 
     @TruffleBoundary
@@ -149,8 +151,6 @@ public class SizedQueue {
             lock.unlock();
         }
     }
-
-    public static final Object CLOSED = new Object();
 
     @TruffleBoundary
     public Object take() throws InterruptedException {

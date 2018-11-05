@@ -27,6 +27,8 @@ public class UnsizedQueue {
     private int size;
     private boolean closed;
 
+    public static final Object CLOSED = new Object();
+
     @TruffleBoundary
     public boolean add(Object item) {
         lock.lock();
@@ -53,21 +55,6 @@ public class UnsizedQueue {
     }
 
     @TruffleBoundary
-    public Object poll() {
-        lock.lock();
-
-        try {
-            if (takeEnd == null) {
-                return null;
-            } else {
-                return doTake();
-            }
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    @TruffleBoundary
     public Object take() throws InterruptedException {
         lock.lock();
 
@@ -86,7 +73,20 @@ public class UnsizedQueue {
         }
     }
 
-    public static final Object CLOSED = new Object();
+    @TruffleBoundary
+    public Object poll() {
+        lock.lock();
+
+        try {
+            if (takeEnd == null) {
+                return null;
+            } else {
+                return doTake();
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
 
     @TruffleBoundary
     public Object poll(long timeoutMilliseconds) throws InterruptedException {
