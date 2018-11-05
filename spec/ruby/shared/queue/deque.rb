@@ -1,9 +1,9 @@
 describe :queue_deq, shared: true do
-  it "removes an item from the Queue" do
+  it "removes an item from the queue" do
     q = @object.call
     q << Object.new
     q.size.should == 1
-    q.send(@method)
+    q.send @method
     q.size.should == 0
   end
 
@@ -30,8 +30,44 @@ describe :queue_deq, shared: true do
     v.should == 1
   end
 
-  it "raises a ThreadError if Queue is empty" do
+  it "removes an item from a closed queue" do
     q = @object.call
-    lambda { q.send(@method,true) }.should raise_error(ThreadError)
+    q << 1
+    q.close
+    q.send(@method).should == 1
+  end
+
+  it "returns nil for a closed empty queue" do
+    q = @object.call
+    q.close
+    q.send(@method).should == nil
+  end
+
+  describe "in non-blocking mode" do
+    it "removes an item from the queue" do
+      q = @object.call
+      q << Object.new
+      q.size.should == 1
+      q.send(@method, true)
+      q.size.should == 0
+    end
+
+    it "raises a ThreadError if the queue is empty" do
+      q = @object.call
+      lambda { q.send(@method, true) }.should raise_error(ThreadError)
+    end
+
+    it "removes an item from a closed queue" do
+      q = @object.call
+      q << 1
+      q.close
+      q.send(@method, true).should == 1
+    end
+
+    it "raises a ThreadError for a closed empty queue" do
+      q = @object.call
+      q.close
+      lambda { q.send(@method, true) }.should raise_error(ThreadError)
+    end
   end
 end

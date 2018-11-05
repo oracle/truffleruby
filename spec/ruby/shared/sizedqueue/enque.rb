@@ -31,4 +31,17 @@ describe :sizedqueue_enq, shared: true do
     q.size.should == 2
     add_to_queue.should raise_error(ThreadError)
   end
+
+  it "interrupts enqueuing threads with ClosedQueueError when the queue is closed" do
+    q = @object.call(1)
+    q << 1
+
+    t = Thread.new {
+      lambda { q.send(@method, 2) }.should raise_error(ClosedQueueError)
+    }
+
+    Thread.pass until q.num_waiting == 1
+
+    q.close
+  end
 end
