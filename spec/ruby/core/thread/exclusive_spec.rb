@@ -35,8 +35,6 @@ describe "Thread.exclusive" do
   end
 
   it "is not recursive" do
-    m = Mutex.new
-
     Thread.exclusive do
       lambda { Thread.exclusive { } }.should block_caller
     end
