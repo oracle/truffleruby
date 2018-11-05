@@ -41,8 +41,6 @@ net/protocol/test_protocol.rb
 net/smtp/test_response.rb
 net/smtp/test_smtp.rb
 net/smtp/test_ssl_socket.rb
-nkf/test_kconv.rb
-nkf/test_nkf.rb
 psych/test_alias_and_anchor.rb
 psych/test_array.rb
 psych/test_boolean.rb
