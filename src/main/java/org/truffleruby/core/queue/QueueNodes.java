@@ -99,8 +99,7 @@ public abstract class QueueNodes {
 
         @Specialization(guards = "nonBlocking")
         public Object popNonBlock(DynamicObject self, boolean nonBlocking,
-                                  @Cached("create()") BranchProfile errorProfile,
-                                  @Cached("create()") BranchProfile closedProfile) {
+                                  @Cached("create()") BranchProfile errorProfile) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
             final Object value = queue.poll();
@@ -108,9 +107,6 @@ public abstract class QueueNodes {
             if (value == null) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().threadError("queue empty", this));
-            } else if (value == UnsizedQueue.CLOSED) {
-                closedProfile.enter();
-                return nil();
             } else {
                 return value;
             }
