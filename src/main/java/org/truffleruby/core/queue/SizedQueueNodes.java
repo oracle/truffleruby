@@ -192,6 +192,7 @@ public abstract class SizedQueueNodes {
             final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
 
             final Object value = queue.poll();
+
             if (value == null) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().threadError("queue empty", this));
