@@ -107,11 +107,11 @@ public class SizedQueue {
 
         try {
             while (size == capacity) {
+                canAdd.await();
+
                 if (closed) {
                     return false;
                 }
-
-                canAdd.await();
             }
 
             doAdd(item);
@@ -154,11 +154,11 @@ public class SizedQueue {
 
         try {
             while (size == 0) {
+                canTake.await();
+
                 if (closed) {
                     return CLOSED;
                 }
-
-                canTake.await();
             }
 
             return doTake();
@@ -249,6 +249,7 @@ public class SizedQueue {
 
         try {
             closed = true;
+            canAdd.signalAll();
         } finally {
             lock.unlock();
         }

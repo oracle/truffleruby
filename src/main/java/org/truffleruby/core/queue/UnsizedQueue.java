@@ -60,11 +60,11 @@ public class UnsizedQueue {
 
         try {
             while (takeEnd == null) {
+                canTake.await();
+
                 if (closed) {
                     return CLOSED;
                 }
-
-                canTake.await();
             }
 
             return doTake();
@@ -94,12 +94,12 @@ public class UnsizedQueue {
 
         try {
             if (takeEnd == null) {
-                if (closed) {
-                    return CLOSED;
-                }
-
                 if (!canTake.await(timeoutMilliseconds, TimeUnit.MILLISECONDS)) {
                     return null;
+                }
+
+                if (closed) {
+                    return CLOSED;
                 }
             }
 

@@ -43,5 +43,8 @@ describe :sizedqueue_enq, shared: true do
     Thread.pass until q.num_waiting == 1
 
     q.close
+
+    t.join
+    q.pop.should == 1
   end
 end
