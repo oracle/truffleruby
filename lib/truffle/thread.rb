@@ -24,3 +24,8 @@ end
 
 # Truffle: ConditionVariable is defined in the core library.
 #          Queue and SizedQueue are defined in Java
+
+class Thread
+  Queue = ::Queue
+  SizedQueue = ::SizedQueue
+end
