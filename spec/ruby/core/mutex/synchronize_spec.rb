@@ -60,7 +60,7 @@ describe "Mutex#synchronize" do
     m = Mutex.new
 
     m.synchronize do
-      lambda { m.synchronize { } }.should block_caller
+      lambda { m.synchronize { } }.should raise_error(ThreadError)
     end
   end
 end

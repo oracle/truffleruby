@@ -36,7 +36,7 @@ describe "Thread.exclusive" do
 
   it "is not recursive" do
     Thread.exclusive do
-      lambda { Thread.exclusive { } }.should block_caller
+      lambda { Thread.exclusive { } }.should raise_error(ThreadError)
     end
   end
 end
