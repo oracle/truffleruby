@@ -53,6 +53,7 @@ describe "Mutex#synchronize" do
     lambda { m.synchronize { } }.should block_caller
 
     q2.push :done
+    t.join
   end
 
   it "is not recursive" do

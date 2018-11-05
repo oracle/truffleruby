@@ -31,6 +31,7 @@ describe "Thread.exclusive" do
     lambda { Thread.exclusive { } }.should block_caller
 
     q2.push :done
+    t.join
   end
 
   it "is not recursive" do
