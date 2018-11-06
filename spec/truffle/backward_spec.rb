@@ -17,9 +17,8 @@ describe "For backwards compatibility" do
   end
 
   describe "Truffle::Primitive.logical_processors" do
-    it "is the same as Etc.nprocessors" do
-      require 'etc'
-      Truffle::Primitive.logical_processors.should == Etc.nprocessors
+    it "gives the number of available processors" do
+      Truffle::Primitive.logical_processors.should == Truffle::System.available_processors
     end
   end
 

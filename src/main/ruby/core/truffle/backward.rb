@@ -17,8 +17,7 @@ module Truffle
 
   module Primitive
     def self.logical_processors
-      require 'etc'
-      Etc.nprocessors
+      Truffle::System.available_processors
     end
   end
 
