@@ -262,6 +262,7 @@ public abstract class ThreadNodes {
         @Specialization
         public DynamicObject initialize(DynamicObject thread, DynamicObject arguments, DynamicObject block) {
             if (getContext().getOptions().SHARED_OBJECTS_ENABLED) {
+                getContext().getThreadManager().startSharing(thread);
                 SharedObjects.shareDeclarationFrame(getContext(), block);
             }
 

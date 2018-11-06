@@ -37,8 +37,10 @@ public class SharedObjects {
     }
 
     public void startSharing() {
-        sharing = true;
-        shareContextRoots(context);
+        if (!sharing) {
+            sharing = true;
+            shareContextRoots(context);
+        }
     }
 
     private static void shareContextRoots(RubyContext context) {

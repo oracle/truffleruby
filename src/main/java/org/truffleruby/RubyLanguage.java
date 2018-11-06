@@ -208,7 +208,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         final DynamicObject foreignThread = context.getThreadManager().createForeignThread();
-        context.getThreadManager().start(foreignThread, thread);
+        context.getThreadManager().startForeignThread(foreignThread, thread);
     }
 
     @Override
