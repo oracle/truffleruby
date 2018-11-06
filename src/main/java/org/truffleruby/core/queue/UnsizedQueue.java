@@ -184,6 +184,7 @@ public class UnsizedQueue {
         return objects;
     }
 
+    @TruffleBoundary
     public void close() {
         lock.lock();
 
@@ -194,6 +195,7 @@ public class UnsizedQueue {
         }
     }
 
+    @TruffleBoundary
     public boolean isClosed() {
         lock.lock();
 

@@ -244,6 +244,7 @@ public class SizedQueue {
         return objects;
     }
 
+    @TruffleBoundary
     public void close() {
         lock.lock();
 
@@ -255,6 +256,7 @@ public class SizedQueue {
         }
     }
 
+    @TruffleBoundary
     public boolean isClosed() {
         lock.lock();
 
