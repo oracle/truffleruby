@@ -38,20 +38,25 @@ public class UnsizedQueue {
                 return false;
             }
 
-            final Item newItem = new Item(item);
-            if (addEnd != null) {
-                addEnd.setNextToTake(newItem);
-            }
-            addEnd = newItem;
-            if (takeEnd == null) {
-                takeEnd = addEnd;
-            }
-            size++;
-            canTake.signal();
+            doAdd(item);
+
             return true;
         } finally {
             lock.unlock();
         }
+    }
+
+    private void doAdd(Object item) {
+        final Item newItem = new Item(item);
+        if (addEnd != null) {
+            addEnd.setNextToTake(newItem);
+        }
+        addEnd = newItem;
+        if (takeEnd == null) {
+            takeEnd = addEnd;
+        }
+        size++;
+        canTake.signal();
     }
 
     @TruffleBoundary
