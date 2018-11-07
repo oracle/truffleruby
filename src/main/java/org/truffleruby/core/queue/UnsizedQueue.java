@@ -25,22 +25,54 @@ public class UnsizedQueue {
     private Item addEnd;
     private Item takeEnd;
     private int size;
+    private boolean closed;
+
+    public static final Object CLOSED = new Object();
 
     @TruffleBoundary
-    public void add(Object item) {
+    public boolean add(Object item) {
         lock.lock();
 
         try {
-            final Item newItem = new Item(item);
-            if (addEnd != null) {
-                addEnd.setNextToTake(newItem);
+            if (closed) {
+                return false;
             }
-            addEnd = newItem;
-            if (takeEnd == null) {
-                takeEnd = addEnd;
+
+            doAdd(item);
+
+            return true;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void doAdd(Object item) {
+        final Item newItem = new Item(item);
+        if (addEnd != null) {
+            addEnd.setNextToTake(newItem);
+        }
+        addEnd = newItem;
+        if (takeEnd == null) {
+            takeEnd = addEnd;
+        }
+        size++;
+        canTake.signal();
+    }
+
+    @TruffleBoundary
+    public Object take() throws InterruptedException {
+        lock.lock();
+
+        try {
+            while (takeEnd == null) {
+                if (closed) {
+                    return CLOSED;
+                }
+
+                canTake.await();
             }
-            size++;
-            canTake.signal();
+
+            return doTake();
         } finally {
             lock.unlock();
         }
@@ -62,21 +94,6 @@ public class UnsizedQueue {
     }
 
     @TruffleBoundary
-    public Object take() throws InterruptedException {
-        lock.lock();
-
-        try {
-            while (takeEnd == null) {
-                canTake.await();
-            }
-
-            return doTake();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    @TruffleBoundary
     public Object poll(long timeoutMilliseconds) throws InterruptedException {
         lock.lock();
 
@@ -84,6 +101,10 @@ public class UnsizedQueue {
             if (takeEnd == null) {
                 if (!canTake.await(timeoutMilliseconds, TimeUnit.MILLISECONDS)) {
                     return null;
+                }
+
+                if (closed) {
+                    return CLOSED;
                 }
             }
 
@@ -94,7 +115,6 @@ public class UnsizedQueue {
     }
 
     private Object doTake() {
-        assert lock.isHeldByCurrentThread();
         final Object item = takeEnd.getItem();
         final Item nextToTake = takeEnd.getNextToTake();
         takeEnd.clearNextReference();
@@ -167,6 +187,28 @@ public class UnsizedQueue {
         }
 
         return objects;
+    }
+
+    @TruffleBoundary
+    public void close() {
+        lock.lock();
+
+        try {
+            closed = true;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @TruffleBoundary
+    public boolean isClosed() {
+        lock.lock();
+
+        try {
+            return closed;
+        } finally {
+            lock.unlock();
+        }
     }
 
     private static class Item {

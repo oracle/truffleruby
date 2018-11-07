@@ -55,9 +55,12 @@ public abstract class QueueNodes {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
             propagateSharingNode.propagate(self, value);
-            queue.add(value);
 
-            return self;
+            if (queue.add(value)) {
+                return self;
+            } else {
+                throw new RaiseException(getContext(), coreExceptions().closedQueueError(this));
+            }
         }
 
     }
@@ -75,10 +78,18 @@ public abstract class QueueNodes {
         }
 
         @Specialization(guards = "!nonBlocking")
-        public Object popBlocking(DynamicObject self, boolean nonBlocking) {
+        public Object popBlocking(DynamicObject self, boolean nonBlocking,
+                                  @Cached("create()") BranchProfile closedProfile) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
-            return doPop(queue);
+            final Object value = doPop(queue);
+
+            if (value == UnsizedQueue.CLOSED) {
+                closedProfile.enter();
+                return nil();
+            } else {
+                return value;
+            }
         }
 
         @TruffleBoundary
@@ -88,16 +99,17 @@ public abstract class QueueNodes {
 
         @Specialization(guards = "nonBlocking")
         public Object popNonBlock(DynamicObject self, boolean nonBlocking,
-                @Cached("create()") BranchProfile errorProfile) {
+                                  @Cached("create()") BranchProfile errorProfile) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
             final Object value = queue.poll();
+
             if (value == null) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().threadError("queue empty", this));
+            } else {
+                return value;
             }
-
-            return value;
         }
 
     }
@@ -198,6 +210,27 @@ public abstract class QueueNodes {
         public int num_waiting(DynamicObject self) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
             return queue.getNumberWaitingToTake();
+        }
+
+    }
+
+    @CoreMethod(names = "close")
+    public abstract static class CloseNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject close(DynamicObject self) {
+            Layouts.QUEUE.getQueue(self).close();
+            return self;
+        }
+
+    }
+
+    @CoreMethod(names = "closed?")
+    public abstract static class ClosedNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean closed(DynamicObject self) {
+            return Layouts.QUEUE.getQueue(self).isClosed();
         }
 
     }
