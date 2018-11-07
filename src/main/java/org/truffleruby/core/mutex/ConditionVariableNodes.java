@@ -173,10 +173,12 @@ public abstract class ConditionVariableNodes {
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
             final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
 
-            getContext().getThreadManager().runUntilResult(this, () -> {
-                condLock.lockInterruptibly();
-                return BlockingAction.SUCCESS;
-            });
+            if (!condLock.tryLock()) {
+                getContext().getThreadManager().runUntilResult(this, () -> {
+                    condLock.lockInterruptibly();
+                    return BlockingAction.SUCCESS;
+                });
+            }
 
             try {
                 if (Layouts.CONDITION_VARIABLE.getWaiters(self) > 0) {
@@ -200,10 +202,12 @@ public abstract class ConditionVariableNodes {
             final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
             final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
 
-            getContext().getThreadManager().runUntilResult(this, () -> {
-                condLock.lockInterruptibly();
-                return BlockingAction.SUCCESS;
-            });
+            if (!condLock.tryLock()) {
+                getContext().getThreadManager().runUntilResult(this, () -> {
+                    condLock.lockInterruptibly();
+                    return BlockingAction.SUCCESS;
+                });
+            }
 
             try {
                 if (Layouts.CONDITION_VARIABLE.getWaiters(self) > 0) {
