@@ -13,6 +13,8 @@ class BlockingMatcher
       when false      # terminated normally, so never blocked
         t.join
         return false
+      when nil        # terminated exceptionally
+        t.value
       else
         Thread.pass
       end
