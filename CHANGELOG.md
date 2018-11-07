@@ -12,6 +12,8 @@ Bug fixes:
 
 New features
 
+* `Mutex` and `ConditionVariable` have a new fast path for acquiring locks
+  that are unlocked.
 * `Queue` and `SizedQueue`, `#close` and `#closed?`, have been implemented.
 
 # 1.0 RC 9
