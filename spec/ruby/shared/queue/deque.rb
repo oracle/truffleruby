@@ -43,6 +43,18 @@ describe :queue_deq, shared: true do
     q.send(@method).should == nil
   end
 
+  it "returns nil for an empty queue that becomes closed" do
+    q = @object.call
+
+    t = Thread.new {
+      q.send(@method).should == nil
+    }
+
+    Thread.pass until t.status == "sleep" && q.num_waiting == 1
+    q.close
+    t.join
+  end
+
   describe "in non-blocking mode" do
     it "removes an item from the queue" do
       q = @object.call

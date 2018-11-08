@@ -195,6 +195,7 @@ public class UnsizedQueue {
 
         try {
             closed = true;
+            canTake.signalAll();
         } finally {
             lock.unlock();
         }
