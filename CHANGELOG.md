@@ -8,7 +8,7 @@ Bug fixes:
 
 * Added `rb_eEncodingError` for C extensions (#1437).
 * Fixed race condition when creating threads (#1445).
-# 1.0
+* Handle `exception: false` for IO#write_nonblock (#1457).
 
 New features
 

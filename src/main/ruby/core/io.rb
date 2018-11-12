@@ -2654,7 +2654,7 @@ class IO
     data.bytesize
   end
 
-  def write_nonblock(data)
+  def write_nonblock(data, exception: true)
     ensure_open_and_writable
 
     data = String data
@@ -2663,7 +2663,16 @@ class IO
     @ibuffer.unseek!(self) unless @sync
 
     self.nonblock = true
-    Truffle::POSIX.write_string_nonblock(self, data)
+
+    begin
+      Truffle::POSIX.write_string_nonblock(self, data)
+    rescue Errno::EAGAIN
+      if exception
+        raise EAGAINWaitWritable
+      else
+        return :wait_writable
+      end
+    end
   end
 
   def close
