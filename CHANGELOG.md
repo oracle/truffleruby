@@ -16,6 +16,11 @@ New features
   that are unlocked.
 * `Queue` and `SizedQueue`, `#close` and `#closed?`, have been implemented.
 
+Changes:
+
+* Timezone messages are now logged at `CONFIG` level, use `-Xlog=CONFIG` to
+  debug if the timezone is incorrectly shown as `UTC`.
+
 # 1.0 RC 9
 
 Security:
