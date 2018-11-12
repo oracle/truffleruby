@@ -2781,8 +2781,8 @@ class IO::BidirectionalPipe < IO
     @write.write(data)
   end
 
-  def write_nonblock(data)
-    @write.write_nonblock(data)
+  def write_nonblock(data, **options)
+    @write.write_nonblock(data, **options)
   end
 
 end
