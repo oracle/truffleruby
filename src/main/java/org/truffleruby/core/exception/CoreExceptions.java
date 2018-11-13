@@ -148,6 +148,11 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
+    public DynamicObject argumentErrorPlus(int passed, int required, Node currentNode) {
+        return argumentError(StringUtils.format("wrong number of arguments (given %d, expected %d+)", passed, required), currentNode);
+    }
+
+    @TruffleBoundary
     public DynamicObject argumentError(int passed, int required, int optional, Node currentNode) {
         return argumentError(StringUtils.format("wrong number of arguments (given %d, expected %d..%d)", passed, required, required + optional), currentNode);
     }

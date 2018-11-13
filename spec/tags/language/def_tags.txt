@@ -1,2 +1,0 @@
-fails:An instance method definition with a splat requires the presence of any arguments that precede the *
-fails:An instance method with a default argument prefers to assign to a default argument before a splat argument
