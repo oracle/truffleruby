@@ -80,12 +80,12 @@ describe "Defining a method" do
 end
 
 describe "An instance method" do
-  it "raises an erorr with too few arguments" do
+  it "raises an error with too few arguments" do
     def foo(a, b); end
     lambda { foo 1 }.should raise_error(ArgumentError, 'wrong number of arguments (given 1, expected 2)')
   end
 
-  it "raises an erorr with too many arguments" do
+  it "raises an error with too many arguments" do
     def foo(a); end
     lambda { foo 1, 2 }.should raise_error(ArgumentError, 'wrong number of arguments (given 2, expected 1)')
   end
