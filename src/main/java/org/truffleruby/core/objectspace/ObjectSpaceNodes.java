@@ -21,6 +21,7 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.FinalizationService.FinalizerReference;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -31,6 +32,8 @@ import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
+import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 
 @CoreClass("ObjectSpace")
 public abstract class ObjectSpaceNodes {
@@ -144,12 +147,20 @@ public abstract class ObjectSpaceNodes {
         // MRI would do a dynamic call to #respond_to? but it seems better to warn the user earlier.
         // Wanting #method_missing(:call) to be called for a finalizer seems highly unlikely.
         @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode.create();
+        @Child private ReadObjectFieldNode getFinaliserNode = ReadObjectFieldNodeGen.create("finalizerRef", null);
+        @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNodeGen.create("finalizerRef");
 
         @Specialization
         public DynamicObject defineFinalizer(VirtualFrame frame, DynamicObject object, Object finalizer,
                 @Cached("create()") BranchProfile errorProfile) {
             if (respondToCallNode.doesRespondTo(frame, "call", finalizer)) {
-                getContext().getObjectSpaceManager().defineFinalizer(object, finalizer);
+                synchronized (getContext().getFinalizationService()) {
+                    FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object);
+                    FinalizerReference newRef = getContext().getObjectSpaceManager().defineFinalizer(object, ref, finalizer);
+                    if (ref != newRef) {
+                        setFinalizerNode.write(object, newRef);
+                    }
+                }
                 Object[] objects = new Object[] { 0, finalizer };
                 return createArray(objects, objects.length);
             } else {
@@ -162,11 +173,18 @@ public abstract class ObjectSpaceNodes {
 
     @CoreMethod(names = "undefine_finalizer", isModuleFunction = true, required = 1)
     public abstract static class UndefineFinalizerNode extends CoreMethodArrayArgumentsNode {
+        @Child private ReadObjectFieldNode getFinaliserNode = ReadObjectFieldNodeGen.create("finalizerRef", null);
+        @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNodeGen.create("finalizerRef");
 
-        @TruffleBoundary
         @Specialization
-        public Object undefineFinalizer(Object object) {
-            getContext().getObjectSpaceManager().undefineFinalizer((DynamicObject) object);
+        public Object undefineFinalizer(VirtualFrame frame, DynamicObject object) {
+            FinalizerReference ref = (FinalizerReference) getFinaliserNode.execute(object);
+            if (ref != null) {
+                FinalizerReference newRef = getContext().getObjectSpaceManager().undefineFinalizer(object, ref);
+                if (ref != newRef) {
+                    setFinalizerNode.write(object, newRef);
+                }
+            }
             return object;
         }
     }

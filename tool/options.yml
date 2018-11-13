@@ -125,7 +125,6 @@ BASICOPS_INLINE: [basic_ops.inline, boolean, true, Inline basic operations (like
 
 REGEXP_INSTRUMENT_CREATION: [regexp.instrument-creation, boolean, false, Enable instrumentation to gather stats on regexp creation.]
 REGEXP_INSTRUMENT_MATCH: [regexp.instrument-match, boolean, false, Enable instrumentation to gather stats on regexp matching.]
-RUN_FINALIZERS_ON_EXIT: [finalizers.run_on_exit, boolean, false, "Run finalizers on exit (for debugging, even though objects are still alive)"]
 
 SHARED_OBJECTS_ENABLED: [shared.objects, boolean, true, Enable shared objects]
 SHARED_OBJECTS_DEBUG: [shared.objects.debug, boolean, false, Print information about shared objects]
