@@ -2710,9 +2710,6 @@ class IO
 
 end
 
-##
-# Implements the pipe returned by IO::pipe.
-
 class IO::BidirectionalPipe < IO
 
   def set_pipe_info(write)
