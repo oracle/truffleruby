@@ -341,15 +341,18 @@ class Socket < BasicSocket
 
     status = Truffle::Socket::Foreign.connect(descriptor, sockaddr)
 
-    if Errno.errno == Errno::EISCONN::Errno
-      raise Errno::EISCONN
-    end
-
     if status < 0
       if exception
         Truffle::Socket::Error.write_nonblock('connect(2)')
       else
-        :wait_writable
+        errno = Errno.errno
+        if errno == Errno::EINPROGRESS::Errno
+          :wait_writable
+        elsif errno == Errno::EISCONN::Errno
+          0
+        else
+          Truffle::Socket::Error.write_nonblock('connect(2)')
+        end
       end
     else
       0
