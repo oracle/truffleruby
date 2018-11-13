@@ -99,19 +99,28 @@ describe 'Socket#connect_nonblock' do
       end
     end
 
-    platform_is_not :freebsd, :solaris do
-      describe 'using a STREAM socket' do
-        before do
-          @server   = Socket.new(family, :STREAM)
-          @client   = Socket.new(family, :STREAM)
-          @sockaddr = Socket.sockaddr_in(0, ip_address)
-        end
+    describe 'using a STREAM socket' do
+      before do
+        @server   = Socket.new(family, :STREAM)
+        @client   = Socket.new(family, :STREAM)
+        @sockaddr = Socket.sockaddr_in(0, ip_address)
+      end
 
-        after do
-          @client.close
-          @server.close
-        end
+      after do
+        @client.close
+        @server.close
+      end
 
+      it 'raises Errno::EISCONN when already connected' do
+        @server.listen(1)
+        @client.connect(@server.getsockname).should == 0
+
+        lambda {
+          @client.connect_nonblock(@server.getsockname)
+        }.should raise_error(Errno::EISCONN)
+      end
+
+      platform_is_not :freebsd, :solaris do
         it 'raises IO:EINPROGRESSWaitWritable when the connection would block' do
           @server.bind(@sockaddr)
 
