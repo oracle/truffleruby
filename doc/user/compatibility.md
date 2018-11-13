@@ -130,7 +130,7 @@ streams do not provide a way to detect this.
 
 #### Error messages
 
-Error message strings will often differ from MRI, as these are not generally
+Error message strings will sometimes differ from MRI, as these are not generally
 covered by the Ruby Specification suite or tests.
 
 ## Features with very low performance
