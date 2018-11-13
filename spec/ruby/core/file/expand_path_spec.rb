@@ -127,6 +127,9 @@ describe "File.expand_path" do
 
     it "expands ~ENV['USER'] to the user's home directory" do
       File.expand_path("~#{ENV['USER']}").should == @home
+    end
+
+    it "expands ~ENV['USER']/a to a in the user's home directory" do
       File.expand_path("~#{ENV['USER']}/a").should == "#{@home}/a"
     end
 
