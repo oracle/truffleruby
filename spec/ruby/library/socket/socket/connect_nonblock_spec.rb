@@ -120,6 +120,13 @@ describe 'Socket#connect_nonblock' do
         }.should raise_error(Errno::EISCONN)
       end
 
+      it 'returns 0 when already connected in exceptionless mode' do
+        @server.listen(1)
+        @client.connect(@server.getsockname).should == 0
+
+        @client.connect_nonblock(@server.getsockname, exception: false).should == 0
+      end
+
       platform_is_not :freebsd, :solaris do
         it 'raises IO:EINPROGRESSWaitWritable when the connection would block' do
           @server.bind(@sockaddr)
