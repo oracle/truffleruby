@@ -109,6 +109,7 @@ public class CoreClassProcessor extends AbstractProcessor {
                                 method.required() + ", " +
                                 method.optional() + ", " +
                                 method.rest() + ", " +
+                                (method.keywordAsOptional().isEmpty() ? "null" : quote(method.keywordAsOptional())) + ", " +
                                 names + ");");
                     }
 

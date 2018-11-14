@@ -31,8 +31,10 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
+import org.truffleruby.language.arguments.NotProvidedNode;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadBlockNode;
+import org.truffleruby.language.arguments.ReadKeywordArgumentNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ReadRemainingArgumentsNode;
 import org.truffleruby.language.arguments.ReadSelfNode;
@@ -138,7 +140,7 @@ public class CoreMethodNodeManager {
         verifyUsage(module, methodDetails, method, visibility);
 
         final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module,
-                method.required(), method.optional(), method.rest(), names[0]);
+                method.required(), method.optional(), method.rest(), method.keywordAsOptional().isEmpty() ? null : method.keywordAsOptional(), names[0]);
         final CallTarget callTarget = makeGenericMethod(context, methodDetails.getNodeFactory(), methodDetails.getMethodAnnotation(), sharedMethodInfo);
 
         final boolean onSingleton = method.onSingleton() || method.constructor();
@@ -146,10 +148,10 @@ public class CoreMethodNodeManager {
     }
 
     public void addLazyCoreMethod(String nodeFactoryName, String moduleName, Visibility visibility,
-            boolean isModuleFunction, boolean onSingleton, int required, int optional, boolean rest, String... names) {
+            boolean isModuleFunction, boolean onSingleton, int required, int optional, boolean rest, String keywordAsOptional, String... names) {
         final DynamicObject module = getModule(moduleName);
 
-        final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module, required, optional, rest, names[0]);
+        final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module, required, optional, rest, keywordAsOptional, names[0]);
 
         final RubyNode methodNode = new LazyRubyNode(() -> {
             final NodeFactory<? extends RubyNode> nodeFactory = loadNodeFactory(nodeFactoryName);
@@ -216,13 +218,21 @@ public class CoreMethodNodeManager {
     }
 
     private static SharedMethodInfo makeSharedMethodInfo(RubyContext context, DynamicObject module,
-            int required, int optional, boolean rest, String primaryName) {
+            int required, int optional, boolean rest,  String keywordAsOptional, String primaryName) {
         final LexicalScope lexicalScope = new LexicalScope(context.getRootLexicalScope(), module);
+
+        final Arity arity;
+
+        if (keywordAsOptional == null) {
+            arity = new Arity(required, optional, rest);
+        } else {
+            arity = new Arity(required, optional, rest, 0, new String[]{keywordAsOptional}, false);
+        }
 
         return new SharedMethodInfo(
                 context.getCoreLibrary().getSourceSection(),
                 lexicalScope,
-                new Arity(required, optional, rest),
+                arity,
                 module,
                 primaryName,
                 0,
@@ -277,6 +287,14 @@ public class CoreMethodNodeManager {
 
         if (method.needsBlock()) {
             argumentsNodes.add(new ReadBlockNode(NotProvided.INSTANCE));
+        }
+
+        if (!method.keywordAsOptional().isEmpty()) {
+            if (optional > 0) {
+                throw new UnsupportedOperationException();
+            }
+
+            argumentsNodes.add(new ReadKeywordArgumentNode(required, method.keywordAsOptional(), new NotProvidedNode()));
         }
 
         RubyNode node = createNodeFromFactory(nodeFactory, argumentsNodes);

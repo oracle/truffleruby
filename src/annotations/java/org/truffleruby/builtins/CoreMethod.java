@@ -48,6 +48,8 @@ public @interface CoreMethod {
 
     int optional() default 0;
 
+    String keywordAsOptional() default "";
+
     boolean rest() default false;
 
     boolean needsBlock() default false;
