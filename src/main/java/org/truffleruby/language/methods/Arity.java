@@ -34,6 +34,7 @@ public class Arity {
         this(preRequired, optional, hasRest, 0, NO_KEYWORDS, false);
     }
 
+
     public Arity(int preRequired, int optional, boolean hasRest, int postRequired, String[] keywordArguments, boolean hasKeywordsRest) {
         this.preRequired = preRequired;
         this.optional = optional;

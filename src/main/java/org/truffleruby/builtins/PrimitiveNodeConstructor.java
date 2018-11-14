@@ -54,11 +54,11 @@ public class PrimitiveNodeConstructor {
         }
 
         for (int n = 0; n < argumentsCount; n++) {
-            RubyNode readArgumentNode = ProfileArgumentNodeGen.create(new ReadPreArgumentNode(n, MissingArgumentBehavior.UNDEFINED));
+            RubyNode readArgumentNode = ProfileArgumentNodeGen.create(new ReadPreArgumentNode(n, MissingArgumentBehavior.NOT_PROVIDED));
             arguments.add(transformArgument(readArgumentNode, n + 1));
         }
 
-        final RubyNode primitiveNode = CoreMethodNodeManager.createNodeFromFactory(context, factory, arguments);
+        final RubyNode primitiveNode = CoreMethodNodeManager.createNodeFromFactory(factory, arguments);
 
         return Translator.withSourceSection(sourceSection, new CallPrimitiveNode(primitiveNode, fallback));
     }

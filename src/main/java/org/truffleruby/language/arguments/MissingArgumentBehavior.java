@@ -10,5 +10,5 @@
 package org.truffleruby.language.arguments;
 
 public enum MissingArgumentBehavior {
-    RUNTIME_ERROR, UNDEFINED, NIL;
+    RUNTIME_ERROR, NOT_PROVIDED, NIL;
 }

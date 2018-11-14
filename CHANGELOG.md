@@ -17,6 +17,7 @@ New features
 * `Mutex` and `ConditionVariable` have a new fast path for acquiring locks
   that are unlocked.
 * `Queue` and `SizedQueue`, `#close` and `#closed?`, have been implemented.
+* `Kernel#clone(freeze)` has been implemented (#1454).
 
 Changes:
 

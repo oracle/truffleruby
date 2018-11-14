@@ -40,7 +40,7 @@ public class ReadPreArgumentNode extends RubyNode {
             case RUNTIME_ERROR:
                 throw new IndexOutOfBoundsException();
 
-            case UNDEFINED:
+            case NOT_PROVIDED:
                 return NotProvided.INSTANCE;
 
             case NIL:

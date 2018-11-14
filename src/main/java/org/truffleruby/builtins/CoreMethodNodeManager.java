@@ -31,8 +31,10 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
+import org.truffleruby.language.arguments.NotProvidedNode;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadBlockNode;
+import org.truffleruby.language.arguments.ReadKeywordArgumentNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ReadRemainingArgumentsNode;
 import org.truffleruby.language.arguments.ReadSelfNode;
@@ -138,7 +140,7 @@ public class CoreMethodNodeManager {
         verifyUsage(module, methodDetails, method, visibility);
 
         final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module,
-                method.required(), method.optional(), method.rest(), names[0]);
+                method.required(), method.optional(), method.rest(), method.keywordAsOptional().isEmpty() ? null : method.keywordAsOptional(), names[0]);
         final CallTarget callTarget = makeGenericMethod(context, methodDetails.getNodeFactory(), methodDetails.getMethodAnnotation(), sharedMethodInfo);
 
         final boolean onSingleton = method.onSingleton() || method.constructor();
@@ -146,15 +148,15 @@ public class CoreMethodNodeManager {
     }
 
     public void addLazyCoreMethod(String nodeFactoryName, String moduleName, Visibility visibility,
-            boolean isModuleFunction, boolean onSingleton, int required, int optional, boolean rest, String... names) {
+            boolean isModuleFunction, boolean onSingleton, int required, int optional, boolean rest, String keywordAsOptional, String... names) {
         final DynamicObject module = getModule(moduleName);
 
-        final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module, required, optional, rest, names[0]);
+        final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module, required, optional, rest, keywordAsOptional, names[0]);
 
         final RubyNode methodNode = new LazyRubyNode(() -> {
             final NodeFactory<? extends RubyNode> nodeFactory = loadNodeFactory(nodeFactoryName);
             final CoreMethod methodAnnotation = nodeFactory.getNodeClass().getAnnotation(CoreMethod.class);
-            return createCoreMethodNode(context, nodeFactory, methodAnnotation, sharedMethodInfo);
+            return createCoreMethodNode(nodeFactory, methodAnnotation, sharedMethodInfo);
         });
 
         final CallTarget callTarget = createCallTarget(context, sharedMethodInfo, methodNode);
@@ -216,13 +218,21 @@ public class CoreMethodNodeManager {
     }
 
     private static SharedMethodInfo makeSharedMethodInfo(RubyContext context, DynamicObject module,
-            int required, int optional, boolean rest, String primaryName) {
+            int required, int optional, boolean rest,  String keywordAsOptional, String primaryName) {
         final LexicalScope lexicalScope = new LexicalScope(context.getRootLexicalScope(), module);
+
+        final Arity arity;
+
+        if (keywordAsOptional == null) {
+            arity = new Arity(required, optional, rest);
+        } else {
+            arity = new Arity(required, optional, rest, 0, new String[]{keywordAsOptional}, false);
+        }
 
         return new SharedMethodInfo(
                 context.getCoreLibrary().getSourceSection(),
                 lexicalScope,
-                new Arity(required, optional, rest),
+                arity,
                 module,
                 primaryName,
                 0,
@@ -234,9 +244,9 @@ public class CoreMethodNodeManager {
     private static CallTarget makeGenericMethod(RubyContext context, NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method, SharedMethodInfo sharedMethodInfo) {
         final RubyNode methodNode;
         if (!TruffleOptions.AOT && context.getOptions().LAZY_CORE_METHOD_NODES) {
-            methodNode = new LazyRubyNode(() -> createCoreMethodNode(context, nodeFactory, method, sharedMethodInfo));
+            methodNode = new LazyRubyNode(() -> createCoreMethodNode(nodeFactory, method, sharedMethodInfo));
         } else {
-            methodNode = createCoreMethodNode(context, nodeFactory, method, sharedMethodInfo);
+            methodNode = createCoreMethodNode(nodeFactory, method, sharedMethodInfo);
         }
 
         return createCallTarget(context, sharedMethodInfo, methodNode);
@@ -247,7 +257,7 @@ public class CoreMethodNodeManager {
         return Truffle.getRuntime().createCallTarget(rootNode);
     }
 
-    public static RubyNode createCoreMethodNode(RubyContext context, NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method, SharedMethodInfo sharedMethodInfo) {
+    public static RubyNode createCoreMethodNode(NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method, SharedMethodInfo sharedMethodInfo) {
         final List<RubyNode> argumentsNodes = new ArrayList<>();
 
         final boolean needsSelf = needsSelf(method);
@@ -267,7 +277,7 @@ public class CoreMethodNodeManager {
         }
 
         for (int n = 0; n < nArgs; n++) {
-            RubyNode readArgumentNode = ProfileArgumentNodeGen.create(new ReadPreArgumentNode(n, MissingArgumentBehavior.UNDEFINED));
+            RubyNode readArgumentNode = ProfileArgumentNodeGen.create(new ReadPreArgumentNode(n, MissingArgumentBehavior.NOT_PROVIDED));
             argumentsNodes.add(transformArgument(method, readArgumentNode, n + 1));
         }
 
@@ -279,17 +289,25 @@ public class CoreMethodNodeManager {
             argumentsNodes.add(new ReadBlockNode(NotProvided.INSTANCE));
         }
 
-        RubyNode node = createNodeFromFactory(context, nodeFactory, argumentsNodes);
+        if (!method.keywordAsOptional().isEmpty()) {
+            if (optional > 0) {
+                throw new UnsupportedOperationException("core method has been declared with both optional arguments and a keyword-as-optional argument");
+            }
+
+            argumentsNodes.add(new ReadKeywordArgumentNode(required, method.keywordAsOptional(), new NotProvidedNode()));
+        }
+
+        RubyNode node = createNodeFromFactory(nodeFactory, argumentsNodes);
 
         final RubyNode checkArity = Translator.createCheckArityNode(sharedMethodInfo.getArity());
 
-        node = transformResult(context, method, node);
+        node = transformResult(method, node);
         node = Translator.sequence(null, Arrays.asList(checkArity, node));
 
         return new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
     }
 
-    public static RubyNode createNodeFromFactory(RubyContext context, NodeFactory<? extends RubyNode> nodeFactory, List<RubyNode> argumentsNodes) {
+    public static RubyNode createNodeFromFactory(NodeFactory<? extends RubyNode> nodeFactory, List<RubyNode> argumentsNodes) {
         final List<List<Class<?>>> signatures = nodeFactory.getNodeSignatures();
 
         assert signatures.size() == 1;
@@ -327,7 +345,7 @@ public class CoreMethodNodeManager {
         return argument;
     }
 
-    private static RubyNode transformResult(RubyContext context, CoreMethod method, RubyNode node) {
+    private static RubyNode transformResult(CoreMethod method, RubyNode node) {
         if (!method.enumeratorSize().isEmpty()) {
             assert !method.returnsEnumeratorIfNoBlock() : "Only one of enumeratorSize or returnsEnumeratorIfNoBlock can be specified";
             // TODO BF 6-27-2015 Handle multiple method names correctly
