@@ -10,6 +10,7 @@ Bug fixes:
 * Fixed race condition when creating threads (#1445).
 * Handle `exception: false` for IO#write_nonblock (#1457).
 * `File.expand_path` now raises an exception for a non-absolute user-home.
+* `ArgumentError` messages now better match MRI (#1467).
 
 New features
 
