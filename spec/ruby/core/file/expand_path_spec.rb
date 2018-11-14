@@ -139,7 +139,7 @@ describe "File.expand_path" do
     end
 
     it "expands ../foo with ~/dir as base dir to /path/to/user/home/foo" do
-      File.expand_path('../foo', '~/dir').should == "#{@db_home}/foo"
+      File.expand_path('../foo', '~/dir').should == "#{@var_home}/foo"
     end
   end
 
