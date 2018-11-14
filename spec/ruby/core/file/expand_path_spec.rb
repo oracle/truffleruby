@@ -242,4 +242,19 @@ platform_is_not :windows do
       lambda { File.expand_path("~") }.should raise_error(ArgumentError)
     end
   end
+
+  describe "File.expand_path with a non-absolute HOME" do
+    before :each do
+      @home = ENV["HOME"]
+    end
+
+    after :each do
+      ENV["HOME"] = @home
+    end
+
+    it "raises an ArgumentError" do
+      ENV["HOME"] = "non-absolute"
+      lambda { File.expand_path("~") }.should raise_error(ArgumentError, 'non-absolute home')
+    end
+  end
 end

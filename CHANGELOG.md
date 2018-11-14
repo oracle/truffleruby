@@ -9,6 +9,7 @@ Bug fixes:
 * Added `rb_eEncodingError` for C extensions (#1437).
 * Fixed race condition when creating threads (#1445).
 * Handle `exception: false` for IO#write_nonblock (#1457).
+* `File.expand_path` now raises an exception for a non-absolute user-home.
 
 New features
 

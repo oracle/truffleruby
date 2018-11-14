@@ -467,18 +467,18 @@ class File < IO
     str = ''.force_encoding path.encoding
     first = path[0]
     if first == ?~
+      first_char = path[1]
+
+      if first_char == ?/ || first_char.nil?
+        home = ENV['HOME']
+        raise ArgumentError, "couldn't find HOME environment variable when expanding '~'" if home.nil?
+        raise ArgumentError, 'non-absolute home' unless home.start_with?('/')
+      end
+
       case path[1]
       when ?/
-        unless ENV['HOME']
-          raise ArgumentError, "couldn't find HOME environment variable when expanding '~'"
-        end
-
-        path = ENV['HOME'] + path.byteslice(1, path.bytesize - 1)
+        path = home + path.byteslice(1, path.bytesize - 1)
       when nil
-        unless home = ENV['HOME']
-          raise ArgumentError, "couldn't find HOME environment variable when expanding '~'"
-        end
-
         if home.empty?
           raise ArgumentError, "HOME environment variable is empty expanding '~'"
         end
