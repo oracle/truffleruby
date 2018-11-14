@@ -58,7 +58,7 @@ public class PrimitiveNodeConstructor {
             arguments.add(transformArgument(readArgumentNode, n + 1));
         }
 
-        final RubyNode primitiveNode = CoreMethodNodeManager.createNodeFromFactory(context, factory, arguments);
+        final RubyNode primitiveNode = CoreMethodNodeManager.createNodeFromFactory(factory, arguments);
 
         return Translator.withSourceSection(sourceSection, new CallPrimitiveNode(primitiveNode, fallback));
     }
