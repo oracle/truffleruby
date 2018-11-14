@@ -291,7 +291,7 @@ public class CoreMethodNodeManager {
 
         if (!method.keywordAsOptional().isEmpty()) {
             if (optional > 0) {
-                throw new UnsupportedOperationException();
+                throw new UnsupportedOperationException("core method has been declared with both optional arguments and a keyword-as-optional argument");
             }
 
             argumentsNodes.add(new ReadKeywordArgumentNode(required, method.keywordAsOptional(), new NotProvidedNode()));
