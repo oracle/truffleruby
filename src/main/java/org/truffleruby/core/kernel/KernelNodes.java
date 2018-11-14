@@ -431,8 +431,12 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "clone")
-    public abstract static class CloneNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "clone", keywordAsOptional = "freeze")
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "self"),
+            @NodeChild(type = RubyNode.class, value = "freeze")
+    })
+    public abstract static class CloneNode extends CoreMethodNode {
 
         @Child private CopyNode copyNode = CopyNodeFactory.create(null);
         @Child private CallDispatchHeadNode initializeCloneNode = CallDispatchHeadNode.createPrivate();
@@ -441,9 +445,15 @@ public abstract class KernelNodes {
         @Child private PropagateTaintNode propagateTaintNode = PropagateTaintNode.create();
         @Child private SingletonClassNode singletonClassNode;
 
+        @CreateCast("freeze")
+        public RubyNode coerceToBoolean(RubyNode freeze) {
+            return BooleanCastWithDefaultNodeGen.create(true, freeze);
+        }
+
         @Specialization
-        public DynamicObject clone(VirtualFrame frame, DynamicObject self,
+        public DynamicObject clone(VirtualFrame frame, DynamicObject self, boolean freeze,
                 @Cached("createBinaryProfile()") ConditionProfile isSingletonProfile,
+                @Cached("createBinaryProfile()") ConditionProfile freezeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile isFrozenProfile,
                 @Cached("createBinaryProfile()") ConditionProfile isRubyClass) {
             final DynamicObject newObject = copyNode.executeCopy(frame, self);
@@ -459,7 +469,7 @@ public abstract class KernelNodes {
 
             propagateTaintNode.propagate(self, newObject);
 
-            if (isFrozenProfile.profile(isFrozenNode.executeIsFrozen(self))) {
+            if (freezeProfile.profile(freeze) && isFrozenProfile.profile(isFrozenNode.executeIsFrozen(self))) {
                 if (freezeNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     freezeNode = insert(FreezeNode.create());
