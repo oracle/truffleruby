@@ -54,7 +54,7 @@ public class PrimitiveNodeConstructor {
         }
 
         for (int n = 0; n < argumentsCount; n++) {
-            RubyNode readArgumentNode = ProfileArgumentNodeGen.create(new ReadPreArgumentNode(n, MissingArgumentBehavior.UNDEFINED));
+            RubyNode readArgumentNode = ProfileArgumentNodeGen.create(new ReadPreArgumentNode(n, MissingArgumentBehavior.NOT_PROVIDED));
             arguments.add(transformArgument(readArgumentNode, n + 1));
         }
 
