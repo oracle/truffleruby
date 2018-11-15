@@ -44,11 +44,11 @@ describe :kernel_raise, shared: true do
   it "re-raises the previously rescued exception if no exception is specified" do
     lambda do
       begin
-        raise Exception, "outer"
+        @object.raise Exception, "outer"
         ScratchPad.record :no_abort
       rescue
         begin
-          raise StandardError, "inner"
+          @object.raise StandardError, "inner"
         rescue
         end
 
@@ -62,10 +62,10 @@ describe :kernel_raise, shared: true do
 
   it "re-raises a previously rescued exception without overwriting the backtrace" do
     begin
-      initial_raise_line = __LINE__; raise 'raised'
+      initial_raise_line = __LINE__; @object.raise 'raised'
     rescue => raised
       begin
-        raise_again_line = __LINE__; raise raised
+        raise_again_line = __LINE__; @object.raise raised
       rescue => raised_again
         # This spec is written using #backtrace and matching the line number
         # from the string, as backtrace_locations is a more advanced
