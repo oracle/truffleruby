@@ -23,7 +23,7 @@ Changes:
 * Timezone messages are now logged at `CONFIG` level, use `-Xlog=CONFIG` to
   debug if the timezone is incorrectly shown as `UTC`.
 
-# 1.0 RC 9
+# 1.0 RC 9, 5 November 2018
 
 Security:
 
@@ -59,7 +59,7 @@ Changes:
 * Detect when the system libssl is incompatible more accurately and
   add instructions on how to recompile the extension.
 
-# 1.0 RC 8, October 2018
+# 1.0 RC 8, 19 October 2018
 
 New features:
 
@@ -81,7 +81,7 @@ Performance:
 
 * Performance of setting the last exception on a thread has now been improved.
 
-# 1.0 RC 7, October 2018
+# 1.0 RC 7, 3 October 2018
 
 New features:
 
@@ -123,7 +123,7 @@ Changes:
 * Reimplemented exceptions and other APIs that can return a backtrace to use
   Truffle's lazy stacktraces API.
 
-# 1.0 RC 6, September 2018
+# 1.0 RC 6, 3 September 2018
 
 New features:
 
@@ -202,7 +202,7 @@ Changes:
 * The `-Xsync.stdio` option has been removed - use standard Ruby
   `STDOUT.sync = true` in your program instead.
 
-# 1.0 RC 5, August 2018
+# 1.0 RC 5, 3 August 2018
 
 New features:
 
