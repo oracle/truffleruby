@@ -1,2 +1,1 @@
 fails:Thread#raise ignores dead threads and returns nil
-fails:Thread#raise on same thread re-raises a previously rescued exception without overwriting the backtrace

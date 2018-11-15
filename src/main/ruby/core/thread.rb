@@ -292,7 +292,7 @@ class Thread
   end
   alias_method :to_s, :inspect
 
-  def raise(exc=undefined, msg=nil, trace=nil)
+  def raise(exc=undefined, msg=nil, ctx=nil)
     return self unless alive?
 
     if undefined.equal? exc
@@ -303,7 +303,6 @@ class Thread
     if exc.respond_to? :exception
       exc = exc.exception msg
       Kernel.raise TypeError, 'exception class/object expected' unless Exception === exc
-      exc.set_backtrace trace if trace
     elsif no_argument
       exc = RuntimeError.exception nil
     elsif exc.kind_of? String
@@ -312,12 +311,15 @@ class Thread
       Kernel.raise TypeError, 'exception class/object expected'
     end
 
+    exc.set_context ctx if ctx
+    exc.capture_backtrace!(1) unless exc.backtrace?
+
     if $DEBUG
       STDERR.puts "Exception: `#{exc.class}' - #{exc.message}"
     end
 
     if self == Thread.current
-      Kernel.raise exc
+      Truffle.invoke_primitive :vm_raise_exception, exc, false
     else
       Truffle.invoke_primitive :thread_raise, self, exc
     end
