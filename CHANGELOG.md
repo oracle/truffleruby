@@ -17,6 +17,7 @@ Bug fixes:
 * `ArgumentError` messages now better match MRI (#1467).
 * Added support for `:float_millisecond`, `:millisecond`, and
   `:second` time units to `Process.clock_gettime` (#1468).
+* Fixed backtrace of re-raised exceptions (#1459).
 
 Changes:
 
