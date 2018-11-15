@@ -137,7 +137,7 @@ module Truffle
       end
 
       if $DEBUG
-        STDERR.puts "Exception: `#{exc.class}' #{caller.first} - #{exc.message}\n"
+        STDERR.puts "Exception: `#{exc.class}' #{caller(2, 1)[0]} - #{exc.message}\n"
       end
 
       Truffle.invoke_primitive :vm_raise_exception, exc, internal
