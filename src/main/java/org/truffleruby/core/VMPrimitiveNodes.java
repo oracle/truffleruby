@@ -212,7 +212,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_raise_exception", needsSelf = false)
-    public static abstract class VMRaiseExceptionPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class VMRaiseExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyException(exception)")
         public DynamicObject vmRaiseException(DynamicObject exception, boolean internal,
@@ -224,6 +224,17 @@ public abstract class VMPrimitiveNodes {
                 throw (RaiseException) backtrace.getTruffleException();
             } else {
                 throw new RaiseException(getContext(), exception, internal);
+            }
+        }
+
+        public static void reRaiseException(RubyContext context, DynamicObject exception) {
+            final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
+            if (backtrace != null && backtrace.getTruffleException() != null) {
+                // We need to rethrow the existing TruffleException, otherwise we would lose the
+                // incremental backtrace accumulated in it.
+                throw (RaiseException) backtrace.getTruffleException();
+            } else {
+                throw new RaiseException(context, exception, false);
             }
         }
 
