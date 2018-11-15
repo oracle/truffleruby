@@ -3,6 +3,10 @@
 New features:
 
 * The `nkf` and `kconv` standard libraries were added (#1439).
+* `Mutex` and `ConditionVariable` have a new fast path for acquiring locks
+  that are unlocked.
+* `Queue` and `SizedQueue`, `#close` and `#closed?`, have been implemented.
+* `Kernel#clone(freeze)` has been implemented (#1454).
 
 Bug fixes:
 
@@ -13,13 +17,6 @@ Bug fixes:
 * `ArgumentError` messages now better match MRI (#1467).
 * Added support for `:float_millisecond`, `:millisecond`, and
   `:second` time units to `Process.clock_gettime` (#1468).
-
-New features
-
-* `Mutex` and `ConditionVariable` have a new fast path for acquiring locks
-  that are unlocked.
-* `Queue` and `SizedQueue`, `#close` and `#closed?`, have been implemented.
-* `Kernel#clone(freeze)` has been implemented (#1454).
 
 Changes:
 
