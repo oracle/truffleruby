@@ -293,7 +293,7 @@ class Thread
   alias_method :to_s, :inspect
 
   def raise(exc=undefined, msg=nil, ctx=nil)
-    return self unless alive?
+    return nil unless alive?
 
     if undefined.equal? exc
       no_argument = true

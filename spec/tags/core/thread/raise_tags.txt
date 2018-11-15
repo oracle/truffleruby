@@ -1,1 +1,0 @@
-fails:Thread#raise ignores dead threads and returns nil
