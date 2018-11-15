@@ -44,7 +44,6 @@ exclude :test_clock_gettime_MACH_ABSOLUTE_TIME_BASED_CLOCK_MONOTONIC, "needs inv
 exclude :test_clock_gettime_TIMES_BASED_CLOCK_MONOTONIC, "needs investigation"
 exclude :test_clock_gettime_TIMES_BASED_CLOCK_PROCESS_CPUTIME_ID, "needs investigation"
 exclude :test_clock_gettime_TIME_BASED_CLOCK_REALTIME, "needs investigation"
-exclude :test_clock_gettime_unit, "needs investigation"
 exclude :test_daemon_default, "needs investigation"
 exclude :test_daemon_no_threads, "needs investigation"
 exclude :test_daemon_nochdir_noclose, "needs investigation"
