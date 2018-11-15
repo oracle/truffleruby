@@ -62,7 +62,7 @@ describe :kernel_raise, shared: true do
 
   it "re-raises a previously rescued exception without overwriting the backtrace" do
     begin
-      raise 'raised'
+      initial_raise_line = __LINE__; raise 'raised'
     rescue => raised
       begin
         raise_again_line = __LINE__; raise raised
@@ -71,7 +71,8 @@ describe :kernel_raise, shared: true do
         # from the string, as backtrace_locations is a more advanced
         # method that is not always supported by implementations.
 
-        raised_again.backtrace.first.should_not include(":#{raise_again_line}:")
+        raised_again.backtrace.first.should include("#{__FILE__}:#{initial_raise_line}:")
+        raised_again.backtrace.first.should_not include("#{__FILE__}:#{raise_again_line}:")
       end
     end
   end
