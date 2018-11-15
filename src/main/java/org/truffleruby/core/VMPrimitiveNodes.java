@@ -220,7 +220,7 @@ public abstract class VMPrimitiveNodes {
             final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
             if (reRaiseProfile.profile(backtrace != null && backtrace.getTruffleException() != null)) {
                 // We need to rethrow the existing TruffleException, otherwise we would lose the
-                // incremental backtrace accumulated in it.
+                // TruffleStackTrace stored in it.
                 throw (RaiseException) backtrace.getTruffleException();
             } else {
                 throw new RaiseException(getContext(), exception, internal);
@@ -231,7 +231,7 @@ public abstract class VMPrimitiveNodes {
             final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
             if (backtrace != null && backtrace.getTruffleException() != null) {
                 // We need to rethrow the existing TruffleException, otherwise we would lose the
-                // incremental backtrace accumulated in it.
+                // TruffleStackTrace stored in it.
                 throw (RaiseException) backtrace.getTruffleException();
             } else {
                 throw new RaiseException(context, exception, false);
