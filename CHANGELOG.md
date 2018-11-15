@@ -11,6 +11,8 @@ Bug fixes:
 * Handle `exception: false` for IO#write_nonblock (#1457).
 * `File.expand_path` now raises an exception for a non-absolute user-home.
 * `ArgumentError` messages now better match MRI (#1467).
+* Added support for `:float_millisecond`, `:millisecond`, and
+  `:second` time units to `Process.clock_gettime` (#1468).
 
 New features
 
