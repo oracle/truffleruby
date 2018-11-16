@@ -56,6 +56,7 @@ public class Backtrace {
     }
 
     public void setTruffleException(TruffleException truffleException) {
+        assert this.truffleException == null : "the TruffleException of a Backtrace must not be set again, otherwise the original backtrace is lost";
         this.truffleException = truffleException;
     }
 

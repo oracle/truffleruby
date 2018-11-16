@@ -108,7 +108,7 @@ module Truffle
       -> v { raise TypeError, "$stderr must have a write method #{v.class} given." unless v.respond_to?(:write)
              global_variable_set(:$stderr, v) })
 
-    def self.internal_raise(exc, msg, ctx=nil, internal)
+    def self.internal_raise(exc, msg, ctx, internal)
       skip = false
       if undefined.equal? exc
         exc = $!
@@ -137,7 +137,7 @@ module Truffle
       end
 
       if $DEBUG
-        STDERR.puts "Exception: `#{exc.class}' #{caller.first} - #{exc.message}\n"
+        STDERR.puts "Exception: `#{exc.class}' #{caller(2, 1)[0]} - #{exc.message}\n"
       end
 
       Truffle.invoke_primitive :vm_raise_exception, exc, internal
