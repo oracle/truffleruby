@@ -195,6 +195,7 @@ public class CoreLibrary {
     private final DynamicObject ioClass;
     private final DynamicObject stopIterationClass;
     private final DynamicObject closedQueueErrorClass;
+    private final DynamicObject warningModule;
 
     private final DynamicObject argv;
     private final GlobalVariables globalVariables;
@@ -542,6 +543,7 @@ public class CoreLibrary {
         handleFactory = Layouts.HANDLE.createHandleShape(handleClass, handleClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(handleClass, handleFactory);
         defineModule("Polyglot");
+        warningModule = defineModule("Warning");
 
         bigDecimalClass = defineClass(truffleModule, numericClass, "BigDecimal");
         Layouts.CLASS.setInstanceFactoryUnsafe(bigDecimalClass, Layouts.BIG_DECIMAL.createBigDecimalShape(bigDecimalClass, bigDecimalClass));
@@ -1395,6 +1397,10 @@ public class CoreLibrary {
         return closedQueueErrorClass;
     }
 
+    public DynamicObject getWarningModule() {
+        return warningModule;
+    }
+
     private static final String POST_BOOT_FILE = "/post-boot/post-boot.rb";
 
     public static final String[] CORE_FILES = {
@@ -1477,6 +1483,7 @@ public class CoreLibrary {
             "/core/math.rb",
             "/core/method.rb",
             "/core/unbound_method.rb",
+            "/core/warning.rb",
             "/core/truffle/interop.rb",
             "/core/truffle/polyglot.rb",
             "/core/posix.rb",

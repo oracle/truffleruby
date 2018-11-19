@@ -3,6 +3,7 @@
 New features:
 
 * The `nkf` and `kconv` standard libraries were added (#1439).
+* `Warning.warn` has been implemented (#1470).
 
 Bug fixes:
 
