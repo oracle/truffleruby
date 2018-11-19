@@ -968,8 +968,8 @@ module Truffle::CExt
   def rb_path_to_class(path)
     begin
       const = Object.const_get(path, false)
-    rescue NameError => e
-      raise ArgumentError, e.message
+    rescue NameError
+      raise ArgumentError, "undefined class/module #{path}"
     end
     raise TypeError unless const.is_a?(Class)
     const
