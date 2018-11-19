@@ -16,7 +16,8 @@ module Warning
     unless message.encoding.ascii_compatible?
       raise Encoding::CompatibilityError, "ASCII incompatible encoding: #{message.encoding}"
     end
-    $stderr.print message
+    $stderr.write message
+    nil
   end
 
 end
