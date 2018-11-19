@@ -61,6 +61,14 @@ unless TruffleRuby.native?
       end
     end
 
+    # test-unit expects `Java::JavaLang::Throwable` to be resolvable if `::Java` is defined (see assertions.rb).
+    # When doing JRuby-style interop, that's a fine assumption. However, we have `::Java` defined for Truffle-style
+    # interop and in that case, the assumption does not hold. In order to allow the gem to work properly, we define
+    # a dummy `Throwable` class here.
+    module JavaLang
+      class Throwable; end
+    end
+
   end
   
 end

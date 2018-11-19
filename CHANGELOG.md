@@ -20,6 +20,7 @@ Bug fixes:
 * Fixed backtrace of re-raised exceptions (#1459).
 * Updated an exception message in Psych related to loading a non-existing
   class so that it now matches MRI.
+* Fixed a JRuby-style Java interop compatibility issue seen in `test-unit`.
 
 Changes:
 
