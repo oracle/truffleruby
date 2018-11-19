@@ -18,6 +18,8 @@ Bug fixes:
 * Added support for `:float_millisecond`, `:millisecond`, and
   `:second` time units to `Process.clock_gettime` (#1468).
 * Fixed backtrace of re-raised exceptions (#1459).
+* Updated an exception message in Psych related to loading a non-existing
+  class so that it now matches MRI.
 
 Changes:
 
