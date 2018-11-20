@@ -569,7 +569,7 @@ module Kernel
   module_function :untrace_var
 
   def warn(*messages)
-    $stderr.puts(*messages) if !$VERBOSE.nil? && !messages.empty?
+    Truffle::IOOperations.puts($stderr, *messages) if !$VERBOSE.nil? && !messages.empty?
     nil
   end
   module_function :warn

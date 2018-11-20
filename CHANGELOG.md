@@ -21,6 +21,7 @@ Bug fixes:
 * Fixed backtrace of re-raised exceptions (#1459).
 * Updated an exception message in Psych related to loading a non-existing
   class so that it now matches MRI.
+* Fixed problem with calling `warn` if `$stderr` has been reassigned.
 
 Changes:
 
