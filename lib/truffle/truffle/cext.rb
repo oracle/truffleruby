@@ -1165,7 +1165,7 @@ module Truffle::CExt
   end
 
   def rb_io_puts(out, args)
-    out.puts(*args)
+    Truffle::IOOperations.puts out, args
   end
 
   def rb_obj_call_init(obj, args)
