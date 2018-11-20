@@ -2081,6 +2081,29 @@ public abstract class ArrayNodes {
 
     }
 
+    @Primitive(name = "steal_array_storage", needsSelf = false)
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class StealArrayStorageNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "array == other")
+        public DynamicObject stealStorageNoOp(DynamicObject array, DynamicObject other) {
+            return array;
+        }
+
+        @Specialization(guards = {"array != other", "strategy.matches(array)", "otherStrategy.matches(other)"}, limit = "ARRAY_STRATEGIES")
+        public DynamicObject stealStorage(DynamicObject array, DynamicObject other,
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("of(other)") ArrayStrategy otherStrategy) {
+            final int size = getSize(other);
+            final Object store = getStore(other);
+            strategy.setStoreAndSize(array, store, size);
+            otherStrategy.setStoreAndSize(other, null, 0);
+
+            return array;
+        }
+
+    }
+
     @Primitive(name = "array_zip")
     @ImportStatic(ArrayGuards.class)
     public abstract static class ZipNode extends PrimitiveArrayArgumentsNode {
