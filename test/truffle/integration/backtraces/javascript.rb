@@ -20,11 +20,11 @@ def foo
 end
 
 Truffle::Interop.export_method :foo
-Truffle::Interop.eval js, "foo = Interop.import('foo')"
+Truffle::Interop.eval js, "foo = Polyglot.import('foo')"
 
 Truffle::Interop.eval js, "function bar() { foo(); }"
 
-Truffle::Interop.eval js, "Interop.export('bar', bar)"
+Truffle::Interop.eval js, "Polyglot.export('bar', bar)"
 Truffle::Interop.import_method :bar
 
 def baz
@@ -32,11 +32,11 @@ def baz
 end
 
 Truffle::Interop.export_method :baz
-Truffle::Interop.eval js, "baz = Interop.import('baz')"
+Truffle::Interop.eval js, "baz = Polyglot.import('baz')"
 
 Truffle::Interop.eval js, "function bob() { baz(); }"
 
-Truffle::Interop.eval js, "Interop.export('bob', bob)"
+Truffle::Interop.eval js, "Polyglot.export('bob', bob)"
 Truffle::Interop.import_method :bob
 
 check('javascript.backtrace') do
