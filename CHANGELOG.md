@@ -22,6 +22,7 @@ Bug fixes:
 * Updated an exception message in Psych related to loading a non-existing
   class so that it now matches MRI.
 * Fixed a JRuby-style Java interop compatibility issue seen in `test-unit`.
+* Fixed problem with calling `warn` if `$stderr` has been reassigned.
 
 Changes:
 

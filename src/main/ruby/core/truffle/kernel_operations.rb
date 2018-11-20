@@ -97,7 +97,7 @@ module Truffle
     define_hooked_variable(
       :$stdout,
       -> { global_variable_get(:$stdout) },
-      -> v { raise TypeError, "$stdout must have a write method #{v.class} given." unless v.respond_to?(:write)
+      -> v { raise TypeError, "$stdout must have a write method, #{v.class} given" unless v.respond_to?(:write)
              global_variable_set(:$stdout, v) })
 
     alias $> $stdout
@@ -105,7 +105,7 @@ module Truffle
     define_hooked_variable(
       :$stderr,
       -> { global_variable_get(:$stderr) },
-      -> v { raise TypeError, "$stderr must have a write method #{v.class} given." unless v.respond_to?(:write)
+      -> v { raise TypeError, "$stderr must have a write method, #{v.class} given" unless v.respond_to?(:write)
              global_variable_set(:$stderr, v) })
 
     def self.internal_raise(exc, msg, ctx, internal)
