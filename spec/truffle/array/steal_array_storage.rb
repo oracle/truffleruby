@@ -9,7 +9,7 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "Truffle::Array.steal_storage" do
+describe ":steal_array_storage primitive" do
   def storage(ary)
     Truffle::Debug.array_storage(ary)
   end
@@ -21,7 +21,7 @@ describe "Truffle::Array.steal_storage" do
   it "should no-op when called on itself" do
     copy = @array.dup
 
-    Truffle::Array.steal_storage(@array, @array)
+    Truffle.invoke_primitive(:steal_array_storage, @array, @array)
 
     storage(@array).should == "Object[]"
     @array.should == copy
@@ -31,7 +31,7 @@ describe "Truffle::Array.steal_storage" do
     other = [1, 2, 3, 4, 5]
     other_copy = other.dup
 
-    Truffle::Array.steal_storage(@array, other)
+    Truffle.invoke_primitive(:steal_array_storage, @array, other)
 
     storage(@array).should == "int[]"
     @array.should == other_copy

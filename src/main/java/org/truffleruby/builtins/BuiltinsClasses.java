@@ -28,8 +28,6 @@ import org.truffleruby.core.VMPrimitiveNodesBuiltins;
 import org.truffleruby.core.VMPrimitiveNodesFactory;
 import org.truffleruby.core.array.ArrayNodesBuiltins;
 import org.truffleruby.core.array.ArrayNodesFactory;
-import org.truffleruby.core.array.TruffleArrayNodesBuiltins;
-import org.truffleruby.core.array.TruffleArrayNodesFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesBuiltins;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory;
 import org.truffleruby.core.binding.BindingNodesBuiltins;
@@ -220,7 +218,6 @@ public abstract class BuiltinsClasses {
         TimeNodesBuiltins.setup(coreManager, primitiveManager);
         TracePointNodesBuiltins.setup(coreManager, primitiveManager);
         TrueClassNodesBuiltins.setup(coreManager, primitiveManager);
-        TruffleArrayNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleBindingNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleBootNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleDebugNodesBuiltins.setup(coreManager, primitiveManager);
@@ -297,7 +294,6 @@ public abstract class BuiltinsClasses {
             TimeNodesFactory.getFactories(),
             TracePointNodesFactory.getFactories(),
             TrueClassNodesFactory.getFactories(),
-            TruffleArrayNodesFactory.getFactories(),
             TruffleBindingNodesFactory.getFactories(),
             TruffleBootNodesFactory.getFactories(),
             TruffleDebugNodesFactory.getFactories(),
