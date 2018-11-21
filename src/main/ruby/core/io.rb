@@ -765,7 +765,7 @@ class IO
 
     mode = StringValue(mode)
 
-    ret = 0
+    ret = CLOEXEC
 
     case mode[0]
     when ?r

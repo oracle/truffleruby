@@ -299,6 +299,7 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.file.O_WRONLY", 1);
         configuration.config("platform.file.O_RDWR", 2);
         configuration.config("platform.file.O_ACCMODE", 3);
+        configuration.config("platform.file.O_CLOEXEC", 524288);
         configuration.config("platform.file.O_CREAT", 64);
         configuration.config("platform.file.O_EXCL", 128);
         configuration.config("platform.file.O_NOCTTY", 256);
@@ -359,8 +360,8 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.socket.PF_ISDN", 34);
         configuration.config("platform.socket.AF_LOCAL", 1);
         configuration.config("platform.socket.PF_LOCAL", 1);
-        configuration.config("platform.socket.AF_MAX", 43);
-        configuration.config("platform.socket.PF_MAX", 43);
+        configuration.config("platform.socket.AF_MAX", 44);
+        configuration.config("platform.socket.PF_MAX", 44);
         configuration.config("platform.socket.AF_PACKET", 17);
         configuration.config("platform.socket.PF_PACKET", 17);
         configuration.config("platform.socket.AF_ROUTE", 16);
