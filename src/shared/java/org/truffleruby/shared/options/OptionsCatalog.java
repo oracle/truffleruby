@@ -431,6 +431,11 @@ public class OptionsCatalog {
             "Cache size for accessing variables in another frame",
             null,
             5);
+    public static final BooleanOptionDescription CLONE_DISABLED = new BooleanOptionDescription(
+            "ruby.clone.disable",
+            "Disable all manual cloning",
+            null,
+            false);
     public static final BooleanOptionDescription CLONE_DEFAULT = new BooleanOptionDescription(
             "ruby.clone.default",
             "Default option for cloning",
@@ -810,6 +815,8 @@ public class OptionsCatalog {
                 return ARRAY_DUP_CACHE;
             case "ruby.frame.variable.access.cache":
                 return FRAME_VARIABLE_ACCESS_CACHE;
+            case "ruby.clone.disable":
+                return CLONE_DISABLED;
             case "ruby.clone.default":
                 return CLONE_DEFAULT;
             case "ruby.inline.default":
@@ -926,6 +933,7 @@ public class OptionsCatalog {
             CEXTS_LIBRARY_REMAP,
             CLASS_CACHE,
             CLONE_DEFAULT,
+            CLONE_DISABLED,
             CONSTANT_CACHE,
             LOG_DYNAMIC_CONSTANT_LOOKUP,
             CORE_ALWAYS_CLONE,
