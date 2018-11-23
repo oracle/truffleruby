@@ -28,7 +28,7 @@ You can use `gem` to install Gems as normal.
 
 You can also build TruffleRuby from source, see the
 [building instructions](doc/contributor/workflow.md), and using
-[Docker](doc/contributor/docker.md)
+[Docker](doc/contributor/docker.md).
 
 ## Aim
 
@@ -44,12 +44,12 @@ TruffleRuby aims to:
 
 ## TruffleRuby configurations
 
-There are two main configurations of TruffleRuby - *native* and *JVM*. It's
+There are two main configurations of TruffleRuby: *native* and *JVM*. It's
 important to understand the different configurations of TruffleRuby, as each has
 different capabilities and performance characteristics. You should pick the
 execution mode that is appropriate for your application.
 
-When distributed as part of GraalVM, TruffleRuby by default runs in the *native*
+TruffleRuby by default runs in the *native*
 configuration. In this configuration, TruffleRuby is ahead-of-time compiled to a
 standalone native executable. This means that you don't need a JVM installed on
 your system to use it. The advantage of the native configuration is that it
@@ -77,7 +77,7 @@ highest possible performance you probably want the *JVM* configuration, by using
 `--jvm`.
 
 At runtime you can tell if you are using the native configuration using
-`TruffleRuby.native?`
+`TruffleRuby.native?`.
 
 You won't encounter it when using TruffleRuby from the GraalVM, but there is
 also another configuration which is TruffleRuby running on the JVM but with the
