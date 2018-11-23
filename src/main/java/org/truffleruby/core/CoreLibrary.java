@@ -530,7 +530,6 @@ public class CoreLibrary {
         truffleBootModule = defineModule(truffleModule, "Boot");
         defineModule(truffleModule, "System");
         truffleKernelOperationsModule = defineModule(truffleModule, "KernelOperations");
-        defineModule(truffleModule, "Process");
         defineModule(truffleModule, "Binding");
         defineModule(truffleModule, "POSIX");
         defineModule(truffleModule, "Readline");
