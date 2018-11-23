@@ -103,9 +103,9 @@ public class BacktraceFormatter {
             if (RubyGuards.isRubyString(fullMessage)) {
                 fullMessageString = StringOperations.getString((DynamicObject) fullMessage);
             } else {
-                fullMessageString = fullMessage.toString();
+                fullMessageString = fullMessage.toString() + "\n";
             }
-            printer.println(fullMessageString);
+            printer.print(fullMessageString);
         }
     }
 
