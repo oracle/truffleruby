@@ -490,7 +490,6 @@ public class CoreLibrary {
         // Modules
 
         DynamicObject comparableModule = defineModule("Comparable");
-        defineModule("Config");
         enumerableModule = defineModule("Enumerable");
         defineModule("GC");
         kernelModule = defineModule("Kernel");
