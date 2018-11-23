@@ -525,7 +525,6 @@ public class CoreLibrary {
         defineModule(truffleModule, "Coverage");
         defineModule(truffleModule, "Graal");
         defineModule(truffleModule, "Ropes");
-        defineModule(truffleModule, "GC");
         truffleRegexpOperationsModule = defineModule(truffleModule, "RegexpOperations");
         defineModule(truffleModule, "StringOperations");
         truffleBootModule = defineModule(truffleModule, "Boot");
