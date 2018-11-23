@@ -15,7 +15,8 @@ describe "Truffle" do
       :Gem, # Truffle::Gem::BCrypt, to remove with truffleruby-tool
       :Binding, # Truffle::Binding.of_caller, unused?
     ]
-    ((Truffle.constants & Object.constants) - known_offenders).should be_empty
+    code = "puts((Truffle.constants & Object.constants) - #{known_offenders.inspect})"
+    ruby_exe(code).should == ""
   end
 
 end
