@@ -13,7 +13,7 @@ describe "Truffle" do
   it "has no common constants with Object" do
     known_offenders = [
       :Gem, # Truffle::Gem::BCrypt, to remove with truffleruby-tool
-      :Binding, # Truffle::Binding.of_caller, unused?
+      :Binding, # Truffle::Binding.of_caller, should move under TruffleRuby
     ]
     code = "puts((Truffle.constants & Object.constants) - #{known_offenders.inspect})"
     ruby_exe(code).should == ""
