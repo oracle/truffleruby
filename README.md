@@ -128,7 +128,7 @@ You will find that many C extensions will not work without modification.
 ## Migration from MRI
 
 TruffleRuby should in most cases work as a drop-in replacement for MRI, but you
-should read about out [compatibility](doc/user/compatibility.md).
+should read about our [compatibility](doc/user/compatibility.md).
 
 ## Migration from JRuby
 
