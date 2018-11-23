@@ -118,8 +118,8 @@ class Exception
   def full_message
     bt = backtrace
     "#{bt[0]}: #{message} (#{self.class})\n" + bt[1..-1].map do |l|
-      "\tfrom #{l}"
-    end.join("\n")
+      "\tfrom #{l}\n"
+    end.join
   end
 
   class << self

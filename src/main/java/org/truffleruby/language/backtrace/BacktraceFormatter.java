@@ -92,8 +92,8 @@ public class BacktraceFormatter {
 
     @TruffleBoundary
     public void printRubyExceptionOnEnvStderr(DynamicObject rubyException) {
-        // can be null, if @custom_backtrace is used
         final PrintWriter printer = new PrintWriter(context.getEnv().err(), true);
+        // can be null, if @custom_backtrace is used
         final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(rubyException);
         if (backtrace != null) {
             printer.println(formatBacktrace(rubyException, backtrace));
@@ -103,9 +103,9 @@ public class BacktraceFormatter {
             if (RubyGuards.isRubyString(fullMessage)) {
                 fullMessageString = StringOperations.getString((DynamicObject) fullMessage);
             } else {
-                fullMessageString = fullMessage.toString();
+                fullMessageString = fullMessage.toString() + "\n";
             }
-            printer.println(fullMessageString);
+            printer.print(fullMessageString);
         }
     }
 

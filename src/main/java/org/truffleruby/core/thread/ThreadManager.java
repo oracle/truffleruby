@@ -11,6 +11,8 @@ package org.truffleruby.core.thread;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleException;
+import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -275,11 +277,31 @@ public class ThreadManager {
     private static void setException(RubyContext context, DynamicObject thread, DynamicObject exception, Node currentNode) {
         // A Thread is always shared (Thread.list)
         SharedObjects.propagate(context, thread, exception);
-        final DynamicObject mainThread = context.getThreadManager().getRootThread();
-        final boolean isSystemExit = Layouts.BASIC_OBJECT.getLogicalClass(exception) == context.getCoreLibrary().getSystemExitClass();
-        if (thread != mainThread && (isSystemExit || Layouts.THREAD.getAbortOnException(thread))) {
-            ThreadNodes.ThreadRaisePrimitiveNode.raiseInThread(context, mainThread, exception, currentNode);
+
+        // We materialize the backtrace eagerly here, as the exception escapes the thread and needs
+        // to capture the backtrace from this thread.
+        final TruffleException truffleException = Layouts.EXCEPTION.getBacktrace(exception).getTruffleException();
+        if (truffleException != null) {
+            TruffleStackTraceElement.fillIn((Throwable) truffleException);
         }
+
+        final DynamicObject mainThread = context.getThreadManager().getRootThread();
+
+        if (thread != mainThread) {
+            final boolean isSystemExit = Layouts.BASIC_OBJECT.getLogicalClass(exception) == context.getCoreLibrary().getSystemExitClass();
+
+            if (!isSystemExit && (boolean) ReadObjectFieldNode.read(thread, "@report_on_exception", false)) {
+                context.send(context.getCoreLibrary().getTruffleThreadOperationsModule(),
+                        "report_exception",
+                        thread,
+                        exception);
+            }
+
+            if (isSystemExit || Layouts.THREAD.getAbortOnException(thread)) {
+                ThreadNodes.ThreadRaisePrimitiveNode.raiseInThread(context, mainThread, exception, currentNode);
+            }
+        }
+
         Layouts.THREAD.setException(thread, exception);
     }
 

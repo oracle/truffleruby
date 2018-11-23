@@ -8,6 +8,7 @@ New features:
 * `Queue` and `SizedQueue`, `#close` and `#closed?`, have been implemented.
 * `Kernel#clone(freeze)` has been implemented (#1454).
 * `Warning.warn` has been implemented (#1470).
+* `Thread.report_on_exception` has been implemented (#1476).
 
 Bug fixes:
 

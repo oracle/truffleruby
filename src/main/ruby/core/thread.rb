@@ -200,9 +200,10 @@ class Thread
   end
 
   @abort_on_exception = false
+  @report_on_exception = false
 
   class << self
-    attr_accessor :abort_on_exception
+    attr_accessor :abort_on_exception, :report_on_exception
 
     def new(*args, &block)
       thread = Truffle.invoke_primitive(:thread_allocate, self)
@@ -227,6 +228,7 @@ class Thread
   # Instance methods
 
   attr_reader :recursive_objects, :randomizer
+  attr_accessor :report_on_exception
 
   def initialize(*args, &block)
     Kernel.raise ThreadError, 'must be called with a block' unless block
@@ -241,6 +243,7 @@ class Thread
     @thread_local_variables = {}
     @recursive_objects = {}
     @randomizer = Truffle::Randomizer.new
+    @report_on_exception = Thread.report_on_exception
   end
 
   def freeze
@@ -470,6 +473,13 @@ class ConditionVariable
 
   def marshal_dump
     raise TypeError, "can't dump #{self.class}"
+  end
+end
+
+module Truffle::ThreadOperations
+  def self.report_exception(thread, exception)
+    message = "#{thread.inspect} terminated with exception:\n#{exception.full_message}"
+    $stderr.write message
   end
 end
 
