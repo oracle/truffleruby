@@ -1,6 +1,1 @@
 slow:Thread.report_on_exception defaults to false
-fails:Thread.report_on_exception= changes the default value for new threads
-fails:Thread#report_on_exception returns whether the Thread will print a backtrace if it exits with an exception
-fails:Thread#report_on_exception= when set to true prints a backtrace on $stderr if it terminates with an exception
-fails:Thread#report_on_exception= when used in conjunction with Thread#abort_on_exception first reports then send the exception back to the main Thread
-fails:Thread.report_on_exception defaults to false

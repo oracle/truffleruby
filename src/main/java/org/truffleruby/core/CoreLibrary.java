@@ -175,6 +175,7 @@ public class CoreLibrary {
     private final DynamicObject truffleInteropForeignClass;
     private final DynamicObject truffleKernelOperationsModule;
     private final DynamicObject truffleRegexpOperationsModule;
+    private final DynamicObject truffleThreadOperationsModule;
     private final DynamicObject bigDecimalClass;
     private final DynamicObject encodingCompatibilityErrorClass;
     private final DynamicObject encodingUndefinedConversionErrorClass;
@@ -537,7 +538,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "POSIX");
         defineModule(truffleModule, "Readline");
         defineModule(truffleModule, "ReadlineHistory");
-        defineModule(truffleModule, "ThreadOperations");
+        truffleThreadOperationsModule = defineModule(truffleModule, "ThreadOperations");
         defineModule(truffleModule, "WeakRefOperations");
         handleClass = defineClass(truffleModule, objectClass, "Handle");
         handleFactory = Layouts.HANDLE.createHandleShape(handleClass, handleClass);
@@ -1383,6 +1384,10 @@ public class CoreLibrary {
 
     public DynamicObject getTruffleKernelOperationsModule() {
         return truffleKernelOperationsModule;
+    }
+
+    public DynamicObject getTruffleThreadOperationsModule() {
+        return truffleThreadOperationsModule;
     }
 
     public DynamicObject getTruffleRegexpOperationsModule() {
