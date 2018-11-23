@@ -133,11 +133,11 @@ module Truffle
       # elements are guaranteed to be non-nil. When no env or options are
       # given, empty hashes are returned.
       def parse(env_or_cmd, *args)
-        if options = Truffle::Type.try_convert(args.last, ::Hash, :to_hash)
+        if options = Truffle::Type.try_convert(args.last, Hash, :to_hash)
           args.pop
         end
 
-        if env = Truffle::Type.try_convert(env_or_cmd, ::Hash, :to_hash)
+        if env = Truffle::Type.try_convert(env_or_cmd, Hash, :to_hash)
           unless command = args.shift
             raise ArgumentError, 'command argument expected'
           end
@@ -145,11 +145,11 @@ module Truffle
           command = env_or_cmd
         end
 
-        if args.empty? and cmd = Truffle::Type.try_convert(command, ::String, :to_str)
+        if args.empty? and cmd = Truffle::Type.try_convert(command, String, :to_str)
           @command = cmd
           @argv = []
         else
-          if cmd = Truffle::Type.try_convert(command, ::Array, :to_ary)
+          if cmd = Truffle::Type.try_convert(command, Array, :to_ary)
             raise ArgumentError, 'wrong first argument' unless cmd.size == 2
             command = StringValue(cmd[0])
             name = StringValue(cmd[1])
@@ -202,11 +202,11 @@ module Truffle
       def parse_options(options)
         options.each do |key, value|
           case key
-          when ::IO, ::Integer, :in, :out, :err
+          when IO, Integer, :in, :out, :err
             from = convert_io_fd key
             to = convert_to_fd value, from
             redirect from, to
-          when ::Array
+          when Array
 
             # When redirecting multiple fds to one file, as in
             #
@@ -238,7 +238,7 @@ module Truffle
             if value == true
               value = 0
             elsif value
-              value = Truffle::Type.coerce_to value, ::Integer, :to_int
+              value = Truffle::Type.coerce_to value, Integer, :to_int
               raise ArgumentError, "negative process group ID : #{value}" if value < 0
             else
               value = -1
@@ -263,7 +263,7 @@ module Truffle
 
       def convert_io_fd(obj)
         case obj
-        when ::Integer
+        when Integer
           obj
         when :in
           0
@@ -271,7 +271,7 @@ module Truffle
           1
         when :err
           2
-        when ::IO
+        when IO
           obj.fileno
         else
           raise ArgumentError, "wrong exec option: #{obj.inspect}"
@@ -280,7 +280,7 @@ module Truffle
 
       def convert_to_fd(obj, target)
         case obj
-        when ::Integer
+        when Integer
           obj
         when :in
           0
@@ -290,18 +290,18 @@ module Truffle
           2
         when :close
           nil
-        when ::IO
+        when IO
           obj.fileno
-        when ::String
+        when String
           open_file_for_child(obj, default_mode(target), 0644)
-        when ::Array
+        when Array
           case obj.size
           when 1
             open_file_for_child(obj[0], File::RDONLY, 0644)
           when 2
             if obj[0] == :child
               fd = convert_to_fd obj[1], target
-              fd.kind_of?(::Integer) ?  -(fd + 1) : fd
+              fd.kind_of?(Integer) ?  -(fd + 1) : fd
             else
               open_file_for_child(obj[0], convert_file_mode(obj[1]), 0644)
             end
@@ -329,9 +329,9 @@ module Truffle
 
       def convert_file_mode(obj)
         case obj
-        when ::Integer
+        when Integer
           obj
-        when ::String
+        when String
           OFLAGS[obj]
         when nil
           OFLAGS['r']
@@ -357,12 +357,12 @@ module Truffle
 
       # Mapping of string open modes to integer oflag versions.
       OFLAGS = {
-        'r'  => ::File::RDONLY,
-        'r+' => ::File::RDWR   | ::File::CREAT,
-        'w'  => ::File::WRONLY | ::File::CREAT  | ::File::TRUNC,
-        'w+' => ::File::RDWR   | ::File::CREAT  | ::File::TRUNC,
-        'a'  => ::File::WRONLY | ::File::APPEND | ::File::CREAT,
-        'a+' => ::File::RDWR   | ::File::APPEND | ::File::CREAT
+        'r'  => File::RDONLY,
+        'r+' => File::RDWR   | File::CREAT,
+        'w'  => File::WRONLY | File::CREAT  | File::TRUNC,
+        'w+' => File::RDWR   | File::CREAT  | File::TRUNC,
+        'a'  => File::WRONLY | File::APPEND | File::CREAT,
+        'a+' => File::RDWR   | File::APPEND | File::CREAT
       }
 
       def spawn_setup(alter_process)
@@ -421,10 +421,10 @@ module Truffle
           if pid < 0
             # macOS posix_spawnp(3) returns -1 and no pid when the command is not found,
             # Linux returns 0, sets the pid and let the child do the PATH lookup.
-            Truffle.invoke_primitive :thread_set_return_code, ::Process::Status.new(-1, 127, nil, nil)
+            Truffle.invoke_primitive :thread_set_return_code, Process::Status.new(-1, 127, nil, nil)
           else
             # the subprocess will fail, just wait for it
-            ::Process.wait(pid) # Sets $? and avoids a zombie process
+            Process.wait(pid) # Sets $? and avoids a zombie process
             unless $?.exitstatus == 127
               raise "command #{@command} does not exist in PATH but posix_spawnp found it!"
             end

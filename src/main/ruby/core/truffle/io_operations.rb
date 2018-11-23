@@ -35,7 +35,7 @@ module Truffle
         args.each do |arg|
           if arg.equal? nil
             str = ''
-          elsif arg.kind_of?(::Array)
+          elsif arg.kind_of?(Array)
             if Thread.guarding? arg
               str = '[...]'
             else
