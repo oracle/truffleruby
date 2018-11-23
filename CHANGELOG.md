@@ -23,6 +23,7 @@ Bug fixes:
   class so that it now matches MRI.
 * Fixed a JRuby-style Java interop compatibility issue seen in `test-unit`.
 * Fixed problem with calling `warn` if `$stderr` has been reassigned.
+* Fixed definition of `RB_ENCODING_GET_INLINED` (#1440).
 
 Changes:
 

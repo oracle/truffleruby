@@ -40,8 +40,7 @@ enum ruby_encoding_consts {
 #define RB_ENCODING_SET_INLINED(obj,i) RB_ENCODING_SET(obj,i)
 #define RB_ENCODING_SET(obj,i) rb_enc_set_index((obj), (i))
 
-#define RB_ENCODING_GET_INLINED(obj) \
-    (int)((RBASIC(obj)->flags & RUBY_ENCODING_MASK)>>RUBY_ENCODING_SHIFT)
+#define RB_ENCODING_GET_INLINED(obj) RB_ENCODING_GET(obj)
 #define RB_ENCODING_GET(obj) rb_enc_get_index(obj)
 
 #define RB_ENCODING_IS_ASCII8BIT(obj) (RB_ENCODING_GET_INLINED(obj) == 0)
