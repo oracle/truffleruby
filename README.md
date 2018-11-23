@@ -24,8 +24,7 @@ There are three ways to install TruffleRuby:
   as a simple binary tarball. This distribution can also be used for
   [testing TruffleRuby in CI](doc/user/standalone-distribution.md).
 
-You can use `gem` to install Gems as normal. TruffleRuby currently requires
-Bundler version `1.16.x`.
+You can use `gem` to install Gems as normal.
 
 You can also build TruffleRuby from source, see the
 [building instructions](doc/contributor/workflow.md), and using
