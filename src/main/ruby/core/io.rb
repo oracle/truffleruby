@@ -53,11 +53,11 @@ class IO
   module WaitWritable; end
 
   class EAGAINWaitReadable < Errno::EAGAIN
-    include ::IO::WaitReadable
+    include IO::WaitReadable
   end
 
   class EAGAINWaitWritable < Errno::EAGAIN
-    include ::IO::WaitWritable
+    include IO::WaitWritable
   end
 
   class EWOULDBLOCKWaitReadable < Errno::EAGAIN
