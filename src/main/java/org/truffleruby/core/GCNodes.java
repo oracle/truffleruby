@@ -18,8 +18,8 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 
-@CoreClass("Truffle::GC")
-public abstract class TruffleGCNodes {
+@CoreClass("GC")
+public abstract class GCNodes {
 
     @CoreMethod(names = "count", onSingleton = true)
     public abstract static class CountNode extends CoreMethodArrayArgumentsNode {

@@ -450,7 +450,7 @@ class ConditionVariable
       timeout = Truffle::Type.rb_num2long(timeout)
     end
 
-    if defined?(::Mutex_m) && mutex.kind_of?(Mutex_m)
+    if defined?(::Mutex_m) && mutex.kind_of?(::Mutex_m)
       raw_mutex = mutex.instance_variable_get(:@_mutex)
     else
       raw_mutex = mutex

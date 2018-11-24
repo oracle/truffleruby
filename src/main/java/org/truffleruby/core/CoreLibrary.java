@@ -491,7 +491,6 @@ public class CoreLibrary {
         // Modules
 
         DynamicObject comparableModule = defineModule("Comparable");
-        defineModule("Config");
         enumerableModule = defineModule("Enumerable");
         defineModule("GC");
         kernelModule = defineModule("Kernel");
@@ -526,14 +525,11 @@ public class CoreLibrary {
         defineModule(truffleModule, "Coverage");
         defineModule(truffleModule, "Graal");
         defineModule(truffleModule, "Ropes");
-        defineModule(truffleModule, "GC");
-        defineModule(truffleModule, "Array");
         truffleRegexpOperationsModule = defineModule(truffleModule, "RegexpOperations");
         defineModule(truffleModule, "StringOperations");
         truffleBootModule = defineModule(truffleModule, "Boot");
         defineModule(truffleModule, "System");
         truffleKernelOperationsModule = defineModule(truffleModule, "KernelOperations");
-        defineModule(truffleModule, "Process");
         defineModule(truffleModule, "Binding");
         defineModule(truffleModule, "POSIX");
         defineModule(truffleModule, "Readline");

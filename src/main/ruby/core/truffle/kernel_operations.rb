@@ -123,11 +123,11 @@ module Truffle
         else
           exc = exc.exception msg
         end
-        raise ::TypeError, 'exception class/object expected' unless exc.kind_of?(::Exception)
+        raise TypeError, 'exception class/object expected' unless exc.kind_of?(Exception)
       elsif exc.kind_of? String
-        exc = ::RuntimeError.exception exc
+        exc = RuntimeError.exception exc
       else
-        raise ::TypeError, 'exception class/object expected'
+        raise TypeError, 'exception class/object expected'
       end
 
       unless skip
