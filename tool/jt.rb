@@ -1788,37 +1788,18 @@ EOS
     update, jvmci_version = jvmci_update_and_version
     dir = File.expand_path("..", TRUFFLERUBY_DIR)
     java_home = chdir(dir) do
-      if LINUX
-        dir_pattern = "#{dir}/openjdk1.8.0*#{jvmci_version}"
-        if Dir[dir_pattern].empty?
-          puts "Downloading JDK8 with JVMCI"
-          jvmci_releases = "https://github.com/graalvm/openjdk8-jvmci-builder/releases/download"
-          filename = "openjdk-8u#{update}-#{jvmci_version}-linux-amd64.tar.gz"
-          raw_sh "curl", "-L", "#{jvmci_releases}/#{jvmci_version}/#{filename}", "-o", filename
-          raw_sh "tar", "xf", filename
-        end
-        dirs = Dir[dir_pattern]
-        abort "ambiguous JVMCI directories:\n#{dirs.join("\n")}" if dirs.length != 1
-        dirs.first
-      elsif MAC
-        dir_pattern = "#{dir}/labsjdk1.8.0*-#{jvmci_version}"
-        if Dir[dir_pattern].empty?
-          archive_pattern = "#{dir}/labsjdk-8*-#{jvmci_version}-darwin-amd64.tar.gz"
-          archives = Dir[archive_pattern]
-          if archives.empty?
-            puts "You need to download manually the latest JVMCI-enabled JDK at"
-            puts "http://www.oracle.com/technetwork/oracle-labs/program-languages/downloads/index.html"
-            puts "Download the file named labsjdk-8...-#{jvmci_version}-darwin-amd64.tar.gz"
-            puts "And move it to the directory #{dir}"
-            exit 1
-          end
-          raise 'ambiguous JVMCI archives' if archives.length != 1
-          raw_sh "tar", "xf", archives.first
-        end
-        dirs = Dir[dir_pattern]
-        raise 'ambiguous JVMCI directories' if dirs.length != 1
-        "#{dirs.first}/Contents/Home"
+      dir_pattern = "#{dir}/openjdk1.8.0*#{jvmci_version}"
+      if Dir[dir_pattern].empty?
+        puts "Downloading JDK8 with JVMCI"
+        jvmci_releases = "https://github.com/graalvm/openjdk8-jvmci-builder/releases/download"
+        filename = "openjdk-8u#{update}-#{jvmci_version}-#{mx_os}-amd64.tar.gz"
+        raw_sh "curl", "-L", "#{jvmci_releases}/#{jvmci_version}/#{filename}", "-o", filename
+        raw_sh "tar", "xf", filename
       end
+      dirs = Dir[dir_pattern]
+      abort "ambiguous JVMCI directories:\n#{dirs.join("\n")}" if dirs.length != 1
+      extracted = dirs.first
+      MAC ? "#{extracted}/Contents/Home" : extracted
     end
 
     abort "Could not find the extracted JDK" unless java_home
