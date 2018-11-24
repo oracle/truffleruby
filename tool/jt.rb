@@ -416,6 +416,16 @@ module Utilities
     raw_sh find_mx, *mx_args, **kwargs
   end
 
+  def mx_os
+    if MAC
+      'darwin'
+    elsif LINUX
+      'linux'
+    else
+      abort "Unknown OS"
+    end
+  end
+
   def mspec(command, *args)
     env_vars = {}
     if command.is_a?(Hash)
@@ -1867,14 +1877,7 @@ EOS
     end
 
     local_target = "#{TRUFFLERUBY_DIR}/bin/native-ruby"
-    if MAC
-      os = 'darwin'
-    elsif LINUX
-      os = 'linux'
-    else
-      abort
-    end
-    built_bin = Dir.glob("#{graal}/vm/mxbuild/#{os}-amd64/RUBY_STANDALONE_SVM/*/bin/ruby").first
+    built_bin = Dir.glob("#{graal}/vm/mxbuild/#{mx_os}-amd64/RUBY_STANDALONE_SVM/*/bin/ruby").first
     FileUtils.ln_sf(built_bin, local_target)
   end
 
