@@ -88,7 +88,7 @@ module Utilities
     $1
   end
 
-  def jvmci_version
+  def jvmci_update_and_version
     if env = ENV["JVMCI_VERSION"]
       unless /8u(\d+)-(jvmci-0.\d+)/ =~ env
         raise "Could not parse JDK update and JVMCI version from $JVMCI_VERSION"
@@ -1785,7 +1785,7 @@ EOS
   def install_jvmci
     raise "Installing JVMCI is only available on Linux and macOS currently" unless LINUX || MAC
 
-    update, jvmci_version = jvmci_version
+    update, jvmci_version = jvmci_update_and_version
     dir = File.expand_path("..", TRUFFLERUBY_DIR)
     java_home = chdir(dir) do
       if LINUX
@@ -1798,7 +1798,7 @@ EOS
           raw_sh "tar", "xf", filename
         end
         dirs = Dir[dir_pattern]
-        raise 'ambiguous JVMCI directories' if dirs.length != 1
+        abort "ambiguous JVMCI directories:\n#{dirs.join("\n")}" if dirs.length != 1
         dirs.first
       elsif MAC
         dir_pattern = "#{dir}/labsjdk1.8.0*-#{jvmci_version}"
