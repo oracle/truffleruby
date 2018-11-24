@@ -1987,6 +1987,7 @@ EOS
       raise "Could not find native image -- either build with 'jt build native' or set AOT_BIN to an image location"
     end
   end
+  private :verify_native_bin!
 
   def docker(*args)
     command = args.shift
@@ -1996,7 +1997,7 @@ EOS
     when nil, 'test'
       docker_test *args
     when 'print'
-      docker_print *args
+      puts dockerfile(*args)
     else
       abort "Unkown jt docker command #{command}"
     end
@@ -2012,6 +2013,7 @@ EOS
     File.write(File.join(docker_dir, 'Dockerfile'), dockerfile(*args))
     sh 'docker', 'build', '-t', image_name, '.', chdir: docker_dir
   end
+  private :docker_build
 
   def docker_test(*args)
     distros = ['--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora28']
@@ -2037,10 +2039,7 @@ EOS
       end
     end
   end
-
-  def docker_print(*args)
-    puts dockerfile(*args)
-  end
+  private :docker_test
 
   def dockerfile(*args)
     config = @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
@@ -2317,8 +2316,7 @@ EOS
 
     lines.join("\n") + "\n"
   end
-
-  private :docker_build, :docker_test, :docker_print, :dockerfile
+  private :dockerfile
 
 end
 
