@@ -80,13 +80,15 @@ MRI_TEST_MODULES = {
 }
 
 module Utilities
-  def self.truffle_version
+  private
+
+  def truffle_version
     suite = File.read("#{TRUFFLERUBY_DIR}/mx.truffleruby/suite.py")
     raise unless /"name": "tools",.+?"version": "(\h{40})"/m =~ suite
     $1
   end
 
-  def self.jvmci_version
+  def jvmci_update_and_version
     if env = ENV["JVMCI_VERSION"]
       unless /8u(\d+)-(jvmci-0.\d+)/ =~ env
         raise "Could not parse JDK update and JVMCI version from $JVMCI_VERSION"
@@ -101,7 +103,7 @@ module Utilities
     [update, jvmci]
   end
 
-  def self.find_graal_javacmd_and_options
+  def find_graal_javacmd_and_options
     graalvm = ENV['GRAALVM_BIN']
     jvmci = ENV['JVMCI_BIN']
     graal_home = ENV['GRAAL_HOME']
@@ -127,7 +129,7 @@ module Utilities
       options = ['--no-bootclasspath']
     elsif graal_home
       graal_home = File.expand_path(graal_home, TRUFFLERUBY_DIR)
-      output, _ = ShellUtils.mx('-v', '-p', graal_home, 'vm', '-version', :err => :out, capture: true)
+      output, _ = mx('-v', '-p', graal_home, 'vm', '-version', :err => :out, capture: true)
       command_line = output.lines.select { |line| line.include? '-version' }
       if command_line.size == 1
         command_line = command_line[0]
@@ -159,14 +161,14 @@ module Utilities
     [javacmd, vm_args.map { |arg| "-J#{arg}" } + options]
   end
 
-  def self.find_auto_graal_home
+  def find_auto_graal_home
     sibling_compiler = File.expand_path('../graal/compiler', TRUFFLERUBY_DIR)
     return nil unless Dir.exist?(sibling_compiler)
     return nil unless File.exist?("#{sibling_compiler}/mxbuild/dists/graal-compiler.jar")
     sibling_compiler
   end
 
-  def self.find_graal_java_home(graal_home)
+  def find_graal_java_home(graal_home)
     env_file = "#{graal_home}/mx.compiler/env"
     graal_env = File.exist?(env_file) ? File.read(env_file) : ""
     if java_home = graal_env[/^JAVA_HOME=(.+)$/, 1]
@@ -176,7 +178,7 @@ module Utilities
     end
   end
 
-  def self.which(binary)
+  def which(binary)
     ENV["PATH"].split(File::PATH_SEPARATOR).each do |dir|
       path = "#{dir}/#{binary}"
       return path if File.executable? path
@@ -184,7 +186,7 @@ module Utilities
     nil
   end
 
-  def self.find_mx
+  def find_mx
     if which('mx')
       'mx'
     else
@@ -193,7 +195,7 @@ module Utilities
     end
   end
 
-  def self.find_launcher(use_native)
+  def find_launcher(use_native)
     if use_native
       ENV['AOT_BIN'] || "#{TRUFFLERUBY_DIR}/bin/native-ruby"
     else
@@ -201,7 +203,7 @@ module Utilities
     end
   end
 
-  def self.find_repo(name)
+  def find_repo(name)
     [TRUFFLERUBY_DIR, "#{TRUFFLERUBY_DIR}/.."].each do |dir|
       found = Dir.glob("#{dir}/#{name}*").sort.first
       return File.expand_path(found) if found
@@ -209,18 +211,18 @@ module Utilities
     raise "Can't find the #{name} repo - clone it into the repository directory or its parent"
   end
 
-  def self.find_or_clone_repo(url, commit=nil)
+  def find_or_clone_repo(url, commit=nil)
     name = File.basename url, '.git'
     path = File.expand_path("../#{name}", TRUFFLERUBY_DIR)
     unless Dir.exist? path
       target = "../#{name}"
-      ShellUtils.sh "git", "clone", url, target
-      ShellUtils.sh "git", "checkout", commit, chdir: target if commit
+      sh "git", "clone", url, target
+      sh "git", "checkout", commit, chdir: target if commit
     end
     path
   end
 
-  def self.find_benchmark(benchmark)
+  def find_benchmark(benchmark)
     if File.exist?(benchmark)
       benchmark
     else
@@ -228,7 +230,7 @@ module Utilities
     end
   end
 
-  def self.find_gem(name)
+  def find_gem(name)
     ["#{TRUFFLERUBY_DIR}/lib/ruby/gems/shared/gems"].each do |dir|
       found = Dir.glob("#{dir}/#{name}*").sort.first
       return File.expand_path(found) if found
@@ -241,15 +243,15 @@ module Utilities
     raise "Can't find the #{name} gem - gem install it in this repository, or put it in the repository directory or its parent"
   end
 
-  def self.git_branch
+  def git_branch
     @git_branch ||= `GIT_DIR="#{TRUFFLERUBY_DIR}/.git" git rev-parse --abbrev-ref HEAD`.strip
   end
 
-  def self.igv_running?
+  def igv_running?
     `ps ax`.include?('idealgraphvisualizer')
   end
 
-  def self.no_gem_vars_env
+  def no_gem_vars_env
     {
       'TRUFFLERUBY_RESILIENT_GEM_HOME' => nil,
       'GEM_HOME' => nil,
@@ -258,7 +260,7 @@ module Utilities
     }
   end
 
-  def self.human_size(bytes)
+  def human_size(bytes)
     if bytes < 1024
       "#{bytes} B"
     elsif bytes < 1000**2
@@ -272,7 +274,7 @@ module Utilities
     end
   end
 
-  def self.log(tty_message, full_message)
+  def log(tty_message, full_message)
     if STDERR.tty?
       STDERR.print tty_message unless tty_message.nil?
     else
@@ -280,14 +282,9 @@ module Utilities
     end
   end
 
-  def self.diff(expected, actual)
+  def diff(expected, actual)
     `diff -u #{expected} #{actual}`
   end
-
-end
-
-module ShellUtils
-  module_function
 
   def system_timeout(timeout, *args)
     begin
@@ -416,7 +413,17 @@ module ShellUtils
   def mx(*args, java_home: nil, **kwargs)
     mx_args = args
     mx_args.unshift '--java-home', java_home if java_home
-    raw_sh Utilities.find_mx, *mx_args, **kwargs
+    raw_sh find_mx, *mx_args, **kwargs
+  end
+
+  def mx_os
+    if MAC
+      'darwin'
+    elsif LINUX
+      'linux'
+    else
+      abort "Unknown OS"
+    end
   end
 
   def mspec(command, *args)
@@ -444,7 +451,7 @@ module ShellUtils
 end
 
 module Commands
-  include ShellUtils
+  include Utilities
 
   def help
     puts <<-TXT.gsub(/^#{' '*6}/, '')
@@ -679,7 +686,7 @@ module Commands
       when '--igv', '--igv-full'
         graal = true
         vm_args << (arg == '--igv-full') ? "-J-Dgraal.Dump=:2" : "-J-Dgraal.Dump=TruffleTree,PartialEscape:2"
-        vm_args << "-J-Dgraal.PrintGraphFile=true" unless Utilities.igv_running?
+        vm_args << "-J-Dgraal.PrintGraphFile=true" unless igv_running?
         vm_args << "-J-Dgraal.PrintBackendCFG=false"
       when '--no-print-cmd'
         options[:no_print_cmd] = true
@@ -699,13 +706,13 @@ module Commands
       if ENV["RUBY_BIN"] || native
         # Assume that Graal is automatically set up if RUBY_BIN is set or using a native image.
       else
-        javacmd, javacmd_options = Utilities.find_graal_javacmd_and_options
+        javacmd, javacmd_options = find_graal_javacmd_and_options
         env_vars["JAVACMD"] = javacmd
         vm_args.push(*javacmd_options)
       end
     end
 
-    ruby_bin = Utilities.find_launcher(native)
+    ruby_bin = find_launcher(native)
 
     raw_sh env_vars, ruby_bin, *vm_args, *ruby_args, options
   end
@@ -764,7 +771,7 @@ module Commands
   end
 
   module PR
-    include ShellUtils
+    include Utilities
     extend self
 
     def pr_clean(*args)
@@ -821,8 +828,8 @@ module Commands
         pr_number = github_pr_branch.split('/').last
       end
 
-      target_branch = if Utilities.git_branch.start_with?('release')
-        Utilities.git_branch
+      target_branch = if git_branch.start_with?('release')
+        git_branch
       else
         "github/pr/#{pr_number}"
       end
@@ -837,7 +844,7 @@ module Commands
   end
 
   module Remotes
-    include ShellUtils
+    include Utilities
     extend self
 
     def bitbucket(dir = TRUFFLERUBY_DIR)
@@ -1073,9 +1080,9 @@ module Commands
     tests.delete 'gems' if no_gems
 
     if ENV['TRUFFLERUBY_CI'] && MAC
-      raise "no system clang" unless Utilities.which('clang')
+      raise "no system clang" unless which('clang')
       %w[opt llvm-link].each do |tool|
-        raise "should not have #{tool} in PATH in TruffleRuby CI" if Utilities.which(tool)
+        raise "should not have #{tool} in PATH in TruffleRuby CI" if which(tool)
       end
     end
 
@@ -1122,7 +1129,7 @@ Expected:
 #{expected}
 
 Diff:
-#{Utilities.diff(expected_file, output_file)}
+#{diff(expected_file, output_file)}
 EOS
           end
         ensure
@@ -1265,7 +1272,7 @@ EOS
             FileUtils.copy_entry(original_source_tree, gem_source_tree)
 
             chdir(gem_source_tree) do
-              environment = Utilities.no_gem_vars_env.merge(
+              environment = no_gem_vars_env.merge(
                 'GEM_HOME' => gem_home,
                 'GEM_PATH' => gem_home,
                 # add bin from gem_home to PATH
@@ -1323,12 +1330,12 @@ EOS
       verify_native_bin!
 
       options += %w[--excl-tag graalvm --excl-tag aot]
-      options << '-t' << Utilities.find_launcher(true)
+      options << '-t' << find_launcher(true)
       options << "-T-Xhome=#{TRUFFLERUBY_DIR}" unless args.delete('--no-home')
     end
 
     if args.delete('--graal')
-      javacmd, javacmd_options = Utilities.find_graal_javacmd_and_options
+      javacmd, javacmd_options = find_graal_javacmd_and_options
       env_vars["JAVACMD"] = javacmd
       options.concat %w[--excl-tag graalvm]
       options.concat javacmd_options.map { |o| "-T#{o}" }
@@ -1427,7 +1434,7 @@ EOS
   end
 
   def build_stats_native_binary_size(*args)
-    File.size(Utilities.find_launcher(true)) / 1024.0 / 1024.0
+    File.size(find_launcher(true)) / 1024.0 / 1024.0
   end
 
   def build_stats_native_build_time(*args)
@@ -1465,15 +1472,15 @@ EOS
     use_json = args.delete '--json'
     samples = []
     METRICS_REPS.times do
-      Utilities.log '.', "sampling\n"
+      log '.', "sampling\n"
       out, err = run_ruby '-J-Dtruffleruby.metrics.memory_used_on_exit=true', '-J-verbose:gc', *args, capture: true, no_print_cmd: true
       samples.push memory_allocated(out+err)
     end
-    Utilities.log "\n", nil
+    log "\n", nil
     range = samples.max - samples.min
     error = range / 2
     median = samples.min + error
-    human_readable = "#{Utilities.human_size(median)} ± #{Utilities.human_size(error)}"
+    human_readable = "#{human_size(median)} ± #{human_size(error)}"
     if use_json
       puts JSON.generate({
           samples: samples,
@@ -1505,19 +1512,19 @@ EOS
   def metrics_minheap(*args)
     use_json = args.delete '--json'
     heap = 10
-    Utilities.log '>', "Trying #{heap} MB\n"
+    log '>', "Trying #{heap} MB\n"
     until can_run_in_heap(heap, *args)
       heap += 10
-      Utilities.log '>', "Trying #{heap} MB\n"
+      log '>', "Trying #{heap} MB\n"
     end
     heap -= 9
     heap = 1 if heap == 0
     successful = 0
     loop do
       if successful > 0
-        Utilities.log '?', "Verifying #{heap} MB\n"
+        log '?', "Verifying #{heap} MB\n"
       else
-        Utilities.log '+', "Trying #{heap} MB\n"
+        log '+', "Trying #{heap} MB\n"
       end
       if can_run_in_heap(heap, *args)
         successful += 1
@@ -1527,7 +1534,7 @@ EOS
         successful = 0
       end
     end
-    Utilities.log "\n", nil
+    log "\n", nil
     human_readable = "#{heap} MB"
     if use_json
       puts JSON.generate({
@@ -1550,14 +1557,14 @@ EOS
     samples = []
 
     METRICS_REPS.times do
-      Utilities.log '.', "sampling\n"
+      log '.', "sampling\n"
 
       max_rss_in_mb = if LINUX
-                        out, err = raw_sh('/usr/bin/time', '-v', '--', Utilities.find_launcher(true), *args, capture: true, no_print_cmd: true)
+                        out, err = raw_sh('/usr/bin/time', '-v', '--', find_launcher(true), *args, capture: true, no_print_cmd: true)
                         err =~ /Maximum resident set size \(kbytes\): (?<max_rss_in_kb>\d+)/m
                         Integer($~[:max_rss_in_kb]) / 1024.0
                       elsif MAC
-                        out, err = raw_sh('/usr/bin/time', '-l', '--', Utilities.find_launcher(true), *args, capture: true, no_print_cmd: true)
+                        out, err = raw_sh('/usr/bin/time', '-l', '--', find_launcher(true), *args, capture: true, no_print_cmd: true)
                         err =~ /(?<max_rss_in_bytes>\d+)\s+maximum resident set size/m
                         Integer($~[:max_rss_in_bytes]) / 1024.0 / 1024.0
                       else
@@ -1566,7 +1573,7 @@ EOS
 
       samples.push(maxrss: max_rss_in_mb)
     end
-    Utilities.log "\n", nil
+    log "\n", nil
 
     results = {}
     samples[0].each_key do |region|
@@ -1595,12 +1602,12 @@ EOS
 
     use_json = args.delete '--json'
 
-    out, err = raw_sh('perf', 'stat', '-e', 'instructions', '--', Utilities.find_launcher(true), *args, capture: true, no_print_cmd: true)
+    out, err = raw_sh('perf', 'stat', '-e', 'instructions', '--', find_launcher(true), *args, capture: true, no_print_cmd: true)
 
     err =~ /(?<instruction_count>[\d,]+)\s+instructions/m
     instruction_count = $~[:instruction_count].gsub(',', '')
 
-    Utilities.log "\n", nil
+    log "\n", nil
     human_readable = "#{instruction_count} instructions"
     if use_json
       puts JSON.generate({
@@ -1622,13 +1629,13 @@ EOS
     args = [metrics_time_option, *verbose_gc_flag, '--no-core-load-path', *args]
 
     samples = METRICS_REPS.times.map do
-      Utilities.log '.', "sampling\n"
+      log '.', "sampling\n"
       start = Time.now
       _, err = run_ruby(*args, capture: true, no_print_cmd: true, :out => :err)
       finish = Time.now
       get_times(err, (finish - start) * 1000.0)
     end
-    Utilities.log "\n", nil
+    log "\n", nil
 
     results = {}
     mean_by_stack = {}
@@ -1656,7 +1663,7 @@ EOS
     if use_json
       puts JSON.generate(results)
     elsif flamegraph
-      repo = Utilities.find_or_clone_repo("https://github.com/eregon/FlameGraph.git", "graalvm")
+      repo = find_or_clone_repo("https://github.com/eregon/FlameGraph.git", "graalvm")
       path = "#{TRUFFLERUBY_DIR}/time_metrics.stacks"
       File.open(path, 'w') do |file|
         mean_by_stack.each_pair do |stack, mean|
@@ -1715,7 +1722,7 @@ EOS
   def benchmark(*args)
     args.map! do |a|
       if a.include?('.rb')
-        benchmark = Utilities.find_benchmark(a)
+        benchmark = find_benchmark(a)
         raise 'benchmark not found' unless File.exist?(benchmark)
         benchmark
       else
@@ -1727,12 +1734,12 @@ EOS
 
     run_args = []
 
-    if args.delete('--native') || (ENV.has_key?('JT_BENCHMARK_RUBY') && (ENV['JT_BENCHMARK_RUBY'] == Utilities.find_launcher(true)))
+    if args.delete('--native') || (ENV.has_key?('JT_BENCHMARK_RUBY') && (ENV['JT_BENCHMARK_RUBY'] == find_launcher(true)))
       run_args.push "-Xhome=#{TRUFFLERUBY_DIR}"
 
       # We already have a mechanism for setting the Ruby to benchmark, but elsewhere we use AOT_BIN with the "--native" flag.
       # Favor JT_BENCHMARK_RUBY to AOT_BIN, but try both.
-      benchmark_ruby ||= Utilities.find_launcher(true)
+      benchmark_ruby ||= find_launcher(true)
 
       unless File.exist?(benchmark_ruby.to_s)
         raise "Could not find benchmark ruby -- '#{benchmark_ruby}' does not exist"
@@ -1744,7 +1751,7 @@ EOS
       run_args.push '-J-Dgraal.TruffleCompilationExceptionsAreFatal=true'
     end
 
-    run_args.push "-I#{Utilities.find_gem('benchmark-ips')}/lib" rescue nil
+    run_args.push "-I#{find_gem('benchmark-ips')}/lib" rescue nil
     run_args.push "#{TRUFFLERUBY_DIR}/bench/benchmark-interface/bin/benchmark"
     run_args.push *args
 
@@ -1759,7 +1766,7 @@ EOS
     case args.shift
     when 'repos'
       args.each do |a|
-        puts Utilities.find_repo(a)
+        puts find_repo(a)
       end
     end
   end
@@ -1778,40 +1785,21 @@ EOS
   def install_jvmci
     raise "Installing JVMCI is only available on Linux and macOS currently" unless LINUX || MAC
 
-    update, jvmci_version = Utilities.jvmci_version
+    update, jvmci_version = jvmci_update_and_version
     dir = File.expand_path("..", TRUFFLERUBY_DIR)
     java_home = chdir(dir) do
-      if LINUX
-        dir_pattern = "#{dir}/openjdk1.8.0*#{jvmci_version}"
-        if Dir[dir_pattern].empty?
-          puts "Downloading JDK8 with JVMCI"
-          jvmci_releases = "https://github.com/graalvm/openjdk8-jvmci-builder/releases/download"
-          filename = "openjdk-8u#{update}-#{jvmci_version}-linux-amd64.tar.gz"
-          raw_sh "curl", "-L", "#{jvmci_releases}/#{jvmci_version}/#{filename}", "-o", filename
-          raw_sh "tar", "xf", filename
-        end
-        dirs = Dir[dir_pattern]
-        raise 'ambiguous JVMCI directories' if dirs.length != 1
-        dirs.first
-      elsif MAC
-        dir_pattern = "#{dir}/labsjdk1.8.0*-#{jvmci_version}"
-        if Dir[dir_pattern].empty?
-          archive_pattern = "#{dir}/labsjdk-8*-#{jvmci_version}-darwin-amd64.tar.gz"
-          archives = Dir[archive_pattern]
-          if archives.empty?
-            puts "You need to download manually the latest JVMCI-enabled JDK at"
-            puts "http://www.oracle.com/technetwork/oracle-labs/program-languages/downloads/index.html"
-            puts "Download the file named labsjdk-8...-#{jvmci_version}-darwin-amd64.tar.gz"
-            puts "And move it to the directory #{dir}"
-            exit 1
-          end
-          raise 'ambiguous JVMCI archives' if archives.length != 1
-          raw_sh "tar", "xf", archives.first
-        end
-        dirs = Dir[dir_pattern]
-        raise 'ambiguous JVMCI directories' if dirs.length != 1
-        "#{dirs.first}/Contents/Home"
+      dir_pattern = "#{dir}/openjdk1.8.0*#{jvmci_version}"
+      if Dir[dir_pattern].empty?
+        puts "Downloading JDK8 with JVMCI"
+        jvmci_releases = "https://github.com/graalvm/openjdk8-jvmci-builder/releases/download"
+        filename = "openjdk-8u#{update}-#{jvmci_version}-#{mx_os}-amd64.tar.gz"
+        raw_sh "curl", "-L", "#{jvmci_releases}/#{jvmci_version}/#{filename}", "-o", filename
+        raw_sh "tar", "xf", filename
       end
+      dirs = Dir[dir_pattern]
+      abort "ambiguous JVMCI directories:\n#{dirs.join("\n")}" if dirs.length != 1
+      extracted = dirs.first
+      MAC ? "#{extracted}/Contents/Home" : extracted
     end
 
     abort "Could not find the extracted JDK" unless java_home
@@ -1825,11 +1813,11 @@ EOS
   end
 
   def checkout_or_update_graal_repo(sforceimports: true)
-    graal = Utilities.find_or_clone_repo('https://github.com/oracle/graal.git')
+    graal = find_or_clone_repo('https://github.com/oracle/graal.git')
 
     if sforceimports
       Remotes.try_fetch(graal)
-      raw_sh "git", "-C", graal, "checkout", Utilities.truffle_version
+      raw_sh "git", "-C", graal, "checkout", truffle_version
     end
 
     graal
@@ -1870,14 +1858,7 @@ EOS
     end
 
     local_target = "#{TRUFFLERUBY_DIR}/bin/native-ruby"
-    if MAC
-      os = 'darwin'
-    elsif LINUX
-      os = 'linux'
-    else
-      abort
-    end
-    built_bin = Dir.glob("#{graal}/vm/mxbuild/#{os}-amd64/RUBY_STANDALONE_SVM/*/bin/ruby").first
+    built_bin = Dir.glob("#{graal}/vm/mxbuild/#{mx_os}-amd64/RUBY_STANDALONE_SVM/*/bin/ruby").first
     FileUtils.ln_sf(built_bin, local_target)
   end
 
@@ -1986,10 +1967,11 @@ EOS
   end
 
   def verify_native_bin!
-    unless File.exist?(Utilities.find_launcher(true))
+    unless File.exist?(find_launcher(true))
       raise "Could not find native image -- either build with 'jt build native' or set AOT_BIN to an image location"
     end
   end
+  private :verify_native_bin!
 
   def docker(*args)
     command = args.shift
@@ -1999,7 +1981,7 @@ EOS
     when nil, 'test'
       docker_test *args
     when 'print'
-      docker_print *args
+      puts dockerfile(*args)
     else
       abort "Unkown jt docker command #{command}"
     end
@@ -2015,6 +1997,7 @@ EOS
     File.write(File.join(docker_dir, 'Dockerfile'), dockerfile(*args))
     sh 'docker', 'build', '-t', image_name, '.', chdir: docker_dir
   end
+  private :docker_build
 
   def docker_test(*args)
     distros = ['--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora28']
@@ -2040,10 +2023,7 @@ EOS
       end
     end
   end
-
-  def docker_print(*args)
-    puts dockerfile(*args)
-  end
+  private :docker_test
 
   def dockerfile(*args)
     config = @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
@@ -2320,8 +2300,7 @@ EOS
 
     lines.join("\n") + "\n"
   end
-
-  private :docker_build, :docker_test, :docker_print, :dockerfile
+  private :dockerfile
 
 end
 
