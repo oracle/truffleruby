@@ -21,7 +21,9 @@ New features:
 * `Kernel#clone(freeze)` has been implemented (#1454).
 * `Warning.warn` has been implemented (#1470).
 * `Thread.report_on_exception` has been implemented (#1476).
-* Implemented the emulation symbols for `Process.clock_gettime`.
+* The emulation symbols for `Process.clock_gettime` have been implemented.
+* macOS clocks `CLOCK_MONOTONIC_RAW`, `_MONOTONIC_RAW_APPROX`, `_UPTIME_RAW`,
+  `_UPTIME_RAW_APPROX`, and `_PROCESS_CPUTIME_ID` have been implemented (#1480).
 
 Bug fixes:
 
