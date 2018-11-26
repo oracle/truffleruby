@@ -106,7 +106,7 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
             // TimeZone.getDefault() returns the image build time zone on SVM.
             final Path localtime = Paths.get("/etc/localtime");
             if (!Files.exists(localtime, LinkOption.NOFOLLOW_LINKS)) {
-                RubyLanguage.LOGGER.warning("could not find timezone (/etc/localtime does not exist), using UTC instead");
+                RubyLanguage.LOGGER.config("could not find timezone (/etc/localtime does not exist), using UTC instead");
                 return UTC;
             }
 
@@ -136,7 +136,7 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
 
         final int index = resolved.indexOf("zoneinfo/");
         if (index == -1) {
-            RubyLanguage.LOGGER.warning("could not find timezone (the /etc/localtime symlink does not contain zoneinfo/), using UTC instead");
+            RubyLanguage.LOGGER.config("could not find timezone (the /etc/localtime symlink does not contain zoneinfo/), using UTC instead");
             return "UTC";
         }
 
@@ -160,10 +160,10 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
             return zoneinfo.relativize(same.get()).toString();
         } else {
             if (isWSLTimeZone(zoneinfo, bytes)) {
-                RubyLanguage.LOGGER.warning("Windows Subsystem for Linux does not set a correct unix timezone, using UTC instead");
-                RubyLanguage.LOGGER.warning("running 'sudo dpkg-reconfigure tzdata' should configure a correct unix timezone");
+                RubyLanguage.LOGGER.config("Windows Subsystem for Linux does not set a correct unix timezone, using UTC instead");
+                RubyLanguage.LOGGER.config("running 'sudo dpkg-reconfigure tzdata' should configure a correct unix timezone");
             } else {
-                RubyLanguage.LOGGER.warning("could not find timezone (no file in " + zoneinfo + " is the same as /etc/localtime), using UTC instead");
+                RubyLanguage.LOGGER.config("could not find timezone (no file in " + zoneinfo + " is the same as /etc/localtime), using UTC instead");
             }
             return "UTC";
         }

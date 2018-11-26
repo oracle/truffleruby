@@ -1,13 +1,17 @@
 # Assumptions Third Party Code Makes About TruffleRuby
 
-When third-party code starts to make assumptions about the way TruffleRuby does
-something, such as a `TruffleRuby` method, or the layout of our distribution, we
-record it here so that we know who is using it if we need to change something
-about it.
+Third-party code should never use any APIs apart from standard Ruby, and those
+listed in [TruffleRuby additions]('../user/truffleruby-additions.md').
+
+When third-party code uses the TruffleRuby additions, it should be listed here
+so that we know why non-standard APIs have been added.
 
 ## TruffleRuby Extensions in Gems
 
-* `concurrent-ruby` <= 1.0.5 uses: `Truffle::System.full_memory_barrier`,
-  `Truffle::Primitive.logical_processors`
-* `concurrent-ruby` >= 1.1.0 uses: `TruffleRuby.full_memory_barrier`, 
-  `Truffle::AtomicReference`, `Truffle::System.synchronized`
+* `concurrent-ruby` < 1.1.0 used `Truffle::System.full_memory_barrier`,
+  `Truffle::Primitive.logical_processors`,  `Truffle::AtomicReference`, and
+  `Truffle::System.synchronized`. These are all still available in order to
+  support these older versions of `concurrent-ruby`.
+
+* `concurrent-ruby` >= 1.1.0 uses `TruffleRuby.full_memory_barrier`,
+  `TruffleRuby.synchronized`, and `TruffleRuby::AtomicReference`, 

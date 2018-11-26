@@ -83,7 +83,7 @@ currently using.
 #### Some classes marked as internal will be different
 
 MRI provides some classes that are described in the documentation as being only
-available on C Ruby (MRI). We implement these classes if it's practical to do
+available on MRI (C Ruby). We implement these classes if it's practical to do
 so, but this isn't always the case. For example `RubyVM` is not available.
 
 ## Features with subtle differences
@@ -127,6 +127,11 @@ do, you will get the native standard-out, not the polyglot out.
 Also, IO buffer drains, writes on IO objects with `sync` set, and
 `write_nonblock`, will not retry the write on `EAGAIN` and `EWOULDBLOCK`, as the
 streams do not provide a way to detect this.
+
+#### Error messages
+
+Error message strings will sometimes differ from MRI, as these are not generally
+covered by the Ruby Specification suite or tests.
 
 ## Features with very low performance
 

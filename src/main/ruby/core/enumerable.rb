@@ -33,7 +33,7 @@ module Enumerable
   def chunk(&original_block)
     initial_state = nil
     raise ArgumentError, 'no block given' unless block_given?
-    ::Enumerator.new do |yielder|
+    Enumerator.new do |yielder|
       previous = nil
       accumulate = []
       if initial_state.nil?

@@ -75,7 +75,7 @@ public class RubyWarnings implements WarnCallback {
 
         buffer.append(fileName).append(':').append(lineNumber).append(": ");
         buffer.append("warning: ").append(message).append('\n');
-        writeToStderr(buffer.toString());
+        printWarning(buffer.toString());
     }
     /**
      * Prints a warning, unless $VERBOSE is nil.
@@ -91,22 +91,7 @@ public class RubyWarnings implements WarnCallback {
             buffer.append(fileName).append(' ');
         }
         buffer.append("warning: ").append(message).append('\n');
-        writeToStderr(buffer.toString());
-    }
-
-    private void writeToStderr(String message) {
-        if (context.getCoreLibrary().isLoaded()) {
-            final Object stderr = context.getCoreLibrary().getStderr();
-            final Rope messageRope = StringOperations.encodeRope(message, UTF8Encoding.INSTANCE);
-            final DynamicObject messageString = StringOperations.createString(context, messageRope);
-            context.send(stderr, "write", messageString);
-        } else {
-            try {
-                context.getEnv().err().write(message.getBytes(StandardCharsets.UTF_8));
-            } catch (IOException e) {
-                throw new JavaException(e);
-            }
-        }
+        printWarning(buffer.toString());
     }
 
     /**
@@ -118,6 +103,21 @@ public class RubyWarnings implements WarnCallback {
         }
 
         warn(fileName, lineNumber, message);
+    }
+
+    private void printWarning(String message) {
+        if (context.getCoreLibrary().isLoaded()) {
+            final Object warning = context.getCoreLibrary().getWarningModule();
+            final Rope messageRope = StringOperations.encodeRope(message, UTF8Encoding.INSTANCE);
+            final DynamicObject messageString = StringOperations.createString(context, messageRope);
+            context.send(warning, "warn", messageString);
+        } else {
+            try {
+                context.getEnv().err().write(message.getBytes(StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                throw new JavaException(e);
+            }
+        }
     }
 
 }

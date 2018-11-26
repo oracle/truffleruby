@@ -1,5 +1,15 @@
 require "inline"
 
+# RubyInline requires that the home directory be 'secure', but this isn't
+# required in any system standards and isn't nessecarily the case in
+# all testing environments which are already virtualised, so we disable the
+# check.
+
+class Dir
+  def self.assert_secure(path)
+  end
+end
+
 # Make sure to not use any cache
 cache = Inline.directory
 abort unless cache.start_with?("#{Dir.home}/.ruby_inline")

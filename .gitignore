@@ -29,6 +29,7 @@ lib/mri/openssl.su
 lib/mri/zlib.su
 lib/mri/psych.su
 lib/mri/syslog.su
+lib/mri/nkf.su
 lib/mri/etc.su
 lib/mri/rbconfig/sizeof.su
 /.ext

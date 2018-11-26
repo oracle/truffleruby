@@ -106,6 +106,9 @@ zlib/test_zlib.rb
 
 etc/test_etc.rb
 
+nkf/test_kconv.rb
+nkf/test_nkf.rb
+
 cext/ruby/array/test_resize.rb
 cext/ruby/bignum/test_big2str.rb
 cext/ruby/bignum/test_bigzero.rb

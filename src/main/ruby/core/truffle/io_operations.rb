@@ -28,6 +28,40 @@ module Truffle
       nil
     end
 
+    def self.puts(io, *args)
+      if args.empty?
+        io.write DEFAULT_RECORD_SEPARATOR
+      else
+        args.each do |arg|
+          if arg.equal? nil
+            str = ''
+          elsif arg.kind_of?(Array)
+            if Thread.guarding? arg
+              str = '[...]'
+            else
+              Thread.recursion_guard arg do
+                arg.each do |a|
+                  puts(io, a)
+                end
+              end
+            end
+          else
+            str = arg.to_s
+          end
+
+          if str
+            # Truffle: write the string + record separator (\n) atomically so multithreaded #puts is bearable
+            unless str.end_with?(DEFAULT_RECORD_SEPARATOR)
+              str += DEFAULT_RECORD_SEPARATOR
+            end
+            io.write str
+          end
+        end
+      end
+
+      nil
+    end
+
     Truffle::Graal.always_split(method(:last_line))
     Truffle::Graal.always_split(method(:set_last_line))
   end

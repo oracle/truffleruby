@@ -53,11 +53,11 @@ class IO
   module WaitWritable; end
 
   class EAGAINWaitReadable < Errno::EAGAIN
-    include ::IO::WaitReadable
+    include IO::WaitReadable
   end
 
   class EAGAINWaitWritable < Errno::EAGAIN
-    include ::IO::WaitWritable
+    include IO::WaitWritable
   end
 
   class EWOULDBLOCKWaitReadable < Errno::EAGAIN
@@ -1970,37 +1970,7 @@ class IO
   #  a
   #  test
   def puts(*args)
-    if args.empty?
-      write DEFAULT_RECORD_SEPARATOR
-    else
-      args.each do |arg|
-        if arg.equal? nil
-          str = ''
-        elsif arg.kind_of?(Array)
-          if Thread.guarding? arg
-            str = '[...]'
-          else
-            Thread.recursion_guard arg do
-              arg.each do |a|
-                puts a
-              end
-            end
-          end
-        else
-          str = arg.to_s
-        end
-
-        if str
-          # Truffle: write the string + record separator (\n) atomically so multithreaded #puts is bearable
-          unless str.end_with?(DEFAULT_RECORD_SEPARATOR)
-            str += DEFAULT_RECORD_SEPARATOR
-          end
-          write str
-        end
-      end
-    end
-
-    nil
+    Truffle::IOOperations.puts(self, *args)
   end
 
   def printf(fmt, *args)
@@ -2654,7 +2624,7 @@ class IO
     data.bytesize
   end
 
-  def write_nonblock(data)
+  def write_nonblock(data, exception: true)
     ensure_open_and_writable
 
     data = String data
@@ -2663,7 +2633,16 @@ class IO
     @ibuffer.unseek!(self) unless @sync
 
     self.nonblock = true
-    Truffle::POSIX.write_string_nonblock(self, data)
+
+    begin
+      Truffle::POSIX.write_string_nonblock(self, data)
+    rescue Errno::EAGAIN
+      if exception
+        raise EAGAINWaitWritable
+      else
+        return :wait_writable
+      end
+    end
   end
 
   def close
@@ -2700,9 +2679,6 @@ class IO
   end
 
 end
-
-##
-# Implements the pipe returned by IO::pipe.
 
 class IO::BidirectionalPipe < IO
 
@@ -2772,8 +2748,8 @@ class IO::BidirectionalPipe < IO
     @write.write(data)
   end
 
-  def write_nonblock(data)
-    @write.write_nonblock(data)
+  def write_nonblock(data, **options)
+    @write.write_nonblock(data, **options)
   end
 
 end

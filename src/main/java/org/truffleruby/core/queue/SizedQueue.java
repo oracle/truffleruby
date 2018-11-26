@@ -27,6 +27,15 @@ public class SizedQueue {
     private int takeEnd;
     private int capacity;
     private int size;
+    private boolean closed;
+
+    public enum OfferResult {
+        SUCCESS,
+        FULL,
+        CLOSED
+    }
+
+    public static final Object CLOSED = new Object();
 
     public SizedQueue(int capacity) {
         this.capacity = capacity;
@@ -69,15 +78,19 @@ public class SizedQueue {
     }
 
     @TruffleBoundary
-    public boolean offer(Object item) {
+    public OfferResult offer(Object item) {
         lock.lock();
 
         try {
+            if (closed) {
+                return OfferResult.CLOSED;
+            }
+
             if (size == capacity) {
-                return false;
+                return OfferResult.FULL;
             } else {
                 doAdd(item);
-                return true;
+                return OfferResult.SUCCESS;
             }
         } finally {
             lock.unlock();
@@ -85,22 +98,30 @@ public class SizedQueue {
     }
 
     @TruffleBoundary
-    public void put(Object item) throws InterruptedException {
+    public boolean put(Object item) throws InterruptedException {
         lock.lock();
 
         try {
             while (size == capacity) {
+                if (closed) {
+                    return false;
+                }
+
                 canAdd.await();
             }
 
+            if (closed) {
+                return false;
+            }
+
             doAdd(item);
+            return true;
         } finally {
             lock.unlock();
         }
     }
 
     private void doAdd(Object item) {
-        assert lock.isHeldByCurrentThread();
         items[addEnd] = item;
         addEnd++;
         if (addEnd == items.length) {
@@ -133,6 +154,10 @@ public class SizedQueue {
 
         try {
             while (size == 0) {
+                if (closed) {
+                    return CLOSED;
+                }
+
                 canTake.await();
             }
 
@@ -143,7 +168,6 @@ public class SizedQueue {
     }
 
     private Object doTake() {
-        assert lock.isHeldByCurrentThread();
         final Object item = items[takeEnd];
         takeEnd++;
         if (takeEnd == items.length) {
@@ -218,6 +242,30 @@ public class SizedQueue {
         }
 
         return objects;
+    }
+
+    @TruffleBoundary
+    public void close() {
+        lock.lock();
+
+        try {
+            closed = true;
+            canAdd.signalAll();
+            canTake.signalAll();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @TruffleBoundary
+    public boolean isClosed() {
+        lock.lock();
+
+        try {
+            return closed;
+        } finally {
+            lock.unlock();
+        }
     }
 
 }

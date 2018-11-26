@@ -74,18 +74,10 @@ module GC
     GC.start
   end
 
-  def self.count
-    Truffle::GC.count
-  end
-
-  def self.time
-    Truffle::GC.time
-  end
-
   def self.stat
     {
-      count: Truffle::GC.count,
-      time: Truffle::GC.time,
+      count: GC.count,
+      time: GC.time,
     }
   end
 

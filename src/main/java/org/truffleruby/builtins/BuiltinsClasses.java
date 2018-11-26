@@ -14,22 +14,20 @@ import java.util.List;
 
 import org.truffleruby.cext.CExtNodesBuiltins;
 import org.truffleruby.cext.CExtNodesFactory;
+import org.truffleruby.core.GCNodesBuiltins;
+import org.truffleruby.core.GCNodesFactory;
 import org.truffleruby.core.MainNodesBuiltins;
 import org.truffleruby.core.MainNodesFactory;
 import org.truffleruby.core.MathNodesBuiltins;
 import org.truffleruby.core.MathNodesFactory;
 import org.truffleruby.core.ProcessNodesBuiltins;
 import org.truffleruby.core.ProcessNodesFactory;
-import org.truffleruby.core.TruffleGCNodesBuiltins;
-import org.truffleruby.core.TruffleGCNodesFactory;
 import org.truffleruby.core.TruffleSystemNodesBuiltins;
 import org.truffleruby.core.TruffleSystemNodesFactory;
 import org.truffleruby.core.VMPrimitiveNodesBuiltins;
 import org.truffleruby.core.VMPrimitiveNodesFactory;
 import org.truffleruby.core.array.ArrayNodesBuiltins;
 import org.truffleruby.core.array.ArrayNodesFactory;
-import org.truffleruby.core.array.TruffleArrayNodesBuiltins;
-import org.truffleruby.core.array.TruffleArrayNodesFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesBuiltins;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory;
 import org.truffleruby.core.binding.BindingNodesBuiltins;
@@ -184,6 +182,7 @@ public abstract class BuiltinsClasses {
         FalseClassNodesBuiltins.setup(coreManager, primitiveManager);
         FiberNodesBuiltins.setup(coreManager, primitiveManager);
         FloatNodesBuiltins.setup(coreManager, primitiveManager);
+        GCNodesBuiltins.setup(coreManager, primitiveManager);
         JavaUtilitiesNodesBuiltins.setup(coreManager, primitiveManager);
         HashNodesBuiltins.setup(coreManager, primitiveManager);
         IntegerNodesBuiltins.setup(coreManager, primitiveManager);
@@ -220,11 +219,9 @@ public abstract class BuiltinsClasses {
         TimeNodesBuiltins.setup(coreManager, primitiveManager);
         TracePointNodesBuiltins.setup(coreManager, primitiveManager);
         TrueClassNodesBuiltins.setup(coreManager, primitiveManager);
-        TruffleArrayNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleBindingNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleBootNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleDebugNodesBuiltins.setup(coreManager, primitiveManager);
-        TruffleGCNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleGraalNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleKernelNodesBuiltins.setup(coreManager, primitiveManager);
         TrufflePosixNodesBuiltins.setup(coreManager, primitiveManager);
@@ -252,7 +249,7 @@ public abstract class BuiltinsClasses {
             ByteArrayNodesFactory.getFactories(),
             CExtNodesFactory.getFactories(),
             ClassNodesFactory.getFactories(),
-                ConditionVariableNodesFactory.getFactories(),
+            ConditionVariableNodesFactory.getFactories(),
             CoverageNodesFactory.getFactories(),
             DigestNodesFactory.getFactories(),
             EncodingConverterNodesFactory.getFactories(),
@@ -261,6 +258,7 @@ public abstract class BuiltinsClasses {
             FalseClassNodesFactory.getFactories(),
             FiberNodesFactory.getFactories(),
             FloatNodesFactory.getFactories(),
+            GCNodesFactory.getFactories(),
             JavaUtilitiesNodesFactory.getFactories(),
             HashNodesFactory.getFactories(),
             IntegerNodesFactory.getFactories(),
@@ -297,11 +295,9 @@ public abstract class BuiltinsClasses {
             TimeNodesFactory.getFactories(),
             TracePointNodesFactory.getFactories(),
             TrueClassNodesFactory.getFactories(),
-            TruffleArrayNodesFactory.getFactories(),
             TruffleBindingNodesFactory.getFactories(),
             TruffleBootNodesFactory.getFactories(),
             TruffleDebugNodesFactory.getFactories(),
-            TruffleGCNodesFactory.getFactories(),
             TruffleGraalNodesFactory.getFactories(),
             TruffleKernelNodesFactory.getFactories(),
             TrufflePosixNodesFactory.getFactories(),

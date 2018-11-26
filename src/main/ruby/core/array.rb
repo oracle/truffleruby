@@ -520,7 +520,7 @@ class Array
 
     out = self.class.allocate # new_reserved size
     if recursively_flatten(self, out, level)
-      Truffle::Array.steal_storage(self, out)
+      Truffle.invoke_primitive(:steal_array_storage, self, out)
       return self
     end
 
@@ -674,7 +674,7 @@ class Array
 
     Truffle.check_frozen
 
-    Truffle::Array.steal_storage(self, select(&block))
+    Truffle.invoke_primitive(:steal_array_storage, self, select(&block))
   end
 
   def last(n=undefined)
@@ -1110,7 +1110,7 @@ class Array
     Truffle.check_frozen
 
     ary = select(&block)
-    Truffle::Array.steal_storage(self, ary) unless size == ary.size
+    Truffle.invoke_primitive(:steal_array_storage, self, ary) unless size == ary.size
   end
 
   def shuffle(options = undefined)
@@ -1151,7 +1151,7 @@ class Array
 
     return to_enum(:sort_by!) { size } unless block_given?
 
-    Truffle::Array.steal_storage(self, sort_by(&block))
+    Truffle.invoke_primitive(:steal_array_storage, self, sort_by(&block))
   end
 
   def to_a
@@ -1368,7 +1368,7 @@ class Array
       width *= 2
     end
 
-    Truffle::Array.steal_storage(self, source)
+    Truffle.invoke_primitive(:steal_array_storage, self, source)
 
     self
   end
@@ -1432,7 +1432,7 @@ class Array
       width *= 2
     end
 
-    Truffle::Array.steal_storage(self, source)
+    Truffle.invoke_primitive(:steal_array_storage, self, source)
 
     self
   end
@@ -1616,7 +1616,7 @@ class Array
   def uniq(&block)
     copy_of_same_class = dup
     result = super(&block)
-    Truffle::Array.steal_storage(copy_of_same_class, result)
+    Truffle.invoke_primitive(:steal_array_storage, copy_of_same_class, result)
     copy_of_same_class
   end
 
@@ -1627,7 +1627,7 @@ class Array
     if self.size == result.size
       nil
     else
-      Truffle::Array.steal_storage(self, result)
+      Truffle.invoke_primitive(:steal_array_storage, self, result)
       self
     end
   end
@@ -1635,7 +1635,7 @@ class Array
   def sort!(&block)
     Truffle.check_frozen
 
-    Truffle::Array.steal_storage(self, sort(&block))
+    Truffle.invoke_primitive(:steal_array_storage, self, sort(&block))
   end
 
   def swap(a, b)

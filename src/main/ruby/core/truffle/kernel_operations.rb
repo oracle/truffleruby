@@ -97,7 +97,7 @@ module Truffle
     define_hooked_variable(
       :$stdout,
       -> { global_variable_get(:$stdout) },
-      -> v { raise TypeError, "$stdout must have a write method #{v.class} given." unless v.respond_to?(:write)
+      -> v { raise TypeError, "$stdout must have a write method, #{v.class} given" unless v.respond_to?(:write)
              global_variable_set(:$stdout, v) })
 
     alias $> $stdout
@@ -105,10 +105,10 @@ module Truffle
     define_hooked_variable(
       :$stderr,
       -> { global_variable_get(:$stderr) },
-      -> v { raise TypeError, "$stderr must have a write method #{v.class} given." unless v.respond_to?(:write)
+      -> v { raise TypeError, "$stderr must have a write method, #{v.class} given" unless v.respond_to?(:write)
              global_variable_set(:$stderr, v) })
 
-    def self.internal_raise(exc, msg, ctx=nil, internal)
+    def self.internal_raise(exc, msg, ctx, internal)
       skip = false
       if undefined.equal? exc
         exc = $!
@@ -123,11 +123,11 @@ module Truffle
         else
           exc = exc.exception msg
         end
-        raise ::TypeError, 'exception class/object expected' unless exc.kind_of?(::Exception)
+        raise TypeError, 'exception class/object expected' unless exc.kind_of?(Exception)
       elsif exc.kind_of? String
-        exc = ::RuntimeError.exception exc
+        exc = RuntimeError.exception exc
       else
-        raise ::TypeError, 'exception class/object expected'
+        raise TypeError, 'exception class/object expected'
       end
 
       unless skip
@@ -137,7 +137,7 @@ module Truffle
       end
 
       if $DEBUG
-        STDERR.puts "Exception: `#{exc.class}' #{caller.first} - #{exc.message}\n"
+        STDERR.puts "Exception: `#{exc.class}' #{caller(2, 1)[0]} - #{exc.message}\n"
       end
 
       Truffle.invoke_primitive :vm_raise_exception, exc, internal

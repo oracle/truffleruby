@@ -57,6 +57,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.InterruptMode;
+import org.truffleruby.core.VMPrimitiveNodes.VMRaiseExceptionNode;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
@@ -262,6 +263,7 @@ public abstract class ThreadNodes {
         @Specialization
         public DynamicObject initialize(DynamicObject thread, DynamicObject arguments, DynamicObject block) {
             if (getContext().getOptions().SHARED_OBJECTS_ENABLED) {
+                getContext().getThreadManager().startSharing(thread);
                 SharedObjects.shareDeclarationFrame(getContext(), block);
             }
 
@@ -318,7 +320,7 @@ public abstract class ThreadNodes {
             final DynamicObject exception = Layouts.THREAD.getException(thread);
             if (exception != null) {
                 context.getCoreExceptions().showExceptionIfDebug(exception);
-                throw new RaiseException(context, exception);
+                VMRaiseExceptionNode.reRaiseException(context, exception);
             }
         }
 
@@ -508,7 +510,7 @@ public abstract class ThreadNodes {
     public static abstract class ThreadRaisePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyThread(thread)", "isRubyException(exception)" })
-        public DynamicObject raise(DynamicObject thread, final DynamicObject exception) {
+        public DynamicObject raise(DynamicObject thread, DynamicObject exception) {
             raiseInThread(getContext(), thread, exception, this);
             return nil();
         }
@@ -523,7 +525,8 @@ public abstract class ThreadNodes {
                     Backtrace backtrace = context.getCallStack().getBacktrace(currentNode1);
                     Layouts.EXCEPTION.setBacktrace(exception, backtrace);
                 }
-                throw new RaiseException(context, exception);
+
+                VMRaiseExceptionNode.reRaiseException(context, exception);
             });
         }
 

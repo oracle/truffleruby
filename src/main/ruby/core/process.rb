@@ -127,13 +127,19 @@ module Process
     when :nanosecond
       time
     when :microsecond
-      time / 1000
+      time / 1_000
+    when :millisecond
+      time / 1_000_000
+    when :second
+      time / 1_000_000_000
     when :float_microsecond
       time / 1e3
-    when :float_second
+    when :float_millisecond
+      time / 1e6
+    when :float_second, nil
       time / 1e9
     else
-      raise "unsupported time unit #{unit}"
+      raise ArgumentError, "unexpected unit: #{unit}"
     end
   end
 

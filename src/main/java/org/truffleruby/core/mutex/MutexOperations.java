@@ -30,6 +30,11 @@ public abstract class MutexOperations {
             throw new RaiseException(context, context.getCoreExceptions().threadErrorRecursiveLocking(currentNode));
         }
 
+        if (lock.tryLock()) {
+            Layouts.THREAD.getOwnedLocks(thread).add(lock);
+            return;
+        }
+
         context.getThreadManager().runUntilResult(currentNode, () -> {
             lock.lockInterruptibly();
             Layouts.THREAD.getOwnedLocks(thread).add(lock);
@@ -55,6 +60,9 @@ public abstract class MutexOperations {
     }
 
     protected static void internalLockEvenWithException(ReentrantLock lock, RubyNode currentNode, RubyContext context) {
+        if (lock.tryLock()) {
+            return;
+        }
         Throwable throwable = null;
         try {
             while (true) {

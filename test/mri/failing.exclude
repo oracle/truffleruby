@@ -9,7 +9,6 @@ ruby/test_m17n_comb.rb # cannot load such file -- etc
 ruby/test_marshal.rb # including this causes error in test_objectspace.rb
 ruby/test_module.rb # test/mri/ruby/test_module.rb:96:in `private_class_method': internal implementation error - UnsupportedOperationException null org.truffleruby.nodes.core.ModuleNodes$PrivateClassMethodNode.privateClassMethod(ModuleNodes.java:1474) (RuntimeError)
 ruby/test_pipe.rb # tests not excluding
-ruby/test_process.rb # cannot load such file -- io/wait
 ruby/test_settracefunc.rb # uninitialized constant TestSetTraceFunc::TracePoint
 ruby/test_sleep.rb #  cannot load such file -- etc
 ruby/test_sprintf_comb.rb # almost all failing / regression
@@ -41,8 +40,6 @@ net/protocol/test_protocol.rb
 net/smtp/test_response.rb
 net/smtp/test_smtp.rb
 net/smtp/test_ssl_socket.rb
-nkf/test_kconv.rb
-nkf/test_nkf.rb
 psych/test_alias_and_anchor.rb
 psych/test_array.rb
 psych/test_boolean.rb
@@ -98,7 +95,6 @@ socket/test_sockopt.rb
 socket/test_tcp.rb
 socket/test_udp.rb
 socket/test_unix.rb
-thread/test_queue.rb # possible issue on Travis - needs to be tried again
 ruby/enc/test_euc_jp.rb # invalid multibyte char (EUC-JP)
 ruby/enc/test_windows_1251.rb
 dbm/test_dbm.rb

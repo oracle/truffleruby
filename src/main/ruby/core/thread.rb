@@ -200,9 +200,10 @@ class Thread
   end
 
   @abort_on_exception = false
+  @report_on_exception = false
 
   class << self
-    attr_accessor :abort_on_exception
+    attr_accessor :abort_on_exception, :report_on_exception
 
     def new(*args, &block)
       thread = Truffle.invoke_primitive(:thread_allocate, self)
@@ -227,6 +228,7 @@ class Thread
   # Instance methods
 
   attr_reader :recursive_objects, :randomizer
+  attr_accessor :report_on_exception
 
   def initialize(*args, &block)
     Kernel.raise ThreadError, 'must be called with a block' unless block
@@ -241,6 +243,7 @@ class Thread
     @thread_local_variables = {}
     @recursive_objects = {}
     @randomizer = Truffle::Randomizer.new
+    @report_on_exception = Thread.report_on_exception
   end
 
   def freeze
@@ -292,8 +295,8 @@ class Thread
   end
   alias_method :to_s, :inspect
 
-  def raise(exc=undefined, msg=nil, trace=nil)
-    return self unless alive?
+  def raise(exc=undefined, msg=nil, ctx=nil)
+    return nil unless alive?
 
     if undefined.equal? exc
       no_argument = true
@@ -303,7 +306,6 @@ class Thread
     if exc.respond_to? :exception
       exc = exc.exception msg
       Kernel.raise TypeError, 'exception class/object expected' unless Exception === exc
-      exc.set_backtrace trace if trace
     elsif no_argument
       exc = RuntimeError.exception nil
     elsif exc.kind_of? String
@@ -312,12 +314,15 @@ class Thread
       Kernel.raise TypeError, 'exception class/object expected'
     end
 
+    exc.set_context ctx if ctx
+    exc.capture_backtrace!(1) unless exc.backtrace?
+
     if $DEBUG
       STDERR.puts "Exception: `#{exc.class}' - #{exc.message}"
     end
 
     if self == Thread.current
-      Kernel.raise exc
+      Truffle.invoke_primitive :vm_raise_exception, exc, false
     else
       Truffle.invoke_primitive :thread_raise, self, exc
     end
@@ -445,7 +450,7 @@ class ConditionVariable
       timeout = Truffle::Type.rb_num2long(timeout)
     end
 
-    if defined?(::Mutex_m) && mutex.kind_of?(Mutex_m)
+    if defined?(::Mutex_m) && mutex.kind_of?(::Mutex_m)
       raw_mutex = mutex.instance_variable_get(:@_mutex)
     else
       raw_mutex = mutex
@@ -468,6 +473,13 @@ class ConditionVariable
 
   def marshal_dump
     raise TypeError, "can't dump #{self.class}"
+  end
+end
+
+module Truffle::ThreadOperations
+  def self.report_exception(thread, exception)
+    message = "#{thread.inspect} terminated with exception:\n#{exception.full_message}"
+    $stderr.write message
   end
 end
 

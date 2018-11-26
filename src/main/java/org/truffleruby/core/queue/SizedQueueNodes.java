@@ -125,8 +125,11 @@ public abstract class SizedQueueNodes {
         @TruffleBoundary
         private void doPushBlocking(final Object value, final SizedQueue queue) {
             getContext().getThreadManager().runUntilResult(this, () -> {
-                queue.put(value);
-                return BlockingAction.SUCCESS;
+                if (queue.put(value)) {
+                    return BlockingAction.SUCCESS;
+                } else {
+                    throw new RaiseException(getContext(), coreExceptions().closedQueueError(this));
+                }
             });
         }
 
@@ -136,10 +139,16 @@ public abstract class SizedQueueNodes {
             final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
 
             propagateSharingNode.propagate(self, value);
-            final boolean pushed = queue.offer(value);
-            if (!pushed) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().threadError("queue full", this));
+
+            switch (queue.offer(value)) {
+                case SUCCESS:
+                    return self;
+                case FULL:
+                    errorProfile.enter();
+                    throw new RaiseException(getContext(), coreExceptions().threadErrorQueueFull(this));
+                case CLOSED:
+                    errorProfile.enter();
+                    throw new RaiseException(getContext(), coreExceptions().closedQueueError(this));
             }
 
             return self;
@@ -163,7 +172,13 @@ public abstract class SizedQueueNodes {
         public Object popBlocking(DynamicObject self, boolean nonBlocking) {
             final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
 
-            return doPop(queue);
+            final Object value = doPop(queue);
+
+            if (value == SizedQueue.CLOSED) {
+                return nil();
+            } else {
+                return value;
+            }
         }
 
         @TruffleBoundary
@@ -177,6 +192,7 @@ public abstract class SizedQueueNodes {
             final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
 
             final Object value = queue.poll();
+
             if (value == null) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().threadError("queue empty", this));
@@ -228,6 +244,27 @@ public abstract class SizedQueueNodes {
         public int num_waiting(DynamicObject self) {
             final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
             return queue.getNumberWaiting();
+        }
+
+    }
+
+    @CoreMethod(names = "close")
+    public abstract static class CloseNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject close(DynamicObject self) {
+            Layouts.SIZED_QUEUE.getQueue(self).close();
+            return self;
+        }
+
+    }
+
+    @CoreMethod(names = "closed?")
+    public abstract static class ClosedNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean closed(DynamicObject self) {
+            return Layouts.SIZED_QUEUE.getQueue(self).isClosed();
         }
 
     }

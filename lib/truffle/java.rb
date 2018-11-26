@@ -33,6 +33,10 @@
 # the terms of any one of the EPL, the GPL or the LGPL.
 ###### END LICENSE BLOCK ######
 
+# Remove dummy definition of the `JavaLang` module, used only to satisfy some gems that assume if `::Java` is defined
+# that JRuby-style interop is being used.
+::Java.send(:remove_const, :JavaLang)
+
 require_relative 'java/core_ext'
 require_relative 'java/java'
 

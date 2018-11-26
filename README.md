@@ -24,12 +24,11 @@ There are three ways to install TruffleRuby:
   as a simple binary tarball. This distribution can also be used for
   [testing TruffleRuby in CI](doc/user/standalone-distribution.md).
 
-You can use `gem` to install Gems as normal. TruffleRuby currently requires
-Bundler version `1.16.x`.
+You can use `gem` to install Gems as normal.
 
 You can also build TruffleRuby from source, see the
 [building instructions](doc/contributor/workflow.md), and using
-[Docker](doc/contributor/docker.md)
+[Docker](doc/contributor/docker.md).
 
 ## Aim
 
@@ -45,12 +44,12 @@ TruffleRuby aims to:
 
 ## TruffleRuby configurations
 
-There are two main configurations of TruffleRuby - *native* and *JVM*. It's
+There are two main configurations of TruffleRuby: *native* and *JVM*. It's
 important to understand the different configurations of TruffleRuby, as each has
 different capabilities and performance characteristics. You should pick the
 execution mode that is appropriate for your application.
 
-When distributed as part of GraalVM, TruffleRuby by default runs in the *native*
+TruffleRuby by default runs in the *native*
 configuration. In this configuration, TruffleRuby is ahead-of-time compiled to a
 standalone native executable. This means that you don't need a JVM installed on
 your system to use it. The advantage of the native configuration is that it
@@ -78,7 +77,7 @@ highest possible performance you probably want the *JVM* configuration, by using
 `--jvm`.
 
 At runtime you can tell if you are using the native configuration using
-`TruffleRuby.native?`
+`TruffleRuby.native?`.
 
 You won't encounter it when using TruffleRuby from the GraalVM, but there is
 also another configuration which is TruffleRuby running on the JVM but with the
@@ -128,7 +127,7 @@ You will find that many C extensions will not work without modification.
 ## Migration from MRI
 
 TruffleRuby should in most cases work as a drop-in replacement for MRI, but you
-should read about out [compatibility](doc/user/compatibility.md).
+should read about our [compatibility](doc/user/compatibility.md).
 
 ## Migration from JRuby
 

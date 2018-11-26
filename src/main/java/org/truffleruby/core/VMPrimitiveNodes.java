@@ -63,6 +63,7 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ThrowException;
@@ -211,11 +212,30 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_raise_exception", needsSelf = false)
-    public static abstract class VMRaiseExceptionPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class VMRaiseExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyException(exception)")
-        public DynamicObject vmRaiseException(DynamicObject exception, boolean internal) {
-            throw new RaiseException(getContext(), exception, internal);
+        public DynamicObject vmRaiseException(DynamicObject exception, boolean internal,
+                @Cached("createBinaryProfile()") ConditionProfile reRaiseProfile) {
+            final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
+            if (reRaiseProfile.profile(backtrace != null && backtrace.getTruffleException() != null)) {
+                // We need to rethrow the existing TruffleException, otherwise we would lose the
+                // TruffleStackTrace stored in it.
+                throw (RaiseException) backtrace.getTruffleException();
+            } else {
+                throw new RaiseException(getContext(), exception, internal);
+            }
+        }
+
+        public static void reRaiseException(RubyContext context, DynamicObject exception) {
+            final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
+            if (backtrace != null && backtrace.getTruffleException() != null) {
+                // We need to rethrow the existing TruffleException, otherwise we would lose the
+                // TruffleStackTrace stored in it.
+                throw (RaiseException) backtrace.getTruffleException();
+            } else {
+                throw new RaiseException(context, exception, false);
+            }
         }
 
     }

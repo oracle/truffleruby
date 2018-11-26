@@ -66,7 +66,7 @@ module Truffle
         modifiable = has_key && !frozen
         removable = modifiable
         insertable = !frozen
-      elsif object.is_a?(::Array)
+      elsif object.is_a?(Array)
         in_bounds = name.is_a?(Integer) && name >= 0 && name < object.size
         readable = in_bounds
         insertable = in_bounds && !object.frozen?
@@ -152,12 +152,12 @@ module Truffle
     
     def self.to_java_array(array)
       Truffle.primitive :to_java_array
-      to_java_array(Truffle::Type.coerce_to(array, ::Array, :to_a))
+      to_java_array(Truffle::Type.coerce_to(array, Array, :to_a))
     end
     
     def self.to_java_list(array)
       Truffle.primitive :to_java_list
-      to_java_list(Truffle::Type.coerce_to(array, ::Array, :to_a))
+      to_java_list(Truffle::Type.coerce_to(array, Array, :to_a))
     end
     
     def self.special_form(receiver, name, *args)
@@ -269,7 +269,7 @@ module Truffle
         raise 'foreign object does not have a size to turn it into an array'
       end
       
-      ::Array.new(Truffle::Interop.size(object)) do |n|
+      Array.new(Truffle::Interop.size(object)) do |n|
         Truffle::Interop.read(object, n)
       end
     end

@@ -688,6 +688,9 @@ describe "Module#refine" do
     end
     spec = self
     klass = Class.new { instance_methods.should_not spec.send(:include, :refinement_only_method) }
-    klass.new.methods.should_not include :refinement_only_method
+    instance = klass.new
+    instance.methods.should_not include :refinement_only_method
+    instance.respond_to?(:refinement_only_method).should == false
+    -> { instance.method :refinement_only_method }.should raise_error(NameError)
   end
 end

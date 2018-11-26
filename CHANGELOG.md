@@ -1,4 +1,37 @@
-# 1.0 RC 9
+# 1.0 RC 10
+
+New features:
+
+* The `nkf` and `kconv` standard libraries were added (#1439).
+* `Mutex` and `ConditionVariable` have a new fast path for acquiring locks
+  that are unlocked.
+* `Queue` and `SizedQueue`, `#close` and `#closed?`, have been implemented.
+* `Kernel#clone(freeze)` has been implemented (#1454).
+* `Warning.warn` has been implemented (#1470).
+* `Thread.report_on_exception` has been implemented (#1476).
+
+Bug fixes:
+
+* Added `rb_eEncodingError` for C extensions (#1437).
+* Fixed race condition when creating threads (#1445).
+* Handle `exception: false` for IO#write_nonblock (#1457).
+* `File.expand_path` now raises an exception for a non-absolute user-home.
+* `ArgumentError` messages now better match MRI (#1467).
+* Added support for `:float_millisecond`, `:millisecond`, and
+  `:second` time units to `Process.clock_gettime` (#1468).
+* Fixed backtrace of re-raised exceptions (#1459).
+* Updated an exception message in Psych related to loading a non-existing
+  class so that it now matches MRI.
+* Fixed a JRuby-style Java interop compatibility issue seen in `test-unit`.
+* Fixed problem with calling `warn` if `$stderr` has been reassigned.
+* Fixed definition of `RB_ENCODING_GET_INLINED` (#1440).
+
+Changes:
+
+* Timezone messages are now logged at `CONFIG` level, use `-Xlog=CONFIG` to
+  debug if the timezone is incorrectly shown as `UTC`.
+
+# 1.0 RC 9, 5 November 2018
 
 Security:
 
@@ -10,7 +43,7 @@ New features:
 
 * LLVM for Oracle Linux 7 can now be installed without building from source.
 
-Bug fixes
+Bug fixes:
 
 * Times can now be created with UTC offsets in `+/-HH:MM:SS` format.
 * `Proc#to_s` now has `ASCII-8BIT` as its encoding instead of the
@@ -34,7 +67,7 @@ Changes:
 * Detect when the system libssl is incompatible more accurately and
   add instructions on how to recompile the extension.
 
-# 1.0 RC 8, October 2018
+# 1.0 RC 8, 19 October 2018
 
 New features:
 
@@ -52,11 +85,11 @@ Changes:
 * JCodings has been updated from 1.0.30 to 1.0.40.
 * Joni has been updated from 2.1.16 to 2.1.25.
 
-Performance
+Performance:
 
 * Performance of setting the last exception on a thread has now been improved.
 
-# 1.0 RC 7, October 2018
+# 1.0 RC 7, 3 October 2018
 
 New features:
 
@@ -98,7 +131,7 @@ Changes:
 * Reimplemented exceptions and other APIs that can return a backtrace to use
   Truffle's lazy stacktraces API.
 
-# 1.0 RC 6, September 2018
+# 1.0 RC 6, 3 September 2018
 
 New features:
 
@@ -177,7 +210,7 @@ Changes:
 * The `-Xsync.stdio` option has been removed - use standard Ruby
   `STDOUT.sync = true` in your program instead.
 
-# 1.0 RC 5, August 2018
+# 1.0 RC 5, 3 August 2018
 
 New features:
 

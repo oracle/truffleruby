@@ -11,14 +11,14 @@ module Truffle
     def self.warn(message)
       if !$VERBOSE.nil?
         caller = caller_locations(2, 1)[0]
-        Kernel.warn "#{caller.path}:#{caller.lineno}: warning: #{message}"
+        Warning.warn "#{caller.path}:#{caller.lineno}: warning: #{message}\n"
       end
     end
 
     def self.warning(message)
       if $VERBOSE
         caller = caller_locations(2, 1)[0]
-        Kernel.warn "#{caller.path}:#{caller.lineno}: warning: #{message}"
+        Warning.warn "#{caller.path}:#{caller.lineno}: warning: #{message}\n"
       end
     end
   end

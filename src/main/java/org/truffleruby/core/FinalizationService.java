@@ -9,14 +9,11 @@
  */
 package org.truffleruby.core;
 
+import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.WeakHashMap;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.thread.ThreadManager;
@@ -52,15 +49,19 @@ public class FinalizationService {
         }
     }
 
-    private static class FinalizerReference extends WeakReference<Object> {
+    public static class FinalizerReference extends PhantomReference<Object> {
 
         /**
          * All accesses to this Deque must be synchronized by taking the
          * {@link FinalizationService} monitor, to avoid concurrent access.
          */
         private final Deque<Finalizer> finalizers = new LinkedList<>();
+        private FinalizerReference next = null;
+        private FinalizerReference prev = null;
 
-        public FinalizerReference(Object object, ReferenceQueue<? super Object> queue) {
+        private static FinalizerReference first = null;
+
+        private FinalizerReference(Object object, ReferenceQueue<? super Object> queue) {
             super(object, queue);
         }
 
@@ -68,8 +69,14 @@ public class FinalizationService {
             finalizers.addLast(new Finalizer(owner, action, root));
         }
 
-        private void removeFinalizers(Class<?> owner) {
+        private FinalizerReference removeFinalizers(Class<?> owner) {
             finalizers.removeIf(f -> f.getOwner() == owner);
+            if (finalizers.isEmpty()) {
+                remove(this);
+                return null;
+            } else {
+                return this;
+            }
         }
 
         private Finalizer getFirstFinalizer() {
@@ -84,12 +91,10 @@ public class FinalizationService {
                 }
             }
         }
-
     }
 
     private final RubyContext context;
 
-    private final Map<Object, FinalizerReference> finalizerReferences = new WeakHashMap<>();
     private final ReferenceQueue<Object> finalizerQueue = new ReferenceQueue<>();
 
     private DynamicObject finalizerThread;
@@ -98,16 +103,15 @@ public class FinalizationService {
         this.context = context;
     }
 
-    public void addFinalizer(Object object, Class<?> owner, Runnable action) {
-        addFinalizer(object, owner, action, null);
+    public FinalizerReference addFinalizer(Object object, FinalizerReference ref, Class<?> owner, Runnable action) {
+        return addFinalizer(object, ref, owner, action, null);
     }
 
-    public synchronized void addFinalizer(Object object, Class<?> owner, Runnable action, DynamicObject root) {
-        FinalizerReference finalizerReference = finalizerReferences.get(object);
+    public synchronized FinalizerReference addFinalizer(Object object, FinalizerReference finalizerReference, Class<?> owner, Runnable action, DynamicObject root) {
 
         if (finalizerReference == null) {
             finalizerReference = new FinalizerReference(object, finalizerQueue);
-            finalizerReferences.put(object, finalizerReference);
+            FinalizationService.add(finalizerReference);
         }
 
         finalizerReference.addFinalizer(owner, action, root);
@@ -133,6 +137,7 @@ public class FinalizationService {
             }
 
         }
+        return finalizerReference;
     }
 
     private final void drainFinalizationQueue() {
@@ -164,6 +169,7 @@ public class FinalizationService {
 
     private void runFinalizer(FinalizerReference finalizerReference) {
         try {
+            FinalizationService.remove(finalizerReference);
             while (!context.isFinalizing()) {
                 final Finalizer finalizer;
                 synchronized (this) {
@@ -187,24 +193,54 @@ public class FinalizationService {
         }
     }
 
-    public void runAllFinalizersOnExit() {
-        for (Entry<Object, FinalizerReference> entry : finalizerReferences.entrySet()) {
-            runFinalizer(entry.getValue());
-        }
-    }
-
-    public synchronized void removeFinalizers(Object object, Class<?> owner) {
-        final FinalizerReference finalizerReference = finalizerReferences.get(object);
-
-        if (finalizerReference != null) {
-            finalizerReference.removeFinalizers(owner);
-        }
-    }
-
     public synchronized void collectRoots(Collection<DynamicObject> roots) {
-        for (FinalizerReference finalizerReference : finalizerReferences.values()) {
+        FinalizerReference finalizerReference = FinalizerReference.first;
+        while (finalizerReference != null) {
             finalizerReference.collectRoots(roots);
+            finalizerReference = finalizerReference.next;
         }
+    }
+
+    public synchronized FinalizerReference removeFinalizers(Object object, FinalizerReference ref, Class<?> owner) {
+        if (ref != null) {
+            return ref.removeFinalizers(owner);
+        } else {
+            return null;
+        }
+    }
+
+    static synchronized void remove(FinalizerReference ref) {
+        if (ref.next == ref) {
+            // Already removed.
+            return;
+        }
+
+        if (FinalizerReference.first == ref) {
+            if (ref.next != null) {
+                FinalizerReference.first = ref.next;
+            } else {
+                FinalizerReference.first = ref.prev;
+            }
+        }
+
+        if (ref.next != null) {
+            ref.next.prev = ref.prev;
+        }
+        if (ref.prev != null) {
+            ref.prev.next = ref.next;
+        }
+
+        // Mark that this ref has been removed.
+        ref.next = ref;
+        ref.prev = ref;
+    }
+
+    static synchronized void add(FinalizerReference newRef) {
+        if (FinalizerReference.first != null) {
+            newRef.next = FinalizerReference.first;
+            FinalizerReference.first.prev = newRef;
+        }
+        FinalizerReference.first = newRef;
     }
 
 }

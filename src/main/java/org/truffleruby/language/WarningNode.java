@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
@@ -25,16 +26,17 @@ public class WarningNode extends RubyBaseNode {
     @Child private CallDispatchHeadNode warningMethod = CallDispatchHeadNode.createPrivate();
     @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
-    private Object callWarning(String warningMessage) {
-        final DynamicObject warningString = makeStringNode.executeMake(warningMessage, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        return warningMethod.call(getContext().getCoreLibrary().getKernelModule(), "warn", warningString);
-    }
-
     public void warningMessage(SourceSection sourceSection, String message) {
         if (coreLibrary().isVerbose()) {
-            final String sourceLocation = sourceSection != null ? getContext().fileLine(sourceSection) + ": " : "";
-            callWarning(sourceLocation + "warning: " + message);
+            final DynamicObject warningString = makeStringNode.executeMake(buildWarningMessage(sourceSection, message), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            warningMethod.call(getContext().getCoreLibrary().getWarningModule(), "warn", warningString);
         }
+    }
+
+    @TruffleBoundary
+    private String buildWarningMessage(SourceSection sourceSection, String message) {
+        final String sourceLocation = sourceSection != null ? getContext().fileLine(sourceSection) + ": " : "";
+        return sourceLocation + "warning: " + message;
     }
 
 }

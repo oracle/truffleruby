@@ -222,4 +222,15 @@ public abstract class TruffleSystemNodes {
 
     }
 
+    @CoreMethod(names = "available_processors", onSingleton = true)
+    public abstract static class AvailableProcessorsNode extends CoreMethodNode {
+
+        @TruffleBoundary
+        @Specialization
+        public int availableProcessors() {
+            return Runtime.getRuntime().availableProcessors();
+        }
+
+    }
+
 }
