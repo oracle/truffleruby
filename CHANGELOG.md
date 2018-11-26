@@ -21,6 +21,7 @@ New features:
 * `Kernel#clone(freeze)` has been implemented (#1454).
 * `Warning.warn` has been implemented (#1470).
 * `Thread.report_on_exception` has been implemented (#1476).
+* Implemented the emulation symbols for `Process.clock_gettime`.
 
 Bug fixes:
 
