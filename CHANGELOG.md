@@ -42,6 +42,8 @@ Changes:
 
 * Timezone messages are now logged at `CONFIG` level, use `-Xlog=CONFIG` to
   debug if the timezone is incorrectly shown as `UTC`.
+* `Process::CLOCK_` constants have been given the same value as in standard
+  Ruby.
 
 # 1.0 RC 9, 5 November 2018
 
