@@ -111,7 +111,6 @@ module Process
   CLOCK_MONOTONIC         = 1
   CLOCK_REALTIME          = 2
   CLOCK_THREAD_CPUTIME_ID = 3
-  CLOCK_MONOTONIC_RAW_ID  = 4
 
   def self.clock_gettime(id, unit=:float_second)
     case id
