@@ -109,15 +109,25 @@ module Process
   end
 
   CLOCK_REALTIME                =  0
-  CLOCK_MONOTONIC               =  6
-  CLOCK_THREAD_CPUTIME_ID       = 16
 
   if Truffle::Platform.darwin?
     CLOCK_MONOTONIC_RAW         =  4
     CLOCK_MONOTONIC_RAW_APPROX  =  5
+    CLOCK_MONOTONIC             =  6
     CLOCK_UPTIME_RAW            =  8
     CLOCK_UPTIME_RAW_APPROX     =  9
     CLOCK_PROCESS_CPUTIME_ID    = 12
+    CLOCK_THREAD_CPUTIME_ID     = 16
+  elsif Truffle::Platform.linux?
+    CLOCK_MONOTONIC             =  1
+    CLOCK_PROCESS_CPUTIME_ID    =  2
+    CLOCK_THREAD_CPUTIME_ID     =  3
+    CLOCK_MONOTONIC_RAW         =  4
+    CLOCK_REALTIMEC_COARSE      =  5
+    CLOCK_MONOTONIC_COARSE      =  6
+    CLOCK_BOOTTIME              =  7
+    CLOCK_REALTIME_ALARM        =  8
+    CLOCK_BOOTTIME_ALARM        =  9
   end
 
   # These clock IDs are not implemented as they are specific to BSD
