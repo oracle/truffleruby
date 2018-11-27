@@ -694,6 +694,16 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.dlopen.RTLD_NOW", 2);
         configuration.config("platform.dlopen.RTLD_LOCAL", 0);
         configuration.config("platform.dlopen.RTLD_GLOBAL", 256);
+        configuration.config("platform.clocks.CLOCK_BOOTTIME", 7);
+        configuration.config("platform.clocks.CLOCK_BOOTTIME_ALARM", 9);
+        configuration.config("platform.clocks.CLOCK_MONOTONIC", 1);
+        configuration.config("platform.clocks.CLOCK_MONOTONIC_COARSE", 6);
+        configuration.config("platform.clocks.CLOCK_MONOTONIC_RAW", 4);
+        configuration.config("platform.clocks.CLOCK_PROCESS_CPUTIME_ID", 2);
+        configuration.config("platform.clocks.CLOCK_REALTIME", 0);
+        configuration.config("platform.clocks.CLOCK_REALTIME_COARSE", 5);
+        configuration.config("platform.clocks.CLOCK_REALTIME_ALARM", 8);
+        configuration.config("platform.clocks.CLOCK_THREAD_CPUTIME_ID", 3);
         configuration.config("platform.typedef.int8_t", string(context, "char"));
         configuration.config("platform.typedef.int16_t", string(context, "short"));
         configuration.config("platform.typedef.int32_t", string(context, "int"));

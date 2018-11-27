@@ -738,4 +738,23 @@ constants 'dlopen' do |cg|
   cg.consts %w[RTLD_LAZY RTLD_NOW RTLD_LOCAL RTLD_GLOBAL]
 end
 
+constants 'clocks' do |cg|
+  cg.include 'time.h'
+  cg.consts %w[
+    CLOCK_BOOTTIME
+    CLOCK_BOOTTIME_ALARM
+    CLOCK_MONOTONIC
+    CLOCK_MONOTONIC_COARSE
+    CLOCK_MONOTONIC_RAW
+    CLOCK_MONOTONIC_RAW_APPROX
+    CLOCK_PROCESS_CPUTIME_ID
+    CLOCK_REALTIME
+    CLOCK_REALTIME_COARSE
+    CLOCK_REALTIME_ALARM
+    CLOCK_THREAD_CPUTIME_ID
+    CLOCK_UPTIME_RAW
+    CLOCK_UPTIME_RAW_APPROX
+]
+end
+
 TypesGenerator.new.generate
