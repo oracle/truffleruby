@@ -498,8 +498,10 @@ describe "Process.spawn" do
       rm_r @output
     end
 
-    it "closes file descriptors >= 3 in the child process" do
+    it "closes file descriptors >= 3 in the child process even if fds are set close_on_exec=false" do
       IO.pipe do |r, w|
+        r.close_on_exec = false
+        w.close_on_exec = false
         begin
           pid = Process.spawn(ruby_cmd("while File.exist? '#{@name}'; sleep 0.1; end"), @options)
           w.close
