@@ -2073,7 +2073,7 @@ class IO
       str
     else # EOF
       if exception
-        raise EOFError, 'stream closed'
+        raise EOFError, 'end of file reached'
       else
         nil
       end
