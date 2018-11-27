@@ -108,20 +108,9 @@ module Process
     raise PrimitiveFailure, 'Process.time primitive failed'
   end
 
-  if Truffle::Platform.darwin?
-    CLOCK_REALTIME              =  0
-    CLOCK_MONOTONIC_RAW         =  4
-    CLOCK_MONOTONIC_RAW_APPROX  =  5
-    CLOCK_MONOTONIC             =  6
-    CLOCK_UPTIME_RAW            =  8
-    CLOCK_UPTIME_RAW_APPROX     =  9
-    CLOCK_PROCESS_CPUTIME_ID    = 12
-    CLOCK_THREAD_CPUTIME_ID     = 16
-  elsif Truffle::Platform.linux?
-    section = 'platform.clocks.'
-    Truffle::Config.section(section) do |key, value|
-      const_set(key.substring(section.size, key.length), value)
-    end
+  section = 'platform.clocks.'
+  Truffle::Config.section(section) do |key, value|
+    const_set(key.substring(section.size, key.length), value)
   end
 
   # These clock IDs are not implemented as they are specific to BSD
