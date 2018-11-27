@@ -111,7 +111,7 @@ module Truffle
 
     class Execute
       def initialize
-        @options = {}
+        @options = { close_others: true }
         @files_for_child = []
       end
 
@@ -136,6 +136,8 @@ module Truffle
         if options = Truffle::Type.try_convert(args.last, Hash, :to_hash)
           args.pop
         end
+
+        options = options ? @options.merge(options) : @options
 
         if env = Truffle::Type.try_convert(env_or_cmd, Hash, :to_hash)
           unless command = args.shift
@@ -186,9 +188,7 @@ module Truffle
           # command directly. posix_spawnp(3) will lookup the full path to the command if needed.
         end
 
-        if options
-          parse_options(options)
-        end
+        parse_options(options)
 
         if env
           array = (@options[:env] ||= [])
@@ -388,8 +388,16 @@ module Truffle
             Dir.chdir(chdir)
           end
 
-          if _close_others = @options[:close_others]
-            Truffle::Warnings.warn 'spawn_setup: close_others not yet implemented'
+          if @options[:close_others] == 1
+            # TODO (kjmenard 27-Nov-18) There's a race here if another thread opens a file and sets it to close-on-exec=false.
+            Dir.each_child('/dev/fd') do |entry|
+              fd = entry.to_i
+
+              if fd > 2
+                flags = Truffle::POSIX.fcntl(fd, Fcntl::F_GETFD, 0)
+                Truffle::POSIX.fcntl(fd, Fcntl::F_SETFD, flags | Fcntl::FD_CLOEXEC) unless flags < 0
+              end
+            end
           end
 
           if redirect_fd = @options[:redirect_fd]
