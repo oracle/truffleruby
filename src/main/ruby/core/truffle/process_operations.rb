@@ -249,7 +249,7 @@ module Truffle
           when :umask
             @options[key] = value
           when :close_others
-            @options[key] = value if value
+            @options[key] = value ? 1 : 0
           else
             raise ArgumentError, "unknown exec option: #{key.inspect}"
           end
@@ -439,6 +439,7 @@ module Truffle
       def posix_spawnp(command, args, env_array, options)
         redirects = []
         pgroup = -1
+        close_others = 1
 
         options.each_pair do |key, value|
           case key
@@ -453,6 +454,8 @@ module Truffle
             end
           when :pgroup
             pgroup = value
+          when :close_others
+            close_others = value
           else
             raise "Unknown spawn option: #{key}"
           end
@@ -461,7 +464,7 @@ module Truffle
         Truffle::POSIX.with_array_of_ints(redirects) do |redirects_ptr|
           Truffle::POSIX.with_array_of_strings_pointer(args) do |argv|
             Truffle::POSIX.with_array_of_strings_pointer(env_array) do |env|
-              Truffle::POSIX.truffleposix_posix_spawnp(command, argv, env, redirects.size, redirects_ptr, pgroup)
+              Truffle::POSIX.truffleposix_posix_spawnp(command, argv, env, redirects.size, redirects_ptr, pgroup, close_others)
             end
           end
         end

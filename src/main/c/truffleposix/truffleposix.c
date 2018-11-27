@@ -403,25 +403,82 @@ int64_t truffleposix_clock_gettime(int clock) {
 #define CHECK(call, label) if ((error = call) != 0) { perror(#call); goto label; }
 
 pid_t truffleposix_posix_spawnp(const char *command, char *const argv[], char *const envp[],
-                                int nredirects, int* redirects, int pgroup) {
+                                int nredirects, int* redirects, int pgroup, int close_others) {
   int ret = -1;
   pid_t pid = -1;
   int error = 0;
   int called_posix_spawn = 0;
+  DIR *dirp;
+  int dir_fd;
+  struct dirent *dp;
 
   /* We want to use NULL for actions and attrs if there are no special options,
    * as that is more efficient on Linux as it uses vfork() (see the man page).
    * It also avoids the extra _init/_destroy calls in such a case. */
   posix_spawn_file_actions_t *file_actions_ptr = NULL;
   posix_spawn_file_actions_t file_actions;
+
   if (nredirects > 0) {
-    CHECK(posix_spawn_file_actions_init(&file_actions), end);
-    file_actions_ptr = &file_actions;
+    if (file_actions_ptr == NULL) {
+      CHECK(posix_spawn_file_actions_init(&file_actions), end);
+      file_actions_ptr = &file_actions;
+    }
+
     for (int i = 0; i < nredirects; i += 2) {
       int from = redirects[i];
       int to = redirects[i+1];
-      CHECK(posix_spawn_file_actions_adddup2(&file_actions, to, from), cleanup_actions);
+      CHECK(posix_spawn_file_actions_adddup2(file_actions_ptr, to, from), cleanup_actions);
     }
+  }
+
+  /* In order to close all non-STDIO FDs, we need a list of FDs associated with
+   * this process. Fortunately, /dev/fd is reasonably standard way to get such
+   * a list. Reading from files in that directory can have different behavior
+   * on different platforms, but we just need the list of file names to work
+   * out the set of FDs open by the current process, so we won't encounter any
+   * platform-specific issues.
+   */
+  if (close_others) {
+    dirp = opendir("/dev/fd");
+    if (dirp == NULL) {
+      error = -1;
+      perror("Unable to open /dev/fd");
+      goto cleanup_actions;
+    }
+
+    dir_fd = dirfd(dirp);
+
+    while(1) {
+      errno = 0;
+
+      dp = readdir(dirp);
+      if (dp == NULL) {
+        break;
+      }
+
+      if (dp->d_name[0] == '.') {
+        continue;
+      }
+
+      int fd = atoi(dp->d_name);
+      if (fd > 2 && fd != dir_fd) {
+        int flags = fcntl(fd, F_GETFD);
+        if (flags == -1) {
+          CHECK(closedir(dirp), cleanup_actions);
+        }
+
+        if ((flags & FD_CLOEXEC) == 0) {
+          if (file_actions_ptr == NULL) {
+            CHECK(posix_spawn_file_actions_init(&file_actions), end);
+            file_actions_ptr = &file_actions;
+          }
+
+          CHECK(posix_spawn_file_actions_addclose(&file_actions, fd), cleanup_actions);
+        }
+      }
+    }
+
+    CHECK(closedir(dirp), cleanup_actions);
   }
 
   posix_spawnattr_t *attrs_ptr = NULL;
