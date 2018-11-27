@@ -113,18 +113,6 @@ module Process
     const_set(key.substring(section.size, key.length), value)
   end
 
-  # These clock IDs are not implemented as they are specific to BSD
-  #   CLOCK_VIRTUAL
-  #   CLOCK_PROF
-  #   CLOCK_REALTIME_FAST
-  #   CLOCK_REALTIME_PRECISE
-  #   CLOCK_MONOTONIC_FAST
-  #   CLOCK_MONOTONIC_PRECISE
-  #   CLOCK_UPTIME
-  #   CLOCK_UPTIME_FAST
-  #   CLOCK_UPTIME_PRECISE
-  #   CLOCK_SECOND
-
   def self.clock_gettime(id, unit=:float_second)
     if id.is_a?(Symbol)
       id = case id
