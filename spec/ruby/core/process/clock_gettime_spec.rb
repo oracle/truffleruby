@@ -4,7 +4,7 @@ describe "Process.clock_gettime" do
   describe 'time units' do
     it 'handles a fixed set of time units' do
       [:nanosecond, :microsecond, :millisecond, :second].each do |unit|
-        Process.clock_gettime(Process::CLOCK_MONOTONIC, unit).should be_an_instance_of(Integer)
+        Process.clock_gettime(Process::CLOCK_MONOTONIC, unit).should be_kind_of(Integer)
       end
 
       [:float_microsecond, :float_millisecond, :float_second].each do |unit|

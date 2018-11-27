@@ -111,20 +111,28 @@ describe 'Socket#connect_nonblock' do
         @server.close
       end
 
-      it 'raises Errno::EISCONN when already connected' do
-        @server.listen(1)
-        @client.connect(@server.getsockname).should == 0
+      platform_is_not :windows do
+        it 'raises Errno::EISCONN when already connected' do
+          @server.listen(1)
+          @client.connect(@server.getsockname).should == 0
 
-        lambda {
-          @client.connect_nonblock(@server.getsockname)
-        }.should raise_error(Errno::EISCONN)
-      end
+          lambda {
+            @client.connect_nonblock(@server.getsockname)
 
-      it 'returns 0 when already connected in exceptionless mode' do
-        @server.listen(1)
-        @client.connect(@server.getsockname).should == 0
+            # A second call needed if non-blocking sockets become default
+            # XXX honestly I don't expect any real code to care about this spec
+            # as it's too implementation-dependent and checking for connect()
+            # errors is futile anyways because of TOCTOU
+            @client.connect_nonblock(@server.getsockname)
+          }.should raise_error(Errno::EISCONN)
+        end
 
-        @client.connect_nonblock(@server.getsockname, exception: false).should == 0
+        it 'returns 0 when already connected in exceptionless mode' do
+          @server.listen(1)
+          @client.connect(@server.getsockname).should == 0
+
+          @client.connect_nonblock(@server.getsockname, exception: false).should == 0
+        end
       end
 
       platform_is_not :freebsd, :solaris do

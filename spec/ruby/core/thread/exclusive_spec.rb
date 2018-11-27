@@ -18,7 +18,7 @@ describe "Thread.exclusive" do
     m = Mutex.new
     q1 = Queue.new
     q2 = Queue.new
-    
+
     t = Thread.new {
       Thread.exclusive {
         q1.push :ready

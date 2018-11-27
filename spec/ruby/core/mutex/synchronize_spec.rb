@@ -40,7 +40,7 @@ describe "Mutex#synchronize" do
     m = Mutex.new
     q1 = Queue.new
     q2 = Queue.new
-    
+
     t = Thread.new {
       m.synchronize {
         q1.push :ready
