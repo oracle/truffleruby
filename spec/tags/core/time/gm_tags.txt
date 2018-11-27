@@ -1,1 +1,2 @@
 fails:Time.gm handles real leap seconds
+fails:Time.gm raises an ArgumentError for out of range microsecond
