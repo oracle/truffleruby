@@ -623,7 +623,7 @@ describe "Process.spawn" do
       end
 
       it "maps the key to a file descriptor in the child that inherits the file descriptor from the parent specified by the value" do
-        child_fd = @io.fileno + 1
+        child_fd = find_unused_fd
         args = ruby_cmd(fixture(__FILE__, "map_fd.rb"), args: [child_fd.to_s])
         pid = Process.spawn(*args, { child_fd => @io })
         Process.waitpid pid
