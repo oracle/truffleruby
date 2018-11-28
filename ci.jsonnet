@@ -194,7 +194,7 @@ local part_definitions = {
       environment+: {
         HOST_VM_CONFIG+: "-exp-split",
         java_opts+::
-          ["-Dgraal.TruffleExperimentalSplitting=false", "-Dgraal.TruffleExperimentalSplittingAllowForcedSplits=false"],
+          ["-Dgraal.TruffleExperimentalSplitting=true", "-Dgraal.TruffleExperimentalSplittingAllowForcedSplits=false"],
       },
     },
   },
