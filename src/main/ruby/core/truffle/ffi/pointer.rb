@@ -185,14 +185,10 @@ module Truffle::FFI
       args = signed.nil? ? [] : [signed]
 
       # Build up the array
-      ary = []
       size = Pointer.find_type_size(type)
-      tmp = self
-      length.times do
-        ary << tmp.send(reader, *args)
-        tmp += size
+      Array.new(length) do |i|
+        (self + i * size).send(reader, *args)
       end
-      ary
     end
 
     # Write a sequence of types +type+  using method +reader+ from +ary+
