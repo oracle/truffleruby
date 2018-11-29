@@ -151,6 +151,16 @@ class Dir
       end
     end
 
+    def each_child(path, options=undefined)
+      return to_enum(:each_child, path, options) unless block_given?
+
+      open(path, options) do |dir|
+        while s = dir.read
+          yield s unless s == '.' or s == '..'
+        end
+      end
+    end
+
     def entries(path, options=undefined)
       ret = []
 
