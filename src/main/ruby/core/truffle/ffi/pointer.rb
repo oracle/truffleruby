@@ -182,8 +182,7 @@ module Truffle::FFI
       # If signed is not nil and is actually a boolean,
       # then use that as an argument to the reader, which
       # is then assumed to support signed reading.
-      args = []
-      args = [signed] if !signed.nil?
+      args = signed.nil? ? [] : [signed]
 
       # Build up the array
       ary = []
