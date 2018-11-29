@@ -249,7 +249,7 @@ module Truffle
           when :umask
             @options[key] = value
           when :close_others
-            @options[key] = value ? 1 : 0
+            @options[key] = value
           else
             raise ArgumentError, "unknown exec option: #{key.inspect}"
           end
@@ -388,7 +388,7 @@ module Truffle
             Dir.chdir(chdir)
           end
 
-          if @options[:close_others] == 1
+          if @options[:close_others]
             # TODO (kjmenard 27-Nov-18) There's a race here if another thread opens a file and sets it to close-on-exec=false.
             Dir.each_child('/dev/fd') do |entry|
               fd = entry.to_i
@@ -408,6 +408,13 @@ module Truffle
         end
 
         nil
+      end
+
+      def safe_close_on_exec?(fd)
+        require 'fcntl'
+
+        flags = Truffle::POSIX.fcntl(fd, Fcntl::F_GETFD, 0)
+        (flags & Fcntl::FD_CLOEXEC) != 0
       end
 
       def redirect_file_descriptor(from, to)
@@ -447,7 +454,7 @@ module Truffle
       def posix_spawnp(command, args, env_array, options)
         redirects = []
         pgroup = -1
-        close_others = 1
+        fds_to_close = []
 
         options.each_pair do |key, value|
           case key
@@ -463,7 +470,18 @@ module Truffle
           when :pgroup
             pgroup = value
           when :close_others
-            close_others = value
+            if value
+              # TODO (kjmenard 27-Nov-18) There's a race here if another thread opens a file and sets it to close-on-exec=false or an open FD is closed.
+              Dir.each_child('/dev/fd') do |entry|
+                fd = entry.to_i
+
+                # We never want to close STDIO. Other FDs only need to be explicitly closed if
+                # they're not already configured to close-on-exec.
+                if fd > 2 && !safe_close_on_exec?(fd)
+                  fds_to_close << fd
+                end
+              end
+            end
           else
             raise "Unknown spawn option: #{key}"
           end
@@ -472,7 +490,10 @@ module Truffle
         Truffle::POSIX.with_array_of_ints(redirects) do |redirects_ptr|
           Truffle::POSIX.with_array_of_strings_pointer(args) do |argv|
             Truffle::POSIX.with_array_of_strings_pointer(env_array) do |env|
-              Truffle::POSIX.truffleposix_posix_spawnp(command, argv, env, redirects.size, redirects_ptr, pgroup, close_others)
+              Truffle::POSIX.with_array_of_ints(fds_to_close) do |fds_to_close_ptr|
+                Truffle::POSIX.truffleposix_posix_spawnp(command, argv, env, redirects.size, redirects_ptr,
+                                                         pgroup, fds_to_close.size, fds_to_close_ptr)
+              end
             end
           end
         end
