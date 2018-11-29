@@ -250,20 +250,9 @@ module Truffle::FFI
       raise PrimitiveFailure, 'FFI::Pointer#primitive_write_int primitive failed'
     end
 
-    def primitive_read_long(signed)
-      Truffle.primitive :pointer_read_long
-      raise PrimitiveFailure, 'FFI::Pointer#primitive_read_long primitive failed'
-    end
-
     def primitive_write_long(obj)
       Truffle.primitive :pointer_write_long
       raise PrimitiveFailure, 'FFI::Pointer#primitive_write_long primitive failed'
-    end
-
-    # We only support 64-bit platforms, so long and long long are identical for us.
-    def primitive_read_long_long(signed)
-      Truffle.primitive :pointer_read_long
-      raise PrimitiveFailure, 'FFI::Pointer#primitive_read_long_long primitive failed'
     end
 
     # We only support 64-bit platforms, so long and long long are identical for us.
@@ -535,8 +524,9 @@ module Truffle::FFI
     # Signed: true
     #
 
+    # We only support 64-bit platforms, so long and long long are identical for us.
     def read_int64(signed=true)
-      primitive_read_long_long(signed)
+      Truffle.invoke_primitive :pointer_read_long, self, signed
     end
 
     def write_int64(obj)
@@ -606,7 +596,7 @@ module Truffle::FFI
     #
 
     def read_long(signed=true)
-      primitive_read_long(signed)
+      Truffle.invoke_primitive :pointer_read_long, self, signed
     end
 
     def write_long(obj)
@@ -1037,8 +1027,9 @@ module Truffle::FFI
     # Signed: true
     #
 
+    # We only support 64-bit platforms, so long and long long are identical for us.
     def read_long_long(signed=true)
-      primitive_read_long_long(signed)
+      Truffle.invoke_primitive :pointer_read_long, self, signed
     end
 
     def write_long_long(obj)
