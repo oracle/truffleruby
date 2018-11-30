@@ -17,6 +17,7 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -1350,6 +1351,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = { "map", "collect" }, needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class MapNode extends YieldingCoreMethodNode {
 
         @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
@@ -1379,6 +1381,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = { "map!", "collect!" }, needsBlock = true, enumeratorSize = "size", raiseIfFrozenSelf = true)
     @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
     public abstract static class MapInPlaceNode extends YieldingCoreMethodNode {
 
         @Child private ArrayWriteNormalizedNode writeNode;

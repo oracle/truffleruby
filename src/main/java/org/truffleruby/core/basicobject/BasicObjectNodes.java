@@ -14,6 +14,7 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
@@ -96,6 +97,7 @@ public abstract class BasicObjectNodes {
     }
 
     @CoreMethod(names = {"equal?", "=="}, required = 1)
+    @ReportPolymorphism
     public abstract static class ReferenceEqualNode extends CoreMethodArrayArgumentsNode {
 
         public static ReferenceEqualNode create() {
