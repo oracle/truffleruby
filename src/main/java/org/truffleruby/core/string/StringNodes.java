@@ -76,7 +76,6 @@ import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
-import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
 import org.jcodings.exception.EncodingException;
@@ -3224,7 +3223,6 @@ public abstract class StringNodes {
     }
 
     @ImportStatic({ StringGuards.class, StringOperations.class })
-    @ReportPolymorphism
     public static abstract class StringEqualNode extends RubyBaseNode {
 
         @Child private StringAreComparableNode areComparableNode;
