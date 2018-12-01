@@ -16,7 +16,6 @@ import org.truffleruby.language.control.NextException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RedoException;
 import org.truffleruby.language.control.RetryException;
-import org.truffleruby.language.control.ReturnException;
 
 public class CatchForProcNode extends RubyNode {
 
@@ -25,7 +24,6 @@ public class CatchForProcNode extends RubyNode {
     private final BranchProfile redoProfile = BranchProfile.create();
     private final BranchProfile nextProfile = BranchProfile.create();
     private final BranchProfile retryProfile = BranchProfile.create();
-    private final BranchProfile returnProfile = BranchProfile.create();
 
     public CatchForProcNode(RubyNode body) {
         this.body = body;
@@ -46,9 +44,6 @@ public class CatchForProcNode extends RubyNode {
             } catch (RetryException e) {
                 retryProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().syntaxErrorInvalidRetry(this));
-            } catch (ReturnException e) {
-                returnProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().unexpectedReturn(this));
             }
         }
     }

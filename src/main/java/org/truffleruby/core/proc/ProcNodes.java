@@ -23,7 +23,9 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.ReturnException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.ArgumentDescriptor;
@@ -214,23 +216,45 @@ public abstract class ProcNodes {
         @Child private CallBlockNode callBlockNode = CallBlockNode.create();
 
         @Specialization
-        public Object call(DynamicObject proc, Object[] args, NotProvided block) {
-            return callBlockNode.executeCallBlock(
-                    Layouts.PROC.getDeclarationContext(proc),
-                    proc,
-                    ProcOperations.getSelf(proc),
-                    Layouts.PROC.getBlock(proc),
-                    args);
+        public Object call(VirtualFrame frame, DynamicObject proc, Object[] args, NotProvided block) {
+            MaterializedFrame callerFrame = RubyArguments.getCallerFrame(frame);
+            MaterializedFrame declarationFrame = Layouts.PROC.getDeclarationFrame(proc);
+
+            try {
+                return callBlockNode.executeCallBlock(
+                        Layouts.PROC.getDeclarationContext(proc),
+                        proc,
+                        ProcOperations.getSelf(proc),
+                        Layouts.PROC.getBlock(proc),
+                        args);
+            } catch (ReturnException e) {
+                if (declarationFrame.equals(callerFrame)) {
+                    throw e;
+                } else {
+                    throw new RaiseException(getContext(), coreExceptions().unexpectedReturn(this));
+                }
+            }
         }
 
         @Specialization
-        public Object call(DynamicObject proc, Object[] args, DynamicObject blockArgument) {
-            return callBlockNode.executeCallBlock(
-                    Layouts.PROC.getDeclarationContext(proc),
-                    proc,
-                    ProcOperations.getSelf(proc),
-                    blockArgument,
-                    args);
+        public Object call(VirtualFrame frame, DynamicObject proc, Object[] args, DynamicObject blockArgument) {
+            MaterializedFrame callerFrame = RubyArguments.getCallerFrame(frame);
+            MaterializedFrame declarationFrame = Layouts.PROC.getDeclarationFrame(proc);
+
+            try {
+                return callBlockNode.executeCallBlock(
+                        Layouts.PROC.getDeclarationContext(proc),
+                        proc,
+                        ProcOperations.getSelf(proc),
+                        blockArgument,
+                        args);
+            } catch (ReturnException e) {
+                if (declarationFrame.equals(callerFrame)) {
+                    throw e;
+                } else {
+                    throw new RaiseException(getContext(), coreExceptions().unexpectedReturn(this));
+                }
+            }
         }
 
     }
