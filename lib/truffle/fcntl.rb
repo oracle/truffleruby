@@ -8,6 +8,7 @@
 
 module Fcntl
   F_DUPFD = Truffle::Config['platform.fcntl.F_DUPFD']
+  F_DUPFD_CLOEXEC = Truffle::Config['platform.fcntl.F_DUPFD_CLOEXEC']
   F_GETFD = Truffle::Config['platform.fcntl.F_GETFD']
   F_GETLK = Truffle::Config['platform.fcntl.F_GETLK']
   F_SETFD = Truffle::Config['platform.fcntl.F_SETFD']

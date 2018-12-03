@@ -51,6 +51,7 @@ class File < IO
 
     F_GETFD  = Truffle::Config['platform.fcntl.F_GETFD']
     F_SETFD  = Truffle::Config['platform.fcntl.F_SETFD']
+    F_DUPFD_CLOEXEC = Truffle::Config['platform.fcntl.F_DUPFD_CLOEXEC']
     FD_CLOEXEC = Truffle::Config['platform.fcntl.FD_CLOEXEC']
 
     RDONLY   = Truffle::Config['platform.file.O_RDONLY']
