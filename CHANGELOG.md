@@ -7,6 +7,7 @@ New features:
 Bug fixes:
 
 * Adding missing support for the `close_others` option to `exec` and `spawn`.
+* Allow signal `0` to be used with `Process.kill`.
 
 Changes:
 
