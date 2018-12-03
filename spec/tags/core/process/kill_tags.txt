@@ -3,7 +3,7 @@ slow:Process.kill accepts a Symbol as a signal name
 slow:Process.kill accepts a String as signal name
 slow:Process.kill accepts a signal name without the 'SIG' prefix
 slow:Process.kill accepts a signal name with the 'SIG' prefix
-slow:Process.kill acceps an Integer as a signal value
+slow:Process.kill accepts an Integer as a signal value
 slow:Process.kill calls #to_int to coerce the pid to an Integer
 slow:Process.kill signals multiple processes
 slow:Process.kill returns the number of processes signaled

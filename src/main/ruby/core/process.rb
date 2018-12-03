@@ -314,7 +314,7 @@ module Process
     pids.each do |pid|
       pid = Truffle::Type.coerce_to pid, Integer, :to_int
 
-      if pid == Process.pid
+      if pid == Process.pid && signal != 0
         signal_name = Signal::Numbers[signal].to_sym
         Truffle.invoke_primitive :process_kill_raise, signal_name
       else
