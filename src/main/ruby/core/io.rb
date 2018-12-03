@@ -2227,22 +2227,19 @@ class IO
         end
       end
 
-      Truffle.privately do
-        io.ensure_open
-      end
+      if @descriptor != io.fileno
+        Truffle.privately do
+          io.ensure_open
+        end
 
-      io.reset_buffering
+        io.reset_buffering
 
-      r = Truffle::POSIX.dup2(io.fileno, @descriptor)
-      Errno.handle if r == -1
+        Truffle::IOOperations.dup2_with_cloexec(io.fileno, @descriptor)
 
-      mode = Truffle::POSIX.fcntl(@descriptor, F_GETFL, 0)
-      Errno.handle if mode < 0
-      @mode = mode
-
-      Truffle::Internal::Unsafe.set_class self, io.class
-      if io.respond_to?(:path)
-        @path = io.path
+        Truffle::Internal::Unsafe.set_class self, io.class
+        if io.respond_to?(:path)
+          @path = io.path
+        end
       end
     else
       flush unless closed?
@@ -2266,17 +2263,16 @@ class IO
         @descriptor = IO.sysopen(path, mode)
       else
         File.open(path, mode) do |f|
-          r = Truffle::POSIX.dup2(f.fileno, @descriptor)
-          Errno.handle if r == -1
+          Truffle::IOOperations.dup2_with_cloexec(f.fileno, @descriptor)
         end
       end
 
-      mode = Truffle::POSIX.fcntl(@descriptor, F_GETFL, 0)
-      Errno.handle if mode < 0
-      @mode = mode
-
       seek 0, SEEK_SET
     end
+
+    mode = Truffle::POSIX.fcntl(@descriptor, F_GETFL, 0)
+    Errno.handle if mode < 0
+    @mode = mode
 
     self
   end

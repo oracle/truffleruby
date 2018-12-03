@@ -73,7 +73,7 @@ module Truffle::POSIX
       end
     end
 
-    # the actual function is looked up and attached on its fist call
+    # the actual function is looked up and attached on its first call
     def self.attach_function(native_name, argument_types, return_type,
                              library = LIBC, blocking = false, method_name = native_name, on = self)
 
@@ -280,6 +280,10 @@ module Truffle::POSIX
     # Platform-specific
     if Truffle::Platform.darwin?
       attach_function :_NSGetArgv, [], :pointer
+    end
+
+    unless Truffle::Platform.darwin?
+      attach_function :dup3, [:int, :int, :int], :int
     end
     
   end
