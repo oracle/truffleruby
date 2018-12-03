@@ -3,12 +3,17 @@
 New features:
 
 * Implemented `Dir.each_child`.
+* macOS clocks `CLOCK_MONOTONIC_RAW`, `_MONOTONIC_RAW_APPROX`, `_UPTIME_RAW`,
+  `_UPTIME_RAW_APPROX`, and `_PROCESS_CPUTIME_ID` have been implemented (#1480).
 
 Bug fixes:
 
 * Adding missing support for the `close_others` option to `exec` and `spawn`.
 
 Changes:
+
+* `Process::CLOCK_` constants have been given the same value as in standard
+  Ruby.
 
 # 1.0 RC 10
 
@@ -22,8 +27,6 @@ New features:
 * `Warning.warn` has been implemented (#1470).
 * `Thread.report_on_exception` has been implemented (#1476).
 * The emulation symbols for `Process.clock_gettime` have been implemented.
-* macOS clocks `CLOCK_MONOTONIC_RAW`, `_MONOTONIC_RAW_APPROX`, `_UPTIME_RAW`,
-  `_UPTIME_RAW_APPROX`, and `_PROCESS_CPUTIME_ID` have been implemented (#1480).
 
 Bug fixes:
 
@@ -45,8 +48,6 @@ Changes:
 
 * Timezone messages are now logged at `CONFIG` level, use `-Xlog=CONFIG` to
   debug if the timezone is incorrectly shown as `UTC`.
-* `Process::CLOCK_` constants have been given the same value as in standard
-  Ruby.
 
 # 1.0 RC 9, 5 November 2018
 
