@@ -596,6 +596,12 @@ public class SolarisSparcV9NativeConfiguration extends DefaultNativeConfiguratio
         configuration.config("platform.dlopen.RTLD_NOW", 2);
         configuration.config("platform.dlopen.RTLD_LOCAL", 0);
         configuration.config("platform.dlopen.RTLD_GLOBAL", 256);
+        configuration.config("platform.clocks.CLOCK_MONOTONIC", 4);
+        configuration.config("platform.clocks.CLOCK_PROCESS_CPUTIME_ID", 5);
+        configuration.config("platform.clocks.CLOCK_PROF", 2);
+        configuration.config("platform.clocks.CLOCK_REALTIME", 3);
+        configuration.config("platform.clocks.CLOCK_THREAD_CPUTIME_ID", 2);
+        configuration.config("platform.clocks.CLOCK_VIRTUAL", 1);
         configuration.config("platform.typedef.int8_t", string(context, "char"));
         configuration.config("platform.typedef.int16_t", string(context, "short"));
         configuration.config("platform.typedef.int32_t", string(context, "int"));
