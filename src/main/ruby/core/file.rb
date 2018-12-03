@@ -58,6 +58,7 @@ class File < IO
     RDWR     = Truffle::Config['platform.file.O_RDWR']
     ACCMODE  = Truffle::Config['platform.file.O_ACCMODE']
 
+    CLOEXEC  = Truffle::Config['platform.file.O_CLOEXEC']
     CREAT    = Truffle::Config['platform.file.O_CREAT']
     EXCL     = Truffle::Config['platform.file.O_EXCL']
     NOCTTY   = Truffle::Config['platform.file.O_NOCTTY']

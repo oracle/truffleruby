@@ -498,8 +498,10 @@ describe "Process.spawn" do
       rm_r @output
     end
 
-    it "closes file descriptors >= 3 in the child process" do
+    it "closes file descriptors >= 3 in the child process even if fds are set close_on_exec=false" do
       IO.pipe do |r, w|
+        r.close_on_exec = false
+        w.close_on_exec = false
         begin
           pid = Process.spawn(ruby_cmd("while File.exist? '#{@name}'; sleep 0.1; end"), @options)
           w.close
@@ -623,7 +625,7 @@ describe "Process.spawn" do
       end
 
       it "maps the key to a file descriptor in the child that inherits the file descriptor from the parent specified by the value" do
-        child_fd = @io.fileno + 1
+        child_fd = find_unused_fd
         args = ruby_cmd(fixture(__FILE__, "map_fd.rb"), args: [child_fd.to_s])
         pid = Process.spawn(*args, { child_fd => @io })
         Process.waitpid pid

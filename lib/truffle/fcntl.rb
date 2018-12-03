@@ -24,6 +24,7 @@ module Fcntl
   O_NOCTTY = Truffle::Config['platform.file.O_NOCTTY']
   O_TRUNC = Truffle::Config['platform.file.O_TRUNC']
   O_APPEND = Truffle::Config['platform.file.O_APPEND']
+  O_CLOEXEC = Truffle::Config['platform.file.O_CLOEXEC']
   O_NONBLOCK = Truffle::Config['platform.file.O_NONBLOCK']
   O_NDELAY = Truffle::Config['platform.file.O_NDELAY']
   O_RDONLY = Truffle::Config['platform.file.O_RDONLY']

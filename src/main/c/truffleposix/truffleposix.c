@@ -403,7 +403,7 @@ int64_t truffleposix_clock_gettime(int clock) {
 #define CHECK(call, label) if ((error = call) != 0) { perror(#call); goto label; }
 
 pid_t truffleposix_posix_spawnp(const char *command, char *const argv[], char *const envp[],
-                                int nredirects, int* redirects, int pgroup) {
+                                int nredirects, int* redirects, int pgroup, int nfds_to_close, int* fds_to_close) {
   int ret = -1;
   pid_t pid = -1;
   int error = 0;
@@ -414,13 +414,29 @@ pid_t truffleposix_posix_spawnp(const char *command, char *const argv[], char *c
    * It also avoids the extra _init/_destroy calls in such a case. */
   posix_spawn_file_actions_t *file_actions_ptr = NULL;
   posix_spawn_file_actions_t file_actions;
+
   if (nredirects > 0) {
-    CHECK(posix_spawn_file_actions_init(&file_actions), end);
-    file_actions_ptr = &file_actions;
+    if (file_actions_ptr == NULL) {
+      CHECK(posix_spawn_file_actions_init(&file_actions), end);
+      file_actions_ptr = &file_actions;
+    }
+
     for (int i = 0; i < nredirects; i += 2) {
       int from = redirects[i];
       int to = redirects[i+1];
-      CHECK(posix_spawn_file_actions_adddup2(&file_actions, to, from), cleanup_actions);
+      CHECK(posix_spawn_file_actions_adddup2(file_actions_ptr, to, from), cleanup_actions);
+    }
+  }
+
+  if (nfds_to_close > 0) {
+    if (file_actions_ptr == NULL) {
+      CHECK(posix_spawn_file_actions_init(&file_actions), end);
+      file_actions_ptr = &file_actions;
+    }
+
+    for (int i = 0; i < nfds_to_close; i++) {
+      int fd = fds_to_close[i];
+      CHECK(posix_spawn_file_actions_addclose(&file_actions, fd), cleanup_actions);
     }
   }
 

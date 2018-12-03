@@ -765,7 +765,7 @@ class IO
 
     mode = StringValue(mode)
 
-    ret = 0
+    ret = CLOEXEC
 
     case mode[0]
     when ?r
@@ -2073,7 +2073,7 @@ class IO
       str
     else # EOF
       if exception
-        raise EOFError, 'stream closed'
+        raise EOFError, 'end of file reached'
       else
         nil
       end

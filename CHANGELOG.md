@@ -1,3 +1,15 @@
+# 1.0
+
+New features:
+
+* Implemented `Dir.each_child`.
+
+Bug fixes:
+
+* Adding missing support for the `close_others` option to `exec` and `spawn`.
+
+Changes:
+
 # 1.0 RC 10
 
 New features:

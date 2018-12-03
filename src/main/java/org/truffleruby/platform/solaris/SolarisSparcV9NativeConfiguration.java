@@ -44,7 +44,7 @@ import org.truffleruby.platform.NativeConfiguration;
 public class SolarisSparcV9NativeConfiguration extends DefaultNativeConfiguration {
 
     public static void load(NativeConfiguration configuration, RubyContext context) {
-        // Generated from tool/generate-native-config.rb on sparcv9-solaris2.11
+        // Generated from tool/generate-native-config.rb on sparc-solaris2.11
         configuration.config("platform.sigaction.sizeof", 32);
         configuration.config("platform.sigaction.sa_handler.offset", 8);
         configuration.config("platform.sigaction.sa_handler.size", 8);
@@ -295,6 +295,7 @@ public class SolarisSparcV9NativeConfiguration extends DefaultNativeConfiguratio
         configuration.config("platform.file.O_WRONLY", 1);
         configuration.config("platform.file.O_RDWR", 2);
         configuration.config("platform.file.O_ACCMODE", 6291459);
+        configuration.config("platform.file.O_CLOEXEC", 8388608);
         configuration.config("platform.file.O_CREAT", 256);
         configuration.config("platform.file.O_EXCL", 1024);
         configuration.config("platform.file.O_NOCTTY", 2048);
@@ -350,8 +351,8 @@ public class SolarisSparcV9NativeConfiguration extends DefaultNativeConfiguratio
         configuration.config("platform.socket.PF_IPX", 23);
         configuration.config("platform.socket.AF_LOCAL", 1);
         configuration.config("platform.socket.PF_LOCAL", 1);
-        configuration.config("platform.socket.AF_MAX", 33);
-        configuration.config("platform.socket.PF_MAX", 33);
+        configuration.config("platform.socket.AF_MAX", 34);
+        configuration.config("platform.socket.PF_MAX", 34);
         configuration.config("platform.socket.AF_PACKET", 32);
         configuration.config("platform.socket.PF_PACKET", 32);
         configuration.config("platform.socket.AF_ROUTE", 24);
@@ -481,6 +482,7 @@ public class SolarisSparcV9NativeConfiguration extends DefaultNativeConfiguratio
         configuration.config("platform.socket.MSG_DONTROUTE", 4);
         configuration.config("platform.socket.MSG_DONTWAIT", 128);
         configuration.config("platform.socket.MSG_EOR", 8);
+        configuration.config("platform.socket.MSG_NOSIGNAL", 512);
         configuration.config("platform.socket.MSG_OOB", 1);
         configuration.config("platform.socket.MSG_PEEK", 2);
         configuration.config("platform.socket.MSG_TRUNC", 32);
@@ -530,6 +532,9 @@ public class SolarisSparcV9NativeConfiguration extends DefaultNativeConfiguratio
         configuration.config("platform.socket.TCP_CONGESTION", 35);
         configuration.config("platform.socket.TCP_CORK", 24);
         configuration.config("platform.socket.TCP_INFO", 34);
+        configuration.config("platform.socket.TCP_KEEPCNT", 31);
+        configuration.config("platform.socket.TCP_KEEPIDLE", 29);
+        configuration.config("platform.socket.TCP_KEEPINTVL", 30);
         configuration.config("platform.socket.TCP_LINGER2", 28);
         configuration.config("platform.socket.TCP_MAXSEG", 2);
         configuration.config("platform.socket.TCP_MD5SIG", 36);
@@ -660,6 +665,7 @@ public class SolarisSparcV9NativeConfiguration extends DefaultNativeConfiguratio
         configuration.config("platform.typedef.k_fltset_t", string(context, "uint"));
         configuration.config("platform.typedef.id_t", string(context, "int"));
         configuration.config("platform.typedef.lgrp_id_t", string(context, "int"));
+        configuration.config("platform.typedef.lgrp_gen_t", string(context, "uint"));
         configuration.config("platform.typedef.useconds_t", string(context, "uint"));
         configuration.config("platform.typedef.suseconds_t", string(context, "long"));
         configuration.config("platform.typedef.major_t", string(context, "uint"));
@@ -704,14 +710,34 @@ public class SolarisSparcV9NativeConfiguration extends DefaultNativeConfiguratio
         configuration.config("platform.typedef.u_int", string(context, "uint"));
         configuration.config("platform.typedef.u_long", string(context, "ulong"));
         configuration.config("platform.typedef.hrtime_t", string(context, "long_long"));
-        configuration.config("platform.typedef.fd_mask", string(context, "long"));
-        configuration.config("platform.typedef.fds_mask", string(context, "long"));
+        configuration.config("platform.typedef.caddr32_t", string(context, "uint"));
+        configuration.config("platform.typedef.daddr32_t", string(context, "int"));
+        configuration.config("platform.typedef.off32_t", string(context, "int"));
+        configuration.config("platform.typedef.ino32_t", string(context, "uint"));
+        configuration.config("platform.typedef.blkcnt32_t", string(context, "int"));
+        configuration.config("platform.typedef.fsblkcnt32_t", string(context, "uint"));
+        configuration.config("platform.typedef.fsfilcnt32_t", string(context, "uint"));
+        configuration.config("platform.typedef.id32_t", string(context, "int"));
+        configuration.config("platform.typedef.major32_t", string(context, "uint"));
+        configuration.config("platform.typedef.minor32_t", string(context, "uint"));
+        configuration.config("platform.typedef.key32_t", string(context, "int"));
+        configuration.config("platform.typedef.mode32_t", string(context, "uint"));
+        configuration.config("platform.typedef.uid32_t", string(context, "uint"));
+        configuration.config("platform.typedef.gid32_t", string(context, "uint"));
+        configuration.config("platform.typedef.nlink32_t", string(context, "uint"));
+        configuration.config("platform.typedef.dev32_t", string(context, "uint"));
+        configuration.config("platform.typedef.pid32_t", string(context, "int"));
+        configuration.config("platform.typedef.size32_t", string(context, "uint"));
+        configuration.config("platform.typedef.ssize32_t", string(context, "int"));
+        configuration.config("platform.typedef.time32_t", string(context, "int"));
+        configuration.config("platform.typedef.clock32_t", string(context, "int"));
+        configuration.config("platform.typedef.fd_mask", string(context, "ulong"));
+        configuration.config("platform.typedef.fds_mask", string(context, "ulong"));
         configuration.config("platform.typedef.mrpid_t", string(context, "int"));
         configuration.config("platform.typedef.memsize_t", string(context, "ulong_long"));
         configuration.config("platform.typedef.memtime_sec_t", string(context, "long_long"));
         configuration.config("platform.typedef.sa_family_t", string(context, "ushort"));
         configuration.config("platform.typedef.socklen_t", string(context, "uint"));
-        configuration.config("platform.typedef.Psocklen_t", string(context, "pointer"));
         configuration.config("platform.typedef.nfds_t", string(context, "ulong"));
         configuration.config("platform.typedef.disp_lock_t", string(context, "uint"));
         configuration.config("platform.typedef.)", string(context, "pointer"));

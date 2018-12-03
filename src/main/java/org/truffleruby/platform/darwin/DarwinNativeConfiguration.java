@@ -299,6 +299,7 @@ public class DarwinNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.file.O_WRONLY", 1);
         configuration.config("platform.file.O_RDWR", 2);
         configuration.config("platform.file.O_ACCMODE", 3);
+        configuration.config("platform.file.O_CLOEXEC", 16777216);
         configuration.config("platform.file.O_CREAT", 512);
         configuration.config("platform.file.O_EXCL", 2048);
         configuration.config("platform.file.O_NOCTTY", 131072);

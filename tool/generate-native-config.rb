@@ -47,7 +47,7 @@ when /x86_64-linux/
   EXTRA_CFLAGS << ' -D_GNU_SOURCE'
 when /x86_64-darwin/
   PLATFORM_FILE = 'org/truffleruby/platform/darwin/DarwinNativeConfiguration.java'
-when /sparcv9-solaris/
+when /sparc(?:v9)?-solaris/
   PLATFORM_FILE = 'org/truffleruby/platform/solaris/SolarisSparcV9NativeConfiguration.java'
   ENV['CC'] ||= 'gcc'
   # "-m64" forces a 64-bit binary
@@ -567,8 +567,8 @@ constants 'file' do |cg|
 
     LOCK_SH LOCK_EX LOCK_NB LOCK_UN
 
-    O_RDONLY O_WRONLY O_RDWR O_ACCMODE O_CREAT O_EXCL O_NOCTTY O_TRUNC O_APPEND
-    O_NONBLOCK O_NDELAY O_SYNC O_TMPFILE
+    O_RDONLY O_WRONLY O_RDWR O_ACCMODE O_CLOEXEC O_CREAT O_EXCL O_NOCTTY O_TRUNC
+    O_APPEND O_NONBLOCK O_NDELAY O_SYNC O_TMPFILE
 
     S_IRUSR S_IWUSR S_IXUSR S_IRGRP S_IWGRP S_IXGRP S_IROTH S_IWOTH S_IXOTH
     S_IFMT S_IFIFO S_IFCHR S_IFDIR S_IFBLK S_IFREG S_IFLNK S_IFSOCK S_IFWHT

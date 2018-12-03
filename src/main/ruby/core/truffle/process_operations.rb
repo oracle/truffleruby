@@ -111,7 +111,7 @@ module Truffle
 
     class Execute
       def initialize
-        @options = {}
+        @options = { close_others: true }
         @files_for_child = []
       end
 
@@ -136,6 +136,8 @@ module Truffle
         if options = Truffle::Type.try_convert(args.last, Hash, :to_hash)
           args.pop
         end
+
+        options = options ? @options.merge(options) : @options
 
         if env = Truffle::Type.try_convert(env_or_cmd, Hash, :to_hash)
           unless command = args.shift
@@ -186,9 +188,7 @@ module Truffle
           # command directly. posix_spawnp(3) will lookup the full path to the command if needed.
         end
 
-        if options
-          parse_options(options)
-        end
+        parse_options(options)
 
         if env
           array = (@options[:env] ||= [])
@@ -249,7 +249,7 @@ module Truffle
           when :umask
             @options[key] = value
           when :close_others
-            @options[key] = value if value
+            @options[key] = value
           else
             raise ArgumentError, "unknown exec option: #{key.inspect}"
           end
@@ -388,8 +388,16 @@ module Truffle
             Dir.chdir(chdir)
           end
 
-          if _close_others = @options[:close_others]
-            Truffle::Warnings.warn 'spawn_setup: close_others not yet implemented'
+          if @options[:close_others]
+            # TODO (kjmenard 27-Nov-18) There's a race here if another thread opens a file and sets it to close-on-exec=false.
+            Dir.each_child('/dev/fd') do |entry|
+              fd = entry.to_i
+
+              if fd > 2
+                flags = Truffle::POSIX.fcntl(fd, Fcntl::F_GETFD, 0)
+                Truffle::POSIX.fcntl(fd, Fcntl::F_SETFD, flags | Fcntl::FD_CLOEXEC) unless flags < 0
+              end
+            end
           end
 
           if redirect_fd = @options[:redirect_fd]
@@ -400,6 +408,13 @@ module Truffle
         end
 
         nil
+      end
+
+      def safe_close_on_exec?(fd)
+        require 'fcntl'
+
+        flags = Truffle::POSIX.fcntl(fd, Fcntl::F_GETFD, 0)
+        (flags & Fcntl::FD_CLOEXEC) != 0
       end
 
       def redirect_file_descriptor(from, to)
@@ -439,6 +454,7 @@ module Truffle
       def posix_spawnp(command, args, env_array, options)
         redirects = []
         pgroup = -1
+        fds_to_close = []
 
         options.each_pair do |key, value|
           case key
@@ -453,6 +469,19 @@ module Truffle
             end
           when :pgroup
             pgroup = value
+          when :close_others
+            if value
+              # TODO (kjmenard 27-Nov-18) There's a race here if another thread opens a file and sets it to close-on-exec=false or an open FD is closed.
+              Dir.each_child('/dev/fd') do |entry|
+                fd = entry.to_i
+
+                # We never want to close STDIO. Other FDs only need to be explicitly closed if
+                # they're not already configured to close-on-exec.
+                if fd > 2 && !safe_close_on_exec?(fd)
+                  fds_to_close << fd
+                end
+              end
+            end
           else
             raise "Unknown spawn option: #{key}"
           end
@@ -461,7 +490,10 @@ module Truffle
         Truffle::POSIX.with_array_of_ints(redirects) do |redirects_ptr|
           Truffle::POSIX.with_array_of_strings_pointer(args) do |argv|
             Truffle::POSIX.with_array_of_strings_pointer(env_array) do |env|
-              Truffle::POSIX.truffleposix_posix_spawnp(command, argv, env, redirects.size, redirects_ptr, pgroup)
+              Truffle::POSIX.with_array_of_ints(fds_to_close) do |fds_to_close_ptr|
+                Truffle::POSIX.truffleposix_posix_spawnp(command, argv, env, redirects.size, redirects_ptr,
+                                                         pgroup, fds_to_close.size, fds_to_close_ptr)
+              end
             end
           end
         end

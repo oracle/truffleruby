@@ -48,7 +48,7 @@ public abstract class BasicPlatform {
 
         private final String rubyName;
 
-        private OS_TYPE(String rubyName) {
+        OS_TYPE(String rubyName) {
             this.rubyName = rubyName;
         }
     }
