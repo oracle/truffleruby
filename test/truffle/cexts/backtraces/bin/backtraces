@@ -7,7 +7,7 @@ TEST_DIR = File.expand_path("../..", __FILE__)
 def puts_backtrace(backtrace)
   puts backtrace.gsub(TEST_DIR, '')
                 .gsub(Truffle::Boot.ruby_home, '')
-                .gsub(/\/(cext\.rb|cext_ruby\.rb|ruby\.c):(\d+)/, '/\1:n')
+                .gsub(/\/(cext\.rb|cext_ruby\.rb|ruby\.c|qsort\.c):(\d+:)?/, '/\1:n:')
                 .gsub(/@\h+/, '@HEXA')
                 .gsub(/\{id: \d+ name: [^}]+}/, 'BLOCKINFO')
 end
