@@ -429,8 +429,20 @@ public abstract class PointerNodes {
 
     }
 
+    @Primitive(name = "pointer_read_float")
+    public static abstract class PointerReadFloatNode extends PointerPrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public double readFloat(long address) {
+            final Pointer ptr = new Pointer(address);
+            checkNull(ptr);
+            return ptr.readFloat(0);
+        }
+
+    }
+
     @Primitive(name = "pointer_read_double")
-    public static abstract class PointerReadDoublePrimitiveNode extends PointerPrimitiveArrayArgumentsNode {
+    public static abstract class PointerReadDoubleNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         public double readDouble(long address) {
@@ -839,6 +851,32 @@ public abstract class PointerNodes {
             assert v.compareTo(TWO_POW_64) < 0;
             BigInteger signed = v.subtract(TWO_POW_64);
             ptr.writeLong(offset, signed.longValueExact());
+        }
+
+    }
+
+    @Primitive(name = "pointer_write_float")
+    public static abstract class PointerWriteFloatNode extends PointerPrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject writeFloat(long address, double value) {
+            final Pointer ptr = new Pointer(address);
+            checkNull(ptr);
+            ptr.writeFloat(0, (float) value);
+            return nil();
+        }
+
+    }
+
+    @Primitive(name = "pointer_write_double")
+    public static abstract class PointerWriteDoubleNode extends PointerPrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject writeDouble(long address, double value) {
+            final Pointer ptr = new Pointer(address);
+            checkNull(ptr);
+            ptr.writeDouble(0, value);
+            return nil();
         }
 
     }

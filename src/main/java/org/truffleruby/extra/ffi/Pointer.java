@@ -80,6 +80,16 @@ public class Pointer implements AutoCloseable {
         UNSAFE.putLong(address + offset, value);
     }
 
+    public void writeFloat(long offset, float value) {
+        assert address + offset != 0;
+        UNSAFE.putFloat(address + offset, value);
+    }
+
+    public void writeDouble(long offset, double value) {
+        assert address + offset != 0;
+        UNSAFE.putDouble(address + offset, value);
+    }
+
     public void writePointer(long offset, Pointer value) {
         writeLong(offset, value.getAddress());
     }
@@ -145,6 +155,11 @@ public class Pointer implements AutoCloseable {
     public long readLong(long offset) {
         assert address + offset != 0;
         return UNSAFE.getLong(address + offset);
+    }
+
+    public float readFloat(long offset) {
+        assert address + offset != 0;
+        return UNSAFE.getFloat(address + offset);
     }
 
     public double readDouble(long offset) {
