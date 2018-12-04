@@ -9,7 +9,9 @@ New features:
 Bug fixes:
 
 * Adding missing support for the `close_others` option to `exec` and `spawn`.
-* Allow signal `0` to be used with `Process.kill`.
+* Allow signal `0` to be used with `Process.kill` (#1474).
+* `IO#dup` now properly sets the new `IO` instance to be close-on-exec.
+* `IO#reopen` now properly resets the receiver to be close-on-exec.
 
 Changes:
 
