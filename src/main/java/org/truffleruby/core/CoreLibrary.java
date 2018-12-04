@@ -1423,6 +1423,7 @@ public class CoreLibrary {
             "/core/true.rb",
             "/core/type.rb",
             "/core/truffle/ffi/pointer.rb",
+            "/core/truffle/ffi/pointer_access.rb",
             "/core/truffle/internal.rb",
             "/core/kernel.rb",
             "/core/truffle/boot.rb",
