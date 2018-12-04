@@ -108,21 +108,39 @@ module Process
     raise PrimitiveFailure, 'Process.time primitive failed'
   end
 
-  CLOCK_MONOTONIC         = 1
-  CLOCK_REALTIME          = 2
-  CLOCK_THREAD_CPUTIME_ID = 3
-  CLOCK_MONOTONIC_RAW_ID  = 4
+  section = 'platform.clocks.'
+  Truffle::Config.section(section) do |key, value|
+    const_set(key.substring(section.size, key.length), value)
+  end
 
   def self.clock_gettime(id, unit=:float_second)
+    if id.is_a?(Symbol)
+      id = case id
+           when :GETTIMEOFDAY_BASED_CLOCK_REALTIME,
+                :TIME_BASED_CLOCK_REALTIME
+             CLOCK_REALTIME
+           when :MACH_ABSOLUTE_TIME_BASED_CLOCK_MONOTONIC,
+                :TIMES_BASED_CLOCK_MONOTONIC
+             CLOCK_MONOTONIC
+           when :GETRUSAGE_BASED_CLOCK_PROCESS_CPUTIME_ID,
+                :TIMES_BASED_CLOCK_PROCESS_CPUTIME_ID,
+                :CLOCK_BASED_CLOCK_PROCESS_CPUTIME_ID
+             CLOCK_THREAD_CPUTIME_ID
+           else
+             raise Errno::EINVAL
+           end
+    end
+
     case id
-    when CLOCK_MONOTONIC
-      time = Truffle.invoke_primitive(:process_time_nanotime)
     when CLOCK_REALTIME
       time = Truffle.invoke_primitive(:process_time_currenttimemillis) * 1_000_000
+    when CLOCK_MONOTONIC
+      time = Truffle.invoke_primitive(:process_time_nanotime)
     else
       time = Truffle::POSIX.truffleposix_clock_gettime(id)
       Errno.handle if time == 0
     end
+    
     case unit
     when :nanosecond
       time

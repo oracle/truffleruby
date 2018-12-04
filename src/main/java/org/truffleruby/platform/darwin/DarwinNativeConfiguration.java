@@ -44,7 +44,7 @@ import org.truffleruby.platform.NativeConfiguration;
 public class DarwinNativeConfiguration extends DefaultNativeConfiguration {
 
     public static void load(NativeConfiguration configuration, RubyContext context) {
-        // Generated from tool/generate-native-config.rb on x86_64-darwin15
+        // Generated from tool/generate-native-config.rb on x86_64-darwin17
         configuration.config("platform.sigaction.sizeof", 16);
         configuration.config("platform.sigaction.sa_handler.offset", 0);
         configuration.config("platform.sigaction.sa_handler.size", 8);
@@ -597,6 +597,14 @@ public class DarwinNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.dlopen.RTLD_NOW", 2);
         configuration.config("platform.dlopen.RTLD_LOCAL", 4);
         configuration.config("platform.dlopen.RTLD_GLOBAL", 8);
+        configuration.config("platform.clocks.CLOCK_MONOTONIC", 6);
+        configuration.config("platform.clocks.CLOCK_MONOTONIC_RAW", 4);
+        configuration.config("platform.clocks.CLOCK_MONOTONIC_RAW_APPROX", 5);
+        configuration.config("platform.clocks.CLOCK_PROCESS_CPUTIME_ID", 12);
+        configuration.config("platform.clocks.CLOCK_REALTIME", 0);
+        configuration.config("platform.clocks.CLOCK_THREAD_CPUTIME_ID", 16);
+        configuration.config("platform.clocks.CLOCK_UPTIME_RAW", 8);
+        configuration.config("platform.clocks.CLOCK_UPTIME_RAW_APPROX", 9);
         configuration.config("platform.typedef.int8_t", string(context, "char"));
         configuration.config("platform.typedef.int16_t", string(context, "short"));
         configuration.config("platform.typedef.int32_t", string(context, "int"));
@@ -621,15 +629,12 @@ public class DarwinNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.typedef.uint_fast16_t", string(context, "ushort"));
         configuration.config("platform.typedef.uint_fast32_t", string(context, "uint"));
         configuration.config("platform.typedef.uint_fast64_t", string(context, "ulong_long"));
-        configuration.config("platform.typedef.intptr_t", string(context, "long"));
-        configuration.config("platform.typedef.uintptr_t", string(context, "ulong"));
-        configuration.config("platform.typedef.intmax_t", string(context, "long"));
-        configuration.config("platform.typedef.uintmax_t", string(context, "ulong"));
         configuration.config("platform.typedef.u_int8_t", string(context, "uchar"));
         configuration.config("platform.typedef.u_int16_t", string(context, "ushort"));
         configuration.config("platform.typedef.u_int32_t", string(context, "uint"));
         configuration.config("platform.typedef.u_int64_t", string(context, "ulong_long"));
         configuration.config("platform.typedef.register_t", string(context, "long_long"));
+        configuration.config("platform.typedef.uintptr_t", string(context, "ulong"));
         configuration.config("platform.typedef.user_addr_t", string(context, "ulong_long"));
         configuration.config("platform.typedef.user_size_t", string(context, "ulong_long"));
         configuration.config("platform.typedef.user_ssize_t", string(context, "long_long"));
@@ -638,6 +643,9 @@ public class DarwinNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.typedef.user_time_t", string(context, "long_long"));
         configuration.config("platform.typedef.user_off_t", string(context, "long_long"));
         configuration.config("platform.typedef.syscall_arg_t", string(context, "ulong_long"));
+        configuration.config("platform.typedef.intptr_t", string(context, "long"));
+        configuration.config("platform.typedef.intmax_t", string(context, "long"));
+        configuration.config("platform.typedef.uintmax_t", string(context, "ulong"));
         configuration.config("platform.typedef.u_char", string(context, "uchar"));
         configuration.config("platform.typedef.u_short", string(context, "ushort"));
         configuration.config("platform.typedef.u_int", string(context, "uint"));

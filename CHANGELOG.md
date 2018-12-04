@@ -3,6 +3,8 @@
 New features:
 
 * Implemented `Dir.each_child`.
+* macOS clocks `CLOCK_MONOTONIC_RAW`, `_MONOTONIC_RAW_APPROX`, `_UPTIME_RAW`,
+  `_UPTIME_RAW_APPROX`, and `_PROCESS_CPUTIME_ID` have been implemented (#1480).
 
 Bug fixes:
 
@@ -10,6 +12,9 @@ Bug fixes:
 * Allow signal `0` to be used with `Process.kill`.
 
 Changes:
+
+* `Process::CLOCK_` constants have been given the same value as in standard
+  Ruby.
 
 # 1.0 RC 10
 
@@ -22,6 +27,7 @@ New features:
 * `Kernel#clone(freeze)` has been implemented (#1454).
 * `Warning.warn` has been implemented (#1470).
 * `Thread.report_on_exception` has been implemented (#1476).
+* The emulation symbols for `Process.clock_gettime` have been implemented.
 
 Bug fixes:
 
