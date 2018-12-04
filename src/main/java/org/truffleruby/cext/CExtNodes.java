@@ -37,6 +37,8 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
+import org.truffleruby.cext.ValueWrapperObjectTypeFactory.UnwrapNodeGen;
+import org.truffleruby.cext.ValueWrapperObjectTypeFactory.WrapNodeGen;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
@@ -1258,6 +1260,34 @@ public class CExtNodes {
             return ManagedStructObjectType.createManagedStruct(type);
         }
 
+    }
+
+    @CoreMethod(names = "rb_tr_wrap", onSingleton = true, required = 1)
+    public abstract static class WrapValueNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public TruffleObject wrapInt(Object value,
+                @Cached("createWrapNode()") ValueWrapperObjectType.WrapNode wrapNode) {
+            return wrapNode.execute(value);
+        }
+
+        protected ValueWrapperObjectType.WrapNode createWrapNode() {
+            return WrapNodeGen.create();
+        }
+    }
+
+    @CoreMethod(names = "rb_tr_unwrap", onSingleton = true, required = 1)
+    public abstract static class UnwrapValueNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object unwrap(Object value,
+                @Cached("createUnwrapNode()") ValueWrapperObjectType.UnwrapNode unwrapNode) {
+            return unwrapNode.execute(value);
+        }
+
+        protected ValueWrapperObjectType.UnwrapNode createUnwrapNode() {
+            return UnwrapNodeGen.create();
+        }
     }
 
 }
