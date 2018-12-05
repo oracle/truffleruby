@@ -10,11 +10,16 @@ Bug fixes:
 
 * Adding missing support for the `close_others` option to `exec` and `spawn`.
 * Allow signal `0` to be used with `Process.kill`.
+* FFI::Pointer now does the correct range checks for signed and unsigned values.
 
 Changes:
 
 * `Process::CLOCK_` constants have been given the same value as in standard
   Ruby.
+
+Performance:
+
+* Sped up accesses to native memory through FFI::Pointer.
 
 # 1.0 RC 10
 
@@ -373,8 +378,8 @@ Changes:
   to `TruffleRuby`. Anything not documented in
   `doc/user/truffleruby-additions.md` should not be used.
 * Imprecise wrong gem directory detection was replaced. TruffleRuby newly marks
-  its gem directories with a marker file, and warns if you try to use 
-  TruffleRuby with a gem directory which is lacking the marker. 
+  its gem directories with a marker file, and warns if you try to use
+  TruffleRuby with a gem directory which is lacking the marker.
 
 Bug fixes:
 
@@ -423,7 +428,7 @@ New features:
 * The Ruby version has been updated to version 2.3.6.
 * Context pre-initialization with TruffleRuby `--native`, which significantly
   improves startup time and loads the `did_you_mean` gem ahead of time.
-* The default VM is changed to SubstrateVM, where the startup is significantly 
+* The default VM is changed to SubstrateVM, where the startup is significantly
   better. Use `--jvm` option for full JVM VM.
 * The `Truffle::Interop` module has been replaced with a new `Polyglot` module
   which is designed to use more idiomatic Ruby syntax rather than explicit
