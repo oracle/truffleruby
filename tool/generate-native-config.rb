@@ -586,7 +586,7 @@ constants 'fcntl' do |cg|
   cg.include 'fcntl.h'
   cg.consts %w[
     F_GETFL F_SETFL
-    F_DUPFD F_GETFD F_SETFD FD_CLOEXEC
+    F_DUPFD F_DUPFD_CLOEXEC F_GETFD F_SETFD FD_CLOEXEC
     F_GETOWN F_SETOWN
     F_GETLK F_SETLK F_SETLKW
     F_RDLCK F_UNLCK F_WRLCK

@@ -422,11 +422,6 @@ module Truffle
 
         result = Truffle::POSIX.dup2(to, from)
         Errno.handle if result < 0
-
-        flags = Truffle::POSIX.fcntl(from, Fcntl::F_GETFD, 0)
-        Errno.handle if flags < 0
-
-        Truffle::POSIX.fcntl(from, Fcntl::F_SETFD, flags & ~Fcntl::FD_CLOEXEC)
       end
 
       def spawn

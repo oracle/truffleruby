@@ -330,6 +330,7 @@ public class SolarisSparcV9NativeConfiguration extends DefaultNativeConfiguratio
         configuration.config("platform.fcntl.F_GETFL", 3);
         configuration.config("platform.fcntl.F_SETFL", 4);
         configuration.config("platform.fcntl.F_DUPFD", 0);
+        configuration.config("platform.fcntl.F_DUPFD_CLOEXEC", 47);
         configuration.config("platform.fcntl.F_GETFD", 1);
         configuration.config("platform.fcntl.F_SETFD", 2);
         configuration.config("platform.fcntl.FD_CLOEXEC", 1);
