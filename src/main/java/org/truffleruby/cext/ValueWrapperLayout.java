@@ -17,14 +17,19 @@ import com.oracle.truffle.api.object.dsl.Layout;
  * methods to be set up which convert these value wrappers to native pointers without affecting the
  * semantics of the wrapped objects.
  */
-@Layout(objectTypeSuperclass = ValueWrapperObjectType.class)
+@Layout(objectTypeSuperclass = ValueWrapperObjectType.class, implicitCastIntToLong = true)
 public interface ValueWrapperLayout {
 
-    DynamicObject createValueWrapper(Object object);
+    DynamicObject createValueWrapper(Object object,
+            long handle);
 
     boolean isValueWrapper(Object object);
 
     boolean isValueWrapper(DynamicObject object);
 
     Object getObject(DynamicObject object);
+
+    long getHandle(DynamicObject object);
+
+    void setHandle(DynamicObject object, long value);
 }

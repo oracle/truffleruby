@@ -10,15 +10,20 @@
 package org.truffleruby.cext;
 
 import org.truffleruby.Layouts;
+import java.lang.ref.WeakReference;
+
 import org.truffleruby.collections.LongHashMap;
 import org.truffleruby.language.NotProvided;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.interop.ForeignAccess;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
 
 public class ValueWrapperObjectType extends ObjectType {
+
+    static final int NULL_HANDLE = -1;
 
     private static DynamicObject UNDEF_WRAPPER = null;
 
@@ -27,17 +32,19 @@ public class ValueWrapperObjectType extends ObjectType {
 
     private static LongHashMap<DynamicObject> longMap = new LongHashMap<>(128);
 
+    private static LongHashMap<WeakReference<DynamicObject>> handleMap = new LongHashMap<>(1024);
+
     public static DynamicObject createValueWrapper(Object value) {
-        return Layouts.VALUE_WRAPPER.createValueWrapper(value);
+        return Layouts.VALUE_WRAPPER.createValueWrapper(value, NULL_HANDLE);
     }
 
     public static synchronized DynamicObject createUndefWrapper(NotProvided value) {
-        return UNDEF_WRAPPER != null ? UNDEF_WRAPPER : (UNDEF_WRAPPER = Layouts.VALUE_WRAPPER.createValueWrapper(value));
+        return UNDEF_WRAPPER != null ? UNDEF_WRAPPER : (UNDEF_WRAPPER = Layouts.VALUE_WRAPPER.createValueWrapper(value, NULL_HANDLE));
     }
 
     public static synchronized DynamicObject createBooleanWrapper(boolean value) {
         if (value) {
-            return TRUE_WRAPPER != null ? TRUE_WRAPPER : (TRUE_WRAPPER = Layouts.VALUE_WRAPPER.createValueWrapper(true));
+            return TRUE_WRAPPER != null ? TRUE_WRAPPER : (TRUE_WRAPPER = Layouts.VALUE_WRAPPER.createValueWrapper(true, NULL_HANDLE));
         } else {
             return FALSE_WRAPPER != null ? FALSE_WRAPPER : (FALSE_WRAPPER = createFalseWrapper());
         }
@@ -45,7 +52,7 @@ public class ValueWrapperObjectType extends ObjectType {
 
     private static DynamicObject createFalseWrapper() {
         // Ensure that Qfalse will by falsy in C.
-        return Layouts.VALUE_WRAPPER.createValueWrapper(false);
+        return Layouts.VALUE_WRAPPER.createValueWrapper(false, 0);
     }
 
     /*
@@ -56,7 +63,7 @@ public class ValueWrapperObjectType extends ObjectType {
     public static synchronized DynamicObject createLongWrapper(long value) {
         DynamicObject wrapper = longMap.get(value);
         if (wrapper == null) {
-            wrapper = Layouts.VALUE_WRAPPER.createValueWrapper(value);
+            wrapper = Layouts.VALUE_WRAPPER.createValueWrapper(value, NULL_HANDLE);
             longMap.put(value, wrapper);
         }
         return wrapper;
@@ -64,11 +71,58 @@ public class ValueWrapperObjectType extends ObjectType {
 
     @TruffleBoundary
     public static synchronized DynamicObject createDoubleWrapper(double value) {
-        return Layouts.VALUE_WRAPPER.createValueWrapper(value);
+        return Layouts.VALUE_WRAPPER.createValueWrapper(value, NULL_HANDLE);
+    }
+
+    public static synchronized void addToHandleMap(long handle, DynamicObject wrapper) {
+        handleMap.put(handle, new WeakReference<>(wrapper));
+    }
+
+    @TruffleBoundary
+    public static synchronized Object getFromHandleMap(long handle) {
+        WeakReference<DynamicObject> ref = handleMap.get(handle);
+        DynamicObject object;
+        if (ref == null) {
+            throw new Error("Bad handle!");
+        }
+        if ((object = ref.get()) == null) {
+            return null;
+        }
+        return Layouts.VALUE_WRAPPER.getObject(object);
+    }
+
+    @TruffleBoundary
+    public static synchronized void removeFromHandleMap(long handle) {
+        handleMap.remove(handle);
     }
 
     public static boolean isInstance(TruffleObject receiver) {
         return Layouts.VALUE_WRAPPER.isValueWrapper(receiver);
+    }
+
+    @Override
+    public boolean equals(DynamicObject object, Object other) {
+        if (!(other instanceof ValueWrapperLayout)) {
+            return false;
+        }
+        DynamicObject otherWrapper = (DynamicObject) other;
+        final long objectHandle = Layouts.VALUE_WRAPPER.getHandle(object);
+        final long otherHandle = Layouts.VALUE_WRAPPER.getHandle(otherWrapper);
+        if (objectHandle != NULL_HANDLE &&
+                objectHandle == otherHandle) {
+            return true;
+        }
+        return Layouts.VALUE_WRAPPER.getObject(object).equals(Layouts.VALUE_WRAPPER.getObject(otherWrapper));
+    }
+
+    @Override
+    public ForeignAccess getForeignAccessFactory(DynamicObject object) {
+        return ValueWrapperMessageResolutionForeign.ACCESS;
+    }
+
+    @SuppressWarnings("serial")
+    public static class HandleNotFoundException extends RuntimeException {
+
     }
 
 }
