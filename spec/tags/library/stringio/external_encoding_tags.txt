@@ -1,2 +1,1 @@
-fails:StringIO#external_encoding does not set the encoding of its buffer string if the string is frozen
 fails:StringIO#external_encoding changes to match string if string's encoding is changed

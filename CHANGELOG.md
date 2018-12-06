@@ -9,11 +9,12 @@ New features:
 Bug fixes:
 
 * Adding missing support for the `close_others` option to `exec` and `spawn`.
-* Allow signal `0` to be used with `Process.kill`.
 * FFI::Pointer now does the correct range checks for signed and unsigned values.
 * Allow signal `0` to be used with `Process.kill` (#1474).
 * `IO#dup` now properly sets the new `IO` instance to be close-on-exec.
 * `IO#reopen` now properly resets the receiver to be close-on-exec.
+* `StringIO#set_encoding` no longer raises an exception if the underlying
+  `String` is frozen (#1473).
 
 Changes:
 

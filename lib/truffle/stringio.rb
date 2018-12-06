@@ -120,7 +120,8 @@ class StringIO
   def set_encoding(external, internal=nil, options=nil)
     encoding = external || Encoding.default_external
     @__data__.encoding = encoding
-    @__data__.string.force_encoding(encoding)
+    @__data__.string.force_encoding(encoding) if @writable
+
     self
   end
 
