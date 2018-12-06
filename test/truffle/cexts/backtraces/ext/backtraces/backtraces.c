@@ -49,4 +49,8 @@ void Init_backtraces() {
   rb_define_module_function(module, "foo", &foo, 1);
   rb_define_module_function(module, "qsort", call_qsort, 1);
   rb_define_module_function(module, "native_callback", native_callback, 1);
+
+  // used in the main script of the test
+  polyglot_export("rb_funcallv", &rb_funcallv);
+  polyglot_export("rb_mutex_lock", &rb_mutex_lock);
 }
