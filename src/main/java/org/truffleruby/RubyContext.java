@@ -28,6 +28,7 @@ import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.FinalizationService;
 import org.truffleruby.core.Hashing;
+import org.truffleruby.core.MarkingService;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.exception.CoreExceptions;
@@ -107,6 +108,7 @@ public class RubyContext {
     private final FeatureLoader featureLoader = new FeatureLoader(this);
     private final TraceManager traceManager;
     private final FinalizationService finalizationService = new FinalizationService(this);
+    private final MarkingService markingService = new MarkingService(this);
     private final ObjectSpaceManager objectSpaceManager = new ObjectSpaceManager(this);
     private final SharedObjects sharedObjects = new SharedObjects(this);
     private final AtExitManager atExitManager = new AtExitManager(this);
@@ -562,6 +564,10 @@ public class RubyContext {
 
     public FinalizationService getFinalizationService() {
         return finalizationService;
+    }
+
+    public MarkingService getMarkingService() {
+        return markingService;
     }
 
     public ObjectSpaceManager getObjectSpaceManager() {

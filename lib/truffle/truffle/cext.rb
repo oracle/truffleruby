@@ -1344,16 +1344,18 @@ module Truffle::CExt
     data_holder = DataHolder.new(data)
     hidden_variable_set object, :data_holder, data_holder
     ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
+    define_marker object, data_marker(mark, data_holder) unless mark.nil?
     object
   end
 
-  def rb_data_typed_object_wrap(ruby_class, data, data_type, free)
+  def rb_data_typed_object_wrap(ruby_class, data, data_type, mark, free)
     ruby_class = Object if Truffle::Interop.null?(ruby_class)
     object = BASIC_OBJECT_ALLOCATE.bind(ruby_class).call
     data_holder = DataHolder.new(data)
     hidden_variable_set object, :data_type, data_type
     hidden_variable_set object, :data_holder, data_holder
     ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
+    define_marker object, data_marker(mark, data_holder) unless mark.nil?
     object
   end
 
@@ -1362,6 +1364,15 @@ module Truffle::CExt
     raise unless free.respond_to?(:call)
     proc {
       execute_with_mutex(free, data_holder.data)
+    }
+  end
+
+  def data_marker(mark, data_holder)
+    raise unless mark.respond_to?(:call)
+    proc { |obj|
+      create_mark_list
+      execute_with_mutex(mark, data_holder.data)
+      set_mark_list_on_object(obj)
     }
   end
 

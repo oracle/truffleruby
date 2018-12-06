@@ -30,6 +30,7 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -75,6 +76,7 @@ import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.InitializeClassNode;
@@ -85,6 +87,8 @@ import org.truffleruby.language.objects.ObjectIVarGetNode;
 import org.truffleruby.language.objects.ObjectIVarGetNodeGen;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
 import org.truffleruby.language.objects.ObjectIVarSetNodeGen;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
+import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.parser.Identifiers;
 
@@ -1292,6 +1296,111 @@ public class CExtNodes {
 
         protected UnwrapNode createUnwrapNode() {
             return UnwrapNodeGen.create();
+        }
+    }
+
+    private static ThreadLocal<ArrayList<Object>> markList = new ThreadLocal<>();
+
+    @CoreMethod(names = "create_mark_list", onSingleton = true, required = 0)
+    public abstract static class NewMarkerList extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject createNewMarkList(VirtualFrame frmae) {
+            setThreadLocal();
+            return nil();
+        }
+
+        @TruffleBoundary
+        protected void setThreadLocal() {
+            markList.set(new ArrayList<>());
+        }
+    }
+
+    @CoreMethod(names = "rb_gc_mark", onSingleton = true, required = 1)
+    public abstract static class AddToMarkList extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject addToMarkList(VirtualFrame frmae, Object markedObject,
+                @Cached("create()") BranchProfile exceptionProfile,
+                @Cached("create()") BranchProfile noExceptionProfile,
+                @Cached("createUnwrapNode()") UnwrapNode unwrapNode) {
+            Object unwrappedValue = unwrapNode.execute(markedObject);
+            if (unwrappedValue != null) {
+                noExceptionProfile.enter();
+                getList().add(unwrappedValue);
+            }
+            // We do nothing here if the handle cannot be resolved. If we are marking an object
+            // which is only reachable via weak refs then the handles of objects it is iteself
+            // marking may have already been removed from the handle map. }
+            return nil();
+        }
+
+        @TruffleBoundary
+        protected ArrayList<Object> getList() {
+            return markList.get();
+        }
+
+        protected UnwrapNode createUnwrapNode() {
+            return UnwrapNodeGen.create();
+        }
+    }
+
+    @CoreMethod(names = "set_mark_list_on_object", onSingleton = true, required = 1)
+    public abstract static class SetMarkList extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject setMarkList(VirtualFrame frame, DynamicObject structOnwer,
+                @Cached("createWriter()") WriteObjectFieldNode writeMarkedNode) {
+            writeMarkedNode.write(structOnwer, getArray());
+            return nil();
+        }
+
+        @TruffleBoundary
+        protected Object[] getArray() {
+            return markList.get().toArray();
+        }
+
+        public WriteObjectFieldNode createWriter() {
+            return WriteObjectFieldNodeGen.create(Layouts.MARKED_OBJECTS_IDENTIFIER);
+        }
+    }
+
+    @CoreMethod(names = "define_marker", onSingleton = true, required = 2)
+    public abstract static class CreateMarkerNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode.create();
+
+        @Specialization
+        public DynamicObject createMarker(VirtualFrame frame, DynamicObject object, DynamicObject marker,
+                @Cached("create()") BranchProfile errorProfile) {
+            if (respondToCallNode.doesRespondTo(frame, "call", marker)) {
+                RubyContext aContext = getContext();
+                getContext().getMarkingService().addMarker(object, (o) -> aContext.send(marker, "call", o));
+                return nil();
+            } else {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().argumentErrorWrongArgumentType(marker, "callable", this));
+            }
+        }
+    }
+
+    @CoreMethod(names = "push_preserving_frame", onSingleton = true, required = 0)
+    public abstract static class PushPreservingFrame extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject pushFrame(VirtualFrame frame) {
+            getContext().getMarkingService().pushStackPreservationFrame();
+            return nil();
+        }
+    }
+
+    @CoreMethod(names = "pop_preserving_frame", onSingleton = true, required = 0)
+    public abstract static class PopPreservingFrame extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject popFrame(VirtualFrame frame) {
+            getContext().getMarkingService().popStackPreservationFrame();
+            return nil();
         }
     }
 
