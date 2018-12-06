@@ -338,7 +338,13 @@ public abstract class RegexpNodes {
             for (final Iterator<NameEntry> iter = Layouts.REGEXP.getRegex(regexp).namedBackrefIterator(); iter.hasNext();) {
                 final NameEntry e = iter.next();
                 final byte[] bytes = Arrays.copyOfRange(e.name, e.nameP, e.nameEnd);
-                final Rope rope = getContext().getRopeCache().getRope(bytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+
+                // MRI narrows the encoding of named captures to US-ASCII if the name consists only of ASCII characters.
+                Rope rope = getContext().getRopeCache().getRope(bytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                if (rope.isAsciiOnly()) {
+                    rope.withEncoding(USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+                }
+
                 final DynamicObject name = StringOperations.createString(getContext(), rope);
 
                 final int[] backrefs = e.getBackRefs();

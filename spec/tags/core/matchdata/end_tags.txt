@@ -1,2 +1,0 @@
-fails:MatchData#end when passed a String argument returns the character offset for multi-byte names
-fails:MatchData#end when passed a Symbol argument returns the character offset for multi-byte names
