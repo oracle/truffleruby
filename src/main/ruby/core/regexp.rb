@@ -384,6 +384,18 @@ class MatchData
     Truffle.invoke_primitive(:match_data_begin, self, backref)
   end
 
+  def end(index)
+    backref = if String === index || Symbol === index
+                names_to_backref = Hash[Truffle.invoke_primitive(:regexp_names, self.regexp)]
+                names_to_backref[index.to_s].last
+              else
+                Truffle::Type.coerce_to(index, Integer, :to_int)
+              end
+
+
+    Truffle.invoke_primitive(:match_data_end, self, backref)
+  end
+
   def collapsing?
     self.byte_begin(0) == self.byte_end(0)
   end

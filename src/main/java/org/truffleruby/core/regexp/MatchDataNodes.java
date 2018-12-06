@@ -409,8 +409,8 @@ public abstract class MatchDataNodes {
         }
     }
 
-    @CoreMethod(names = "end", required = 1, lowerFixnum = 1)
-    public abstract static class EndNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "match_data_end", lowerFixnum = 1)
+    public abstract static class EndNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
         public Object end(DynamicObject matchData, int index) {
