@@ -1772,6 +1772,8 @@ EOS
   end
 
   def profile(*args)
+    env = args.first.is_a?(Hash) ? args.shift : {}
+
     require 'tempfile'
 
     repo = find_or_clone_repo("https://github.com/eregon/FlameGraph.git", "graalvm")
@@ -1779,7 +1781,7 @@ EOS
     run_args = *DEFAULT_PROFILE_OPTIONS + args
 
     begin
-      profile_data, _err = run_ruby *run_args, capture: true
+      profile_data, _err = run_ruby(env, *run_args, capture: true)
       profile_data_file = Tempfile.new %w[truffleruby-profile .json]
       profile_data_file.write(profile_data)
       profile_data_file.close
