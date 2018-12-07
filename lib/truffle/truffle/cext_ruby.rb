@@ -19,21 +19,26 @@ module Truffle::CExt
 
     method_body = Truffle::Graal.copy_captured_locals -> *args, &block do
       if argc == -1 # (int argc, VALUE *argv, VALUE obj)
-        args = [args.size, args, self]
+        args = [args.size, Truffle::CExt.RARRAY_PTR(args), Truffle::CExt.rb_tr_wrap(self)]
       elsif argc == -2 # (VALUE obj, VALUE rubyArrayArgs)
-        args = [self, args]
+        args = [Truffle::CExt.rb_tr_wrap(self), Truffle::CExt.RARRAY_PTR(args)]
       elsif argc >= 0 # (VALUE obj); (VALUE obj, VALUE arg1); (VALUE obj, VALUE arg1, VALUE arg2); ...
         if args.size != argc
           raise ArgumentError, "wrong number of arguments (given #{args.size}, expected #{argc})"
         end
-        args = [self, *args]
+        args = [Truffle::CExt.rb_tr_wrap(self), *(args.map! {|x| Truffle::CExt.rb_tr_wrap(x) })]
       end
 
       # Using raw execute instead of #call here to avoid argument conversion
-      if block
-        Truffle::CExt.execute_with_mutex(function, *args, &block)
-      else
-        Truffle::CExt.execute_with_mutex(function, *args)
+      begin
+        Truffle::CExt.push_preserving_frame
+        if block
+          Truffle::CExt.rb_tr_unwrap(Truffle::CExt.execute_with_mutex(function, *args, &block))
+        else
+          Truffle::CExt.rb_tr_unwrap(Truffle::CExt.execute_with_mutex(function, *args))
+        end
+      ensure
+        Truffle::CExt.pop_preserving_frame
       end
     end
 
@@ -43,7 +48,7 @@ module Truffle::CExt
   private
 
   def rb_iterate_call_block(callback, block_arg, callback_arg, &block)
-    execute_with_mutex callback, block_arg, callback_arg
+    rb_tr_unwrap(execute_with_mutex callback, rb_tr_wrap(block_arg), rb_tr_wrap(callback_arg))
   end
 
   def call_with_thread_locally_stored_block(function, *arg, &block)
@@ -53,7 +58,7 @@ module Truffle::CExt
     previous_block = Thread.current[:__C_BLOCK__]
     begin
       Thread.current[:__C_BLOCK__] = block
-      execute_with_mutex function, *arg, &block
+      rb_tr_unwrap(execute_with_mutex( function, *(arg.map! {|x| Truffle::CExt.rb_tr_wrap(x) }), &block))
     ensure
       Thread.current[:__C_BLOCK__] = previous_block
     end

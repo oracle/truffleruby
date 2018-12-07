@@ -17,13 +17,14 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.cext.WrapNodeGen;
+import org.truffleruby.cext.WrapNode;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.support.IONodes.GetThreadBufferNode;
@@ -328,6 +329,7 @@ public class FeatureLoader {
     }
 
     private final Node executeSulongLoadLibraryNode = Message.EXECUTE.createNode();
+    private final WrapNode wrapNode = WrapNodeGen.create();
 
     private void loadNativeLibrary(String library) {
         assert sulongLoadLibraryFunction != null;
@@ -342,7 +344,7 @@ public class FeatureLoader {
             }
         }
 
-        DynamicObject libraryRubyString = StringOperations.createString(context, StringOperations.encodeRope(remapNativeLibrary(library), UTF8Encoding.INSTANCE));
+        TruffleObject libraryRubyString = wrapNode.execute(StringOperations.createString(context, StringOperations.encodeRope(remapNativeLibrary(library), UTF8Encoding.INSTANCE)));
         try {
             ForeignAccess.sendExecute(executeSulongLoadLibraryNode, sulongLoadLibraryFunction, libraryRubyString);
         } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
