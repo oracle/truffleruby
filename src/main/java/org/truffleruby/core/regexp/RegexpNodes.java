@@ -338,8 +338,9 @@ public abstract class RegexpNodes {
             for (final Iterator<NameEntry> iter = Layouts.REGEXP.getRegex(regexp).namedBackrefIterator(); iter.hasNext();) {
                 final NameEntry e = iter.next();
                 final byte[] bytes = Arrays.copyOfRange(e.name, e.nameP, e.nameEnd);
-                final Rope rope = getContext().getRopeCache().getRope(bytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-                final DynamicObject name = StringOperations.createString(getContext(), rope);
+
+                final Rope rope = getContext().getRopeCache().getRope(bytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                final DynamicObject name = getContext().getSymbolTable().getSymbol(rope);
 
                 final int[] backrefs = e.getBackRefs();
                 final DynamicObject backrefsRubyArray = createArray(backrefs, backrefs.length);

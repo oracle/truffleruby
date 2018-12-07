@@ -316,7 +316,7 @@ class Regexp
   #    #=> {}
   #
   def named_captures
-    Hash[Truffle.invoke_primitive(:regexp_names, self)]
+    Hash[Truffle.invoke_primitive(:regexp_names, self)].transform_keys!(&:to_s)
   end
 
   #
@@ -335,7 +335,7 @@ class Regexp
   #     #=> []
   #
   def names
-    Truffle.invoke_primitive(:regexp_names, self).map(&:first)
+    Truffle.invoke_primitive(:regexp_names, self).map { |x| x.first.to_s }
   end
 
 end
@@ -370,6 +370,30 @@ class MatchData
     return source.byteslice(0, 0) if self.byte_begin(0) == 0
     nd = self.byte_begin(0) - 1
     source.byteslice(idx, nd-idx+1)
+  end
+
+  def begin(index)
+    backref = if String === index || Symbol === index
+                names_to_backref = Hash[Truffle.invoke_primitive(:regexp_names, self.regexp)]
+                names_to_backref[index.to_sym].last
+              else
+                Truffle::Type.coerce_to(index, Integer, :to_int)
+              end
+
+
+    Truffle.invoke_primitive(:match_data_begin, self, backref)
+  end
+
+  def end(index)
+    backref = if String === index || Symbol === index
+                names_to_backref = Hash[Truffle.invoke_primitive(:regexp_names, self.regexp)]
+                names_to_backref[index.to_sym].last
+              else
+                Truffle::Type.coerce_to(index, Integer, :to_int)
+              end
+
+
+    Truffle.invoke_primitive(:match_data_end, self, backref)
   end
 
   def collapsing?
