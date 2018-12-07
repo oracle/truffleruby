@@ -316,7 +316,7 @@ class Regexp
   #    #=> {}
   #
   def named_captures
-    Hash[Truffle.invoke_primitive(:regexp_names, self)]
+    Hash[Truffle.invoke_primitive(:regexp_names, self)].transform_keys!(&:to_s)
   end
 
   #
@@ -335,7 +335,7 @@ class Regexp
   #     #=> []
   #
   def names
-    Truffle.invoke_primitive(:regexp_names, self).map(&:first)
+    Truffle.invoke_primitive(:regexp_names, self).map { |x| x.first.to_s }
   end
 
 end
@@ -375,7 +375,7 @@ class MatchData
   def begin(index)
     backref = if String === index || Symbol === index
                 names_to_backref = Hash[Truffle.invoke_primitive(:regexp_names, self.regexp)]
-                names_to_backref[index.to_s].last
+                names_to_backref[index.to_sym].last
               else
                 Truffle::Type.coerce_to(index, Integer, :to_int)
               end
@@ -387,7 +387,7 @@ class MatchData
   def end(index)
     backref = if String === index || Symbol === index
                 names_to_backref = Hash[Truffle.invoke_primitive(:regexp_names, self.regexp)]
-                names_to_backref[index.to_s].last
+                names_to_backref[index.to_sym].last
               else
                 Truffle::Type.coerce_to(index, Integer, :to_int)
               end

@@ -339,13 +339,8 @@ public abstract class RegexpNodes {
                 final NameEntry e = iter.next();
                 final byte[] bytes = Arrays.copyOfRange(e.name, e.nameP, e.nameEnd);
 
-                // MRI narrows the encoding of named captures to US-ASCII if the name consists only of ASCII characters.
-                Rope rope = getContext().getRopeCache().getRope(bytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-                if (rope.isAsciiOnly()) {
-                    rope.withEncoding(USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-                }
-
-                final DynamicObject name = StringOperations.createString(getContext(), rope);
+                final Rope rope = getContext().getRopeCache().getRope(bytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                final DynamicObject name = getContext().getSymbolTable().getSymbol(rope);
 
                 final int[] backrefs = e.getBackRefs();
                 final DynamicObject backrefsRubyArray = createArray(backrefs, backrefs.length);
