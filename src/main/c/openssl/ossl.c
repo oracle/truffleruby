@@ -169,11 +169,7 @@ ossl_pem_passwd_cb(char *buf, int max_len, int flag, void *pwd_)
 {
     long len;
     int status;
-#ifdef TRUFFLERUBY
-    VALUE rflag, pass = (VALUE)rb_tr_managed_from_handle_release(pwd_);
-#else
     VALUE rflag, pass = (VALUE)pwd_;
-#endif
 
     if (RTEST(pass)) {
 	/* PEM_def_callback(buf, max_len, flag, StringValueCStr(pass)) does not
@@ -580,9 +576,7 @@ static void Init_ossl_locks(void)
     int i;
     int num_locks = CRYPTO_num_locks();
 
-    // Modified for TruffleRuby
-    //ossl_locks = ALLOC_N(struct CRYPTO_dynlock_value, num_locks);
-    ossl_locks = (struct CRYPTO_dynlock_value *) truffle_managed_malloc(num_locks * (int)sizeof(struct CRYPTO_dynlock_value));
+    ossl_locks = ALLOC_N(struct CRYPTO_dynlock_value, num_locks);
     for (i = 0; i < num_locks; i++)
 	ossl_lock_init(&ossl_locks[i]);
 

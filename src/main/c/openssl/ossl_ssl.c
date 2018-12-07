@@ -126,7 +126,7 @@ ossl_sslctx_s_alloc(VALUE klass)
     }
     SSL_CTX_set_mode(ctx, mode);
     RTYPEDDATA_DATA(obj) = ctx;
-    SSL_CTX_set_ex_data(ctx, ossl_ssl_ex_ptr_idx, rb_tr_handle_for_managed_leaking(obj));
+    SSL_CTX_set_ex_data(ctx, ossl_ssl_ex_ptr_idx, (void*)obj);
 
 #if !defined(OPENSSL_NO_EC) && defined(HAVE_SSL_CTX_SET_ECDH_AUTO)
     /* We use SSL_CTX_set1_curves_list() to specify the curve used in ECDH. It
@@ -211,7 +211,7 @@ ossl_client_cert_cb(SSL *ssl, X509 **x509, EVP_PKEY **pkey)
 {
     VALUE obj, ret;
 
-    obj = rb_tr_managed_from_handle(SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx));
+    obj = (VALUE)SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx);
     ret = rb_protect(ossl_call_client_cert_cb, obj, NULL);
     if (NIL_P(ret))
 	return 0;
@@ -260,7 +260,7 @@ ossl_tmp_dh_callback(SSL *ssl, int is_export, int keylength)
     struct tmp_dh_callback_args args;
     int state;
 
-    rb_ssl = rb_tr_managed_from_handle(SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx));
+    rb_ssl = (VALUE)SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx);
     args.ssl_obj = rb_ssl;
     args.id = id_tmp_dh_callback;
     args.is_export = is_export;
@@ -289,7 +289,7 @@ ossl_tmp_ecdh_callback(SSL *ssl, int is_export, int keylength)
     struct tmp_dh_callback_args args;
     int state;
 
-    rb_ssl = rb_tr_managed_from_handle(SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx));
+    rb_ssl = (VALUE)SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx);
     args.ssl_obj = rb_ssl;
     args.id = id_tmp_ecdh_callback;
     args.is_export = is_export;
@@ -317,7 +317,7 @@ call_verify_certificate_identity(VALUE ctx_v)
     VALUE ssl_obj, hostname, cert_obj;
 
     ssl = X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
-    ssl_obj = rb_tr_managed_from_handle(SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx));
+    ssl_obj = (VALUE)SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx);
     hostname = rb_attr_get(ssl_obj, id_i_hostname);
 
     if (!RTEST(hostname)) {
@@ -338,8 +338,8 @@ ossl_ssl_verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
     int status;
 
     ssl = X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
-    cb = rb_tr_managed_from_handle(SSL_get_ex_data(ssl, ossl_ssl_ex_vcb_idx));
-    ssl_obj = rb_tr_managed_from_handle(SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx));
+    cb = (VALUE)SSL_get_ex_data(ssl, ossl_ssl_ex_vcb_idx);
+    ssl_obj = (VALUE)SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx);
     sslctx_obj = rb_attr_get(ssl_obj, id_i_context);
     verify_hostname = rb_attr_get(sslctx_obj, id_i_verify_hostname);
 
@@ -386,7 +386,7 @@ ossl_sslctx_session_get_cb(SSL *ssl, unsigned char *buf, int len, int *copy)
     OSSL_Debug("SSL SESSION get callback entered");
     if ((ptr = SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx)) == NULL)
     	return NULL;
-    ssl_obj = rb_tr_managed_from_handle(ptr);
+    ssl_obj = (VALUE)ptr;
     ary = rb_ary_new2(2);
     rb_ary_push(ary, ssl_obj);
     rb_ary_push(ary, rb_str_new((const char *)buf, len));
@@ -431,7 +431,7 @@ ossl_sslctx_session_new_cb(SSL *ssl, SSL_SESSION *sess)
 
     if ((ptr = SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx)) == NULL)
     	return 1;
-    ssl_obj = rb_tr_managed_from_handle(ptr);
+    ssl_obj = (VALUE)ptr;
     sess_obj = rb_obj_alloc(cSSLSession);
     SSL_SESSION_up_ref(sess);
     DATA_PTR(sess_obj) = sess;
@@ -567,7 +567,7 @@ ssl_servername_cb(SSL *ssl, int *ad, void *arg)
 
     if ((ptr = SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx)) == NULL)
     	return SSL_TLSEXT_ERR_ALERT_FATAL;
-    ssl_obj = rb_tr_managed_from_handle(ptr);
+    ssl_obj = (VALUE)ptr;
     ary = rb_ary_new2(2);
     rb_ary_push(ary, ssl_obj);
     rb_ary_push(ary, rb_str_new2(servername));
@@ -590,7 +590,7 @@ ssl_renegotiation_cb(const SSL *ssl)
 
     if ((ptr = SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx)) == NULL)
 	ossl_raise(eSSLError, "SSL object could not be retrieved");
-    ssl_obj = rb_tr_managed_from_handle(ptr);
+    ssl_obj = (VALUE)ptr;
 
     sslctx_obj = rb_attr_get(ssl_obj, id_i_context);
     cb = rb_attr_get(sslctx_obj, id_i_renegotiation_cb);
@@ -646,7 +646,7 @@ npn_select_cb_common_i(VALUE tmp)
 	in += l;
     }
 
-    selected = rb_funcall(rb_tr_managed_from_handle(args->cb), rb_intern("call"), 1, protocols);
+    selected = rb_funcall(args->cb, rb_intern("call"), 1, protocols);
     StringValue(selected);
     len = RSTRING_LEN(selected);
     if (len < 1 || len >= 256) {
@@ -665,13 +665,13 @@ ssl_npn_select_cb_common(SSL *ssl, VALUE cb, const unsigned char **out,
     int status;
     struct npn_select_cb_common_args args;
 
-    args.cb = rb_tr_handle_for_managed_leaking(cb);
+    args.cb = cb;
     args.in = in;
     args.inlen = inlen;
 
     selected = rb_protect(npn_select_cb_common_i, (VALUE)&args, &status);
     if (status) {
-	VALUE ssl_obj = rb_tr_managed_from_handle(SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx));
+	VALUE ssl_obj = (VALUE)SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx);
 
 	rb_ivar_set(ssl_obj, ID_callback_state, INT2NUM(status));
 	return SSL_TLSEXT_ERR_ALERT_FATAL;
@@ -689,7 +689,7 @@ static int
 ssl_npn_advertise_cb(SSL *ssl, const unsigned char **out, unsigned int *outlen,
 		     void *arg)
 {
-    VALUE protocols = rb_tr_managed_from_handle(arg);
+    VALUE protocols = (VALUE)arg;
 
     *out = (const unsigned char *) RSTRING_PTR(protocols);
     *outlen = RSTRING_LENINT(protocols);
@@ -703,7 +703,7 @@ ssl_npn_select_cb(SSL *ssl, unsigned char **out, unsigned char *outlen,
 {
     VALUE sslctx_obj, cb;
 
-    sslctx_obj = rb_tr_managed_from_handle(arg);
+    sslctx_obj = (VALUE) arg;
     cb = rb_attr_get(sslctx_obj, id_i_npn_select_cb);
 
     return ssl_npn_select_cb_common(ssl, cb, (const unsigned char **)out,
@@ -718,7 +718,7 @@ ssl_alpn_select_cb(SSL *ssl, const unsigned char **out, unsigned char *outlen,
 {
     VALUE sslctx_obj, cb;
 
-    sslctx_obj = rb_tr_managed_from_handle(arg);
+    sslctx_obj = (VALUE) arg;
     cb = rb_attr_get(sslctx_obj, id_i_alpn_select_cb);
 
     return ssl_npn_select_cb_common(ssl, cb, out, outlen, in, inlen);
@@ -903,11 +903,11 @@ ossl_sslctx_setup(VALUE self)
     if (!NIL_P(val)) {
 	VALUE encoded = ssl_encode_npn_protocols(val);
 	rb_ivar_set(self, id_npn_protocols_encoded, encoded);
-	SSL_CTX_set_next_protos_advertised_cb(ctx, ssl_npn_advertise_cb, rb_tr_handle_for_managed_leaking(encoded));
+	SSL_CTX_set_next_protos_advertised_cb(ctx, ssl_npn_advertise_cb, (void *)encoded);
 	OSSL_Debug("SSL NPN advertise callback added");
     }
     if (RTEST(rb_attr_get(self, id_i_npn_select_cb))) {
-	SSL_CTX_set_next_proto_select_cb(ctx, ssl_npn_select_cb, rb_tr_handle_for_managed_leaking(self));
+	SSL_CTX_set_next_proto_select_cb(ctx, ssl_npn_select_cb, (void *) self);
 	OSSL_Debug("SSL NPN select callback added");
     }
 #endif
@@ -924,7 +924,7 @@ ossl_sslctx_setup(VALUE self)
 	OSSL_Debug("SSL ALPN values added");
     }
     if (RTEST(rb_attr_get(self, id_i_alpn_select_cb))) {
-	SSL_CTX_set_alpn_select_cb(ctx, ssl_alpn_select_cb, rb_tr_handle_for_managed_leaking(self));
+	SSL_CTX_set_alpn_select_cb(ctx, ssl_alpn_select_cb, (void *) self);
 	OSSL_Debug("SSL ALPN select callback added");
     }
 #endif
@@ -1458,10 +1458,10 @@ ossl_ssl_initialize(int argc, VALUE *argv, VALUE self)
 	ossl_raise(eSSLError, NULL);
     RTYPEDDATA_DATA(self) = ssl;
 
-    SSL_set_ex_data(ssl, ossl_ssl_ex_ptr_idx, rb_tr_handle_for_managed_leaking(self));
+    SSL_set_ex_data(ssl, ossl_ssl_ex_ptr_idx, (void *)self);
     SSL_set_info_callback(ssl, ssl_info_cb);
     verify_cb = rb_attr_get(v_ctx, id_i_verify_callback);
-    SSL_set_ex_data(ssl, ossl_ssl_ex_vcb_idx, rb_tr_handle_for_managed_leaking(verify_cb));
+    SSL_set_ex_data(ssl, ossl_ssl_ex_vcb_idx, (void *)verify_cb);
 
     rb_call_super(0, NULL);
 
@@ -1686,9 +1686,10 @@ ossl_ssl_read_internal(int argc, VALUE *argv, VALUE self, int nonblock)
 	if (RSTRING_LEN(str) >= ilen)
 	    rb_str_modify(str);
 	else
-	    rb_str_resize(str, ilen);
+	    rb_str_modify_expand(str, ilen - RSTRING_LEN(str));
     }
     OBJ_TAINT(str);
+    rb_str_set_len(str, 0);
     if (ilen == 0)
 	return str;
 

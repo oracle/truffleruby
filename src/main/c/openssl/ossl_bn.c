@@ -152,22 +152,6 @@ ossl_bn_value_ptr(volatile VALUE *ptr)
     return bn;
 }
 
-// TruffleRuby: _x version added that doesn't take a pointer to a local
-// variable - the variable is apparently only to protect against conservative GC
-BIGNUM *
-ossl_bn_value_ptr_x(VALUE obj)
-{
-    VALUE tmp;
-    BIGNUM *bn;
-
-    tmp = try_convert_to_bn(obj);
-    if (NIL_P(tmp))
-	ossl_raise(rb_eTypeError, "Cannot convert into OpenSSL::BN");
-    GetBN(tmp, bn);
-
-    return bn;
-}
-
 /*
  * Private
  */
