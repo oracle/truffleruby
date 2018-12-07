@@ -13,7 +13,7 @@ def puts_backtrace(backtrace)
 end
 
 puts "Test error in Ruby => C ext support => Ruby"
-RB_FUNCALLV = Truffle::Interop.import('@rb_funcallv')
+RB_FUNCALLV = Truffle::Interop.import('rb_funcallv')
 
 def callback
   raise 'Ruby callback error'
@@ -37,7 +37,7 @@ end
 puts
 puts "Test with an internal error from rb_mutex_lock()"
 LOCK = Mutex.new
-RB_MUTEX_LOCK = Truffle::Interop.import('@rb_mutex_lock')
+RB_MUTEX_LOCK = Truffle::Interop.import('rb_mutex_lock')
 
 LOCK.lock
 
