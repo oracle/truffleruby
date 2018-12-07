@@ -31,6 +31,7 @@ JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
 JEXCEPTION = "-Xexceptions.print_uncaught_java=true"
 METRICS_REPS = Integer(ENV["TRUFFLERUBY_METRICS_REPS"] || 10)
+DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.SampleInternal=true --cpusampler.Mode=roots --cpusampler.Output=json]
 
 RUBOCOP_INCLUDE_LIST = %w[
   lib/cext
@@ -398,6 +399,12 @@ module Utilities
     end
   end
 
+  def app_open(file)
+    cmd = MAC ? 'open' : 'xdg-open'
+
+    sh cmd, file
+  end
+
   def chdir(dir, &block)
     raise LocalJumpError, "no block given" unless block_given?
     if dir == Dir.pwd
@@ -527,6 +534,7 @@ module Commands
           note that to run most MRI benchmarks, you should translate them first with normal Ruby and cache the result, such as
               benchmark bench/mri/bm_vm1_not.rb --cache
               jt benchmark bench/mri/bm_vm1_not.rb --use-cache
+      jt profile                                    profiles an application, including the TruffleRuby runtime, and  generates a flamegraph
       jt where repos ...                            find these repositories
       jt next                                       tell you what to work on next (give you a random core library spec)
       jt pr [pr_number]                             pushes GitHub's PR to bitbucket to let CI run under github/pr/<number> name
@@ -1759,6 +1767,42 @@ EOS
       sh benchmark_ruby, *run_args
     else
       run_ruby *run_args
+    end
+  end
+
+  def profile(*args)
+    require 'tempfile'
+
+    repo = find_or_clone_repo("https://github.com/eregon/FlameGraph.git", "graalvm")
+
+    run_args = *DEFAULT_PROFILE_OPTIONS + args
+
+    begin
+      profile_data, _err = run_ruby *run_args, capture: true
+      profile_data_file = Tempfile.new %w[truffleruby-profile .json]
+      profile_data_file.write(profile_data)
+      profile_data_file.close
+
+      flamegraph_data_file = Tempfile.new 'truffleruby-flamegraph-data'
+      flamegraph_data, _err = raw_sh "#{repo}/stackcollapse-graalvm.rb", profile_data_file.path, capture: true
+      flamegraph_data_file.write(flamegraph_data)
+      flamegraph_data_file.close
+
+      svg_data, _err = raw_sh "#{repo}/flamegraph.pl", flamegraph_data_file.path, capture: true
+      svg_file_base_path = "#{TRUFFLERUBY_DIR}/profile"
+      svg_filename = "#{svg_file_base_path}.svg"
+      unique_suffix = 2
+
+      while File.exist?(svg_filename)
+        svg_filename = "#{svg_file_base_path}#{unique_suffix}.svg"
+        unique_suffix += 1
+      end
+
+      File.open(svg_filename, 'w') { |f| f.write(svg_data) }
+      app_open svg_filename
+    ensure
+      flamegraph_data_file.close! if flamegraph_data_file
+      profile_data_file.close! if profile_data_file
     end
   end
 
