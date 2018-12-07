@@ -1797,7 +1797,7 @@ EOS
       unique_suffix = 2
 
       while File.exist?(svg_filename)
-        svg_filename = "#{svg_file_base_path}#{unique_suffix}.svg"
+        svg_filename = "#{svg_file_base_path}_#{unique_suffix}.svg"
         unique_suffix += 1
       end
 
