@@ -727,7 +727,6 @@ module Commands
   end
   private :run_ruby
 
-  # Same as #run but uses exec()
   def ruby(*args)
     env = args.first.is_a?(Hash) ? args.shift : {}
     run_ruby(env, '--exec', *args)
