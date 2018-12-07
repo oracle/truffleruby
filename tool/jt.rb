@@ -24,6 +24,7 @@ require 'pathname'
 TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
+PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
 TRUFFLERUBY_GEM_TEST_PACK_VERSION = "f23314cbf560d8578b0c2cbd972b83575ba93cd5"
 
@@ -1789,7 +1790,9 @@ EOS
       flamegraph_data_file.close
 
       svg_data, _err = raw_sh "#{repo}/flamegraph.pl", flamegraph_data_file.path, capture: true
-      svg_file_base_path = "#{TRUFFLERUBY_DIR}/profile"
+
+      Dir.mkdir(PROFILES_DIR) unless Dir.exist?(PROFILES_DIR)
+      svg_file_base_path = "#{PROFILES_DIR}/flamegraph"
       svg_filename = "#{svg_file_base_path}.svg"
       unique_suffix = 2
 
