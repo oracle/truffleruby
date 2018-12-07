@@ -23,12 +23,14 @@ import com.oracle.truffle.api.object.DynamicObject;
 public class ValueWrapperManager {
 
     static final int UNSET_HANDLE = -1;
+    public static final int FALSE_HANDLE = 0;
+    public static final int TRUE_HANDLE = 1;
+    public static final int UNDEF_HANDLE = 2;
+    public static final int NIL_HANDLE = 3;
 
-    @CompilationFinal private DynamicObject undefWrapper = null;
-    @CompilationFinal private DynamicObject trueWrapper = null;
-    @CompilationFinal private DynamicObject falseWrapper = null;
+    public static final int LONG_TAG = 4;
+    public static final int OBJECT_TAG = 7;
 
-    private final LongHashMap<DynamicObject> longMap = new LongHashMap<>(128);
     private final LongHashMap<WeakReference<DynamicObject>> handleMap = new LongHashMap<>(1024);
 
     private final RubyContext context;
@@ -37,48 +39,17 @@ public class ValueWrapperManager {
         this.context = context;
     }
 
-    public DynamicObject undefWrapper() {
-        if (undefWrapper == null) {
-            undefWrapper = Layouts.VALUE_WRAPPER.createValueWrapper(NotProvided.INSTANCE, UNSET_HANDLE);
-        }
-        return undefWrapper;
-    }
-
-    public DynamicObject booleanWrapper(boolean value) {
-        if (value) {
-            if (trueWrapper == null) {
-                trueWrapper = Layouts.VALUE_WRAPPER.createValueWrapper(true, UNSET_HANDLE);
-            }
-            return trueWrapper;
-        } else {
-            if (falseWrapper == null) {
-                falseWrapper = createFalseWrapper();
-            }
-            return falseWrapper;
-        }
-    }
-
-    private DynamicObject createFalseWrapper() {
-        // Ensure that Qfalse will by falsy in C.
-        return Layouts.VALUE_WRAPPER.createValueWrapper(false, 0);
-    }
-
     /*
      * We keep a map of long wrappers that have been generated because various C extensions assume
      * that any given fixnum will translate to a given VALUE.
      */
     @TruffleBoundary
     public synchronized DynamicObject longWrapper(long value) {
-        DynamicObject wrapper = longMap.get(value);
-        if (wrapper == null) {
-            wrapper = Layouts.VALUE_WRAPPER.createValueWrapper(value, ValueWrapperManager.UNSET_HANDLE);
-            longMap.put(value, wrapper);
-        }
-        return wrapper;
+        return Layouts.VALUE_WRAPPER.createValueWrapper(value, UNSET_HANDLE);
     }
 
     public DynamicObject doubleWrapper(double value) {
-        return Layouts.VALUE_WRAPPER.createValueWrapper(value, ValueWrapperManager.UNSET_HANDLE);
+        return Layouts.VALUE_WRAPPER.createValueWrapper(value, UNSET_HANDLE);
     }
 
     @TruffleBoundary

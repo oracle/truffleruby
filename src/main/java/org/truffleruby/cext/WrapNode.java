@@ -1,5 +1,11 @@
 package org.truffleruby.cext;
 
+import static org.truffleruby.cext.ValueWrapperManager.FALSE_HANDLE;
+import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
+import static org.truffleruby.cext.ValueWrapperManager.LONG_TAG;
+import static org.truffleruby.cext.ValueWrapperManager.NIL_HANDLE;
+import static org.truffleruby.cext.ValueWrapperManager.UNDEF_HANDLE;
+
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.RopeOperations;
@@ -22,12 +28,20 @@ public abstract class WrapNode extends RubyBaseNode {
 
     @Specialization
     public DynamicObject wrapInt(int value) {
-        return getContext().getValueWrapperManager().longWrapper(value);
+        return wrapLong(value);
     }
+
+    private final long MIN_VALUE = 0xf000_0000_0000_0000L;
+    private final long MAX_VALUE = 0x0fff_ffff_ffff_ffffL;
 
     @Specialization
     public DynamicObject wrapLong(long value) {
-        return getContext().getValueWrapperManager().longWrapper(value);
+        if (value >= MIN_VALUE && value <= MAX_VALUE) {
+            long val = (value << 3) | LONG_TAG;
+            return Layouts.VALUE_WRAPPER.createValueWrapper(value, val);
+        } else {
+            return getContext().getValueWrapperManager().longWrapper(value);
+        }
     }
 
     @Specialization
@@ -37,12 +51,12 @@ public abstract class WrapNode extends RubyBaseNode {
 
     @Specialization
     public DynamicObject wrapBoolean(boolean value) {
-        return getContext().getValueWrapperManager().booleanWrapper(value);
+        return Layouts.VALUE_WRAPPER.createValueWrapper(value, value ? TRUE_HANDLE : FALSE_HANDLE);
     }
 
     @Specialization
     public DynamicObject wrapUndef(NotProvided value) {
-        return getContext().getValueWrapperManager().undefWrapper();
+        return Layouts.VALUE_WRAPPER.createValueWrapper(value, UNDEF_HANDLE);
     }
 
     @Specialization(guards = "isWrapped(value)")
@@ -50,7 +64,12 @@ public abstract class WrapNode extends RubyBaseNode {
         throw new RaiseException(getContext(), coreExceptions().argumentError(RopeOperations.encodeAscii("Wrapping wrapped object", UTF8Encoding.INSTANCE), this));
     }
 
-    @Specialization(guards = "isRubyBasicObject(value)")
+    @Specialization(guards = "isNil(value)")
+    public DynamicObject wrapNil(DynamicObject value) {
+        return Layouts.VALUE_WRAPPER.createValueWrapper(nil(), NIL_HANDLE);
+    }
+
+    @Specialization(guards = { "isRubyBasicObject(value)", "!isNil(value)" })
     public DynamicObject wrapValue(DynamicObject value,
             @Cached("createReader()") ReadObjectFieldNode readWrapperNode,
             @Cached("createWriter()") WriteObjectFieldNode writeWrapperNode) {
