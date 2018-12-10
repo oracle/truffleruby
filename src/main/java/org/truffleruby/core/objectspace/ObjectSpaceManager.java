@@ -40,13 +40,10 @@ package org.truffleruby.core.objectspace;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.FinalizationService;
-import org.truffleruby.core.FinalizationService.FinalizerReference;
 import org.truffleruby.language.objects.ObjectIDOperations;
 
 import java.lang.management.GarbageCollectorMXBean;
@@ -55,14 +52,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Supports the Ruby {@code ObjectSpace} module. Object IDs are lazily allocated {@code long}
- * values, mapped to objects with a weak hash map. Finalizers are implemented with weak references
- * and reference queues, and are run in a dedicated Ruby thread.
+ * values, mapped to objects with a weak hash map.
  */
 public class ObjectSpaceManager {
 
     private final RubyContext context;
-
-    private final FinalizationService finalizationService;
 
     private final CyclicAssumption tracingAssumption = new CyclicAssumption("objspace-tracing");
     @CompilerDirectives.CompilationFinal private boolean isTracing = false;
@@ -71,48 +65,8 @@ public class ObjectSpaceManager {
 
     private final AtomicLong nextObjectID = new AtomicLong(ObjectIDOperations.FIRST_OBJECT_ID);
 
-    public ObjectSpaceManager(RubyContext context, FinalizationService finalizationService) {
+    public ObjectSpaceManager(RubyContext context) {
         this.context = context;
-        this.finalizationService = finalizationService;
-    }
-
-    @TruffleBoundary
-    public synchronized FinalizerReference defineFinalizer(DynamicObject object, FinalizerReference ref, Object callable) {
-        final DynamicObject root;
-        if (callable instanceof DynamicObject) {
-            root = (DynamicObject) callable;
-        } else {
-            root = null;
-        }
-
-        return finalizationService.addFinalizer(object, ref, ObjectSpaceManager.class,
-                new CallableFinalizer(context, callable), root);
-    }
-
-    private static class CallableFinalizer implements Runnable {
-
-        private final RubyContext context;
-        private final Object callable;
-
-        public CallableFinalizer(RubyContext context, Object callable) {
-            this.context = context;
-            this.callable = callable;
-        }
-
-        public void run() {
-            context.send(callable, "call");
-        }
-
-        @Override
-        public String toString() {
-            return callable.toString();
-        }
-
-    }
-
-    @TruffleBoundary
-    public synchronized FinalizerReference undefineFinalizer(DynamicObject object, FinalizerReference ref) {
-        return finalizationService.removeFinalizers(object, ref, ObjectSpaceManager.class);
     }
 
     public void traceAllocationsStart() {
