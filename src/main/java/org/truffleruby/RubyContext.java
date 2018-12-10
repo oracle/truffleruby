@@ -106,7 +106,7 @@ public class RubyContext {
     private final FeatureLoader featureLoader = new FeatureLoader(this);
     private final TraceManager traceManager;
     private final FinalizationService finalizationService = new FinalizationService(this);
-    private final ObjectSpaceManager objectSpaceManager = new ObjectSpaceManager(this, finalizationService);
+    private final ObjectSpaceManager objectSpaceManager = new ObjectSpaceManager(this);
     private final SharedObjects sharedObjects = new SharedObjects(this);
     private final AtExitManager atExitManager = new AtExitManager(this);
     private final CallStackManager callStack = new CallStackManager(this);
