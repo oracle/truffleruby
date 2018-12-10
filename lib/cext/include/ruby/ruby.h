@@ -24,27 +24,7 @@ extern "C" {
 // Must be first, as it defines feature test macros like _GNU_SOURCE,
 // which influences the definitions exposed by system header files.
 #include "ruby/config.h"
-
-#include <sulong/truffle.h>
-#include <sulong/polyglot.h>
-
-#include <ctype.h> // isdigit
-
-// Support
-
-extern void* rb_tr_cext;
-#define RUBY_CEXT ((void *)(&rb_tr_cext))
-
-#define MUST_INLINE __attribute__((always_inline)) inline
-
-#include <ruby/thread_native.h>
-
-// Helpers
-
-#ifndef offsetof
-#define offsetof(p_type,field) ((size_t)&(((p_type *)0)->field))
-#endif
-
+#include <truffleruby/truffleruby-pre.h>
 #ifdef RUBY_EXTCONF_H
 #include RUBY_EXTCONF_H
 #endif
@@ -1904,6 +1884,7 @@ unsigned long ruby_strtoul(const char *str, char **endptr, int base);
 PRINTF_ARGS(int ruby_snprintf(char *str, size_t n, char const *fmt, ...), 3, 4);
 int ruby_vsnprintf(char *str, size_t n, char const *fmt, va_list ap);
 
+#ifndef TRUFFLERUBY
 #if defined(HAVE_BUILTIN___BUILTIN_CHOOSE_EXPR_CONSTANT_P) && defined(__OPTIMIZE__)
 # define rb_scan_args(argc,argvp,fmt,...) \
     __builtin_choose_expr(__builtin_constant_p(fmt), \
@@ -2179,6 +2160,7 @@ rb_scan_args_set(int argc, const VALUE *argv,
     return argc;
 }
 #endif
+#endif // TRUFFLERUBY
 
 #ifndef RUBY_DONT_SUBST
 #include "ruby/subst.h"
