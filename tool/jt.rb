@@ -1780,17 +1780,22 @@ EOS
     run_args = *DEFAULT_PROFILE_OPTIONS + args
 
     begin
-      profile_data, _err = run_ruby(env, *run_args, capture: true)
+      profile_data, err = run_ruby(env, *run_args, capture: true)
+      $stderr.puts(err) unless err.empty?
+
       profile_data_file = Tempfile.new %w[truffleruby-profile .json]
       profile_data_file.write(profile_data)
       profile_data_file.close
 
+      flamegraph_data, err = raw_sh "#{repo}/stackcollapse-graalvm.rb", profile_data_file.path, capture: true
+      $stderr.puts(err) unless err.empty?
+
       flamegraph_data_file = Tempfile.new 'truffleruby-flamegraph-data'
-      flamegraph_data, _err = raw_sh "#{repo}/stackcollapse-graalvm.rb", profile_data_file.path, capture: true
       flamegraph_data_file.write(flamegraph_data)
       flamegraph_data_file.close
 
-      svg_data, _err = raw_sh "#{repo}/flamegraph.pl", flamegraph_data_file.path, capture: true
+      svg_data, err = raw_sh "#{repo}/flamegraph.pl", flamegraph_data_file.path, capture: true
+      $stderr.puts(err) unless err.empty?
 
       Dir.mkdir(PROFILES_DIR) unless Dir.exist?(PROFILES_DIR)
       svg_filename = "#{PROFILES_DIR}/flamegraph_#{Time.now.strftime("%Y%m%d-%H%M%S")}.svg"
