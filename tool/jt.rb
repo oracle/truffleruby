@@ -535,7 +535,7 @@ module Commands
           note that to run most MRI benchmarks, you should translate them first with normal Ruby and cache the result, such as
               benchmark bench/mri/bm_vm1_not.rb --cache
               jt benchmark bench/mri/bm_vm1_not.rb --use-cache
-      jt profile                                    profiles an application, including the TruffleRuby runtime, and  generates a flamegraph
+      jt profile                                    profiles an application, including the TruffleRuby runtime, and generates a flamegraph
       jt where repos ...                            find these repositories
       jt next                                       tell you what to work on next (give you a random core library spec)
       jt pr [pr_number]                             pushes GitHub's PR to bitbucket to let CI run under github/pr/<number> name

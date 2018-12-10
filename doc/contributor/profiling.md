@@ -20,12 +20,12 @@ similar to gprof's flat profile and it is printed directly to STDOUT.
 
 The CPU tracer can be invoked via `jt ruby --cputracer`. It provides method invocation
 counts, but not elapsed time. It can be a good way to see which methods should be optimized
-or for discovering calls that are being more frequently than expected.
+or for discovering calls that are being called more frequently than expected.
 
 ### CPU Sampler
 
 The CPU sampler can be invoked via `jt ruby --cpusampler`. It provides sampled execution
-times for both the total time of the method call (i.e., the method &amp; its call graph)
+times for both the total time of the method call (i.e., the method & its subcalls)
 and just the method's execution time (i.e., ignoring calls made from the method). It does
 not provide invocation counts.
 
