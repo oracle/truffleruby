@@ -646,7 +646,7 @@ npn_select_cb_common_i(VALUE tmp)
 	in += l;
     }
 
-    selected = rb_funcall(args->cb, rb_intern("call"), 1, protocols);
+    selected = rb_funcall(rb_tr_managed_from_handle(args->cb), rb_intern("call"), 1, protocols);
     StringValue(selected);
     len = RSTRING_LEN(selected);
     if (len < 1 || len >= 256) {
@@ -665,7 +665,7 @@ ssl_npn_select_cb_common(SSL *ssl, VALUE cb, const unsigned char **out,
     int status;
     struct npn_select_cb_common_args args;
 
-    args.cb = cb;
+    args.cb = rb_tr_handle_for_managed_leaking(cb);
     args.in = in;
     args.inlen = inlen;
 
