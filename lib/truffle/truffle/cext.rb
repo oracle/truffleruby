@@ -1792,27 +1792,6 @@ module Truffle::CExt
     sprintf(f, *args) rescue raise ArgumentError, "Bad format string #{f}."
   end
 
-  class WrappedNumber
-    def initialize(a_number)
-      @number = a_number
-    end
-
-    attr_reader :number
-  end
-
-  def rb_tr_wrap_for_handle(a_number)
-    WrappedNumber.new(a_number)
-  end
-
-  def rb_tr_unwrap_from_handle(an_object)
-    case an_object
-    when WrappedNumber
-      an_object.number
-    else
-      an_object
-    end
-  end
-
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)
