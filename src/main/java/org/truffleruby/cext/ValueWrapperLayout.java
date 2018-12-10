@@ -12,7 +12,7 @@ package org.truffleruby.cext;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.dsl.Layout;
 
-@Layout(objectTypeSuperclass = ValueWrapperObjectType.class, implicitCastIntToLong = true)
+@Layout(objectTypeSuperclass = ValueWrapperObjectType.class)
 public interface ValueWrapperLayout {
 
     DynamicObject createValueWrapper(Object object);

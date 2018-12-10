@@ -9,21 +9,10 @@
  */
 package org.truffleruby.cext;
 
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.collections.LongHashMap;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
-import org.truffleruby.language.objects.WriteObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
@@ -57,8 +46,7 @@ public class ValueWrapperObjectType extends ObjectType {
 
     protected static DynamicObject createFalseWrapper() {
         // Ensure that Qfalse will by falsy in C.
-        final DynamicObject falseWrapper = VALUE_WRAPPER.createValueWrapper(false);
-        return falseWrapper;
+        return VALUE_WRAPPER.createValueWrapper(false);
     }
 
     /*
@@ -82,97 +70,6 @@ public class ValueWrapperObjectType extends ObjectType {
 
     public static boolean isInstance(TruffleObject receiver) {
         return VALUE_WRAPPER.isValueWrapper(receiver);
-    }
-
-    public static abstract class WrapNode extends RubyBaseNode {
-
-        private static Object WRAPPER_VAR = new Object();
-
-        public abstract TruffleObject execute(Object value);
-
-        @Specialization
-        public DynamicObject wrapInt(int value) {
-            return createLongWrapper(value);
-        }
-
-        @Specialization
-        public DynamicObject wrapLong(long value) {
-            return createLongWrapper(value);
-        }
-
-        @Specialization
-        public DynamicObject wrapDouble(double value) {
-            return createDoubleWrapper(value);
-        }
-
-        @Specialization
-        public DynamicObject wrapBoolean(boolean value) {
-            return createBooleanWrapper(value);
-        }
-
-        @Specialization
-        public DynamicObject wrapUndef(NotProvided value) {
-            return createUndefWrapper(value);
-        }
-
-        @Specialization(guards = "isWrapped(value)")
-        public DynamicObject wrapWrappedValue(DynamicObject value) {
-            throw new RaiseException(getContext(), coreExceptions().argumentError(RopeOperations.encodeAscii("Wrapping wrapped object.", UTF8Encoding.INSTANCE), this));
-        }
-
-        @Specialization(guards = "isRubyBasicObject(value)")
-        public DynamicObject wrapValue(DynamicObject value,
-                @Cached("createReader()") ReadObjectFieldNode readWrapperNode,
-                @Cached("createWriter()") WriteObjectFieldNode writeWrapperNode) {
-            DynamicObject wrapper = (DynamicObject) readWrapperNode.execute(value);
-            if (wrapper == null) {
-                synchronized (value) {
-                    wrapper = (DynamicObject) readWrapperNode.execute(value);
-                    if (wrapper == null) {
-                        wrapper = ValueWrapperObjectType.createValueWrapper(value);
-                        writeWrapperNode.write(value, wrapper);
-                    }
-                }
-            }
-            return wrapper;
-        }
-
-        @Specialization(guards = "!isRubyBasicObject(value)")
-        public TruffleObject wrapNonRubyObject(TruffleObject value) {
-            throw new RaiseException(getContext(), coreExceptions().argumentError("Attempt to wrap something that isn't an Ruby object", this));
-        }
-
-        public ReadObjectFieldNode createReader() {
-            return ReadObjectFieldNodeGen.create(WRAPPER_VAR, null);
-        }
-
-        public WriteObjectFieldNode createWriter() {
-            return WriteObjectFieldNodeGen.create(WRAPPER_VAR);
-        }
-
-        public boolean isWrapped(TruffleObject value) {
-            return ValueWrapperObjectType.isInstance(value);
-        }
-
-    }
-
-    public static abstract class UnwrapNode extends RubyBaseNode {
-
-        public abstract Object execute(Object value);
-
-        @Specialization(guards = "isWrapper(value)")
-        public Object unwrapValue(DynamicObject value) {
-            return ValueWrapperObjectType.VALUE_WRAPPER.getObject(value);
-        }
-
-        @Fallback
-        public Object unwrapTypeCastObject(Object value) {
-            throw new RaiseException(getContext(), coreExceptions().argumentError("Unwrapping something that isn't a wrapper", this));
-        }
-
-        public static boolean isWrapper(TruffleObject value) {
-            return ValueWrapperObjectType.isInstance(value);
-        }
     }
 
 }
