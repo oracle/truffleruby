@@ -52,8 +52,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Supports the Ruby {@code ObjectSpace} module. Object IDs are lazily allocated {@code long}
- * values, mapped to objects with a weak hash map. Finalizers are implemented with weak references
- * and reference queues, and are run in a dedicated Ruby thread.
+ * values, mapped to objects with a weak hash map.
  */
 public class ObjectSpaceManager {
 

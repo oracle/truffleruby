@@ -22,6 +22,10 @@ import org.truffleruby.language.control.TerminationException;
 
 import com.oracle.truffle.api.object.DynamicObject;
 
+/**
+ * Finalizers are implemented with phantom references and reference queues, and are run in a
+ * dedicated Ruby thread.
+ */
 public class FinalizationService {
 
     private static class Finalizer {
