@@ -134,6 +134,9 @@ bin/*
 # Diagnostic output directory
 dumps/
 
+# Profile output directory
+profiles/
+
 # Jay
 tool/jay/*.o
 tool/jay/jay
