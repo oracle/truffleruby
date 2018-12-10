@@ -1,6 +1,7 @@
 package org.truffleruby.cext;
 
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
@@ -16,8 +17,6 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class WrapNode extends RubyBaseNode {
-
-    private static Object WRAPPER_VAR = new Object();
 
     public abstract TruffleObject execute(Object value);
 
@@ -48,7 +47,7 @@ public abstract class WrapNode extends RubyBaseNode {
 
     @Specialization(guards = "isWrapped(value)")
     public DynamicObject wrapWrappedValue(DynamicObject value) {
-        throw new RaiseException(getContext(), coreExceptions().argumentError(RopeOperations.encodeAscii("Wrapping wrapped object.", UTF8Encoding.INSTANCE), this));
+        throw new RaiseException(getContext(), coreExceptions().argumentError(RopeOperations.encodeAscii("Wrapping wrapped object", UTF8Encoding.INSTANCE), this));
     }
 
     @Specialization(guards = "isRubyBasicObject(value)")
@@ -74,11 +73,11 @@ public abstract class WrapNode extends RubyBaseNode {
     }
 
     public ReadObjectFieldNode createReader() {
-        return ReadObjectFieldNodeGen.create(WRAPPER_VAR, null);
+        return ReadObjectFieldNodeGen.create(Layouts.VALUE_WRAPPER_IDENTIFIER, null);
     }
 
     public WriteObjectFieldNode createWriter() {
-        return WriteObjectFieldNodeGen.create(WRAPPER_VAR);
+        return WriteObjectFieldNodeGen.create(Layouts.VALUE_WRAPPER_IDENTIFIER);
     }
 
     public boolean isWrapped(TruffleObject value) {
