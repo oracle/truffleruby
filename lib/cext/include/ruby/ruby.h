@@ -24,27 +24,7 @@ extern "C" {
 // Must be first, as it defines feature test macros like _GNU_SOURCE,
 // which influences the definitions exposed by system header files.
 #include "ruby/config.h"
-
-#include <sulong/truffle.h>
-#include <sulong/polyglot.h>
-
-#include <ctype.h> // isdigit
-
-// Support
-
-extern void* rb_tr_cext;
-#define RUBY_CEXT ((void *)(&rb_tr_cext))
-
-#define MUST_INLINE __attribute__((always_inline)) inline
-
-#include <ruby/thread_native.h>
-
-// Helpers
-
-#ifndef offsetof
-#define offsetof(p_type,field) ((size_t)&(((p_type *)0)->field))
-#endif
-
+#include <truffleruby/truffleruby-pre.h>
 #ifdef RUBY_EXTCONF_H
 #include RUBY_EXTCONF_H
 #endif
