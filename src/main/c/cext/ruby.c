@@ -31,10 +31,6 @@ void* rb_tr_true;
 void* rb_tr_false;
 void* rb_tr_nil;
 
-VALUE rb_tr_handle_method(VALUE self, VALUE object) {
-  return (VALUE)truffle_handle_for_managed(object);
-}
-
 // Run when loading C-extension support
 
 void rb_tr_init(void) {
@@ -43,7 +39,6 @@ void rb_tr_init(void) {
   truffle_assign_managed(&rb_tr_true, rb_tr_get_true());
   truffle_assign_managed(&rb_tr_false, rb_tr_get_false());
   truffle_assign_managed(&rb_tr_nil, rb_tr_get_nil());
-  rb_define_module_function(rb_const_get( rb_const_get( rb_cObject, rb_intern("Truffle")), rb_intern("CExt") ), "rb_tr_handle_for_wrapped", rb_tr_handle_method, 1);
 }
 
 // Private helper macros just for ruby.c
@@ -346,7 +341,7 @@ int RTEST(VALUE value) {
 // Kernel
 
 void rb_p(VALUE obj) {
-  polyglot_invoke(rb_tr_unwrap(rb_mKernel), "p", rb_tr_unwrap(obj));
+  RUBY_INVOKE_NO_WRAP(rb_mKernel, "p", obj);
 }
 
 VALUE rb_require(const char *feature) {
@@ -407,7 +402,7 @@ int rb_method_boundp(VALUE klass, ID id, int ex) {
 // Object
 
 VALUE rb_obj_dup(VALUE object) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(object), "dup"));
+  return RUBY_INVOKE(object, "dup");
 }
 
 VALUE rb_any_to_s(VALUE object) {
@@ -435,7 +430,7 @@ VALUE rb_convert_type(VALUE object, int type, const char *type_name, const char 
 }
 
 void rb_extend_object(VALUE object, VALUE module) {
-  rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(module), "extend_object", rb_tr_unwrap(object)));
+  RUBY_INVOKE(module, "extend_object", object);
 }
 
 VALUE rb_inspect(VALUE object) {
@@ -451,7 +446,7 @@ const char *rb_obj_classname(VALUE object) {
 }
 
 VALUE rb_obj_id(VALUE object) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(object), "object_id"));
+  return (VALUE) RUBY_INVOKE(object, "object_id");
 }
 
 void rb_tr_hidden_variable_set(VALUE object, const char *name, VALUE value) {
@@ -495,11 +490,11 @@ VALUE rb_class_inherited_p(VALUE module, VALUE object) {
 }
 
 VALUE rb_equal(VALUE a, VALUE b) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(a), "===", rb_tr_unwrap(b)));
+  return (VALUE) RUBY_INVOKE(a, "===", b);
 }
 
 VALUE rb_obj_taint(VALUE object) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(object), "taint"));
+  return (VALUE) RUBY_INVOKE(object, "taint");
 }
 
 bool rb_tr_obj_taintable_p(VALUE object) {
@@ -507,7 +502,7 @@ bool rb_tr_obj_taintable_p(VALUE object) {
 }
 
 bool rb_tr_obj_tainted_p(VALUE object) {
-  return polyglot_as_boolean(polyglot_invoke(rb_tr_unwrap((void *)object), "tainted?"));
+  return polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(object, "tainted?"));
 }
 
 void rb_tr_obj_infect(VALUE a, VALUE b) {
@@ -519,7 +514,7 @@ VALUE rb_obj_freeze(VALUE object) {
 }
 
 VALUE rb_obj_frozen_p(VALUE object) {
-  return rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(object), "frozen?"));
+  return RUBY_INVOKE(object, "frozen?");
 }
 
 // Integer
@@ -677,7 +672,7 @@ unsigned long rb_big2ulong(VALUE x) {
 }
 
 VALUE rb_big_cmp(VALUE x, VALUE y) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(x), "<=>", rb_tr_unwrap(y)));
+  return (VALUE) RUBY_INVOKE(x, "<=>", y);
 }
 
 void rb_big_pack(VALUE val, unsigned long *buf, long num_longs) {
@@ -779,11 +774,11 @@ VALUE rb_str_new_cstr(const char *string) {
 }
 
 VALUE rb_str_new_shared(VALUE string) {
-  return rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(string), "dup"));
+  return RUBY_INVOKE(string, "dup");
 }
 
 VALUE rb_str_new_with_class(VALUE klass, const char *string, long len) {
-  return rb_tr_wrap(polyglot_invoke(polyglot_invoke(rb_tr_unwrap(klass), "class"), "new", rb_tr_unwrap(rb_str_new(string, len))));
+  return RUBY_INVOKE(RUBY_INVOKE(klass, "class"), "new", rb_str_new(string, len));
 }
 
 VALUE rb_tainted_str_new_cstr(const char *ptr) {
@@ -850,7 +845,7 @@ VALUE rb_str_resize(VALUE string, long length) {
 }
 
 VALUE rb_str_split(VALUE string, const char *split) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(string), "split", rb_tr_unwrap(rb_str_new_cstr(split))));
+  return (VALUE) RUBY_INVOKE(string, "split", rb_str_new_cstr(split));
 }
 
 void rb_str_modify(VALUE string) {
@@ -882,7 +877,7 @@ VALUE rb_str_buf_new_cstr(const char *string) {
 }
 
 int rb_str_cmp(VALUE a, VALUE b) {
-  return polyglot_as_i32(polyglot_invoke(rb_tr_unwrap(a), "<=>", rb_tr_unwrap(b)));
+  return polyglot_as_i32(RUBY_INVOKE_NO_WRAP(a, "<=>", b));
 }
 
 VALUE rb_str_buf_cat(VALUE string, const char *to_concat, long length) {
@@ -922,7 +917,7 @@ VALUE rb_external_str_new_with_enc(const char *ptr, long len, rb_encoding *eenc)
 }
 
 VALUE rb_external_str_with_enc(VALUE str, rb_encoding *eenc) {
-  if (polyglot_as_boolean(polyglot_invoke(rb_tr_unwrap(rb_enc_from_encoding(eenc)), "==", rb_tr_unwrap(rb_enc_from_encoding(rb_usascii_encoding())))) &&
+  if (polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(rb_enc_from_encoding(eenc), "==", rb_enc_from_encoding(rb_usascii_encoding()))) &&
     rb_enc_str_coderange(str) != ENC_CODERANGE_7BIT) {
     rb_enc_associate_index(str, rb_ascii8bit_encindex());
     return str;
@@ -1010,19 +1005,19 @@ int rb_filesystem_encindex(void) {
 }
 
 rb_encoding *get_encoding(VALUE string) {
-  return rb_to_encoding(rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(string), "encoding")));
+  return rb_to_encoding(RUBY_INVOKE(string, "encoding"));
 }
 
 VALUE rb_str_intern(VALUE string) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(string), "intern"));
+  return (VALUE) RUBY_INVOKE(string, "intern");
 }
 
 VALUE rb_str_length(VALUE string) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(string), "length"));
+  return (VALUE) RUBY_INVOKE(string, "length");
 }
 
 VALUE rb_str_plus(VALUE a, VALUE b) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(a), "+", rb_tr_unwrap(b)));
+  return (VALUE) RUBY_INVOKE(a, "+", b);
 }
 
 VALUE rb_str_subseq(VALUE string, long beg, long len) {
@@ -1042,11 +1037,11 @@ void rb_str_update(VALUE string, long beg, long len, VALUE value) {
 }
 
 VALUE rb_str_replace(VALUE str, VALUE by) {
-  return rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(str), "replace", rb_tr_unwrap(by)));
+  return RUBY_INVOKE(str, "replace", by);
 }
 
 VALUE rb_str_equal(VALUE a, VALUE b) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(a), "==", rb_tr_unwrap(b)));
+  return (VALUE) RUBY_INVOKE(a, "==", b);
 }
 
 void rb_str_free(VALUE string) {
@@ -1084,7 +1079,7 @@ rb_encoding *rb_usascii_encoding(void) {
 }
 
 int rb_enc_asciicompat(rb_encoding *enc) {
-  return polyglot_as_boolean(polyglot_invoke(rb_tr_unwrap(rb_enc_from_encoding(enc)), "ascii_compatible?"));
+  return polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(rb_enc_from_encoding(enc), "ascii_compatible?"));
 }
 
 void rb_must_asciicompat(VALUE str) {
@@ -1123,7 +1118,7 @@ VALUE rb_enc_associate_index(VALUE obj, int idx) {
 }
 
 rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2) {
-  VALUE result = rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(rb_cEncoding), "compatible?", rb_tr_unwrap(str1), rb_tr_unwrap(str2)));
+  VALUE result = RUBY_INVOKE(rb_cEncoding, "compatible?", str1, str2);
   if (!NIL_P(result)) {
     return rb_to_encoding(result);
   }
@@ -1190,7 +1185,7 @@ void rb_tr_add_flags(VALUE value, int flags) {
 #undef rb_enc_str_new
 VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {
   VALUE ret;
-  ret = rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(rb_str_new(ptr, len)), "force_encoding", rb_tr_unwrap(rb_enc_from_encoding(enc))));
+  ret = RUBY_INVOKE(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(enc));
   return ret;
 }
 
@@ -1199,7 +1194,7 @@ void rb_enc_raise(rb_encoding *enc, VALUE exc, const char *fmt, ...) {
     va_start(args, fmt);
     VALUE mesg = rb_vsprintf(fmt, args);
     va_end(args);
-    rb_exc_raise(rb_exc_new_str(exc, rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(mesg), "force_encoding", rb_tr_unwrap(rb_enc_from_encoding(enc))))));
+    rb_exc_raise(rb_exc_new_str(exc, RUBY_INVOKE(mesg, "force_encoding", rb_enc_from_encoding(enc))));
 }
 
 VALUE rb_enc_sprintf(rb_encoding *enc, const char *format, ...) {
@@ -1211,7 +1206,7 @@ int rb_enc_to_index(rb_encoding *enc) {
 }
 
 VALUE rb_obj_encoding(VALUE obj) {
-  return rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(obj), "encoding"));
+  return RUBY_INVOKE(obj, "encoding");
 }
 
 VALUE rb_str_encode(VALUE str, VALUE to, int ecflags, VALUE ecopts) {
@@ -1219,11 +1214,11 @@ VALUE rb_str_encode(VALUE str, VALUE to, int ecflags, VALUE ecopts) {
 }
 
 VALUE rb_usascii_str_new(const char *ptr, long len) {
-  return rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(rb_str_new(ptr, len)), "force_encoding", rb_tr_unwrap(rb_enc_from_encoding(rb_usascii_encoding()))));
+  return RUBY_INVOKE(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(rb_usascii_encoding()));
 }
 
 VALUE rb_usascii_str_new_cstr(const char *ptr) {
-  return rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(rb_str_new_cstr(ptr)), "force_encoding", rb_tr_unwrap(rb_enc_from_encoding(rb_usascii_encoding()))));
+  return RUBY_INVOKE(rb_str_new_cstr(ptr), "force_encoding", rb_enc_from_encoding(rb_usascii_encoding()));
 }
 
 int rb_to_encoding_index(VALUE enc) {
@@ -1259,11 +1254,11 @@ int rb_enc_precise_mbclen(const char *p, const char *e, rb_encoding *enc) {
 }
 
 VALUE rb_str_times(VALUE string, VALUE times) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(string), "*", rb_tr_unwrap(times)));
+  return (VALUE) RUBY_INVOKE(string, "*", times);
 }
 
 int rb_enc_dummy_p(rb_encoding *enc) {
-  return polyglot_as_i32(polyglot_invoke(rb_tr_unwrap(rb_enc_from_encoding(enc)), "dummy?"));
+  return polyglot_as_i32(RUBY_INVOKE_NO_WRAP(rb_enc_from_encoding(enc), "dummy?"));
 }
 
 int rb_enc_mbmaxlen(rb_encoding *enc) {
@@ -1310,7 +1305,7 @@ int rb_econv_prepare_opts(VALUE opthash, VALUE *opts) {
 // Symbol
 
 ID rb_to_id(VALUE name) {
-  return SYM2ID((VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(name), "to_sym")));
+  return SYM2ID((VALUE) RUBY_INVOKE(name, "to_sym"));
 }
 
 ID rb_intern(const char *string) {
@@ -1326,7 +1321,7 @@ ID rb_intern3(const char *name, long len, rb_encoding *enc) {
 }
 
 VALUE rb_sym2str(VALUE string) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(string), "to_s"));
+  return (VALUE) RUBY_INVOKE(string, "to_s");
 }
 
 const char *rb_id2name(ID id) {
@@ -1405,7 +1400,7 @@ VALUE rb_ary_push(VALUE array, VALUE value) {
 }
 
 VALUE rb_ary_pop(VALUE array) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(array), "pop"));
+  return (VALUE) RUBY_INVOKE(array, "pop");
 }
 
 void rb_ary_store(VALUE array, long index, VALUE value) {
@@ -1421,7 +1416,7 @@ VALUE rb_ary_each(VALUE array) {
 }
 
 VALUE rb_ary_unshift(VALUE array, VALUE value) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(array), "unshift", rb_tr_unwrap(value)));
+  return (VALUE) RUBY_INVOKE(array, "unshift", value);
 }
 
 VALUE rb_ary_aref(int n, const VALUE* values, VALUE array) {
@@ -1429,11 +1424,11 @@ VALUE rb_ary_aref(int n, const VALUE* values, VALUE array) {
 }
 
 VALUE rb_ary_clear(VALUE array) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(array), "clear"));
+  return (VALUE) RUBY_INVOKE(array, "clear");
 }
 
 VALUE rb_ary_delete(VALUE array, VALUE value) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(array), "delete", rb_tr_unwrap(value)));
+  return (VALUE) RUBY_INVOKE(array, "delete", value);
 }
 
 VALUE rb_ary_delete_at(VALUE array, long n) {
@@ -1441,31 +1436,31 @@ VALUE rb_ary_delete_at(VALUE array, long n) {
 }
 
 VALUE rb_ary_includes(VALUE array, VALUE value) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(array), "include?", rb_tr_unwrap(value)));
+  return (VALUE) RUBY_INVOKE(array, "include?", value);
 }
 
 VALUE rb_ary_join(VALUE array, VALUE sep) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(array), "join", rb_tr_unwrap(sep)));
+  return (VALUE) RUBY_INVOKE(array, "join", sep);
 }
 
 VALUE rb_ary_to_s(VALUE array) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(array), "to_s"));
+  return (VALUE) RUBY_INVOKE(array, "to_s");
 }
 
 VALUE rb_ary_reverse(VALUE array) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(array), "reverse!"));
+  return (VALUE) RUBY_INVOKE(array, "reverse!");
 }
 
 VALUE rb_ary_shift(VALUE array) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(array), "shift"));
+  return (VALUE) RUBY_INVOKE(array, "shift");
 }
 
 VALUE rb_ary_concat(VALUE a, VALUE b) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(a), "concat", rb_tr_unwrap(b)));
+  return (VALUE) RUBY_INVOKE(a, "concat", b);
 }
 
 VALUE rb_ary_plus(VALUE a, VALUE b) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(a), "+", rb_tr_unwrap(b)));
+  return (VALUE) RUBY_INVOKE(a, "+", b);
 }
 
 VALUE rb_iterate(VALUE (*function)(), VALUE arg1, VALUE (*block)(), VALUE arg2) {
@@ -1476,7 +1471,7 @@ VALUE rb_each(VALUE array) {
   if (rb_block_given_p()) {
     return rb_funcall_with_block(array, rb_intern("each"), 0, NULL, rb_block_proc());
   } else {
-    return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(array), "each"));
+    return (VALUE) RUBY_INVOKE(array, "each");
   }
 }
 
@@ -1502,7 +1497,7 @@ VALUE rb_check_array_type(VALUE array) {
 }
 
 VALUE rb_ary_cat(VALUE array, const VALUE *cat, long n) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(array), "concat", rb_tr_unwrap(rb_ary_new4(n, cat))));
+  return (VALUE) RUBY_INVOKE(array, "concat", rb_ary_new4(n, cat));
 }
 
 VALUE rb_ary_rotate(VALUE array, long n) {
@@ -1531,11 +1526,11 @@ VALUE rb_hash_aref(VALUE hash, VALUE key) {
 }
 
 VALUE rb_hash_fetch(VALUE hash, VALUE key) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(hash), "fetch", rb_tr_unwrap(key)));
+  return (VALUE) RUBY_INVOKE(hash, "fetch", key);
 }
 
 VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE value) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(hash), "[]=", rb_tr_unwrap(key), rb_tr_unwrap(value)));
+  return (VALUE) RUBY_INVOKE(hash, "[]=", key, value);
 }
 
 VALUE rb_hash_dup(VALUE hash) {
@@ -1547,7 +1542,7 @@ VALUE rb_hash_lookup(VALUE hash, VALUE key) {
 }
 
 VALUE rb_hash_lookup2(VALUE hash, VALUE key, VALUE default_value) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(hash), "fetch", rb_tr_unwrap(key), rb_tr_unwrap(default_value)));
+  return (VALUE) RUBY_INVOKE(hash, "fetch", key, default_value);
 }
 
 VALUE rb_hash_set_ifnone(VALUE hash, VALUE if_none) {
@@ -1567,18 +1562,18 @@ st_index_t rb_memhash(const void *data, long length) {
 }
 
 VALUE rb_hash_clear(VALUE hash) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(hash), "clear"));
+  return (VALUE) RUBY_INVOKE(hash, "clear");
 }
 
 VALUE rb_hash_delete(VALUE hash, VALUE key) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(hash), "delete", rb_tr_unwrap(key)));
+  return (VALUE) RUBY_INVOKE(hash, "delete", key);
 }
 
 VALUE rb_hash_delete_if(VALUE hash) {
   if (rb_block_given_p()) {
     return rb_funcall_with_block(hash, rb_intern("delete_if"), 0, NULL, rb_block_proc());
   } else {
-    return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(hash), "delete_if"));
+    return (VALUE) RUBY_INVOKE(hash, "delete_if");
   }
 }
 
@@ -1587,7 +1582,7 @@ void rb_hash_foreach(VALUE hash, int (*func)(ANYARGS), VALUE farg) {
 }
 
 VALUE rb_hash_size(VALUE hash) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(hash), "size"));
+  return (VALUE) RUBY_INVOKE(hash, "size");
 }
 
 // Class
@@ -1604,7 +1599,7 @@ VALUE rb_class_real(VALUE ruby_class) {
 }
 
 VALUE rb_class_superclass(VALUE ruby_class) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(ruby_class), "superclass"));
+  return (VALUE) RUBY_INVOKE(ruby_class, "superclass");
 }
 
 VALUE rb_obj_class(VALUE object) {
@@ -1612,7 +1607,7 @@ VALUE rb_obj_class(VALUE object) {
 }
 
 VALUE rb_singleton_class(VALUE object) {
-  return rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(object), "singleton_class"));
+  return RUBY_INVOKE(object, "singleton_class");
 }
 
 VALUE rb_class_of(VALUE object) {
@@ -1620,11 +1615,11 @@ VALUE rb_class_of(VALUE object) {
 }
 
 VALUE rb_obj_alloc(VALUE ruby_class) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(ruby_class), "__allocate__"));
+  return (VALUE) RUBY_INVOKE(ruby_class, "__allocate__");
 }
 
 VALUE rb_class_path(VALUE ruby_class) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(ruby_class), "name"));
+  return (VALUE) RUBY_INVOKE(ruby_class, "name");
 }
 
 VALUE rb_path2class(const char *string) {
@@ -1636,7 +1631,7 @@ VALUE rb_path_to_class(VALUE pathname) {
 }
 
 VALUE rb_class_name(VALUE ruby_class) {
-  VALUE name = rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(ruby_class), "name"));
+  VALUE name = RUBY_INVOKE(ruby_class, "name");
 
   if (NIL_P(name)) {
     return rb_class_name(rb_obj_class(ruby_class));
@@ -1682,7 +1677,7 @@ void rb_define_class_variable(VALUE klass, const char *name, VALUE val) {
 }
 
 VALUE rb_mod_ancestors(VALUE mod) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(mod), "ancestors"));
+  return (VALUE) RUBY_INVOKE(mod, "ancestors");
 }
 
 // Proc
@@ -1744,7 +1739,7 @@ char* ruby_strdup(const char *str) {
 // Calls
 
 int rb_respond_to(VALUE object, ID name) {
-  return polyglot_as_boolean(polyglot_invoke(rb_tr_unwrap((void *)object), "respond_to?", rb_tr_unwrap(name)));
+  return polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(object, "respond_to?", name));
 }
 
 VALUE rb_funcallv(VALUE object, ID name, int args_count, const VALUE *args) {
@@ -1838,17 +1833,17 @@ VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value) {
 }
 
 VALUE rb_attr_get(VALUE object, ID name) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ivar_lookup", rb_tr_unwrap(object), rb_tr_unwrap(name), rb_tr_unwrap(Qnil)));
+  return (VALUE) RUBY_CEXT_INVOKE("rb_ivar_lookup", object, name, Qnil);
 }
 
 // Accessing constants
 
 int rb_const_defined(VALUE module, ID name) {
-  return polyglot_as_boolean(polyglot_invoke(rb_tr_unwrap(module), "const_defined?", rb_tr_unwrap(name)));
+  return polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(module, "const_defined?", name));
 }
 
 int rb_const_defined_at(VALUE module, ID name) {
-  return polyglot_as_boolean(polyglot_invoke(rb_tr_unwrap(module), "const_defined?", rb_tr_unwrap(name), rb_tr_unwrap(Qfalse)));
+  return polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(module, "const_defined?", name, Qfalse));
 }
 
 VALUE rb_const_get(VALUE module, ID name) {
@@ -1856,7 +1851,7 @@ VALUE rb_const_get(VALUE module, ID name) {
 }
 
 VALUE rb_const_get_at(VALUE module, ID name) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(module), "const_get", rb_tr_unwrap(name), rb_tr_unwrap(Qfalse)));
+  return (VALUE) RUBY_INVOKE(module, "const_get", name, Qfalse);
 }
 
 VALUE rb_const_get_from(VALUE module, ID name) {
@@ -1936,15 +1931,15 @@ void rb_secure(int safe_level) {
 // Exceptions
 
 VALUE rb_exc_new(VALUE etype, const char *ptr, long len) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(etype), "new", rb_tr_unwrap(rb_str_new(ptr, len))));
+  return (VALUE) RUBY_INVOKE(etype, "new", rb_str_new(ptr, len));
 }
 
 VALUE rb_exc_new_cstr(VALUE exception_class, const char *message) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(exception_class), "new", rb_tr_unwrap(rb_str_new_cstr(message))));
+  return (VALUE) RUBY_INVOKE(exception_class, "new", rb_str_new_cstr(message));
 }
 
 VALUE rb_exc_new_str(VALUE exception_class, VALUE message) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(exception_class), "new", rb_tr_unwrap(message)));
+  return (VALUE) RUBY_INVOKE(exception_class, "new", message);
 }
 
 void rb_exc_raise(VALUE exception) {
@@ -1974,7 +1969,7 @@ VALUE rb_errinfo(void) {
 }
 
 void rb_syserr_fail(int eno, const char *message) {
-  polyglot_invoke(RUBY_CEXT, "rb_syserr_fail", eno, message == NULL ? rb_tr_unwrap(Qnil) : rb_tr_unwrap(rb_str_new_cstr(message)));
+  polyglot_invoke(RUBY_CEXT, "rb_syserr_fail", eno, rb_tr_unwrap(message == NULL ? Qnil : rb_str_new_cstr(message)));
   rb_tr_error("rb_syserr_fail should not return");
 }
 
@@ -2019,7 +2014,7 @@ void rb_throw(const char *tag, VALUE val) {
 }
 
 void rb_throw_obj(VALUE tag, VALUE value) {
-  polyglot_invoke(rb_tr_unwrap(rb_mKernel), "throw", rb_tr_unwrap(tag), value == NULL ? rb_tr_unwrap(Qnil) : rb_tr_unwrap(value));
+  RUBY_INVOKE_NO_WRAP(rb_mKernel, "throw", tag, value == NULL ? Qnil : value);
   rb_tr_error("rb_throw_obj should not return");
 }
 
@@ -2063,7 +2058,7 @@ VALUE rb_define_module_under(VALUE module, const char *name) {
 }
 
 void rb_include_module(VALUE module, VALUE to_include) {
-  polyglot_invoke(rb_tr_unwrap(module), "include", rb_tr_unwrap(to_include));
+  RUBY_INVOKE_NO_WRAP(module, "include", to_include);
 }
 
 void rb_define_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
@@ -2076,12 +2071,12 @@ void rb_define_method(VALUE module, const char *name, VALUE (*function)(ANYARGS)
 
 void rb_define_private_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
   rb_define_method(module, name, function, argc);
-  polyglot_invoke(rb_tr_unwrap(module), "private", rb_tr_unwrap(rb_str_new_cstr(name)));
+  RUBY_INVOKE_NO_WRAP(module, "private", rb_str_new_cstr(name));
 }
 
 void rb_define_protected_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
   rb_define_method(module, name, function, argc);
-  polyglot_invoke(rb_tr_unwrap(module), "protected", rb_tr_unwrap(rb_str_new_cstr(name)));
+  RUBY_INVOKE_NO_WRAP(module, "protected", rb_str_new_cstr(name));
 }
 
 void rb_define_module_function(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
@@ -2126,7 +2121,7 @@ void rb_undef_alloc_func(VALUE ruby_class) {
 }
 
 VALUE rb_obj_method(VALUE obj, VALUE vid) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(obj), "method", rb_tr_unwrap(rb_intern_str(vid))));
+  return (VALUE) RUBY_INVOKE(obj, "method", rb_intern_str(vid));
 }
 
 // Rational
@@ -2144,19 +2139,19 @@ VALUE rb_rational_new(VALUE num, VALUE den) {
 }
 
 VALUE rb_rational_num(VALUE rat) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(rat), "numerator"));
+  return (VALUE) RUBY_INVOKE(rat, "numerator");
 }
 
 VALUE rb_rational_den(VALUE rat) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(rat), "denominator"));
+  return (VALUE) RUBY_INVOKE(rat, "denominator");
 }
 
 VALUE rb_flt_rationalize_with_prec(VALUE value, VALUE precision) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(value), "rationalize", rb_tr_unwrap(precision)));
+  return (VALUE) RUBY_INVOKE(value, "rationalize", precision);
 }
 
 VALUE rb_flt_rationalize(VALUE value) {
-    return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(value), "rationalize"));
+    return (VALUE) RUBY_INVOKE(value, "rationalize");
 }
 
 // Complex
@@ -2261,8 +2256,8 @@ struct timeval rb_time_interval(VALUE time_val) {
   struct timeval result;
 
   VALUE time = rb_time_num_new(time_val, Qnil);
-  result.tv_sec = polyglot_as_i64(polyglot_invoke(rb_tr_unwrap(time), "tv_sec"));
-  result.tv_usec = polyglot_as_i64(polyglot_invoke(rb_tr_unwrap(time), "tv_usec"));
+  result.tv_sec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_sec"));
+  result.tv_usec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_usec"));
 
   return result;
 }
@@ -2271,8 +2266,8 @@ struct timeval rb_time_timeval(VALUE time_val) {
   struct timeval result;
 
   VALUE time = rb_time_num_new(time_val, Qnil);
-  result.tv_sec = polyglot_as_i64(polyglot_invoke(rb_tr_unwrap(time), "tv_sec"));
-  result.tv_usec = polyglot_as_i64(polyglot_invoke(rb_tr_unwrap(time), "tv_usec"));
+  result.tv_sec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_sec"));
+  result.tv_usec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_usec"));
 
   return result;
 }
@@ -2281,8 +2276,8 @@ struct timespec rb_time_timespec(VALUE time_val) {
   struct timespec result;
 
   VALUE time = rb_time_num_new(time_val, Qnil);
-  result.tv_sec = polyglot_as_i64(polyglot_invoke(rb_tr_unwrap(time), "tv_sec"));
-  result.tv_nsec = polyglot_as_i64(polyglot_invoke(rb_tr_unwrap(time), "tv_nsec"));
+  result.tv_sec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_sec"));
+  result.tv_nsec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_nsec"));
 
   return result;
 }
@@ -2294,7 +2289,7 @@ VALUE rb_time_timespec_new(const struct timespec *ts, int offset) {
 }
 
 void rb_timespec_now(struct timespec *ts) {
-  struct timeval tv = rb_time_timeval((VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(rb_cTime), "now")));
+  struct timeval tv = rb_time_timeval((VALUE) RUBY_INVOKE(rb_cTime, "now"));
   ts->tv_sec = tv.tv_sec;
   ts->tv_nsec = tv.tv_usec * 1000;
 }
@@ -2420,15 +2415,15 @@ int rb_thread_alone(void) {
 }
 
 VALUE rb_thread_current(void) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(rb_tr_get_Thread()), "current"));
+  return (VALUE) RUBY_INVOKE(rb_tr_get_Thread(), "current");
 }
 
 VALUE rb_thread_local_aref(VALUE thread, ID id) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(thread), "[]", rb_tr_unwrap(ID2SYM(id))));
+  return (VALUE) RUBY_INVOKE(thread, "[]", ID2SYM(id));
 }
 
 VALUE rb_thread_local_aset(VALUE thread, ID id, VALUE val) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(thread), "[]=", rb_tr_unwrap(ID2SYM(id)), rb_tr_unwrap(val)));
+  return (VALUE) RUBY_INVOKE(thread, "[]=", ID2SYM(id), val);
 }
 
 void rb_thread_wait_for(struct timeval time) {
@@ -2437,7 +2432,7 @@ void rb_thread_wait_for(struct timeval time) {
 }
 
 VALUE rb_thread_wakeup(VALUE thread) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(thread), "wakeup"));
+  return (VALUE) RUBY_INVOKE(thread, "wakeup");
 }
 
 VALUE rb_thread_create(VALUE (*fn)(ANYARGS), void *arg) {
@@ -2554,7 +2549,7 @@ VALUE rb_io_taint_check(VALUE io) {
 }
 
 VALUE rb_io_close(VALUE io) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(io), "close"));
+  return (VALUE) RUBY_INVOKE(io, "close");
 }
 
 VALUE rb_io_print(int argc, const VALUE *argv, VALUE out) {
@@ -2570,11 +2565,11 @@ VALUE rb_io_puts(int argc, const VALUE *argv, VALUE out) {
 }
 
 VALUE rb_io_write(VALUE io, VALUE str) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(io), "write", rb_tr_unwrap(str)));
+  return (VALUE) RUBY_INVOKE(io, "write", str);
 }
 
 VALUE rb_io_binmode(VALUE io) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(io), "binmode"));
+  return (VALUE) RUBY_INVOKE(io, "binmode");
 }
 
 int rb_thread_fd_writable(int fd) {
@@ -2590,15 +2585,15 @@ int rb_cloexec_open(const char *pathname, int flags, mode_t mode) {
 }
 
 VALUE rb_file_open(const char *fname, const char *modestr) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(rb_cFile), "open", rb_tr_unwrap(rb_str_new_cstr(fname)), rb_tr_unwrap(rb_str_new_cstr(modestr))));
+  return (VALUE) RUBY_INVOKE(rb_cFile, "open", rb_str_new_cstr(fname), rb_str_new_cstr(modestr));
 }
 
 VALUE rb_file_open_str(VALUE fname, const char *modestr) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(rb_cFile), "open", rb_tr_unwrap(fname), rb_tr_unwrap(rb_str_new_cstr(modestr))));
+  return (VALUE) RUBY_INVOKE(rb_cFile, "open", fname, rb_str_new_cstr(modestr));
 }
 
 VALUE rb_get_path(VALUE object) {
-  return (VALUE) rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(rb_cFile), "path", rb_tr_unwrap(object)));
+  return (VALUE) RUBY_INVOKE(rb_cFile, "path", object);
 }
 
 int rb_tr_readable(int mode) {
@@ -2613,8 +2608,8 @@ MUST_INLINE
 int rb_io_extract_encoding_option(VALUE opt, rb_encoding **enc_p, rb_encoding **enc2_p, int *fmode_p) {
   // TODO (pitr-ch 12-Jun-2017): review, just approximate implementation
   VALUE encoding = rb_cEncoding;
-  VALUE external_encoding = rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(encoding), "default_external"));
-  VALUE internal_encoding = rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(encoding), "default_internal"));
+  VALUE external_encoding = RUBY_INVOKE(encoding, "default_external");
+  VALUE internal_encoding = RUBY_INVOKE(encoding, "default_internal");
   if (!NIL_P(external_encoding)) {
     *enc_p = rb_to_encoding(external_encoding);
   }
@@ -2671,7 +2666,7 @@ VALUE rb_struct_new(VALUE klass, ...) {
 }
 
 VALUE rb_struct_size(VALUE s) {
-  return rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(s), "size"));
+  return RUBY_INVOKE(s, "size");
 }
 
 VALUE rb_struct_getmember(VALUE obj, ID id) {

@@ -120,22 +120,26 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 #define SCAN_ARGS_IMPL(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, NAME, ...) NAME
 #define rb_scan_args(ARGC, ARGV, FORMAT, ...) SCAN_ARGS_IMPL(__VA_ARGS__, rb_tr_scan_args_10, rb_tr_scan_args_9, rb_tr_scan_args_8, rb_tr_scan_args_7, rb_tr_scan_args_6, rb_tr_scan_args_5, rb_tr_scan_args_4, rb_tr_scan_args_3, rb_tr_scan_args_2, rb_tr_scan_args_1)(ARGC, ARGV, FORMAT, __VA_ARGS__)
 
-#define RUBY_CEXT_INVOKE_0(name) polyglot_invoke(RUBY_CEXT, name)
-#define RUBY_CEXT_INVOKE_1(name, V1) polyglot_invoke(RUBY_CEXT, name, rb_tr_unwrap(V1))
-#define RUBY_CEXT_INVOKE_2(name, V1, V2) polyglot_invoke(RUBY_CEXT, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2))
-#define RUBY_CEXT_INVOKE_3(name, V1, V2, V3) polyglot_invoke(RUBY_CEXT, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3))
-#define RUBY_CEXT_INVOKE_4(name, V1, V2, V3, V4) polyglot_invoke(RUBY_CEXT, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4))
-#define RUBY_CEXT_INVOKE_5(name, V1, V2, V3, V4, V5) polyglot_invoke(RUBY_CEXT, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5))
-#define RUBY_CEXT_INVOKE_6(name, V1, V2, V3, V4, V5, V6) polyglot_invoke(RUBY_CEXT, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6))
-#define RUBY_CEXT_INVOKE_7(name, V1, V2, V3, V4, V5, V6, V7) polyglot_invoke(RUBY_CEXT, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7))
-#define RUBY_CEXT_INVOKE_8(name, V1, V2, V3, V4, V5, V6, V7, V8) polyglot_invoke(RUBY_CEXT, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8))
-#define RUBY_CEXT_INVOKE_9(name, V1, V2, V3, V4, V5, V6, V7, V8, V9) polyglot_invoke(RUBY_CEXT, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9))
-#define RUBY_CEXT_INVOKE_10(name, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10) polyglot_invoke(RUBY_CEXT, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9), rb_tr_unwrap(V10))
-#define INVOKE_IMPL(MESG, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, NAME, ...) NAME
-#define RUBY_CEXT_INVOKE_NO_WRAP(NAME, ...) INVOKE_IMPL(NAME, ##__VA_ARGS__, RUBY_CEXT_INVOKE_10, RUBY_CEXT_INVOKE_9, RUBY_CEXT_INVOKE_8, RUBY_CEXT_INVOKE_7, RUBY_CEXT_INVOKE_6, RUBY_CEXT_INVOKE_5, RUBY_CEXT_INVOKE_4, RUBY_CEXT_INVOKE_3, RUBY_CEXT_INVOKE_2, RUBY_CEXT_INVOKE_1, RUBY_CEXT_INVOKE_0)(NAME, ##__VA_ARGS__)
-#define RUBY_CEXT_INVOKE(NAME, ...) rb_tr_wrap(RUBY_CEXT_INVOKE_NO_WRAP(NAME, ##__VA_ARGS__))
-#define RUBY_CEXT_INVOKE_00_NO_WRAP(NAME) polyglot_invoke(RUBY_CEXT, NAME)
-#define RUBY_CEXT_INVOKE_00(NAME) rb_tr_wrap(RUBY_CEXT_INVOKE_00_NO_WRAP(NAME))
+#define RUBY_INT_INVOKE_0(recv, name) polyglot_invoke(recv, name)
+#define RUBY_INT_INVOKE_1(recv, name, V1) polyglot_invoke(recv, name, rb_tr_unwrap(V1))
+#define RUBY_INT_INVOKE_2(recv, name, V1, V2) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2))
+#define RUBY_INT_INVOKE_3(recv, name, V1, V2, V3) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3))
+#define RUBY_INT_INVOKE_4(recv, name, V1, V2, V3, V4) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4))
+#define RUBY_INT_INVOKE_5(recv, name, V1, V2, V3, V4, V5) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5))
+#define RUBY_INT_INVOKE_6(recv, name, V1, V2, V3, V4, V5, V6) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6))
+#define RUBY_INT_INVOKE_7(recv, name, V1, V2, V3, V4, V5, V6, V7) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7))
+#define RUBY_INT_INVOKE_8(recv, name, V1, V2, V3, V4, V5, V6, V7, V8) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8))
+#define RUBY_INT_INVOKE_9(recv, name, V1, V2, V3, V4, V5, V6, V7, V8, V9) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9))
+#define RUBY_INT_INVOKE_10(recv, name, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9), rb_tr_unwrap(V10))
+#define INVOKE_IMPL(RECV, MESG, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, NAME, ...) NAME
+#define RUBY_INT_INVOKE_NO_WRAP(RECV, NAME, ...) INVOKE_IMPL(RECV, NAME, ##__VA_ARGS__, RUBY_INT_INVOKE_10, RUBY_INT_INVOKE_9, RUBY_INT_INVOKE_8, RUBY_INT_INVOKE_7, RUBY_INT_INVOKE_6, RUBY_INT_INVOKE_5, RUBY_INT_INVOKE_4, RUBY_INT_INVOKE_3, RUBY_INT_INVOKE_2, RUBY_INT_INVOKE_1, RUBY_INT_INVOKE_0)(RECV, NAME, ##__VA_ARGS__)
+#define RUBY_INT_INVOKE(RECV, NAME, ...) rb_tr_wrap(RUBY_INT_INVOKE_NO_WRAP(RECV, NAME, ##__VA_ARGS__))
+
+#define RUBY_INVOKE(RECV, NAME, ...) RUBY_INT_INVOKE(rb_tr_unwrap(RECV), NAME, ##__VA_ARGS__)
+#define RUBY_INVOKE_NO_WRAP(RECV, NAME, ...) RUBY_INT_INVOKE_NO_WRAP(rb_tr_unwrap(RECV), NAME, ##__VA_ARGS__)
+
+#define RUBY_CEXT_INVOKE(NAME, ...) RUBY_INT_INVOKE(RUBY_CEXT, NAME, ##__VA_ARGS__)
+#define RUBY_CEXT_INVOKE_NO_WRAP(NAME, ...) RUBY_INT_INVOKE_NO_WRAP(RUBY_CEXT, NAME, ##__VA_ARGS__)
 
 // Exceptions
 
