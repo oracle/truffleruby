@@ -2,19 +2,23 @@
 
 New features:
 
-* Implemented `Dir.each_child`.
 * macOS clocks `CLOCK_MONOTONIC_RAW`, `_MONOTONIC_RAW_APPROX`, `_UPTIME_RAW`,
   `_UPTIME_RAW_APPROX`, and `_PROCESS_CPUTIME_ID` have been implemented (#1480).
 
 Bug fixes:
 
-* Adding missing support for the `close_others` option to `exec` and `spawn`.
 * FFI::Pointer now does the correct range checks for signed and unsigned values.
 * Allow signal `0` to be used with `Process.kill` (#1474).
 * `IO#dup` now properly sets the new `IO` instance to be close-on-exec.
 * `IO#reopen` now properly resets the receiver to be close-on-exec.
 * `StringIO#set_encoding` no longer raises an exception if the underlying
   `String` is frozen (#1473).
+
+Compatibility:
+
+* Implemented `Dir.each_child`.
+* Adding missing support for the `close_others` option to `exec` and `spawn`.
+* Implemented the missing `MatchData#named_captures` method (#1512).
 
 Changes:
 

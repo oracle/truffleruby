@@ -365,6 +365,10 @@ class MatchData
     regexp.names
   end
 
+  def named_captures
+    names.collect { |name| [name, self[name]] }.to_h
+  end
+
   def pre_match_from(idx)
     source = Truffle.invoke_primitive(:match_data_get_source, self)
     return source.byteslice(0, 0) if self.byte_begin(0) == 0
