@@ -101,6 +101,7 @@ public abstract class Layouts {
     public static final HiddenKey TAINTED_IDENTIFIER = new HiddenKey("tainted?");
     public static final HiddenKey FROZEN_IDENTIFIER = new HiddenKey("frozen?");
     public static final HiddenKey ASSOCIATED_IDENTIFIER = new HiddenKey("associated");
+    public static final HiddenKey FINALIZER_REF_IDENTIFIER = new HiddenKey("finalizerRef");
 
     // Generated layouts
 

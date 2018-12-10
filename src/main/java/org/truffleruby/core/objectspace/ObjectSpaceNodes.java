@@ -147,8 +147,8 @@ public abstract class ObjectSpaceNodes {
         // MRI would do a dynamic call to #respond_to? but it seems better to warn the user earlier.
         // Wanting #method_missing(:call) to be called for a finalizer seems highly unlikely.
         @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode.create();
-        @Child private ReadObjectFieldNode getFinaliserNode = ReadObjectFieldNodeGen.create("finalizerRef", null);
-        @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNodeGen.create("finalizerRef");
+        @Child private ReadObjectFieldNode getFinaliserNode = ReadObjectFieldNodeGen.create(Layouts.FINALIZER_REF_IDENTIFIER, null);
+        @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNodeGen.create(Layouts.FINALIZER_REF_IDENTIFIER);
 
         @Specialization
         public DynamicObject defineFinalizer(VirtualFrame frame, DynamicObject object, Object finalizer,
@@ -173,8 +173,9 @@ public abstract class ObjectSpaceNodes {
 
     @CoreMethod(names = "undefine_finalizer", isModuleFunction = true, required = 1)
     public abstract static class UndefineFinalizerNode extends CoreMethodArrayArgumentsNode {
-        @Child private ReadObjectFieldNode getFinaliserNode = ReadObjectFieldNodeGen.create("finalizerRef", null);
-        @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNodeGen.create("finalizerRef");
+
+        @Child private ReadObjectFieldNode getFinaliserNode = ReadObjectFieldNodeGen.create(Layouts.FINALIZER_REF_IDENTIFIER, null);
+        @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNodeGen.create(Layouts.FINALIZER_REF_IDENTIFIER);
 
         @Specialization
         public Object undefineFinalizer(VirtualFrame frame, DynamicObject object) {
